@@ -73,6 +73,15 @@ s3 = boto3.client("s3", region_name=REGION)
 
 def _http_get(url, timeout=HTTP_TIMEOUT, retries=2):
     h = {"User-Agent": USER_AGENT, "Accept": "application/json"}
+    # 2026-10-23: Quiver answers 401 without a token. The key lives in SSM (/justhodl/quiver/api-key) the day Khalid
+    # buys one; until then the live leg fails exactly as before and the output stays labelled STALE_CACHE.
+    try:
+        from managed_secret import managed_secret
+        _qk = managed_secret(("QUIVER_API_KEY", "QUIVER_KEY"), ("/justhodl/quiver/api-key",))
+        if _qk and "quiverquant.com" in url:
+            h["Authorization"] = "Bearer " + _qk
+    except Exception:
+        pass
     for attempt in range(retries + 1):
         try:
             req = urllib.request.Request(url, headers=h)

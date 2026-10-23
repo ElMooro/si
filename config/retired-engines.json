@@ -8,7 +8,6 @@
   "justhodl-hist-banker",
   "justhodl-ici-flows",
   "justhodl-kill-switch",
-  "justhodl-sec-bulk",
   "justhodl-transcript-indexer",
   "macro-financial-intelligence",
   "ofrapi",
@@ -68,6 +67,7 @@
  ],
  "restored": {
   "justhodl-insider-cluster-scanner": "data/insider-clusters.json is declared by insider-desk.html and read by 22 engines (199 Lambda fetches/day); the engine had lost its trigger (last output 2026-08-04) and was misclassified idle. Restored from backups/deleted-functions/20261020T205550Z/ and scheduled daily 13:50 UTC ahead of insider-industry-cluster (14:20).",
-  "justhodl-warroom-weights": "Monthly engine (cron 1st 07:10 UTC, last output 2026-10-01) consumed by justhodl-canary-warroom and canaries.html; 'no invocation in 27 days' is the wrong test for a monthly job. Restored from the same backup; its Scheduler schedule justhodl-warroom-weights-monthly was never deleted."
+  "justhodl-warroom-weights": "Monthly engine (cron 1st 07:10 UTC, last output 2026-10-01) consumed by justhodl-canary-warroom and canaries.html; 'no invocation in 27 days' is the wrong test for a monthly job. Restored from the same backup; its Scheduler schedule justhodl-warroom-weights-monthly was never deleted.",
+  "justhodl-sec-bulk": "Restored 2026-10-23 (Khalid: '100% of the data pulled'): SEC XBRL companyfacts/submissions is the free full-history fundamentals source and the warehouse doctrine (2026-09-02) keeps every provider's history on data.html whether or not a page reads it yet. 'Orphan: nobody reads' was the wrong test for a warehouse lane. Weekly (SEC bulk refreshes nightly; quarterly data) - justhodl-sec-bulk-weekly ENABLED, the hourly/daily copies stay DISABLED."
  }
 }

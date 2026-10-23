@@ -9,5 +9,13 @@
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Freight research: retained sources and exact monthly comparisons; unqualified legacy models"
+  "description": "Freight research: retained sources and exact monthly comparisons; unqualified legacy models",
+  "inherit_env": [
+    {
+      "from_function": "justhodl-real-economy-collector",
+      "keys": [
+        "EIA_API_KEY"
+      ]
+    }
+  ]
 }

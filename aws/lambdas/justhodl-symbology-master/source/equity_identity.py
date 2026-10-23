@@ -10,7 +10,12 @@ import math
 import re
 import time
 
-IDENTIFIERS = ('figi', 'figi_name', 'figi_status', 'cusip', 'isin', 'sedol', 'lei')
+IDENTIFIERS = ('figi', 'figi_name', 'figi_status', 'cusip', 'isin', 'sedol', 'lei',
+               'share_class_figi', 'composite_figi', 'security_type', 'security_type2', 'exch_code', 'mic_code')
+# OpenFIGI mapping fields kept verbatim on the master row (audit 2026-10-23: shareClassFIGI / securityType / exchCode
+# were received on every resolution and discarded; the 2026-09-15 brief asked for them).
+FIGI_FIELDS = (('shareClassFIGI', 'share_class_figi'), ('compositeFIGI', 'composite_figi'), ('securityType', 'security_type'),
+               ('securityType2', 'security_type2'), ('exchCode', 'exch_code'), ('micCode', 'mic_code'))
 MASTER_KEY = 'data/symbology/master.json'
 MAX_MASTER_BYTES = 64 * 1024 * 1024
 
@@ -201,6 +206,8 @@ def enrich_figi(by_ticker, context, *, limit=2500, now=None):
             stats['attempted']+=1
             if out['status']=='resolved':
                 row['figi']=out['security']['figi'];row['figi_name']=out['security'].get('name');stats['enriched']+=1
+                for src,dst in FIGI_FIELDS:
+                    row[dst]=out['security'].get(src)
             elif out['status']=='no_match':
                 stats['no_match']+=1
             elif out['status']=='ambiguous':

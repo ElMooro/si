@@ -145,48 +145,57 @@ def collect_upcoming_earnings(days_ahead=14):
     return upcoming
 
 
-# ────────────────────────── Polygon financials (actual results) ──────────────────────────
+# ────────────────────────── Quarterly actuals (FMP Ultimate, entitled) ──────────────────────────
 def fetch_polygon_financials(ticker, limit=4):
-    """Return last N filings. Prefer the FMP harvest (Ultimate, entitled). Polygon
-    stocks-financials is not on the Massive Starter plan and 401s."""
+    """Return the last N quarterly filings {period_start, period_end, filing_date, eps_actual, revenue_actual}.
+
+    Order (2026-10-23 audit): the FMP bank (quarterly income-statement bulk, full history) -> live FMP
+    /stable/income-statement?period=quarter (Ultimate, entitled) -> the TTM harvest's annual rows.  The Polygon
+    /vX/reference/financials fallback is GONE: Stocks Financials is not entitled on this account's Massive plan
+    (doctrine 2026-09-15: never call it) and it 401'd on every daily run.  Name kept for the call sites.
+    """
+    rows = None
+    try:
+        import fmp_bank
+        rows = fmp_bank.statements("income-statement", ticker, period="quarter", limit=limit)
+    except Exception:
+        rows = None
+    if not rows:
+        try:
+            from fmp_stable import fmp_get
+            rows = fmp_get("income-statement", "symbol=%s&period=quarter&limit=%d" % (urllib.parse.quote(str(ticker)), int(limit)))
+        except Exception:
+            rows = None
+    out = []
+    for r in (rows or [])[:limit] if isinstance(rows, list) else []:
+        if not isinstance(r, dict):
+            continue
+        out.append({
+            "period_start": None,
+            "period_end": r.get("date"),
+            "filing_date": r.get("filingDate") or r.get("fillingDate") or r.get("acceptedDate", "")[:10] or r.get("date"),
+            "eps_actual": r.get("eps") if r.get("eps") is not None else r.get("epsDiluted"),
+            "revenue_actual": r.get("revenue"),
+            "source": "FMP income-statement (quarter)",
+        })
+    if out:
+        return out
     try:
         book = json.loads(S3.get_object(Bucket=BUCKET, Key="data/fmp-ratios.json")["Body"].read())
         row = (book.get("tickers") or {}).get(str(ticker).upper().replace(".", "-")) or (book.get("tickers") or {}).get(str(ticker).upper())
         fins = (row or {}).get("financials") or []
-        if fins:
-            out = []
-            for y in fins[:limit]:
-                out.append({
-                    "period_start": None,
-                    "period_end": str(y.get("year") or ""),
-                    "filing_date": str(y.get("year") or ""),
-                    "eps_actual": y.get("eps"),
-                    "revenue_actual": y.get("revenue"),
-                    "source": "FMP FILING harvest",
-                })
-            if out:
-                return out
+        for y in fins[:limit]:
+            out.append({
+                "period_start": None,
+                "period_end": str(y.get("year") or ""),
+                "filing_date": str(y.get("year") or ""),
+                "eps_actual": y.get("eps"),
+                "revenue_actual": y.get("revenue"),
+                "source": "FMP FILING harvest (annual)",
+            })
     except Exception:
         pass
-    url = f"https://api.polygon.io/vX/reference/financials?ticker={urllib.parse.quote(ticker)}&timeframe=quarterly&limit={limit}&apiKey={POLYGON_KEY}"
-    try:
-        d = http_get(url, timeout=15)
-        results = []
-        for r in (d.get("results") or []):
-            fin = r.get("financials", {}) or {}
-            ic = fin.get("income_statement", {}) or {}
-            eps = (ic.get("basic_earnings_per_share") or {}).get("value")
-            rev = (ic.get("revenues") or {}).get("value")
-            results.append({
-                "period_start": r.get("start_date"),
-                "period_end": r.get("end_date"),
-                "filing_date": r.get("filing_date") or r.get("acceptance_datetime", "")[:10],
-                "eps_actual": eps,
-                "revenue_actual": rev,
-            })
-        return results
-    except Exception:
-        return []
+    return out
 
 
 def fetch_polygon_aggs(ticker, from_date, to_date):

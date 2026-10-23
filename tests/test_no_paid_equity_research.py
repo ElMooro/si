@@ -42,7 +42,14 @@ class Policy(unittest.TestCase):
     for before,after in reversed(manifest['edits'][source]):self.assertEqual(text.count(after),1);text=text.replace(after,before)
     self.assertEqual(text,raw.decode('utf-8'))
    else:
-    old=json.loads(raw);new=json.loads((R/source).read_bytes());self.assertEqual(new['environment_keys'],['FMP_KEY']);old['environment_keys'].remove('ANTHROPIC_API_KEY');self.assertEqual(new,old)
+    old=json.loads(raw);new=json.loads((R/source).read_bytes());self.assertEqual(new['environment_keys'],['FMP_KEY']);old['environment_keys'].remove('ANTHROPIC_API_KEY')
+    # 2026-10-20 cadence floor (ops 6553/6585): config.json schedules are governed by config/schedule-manifest.json, the
+    # account's source of truth; a predecessor's schedule is preserved up to that declared retime, nothing else may differ.
+    if old.get('schedule')!=new.get('schedule'):
+     declared={e['expr'] for sec in ('rules','schedules') for e in json.loads((R/'config/schedule-manifest.json').read_bytes())[sec]
+               if any(t['arn'].endswith(':function:'+new.get('function_name',source.split('/')[2])) for t in e.get('targets',[]))}
+     self.assertIn((new.get('schedule') or {}).get('cron'),declared,source);old['schedule']={**(old.get('schedule') or {}),**{k:v for k,v in (new.get('schedule') or {}).items() if k in ('cron','rate','expression','description')}}
+    self.assertEqual(new,old)
 
  def test_no_paid_or_free_transport_needed_for_status(self):
   for name in ('alpha','opportunities'):

@@ -2,36 +2,6 @@
  "generated": "2026-10-20",
  "reason": "Khalid, 2026-10-20: switch off the orphans and the broken writers; delete the idle functions",
  "switch_off": {
-  "justhodl-sec-bulk": {
-   "triggers": [
-    {
-     "kind": "rule",
-     "name": "justhodl-sec-bulk-hourly",
-     "bus": "default",
-     "group": null,
-     "state": "DISABLED",
-     "expr": "cron(16 1 * * ? *)"
-    },
-    {
-     "kind": "sched",
-     "name": "justhodl-sec-bulk-daily",
-     "bus": null,
-     "group": "default",
-     "state": "ENABLED",
-     "expr": "cron(20 4 * * ? *)"
-    },
-    {
-     "kind": "sched",
-     "name": "justhodl-sec-bulk-weekly",
-     "bus": null,
-     "group": "default",
-     "state": "DISABLED",
-     "expr": "cron(0 9 ? * MON *)"
-    }
-   ],
-   "tick": null,
-   "hold": false
-  },
   "justhodl-engine-robustness": {
    "triggers": [
     {
@@ -294,6 +264,40 @@
     ],
     "tick": null
    }
+  }
+ },
+ "restored": {
+  "justhodl-sec-bulk": {
+   "triggers": [
+    {
+     "kind": "rule",
+     "name": "justhodl-sec-bulk-hourly",
+     "bus": "default",
+     "group": null,
+     "state": "DISABLED",
+     "expr": "cron(16 1 * * ? *)"
+    },
+    {
+     "kind": "sched",
+     "name": "justhodl-sec-bulk-daily",
+     "bus": null,
+     "group": "default",
+     "state": "ENABLED",
+     "expr": "cron(20 4 * * ? *)"
+    },
+    {
+     "kind": "sched",
+     "name": "justhodl-sec-bulk-weekly",
+     "bus": null,
+     "group": "default",
+     "state": "DISABLED",
+     "expr": "cron(0 9 ? * MON *)"
+    }
+   ],
+   "tick": null,
+   "hold": false,
+   "restored_at": "2026-10-23",
+   "enabled_trigger": "justhodl-sec-bulk-weekly"
   }
  }
 }

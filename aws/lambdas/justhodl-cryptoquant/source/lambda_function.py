@@ -50,11 +50,17 @@ def _put(k, obj, compact=True):
                   CacheControl="public, max-age=60")
 
 def _token():
-    try:
-        return ssm.get_parameter(Name="/justhodl/cryptoquant/token",
-                                 WithDecryption=True)["Parameter"]["Value"].strip()
-    except Exception:
-        return None
+    """Bearer token from SSM: /justhodl/cryptoquant_api (the parameter the key reconcile tracks, ops 5576/5579) first,
+    then the legacy /justhodl/cryptoquant/token spelling this engine used to read alone (audit 2026-10-23)."""
+    for name in ("/justhodl/cryptoquant_api", "/justhodl/cryptoquant/token"):
+        try:
+            v = ssm.get_parameter(Name=name, WithDecryption=True)["Parameter"]["Value"].strip()
+            if v:
+                return v
+        except Exception:
+            continue
+    return None
+
 
 def _get(url, tok, timeout=30):
     req = urllib.request.Request(url, headers={"Authorization": "Bearer " + tok,

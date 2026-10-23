@@ -1,20 +1,18 @@
 {
-  "name": "eia-energy-agent",
+  "function_name": "eia-energy-agent",
+  "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory_mb": 512,
-  "timeout_s": 120,
-  "code_size_bytes": 2096,
-  "package_type": "Zip",
-  "last_modified": "2026-02-28T07:55:17.000+0000",
-  "role_arn_tail": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "",
-  "env_keys": [
-    "EIA_API_KEY"
-  ],
-  "layers": [],
-  "architectures": [
-    "x86_64"
-  ],
-  "backfilled_at": "2026-04-25T01:22:50.101767+00:00"
+  "memory": 512,
+  "timeout": 120,
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "EIA energy feed data/eia-energy.json: FRED energy prices + EIA weekly petroleum inventories (key inherited from justhodl-real-economy-collector = SSM /justhodl/eia/api-key; the env var was never set here, audit 2026-10-23)",
+  "inherit_env": [
+    {
+      "from_function": "justhodl-real-economy-collector",
+      "keys": [
+        "EIA_API_KEY"
+      ]
+    }
+  ]
 }
