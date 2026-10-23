@@ -13,7 +13,11 @@ This file tracks items that require **your direct action** (registration, creden
    empty body died in evidence retention as the hidden ValueError, every run since Oct 11). Now: live requests paced
    to the limit (12.5 s apart), 429 / empty body = provider failure (never retained), run budget 840 s, Lambda timeout
    900 s. First paced run: complete - 46 requests in ~9.5 min, 42/42 datasets, 7 products, 21 contracts, published;
-   `data/futures-research.json` regenerated 16:45 UTC, the first time since Oct 10. The engine left the 5-minute lane
+   `data/futures-research.json` regenerated 16:45 UTC, the first time since Oct 10. Caveat: the 16:40 lane tick and the
+   16:42 verification invoke overlapped that run and shared the 5/min budget - the 16:40 run published a weaker packet
+   over it at 16:48 (25 of 42 datasets, 15 contracts); nothing has run since the lane removal, and the daily 13:00 UTC
+   run replaces it tomorrow. Worth your word: a one-line guard so a less complete packet never publishes over a more
+   complete one of the same definition date. The engine left the 5-minute lane
    (11 members now; a 9-minute run cannot repeat every 5 minutes) - its daily 13:00 UTC run covers the feed. Still
    worth a look in the Massive dashboard: whether your plan is meant to include futures at a higher rate (then the pace
    can come down). Issue #122 closed.
@@ -121,8 +125,11 @@ later than assumed: 17:30 ET). Dry run ops 6604 at 01:44 UTC: 135 retimes, 0 dri
 19 -> 4, FRED 5 -> 2, ECB 4 -> 2, SEC 3 -> 2), stale reader-writer edges 22 -> 19, mean move 33 min, max 303. Nothing
 faster than daily; no caps, budgets, IAM, lifecycle or archive touched. Applied by ops 6605 at 01:51 UTC: 135 triggers retimed, the
 11:30 UTC late tick created, both S3 manifests equal the repo, 138 planned triggers read back as planned, 0 not as planned
-(one engine runs twice on apply day: cusip-map-rebuild, 01:28 and again 03:30 after the SEC print). First light: the 13:20 UTC
-check reads the morning half, a 23:58 UTC check the evening half - you get both in a few lines.
+(one engine ran twice on apply day: cusip-map-rebuild, 01:28 and again 03:30 after the SEC print). **First light (full day,
+23:59 UTC): 172 of 173 due triggers fired at their new minute** (the one left is stock-xray, whose 00:35 slot was before the
+apply), both late ticks 6/6 and 3/3, the lane's 11 members 96-97 runs each with 0 errors. The day's errors in moved windows
+are engine matters, not the timetable: dark-pool 3 at 23:31 (read next), estimate-revisions (Benzinga calendar),
+research-backtest (its own read deadline). Docs: docs/ops/PIPELINE_ORDER.md "Pass 3".
 
 ### 0h. Pipeline order - APPLIED 2026-10-21 02:59 UTC on Khalid's go (docs/ops/PIPELINE_ORDER.md)
 
@@ -193,7 +200,7 @@ The fleet was thawed on 2026-10-21 00:30 UTC under the full guardrails (ops 6581
 kept, the stage machine asleep until the Nov 1 rollover). A daily Claude health run (06:13 CT) now triages the
 governor's issues, fixes what the gates allow, and files "Daily health run <date>" as a GitHub issue.
 
-### 0f. Bucket: "keep my data, stop the balloon" - the archive is only 38% full; backfill #2 waits for your go (2026-10-22)
+### 0f. Bucket: "keep my data, stop the balloon" - DONE 2026-10-23 00:35 UTC: the archive is a complete copy (3.46 M objects / 1,032 GB; backfill #2 on your "continue")
 
 Three pieces live: (1) the sealed archive bucket `justhodl-warehouse-archive-857687956942` receives every write to
 the live bucket (delete markers never replicated); its policy denies deletes and any weakening to everyone but the
@@ -203,10 +210,11 @@ objects / 1,023 GB**, not the 1.28 M / 434 GB of the census, and the archive hol
 almost entirely: `data/providers/` (1.14 M objects, 294 GB - the series page store) and `data/warm/` (779 k, 207 GB -
 the warm bank), plus `data/series-cache/`, `data/statement-research/`, `data/price-observations/`, `data/symdir/`,
 `data/research-*`, `data/raw/`, `data/vintage-research/`, `data/xbrl-raw/` (ops 6611: 38% of a 3,073-key sample of
-current objects is in the archive). **Say go** and ops 6612 runs backfill #2 from the inventory itself (~2.05 M
-objects / ~584 GB, once ≈ $23; the archive then costs ≈ $13/month of Standard-IA instead of ≈ $6 - the "$10-12/month"
-you were told becomes ≈ $18-20/month). Until then the archive protects the research stores, the audit evidence and
-everything under the prefixes the listing reached, not the warehouse pages or the warm bank.
+current objects was in the archive). **Backfill #2 ran on your "continue"** (ops 6612, job 646ccb69: 2,086,159 /
+2,086,159 succeeded, 0 failed, ~8 hours): the archive now holds 3,456,698 current objects / 1,032 GB - 102% of the
+inventory census (the surplus is the day's live replication), data/providers/ 1,137,345 = the inventory exactly, and a
+3,109-key sample is 100% present. Cost from here ≈ $13/month of Standard-IA plus replication PUTs ≈ $18-20/month all in
+(the earlier "$10-12" assumed the truncated 434 GB).
 (2) old copies capped at the 10 newest per file bucket-wide (current files untouched by any rule) - the inventory of
 2026-10-21 still lists 8.4 M old copies (7.2 M of data/miss-calibrator-proposals.json, 573 k of the audit key), but
 they are already expired and unbilled (the bucket bills ~1.03 TB = its current objects); S3 removes them from the
