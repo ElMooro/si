@@ -21,7 +21,7 @@ REGION = "us-east-1"
 LIVE = "justhodl-dashboard-live"
 FN = "justhodl-polygon-futures-curves"
 REQ_PREFIX = "audit-private/20260909-originals/futures-research/requests/"
-SINCE = datetime(2026, 10, 22, 16, 30, tzinfo=timezone.utc)
+SINCE = datetime(2026, 10, 23, 12, 30, tzinfo=timezone.utc)
 CFG = Config(retries={"max_attempts": 8, "mode": "standard"}, connect_timeout=10, read_timeout=120)
 
 
