@@ -82,13 +82,16 @@ def count_archive(s3, budget_s=900):
             token = rr.get("NextContinuationToken")
             if not token or time.time() > deadline:
                 return p, n, b, bool(token)
-    total, bytes_, partial = root, 0, []
+    total, bytes_, partial, per = root, 0, [], {}
     with cf.ThreadPoolExecutor(max_workers=24) as ex:
         for p, n, b, trunc in ex.map(one, prefixes):
             total += n
             bytes_ += b
+            per[p] = n
             if trunc:
                 partial.append(p)
+    count_archive.detail = {"prefixes": len(prefixes), "root_files": root, "top": sorted(per.items(), key=lambda kv: -kv[1])[:8],
+                            "providers": per.get("data/providers/"), "warm": per.get("data/warm/")}
     return total, bytes_, partial
 
 
@@ -124,6 +127,7 @@ def main():
         js = job_status(s3c)
         r.log("backfill job: %s" % json.dumps(js))
         total, bytes_, partial = count_archive(s3)
+        r.log("archive listing detail: %s" % json.dumps(getattr(count_archive, "detail", {})))
         r.log("archive: %d current objects, %.1f GB%s; live bucket current objects (census): %d -> %.1f%% backfilled" % (
             total, bytes_ / 1024 ** 3, " (partial: %s)" % partial if partial else "", LIVE_CURRENT, 100.0 * total / LIVE_CURRENT))
         try:
