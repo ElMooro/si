@@ -94,7 +94,15 @@ covered those prefixes until ops 6571 (the bucket's billed storage is ~1.03 TB =
 3.8 M objects, the inventory 11.8 M rows - expired versions are no longer billed but stay visible in listings until S3
 removes them asynchronously, which for millions of versions takes days). The keys outside those prefixes
 (student-state.json, crypto-intel.json, factory/, signals/, portfolio/ ...) are the count rule's job and will show at
-10 in a later inventory; the daily inventory (delivered ~14:40 UTC for the 01:00 UTC stamp) is the check.
+10 in a later inventory; the daily inventory (delivered 14-20 h after its 01:00 UTC stamp) is the check.
+
+Trend, inventory 2026-10-22 01:00 UTC (read 2026-10-23 15:33, ops 6610) against 2026-10-21: old copies 8,419,588 ->
+8,040,791 (-379 k in a day), keys above the 10-copy cap 3,688 -> 2,271, copies above the cap 7,993,648 -> 7,575,589;
+miss-calibrator-proposals.json 7,197,422 -> 6,808,388 (-5.4 %/day: S3 drains the expired pile asynchronously, roughly
+two to three weeks at this pace), the audit key 573,495 -> 571,385, student-state.json 46,005 -> 45,614, crypto-intel
+11,144 -> 11,126, factory/scoreboard 9,338 -> 9,288, portfolio/risk 2,790 -> 2,724 - the count rule is trimming, slowly,
+and the 11-100-copy bucket fell 3,609 -> 2,198 keys. Current objects 3,420,242 / 1,028 GB (+39 k: the day's writes).
+Nothing to do but read the next inventories; none of it is billed.
 
 ## Piece 3 - brakes for the bucket itself (governor v1.5.0, ops 6572)
 
