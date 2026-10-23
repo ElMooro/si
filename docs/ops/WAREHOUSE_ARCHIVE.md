@@ -77,6 +77,52 @@ inputs); explicit history lives in its own prefixes as current objects.
   s3://justhodl-dashboard-live/<key>` from the runner (an ops script); every file is there under the same key, in
   Standard-IA (retrieval $0.01/GB).
 
+## Narrowing the archive - option B (2026-10-23): measured, then not possible with a replication rule
+
+Khalid, 2026-10-23: "2archive lets do B" - protect only data that can't be re-downloaded, like the provider history on
+data.html, and skip files the engines rebuild every day; measure the saving per folder before changing anything.
+
+**Measured (ops 6631 per folder, ops 6632 per exact prefix; one full post-thaw day, every write in the inventory).**
+The archive's copying costs **$29.00/month at today's rate** (74,455 copies a day: $22.34 of Standard-IA PUTs, $3.42
+of 30-day minimums on replaced copies, +258.8 GB/month of billable growth), rising to **$46.79/month averaged over a
+year** as the growth piles up - plus ~$16/month for the ~1,280 GB it already holds. Scope B, written down with the
+evidence for every folder in `config/archive-scope.json` (22 prefixes: 2 re-downloadable provider captures, 11 research
+packets compiled from originals that stay archived, 6 engine caches/views/indexes, 3 data.html catalog-page families),
+would stop 41,275 copies a day: **-$15.18/month now, -$23.04/month averaged over a year**. Biggest items: the daily FMP
+financial-statement capture `audit-private/20260909-originals/financial-statement-research/` $5.39, the Massive forex
+bars `.../fx-research/` $2.20, `data/etf-holdings-research/` $1.63, `equity-research/` $0.71, `data/fundgraph/cache/`
+$0.67 and `hits/` $0.65, the GDELT and FRED catalog pages $0.57 and $0.39. Kept on purpose: the warehouse (data/warm,
+provider data under data/providers), every point-in-time original (option chains, ETF constituents, market internals,
+futures catalogs), data/evidence, every history/ledger/vintage (data/fundgraph/vintage/ is a self-built analyst-estimates
+ledger FMP cannot re-serve), all top-level data/*.json files. The census also corrected the first draft:
+`data/risk-regime-research/sources/` holds the engine's own FRED + Massive option/FX originals and
+`data/series-cache/*-source/` retains original public responses (IMF versioned) - both stay archived.
+
+**The mechanism does not exist (ops 6633, ops 6636).** S3 replication filters can only include (prefix and/or tags);
+there is no exclude. The usual workaround - a Disabled rule with a higher priority than the whole-bucket rule, on the
+folder to skip - was tested on a canary prefix (`_health/archive-scope-excluded/`, rule `archive-scope-self-test`,
+priority 100) before any real folder relied on it: every excluded canary was still stamped PENDING (and copied), for
+4.3 minutes in ops 6633 (9 pairs) and 20 minutes in ops 6636 (38 pairs, one every 30 s). S3 skips a disabled rule
+when it picks the rule that applies, so the whole-bucket rule still matches. Both runs put the backed-up configuration back exactly (backups under
+`s3://justhodl-ops-private-.../backups/replication/`); the archive copies everything as before. The canaries are ~200-byte
+files; their archive copies stay (no delete path but root).
+
+**What is left (Khalid decides):**
+* **Intelligent-Tiering for new copies (ops 6637, staged, recommended):** same one rule, same seal, every write still
+  copied; only the storage class of new copies changes. Standard-IA bills each copy as at least 128 KB for at least 30
+  days at $0.01 per 1,000; Intelligent-Tiering bills actual size, has no minimum duration, $0.005 per 1,000, and moves
+  files >= 128 KB to $0.0125/GB after 30 days and $0.004/GB after 90 ($0.0025 per 1,000 such files a month to monitor);
+  no retrieval fee on restore. Estimate (ops 6632): **$29.00 -> $16.44 first month, $46.79 -> $27.36 averaged over a
+  year.** Existing copies stay Standard-IA.
+* **Scope B the hard way:** replace the one rule with an include list - a few hundred prefix rules (every folder and
+  top-level file under data/, audit-private/20260909-originals/ and the root except the 22 prefixes; S3 allows 1,000) -
+  plus a scheduled job that adds a rule for every new folder or file. New data is unprotected until the job catches it,
+  and a broken job silently stops archiving new data. -$15.18/month on Standard-IA, or -$8.10 more on top of
+  Intelligent-Tiering ($16.44 -> $8.34). Not recommended.
+* ops 6634 (apply) and ops 6635 (next-day check of every write via the inventory's ReplicationStatus field) were
+  written for the disabled-rule design and stay unused: 6634 refuses without the self-test rule a passing canary leaves
+  behind. An include-list implementation would replace 6634; 6635's inventory check carries over as is.
+
 ## Piece 2 - old copies capped by count, not by age (ops 6571)
 
 Bucket-wide rule `ops6541-bound-noncurrent-versions`: **keep the 10 newest old copies of every file; expire the rest

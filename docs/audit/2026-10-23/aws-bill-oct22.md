@@ -117,8 +117,15 @@ Oct 22 and a 17 GB/day pace on Oct 23; if the higher figure holds, add ~$20/mont
 ## 7. Khalid's decisions (2026-10-23 13:21 CT) and what was done
 
 1. **AWS Business Support+: keep** ("AWS support is fine, just leave it"). Nothing changed.
-2. **Archive: explained first** (what it copies, when, what it protects, its cost by part); his decision on its scope is
-   pending. Nothing changed.
+2. **Archive: explained first**, then Khalid chose **B** ("2archive lets do B": protect only what can't be re-downloaded,
+   skip what the engines rebuild). Measured per folder (ops 6631, 6632): the archive's copying costs $29.00/month now,
+   $46.79/month averaged over a year; scope B (22 prefixes, `config/archive-scope.json`) would save $15.18/month now,
+   $23.04 averaged. **Not applied - S3 cannot do it with a rule:** replication filters only include, and the workaround
+   (a Disabled higher-priority rule on the folder) was proven useless on a canary prefix - every excluded canary was
+   still copied, for 4.3 min (ops 6633) and 20 min (ops 6636); the configuration was put back exactly both times.
+   Offered instead (his decision): Intelligent-Tiering for new copies (ops 6637, staged; $29.00 -> $16.44/month now,
+   $46.79 -> $27.36 averaged; same protection), or B through a few hundred include rules plus a job adding new folders
+   (not recommended). Details: docs/ops/WAREHOUSE_ARCHIVE.md "Narrowing the archive".
 3. **Crawlers blocked from the data at Cloudflare and at S3** ("as long as it doesn't affect my system operations"):
    * Worker `justhodl-data-proxy` (commit 14261948, deploy-workers run 40004203815 green): GET/HEAD from a self-declared
      crawler (config/crawler-user-agents.json `worker_tokens`, 69 tokens: Googlebot, bingbot, Applebot, GPTBot, ClaudeBot,
