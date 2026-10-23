@@ -143,7 +143,10 @@ def main():
 
         r.section("freshness today (declared outputs written after today's trigger minute)")
         man = json.loads((ROOT / "engine-manifest.json").read_text(encoding="utf-8"))
-        keys = {e["engine"]: [k for k in e["keys"] if k.endswith(".json") and "{" not in k and "*" not in k] for e in man["engines"]}
+        # published artifacts first, data/_state/ caches last: fleet-integrity declares two d1-* caches before
+        # data/fleet-integrity.json and read as 78 d stale on 2026-10-23 while its artifact was 19 h old
+        keys = {e["engine"]: sorted((k for k in e["keys"] if k.endswith(".json") and "{" not in k and "*" not in k),
+                                    key=lambda k: (k.startswith("data/_state/"), k)) for e in man["engines"]}
         sched = json.loads((ROOT / "config/schedule-manifest.json").read_text(encoding="utf-8"))
         fan = json.loads((ROOT / "config/fanout-manifest.json").read_text(encoding="utf-8"))
         today = now.date()
