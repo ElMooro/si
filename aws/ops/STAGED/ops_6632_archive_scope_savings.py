@@ -176,7 +176,9 @@ def selftest():
     assert mt("data/providers/fred/page-003.json") == "data/providers/fred/page-"
     assert mt("data/providers/fred/catalog-manifest.json") == KEPT
     assert mt("data/providers/fred-scoped/manifest.json") == KEPT
-    assert mt("data/risk-regime.json") == KEPT and mt("data/risk-regime-research/runs/a.json") == "data/risk-regime-research/"
+    assert mt("data/risk-regime.json") == KEPT and mt("data/risk-regime-research/sources/a/b.json") == KEPT
+    assert mt("data/tail-research/runs/a.json") == "data/tail-research/" and mt("data/series-cache/imf-source/x.json") == KEPT
+    assert mt("data/providers/worldbank/page-002.json") == "data/providers/worldbank/page-"
     assert mt("audit-private/20260909-originals/fx-research/a.bin") == "audit-private/20260909-originals/fx-research/"
     assert mt("audit-private/20260909-originals/options-research/a.bin") == KEPT
     assert mt("_health/archive-scope-excluded/x.json") == KEPT
