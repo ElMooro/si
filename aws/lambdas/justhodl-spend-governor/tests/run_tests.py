@@ -1145,6 +1145,32 @@ def test_storage_check_waits_for_the_metric_and_runs_once_a_day():
     gov.now_utc = lambda: PINNED
 
 
+def test_storage_check_waits_for_a_complete_day_not_a_half_landed_one():
+    """v1.5.2 (2026-10-23): the live read of 2026-10-21 at 05:07 UTC held one storage type (173.7 GB) and no object count
+    against a 1,040 GB bucket - assessed as -864 GB, which would have hidden a real +500 GB day.  A partial day waits."""
+    w = storage_world({"2026-10-18": 1000.0, "2026-10-19": 1010.0}, {})
+    w["cloudwatch"].storage["2026-10-20"] = {"StandardIAStorage": 173.7 * GB}          # one type, no objects yet
+    at("2026-10-21T05:30:00")
+    s = gov.lambda_handler({"action": "tick"}, Context())["storage"]
+    check(not s["ran"] and s["reason"].startswith("partial point for 2026-10-20") and "object count" in s["reason"] and "1 of 2 storage types" in s["reason"],
+          "half-landed day: not assessed, retry next tick (%s)" % s["reason"])
+    check(state_of(w)["storage"].get("day") != "2026-10-21" and "2026-10-20" not in (state_of(w)["storage"].get("days") or {}), "nothing recorded for the partial day")
+    w["cloudwatch"].storage["2026-10-20"]["objects"] = 4000000                           # objects in, a type still missing
+    at("2026-10-21T06:30:00")
+    s = gov.lambda_handler({"action": "tick"}, Context())["storage"]
+    check(not s["ran"] and "1 of 2 storage types" in s["reason"] and "object count" not in s["reason"], "object count in, a storage type still missing: wait")
+    w["cloudwatch"].storage["2026-10-20"]["StandardStorage"] = 1600.0 * GB                # the full day: a real +764 GB
+    at("2026-10-21T07:30:00")
+    s = gov.lambda_handler({"action": "tick"}, Context())["storage"]
+    check(s["ran"] and s["assessment"]["day"] == "2026-10-20" and s["assessment"]["level"] == "trip" and round(s["assessment"]["delta_gb"]) == 764,
+          "complete day assessed: the growth is seen (%s)" % json.dumps(s["assessment"])[:160])
+    check(sf.partial_reason(sf.coverage([("d", "StandardStorage", GB), ("d", "NumberOfObjects", 1)]), "d") is None, "a lone complete day is complete")
+    check(sf.partial_reason({}, "d").startswith("no point for d"), "no point at all keeps the old reason")
+    r = gov.lambda_handler({"action": "storage_selftest"}, Context())
+    check(r["ok"] and r["live"]["partial"] == {}, "storage_selftest reports no partial day once all have landed")
+    gov.now_utc = lambda: PINNED
+
+
 def test_storage_service_spend_alert_once_a_day():
     w = storage_world({"2026-10-18": 1000.0, "2026-10-19": 1001.0}, {})
     w["ce"].s3_usd = {"2026-10-19": 12.25}

@@ -1093,7 +1093,7 @@ def read_bucket_days(bucket, now):
         stype = "NumberOfObjects" if r["Id"] == "objects" else types[int(r["Id"][1:])]
         for ts, v in zip(r.get("Timestamps", []), r.get("Values", [])):
             points.append((sf.utc_day(ts), stype, v))
-    return sf.storage_days(points)
+    return sf.storage_days(points), sf.coverage(points)
 
 
 def service_spend(now):
@@ -1112,11 +1112,12 @@ def storage_check(ctx, state, cfg, now, enforce, force=False, dry=False):
     st = state.setdefault("storage", {})
     if not force and not sf.due(st, now, int(cfg["storage_after_hour"])):
         return {"ran": False, "reason": "not due"}
-    days = read_bucket_days(LIVE_BUCKET, now)
+    days, cov = read_bucket_days(LIVE_BUCKET, now)
     yday = (now - timedelta(days=1)).date().isoformat()
-    if yday not in days and not force:
+    partial = sf.partial_reason(cov, yday)          # v1.5.2: a half-landed day is not assessed (it read as -864 GB)
+    if partial and not force:
         st["attempts"] = int(st.get("attempts") or 0) + 1
-        return {"ran": False, "reason": "no point for %s yet" % yday, "days": sorted(days)}
+        return {"ran": False, "reason": partial, "days": sorted(days)}
     a = sf.assess(days, cfg, st)
     out = {"ran": True, "bucket": LIVE_BUCKET, "assessment": a, "enforce": enforce and not dry}
     if dry:
@@ -1247,8 +1248,9 @@ def action_storage_selftest(event, context):
     now = now_utc()
     live = {}
     try:
-        days = read_bucket_days(LIVE_BUCKET, now)
+        days, cov = read_bucket_days(LIVE_BUCKET, now)
         live["days"] = {d: v for d, v in sorted(days.items())}
+        live["partial"] = {d: sf.partial_reason(cov, d) for d in sorted(days) if sf.partial_reason(cov, d)}
         live["versioning"] = client("s3").get_bucket_versioning(Bucket=LIVE_BUCKET).get("Status")
     except Exception as e:  # noqa: BLE001
         live["error"] = lv.err_code(e)

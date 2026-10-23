@@ -186,6 +186,16 @@ nothing.  Actions: `storage_check` (dry by default: evaluate and report, record 
 Get/PutBucketVersioning on the live bucket only).  State: `state.storage` {day, days (30), warn_days, trip_days,
 versioning, s3_usd, last}.  The weekly ~140 GB Monday write (census 2026-10-20) sits under the warn line by design.
 
+## v1.5.2 (2026-10-23) - the storage fuse waits for a complete day
+
+The daily S3 metrics for one day land type by type over several hours. The first tick after 05:00 UTC on Oct 21 and Oct 22
+read the previous day as one storage type (173.7 GB) and no object count against a ~1,040 GB bucket, assessed it as
+-864 GB / -83% and recorded it; the complete point replaced it a day later. A real +500 GB day would have read as -364 GB,
+so the fuse was blind on exactly the day it assesses. Now a day is assessed only when its object count is in and it carries
+as many storage types as the fullest other day in the 6-day window (`storage_fuse.partial_reason`); otherwise the tick
+answers `partial point for <day> (... missing) - waiting for the complete day` and retries hourly like a missing point.
+`{"action":"storage_selftest"}` lists `live.partial`. Nothing else changed: levels, holds and versioning as in v1.5.0.
+
 ## v1.5.1 (2026-10-20) - per-service daily spend lines
 
 The same daily Cost Explorer call (by SERVICE) now checks every service against a line: S3 `s3_usd_day_alert` ($10),

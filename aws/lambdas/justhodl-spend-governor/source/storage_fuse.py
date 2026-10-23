@@ -35,6 +35,35 @@ def storage_days(points):
     return out
 
 
+def coverage(points):
+    """points as for storage_days -> {day: {"types": storage types that reported, "objects": NumberOfObjects reported}}."""
+    out = {}
+    for day, stype, _value in points:
+        row = out.setdefault(day, {"types": 0, "objects": False})
+        if stype == "NumberOfObjects":
+            row["objects"] = True
+        else:
+            row["types"] += 1
+    return out
+
+
+def partial_reason(cov, day):
+    """v1.5.2: the daily S3 metrics for one day land type by type over several hours, so the first read of a day can hold
+    one storage type and no object count (seen 2026-10-21/22: 173.7 GB and 0 objects against a 1,040 GB bucket, which read
+    as -864 GB and would hide any real growth that day).  A day is complete when its object count is in and it carries as
+    many storage types as the fullest other day in the window.  -> None when complete, else the reason to wait."""
+    row = (cov or {}).get(day)
+    if not row:
+        return "no point for %s yet" % day
+    want = max((v["types"] for d, v in cov.items() if d != day), default=row["types"])
+    missing = []
+    if not row["objects"]:
+        missing.append("object count")
+    if row["types"] < want:
+        missing.append("%d of %d storage types" % (row["types"], want))
+    return "partial point for %s (%s missing) - waiting for the complete day" % (day, ", ".join(missing)) if missing else None
+
+
 def assess(days, cfg, history):
     """days: {day: {gb, objects}} (at least the last two complete days); history: the state's storage record
     ({"warn_days": [...], "trip_days": [...]}).  -> dict with day, prev, deltas and level in (None, warn, trip, second)."""
