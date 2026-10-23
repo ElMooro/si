@@ -5,7 +5,7 @@
   "match": "case-insensitive substring of the User-Agent header. Only self-declared crawlers are listed: never a generic word such as bot, crawler or spider, because the system's own clients use them (JustHodlBot/1.0, JustHodl-Bot/1.0, justhodl-tv-crawler/2.0).",
   "applies_to": {
     "worker": "cloudflare/workers/justhodl-data-proxy/src/crawler-gate.js refuses GET/HEAD for these tokens on every path except /, /health and /robots.txt (403, X-Robots-Tag noindex); POST/PUT/OPTIONS are never gated",
-    "s3": "bucket statement DenyAbusiveScrapersByUserAgent on justhodl-dashboard-live carries s3_tokens (crawlers that render JavaScript and so can reach the S3 URLs pages still use); applied by aws/ops/STAGED/ops_6629_crawler_gate_s3.py"
+    "s3": "bucket statement DenyAbusiveScrapersByUserAgent on justhodl-dashboard-live carries s3_tokens (crawlers that render JavaScript and so can reach the S3 URLs pages still use); applied by aws/ops/STAGED/ops_6628_crawler_gate_s3.py (the Worker half shipped in commit 14261948)"
   },
   "worker_tokens": [
     "Googlebot", "Google-InspectionTool", "GoogleOther", "AdsBot-Google", "Mediapartners-Google", "Storebot-Google",
