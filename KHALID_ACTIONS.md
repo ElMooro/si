@@ -26,9 +26,9 @@ This file tracks items that require **your direct action** (registration, creden
     crawlers get 403 on both hosts and in a real Googlebot render; Chrome, the runner's headless Chrome, the engines'
     own agents, scripts, ChatGPT-User/Claude-User and Google Sheets all still get data.
   - Cleanup (ops 6630): **20 dead alarms deleted** (their metrics silent 30 days; definitions backed up). Two items wait
-    for you: (1) the **9 old Secrets Manager secrets** ($3.60/month) - the runner has no Secrets Manager rights; delete
-    them in the console (Secrets Manager -> each secret -> Actions -> Delete secret -> 30-day window), or say "grant" for a
-    one-off permission limited to those 9; (2) the **two stopped servers** ("web server", "OpenBB Server", $1.28/month) -
+    for you: (1) the **9 old Secrets Manager secrets** ($3.60/month) - the runner has no Secrets Manager rights (and its
+    Oct 20 seal stops it granting itself any); delete them in the console: Secrets Manager -> each secret -> Actions ->
+    Delete secret -> 30-day waiting period (restorable until then; billing stops at once); (2) the **two stopped servers** ("web server", "OpenBB Server", $1.28/month) -
     terminating deletes their disks for good and your Oct 20 seal stops the runner from taking a backup copy first:
     say "delete without a copy" or "keep".
   - **Archive:** explained in chat; tell me what to do with it (keep as is / narrow it / schedule it / remove it).
