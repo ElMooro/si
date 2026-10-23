@@ -36,7 +36,8 @@ SCOPE = json.loads((ROOT / "config" / "archive-scope.json").read_text(encoding="
 BASE_ID = SCOPE["base_rule"]["id"]
 ST = SCOPE["self_test"]
 EXCL, INCL = ST["excluded_prefix"], ST["included_prefix"]
-PAIRS, GAP_S, SETTLE_S, NEED = 18, 30, 60, 3
+PAIRS, GAP_S, SETTLE_S, NEED, GIVE_UP_S = 18, 30, 60, 3, 240
+REPORT_NAME = "ops_6633_archive_scope_canary"
 
 
 def prefix_of(rule):
@@ -112,7 +113,7 @@ def main():
         except ClientError as ex:
             return "absent:%s" % ex.response["Error"]["Code"]
 
-    with report("ops_6633_archive_scope_canary") as r:
+    with report(REPORT_NAME) as r:
         r.heading("ops 6633 - canary proof: a Disabled higher-priority rule keeps its prefix out of the archive")
         r.section("1. current replication configuration")
         current = s3.get_bucket_replication(Bucket=LIVE)["ReplicationConfiguration"]
@@ -165,7 +166,7 @@ def main():
                         break
                 elif age >= SETTLE_S:
                     streak, marked = 0, marked + 1
-                    if marked >= NEED + 2 and age >= 4 * SETTLE_S:
+                    if marked >= NEED + 2 and age >= GIVE_UP_S:
                         break                          # settled and still copied: the rule does not exclude
                 time.sleep(GAP_S)
             if streak < NEED:
