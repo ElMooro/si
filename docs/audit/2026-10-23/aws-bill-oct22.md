@@ -76,6 +76,12 @@ Metrics Insights alarm (`justhodl-guard-lambda-recursion-dropped`) analyses no m
 AWS usage**, plus **AWS Business Support+ ($29/month minimum)** = **~$202**. Band: Cloudflare-path egress was 9.5 GB on
 Oct 22 and a 17 GB/day pace on Oct 23; if the higher figure holds, add ~$20/month.
 
+Note (2026-10-23 20:20 UTC): `aws/ops/reports/latest/ops_6622_monthly_bill_projection.md` (written by another session
+under the same ops number) projects ~$326/month because it prices support as AWS's old Business plan ($100 or 10%) and
+counts the archive's daily replication PUTs as ~$4.50/month. Business Support+ is the greater of $29/month or 9% of
+monthly charges up to $10K (7/5/3% above) - aws.amazon.com/premiumsupport/pricing, checked today - and the archive's
+replication PUTs measure $22.34/month (ops 6632; they are inside the $7.46 recurring day above). The ~$202 stands.
+
 ## 5. Decisions for Khalid (nothing below has been changed)
 
 1. **AWS Business Support+** - enrolled 2026-10-19 (prorated $11.58). Price: the greater of $29/month or 9% of the
