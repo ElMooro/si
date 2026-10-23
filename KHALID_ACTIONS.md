@@ -20,11 +20,18 @@ This file tracks items that require **your direct action** (registration, creden
   account-level metric, $0.10/month (ops 6627, equivalence proven hour by hour).
 * **November projection: ~$173 of AWS usage + $29 Business Support+ = ~$202** (band up to ~$225 if the Cloudflare-path
   egress stays at today's pace).
-* **Your decisions (one word each; nothing changed yet):** (a) keep or cancel **AWS Business Support+** ($29/month minimum,
-  9% of gross charges before credits; ask AWS or check the Bills page whether October's fee is 9% of the whole month,
-  up to ~$264, before Oct 31); (b) **archive replication**: keep continuous (~$45/month all-in, measured) or replicate
-  on a schedule; (c) refuse `/data/*` to crawlers at the **Worker** too; (d) **cleanup** of 9 unused Secrets Manager
-  secrets, two stopped 2025 EC2 instances' disks and ~22 alarms for retired systems (~$7/month).
+* **Your decisions (2026-10-23 13:21 CT) - done / open:**
+  - Business Support+: **kept**, as you said.
+  - Crawlers: **blocked from the data at Cloudflare and at S3** (Worker commit 14261948 + ops 6628), proven live (ops 6629):
+    crawlers get 403 on both hosts and in a real Googlebot render; Chrome, the runner's headless Chrome, the engines'
+    own agents, scripts, ChatGPT-User/Claude-User and Google Sheets all still get data.
+  - Cleanup (ops 6630): **20 dead alarms deleted** (their metrics silent 30 days; definitions backed up). Two items wait
+    for you: (1) the **9 old Secrets Manager secrets** ($3.60/month) - the runner has no Secrets Manager rights; delete
+    them in the console (Secrets Manager -> each secret -> Actions -> Delete secret -> 30-day window), or say "grant" for a
+    one-off permission limited to those 9; (2) the **two stopped servers** ("web server", "OpenBB Server", $1.28/month) -
+    terminating deletes their disks for good and your Oct 20 seal stops the runner from taking a backup copy first:
+    say "delete without a copy" or "keep".
+  - **Archive:** explained in chat; tell me what to do with it (keep as is / narrow it / schedule it / remove it).
 
 ### 0l. The 13:20 UTC alarm re-check - all three DONE (2026-10-22 17:37 UTC): futures-curves fixed, orphans were alias targets, policy A applied
 

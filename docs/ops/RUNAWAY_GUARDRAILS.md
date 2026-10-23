@@ -161,6 +161,11 @@ Dry run any time: `{"action":"fast_fuse"}` (same path as an alarm).
   Crawlers (Lightpanda, ops 6549; Applebot, ops 6626 - its renderer pulled 10-30 GB/day of why.html's data files
   straight from S3) are denied by the bucket statement `DenyAbusiveScrapersByUserAgent`; the Worker keeps a
   revalidated edge copy of the large publications (ops 6551), so the site no longer re-reads them from S3 on every request.
+* Crawler gate (2026-10-23, Khalid): the Worker refuses GET/HEAD from self-declared crawlers on every data route and
+  the bucket refuses the JavaScript-rendering ones on direct S3 reads; one list, config/crawler-user-agents.json
+  (worker_tokens / s3_tokens / must_pass). Never add a generic word (bot, crawler, spider): the system's own clients
+  use them. A new crawler goes into the config, the Worker copy (the test fails until both match) and, if it renders
+  JavaScript, ops 6628 re-run.
 * CloudWatch Logs ingestion: `justhodl-logs-ingestion-2gb-hour` (> 2 GiB in an hour, account-wide; ops 6580) watches the
   account-level metric `AWS/Logs IncomingBytes` since ops 6627 (2026-10-23). As a Metrics Insights query over every log
   group it billed $0.10 per log group per month (~$19/month); the account metric is the same sum ($0.10/month).

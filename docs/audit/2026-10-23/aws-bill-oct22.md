@@ -113,3 +113,32 @@ Oct 22 and a 17 GB/day pace on Oct 23; if the higher figure holds, add ~$20/mont
   and replication reads are free.
 * Hourly and resource-level Cost Explorer data are not enabled on the payer account (opt-in), so bucket-level and
   hour-level splits come from the access logs.
+
+## 7. Khalid's decisions (2026-10-23 13:21 CT) and what was done
+
+1. **AWS Business Support+: keep** ("AWS support is fine, just leave it"). Nothing changed.
+2. **Archive: explained first** (what it copies, when, what it protects, its cost by part); his decision on its scope is
+   pending. Nothing changed.
+3. **Crawlers blocked from the data at Cloudflare and at S3** ("as long as it doesn't affect my system operations"):
+   * Worker `justhodl-data-proxy` (commit 14261948, deploy-workers run 40004203815 green): GET/HEAD from a self-declared
+     crawler (config/crawler-user-agents.json `worker_tokens`, 69 tokens: Googlebot, bingbot, Applebot, GPTBot, ClaudeBot,
+     CCBot, Bytespider, AhrefsBot, SemrushBot, ...) gets 403 before any route or S3 read; `/`, `/health`, `/robots.txt`
+     stay open; the workers.dev host serves `robots.txt: Disallow: /`. Never a generic word - the system's own clients are
+     JustHodlBot, JustHodl-Bot, justhodl-tv-crawler. tests/worker-crawler-gate.test.js (7) proves both halves; the
+     preservation chain carries the new layer (fixtures/worker-crawler-gate); Worker suite 290/290.
+   * Bucket (ops 6628): the statement `DenyAbusiveScrapersByUserAgent` carries the 24 `s3_tokens` (crawlers that render
+     JavaScript and so reach the S3 URLs pages still use); 51 public probes unchanged, 28 own-client agents 200, policy
+     18,544 bytes; rollback copy `backups/bucket-policy/justhodl-dashboard-live-20261023T183709Z.json`.
+   * Live proof (ops 6629): on justhodl.ai and the workers.dev host every crawler sample gets 403 and 26 own-client agents
+     get data; real renders in headless Chrome (index, why.html?t=NVDA, master-rank, risk) with Chrome's own agent and a
+     desktop Chrome agent loaded 184-188 data files, none refused; the same pages with the Googlebot agent: every data
+     request refused (Worker + bucket). Cloudflare's own edge already refuses the bare `Python-urllib` agent (also on the
+     gate-exempt /health, so not the gate); no engine uses that agent. GPTBot/ClaudeBot/Bytespider are already stopped
+     on justhodl.ai by Cloudflare's zone bot setting before the Worker runs.
+4. **Small cleanup (ops 6630):** 20 alarms whose metric reported nothing for 30 days deleted (OpenBB, aiapi duration,
+   enhanced-openbb-handler, indexToOpenSearch, the old API-gateway and universal-agent-gateway alarms; definitions in
+   `backups/alarms/retired-systems-20261023T184828Z.json`), ~$2/month. Kept because their metrics are still live:
+   OpenBB-High-Error-Rate, OpenBB-High-Latency, aiapi-lambda-errors, scrapeMacroData-*. **Not done:** the 9 Secrets
+   Manager secrets - the runner has no Secrets Manager rights (AccessDenied on DescribeSecret), so they need a console
+   delete or a narrow grant; the two stopped servers - terminating deletes their disks for good and the runner may not
+   snapshot them first (the 2026-10-20 seal denies ec2:CreateSnapshot*), so they wait for Khalid's word.
