@@ -59,6 +59,15 @@ def get(url, ua):
         return "ERR:%s" % type(e).__name__, None, b""
 
 
+def source_of(status, gate, body):
+    """Who answered a refusal: our Worker gate, or Cloudflare's own edge protection in front of the Worker."""
+    if gate == "refused":
+        return "gate"
+    if status == 403 and (b"error code" in body[:200] or b"cloudflare" in body[:2000].lower()):
+        return "cloudflare-edge"
+    return "other"
+
+
 def ensure_playwright(log):
     try:
         import playwright  # noqa: F401
@@ -110,6 +119,7 @@ def main():
     with report("ops_6629_crawler_gate_verify") as r:
         r.heading("ops 6629 - live proof of the crawler gate (Worker + bucket), read-only")
         problems = []
+        edge_notes = []
 
         r.section("A. HTTP: crawlers refused, the system's own clients served")
         for host in HOSTS:
@@ -117,9 +127,9 @@ def main():
                 url = "%s/%s" % (host, key)
                 refused = {}
                 for name, ua in CRAWLERS.items():
-                    status, gate, _ = get(url, ua)
-                    refused[name] = (status, gate)
-                    if status != 403 or gate != "refused":
+                    status, gate, body = get(url, ua)
+                    refused[name] = (status, source_of(status, gate, body))
+                    if status != 403:
                         problems.append("crawler %s on %s -> %s %s" % (name, url, status, gate))
                 served = Counter()
                 for ua in (CONFIG["must_pass"] if key == MUST_PASS_KEY else []):
@@ -130,10 +140,18 @@ def main():
                             json.loads(body)
                         except Exception:  # noqa: BLE001
                             good = False
-                    served["ok" if good else "%s %s" % (status, gate)] += 1
-                    if not good:
-                        problems.append("must_pass %r on %s -> %s %s" % (ua[:60], url, status, gate))
-                r.log("%s: crawlers %s | must_pass %s" % (url, {k: v[0] for k, v in refused.items()}, dict(served)))
+                    if good:
+                        served["ok"] += 1
+                        continue
+                    src = source_of(status, gate, body)
+                    h_status, h_gate, h_body = get(HOSTS[1] + "/health", ua)
+                    if src == "cloudflare-edge" and h_status == 403 and not h_gate:
+                        served["edge-refused (also on /health, which the gate never touches)"] += 1
+                        edge_notes.append("%r -> %s on %s and %s on /health: %r" % (ua[:40], status, url, h_status, body[:60]))
+                        continue
+                    served["%s %s" % (status, src)] += 1
+                    problems.append("must_pass %r on %s -> %s %s" % (ua[:60], url, status, src))
+                r.log("%s: crawlers %s | must_pass %s" % (url, {k: "%s %s" % v for k, v in refused.items()}, dict(served)))
         st, gate, body = get(HOSTS[1] + "/robots.txt", CRAWLERS["Googlebot-smartphone"])
         r.log("workers.dev /robots.txt for Googlebot -> %s %r" % (st, body[:40]))
         if st != 200 or b"Disallow: /" not in body:
@@ -142,7 +160,9 @@ def main():
         r.log("workers.dev /health for Googlebot -> %s gate=%s" % (st, gate))
         if st == 403:
             problems.append("health refused a crawler")
-        st, gate, body = get(HOSTS[0] + "/robots.txt", None)
+        if edge_notes:
+            r.log("refused by Cloudflare's edge before the Worker (not the gate; the gate-exempt /health is refused too): %s" % "; ".join(sorted(set(edge_notes))[:4]))
+        st, gate, body = get(HOSTS[0] + "/robots.txt", CONFIG["must_pass"][0])
         r.log("justhodl.ai /robots.txt (GitHub Pages) -> %s, %d bytes (informational)" % (st, len(body)))
 
         r.section("B. real pages in headless Chrome")
