@@ -49,14 +49,24 @@ def job_status(s3c):
 
 def count_archive(s3, budget_s=900):
     """Count current objects in the archive by prefix in parallel (LIST, ~$0.005/1k calls)."""
-    res = s3.list_objects_v2(Bucket=ARCHIVE, Delimiter="/")
-    prefixes = [cp["Prefix"] for cp in res.get("CommonPrefixes", [])]
-    root = len(res.get("Contents", []))
+    def delimited(prefix):
+        """Every common prefix and every direct file under `prefix` - PAGINATED.  The unpaginated first page was the trap
+        that truncated the ops 6583 backfill manifest and this count at 1.35 M (data/ has 751 direct files plus hundreds of
+        sub-prefixes, more than one 1,000-entry page; everything after about data/pre... was missing)."""
+        cps, files, token = [], 0, {}
+        while True:
+            rr = s3.list_objects_v2(Bucket=ARCHIVE, Prefix=prefix, Delimiter="/", MaxKeys=1000, **token)
+            cps += [cp["Prefix"] for cp in rr.get("CommonPrefixes", [])]
+            files += len(rr.get("Contents", []))
+            if not rr.get("IsTruncated"):
+                return cps, files
+            token = {"ContinuationToken": rr["NextContinuationToken"]}
+    prefixes, root = delimited("")
     if "data/" in prefixes:
         prefixes.remove("data/")
-        r2 = s3.list_objects_v2(Bucket=ARCHIVE, Prefix="data/", Delimiter="/")
-        prefixes += [cp["Prefix"] for cp in r2.get("CommonPrefixes", [])]
-        root += len(r2.get("Contents", []))
+        sub, direct = delimited("data/")
+        prefixes += sub
+        root += direct
     deadline = time.time() + budget_s
 
     def one(p):
