@@ -1,4 +1,4 @@
-"""ops 6638 - justhodl-fmp-bank birth (Khalid 2026-10-23: "fix it all, I want 100% of the data pulled and used").
+"""ops 6640 - justhodl-fmp-bank birth (Khalid 2026-10-23: "fix it all, I want 100% of the data pulled and used").
 
 After deploy-lambdas creates justhodl-fmp-bank (config.json carries its Scheduler schedule):
   1. the function and schedule exist (State Active, env has FMP_KEY, schedule ENABLED on the right target);
@@ -74,8 +74,8 @@ def wait_run(s3, prev_updated, deadline_s):
 
 def main():
     s3, lam, sch, cw = c("s3"), c("lambda"), c("scheduler"), c("cloudwatch")
-    with report("ops_6638_fmp_bank_birth") as r:
-        r.heading("ops 6638 - justhodl-fmp-bank: declare, first run, backfill kicks, data.html card, chain proof")
+    with report("ops_6640_fmp_bank_birth") as r:
+        r.heading("ops 6640 - justhodl-fmp-bank: declare, first run, backfill kicks, data.html card, chain proof")
         r.section("1. function + schedule")
         try:
             cf = lam.get_function_configuration(FunctionName=FN)
@@ -194,7 +194,7 @@ def main():
             r.log("%s bundle: fmp_bank.py=%s fmp_book.py=%s" % probe)
             if not probe[1]:
                 r.warn("the shared closure has not redeployed %s yet - the chain goes live as deploy-lambdas works through the importers" % probe[0])
-        r.ok("ops 6638 complete")
+        r.ok("ops 6640 complete")
 
 
 if __name__ == "__main__":

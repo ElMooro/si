@@ -1,4 +1,4 @@
-"""ops 6639 - provider-coverage fixes, AWS side (Khalid 2026-10-23: "fix it all, 100% of the data pulled and used").
+"""ops 6641 - provider-coverage fixes, AWS side (Khalid 2026-10-23: "fix it all, 100% of the data pulled and used").
 
 Repo side (same push): earnings-tracker no longer calls the not-entitled Polygon /vX/reference/financials (FMP
 bank/live instead; financial-secretary's twin is dormant - no call site - and byte-pinned, left alone); freight-pulse +
@@ -60,7 +60,7 @@ def jget(s3, key, default=None):
 
 def probe(url, headers=None):
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "JustHodl ops 6639", **(headers or {})})
+        req = urllib.request.Request(url, headers={"User-Agent": "JustHodl ops 6641", **(headers or {})})
         with urllib.request.urlopen(req, timeout=20) as r:
             body = r.read(2000)
             return r.status, body[:160].decode("utf-8", "replace")
@@ -72,8 +72,8 @@ def probe(url, headers=None):
 
 def main():
     s3, lam, sch, ssm = c("s3"), c("lambda"), c("scheduler"), c("ssm")
-    with report("ops_6639_provider_fixes_apply") as r:
-        r.heading("ops 6639 - provider fixes: sec-bulk weekly live, key-fix engines re-run, Polygon entitlement probe")
+    with report("ops_6641_provider_fixes_apply") as r:
+        r.heading("ops 6641 - provider fixes: sec-bulk weekly live, key-fix engines re-run, Polygon entitlement probe")
 
         r.section("1. deployed schedule manifest := committed (one allowed state change)")
         repo_text = (ROOT / KEY).read_text(encoding="utf-8")
@@ -185,7 +185,7 @@ def main():
                                ("short-interest", "https://api.polygon.io/stocks/v1/short-interest?ticker=AAPL&limit=1&apiKey=" + pk)):
                 code, snip = probe(url)
                 r.kv(endpoint=label, http=code, body=snip.replace(pk, "<key>")[:120])
-        r.ok("ops 6639 complete")
+        r.ok("ops 6641 complete")
 
 
 if __name__ == "__main__":
