@@ -314,6 +314,21 @@ apply (it fires 2026-10-23 00:35). Both late ticks fired: daily-morn-late 6/6 me
 was cusip-map-rebuild's 01:28 run from before the apply. Errors in a new window: estimate-revisions 3 (the known
 Benzinga 401), research-backtest 2 (read at the evening check). Evening half: 23:58 UTC.
 
+**First light, evening half (ops 6586 at 23:59 UTC, 2026-10-22):** 173 retimed triggers due by then across the three
+applied plans - 172 fired at their new minute (the 173rd is stock-xray's 00:35 slot, which had passed before the apply;
+it fires 2026-10-23 00:35). Both late ticks fired (6/6, 3/3, scheduler err=0); the intraday lane ran its 11 members 96-97
+times each with 0 errors. Two "old-minute" readings: cusip-map-rebuild's 01:28 pre-apply run, and `intraday-arm-daily`
+13:40 -> 14:06 - its function is justhodl-intraday-pulse, which the 5-minute lane also invokes at 13:40 (09:40 NY), so
+that is the reader counting a lane tick, not a trigger that failed to move. Errors in a new window: dark-pool 3 at
+23:31 (read at the next check), estimate-revisions 3 (the known Benzinga calendar refusal - "Original received calendar
+required"), research-backtest 2-3 (`RESEARCH_DEADLINE_EXCEEDED_NO_PUBLICATION` while reading its critique prefix - an
+engine time budget, not the retime). The freshness census re-run at 00:03 UTC reads flat against 01:36 (FRED 45/109
+dated files a day old or more vs 43/101, FMP 52/155 vs 46/146, Polygon 28/77 vs 29/73, ECB 8/20, SEC 6/18, NY Fed 7/20,
+Cboe 5/17): expected - that metric compares a file's data date with its write date, so an engine that now runs at 23:31
+after FRED's evening print still carries "yesterday's" close and counts as a day old; the planner's stale-edge count
+(22 -> 19) and the per-trigger first light are the measures of pass 3, and a "age against the latest available print"
+census is the follow-up if Khalid wants the freshness gain shown as a number.
+
 ### Pass 3 moves
 
 | window | trigger | move (UTC; ET where the cron is New York time) | min | why | after |

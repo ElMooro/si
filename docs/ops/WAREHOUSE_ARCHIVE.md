@@ -60,7 +60,13 @@ inputs); explicit history lives in its own prefixes as current objects.
   itself (one row per current object, keys already in the archive removed by a paginated listing of the archive),
   one S3 Batch Replication job for the ~2.05 M missing objects / ~584 GB. Cost once ≈ $21 of Standard-IA PUTs +
   $2.3 Batch Operations; the archive then holds ~1,023 GB of Standard-IA ≈ $13/month (the estimate below, $10-12/month,
-  becomes **≈ $18-20/month**). ops 6576 tracks it.
+  becomes **≈ $18-20/month**). ops 6576 tracks it. **Done 2026-10-22: job `646ccb69` Complete, 2,086,159 / 2,086,159
+  succeeded, 0 failed, in about eight hours (dispatched 16:13 UTC on Khalid's "continue"); at 00:35 UTC on Oct 23 the
+  archive held 3,456,698 current objects / 1,031.8 GB (102% of the inventory census - the surplus is live replication
+  of the day's writes; `data/providers/` 1,137,345 = the inventory exactly, `data/warm/` 778,792), and a 3,109-key
+  sample of current objects was found 100% present (ops 6611). The archive is a complete copy.** Trap recorded twice:
+  `ListObjectsV2(Prefix="data/", Delimiter="/")` must be paginated - the unpaginated first page truncated both the
+  ops 6583 manifest and ops 6576's own count (fixed 2026-10-23).
 * Cost: ~434 GB in Standard-IA (128 KB minimum per object) ≈ $6-7/month + ~$3-5/month of replication PUTs for the
   daily writes ≈ **$10-12/month**.
 * Restoring from the archive: copy the object (or prefix) back with `aws s3 cp s3://justhodl-warehouse-archive-.../<key>
