@@ -15,8 +15,9 @@ This file tracks items that require **your direct action** (registration, creden
    900 s. First paced run: complete - 46 requests in ~9.5 min, 42/42 datasets, 7 products, 21 contracts, published;
    `data/futures-research.json` regenerated 16:45 UTC, the first time since Oct 10. Caveat: the 16:40 lane tick and the
    16:42 verification invoke overlapped that run and shared the 5/min budget - the 16:40 run published a weaker packet
-   over it at 16:48 (25 of 42 datasets, 15 contracts); nothing has run since the lane removal, and the daily 13:00 UTC
-   run replaces it tomorrow. Worth your word: a one-line guard so a less complete packet never publishes over a more
+   over it at 16:48 (25 of 42 datasets, 15 contracts). **Day 2, 2026-10-23: the daily run (its enabled rule is
+   `polygon-futures-curves-daily`, 13:20 UTC) ran alone and clean - 46 requests in 9.5 min, 42/42 datasets, 7 products,
+   21 contracts, published 13:29 UTC; the public head is the complete packet again; 1 invocation, 0 errors, 0 throttles.** Worth your word: a one-line guard so a less complete packet never publishes over a more
    complete one of the same definition date. The engine left the 5-minute lane
    (11 members now; a 9-minute run cannot repeat every 5 minutes) - its daily 13:00 UTC run covers the feed. Still
    worth a look in the Massive dashboard: whether your plan is meant to include futures at a higher rate (then the pace
@@ -128,8 +129,10 @@ faster than daily; no caps, budgets, IAM, lifecycle or archive touched. Applied 
 (one engine ran twice on apply day: cusip-map-rebuild, 01:28 and again 03:30 after the SEC print). **First light (full day,
 23:59 UTC): 172 of 173 due triggers fired at their new minute** (the one left is stock-xray, whose 00:35 slot was before the
 apply), both late ticks 6/6 and 3/3, the lane's 11 members 96-97 runs each with 0 errors. The day's errors in moved windows
-are engine matters, not the timetable: dark-pool 3 at 23:31 (read next), estimate-revisions (Benzinga calendar),
-research-backtest (its own read deadline). Docs: docs/ops/PIPELINE_ORDER.md "Pass 3".
+are engine matters, not the timetable: dark-pool 3 at 23:31 (a planned source not available at 23:31 - watched one more
+evening), estimate-revisions (Benzinga calendar), research-backtest (its own read deadline). **Day 2 (13:29 UTC Oct 23):
+41/41 due triggers at their new minutes, none at the old; stock-xray at 00:35, cusip at 03:30 only; late ticks 6/6 and 3/3;
+sev1 44 -> 24 at the gate's 13:02 run.** Docs: docs/ops/PIPELINE_ORDER.md "Pass 3".
 
 ### 0h. Pipeline order - APPLIED 2026-10-21 02:59 UTC on Khalid's go (docs/ops/PIPELINE_ORDER.md)
 

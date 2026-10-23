@@ -329,6 +329,15 @@ after FRED's evening print still carries "yesterday's" close and counts as a day
 (22 -> 19) and the per-trigger first light are the measures of pass 3, and a "age against the latest available print"
 census is the follow-up if Khalid wants the freshness gain shown as a number.
 
+**Day 2 (ops 6586 at 13:29 UTC, 2026-10-23): 41/41 retimed triggers due by then fired at their new minutes, none at the
+old** - stock-xray at its new 00:35, cusip-map-rebuild at 03:30 only, both late ticks again (6/6, 3/3). dark-pool's three
+errors after its 23:31 move on Oct 22 read `One or more planned sources failed; current head retained` at 23:31 and
+`Request already attempted` on the two async retries (idempotent request id): a planned source was not available at
+23:31 - watched at the next post-close check before calling it a timing problem (FINRA's print is assumed 23:00 UTC).
+research-backtest's `RESEARCH_DEADLINE_EXCEEDED_NO_PUBLICATION` repeated on Oct 23 (three runs from 11:02) - its own
+read budget, not the retime. The contract gate's 13:02 run: sev1 44 -> 24 (ROW_COLLAPSE 20, MISSING_KEYS 4) as engines
+refilled rows after their moves.
+
 ### Pass 3 moves
 
 | window | trigger | move (UTC; ET where the cron is New York time) | min | why | after |
