@@ -36,6 +36,7 @@ import {warehouseOHLC, formingSession, yahooChartSymbol, isCryptoWarehouse, merg
 
 import { handleFusionApi } from "./fusion_api.js";
 import { handleAccountState } from "./account_state.js";
+import { crawlerGate } from "./crawler-gate.js";
 
 const BUCKET_BASE = "https://justhodl-dashboard-live.s3.us-east-1.amazonaws.com";
 
@@ -577,6 +578,10 @@ export class WorkspaceCoordinator {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    // ops 6628 (Khalid 2026-10-23): self-declared crawlers get no data - GET/HEAD only, see crawler-gate.js. Browsers,
+    // the runner's HeadlessChrome probes, scripts, engines, webhooks and user-initiated AI fetches pass unchanged.
+    const refused = crawlerGate(request, url, corsHeaders());
+    if (refused) return refused;
     if (url.pathname.startsWith('/api/v1/factory/')) return factoryGateway(request, env, url, { resolveIdentity, aiLambdaUrl, corsHeaders, boundedBody, jsonResp });
     // ops 5215: JustHodl Intelligence Network read API (fusion / signals / regime / opportunities)
     if (url.pathname === "/api/v1" || url.pathname.startsWith("/api/v1/")) { return handleFusionApi(request, env, ctx, url); }

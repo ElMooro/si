@@ -1,0 +1,16 @@
+{
+  "path": "cloudflare/workers/justhodl-data-proxy/src/index.js",
+  "why": "ops 6628 (Khalid 2026-10-23): crawler gate - GET/HEAD from self-declared crawlers refused before any route; config/crawler-user-agents.json",
+  "before_sha256": "061580b6e95b9dc73022f016a24b1a95f5d43a06ed44972426dea226a4c91c5c",
+  "after_sha256": "9013699ccc64389922178c0c25b1fe7186c20f37df54fe42b73d5857c5a43f38",
+  "replacements": [
+    {
+      "before": "import { handleAccountState } from \"./account_state.js\";\n",
+      "after": "import { handleAccountState } from \"./account_state.js\";\nimport { crawlerGate } from \"./crawler-gate.js\";\n"
+    },
+    {
+      "before": "    const url = new URL(request.url);\n    if (url.pathname.startsWith('/api/v1/factory/'))",
+      "after": "    const url = new URL(request.url);\n    // ops 6628 (Khalid 2026-10-23): self-declared crawlers get no data - GET/HEAD only, see crawler-gate.js. Browsers,\n    // the runner's HeadlessChrome probes, scripts, engines, webhooks and user-initiated AI fetches pass unchanged.\n    const refused = crawlerGate(request, url, corsHeaders());\n    if (refused) return refused;\n    if (url.pathname.startsWith('/api/v1/factory/'))"
+    }
+  ]
+}

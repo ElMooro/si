@@ -1,0 +1,58 @@
+{
+  "schema": "crawler-user-agents.v1",
+  "decided": "2026-10-23 - Khalid: block crawlers from my data at Cloudflare (and at S3), as long as it does not affect system operations and functionality",
+  "evidence": "docs/audit/2026-10-23/aws-bill-oct22.md - Applebot rendered why.html ~6,000 times a day and pulled 10-30 GB/day of data files straight from S3; Googlebot did the same at ~0.5 GB/day",
+  "match": "case-insensitive substring of the User-Agent header. Only self-declared crawlers are listed: never a generic word such as bot, crawler or spider, because the system's own clients use them (JustHodlBot/1.0, JustHodl-Bot/1.0, justhodl-tv-crawler/2.0).",
+  "applies_to": {
+    "worker": "cloudflare/workers/justhodl-data-proxy/src/crawler-gate.js refuses GET/HEAD for these tokens on every path except /, /health and /robots.txt (403, X-Robots-Tag noindex); POST/PUT/OPTIONS are never gated",
+    "s3": "bucket statement DenyAbusiveScrapersByUserAgent on justhodl-dashboard-live carries s3_tokens (crawlers that render JavaScript and so can reach the S3 URLs pages still use); applied by aws/ops/STAGED/ops_6629_crawler_gate_s3.py"
+  },
+  "worker_tokens": [
+    "Googlebot", "Google-InspectionTool", "GoogleOther", "AdsBot-Google", "Mediapartners-Google", "Storebot-Google",
+    "bingbot", "BingPreview", "msnbot", "adidxbot",
+    "Applebot", "DuckDuckBot", "DuckAssistBot", "YandexBot", "yandex.com/bots", "Baiduspider", "Sogou web spider",
+    "Exabot", "SeznamBot", "PetalBot", "naver.me/spd", "coccocbot", "MojeekBot", "Qwantbot", "YisouSpider", "360Spider",
+    "AhrefsBot", "AhrefsSiteAudit", "SemrushBot", "SiteAuditBot", "MJ12bot", "DotBot", "BLEXBot", "DataForSeoBot",
+    "serpstatbot", "rogerbot", "Screaming Frog", "Barkrowler", "MegaIndex", "SeekportBot", "ZoominfoBot", "LinkdexBot",
+    "GPTBot", "OAI-SearchBot", "ClaudeBot", "Claude-SearchBot", "anthropic-ai", "CCBot", "Bytespider", "Amazonbot",
+    "PerplexityBot", "meta-externalagent", "FacebookBot", "Diffbot", "cohere-ai", "cohere-training-data-crawler",
+    "YouBot", "Timpibot", "ImagesiftBot", "omgilibot", "AI2Bot", "PanguBot", "img2dataset", "VelenPublicWebCrawler",
+    "ICC-Crawler", "Lightpanda", "Scrapy", "ia_archiver", "archive.org_bot"
+  ],
+  "s3_tokens": [
+    "Googlebot", "Google-InspectionTool", "GoogleOther", "AdsBot-Google", "Storebot-Google",
+    "bingbot", "BingPreview", "Applebot", "DuckDuckBot", "YandexBot", "Baiduspider", "PetalBot", "Bytespider",
+    "AhrefsBot", "SemrushBot", "SiteAuditBot", "DataForSeoBot", "Amazonbot", "GPTBot", "ClaudeBot", "CCBot",
+    "PerplexityBot", "meta-externalagent", "Lightpanda"
+  ],
+  "must_pass": [
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
+    "Mozilla/5.0 (X11; Linux x86_64; rv:131.0) Gecko/20100101 Firefox/131.0",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+    "python-requests/2.32.3",
+    "Python-urllib/3.12",
+    "Boto3/1.43.118 md/Botocore#1.43.118 ua/2.1 os/linux#6.17.0-1022-azure",
+    "curl/8.5.0",
+    "node",
+    "Mozilla/5.0 (compatible; JustHodlBot/1.0)",
+    "JustHodl-Bot/1.0",
+    "justhodl-tv-crawler/2.0",
+    "JustHodl Research raafouis@gmail.com",
+    "justhodl-data-proxy",
+    "justhodl-ops-6567-verify (+https://github.com/ElMooro/si)",
+    "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; ChatGPT-User/1.0; +https://openai.com/bot)",
+    "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Claude-User/1.0; +Claude-User@anthropic.com)",
+    "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Perplexity-User/1.0; +https://perplexity.ai/perplexity-user)",
+    "Mozilla/5.0 (compatible; GoogleDocs; apps-spreadsheets; +http://docs.google.com)",
+    "Mozilla/5.0 (compatible; Google-Apps-Script; beanserver; +https://script.google.com; id: UAEmdDd8)",
+    "Stripe/1.0 (+https://stripe.com/docs/webhooks)",
+    "Mozilla/5.0+(compatible; UptimeRobot/2.0; http://www.uptimerobot.com/)",
+    "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+    "TelegramBot (like TwitterBot)",
+    "Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)",
+    ""
+  ]
+}

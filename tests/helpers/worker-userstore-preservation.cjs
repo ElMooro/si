@@ -21,5 +21,13 @@ function peelEdgeRevalidate(raw,file){
  assert.equal(hash(raw),t.before_sha256,file);
  return raw;
 }
-function normalize(raw,file){raw=peelEdgeRevalidate(raw,file);raw=peelHeatRange(raw,file);const t=manifest.entries[file];if(!t)return raw;assert.equal(hash(raw),t.after_sha256,file);for(const e of [...t.replacements].reverse()){assert.equal(raw.split(e.after).length,2,file);raw=raw.replace(e.after,e.before);}assert.equal(hash(raw),t.before_sha256,file);assert.equal(raw,fs.readFileSync(path.join(R,t.before_path),'utf8'),file);return raw;}
+// 2026-10-23 (ops 6628): peel the crawler gate (hunks and hashes live in fixtures/worker-crawler-gate).
+function peelCrawlerGate(raw,file){
+ const t=require('../fixtures/worker-crawler-gate/transition.json');
+ if(file!==t.path||hash(raw)!==t.after_sha256)return raw;
+ for(const e of [...t.replacements].reverse()){assert.equal(raw.split(e.after).length,2,'crawler gate hunk');raw=raw.replace(e.after,()=>e.before);}
+ assert.equal(hash(raw),t.before_sha256,file);
+ return raw;
+}
+function normalize(raw,file){raw=peelCrawlerGate(raw,file);raw=peelEdgeRevalidate(raw,file);raw=peelHeatRange(raw,file);const t=manifest.entries[file];if(!t)return raw;assert.equal(hash(raw),t.after_sha256,file);for(const e of [...t.replacements].reverse()){assert.equal(raw.split(e.after).length,2,file);raw=raw.replace(e.after,e.before);}assert.equal(hash(raw),t.before_sha256,file);assert.equal(raw,fs.readFileSync(path.join(R,t.before_path),'utf8'),file);return raw;}
 module.exports={normalize,manifest};
