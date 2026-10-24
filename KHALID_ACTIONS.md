@@ -6,7 +6,7 @@ This file tracks items that require **your direct action** (registration, creden
 
 ## 🔴 Time-sensitive
 
-### 0m. "Yesterday cost $30" (2026-10-23) - explained, two leaks fixed, crawlers blocked; open: archive storage class, 9 secrets, 2 servers (docs/audit/2026-10-23/aws-bill-oct22.md)
+### 0m. "Yesterday cost $30" (2026-10-23) - explained, two leaks fixed, crawlers blocked, archive copying halved; open: 9 secrets, 2 servers (docs/audit/2026-10-23/aws-bill-oct22.md)
 
 * **Oct 22 = $32.55 = $25.09 one-time + $7.46 normal.** The one-time part is archive backfill #2 (your "continue"):
   2,086,159 replication writes into Standard-IA $20.99, Batch Operations $2.34, reading IA copies $1.76. Job finished
@@ -34,13 +34,10 @@ This file tracks items that require **your direct action** (registration, creden
     Delete secret -> 30-day waiting period (restorable until then; billing stops at once); (2) the **two stopped servers** ("web server", "OpenBB Server", $1.28/month) -
     terminating deletes their disks for good and your Oct 20 seal stops the runner from taking a backup copy first:
     say "delete without a copy" or "keep".
-  - **Archive: you chose B (narrow it). Measured, tested, not possible with S3's rules - nothing changed.** Scope B
-    would save $15.18/month now ($23.04 averaged over a year), but S3 replication cannot skip a folder: the documented
-    workaround was proven useless on a canary (copies kept flowing for 20 minutes; configuration put back exactly).
-    **Your call:** reply **"A"** = store new archive copies as Intelligent-Tiering (same protection, every file still
-    copied; $29.00 -> $16.44/month now, $46.79 -> $27.36 averaged; ops 6637 ready), **"B"** = narrow it through a few
-    hundred include rules plus a job that adds new folders (new folders unprotected until the job runs; not
-    recommended), **"A+B"**, or **"leave it"**.
+  - **Archive: done - option A (your "A", 2026-10-24).** B (narrowing) proved impossible with S3's rules, so new archive
+    copies are now stored as Intelligent-Tiering instead (ops 6637, 14:48 UTC): every file is still copied, the lock is
+    unchanged, the copying costs about half ($29.00 -> ~$16.44/month now, ~$27 instead of ~$47 averaged over a year).
+    Proof: the test file reached the archive as Intelligent-Tiering; real engine files checked by ops 6643.
 
 ### 0l. The 13:20 UTC alarm re-check - all three DONE (2026-10-22 17:37 UTC): futures-curves fixed, orphans were alias targets, policy A applied
 

@@ -129,9 +129,10 @@ replication PUTs measure $22.34/month (ops 6632; they are inside the $7.46 recur
    $23.04 averaged. **Not applied - S3 cannot do it with a rule:** replication filters only include, and the workaround
    (a Disabled higher-priority rule on the folder) was proven useless on a canary prefix - every excluded canary was
    still copied, for 4.3 min (ops 6633) and 20 min (ops 6636); the configuration was put back exactly both times.
-   Offered instead (his decision): Intelligent-Tiering for new copies (ops 6637, staged; $29.00 -> $16.44/month now,
-   $46.79 -> $27.36 averaged; same protection), or B through a few hundred include rules plus a job adding new folders
-   (not recommended). Details: docs/ops/WAREHOUSE_ARCHIVE.md "Narrowing the archive".
+   Offered instead: Intelligent-Tiering for new copies ($29.00 -> $16.44/month now, $46.79 -> $27.36 averaged; same
+   protection), or B through a few hundred include rules plus a job adding new folders (not recommended). **Khalid
+   chose A (2026-10-24 09:47 CT); applied by ops 6637 at 14:48 UTC** - the archive copy of the canary is
+   INTELLIGENT_TIERING; real engine files checked by ops 6643. Details: docs/ops/WAREHOUSE_ARCHIVE.md "Narrowing the archive".
 3. **Crawlers blocked from the data at Cloudflare and at S3** ("as long as it doesn't affect my system operations"):
    * Worker `justhodl-data-proxy` (commit 14261948, deploy-workers run 40004203815 green): GET/HEAD from a self-declared
      crawler (config/crawler-user-agents.json `worker_tokens`, 69 tokens: Googlebot, bingbot, Applebot, GPTBot, ClaudeBot,

@@ -33,8 +33,9 @@ inputs); explicit history lives in its own prefixes as current objects.
   role, no runner, no replication role, no ops script can delete from it or weaken it. Only Khalid, signed in as
   root in the console, can - that is the point. Proof: the runner's delete attempt on the canary copy returned
   AccessDenied.
-* **Replication** from the live bucket: one rule, the whole bucket (prefix ''), destination Standard-IA, delete
-  markers NOT replicated - a deletion in the live bucket never reaches the archive. Role
+* **Replication** from the live bucket: one rule, the whole bucket (prefix ''), destination Standard-IA - **since
+  2026-10-24 14:48 UTC Intelligent-Tiering (ops 6637, Khalid "A")** - delete markers NOT replicated - a deletion in the
+  live bucket never reaches the archive. Role
   `justhodl-s3-replication-role` (least privilege: read-for-replication on the source, ReplicateObject/Tags on the
   archive). Proof: canary `_health/replication-canary.json` arrived in 30 s.
 * **Backfill** of the 1.28 M objects that existed before the rule: S3 Batch Replication. The first job
@@ -74,8 +75,9 @@ inputs); explicit history lives in its own prefixes as current objects.
   billed for Standard-IA's 30-day minimum (~$5/month, estimate). The never-erase copy costs **~$45/month** in all.
   The two backfills cost $14.35 (Oct 21) and $25.09 (Oct 22) once. Options are in docs/audit/2026-10-23/aws-bill-oct22.md.
 * Restoring from the archive: copy the object (or prefix) back with `aws s3 cp s3://justhodl-warehouse-archive-.../<key>
-  s3://justhodl-dashboard-live/<key>` from the runner (an ops script); every file is there under the same key, in
-  Standard-IA (retrieval $0.01/GB).
+  s3://justhodl-dashboard-live/<key>` from the runner (an ops script); every file is there under the same key - copies
+  made before 2026-10-24 14:48 UTC in Standard-IA (retrieval $0.01/GB), newer ones in Intelligent-Tiering (no retrieval
+  fee, millisecond access in every tier it uses).
 
 ## Narrowing the archive - option B (2026-10-23): measured, then not possible with a replication rule
 
@@ -107,8 +109,15 @@ when it picks the rule that applies, so the whole-bucket rule still matches. Bot
 `s3://justhodl-ops-private-.../backups/replication/`); the archive copies everything as before. The canaries are ~200-byte
 files; their archive copies stay (no delete path but root).
 
-**What is left (Khalid decides):**
-* **Intelligent-Tiering for new copies (ops 6637, staged, recommended):** same one rule, same seal, every write still
+**Decided 2026-10-24 09:47 CT - Khalid: "A". Applied by ops 6637 at 14:48 UTC:** the rule `warehouse-archive-all` now
+copies as INTELLIGENT_TIERING (backup of the Standard-IA configuration:
+`backups/replication/justhodl-dashboard-live-20261024T144846Z.json`); proof: the canary
+`_health/replication-canary-it-20261024T144846Z.json` was COMPLETED and its archive copy reports storage class
+INTELLIGENT_TIERING, and ops 6643 checks real engine files written after the switch. Copies made before the switch stay
+Standard-IA (sealed; ~1,280 GB, ~$16/month). Undo: ops 6637 with STANDARD_IA, or put back the backup.
+
+**The options as they were offered:**
+* **Intelligent-Tiering for new copies (ops 6637 - chosen):** same one rule, same seal, every write still
   copied; only the storage class of new copies changes. Standard-IA bills each copy as at least 128 KB for at least 30
   days at $0.01 per 1,000; Intelligent-Tiering bills actual size, has no minimum duration, $0.005 per 1,000, and moves
   files >= 128 KB to $0.0125/GB after 30 days and $0.004/GB after 90 ($0.0025 per 1,000 such files a month to monitor);

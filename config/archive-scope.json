@@ -1,7 +1,7 @@
 {
   "schema": "archive-scope.v1",
   "decided": "2026-10-23 - Khalid: archive option B (\"2archive lets do B\"): protect only data that cannot be re-downloaded, like the provider history on data.html, and skip files the engines rebuild every day; measure the saving per folder before changing anything",
-  "status": "NOT APPLIED - measured by ops 6632 (-$15.18/month now, -$23.04 averaged over a year), but the exclusion mechanism does not exist: a Disabled higher-priority rule did not stop its prefix from being copied (canary, 4.3 min in ops 6633 and 20 min in ops 6636; configuration restored both times). Kept as the reviewed list for an include-list implementation (ops 6634/6635 would need rewriting for it) if Khalid chooses one; the archive copies the whole bucket.",
+  "status": "NOT APPLIED - measured by ops 6632 (-$15.18/month now, -$23.04 averaged over a year), but the exclusion mechanism does not exist: a Disabled higher-priority rule did not stop its prefix from being copied (canary, 4.3 min in ops 6633 and 20 min in ops 6636; configuration restored both times). Khalid chose option A instead (2026-10-24): the whole-bucket rule copies as INTELLIGENT_TIERING (ops 6637). This list stays as the reviewed scope should an include-list ever be wanted.",
   "source_bucket": "justhodl-dashboard-live",
   "archive_bucket": "justhodl-warehouse-archive-857687956942",
   "base_rule": {"id": "warehouse-archive-all", "priority": 1, "prefix": ""},
