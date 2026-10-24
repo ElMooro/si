@@ -155,3 +155,23 @@ replication PUTs measure $22.34/month (ops 6632; they are inside the $7.46 recur
    Manager secrets - the runner has no Secrets Manager rights (AccessDenied on DescribeSecret), so they need a console
    delete or a narrow grant; the two stopped servers - terminating deletes their disks for good and the runner may not
    snapshot them first (the 2026-10-20 seal denies ec2:CreateSnapshot*), so they wait for Khalid's word.
+
+## 8. The AWS Cost Anomaly Detection e-mail of 2026-10-23 (Khalid 2026-10-24: "Investigate this and fix it")
+
+The e-mail: Amazon S3, 2026-10-21 -> 2026-10-22, max $20.55/day, total $38.88; root causes Requests-SIA-Tier1 $21.83,
+BatchOperations-Objects $2.09, Retrieval-SIA $1.73. **It is the two archive backfills Khalid approved, and it is over**
+(ops 6642, read-only + one feedback record):
+* anomaly `4ba9ae1d-eb31-40f2-8d22-5fb356d0c860`: actual $48.38 vs expected $9.50 over the two days; every root cause
+  is a usage type of S3 Batch Replication into the Standard-IA archive;
+* Cost Explorer: Oct 21 1,354,833 Standard-IA PUTs ($13.55) + 1,282,030 Batch Operations objects ($1.28) = job
+  523b902a (backfill #1, ops 6583, 1,282,030 / 1,282,030 succeeded); Oct 22 2,183,028 PUTs ($21.83) + 2,086,159 objects
+  ($2.09) + IA retrieval $1.74 = job 646ccb69 (backfill #2, ops 6612, 2,086,159 / 2,086,159 succeeded); **Oct 23: 83,148
+  PUTs ($0.83) and no Batch Operations** - back to the archive's daily copying of the fleet's writes;
+* S3 Batch Operations: 3 jobs ever (the two backfills Complete, de1a80a2 Cancelled), **none queued, running or paused**;
+* replication: still the single whole-bucket rule (`warehouse-archive-all`, Standard-IA);
+* fix: the anomaly is marked **PLANNED_ACTIVITY** in Cost Anomaly Detection (feedback recorded 2026-10-24 14:30 UTC).
+  The other open anomalies are the Oct 12-16 loop (Lambda $1,994.69, S3 $421.66, CloudWatch Events $36.33, SQS $0.69;
+  the credits of $1,783.38 posted for it) - left unmarked.
+Oct 23 in all: $9.79 (estimated) - S3 $6.75 of it, including $3.61 of direct egress (40 GB) from before the Applebot
+block at 18:10 UTC; Oct 24 is the first day with every fix in place (the 12:07 CT follow-up reads it). The steady part of
+Requests-SIA-Tier1 (~$0.83/day, the archive copying) is what option A (Intelligent-Tiering, ops 6637) would halve.

@@ -18,6 +18,9 @@ This file tracks items that require **your direct action** (registration, creden
   ($0.9-2.7/day). Denied at the bucket (ops 6626), proven: Applebot 403, Safari/Googlebot 200, all 51 public probes
   unchanged. (2) The log-ingestion alarm cost ~$19/month as a Metrics Insights query; same alarm now on the
   account-level metric, $0.10/month (ops 6627, equivalence proven hour by hour).
+* **The AWS anomaly e-mail of Oct 23 (S3, Oct 21-22, $38.88) = the two archive backfills you approved; over** - Oct 23
+  copied 83,148 files ($0.83, the normal daily archive copying), no Batch Operations job queued or running; marked
+  "planned activity" in Cost Anomaly Detection (ops 6642, 2026-10-24).
 * **November projection: ~$173 of AWS usage + $29 Business Support+ = ~$202** (band up to ~$225 if the Cloudflare-path
   egress stays at today's pace).
 * **Your decisions (2026-10-23 13:21 CT) - done / open:**
