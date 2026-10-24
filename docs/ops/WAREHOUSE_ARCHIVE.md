@@ -113,7 +113,7 @@ files; their archive copies stay (no delete path but root).
 copies as INTELLIGENT_TIERING (backup of the Standard-IA configuration:
 `backups/replication/justhodl-dashboard-live-20261024T144846Z.json`); proof: the canary
 `_health/replication-canary-it-20261024T144846Z.json` was COMPLETED and its archive copy reports storage class
-INTELLIGENT_TIERING, and ops 6643 checks real engine files written after the switch. Copies made before the switch stay
+INTELLIGENT_TIERING, and ops 6643 found 26 of 26 real engine files written after the switch (equity-research, equity-research-history, fundgraph) archived as INTELLIGENT_TIERING, none in another class. Copies made before the switch stay
 Standard-IA (sealed; ~1,280 GB, ~$16/month). Undo: ops 6637 with STANDARD_IA, or put back the backup.
 
 **The options as they were offered:**

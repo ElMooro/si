@@ -76,6 +76,22 @@ Metrics Insights alarm (`justhodl-guard-lambda-recursion-dropped`) analyses no m
 AWS usage**, plus **AWS Business Support+ ($29/month minimum)** = **~$202**. Band: Cloudflare-path egress was 9.5 GB on
 Oct 22 and a 17 GB/day pace on Oct 23; if the higher figure holds, add ~$20/month.
 
+**Measured on 2026-10-24 (ops 6644, scheduled follow-up, 17:10 UTC):**
+* Direct S3 egress: Oct 22 18.1 GB ($1.63), Oct 23 40.1 GB ($3.61, Applebot until the 18:10 UTC deny); Oct 24 from the
+  access logs (16 h, scaled to a day): **0.64 GB/day direct + 2.24 GB/day through Cloudflare + 0.03 GB/day runner ≈ 2.9
+  GB/day ≈ $0.26/day** - down ~93%. Applebot made ~5,800 requests a day, **every one refused (403)**; ~89 k crawler
+  requests/day are refused in all (refused requests from outside the account are not billed). The biggest remaining direct
+  reader is headless Chrome (0.62 GB/day - the system's own probes are on the must-pass list by design).
+* CloudWatch: CW:MetricInsightAlarmUsage $0.60 / $0.64 / $0.51 on Oct 21 / 22 / 23 (the alarm moved at ~18:12 UTC Oct 23);
+  **none on Oct 24**.
+* Archive: Standard-IA PUTs Oct 23 83,148 ($0.83); since Oct 24 14:48 UTC new copies are Intelligent-Tiering (ops 6637,
+  option A; ops 6643 found 26 of 26 real engine writes archived as INTELLIGENT_TIERING), so Requests-INT-Tier1 at half
+  the price replaces them from Oct 25. EarlyDelete-SIA: not yet billed; TimedStorage-SIA-SmObjects (IA's 128 KB
+  small-object minimum) appeared at $0.07 on Oct 23.
+* Cost Explorer had only a sliver of Oct 24 at 17:10 UTC ($0.87); Oct 23 = $9.79 was the transition day (the egress and
+  the alarm ran most of it). Components point to a steady day at or under the $6.34 projection; the first full day with
+  every fix (Oct 25) is readable on Oct 26.
+
 Note (2026-10-23 20:20 UTC): `aws/ops/reports/latest/ops_6622_monthly_bill_projection.md` (written by another session
 under the same ops number) projects ~$326/month because it prices support as AWS's old Business plan ($100 or 10%) and
 counts the archive's daily replication PUTs as ~$4.50/month. Business Support+ is the greater of $29/month or 9% of

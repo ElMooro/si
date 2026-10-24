@@ -21,6 +21,8 @@ This file tracks items that require **your direct action** (registration, creden
 * **The AWS anomaly e-mail of Oct 23 (S3, Oct 21-22, $38.88) = the two archive backfills you approved; over** - Oct 23
   copied 83,148 files ($0.83, the normal daily archive copying), no Batch Operations job queued or running; marked
   "planned activity" in Cost Anomaly Detection (ops 6642, 2026-10-24).
+* **Fixes measured (Oct 24, ops 6644):** S3 data transfer down ~93% (40 GB on Oct 23 -> ~2.9 GB/day on Oct 24); Apple's
+  crawler refused on every request (~5,800 a day); the expensive alarm line is gone ($0.51-0.64/day before, $0 on Oct 24).
 * **November projection: ~$173 of AWS usage + $29 Business Support+ = ~$202** (band up to ~$225 if the Cloudflare-path
   egress stays at today's pace).
 * **Your decisions (2026-10-23 13:21 CT) - done / open:**
