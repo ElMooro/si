@@ -65,6 +65,14 @@ def main():
         r.log("journals modified since Oct 22 23:00 UTC: %d" % len(tops))
         for o in tops:
             d = json.loads(s3.get_object(Bucket=LIVE, Key=o["Key"])["Body"].read())
+            if d.get("source_id") or d.get("partition") is not None:
+                # a per-source capture record (fetch / partition journal): one compact line each, failures spelled out
+                cap = d.get("capture") or {}
+                spec = d.get("specification") or {}
+                if d.get("status") == "failed" or (cap and (cap.get("http_status") != 200 or cap.get("status") != "response_retained")):
+                    r.log("   SOURCE %s %s: status %s error %s http %s capture %s url %s" % (str(o["LastModified"])[5:19], d.get("source_id") or json.dumps(d.get("partition"))[:80], d.get("status"), d.get("error_type"),
+                                                                                              cap.get("http_status"), cap.get("status"), (spec.get("url") or cap.get("url") or "")[:140]))
+                continue
             sel = d.get("selection") or {}
             daily = d.get("daily")
             daily_tries = []
@@ -75,7 +83,7 @@ def main():
                    "errors": d.get("errors"), "started": (d.get("started_at") or "")[11:19], "daily_candidates": sel.get("daily_candidate_dates"),
                    "partitions_planned": len(sel.get("partitions") or []), "partitions_captured": len(d.get("partitions") or {}),
                    "daily_got": (daily or {}).get("daily_date") if isinstance(daily, dict) else daily, "result": d.get("result")}
-            r.log(json.dumps(rec, default=str)[:900])
+            r.log("JOURNAL " + json.dumps(rec, default=str)[:1400])
             # the per-source capture records of a failed run sit beside the journal: list what the daily fetches answered
             if d.get("status") == "failed":
                 sub = s3.list_objects_v2(Bucket=LIVE, Prefix=o["Key"][:-5] + "/", MaxKeys=200).get("Contents", [])
