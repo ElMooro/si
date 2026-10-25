@@ -1,0 +1,28 @@
+{
+  "runtime": "python3.12",
+  "memory": 1024,
+  "timeout": 900,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Trading Economics (calendar, forecasts, markets, news, comtrade, earnings, ratings, full indicator grid), CoinMarketCap, NewsAPI, Nasdaq Data Link, CryptoQuant per-exchange/miner/hourly - banked verbatim with plan verdicts, data/warm/provider-bank/.",
+  "inherit_env": [
+    {
+      "from_function": "justhodl-news-wire",
+      "keys": [
+        "NEWSAPI_KEY"
+      ]
+    }
+  ],
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "PROVIDER_BANK_BUDGET_S": "780",
+    "PROVIDER_BANK_WORKERS": "6"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-provider-bank-daily",
+    "cron": "cron(53 21 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "TE / CMC / NewsAPI / NDL / CryptoQuant-splits warehouse, daily 21:53 UTC"
+  }
+}

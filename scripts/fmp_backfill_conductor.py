@@ -25,6 +25,7 @@ ENGINES = {
     "justhodl-fmp-bank": {"state": "data/warm/fmp-bank/_state/state.json", "manifest": "data/warm/fmp-bank/manifest.json", "wait_s": 16 * 60},
     "justhodl-fmp-walker": {"state": "data/warm/fmp/_state/state.json", "manifest": "data/warm/fmp/manifest.json", "wait_s": 16 * 60},
     "justhodl-polygon-bank": {"state": "data/warm/polygon-bank/_state/state.json", "manifest": "data/warm/polygon-bank/manifest.json", "wait_s": 16 * 60},
+    "justhodl-provider-bank": {"state": "data/warm/provider-bank/_state/state.json", "manifest": "data/warm/provider-bank/manifest.json", "wait_s": 16 * 60},
 }
 CFG = Config(retries={"max_attempts": 10, "mode": "standard"}, connect_timeout=10, read_timeout=120)
 

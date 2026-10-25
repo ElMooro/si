@@ -11282,6 +11282,21 @@
    ]
   },
   {
+   "expr": "cron(53 21 * * ? *)",
+   "group": "default",
+   "kind": "scheduler",
+   "name": "justhodl-provider-bank-daily",
+   "state": "ENABLED",
+   "timezone": "UTC",
+   "targets": [
+    {
+     "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-provider-bank",
+     "input": "{}",
+     "path": null
+    }
+   ]
+  },
+  {
    "expr": "cron(38 22 * * ? *)",
    "group": "default",
    "kind": "scheduler",
