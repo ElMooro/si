@@ -47,9 +47,19 @@ This file tracks items that require **your direct action** (registration, creden
   file per ticker (03:10 UTC; birth op 6655), polygon-full v1.1.0 repairs the two holes the Oct 12-16 freeze left
   (Oct 13, Oct 16) and records holidays, and `polygon_bankfirst` answers `/v2/aggs/.../range/1/day` + `/prev` from the
   bank in Polygon's own envelope on 88 engines (strict completeness + session rules; live until the first fold lands).
-* **Next on the lane (no decision needed):** read back tomorrow - the coverage scoreboard (06:47 UTC), the first
-  bank-first summaries in the engines' logs (ops 6651), the polygon-eod backfill and the chart's fmp-append verdicts;
-  ledgered patches for the byte-pinned engines; a requests/urllib3 adapter for the 3 engines not on urllib.
+* **First light (ops 6651, 22:33 UTC):** 52 converted engines ran today with the shim - 0 errors. The cost guard fired
+  26 times, mostly for the wrong reason (it counted the one-time fetch+index of a 20-40 MB statements file as "slow");
+  fixed the same evening (judge the last 10 attempts, slow AND useless only; table budget 30% of memory; a stats line in
+  every engine's log) - lane J redeploys it overnight. Price asks missed because the walker's new daily price lane first
+  runs at 23:27 UTC tonight. The chart's first fmp-append (ops 6653) advanced SSE:000001 by 12 sessions from the FMP
+  bank; 13 names wait for tonight's walker run; FX:EURUSD and C:BRLUSD carry malformed legacy bars (high < close on some
+  rows) and are refused by the custody check - a separate review. polygon-eod folded 240 of 1,294 sessions in two kicks
+  (12.7k ticker files; ~100 s per 120 sessions) - the conductor finishes the backfill tomorrow. Trading Economics still
+  shows 401 on every dataset: those were recorded by the pre-fix runs and are re-probed at 21:53 UTC tomorrow (the
+  colon fix is deployed) - if 401 persists then, the TE key itself is wrong or expired.
+* **Next on the lane (no decision needed):** read back tomorrow - the coverage scoreboard (06:47 UTC), ops 6651 again
+  after the 23:27 price lane, the polygon-eod backfill and the chart's 23:58 fmp-append verdicts; ledgered patches for
+  the byte-pinned engines; a requests/urllib3 adapter for the 3 engines not on urllib.
 
 ### 0m. "Yesterday cost $30" (2026-10-23) - explained, two leaks fixed, crawlers blocked, archive copying halved; open: 9 secrets, 2 servers (docs/audit/2026-10-23/aws-bill-oct22.md)
 
