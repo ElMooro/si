@@ -1,96 +1,864 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "root": "data/warm/provider-bank/",
   "doctrine": [
     "The small keyed providers the audit (2026-10-23) found at 0-30% use - Trading Economics (a FRED mirror and a latest-value snapshot; no calendar, forecasts, markets, news, comtrade, earnings, ratings), CoinMarketCap (snapshots only; no map/info/categories/historical), NewsAPI (page 1 of two endpoints), Nasdaq Data Link (24 FRED mirrors, no trigger) and CryptoQuant (all-exchange daily only; no per-exchange, per-miner or hourly) - banked here, verbatim JSON (gz), under data/warm/provider-bank/<provider>/<dataset>/...",
     "Plans are unknown from the repo: every dataset is a probe whose verdict is recorded by http code (402/403/426 = not in the plan), skipped for the day and re-probed tomorrow. The card on data.html says what the key can and cannot reach.",
     "Per-provider daily call caps keep paid credits and free quotas inside their month (CMC credits, NewsAPI requests/day); the token bucket keeps each provider under its per-second limit.",
-    "kinds: list (every run; latest + dated when changed or dated_always), window (from/to by month, backfill from floor), per_entity (one file per entity, rotation by cursor; chunked ids for batch endpoints), latest_pages (paged newest-first feed, pages until short)."
+    "kinds: list (every run; latest + dated when changed or dated_always), window (from/to by month, backfill from floor), per_entity (one file per entity, rotation by cursor; chunked ids for batch endpoints), latest_pages (paged newest-first feed, pages until short).",
+    "v1.1.0 (2026-10-25, first live run): TE keys are user:secret and the colon must stay unencoded (401 otherwise); CryptoQuant rejects limit>1000 (400); NewsAPI's free quota is spent by the fleet's own engines before noon UTC - this bank asks for 8 feeds a day and stops on the first 429; Nasdaq Data Link's listing endpoints answer 410/403 on this key, so datasets come from a static code list and each is probed."
   ],
   "providers": {
-    "te": {"base": "https://api.tradingeconomics.com", "auth": {"query": "c"}, "key_env": ["TE_API_KEY", "TE_API", "TRADINGECONOMICS_API_KEY"], "key_ssm": ["/justhodl/te_api"], "extra_query": {"f": "json"}, "rps": 1.0, "daily_call_cap": 1500, "paging": null},
-    "cmc": {"base": "https://pro-api.coinmarketcap.com", "auth": {"header": "X-CMC_PRO_API_KEY"}, "key_env": ["CMC_KEY", "CMC_PRO_API_KEY", "COINMARKETCAP_API_KEY"], "key_ssm": ["/justhodl/cmc/api-key"], "rps": 0.5, "daily_call_cap": 110, "paging": {"param": "start", "start": 1, "size_param": "limit", "size": 5000, "mode": "offset"}, "results_key": "data"},
-    "newsapi": {"base": "https://newsapi.org", "auth": {"header": "X-Api-Key"}, "key_env": ["NEWSAPI_KEY", "NEWS_API_KEY"], "key_ssm": ["/justhodl/newsapi/api-key"], "rps": 1.0, "daily_call_cap": 60, "paging": {"param": "page", "start": 1, "size_param": "pageSize", "size": 100, "mode": "page"}, "results_key": "articles"},
-    "ndl": {"base": "https://data.nasdaq.com", "auth": {"query": "api_key"}, "key_env": ["NASDAQ_API_KEY", "NASDAQ_DATALINK_API_KEY", "NASDAQ_DATALINK_KEY", "QUANDL_API_KEY"], "key_ssm": ["/justhodl/nasdaq-datalink/api-key"], "rps": 2.0, "daily_call_cap": 3000, "paging": {"param": "page", "start": 1, "size_param": "per_page", "size": 100, "mode": "page"}},
-    "cq": {"base": "https://api.cryptoquant.com", "auth": {"bearer": true}, "key_env": ["CRYPTOQUANT_API_KEY"], "key_ssm": ["/justhodl/cryptoquant_api", "/justhodl/cryptoquant/token"], "rps": 1.5, "daily_call_cap": 2500, "paging": null, "results_key": "result.data"}
+    "te": {
+      "base": "https://api.tradingeconomics.com",
+      "auth": {
+        "query": "c"
+      },
+      "key_env": [
+        "TE_API_KEY",
+        "TE_API",
+        "TRADINGECONOMICS_API_KEY"
+      ],
+      "key_ssm": [
+        "/justhodl/te_api"
+      ],
+      "extra_query": {
+        "f": "json"
+      },
+      "rps": 1.0,
+      "daily_call_cap": 1500,
+      "paging": null
+    },
+    "cmc": {
+      "base": "https://pro-api.coinmarketcap.com",
+      "auth": {
+        "header": "X-CMC_PRO_API_KEY"
+      },
+      "key_env": [
+        "CMC_KEY",
+        "CMC_PRO_API_KEY",
+        "COINMARKETCAP_API_KEY"
+      ],
+      "key_ssm": [
+        "/justhodl/cmc/api-key"
+      ],
+      "rps": 0.5,
+      "daily_call_cap": 110,
+      "paging": {
+        "param": "start",
+        "start": 1,
+        "size_param": "limit",
+        "size": 5000,
+        "mode": "offset"
+      },
+      "results_key": "data"
+    },
+    "newsapi": {
+      "base": "https://newsapi.org",
+      "auth": {
+        "header": "X-Api-Key"
+      },
+      "key_env": [
+        "NEWSAPI_KEY",
+        "NEWS_API_KEY"
+      ],
+      "key_ssm": [
+        "/justhodl/newsapi/api-key"
+      ],
+      "rps": 1.0,
+      "daily_call_cap": 20,
+      "paging": {
+        "param": "page",
+        "start": 1,
+        "size_param": "pageSize",
+        "size": 100,
+        "mode": "page"
+      },
+      "results_key": "articles",
+      "quota_is_daily": true
+    },
+    "ndl": {
+      "base": "https://data.nasdaq.com",
+      "auth": {
+        "query": "api_key"
+      },
+      "key_env": [
+        "NASDAQ_API_KEY",
+        "NASDAQ_DATALINK_API_KEY",
+        "NASDAQ_DATALINK_KEY",
+        "QUANDL_API_KEY"
+      ],
+      "key_ssm": [
+        "/justhodl/nasdaq-datalink/api-key"
+      ],
+      "rps": 2.0,
+      "daily_call_cap": 3000,
+      "paging": {
+        "param": "page",
+        "start": 1,
+        "size_param": "per_page",
+        "size": 100,
+        "mode": "page"
+      }
+    },
+    "cq": {
+      "base": "https://api.cryptoquant.com",
+      "auth": {
+        "bearer": true
+      },
+      "key_env": [
+        "CRYPTOQUANT_API_KEY"
+      ],
+      "key_ssm": [
+        "/justhodl/cryptoquant_api",
+        "/justhodl/cryptoquant/token"
+      ],
+      "rps": 1.5,
+      "daily_call_cap": 2500,
+      "paging": null,
+      "results_key": "result.data"
+    }
   },
   "universes": {
-    "te_countries": {"from": "te/countries", "field": "Country"},
-    "te_market_symbols": {"from": ["te/markets-bond", "te/markets-commodities", "te/markets-currency", "te/markets-index", "te/markets-crypto"], "field": "Symbol"},
-    "te_indicator_chunks": {"from": "te/indicators", "field": "Category", "chunk": 15},
-    "cmc_ids": {"from": "cmc/map", "field": "id", "chunk": 100},
-    "cmc_category_ids": {"from": "cmc/categories", "field": "id"},
-    "newsapi_countries": {"static": ["us", "gb", "de", "fr", "jp", "cn", "in", "ca", "au", "br", "kr", "mx"]},
-    "newsapi_us_categories": {"static": ["business", "technology", "general", "science", "health"]},
-    "newsapi_macro_queries": {"static": ["Federal Reserve", "inflation CPI", "Treasury yields", "tariffs trade war", "oil OPEC", "recession", "unemployment jobs report", "ECB rates", "Bank of Japan", "China economy", "bitcoin", "gold price", "dollar index", "credit spreads", "bank earnings", "AI capex", "housing market", "consumer spending", "debt ceiling", "stock market"]},
-    "ndl_databases_priority": {"static": ["LBMA", "OPEC", "USTREASURY", "MULTPL", "BCHAIN", "ODA", "ML", "NASDAQOMX", "FED", "RATEINF", "BUNDESBANK", "BOE", "ECB", "CHRIS", "ZILLOW", "SGE", "JOHNMATT", "WGC", "WORLDBANK", "UIFS"]},
-    "ndl_dataset_codes": {"from": "ndl/datasets-by-db", "field": "code_full", "accumulate": true},
-    "cq_exchanges": {"from": "cq/entity-list-exchange", "field": "exchange", "alt_fields": ["entity", "name"]},
-    "cq_miners": {"from": "cq/entity-list-miner", "field": "miner", "alt_fields": ["entity", "name"]},
-    "cq_hourly_paths": {"static": ["btc/exchange-flows/netflow?exchange=all_exchange", "btc/exchange-flows/reserve?exchange=all_exchange", "btc/flow-indicator/mpi", "btc/flow-indicator/exchange-whale-ratio?exchange=all_exchange", "btc/market-indicator/mvrv", "btc/market-indicator/sopr", "eth/exchange-flows/reserve?exchange=all_exchange", "stablecoin/exchange-flows/reserve?token=all_token&exchange=all_exchange", "btc/market-data/open-interest?exchange=all_exchange", "btc/market-data/funding-rates?exchange=all_exchange", "btc/market-data/liquidations?exchange=all_exchange", "btc/market-data/taker-buy-sell-stats?exchange=all_exchange", "btc/market-data/coinbase-premium-index"]},
-    "cq_exchange_paths": {"static": ["btc/exchange-flows/netflow", "btc/exchange-flows/inflow", "btc/exchange-flows/outflow", "btc/exchange-flows/reserve", "btc/flow-indicator/exchange-whale-ratio", "btc/market-data/open-interest", "btc/market-data/funding-rates", "eth/exchange-flows/netflow", "eth/exchange-flows/reserve", "eth/market-data/open-interest"]},
-    "cq_miner_paths": {"static": ["btc/miner-flows/netflow", "btc/miner-flows/inflow", "btc/miner-flows/outflow", "btc/miner-flows/reserve", "btc/flow-indicator/miner-supply-ratio"]}
+    "te_countries": {
+      "from": "te/countries",
+      "field": "Country"
+    },
+    "te_market_symbols": {
+      "from": [
+        "te/markets-bond",
+        "te/markets-commodities",
+        "te/markets-currency",
+        "te/markets-index",
+        "te/markets-crypto"
+      ],
+      "field": "Symbol"
+    },
+    "te_indicator_chunks": {
+      "from": "te/indicators",
+      "field": "Category",
+      "chunk": 15
+    },
+    "cmc_ids": {
+      "from": "cmc/map",
+      "field": "id",
+      "chunk": 100
+    },
+    "cmc_category_ids": {
+      "from": "cmc/categories",
+      "field": "id"
+    },
+    "newsapi_countries": {
+      "static": [
+        "us",
+        "gb",
+        "de",
+        "jp"
+      ]
+    },
+    "newsapi_us_categories": {
+      "static": [
+        "business",
+        "technology",
+        "general"
+      ]
+    },
+    "newsapi_macro_queries": {
+      "static": [
+        "Federal Reserve",
+        "inflation",
+        "Treasury yields"
+      ]
+    },
+    "ndl_databases_priority": {
+      "static": [
+        "LBMA",
+        "OPEC",
+        "USTREASURY",
+        "MULTPL",
+        "BCHAIN",
+        "ODA",
+        "ML",
+        "NASDAQOMX",
+        "FED",
+        "RATEINF",
+        "BUNDESBANK",
+        "BOE",
+        "ECB",
+        "CHRIS",
+        "ZILLOW",
+        "SGE",
+        "JOHNMATT",
+        "WGC",
+        "WORLDBANK",
+        "UIFS"
+      ]
+    },
+    "ndl_dataset_codes": {
+      "static": [
+        "LBMA/GOLD",
+        "LBMA/SILVER",
+        "OPEC/ORB",
+        "USTREASURY/YIELD",
+        "USTREASURY/REALYIELD",
+        "USTREASURY/BILLRATES",
+        "USTREASURY/LONGTERMRATES",
+        "USTREASURY/HQMYC",
+        "MULTPL/SP500_PE_RATIO_MONTH",
+        "MULTPL/SP500_DIV_YIELD_MONTH",
+        "MULTPL/SHILLER_PE_RATIO_MONTH",
+        "MULTPL/SP500_EARNINGS_YIELD_MONTH",
+        "MULTPL/SP500_REAL_PRICE_MONTH",
+        "MULTPL/SP500_BVPS_QUARTER",
+        "MULTPL/SP500_SALES_QUARTER",
+        "MULTPL/SP500_INFLADJ_MONTH",
+        "BCHAIN/MKPRU",
+        "BCHAIN/HRATE",
+        "BCHAIN/NTRAN",
+        "BCHAIN/MKTCP",
+        "BCHAIN/ETRAV",
+        "BCHAIN/DIFF",
+        "BCHAIN/TOTBC",
+        "BCHAIN/AVBLS",
+        "BCHAIN/MIREV",
+        "BCHAIN/TRVOU",
+        "BCHAIN/CPTRA",
+        "BCHAIN/NADDU",
+        "BCHAIN/MWNUS",
+        "BCHAIN/ATRCT",
+        "BCHAIN/TRFEE",
+        "BCHAIN/BLCHS",
+        "NASDAQOMX/COMP-NASDAQ",
+        "NASDAQOMX/NDX-NASDAQ",
+        "NASDAQOMX/XQC-NASDAQ",
+        "NASDAQOMX/NQUSB",
+        "ML/AAAEY",
+        "ML/AAEY",
+        "ML/AEY",
+        "ML/BBBEY",
+        "ML/BBEY",
+        "ML/BEY",
+        "ML/CCCEY",
+        "ML/USEY",
+        "ML/EMHYY",
+        "ML/HYOAS",
+        "ML/USTRI",
+        "ML/EMCBI",
+        "FRED/DGS10",
+        "FRED/VIXCLS",
+        "RATEINF/CPI_USA",
+        "RATEINF/INFLATION_USA",
+        "SGE/PUBLIC_DEBT_WLD",
+        "WGC/GOLD_DAILY_USD",
+        "JOHNMATT/PLAT",
+        "JOHNMATT/PALL",
+        "ODA/PGOLD_USD",
+        "ODA/POILBRE_USD",
+        "ODA/PCOPP_USD",
+        "ODA/PNGASUS_USD",
+        "ODA/PALUM_USD",
+        "ODA/PWHEAMT_USD"
+      ]
+    },
+    "cq_exchanges": {
+      "from": "cq/entity-list-exchange",
+      "field": "exchange",
+      "alt_fields": [
+        "entity",
+        "name"
+      ]
+    },
+    "cq_miners": {
+      "from": "cq/entity-list-miner",
+      "field": "miner",
+      "alt_fields": [
+        "entity",
+        "name"
+      ]
+    },
+    "cq_hourly_paths": {
+      "static": [
+        "btc/exchange-flows/netflow?exchange=all_exchange",
+        "btc/exchange-flows/reserve?exchange=all_exchange",
+        "btc/flow-indicator/mpi",
+        "btc/flow-indicator/exchange-whale-ratio?exchange=all_exchange",
+        "btc/market-indicator/mvrv",
+        "btc/market-indicator/sopr",
+        "eth/exchange-flows/reserve?exchange=all_exchange",
+        "stablecoin/exchange-flows/reserve?token=all_token&exchange=all_exchange",
+        "btc/market-data/open-interest?exchange=all_exchange",
+        "btc/market-data/funding-rates?exchange=all_exchange",
+        "btc/market-data/liquidations?exchange=all_exchange",
+        "btc/market-data/taker-buy-sell-stats?exchange=all_exchange",
+        "btc/market-data/coinbase-premium-index"
+      ]
+    },
+    "cq_exchange_paths": {
+      "static": [
+        "btc/exchange-flows/netflow",
+        "btc/exchange-flows/inflow",
+        "btc/exchange-flows/outflow",
+        "btc/exchange-flows/reserve",
+        "btc/flow-indicator/exchange-whale-ratio",
+        "btc/market-data/open-interest",
+        "btc/market-data/funding-rates",
+        "eth/exchange-flows/netflow",
+        "eth/exchange-flows/reserve",
+        "eth/market-data/open-interest"
+      ]
+    },
+    "cq_miner_paths": {
+      "static": [
+        "btc/miner-flows/netflow",
+        "btc/miner-flows/inflow",
+        "btc/miner-flows/outflow",
+        "btc/miner-flows/reserve",
+        "btc/flow-indicator/miner-supply-ratio"
+      ]
+    }
   },
   "datasets": [
-    {"id": "te/countries", "provider": "te", "kind": "list", "path": "/country", "priority": 0},
-    {"id": "te/indicators", "provider": "te", "kind": "list", "path": "/indicators", "priority": 0},
-    {"id": "te/country-all-latest", "provider": "te", "kind": "list", "path": "/country/all", "dated_always": true, "priority": 0},
-    {"id": "te/markets-bond", "provider": "te", "kind": "list", "path": "/markets/bond", "dated_always": true, "priority": 0},
-    {"id": "te/markets-commodities", "provider": "te", "kind": "list", "path": "/markets/commodities", "dated_always": true, "priority": 0},
-    {"id": "te/markets-currency", "provider": "te", "kind": "list", "path": "/markets/currency", "dated_always": true, "priority": 0},
-    {"id": "te/markets-index", "provider": "te", "kind": "list", "path": "/markets/index", "dated_always": true, "priority": 0},
-    {"id": "te/markets-crypto", "provider": "te", "kind": "list", "path": "/markets/crypto", "dated_always": true, "priority": 0},
-    {"id": "te/markets-forecasts", "provider": "te", "kind": "list", "path": "/markets/forecasts/index", "dated_always": true, "priority": 1},
-    {"id": "te/calendar", "provider": "te", "kind": "window", "path": "/calendar", "date_params": ["d1", "d2"], "floor": "2010-01", "priority": 1},
-    {"id": "te/calendar-forward", "provider": "te", "kind": "list", "path": "/calendar", "params": {"d1": "@today", "d2": "@today+90"}, "dated_always": true, "priority": 0},
-    {"id": "te/earnings", "provider": "te", "kind": "window", "path": "/earnings", "date_params": ["d1", "d2"], "floor": "2015-01", "priority": 2},
-    {"id": "te/earnings-forward", "provider": "te", "kind": "list", "path": "/earnings", "params": {"d1": "@today", "d2": "@today+60"}, "dated_always": true, "priority": 1},
-    {"id": "te/news", "provider": "te", "kind": "list", "path": "/news", "params": {"limit": 1000}, "dated_always": true, "priority": 1},
-    {"id": "te/ratings", "provider": "te", "kind": "list", "path": "/ratings", "priority": 1},
-    {"id": "te/ratings-historical", "provider": "te", "kind": "per_entity", "path": "/ratings/historical/{entity}", "universe": "te_countries", "priority": 2},
-    {"id": "te/forecast-country", "provider": "te", "kind": "per_entity", "path": "/forecast/country/{entity}", "universe": "te_countries", "priority": 1},
-    {"id": "te/comtrade-country", "provider": "te", "kind": "per_entity", "path": "/comtrade/country/{entity}", "universe": "te_countries", "priority": 2},
-    {"id": "te/historical-country", "provider": "te", "kind": "per_entity", "path": "/historical/country/{entity}/indicator/{chunk}", "universe": "te_countries", "chunk_universe": "te_indicator_chunks", "params": {"d1": "1900-01-01"}, "priority": 1},
-    {"id": "te/markets-historical", "provider": "te", "kind": "per_entity", "path": "/markets/historical/{entity}", "universe": "te_market_symbols", "params": {"d1": "1990-01-01"}, "priority": 2},
-
-    {"id": "cmc/map", "provider": "cmc", "kind": "list", "path": "/v1/cryptocurrency/map", "params": {"listing_status": "active,inactive,untracked", "limit": 5000}, "paged": true, "max_pages": 4, "priority": 0},
-    {"id": "cmc/listings-latest", "provider": "cmc", "kind": "list", "path": "/v1/cryptocurrency/listings/latest", "params": {"limit": 5000, "convert": "USD"}, "dated_always": true, "priority": 0},
-    {"id": "cmc/categories", "provider": "cmc", "kind": "list", "path": "/v1/cryptocurrency/categories", "params": {"limit": 5000}, "priority": 0},
-    {"id": "cmc/global-metrics", "provider": "cmc", "kind": "list", "path": "/v1/global-metrics/quotes/latest", "dated_always": true, "priority": 0},
-    {"id": "cmc/fear-and-greed-latest", "provider": "cmc", "kind": "list", "path": "/v3/fear-and-greed/latest", "dated_always": true, "priority": 0},
-    {"id": "cmc/fear-and-greed-historical", "provider": "cmc", "kind": "list", "path": "/v3/fear-and-greed/historical", "params": {"limit": 500}, "priority": 1},
-    {"id": "cmc/exchange-map", "provider": "cmc", "kind": "list", "path": "/v1/exchange/map", "params": {"limit": 5000}, "priority": 1},
-    {"id": "cmc/exchange-listings-latest", "provider": "cmc", "kind": "list", "path": "/v1/exchange/listings/latest", "params": {"limit": 5000}, "dated_always": true, "priority": 2},
-    {"id": "cmc/trending-latest", "provider": "cmc", "kind": "list", "path": "/v1/cryptocurrency/trending/latest", "params": {"limit": 200}, "dated_always": true, "priority": 2},
-    {"id": "cmc/trending-gainers-losers", "provider": "cmc", "kind": "list", "path": "/v1/cryptocurrency/trending/gainers-losers", "params": {"limit": 200}, "dated_always": true, "priority": 2},
-    {"id": "cmc/trending-most-visited", "provider": "cmc", "kind": "list", "path": "/v1/cryptocurrency/trending/most-visited", "params": {"limit": 200}, "dated_always": true, "priority": 2},
-    {"id": "cmc/airdrops", "provider": "cmc", "kind": "list", "path": "/v1/cryptocurrency/airdrops", "params": {"limit": 300}, "priority": 3},
-    {"id": "cmc/global-metrics-historical", "provider": "cmc", "kind": "list", "path": "/v1/global-metrics/quotes/historical", "params": {"interval": "daily", "count": 10000}, "priority": 1},
-    {"id": "cmc/category", "provider": "cmc", "kind": "per_entity", "path": "/v1/cryptocurrency/category", "universe": "cmc_category_ids", "entity_param": "id", "params": {"limit": 1000}, "priority": 2, "entities_per_run": 15},
-    {"id": "cmc/info", "provider": "cmc", "kind": "per_entity", "path": "/v2/cryptocurrency/info", "universe": "cmc_ids", "entity_param": "id", "priority": 1, "entities_per_run": 30},
-    {"id": "cmc/ohlcv-historical-btc-eth", "provider": "cmc", "kind": "list", "path": "/v2/cryptocurrency/ohlcv/historical", "params": {"id": "1,1027", "count": 10000, "interval": "daily"}, "priority": 1},
-    {"id": "cmc/quotes-historical-btc-eth", "provider": "cmc", "kind": "list", "path": "/v2/cryptocurrency/quotes/historical", "params": {"id": "1,1027", "count": 10000, "interval": "daily"}, "priority": 2},
-
-    {"id": "newsapi/sources", "provider": "newsapi", "kind": "list", "path": "/v2/sources", "priority": 0},
-    {"id": "newsapi/top-headlines-business", "provider": "newsapi", "kind": "per_entity", "path": "/v2/top-headlines", "universe": "newsapi_countries", "entity_param": "country", "params": {"category": "business", "pageSize": 100}, "dated_always": true, "priority": 0},
-    {"id": "newsapi/top-headlines-us", "provider": "newsapi", "kind": "per_entity", "path": "/v2/top-headlines", "universe": "newsapi_us_categories", "entity_param": "category", "params": {"country": "us", "pageSize": 100}, "dated_always": true, "priority": 0},
-    {"id": "newsapi/everything-macro", "provider": "newsapi", "kind": "per_entity", "path": "/v2/everything", "universe": "newsapi_macro_queries", "entity_param": "q", "params": {"language": "en", "sortBy": "publishedAt", "pageSize": 100, "from": "@today-1"}, "dated_always": true, "priority": 1},
-
-    {"id": "ndl/databases", "provider": "ndl", "kind": "list", "path": "/api/v3/databases.json", "params": {"per_page": 100}, "paged": true, "max_pages": 20, "results_key": "databases", "priority": 0},
-    {"id": "ndl/datasets-by-db", "provider": "ndl", "kind": "per_entity", "path": "/api/v3/datasets.json", "universe": "ndl_databases_priority", "entity_param": "database_code", "params": {"per_page": 100}, "paged": true, "max_pages": 20, "results_key": "datasets", "priority": 0},
-    {"id": "ndl/dataset", "provider": "ndl", "kind": "per_entity", "path": "/api/v3/datasets/{entity}.json", "universe": "ndl_dataset_codes", "priority": 1},
-
-    {"id": "cq/entity-list-exchange", "provider": "cq", "kind": "list", "path": "/v1/btc/status/entity-list", "params": {"type": "exchange"}, "priority": 0},
-    {"id": "cq/entity-list-miner", "provider": "cq", "kind": "list", "path": "/v1/btc/status/entity-list", "params": {"type": "miner"}, "priority": 0},
-    {"id": "cq/hourly", "provider": "cq", "kind": "per_entity", "path": "/v1/{entity}", "universe": "cq_hourly_paths", "params": {"window": "hour", "limit": 5000}, "dated_always": true, "priority": 1},
-    {"id": "cq/exchange-split", "provider": "cq", "kind": "per_entity", "path": "/v1/{chunk}", "universe": "cq_exchanges", "entity_param": "exchange", "chunk_universe": "cq_exchange_paths", "params": {"window": "day", "limit": 5000}, "priority": 1},
-    {"id": "cq/miner-split", "provider": "cq", "kind": "per_entity", "path": "/v1/{chunk}", "universe": "cq_miners", "entity_param": "miner", "chunk_universe": "cq_miner_paths", "params": {"window": "day", "limit": 5000}, "priority": 2}
+    {
+      "id": "te/countries",
+      "provider": "te",
+      "kind": "list",
+      "path": "/country",
+      "priority": 0
+    },
+    {
+      "id": "te/indicators",
+      "provider": "te",
+      "kind": "list",
+      "path": "/indicators",
+      "priority": 0
+    },
+    {
+      "id": "te/country-all-latest",
+      "provider": "te",
+      "kind": "list",
+      "path": "/country/all",
+      "dated_always": true,
+      "priority": 0
+    },
+    {
+      "id": "te/markets-bond",
+      "provider": "te",
+      "kind": "list",
+      "path": "/markets/bond",
+      "dated_always": true,
+      "priority": 0
+    },
+    {
+      "id": "te/markets-commodities",
+      "provider": "te",
+      "kind": "list",
+      "path": "/markets/commodities",
+      "dated_always": true,
+      "priority": 0
+    },
+    {
+      "id": "te/markets-currency",
+      "provider": "te",
+      "kind": "list",
+      "path": "/markets/currency",
+      "dated_always": true,
+      "priority": 0
+    },
+    {
+      "id": "te/markets-index",
+      "provider": "te",
+      "kind": "list",
+      "path": "/markets/index",
+      "dated_always": true,
+      "priority": 0
+    },
+    {
+      "id": "te/markets-crypto",
+      "provider": "te",
+      "kind": "list",
+      "path": "/markets/crypto",
+      "dated_always": true,
+      "priority": 0
+    },
+    {
+      "id": "te/markets-forecasts",
+      "provider": "te",
+      "kind": "list",
+      "path": "/markets/forecasts/index",
+      "dated_always": true,
+      "priority": 1
+    },
+    {
+      "id": "te/calendar",
+      "provider": "te",
+      "kind": "window",
+      "path": "/calendar",
+      "date_params": [
+        "d1",
+        "d2"
+      ],
+      "floor": "2010-01",
+      "priority": 1
+    },
+    {
+      "id": "te/calendar-forward",
+      "provider": "te",
+      "kind": "list",
+      "path": "/calendar",
+      "params": {
+        "d1": "@today",
+        "d2": "@today+90"
+      },
+      "dated_always": true,
+      "priority": 0
+    },
+    {
+      "id": "te/earnings",
+      "provider": "te",
+      "kind": "window",
+      "path": "/earnings",
+      "date_params": [
+        "d1",
+        "d2"
+      ],
+      "floor": "2015-01",
+      "priority": 2
+    },
+    {
+      "id": "te/earnings-forward",
+      "provider": "te",
+      "kind": "list",
+      "path": "/earnings",
+      "params": {
+        "d1": "@today",
+        "d2": "@today+60"
+      },
+      "dated_always": true,
+      "priority": 1
+    },
+    {
+      "id": "te/news",
+      "provider": "te",
+      "kind": "list",
+      "path": "/news",
+      "params": {
+        "limit": 1000
+      },
+      "dated_always": true,
+      "priority": 1
+    },
+    {
+      "id": "te/ratings",
+      "provider": "te",
+      "kind": "list",
+      "path": "/ratings",
+      "priority": 1
+    },
+    {
+      "id": "te/ratings-historical",
+      "provider": "te",
+      "kind": "per_entity",
+      "path": "/ratings/historical/{entity}",
+      "universe": "te_countries",
+      "priority": 2
+    },
+    {
+      "id": "te/forecast-country",
+      "provider": "te",
+      "kind": "per_entity",
+      "path": "/forecast/country/{entity}",
+      "universe": "te_countries",
+      "priority": 1
+    },
+    {
+      "id": "te/comtrade-country",
+      "provider": "te",
+      "kind": "per_entity",
+      "path": "/comtrade/country/{entity}",
+      "universe": "te_countries",
+      "priority": 2
+    },
+    {
+      "id": "te/historical-country",
+      "provider": "te",
+      "kind": "per_entity",
+      "path": "/historical/country/{entity}/indicator/{chunk}",
+      "universe": "te_countries",
+      "chunk_universe": "te_indicator_chunks",
+      "params": {
+        "d1": "1900-01-01"
+      },
+      "priority": 1
+    },
+    {
+      "id": "te/markets-historical",
+      "provider": "te",
+      "kind": "per_entity",
+      "path": "/markets/historical/{entity}",
+      "universe": "te_market_symbols",
+      "params": {
+        "d1": "1990-01-01"
+      },
+      "priority": 2
+    },
+    {
+      "id": "cmc/map",
+      "provider": "cmc",
+      "kind": "list",
+      "path": "/v1/cryptocurrency/map",
+      "params": {
+        "listing_status": "active,inactive,untracked",
+        "limit": 5000
+      },
+      "paged": true,
+      "max_pages": 4,
+      "priority": 0
+    },
+    {
+      "id": "cmc/listings-latest",
+      "provider": "cmc",
+      "kind": "list",
+      "path": "/v1/cryptocurrency/listings/latest",
+      "params": {
+        "limit": 5000,
+        "convert": "USD"
+      },
+      "dated_always": true,
+      "priority": 0
+    },
+    {
+      "id": "cmc/categories",
+      "provider": "cmc",
+      "kind": "list",
+      "path": "/v1/cryptocurrency/categories",
+      "params": {
+        "limit": 5000
+      },
+      "priority": 0
+    },
+    {
+      "id": "cmc/global-metrics",
+      "provider": "cmc",
+      "kind": "list",
+      "path": "/v1/global-metrics/quotes/latest",
+      "dated_always": true,
+      "priority": 0
+    },
+    {
+      "id": "cmc/fear-and-greed-latest",
+      "provider": "cmc",
+      "kind": "list",
+      "path": "/v3/fear-and-greed/latest",
+      "dated_always": true,
+      "priority": 0
+    },
+    {
+      "id": "cmc/fear-and-greed-historical",
+      "provider": "cmc",
+      "kind": "list",
+      "path": "/v3/fear-and-greed/historical",
+      "params": {
+        "limit": 500
+      },
+      "priority": 1
+    },
+    {
+      "id": "cmc/exchange-map",
+      "provider": "cmc",
+      "kind": "list",
+      "path": "/v1/exchange/map",
+      "params": {
+        "limit": 5000
+      },
+      "priority": 1
+    },
+    {
+      "id": "cmc/exchange-listings-latest",
+      "provider": "cmc",
+      "kind": "list",
+      "path": "/v1/exchange/listings/latest",
+      "params": {
+        "limit": 5000
+      },
+      "dated_always": true,
+      "priority": 2
+    },
+    {
+      "id": "cmc/trending-latest",
+      "provider": "cmc",
+      "kind": "list",
+      "path": "/v1/cryptocurrency/trending/latest",
+      "params": {
+        "limit": 200
+      },
+      "dated_always": true,
+      "priority": 2
+    },
+    {
+      "id": "cmc/trending-gainers-losers",
+      "provider": "cmc",
+      "kind": "list",
+      "path": "/v1/cryptocurrency/trending/gainers-losers",
+      "params": {
+        "limit": 200
+      },
+      "dated_always": true,
+      "priority": 2
+    },
+    {
+      "id": "cmc/trending-most-visited",
+      "provider": "cmc",
+      "kind": "list",
+      "path": "/v1/cryptocurrency/trending/most-visited",
+      "params": {
+        "limit": 200
+      },
+      "dated_always": true,
+      "priority": 2
+    },
+    {
+      "id": "cmc/airdrops",
+      "provider": "cmc",
+      "kind": "list",
+      "path": "/v1/cryptocurrency/airdrops",
+      "params": {
+        "limit": 300
+      },
+      "priority": 3
+    },
+    {
+      "id": "cmc/global-metrics-historical",
+      "provider": "cmc",
+      "kind": "list",
+      "path": "/v1/global-metrics/quotes/historical",
+      "params": {
+        "interval": "daily",
+        "count": 10000
+      },
+      "priority": 1
+    },
+    {
+      "id": "cmc/category",
+      "provider": "cmc",
+      "kind": "per_entity",
+      "path": "/v1/cryptocurrency/category",
+      "universe": "cmc_category_ids",
+      "entity_param": "id",
+      "params": {
+        "limit": 1000
+      },
+      "priority": 2,
+      "entities_per_run": 15
+    },
+    {
+      "id": "cmc/info",
+      "provider": "cmc",
+      "kind": "per_entity",
+      "path": "/v2/cryptocurrency/info",
+      "universe": "cmc_ids",
+      "entity_param": "id",
+      "priority": 1,
+      "entities_per_run": 30
+    },
+    {
+      "id": "cmc/ohlcv-historical-btc-eth",
+      "provider": "cmc",
+      "kind": "list",
+      "path": "/v2/cryptocurrency/ohlcv/historical",
+      "params": {
+        "id": "1,1027",
+        "count": 10000,
+        "interval": "daily"
+      },
+      "priority": 1
+    },
+    {
+      "id": "cmc/quotes-historical-btc-eth",
+      "provider": "cmc",
+      "kind": "list",
+      "path": "/v2/cryptocurrency/quotes/historical",
+      "params": {
+        "id": "1,1027",
+        "count": 5000,
+        "interval": "daily"
+      },
+      "priority": 2
+    },
+    {
+      "id": "newsapi/sources",
+      "provider": "newsapi",
+      "kind": "list",
+      "path": "/v2/sources",
+      "priority": 0
+    },
+    {
+      "id": "newsapi/top-headlines-business",
+      "provider": "newsapi",
+      "kind": "per_entity",
+      "path": "/v2/top-headlines",
+      "universe": "newsapi_countries",
+      "entity_param": "country",
+      "params": {
+        "category": "business",
+        "pageSize": 100
+      },
+      "dated_always": true,
+      "priority": 0
+    },
+    {
+      "id": "newsapi/top-headlines-us",
+      "provider": "newsapi",
+      "kind": "per_entity",
+      "path": "/v2/top-headlines",
+      "universe": "newsapi_us_categories",
+      "entity_param": "category",
+      "params": {
+        "country": "us",
+        "pageSize": 100
+      },
+      "dated_always": true,
+      "priority": 0
+    },
+    {
+      "id": "newsapi/everything-macro",
+      "provider": "newsapi",
+      "kind": "per_entity",
+      "path": "/v2/everything",
+      "universe": "newsapi_macro_queries",
+      "entity_param": "q",
+      "params": {
+        "language": "en",
+        "sortBy": "publishedAt",
+        "pageSize": 100,
+        "from": "@today-1"
+      },
+      "dated_always": true,
+      "priority": 1
+    },
+    {
+      "id": "ndl/databases",
+      "provider": "ndl",
+      "kind": "list",
+      "path": "/api/v3/databases.json",
+      "params": {
+        "per_page": 100
+      },
+      "paged": true,
+      "max_pages": 20,
+      "results_key": "databases",
+      "priority": 0
+    },
+    {
+      "id": "ndl/datasets-by-db",
+      "provider": "ndl",
+      "kind": "per_entity",
+      "path": "/api/v3/datasets.json",
+      "universe": "ndl_databases_priority",
+      "entity_param": "database_code",
+      "params": {
+        "per_page": 100
+      },
+      "paged": true,
+      "max_pages": 20,
+      "results_key": "datasets",
+      "priority": 0
+    },
+    {
+      "id": "ndl/dataset",
+      "provider": "ndl",
+      "kind": "per_entity",
+      "path": "/api/v3/datasets/{entity}.json",
+      "universe": "ndl_dataset_codes",
+      "priority": 1,
+      "note": "static code list: /api/v3/databases answers 410 and datasets.json 403 on this key (2026-10-25)"
+    },
+    {
+      "id": "cq/entity-list-exchange",
+      "provider": "cq",
+      "kind": "list",
+      "path": "/v1/btc/status/entity-list",
+      "params": {
+        "type": "exchange"
+      },
+      "priority": 0
+    },
+    {
+      "id": "cq/entity-list-miner",
+      "provider": "cq",
+      "kind": "list",
+      "path": "/v1/btc/status/entity-list",
+      "params": {
+        "type": "miner"
+      },
+      "priority": 0
+    },
+    {
+      "id": "cq/hourly",
+      "provider": "cq",
+      "kind": "per_entity",
+      "path": "/v1/{entity}",
+      "universe": "cq_hourly_paths",
+      "params": {
+        "window": "hour",
+        "limit": 1000
+      },
+      "dated_always": true,
+      "priority": 1
+    },
+    {
+      "id": "cq/exchange-split",
+      "provider": "cq",
+      "kind": "per_entity",
+      "path": "/v1/{chunk}",
+      "universe": "cq_exchanges",
+      "entity_param": "exchange",
+      "chunk_universe": "cq_exchange_paths",
+      "params": {
+        "window": "day",
+        "limit": 1000
+      },
+      "priority": 1
+    },
+    {
+      "id": "cq/miner-split",
+      "provider": "cq",
+      "kind": "per_entity",
+      "path": "/v1/{chunk}",
+      "universe": "cq_miners",
+      "entity_param": "miner",
+      "chunk_universe": "cq_miner_paths",
+      "params": {
+        "window": "day",
+        "limit": 1000
+      },
+      "priority": 2
+    }
   ],
   "skipped": [
-    {"provider": "te", "path": "/country/{c} latest, /fred/historical/*", "why": "already banked by justhodl-te-feed and justhodl-te-fred-mirror"},
-    {"provider": "cmc", "path": "per-coin OHLCV / quotes historical for every id", "why": "credit budget: historical endpoints are plan-gated and cost credits per 100 data points; BTC+ETH are probed, the rest waits for the plan verdict on the card"},
-    {"provider": "newsapi", "path": "/v2/everything per ticker", "why": "quota: 328 chart names x pages would exceed the plan's requests/day; 20 macro queries + 17 headline feeds a day instead"},
-    {"provider": "ndl", "path": "datatables (SHARADAR, ZACKS, ...)", "why": "premium tables are subscription-specific; the entitled databases list (ndl/databases) is banked daily and every entitled time-series database in the priority list is walked"},
-    {"provider": "cq", "path": "all_exchange daily catalog (189 paths)", "why": "already banked by justhodl-cryptoquant + justhodl-cq-feed; this bank adds the per-exchange, per-miner and hourly splits"}
+    {
+      "provider": "te",
+      "path": "/country/{c} latest, /fred/historical/*",
+      "why": "already banked by justhodl-te-feed and justhodl-te-fred-mirror"
+    },
+    {
+      "provider": "cmc",
+      "path": "per-coin OHLCV / quotes historical for every id",
+      "why": "credit budget: historical endpoints are plan-gated and cost credits per 100 data points; BTC+ETH are probed, the rest waits for the plan verdict on the card"
+    },
+    {
+      "provider": "newsapi",
+      "path": "/v2/everything per ticker",
+      "why": "quota: 328 chart names x pages would exceed the plan's requests/day; 20 macro queries + 17 headline feeds a day instead"
+    },
+    {
+      "provider": "ndl",
+      "path": "datatables (SHARADAR, ZACKS, ...)",
+      "why": "premium tables are subscription-specific; the entitled databases list (ndl/databases) is banked daily and every entitled time-series database in the priority list is walked"
+    },
+    {
+      "provider": "cq",
+      "path": "all_exchange daily catalog (189 paths)",
+      "why": "already banked by justhodl-cryptoquant + justhodl-cq-feed; this bank adds the per-exchange, per-miner and hourly splits"
+    }
   ]
 }

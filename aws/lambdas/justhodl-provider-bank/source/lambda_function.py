@@ -1,5 +1,5 @@
 """
-justhodl-provider-bank v1.0.0 -- Trading Economics, CoinMarketCap, NewsAPI, Nasdaq Data Link and CryptoQuant (splits)
+justhodl-provider-bank v1.1.0 -- Trading Economics, CoinMarketCap, NewsAPI, Nasdaq Data Link and CryptoQuant (splits)
 banked verbatim on S3 under data/warm/provider-bank/<provider>/<dataset>/...
 
 Why (Khalid, 2026-10-25: "fix it all, I want 100% of the data pulled and used by my system"): the audit found these keys
@@ -42,7 +42,7 @@ import boto3
 from managed_secret import managed_secret
 
 ENGINE = "justhodl-provider-bank"
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 UA = {"User-Agent": "JustHodl Research (raafouis@gmail.com) provider-bank/" + VERSION, "Accept": "application/json"}
 BUDGET_S = int(os.environ.get("PROVIDER_BANK_BUDGET_S", "780") or 780)
@@ -139,6 +139,7 @@ class Provider:
         self.calls = 0
         self.retries = 0
         self.http = {}
+        self.exhausted = False                                    # a 429 on a daily-quota plan (NewsAPI) ends the provider's day
         self.lock = threading.Lock()
 
     def _count(self, v):
@@ -167,8 +168,11 @@ class Provider:
             headers[auth["header"]] = self.key
         if auth.get("bearer"):
             headers["Authorization"] = "Bearer " + self.key
-        url = self.cfg["base"] + path + (("?" + urllib.parse.urlencode(q)) if q else "")
+        url = self.cfg["base"] + path + (("?" + urllib.parse.urlencode(q, safe=":,")) if q else "")   # TE keys are user:secret - never %3A
         delay = 2.0
+        if self.exhausted:
+            self._count("quota_exhausted")
+            return ("quota_exhausted", None, 0)
         for attempt in range(4):
             if _left() < 20:
                 return ("err:budget", None, 0)
@@ -222,6 +226,10 @@ class Provider:
                 code = e.code
                 if code == 429:
                     self.bucket.throttled()
+                    if self.cfg.get("quota_is_daily"):
+                        self.exhausted = True                     # NewsAPI: 429 == the day's requests are spent (v1.1.0)
+                        self._count("http429")
+                        return ("http429", None, 0)
                 if (code == 429 or code >= 500) and attempt < 3:
                     with self.lock:
                         self.retries += 1
@@ -579,7 +587,7 @@ class Walker:
             if len(futures) >= WORKERS * 2:
                 for f in as_completed(futures):
                     v = f.result()
-                    if v in ("http401", "http402", "http403", "http426", "no_key", "daily_cap") or str(v).startswith("api_error"):
+                    if v in ("http401", "http402", "http403", "http426", "no_key", "daily_cap", "quota_exhausted") or str(v).startswith("api_error"):
                         stop = True
                 futures = []
         for f in as_completed(futures):
@@ -613,8 +621,8 @@ class Walker:
             self.do_window(d)
         self.run["steps"].append({"step": "windows", "seconds": round(time.time() - t, 1)})
         pe = [d for d in ds_all if d["kind"] == "per_entity" and d["id"] not in self.run["datasets"]]
-        pe.sort(key=lambda d: (int(d.get("priority") or 2), d["id"]))
-        weights = {d["id"]: {0: 4, 1: 4, 2: 2, 3: 1}.get(int(d.get("priority") or 2), 1) for d in pe}
+        pe.sort(key=lambda d: (int(d.get("priority", 2)), d["id"]))
+        weights = {d["id"]: {0: 4, 1: 4, 2: 2, 3: 1}.get(int(d.get("priority", 2)), 1) for d in pe}
         total_w = sum(weights.values()) or 1
         remaining = _left() - 30
         t = time.time()

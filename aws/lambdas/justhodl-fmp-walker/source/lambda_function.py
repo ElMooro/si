@@ -925,8 +925,8 @@ class Walker:
         self.run["steps"].append({"step": "dated+window", "seconds": round(time.time() - t, 1), "calls": self.fx.calls})
         # per-entity: share the remaining budget by priority (1 = 4 units, 2 = 2, 3 = 1), smallest universes finish fast
         pe = [d for d in ds_all if d["kind"] in ("per_entity", "per_entity_period")]
-        pe.sort(key=lambda d: (int(d.get("priority") or 2), 1 if str(d.get("periods", "")).startswith("from_dates:") else 0, d["id"]))   # a dates dataset before its consumer
-        weights = {d["id"]: {0: 4, 1: 4, 2: 2, 3: 1}.get(int(d.get("priority") or 2), 1) for d in pe}
+        pe.sort(key=lambda d: (int(d.get("priority", 2)), 1 if str(d.get("periods", "")).startswith("from_dates:") else 0, d["id"]))   # a dates dataset before its consumer
+        weights = {d["id"]: {0: 4, 1: 4, 2: 2, 3: 1}.get(int(d.get("priority", 2)), 1) for d in pe}
         total_w = sum(weights.values()) or 1
         t = time.time()
         remaining = _left() - _g(30)

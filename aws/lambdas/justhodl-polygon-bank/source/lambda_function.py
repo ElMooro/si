@@ -660,8 +660,8 @@ class Walker:
             (self.do_daily_dated if d["kind"] == "daily_dated" else self.do_window)(d)
         self.run["steps"].append({"step": "dated+window", "seconds": round(time.time() - t, 1), "calls": self.fx.calls})
         pe = [d for d in ds_all if d["kind"] in ("per_entity", "minute_bars")]
-        pe.sort(key=lambda d: (int(d.get("priority") or 2), d["id"]))
-        weights = {d["id"]: {0: 4, 1: 4, 2: 2, 3: 1}.get(int(d.get("priority") or 2), 1) for d in pe}
+        pe.sort(key=lambda d: (int(d.get("priority", 2)), d["id"]))
+        weights = {d["id"]: {0: 4, 1: 4, 2: 2, 3: 1}.get(int(d.get("priority", 2)), 1) for d in pe}
         total_w = sum(weights.values()) or 1
         remaining = _left() - 30
         t = time.time()

@@ -60,7 +60,7 @@ class FakeNet:
         self.by_host_path[(host, path)] = self.by_host_path.get((host, path), 0) + 1
         # auth per provider
         if host == "api.tradingeconomics.com":
-            assert q.get("c") == "k-te_api_key" and q.get("f") == "json", url
+            assert "c=k-te_api_key" in u.query and "%3A" not in u.query and q.get("f") == "json", url
             if path == "/country":
                 body = J([{"Country": "United States"}, {"Country": "Germany"}])
             elif path == "/indicators":
@@ -98,7 +98,7 @@ class FakeNet:
             if path == "/v2/sources":
                 body = J({"status": "ok", "sources": [{"id": "bloomberg"}]})
             elif path == "/v2/everything" and "Federal" in q.get("q", ""):
-                body = J({"status": "error", "code": "rateLimited", "message": "too many"})
+                raise urllib.error.HTTPError(url, 429, "Too Many", {}, io.BytesIO(J({"status": "error", "code": "rateLimited"})))
             else:
                 body = J({"status": "ok", "totalResults": 1, "articles": [{"title": "t", "country": q.get("country"), "q": q.get("q")}]})
         elif host == "data.nasdaq.com":
@@ -112,6 +112,8 @@ class FakeNet:
                 else:
                     raise urllib.error.HTTPError(url, 403, "Forbidden", {}, io.BytesIO(J({"quandl_error": {"code": "QEPx05"}})))
             elif path.startswith("/api/v3/datasets/"):
+                if "/FRED/" in path:
+                    raise urllib.error.HTTPError(url, 403, "Forbidden", {}, io.BytesIO(J({"quandl_error": {"code": "QEPx05"}})))
                 body = J({"dataset": {"dataset_code": path.split("/")[-1].replace(".json", ""), "data": [["2026-10-24", 1.0]]}})
             else:
                 body = J({"ok": 1})
@@ -190,11 +192,16 @@ def test_first_run_all_five_providers():
     assert pv["cmc"]["calls_today"] <= 110
     # NewsAPI: per-country dated files, a rateLimited envelope recorded as api_error:rateLimited
     assert any(k.startswith(root + "newsapi/top-headlines-business/us/") for k in s3.store)
-    assert cat["newsapi/everything-macro"]["verdicts"].get("api_error:rateLimited") == 1, cat["newsapi/everything-macro"]
+    assert cat["newsapi/everything-macro"]["verdicts"].get("http429") == 1, cat["newsapi/everything-macro"]
+    assert pv["newsapi"]["calls"] == 11 and pv["newsapi"]["http"].get("http429") == 1, pv["newsapi"]   # sources + 4 + 3 headlines, then the first macro query 429s and the day ends
     # NDL: databases, datasets per entitled db, a 403 db recorded, then every dataset code accumulated and pulled
     assert root + "ndl/databases/latest.json.gz" in s3.store
     assert cat["ndl/datasets-by-db"]["verdicts"].get("http403"), cat["ndl/datasets-by-db"]
+    for k in [k for k in s3.store if "cq/exchange-split" in k][:1]:
+        pass
+    assert all("limit=1000" in c or "limit" not in c for c in fake.calls if "cryptoquant" in c), "CQ limit must be 1000"
     assert root + "ndl/dataset/LBMA_GOLD.json.gz" in s3.store, [k for k in s3.store if "ndl/dataset/" in k]
+    assert fake.by_host_path.get(("data.nasdaq.com", "/api/v3/datasets/LBMA/GOLD.json")) == 1
     # CQ: entity lists -> per-exchange split files; hourly refused and recorded
     assert root + "cq/exchange-split/binance/btc_exchange-flows_netflow.json.gz" in s3.store, [k for k in s3.store if "exchange-split" in k][:3]
     assert cat["cq/hourly"]["last_verdict"] == "http403"
