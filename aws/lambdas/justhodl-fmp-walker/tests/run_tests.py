@@ -241,6 +241,27 @@ def test_first_run_banks_lists_feeds_windows_and_rotates_entities():
     return lf, s3, fake, out
 
 
+def test_daily_price_lane_runs_first_complete_and_shares_the_prefix():
+    """v1.2.0: historical-price-eod-full-daily (rotation_days 1) covers its whole price_daily universe every run, before
+    the rotating long tail, and lands under the long tail's prefix (store_as) so fmp_bank.walker() reads one place."""
+    lf, s3, fake, out = test_first_run_banks_lists_feeds_windows_and_rotates_entities()
+    root = lf._spec()["root"]
+    st = json.loads(s3.store[root + "_state/state.json"])
+    uc = out["universe_counts"]
+    # the universe: chart (core 40 + banked US chart names) | tierA | indexes | USD forex | top cryptos | commodities
+    assert uc["price_daily"] >= uc["chart"] and uc["price_daily"] >= uc["tierA"], uc
+    d = st["datasets"]["historical-price-eod-full-daily"]
+    assert d["universe_size"] == uc["price_daily"] and d["lap"] >= 1 and d["entities_last_run"] >= uc["price_daily"], d
+    # every daily-lane symbol has its history banked under the shared prefix; none under the lane's own id
+    for sym in ("AAPL", "MSFT", "SPY", "X"):
+        assert root + "historical-price-eod-full/%s.json.gz" % sym in s3.store, sym
+    assert not any(k.startswith(root + "historical-price-eod-full-daily/") for k in s3.store)
+    # the lane ran before the rotating per-entity datasets
+    steps = [x["step"] for x in json.loads(s3.store[root + "_state/state.json"])["last_run"]["steps"]]
+    assert steps.index("per_entity_daily") < steps.index("per_entity"), steps
+    assert fake.by_endpoint["historical-price-eod/full"] >= uc["price_daily"]
+
+
 def test_second_run_is_write_if_changed_and_resumes():
     lf, s3, fake, out1 = test_first_run_banks_lists_feeds_windows_and_rotates_entities()
     puts1 = s3.puts

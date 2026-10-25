@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "root": "data/warm/fmp/",
   "doctrine": [
     "Every FMP /stable family that is NOT a bulk file (justhodl-fmp-bank owns bulk + eod-bulk) is banked here, verbatim JSON (gz), under data/warm/fmp/<dataset>/...",
@@ -148,6 +148,10 @@
         "stocktwits",
         "twitter"
       ]
+    },
+    "price_daily": {
+      "derived": "chart | tierA | indexes | forex(USD pairs, first 400) | cryptos_top | commodities",
+      "note": "v1.2.0 daily price lane"
     }
   },
   "datasets": [
@@ -890,6 +894,20 @@
       },
       "dated_always": true,
       "priority": 2
+    },
+    {
+      "id": "historical-price-eod-full-daily",
+      "kind": "per_entity",
+      "endpoint": "historical-price-eod/full",
+      "universe": "price_daily",
+      "entity_param": "symbol",
+      "params": {
+        "from": "1960-01-01"
+      },
+      "priority": 0,
+      "rotation_days": 1,
+      "store_as": "historical-price-eod-full",
+      "note": "daily-complete lane (v1.2.0): the chart names, every US active stock/ETF, indexes, USD forex, top cryptos, commodities - refreshed in full every run so the banks answer price asks at the last completed session; the long tail stays on historical-price-eod-full (universe all, rotating)"
     },
     {
       "id": "historical-price-eod-full",

@@ -57,13 +57,13 @@ from botocore.config import Config
 from managed_secret import managed_secret
 
 ENGINE = "justhodl-fmp-walker"
-VERSION = "1.1.1"
+VERSION = "1.2.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 STABLE = "https://financialmodelingprep.com/stable"
 UA = {"User-Agent": "JustHodl Research (raafouis@gmail.com) fmp-walker/" + VERSION}
 BUDGET_S = int(os.environ.get("FMP_WALKER_BUDGET_S", "780") or 780)
-WORKERS = int(os.environ.get("FMP_WALKER_WORKERS", "12") or 12)
-RPS = float(os.environ.get("FMP_WALKER_RPS", "18") or 18)
+WORKERS = int(os.environ.get("FMP_WALKER_WORKERS", "16") or 16)
+RPS = float(os.environ.get("FMP_WALKER_RPS", "28") or 28)   # v1.2.0: 1,680/min, under Ultimate's 3,000/min; the daily price lane needs ~8k calls
 PER_ENTITY_MAX_BYTES = int(os.environ.get("FMP_WALKER_MAX_BYTES", "25000000") or 25_000_000)
 CHART_IDX_KEY = "data/warm/tv-bars/universe/_index.json"
 CORE = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA", "AVGO", "BRK-B", "JPM", "LLY", "V", "UNH", "XOM", "MA", "COST", "HD", "PG", "JNJ", "ABBV",
@@ -411,6 +411,11 @@ def build_universes(spec, root, state, lists, fx=None):
     q.sort(key=lambda r: -(float(r.get("marketCap") or 0) if str(r.get("marketCap") or "").replace(".", "", 1).replace("-", "", 1).isdigit() else 0))
     out["cryptos_top"] = [str(r["symbol"]) for r in q[:200]] or out["cryptos"][:200]
     out["indexes"] = sorted({str(r.get("symbol")) for r in (lists.get("index-list") or []) if isinstance(r, dict) and r.get("symbol")})
+    # price_daily (v1.2.0): the names whose price history the fleet asks FMP for every day - the chart's names, every US
+    # actively-trading stock/ETF, every index, the USD forex pairs, the top cryptos and the commodities.  The daily lane
+    # refreshes these histories completely every run, so fmp_bankfirst answers price asks at the last completed session.
+    fx_usd = [p for p in out["forex"] if "USD" in p][:400]
+    out["price_daily"] = sorted(set(out["chart"]) | set(tier) | set(out["indexes"]) | set(fx_usd) | set(out["cryptos_top"]) | set(out["commodities"]))
     for name, u in (spec.get("universes") or {}).items():
         if "static" in u:
             out[name] = list(u["static"])
@@ -699,7 +704,7 @@ class Walker:
             v, data, nb, npages = self.fx.pages(d["endpoint"], self.params(d, pe), limit=d.get("limit"), max_pages=int(d.get("max_pages") or 10), max_bytes=maxb)
         else:
             v, data, nb = self.fx.get(d["endpoint"], self.params(d, pe), maxb)
-        key = self.root + d["id"] + "/" + safe(ent)
+        key = self.root + (d.get("store_as") or d["id"]) + "/" + safe(ent)     # store_as: two datasets, one prefix (daily lane + long tail)
         if extra_params and extra_params.get("exchange"):
             key += "/" + safe(extra_params["exchange"])
         if period:
@@ -923,8 +928,22 @@ class Walker:
                 break
             (self.do_daily_dated if d["kind"] == "daily_dated" else self.do_window)(d)
         self.run["steps"].append({"step": "dated+window", "seconds": round(time.time() - t, 1), "calls": self.fx.calls})
-        # per-entity: share the remaining budget by priority (1 = 4 units, 2 = 2, 3 = 1), smallest universes finish fast
-        pe = [d for d in ds_all if d["kind"] in ("per_entity", "per_entity_period")]
+        # per-entity, lane 1 (v1.2.0): daily-complete datasets (rotation_days == 1) get the time their universe needs
+        # (universe / rps, +25%) before anything rotates - these are the histories the fleet asks for every day.
+        pe_all = [d for d in ds_all if d["kind"] in ("per_entity", "per_entity_period")]
+        daily = [d for d in pe_all if int(d.get("rotation_days") or 0) == 1]
+        t = time.time()
+        for d in sorted(daily, key=lambda d: (int(d.get("priority", 2)), d["id"])):
+            if _left() < _g(60) or self.unauthorized:
+                break
+            need = len(self.universes.get(d["universe"]) or []) / max(RPS, 1.0) * 1.25 + _g(10)
+            share = min(need, (_left() - _g(45)) * 0.7)
+            t_ds = time.time()
+            self.do_per_entity(d, share)
+            self.run["datasets"].setdefault(d["id"], {})["seconds"] = round(time.time() - t_ds, 1)
+        self.run["steps"].append({"step": "per_entity_daily", "seconds": round(time.time() - t, 1), "calls": self.fx.calls, "datasets": [d["id"] for d in daily]})
+        # per-entity, lane 2: share the remaining budget by priority (1 = 4 units, 2 = 2, 3 = 1), smallest universes finish fast
+        pe = [d for d in pe_all if d not in daily]
         pe.sort(key=lambda d: (int(d.get("priority", 2)), 1 if str(d.get("periods", "")).startswith("from_dates:") else 0, d["id"]))   # a dates dataset before its consumer
         weights = {d["id"]: {0: 4, 1: 4, 2: 2, 3: 1}.get(int(d.get("priority", 2)), 1) for d in pe}
         total_w = sum(weights.values()) or 1

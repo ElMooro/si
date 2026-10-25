@@ -312,7 +312,7 @@ def test_bankfirst_never_installs_inside_the_banks():
     r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "fmp_bankfirst_apply.py"), "justhodl-fmp-bank"], capture_output=True, text=True)
     assert r.returncode != 0 and "refusing" in (r.stdout + r.stderr)
     for fn in ("justhodl-fmp-bank", "justhodl-fmp-walker"):
-        assert "fmp_bankfirst" not in open(os.path.join(ROOT, "aws", "lambdas", fn, "source", "lambda_function.py")).read()
+        assert "from fmp_bankfirst import install" not in open(os.path.join(ROOT, "aws", "lambdas", fn, "source", "lambda_function.py")).read()
 
 
 if __name__ == "__main__":

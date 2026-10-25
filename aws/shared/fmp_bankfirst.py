@@ -19,7 +19,8 @@ Freshness guards (a bank must never masquerade as today's print):
   * price / market-cap histories: the banked file's newest `date` must BE the last completed US session (and during the
     13:30-21:30 UTC session window with no `to` in the past the request goes live - the partial bar is the provider's).
   * fast families (estimates, grades, targets, insiders, Senate/House, news, press releases, earnings, dividends, splits,
-    ETF holdings...): the banked object's pulled_at within FAST_MAX_AGE_DAYS (1) - older is live.
+    ETF holdings...): the banked object's pulled_at (a date; the walker runs 23:27 UTC) is today or yesterday
+    (FAST_MAX_AGE_DAYS 2 against midnight = pulled within ~24 h) - older is live.
   * slow families from the walker (as-reported, segmentation, executives, employees, ESG...): within SLOW_MAX_AGE_DAYS (30).
   * bulk-bank answers (profile-class snapshots, statements): the bank manifest's updated_at within BULK_MAX_AGE_DAYS (2).
   * never: quotes, searches, screeners, calendars, snapshots, treasury/market-risk - always live.
@@ -40,7 +41,7 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 from http.client import HTTPMessage
 
-FAST_MAX_AGE_DAYS = 1.0
+FAST_MAX_AGE_DAYS = 2.0            # the walker stamps pulled_at as a DATE (its run is 23:27 UTC): "today or yesterday" = pulled within ~24 h
 SLOW_MAX_AGE_DAYS = 30.0
 BULK_MAX_AGE_DAYS = 2.0
 MISS_STORM = 25
