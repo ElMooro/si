@@ -35,6 +35,7 @@ from __future__ import annotations
 import base64
 import gzip
 import hashlib
+import heapq
 import json
 import os
 import time
@@ -388,7 +389,16 @@ def _build_history_index():
                 if sk > bucket["last_seen"]:
                     bucket["last_seen"] = sk
                     bucket["latest_hash"] = h  # most recent hash
-                bucket["_all_sks"].append(sk)
+                timestamps = bucket["_all_sks"]
+                # DynamoDB S values are strings. Keep their newest 50 in a
+                # min-heap; preserve the old sort path for malformed S values.
+                if isinstance(sk, str):
+                    if len(timestamps) < 50:
+                        heapq.heappush(timestamps, sk)
+                    elif sk > timestamps[0]:
+                        heapq.heapreplace(timestamps, sk)
+                else:
+                    timestamps.append(sk)
             last_key = resp.get("LastEvaluatedKey")
             if not last_key or pages > 100:
                 break
