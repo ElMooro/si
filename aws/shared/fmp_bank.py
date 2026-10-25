@@ -23,6 +23,7 @@ import gzip
 import io
 import json
 import os
+import threading
 import time
 
 import boto3
@@ -129,6 +130,7 @@ class _Lines:
 
 
 _TABLES: dict = {}                     # key -> _Table (LRU by touched; total chars <= _text_budget())
+_LOCK = threading.Lock()               # eviction only; concurrent builds of one table are benign (last writer wins)
 _MISSING: dict = {}                    # key -> time the bank answered "no such object" (negative cache, _TTL)
 STATS = {"s3_gets": 0, "s3_misses": 0, "table_builds": 0, "table_evictions": 0, "table_refetches": 0}
 _EVICTED: set = set()
@@ -149,7 +151,30 @@ SNAPSHOTS = {
 }
 
 
-_LAST = {"key": None, "meta": None}          # the S3 metadata of the last object read (fmp_bankfirst freshness guard)
+class _ThreadLast:
+    """The key + S3 metadata of the last object read, PER THREAD (engines read FMP from thread pools; the freshness guard
+    in fmp_bankfirst must see its own thread's answer, never a neighbour's)."""
+
+    def __init__(self):
+        self._tl = threading.local()
+
+    def _d(self):
+        d = getattr(self._tl, "d", None)
+        if d is None:
+            d = self._tl.d = {"key": None, "meta": None}
+        return d
+
+    def get(self, k, default=None):
+        return self._d().get(k, default)
+
+    def __getitem__(self, k):
+        return self._d()[k]
+
+    def __setitem__(self, k, v):
+        self._d()[k] = v
+
+
+_LAST = _ThreadLast()                 # fmp_bankfirst freshness guard reads _LAST["key"] / _LAST["meta"]
 
 
 def reset_last_answer():
@@ -226,11 +251,12 @@ def _table(key):
         STATS["table_builds"] += 1
         _LAST["key"], _LAST["meta"] = key, meta
         return _Table(key, text, meta)
-    while _TABLES and sum(len(x.text) for x in _TABLES.values()) + len(text) > budget:
-        victim = min(_TABLES.values(), key=lambda x: x.touched)
-        del _TABLES[victim.key]
-        _EVICTED.add(victim.key)
-        STATS["table_evictions"] += 1
+    with _LOCK:
+        while _TABLES and sum(len(x.text) for x in _TABLES.values()) + len(text) > budget:
+            victim = min(_TABLES.values(), key=lambda x: x.touched)
+            _TABLES.pop(victim.key, None)
+            _EVICTED.add(victim.key)
+            STATS["table_evictions"] += 1
     t = _TABLES[key] = _Table(key, text, meta)
     STATS["table_builds"] += 1
     _LAST["key"], _LAST["meta"] = key, meta

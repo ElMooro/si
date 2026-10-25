@@ -240,6 +240,60 @@ def test_fmp_bank_table_budget_evicts_and_counts_refetches():
         os.environ.pop("FMP_BANK_TEXT_BUDGET_MB", None)
 
 
+def test_bankfirst_threads_never_mix_up_freshness():
+    """Engines call FMP from thread pools: the freshness guard must judge each thread's own answer (bulk vs walker,
+    its own pulled_at), never a neighbour's."""
+    from concurrent.futures import ThreadPoolExecutor
+    s3 = S3()
+    _fresh_bank(s3)
+    fmp_bankfirst.datetime = _FixedDT
+    R, W = fmp_bank.ROOT, fmp_bank.WALKER_ROOT
+    s3.store[R + "manifest.json"] = json.dumps({"updated_at": "2026-10-22T23:13:00+00:00"}).encode()
+    _csv(s3, R + "profile-bulk/latest.csv.gz", "symbol,companyName\n" + "".join("P%03d,Co %d\n" % (i, i) for i in range(300)))
+    for i in range(60):
+        _put(s3, W + "grades/G%03d.json.gz" % i, [{"symbol": "G%03d" % i}], pulled_at="2026-10-02T20:00:00Z")          # 20 days: must go live
+        _put(s3, W + "price-target/T%03d.json.gz" % i, [{"symbol": "T%03d" % i}], pulled_at="2026-10-22T20:00:00Z")    # fresh: bank
+    calls = []
+    lock = __import__("threading").Lock()
+
+    def fake_real(url, data=None, timeout=None, *a, **k):
+        with lock:
+            calls.append(url)
+        r = io.BytesIO(b'{"live": true}')
+        r.__enter__ = lambda s=r: s
+        r.__exit__ = lambda s=r, *x: None
+        return r
+    fmp_bankfirst.uninstall()
+    urllib.request.urlopen = fake_real
+    fmp_bankfirst.install()
+    real_try_bank = fmp_bank.try_bank
+
+    def preempted_try_bank(path, qs=""):
+        rows = real_try_bank(path, qs)
+        time.sleep(0.003)                       # a thread switch right after the answer, before the freshness check
+        return rows
+    fmp_bank.try_bank = preempted_try_bank
+    try:
+        urls = []
+        for i in range(60):
+            urls += ["https://financialmodelingprep.com/stable/profile?symbol=P%03d&apikey=S" % i,
+                     "https://financialmodelingprep.com/stable/grades?symbol=G%03d&apikey=S" % i,
+                     "https://financialmodelingprep.com/stable/price-target?symbol=T%03d&apikey=S" % i]
+        with ThreadPoolExecutor(max_workers=12) as ex:
+            results = list(ex.map(lambda u: (u, _get(u)), urls))
+        for u, got in results:
+            if "/grades?" in u:
+                assert got == {"live": True}, (u, got)                       # a 20-day-old fast object never passes
+            else:
+                assert isinstance(got, list) and len(got) == 1 and got[0]["symbol"] == u.split("symbol=")[1][:4], (u, got)
+        assert fmp_bankfirst.STATS["hits"] == 120 and fmp_bankfirst.STATS["stale"] == 60, fmp_bankfirst.STATS
+        assert len(calls) == 60 and all("/grades?" in c for c in calls)
+    finally:
+        fmp_bank.try_bank = real_try_bank
+        fmp_bankfirst.uninstall()
+        fmp_bankfirst.datetime = datetime
+
+
 def test_bankfirst_never_installs_inside_the_banks():
     fmp_bankfirst.uninstall()
     real = urllib.request.urlopen
@@ -263,6 +317,7 @@ def test_bankfirst_never_installs_inside_the_banks():
 
 if __name__ == "__main__":
     for t in (test_bankfirst_meaning_and_freshness_guards, test_bankfirst_session_window_and_clock, test_bankfirst_bulk_statements_indexed_and_bounded,
-              test_bankfirst_steps_aside_when_it_would_cost_more, test_fmp_bank_table_budget_evicts_and_counts_refetches, test_bankfirst_never_installs_inside_the_banks):
+              test_bankfirst_steps_aside_when_it_would_cost_more, test_fmp_bank_table_budget_evicts_and_counts_refetches,
+              test_bankfirst_threads_never_mix_up_freshness, test_bankfirst_never_installs_inside_the_banks):
         t()
         print("ok", t.__name__)
