@@ -37,8 +37,14 @@ class CadenceTests(unittest.TestCase):
         self.assertEqual(row['engine'], 'justhodl-example')
         self.assertEqual(row['cadence_hours'], 24)
     def test_actual_master_ranker_owns_its_output_with_daily_cadence(self):
+        # The expected cron is read from the engine's own declaration: the pipeline-order retimes (ops 6585,
+        # 2026-10-21/22) moved it from 16:15 to 16:40 ET and a literal here kept cadence-manifest.yml red for
+        # three days (every push since 2026-10-22), so the published manifest stopped refreshing.
+        declared = json.loads((ROOT/'aws/lambdas/justhodl-master-ranker/config.json').read_text(encoding='utf-8'))
+        cron = declared['eventbridge_scheduler']['cron']
+        self.assertRegex(cron, r'^cron\(\d+ \d+ \? \* MON-FRI \*\)$')
         row = m.build_manifest(str(ROOT))['outputs']['master-ranker']
-        self.assertEqual(row, {'cadence_hours':24.0,'cron':'cron(15 16 ? * MON-FRI *)','engine':'justhodl-master-ranker'})
+        self.assertEqual(row, {'cadence_hours':24.0,'cron':cron,'engine':'justhodl-master-ranker'})
     def test_scheduler_enrichment_does_not_reassign_existing_classic_owner(self):
         with tempfile.TemporaryDirectory() as temp:
             for name,config in [('justhodl-a',{'eventbridge_scheduler':{'cron':'rate(1 hour)'}}),

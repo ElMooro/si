@@ -64,8 +64,10 @@ jobs:
           tar -czf "aws/ops/_archive/ops-artifacts-${STAMP}.tar.gz" -T /tmp/old.txt
           echo "Archive: aws/ops/_archive/ops-artifacts-${STAMP}.tar.gz ($(du -h aws/ops/_archive/ops-artifacts-${STAMP}.tar.gz | cut -f1))"
 
-          # Remove the loose files
-          xargs -a /tmp/old.txt git rm -q
+          # Remove the loose files. One path per line: report names under reports/latest/ carry spaces
+          # ("ops 4809 -- sp500 ...md"), and default xargs splitting broke the sweep on 2026-10-18 and 10-25
+          # (fatal: pathspec 'aws/ops/reports/latest/ops' did not match any files, exit 123).
+          xargs -a /tmp/old.txt -d '\n' git rm -q
 
           git config user.email raafouis@gmail.com
           git config user.name Khalid
