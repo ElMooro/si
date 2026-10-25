@@ -91,6 +91,8 @@ class FakeFMP:
             body = J([{"symbol": "ES", "name": "S&P 500"}])
         elif ep == "earnings-transcript-list":
             body = J([{"symbol": "AAPL", "companyName": "Apple", "noOfTranscripts": 40}])
+        elif ep == "cik-list":
+            body = J([{"cik": "%010d" % i} for i in range(10000)] if page < 2 else [{"cik": "1"}])
         elif ep == "senate-profile":
             body = J([{"senateId": "S001", "firstName": "A"}] if page == 0 else [])
         elif ep == "institutional-ownership/latest":
@@ -218,6 +220,9 @@ def test_first_run_banks_lists_feeds_windows_and_rotates_entities():
     bars = [k for k in s3.store if k.startswith(root + "historical-chart-1min/AAPL/")]
     assert bars and all(k.count("/") == 6 for k in bars), bars[:2]
     assert not any(k.endswith("2026-10-18.json.gz") for k in bars)
+    # big paged reference feeds: one object per page, nothing merged
+    cik = [k for k in s3.store if k.startswith(root + "cik-list/")]
+    assert cik and all("/p0" in k for k in cik), cik[:3]
     # refusals recorded by http code, never fatal; a legit empty answer is 'empty'
     cat = json.loads(s3.store[root + "catalog.json"])["datasets"]
     assert cat["esg-benchmark"]["last_verdict"] == "http404", cat["esg-benchmark"]
@@ -283,6 +288,29 @@ def test_only_and_skip_kinds_and_lease():
     s3.store[root + "_state/state.json"] = json.dumps(st).encode()
     assert lf.lambda_handler({}, None).get("skipped") == "lease_held"
     assert "universe_counts" in lf.lambda_handler({"force": True}, None)
+
+
+def test_run_ends_inside_its_budget_under_a_slow_server():
+    """v1.1.0: a run must return within budget + a small margin whatever the server does (the first live run never wrote state)."""
+    import time as _t
+    lf, s3, fake = boot()
+    lf.BUDGET_S = 12
+    lf.RPS = 40.0
+    slow = fake.__call__
+
+    def slow_call(req, timeout=0):
+        _t.sleep(0.02)
+        return slow(req, timeout)
+    import urllib.request as ur
+    ur.urlopen = slow_call
+    t0 = _t.time()
+    out = lf.lambda_handler({"rps": 40}, None)
+    took = _t.time() - t0
+    assert took < lf.BUDGET_S + 8, took
+    assert out["calls"] > 0 and "universe_counts" in out
+    root = lf._spec()["root"]
+    st = json.loads(s3.store[root + "_state/state.json"])
+    assert st["lease_until"] == 0 and st.get("last_run", {}).get("seconds")
 
 
 if __name__ == "__main__":

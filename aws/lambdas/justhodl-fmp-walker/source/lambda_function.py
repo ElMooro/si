@@ -1,5 +1,5 @@
 """
-justhodl-fmp-walker v1.0.0 -- every non-bulk FMP Ultimate family, banked verbatim on S3 (data/warm/fmp/).
+justhodl-fmp-walker v1.1.0 -- every non-bulk FMP Ultimate family, banked verbatim on S3 (data/warm/fmp/).
 
 Why (Khalid, 2026-10-25: "fix it all, I want 100% of the data pulled and used by my system"): justhodl-fmp-bank banks the
 bulk files (statements/ratios/metrics/profiles/EOD for the whole market).  Everything else FMP sells - per-symbol
@@ -37,6 +37,7 @@ rounds (bounded; <= $1.5/day; under the governor's $50/engine CAP and anomaly fl
 """
 from __future__ import annotations
 
+import gc
 import gzip
 import hashlib
 import json
@@ -51,11 +52,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, datetime, timedelta, timezone
 
 import boto3
+from botocore.config import Config
 
 from managed_secret import managed_secret
 
 ENGINE = "justhodl-fmp-walker"
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 STABLE = "https://financialmodelingprep.com/stable"
 UA = {"User-Agent": "JustHodl Research (raafouis@gmail.com) fmp-walker/" + VERSION}
@@ -72,8 +74,13 @@ US_TV_EXCH = {"US", "NASDAQ", "NYSE", "AMEX", "NYSEARCA", "BATS", "CBOE"}
 TICKER_RE = re.compile(r"^[A-Z][A-Z0-9]{0,5}([.\-][A-Z]{1,2})?$")
 SAFE_RE = re.compile(r"[^A-Za-z0-9._=^-]")
 
-s3 = boto3.client("s3", region_name="us-east-1")
+s3 = boto3.client("s3", region_name="us-east-1", config=Config(max_pool_connections=40, retries={"max_attempts": 6, "mode": "standard"}))
 _t0 = time.time()
+# lists the universes read; everything else is written and dropped (v1.1.0: retaining every paged feed - cik-list,
+# shares-float-all, industry classification, delisted - held ~1 GB of rows and the first live run died without a state write)
+KEEP_LISTS = {"stock-list", "etf-list", "actively-trading-list", "earnings-transcript-list", "institutional-ownership/latest", "senate-profile",
+              "available-exchanges", "available-sectors", "available-industries", "commitment-of-traders-list", "commodities-list", "forex-list",
+              "cryptocurrency-list", "quotes/crypto", "index-list"}
 
 
 def _now():
@@ -86,6 +93,11 @@ def _today():
 
 def _left():
     return BUDGET_S - (time.time() - _t0)
+
+
+def _g(seconds):
+    """Guard margins scale with the budget (780 s in production; small in tests) so every loop stays bounded."""
+    return min(float(seconds), BUDGET_S * float(seconds) / 780.0)
 
 
 def _spec():
@@ -170,7 +182,7 @@ class Fetch:
         url = "%s/%s?%s" % (STABLE, endpoint, urllib.parse.urlencode(q))
         delay = 1.5
         for attempt in range(4):
-            if _left() < 20:
+            if _left() < _g(20):
                 return ("err:budget", None, 0)
             self.bucket.take()
             with self.lock:
@@ -250,7 +262,9 @@ class Fetch:
                 break
             if v == "ok" and not isinstance(data, list):           # object response: one page
                 return ("ok", data, total, 1)
-            if n:                                                 # error after some pages: keep what we have
+            if v == "err:budget":                                 # out of time mid-way: never bank a partial answer
+                return ("err:budget", None, total, n)
+            if n:                                                 # provider error after some pages: keep what we have
                 break
             return (v, data if v == "fmp_error" else None, total, 0)
         return ("ok" if rows else "empty", rows if rows else None, total, n)
@@ -465,15 +479,20 @@ class Walker:
         if v != "ok":
             self.record(d, v, nb)
             return
-        self.lists[d["endpoint"]] = data if isinstance(data, list) else [data]
-        self.lists[d["id"]] = self.lists[d["endpoint"]]
+        if d["endpoint"] in KEEP_LISTS or d["id"] in KEEP_LISTS:
+            self.lists[d["endpoint"]] = data if isinstance(data, list) else [data]
+            self.lists[d["id"]] = self.lists[d["endpoint"]]
         base = self.root + d["id"]
         changed = self.bank(d, base + "/latest.json.gz", data, {"endpoint": d["endpoint"], "pulled_at": self.today_s})
         if changed or d.get("dated_always"):
             self.bank(d, base + "/daily/%s.json.gz" % self.today_s, data, {"endpoint": d["endpoint"], "as_of": self.today_s})
+        del data
+        gc.collect()
 
     def do_latest_pages(self, d):
         st = self.ds(d)
+        if d.get("per_page_files"):
+            return self.do_paged_reference(d)
         prev = _j(self.root + d["id"] + "/%s.json.gz" % st.get("last_day", "")) if st.get("last_day") else None
         seen = {hashlib.sha1(json.dumps(r, sort_keys=True, default=str).encode()).hexdigest() for r in (prev or [])} if isinstance(prev, list) else set()
         rows, total, npages = [], 0, 0
@@ -504,8 +523,38 @@ class Walker:
         self.bank(d, key, rows, {"endpoint": d["endpoint"], "as_of": self.today_s, "pages": npages})
         st["last_day"] = self.today_s
         st["last_pages"] = npages
-        self.lists[d["endpoint"]] = rows
-        self.lists[d["id"]] = rows
+        if d["endpoint"] in KEEP_LISTS or d["id"] in KEEP_LISTS:
+            self.lists[d["endpoint"]] = rows
+            self.lists[d["id"]] = rows
+        del rows, seen
+        gc.collect()
+
+    def do_paged_reference(self, d):
+        """A big paged reference feed (cik-list, shares-float-all, ...): one object per page under <id>/<date>/pNNN,
+        nothing merged or retained - memory stays at one page."""
+        st = self.ds(d)
+        npages = 0
+        for page in range(int(d.get("max_pages") or 10)):
+            if _left() < _g(30):
+                break
+            p = self.params(d, {"page": page})
+            if d.get("limit"):
+                p["limit"] = d["limit"]
+            v, data, nb = self.fx.get(d["endpoint"], p)
+            if v != "ok" or not isinstance(data, list):
+                if not npages:
+                    self.record(d, v, nb)
+                break
+            npages += 1
+            self.bank(d, self.root + d["id"] + "/%s/p%03d.json.gz" % (self.today_s, page), data, {"endpoint": d["endpoint"], "as_of": self.today_s, "page": page})
+            short = (d.get("limit") and len(data) < int(d["limit"]) * 0.9) or (not d.get("limit") and len(data) < 10)
+            del data
+            if short:
+                break
+        if npages:
+            st["last_day"] = self.today_s
+            st["last_pages"] = npages
+        gc.collect()
 
     def do_daily_dated(self, d):
         st = self.ds(d)
@@ -515,16 +564,11 @@ class Walker:
         # always re-pull the last 3 days (late rows), then advance the backfill cursor
         days = [edge - timedelta(days=i) for i in range(3)]
         n_back = 0
-        while cur <= edge and n_back < int(d.get("days_per_run") or 400):
+        while cur <= edge and n_back < int(d.get("days_per_run") or 120):
             days.append(cur)
             cur += timedelta(days=1)
             n_back += 1
-        done_any = False
-        for day in sorted(set(days)):
-            if _left() < 30:
-                break
-            if day.weekday() >= 5 and d["endpoint"] != "insider-trading/latest":
-                continue
+        def job(day):
             ds_s = day.isoformat()
             if d.get("paged"):
                 v, data, nb, npages = self.fx.pages(d["endpoint"], self.params(d, {"date": ds_s}), limit=d.get("limit"), max_pages=int(d.get("max_pages") or 20))
@@ -532,16 +576,34 @@ class Walker:
                 v, data, nb = self.fx.get(d["endpoint"], self.params(d, {"date": ds_s}))
             if v == "ok":
                 self.bank(d, self.root + d["id"] + "/%s/%s.json.gz" % (ds_s[:4], ds_s), data, {"endpoint": d["endpoint"], "date": ds_s})
-                done_any = True
             elif v == "empty":
                 st["empty"] = st.get("empty", 0) + 1
                 self.record(d, "empty")
             else:
                 self.record(d, v, nb)
-                if v.startswith("http4"):
-                    break
-        if done_any or not st.get("cursor_date"):
-            st["cursor_date"] = cur.isoformat()
+            return ds_s, v
+
+        futures = []
+        for day in sorted(set(days)):
+            if _left() < _g(30):
+                break
+            if day.weekday() >= 5 and d["endpoint"] != "insider-trading/latest":
+                continue
+            futures.append(self.pool.submit(job, day))
+        verdicts = {}
+        for f in as_completed(futures):
+            ds_s, v = f.result()
+            verdicts[ds_s] = v
+        # the cursor advances only past days that were answered (ok/empty); a budget stop or refusal is retried next run
+        ok_days = sorted(k for k, v in verdicts.items() if v in ("ok", "empty"))
+        bad_days = sorted(k for k, v in verdicts.items() if v not in ("ok", "empty"))
+        new_cursor = cur
+        if bad_days:
+            first_bad = date.fromisoformat(bad_days[0])
+            if first_bad < new_cursor:
+                new_cursor = first_bad
+        if ok_days or not st.get("cursor_date"):
+            st["cursor_date"] = new_cursor.isoformat()
 
     def do_window(self, d):
         st = self.ds(d)
@@ -555,7 +617,7 @@ class Walker:
         if self.today.day <= 5:
             months.append((tm[0] if tm[1] > 1 else tm[0] - 1, tm[1] - 1 if tm[1] > 1 else 12))
         n = 0
-        while (cy, cm) <= tm and n < int(d.get("months_per_run") or 60):
+        while (cy, cm) <= tm and n < int(d.get("months_per_run") or 24):
             months.append((cy, cm))
             cm += 1
             if cm == 13:
@@ -563,7 +625,7 @@ class Walker:
             n += 1
         entities = self.universes.get(d["universe"]) if d.get("universe") else [None]
         for (y, m) in sorted(set(months)):
-            if _left() < 30:
+            if _left() < _g(30):
                 return
             start = date(y, m, 1)
             end = date(y + (m == 12), 1 if m == 12 else m + 1, 1) - timedelta(days=1)
@@ -582,7 +644,8 @@ class Walker:
                     self.record(d, "empty")
                 else:
                     self.record(d, v, nb)
-                    if v.startswith("http4"):
+                    if v.startswith("http4") or v == "err:budget":
+                        st["cursor_month"] = "%04d-%02d" % (min((y, m), (cy, cm)))     # resume from the month that failed
                         return
         st["cursor_month"] = "%04d-%02d" % (cy, cm) if (cy, cm) <= tm else "%04d-%02d" % tm
 
@@ -642,7 +705,7 @@ class Walker:
             if spec_p.startswith("trailing_quarters:"):
                 periods = trailing_quarters(int(spec_p.split(":")[1]))
         cursor = int(st.get("cursor") or 0) % len(uni)
-        t_end = min(time.time() + share_s, _t0 + BUDGET_S - 25)
+        t_end = min(time.time() + share_s, _t0 + BUDGET_S - _g(25))
         futures = []
         n_done = 0
         start_cursor = cursor
@@ -698,7 +761,7 @@ class Walker:
         per = st.setdefault("per_symbol", {})
         back_days = int(d.get("backfill_days") or 365)
         edge = self.today - timedelta(days=1)
-        t_end = min(time.time() + share_s, _t0 + BUDGET_S - 25)
+        t_end = min(time.time() + share_s, _t0 + BUDGET_S - _g(25))
         futures = []
 
         def job(sym, day):
@@ -724,12 +787,37 @@ class Walker:
                 if day.weekday() < 5:
                     futures.append(self.pool.submit(job, sym, day))
                 day += timedelta(days=1)
+        pending = {}                                                # sym -> oldest day submitted and not yet answered
+        stopped = set()
+
+        def settle(fs):
+            nonlocal t_end
+            for f in as_completed(fs):
+                s_, d_, v = f.result()
+                r2 = per.setdefault(s_, {"newest": None, "oldest": None, "days": 0})
+                if v == "ok":
+                    r2["days"] = r2.get("days", 0) + 1
+                if v in ("ok", "empty"):                              # an answered day (empty = holiday) moves both edges
+                    if not r2.get("newest") or d_ > r2["newest"]:
+                        r2["newest"] = d_
+                    if not r2.get("oldest") or d_ < r2["oldest"]:
+                        r2["oldest"] = d_
+                else:
+                    stopped.add(s_)                                   # retried next run; never walks past a failure
+                if v in ("http401", "http403", "http402"):
+                    t_end = 0
+                pending.pop(s_, None)
+
+        settle(futures)
+        futures = []
         # phase 2: backfill older days round-robin
         while time.time() < t_end:
             progressed = False
             for sym in uni:
                 if time.time() > t_end:
                     break
+                if sym in stopped or sym in pending:
+                    continue
                 rec = per.setdefault(sym, {"newest": None, "oldest": None, "days": 0})
                 oldest = date.fromisoformat(rec["oldest"]) if rec.get("oldest") else edge
                 if (edge - oldest).days >= back_days:
@@ -738,34 +826,18 @@ class Walker:
                 while day.weekday() >= 5:
                     day -= timedelta(days=1)
                 futures.append(self.pool.submit(job, sym, day))
-                rec["oldest"] = day.isoformat()
+                pending[sym] = day.isoformat()
                 progressed = True
                 if len(futures) >= WORKERS * 4:
-                    for f in as_completed(futures):
-                        s_, d_, v = f.result()
-                        r2 = per[s_]
-                        if v == "ok":
-                            r2["days"] = r2.get("days", 0) + 1
-                            if not r2.get("newest") or d_ > r2["newest"]:
-                                r2["newest"] = d_
-                        if v in ("http401", "http403", "http402"):
-                            t_end = 0
+                    settle(futures)
                     futures = []
             if not progressed:
+                if futures:
+                    settle(futures)
+                    futures = []
+                    continue
                 break
-        for f in as_completed(futures):
-            s_, d_, v = f.result()
-            r2 = per[s_]
-            if v == "ok":
-                r2["days"] = r2.get("days", 0) + 1
-                if not r2.get("newest") or d_ > r2["newest"]:
-                    r2["newest"] = d_
-                if not r2.get("oldest") or d_ < r2["oldest"]:
-                    r2["oldest"] = d_
-        for sym in uni:                                             # newest caught up to the edge for every name we touched
-            rec = per.get(sym)
-            if rec and rec.get("days"):
-                rec["newest"] = max(rec.get("newest") or edge.isoformat(), edge.isoformat()) if time.time() < _t0 + BUDGET_S else rec.get("newest")
+        settle(futures)
         done = sum(1 for s_ in uni if per.get(s_, {}).get("oldest") and (edge - date.fromisoformat(per[s_]["oldest"])).days >= back_days)
         st["symbols_complete"] = done
         st["universe_size"] = len(uni)
@@ -777,7 +849,7 @@ class Walker:
         ds_all = [d for d in spec["datasets"] if self.active(d)]
         t = time.time()
         for d in [d for d in ds_all if d["kind"] == "list"]:
-            if _left() < 60:
+            if _left() < _g(60):
                 break
             self.do_list(d)
         self.run["steps"].append({"step": "lists", "seconds": round(time.time() - t, 1), "calls": self.fx.calls})
@@ -795,7 +867,7 @@ class Walker:
                     self.lists[d["id"]] = rows
         t = time.time()
         for d in [d for d in ds_all if d["kind"] == "latest_pages"]:
-            if _left() < 60:
+            if _left() < _g(60):
                 break
             self.do_latest_pages(d)
         self.run["steps"].append({"step": "latest", "seconds": round(time.time() - t, 1), "calls": self.fx.calls})
@@ -811,7 +883,7 @@ class Walker:
         self.state["universe_counts"] = {k: len(v) for k, v in self.universes.items()}
         t = time.time()
         for d in [d for d in ds_all if d["kind"] in ("daily_dated", "window")]:
-            if _left() < 60:
+            if _left() < _g(60):
                 break
             (self.do_daily_dated if d["kind"] == "daily_dated" else self.do_window)(d)
         self.run["steps"].append({"step": "dated+window", "seconds": round(time.time() - t, 1), "calls": self.fx.calls})
@@ -821,13 +893,13 @@ class Walker:
         weights = {d["id"]: {0: 4, 1: 4, 2: 2, 3: 1}.get(int(d.get("priority") or 2), 1) for d in pe}
         total_w = sum(weights.values()) or 1
         t = time.time()
-        remaining = _left() - 30
+        remaining = _left() - _g(30)
         for d in pe:
-            if _left() < 40:
+            if _left() < _g(40):
                 break
-            share = max(8.0, remaining * weights[d["id"]] / total_w)
-            share = min(share, _left() - 35)
-            if share <= 5:
+            share = max(_g(8.0), remaining * weights[d["id"]] / total_w)
+            share = min(share, _left() - _g(35))
+            if share <= _g(5):
                 break
             t_ds = time.time()
             self.do_per_entity(d, share)

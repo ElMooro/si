@@ -1,235 +1,1847 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "root": "data/warm/fmp/",
   "doctrine": [
     "Every FMP /stable family that is NOT a bulk file (justhodl-fmp-bank owns bulk + eod-bulk) is banked here, verbatim JSON (gz), under data/warm/fmp/<dataset>/...",
     "Endpoint names and parameters come from the fmp_data 2.8.0 SDK catalog (262 /stable endpoints, 2026-08) - never guessed; a refusal is recorded by http code in the catalog, never worked around.",
     "kinds: list (unparameterized, every run), latest_pages (paged newest-first feed, pages until overlap with the last pull), daily_dated (date= param, one file per day, backfill from floor), window (from/to month windows, backfill from floor), per_entity (one file per symbol/cik/exchange/..., rotation by cursor), per_entity_period (one file per entity per fiscal quarter, periods from a dates endpoint or a trailing range).",
     "Universes: tierA = US-listed, actively trading equities + US ETFs (full per-symbol coverage, rotation measured and published); all = every symbol FMP lists (bulk-covered families already hold them; per-symbol families reach them on the slower lap); chart = the chart's banked US names + core 40 (1-minute bars).",
-    "Derived families are not pulled twice: technical indicators (computed from banked bars), statement TTM endpoints (derivable from banked quarters), company-outlook (a composite of banked endpoints), custom DCF (parametric), stock-price-change (derivable from EOD), financial-reports-json/xlsx (duplicates the SEC bulk XBRL lane). Listed in skipped[] so the coverage card can say so."
+    "Derived families are not pulled twice: technical indicators (computed from banked bars), statement TTM endpoints (derivable from banked quarters), company-outlook (a composite of banked endpoints), custom DCF (parametric), stock-price-change (derivable from EOD), financial-reports-json/xlsx (duplicates the SEC bulk XBRL lane). Listed in skipped[] so the coverage card can say so.",
+    "Big paged reference feeds (cik-list, shares-float-all, all-industry-classification, delisted-companies, latest-financial-statements) are banked one object per page under <id>/<date>/pNNN - nothing merged in memory (v1.1.0, after the first live run died without a state write)."
   ],
   "universes": {
-    "all": {"from": "stock-list", "field": "symbol", "union": ["etf-list"]},
-    "tierA": {"from": "stock-list", "field": "symbol", "filter": "us_active", "union": ["etf-list:us"]},
-    "etfs_us": {"from": "etf-list", "field": "symbol", "filter": "us"},
-    "chart": {"from": "chart-universe"},
-    "transcript_symbols": {"from": "earnings-transcript-list", "field": "symbol", "filter": "tierA"},
-    "holder_ciks": {"from": "institutional-ownership/latest", "field": "cik", "accumulate": true},
-    "senate_ids": {"from": "senate-profile", "field": "senateId", "alt_fields": ["bioguideId", "id"]},
-    "exchanges": {"from": "available-exchanges", "field": "exchange", "alt_fields": ["name"]},
-    "sectors": {"from": "available-sectors", "field": "sector"},
-    "industries": {"from": "available-industries", "field": "industry"},
-    "cot_symbols": {"from": "commitment-of-traders-list", "field": "symbol", "alt_fields": ["tradingSymbol"]},
-    "commodities": {"from": "commodities-list", "field": "symbol"},
-    "forex": {"from": "forex-list", "field": "symbol"},
-    "cryptos": {"from": "cryptocurrency-list", "field": "symbol"},
-    "indexes": {"from": "index-list", "field": "symbol"},
-    "econ_names": {"static": ["GDP", "realGDP", "nominalPotentialGDP", "realGDPPerCapita", "federalFunds", "CPI", "inflationRate", "inflation", "retailSales", "consumerSentiment", "durableGoods", "unemploymentRate", "totalNonfarmPayroll", "initialClaims", "industrialProductionTotalIndex", "newPrivatelyOwnedHousingUnitsStartedTotalUnits", "totalVehicleSales", "retailMoneyFunds", "smoothedUSRecessionProbabilities", "3MonthOr90DayRatesAndYieldsCertificatesOfDeposit", "commercialBankInterestRateOnCreditCardPlansAllAccounts", "30YearFixedRateMortgageAverage", "15YearFixedRateMortgageAverage"]},
-    "us_exchanges": {"static": ["NASDAQ", "NYSE", "AMEX"]},
-    "sec_form_types": {"static": ["10-K", "10-Q", "8-K", "13F-HR", "4", "S-1", "SC 13D", "SC 13G", "DEF 14A", "424B4"]},
-    "social_types": {"static": ["bullish", "bearish"]},
-    "social_sources": {"static": ["stocktwits", "twitter"]}
+    "all": {
+      "from": "stock-list",
+      "field": "symbol",
+      "union": [
+        "etf-list"
+      ]
+    },
+    "tierA": {
+      "from": "stock-list",
+      "field": "symbol",
+      "filter": "us_active",
+      "union": [
+        "etf-list:us"
+      ]
+    },
+    "etfs_us": {
+      "from": "etf-list",
+      "field": "symbol",
+      "filter": "us"
+    },
+    "chart": {
+      "from": "chart-universe"
+    },
+    "transcript_symbols": {
+      "from": "earnings-transcript-list",
+      "field": "symbol",
+      "filter": "tierA"
+    },
+    "holder_ciks": {
+      "from": "institutional-ownership/latest",
+      "field": "cik",
+      "accumulate": true
+    },
+    "senate_ids": {
+      "from": "senate-profile",
+      "field": "senateId",
+      "alt_fields": [
+        "bioguideId",
+        "id"
+      ]
+    },
+    "exchanges": {
+      "from": "available-exchanges",
+      "field": "exchange",
+      "alt_fields": [
+        "name"
+      ]
+    },
+    "sectors": {
+      "from": "available-sectors",
+      "field": "sector"
+    },
+    "industries": {
+      "from": "available-industries",
+      "field": "industry"
+    },
+    "cot_symbols": {
+      "from": "commitment-of-traders-list",
+      "field": "symbol",
+      "alt_fields": [
+        "tradingSymbol"
+      ]
+    },
+    "commodities": {
+      "from": "commodities-list",
+      "field": "symbol"
+    },
+    "forex": {
+      "from": "forex-list",
+      "field": "symbol"
+    },
+    "cryptos": {
+      "from": "cryptocurrency-list",
+      "field": "symbol"
+    },
+    "indexes": {
+      "from": "index-list",
+      "field": "symbol"
+    },
+    "econ_names": {
+      "static": [
+        "GDP",
+        "realGDP",
+        "nominalPotentialGDP",
+        "realGDPPerCapita",
+        "federalFunds",
+        "CPI",
+        "inflationRate",
+        "inflation",
+        "retailSales",
+        "consumerSentiment",
+        "durableGoods",
+        "unemploymentRate",
+        "totalNonfarmPayroll",
+        "initialClaims",
+        "industrialProductionTotalIndex",
+        "newPrivatelyOwnedHousingUnitsStartedTotalUnits",
+        "totalVehicleSales",
+        "retailMoneyFunds",
+        "smoothedUSRecessionProbabilities",
+        "3MonthOr90DayRatesAndYieldsCertificatesOfDeposit",
+        "commercialBankInterestRateOnCreditCardPlansAllAccounts",
+        "30YearFixedRateMortgageAverage",
+        "15YearFixedRateMortgageAverage"
+      ]
+    },
+    "us_exchanges": {
+      "static": [
+        "NASDAQ",
+        "NYSE",
+        "AMEX"
+      ]
+    },
+    "sec_form_types": {
+      "static": [
+        "10-K",
+        "10-Q",
+        "8-K",
+        "13F-HR",
+        "4",
+        "S-1",
+        "SC 13D",
+        "SC 13G",
+        "DEF 14A",
+        "424B4"
+      ]
+    },
+    "social_types": {
+      "static": [
+        "bullish",
+        "bearish"
+      ]
+    },
+    "social_sources": {
+      "static": [
+        "stocktwits",
+        "twitter"
+      ]
+    }
   },
   "datasets": [
-    {"id": "stock-list", "kind": "list", "endpoint": "stock-list", "priority": 0},
-    {"id": "etf-list", "kind": "list", "endpoint": "etf-list", "priority": 0},
-    {"id": "actively-trading-list", "kind": "list", "endpoint": "actively-trading-list", "priority": 0},
-    {"id": "financial-statement-symbol-list", "kind": "list", "endpoint": "financial-statement-symbol-list", "priority": 0},
-    {"id": "tradable-list", "kind": "list", "endpoint": "tradable-list", "priority": 0},
-    {"id": "available-exchanges", "kind": "list", "endpoint": "available-exchanges", "priority": 0},
-    {"id": "available-sectors", "kind": "list", "endpoint": "available-sectors", "priority": 0},
-    {"id": "available-industries", "kind": "list", "endpoint": "available-industries", "priority": 0},
-    {"id": "available-countries", "kind": "list", "endpoint": "available-countries", "priority": 0},
-    {"id": "index-list", "kind": "list", "endpoint": "index-list", "priority": 0},
-    {"id": "commodities-list", "kind": "list", "endpoint": "commodities-list", "priority": 0},
-    {"id": "forex-list", "kind": "list", "endpoint": "forex-list", "priority": 0},
-    {"id": "cryptocurrency-list", "kind": "list", "endpoint": "cryptocurrency-list", "priority": 0},
-    {"id": "earnings-transcript-list", "kind": "list", "endpoint": "earnings-transcript-list", "priority": 0},
-    {"id": "commitment-of-traders-list", "kind": "list", "endpoint": "commitment-of-traders-list", "priority": 0},
-    {"id": "insider-trading-transaction-type", "kind": "list", "endpoint": "insider-trading-transaction-type", "priority": 0},
-    {"id": "standard-industrial-classification-list", "kind": "list", "endpoint": "standard-industrial-classification-list", "priority": 0},
-    {"id": "symbol-change", "kind": "list", "endpoint": "symbol-change", "priority": 0},
-    {"id": "all-exchange-market-hours", "kind": "list", "endpoint": "all-exchange-market-hours", "priority": 0},
-    {"id": "market-risk-premium", "kind": "list", "endpoint": "market-risk-premium", "priority": 0},
-    {"id": "treasury-rates", "kind": "list", "endpoint": "treasury-rates", "params": {"from": "1990-01-01"}, "priority": 0},
-    {"id": "sp500-constituent", "kind": "list", "endpoint": "sp500-constituent", "priority": 0},
-    {"id": "nasdaq-constituent", "kind": "list", "endpoint": "nasdaq-constituent", "priority": 0},
-    {"id": "dowjones-constituent", "kind": "list", "endpoint": "dowjones-constituent", "priority": 0},
-    {"id": "historical-sp500-constituent", "kind": "list", "endpoint": "historical-sp500-constituent", "priority": 0},
-    {"id": "historical-nasdaq-constituent", "kind": "list", "endpoint": "historical-nasdaq-constituent", "priority": 0},
-    {"id": "historical-dowjones-constituent", "kind": "list", "endpoint": "historical-dowjones-constituent", "priority": 0},
-    {"id": "biggest-gainers", "kind": "list", "endpoint": "biggest-gainers", "dated_always": true, "priority": 0},
-    {"id": "biggest-losers", "kind": "list", "endpoint": "biggest-losers", "dated_always": true, "priority": 0},
-    {"id": "most-actives", "kind": "list", "endpoint": "most-actives", "dated_always": true, "priority": 0},
-    {"id": "pre-post-market", "kind": "list", "endpoint": "pre-post-market", "dated_always": true, "priority": 0},
-    {"id": "quotes-commodity", "kind": "list", "endpoint": "quotes/commodity", "dated_always": true, "priority": 0},
-    {"id": "quotes-forex", "kind": "list", "endpoint": "quotes/forex", "dated_always": true, "priority": 0},
-    {"id": "quotes-crypto", "kind": "list", "endpoint": "quotes/crypto", "dated_always": true, "priority": 0},
-    {"id": "batch-index-quotes", "kind": "list", "endpoint": "batch-index-quotes", "dated_always": true, "priority": 0},
-    {"id": "batch-etf-quotes", "kind": "list", "endpoint": "batch-etf-quotes", "dated_always": true, "priority": 0},
-    {"id": "batch-mutualfund-quotes", "kind": "list", "endpoint": "batch-mutualfund-quotes", "dated_always": true, "priority": 0},
-    {"id": "batch-exchange-quote", "kind": "per_entity", "endpoint": "batch-exchange-quote", "universe": "us_exchanges", "entity_param": "exchange", "dated_always": true, "priority": 0},
-    {"id": "sector-performance-snapshot", "kind": "daily_dated", "endpoint": "sector-performance-snapshot", "floor": "2026-10-01", "entity_param": null, "priority": 0},
-    {"id": "industry-performance-snapshot", "kind": "daily_dated", "endpoint": "industry-performance-snapshot", "floor": "2026-10-01", "priority": 0},
-    {"id": "sector-pe-snapshot", "kind": "daily_dated", "endpoint": "sector-pe-snapshot", "floor": "2026-10-01", "priority": 0},
-    {"id": "industry-pe-snapshot", "kind": "daily_dated", "endpoint": "industry-pe-snapshot", "floor": "2026-10-01", "priority": 0},
-    {"id": "13f-asset-allocation", "kind": "daily_dated", "endpoint": "13f-asset-allocation", "floor": "2026-10-01", "priority": 1},
-
-    {"id": "insider-trading-latest", "kind": "daily_dated", "endpoint": "insider-trading/latest", "floor": "2024-01-01", "paged": true, "limit": 1000, "priority": 1},
-    {"id": "institutional-ownership-latest", "kind": "latest_pages", "endpoint": "institutional-ownership/latest", "limit": 100, "max_pages": 60, "priority": 1},
-    {"id": "senate-latest", "kind": "latest_pages", "endpoint": "senate-latest", "limit": 100, "max_pages": 30, "priority": 1},
-    {"id": "house-latest", "kind": "latest_pages", "endpoint": "house-latest", "limit": 100, "max_pages": 30, "priority": 1},
-    {"id": "senate-trading-rss-feed", "kind": "latest_pages", "endpoint": "senate-trading-rss-feed", "max_pages": 10, "priority": 2},
-    {"id": "earning-call-transcript-latest", "kind": "latest_pages", "endpoint": "earning-call-transcript-latest", "limit": 100, "max_pages": 20, "priority": 1},
-    {"id": "grades-latest-news", "kind": "latest_pages", "endpoint": "grades-latest-news", "max_pages": 30, "priority": 1},
-    {"id": "price-target-latest-news", "kind": "latest_pages", "endpoint": "price-target-latest-news", "max_pages": 30, "priority": 1},
-    {"id": "news-stock-latest", "kind": "latest_pages", "endpoint": "news/stock-latest", "limit": 250, "max_pages": 40, "priority": 1},
-    {"id": "news-general-latest", "kind": "latest_pages", "endpoint": "news/general-latest", "limit": 250, "max_pages": 20, "priority": 1},
-    {"id": "news-press-releases-latest", "kind": "latest_pages", "endpoint": "news/press-releases-latest", "limit": 250, "max_pages": 40, "priority": 1},
-    {"id": "news-crypto-latest", "kind": "latest_pages", "endpoint": "news/crypto-latest", "limit": 250, "max_pages": 10, "priority": 2},
-    {"id": "news-forex-latest", "kind": "latest_pages", "endpoint": "news/forex-latest", "limit": 250, "max_pages": 10, "priority": 2},
-    {"id": "fmp-articles", "kind": "latest_pages", "endpoint": "fmp-articles", "limit": 20, "max_pages": 10, "priority": 2},
-    {"id": "stock-news-sentiments-rss-feed", "kind": "latest_pages", "endpoint": "stock-news-sentiments-rss-feed", "max_pages": 10, "page_required": true, "priority": 2},
-    {"id": "mergers-acquisitions-latest", "kind": "latest_pages", "endpoint": "mergers-acquisitions-latest", "limit": 100, "max_pages": 20, "priority": 1},
-    {"id": "fundraising-latest", "kind": "latest_pages", "endpoint": "fundraising-latest", "limit": 100, "max_pages": 20, "priority": 2},
-    {"id": "crowdfunding-offerings-latest", "kind": "latest_pages", "endpoint": "crowdfunding-offerings-latest", "limit": 100, "max_pages": 20, "priority": 2},
-    {"id": "latest-financial-statements", "kind": "latest_pages", "endpoint": "latest-financial-statements", "limit": 250, "max_pages": 40, "page_required": true, "priority": 1},
-    {"id": "delisted-companies", "kind": "latest_pages", "endpoint": "delisted-companies", "limit": 100, "max_pages": 400, "priority": 1},
-    {"id": "cik-list", "kind": "latest_pages", "endpoint": "cik-list", "limit": 10000, "max_pages": 20, "page_required": true, "priority": 1},
-    {"id": "shares-float-all", "kind": "latest_pages", "endpoint": "shares-float-all", "limit": 5000, "max_pages": 40, "priority": 1},
-    {"id": "all-industry-classification", "kind": "latest_pages", "endpoint": "all-industry-classification", "limit": 1000, "max_pages": 200, "priority": 2},
-    {"id": "senate-profile", "kind": "latest_pages", "endpoint": "senate-profile", "limit": 500, "max_pages": 10, "priority": 1},
-    {"id": "senate-positions", "kind": "latest_pages", "endpoint": "senate-positions", "limit": 300, "max_pages": 40, "priority": 2},
-
-    {"id": "earnings-calendar", "kind": "window", "endpoint": "earnings-calendar", "floor": "2000-01", "paged": true, "priority": 1},
-    {"id": "earning-calendar-confirmed", "kind": "window", "endpoint": "earning-calendar-confirmed", "floor": "2020-01", "priority": 1},
-    {"id": "dividends-calendar", "kind": "window", "endpoint": "dividends-calendar", "floor": "2000-01", "paged": true, "priority": 1},
-    {"id": "splits-calendar", "kind": "window", "endpoint": "splits-calendar", "floor": "2000-01", "paged": true, "priority": 1},
-    {"id": "ipos-calendar", "kind": "window", "endpoint": "ipos-calendar", "floor": "2000-01", "priority": 1},
-    {"id": "ipos-disclosure", "kind": "window", "endpoint": "ipos-disclosure", "floor": "2015-01", "params": {"limit": 1000}, "priority": 2},
-    {"id": "ipos-prospectus", "kind": "window", "endpoint": "ipos-prospectus", "floor": "2015-01", "params": {"limit": 1000}, "priority": 2},
-    {"id": "economic-calendar", "kind": "window", "endpoint": "economic-calendar", "floor": "2000-01", "priority": 1},
-    {"id": "sec-filings-8k", "kind": "window", "endpoint": "sec-filings-8k", "floor": "2015-01", "paged": true, "limit": 1000, "priority": 2},
-    {"id": "sec-filings-financials", "kind": "window", "endpoint": "sec-filings-financials", "floor": "2015-01", "paged": true, "limit": 1000, "priority": 2},
-    {"id": "sec-filings-search-form-type", "kind": "window", "endpoint": "sec-filings-search/form-type", "floor": "2024-01", "paged": true, "limit": 1000, "universe": "sec_form_types", "entity_param": "formType", "priority": 2},
-    {"id": "insider-trading-search-all", "kind": "window", "endpoint": "insider-trading/search", "floor": "2026-10", "paged": true, "limit": 1000, "disabled": true, "note": "no date filter on this endpoint; per-symbol below"},
-
-    {"id": "economic-indicators", "kind": "per_entity", "endpoint": "economic-indicators", "universe": "econ_names", "entity_param": "name", "params": {"from": "1900-01-01"}, "priority": 1},
-    {"id": "commitment-of-traders-report", "kind": "per_entity", "endpoint": "commitment-of-traders-report", "universe": "cot_symbols", "entity_param": "symbol", "params": {"from": "2000-01-01", "to": "@today"}, "priority": 1},
-    {"id": "commitment-of-traders-analysis", "kind": "per_entity", "endpoint": "commitment-of-traders-analysis", "universe": "cot_symbols", "entity_param": "symbol", "params": {"from": "2000-01-01", "to": "@today"}, "priority": 1},
-    {"id": "historical-sector-performance", "kind": "per_entity", "endpoint": "historical-sector-performance", "universe": "sectors", "entity_param": "sector", "params": {"from": "2000-01-01"}, "per_exchange": true, "priority": 1},
-    {"id": "historical-sector-pe", "kind": "per_entity", "endpoint": "historical-sector-pe", "universe": "sectors", "entity_param": "sector", "params": {"from": "2000-01-01"}, "per_exchange": true, "priority": 1},
-    {"id": "historical-industry-performance", "kind": "per_entity", "endpoint": "historical-industry-performance", "universe": "industries", "entity_param": "industry", "params": {"from": "2000-01-01"}, "per_exchange": true, "priority": 1},
-    {"id": "historical-industry-pe", "kind": "per_entity", "endpoint": "historical-industry-pe", "universe": "industries", "entity_param": "industry", "params": {"from": "2000-01-01"}, "per_exchange": true, "priority": 1},
-    {"id": "exchange-market-hours", "kind": "per_entity", "endpoint": "exchange-market-hours", "universe": "exchanges", "entity_param": "exchange", "priority": 2},
-    {"id": "holidays-by-exchange", "kind": "per_entity", "endpoint": "holidays-by-exchange", "universe": "exchanges", "entity_param": "exchange", "params": {"from": "2000-01-01", "to": "2030-12-31"}, "priority": 2},
-    {"id": "esg-benchmark", "kind": "per_entity", "endpoint": "esg-benchmark", "universe": "years_2010", "entity_param": "year", "priority": 2},
-    {"id": "executive-compensation-benchmark", "kind": "per_entity", "endpoint": "executive-compensation-benchmark", "universe": "years_2010", "entity_param": "year", "priority": 2},
-    {"id": "institutional-ownership-industry-summary", "kind": "per_entity", "endpoint": "institutional-ownership/industry-summary", "universe": "quarters_2013", "entity_param": "@yq", "priority": 1},
-    {"id": "social-sentiments-trending", "kind": "per_entity", "endpoint": "social-sentiments/trending", "universe": "social_types", "entity_param": "type", "params": {"source": "stocktwits"}, "dated_always": true, "priority": 2},
-    {"id": "social-sentiments-change", "kind": "per_entity", "endpoint": "social-sentiments/change", "universe": "social_types", "entity_param": "type", "params": {"source": "stocktwits"}, "dated_always": true, "priority": 2},
-
-    {"id": "historical-price-eod-full", "kind": "per_entity", "endpoint": "historical-price-eod/full", "universe": "all", "entity_param": "symbol", "params": {"from": "1960-01-01"}, "priority": 1, "rotation_days": 30},
-    {"id": "historical-price-eod-dividend-adjusted", "kind": "per_entity", "endpoint": "historical-price-eod/dividend-adjusted", "universe": "tierA", "entity_param": "symbol", "params": {"from": "1960-01-01"}, "priority": 3},
-    {"id": "historical-price-eod-non-split-adjusted", "kind": "per_entity", "endpoint": "historical-price-eod/non-split-adjusted", "universe": "tierA", "entity_param": "symbol", "params": {"from": "1960-01-01"}, "priority": 3},
-    {"id": "historical-chart-1min", "kind": "per_entity", "endpoint": "historical-chart/1min", "universe": "chart", "entity_param": "symbol", "intraday": true, "backfill_days": 365, "priority": 1},
-    {"id": "historical-market-capitalization", "kind": "per_entity", "endpoint": "historical-market-capitalization", "universe": "all", "entity_param": "symbol", "params": {"from": "1990-01-01", "limit": 5000}, "priority": 2},
-    {"id": "dividends", "kind": "per_entity", "endpoint": "dividends", "universe": "all", "entity_param": "symbol", "params": {"from": "1960-01-01", "limit": 5000}, "priority": 2},
-    {"id": "splits", "kind": "per_entity", "endpoint": "splits", "universe": "all", "entity_param": "symbol", "params": {"from": "1960-01-01", "limit": 5000}, "priority": 2},
-    {"id": "earnings", "kind": "per_entity", "endpoint": "earnings", "universe": "all", "entity_param": "symbol", "params": {"limit": 1000}, "priority": 1},
-    {"id": "earnings-surprises", "kind": "per_entity", "endpoint": "earnings-surprises", "universe": "tierA", "entity_param": "symbol", "priority": 3},
-    {"id": "analyst-estimates-annual", "kind": "per_entity", "endpoint": "analyst-estimates", "universe": "tierA", "entity_param": "symbol", "params": {"period": "annual", "limit": 100}, "priority": 1},
-    {"id": "analyst-estimates-quarter", "kind": "per_entity", "endpoint": "analyst-estimates", "universe": "tierA", "entity_param": "symbol", "params": {"period": "quarter", "limit": 100}, "priority": 1},
-    {"id": "analyst-stock-recommendations", "kind": "per_entity", "endpoint": "analyst-stock-recommendations", "universe": "tierA", "entity_param": "symbol", "priority": 2},
-    {"id": "price-target", "kind": "per_entity", "endpoint": "price-target", "universe": "tierA", "entity_param": "symbol", "priority": 1},
-    {"id": "price-target-consensus", "kind": "per_entity", "endpoint": "price-target-consensus", "universe": "tierA", "entity_param": "symbol", "priority": 2},
-    {"id": "price-target-news", "kind": "per_entity", "endpoint": "price-target-news", "universe": "tierA", "entity_param": "symbol", "paged": true, "max_pages": 5, "priority": 3},
-    {"id": "grades", "kind": "per_entity", "endpoint": "grades", "universe": "tierA", "entity_param": "symbol", "paged": true, "max_pages": 10, "priority": 1},
-    {"id": "grades-historical", "kind": "per_entity", "endpoint": "grades-historical", "universe": "tierA", "entity_param": "symbol", "params": {"limit": 1000}, "priority": 2},
-    {"id": "grades-news", "kind": "per_entity", "endpoint": "grades-news", "universe": "tierA", "entity_param": "symbol", "paged": true, "max_pages": 5, "priority": 3},
-    {"id": "ratings-historical", "kind": "per_entity", "endpoint": "ratings-historical", "universe": "tierA", "entity_param": "symbol", "params": {"limit": 10000}, "priority": 2},
-    {"id": "historical-rating", "kind": "per_entity", "endpoint": "historical-rating", "universe": "tierA", "entity_param": "symbol", "priority": 3},
-    {"id": "levered-discounted-cash-flow", "kind": "per_entity", "endpoint": "levered-discounted-cash-flow", "universe": "tierA", "entity_param": "symbol", "priority": 2},
-    {"id": "owner-earnings", "kind": "per_entity", "endpoint": "owner-earnings", "universe": "tierA", "entity_param": "symbol", "params": {"limit": 1000}, "priority": 2},
-    {"id": "enterprise-values-annual", "kind": "per_entity", "endpoint": "enterprise-values", "universe": "tierA", "entity_param": "symbol", "params": {"period": "annual", "limit": 100}, "priority": 2},
-    {"id": "enterprise-values-quarter", "kind": "per_entity", "endpoint": "enterprise-values", "universe": "tierA", "entity_param": "symbol", "params": {"period": "quarter", "limit": 400}, "priority": 2},
-    {"id": "key-metrics-annual", "kind": "per_entity", "endpoint": "key-metrics", "universe": "tierA", "entity_param": "symbol", "params": {"period": "annual", "limit": 100}, "priority": 1},
-    {"id": "key-metrics-quarter", "kind": "per_entity", "endpoint": "key-metrics", "universe": "tierA", "entity_param": "symbol", "params": {"period": "quarter", "limit": 400}, "priority": 1},
-    {"id": "ratios-annual", "kind": "per_entity", "endpoint": "ratios", "universe": "tierA", "entity_param": "symbol", "params": {"period": "annual", "limit": 100}, "priority": 1},
-    {"id": "ratios-quarter", "kind": "per_entity", "endpoint": "ratios", "universe": "tierA", "entity_param": "symbol", "params": {"period": "quarter", "limit": 400}, "priority": 1},
-    {"id": "financial-growth-annual", "kind": "per_entity", "endpoint": "financial-growth", "universe": "tierA", "entity_param": "symbol", "params": {"period": "annual", "limit": 100}, "priority": 2},
-    {"id": "financial-growth-quarter", "kind": "per_entity", "endpoint": "financial-growth", "universe": "tierA", "entity_param": "symbol", "params": {"period": "quarter", "limit": 400}, "priority": 2},
-    {"id": "income-statement-as-reported-annual", "kind": "per_entity", "endpoint": "income-statement-as-reported", "universe": "tierA", "entity_param": "symbol", "params": {"period": "annual", "limit": 100}, "priority": 2},
-    {"id": "income-statement-as-reported-quarter", "kind": "per_entity", "endpoint": "income-statement-as-reported", "universe": "tierA", "entity_param": "symbol", "params": {"period": "quarter", "limit": 400}, "priority": 3},
-    {"id": "balance-sheet-statement-as-reported-annual", "kind": "per_entity", "endpoint": "balance-sheet-statement-as-reported", "universe": "tierA", "entity_param": "symbol", "params": {"period": "annual", "limit": 100}, "priority": 2},
-    {"id": "balance-sheet-statement-as-reported-quarter", "kind": "per_entity", "endpoint": "balance-sheet-statement-as-reported", "universe": "tierA", "entity_param": "symbol", "params": {"period": "quarter", "limit": 400}, "priority": 3},
-    {"id": "cash-flow-statement-as-reported-annual", "kind": "per_entity", "endpoint": "cash-flow-statement-as-reported", "universe": "tierA", "entity_param": "symbol", "params": {"period": "annual", "limit": 100}, "priority": 2},
-    {"id": "cash-flow-statement-as-reported-quarter", "kind": "per_entity", "endpoint": "cash-flow-statement-as-reported", "universe": "tierA", "entity_param": "symbol", "params": {"period": "quarter", "limit": 400}, "priority": 3},
-    {"id": "financial-statement-full-as-reported-annual", "kind": "per_entity", "endpoint": "financial-statement-full-as-reported", "universe": "tierA", "entity_param": "symbol", "params": {"period": "annual", "limit": 100}, "priority": 3},
-    {"id": "financial-reports-dates", "kind": "per_entity", "endpoint": "financial-reports-dates", "universe": "tierA", "entity_param": "symbol", "priority": 3},
-    {"id": "revenue-product-segmentation-annual", "kind": "per_entity", "endpoint": "revenue-product-segmentation", "universe": "tierA", "entity_param": "symbol", "params": {"period": "annual", "structure": "flat"}, "priority": 2},
-    {"id": "revenue-product-segmentation-quarter", "kind": "per_entity", "endpoint": "revenue-product-segmentation", "universe": "tierA", "entity_param": "symbol", "params": {"period": "quarter", "structure": "flat"}, "priority": 3},
-    {"id": "revenue-geographic-segmentation-annual", "kind": "per_entity", "endpoint": "revenue-geographic-segmentation", "universe": "tierA", "entity_param": "symbol", "params": {"period": "annual", "structure": "flat"}, "priority": 2},
-    {"id": "revenue-geographic-segmentation-quarter", "kind": "per_entity", "endpoint": "revenue-geographic-segmentation", "universe": "tierA", "entity_param": "symbol", "params": {"period": "quarter", "structure": "flat"}, "priority": 3},
-    {"id": "company-core-information", "kind": "per_entity", "endpoint": "company-core-information", "universe": "tierA", "entity_param": "symbol", "priority": 2},
-    {"id": "company-notes", "kind": "per_entity", "endpoint": "company-notes", "universe": "tierA", "entity_param": "symbol", "priority": 3},
-    {"id": "key-executives", "kind": "per_entity", "endpoint": "key-executives", "universe": "tierA", "entity_param": "symbol", "priority": 2},
-    {"id": "governance-executive-compensation", "kind": "per_entity", "endpoint": "governance-executive-compensation", "universe": "tierA", "entity_param": "symbol", "priority": 2},
-    {"id": "employee-count", "kind": "per_entity", "endpoint": "employee-count", "universe": "tierA", "entity_param": "symbol", "params": {"limit": 1000}, "priority": 2},
-    {"id": "historical-employee-count", "kind": "per_entity", "endpoint": "historical/employee-count", "universe": "tierA", "entity_param": "symbol", "priority": 3},
-    {"id": "historical-shares-float", "kind": "per_entity", "endpoint": "historical/shares-float", "universe": "tierA", "entity_param": "symbol", "priority": 2},
-    {"id": "market-capitalization", "kind": "per_entity", "endpoint": "market-capitalization", "universe": "tierA", "entity_param": "symbol", "priority": 3},
-    {"id": "sec-profile", "kind": "per_entity", "endpoint": "sec-profile", "universe": "tierA", "entity_param": "symbol", "priority": 3},
-    {"id": "sec-filings-search-symbol", "kind": "per_entity", "endpoint": "sec-filings-search/symbol", "universe": "tierA", "entity_param": "symbol", "params": {"from": "2000-01-01", "to": "@today", "limit": 1000}, "paged": true, "max_pages": 10, "priority": 3},
-    {"id": "acquisition-of-beneficial-ownership", "kind": "per_entity", "endpoint": "acquisition-of-beneficial-ownership", "universe": "tierA", "entity_param": "symbol", "params": {"limit": 1000}, "priority": 2},
-    {"id": "fail-to-deliver", "kind": "per_entity", "endpoint": "fail_to_deliver", "universe": "tierA", "entity_param": "symbol", "paged": true, "max_pages": 20, "priority": 2},
-    {"id": "insider-trading-search", "kind": "per_entity", "endpoint": "insider-trading/search", "universe": "tierA", "entity_param": "symbol", "paged": true, "limit": 1000, "max_pages": 20, "priority": 1},
-    {"id": "insider-trading-statistics", "kind": "per_entity", "endpoint": "insider-trading/statistics", "universe": "tierA", "entity_param": "symbol", "priority": 2},
-    {"id": "senate-trades", "kind": "per_entity", "endpoint": "senate-trades", "universe": "tierA", "entity_param": "symbol", "paged": true, "limit": 1000, "max_pages": 5, "priority": 2},
-    {"id": "house-trades", "kind": "per_entity", "endpoint": "house-trades", "universe": "tierA", "entity_param": "symbol", "paged": true, "limit": 1000, "max_pages": 5, "priority": 2},
-    {"id": "senate-trades-by-id", "kind": "per_entity", "endpoint": "senate-trades-by-id", "universe": "senate_ids", "entity_param": "senateId", "paged": true, "limit": 1000, "max_pages": 20, "priority": 2},
-    {"id": "house-trades-by-id", "kind": "per_entity", "endpoint": "house-trades-by-id", "universe": "senate_ids", "entity_param": "senateId", "paged": true, "limit": 1000, "max_pages": 20, "priority": 3},
-    {"id": "senate-net-worth", "kind": "per_entity", "endpoint": "senate-net-worth", "universe": "senate_ids", "entity_param": "senateId", "paged": true, "limit": 250, "max_pages": 10, "priority": 3},
-    {"id": "esg-ratings", "kind": "per_entity", "endpoint": "esg-ratings", "universe": "tierA", "entity_param": "symbol", "priority": 2},
-    {"id": "esg-disclosures", "kind": "per_entity", "endpoint": "esg-disclosures", "universe": "tierA", "entity_param": "symbol", "priority": 2},
-    {"id": "news-stock", "kind": "per_entity", "endpoint": "news/stock", "universe": "tierA", "entity_param": "symbol", "params": {"from": "2015-01-01", "to": "@today", "limit": 250}, "paged": true, "max_pages": 8, "priority": 3},
-    {"id": "news-press-releases", "kind": "per_entity", "endpoint": "news/press-releases", "universe": "tierA", "entity_param": "symbol", "params": {"from": "2015-01-01", "to": "@today", "limit": 250}, "paged": true, "max_pages": 8, "priority": 3},
-    {"id": "historical-social-sentiment", "kind": "per_entity", "endpoint": "historical/social-sentiment", "universe": "tierA", "entity_param": "symbol", "paged": true, "max_pages": 5, "priority": 3},
-    {"id": "stock-peers", "kind": "per_entity", "endpoint": "stock-peers", "universe": "tierA", "entity_param": "symbol", "priority": 3},
-    {"id": "industry-classification-search", "kind": "per_entity", "endpoint": "industry-classification-search", "universe": "tierA", "entity_param": "symbol", "priority": 3},
-    {"id": "institutional-ownership-symbol-positions-summary", "kind": "per_entity_period", "endpoint": "institutional-ownership/symbol-positions-summary", "universe": "tierA", "entity_param": "symbol", "periods": "trailing_quarters:12", "priority": 1},
-    {"id": "institutional-ownership-extract-analytics-holder", "kind": "per_entity_period", "endpoint": "institutional-ownership/extract-analytics/holder", "universe": "tierA", "entity_param": "symbol", "periods": "trailing_quarters:8", "paged": true, "limit": 1000, "max_pages": 10, "priority": 2},
-    {"id": "institutional-ownership-dates", "kind": "per_entity", "endpoint": "institutional-ownership/dates", "universe": "holder_ciks", "entity_param": "cik", "priority": 1},
-    {"id": "institutional-ownership-holder-performance-summary", "kind": "per_entity", "endpoint": "institutional-ownership/holder-performance-summary", "universe": "holder_ciks", "entity_param": "cik", "paged": true, "max_pages": 10, "priority": 1},
-    {"id": "institutional-ownership-holder-industry-breakdown", "kind": "per_entity_period", "endpoint": "institutional-ownership/holder-industry-breakdown", "universe": "holder_ciks", "entity_param": "cik", "periods": "trailing_quarters:8", "priority": 2},
-    {"id": "institutional-ownership-extract", "kind": "per_entity_period", "endpoint": "institutional-ownership/extract", "universe": "holder_ciks", "entity_param": "cik", "periods": "trailing_quarters:8", "priority": 2, "max_bytes": 60000000},
-    {"id": "earning-call-transcript-dates", "kind": "per_entity", "endpoint": "earning-call-transcript-dates", "universe": "transcript_symbols", "entity_param": "symbol", "priority": 1},
-    {"id": "earning-call-transcript", "kind": "per_entity_period", "endpoint": "earning-call-transcript", "universe": "transcript_symbols", "entity_param": "symbol", "periods": "from_dates:earning-call-transcript-dates", "priority": 1},
-    {"id": "etf-info", "kind": "per_entity", "endpoint": "etf/info", "universe": "etfs_us", "entity_param": "symbol", "priority": 1},
-    {"id": "etf-holdings", "kind": "per_entity", "endpoint": "etf/holdings", "universe": "etfs_us", "entity_param": "symbol", "priority": 1},
-    {"id": "etf-portfolio-dates", "kind": "per_entity", "endpoint": "etf/portfolio-dates", "universe": "etfs_us", "entity_param": "symbol", "priority": 1},
-    {"id": "etf-sector-weightings", "kind": "per_entity", "endpoint": "etf/sector-weightings", "universe": "etfs_us", "entity_param": "symbol", "priority": 2},
-    {"id": "etf-country-weightings", "kind": "per_entity", "endpoint": "etf/country-weightings", "universe": "etfs_us", "entity_param": "symbol", "priority": 2},
-    {"id": "etf-asset-exposure", "kind": "per_entity", "endpoint": "etf/asset-exposure", "universe": "tierA", "entity_param": "symbol", "priority": 3},
-    {"id": "etf-holder", "kind": "per_entity", "endpoint": "etf/holder", "universe": "tierA", "entity_param": "symbol", "priority": 3},
-    {"id": "funds-disclosure-dates", "kind": "per_entity", "endpoint": "funds/disclosure-dates", "universe": "etfs_us", "entity_param": "symbol", "priority": 2},
-    {"id": "funds-disclosure-holders-latest", "kind": "per_entity", "endpoint": "funds/disclosure-holders-latest", "universe": "etfs_us", "entity_param": "symbol", "priority": 3},
-    {"id": "funds-disclosure", "kind": "per_entity_period", "endpoint": "funds/disclosure", "universe": "etfs_us", "entity_param": "symbol", "periods": "trailing_quarters:4", "priority": 3, "max_bytes": 60000000},
-    {"id": "news-crypto", "kind": "per_entity", "endpoint": "news/crypto", "universe": "cryptos_top", "entity_param": "symbol", "params": {"limit": 250}, "paged": true, "max_pages": 4, "priority": 3},
-    {"id": "news-forex", "kind": "per_entity", "endpoint": "news/forex", "universe": "forex", "entity_param": "symbol", "params": {"limit": 250}, "paged": true, "max_pages": 4, "priority": 3}
+    {
+      "id": "stock-list",
+      "kind": "list",
+      "endpoint": "stock-list",
+      "priority": 0
+    },
+    {
+      "id": "etf-list",
+      "kind": "list",
+      "endpoint": "etf-list",
+      "priority": 0
+    },
+    {
+      "id": "actively-trading-list",
+      "kind": "list",
+      "endpoint": "actively-trading-list",
+      "priority": 0
+    },
+    {
+      "id": "financial-statement-symbol-list",
+      "kind": "list",
+      "endpoint": "financial-statement-symbol-list",
+      "priority": 0
+    },
+    {
+      "id": "tradable-list",
+      "kind": "list",
+      "endpoint": "tradable-list",
+      "priority": 0
+    },
+    {
+      "id": "available-exchanges",
+      "kind": "list",
+      "endpoint": "available-exchanges",
+      "priority": 0
+    },
+    {
+      "id": "available-sectors",
+      "kind": "list",
+      "endpoint": "available-sectors",
+      "priority": 0
+    },
+    {
+      "id": "available-industries",
+      "kind": "list",
+      "endpoint": "available-industries",
+      "priority": 0
+    },
+    {
+      "id": "available-countries",
+      "kind": "list",
+      "endpoint": "available-countries",
+      "priority": 0
+    },
+    {
+      "id": "index-list",
+      "kind": "list",
+      "endpoint": "index-list",
+      "priority": 0
+    },
+    {
+      "id": "commodities-list",
+      "kind": "list",
+      "endpoint": "commodities-list",
+      "priority": 0
+    },
+    {
+      "id": "forex-list",
+      "kind": "list",
+      "endpoint": "forex-list",
+      "priority": 0
+    },
+    {
+      "id": "cryptocurrency-list",
+      "kind": "list",
+      "endpoint": "cryptocurrency-list",
+      "priority": 0
+    },
+    {
+      "id": "earnings-transcript-list",
+      "kind": "list",
+      "endpoint": "earnings-transcript-list",
+      "priority": 0
+    },
+    {
+      "id": "commitment-of-traders-list",
+      "kind": "list",
+      "endpoint": "commitment-of-traders-list",
+      "priority": 0
+    },
+    {
+      "id": "insider-trading-transaction-type",
+      "kind": "list",
+      "endpoint": "insider-trading-transaction-type",
+      "priority": 0
+    },
+    {
+      "id": "standard-industrial-classification-list",
+      "kind": "list",
+      "endpoint": "standard-industrial-classification-list",
+      "priority": 0
+    },
+    {
+      "id": "symbol-change",
+      "kind": "list",
+      "endpoint": "symbol-change",
+      "priority": 0
+    },
+    {
+      "id": "all-exchange-market-hours",
+      "kind": "list",
+      "endpoint": "all-exchange-market-hours",
+      "priority": 0
+    },
+    {
+      "id": "market-risk-premium",
+      "kind": "list",
+      "endpoint": "market-risk-premium",
+      "priority": 0
+    },
+    {
+      "id": "treasury-rates",
+      "kind": "list",
+      "endpoint": "treasury-rates",
+      "params": {
+        "from": "1990-01-01"
+      },
+      "priority": 0
+    },
+    {
+      "id": "sp500-constituent",
+      "kind": "list",
+      "endpoint": "sp500-constituent",
+      "priority": 0
+    },
+    {
+      "id": "nasdaq-constituent",
+      "kind": "list",
+      "endpoint": "nasdaq-constituent",
+      "priority": 0
+    },
+    {
+      "id": "dowjones-constituent",
+      "kind": "list",
+      "endpoint": "dowjones-constituent",
+      "priority": 0
+    },
+    {
+      "id": "historical-sp500-constituent",
+      "kind": "list",
+      "endpoint": "historical-sp500-constituent",
+      "priority": 0
+    },
+    {
+      "id": "historical-nasdaq-constituent",
+      "kind": "list",
+      "endpoint": "historical-nasdaq-constituent",
+      "priority": 0
+    },
+    {
+      "id": "historical-dowjones-constituent",
+      "kind": "list",
+      "endpoint": "historical-dowjones-constituent",
+      "priority": 0
+    },
+    {
+      "id": "biggest-gainers",
+      "kind": "list",
+      "endpoint": "biggest-gainers",
+      "dated_always": true,
+      "priority": 0
+    },
+    {
+      "id": "biggest-losers",
+      "kind": "list",
+      "endpoint": "biggest-losers",
+      "dated_always": true,
+      "priority": 0
+    },
+    {
+      "id": "most-actives",
+      "kind": "list",
+      "endpoint": "most-actives",
+      "dated_always": true,
+      "priority": 0
+    },
+    {
+      "id": "pre-post-market",
+      "kind": "list",
+      "endpoint": "pre-post-market",
+      "dated_always": true,
+      "priority": 0
+    },
+    {
+      "id": "quotes-commodity",
+      "kind": "list",
+      "endpoint": "quotes/commodity",
+      "dated_always": true,
+      "priority": 0
+    },
+    {
+      "id": "quotes-forex",
+      "kind": "list",
+      "endpoint": "quotes/forex",
+      "dated_always": true,
+      "priority": 0
+    },
+    {
+      "id": "quotes-crypto",
+      "kind": "list",
+      "endpoint": "quotes/crypto",
+      "dated_always": true,
+      "priority": 0
+    },
+    {
+      "id": "batch-index-quotes",
+      "kind": "list",
+      "endpoint": "batch-index-quotes",
+      "dated_always": true,
+      "priority": 0
+    },
+    {
+      "id": "batch-etf-quotes",
+      "kind": "list",
+      "endpoint": "batch-etf-quotes",
+      "dated_always": true,
+      "priority": 0
+    },
+    {
+      "id": "batch-mutualfund-quotes",
+      "kind": "list",
+      "endpoint": "batch-mutualfund-quotes",
+      "dated_always": true,
+      "priority": 0
+    },
+    {
+      "id": "batch-exchange-quote",
+      "kind": "per_entity",
+      "endpoint": "batch-exchange-quote",
+      "universe": "us_exchanges",
+      "entity_param": "exchange",
+      "dated_always": true,
+      "priority": 0
+    },
+    {
+      "id": "sector-performance-snapshot",
+      "kind": "daily_dated",
+      "endpoint": "sector-performance-snapshot",
+      "floor": "2026-10-01",
+      "entity_param": null,
+      "priority": 0
+    },
+    {
+      "id": "industry-performance-snapshot",
+      "kind": "daily_dated",
+      "endpoint": "industry-performance-snapshot",
+      "floor": "2026-10-01",
+      "priority": 0
+    },
+    {
+      "id": "sector-pe-snapshot",
+      "kind": "daily_dated",
+      "endpoint": "sector-pe-snapshot",
+      "floor": "2026-10-01",
+      "priority": 0
+    },
+    {
+      "id": "industry-pe-snapshot",
+      "kind": "daily_dated",
+      "endpoint": "industry-pe-snapshot",
+      "floor": "2026-10-01",
+      "priority": 0
+    },
+    {
+      "id": "13f-asset-allocation",
+      "kind": "daily_dated",
+      "endpoint": "13f-asset-allocation",
+      "floor": "2026-10-01",
+      "priority": 1
+    },
+    {
+      "id": "insider-trading-latest",
+      "kind": "daily_dated",
+      "endpoint": "insider-trading/latest",
+      "floor": "2024-01-01",
+      "paged": true,
+      "limit": 1000,
+      "priority": 1
+    },
+    {
+      "id": "institutional-ownership-latest",
+      "kind": "latest_pages",
+      "endpoint": "institutional-ownership/latest",
+      "limit": 100,
+      "max_pages": 60,
+      "priority": 1
+    },
+    {
+      "id": "senate-latest",
+      "kind": "latest_pages",
+      "endpoint": "senate-latest",
+      "limit": 100,
+      "max_pages": 30,
+      "priority": 1
+    },
+    {
+      "id": "house-latest",
+      "kind": "latest_pages",
+      "endpoint": "house-latest",
+      "limit": 100,
+      "max_pages": 30,
+      "priority": 1
+    },
+    {
+      "id": "senate-trading-rss-feed",
+      "kind": "latest_pages",
+      "endpoint": "senate-trading-rss-feed",
+      "max_pages": 10,
+      "priority": 2
+    },
+    {
+      "id": "earning-call-transcript-latest",
+      "kind": "latest_pages",
+      "endpoint": "earning-call-transcript-latest",
+      "limit": 100,
+      "max_pages": 20,
+      "priority": 1
+    },
+    {
+      "id": "grades-latest-news",
+      "kind": "latest_pages",
+      "endpoint": "grades-latest-news",
+      "max_pages": 30,
+      "priority": 1
+    },
+    {
+      "id": "price-target-latest-news",
+      "kind": "latest_pages",
+      "endpoint": "price-target-latest-news",
+      "max_pages": 30,
+      "priority": 1
+    },
+    {
+      "id": "news-stock-latest",
+      "kind": "latest_pages",
+      "endpoint": "news/stock-latest",
+      "limit": 250,
+      "max_pages": 40,
+      "priority": 1
+    },
+    {
+      "id": "news-general-latest",
+      "kind": "latest_pages",
+      "endpoint": "news/general-latest",
+      "limit": 250,
+      "max_pages": 20,
+      "priority": 1
+    },
+    {
+      "id": "news-press-releases-latest",
+      "kind": "latest_pages",
+      "endpoint": "news/press-releases-latest",
+      "limit": 250,
+      "max_pages": 40,
+      "priority": 1
+    },
+    {
+      "id": "news-crypto-latest",
+      "kind": "latest_pages",
+      "endpoint": "news/crypto-latest",
+      "limit": 250,
+      "max_pages": 10,
+      "priority": 2
+    },
+    {
+      "id": "news-forex-latest",
+      "kind": "latest_pages",
+      "endpoint": "news/forex-latest",
+      "limit": 250,
+      "max_pages": 10,
+      "priority": 2
+    },
+    {
+      "id": "fmp-articles",
+      "kind": "latest_pages",
+      "endpoint": "fmp-articles",
+      "limit": 20,
+      "max_pages": 10,
+      "priority": 2
+    },
+    {
+      "id": "stock-news-sentiments-rss-feed",
+      "kind": "latest_pages",
+      "endpoint": "stock-news-sentiments-rss-feed",
+      "max_pages": 10,
+      "page_required": true,
+      "priority": 2
+    },
+    {
+      "id": "mergers-acquisitions-latest",
+      "kind": "latest_pages",
+      "endpoint": "mergers-acquisitions-latest",
+      "limit": 100,
+      "max_pages": 20,
+      "priority": 1
+    },
+    {
+      "id": "fundraising-latest",
+      "kind": "latest_pages",
+      "endpoint": "fundraising-latest",
+      "limit": 100,
+      "max_pages": 20,
+      "priority": 2
+    },
+    {
+      "id": "crowdfunding-offerings-latest",
+      "kind": "latest_pages",
+      "endpoint": "crowdfunding-offerings-latest",
+      "limit": 100,
+      "max_pages": 20,
+      "priority": 2
+    },
+    {
+      "id": "latest-financial-statements",
+      "kind": "latest_pages",
+      "endpoint": "latest-financial-statements",
+      "limit": 250,
+      "max_pages": 40,
+      "page_required": true,
+      "priority": 1,
+      "per_page_files": true
+    },
+    {
+      "id": "delisted-companies",
+      "kind": "latest_pages",
+      "endpoint": "delisted-companies",
+      "limit": 100,
+      "max_pages": 400,
+      "priority": 1,
+      "per_page_files": true
+    },
+    {
+      "id": "cik-list",
+      "kind": "latest_pages",
+      "endpoint": "cik-list",
+      "limit": 10000,
+      "max_pages": 20,
+      "page_required": true,
+      "priority": 1,
+      "per_page_files": true
+    },
+    {
+      "id": "shares-float-all",
+      "kind": "latest_pages",
+      "endpoint": "shares-float-all",
+      "limit": 5000,
+      "max_pages": 40,
+      "priority": 1,
+      "per_page_files": true
+    },
+    {
+      "id": "all-industry-classification",
+      "kind": "latest_pages",
+      "endpoint": "all-industry-classification",
+      "limit": 1000,
+      "max_pages": 200,
+      "priority": 2,
+      "per_page_files": true
+    },
+    {
+      "id": "senate-profile",
+      "kind": "latest_pages",
+      "endpoint": "senate-profile",
+      "limit": 500,
+      "max_pages": 10,
+      "priority": 1
+    },
+    {
+      "id": "senate-positions",
+      "kind": "latest_pages",
+      "endpoint": "senate-positions",
+      "limit": 300,
+      "max_pages": 40,
+      "priority": 2
+    },
+    {
+      "id": "earnings-calendar",
+      "kind": "window",
+      "endpoint": "earnings-calendar",
+      "floor": "2000-01",
+      "paged": true,
+      "priority": 1
+    },
+    {
+      "id": "earning-calendar-confirmed",
+      "kind": "window",
+      "endpoint": "earning-calendar-confirmed",
+      "floor": "2020-01",
+      "priority": 1
+    },
+    {
+      "id": "dividends-calendar",
+      "kind": "window",
+      "endpoint": "dividends-calendar",
+      "floor": "2000-01",
+      "paged": true,
+      "priority": 1
+    },
+    {
+      "id": "splits-calendar",
+      "kind": "window",
+      "endpoint": "splits-calendar",
+      "floor": "2000-01",
+      "paged": true,
+      "priority": 1
+    },
+    {
+      "id": "ipos-calendar",
+      "kind": "window",
+      "endpoint": "ipos-calendar",
+      "floor": "2000-01",
+      "priority": 1
+    },
+    {
+      "id": "ipos-disclosure",
+      "kind": "window",
+      "endpoint": "ipos-disclosure",
+      "floor": "2015-01",
+      "params": {
+        "limit": 1000
+      },
+      "priority": 2
+    },
+    {
+      "id": "ipos-prospectus",
+      "kind": "window",
+      "endpoint": "ipos-prospectus",
+      "floor": "2015-01",
+      "params": {
+        "limit": 1000
+      },
+      "priority": 2
+    },
+    {
+      "id": "economic-calendar",
+      "kind": "window",
+      "endpoint": "economic-calendar",
+      "floor": "2000-01",
+      "priority": 1
+    },
+    {
+      "id": "sec-filings-8k",
+      "kind": "window",
+      "endpoint": "sec-filings-8k",
+      "floor": "2015-01",
+      "paged": true,
+      "limit": 1000,
+      "priority": 2
+    },
+    {
+      "id": "sec-filings-financials",
+      "kind": "window",
+      "endpoint": "sec-filings-financials",
+      "floor": "2015-01",
+      "paged": true,
+      "limit": 1000,
+      "priority": 2
+    },
+    {
+      "id": "sec-filings-search-form-type",
+      "kind": "window",
+      "endpoint": "sec-filings-search/form-type",
+      "floor": "2024-01",
+      "paged": true,
+      "limit": 1000,
+      "universe": "sec_form_types",
+      "entity_param": "formType",
+      "priority": 2
+    },
+    {
+      "id": "insider-trading-search-all",
+      "kind": "window",
+      "endpoint": "insider-trading/search",
+      "floor": "2026-10",
+      "paged": true,
+      "limit": 1000,
+      "disabled": true,
+      "note": "no date filter on this endpoint; per-symbol below"
+    },
+    {
+      "id": "economic-indicators",
+      "kind": "per_entity",
+      "endpoint": "economic-indicators",
+      "universe": "econ_names",
+      "entity_param": "name",
+      "params": {
+        "from": "1900-01-01"
+      },
+      "priority": 1
+    },
+    {
+      "id": "commitment-of-traders-report",
+      "kind": "per_entity",
+      "endpoint": "commitment-of-traders-report",
+      "universe": "cot_symbols",
+      "entity_param": "symbol",
+      "params": {
+        "from": "2000-01-01",
+        "to": "@today"
+      },
+      "priority": 1
+    },
+    {
+      "id": "commitment-of-traders-analysis",
+      "kind": "per_entity",
+      "endpoint": "commitment-of-traders-analysis",
+      "universe": "cot_symbols",
+      "entity_param": "symbol",
+      "params": {
+        "from": "2000-01-01",
+        "to": "@today"
+      },
+      "priority": 1
+    },
+    {
+      "id": "historical-sector-performance",
+      "kind": "per_entity",
+      "endpoint": "historical-sector-performance",
+      "universe": "sectors",
+      "entity_param": "sector",
+      "params": {
+        "from": "2000-01-01"
+      },
+      "per_exchange": true,
+      "priority": 1
+    },
+    {
+      "id": "historical-sector-pe",
+      "kind": "per_entity",
+      "endpoint": "historical-sector-pe",
+      "universe": "sectors",
+      "entity_param": "sector",
+      "params": {
+        "from": "2000-01-01"
+      },
+      "per_exchange": true,
+      "priority": 1
+    },
+    {
+      "id": "historical-industry-performance",
+      "kind": "per_entity",
+      "endpoint": "historical-industry-performance",
+      "universe": "industries",
+      "entity_param": "industry",
+      "params": {
+        "from": "2000-01-01"
+      },
+      "per_exchange": true,
+      "priority": 1
+    },
+    {
+      "id": "historical-industry-pe",
+      "kind": "per_entity",
+      "endpoint": "historical-industry-pe",
+      "universe": "industries",
+      "entity_param": "industry",
+      "params": {
+        "from": "2000-01-01"
+      },
+      "per_exchange": true,
+      "priority": 1
+    },
+    {
+      "id": "exchange-market-hours",
+      "kind": "per_entity",
+      "endpoint": "exchange-market-hours",
+      "universe": "exchanges",
+      "entity_param": "exchange",
+      "priority": 2
+    },
+    {
+      "id": "holidays-by-exchange",
+      "kind": "per_entity",
+      "endpoint": "holidays-by-exchange",
+      "universe": "exchanges",
+      "entity_param": "exchange",
+      "params": {
+        "from": "2000-01-01",
+        "to": "2030-12-31"
+      },
+      "priority": 2
+    },
+    {
+      "id": "esg-benchmark",
+      "kind": "per_entity",
+      "endpoint": "esg-benchmark",
+      "universe": "years_2010",
+      "entity_param": "year",
+      "priority": 2
+    },
+    {
+      "id": "executive-compensation-benchmark",
+      "kind": "per_entity",
+      "endpoint": "executive-compensation-benchmark",
+      "universe": "years_2010",
+      "entity_param": "year",
+      "priority": 2
+    },
+    {
+      "id": "institutional-ownership-industry-summary",
+      "kind": "per_entity",
+      "endpoint": "institutional-ownership/industry-summary",
+      "universe": "quarters_2013",
+      "entity_param": "@yq",
+      "priority": 1
+    },
+    {
+      "id": "social-sentiments-trending",
+      "kind": "per_entity",
+      "endpoint": "social-sentiments/trending",
+      "universe": "social_types",
+      "entity_param": "type",
+      "params": {
+        "source": "stocktwits"
+      },
+      "dated_always": true,
+      "priority": 2
+    },
+    {
+      "id": "social-sentiments-change",
+      "kind": "per_entity",
+      "endpoint": "social-sentiments/change",
+      "universe": "social_types",
+      "entity_param": "type",
+      "params": {
+        "source": "stocktwits"
+      },
+      "dated_always": true,
+      "priority": 2
+    },
+    {
+      "id": "historical-price-eod-full",
+      "kind": "per_entity",
+      "endpoint": "historical-price-eod/full",
+      "universe": "all",
+      "entity_param": "symbol",
+      "params": {
+        "from": "1960-01-01"
+      },
+      "priority": 1,
+      "rotation_days": 30
+    },
+    {
+      "id": "historical-price-eod-dividend-adjusted",
+      "kind": "per_entity",
+      "endpoint": "historical-price-eod/dividend-adjusted",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "from": "1960-01-01"
+      },
+      "priority": 3
+    },
+    {
+      "id": "historical-price-eod-non-split-adjusted",
+      "kind": "per_entity",
+      "endpoint": "historical-price-eod/non-split-adjusted",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "from": "1960-01-01"
+      },
+      "priority": 3
+    },
+    {
+      "id": "historical-chart-1min",
+      "kind": "per_entity",
+      "endpoint": "historical-chart/1min",
+      "universe": "chart",
+      "entity_param": "symbol",
+      "intraday": true,
+      "backfill_days": 365,
+      "priority": 1
+    },
+    {
+      "id": "historical-market-capitalization",
+      "kind": "per_entity",
+      "endpoint": "historical-market-capitalization",
+      "universe": "all",
+      "entity_param": "symbol",
+      "params": {
+        "from": "1990-01-01",
+        "limit": 5000
+      },
+      "priority": 2
+    },
+    {
+      "id": "dividends",
+      "kind": "per_entity",
+      "endpoint": "dividends",
+      "universe": "all",
+      "entity_param": "symbol",
+      "params": {
+        "from": "1960-01-01",
+        "limit": 5000
+      },
+      "priority": 2
+    },
+    {
+      "id": "splits",
+      "kind": "per_entity",
+      "endpoint": "splits",
+      "universe": "all",
+      "entity_param": "symbol",
+      "params": {
+        "from": "1960-01-01",
+        "limit": 5000
+      },
+      "priority": 2
+    },
+    {
+      "id": "earnings",
+      "kind": "per_entity",
+      "endpoint": "earnings",
+      "universe": "all",
+      "entity_param": "symbol",
+      "params": {
+        "limit": 1000
+      },
+      "priority": 1
+    },
+    {
+      "id": "earnings-surprises",
+      "kind": "per_entity",
+      "endpoint": "earnings-surprises",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "priority": 3
+    },
+    {
+      "id": "analyst-estimates-annual",
+      "kind": "per_entity",
+      "endpoint": "analyst-estimates",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "period": "annual",
+        "limit": 100
+      },
+      "priority": 1
+    },
+    {
+      "id": "analyst-estimates-quarter",
+      "kind": "per_entity",
+      "endpoint": "analyst-estimates",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "period": "quarter",
+        "limit": 100
+      },
+      "priority": 1
+    },
+    {
+      "id": "analyst-stock-recommendations",
+      "kind": "per_entity",
+      "endpoint": "analyst-stock-recommendations",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "priority": 2
+    },
+    {
+      "id": "price-target",
+      "kind": "per_entity",
+      "endpoint": "price-target",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "priority": 1
+    },
+    {
+      "id": "price-target-consensus",
+      "kind": "per_entity",
+      "endpoint": "price-target-consensus",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "priority": 2
+    },
+    {
+      "id": "price-target-news",
+      "kind": "per_entity",
+      "endpoint": "price-target-news",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "paged": true,
+      "max_pages": 5,
+      "priority": 3
+    },
+    {
+      "id": "grades",
+      "kind": "per_entity",
+      "endpoint": "grades",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "paged": true,
+      "max_pages": 10,
+      "priority": 1
+    },
+    {
+      "id": "grades-historical",
+      "kind": "per_entity",
+      "endpoint": "grades-historical",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "limit": 1000
+      },
+      "priority": 2
+    },
+    {
+      "id": "grades-news",
+      "kind": "per_entity",
+      "endpoint": "grades-news",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "paged": true,
+      "max_pages": 5,
+      "priority": 3
+    },
+    {
+      "id": "ratings-historical",
+      "kind": "per_entity",
+      "endpoint": "ratings-historical",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "limit": 10000
+      },
+      "priority": 2
+    },
+    {
+      "id": "historical-rating",
+      "kind": "per_entity",
+      "endpoint": "historical-rating",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "priority": 3
+    },
+    {
+      "id": "levered-discounted-cash-flow",
+      "kind": "per_entity",
+      "endpoint": "levered-discounted-cash-flow",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "priority": 2
+    },
+    {
+      "id": "owner-earnings",
+      "kind": "per_entity",
+      "endpoint": "owner-earnings",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "limit": 1000
+      },
+      "priority": 2
+    },
+    {
+      "id": "enterprise-values-annual",
+      "kind": "per_entity",
+      "endpoint": "enterprise-values",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "period": "annual",
+        "limit": 100
+      },
+      "priority": 2
+    },
+    {
+      "id": "enterprise-values-quarter",
+      "kind": "per_entity",
+      "endpoint": "enterprise-values",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "period": "quarter",
+        "limit": 400
+      },
+      "priority": 2
+    },
+    {
+      "id": "key-metrics-annual",
+      "kind": "per_entity",
+      "endpoint": "key-metrics",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "period": "annual",
+        "limit": 100
+      },
+      "priority": 1
+    },
+    {
+      "id": "key-metrics-quarter",
+      "kind": "per_entity",
+      "endpoint": "key-metrics",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "period": "quarter",
+        "limit": 400
+      },
+      "priority": 1
+    },
+    {
+      "id": "ratios-annual",
+      "kind": "per_entity",
+      "endpoint": "ratios",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "period": "annual",
+        "limit": 100
+      },
+      "priority": 1
+    },
+    {
+      "id": "ratios-quarter",
+      "kind": "per_entity",
+      "endpoint": "ratios",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "period": "quarter",
+        "limit": 400
+      },
+      "priority": 1
+    },
+    {
+      "id": "financial-growth-annual",
+      "kind": "per_entity",
+      "endpoint": "financial-growth",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "period": "annual",
+        "limit": 100
+      },
+      "priority": 2
+    },
+    {
+      "id": "financial-growth-quarter",
+      "kind": "per_entity",
+      "endpoint": "financial-growth",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "period": "quarter",
+        "limit": 400
+      },
+      "priority": 2
+    },
+    {
+      "id": "income-statement-as-reported-annual",
+      "kind": "per_entity",
+      "endpoint": "income-statement-as-reported",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "period": "annual",
+        "limit": 100
+      },
+      "priority": 2
+    },
+    {
+      "id": "income-statement-as-reported-quarter",
+      "kind": "per_entity",
+      "endpoint": "income-statement-as-reported",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "period": "quarter",
+        "limit": 400
+      },
+      "priority": 3
+    },
+    {
+      "id": "balance-sheet-statement-as-reported-annual",
+      "kind": "per_entity",
+      "endpoint": "balance-sheet-statement-as-reported",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "period": "annual",
+        "limit": 100
+      },
+      "priority": 2
+    },
+    {
+      "id": "balance-sheet-statement-as-reported-quarter",
+      "kind": "per_entity",
+      "endpoint": "balance-sheet-statement-as-reported",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "period": "quarter",
+        "limit": 400
+      },
+      "priority": 3
+    },
+    {
+      "id": "cash-flow-statement-as-reported-annual",
+      "kind": "per_entity",
+      "endpoint": "cash-flow-statement-as-reported",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "period": "annual",
+        "limit": 100
+      },
+      "priority": 2
+    },
+    {
+      "id": "cash-flow-statement-as-reported-quarter",
+      "kind": "per_entity",
+      "endpoint": "cash-flow-statement-as-reported",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "period": "quarter",
+        "limit": 400
+      },
+      "priority": 3
+    },
+    {
+      "id": "financial-statement-full-as-reported-annual",
+      "kind": "per_entity",
+      "endpoint": "financial-statement-full-as-reported",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "period": "annual",
+        "limit": 100
+      },
+      "priority": 3
+    },
+    {
+      "id": "financial-reports-dates",
+      "kind": "per_entity",
+      "endpoint": "financial-reports-dates",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "priority": 3
+    },
+    {
+      "id": "revenue-product-segmentation-annual",
+      "kind": "per_entity",
+      "endpoint": "revenue-product-segmentation",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "period": "annual",
+        "structure": "flat"
+      },
+      "priority": 2
+    },
+    {
+      "id": "revenue-product-segmentation-quarter",
+      "kind": "per_entity",
+      "endpoint": "revenue-product-segmentation",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "period": "quarter",
+        "structure": "flat"
+      },
+      "priority": 3
+    },
+    {
+      "id": "revenue-geographic-segmentation-annual",
+      "kind": "per_entity",
+      "endpoint": "revenue-geographic-segmentation",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "period": "annual",
+        "structure": "flat"
+      },
+      "priority": 2
+    },
+    {
+      "id": "revenue-geographic-segmentation-quarter",
+      "kind": "per_entity",
+      "endpoint": "revenue-geographic-segmentation",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "period": "quarter",
+        "structure": "flat"
+      },
+      "priority": 3
+    },
+    {
+      "id": "company-core-information",
+      "kind": "per_entity",
+      "endpoint": "company-core-information",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "priority": 2
+    },
+    {
+      "id": "company-notes",
+      "kind": "per_entity",
+      "endpoint": "company-notes",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "priority": 3
+    },
+    {
+      "id": "key-executives",
+      "kind": "per_entity",
+      "endpoint": "key-executives",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "priority": 2
+    },
+    {
+      "id": "governance-executive-compensation",
+      "kind": "per_entity",
+      "endpoint": "governance-executive-compensation",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "priority": 2
+    },
+    {
+      "id": "employee-count",
+      "kind": "per_entity",
+      "endpoint": "employee-count",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "limit": 1000
+      },
+      "priority": 2
+    },
+    {
+      "id": "historical-employee-count",
+      "kind": "per_entity",
+      "endpoint": "historical/employee-count",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "priority": 3
+    },
+    {
+      "id": "historical-shares-float",
+      "kind": "per_entity",
+      "endpoint": "historical/shares-float",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "priority": 2
+    },
+    {
+      "id": "market-capitalization",
+      "kind": "per_entity",
+      "endpoint": "market-capitalization",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "priority": 3
+    },
+    {
+      "id": "sec-profile",
+      "kind": "per_entity",
+      "endpoint": "sec-profile",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "priority": 3
+    },
+    {
+      "id": "sec-filings-search-symbol",
+      "kind": "per_entity",
+      "endpoint": "sec-filings-search/symbol",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "from": "2000-01-01",
+        "to": "@today",
+        "limit": 1000
+      },
+      "paged": true,
+      "max_pages": 10,
+      "priority": 3
+    },
+    {
+      "id": "acquisition-of-beneficial-ownership",
+      "kind": "per_entity",
+      "endpoint": "acquisition-of-beneficial-ownership",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "limit": 1000
+      },
+      "priority": 2
+    },
+    {
+      "id": "fail-to-deliver",
+      "kind": "per_entity",
+      "endpoint": "fail_to_deliver",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "paged": true,
+      "max_pages": 20,
+      "priority": 2
+    },
+    {
+      "id": "insider-trading-search",
+      "kind": "per_entity",
+      "endpoint": "insider-trading/search",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "paged": true,
+      "limit": 1000,
+      "max_pages": 20,
+      "priority": 1
+    },
+    {
+      "id": "insider-trading-statistics",
+      "kind": "per_entity",
+      "endpoint": "insider-trading/statistics",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "priority": 2
+    },
+    {
+      "id": "senate-trades",
+      "kind": "per_entity",
+      "endpoint": "senate-trades",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "paged": true,
+      "limit": 1000,
+      "max_pages": 5,
+      "priority": 2
+    },
+    {
+      "id": "house-trades",
+      "kind": "per_entity",
+      "endpoint": "house-trades",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "paged": true,
+      "limit": 1000,
+      "max_pages": 5,
+      "priority": 2
+    },
+    {
+      "id": "senate-trades-by-id",
+      "kind": "per_entity",
+      "endpoint": "senate-trades-by-id",
+      "universe": "senate_ids",
+      "entity_param": "senateId",
+      "paged": true,
+      "limit": 1000,
+      "max_pages": 20,
+      "priority": 2
+    },
+    {
+      "id": "house-trades-by-id",
+      "kind": "per_entity",
+      "endpoint": "house-trades-by-id",
+      "universe": "senate_ids",
+      "entity_param": "senateId",
+      "paged": true,
+      "limit": 1000,
+      "max_pages": 20,
+      "priority": 3
+    },
+    {
+      "id": "senate-net-worth",
+      "kind": "per_entity",
+      "endpoint": "senate-net-worth",
+      "universe": "senate_ids",
+      "entity_param": "senateId",
+      "paged": true,
+      "limit": 250,
+      "max_pages": 10,
+      "priority": 3
+    },
+    {
+      "id": "esg-ratings",
+      "kind": "per_entity",
+      "endpoint": "esg-ratings",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "priority": 2
+    },
+    {
+      "id": "esg-disclosures",
+      "kind": "per_entity",
+      "endpoint": "esg-disclosures",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "priority": 2
+    },
+    {
+      "id": "news-stock",
+      "kind": "per_entity",
+      "endpoint": "news/stock",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "from": "2015-01-01",
+        "to": "@today",
+        "limit": 250
+      },
+      "paged": true,
+      "max_pages": 8,
+      "priority": 3
+    },
+    {
+      "id": "news-press-releases",
+      "kind": "per_entity",
+      "endpoint": "news/press-releases",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "params": {
+        "from": "2015-01-01",
+        "to": "@today",
+        "limit": 250
+      },
+      "paged": true,
+      "max_pages": 8,
+      "priority": 3
+    },
+    {
+      "id": "historical-social-sentiment",
+      "kind": "per_entity",
+      "endpoint": "historical/social-sentiment",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "paged": true,
+      "max_pages": 5,
+      "priority": 3
+    },
+    {
+      "id": "stock-peers",
+      "kind": "per_entity",
+      "endpoint": "stock-peers",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "priority": 3
+    },
+    {
+      "id": "industry-classification-search",
+      "kind": "per_entity",
+      "endpoint": "industry-classification-search",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "priority": 3
+    },
+    {
+      "id": "institutional-ownership-symbol-positions-summary",
+      "kind": "per_entity_period",
+      "endpoint": "institutional-ownership/symbol-positions-summary",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "periods": "trailing_quarters:12",
+      "priority": 1
+    },
+    {
+      "id": "institutional-ownership-extract-analytics-holder",
+      "kind": "per_entity_period",
+      "endpoint": "institutional-ownership/extract-analytics/holder",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "periods": "trailing_quarters:8",
+      "paged": true,
+      "limit": 1000,
+      "max_pages": 10,
+      "priority": 2
+    },
+    {
+      "id": "institutional-ownership-dates",
+      "kind": "per_entity",
+      "endpoint": "institutional-ownership/dates",
+      "universe": "holder_ciks",
+      "entity_param": "cik",
+      "priority": 1
+    },
+    {
+      "id": "institutional-ownership-holder-performance-summary",
+      "kind": "per_entity",
+      "endpoint": "institutional-ownership/holder-performance-summary",
+      "universe": "holder_ciks",
+      "entity_param": "cik",
+      "paged": true,
+      "max_pages": 10,
+      "priority": 1
+    },
+    {
+      "id": "institutional-ownership-holder-industry-breakdown",
+      "kind": "per_entity_period",
+      "endpoint": "institutional-ownership/holder-industry-breakdown",
+      "universe": "holder_ciks",
+      "entity_param": "cik",
+      "periods": "trailing_quarters:8",
+      "priority": 2
+    },
+    {
+      "id": "institutional-ownership-extract",
+      "kind": "per_entity_period",
+      "endpoint": "institutional-ownership/extract",
+      "universe": "holder_ciks",
+      "entity_param": "cik",
+      "periods": "trailing_quarters:8",
+      "priority": 2,
+      "max_bytes": 60000000
+    },
+    {
+      "id": "earning-call-transcript-dates",
+      "kind": "per_entity",
+      "endpoint": "earning-call-transcript-dates",
+      "universe": "transcript_symbols",
+      "entity_param": "symbol",
+      "priority": 1
+    },
+    {
+      "id": "earning-call-transcript",
+      "kind": "per_entity_period",
+      "endpoint": "earning-call-transcript",
+      "universe": "transcript_symbols",
+      "entity_param": "symbol",
+      "periods": "from_dates:earning-call-transcript-dates",
+      "priority": 1
+    },
+    {
+      "id": "etf-info",
+      "kind": "per_entity",
+      "endpoint": "etf/info",
+      "universe": "etfs_us",
+      "entity_param": "symbol",
+      "priority": 1
+    },
+    {
+      "id": "etf-holdings",
+      "kind": "per_entity",
+      "endpoint": "etf/holdings",
+      "universe": "etfs_us",
+      "entity_param": "symbol",
+      "priority": 1
+    },
+    {
+      "id": "etf-portfolio-dates",
+      "kind": "per_entity",
+      "endpoint": "etf/portfolio-dates",
+      "universe": "etfs_us",
+      "entity_param": "symbol",
+      "priority": 1
+    },
+    {
+      "id": "etf-sector-weightings",
+      "kind": "per_entity",
+      "endpoint": "etf/sector-weightings",
+      "universe": "etfs_us",
+      "entity_param": "symbol",
+      "priority": 2
+    },
+    {
+      "id": "etf-country-weightings",
+      "kind": "per_entity",
+      "endpoint": "etf/country-weightings",
+      "universe": "etfs_us",
+      "entity_param": "symbol",
+      "priority": 2
+    },
+    {
+      "id": "etf-asset-exposure",
+      "kind": "per_entity",
+      "endpoint": "etf/asset-exposure",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "priority": 3
+    },
+    {
+      "id": "etf-holder",
+      "kind": "per_entity",
+      "endpoint": "etf/holder",
+      "universe": "tierA",
+      "entity_param": "symbol",
+      "priority": 3
+    },
+    {
+      "id": "funds-disclosure-dates",
+      "kind": "per_entity",
+      "endpoint": "funds/disclosure-dates",
+      "universe": "etfs_us",
+      "entity_param": "symbol",
+      "priority": 2
+    },
+    {
+      "id": "funds-disclosure-holders-latest",
+      "kind": "per_entity",
+      "endpoint": "funds/disclosure-holders-latest",
+      "universe": "etfs_us",
+      "entity_param": "symbol",
+      "priority": 3
+    },
+    {
+      "id": "funds-disclosure",
+      "kind": "per_entity_period",
+      "endpoint": "funds/disclosure",
+      "universe": "etfs_us",
+      "entity_param": "symbol",
+      "periods": "trailing_quarters:4",
+      "priority": 3,
+      "max_bytes": 60000000
+    },
+    {
+      "id": "news-crypto",
+      "kind": "per_entity",
+      "endpoint": "news/crypto",
+      "universe": "cryptos_top",
+      "entity_param": "symbol",
+      "params": {
+        "limit": 250
+      },
+      "paged": true,
+      "max_pages": 4,
+      "priority": 3
+    },
+    {
+      "id": "news-forex",
+      "kind": "per_entity",
+      "endpoint": "news/forex",
+      "universe": "forex",
+      "entity_param": "symbol",
+      "params": {
+        "limit": 250
+      },
+      "paged": true,
+      "max_pages": 4,
+      "priority": 3
+    }
   ],
   "skipped": [
-    {"endpoint": "technical-indicators/*", "why": "derived from banked bars (justhodl-fmp-bank eod-bulk, historical-chart-1min); 9 indicators x periods x timeframes x 11k symbols would be millions of calls for arithmetic we can do on our own data"},
-    {"endpoint": "income-statement-ttm, balance-sheet-statement-ttm, cash-flow-statement-ttm", "why": "sums of the last four banked quarters (justhodl-fmp-bank dated bulks)"},
-    {"endpoint": "company-outlook", "why": "a composite of profile, ratios, insiders, splits, dividends, news - every piece is banked on its own"},
-    {"endpoint": "custom-discounted-cash-flow, custom-levered-discounted-cash-flow", "why": "parametric calculators, not data"},
-    {"endpoint": "stock-price-change", "why": "percent changes derivable from banked EOD"},
-    {"endpoint": "financial-reports-json, financial-reports-xlsx", "why": "full 10-K/10-Q documents - the SEC XBRL bulk lane (justhodl-sec-bulk, restored weekly 2026-10-23) already banks the same filings from the SEC"},
-    {"endpoint": "quote, quote-short, batch-quote, batch-quote-short, aftermarket-*, batch-aftermarket-*, market-capitalization-batch", "why": "intraday snapshots; once a day they equal the EOD close already banked by eod-bulk + batch-exchange-quote (dated)"},
-    {"endpoint": "search-*, profile-cik, sec-filings-company-search/*, mergers-acquisitions-search, fundraising-search, crowdfunding-offerings-search, *-by-name, mutual-fund-holdings/name, funds/disclosure-holders-search", "why": "query endpoints (search by free text) - not datasets"},
-    {"endpoint": "company-screener, stock-screener", "why": "a filter over profile-bulk; the whole profile table is banked"},
-    {"endpoint": "profile, ratios-ttm, key-metrics-ttm, financial-scores, discounted-cash-flow, ratings-snapshot, grades-consensus, upgrades-downgrades-consensus, price-target-summary, income/balance/cash-flow statements + growth, etf/holder (bulk)", "why": "covered whole-market by justhodl-fmp-bank bulk files"},
-    {"endpoint": "crowdfunding-offerings, fundraising (per cik)", "why": "the -latest feeds are banked; per-cik lookups are the same rows"},
-    {"endpoint": "insider-trading/reporting-name, mutual-fund-holdings (symbol,date)", "why": "reporting-name is a search; mutual-fund-holdings by date is reached through funds/disclosure per quarter"}
+    {
+      "endpoint": "technical-indicators/*",
+      "why": "derived from banked bars (justhodl-fmp-bank eod-bulk, historical-chart-1min); 9 indicators x periods x timeframes x 11k symbols would be millions of calls for arithmetic we can do on our own data"
+    },
+    {
+      "endpoint": "income-statement-ttm, balance-sheet-statement-ttm, cash-flow-statement-ttm",
+      "why": "sums of the last four banked quarters (justhodl-fmp-bank dated bulks)"
+    },
+    {
+      "endpoint": "company-outlook",
+      "why": "a composite of profile, ratios, insiders, splits, dividends, news - every piece is banked on its own"
+    },
+    {
+      "endpoint": "custom-discounted-cash-flow, custom-levered-discounted-cash-flow",
+      "why": "parametric calculators, not data"
+    },
+    {
+      "endpoint": "stock-price-change",
+      "why": "percent changes derivable from banked EOD"
+    },
+    {
+      "endpoint": "financial-reports-json, financial-reports-xlsx",
+      "why": "full 10-K/10-Q documents - the SEC XBRL bulk lane (justhodl-sec-bulk, restored weekly 2026-10-23) already banks the same filings from the SEC"
+    },
+    {
+      "endpoint": "quote, quote-short, batch-quote, batch-quote-short, aftermarket-*, batch-aftermarket-*, market-capitalization-batch",
+      "why": "intraday snapshots; once a day they equal the EOD close already banked by eod-bulk + batch-exchange-quote (dated)"
+    },
+    {
+      "endpoint": "search-*, profile-cik, sec-filings-company-search/*, mergers-acquisitions-search, fundraising-search, crowdfunding-offerings-search, *-by-name, mutual-fund-holdings/name, funds/disclosure-holders-search",
+      "why": "query endpoints (search by free text) - not datasets"
+    },
+    {
+      "endpoint": "company-screener, stock-screener",
+      "why": "a filter over profile-bulk; the whole profile table is banked"
+    },
+    {
+      "endpoint": "profile, ratios-ttm, key-metrics-ttm, financial-scores, discounted-cash-flow, ratings-snapshot, grades-consensus, upgrades-downgrades-consensus, price-target-summary, income/balance/cash-flow statements + growth, etf/holder (bulk)",
+      "why": "covered whole-market by justhodl-fmp-bank bulk files"
+    },
+    {
+      "endpoint": "crowdfunding-offerings, fundraising (per cik)",
+      "why": "the -latest feeds are banked; per-cik lookups are the same rows"
+    },
+    {
+      "endpoint": "insider-trading/reporting-name, mutual-fund-holdings (symbol,date)",
+      "why": "reporting-name is a search; mutual-fund-holdings by date is reached through funds/disclosure per quarter"
+    }
   ]
 }
