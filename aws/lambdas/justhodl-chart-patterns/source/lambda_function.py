@@ -23,6 +23,12 @@ Each pattern is tagged CONFIRMED (neckline broken) or FORMING.
 Data: S&P 500 from FMP /stable/sp500-constituent; daily closes from
 FMP /stable/historical-price-eod/light. Output: data/chart-patterns.json.
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import concurrent.futures as cf
 import json
 import time

@@ -4,7 +4,7 @@
   "timeout": 60,
   "handler": "lambda_function.lambda_handler",
   "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Institutional once-per-cycle capitulation buy signal. State machine NULL->WARM->ARMED->FIRED->COOLDOWN based on VIX9D/VIX/VIX3M term structure + VVIX panic gauge. Emits retail trade ticket + forward 1m/3m/12m expected returns computed live from 20y SPY history at curated historical analogues. 3x daily MON-FRI.",
+  "description": "Institutional once-per-cycle capitulation buy signal. State machine NULL->WARM->ARMED->FIRED->COOLDOWN on VIX9D/VIX/VIX3M term structure + VVIX panic gauge; retail ticket + forward 1m/3m/12m returns from 20y SPY analogues.",
   "inherit_env": true,
   "env": {
     "S3_BUCKET": "justhodl-dashboard-live"

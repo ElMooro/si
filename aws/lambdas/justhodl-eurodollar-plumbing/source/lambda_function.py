@@ -26,6 +26,12 @@ Each metric → green/yellow/red vs institutional thresholds → composite plumb
 0-100. GLM (tier=reason; Claude credits exhausted) scans the board → FUNCTIONING /
 STRAINED / SEIZING verdict + short-term lean. Output data/eurodollar-plumbing.json.
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import os, json, time, urllib.request, urllib.parse, datetime, statistics
 
 import boto3

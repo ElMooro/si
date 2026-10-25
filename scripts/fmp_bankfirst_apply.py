@@ -15,9 +15,14 @@ except Exception:  # noqa: BLE001 - the shim never blocks the engine
     pass
 '''
 MARK = "from fmp_bankfirst import install"
+# The banks and the provider probes must always hit the live provider: a bank answering its own requests from itself
+# would freeze the warehouse at whatever it last held.  Mirrors fmp_bankfirst.NEVER_INSTALL_IN.
+NEVER = {"justhodl-fmp-bank", "justhodl-fmp-walker", "justhodl-fmp-ratios", "justhodl-provider-catalog", "justhodl-provider-coverage", "justhodl-provider-bank", "justhodl-polygon-bank", "justhodl-eia-bank"}
 
 
 def apply(engine):
+    if engine in NEVER:
+        raise SystemExit("refusing to install the bank-first shim in %s: banks and provider probes stay live-only" % engine)
     p = ROOT / "aws" / "lambdas" / engine / "source" / "lambda_function.py"
     src = p.read_text(encoding="utf-8")
     if MARK in src:

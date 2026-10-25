@@ -21,6 +21,12 @@ and what does the fusion imply forward. Long-history, source-robust dims
   OUT   data/positioning-analog.json   (page: institutional-footprint.html)
   CRON  daily 22:40 UTC (after factor-returns, before footprint 23:10)
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json, re, math, time, urllib.request, urllib.parse, statistics
 from datetime import datetime, timezone
 import boto3

@@ -20,6 +20,12 @@ reversal_score 0-100 = weighted fired-signals with recency decay;
 direction TOP_FORMING (bearish tells inside an uptrend) or
 BOTTOM_FORMING. Artifact: data/trend-reversal.json.
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json
 import os
 import time

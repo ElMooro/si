@@ -16,6 +16,12 @@ Built from Khalid's brain audit (ops 1580). Each pillar carries its note-spec:
 
 Composite 0–100 coverage-honest; ≥70 logs us_cycle DOWN vs SPY (closed loop).
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import _fred_shim  # noqa: F401 — ops 4286: cache-first FRED + gold heal
 import json, os, time, urllib.request, urllib.parse, bisect
 from datetime import datetime, timezone, timedelta

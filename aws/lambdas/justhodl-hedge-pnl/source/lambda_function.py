@@ -26,6 +26,12 @@ The track is honest about its own youth: until it has enough marked
 days it reports WARMING. Stylised marks on a hypothetical research
 book -- the value is the shape, not a P&L claim.
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json
 import os
 import time

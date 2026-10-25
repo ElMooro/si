@@ -19,6 +19,12 @@ CAPITAL-FLOW SCORE (per ticker, -100..+100):
 OUTPUT: data/capital-flow.json — {accumulating[], distributing[], etf_flows[],
   by_ticker{}}. Daily 16:30 UTC.
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json, os, time, statistics
 from datetime import datetime, timezone
 from collections import defaultdict

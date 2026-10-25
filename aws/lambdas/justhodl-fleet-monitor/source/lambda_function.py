@@ -30,6 +30,12 @@ deep, tuned, curated net; this is the catch-all that nothing escapes.
 
 OUTPUT: _health/fleet.json   SCHEDULE: every 3h
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 from managed_secret import managed_secret
 from private_artifact import is_private_source
 from public_brain_projection import sanitize_public

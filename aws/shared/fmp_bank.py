@@ -22,6 +22,7 @@ import csv
 import gzip
 import io
 import json
+import os
 import time
 
 import boto3
@@ -30,8 +31,107 @@ _S3 = boto3.client("s3", region_name="us-east-1")
 _BUCKET = "justhodl-dashboard-live"
 ROOT = "data/warm/fmp-bank/"
 _TTL = 900
-_cache: dict = {}
+_cache: dict = {}                      # small objects (JSON, manifests): key -> (fetched_at, bytes|None, metadata)
 _MAX_CACHED = 24
+
+
+def _text_budget():
+    """Chars of decoded CSV kept per container: 20% of the Lambda's memory, clamped to [48 MB, 512 MB]; local 256 MB."""
+    try:
+        mb = int(os.environ.get("FMP_BANK_TEXT_BUDGET_MB") or 0)
+        if mb:
+            return mb << 20
+        mem = int(os.environ.get("AWS_LAMBDA_FUNCTION_MEMORY_SIZE") or 0)
+        return max(48 << 20, min(512 << 20, (mem << 20) // 5)) if mem else 256 << 20
+    except (TypeError, ValueError):
+        return 256 << 20
+
+
+class _Table:
+    """One banked CSV, decoded once, with a lazily built symbol -> row-span index.
+
+    The bulks are whole-market files (profile-bulk ~94k rows, a statements year-file ~30k rows); parsing one into dicts
+    per lookup cost seconds and ~10x its size in memory, so a per-symbol consumer looping 1,000 names would have timed
+    out or run the container out of memory (2026-10-25 review before the consumer lane widened).  Here the text is
+    parsed ONCE with csv.reader to record each row's character span, and a symbol lookup re-parses only its own rows.
+    """
+    __slots__ = ("key", "text", "header", "spans", "symcol", "touched", "meta")
+
+    def __init__(self, key, text, meta=None):
+        self.key, self.text, self.touched, self.meta = key, text, time.time(), meta or {}
+        self.header, self.spans, self.symcol = None, None, None
+
+    def _build(self):
+        lines = _Lines(self.text)
+        reader = csv.reader(lines)
+        try:
+            self.header = next(reader)
+        except StopIteration:
+            self.header, self.spans = [], {}
+            return
+        low = [h.strip().lower() for h in self.header]
+        self.symcol = low.index("symbol") if "symbol" in low else None
+        spans = {}
+        if self.symcol is not None:
+            col = self.symcol
+            while True:
+                start = lines.pos
+                try:
+                    row = next(reader)
+                except StopIteration:
+                    break
+                if col < len(row):
+                    spans.setdefault(_norm(row[col]), []).append((start, lines.pos))
+        self.spans = spans
+
+    def rows_for(self, symbol):
+        """Typed dict rows whose symbol column equals `symbol` (dash/dot variants merged), in file order."""
+        if self.spans is None:
+            self._build()
+        if not self.spans:
+            return []
+        sym = _norm(symbol)
+        keys = [sym] if "-" not in sym else [sym, sym.replace("-", ".")]
+        spans = []
+        for k in keys:
+            spans.extend(self.spans.get(k) or [])
+        if not spans:
+            return []
+        spans.sort()
+        buf = io.StringIO("".join(self.text[a:b] for a, b in spans))
+        return [_typed(dict(zip(self.header, r))) for r in csv.reader(buf) if r]
+
+    def all_rows(self):
+        if self.spans is None:
+            self._build()
+        return [_typed(r) for r in csv.DictReader(io.StringIO(self.text))]
+
+
+class _Lines:
+    """Line iterator that reports how far csv.reader has consumed (quoted fields may span physical lines)."""
+    __slots__ = ("text", "pos")
+
+    def __init__(self, text):
+        self.text, self.pos = text, 0
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        t = self.text
+        if self.pos >= len(t):
+            raise StopIteration
+        nl = t.find("\n", self.pos)
+        end = len(t) if nl < 0 else nl + 1
+        line = t[self.pos:end]
+        self.pos = end
+        return line
+
+
+_TABLES: dict = {}                     # key -> _Table (LRU by touched; total chars <= _text_budget())
+_MISSING: dict = {}                    # key -> time the bank answered "no such object" (negative cache, _TTL)
+STATS = {"s3_gets": 0, "s3_misses": 0, "table_builds": 0, "table_evictions": 0, "table_refetches": 0}
+_EVICTED: set = set()
 
 STATEMENTS = {
     "income-statement": "income-statement-bulk", "balance-sheet-statement": "balance-sheet-statement-bulk",
@@ -70,22 +170,35 @@ def last_answer_age_days():
         return None
 
 
-def _get(key):
+def _fetch(key):
+    """(decoded bytes | None, S3 metadata) for one banked object; a missing object is remembered for _TTL seconds."""
     now = time.time()
-    hit = _cache.get(key)
-    if hit and now - hit[0] < _TTL:
-        _LAST["key"], _LAST["meta"] = key, (hit[2] if len(hit) > 2 else None)
-        return hit[1]
-    meta = None
+    if now - _MISSING.get(key, 0) < _TTL:
+        return None, None
+    STATS["s3_gets"] += 1
     try:
         obj = _S3.get_object(Bucket=_BUCKET, Key=key)
         raw = obj["Body"].read()
         meta = obj.get("Metadata") or {}
         if key.endswith(".gz"):
             raw = gzip.decompress(raw)
-        val = raw
+        return raw, meta
     except Exception:  # noqa: BLE001
-        val = None
+        STATS["s3_misses"] += 1
+        if len(_MISSING) > 4096:
+            _MISSING.clear()
+        _MISSING[key] = now
+        return None, None
+
+
+def _get(key):
+    """Small objects (JSON, manifests) through the bytes cache."""
+    now = time.time()
+    hit = _cache.get(key)
+    if hit and now - hit[0] < _TTL:
+        _LAST["key"], _LAST["meta"] = key, (hit[2] if len(hit) > 2 else None)
+        return hit[1]
+    val, meta = _fetch(key)
     if len(_cache) >= _MAX_CACHED:
         _cache.pop(next(iter(_cache)))
     _cache[key] = (now, val, meta)
@@ -94,14 +207,62 @@ def _get(key):
     return val
 
 
-def _rows(key):
-    raw = _get(key)
+def _table(key):
+    """The decoded, indexable CSV at `key` (None when not banked), kept per container within _text_budget()."""
+    t = _TABLES.get(key)
+    if t is not None:
+        t.touched = time.time()
+        _LAST["key"], _LAST["meta"] = key, t.meta
+        return t
+    raw, meta = _fetch(key)
     if not raw:
         return None
+    if key in _EVICTED:
+        STATS["table_refetches"] += 1
+    text = raw.decode("utf-8", "replace")
+    del raw
+    budget = _text_budget()
+    if len(text) > budget:                            # one file larger than the whole budget: serve it uncached
+        STATS["table_builds"] += 1
+        _LAST["key"], _LAST["meta"] = key, meta
+        return _Table(key, text, meta)
+    while _TABLES and sum(len(x.text) for x in _TABLES.values()) + len(text) > budget:
+        victim = min(_TABLES.values(), key=lambda x: x.touched)
+        del _TABLES[victim.key]
+        _EVICTED.add(victim.key)
+        STATS["table_evictions"] += 1
+    t = _TABLES[key] = _Table(key, text, meta)
+    STATS["table_builds"] += 1
+    _LAST["key"], _LAST["meta"] = key, meta
+    return t
+
+
+def _rows(key):
+    """Every row of a banked CSV as typed dicts (whole-market consumers); None when not banked."""
+    t = _table(key)
+    if t is None:
+        return None
     try:
-        return list(csv.DictReader(io.StringIO(raw.decode("utf-8", "replace"))))
+        return t.all_rows()
     except Exception:  # noqa: BLE001
         return None
+
+
+def _rows_for(key, symbol):
+    """One symbol's rows from a banked CSV via the span index; None when the file is not banked, [] when absent."""
+    t = _table(key)
+    if t is None:
+        return None
+    try:
+        return t.rows_for(symbol)
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def thrashing():
+    """True when tables keep being evicted and re-read: the working set does not fit this container's budget and the
+    bank is now slower than the provider - fmp_bankfirst stops consulting it for the rest of the invocation."""
+    return STATS["table_refetches"] >= 6
 
 
 def _num(v):
@@ -144,29 +305,37 @@ def _by_symbol(rows, symbol):
     return [_typed(r) for r in rows if _norm(r.get("symbol") or r.get("Symbol")) in (sym, alt)]
 
 
+def _snapshot_keys(bulk):
+    """The banked file(s) of a snapshot bulk: one latest.csv.gz, or its part-N files."""
+    whole = ROOT + bulk + "/latest.csv.gz"
+    if _table(whole) is not None:
+        return [whole]
+    keys = []
+    for part in range(0, 41):
+        k = ROOT + "%s/part-%d/latest.csv.gz" % (bulk, part)
+        if _table(k) is None:
+            break
+        keys.append(k)
+    return keys
+
+
 def snapshot(path, symbol=None):
     """Latest banked snapshot rows for an endpoint family (ratios-ttm, key-metrics-ttm, scores, rating, dcf,
     price-target-summary, grades-consensus, stock-peers, profile); the whole market when symbol is None."""
     bulk = SNAPSHOTS.get(path)
     if not bulk:
         return None
-    rows = _rows(ROOT + bulk + "/latest.csv.gz")
-    if rows is None:                                   # parted bulks
-        rows = []
-        part = 0
-        while True:
-            r = _rows(ROOT + "%s/part-%d/latest.csv.gz" % (bulk, part))
-            if r is None:
-                break
-            rows.extend(r)
-            part += 1
-            if part > 40:
-                break
-        if not rows:
-            return None
+    keys = _snapshot_keys(bulk)
+    if not keys:
+        return None
     if symbol is None:
-        return [_typed(r) for r in rows]
-    out = _by_symbol(rows, symbol)
+        rows = []
+        for k in keys:
+            rows.extend(_rows(k) or [])
+        return rows or None
+    out = []
+    for k in keys:
+        out.extend(_rows_for(k, symbol) or [])
     return out or None
 
 
@@ -186,16 +355,20 @@ def statements(path, symbol, period="annual", limit=None, years=None):
     if years is not None:
         held = [y for y in held if y in set(years)]
     periods = ["annual"] if period == "annual" else (["Q1", "Q2", "Q3", "Q4"] if period == "quarter" else [period])
+    if limit and years is None:
+        # a bounded ask scans only the years that can hold it (+2 for a company with a gap); every year-file is a
+        # whole-market table, so unbounded depth would thrash the container's text budget
+        held = held[: -(-int(limit) // len(periods)) + 2]
     out = []
     misses = 0
     for y in held:
         got_any = False
         for p in periods:
-            rows = _rows(ROOT + "%s/%d/%s.csv.gz" % (bulk, y, p))
+            rows = _rows_for(ROOT + "%s/%d/%s.csv.gz" % (bulk, y, p), symbol)
             if rows is None:
                 continue
             got_any = True
-            out.extend(_by_symbol(rows, symbol))
+            out.extend(rows)
         misses = 0 if got_any else misses + 1
         if misses >= 3 and years is None:           # three consecutive unbanked years: the bank ends here
             break
@@ -209,12 +382,12 @@ def statements(path, symbol, period="annual", limit=None, years=None):
 
 def eod(date_iso, symbol=None):
     """Every listed symbol's close for one session (or one symbol's row)."""
-    rows = _rows(ROOT + "eod-bulk/%s/%s.csv.gz" % (date_iso[:4], date_iso))
-    if rows is None:
-        return None
+    key = ROOT + "eod-bulk/%s/%s.csv.gz" % (date_iso[:4], date_iso)
     if symbol is None:
-        return [_typed(r) for r in rows]
-    out = _by_symbol(rows, symbol)
+        return _rows(key)
+    out = _rows_for(key, symbol)
+    if out is None:
+        return None
     return out[0] if out else None
 
 

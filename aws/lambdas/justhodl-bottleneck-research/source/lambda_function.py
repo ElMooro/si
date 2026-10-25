@@ -13,6 +13,12 @@ Claude fallback; this is public-data synthesis) and CACHED so we don't pay to
 regenerate identical theses every run. Output: data/bottleneck-boom-research.json
 keyed by ticker, consumed by /bottleneck-boom.html as expandable research drawers.
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json
 import os
 import time

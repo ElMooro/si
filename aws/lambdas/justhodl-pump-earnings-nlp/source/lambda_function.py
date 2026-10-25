@@ -27,6 +27,12 @@ SCHEDULE
 cron(0 3 * * ? *) — daily 03:00 UTC. Transcripts only update on earnings
 cycle so daily is plenty.
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json
 import os

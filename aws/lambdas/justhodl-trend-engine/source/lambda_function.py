@@ -35,6 +35,12 @@ INPUT     FMP /stable/historical-price-eod/light  (real daily closes).
 OUTPUT    data/trend-engine.json                  SCHEDULE  daily 23:50 UTC
 Real data only. Research, not investment advice.
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json
 import math
 import time

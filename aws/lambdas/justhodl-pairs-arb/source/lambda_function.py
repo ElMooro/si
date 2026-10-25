@@ -41,6 +41,12 @@ closes from FMP, build every within-sector pair, and run the full battery.
 Output data/pairs-arb.json     Schedule daily 23:30 UTC (after the US close)
 Real data only. Research, not advice. Market-neutral, before borrow costs.
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json
 import math
 import os

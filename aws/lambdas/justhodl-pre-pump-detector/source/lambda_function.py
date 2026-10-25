@@ -21,6 +21,12 @@ The new score combines:
 
 OUTPUT: data/pre-pump-signals.json
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import io, json, os, time, urllib.request, urllib.error, statistics
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3

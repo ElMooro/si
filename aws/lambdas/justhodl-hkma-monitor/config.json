@@ -7,6 +7,6 @@
   "timeout": 300,
   "architectures": ["x86_64"],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Hong Kong Monetary Authority funding monitor — Aggregate Balance, HIBOR curve, USD/HKD peg distance to 7.85, Base Rate, HIBOR-SOFR spread from HKMA Open API (free) + FRED + FMP. The offshore-USD/Asia funding tell. Output data/hkma.json. Daily 09:00 UTC (before eurodollar-plumbing 12:00).",
+  "description": "Hong Kong Monetary Authority funding monitor: Aggregate Balance, HIBOR curve, USD/HKD peg distance to 7.85, Base Rate, HIBOR-SOFR spread (HKMA Open API + FRED + FMP). Offshore-USD/Asia funding tell. Output data/hkma.json. Daily 09:00 UTC.",
   "schedule": {"rule_name": "hkma-monitor-daily", "cron": "cron(0 9 * * ? *)", "description": "HKMA funding monitor daily 09:00 UTC"}
 }

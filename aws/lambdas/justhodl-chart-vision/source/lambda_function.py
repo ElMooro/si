@@ -25,6 +25,12 @@ Dependencies: matplotlib (Lambda layer needed, or use API for chart
 generation). v1 uses a textual ASCII chart approximation + price
 statistics. v2 will add matplotlib-rendered PNG.
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json, os, logging, urllib.request, urllib.parse, base64
 import boto3

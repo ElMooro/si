@@ -33,6 +33,12 @@ Emits risk_score (crisis-composite) and expansion_breadth_pct +
 turning_point_signal (Khalid Index). OUTPUT: data/leading-markets.json
 Schedule: daily.
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json, os, time
 from datetime import datetime, timezone
 from urllib import request, error

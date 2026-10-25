@@ -27,6 +27,12 @@ book. All sizing is in %-of-book; dollar and contract figures use a
 clearly-labelled assumed paper-book notional purely to make the ticket
 concrete. Stylised option-premium rules of thumb, not live chains.
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json
 import time
 import urllib.request

@@ -29,6 +29,12 @@ This is a retail edge because retail can:
   2. Sell the premium ETF + buy spot crypto on exchange (intraday arb)
   3. Pair-trade two ETFs (e.g., IBIT vs FBTC -- often diverge briefly)
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import datetime as dt
 import json
 import os

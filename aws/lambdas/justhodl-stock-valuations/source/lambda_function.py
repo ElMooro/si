@@ -15,6 +15,12 @@ LAYER B — HP-SCORE (Huge-Potential, the 10x10 rubric):
   the graded closed loop ("worth serious research" -> measured, not vibes).
 Weekly-cached fundamentals (budgeted, resume-across-runs); daily scoring.
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json, os, time, gzip, urllib.request
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal

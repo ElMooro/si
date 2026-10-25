@@ -22,6 +22,12 @@ OUTPUT SCHEMA: same as v1 but with proper QoQ data:
             securities_added, securities_removed, performance_pct, ...}]
   summary: {biggest_gainers, biggest_decliners, most_active, ...}
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json
 import os
 import time

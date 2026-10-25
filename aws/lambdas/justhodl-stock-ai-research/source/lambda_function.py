@@ -21,6 +21,12 @@ Per-call cost (Haiku 4.5):
   Total ≈ $0.002 per uncached ticker
   S&P 500 once each = $1.00 worst case
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import os
 import json

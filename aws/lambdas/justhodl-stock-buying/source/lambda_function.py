@@ -25,6 +25,12 @@ Every row carries pillar scores, gate verdicts with reasons, and
 why: why.html?ticker=SYM. Missing inputs mark pillars n/a — never
 fabricated. Davis double-play framing in doctrine.
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json
 import math
 import os

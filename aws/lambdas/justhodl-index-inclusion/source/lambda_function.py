@@ -10,6 +10,12 @@ This engine builds the candidate list weekly (Mon): non-members passing the
 mcap floor and the profitability screen, ranked by mcap. Probe-gated — if the
 constituents feed is unavailable the brief says so instead of guessing.
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json, os, time, urllib.request, urllib.parse
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
