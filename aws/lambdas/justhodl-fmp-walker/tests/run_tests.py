@@ -72,13 +72,15 @@ class FakeFMP:
             self.rate_limit_once.discard(ep)
             raise urllib.error.HTTPError(url, 429, "Too Many", {}, io.BytesIO(b"{}"))
         page = int(q.get("page", 0) or 0)
-        if ep == "stock-list":
-            body = J([{"symbol": "AAPL", "companyName": "Apple", "exchange": "NASDAQ Global Select", "exchangeShortName": "NASDAQ"},
-                      {"symbol": "MSFT", "companyName": "Microsoft", "exchange": "NASDAQ", "exchangeShortName": "NASDAQ"},
-                      {"symbol": "SAP.DE", "companyName": "SAP", "exchange": "XETRA", "exchangeShortName": "XETRA"},
-                      {"symbol": "ZZZQ", "companyName": "Dead Co", "exchange": "NYSE", "exchangeShortName": "NYSE"}])
+        if ep == "stock-list":                               # /stable/stock-list carries NO exchange (live fact, 2026-10-25)
+            body = J([{"symbol": "AAPL", "companyName": "Apple"}, {"symbol": "MSFT", "companyName": "Microsoft"},
+                      {"symbol": "SAP.DE", "companyName": "SAP"}, {"symbol": "ZZZQ", "companyName": "Dead Co"}])
         elif ep == "etf-list":
-            body = J([{"symbol": "SPY", "name": "SPDR", "exchange": "NYSE ARCA", "exchangeShortName": "AMEX"}, {"symbol": "EXS1.DE", "exchange": "XETRA", "exchangeShortName": "XETRA"}])
+            body = J([{"symbol": "SPY", "name": "SPDR"}, {"symbol": "EXS1.DE", "name": "iShares DAX"}])
+        elif ep == "company-screener":                        # the US universe fallback when profile-bulk is not readable
+            ex = q.get("exchange")
+            body = J({"NASDAQ": [{"symbol": "AAPL", "exchange": "NASDAQ", "isEtf": False}, {"symbol": "MSFT", "exchange": "NASDAQ", "isEtf": False}],
+                      "NYSE": [], "AMEX": [{"symbol": "SPY", "exchange": "AMEX", "isEtf": True}]}.get(ex, []))
         elif ep == "actively-trading-list":
             body = J([{"symbol": "AAPL"}, {"symbol": "MSFT"}, {"symbol": "SAP.DE"}, {"symbol": "SPY"}])
         elif ep in ("available-sectors",):
@@ -193,6 +195,8 @@ def test_first_run_banks_lists_feeds_windows_and_rotates_entities():
     assert uc["tierA"] == 3, uc                       # AAPL MSFT SPY
     assert uc["all"] == 6, uc
     assert uc["etfs_us"] == 1 and uc["holder_ciks"] == 2 and uc["senate_ids"] == 1, uc
+    st0 = json.loads(s3.store[root + "_state/state.json"])
+    assert st0["universe_source"] == "profile-bulk", st0["universe_source"]
     assert "AAPL" in lf.CORE and uc["chart"] >= 40
     # latest_pages feed -> dated file, pages followed until short page
     news = [k for k in s3.store if k.startswith(root + "news-stock-latest/")]

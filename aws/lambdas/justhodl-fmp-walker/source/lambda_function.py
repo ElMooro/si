@@ -1,5 +1,5 @@
 """
-justhodl-fmp-walker v1.1.0 -- every non-bulk FMP Ultimate family, banked verbatim on S3 (data/warm/fmp/).
+justhodl-fmp-walker v1.1.1 -- every non-bulk FMP Ultimate family, banked verbatim on S3 (data/warm/fmp/).
 
 Why (Khalid, 2026-10-25: "fix it all, I want 100% of the data pulled and used by my system"): justhodl-fmp-bank banks the
 bulk files (statements/ratios/metrics/profiles/EOD for the whole market).  Everything else FMP sells - per-symbol
@@ -57,7 +57,7 @@ from botocore.config import Config
 from managed_secret import managed_secret
 
 ENGINE = "justhodl-fmp-walker"
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 STABLE = "https://financialmodelingprep.com/stable"
 UA = {"User-Agent": "JustHodl Research (raafouis@gmail.com) fmp-walker/" + VERSION}
@@ -320,22 +320,57 @@ def _is_us(row):
     return ex in US_EXCH or ex.startswith("NASDAQ") or ex.startswith("NYSE") or ex in ("AMEX",)
 
 
-def build_universes(spec, root, state, lists):
+def _profiles_us(fx):
+    """US-listed, actively trading symbols and US ETFs from the bulk bank's profile-bulk (exchange / isActivelyTrading /
+    isEtf live there, not on /stable/stock-list - v1.1.1: the first live run saw tierA == all == 94,118).  Falls back to
+    one company-screener call per US exchange when the bulk bank is not readable."""
+    tier, etfs = set(), set()
+    try:
+        import fmp_bank
+        rows = fmp_bank.snapshot("profile") or []
+    except Exception:  # noqa: BLE001
+        rows = []
+    for r in rows:
+        if not isinstance(r, dict) or not r.get("symbol"):
+            continue
+        active = str(r.get("isActivelyTrading", r.get("actively_trading", "true"))).lower() in ("true", "1", "yes", "")
+        if _is_us(r) and active:
+            tier.add(str(r["symbol"]))
+            if str(r.get("isEtf", r.get("is_etf", ""))).lower() in ("true", "1", "yes"):
+                etfs.add(str(r["symbol"]))
+    if not tier and fx is not None:
+        for ex in ("NASDAQ", "NYSE", "AMEX"):
+            v, data, nb = fx.get("company-screener", {"exchange": ex, "isActivelyTrading": "true", "limit": 10000})
+            for r in data if (v == "ok" and isinstance(data, list)) else []:
+                if isinstance(r, dict) and r.get("symbol"):
+                    tier.add(str(r["symbol"]))
+                    if str(r.get("isEtf", "")).lower() in ("true", "1", "yes"):
+                        etfs.add(str(r["symbol"]))
+    return tier, etfs
+
+
+def build_universes(spec, root, state, lists, fx=None):
     """lists: {dataset_id: rows} for the list datasets pulled this run (or banked latest)."""
     out = {}
     stock = lists.get("stock-list") or []
     etfs = lists.get("etf-list") or []
     active = {str(r.get("symbol")) for r in (lists.get("actively-trading-list") or []) if isinstance(r, dict) and r.get("symbol")}
     all_syms = sorted({str(r.get("symbol")) for r in stock + etfs if isinstance(r, dict) and r.get("symbol")})
-    tier = []
+    tier = set()
     for r in stock:
         if isinstance(r, dict) and r.get("symbol") and _is_us(r) and (not active or str(r["symbol"]) in active):
-            tier.append(str(r["symbol"]))
-    etf_us = sorted({str(r["symbol"]) for r in etfs if isinstance(r, dict) and r.get("symbol") and _is_us(r)})
+            tier.add(str(r["symbol"]))
+    etf_us = {str(r["symbol"]) for r in etfs if isinstance(r, dict) and r.get("symbol") and _is_us(r)}
+    if not tier:                                                 # /stable/stock-list carries no exchange: use profile-bulk
+        tier, etf_us2 = _profiles_us(fx)
+        etf_us = etf_us | etf_us2
+        if active:
+            tier = {t for t in tier if t in active} or tier
     tier = sorted(set(tier) | set(etf_us))
-    if not tier and all_syms:                                    # exchange field unknown: fall back to the whole list
+    state["universe_source"] = "stock-list" if any(_is_us(r) for r in stock[:200] if isinstance(r, dict)) else ("profile-bulk" if tier and len(tier) < len(all_syms) else "all-fallback")
+    if not tier and all_syms:                                    # nothing knows the exchanges: the whole list, declared as such
         tier = all_syms
-    out["all"], out["tierA"], out["etfs_us"] = all_syms, tier, etf_us or tier
+    out["all"], out["tierA"], out["etfs_us"] = all_syms, tier, sorted(etf_us) or tier
     tset = set(tier)
     out["transcript_symbols"] = sorted({str(r.get("symbol")) for r in (lists.get("earnings-transcript-list") or []) if isinstance(r, dict) and r.get("symbol")} & tset) or tier
     # chart universe: banked chart names (US) + core 40
@@ -879,7 +914,8 @@ class Walker:
             prev = self.ds_state.get("senate-profile", {}).get("last_day")
             if prev:
                 self.lists["senate-profile"] = _j(self.root + "senate-profile/%s.json.gz" % prev) or []
-        self.universes = build_universes(spec, self.root, self.state, self.lists)
+        needs_universes = any(d["kind"] in ("per_entity", "per_entity_period") or (d["kind"] == "window" and d.get("universe")) for d in ds_all)
+        self.universes = build_universes(spec, self.root, self.state, self.lists, self.fx if needs_universes else None)
         self.state["universe_counts"] = {k: len(v) for k, v in self.universes.items()}
         t = time.time()
         for d in [d for d in ds_all if d["kind"] in ("daily_dated", "window")]:
