@@ -75,17 +75,28 @@ spelling is proven by membership in the banked FMP list of the right kind AND th
 bank's last bar (a yield quoted ×10 or a different continuous futures series is recorded as a mismatch and never
 written); every verdict is in `data/warm/tv-bars/universe/_index.json` → `fmp_append.verdicts`.
 
-Next lane — Polygon aggregates (designed, not built; 131 engines call `/v2/aggs/ticker/{T}/range/1/day/...` and `/prev`
-per ticker, on a key whose stocks plan is rate-limited): `justhodl-polygon-full` already banks every US session's
-grouped-daily file verbatim (`data/warm/polygon-full/grouped/YYYY/YYYY-MM-DD.json.gz`, ~2021-06 → today). The step is a
-transpose — per-ticker history files `data/warm/polygon-full/eod/{T}.json.gz` folded from those session files
-(≤150 sessions per run, then one session a day: ~10.5k GET+PUT, ~1 minute) — and a `polygon_bankfirst` shim answering
-`range/1/day` and `/prev` in Polygon's own envelope with the same strict session freshness as the FMP shim (everything
-else live). Facts settled by ops 6654 (read-only, 2026-10-25): polygon-full runs at 02:29 UTC, so every banked session is the
-closed day's final aggregate (written ~6 h after the close; SPY's bars are full-day volumes) — 1,294 sessions since
-2021-08-26, ~12.5k tickers each; but the bank has HOLES (Tue 2026-10-13 and Fri 10-16 — the Oct 12–16 loop/freeze days) and
-the engine's cursor is past them, so the transpose must list the banked sessions against the exchange calendar, re-pull
-the missing ones (still inside the entitlement window) and refuse to answer any window that spans a hole.
+## The Polygon lane (2026-10-25 evening)
+
+131 engines call `/v2/aggs/ticker/{T}/range/1/day/...` and `/prev` per ticker on a rate-limited key, while
+`justhodl-polygon-full` already banks every US session's grouped-daily file verbatim
+(`data/warm/polygon-full/grouped/YYYY/YYYY-MM-DD.json.gz`, 2021-08-26 → today, ~12.5k tickers each; ops 6654: written
+02:29 UTC the next day, so every session is the closed day's final aggregate; holes Tue 2026-10-13 and Fri 10-16 from the
+Oct 12–16 freeze).
+* `justhodl-polygon-full` v1.1.0: after the cursor pass, weekdays with no banked file are pulled once (newest first,
+  150 s per run) — `resultsCount 0` = exchange holiday, recorded in `state.holidays` and never asked again; rows = a hole
+  closed (`Metadata.repaired=hole`).
+* `justhodl-polygon-eod` (03:10 UTC, bank-only, no key): folds the sessions not yet folded, oldest first, ≤ 120 per run,
+  into `data/warm/polygon-full/eod/<T>.json.gz` — one file per ticker, rows `[t,o,h,l,c,v,vw,n]` sorted by t, Polygon's
+  own numbers; merge by timestamp, write only tickers with new rows, lease + budget, the bounded conductor finishes the
+  backfill. Its manifest publishes `gaps` (weekdays with no session that are not recorded holidays).
+* `aws/shared/polygon_bankfirst.py` (88 engines): answers `range/1/day` and `/prev` from those files in Polygon's own
+  envelope only when the window lies inside the bank's history, spans no gap, the live answer would not paginate, and —
+  for a current window or `/prev` — the bank's newest session IS the last completed US session (never during the
+  13:30–21:30 UTC session). Weekly/minute bars, `adjusted=false`, snapshots, grouped, news, reference, trades/quotes:
+  live. Same cost guards and never-inside-the-banks rule as the FMP shim; header `X-JH-Source: polygon-eod-bank`.
+  Until the first fold lands, every ask is a miss and goes live.
+* Not converted: ai-chat, signal-logger (whole-source ledgers), daily-report-v3, options-flow-scanner (pinned),
+  financial-secretary, katlin, liquidity-inflection (pre-existing failing tests). Ops 6655 is the transposer's birth.
 
 Deploy traps met on the way (all fixed in-repo): config `description` > 256 chars fails the whole preflight
 (8 engines trimmed); a config `schedule` naming a classic rule that no longer exists fails the existing-schedule guard

@@ -43,10 +43,13 @@ This file tracks items that require **your direct action** (registration, creden
   USD forex pair, top crypto and commodity refreshed in full every run) so price asks are answered at the last completed
   session; `justhodl-tv-bars` v1.3 `mode=fmp-append` (23:58 UTC) - the 13 non-US and 4 index chart names stuck since Oct 2
   advance from the FMP warehouse, proof-gated (ops 6653 creates the schedule and runs the first append).
-* **Next on the lane (no decision needed):** the Polygon aggregates bank + shim for the 131 engines that call
-  `/v2/aggs/ticker/.../range/1/day` per ticker (design in `docs/providers/WAREHOUSE_BANKS.md`; `justhodl-polygon-full`
-  already holds every session's grouped file); ledgered patches for the 5 remaining byte-pinned engines; a requests/
-  urllib3 adapter for the 3 engines not on urllib; the first coverage scoreboard (06:47 UTC) read back tomorrow.
+* **Also done (evening):** the Polygon lane - `justhodl-polygon-eod` folds polygon-full's verbatim grouped sessions into one
+  file per ticker (03:10 UTC; birth op 6655), polygon-full v1.1.0 repairs the two holes the Oct 12-16 freeze left
+  (Oct 13, Oct 16) and records holidays, and `polygon_bankfirst` answers `/v2/aggs/.../range/1/day` + `/prev` from the
+  bank in Polygon's own envelope on 88 engines (strict completeness + session rules; live until the first fold lands).
+* **Next on the lane (no decision needed):** read back tomorrow - the coverage scoreboard (06:47 UTC), the first
+  bank-first summaries in the engines' logs (ops 6651), the polygon-eod backfill and the chart's fmp-append verdicts;
+  ledgered patches for the byte-pinned engines; a requests/urllib3 adapter for the 3 engines not on urllib.
 
 ### 0m. "Yesterday cost $30" (2026-10-23) - explained, two leaks fixed, crawlers blocked, archive copying halved; open: 9 secrets, 2 servers (docs/audit/2026-10-23/aws-bill-oct22.md)
 
