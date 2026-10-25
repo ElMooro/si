@@ -350,13 +350,18 @@ def op_delete(d, body):
 
 # ─── Mark-to-market (scheduled) ──────────────────────────────────────────────
 def fetch_quote(ticker):
+    # Single-ticker snapshot: entitled on the delayed stocks plan.  /v2/last/trade answers NOT_AUTHORIZED on this key
+    # (ops 6641 probe, 2026-10-25), so every mark used to cost one 403 before the fallback.
     try:
-        url = f"https://api.polygon.io/v2/last/trade/{ticker}?apiKey={POLY_KEY}"
+        url = f"https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers/{ticker}?apiKey={POLY_KEY}"
         req = urllib.request.Request(url, headers={"User-Agent": "trade-journal/1.0"})
         with urllib.request.urlopen(req, timeout=10) as r:
             d = json.loads(r.read().decode("utf-8"))
-        if d.get("status") in ("OK", "DELAYED"):
-            return d.get("results", {}).get("p")
+        t = d.get("ticker") or {}
+        if d.get("status") in ("OK", "DELAYED") and t:
+            p = (t.get("lastTrade") or {}).get("p") or (t.get("day") or {}).get("c") or (t.get("prevDay") or {}).get("c")
+            if p:
+                return p
     except Exception as e:
         print(f"[journal] quote {ticker} failed: {e}")
     # Fallback: previous close

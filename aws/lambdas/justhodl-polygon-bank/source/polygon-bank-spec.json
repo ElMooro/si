@@ -1,0 +1,60 @@
+{
+  "version": "1.0.0",
+  "root": "data/warm/polygon-bank/",
+  "doctrine": [
+    "Every Polygon/Massive REST family the fleet never banked (audit 2026-10-23) lives here, verbatim results (JSON gz) under data/warm/polygon-bank/<dataset>/...; justhodl-polygon-full keeps the grouped-daily US tape, justhodl-polygon-futures-curves the futures catalog, the options/ETF Global desks their own windows.",
+    "Entitlement is a FACT recorded per dataset by http code (ops 6641 probe 2026-10-25: last/trade and quotes NOT_AUTHORIZED, vX financials 410 GONE, Benzinga 403, short-interest 200): a refused dataset is skipped for the day and re-probed tomorrow, never worked around, never fatal.",
+    "kinds: list (every run; latest + dated copy when changed or dated_always), daily_dated (one file per session, backfill from floor), window (date-range filters by month, backfill from floor), per_entity (one file per ticker, rotation by cursor), minute_bars (one file per chart symbol per session, backfill_days).",
+    "Not banked here, with reasons: trades/quotes (not entitled), vX/reference/financials (deprecated + not entitled), Benzinga (not entitled), option chain snapshots for every underlying (the options desks pull their universes daily; a full-market chain is ~1.5 M contracts a day), options/forex/crypto aggregates per contract or pair (derivable from grouped files + snapshots), websockets/flat files (Stocks Advanced only)."
+  ],
+  "universes": {
+    "us_tickers": {"from": "tickers-stocks-active", "field": "ticker"},
+    "us_etfs": {"from": "tickers-stocks-active", "field": "ticker", "filter": "etf"},
+    "chart": {"from": "chart-universe"},
+    "asset_classes": {"static": ["stocks", "options", "crypto", "fx", "indices"]},
+    "snapshot_indices": {"static": ["I:SPX", "I:NDX", "I:DJI", "I:RUT", "I:VIX", "I:VIX9D", "I:VIX3M", "I:VXN", "I:RVX", "I:OVX", "I:GVZ", "I:SKEW", "I:XSP", "I:MOVE"]}
+  },
+  "datasets": [
+    {"id": "market-status-now", "kind": "list", "path": "/v1/marketstatus/now", "dated_always": true, "priority": 0},
+    {"id": "market-holidays", "kind": "list", "path": "/v1/marketstatus/upcoming", "priority": 0},
+    {"id": "ticker-types", "kind": "per_entity", "path": "/v3/reference/tickers/types", "universe": "asset_classes", "entity_param": "asset_class", "priority": 0},
+    {"id": "exchanges", "kind": "per_entity", "path": "/v3/reference/exchanges", "universe": "asset_classes", "entity_param": "asset_class", "priority": 0},
+    {"id": "conditions", "kind": "per_entity", "path": "/v3/reference/conditions", "universe": "asset_classes", "entity_param": "asset_class", "params": {"limit": 1000}, "paged": true, "priority": 0},
+    {"id": "tickers-stocks-active", "kind": "list", "path": "/v3/reference/tickers", "params": {"market": "stocks", "active": "true", "limit": 1000}, "paged": true, "max_pages": 40, "priority": 0},
+    {"id": "tickers-stocks-inactive", "kind": "list", "path": "/v3/reference/tickers", "params": {"market": "stocks", "active": "false", "limit": 1000}, "paged": true, "max_pages": 80, "priority": 1},
+    {"id": "tickers-otc", "kind": "list", "path": "/v3/reference/tickers", "params": {"market": "otc", "active": "true", "limit": 1000}, "paged": true, "max_pages": 40, "priority": 1},
+    {"id": "tickers-crypto", "kind": "list", "path": "/v3/reference/tickers", "params": {"market": "crypto", "active": "true", "limit": 1000}, "paged": true, "max_pages": 10, "priority": 1},
+    {"id": "tickers-fx", "kind": "list", "path": "/v3/reference/tickers", "params": {"market": "fx", "active": "true", "limit": 1000}, "paged": true, "max_pages": 10, "priority": 1},
+    {"id": "tickers-indices", "kind": "list", "path": "/v3/reference/tickers", "params": {"market": "indices", "active": "true", "limit": 1000}, "paged": true, "max_pages": 20, "priority": 1},
+    {"id": "snapshot-stocks-all", "kind": "list", "path": "/v2/snapshot/locale/us/markets/stocks/tickers", "params": {"include_otc": "true"}, "dated_always": true, "max_bytes": 120000000, "priority": 0},
+    {"id": "snapshot-gainers", "kind": "list", "path": "/v2/snapshot/locale/us/markets/stocks/gainers", "dated_always": true, "priority": 0},
+    {"id": "snapshot-losers", "kind": "list", "path": "/v2/snapshot/locale/us/markets/stocks/losers", "dated_always": true, "priority": 0},
+    {"id": "snapshot-indices", "kind": "list", "path": "/v3/snapshot/indices", "params": {"ticker.any_of": "@snapshot_indices"}, "dated_always": true, "priority": 1},
+    {"id": "grouped-crypto", "kind": "daily_dated", "path": "/v2/aggs/grouped/locale/global/market/crypto/{date}", "floor": "2018-01-01", "weekends": true, "priority": 1},
+    {"id": "grouped-fx", "kind": "daily_dated", "path": "/v2/aggs/grouped/locale/global/market/fx/{date}", "floor": "2018-01-01", "weekends": false, "priority": 1},
+    {"id": "dividends", "kind": "window", "path": "/v3/reference/dividends", "date_field": "ex_dividend_date", "floor": "1990-01", "params": {"limit": 1000}, "paged": true, "max_pages": 60, "priority": 1},
+    {"id": "splits", "kind": "window", "path": "/v3/reference/splits", "date_field": "execution_date", "floor": "1990-01", "params": {"limit": 1000}, "paged": true, "max_pages": 20, "priority": 1},
+    {"id": "ipos", "kind": "window", "path": "/vX/reference/ipos", "date_field": "listing_date", "floor": "2000-01", "params": {"limit": 1000}, "paged": true, "max_pages": 10, "priority": 2},
+    {"id": "short-interest", "kind": "per_entity", "path": "/stocks/v1/short-interest", "universe": "us_tickers", "entity_param": "ticker", "params": {"limit": 50000}, "paged": true, "max_pages": 5, "priority": 1},
+    {"id": "short-volume", "kind": "per_entity", "path": "/stocks/v1/short-volume", "universe": "us_tickers", "entity_param": "ticker", "params": {"limit": 50000}, "paged": true, "max_pages": 5, "priority": 2},
+    {"id": "ticker-details", "kind": "per_entity", "path": "/v3/reference/tickers/{entity}", "universe": "us_tickers", "entity_param": "@path", "priority": 1},
+    {"id": "ticker-events", "kind": "per_entity", "path": "/vX/reference/tickers/{entity}/events", "universe": "us_tickers", "entity_param": "@path", "priority": 2},
+    {"id": "related-companies", "kind": "per_entity", "path": "/v1/related-companies/{entity}", "universe": "us_tickers", "entity_param": "@path", "priority": 2},
+    {"id": "options-contracts", "kind": "per_entity", "path": "/v3/reference/options/contracts", "universe": "chart", "entity_param": "underlying_ticker", "params": {"limit": 1000}, "paged": true, "max_pages": 40, "priority": 2},
+    {"id": "options-contracts-expired", "kind": "per_entity", "path": "/v3/reference/options/contracts", "universe": "chart", "entity_param": "underlying_ticker", "params": {"limit": 1000, "expired": "true"}, "paged": true, "max_pages": 200, "priority": 3, "max_bytes": 120000000},
+    {"id": "minute-bars", "kind": "minute_bars", "path": "/v2/aggs/ticker/{entity}/range/1/minute/{date}/{date}", "universe": "chart", "params": {"adjusted": "true", "sort": "asc", "limit": 50000}, "backfill_days": 730, "priority": 1},
+    {"id": "etf-global-fund-flows", "kind": "per_entity", "path": "/etf-global/v1/fund-flows", "universe": "us_etfs", "entity_param": "ticker", "params": {"limit": 5000, "date.gte": "2010-01-01"}, "paged": true, "max_pages": 10, "priority": 1},
+    {"id": "etf-global-constituents", "kind": "per_entity", "path": "/etf-global/v1/constituents", "universe": "us_etfs", "entity_param": "ticker", "params": {"limit": 5000}, "paged": true, "max_pages": 5, "priority": 2},
+    {"id": "etf-global-profiles", "kind": "per_entity", "path": "/etf-global/v1/profiles", "universe": "us_etfs", "entity_param": "ticker", "params": {"limit": 100}, "priority": 2}
+  ],
+  "skipped": [
+    {"path": "/v2/last/trade, /v3/trades, /v3/quotes, /v2/last/nbbo", "why": "NOT_AUTHORIZED on this key (ops 6641 probe) - trades/quotes need Stocks Developer/Advanced"},
+    {"path": "/vX/reference/financials", "why": "410 GONE (deprecated) and never entitled; FMP Ultimate is the statements source (justhodl-fmp-bank)"},
+    {"path": "/benzinga/v1/*", "why": "403 NOT_AUTHORIZED since 2026-07-15; the FMP calendar shim carries the fleet"},
+    {"path": "/v3/snapshot/options/{underlying} for every underlying", "why": "the options desks pull their universes daily (SPY/QQQ/IWM/HYG + the scanner's <=300 names); a whole-market chain is ~1.5 M contracts a day"},
+    {"path": "/v2/aggs/ticker/O:*, C:*, X:* (per contract / pair)", "why": "derivable from the grouped daily files and daily snapshots banked here; per-contract bars for every contract would be millions of calls"},
+    {"path": "websockets, flat files", "why": "Stocks Advanced only; the Worker /stream polls the delayed snapshot (labelled)"},
+    {"path": "/v1/open-close/{T}/{date}", "why": "the same OHLC as the grouped-daily row already banked by justhodl-polygon-full"},
+    {"path": "/v1/indicators/* (sma/ema/macd/rsi)", "why": "derived from banked bars; computed on our own data"}
+  ]
+}

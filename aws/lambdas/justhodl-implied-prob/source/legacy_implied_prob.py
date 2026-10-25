@@ -282,11 +282,15 @@ INDEX_IV_FRED = {
 
 
 def get_spot_price(ticker):
-    """Fetch spot via Polygon last-trade or previous-close fallback."""
+    """Fetch spot via the Polygon single-ticker snapshot (entitled on the delayed stocks plan; /v2/last/trade is
+    NOT_AUTHORIZED on this key - ops 6641 probe, 2026-10-25) or previous-close fallback."""
     try:
-        d = http_get_json(f"https://api.polygon.io/v2/last/trade/{ticker}?apiKey={POLY_KEY}", timeout=10)
-        if d and d.get("status") in ("OK", "DELAYED"):
-            return d.get("results", {}).get("p")
+        d = http_get_json(f"https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers/{ticker}?apiKey={POLY_KEY}", timeout=10)
+        t = (d or {}).get("ticker") or {}
+        if (d or {}).get("status") in ("OK", "DELAYED") and t:
+            p = (t.get("lastTrade") or {}).get("p") or (t.get("day") or {}).get("c") or (t.get("prevDay") or {}).get("c")
+            if p:
+                return p
     except Exception:
         pass
     try:

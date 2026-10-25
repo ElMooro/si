@@ -1,6 +1,6 @@
 name: FMP warehouse backfill (bounded conductor)
 
-# Why: justhodl-fmp-bank and justhodl-fmp-walker each do one 13-minute budget per invoke and never self-chain (no
+# Why: justhodl-fmp-bank, justhodl-fmp-walker and justhodl-polygon-bank each do one 13-minute budget per invoke and never self-chain (no
 # event loops, 2026-10-17 doctrine).  Their daily Scheduler runs alone would take months to finish the first full lap
 # over FMP Ultimate (eod-bulk since 2000, every statement year since 1985, ~160 non-bulk datasets x ~11k symbols).
 # This conductor is the external, bounded re-kick: once a day (the GitHub-cron floor), for at most 5 h 20 min, it
@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       engines:
-        description: 'space-separated subset (default: justhodl-fmp-bank justhodl-fmp-walker)'
+        description: 'space-separated subset (default: justhodl-fmp-bank justhodl-fmp-walker justhodl-polygon-bank)'
         required: false
         default: ''
       max_minutes:

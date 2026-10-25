@@ -1,0 +1,29 @@
+{
+  "runtime": "python3.12",
+  "memory": 1536,
+  "timeout": 900,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Polygon/Massive REST warehouse beyond the tape: market status/holidays, ticker universe, exchanges/conditions, EOD snapshots, dividends/splits history, short interest, ticker details/events, options contracts, minute bars, grouped crypto/fx, ETF Global.",
+  "inherit_env": [
+    {
+      "from_function": "justhodl-polygon-full",
+      "keys": [
+        "POLYGON_API_KEY"
+      ]
+    }
+  ],
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "POLYGON_BANK_BUDGET_S": "780",
+    "POLYGON_BANK_WORKERS": "10",
+    "POLYGON_BANK_RPS": "15"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-polygon-bank-daily",
+    "cron": "cron(41 22 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Polygon/Massive REST warehouse beyond the tape, daily 22:41 UTC (after the delayed close)"
+  }
+}
