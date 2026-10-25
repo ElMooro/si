@@ -39,9 +39,14 @@ This file tracks items that require **your direct action** (registration, creden
   of 1,000 names costs ~2.5 s once, then ~0.1 ms per name). `justhodl-eia-bank` (the whole EIA v2 catalog) is deployed;
   birth op 6650 and today's bounded backfill are running. Full rules and the not-converted list (9 byte-pinned engines,
   katlin's live alias, 2 engines with pre-existing failing tests): `docs/providers/WAREHOUSE_BANKS.md`.
-* **Next on the lane (no decision needed):** ledgered patches for the 9 byte-pinned engines; a requests/urllib3 adapter
-  for the 3 engines not on urllib; `justhodl-tv-bars` reading the FMP EOD bank for the 14 non-US chart names stuck since
-  Oct 2; the first coverage scoreboard (`data/provider-coverage.json`, 06:47 UTC) read back tomorrow.
+* **Also done:** `justhodl-fmp-walker` v1.2.0 - a daily-complete price lane (every chart name, US active stock/ETF, index,
+  USD forex pair, top crypto and commodity refreshed in full every run) so price asks are answered at the last completed
+  session; `justhodl-tv-bars` v1.3 `mode=fmp-append` (23:58 UTC) - the 13 non-US and 4 index chart names stuck since Oct 2
+  advance from the FMP warehouse, proof-gated (ops 6653 creates the schedule and runs the first append).
+* **Next on the lane (no decision needed):** the Polygon aggregates bank + shim for the 131 engines that call
+  `/v2/aggs/ticker/.../range/1/day` per ticker (design in `docs/providers/WAREHOUSE_BANKS.md`; `justhodl-polygon-full`
+  already holds every session's grouped file); ledgered patches for the 5 remaining byte-pinned engines; a requests/
+  urllib3 adapter for the 3 engines not on urllib; the first coverage scoreboard (06:47 UTC) read back tomorrow.
 
 ### 0m. "Yesterday cost $30" (2026-10-23) - explained, two leaks fixed, crawlers blocked, archive copying halved; open: 9 secrets, 2 servers (docs/audit/2026-10-23/aws-bill-oct22.md)
 

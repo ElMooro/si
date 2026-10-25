@@ -69,6 +69,22 @@ Not converted, and why (each is its own reviewed operation):
 * `fmp-fundamentals-agent` (requests, not urllib), `investor-agents` / `stock-ai-research` (urllib3) — a requests/urllib3
   adapter is the next shim if these matter; `brief-compiler` / `provider-catalog` only mention the host.
 
+Chart bars: `justhodl-tv-bars` v1.3 `mode=fmp-append` (23:58 UTC, after the walker's price lane) advances the non-tape chart
+names (indexes, forex, crypto, non-US listings) from the FMP warehouse only — a name is appended only when its FMP
+spelling is proven by membership in the banked FMP list of the right kind AND the first new bar is continuous with the
+bank's last bar (a yield quoted ×10 or a different continuous futures series is recorded as a mismatch and never
+written); every verdict is in `data/warm/tv-bars/universe/_index.json` → `fmp_append.verdicts`.
+
+Next lane — Polygon aggregates (designed, not built; 131 engines call `/v2/aggs/ticker/{T}/range/1/day/...` and `/prev`
+per ticker, on a key whose stocks plan is rate-limited): `justhodl-polygon-full` already banks every US session's
+grouped-daily file verbatim (`data/warm/polygon-full/grouped/YYYY/YYYY-MM-DD.json.gz`, ~2021-06 → today). The step is a
+transpose — per-ticker history files `data/warm/polygon-full/eod/{T}.json.gz` folded from those session files
+(≤150 sessions per run, then one session a day: ~10.5k GET+PUT, ~1 minute) — and a `polygon_bankfirst` shim answering
+`range/1/day` and `/prev` in Polygon's own envelope with the same strict session freshness as the FMP shim (everything
+else live). Prerequisite to settle first: `justhodl-polygon-full` runs on `rate(24 hours)` and defines the last closed
+day as now − 8 h, so a run inside the session could bank a partial day — pin it after the close before the transpose
+trusts it.
+
 Deploy traps met on the way (all fixed in-repo): config `description` > 256 chars fails the whole preflight
 (8 engines trimmed); a config `schedule` naming a classic rule that no longer exists fails the existing-schedule guard
 (`mean-reversion`, `fundamentals-engine` → preserve-only Scheduler references; `cascade-validator` → the live rule name
