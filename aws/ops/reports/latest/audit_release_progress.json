@@ -1,22 +1,22 @@
 {
-  "observed_at": "2026-10-25T18:13:43.173499+00:00",
+  "observed_at": "2026-10-25T18:18:47.507605+00:00",
   "runs": [
     {
       "id": 40218715314,
       "path": ".github/workflows/deploy-lambdas.yml",
       "head_sha": "d013cd1431d2d926154455a2cfaefd40553bf913",
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "cancelled",
       "created_at": "2026-10-25T17:54:31Z",
-      "updated_at": "2026-10-25T18:05:41Z",
+      "updated_at": "2026-10-25T18:18:28Z",
       "jobs": [
         {
           "id": 121248058464,
           "name": "Deploy changed Lambdas",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "cancelled",
           "started_at": "2026-10-25T18:05:40Z",
-          "completed_at": null,
+          "completed_at": "2026-10-25T18:18:27Z",
           "steps": [
             {
               "number": 1,
@@ -85,58 +85,66 @@
             {
               "number": 9,
               "name": "Deploy each changed Lambda",
-              "status": "in_progress",
-              "conclusion": null,
+              "status": "completed",
+              "conclusion": "cancelled",
               "started_at": "2026-10-25T18:09:55Z",
-              "completed_at": null
+              "completed_at": "2026-10-25T18:18:24Z"
             },
             {
               "number": 10,
               "name": "Commit a redacted failure report to main (lanes cannot read job logs)",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-25T18:18:24Z",
+              "completed_at": "2026-10-25T18:18:24Z"
             },
             {
               "number": 11,
               "name": "Preserve numbered candidate release evidence",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-25T18:18:24Z",
+              "completed_at": "2026-10-25T18:18:25Z"
             },
             {
               "number": 12,
               "name": "Commit Function URL patches back",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-25T18:18:25Z",
+              "completed_at": "2026-10-25T18:18:25Z"
             },
             {
               "number": 13,
               "name": "Summary",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-25T18:18:25Z",
+              "completed_at": "2026-10-25T18:18:25Z"
             },
             {
               "number": 25,
               "name": "Post Configure AWS credentials",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-25T18:18:25Z",
+              "completed_at": "2026-10-25T18:18:25Z"
             },
             {
               "number": 26,
               "name": "Post Checkout",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-25T18:18:25Z",
+              "completed_at": "2026-10-25T18:18:25Z"
+            },
+            {
+              "number": 27,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-25T18:18:25Z",
+              "completed_at": "2026-10-25T18:18:26Z"
             }
           ]
         }
