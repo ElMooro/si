@@ -6,8 +6,9 @@ After deploy-lambdas creates justhodl-fmp-bank (config.json carries its Schedule
   3. first run NOW (async, ~13 min budget) -> read back manifest/catalog: which bulk endpoints the Ultimate key serves
      (every refusal is recorded by http code, never guessed), objects/bytes banked, EOD cursor;
   4. kick the backfill: the dated bulks (10 endpoints x ~40 years x 5 periods) and the EOD walk from 2000 need many
-     budgets - this op re-invokes the engine while it reports BACKFILL and the lease is free, up to N kicks inside the
-     runner's time, then leaves the daily schedule to finish (no self-chaining, no event loop);
+     budgets - this op re-invokes the engine twice while it reports BACKFILL and the lease is free (inside the direct
+     lane's 60 min), then the bounded conductor .github/workflows/fmp-backfill.yml and the daily schedule finish it
+     (no self-chaining, no event loop);
   5. data.html card: data/providers/extra-providers.json gains the fmp-bank entry (count_from the bank manifest), then
      justhodl-provider-catalog is invoked async so the card appears today;
   6. the fmp_book -> fmp_bank chain is live in the fleet: pick one deployed consumer and prove its bundle holds
@@ -38,7 +39,7 @@ FN, SCHED = "justhodl-fmp-bank", "justhodl-fmp-bank-daily"
 BANK = "data/warm/fmp-bank/"
 MAN, CAT, STATE = BANK + "manifest.json", BANK + "catalog.json", BANK + "_state/state.json"
 EXTRA = "data/providers/extra-providers.json"
-MAX_KICKS = int((ROOT / "aws/ops/STAGED/.fmp_bank_kicks").read_text().strip()) if (ROOT / "aws/ops/STAGED/.fmp_bank_kicks").exists() else 4
+MAX_KICKS = 2                                # run-ops-direct caps a run at 60 min; the backfill continues from fmp-backfill.yml (bounded conductor) + the daily schedule
 CFG = Config(retries={"max_attempts": 10, "mode": "standard"}, connect_timeout=10, read_timeout=300)
 
 
@@ -126,7 +127,7 @@ def main():
         r.section("3. first run + backfill kicks")
         st0 = jget(s3, STATE) or {}
         kicks = 0
-        budget_end = time.time() + 150 * 60          # leave the runner well inside its 6 h
+        budget_end = time.time() + 38 * 60           # inside run-ops-direct's 60-minute job limit
         while kicks < MAX_KICKS and time.time() < budget_end:
             st = jget(s3, STATE) or {}
             if float(st.get("lease_until") or 0) > time.time():
