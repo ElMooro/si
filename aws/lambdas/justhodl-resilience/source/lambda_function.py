@@ -27,6 +27,12 @@ v2.0 upgrades (Levers 1-2):
 Stages ABSORBING -> COILED -> IGNITING. Anti-falling-knife AND anti-blow-off
 guards. Picks -> harvester for forward excess-vs-SPY grading (measure-before-trust).
 """
+
+try:  # bank-first Polygon (aws/shared/polygon_bankfirst): /v2/aggs daily bars answered from the warehouse when complete, else live
+    from polygon_bankfirst import install as _polygon_bankfirst_install
+    _polygon_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json, time, urllib.request, urllib.parse
 from datetime import datetime, timezone, timedelta
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials

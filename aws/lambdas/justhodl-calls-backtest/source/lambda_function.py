@@ -4,6 +4,12 @@ Calls v2 excludes legacy narrative, UNKNOWN, WAIT and HOLD from allocation
 instructions. The pure replay kernel uses subsequent regular-session opens;
 missing execution costs keep all results in diagnostic-only status.
 """
+
+try:  # bank-first Polygon (aws/shared/polygon_bankfirst): /v2/aggs daily bars answered from the warehouse when complete, else live
+    from polygon_bankfirst import install as _polygon_bankfirst_install
+    _polygon_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json
 import time
 import urllib.request

@@ -53,6 +53,12 @@ INSTITUTIONAL-GRADE
   ✓ Performance stats: win rate, avg win/loss, profit factor, Sharpe
   ✓ By-signal stats: for each signal, what's user's edge?
 """
+
+try:  # bank-first Polygon (aws/shared/polygon_bankfirst): /v2/aggs daily bars answered from the warehouse when complete, else live
+    from polygon_bankfirst import install as _polygon_bankfirst_install
+    _polygon_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json
 import os
 import re

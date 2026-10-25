@@ -17,6 +17,12 @@ Composite = coverage-renormalized weighted z-blend → 0-100. Top calls logged t
 closed loop (schema v2, Decimal confidence) and graded vs SPY at 5/21/63d.
 """
 
+try:  # bank-first Polygon (aws/shared/polygon_bankfirst): /v2/aggs daily bars answered from the warehouse when complete, else live
+    from polygon_bankfirst import install as _polygon_bankfirst_install
+    _polygon_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
+
 try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
     from fmp_bankfirst import install as _fmp_bankfirst_install
     _fmp_bankfirst_install()

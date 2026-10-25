@@ -53,6 +53,12 @@ OUTPUT   data/factor-risk.json          SCHEDULE  daily 02:30 UTC
 Reads the firm book + Polygon. The risk-analytics layer above the
 risk-monitor's limit-checking; distinct from portfolio-risk (user book).
 """
+
+try:  # bank-first Polygon (aws/shared/polygon_bankfirst): /v2/aggs daily bars answered from the warehouse when complete, else live
+    from polygon_bankfirst import install as _polygon_bankfirst_install
+    _polygon_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json
 import math
 import time

@@ -18,6 +18,12 @@ liquidity comes in." This engine MEASURES that belief instead of assuming it:
 Index touches and top stock setups log to the closed loop (conf scaled by the
 measured hit rate, never folklore).
 """
+
+try:  # bank-first Polygon (aws/shared/polygon_bankfirst): /v2/aggs daily bars answered from the warehouse when complete, else live
+    from polygon_bankfirst import install as _polygon_bankfirst_install
+    _polygon_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json, os, time, urllib.request
 from datetime import datetime, timezone, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed

@@ -14,6 +14,12 @@ It outputs a COMPLEX read (is crypto in a bear, basing, EMERGING early-bull, con
 per-coin stages with RS-vs-BTC, an alt-season gauge, and — most useful when crypto is down — the concrete
 TRIGGER LEVELS that would confirm the early innings and the INVALIDATION level that would kill it.
 """
+
+try:  # bank-first Polygon (aws/shared/polygon_bankfirst): /v2/aggs daily bars answered from the warehouse when complete, else live
+    from polygon_bankfirst import install as _polygon_bankfirst_install
+    _polygon_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json
 import os
 import time

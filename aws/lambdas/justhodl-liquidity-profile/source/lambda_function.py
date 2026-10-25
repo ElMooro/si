@@ -2,6 +2,12 @@
 Daily high-low is a range statistic, never a bid/ask spread or execution cost.
 Quote/depth availability remains explicit; this output alone cannot authorize an order.
 """
+
+try:  # bank-first Polygon (aws/shared/polygon_bankfirst): /v2/aggs daily bars answered from the warehouse when complete, else live
+    from polygon_bankfirst import install as _polygon_bankfirst_install
+    _polygon_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json
 import os
 import time

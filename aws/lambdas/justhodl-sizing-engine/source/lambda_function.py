@@ -18,6 +18,12 @@ Chain per recommendation:
 Gates: n≥15 resolved or the engine sizes at starter-only; negative Kelly
 publishes as NO-EDGE (fade list), never sized long.
 """
+
+try:  # bank-first Polygon (aws/shared/polygon_bankfirst): /v2/aggs daily bars answered from the warehouse when complete, else live
+    from polygon_bankfirst import install as _polygon_bankfirst_install
+    _polygon_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json, os, time, urllib.request
 from datetime import datetime, timezone
 from decimal import Decimal

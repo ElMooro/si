@@ -30,6 +30,12 @@ for why.html) + data/floor-audit/history/YYYY-MM-DD.json snapshots.
 G0 schema gate runs before any S3 put. Verdict ladder:
   BELOW_LIQUID_FLOOR > SENSELESS_DRAWDOWN > STRETCHED > ASSET_DRIVEN > IN_LINE
 """
+
+try:  # bank-first Polygon (aws/shared/polygon_bankfirst): /v2/aggs daily bars answered from the warehouse when complete, else live
+    from polygon_bankfirst import install as _polygon_bankfirst_install
+    _polygon_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import gzip
 import json
 import os

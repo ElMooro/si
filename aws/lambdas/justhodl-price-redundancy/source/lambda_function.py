@@ -57,6 +57,12 @@ A second artifact, data/quote-health.json, carries per-source health
 health cards (jh-quote-health.js).
 """
 from __future__ import annotations
+
+try:  # bank-first Polygon (aws/shared/polygon_bankfirst): /v2/aggs daily bars answered from the warehouse when complete, else live
+    from polygon_bankfirst import install as _polygon_bankfirst_install
+    _polygon_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import csv
 import io
 import json

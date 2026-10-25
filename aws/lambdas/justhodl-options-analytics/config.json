@@ -7,7 +7,7 @@
   "timeout": 300,
   "architectures": ["x86_64"],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Per-name options analytics on Polygon options entitlement: dealer GEX (net/flip/walls), IV term structure + 25-delta skew + IV-vs-realized VRP, unusual options activity (vol/OI, put-call, net premium), composite gamma-regime signal. top_picks -> signal-harvester (eng:options-analytics) measure-before-trust; NOT in decision engines until alpha-proven.",
+  "description": "Per-name options analytics (Polygon options): dealer GEX (net/flip/walls), IV term structure + 25-delta skew + VRP, unusual activity (vol/OI, put-call, net premium), composite gamma-regime signal. top_picks -> signal-harvester; not yet in decision engines.",
   "environment": {},
   "schedule": {
     "rule_name": "justhodl-options-analytics-daily",

@@ -12,6 +12,12 @@ Signals computed when data flows:
     — the highest-value pattern; cluster∩decline logs to the closed loop.
 """
 
+try:  # bank-first Polygon (aws/shared/polygon_bankfirst): /v2/aggs daily bars answered from the warehouse when complete, else live
+    from polygon_bankfirst import install as _polygon_bankfirst_install
+    _polygon_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
+
 try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
     from fmp_bankfirst import install as _fmp_bankfirst_install
     _fmp_bankfirst_install()

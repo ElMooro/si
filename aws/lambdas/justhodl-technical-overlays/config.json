@@ -9,7 +9,7 @@
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "MA(20/50/200) + Bollinger overlays and signals (golden/death cross, %b, squeeze, MA stack). Real Polygon daily bars. Emits chart_series for Research Desk + confluence lean at PROBATIONARY trust (0 weight until matured via Edge Accuracy BH-FDR gate). Writes data/technical-overlays/<T>.json.",
+  "description": "MA(20/50/200) + Bollinger overlays and signals (golden/death cross, %b, squeeze, MA stack) on Polygon daily bars. chart_series for Research Desk + confluence lean at PROBATIONARY trust (0 weight until the BH-FDR gate). data/technical-overlays/<T>.json.",
   "schedule": {
     "rule_name": "justhodl-technical-overlays-daily",
     "cron": "cron(10 21 * * ? *)",

@@ -24,6 +24,12 @@ Honest framing: per-pick forward returns assigned to entry-week (not a continuou
 rebalanced daily NAV); short histories on some engines → HRP is the recommended weighting
 precisely because it does not trust a noisy covariance the way mean-variance does.
 """
+
+try:  # bank-first Polygon (aws/shared/polygon_bankfirst): /v2/aggs daily bars answered from the warehouse when complete, else live
+    from polygon_bankfirst import install as _polygon_bankfirst_install
+    _polygon_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json
 import math
 import os

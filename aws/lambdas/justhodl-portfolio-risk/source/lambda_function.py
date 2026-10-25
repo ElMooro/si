@@ -1,4 +1,10 @@
 """Private, reproducible portfolio holdings risk. No invented risk or sizing defaults."""
+
+try:  # bank-first Polygon (aws/shared/polygon_bankfirst): /v2/aggs daily bars answered from the warehouse when complete, else live
+    from polygon_bankfirst import install as _polygon_bankfirst_install
+    _polygon_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 from private_artifact import publish_private, private_http_denied
 from instrument_identity import resolve_instrument
 import base64

@@ -7,7 +7,7 @@
   "timeout": 600,
   "architectures": ["x86_64"],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Institutional-grade self-improvement engine (#1). Weekly reads justhodl-trades DDB, computes per-strategy Sharpe/Sortino/expectancy/profit-factor + Wilson CI + t-stats, Information Coefficients per alpha component, factor attribution OLS regression with R²/p-values, Bayesian shrinkage weight update with guardrails, champion/challenger A/B deployment. Writes audit log + proposed weights (manual approval default).",
+  "description": "Self-improvement engine #1 (weekly): per-strategy Sharpe/Sortino/expectancy/profit factor + Wilson CI, ICs per alpha component, OLS factor attribution, Bayesian shrinkage weights with guardrails, champion/challenger; weights need approval.",
   "environment": {
     "LOOKBACK_DAYS": "120",
     "MIN_OBS_FOR_STAT": "30",
@@ -18,8 +18,8 @@
     {"from_function": "justhodl-screener-alerts", "keys": ["TELEGRAM_TOKEN", "TELEGRAM_CHAT_ID"]}
   ],
   "schedule": {
-    "rule_name": "justhodl-alpha-calibrator-weekly",
+    "scheduler_name": "alpha-calibrator-sched",
     "cron": "cron(0 9 ? * SUN *)",
-    "description": "Weekly Sunday 09:00 UTC = 5am ET — after Saturday's trade-evaluator daily run (30d outcomes freshest)"
+    "description": "Weekly Sunday 09:00 UTC = 5am ET - after Saturday's trade-evaluator run (preserve-only reference to the live Scheduler schedule; the classic rule justhodl-alpha-calibrator-weekly no longer exists)"
   }
 }

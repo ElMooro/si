@@ -14,6 +14,12 @@ Items 1/2/4/5: crisis starts in collateral and bank funding, weeks before equiti
 Composite 0-100 over AVAILABLE canaries (coverage-honest). Score ≥70 logs a
 crisis_canary DOWN signal to the closed loop vs SPY.
 """
+
+try:  # bank-first Polygon (aws/shared/polygon_bankfirst): /v2/aggs daily bars answered from the warehouse when complete, else live
+    from polygon_bankfirst import install as _polygon_bankfirst_install
+    _polygon_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json, os, time, urllib.request, urllib.parse
 from datetime import datetime, timezone, timedelta
 from statistics import mean, stdev

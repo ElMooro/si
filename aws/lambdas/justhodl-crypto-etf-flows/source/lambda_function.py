@@ -14,6 +14,12 @@ SOURCE: Polygon /etf-global/v1/fund-flows (fund_flow per ETF per day) + Polygon 
 spot price. Feeds crypto-intel / cycle-clock / crypto-confluence / morning-intelligence, and the
 ETH leg directly informs BMNR (ETH treasury equity). Self-history + central FDR ledger.
 """
+
+try:  # bank-first Polygon (aws/shared/polygon_bankfirst): /v2/aggs daily bars answered from the warehouse when complete, else live
+    from polygon_bankfirst import install as _polygon_bankfirst_install
+    _polygon_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json
 import os
 import time

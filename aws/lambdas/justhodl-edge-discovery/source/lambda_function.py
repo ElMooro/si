@@ -16,6 +16,12 @@ in-sample half only; all reported statistics are out-of-sample and net of cost.
 Methodology is intentionally conservative and HONEST — most candidates will (correctly) fail. A run
 that graduates nothing is a feature, not a bug: it means nothing cleared the multiple-testing bar.
 """
+
+try:  # bank-first Polygon (aws/shared/polygon_bankfirst): /v2/aggs daily bars answered from the warehouse when complete, else live
+    from polygon_bankfirst import install as _polygon_bankfirst_install
+    _polygon_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json
 import math
 import os

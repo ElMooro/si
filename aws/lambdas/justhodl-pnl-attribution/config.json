@@ -10,9 +10,9 @@
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "description": "Performance and P&L Attribution desk - append-only firm return ledger from desk-returns + allocator weights; equity curve, Sharpe/Sortino/Calmar, drawdown, SPY-relative alpha, desk/allocation/factor attribution. Output data/pnl-attribution.json.",
-  "eventbridge_scheduler": {
-    "schedule_name": "justhodl-pnl-attribution-daily",
+  "schedule": {
+    "scheduler_name": "justhodl-pnl-attribution-daily",
     "cron": "cron(0 3 * * ? *)",
-    "description": "P&L attribution - daily 03:00 UTC, after the factor-risk model"
+    "description": "P&L attribution - daily 03:00 UTC, after the factor-risk model (preserve-only reference to the live Scheduler schedule; the former block had no role_arn and could not deploy)"
   }
 }

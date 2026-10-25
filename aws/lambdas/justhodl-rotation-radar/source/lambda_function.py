@@ -14,6 +14,12 @@ IWM/SPY relative and XBI absolute) with n. Live detectors score today's
 state; fresh thrusts log to the closed loop at measured confidence; a
 server-side Claude strategist narrates ONLY these tables.
 """
+
+try:  # bank-first Polygon (aws/shared/polygon_bankfirst): /v2/aggs daily bars answered from the warehouse when complete, else live
+    from polygon_bankfirst import install as _polygon_bankfirst_install
+    _polygon_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import anthropic_shim  # resilient LLM fallback (Anthropic->GLM via llm_router)
 import json, os, time, re, urllib.request
 from datetime import datetime, timezone, timedelta

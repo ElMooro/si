@@ -34,6 +34,12 @@ Output: data/bottom.json (+ data/bottom/history/{session}.json.gz). Consumers: b
 (structure join), fortress (evidence field), the fusion layer (adapter "bottom"), alert-router
 (check_bottom), the harvester (top_picks -> eng:bottom), the command desk.
 """
+
+try:  # bank-first Polygon (aws/shared/polygon_bankfirst): /v2/aggs daily bars answered from the warehouse when complete, else live
+    from polygon_bankfirst import install as _polygon_bankfirst_install
+    _polygon_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import array
 import bisect
 import gzip
