@@ -1,0 +1,7394 @@
+{
+ "engines": {
+  "benzinga-news-agent": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fmp": 7,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "fmp-fundamentals-agent": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": true,
+   "helpers": [],
+   "http_shapes": {
+    "fetch_rows": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-13f-clone-alpha": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-": 2
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "sym",
+      "frm"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 213,
+     "name": "hist_closes"
+    }
+   ],
+   "http_shapes": {
+    "_fetch": 5,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-13f-positions": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/batch-quote": 1,
+    "stable/cusip": 1,
+    "stable/historical-price-": 2,
+    "stable/profile": 1,
+    "stable/quote": 1,
+    "stable/{..}": 1
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "cusip",
+      "name"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 616,
+     "name": "cusip_to_ticker_via_fmp"
+    },
+    {
+     "args": [
+      "sym",
+      "frm"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 838,
+     "name": "_hist_closes"
+    },
+    {
+     "args": [
+      "symbols"
+     ],
+     "endpoints": 2,
+     "file": "lambda_function.py",
+     "lineno": 864,
+     "name": "_batch_quotes"
+    },
+    {
+     "args": [
+      "m",
+      "fmp_budget"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 1078,
+     "name": "_purge_collisions"
+    },
+    {
+     "args": [
+      "event",
+      "context"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 1605,
+     "name": "legacy_lambda_handler"
+    },
+    {
+     "args": [
+      "tk"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 1744,
+     "name": "_enrich"
+    }
+   ],
+   "http_shapes": {
+    "_fetch": 4,
+    "_fmp_json": 2,
+    "fetch": 4,
+    "fmp_cand.append": 2,
+    "request.urlopen": 10
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 6,
+   "uses_shared_client": []
+  },
+  "justhodl-13f-price-divergence": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/historical-price-eod/light": 1,
+    "stable/quote": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 148,
+     "name": "fmp_quote"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 165,
+     "name": "fmp_history_returns"
+    }
+   ],
+   "http_shapes": {
+    "fetch_s3_json": 3,
+    "http_get": 2,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-52wk-quality-breakout": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "params"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 101,
+     "name": "fmp_get"
+    }
+   ],
+   "http_shapes": {
+    "fmp_get": 6,
+    "http_get": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-activist-13d": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/quote": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "ticker"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 214,
+     "name": "fetch_fmp_quote"
+    }
+   ],
+   "http_shapes": {
+    "fetch_filing_target": 1,
+    "fetch_recent_filings_for_filer": 1,
+    "http_get_json": 3,
+    "http_get_text": 1,
+    "request.urlopen": 3
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-ai-infra-stack": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "path"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 111,
+     "name": "_fmp"
+    }
+   ],
+   "http_shapes": {
+    "_fmp": 2,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-ai-rerating-radar": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "tries"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 111,
+     "name": "_fmp"
+    }
+   ],
+   "http_shapes": {
+    "_fmp": 6,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-alpha-compass": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "ticker",
+      "dfrom",
+      "dto"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 161,
+     "name": "fmp_eod"
+    }
+   ],
+   "http_shapes": {
+    "fmp_eod": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-analyst-consensus": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "params",
+      "retries",
+      "timeout"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 94,
+     "name": "fmp_get"
+    }
+   ],
+   "http_shapes": {
+    "fetch_grade_changes_universe": 1,
+    "fmp_get": 5,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-apac-flows": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/quote": 1,
+    "stable/stock-price-change": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "symbols"
+     ],
+     "endpoints": 2,
+     "file": "lambda_function.py",
+     "lineno": 432,
+     "name": "us_returns"
+    }
+   ],
+   "http_shapes": {
+    "_get_json": 7,
+    "_http_bytes": 2,
+    "_http_text": 1,
+    "request.urlopen": 3,
+    "self._get_stream": 5
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-apac-leadlag": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1,
+    "stable/historical-price-eod/light": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbols",
+      "key",
+      "start"
+     ],
+     "endpoints": 2,
+     "file": "lambda_function.py",
+     "lineno": 212,
+     "name": "us_prices"
+    }
+   ],
+   "http_shapes": {
+    "_get_json": 4,
+    "_http_bytes": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-asia-leads": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/news/general-latest": 1
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "request"
+     ],
+     "endpoints": 0,
+     "file": "asia_store.py",
+     "lineno": 133,
+     "name": "identity"
+    },
+    {
+     "args": [],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 117,
+     "name": "korea_flash_tape"
+    }
+   ],
+   "http_shapes": {
+    "_json_get": 2,
+    "request.urlopen": 6,
+    "session.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-asset-compass": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/light": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "event",
+      "context"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 842,
+     "name": "lambda_handler"
+    },
+    {
+     "args": [
+      "sym"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 1196,
+     "name": "_cl1y"
+    }
+   ],
+   "http_shapes": {
+    "_http": 4,
+    "_ur.urlopen": 3,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-asymmetric-hunter": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fetch_earnings_for": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-backlog": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "sym",
+      "ep",
+      "fetch"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 122,
+     "name": "fetch_fmp"
+    },
+    {
+     "args": [
+      "url"
+     ],
+     "endpoints": 0,
+     "file": "backlog_sources.py",
+     "lineno": 26,
+     "name": "endpoint"
+    },
+    {
+     "args": [
+      "packet",
+      "read"
+     ],
+     "endpoints": 0,
+     "file": "backlog_sources.py",
+     "lineno": 183,
+     "name": "replay"
+    },
+    {
+     "args": [
+      "self",
+      "url",
+      "t"
+     ],
+     "endpoints": 0,
+     "file": "backlog_sources.py",
+     "lineno": 110,
+     "name": "acquire"
+    }
+   ],
+   "http_shapes": {
+    "fetch": 3,
+    "fetch_fmp": 4,
+    "http_json": 4,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-backtest-harness": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod": 2
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "uni_full",
+      "spy",
+      "last_date"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 214,
+     "name": "mode_b"
+    }
+   ],
+   "http_shapes": {
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-bagger-engine": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "symbol",
+      "limit"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 73,
+     "name": "fmp"
+    }
+   ],
+   "http_shapes": {
+    "_get_json": 1,
+    "fmp": 5,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-beneish": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fmp_balance_sheet": 1,
+    "fmp_cash_flow": 1,
+    "fmp_income_statement": 1,
+    "http_json": 3,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-beta-laggard": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-bond-desk": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "sym",
+      "frm"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 179,
+     "name": "_fmp_hist"
+    }
+   ],
+   "http_shapes": {
+    "_fmp_hist": 1,
+    "request.urlopen": 4
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-bottleneck-boom": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "params"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 905,
+     "name": "fmp"
+    }
+   ],
+   "http_shapes": {
+    "_fmp_hist_closes": 1,
+    "bk.fake_globals_get_sheet": 1,
+    "fmp": 9,
+    "request.urlopen": 5,
+    "self._get_stream": 5
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-bottleneck-research": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": true,
+   "helpers": [],
+   "http_shapes": {
+    "fetch_peer_pe": 1,
+    "fmp": 13,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-breadth-divergence": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/historical-price-eod/light": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 76,
+     "name": "fmp_history"
+    }
+   ],
+   "http_shapes": {
+    "fetch_all": 1,
+    "http_get": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-breadth-thrust": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {},
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "params"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 75,
+     "name": "_fmp_get"
+    }
+   ],
+   "http_shapes": {
+    "_fmp_get": 1,
+    "fetch_polygon_grouped": 1,
+    "fetch_spy_history": 1,
+    "request.urlopen": 5
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-brief-compiler": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": true,
+   "helpers": [],
+   "http_shapes": {},
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-buyback-engine": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "retries",
+      "capture"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 91,
+     "name": "fmp"
+    },
+    {
+     "args": [
+      "url"
+     ],
+     "endpoints": 0,
+     "file": "buyback_sources.py",
+     "lineno": 26,
+     "name": "endpoint"
+    },
+    {
+     "args": [
+      "packet",
+      "read"
+     ],
+     "endpoints": 0,
+     "file": "buyback_sources.py",
+     "lineno": 182,
+     "name": "replay"
+    },
+    {
+     "args": [
+      "self",
+      "url",
+      "t"
+     ],
+     "endpoints": 0,
+     "file": "buyback_sources.py",
+     "lineno": 109,
+     "name": "acquire"
+    },
+    {
+     "args": [
+      "records",
+      "path"
+     ],
+     "endpoints": 0,
+     "file": "buyback_sources.py",
+     "lineno": 214,
+     "name": "logical"
+    }
+   ],
+   "http_shapes": {
+    "fmp": 7,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-buyback-scanner": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {},
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "params",
+      "timeout"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 122,
+     "name": "fmp_json"
+    }
+   ],
+   "http_shapes": {
+    "fetch_filing_text": 1,
+    "fmp_json": 3,
+    "http_json": 3,
+    "request.urlopen": 3
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-buyback-yield-ranking": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/cash-flow-statement": 1,
+    "stable/quote": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 106,
+     "name": "fmp_quote"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 124,
+     "name": "fmp_cash_flow_ttm"
+    }
+   ],
+   "http_shapes": {
+    "fmp_cash_flow_ttm": 1,
+    "fmp_quote": 1,
+    "http_get": 2,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-buzz-velocity": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/company-screener": 1,
+    "stable/historical-price-eod/full": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 88,
+     "name": "get_universe"
+    },
+    {
+     "args": [
+      "ticker",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 119,
+     "name": "get_recent_price_perf"
+    }
+   ],
+   "http_shapes": {
+    "_get_json": 4,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-capex-pulse": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/cash-flow-statement": 1,
+    "stable/quote": 1
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "ccy"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 59,
+     "name": "_usd_per"
+    },
+    {
+     "args": [
+      "sym"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 92,
+     "name": "_fmp_cf"
+    }
+   ],
+   "http_shapes": {
+    "_fmp_cf": 2,
+    "request.urlopen": 4
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-capital-flow": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "event",
+      "context"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 44,
+     "name": "legacy_lambda_handler"
+    }
+   ],
+   "http_shapes": {
+    "_fmp": 2,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-carry-surface": {
+   "config_env_keys": [
+    "HIST_PREFIX",
+    "OUT_KEY",
+    "S3_BUCKET",
+    "TELEGRAM_CHAT_ID"
+   ],
+   "endpoints": {
+    "stable/dividends": 1,
+    "stable/historical-price-eod/light": 1,
+    "stable/key-metrics-ttm": 1,
+    "stable/ratios-ttm": 1
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "symbol",
+      "path"
+     ],
+     "endpoints": 0,
+     "file": "carry_original.py",
+     "lineno": 110,
+     "name": "fmp_url"
+    },
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 263,
+     "name": "fmp_quote_with_history"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 298,
+     "name": "_dy_from_ratios_ttm"
+    },
+    {
+     "args": [
+      "symbol",
+      "price"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 319,
+     "name": "_dy_from_dividends"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 363,
+     "name": "fmp_buyback_yield"
+    },
+    {
+     "args": [
+      "client",
+      "bucket",
+      "url",
+      "key",
+      "key_name",
+      "deadline"
+     ],
+     "endpoints": 0,
+     "file": "carry_store.py",
+     "lineno": 66,
+     "name": "acquire"
+    }
+   ],
+   "http_shapes": {
+    "_orig_urlopen": 3,
+    "fmp_quote_with_history": 1,
+    "fmp_url": 1,
+    "http_get_json": 5,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 4,
+   "uses_shared_client": []
+  },
+  "justhodl-cascade-validator": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/light": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "ticker",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 44,
+     "name": "fetch_fmp_history"
+    }
+   ],
+   "http_shapes": {
+    "fetch_fmp_history": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-catalyst-calendar": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "window_days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 509,
+     "name": "fda_events"
+    }
+   ],
+   "http_shapes": {
+    "_http": 2,
+    "fetch_treasury_auctions": 1,
+    "fetcher": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-cds-monitor": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "params"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 95,
+     "name": "fmp"
+    }
+   ],
+   "http_shapes": {
+    "_get": 2,
+    "_orig_urlopen": 3,
+    "fmp": 3,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-cef-discount": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "params"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 110,
+     "name": "fmp_get"
+    }
+   ],
+   "http_shapes": {
+    "fmp_get": 4,
+    "http_get": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-chart-patterns": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fmp": 2,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-chart-vision": {
+   "config_env_keys": [
+    "S3_BUCKET",
+    "TELEGRAM_CHAT_ID",
+    "TOP_N"
+   ],
+   "endpoints": {},
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "params"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 106,
+     "name": "fmp_get"
+    }
+   ],
+   "http_shapes": {
+    "fetch_universe": 1,
+    "fmp_get": 1,
+    "request.urlopen": 3
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-chokepoint": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/income-statement": 1,
+    "stable/key-metrics": 1,
+    "stable/profile": 1,
+    "stable/profile-bulk": 1,
+    "stable/ratios": 1
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 100,
+     "name": "fetch_bulk_universe"
+    },
+    {
+     "args": [
+      "sym",
+      "centrality",
+      "rerate_lookup",
+      "bulk"
+     ],
+     "endpoints": 4,
+     "file": "lambda_function.py",
+     "lineno": 125,
+     "name": "evaluate"
+    }
+   ],
+   "http_shapes": {
+    "fetch_bulk_universe": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 5,
+   "uses_shared_client": []
+  },
+  "justhodl-coffee-can": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "symbol",
+      "limit"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 78,
+     "name": "fmp"
+    }
+   ],
+   "http_shapes": {
+    "_get_json": 1,
+    "fmp": 5,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-commodity-curves": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1,
+    "stable/quote": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "sym"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 211,
+     "name": "fetch_quote"
+    },
+    {
+     "args": [
+      "sym",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 221,
+     "name": "fetch_history_etf"
+    }
+   ],
+   "http_shapes": {
+    "_orig_urlopen": 3,
+    "fetch_history_etf": 3,
+    "fetch_quote": 1,
+    "http_get_json": 3,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-concentration-liquidity": {
+   "config_env_keys": [
+    "LIQUIDITY_DAYS_THRESHOLD",
+    "POSITION_CONCENTRATION_PCT",
+    "S3_BUCKET",
+    "SECTOR_CONCENTRATION_PCT",
+    "TELEGRAM_CHAT_ID"
+   ],
+   "endpoints": {
+    "stable/historical-price-eod/light": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 124,
+     "name": "fetch_adv_for_symbol"
+    }
+   ],
+   "http_shapes": {
+    "http_get_json": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-convexity-scorer": {
+   "config_env_keys": [
+    "S3_BUCKET",
+    "TELEGRAM_CHAT_ID"
+   ],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": true,
+   "helpers": [],
+   "http_shapes": {
+    "fetch_universe": 1,
+    "fmp_get": 4,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-cot-tracker": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fmp": 2,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-credit-equity-divergence": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 85,
+     "name": "fmp_history"
+    }
+   ],
+   "http_shapes": {
+    "fetch_all": 1,
+    "http_get": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-cro-escalation": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/quote": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 131,
+     "name": "fmp_quote"
+    }
+   ],
+   "http_shapes": {
+    "fmp_quote": 3,
+    "request.urlopen": 3
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-cross-asset-regime": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 78,
+     "name": "fetch_history"
+    }
+   ],
+   "http_shapes": {
+    "_http_get_json": 1,
+    "fetch_history": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-cross-asset-rv": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 83,
+     "name": "fetch_fmp"
+    }
+   ],
+   "http_shapes": {
+    "_get_json": 2,
+    "_orig_urlopen": 3,
+    "fetch_fmp": 1,
+    "fetch_fred": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-crypto-etf-arb": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/quote": 2
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbols"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 113,
+     "name": "fmp_quotes"
+    }
+   ],
+   "http_shapes": {
+    "fmp_quotes": 1,
+    "http_json": 3,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-cta-trend-exhaust": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/historical-price-eod/light": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 135,
+     "name": "fmp_history"
+    }
+   ],
+   "http_shapes": {
+    "fmp_history": 1,
+    "http_get": 2,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-cyclical-bagger": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/balance-sheet-statement": 1,
+    "stable/income-statement": 1,
+    "stable/profile": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "sym"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 74,
+     "name": "profile"
+    },
+    {
+     "args": [
+      "sym"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 82,
+     "name": "survival"
+    },
+    {
+     "args": [
+      "sym"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 104,
+     "name": "discriminators"
+    }
+   ],
+   "http_shapes": {
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 3,
+   "uses_shared_client": []
+  },
+  "justhodl-deal-scanner": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "retries"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 112,
+     "name": "_fmp"
+    }
+   ],
+   "http_shapes": {
+    "_fmp": 3,
+    "_http_json": 3,
+    "fetch_news": 1,
+    "fetch_polygon_window": 1,
+    "request.urlopen": 5
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-deep-value-screener": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/balance-sheet-statement": 1,
+    "stable/cash-flow-statement": 1,
+    "stable/income-statement": 1,
+    "stable/profile": 1,
+    "stable/quote": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 129,
+     "name": "fetch_profile"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 141,
+     "name": "fetch_balance"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 153,
+     "name": "fetch_income"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 165,
+     "name": "fetch_cashflow"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 177,
+     "name": "fetch_quote"
+    }
+   ],
+   "http_shapes": {
+    "_http_get_json": 5,
+    "fetch_balance": 1,
+    "fetch_cashflow": 1,
+    "fetch_income": 1,
+    "fetch_quote": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 5,
+   "uses_shared_client": []
+  },
+  "justhodl-desk-returns": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "get_json": 2,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-dislocation-ai": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "http_json": 3,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-dislocation-detector": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "http_json": 2,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-divcut-warning": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "params"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 108,
+     "name": "fmp_get"
+    }
+   ],
+   "http_shapes": {
+    "fmp_get": 4,
+    "http_get": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-divergence-engine-v2": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 598,
+     "name": "fetch_etf"
+    }
+   ],
+   "http_shapes": {
+    "_http_get_json": 2,
+    "_orig_urlopen": 3,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-dividend-growth": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-dxy-equity-divergence": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/historical-price-eod/light": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 88,
+     "name": "fmp_history"
+    }
+   ],
+   "http_shapes": {
+    "fetch_all": 1,
+    "http_get": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-earnings": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fetch_reporters": 1,
+    "http_json": 4,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-earnings-blackout": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/earnings-calendar": 1,
+    "stable/sp500-constituent": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "event",
+      "context"
+     ],
+     "endpoints": 2,
+     "file": "lambda_function.py",
+     "lineno": 42,
+     "name": "lambda_handler"
+    }
+   ],
+   "http_shapes": {
+    "_get": 2,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-earnings-iv-crush": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/earnings-calendar": 1,
+    "stable/historical-price-eod/full": 1,
+    "stable/profile": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "days_ahead"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 109,
+     "name": "fmp_earnings_calendar"
+    },
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 123,
+     "name": "fmp_history"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 137,
+     "name": "fmp_profile"
+    }
+   ],
+   "http_shapes": {
+    "fmp_earnings_calendar": 1,
+    "fmp_history": 1,
+    "fmp_profile": 1,
+    "http_json": 3,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 3,
+   "uses_shared_client": []
+  },
+  "justhodl-earnings-nlp": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/earning-call-transcript": 1,
+    "stable/earning-call-transcript-dates": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "ticker"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 143,
+     "name": "get_latest_transcript_meta"
+    },
+    {
+     "args": [
+      "ticker",
+      "year",
+      "quarter"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 165,
+     "name": "fetch_transcript_content"
+    }
+   ],
+   "http_shapes": {
+    "fetch_transcript_content": 1,
+    "http_get_json": 2,
+    "request.urlopen": 3,
+    "s3_get_json": 3
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-earnings-pead": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/earnings": 1,
+    "stable/historical-price-eod/full": 1
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "symbol",
+      "limit"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 62,
+     "name": "fetch_earnings_surprises"
+    },
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 79,
+     "name": "fetch_recent_history"
+    },
+    {
+     "args": [
+      "ticker",
+      "endpoint"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 397,
+     "name": "_pead_fetch"
+    },
+    {
+     "args": [
+      "event",
+      "context"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 463,
+     "name": "lambda_handler"
+    }
+   ],
+   "http_shapes": {
+    "_pead_fetch": 2,
+    "fetch_earnings_surprises": 1,
+    "fetch_recent_history": 1,
+    "fetch_url": 2,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-earnings-quality": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/balance-sheet-statement": 1,
+    "stable/cash-flow-statement": 1,
+    "stable/income-statement": 1,
+    "stable/quote": 2,
+    "stable/{..}": 1
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 111,
+     "name": "fmp_quote"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 3,
+     "file": "lambda_function.py",
+     "lineno": 129,
+     "name": "fmp_financials"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 2,
+     "file": "lambda_function.py",
+     "lineno": 512,
+     "name": "_accounting_acquire"
+    }
+   ],
+   "http_shapes": {
+    "_accounting_fetch": 2,
+    "fmp_financials": 1,
+    "fmp_quote": 1,
+    "http_get": 2,
+    "request.urlopen": 3
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 5,
+   "uses_shared_client": []
+  },
+  "justhodl-earnings-sentiment": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fmp": 4,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-econ-calendar": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/economic-calendar": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "d_from",
+      "d_to"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 134,
+     "name": "fmp_calendar"
+    }
+   ],
+   "http_shapes": {
+    "fmp_calendar": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-edgar-authority": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "ep",
+      "params"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 43,
+     "name": "_fmp"
+    }
+   ],
+   "http_shapes": {
+    "_fmp": 2,
+    "_match_fmp_by_end": 2,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-eps-revision-velocity": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/analyst-estimates": 1,
+    "stable/grades": 1,
+    "stable/quote": 1
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 108,
+     "name": "fetch_quote"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 119,
+     "name": "fetch_estimates"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 134,
+     "name": "fetch_ratings_history"
+    },
+    {
+     "args": [
+      "ticker",
+      "endpoint"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 441,
+     "name": "_eps_fetch"
+    },
+    {
+     "args": [
+      "event",
+      "context"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 539,
+     "name": "lambda_handler"
+    }
+   ],
+   "http_shapes": {
+    "_eps_fetch": 3,
+    "_http_get_json": 3,
+    "fetch_estimates": 1,
+    "fetch_quote": 1,
+    "fetch_ratings_history": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 3,
+   "uses_shared_client": []
+  },
+  "justhodl-equity-ftd": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "sym",
+      "key"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 138,
+     "name": "fmp_vol_price"
+    }
+   ],
+   "http_shapes": {
+    "_fetch": 2,
+    "fetch_history": 1,
+    "fmp_vol_price": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-equity-research": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": true,
+   "helpers": [],
+   "http_shapes": {
+    "_http_error": 5,
+    "_http_ok": 2,
+    "fmp_get": 5,
+    "polygon_get": 1,
+    "request.urlopen": 3
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-estimate-revisions": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/analyst-estimates": 2
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "ticker"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 57,
+     "name": "fmp_estimate_profile"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 295,
+     "name": "_estimate_fetch"
+    },
+    {
+     "args": [
+      "event",
+      "context"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 362,
+     "name": "lambda_handler"
+    }
+   ],
+   "http_shapes": {
+    "_estimate_calendar_fetch": 1,
+    "fetch_calendar": 1,
+    "fmp.get": 2,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-etf-census": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "qs"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 56,
+     "name": "fmp"
+    }
+   ],
+   "http_shapes": {
+    "_get": 1,
+    "fmp": 2,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-etf-constituents": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "shared-client",
+   "has_tests": true,
+   "helpers": [],
+   "http_shapes": {
+    "fetch_constituents_polygon": 1,
+    "fmp_holdings": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": [
+    "fmp_etf"
+   ]
+  },
+  "justhodl-etf-true-flows": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "client",
+      "bucket",
+      "key",
+      "read",
+      "deadline"
+     ],
+     "endpoints": 0,
+     "file": "etf_store.py",
+     "lineno": 79,
+     "name": "collect"
+    },
+    {
+     "args": [
+      "ticker",
+      "originals",
+      "read",
+      "at"
+     ],
+     "endpoints": 0,
+     "file": "etf_research.py",
+     "lineno": 22,
+     "name": "vendor_context"
+    }
+   ],
+   "http_shapes": {
+    "_get": 2,
+    "fmp_quote_and_shares": 1,
+    "http_json": 7,
+    "request.urlopen": 3
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-eurodollar-plumbing": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/quote": 2
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 84,
+     "name": "fmp_fx"
+    }
+   ],
+   "http_shapes": {
+    "fmp_fx": 4,
+    "fmp_key.encode": 1,
+    "http_get": 4,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-eva-spread": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "_orig_urlopen": 3,
+    "fmp_income_statement": 1,
+    "fmp_key_metrics_annual": 1,
+    "fmp_quote": 1,
+    "http_json": 7
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-factor-decomposition": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fetch_ken_french_data": 1,
+    "fetch_monthly_returns": 1,
+    "http_json": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-failed-pattern-reversal": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1,
+    "stable/profile": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 129,
+     "name": "fmp_history"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 143,
+     "name": "fmp_profile"
+    }
+   ],
+   "http_shapes": {
+    "fmp_history": 1,
+    "fmp_profile": 1,
+    "http_json": 2,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-failure-library": {
+   "config_env_keys": [
+    "S3_BUCKET",
+    "TELEGRAM_CHAT_ID"
+   ],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": true,
+   "helpers": [],
+   "http_shapes": {
+    "fetch_universe": 1,
+    "fmp_get": 5,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-fi-census": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "qs"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 64,
+     "name": "fmp"
+    }
+   ],
+   "http_shapes": {
+    "_get": 2,
+    "fmp": 3,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-fleet-monitor": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/quote": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 282,
+     "name": "probe_dependencies"
+    }
+   ],
+   "http_shapes": {
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-fmp-bank": {
+   "config_env_keys": [
+    "FMP_BANK_BUDGET_S",
+    "FMP_BANK_DATED_SHARE",
+    "FMP_BANK_READ_TIMEOUT_S",
+    "FMP_EOD_FLOOR",
+    "FMP_YEAR_FLOOR",
+    "S3_BUCKET"
+   ],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": true,
+   "helpers": [],
+   "http_shapes": {
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-fmp-walker": {
+   "config_env_keys": [
+    "FMP_WALKER_BUDGET_S",
+    "FMP_WALKER_RPS",
+    "FMP_WALKER_WORKERS",
+    "S3_BUCKET"
+   ],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": true,
+   "helpers": [],
+   "http_shapes": {
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-fomc-reaction": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/light": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "symbol",
+      "frm"
+     ],
+     "endpoints": 1,
+     "file": "legacy_fomc_reaction.py",
+     "lineno": 89,
+     "name": "fmp_closes"
+    }
+   ],
+   "http_shapes": {
+    "fmp_closes": 2,
+    "http_get": 4,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-forward-orders": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 201,
+     "name": "fmp_get"
+    }
+   ],
+   "http_shapes": {
+    "_get_json": 4,
+    "fmp_get": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-forward-returns": {
+   "config_env_keys": [
+    "S3_BUCKET",
+    "TELEGRAM_CHAT_ID"
+   ],
+   "endpoints": {
+    "stable/historical-price-eod/light": 1,
+    "stable/profile": 1,
+    "stable/quote": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 159,
+     "name": "fmp_quote"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 173,
+     "name": "fmp_profile"
+    },
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 212,
+     "name": "fmp_history"
+    }
+   ],
+   "http_shapes": {
+    "_orig_urlopen": 3,
+    "fmp_history": 1,
+    "fmp_profile": 1,
+    "fmp_quote": 1,
+    "request.urlopen": 5
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 3,
+   "uses_shared_client": []
+  },
+  "justhodl-fundamental-graphs": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "_fmp": 13,
+    "_http": 1,
+    "fetch_estimates": 1,
+    "fetch_profile": 1,
+    "fetch_statements": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-fundamentals-engine": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "params",
+      "retries",
+      "timeout"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 47,
+     "name": "fmp_get"
+    }
+   ],
+   "http_shapes": {
+    "fmp_get": 4,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-gap-fill-confirm": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/earnings-calendar": 1,
+    "stable/historical-price-eod/full": 1,
+    "stable/quote": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 104,
+     "name": "fmp_history_full"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 120,
+     "name": "fmp_quote"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 132,
+     "name": "fmp_earnings_calendar"
+    }
+   ],
+   "http_shapes": {
+    "fmp_earnings_calendar": 1,
+    "fmp_history_full": 1,
+    "fmp_quote": 1,
+    "http_get": 3,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 3,
+   "uses_shared_client": []
+  },
+  "justhodl-gap-metrics": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {},
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 371,
+     "name": "_stock_breadth"
+    },
+    {
+     "args": [],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 503,
+     "name": "m_miner_margin"
+    }
+   ],
+   "http_shapes": {
+    "_http_bytes": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-gf-value": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 109,
+     "name": "fmp"
+    }
+   ],
+   "http_shapes": {
+    "fmp": 1,
+    "http_get": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-global-macro": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/light": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "ticker",
+      "n_days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 145,
+     "name": "fetch_fmp_history"
+    }
+   ],
+   "http_shapes": {
+    "_orig_urlopen": 3,
+    "fetch_fmp_history": 1,
+    "fetch_fred_series": 4,
+    "http_get_json": 2,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-global-markets": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1,
+    "stable/quote": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "sym"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 126,
+     "name": "fetch_quote"
+    },
+    {
+     "args": [
+      "sym",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 138,
+     "name": "fetch_history"
+    }
+   ],
+   "http_shapes": {
+    "fetch_history": 1,
+    "fetch_quote": 1,
+    "http_get_json": 2,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-global-stress": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "v",
+      "path"
+     ],
+     "endpoints": 0,
+     "file": "global_research_model.py",
+     "lineno": 49,
+     "name": "safe_url"
+    },
+    {
+     "args": [
+      "client",
+      "bucket",
+      "fred_key",
+      "fmp_key",
+      "transport"
+     ],
+     "endpoints": 0,
+     "file": "global_research_store.py",
+     "lineno": 179,
+     "name": "collect"
+    }
+   ],
+   "http_shapes": {
+    "_orig_urlopen": 3,
+    "collector.fetch": 3,
+    "fmp": 1,
+    "request.urlopen": 3
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-hedge-planner": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/quote": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "symbol",
+      "fmp_key"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 163,
+     "name": "fmp_quote"
+    }
+   ],
+   "http_shapes": {
+    "fmp_quote": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-hedge-pnl": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 73,
+     "name": "fmp_history"
+    }
+   ],
+   "http_shapes": {
+    "fmp_history": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-hiring-velocity": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "symbol",
+      "limit",
+      "extra"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 69,
+     "name": "fmp"
+    },
+    {
+     "args": [
+      "symbol",
+      "endpoint",
+      "limit"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 362,
+     "name": "_hiring_fetch"
+    },
+    {
+     "args": [
+      "event",
+      "context"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 440,
+     "name": "lambda_handler"
+    }
+   ],
+   "http_shapes": {
+    "_get_json": 1,
+    "_hiring_fetch": 2,
+    "fetch_employee_history": 1,
+    "fmp": 2,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-hkma-monitor": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/quote": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 86,
+     "name": "fmp_spot"
+    }
+   ],
+   "http_shapes": {
+    "fmp_spot": 1,
+    "http_get": 3,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-ignition": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "params"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 54,
+     "name": "fmp"
+    }
+   ],
+   "http_shapes": {
+    "fmp": 8,
+    "fmp_pillars": 1,
+    "http_json": 4,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-impact-graph": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/profile": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "gaps"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 109,
+     "name": "build_graph"
+    }
+   ],
+   "http_shapes": {
+    "_get_json": 17,
+    "http_json": 3,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-index-inclusion": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "params"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 27,
+     "name": "fmp"
+    }
+   ],
+   "http_shapes": {
+    "fmp": 4,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-index-recon": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": true,
+   "helpers": [],
+   "http_shapes": {
+    "fetch_universe": 1,
+    "http_json": 2,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-industry-rotation": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/etf/holdings": 1
+   },
+   "family": "shared-client",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "tkr"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 435,
+     "name": "fmp_holdings"
+    },
+    {
+     "args": [
+      "tkr"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 535,
+     "name": "fmp_scores"
+    },
+    {
+     "args": [
+      "tkr"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 563,
+     "name": "fmp_growth"
+    },
+    {
+     "args": [
+      "event",
+      "context"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 684,
+     "name": "lambda_handler"
+    },
+    {
+     "args": [
+      "tkr"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 793,
+     "name": "fmp_estimates"
+    },
+    {
+     "args": [
+      "tkr"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 820,
+     "name": "fmp_pe_ttm"
+    },
+    {
+     "args": [
+      "tickers"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 833,
+     "name": "fmp_quotes"
+    }
+   ],
+   "http_shapes": {
+    "_http": 8,
+    "fmp_holdings": 2,
+    "fmp_quotes": 1,
+    "fmp_scores": 2,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": [
+    "fmp_etf"
+   ]
+  },
+  "justhodl-insider-aggregate": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/insider-trading/latest": 1,
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "page"
+     ],
+     "endpoints": 1,
+     "file": "legacy_insider_aggregate.py",
+     "lineno": 61,
+     "name": "fetch_insider_page"
+    }
+   ],
+   "http_shapes": {
+    "_get_json": 1,
+    "fetch_insider_page": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-insider-buyback-confluence": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/quote": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 163,
+     "name": "fmp_quote"
+    }
+   ],
+   "http_shapes": {
+    "fetch_s3_json": 3,
+    "http_get": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-insider-cluster-scanner": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "params",
+      "timeout"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 281,
+     "name": "fmp_get"
+    }
+   ],
+   "http_shapes": {
+    "fetch_form4_xml": 1,
+    "fmp_get": 2,
+    "request.urlopen": 3,
+    "sec_get": 3
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-insider-radar": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/insider-trading/latest": 1,
+    "stable/insider-trading/search": 1,
+    "stable/ratios-ttm": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [],
+     "endpoints": 2,
+     "file": "lambda_function.py",
+     "lineno": 67,
+     "name": "fetch_fmp"
+    },
+    {
+     "args": [
+      "tickers",
+      "cap"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 131,
+     "name": "ps_ttm_map"
+    }
+   ],
+   "http_shapes": {
+    "fetch_fmp": 1,
+    "fetch_s3_fallback": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 3,
+   "uses_shared_client": []
+  },
+  "justhodl-insider-sell-cluster": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/insider-trading/latest": 1,
+    "stable/quote": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "from_date",
+      "page_limit"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 91,
+     "name": "fetch_insider_sells"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 144,
+     "name": "fmp_quote"
+    }
+   ],
+   "http_shapes": {
+    "fetch_insider_sells": 1,
+    "http_get": 2,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-inventory-drawdown": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/key-metrics": 2
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "tk"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 111,
+     "name": "dio_trend"
+    },
+    {
+     "args": [
+      "event",
+      "context"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 277,
+     "name": "lambda_handler"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 287,
+     "name": "acquire"
+    }
+   ],
+   "http_shapes": {
+    "_get": 2,
+    "_research_get": 2,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-investor-agents": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fmp": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-investor-lenses": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "_get_json": 8,
+    "fetch_fundamentals": 1,
+    "fetch_risk_free": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-ipo-pipeline": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 65,
+     "name": "fmp"
+    }
+   ],
+   "http_shapes": {
+    "fmp": 2,
+    "http_get": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-journal-grader": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/quote": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "ticker"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 36,
+     "name": "price_now"
+    }
+   ],
+   "http_shapes": {
+    "http_json": 2,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-katlin": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/enterprise-values": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "sym",
+      "today"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 729,
+     "name": "fmp_shares_yoy"
+    }
+   ],
+   "http_shapes": {
+    "fmp_shares_yoy": 1,
+    "poly_get": 2,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-leading-markets": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "sym",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 109,
+     "name": "fetch_history"
+    }
+   ],
+   "http_shapes": {
+    "_get_json": 1,
+    "fetch_history": 2,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-leadlag-graph": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1,
+    "stable/historical-price-eod/light": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "sym"
+     ],
+     "endpoints": 2,
+     "file": "lambda_function.py",
+     "lineno": 63,
+     "name": "hist"
+    }
+   ],
+   "http_shapes": {
+    "_get": 2,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-liquidity-capacity": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": true,
+   "helpers": [],
+   "http_shapes": {
+    "fetch_volume_universe": 1,
+    "get_json": 2,
+    "http_json": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-live-pulse": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fmp_quote": 4,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-lockup-expiration": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/ipos-calendar": 1,
+    "stable/profile": 1,
+    "stable/quote": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "from_date",
+      "to_date"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 69,
+     "name": "fmp_ipos"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 78,
+     "name": "fmp_quote"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 86,
+     "name": "fmp_profile"
+    }
+   ],
+   "http_shapes": {
+    "fmp_ipos": 1,
+    "fmp_profile": 1,
+    "fmp_quote": 1,
+    "http_json": 3,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 3,
+   "uses_shared_client": []
+  },
+  "justhodl-ma-target-predictor": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fetch_key_metrics_ttm": 1,
+    "fetch_profile": 1,
+    "fetch_s3_json": 2,
+    "http_json": 5,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-ma-tracker": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fetch_all_deals": 1,
+    "fmp": 2,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-macro-calendar": {
+   "config_env_keys": [
+    "S3_BUCKET",
+    "TELEGRAM_CHAT_ID"
+   ],
+   "endpoints": {
+    "stable/economic-calendar": 1,
+    "stable/historical-price-eod/light": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "days_horizon"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 88,
+     "name": "get_economic_calendar"
+    },
+    {
+     "args": [],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 133,
+     "name": "get_market_context"
+    }
+   ],
+   "http_shapes": {
+    "http_get_json": 2,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-macro-leads": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 60,
+     "name": "fmp_hist"
+    }
+   ],
+   "http_shapes": {
+    "_get": 4,
+    "bk.fake_globals_get_sheet": 1,
+    "request.urlopen": 1,
+    "self._get_stream": 5,
+    "session.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-magic-formula": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 83,
+     "name": "fmp"
+    }
+   ],
+   "http_shapes": {
+    "fmp": 1,
+    "http_get": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-market-map": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/income-statement": 2,
+    "stable/sp500-constituent": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 64,
+     "name": "constituents"
+    },
+    {
+     "args": [
+      "tickers"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 78,
+     "name": "mcap_state"
+    }
+   ],
+   "http_shapes": {
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-market-tape": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/quote": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "symbol",
+      "now"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 36,
+     "name": "fmp_quote"
+    }
+   ],
+   "http_shapes": {
+    "fmp_quote": 1,
+    "request.urlopen": 1,
+    "time_fetch": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-mean-reversion": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/ratios": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 48,
+     "name": "fmp_ratios"
+    }
+   ],
+   "http_shapes": {
+    "fmp_ratios": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-merger-arb": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fetch_sec": 1,
+    "fmp": 2,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-metals-miners": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-microcap-float-squeeze": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1,
+    "stable/profile": 1,
+    "stable/quote": 1
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 72,
+     "name": "fetch_quote"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 83,
+     "name": "fetch_profile"
+    },
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 95,
+     "name": "fetch_history"
+    },
+    {
+     "args": [
+      "ticker",
+      "endpoint",
+      "sources"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 527,
+     "name": "_float_fetch"
+    }
+   ],
+   "http_shapes": {
+    "_float_fetch": 2,
+    "fetch_history": 1,
+    "fetch_quote": 1,
+    "fetch_url": 3,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 3,
+   "uses_shared_client": []
+  },
+  "justhodl-momentum-breakout": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 2
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 74,
+     "name": "fetch_history"
+    },
+    {
+     "args": [
+      "event",
+      "context"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 433,
+     "name": "lambda_handler"
+    },
+    {
+     "args": [
+      "ticker"
+     ],
+     "endpoints": 1,
+     "file": "momentum_observations.py",
+     "lineno": 54,
+     "name": "endpoint"
+    }
+   ],
+   "http_shapes": {
+    "_http_get_json": 1,
+    "_momentum_fetch": 1,
+    "fetch_history": 2,
+    "fetch_spy_history": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-momentum-leaders": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 2
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "ticker"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 205,
+     "name": "fetch_price_rows"
+    },
+    {
+     "args": [
+      "event",
+      "context"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 613,
+     "name": "lambda_handler"
+    },
+    {
+     "args": [
+      "ticker"
+     ],
+     "endpoints": 1,
+     "file": "leader_price_observations.py",
+     "lineno": 54,
+     "name": "endpoint"
+    }
+   ],
+   "http_shapes": {
+    "_leaders_fetch": 1,
+    "fetch_price_rows": 2,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-multi-tf-convergence": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "params"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 94,
+     "name": "fmp_get"
+    }
+   ],
+   "http_shapes": {
+    "fetch_daily": 1,
+    "fmp_get": 2,
+    "http_get": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-ndx-spx-spread": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/historical-price-eod/light": 1,
+    "stable/quote": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 80,
+     "name": "fmp_history"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 100,
+     "name": "fmp_quote"
+    }
+   ],
+   "http_shapes": {
+    "fetch_all": 1,
+    "http_get": 2,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-news-sentiment": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-news-wire": {
+   "config_env_keys": [
+    "MAX_NEW_TO_SCORE",
+    "S3_BUCKET",
+    "TELEGRAM_CHAT_ID"
+   ],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 69,
+     "name": "fetch_fmp_news"
+    }
+   ],
+   "http_shapes": {
+    "http_get_json": 2,
+    "request.urlopen": 3
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-opex-calendar": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1,
+    "stable/quote": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 248,
+     "name": "fetch_spy_price"
+    },
+    {
+     "args": [],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 263,
+     "name": "fetch_spy_history"
+    }
+   ],
+   "http_shapes": {
+    "fetch_polygon_options": 1,
+    "fetch_spy_history": 1,
+    "fetch_spy_price": 1,
+    "request.urlopen": 5
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-opportunity-engine": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "universe",
+      "max_n"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 171,
+     "name": "fetch_forward_growth"
+    },
+    {
+     "args": [
+      "universe",
+      "max_n"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 217,
+     "name": "fetch_capex_buyback"
+    },
+    {
+     "args": [
+      "ticker",
+      "fmp_key"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 271,
+     "name": "extract_backlog"
+    },
+    {
+     "args": [
+      "tail"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 750,
+     "name": "fetch_tail_metrics"
+    }
+   ],
+   "http_shapes": {
+    "fetch_capex_buyback": 1,
+    "fetch_forward_growth": 1,
+    "fetch_tail_metrics": 1,
+    "http_get_json": 10,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-options-flow-scanner": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/quote": 3
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "ticker"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 73,
+     "name": "get_spot_price"
+    },
+    {
+     "args": [
+      "url",
+      "sources",
+      "remaining",
+      "kind"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 511,
+     "name": "_option_fetch"
+    },
+    {
+     "args": [
+      "member",
+      "sources",
+      "remaining",
+      "checked",
+      "days_back"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 550,
+     "name": "_option_company"
+    },
+    {
+     "args": [
+      "event",
+      "context"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 570,
+     "name": "lambda_handler"
+    }
+   ],
+   "http_shapes": {
+    "_http_get_json": 3,
+    "_http_get_text": 1,
+    "_option_fetch": 4,
+    "fetch_finra_short_volume": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-outcome-checker": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/quote": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "ticker"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 67,
+     "name": "get_current_price_fmp"
+    }
+   ],
+   "http_shapes": {
+    "get_current_price_fmp": 1,
+    "request.urlopen": 4
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-pair-trades": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1,
+    "stable/stock-peers": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "ticker"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 90,
+     "name": "fetch_peers"
+    },
+    {
+     "args": [
+      "ticker"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 103,
+     "name": "fetch_price_rows"
+    }
+   ],
+   "http_shapes": {
+    "fetch_price_rows": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-pairs-arb": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fetch_ma_targets": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-pead-detector": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/earnings": 2,
+    "stable/historical-price-eod/full": 1,
+    "stable/quote": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol",
+      "limit"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 77,
+     "name": "fetch_earnings_surprises"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 95,
+     "name": "fetch_earnings_calendar"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 124,
+     "name": "fetch_quote"
+    },
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 134,
+     "name": "fetch_history"
+    }
+   ],
+   "http_shapes": {
+    "fetch_earnings_calendar": 1,
+    "fetch_earnings_surprises": 1,
+    "fetch_history": 1,
+    "fetch_url": 4,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 3,
+   "uses_shared_client": []
+  },
+  "justhodl-peer-comparison": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fmp_income_growth": 1,
+    "fmp_key_metrics_ttm": 1,
+    "fmp_profile": 1,
+    "fmp_ratios_ttm": 1,
+    "http_json": 7
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-political-intel": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 173,
+     "name": "fetch_congress_trades"
+    }
+   ],
+   "http_shapes": {
+    "_http_get": 4,
+    "fetch_committee_map": 1,
+    "fetch_congress_trades": 1,
+    "fetch_legislators": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-political-trades": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fetch_disclosures": 1,
+    "http_get_json": 2,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-portfolio-analytics": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1,
+    "stable/profile": 1
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "ticker",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 130,
+     "name": "fetch_returns"
+    },
+    {
+     "args": [
+      "ticker"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 162,
+     "name": "fetch_profile"
+    }
+   ],
+   "http_shapes": {
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-positioning-analog": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 70,
+     "name": "spx_closes"
+    }
+   ],
+   "http_shapes": {
+    "_get": 2,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-post-earnings-mean-rev": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/earnings-calendar": 1,
+    "stable/historical-price-eod/light": 1,
+    "stable/quote": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 120,
+     "name": "fmp_quote"
+    },
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 132,
+     "name": "fmp_history"
+    },
+    {
+     "args": [
+      "symbol",
+      "from_date"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 152,
+     "name": "fmp_earnings_recent"
+    }
+   ],
+   "http_shapes": {
+    "fmp_earnings_recent": 1,
+    "fmp_history": 1,
+    "fmp_quote": 1,
+    "http_get": 3,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 3,
+   "uses_shared_client": []
+  },
+  "justhodl-pre-pump-detector": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 57,
+     "name": "fetch_history"
+    }
+   ],
+   "http_shapes": {
+    "_http_get_json": 1,
+    "fetch_history": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-precatalyst-vol-expansion": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "params"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 85,
+     "name": "fmp_get"
+    }
+   ],
+   "http_shapes": {
+    "fetch_price_history": 1,
+    "fmp_get": 2,
+    "http_get": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-predictability": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fmp_income_statement": 1,
+    "fmp_quote": 1,
+    "fmp_ratios_ttm": 1,
+    "http_json": 3,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-provider-catalog": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": true,
+   "helpers": [],
+   "http_shapes": {
+    "_get_json": 33
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-pump-earnings-nlp": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/earning-call-transcript": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "ticker",
+      "year",
+      "quarter"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 59,
+     "name": "fetch_transcript"
+    }
+   ],
+   "http_shapes": {
+    "fetch_transcript": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-pump-mechanics": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1,
+    "stable/profile": 1
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "ticker"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 109,
+     "name": "fetch_profile"
+    },
+    {
+     "args": [
+      "ticker",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 123,
+     "name": "fetch_price_history"
+    }
+   ],
+   "http_shapes": {
+    "fetch_price_history": 1,
+    "fetch_profile": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-pump-positioning": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1,
+    "stable/profile": 1,
+    "stable/quote": 1
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "ticker",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 147,
+     "name": "fetch_price_history"
+    },
+    {
+     "args": [
+      "ticker"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 169,
+     "name": "fetch_quote"
+    },
+    {
+     "args": [
+      "ticker"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 184,
+     "name": "fetch_profile"
+    },
+    {
+     "args": [
+      "ticker",
+      "kind",
+      "as_of"
+     ],
+     "endpoints": 0,
+     "file": "positioning_observations.py",
+     "lineno": 159,
+     "name": "endpoint"
+    }
+   ],
+   "http_shapes": {
+    "request.urlopen": 3
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 3,
+   "uses_shared_client": []
+  },
+  "justhodl-quality-on-sale": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fetch_drawdown": 2,
+    "fetch_s3_json": 4,
+    "http_json": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-radar-backtest": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "ticker"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 125,
+     "name": "fetch_price_history"
+    }
+   ],
+   "http_shapes": {
+    "fetch_price_history": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-rating-change-cluster": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "params"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 97,
+     "name": "fmp_get"
+    }
+   ],
+   "http_shapes": {
+    "fetch_recent_changes": 1,
+    "fmp_get": 4,
+    "http_get": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-readthrough": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/analyst-estimates": 1,
+    "stable/earnings-calendar": 1,
+    "stable/profile": 1,
+    "stable/{..}": 2
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "sym"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 332,
+     "name": "fmp_news"
+    },
+    {
+     "args": [
+      "sym"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 594,
+     "name": "fmp_profile"
+    },
+    {
+     "args": [
+      "sym"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 608,
+     "name": "fmp_revenue"
+    },
+    {
+     "args": [
+      "sym"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 624,
+     "name": "fmp_days_to_earnings"
+    },
+    {
+     "args": [
+      "shortlist",
+      "meta"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 784,
+     "name": "consensus_snapshot"
+    },
+    {
+     "args": [
+      "sym"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 791,
+     "name": "one"
+    }
+   ],
+   "http_shapes": {
+    "fmp_news": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 4,
+   "uses_shared_client": []
+  },
+  "justhodl-rebalance-radar": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "sym",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 38,
+     "name": "_hist"
+    }
+   ],
+   "http_shapes": {
+    "_get": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-refining-stress": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 42,
+     "name": "fmp_hist"
+    }
+   ],
+   "http_shapes": {
+    "_get": 2,
+    "fmp_hist": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-reit-nav-discount": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "params"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 134,
+     "name": "fmp_get"
+    }
+   ],
+   "http_shapes": {
+    "fmp_get": 5,
+    "http_get": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-research-backtest": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": true,
+   "helpers": [],
+   "http_shapes": {
+    "http_get_json": 2,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-research-papers": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/profile": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "t",
+      "slim_row",
+      "sv",
+      "sec_rank",
+      "macro_line"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 164,
+     "name": "gather"
+    }
+   ],
+   "http_shapes": {
+    "request.urlopen": 4
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-retail-sentiment": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "shared-client",
+   "has_tests": true,
+   "helpers": [],
+   "http_shapes": {
+    "fetch": 3,
+    "http_get_json": 3,
+    "request.urlopen": 3
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": [
+    "equity_enrich"
+   ]
+  },
+  "justhodl-revenue-acceleration": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/income-statement": 1,
+    "stable/quote": 1
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "symbol",
+      "limit",
+      "max_retries"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 82,
+     "name": "fetch_quarterly_income"
+    },
+    {
+     "args": [
+      "symbol",
+      "stock_data"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 114,
+     "name": "fetch_market_cap"
+    },
+    {
+     "args": [
+      "ticker",
+      "endpoint"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 488,
+     "name": "_revenue_fetch"
+    },
+    {
+     "args": [
+      "event",
+      "context"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 548,
+     "name": "lambda_handler"
+    }
+   ],
+   "http_shapes": {
+    "_revenue_fetch": 2,
+    "fetch_market_cap": 1,
+    "fetch_quarterly_income": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-rotation-chain": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "ticker",
+      "lookback_days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 183,
+     "name": "fmp_history"
+    }
+   ],
+   "http_shapes": {
+    "_get_json": 1,
+    "fmp_history": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-russell-recon-frontrun": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/company-screener": 1,
+    "stable/stock-list": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "exchange",
+      "limit_min_mcap",
+      "page",
+      "page_size"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 89,
+     "name": "_fmp_screener_single"
+    },
+    {
+     "args": [
+      "limit_min_mcap",
+      "exchanges"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 114,
+     "name": "fmp_screener"
+    }
+   ],
+   "http_shapes": {
+    "_fmp_screener_single": 1,
+    "fmp_screener": 1,
+    "http_get_json": 2,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-rv-iv-scanner": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "ticker",
+      "n"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 120,
+     "name": "fmp_ohlc"
+    }
+   ],
+   "http_shapes": {
+    "fmp_ohlc": 2,
+    "http_get_json": 2,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-sector-earnings-diffusion": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/analyst-estimates": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 62,
+     "name": "fetch_estimates"
+    }
+   ],
+   "http_shapes": {
+    "_http_get_json": 1,
+    "fetch_estimates": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-sector-heatmap": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/quote": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "tickers",
+      "max_workers"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 91,
+     "name": "fmp_quote_batch"
+    },
+    {
+     "args": [
+      "sym"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 100,
+     "name": "_fetch_one"
+    }
+   ],
+   "http_shapes": {
+    "_fetch_json": 1,
+    "fmp_quote_batch": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-self-improvement": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/light": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "ticker"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 72,
+     "name": "fetch_fmp_history"
+    }
+   ],
+   "http_shapes": {
+    "fetch_fmp_history": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-sellside-views": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "params"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 78,
+     "name": "fmp_get"
+    }
+   ],
+   "http_shapes": {
+    "fmp_get": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-shadow-lab": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "sym",
+      "n"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 29,
+     "name": "ohlc"
+    }
+   ],
+   "http_shapes": {
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-signal-backtest": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "tickers"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 55,
+     "name": "batch_quotes"
+    }
+   ],
+   "http_shapes": {
+    "request.urlopen": 3
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-signal-harvester": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/quote": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "sym",
+      "identity"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 187,
+     "name": "get_price"
+    }
+   ],
+   "http_shapes": {
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-signal-logger": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/quote": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "ticker"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 41,
+     "name": "_fmp_stable"
+    }
+   ],
+   "http_shapes": {
+    "_fmp_stable": 1,
+    "request.urlopen": 4
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-signal-scorecard": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 123,
+     "name": "_spy_history"
+    }
+   ],
+   "http_shapes": {
+    "request.urlopen": 3
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-skew-tail-hedging": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/historical-price-eod/light": 1,
+    "stable/quote": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 87,
+     "name": "fmp_quote"
+    },
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 100,
+     "name": "fmp_history"
+    }
+   ],
+   "http_shapes": {
+    "_orig_urlopen": 3,
+    "fetch_all": 1,
+    "http_get": 5,
+    "request.urlopen": 3
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-smart-beta": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fmp_historical_prices": 1,
+    "fmp_key_metrics_ttm": 1,
+    "fmp_ratios_ttm": 1,
+    "http_json": 3,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-smart-money-cluster": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/quote": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "ticker",
+      "key"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 50,
+     "name": "fetch_fmp_quote"
+    }
+   ],
+   "http_shapes": {
+    "fetch_quotes_parallel": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-smart-money-holdings": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fmp": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-smart-money-tracker": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fmp": 2,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-spac-floor-warrant": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "params"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 94,
+     "name": "fmp_get"
+    }
+   ],
+   "http_shapes": {
+    "fetch_spac_universe": 1,
+    "fmp_get": 5,
+    "http_get": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-spinoff-desk": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": true,
+   "helpers": [],
+   "http_shapes": {
+    "fetch_sec": 1,
+    "fmp": 4,
+    "http_json": 2,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-spx-history": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "_fmp": 1,
+    "fetch_spx": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-spx-ma": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/batch-quote": 1,
+    "stable/quote": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "tks"
+     ],
+     "endpoints": 2,
+     "file": "lambda_function.py",
+     "lineno": 124,
+     "name": "breadth_quotes"
+    }
+   ],
+   "http_shapes": {
+    "fetch_day": 2,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-squeeze-pretrigger": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1,
+    "stable/profile": 1
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 100,
+     "name": "fmp_profile"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 109,
+     "name": "fmp_price_runup"
+    }
+   ],
+   "http_shapes": {
+    "fmp_price_runup": 1,
+    "fmp_profile": 1,
+    "http_json": 2,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-starmine": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fmp_grades": 1,
+    "fmp_quote_batch": 1,
+    "fmp_sp500_with_retry": 1,
+    "http_json": 6,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-stock-ai-research": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "cache_get": 1,
+    "fmp": 7
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-stock-analyzer": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fmp": 17,
+    "http_get": 3,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-stock-buying": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "qs"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 102,
+     "name": "fmp"
+    }
+   ],
+   "http_shapes": {
+    "fetch_us10y": 1,
+    "fmp": 2,
+    "request.urlopen": 1,
+    "warm_fmp": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-stock-screener": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fmp": 26,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-stock-valuations": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/balance-sheet-statement": 1,
+    "stable/cash-flow-statement": 1,
+    "stable/company-screener": 1,
+    "stable/financial-growth": 1,
+    "stable/income-statement": 1,
+    "stable/key-metrics-ttm": 1,
+    "stable/ratios": 1,
+    "stable/ratios-ttm": 1,
+    "stable/sp500-constituent": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "t"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 97,
+     "name": "fetch_ratios"
+    },
+    {
+     "args": [
+      "t"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 123,
+     "name": "fetch_keymetrics"
+    },
+    {
+     "args": [
+      "t"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 137,
+     "name": "fetch_growth"
+    },
+    {
+     "args": [
+      "t"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 162,
+     "name": "fetch_hist"
+    },
+    {
+     "args": [
+      "t"
+     ],
+     "endpoints": 3,
+     "file": "lambda_function.py",
+     "lineno": 185,
+     "name": "fetch_hp_raw"
+    },
+    {
+     "args": [],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 219,
+     "name": "hp_universe"
+    },
+    {
+     "args": [
+      "event",
+      "context"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 284,
+     "name": "lambda_handler"
+    }
+   ],
+   "http_shapes": {
+    "fetch_hist": 1,
+    "fetch_hp_raw": 1,
+    "fetch_keymetrics": 1,
+    "fetch_ratios": 2,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 9,
+   "uses_shared_client": []
+  },
+  "justhodl-structural-pre-signals": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "tries"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 75,
+     "name": "_fmp"
+    }
+   ],
+   "http_shapes": {
+    "_fmp": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-supply-chain-linkage": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fmp_profile": 1,
+    "fmp_revenue_geo_segments": 1,
+    "fmp_supply_chain": 1,
+    "http_json": 3,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-sympathetic-momentum": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/historical-price-eod/light": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 94,
+     "name": "fmp_history"
+    }
+   ],
+   "http_shapes": {
+    "fetch_universe_histories": 1,
+    "http_get": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-system-signal-logger": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/quote": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 41,
+     "name": "_quote_price"
+    }
+   ],
+   "http_shapes": {
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-talent-migration": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "tries"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 67,
+     "name": "_fmp"
+    }
+   ],
+   "http_shapes": {
+    "_fmp": 1,
+    "request.urlopen": 3
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-telegram-bot": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/news/stock": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "chat_id",
+      "ticker"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 573,
+     "name": "cmd_stock"
+    }
+   ],
+   "http_shapes": {
+    "http_get": 3,
+    "request.urlopen": 6
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-theme-classifier": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/profile": 2
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "ticker"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 177,
+     "name": "fetch_profile"
+    },
+    {
+     "args": [
+      "ticker"
+     ],
+     "endpoints": 1,
+     "file": "profile_observations.py",
+     "lineno": 18,
+     "name": "endpoint"
+    }
+   ],
+   "http_shapes": {
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-theme-rotation": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1,
+    "stable/historical-price-eod/light": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "sym"
+     ],
+     "endpoints": 2,
+     "file": "lambda_function.py",
+     "lineno": 98,
+     "name": "hist"
+    }
+   ],
+   "http_shapes": {
+    "_get": 2,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-theme-rotation-engine": {
+   "config_env_keys": [
+    "N_WORKERS",
+    "S3_BUCKET",
+    "TIMEOUT_BUDGET_S"
+   ],
+   "endpoints": {
+    "stable/etf-holdings": 1,
+    "stable/etf/holdings": 1,
+    "stable/historical-price-eod/full": 1
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 223,
+     "name": "fetch_history"
+    },
+    {
+     "args": [
+      "ticker",
+      "fallback_top"
+     ],
+     "endpoints": 2,
+     "file": "lambda_function.py",
+     "lineno": 345,
+     "name": "fetch_etf_holdings"
+    }
+   ],
+   "http_shapes": {
+    "_http_get_json": 2,
+    "fetch_etf_holdings": 1,
+    "fetch_history": 3,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 3,
+   "uses_shared_client": []
+  },
+  "justhodl-theme-second-wave": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/stock-price-change": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 87,
+     "name": "fmp_1m"
+    }
+   ],
+   "http_shapes": {
+    "fetch_returns": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-theme-tier-classifier": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "fmp_get": 3,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-ticker-trends": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "ticker",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 345,
+     "name": "get_recent_price_perf"
+    }
+   ],
+   "http_shapes": {
+    "_http_get": 2,
+    "_try_get": 2,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-tradingview": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/batch-quote": 1,
+    "stable/profile": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "provider",
+      "symbol",
+      "kind",
+      "request"
+     ],
+     "endpoints": 2,
+     "file": "price_model.py",
+     "lineno": 43,
+     "name": "source_url"
+    }
+   ],
+   "http_shapes": {
+    "_PRICE_LEVELS.prefetch_fmp": 1,
+    "_fam_fetch": 3,
+    "fmp_quotes": 1,
+    "request.urlopen": 15,
+    "self.fetch": 6
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-trend-engine": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "inline-urls",
+   "has_tests": false,
+   "helpers": [],
+   "http_shapes": {
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-trend-reversal": {
+   "config_env_keys": [
+    "MAX_NAMES",
+    "WORKERS"
+   ],
+   "endpoints": {},
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "sym",
+      "days"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 54,
+     "name": "closes"
+    },
+    {
+     "args": [],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 363,
+     "name": "build_universe"
+    }
+   ],
+   "http_shapes": {
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-universe-builder": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/company-screener": 1,
+    "stable/profile": 1,
+    "stable/quote": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "low",
+      "high"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 131,
+     "name": "_screener_call"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 165,
+     "name": "fetch_quote_for_seed"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 177,
+     "name": "fetch_profile_for_seed"
+    }
+   ],
+   "http_shapes": {
+    "fetch_screener_bucket": 2,
+    "fetch_url": 3,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 3,
+   "uses_shared_client": []
+  },
+  "justhodl-universe-discovery": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/{..}": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "tries"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 43,
+     "name": "_fmp"
+    }
+   ],
+   "http_shapes": {
+    "_fmp": 2,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-upside-radar": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/income-statement": 1,
+    "stable/key-metrics": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "t"
+     ],
+     "endpoints": 2,
+     "file": "lambda_function.py",
+     "lineno": 139,
+     "name": "fmp_anatomy"
+    }
+   ],
+   "http_shapes": {
+    "fetch_etf_set": 1,
+    "request.urlopen": 4
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-us-cycle": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "event",
+      "context"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 96,
+     "name": "lambda_handler"
+    },
+    {
+     "args": [
+      "sym",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 150,
+     "name": "fmp_eod"
+    }
+   ],
+   "http_shapes": {
+    "fmp_eod": 2,
+    "request.urlopen": 3
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-velocity-acceleration": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 2
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "ticker"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 218,
+     "name": "fetch_price_rows"
+    },
+    {
+     "args": [
+      "ticker",
+      "as_of"
+     ],
+     "endpoints": 1,
+     "file": "velocity_evidence.py",
+     "lineno": 75,
+     "name": "endpoint"
+    }
+   ],
+   "http_shapes": {
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-vix-backwardation-trigger": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {},
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "path",
+      "params"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 84,
+     "name": "_fmp_get"
+    }
+   ],
+   "http_shapes": {
+    "_fmp_get": 2,
+    "fetch_history": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-vix9d-vix-inversion": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/historical-price-eod/light": 1,
+    "stable/quote": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 77,
+     "name": "fmp_quote"
+    },
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 90,
+     "name": "fmp_history"
+    }
+   ],
+   "http_shapes": {
+    "fetch_all": 1,
+    "http_get": 3,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-vol-target-unwind": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/historical-price-eod/full": 1,
+    "stable/quote": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol",
+      "years",
+      "retries"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 109,
+     "name": "fmp_history"
+    },
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 153,
+     "name": "fmp_quote"
+    }
+   ],
+   "http_shapes": {
+    "fmp_history": 1,
+    "fmp_quote": 2,
+    "http_get_json": 2,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-volatility-squeeze-hunter": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/historical-price-eod/full": 2
+   },
+   "family": "many-helpers",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 81,
+     "name": "fetch_history"
+    },
+    {
+     "args": [
+      "event",
+      "context"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 514,
+     "name": "lambda_handler"
+    },
+    {
+     "args": [
+      "ticker"
+     ],
+     "endpoints": 1,
+     "file": "price_observations.py",
+     "lineno": 54,
+     "name": "endpoint"
+    }
+   ],
+   "http_shapes": {
+    "fetch_history": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-vrp": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "endpoint",
+      "d_from"
+     ],
+     "endpoints": 0,
+     "file": "legacy_vrp.py",
+     "lineno": 79,
+     "name": "_fmp_eod"
+    }
+   ],
+   "http_shapes": {
+    "_fmp_eod": 2,
+    "fmp_spy_ohlc": 1,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-vvix-vov-regime": {
+   "config_env_keys": [
+    "S3_BUCKET"
+   ],
+   "endpoints": {
+    "stable/historical-price-eod/light": 1,
+    "stable/quote": 1
+   },
+   "family": "many-helpers",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "symbol"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 74,
+     "name": "fmp_quote"
+    },
+    {
+     "args": [
+      "symbol",
+      "days"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 87,
+     "name": "fmp_history"
+    }
+   ],
+   "http_shapes": {
+    "fetch_all_levels": 1,
+    "http_get": 3,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-warroom-weights": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "sym",
+      "start"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 100,
+     "name": "fmp_monthly"
+    }
+   ],
+   "http_shapes": {
+    "_get": 3,
+    "fmp_monthly": 5,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  },
+  "justhodl-watchlist-debate": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/key-metrics-ttm": 1,
+    "stable/profile": 1
+   },
+   "family": "one-helper",
+   "has_tests": false,
+   "helpers": [
+    {
+     "args": [
+      "ticker"
+     ],
+     "endpoints": 2,
+     "file": "lambda_function.py",
+     "lineno": 93,
+     "name": "get_ticker_metrics"
+    }
+   ],
+   "http_shapes": {
+    "fetch_batch_results": 2,
+    "fetch_json": 2,
+    "request.urlopen": 5
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 2,
+   "uses_shared_client": []
+  },
+  "justhodl-wave-signal-logger": {
+   "config_env_keys": [],
+   "endpoints": {
+    "stable/quote": 1
+   },
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "ticker"
+     ],
+     "endpoints": 1,
+     "file": "lambda_function.py",
+     "lineno": 69,
+     "name": "_fmp_quote"
+    }
+   ],
+   "http_shapes": {
+    "_fmp_quote": 1,
+    "request.urlopen": 2
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 1,
+   "uses_shared_client": []
+  },
+  "justhodl-whales": {
+   "config_env_keys": [],
+   "endpoints": {},
+   "family": "one-helper",
+   "has_tests": true,
+   "helpers": [
+    {
+     "args": [
+      "cik",
+      "year",
+      "quarter"
+     ],
+     "endpoints": 0,
+     "file": "lambda_function.py",
+     "lineno": 126,
+     "name": "fetch_positions"
+    }
+   ],
+   "http_shapes": {
+    "_get": 1,
+    "fetch_positions": 3,
+    "request.urlopen": 1
+   },
+   "legacy_api_v3_v4": {},
+   "n_endpoints": 0,
+   "uses_shared_client": []
+  }
+ },
+ "summary": {
+  "engines": 229,
+  "families": {
+   "inline-urls": 52,
+   "many-helpers": 64,
+   "one-helper": 110,
+   "shared-client": 3
+  },
+  "generated": "2026-10-25",
+  "inline_url_engines": [
+   "benzinga-news-agent",
+   "fmp-fundamentals-agent",
+   "justhodl-asymmetric-hunter",
+   "justhodl-beneish",
+   "justhodl-beta-laggard",
+   "justhodl-bottleneck-research",
+   "justhodl-brief-compiler",
+   "justhodl-chart-patterns",
+   "justhodl-convexity-scorer",
+   "justhodl-cot-tracker",
+   "justhodl-desk-returns",
+   "justhodl-dislocation-ai",
+   "justhodl-dislocation-detector",
+   "justhodl-dividend-growth",
+   "justhodl-earnings",
+   "justhodl-earnings-sentiment",
+   "justhodl-equity-research",
+   "justhodl-eva-spread",
+   "justhodl-factor-decomposition",
+   "justhodl-failure-library",
+   "justhodl-fmp-bank",
+   "justhodl-fmp-walker",
+   "justhodl-fundamental-graphs",
+   "justhodl-index-recon",
+   "justhodl-investor-agents",
+   "justhodl-investor-lenses",
+   "justhodl-liquidity-capacity",
+   "justhodl-live-pulse",
+   "justhodl-ma-target-predictor",
+   "justhodl-ma-tracker",
+   "justhodl-merger-arb",
+   "justhodl-metals-miners",
+   "justhodl-news-sentiment",
+   "justhodl-pairs-arb",
+   "justhodl-peer-comparison",
+   "justhodl-political-trades",
+   "justhodl-predictability",
+   "justhodl-provider-catalog",
+   "justhodl-quality-on-sale",
+   "justhodl-research-backtest",
+   "justhodl-smart-beta",
+   "justhodl-smart-money-holdings",
+   "justhodl-smart-money-tracker",
+   "justhodl-spinoff-desk",
+   "justhodl-spx-history",
+   "justhodl-starmine",
+   "justhodl-stock-ai-research",
+   "justhodl-stock-analyzer",
+   "justhodl-stock-screener",
+   "justhodl-supply-chain-linkage",
+   "justhodl-theme-tier-classifier",
+   "justhodl-trend-engine"
+  ],
+  "legacy_callers": [],
+  "one_helper_engines": [
+   "justhodl-13f-clone-alpha",
+   "justhodl-52wk-quality-breakout",
+   "justhodl-activist-13d",
+   "justhodl-ai-infra-stack",
+   "justhodl-ai-rerating-radar",
+   "justhodl-alpha-compass",
+   "justhodl-analyst-consensus",
+   "justhodl-apac-flows",
+   "justhodl-apac-leadlag",
+   "justhodl-backtest-harness",
+   "justhodl-bagger-engine",
+   "justhodl-bond-desk",
+   "justhodl-bottleneck-boom",
+   "justhodl-breadth-divergence",
+   "justhodl-breadth-thrust",
+   "justhodl-buyback-scanner",
+   "justhodl-capital-flow",
+   "justhodl-cascade-validator",
+   "justhodl-catalyst-calendar",
+   "justhodl-cds-monitor",
+   "justhodl-cef-discount",
+   "justhodl-chart-vision",
+   "justhodl-coffee-can",
+   "justhodl-concentration-liquidity",
+   "justhodl-credit-equity-divergence",
+   "justhodl-cro-escalation",
+   "justhodl-cross-asset-regime",
+   "justhodl-cross-asset-rv",
+   "justhodl-crypto-etf-arb",
+   "justhodl-cta-trend-exhaust",
+   "justhodl-deal-scanner",
+   "justhodl-divcut-warning",
+   "justhodl-divergence-engine-v2",
+   "justhodl-dxy-equity-divergence",
+   "justhodl-earnings-blackout",
+   "justhodl-econ-calendar",
+   "justhodl-edgar-authority",
+   "justhodl-equity-ftd",
+   "justhodl-etf-census",
+   "justhodl-eurodollar-plumbing",
+   "justhodl-fi-census",
+   "justhodl-fleet-monitor",
+   "justhodl-fomc-reaction",
+   "justhodl-forward-orders",
+   "justhodl-fundamentals-engine",
+   "justhodl-gf-value",
+   "justhodl-global-macro",
+   "justhodl-hedge-planner",
+   "justhodl-hedge-pnl",
+   "justhodl-hkma-monitor",
+   "justhodl-ignition",
+   "justhodl-impact-graph",
+   "justhodl-index-inclusion",
+   "justhodl-insider-aggregate",
+   "justhodl-insider-buyback-confluence",
+   "justhodl-insider-cluster-scanner",
+   "justhodl-ipo-pipeline",
+   "justhodl-journal-grader",
+   "justhodl-katlin",
+   "justhodl-leading-markets",
+   "justhodl-leadlag-graph",
+   "justhodl-macro-leads",
+   "justhodl-magic-formula",
+   "justhodl-market-tape",
+   "justhodl-mean-reversion",
+   "justhodl-multi-tf-convergence",
+   "justhodl-news-wire",
+   "justhodl-outcome-checker",
+   "justhodl-political-intel",
+   "justhodl-positioning-analog",
+   "justhodl-pre-pump-detector",
+   "justhodl-precatalyst-vol-expansion",
+   "justhodl-pump-earnings-nlp",
+   "justhodl-radar-backtest",
+   "justhodl-rating-change-cluster",
+   "justhodl-rebalance-radar",
+   "justhodl-refining-stress",
+   "justhodl-reit-nav-discount",
+   "justhodl-research-papers",
+   "justhodl-rotation-chain",
+   "justhodl-rv-iv-scanner",
+   "justhodl-sector-earnings-diffusion",
+   "justhodl-self-improvement",
+   "justhodl-sellside-views",
+   "justhodl-shadow-lab",
+   "justhodl-signal-backtest",
+   "justhodl-signal-harvester",
+   "justhodl-signal-logger",
+   "justhodl-signal-scorecard",
+   "justhodl-smart-money-cluster",
+   "justhodl-spac-floor-warrant",
+   "justhodl-spx-ma",
+   "justhodl-stock-buying",
+   "justhodl-structural-pre-signals",
+   "justhodl-sympathetic-momentum",
+   "justhodl-system-signal-logger",
+   "justhodl-talent-migration",
+   "justhodl-telegram-bot",
+   "justhodl-theme-rotation",
+   "justhodl-theme-second-wave",
+   "justhodl-ticker-trends",
+   "justhodl-tradingview",
+   "justhodl-universe-discovery",
+   "justhodl-upside-radar",
+   "justhodl-vix-backwardation-trigger",
+   "justhodl-vrp",
+   "justhodl-warroom-weights",
+   "justhodl-watchlist-debate",
+   "justhodl-wave-signal-logger",
+   "justhodl-whales"
+  ],
+  "plan": [
+   "shared-client (done): fmp_stable / equity_enrich -> fmp_book.try_harvest -> fmp_bank (bulk bank, then walker bank) before any live call.",
+   "one-helper: the engine has exactly one function that builds FMP URLs - wrap it: try fmp_bank.try_bank(path, qs) first, fall through to the existing code. One patch pattern, one test per engine, deploy in batches of ~20 behind the deploy gate.",
+   "many-helpers: same wrap per helper; review each engine's helpers (list above) before patching.",
+   "inline-urls: URLs built inline at call sites - route through a new module-level helper first, then the wrap. Review per engine.",
+   "legacy api/v3-v4 callers: switch to the /stable path while wrapping (legacy answers 403 since 2025-08-31)."
+  ],
+  "top_endpoints": [
+   {
+    "endpoint": "stable/quote",
+    "engines": 50
+   },
+   {
+    "endpoint": "stable/historical-price-eod/full",
+    "engines": 45
+   },
+   {
+    "endpoint": "stable/{..}",
+    "engines": 38
+   },
+   {
+    "endpoint": "stable/historical-price-eod/light",
+    "engines": 22
+   },
+   {
+    "endpoint": "stable/profile",
+    "engines": 21
+   },
+   {
+    "endpoint": "stable/income-statement",
+    "engines": 9
+   },
+   {
+    "endpoint": "stable/cash-flow-statement",
+    "engines": 5
+   },
+   {
+    "endpoint": "stable/earnings-calendar",
+    "engines": 5
+   },
+   {
+    "endpoint": "stable/analyst-estimates",
+    "engines": 5
+   },
+   {
+    "endpoint": "stable/historical-price-",
+    "engines": 4
+   },
+   {
+    "endpoint": "stable/historical-price-eod",
+    "engines": 4
+   },
+   {
+    "endpoint": "stable/company-screener",
+    "engines": 4
+   },
+   {
+    "endpoint": "stable/key-metrics",
+    "engines": 4
+   },
+   {
+    "endpoint": "stable/balance-sheet-statement",
+    "engines": 4
+   },
+   {
+    "endpoint": "stable/batch-quote",
+    "engines": 3
+   },
+   {
+    "endpoint": "stable/ratios-ttm",
+    "engines": 3
+   },
+   {
+    "endpoint": "stable/key-metrics-ttm",
+    "engines": 3
+   },
+   {
+    "endpoint": "stable/ratios",
+    "engines": 3
+   },
+   {
+    "endpoint": "stable/sp500-constituent",
+    "engines": 3
+   },
+   {
+    "endpoint": "stable/earnings",
+    "engines": 3
+   },
+   {
+    "endpoint": "stable/insider-trading/latest",
+    "engines": 3
+   },
+   {
+    "endpoint": "stable/stock-price-change",
+    "engines": 2
+   },
+   {
+    "endpoint": "stable/earning-call-transcript",
+    "engines": 2
+   },
+   {
+    "endpoint": "stable/economic-calendar",
+    "engines": 2
+   },
+   {
+    "endpoint": "stable/etf/holdings",
+    "engines": 2
+   },
+   {
+    "endpoint": "stable/cusip",
+    "engines": 1
+   },
+   {
+    "endpoint": "stable/news/general-latest",
+    "engines": 1
+   },
+   {
+    "endpoint": "stable/dividends",
+    "engines": 1
+   },
+   {
+    "endpoint": "stable/profile-bulk",
+    "engines": 1
+   },
+   {
+    "endpoint": "stable/earning-call-transcript-dates",
+    "engines": 1
+   },
+   {
+    "endpoint": "stable/grades",
+    "engines": 1
+   },
+   {
+    "endpoint": "stable/insider-trading/search",
+    "engines": 1
+   },
+   {
+    "endpoint": "stable/enterprise-values",
+    "engines": 1
+   },
+   {
+    "endpoint": "stable/ipos-calendar",
+    "engines": 1
+   },
+   {
+    "endpoint": "stable/stock-peers",
+    "engines": 1
+   },
+   {
+    "endpoint": "stable/stock-list",
+    "engines": 1
+   },
+   {
+    "endpoint": "stable/financial-growth",
+    "engines": 1
+   },
+   {
+    "endpoint": "stable/news/stock",
+    "engines": 1
+   },
+   {
+    "endpoint": "stable/etf-holdings",
+    "engines": 1
+   }
+  ]
+ }
+}

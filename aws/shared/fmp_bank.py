@@ -49,13 +49,38 @@ SNAPSHOTS = {
 }
 
 
+_LAST = {"key": None, "meta": None}          # the S3 metadata of the last object read (fmp_bankfirst freshness guard)
+
+
+def reset_last_answer():
+    _LAST["key"], _LAST["meta"] = None, None
+
+
+def last_answer_age_days():
+    """Age in days of the last object read, from its pulled_at / as_of metadata (None when unknown)."""
+    m = _LAST.get("meta") or {}
+    stamp = m.get("pulled_at") or m.get("as_of") or m.get("date")
+    if not stamp:
+        return None
+    try:
+        from datetime import datetime, timezone
+        t = datetime.fromisoformat(str(stamp)[:19].replace("Z", ""))
+        return (datetime.now(timezone.utc).replace(tzinfo=None) - t).total_seconds() / 86400.0
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def _get(key):
     now = time.time()
     hit = _cache.get(key)
     if hit and now - hit[0] < _TTL:
+        _LAST["key"], _LAST["meta"] = key, (hit[2] if len(hit) > 2 else None)
         return hit[1]
+    meta = None
     try:
-        raw = _S3.get_object(Bucket=_BUCKET, Key=key)["Body"].read()
+        obj = _S3.get_object(Bucket=_BUCKET, Key=key)
+        raw = obj["Body"].read()
+        meta = obj.get("Metadata") or {}
         if key.endswith(".gz"):
             raw = gzip.decompress(raw)
         val = raw
@@ -63,7 +88,9 @@ def _get(key):
         val = None
     if len(_cache) >= _MAX_CACHED:
         _cache.pop(next(iter(_cache)))
-    _cache[key] = (now, val)
+    _cache[key] = (now, val, meta)
+    if val is not None:
+        _LAST["key"], _LAST["meta"] = key, meta
     return val
 
 

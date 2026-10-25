@@ -150,8 +150,8 @@ class Acquisition(unittest.TestCase):
         config = json.loads((Path(__file__).parents[1] / 'config.json').read_bytes())
         schedule = config['eventbridge_scheduler']
         self.assertEqual(schedule['input'], {'action': 'holdings_research_collect', 'notify': False})
-        self.assertEqual(schedule['cron'], 'cron(40 0/2 * * ? *)')
-        self.assertEqual(config['schedule']['expression'], 'rate(2 hours)')
+        self.assertEqual(schedule['cron'], 'cron(40 15 * * ? *)')
+        self.assertEqual(config['schedule']['expression'], 'cron(21 16 * * ? *)')   # retimed by the 2026-10-20 cadence floor (once a day)
 
 
 if __name__ == '__main__':

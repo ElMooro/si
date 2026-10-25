@@ -8,7 +8,7 @@
   "environment": {},
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-theme-classifier-6h",
-    "cron": "cron(0 */6 * * ? *)",
+    "cron": "cron(1 15 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Theme classifier every 6 hours"

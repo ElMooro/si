@@ -8,7 +8,7 @@
   "environment": {},
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-pump-positioning-hourly",
-    "cron": "cron(10 * * * ? *)",
+    "cron": "cron(10 15 * * ? *)",
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Pump positioning + portfolio basket hourly at :10"

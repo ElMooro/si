@@ -93,6 +93,12 @@ SCHEDULE
 cron(10 * * * ? *) — hourly at :10. Runs after radar at :00/:30 and
 research at :05.
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json
 import os
 import sys
