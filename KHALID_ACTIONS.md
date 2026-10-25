@@ -6,6 +6,34 @@ This file tracks items that require **your direct action** (registration, creden
 
 ## 🔴 Time-sensitive
 
+### 0n. "Fix it all - 100% of the data pulled and used" - the provider banks are live (2026-10-25); your decisions below
+
+* **Done today (all read-only verified or deploying):** `justhodl-fmp-bank` (every FMP bulk file + eod-bulk since 2000;
+  first kicks banked 145 objects / 1.7 GB, 24 bulk endpoints served - `key-metrics-bulk` and `ratios-bulk` included;
+  v1.1.0 streams gzip, 600 s read timeout, EOD gets its budget share), `justhodl-fmp-walker` (~160 non-bulk FMP datasets
+  incl. 1-minute bars for the chart universe; v1.1.0 after the first run died without a state write - memory bounded),
+  `justhodl-polygon-bank` (31 datasets beyond the tape), `justhodl-provider-bank` (Trading Economics, CoinMarketCap,
+  NewsAPI, Nasdaq Data Link, CryptoQuant splits), `justhodl-provider-coverage` (`data/provider-coverage.json`), the
+  bounded backfill conductor `.github/workflows/fmp-backfill.yml` (daily 02:41 UTC, self-disables when every bank is
+  STEADY). `aws/shared/fmp_bank.py` answers 70+ `/stable` paths from the banks before the provider. implied-prob and
+  trade-journal no longer call the not-entitled `/v2/last/trade`. Doctrine: `docs/providers/WAREHOUSE_BANKS.md`.
+* **Your word needed:**
+  1. **Massive/Polygon tier**: trades/quotes (`/v2/last/trade`, `/v3/quotes`) answer NOT_AUTHORIZED on this key and
+     Benzinga has 403'd since July. Either upgrade (Stocks Developer/Advanced; Benzinga add-on) or leave them off -
+     the engines that used them now read the entitled snapshot / the FMP calendar shim.
+  2. **Quiver**: no key in SSM (`/justhodl/quiver/api-key`). `justhodl-lobbying-intel` serves a 120-day-old cache daily.
+     Buy a key (also unlocks govcontracts / offexchange / wallstreetbets / insiders / patents / sec13f) or switch it off.
+  3. **Trading Economics / CoinMarketCap / NewsAPI / Nasdaq Data Link plans**: each dataset the key cannot reach is on the
+     coverage card as a refusal code (TE 403 on calendar history, CMC 1006 on historical endpoints, NewsAPI 426/
+     rateLimited, NDL 403 per database). Those are plan lines - decide per provider whether the plan or the subscription
+     changes. Nasdaq Data Link in particular: if it is paid, cancel unless the entitled-database list shows something FRED
+     does not give.
+  4. **`justhodl-estimate-revisions`** is contract-bound to the Benzinga calendar shape and fails daily; the rewrite onto
+     FMP `/stable/earnings-calendar` (banked daily by the walker) is a contract change - say "rewrite it" and it ships.
+* **Next on the lane (no decision needed):** consumer conversion - 227 engines still build their own FMP URLs; a staged,
+  tested AST rewrite onto `fmp_stable.fmp_get` (which now reads the banks first) per engine family; an EIA full-catalog
+  bank (route tree + series); `justhodl-tv-bars` reading the FMP EOD bank for the 14 non-US chart names stuck since Oct 2.
+
 ### 0m. "Yesterday cost $30" (2026-10-23) - explained, two leaks fixed, crawlers blocked, archive copying halved; open: 9 secrets, 2 servers (docs/audit/2026-10-23/aws-bill-oct22.md)
 
 * **Oct 22 = $32.55 = $25.09 one-time + $7.46 normal.** The one-time part is archive backfill #2 (your "continue"):

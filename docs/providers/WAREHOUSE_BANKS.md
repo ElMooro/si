@@ -1,0 +1,45 @@
+# The provider banks — pulling 100% of what the keys reach (2026-10-25)
+
+Khalid, 2026-10-25: "fix it all, I want 100% of the data pulled and used by my system."
+Audit that started it: `provider-coverage-audit-2026-10-23` (FMP Ultimate ~40% used, Polygon ~70%, the small keys 0–30%).
+
+Doctrine that every bank follows (the 2026-09-02 warehouse rule applied to the paid providers):
+
+* **Bank verbatim, on data.html.** Every response is stored as served (CSV or JSON, gzip) under `data/warm/<bank>/`,
+  with sha256 / pulled_at / request facts in S3 metadata. The data is ours whatever happens to the subscription.
+* **Record, never guess.** A plan refusal (401/402/403/426, or a provider error envelope) is written to the bank's
+  catalog by code, the dataset is skipped for the day and re-probed tomorrow. Nothing is worked around.
+* **Once a day, bounded, no self-chaining.** One Scheduler schedule per bank (cadence floor), one 780-second budget per
+  invoke, cursors in state; the backfill is finished by `.github/workflows/fmp-backfill.yml` (daily, ≤ 320 min, ≤ 12
+  lease-guarded re-kicks per engine, disables itself on `ALL_STEADY`).
+* **Write-if-changed.** sha256 in metadata; an unchanged body is never re-put (no versions churn, LastModified stays a
+  true change signal).
+* **Measured coverage.** `justhodl-provider-coverage` folds the manifests into `data/provider-coverage.json` daily.
+
+| Bank | Engine (schedule UTC) | Prefix | What it holds |
+|---|---|---|---|
+| FMP bulk + EOD | `justhodl-fmp-bank` (23:13) | `data/warm/fmp-bank/` | every `*-bulk` file FMP serves (profiles, ratings, DCF, scores, targets, consensus, TTM metrics/ratios, peers, ETF holders; statements + growth + key-metrics + ratios per fiscal year × annual/Q1–Q4 since 1985; earnings surprises per year) and `eod-bulk` per session since 2000 |
+| FMP non-bulk | `justhodl-fmp-walker` (23:27) | `data/warm/fmp/` | ~160 datasets from `fmp-walker-spec.json`: lists, calendars (earnings/dividends/splits/IPO/economic since 2000), SEC filing feeds, insider/13F/Senate/House/transcript/news latest feeds, per-symbol histories for the US universe (prices back to the 1960s, market cap, dividends, splits, earnings, estimates, targets, grades, ratings, as-reported statements, segmentation, executives, employees, float, ESG, insiders, 13F positions per quarter, transcripts per quarter), per-filer 13F (dates, performance, extracts), ETF holdings/weightings/dates, economics (23 indicator names, COT, treasury), sector/industry history, 1-minute bars per session for the chart universe |
+| Polygon beyond the tape | `justhodl-polygon-bank` (22:41) | `data/warm/polygon-bank/` | market status/holidays, every ticker (active/inactive/OTC/crypto/fx/indices), exchanges/conditions/types, whole-market EOD snapshot + gainers/losers, indices snapshot, grouped crypto/fx since 2018, dividends/splits since 1990, short interest (entitled), ticker details/events/related, options contracts (incl. expired) for the chart universe, minute bars (730 days) for the chart universe, ETF Global flows/constituents/profiles for every US ETF |
+| Small keyed providers | `justhodl-provider-bank` (21:53) | `data/warm/provider-bank/<provider>/` | Trading Economics (countries, indicators, markets ×5, calendar forward + since 2010, earnings, news, ratings + history, forecasts, comtrade, the full country × indicator history grid, markets history), CoinMarketCap (map, listings, categories, info, global metrics, fear & greed, exchanges, trending; plan-gated history probes), NewsAPI (sources, 12 countries' business headlines, 5 US categories, 20 macro queries), Nasdaq Data Link (entitled databases, every dataset of the priority databases), CryptoQuant (per-exchange / per-miner splits, hourly probes) |
+| Scoreboard | `justhodl-provider-coverage` (06:47) | `data/provider-coverage.json` | served / refused / untested / skipped per provider, GB banked, consumers |
+
+Reading the banks from code: `aws/shared/fmp_bank.py` — `try_bank(path, qs)` answers a `/stable` path from the bulk
+bank, then the walker bank (70+ paths); `statements()`, `snapshot()`, `eod()`, `walker(dataset, entity, period, day)`,
+`walker_manifest()`. `fmp_book.try_harvest` calls it first, so every engine on `fmp_stable.fmp_get` /
+`equity_enrich.fmp` reads the warehouse before the provider. Pages read the same objects through the Worker
+(`https://justhodl.ai/data/warm/...`; gzip is transparent).
+
+Not pulled, on purpose (each bank's manifest carries the list): technical indicators and TTM statements (derived from
+banked bars/quarters), `company-outlook` (a composite), custom DCF (parametric), `financial-reports-json/xlsx` (the SEC
+XBRL lane, restored weekly 2026-10-23, holds the same filings), intraday quote snapshots (equal the EOD close once a
+day), search endpoints, Polygon trades/quotes and Benzinga (not entitled), whole-market option chains (the options desks
+pull their universes; a full chain is ~1.5 M contracts a day), websockets/flat files (Stocks Advanced only).
+
+Open decisions (Khalid): Massive tier for trades/quotes and the Benzinga add-on; a Quiver key; the plan verdicts the
+small providers record (each refusal on the coverage card is a plan line, not a bug); the consumer-conversion lane
+(227 engines still build their own FMP URLs — a staged, tested AST rewrite onto `fmp_stable.fmp_get` is the next step);
+an EIA full-catalog bank (route tree + series) and the `estimate-revisions` calendar rewrite off Benzinga.
+
+Operations: birth ops 6640 (fmp-bank), 6646 (fmp-walker), 6647 (polygon-bank), 6648 (provider-bank); logs/state
+read-only op 6649. Every bank's `manifest.json` and `catalog.json` are public under its prefix.

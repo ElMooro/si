@@ -1,4 +1,13 @@
-# JustHodl data providers — inventory (2026-09-15)
+# JustHodl data providers — inventory (2026-09-15; banks added 2026-10-25)
+
+**2026-10-25 — the provider banks.** Four warehouse engines now bank everything the keys reach (verbatim, write-if-changed,
+refusals recorded by code): `justhodl-fmp-bank` (every FMP bulk file + eod-bulk since 2000), `justhodl-fmp-walker` (~160
+non-bulk FMP datasets incl. 1-minute bars for the chart universe), `justhodl-polygon-bank` (Polygon REST beyond the tape:
+ticker universe, status/holidays, snapshots, dividends/splits, short interest, details, options contracts, minute bars,
+ETF Global history), `justhodl-provider-bank` (Trading Economics, CoinMarketCap, NewsAPI, Nasdaq Data Link, CryptoQuant
+splits). `justhodl-provider-coverage` publishes `data/provider-coverage.json` daily. Doctrine and reading paths:
+`docs/providers/WAREHOUSE_BANKS.md`. Polygon entitlement facts (ops 6641): last/trade + v3/quotes NOT_AUTHORIZED,
+vX/reference/financials 410 GONE, Benzinga 403, short-interest 200.
 
 One rule for every keyed provider: the key lives in SSM (`/justhodl/...` SecureString) and is read through
 `aws/shared/managed_secret.py`; a Lambda env var for that key must equal the SSM value or not exist at all
