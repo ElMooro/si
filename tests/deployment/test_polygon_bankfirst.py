@@ -89,7 +89,7 @@ def test_polygon_bankfirst_answers_complete_windows_in_polygons_envelope():
         assert [r["t"] for r in got["results"]] == [ms(2026, 10, 22), ms(2026, 10, 21), ms(2026, 10, 20), ms(2026, 10, 19)]
         # /prev = the last completed session's bar
         got = _get("https://api.polygon.io/v2/aggs/ticker/AAPL/prev?adjusted=true&apiKey=S")
-        assert got["resultsCount"] == 1 and got["results"][0]["t"] == ms(2026, 10, 22)
+        assert got["resultsCount"] == 1 and got["results"][0]["t"] == ms(2026, 10, 22) and got["results"][0]["T"] == "AAPL"
         # millisecond window arguments work too
         got = _get("https://api.polygon.io/v2/aggs/ticker/AAPL/range/1/day/%d/%d?apiKey=S" % (ms(2026, 10, 19), ms(2026, 10, 20)))
         assert got["resultsCount"] == 2

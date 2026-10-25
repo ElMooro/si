@@ -121,11 +121,14 @@ def _row_date(t_ms):
     return datetime.fromtimestamp(t_ms / 1000.0, tz=timezone.utc).date()
 
 
-def _envelope(ticker, rows, adjusted=True):
+def _envelope(ticker, rows, adjusted=True, with_ticker=False):
     out = []
     for r in rows:
         d = {k: v for k, v in zip(FIELDS, r) if v is not None}
-        out.append({k: d[k] for k in ("v", "vw", "o", "c", "h", "l", "t", "n") if k in d})
+        row = {k: d[k] for k in ("v", "vw", "o", "c", "h", "l", "t", "n") if k in d}
+        if with_ticker:
+            row = {"T": ticker, **row}           # /prev rows carry the ticker, range rows do not (Polygon's own shapes)
+        out.append(row)
     body = {"ticker": ticker, "queryCount": len(out), "resultsCount": len(out), "adjusted": adjusted, "results": out, "status": "OK",
             "request_id": "bank-" + hashlib.sha256(("%s%d%s" % (ticker, len(out), out[0]["t"] if out else "")).encode()).hexdigest()[:16], "count": len(out)}
     return json.dumps(body, separators=(",", ":"), default=str).encode("utf-8")
@@ -212,7 +215,7 @@ def answer(url, now=None):
         return None
     if prev:
         STATS["hits"] += 1
-        return _envelope(ticker, rows[-1:])
+        return _envelope(ticker, rows[-1:], with_ticker=True)
     if d_from < first and d_from >= datetime.strptime(BANK_FIRST_SESSION, "%Y-%m-%d").date():
         pass                                   # the ticker did not trade before `first`: the live answer starts there too
     elif d_from < first:
