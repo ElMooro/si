@@ -16,6 +16,12 @@ the connection* rather than on speed.
 
 OUTPUT data/lead-lag-graph.json   SCHEDULE daily 13:00 UTC. Real prices, research only.
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json
 import time
 import math

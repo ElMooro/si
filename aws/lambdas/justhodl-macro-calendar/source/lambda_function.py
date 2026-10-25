@@ -10,6 +10,12 @@ high-impact events.
 Output: data/macro-calendar.json
 Schedule: cron(0 11 * * ? *)  — daily 11 UTC
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import os, json, time, urllib.request, urllib.parse, math
 from datetime import datetime, timezone, timedelta
 import boto3

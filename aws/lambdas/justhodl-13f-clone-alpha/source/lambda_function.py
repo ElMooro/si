@@ -26,6 +26,12 @@ self-chains async up to MAX_HOPS, then weekly refresh keeps it warm.
 Caches: 13f/clone-holdings-cache.json, 13f/clone-price-cache.json.
 Output: data/13f-clone-alpha.json (status CONVERGING|COMPLETE).
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json
 import math
 import os

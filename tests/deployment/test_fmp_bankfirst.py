@@ -56,6 +56,15 @@ def test_bankfirst_hits_stale_and_passthrough():
         with urllib.request.urlopen("https://financialmodelingprep.com/stable/price-target?symbol=AAPL&apikey=SECRET") as r:
             assert json.loads(r.read()) == [{"symbol": "AAPL", "priceTarget": 300}]
             assert r.status == 200 and r.getcode() == 200 and r.headers["X-JH-Source"] == "fmp-bank"
+        # the response object answers every header/body pattern the fleet uses on a live HTTPResponse
+        r = urllib.request.urlopen("https://financialmodelingprep.com/stable/price-target?symbol=AAPL&apikey=S")
+        assert r.headers.get_content_charset() == "utf-8" and r.info().get_content_type() == "application/json"
+        assert r.headers.get("Content-Encoding") is None and r.headers.get("Content-Encoding", "identity") == "identity"
+        assert r.headers.get_all("Content-Length") == [str(r.length)] and "Content-Type" in r.headers and r.msg is r.headers
+        assert dict(r.getheaders())["X-JH-Source"] == "fmp-bank" and r.reason == "OK" and r.geturl().startswith("https://financialmodelingprep.com/stable/price-target")
+        assert json.load(r) == [{"symbol": "AAPL", "priceTarget": 300}]
+        r.close()
+        assert r.isclosed()
         # stale fast-family object -> live
         assert json.loads(urllib.request.urlopen(urllib.request.Request("https://financialmodelingprep.com/stable/grades?symbol=OLD&apikey=S")).read()) == {"live": True}
         # price family: newest banked date within 5 days -> hit; 30 days -> live
@@ -67,7 +76,7 @@ def test_bankfirst_hits_stale_and_passthrough():
         assert json.loads(urllib.request.urlopen("https://financialmodelingprep.com/stable/price-target?symbol=AAPL", data=b"x").read()) == {"live": True}
         # unbanked symbol -> live (miss)
         assert json.loads(urllib.request.urlopen("https://financialmodelingprep.com/stable/price-target?symbol=ZZZZ&apikey=S").read()) == {"live": True}
-        assert fmp_bankfirst.STATS["hits"] == 2 and fmp_bankfirst.STATS["stale"] == 2 and fmp_bankfirst.STATS["misses"] == 1, fmp_bankfirst.STATS
+        assert fmp_bankfirst.STATS["hits"] == 3 and fmp_bankfirst.STATS["stale"] == 2 and fmp_bankfirst.STATS["misses"] == 1, fmp_bankfirst.STATS
         assert len(calls) == 6, calls
         assert all("SECRET" not in c or "price-target?symbol=AAPL&apikey=SECRET" in c for c in calls)
     finally:

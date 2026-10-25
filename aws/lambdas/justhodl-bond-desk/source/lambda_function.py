@@ -48,6 +48,12 @@ World anxiety 0-100 = freshness-gated, weight-renormalized regional blend
 weekly 5y (renders day one); own anxiety history still accumulates.
 Output data/bond-desk.json. Consumers: signal-board, bond-desk.html.
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json, time, urllib.request, statistics as st
 from datetime import datetime, timezone, timedelta
 import boto3

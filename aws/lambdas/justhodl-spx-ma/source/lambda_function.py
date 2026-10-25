@@ -21,6 +21,12 @@ Divergence flag: index above 200d while <50% of members are = NARROW MARKET.
 Real data only; every layer degrades independently and reports coverage.
 Out: data/spx-ma.json · ledger spx-ma/member-closes.json · daily 21:15 UTC.
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json, os, time, urllib.parse, urllib.request
 from datetime import datetime, timedelta, timezone
 import boto3

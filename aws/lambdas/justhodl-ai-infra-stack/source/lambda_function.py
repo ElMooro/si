@@ -23,6 +23,12 @@ OVERLAYS (existing fresh S3 outputs + FMP):
 
 OUTPUT data/ai-infra-stack.json   SCHEDULE daily 13:45 UTC. Real data, research only.
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json
 import time
 import urllib.request

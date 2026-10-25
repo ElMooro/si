@@ -30,6 +30,12 @@ event.dry_run assembles without sending. event.simulate injects a
 synthetic tape for verification. It places no orders and re-computes
 no risk engine -- it is a monitor over the stack the brief reported.
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json
 import os
 import time

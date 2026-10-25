@@ -29,6 +29,7 @@ import time
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
+from http.client import HTTPMessage
 
 PRICE_MAX_AGE_DAYS = 5
 FAST_MAX_AGE_DAYS = 14
@@ -119,18 +120,36 @@ def answer(url):
     return json.dumps(rows, separators=(",", ":"), default=str).encode("utf-8")
 
 
+def _headers(n):
+    """A real http.client.HTTPMessage (email.message.Message): .get / .get_all / .get_content_charset /
+    .get_content_type / .items / ['X'] / `in` all behave as they do on a live response."""
+    h = HTTPMessage()
+    h["Content-Type"] = "application/json; charset=utf-8"
+    h["Content-Length"] = str(n)
+    h["X-JH-Source"] = "fmp-bank"
+    return h
+
+
 class _Resp(io.BytesIO):
-    """Just enough of an http.client.HTTPResponse for the fleet's call sites: read(), status/code, getcode(),
-    headers.get(), context-manager, info()."""
+    """Enough of an http.client.HTTPResponse for the fleet's call sites (surveyed 2026-10-25 across aws/lambdas): read()
+    / read1 / readline / json.load(resp), status / code / reason / msg, getcode(), geturl(), headers.get(...),
+    headers.get_all(...), headers.get_content_charset(), info(), length, context-manager.  No Content-Encoding header:
+    the body is plain JSON bytes, so gzip branches at call sites stay cold."""
 
     status = 200
     code = 200
     reason = "OK"
+    version = 11
+    chunked = False
+    debuglevel = 0
 
     def __init__(self, body, url):
         super().__init__(body)
         self.url = url
-        self.headers = {"Content-Type": "application/json", "X-JH-Source": "fmp-bank"}
+        self.length = len(body)
+        self.headers = _headers(len(body))
+        self.msg = self.headers
+        self.fp = self
 
     def getcode(self):
         return 200
@@ -145,10 +164,10 @@ class _Resp(io.BytesIO):
         return self.url
 
     def info(self):
-        class _H(dict):
-            def get_content_charset(self, default="utf-8"):
-                return "utf-8"
-        return _H(self.headers)
+        return self.headers
+
+    def isclosed(self):
+        return self.closed
 
     def __enter__(self):
         return self

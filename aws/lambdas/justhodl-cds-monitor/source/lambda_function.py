@@ -35,6 +35,12 @@ one consolidated global credit-stress composite and an ALARM BOARD.
 OUTPUT: data/cds-monitor.json   SCHEDULE: daily 13:00 UTC
 Real data only — FMP + FRED + platform engines. Not investment advice.
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json
 import math
 import os

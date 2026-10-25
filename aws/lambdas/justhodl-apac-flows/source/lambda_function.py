@@ -19,6 +19,12 @@ REAL OFFICIAL FREE SOURCES (probe-not-guess; language-agnostic key detection):
 Feeds: data/apac-flows.json (latest) + data/history/apac-flows.json (400d).
 No key faked; every source's success/failure is recorded in `sources`.
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import os, gzip, zlib, json, re, time, urllib.request, urllib.error, urllib.parse
 from datetime import datetime, timezone, timedelta
 import boto3

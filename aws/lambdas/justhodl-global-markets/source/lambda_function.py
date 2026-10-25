@@ -56,6 +56,12 @@ SCHEDULE
 cron(15 13-21 ? * MON-FRI *) — every hour during US market hours
 + once before EU open (07:00 UTC) + once before Asia close (08:00 UTC)
 """
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import io, json, os, time, urllib.request
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed

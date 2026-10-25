@@ -15,6 +15,12 @@ ECOS key), Taiwan exports (FRED, proxy for MOEA export orders — the classic
 semis/AI-demand lead; true orders series queued behind endpoint discovery),
 and the FRED releases/dates calendar (upcoming high-impact US prints).
 Writes data/asia-leads.json. Real data only; blocks degrade independently."""
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass
 import json, os, time, urllib.parse, urllib.request
 from datetime import datetime, timezone
 import boto3
