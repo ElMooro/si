@@ -291,18 +291,38 @@ def thrashing():
     return STATS["table_refetches"] >= 6
 
 
-def _num(v):
+# Fields FMP serves as JSON strings even when they look numeric (identifiers, dates, codes): a bank answer must carry
+# the same types as the live JSON or a consumer comparing fiscalYear == "2025" or building an SEC URL from a zero-padded
+# cik would break.  Everything else numeric-looking becomes a number; "true"/"false" become booleans (FMP's JSON booleans
+# arrive as those words in the CSV bulks).
+STRING_FIELDS = {"symbol", "cik", "date", "fiscalyear", "calendaryear", "period", "reportedcurrency", "filingdate", "accepteddate", "link", "finallink",
+                 "companyname", "currency", "exchange", "exchangeshortname", "exchangefullname", "industry", "sector", "country", "description", "ceo", "website",
+                 "ipodate", "isin", "cusip", "address", "city", "state", "zip", "phone", "image", "name", "type", "ticker", "lei", "sic", "sicdescription",
+                 "stateoflocation", "stateofincorporation", "fiscalyearend", "formtype", "fillingdate", "ratingrecommendation", "rating", "gradingcompany",
+                 "newgrade", "previousgrade", "action", "publisheddate", "title", "text", "url", "site", "publisher", "label", "peerslist", "transactiontype",
+                 "reportingname", "typeofowner", "securityname", "acquisitionordisposition", "formtype", "securitiesowned", "lastupdated", "updatedat", "createdat"}
+
+
+def _num(v, key=None):
     if v is None or v == "":
         return None
+    if key is not None and str(key).lower() in STRING_FIELDS:
+        return v
+    s = str(v)
+    low = s.lower()
+    if low in ("true", "false"):
+        return low == "true"
+    if len(s) > 1 and s[0] == "0" and s[1].isdigit():              # zero-padded code (cik, fips, zip): a string in FMP's JSON
+        return v
     try:
-        f = float(v)
-        return int(f) if f.is_integer() and "." not in str(v) else f
+        f = float(s)
+        return int(f) if f.is_integer() and "." not in s and "e" not in low else f
     except (TypeError, ValueError):
         return v
 
 
 def _typed(row):
-    return {k: _num(v) for k, v in row.items()}
+    return {k: _num(v, k) for k, v in row.items()}
 
 
 def _norm(tk):

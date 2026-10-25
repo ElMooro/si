@@ -31,6 +31,12 @@ h=fmp_book.try_harvest("ratios-ttm","symbol=AAPL"); assert h[0]["peRatioTTM"]==3
 assert fmp_book.try_harvest("balance-sheet-statement","symbol=AAPL&period=quarter") is None   # not banked, history asked -> live
 assert fmp_book.try_harvest("key-metrics","symbol=AAPL&limit=25") is None
 h=fmp_book.try_harvest("income-statement/AAPL",""); assert h and h[0]["date"]=="2025-09-27"
+# types follow FMP's JSON, not the CSV: identifiers/dates/fiscal years stay strings (zero-padded ciks included), booleans become booleans, numbers numbers
+store[R+"profile-bulk/latest.csv.gz"]=gz("symbol,cik,fiscalYear,isEtf,isActivelyTrading,marketCap,beta,zip,ipoDate\n600519,0000320193,2025,false,True,3900000000000,1.25,95014,1980-12-12\n")
+fmp_bank._TABLES.clear(); fmp_bank._MISSING.clear()
+pr=fmp_bank.snapshot("profile","600519")[0]
+assert pr["symbol"]=="600519" and pr["cik"]=="0000320193" and pr["fiscalYear"]=="2025" and pr["isEtf"] is False and pr["isActivelyTrading"] is True, pr
+assert pr["marketCap"]==3900000000000 and isinstance(pr["marketCap"],int) and pr["beta"]==1.25 and pr["zip"]=="95014" and pr["ipoDate"]=="1980-12-12", pr
 
 
 def test_fmp_bank_reader_and_book_chain():
