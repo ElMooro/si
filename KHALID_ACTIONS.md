@@ -30,9 +30,18 @@ This file tracks items that require **your direct action** (registration, creden
      does not give.
   4. **`justhodl-estimate-revisions`** is contract-bound to the Benzinga calendar shape and fails daily; the rewrite onto
      FMP `/stable/earnings-calendar` (banked daily by the walker) is a contract change - say "rewrite it" and it ships.
-* **Next on the lane (no decision needed):** consumer conversion - 227 engines still build their own FMP URLs; a staged,
-  tested AST rewrite onto `fmp_stable.fmp_get` (which now reads the banks first) per engine family; an EIA full-catalog
-  bank (route tree + series); `justhodl-tv-bars` reading the FMP EOD bank for the 14 non-US chart names stuck since Oct 2.
+* **Done later the same day - "pulled AND used":** 209 of the 229 engines that built their own FMP URLs are now
+  bank-first through `aws/shared/fmp_bankfirst` (one guarded install block each; every engine's own tests + the 1,238-test
+  deploy gate green; deploy lanes A/B dispatched 18:46 UTC). The shim answers only a call it can reproduce exactly and
+  only when the bank is at least as fresh as the provider would be (prices: the last completed session, never the
+  partial bar; fast feeds: 1 day; bulk: 2 days), and steps aside for the rest of the window when the bank would cost
+  more than a live call. The reader indexes each bulk CSV once per container inside a memory budget (a per-symbol loop
+  of 1,000 names costs ~2.5 s once, then ~0.1 ms per name). `justhodl-eia-bank` (the whole EIA v2 catalog) is deployed;
+  birth op 6650 and today's bounded backfill are running. Full rules and the not-converted list (9 byte-pinned engines,
+  katlin's live alias, 2 engines with pre-existing failing tests): `docs/providers/WAREHOUSE_BANKS.md`.
+* **Next on the lane (no decision needed):** ledgered patches for the 9 byte-pinned engines; a requests/urllib3 adapter
+  for the 3 engines not on urllib; `justhodl-tv-bars` reading the FMP EOD bank for the 14 non-US chart names stuck since
+  Oct 2; the first coverage scoreboard (`data/provider-coverage.json`, 06:47 UTC) read back tomorrow.
 
 ### 0m. "Yesterday cost $30" (2026-10-23) - explained, two leaks fixed, crawlers blocked, archive copying halved; open: 9 secrets, 2 servers (docs/audit/2026-10-23/aws-bill-oct22.md)
 
