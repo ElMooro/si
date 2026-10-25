@@ -1,5 +1,5 @@
 """
-justhodl-fmp-bank v1.0.0 -- the FMP Ultimate warehouse (bulk + EOD), banked verbatim on S3.
+justhodl-fmp-bank v1.1.0 -- the FMP Ultimate warehouse (bulk + EOD), banked verbatim on S3.
 
 Why (Khalid, 2026-10-23: "I want 100% of the data pulled and used by my system"): the provider audit found FMP
 Ultimate ($139/month) consumed live by 233 engines (~7,000 per-symbol calls a day) and banked NOWHERE - the data.html
@@ -44,6 +44,10 @@ Key: managed_secret(("FMP_KEY", "FMP_API_KEY"), ("/justhodl/fmp/api-key",)).  Ne
 Schedule: EventBridge Scheduler justhodl-fmp-bank-daily cron(13 23 * * ? *) UTC (after FMP's EOD prints ~21:30,
 after justhodl-fmp-ratios 22:38; the provider-publication slot cap for FMP is 4/min - minute :13 is free).
 Cost: ~10-14 min x 2 GB a day once the backfill is done (~$2.5/month); S3 ~1-3 GB/year of new objects.
+v1.1.0 (2026-10-25, after the first live kicks): gzip streams straight to /tmp (ephemeral 4 GB; one ETF-holder part is
+>400 MB raw), 600 s read timeout (bulk files are generated server-side), http verdict counts in the run record, the
+dated walk takes FMP_BANK_DATED_SHARE of the budget so the EOD walk from 2000 progresses every run, and the end of a
+parted bulk (http400 past the last part) is the end of the parts, not a refusal.
 """
 from __future__ import annotations
 
@@ -64,7 +68,7 @@ import boto3
 from managed_secret import managed_secret
 
 ENGINE = "justhodl-fmp-bank"
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 ROOT = "data/warm/fmp-bank/"
 STATE_KEY = ROOT + "_state/state.json"
@@ -77,8 +81,10 @@ PACE_S = float(os.environ.get("FMP_BANK_PACE_S", "0.25") or 0.25)
 EOD_FLOOR = os.environ.get("FMP_EOD_FLOOR", "2000-01-01")
 YEAR_FLOOR = int(os.environ.get("FMP_YEAR_FLOOR", "1985") or 1985)
 REFRESH_YEARS = 2                      # newest N fiscal years are re-pulled every run
-MAX_BYTES = 400_000_000
-TMP = "/tmp/fmp-bank.csv"
+MAX_BYTES = int(os.environ.get("FMP_BANK_MAX_BYTES", "3000000000") or 3_000_000_000)   # raw bytes; gz lands in /tmp (ephemeral 4 GB)
+TMP = "/tmp/fmp-bank.csv.gz"
+READ_TIMEOUT_S = int(os.environ.get("FMP_BANK_READ_TIMEOUT_S", "600") or 600)      # bulk files are generated server-side; first byte can take minutes
+DATED_SHARE = float(os.environ.get("FMP_BANK_DATED_SHARE", "0.6") or 0.6)          # of the budget left after the snapshots; the rest goes to the EOD walk
 
 SNAPSHOT = [
     ("profile-bulk", True), ("rating-bulk", False), ("dcf-bulk", False), ("scores-bulk", False),
@@ -123,21 +129,27 @@ def _key():
 
 
 class Fetch:
-    """One bulk GET -> ('ok', path, nbytes, nrows, sha) | ('empty',..) | ('http<code>',..) | ('err:..',..).
+    """One bulk GET -> ('ok', gz_path, nbytes_raw, nrows, sha) | ('empty',..) | ('http<code>',..) | ('err:..',..).
 
-    The body streams to /tmp (bulk files reach tens of MB) and is hashed on the way; 429/5xx retried with backoff.
+    The body streams through gzip straight into /tmp (bulk CSVs reach hundreds of MB raw; only the gz touches disk) and is
+    hashed and row-counted on the way; 429/5xx/timeouts retried with backoff.  Every verdict is counted in self.http so a
+    run can say how many 429s / timeouts it saw (v1.1.0: the first live runs retried 103 of 171 calls silently).
     """
 
     def __init__(self, key):
         self.key = key
         self.calls = 0
         self.retries = 0
+        self.http = {}
+
+    def _count(self, v):
+        self.http[v] = self.http.get(v, 0) + 1
 
     def get(self, endpoint, params):
         q = dict(params or {})
         q["apikey"] = self.key
         url = "%s/%s?%s" % (STABLE, endpoint, urllib.parse.urlencode(q))
-        delay = 2.0
+        delay = 3.0
         for attempt in range(5):
             gap = PACE_S - (time.time() - _last_call[0])
             if gap > 0:
@@ -146,23 +158,35 @@ class Fetch:
             self.calls += 1
             try:
                 req = urllib.request.Request(url, headers=UA)
-                with urllib.request.urlopen(req, timeout=120) as r, open(TMP, "wb") as f:
-                    h, n = hashlib.sha256(), 0
+                with urllib.request.urlopen(req, timeout=READ_TIMEOUT_S) as r, gzip.open(TMP, "wb", compresslevel=6) as f:
+                    h, n, rows, head, tail = hashlib.sha256(), 0, 0, b"", b""
                     while True:
                         chunk = r.read(1 << 20)
                         if not chunk:
                             break
+                        if n == 0:
+                            head = chunk[:512]
                         n += len(chunk)
                         if n > MAX_BYTES:
+                            self._count("too_large")
                             return ("err:too_large", TMP, n, 0, "")
                         h.update(chunk)
                         f.write(chunk)
-                rows = _count_rows(TMP) if n else 0
+                        rows += chunk.count(b"\n")
+                        tail = chunk[-1:]
+                if n and tail not in (b"\n", b""):
+                    rows += 1                                  # last line without a trailing newline
+                rows = max(rows - 1, 0)                        # header
+                if not head or head.lstrip()[:1] in (b"{", b"["):
+                    rows = 0                                   # a JSON body (error / []) is not a CSV
                 if n == 0 or rows == 0:
+                    self._count("empty")
                     return ("empty", TMP, n, 0, h.hexdigest())
+                self._count("ok")
                 return ("ok", TMP, n, rows, h.hexdigest())
             except urllib.error.HTTPError as e:
                 code = e.code
+                self._count("http%d" % code)
                 if code == 429 or code >= 500:
                     if attempt < 4 and _left() > delay + 30:
                         self.retries += 1
@@ -171,42 +195,23 @@ class Fetch:
                         continue
                 return ("http%d" % code, TMP, 0, 0, "")
             except Exception as e:  # noqa: BLE001
+                self._count("err:" + type(e).__name__)
                 if attempt < 4 and _left() > delay + 30:
                     self.retries += 1
                     time.sleep(delay)
                     delay *= 2
                     continue
                 return ("err:" + type(e).__name__, TMP, 0, 0, "")
+        self._count("err:retries")
         return ("err:retries", TMP, 0, 0, "")
 
 
-def _count_rows(path):
-    """Data rows in a CSV file (header excluded); a JSON error body ("Error Message" / []) counts as 0."""
-    with open(path, "rb") as f:
-        head = f.read(512)
-    if not head or head.lstrip()[:1] in (b"{", b"["):
-        return 0
-    n = 0
-    with open(path, "r", encoding="utf-8", errors="replace", newline="") as f:
-        for _ in csv.reader(f):
-            n += 1
-    return max(n - 1, 0)
-
-
-def _bank(key, src_path, meta, state):
-    """gzip file-to-file into S3 at <key>; records the object's size in state (objects/bytes are derived from it)."""
-    gz_path = src_path + ".gz"
-    with open(src_path, "rb") as fi, gzip.open(gz_path, "wb", compresslevel=6) as fo:
-        while True:
-            chunk = fi.read(1 << 20)
-            if not chunk:
-                break
-            fo.write(chunk)
+def _bank(key, gz_path, meta, state):
+    """Upload the already-gzipped body at <gz_path> to <key>; records the object's size in state (objects/bytes derive from it)."""
     size = os.path.getsize(gz_path)
     with open(gz_path, "rb") as f:
         s3.put_object(Bucket=BUCKET, Key=key, Body=f, ContentType="text/csv", ContentEncoding="gzip",
                       Metadata={k: str(v)[:250] for k, v in meta.items()})
-    os.remove(gz_path)
     state.setdefault("sizes", {})[key] = size
     return size
 
@@ -242,9 +247,12 @@ def do_snapshot(fx, state, cat, today):
             v, path, n, rows, sha = fx.get(ep, params)
             name = ep if not parted else "%s?part=%d" % (ep, part)
             if v != "ok":
+                if parted and part > 0 and v in ("http400", "empty", "http404"):
+                    _record(cat, ep, "ok", 0, 0, {"parts": part})  # the parts ended; the endpoint itself is served
+                    break
                 _record(cat, name, v, n, rows)
-                if v.startswith("http4"):
-                    state["key_status"] = "unauthorized" if v in ("http401", "http403") else state["key_status"]
+                if v in ("http401", "http403"):
+                    state["key_status"] = "unauthorized"
                 break
             base = ROOT + ep + ("/part-%d" % part if parted else "")
             hkey = base + "/latest.csv.gz"
@@ -285,13 +293,13 @@ def _dated_jobs(state, cur_year):
     return jobs
 
 
-def do_dated(fx, state, cat, today):
+def do_dated(fx, state, cat, today, until=None):
     cur_year = int(today[:4])
     state["today"] = today
     jobs = _dated_jobs(state, cur_year)
     state["dated_pending"] = len(jobs)
     for ep, y, p, k in jobs:
-        if _left() < 45:
+        if _left() < 45 or (until and time.time() > until):
             return False
         params = {"year": y}
         if p != "year":
@@ -397,8 +405,12 @@ def lambda_handler(event, context=None):
     run = {"started_at": _now().isoformat(), "steps": []}
     only = set(event.get("only") or [])
     try:
+        shares = {}
+        def _dated_until():
+            shares["dated_until"] = time.time() + max(60.0, (_left() - 60) * DATED_SHARE)
+            return shares["dated_until"]
         for name, fn in (("snapshot", lambda: do_snapshot(fx, state, cat, today)),
-                         ("dated", lambda: do_dated(fx, state, cat, today)),
+                         ("dated", lambda: do_dated(fx, state, cat, today, until=_dated_until())),
                          ("eod", lambda: do_eod(fx, state, cat))):
             if only and name not in only:
                 continue
@@ -407,14 +419,15 @@ def lambda_handler(event, context=None):
             t = time.time()
             complete = fn()
             run["steps"].append({"step": name, "complete": bool(complete), "seconds": round(time.time() - t, 1)})
-            if state["key_status"] == "unauthorized" or not complete or _left() < 60:
+            if state["key_status"] == "unauthorized" or _left() < 60:
                 break                                   # out of budget: the next run resumes from state
+            # an incomplete dated step only used its share; the EOD walk still gets the rest of the budget
         if state["key_status"] != "unauthorized" and fx.calls and any(v.get("last_ok_at") for v in cat.values()):
             state["key_status"] = "ok"
         eod_edge_reached = state["eod"].get("edge") == (_now() - timedelta(hours=6)).date().isoformat()
         state["phase"] = "STEADY" if (state.get("dated_pending") == 0 and eod_edge_reached) else "BACKFILL"
     finally:
-        run["calls"], run["retries"], run["seconds"] = fx.calls, fx.retries, round(time.time() - _t0, 1)
+        run["calls"], run["retries"], run["http"], run["seconds"] = fx.calls, fx.retries, fx.http, round(time.time() - _t0, 1)
         run["finished_at"] = _now().isoformat()
         state["last_run"] = run
         state["lease_until"] = 0

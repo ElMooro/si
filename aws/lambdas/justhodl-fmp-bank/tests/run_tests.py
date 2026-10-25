@@ -157,12 +157,40 @@ def test_lease_and_budget():
     assert out["phase"] == "BACKFILL" and len(out["run"]["steps"]) == 1 and not out["run"]["steps"][0]["complete"], out
 
 
-def test_count_rows_rejects_json_error_bodies():
+def test_fetch_rejects_json_error_bodies_and_counts_verdicts():
+    """v1.1.0: rows are counted while streaming through gzip; a JSON body is 'empty' (never banked as CSV); every verdict counted."""
     lf, s3, fake = boot()
-    open(lf.TMP, "wb").write(b'{"Error Message": "x"}')
-    assert lf._count_rows(lf.TMP) == 0
-    open(lf.TMP, "wb").write(b"a,b\n1,2\n3,4\n")
-    assert lf._count_rows(lf.TMP) == 2
+    fake.unknown.discard("peers-bulk")
+    fx = lf.Fetch("test-key-not-real")
+    import urllib.request as ur
+    real = ur.urlopen
+
+    def serve(body):
+        def _u(req, timeout=0):
+            r = io.BytesIO(body)
+            r.__enter__ = lambda s=r: s
+            r.__exit__ = lambda s=r, *a: None
+            return r
+        ur.urlopen = _u
+    serve(b'{"Error Message": "x"}')
+    assert fx.get("rating-bulk", {})[0] == "empty"
+    serve(b"a,b\n1,2\n3,4\n")
+    v, path, n, rows, sha = fx.get("rating-bulk", {})
+    assert (v, n, rows) == ("ok", 12, 2), (v, n, rows)
+    assert gzip.open(path, "rb").read() == b"a,b\n1,2\n3,4\n"
+    serve(b"a,b\n1,2\n3,4")                                  # no trailing newline
+    assert fx.get("rating-bulk", {})[3] == 2
+    assert fx.http == {"empty": 1, "ok": 2}, fx.http
+    ur.urlopen = real
+
+
+def test_parted_bulk_end_is_not_a_refusal():
+    lf, s3, fake = boot()
+    out = lf.lambda_handler({"only": ["snapshot"]}, None)
+    cat = json.loads(s3.store[lf.CATALOG_KEY])
+    assert "profile-bulk" in cat["served"] and cat["endpoints"]["profile-bulk"].get("parts") == 1, cat["endpoints"]["profile-bulk"]
+    assert not any(k.startswith("profile-bulk?part=") for k in cat["not_served"]), cat["not_served"]
+    assert out["run"]["http"]["ok"] >= 9, out["run"]["http"]
 
 
 if __name__ == "__main__":

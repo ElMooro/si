@@ -17,7 +17,9 @@
     "S3_BUCKET": "justhodl-dashboard-live",
     "FMP_BANK_BUDGET_S": "780",
     "FMP_EOD_FLOOR": "2000-01-01",
-    "FMP_YEAR_FLOOR": "1985"
+    "FMP_YEAR_FLOOR": "1985",
+    "FMP_BANK_READ_TIMEOUT_S": "600",
+    "FMP_BANK_DATED_SHARE": "0.6"
   },
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-fmp-bank-daily",
@@ -25,5 +27,6 @@
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "FMP Ultimate bulk + EOD warehouse, daily 23:13 UTC (after FMP EOD prints and fmp-ratios)"
-  }
+  },
+  "ephemeral_storage": 4096
 }
