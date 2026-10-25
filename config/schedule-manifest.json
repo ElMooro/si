@@ -14940,6 +14940,21 @@
      "path": null
     }
    ]
+  },
+  {
+   "expr": "cron(10 3 * * ? *)",
+   "group": "default",
+   "kind": "scheduler",
+   "name": "justhodl-polygon-eod-daily",
+   "state": "ENABLED",
+   "timezone": "UTC",
+   "targets": [
+    {
+     "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-polygon-eod",
+     "input": "{}",
+     "path": null
+    }
+   ]
   }
  ]
 }

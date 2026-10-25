@@ -1,0 +1,21 @@
+{
+  "runtime": "python3.12",
+  "memory": 3008,
+  "timeout": 900,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Per-ticker daily histories folded from justhodl-polygon-full's grouped sessions (data/warm/polygon-full/eod/<T>.json.gz): one S3 read per ticker instead of a rate-limited Polygon call; bank-only, no key; gaps published, never guessed.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "POLYGON_EOD_BUDGET_S": "780",
+    "POLYGON_EOD_SESSIONS_PER_RUN": "120",
+    "POLYGON_EOD_WORKERS": "16"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-polygon-eod-daily",
+    "cron": "cron(10 3 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Polygon per-ticker EOD transpose, daily 03:10 UTC (after justhodl-polygon-full 02:29 banks the closed session)"
+  }
+}

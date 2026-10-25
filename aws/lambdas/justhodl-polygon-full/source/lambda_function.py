@@ -1,4 +1,4 @@
-"""justhodl-polygon-full v1.0.0 -- full-market US equities warehouse.
+"""justhodl-polygon-full v1.1.0 -- full-market US equities warehouse.
 
 4975 evidence: grouped-daily (no limit param!) returns the ENTIRE
 market -- 10,561 tickers / 1.09MB per session -- entitled on a
@@ -14,6 +14,12 @@ rolling ~5y window (403 before ~2022, 200 after). Doctrine:
            entitlement window rolls past it (that is the point)
   steady   rate(2 hours) advances to the newest closed session
   key      POLYGON_API_KEY env (set by ops from the fleet donor)
+  holes    v1.1.0 (2026-10-25, ops 6654 found 2026-10-13 and 10-16 missing after the
+           Oct 12-16 freeze): after the cursor pass, weekdays between window_start
+           and the cursor with no banked file are pulled once (newest first, HOLE_BUDGET_S
+           per run): resultsCount 0 = exchange holiday, recorded in state["holidays"]
+           and never asked again; rows = a hole closed, banked like any session.
+           The per-ticker transpose (justhodl-polygon-eod) refuses windows spanning a hole.
 """
 import gzip
 import json
@@ -26,7 +32,7 @@ from datetime import date, datetime, timedelta, timezone
 import boto3
 import chain_guard  # ops 5260 — bounded-lineage self-chaining (aws/shared)
 
-ENGINE_VERSION = "justhodl-polygon-full v1.0.0 ops4976 grouped"
+ENGINE_VERSION = "justhodl-polygon-full v1.1.0 holes"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 KEY = os.environ.get("POLYGON_API_KEY", "")
 ROOT = "data/warm/polygon-full/"
@@ -37,6 +43,7 @@ BUDGET_S = int(os.environ.get("PG_BUDGET_S", "660"))
 SPACING = 0.30
 CHAIN_DEPTH_MAX = 30
 START_FLOOR = "2021-06-01"        # search from here; 403s advance it
+HOLE_BUDGET_S = int(os.environ.get("PG_HOLE_BUDGET_S", "150"))
 
 s3 = boto3.client("s3", region_name="us-east-1")
 _t0 = time.time()
@@ -76,6 +83,68 @@ def pull_day(d):
         return ("err%s" % e.code, 0, b"")
     except Exception as e:
         return ("err:" + str(e)[:40], 0, b"")
+
+
+def banked_sessions(window_start):
+    """ISO dates of every banked grouped file from window_start's year on."""
+    out = set()
+    for y in range(int(window_start[:4]), _now().year + 1):
+        tok = None
+        while True:
+            kw = {"Bucket": BUCKET, "Prefix": ROOT + "grouped/%d/" % y, "MaxKeys": 1000}
+            if tok:
+                kw["ContinuationToken"] = tok
+            resp = s3.list_objects_v2(**kw)
+            for o in resp.get("Contents", []):
+                k = o["Key"]
+                if k.endswith(".json.gz") and len(k) >= 18:
+                    out.add(k[-18:-8])
+            tok = resp.get("NextContinuationToken")
+            if not tok:
+                break
+    return out
+
+
+def repair_holes(state, deadline):
+    """Pull the weekdays the bank is missing (newest first) until the deadline; holidays are recorded, holes closed."""
+    start = state.get("window_start") or state.get("cursor")
+    if not start:
+        return {"checked": 0}
+    have = banked_sessions(start)
+    holidays = set(state.get("holidays") or [])
+    cur = date.fromisoformat(state["cursor"])
+    d = cur - timedelta(days=1)
+    first = date.fromisoformat(start)
+    missing = []
+    while d >= first:
+        ds = d.isoformat()
+        if d.weekday() < 5 and ds not in have and ds not in holidays:
+            missing.append(ds)
+        d -= timedelta(days=1)
+    state["holes_open"] = len(missing)
+    closed, found_holidays, errors = [], [], []
+    for ds in missing:
+        if time.time() > deadline:
+            break
+        verdict, n, raw = pull_day(ds)
+        if verdict == "ok":
+            s3.put_object(Bucket=BUCKET, Key=ROOT + "grouped/%s/%s.json.gz" % (ds[:4], ds), Body=gzip.compress(raw),
+                          ContentType="application/gzip", Metadata={"engine": "polygon-full", "session": ds, "tickers": str(n), "repaired": "hole"})
+            state["sessions"] += 1
+            state["bytes"] += len(raw)
+            closed.append(ds)
+        elif verdict == "empty":
+            holidays.add(ds)
+            found_holidays.append(ds)
+        else:
+            errors.append([ds, verdict])
+        time.sleep(SPACING)
+    state["holidays"] = sorted(holidays)
+    state["holes_open"] = len(missing) - len(closed) - len(found_holidays)
+    state["holes_closed_total"] = int(state.get("holes_closed_total") or 0) + len(closed)
+    rep = {"checked": len(missing), "closed": closed, "holidays": found_holidays, "errors": errors[:10], "open": state["holes_open"]}
+    state["holes_last"] = rep
+    return rep
 
 
 def lambda_handler(event, ctx=None):
@@ -134,6 +203,13 @@ def lambda_handler(event, ctx=None):
             _put_json(STATE_KEY, state)
         time.sleep(SPACING)
     state["phase"] = "DRAIN" if cur <= edge else "LIVE"
+    holes = {"checked": 0}
+    if state["phase"] == "LIVE" and not event.get("no_holes"):
+        try:
+            holes = repair_holes(state, min(_t0 + BUDGET_S - 30, time.time() + HOLE_BUDGET_S))
+        except Exception as e:  # noqa: BLE001 - the repair never blocks the live edge
+            holes = {"error": str(e)[:120]}
+            state["holes_last"] = holes
 
     behind = state["phase"] == "DRAIN"
     depth = int(event.get("chain_depth") or 0)
@@ -144,13 +220,16 @@ def lambda_handler(event, ctx=None):
     _put_json(STATE_KEY, state)
     _put_json(MANIFEST_KEY, {
         "as_of": state["as_of"], "engine": "justhodl-polygon-full",
-        "version": "1.0.0", "sessions": state["sessions"],
+        "version": "1.1.0", "sessions": state["sessions"],
         "gb": round(state["bytes"] / 1e9, 2),
         "window_start": state.get("window_start"),
         "cursor": state["cursor"], "skips": state["skips"],
         "tickers_last": state.get("last_n"),
         "failures": len(state["failures"]),
         "phase": state["phase"],
+        "holidays": state.get("holidays") or [],
+        "holes_open": state.get("holes_open"),
+        "holes_last": state.get("holes_last"),
         "note": ("full-market grouped-daily warehouse -- every "
                  "session verbatim (~10.5k tickers/day) from the "
                  "entitled boundary; banked sessions persist after "
@@ -164,5 +243,5 @@ def lambda_handler(event, ctx=None):
             "cursor": state["cursor"],
             "sessions": state["sessions"],
             "gb": round(state["bytes"] / 1e9, 2),
-            "chained": chain,
+            "chained": chain, "holes": holes,
             "elapsed_s": round(time.time() - _t0, 1)}

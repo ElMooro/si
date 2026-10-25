@@ -83,7 +83,7 @@ transpose — per-ticker history files `data/warm/polygon-full/eod/{T}.json.gz` 
 `range/1/day` and `/prev` in Polygon's own envelope with the same strict session freshness as the FMP shim (everything
 else live). Facts settled by ops 6654 (read-only, 2026-10-25): polygon-full runs at 02:29 UTC, so every banked session is the
 closed day's final aggregate (written ~6 h after the close; SPY's bars are full-day volumes) — 1,294 sessions since
-2021-08-26, ~12.5k tickers each; but the bank has HOLES (2026-10-13, 10-16, 10-17 — the Oct 12–16 loop/freeze days) and
+2021-08-26, ~12.5k tickers each; but the bank has HOLES (Tue 2026-10-13 and Fri 10-16 — the Oct 12–16 loop/freeze days) and
 the engine's cursor is past them, so the transpose must list the banked sessions against the exchange calendar, re-pull
 the missing ones (still inside the entitlement window) and refuse to answer any window that spans a hole.
 
