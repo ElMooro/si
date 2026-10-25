@@ -1,5 +1,5 @@
 {
-  "version": "1.2.0",
+  "version": "1.2.1",
   "root": "data/warm/fmp/",
   "doctrine": [
     "Every FMP /stable family that is NOT a bulk file (justhodl-fmp-bank owns bulk + eod-bulk) is banked here, verbatim JSON (gz), under data/warm/fmp/<dataset>/...",
@@ -907,7 +907,7 @@
       "priority": 0,
       "rotation_days": 1,
       "store_as": "historical-price-eod-full",
-      "note": "daily-complete lane (v1.2.0): the chart names, every US active stock/ETF, indexes, USD forex, top cryptos, commodities - refreshed in full every run so the banks answer price asks at the last completed session; the long tail stays on historical-price-eod-full (universe all, rotating)"
+      "note": "daily-complete lane (v1.2.0): the chart names, every US active stock/ETF, indexes, USD forex, top cryptos, commodities - refreshed in full so the banks answer price asks at the last completed session; ~18k names need ~1,000 s at the key's proven 18 req/s, so the lane has its own daily run (schedule justhodl-fmp-walker-prices 22:40 UTC, event only=[this id]) and continues from its cursor inside the 23:27 run; the long tail stays on historical-price-eod-full (universe all, rotating)"
     },
     {
       "id": "historical-price-eod-full",

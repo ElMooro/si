@@ -57,13 +57,13 @@ from botocore.config import Config
 from managed_secret import managed_secret
 
 ENGINE = "justhodl-fmp-walker"
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 STABLE = "https://financialmodelingprep.com/stable"
 UA = {"User-Agent": "JustHodl Research (raafouis@gmail.com) fmp-walker/" + VERSION}
 BUDGET_S = int(os.environ.get("FMP_WALKER_BUDGET_S", "780") or 780)
-WORKERS = int(os.environ.get("FMP_WALKER_WORKERS", "16") or 16)
-RPS = float(os.environ.get("FMP_WALKER_RPS", "28") or 28)   # v1.2.0: 1,680/min, under Ultimate's 3,000/min; the daily price lane needs ~8k calls
+WORKERS = int(os.environ.get("FMP_WALKER_WORKERS", "12") or 12)
+RPS = float(os.environ.get("FMP_WALKER_RPS", "18") or 18)   # 18 req/s is the proven ceiling for this key: 28 req/s drew 503 x 429 in one run (2026-10-25 23:27 UTC); the price lane gets its own daily run instead
 PER_ENTITY_MAX_BYTES = int(os.environ.get("FMP_WALKER_MAX_BYTES", "25000000") or 25_000_000)
 CHART_IDX_KEY = "data/warm/tv-bars/universe/_index.json"
 CORE = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA", "AVGO", "BRK-B", "JPM", "LLY", "V", "UNH", "XOM", "MA", "COST", "HD", "PG", "JNJ", "ABBV",
@@ -937,7 +937,7 @@ class Walker:
             if _left() < _g(60) or self.unauthorized:
                 break
             need = len(self.universes.get(d["universe"]) or []) / max(RPS, 1.0) * 1.25 + _g(10)
-            share = min(need, (_left() - _g(45)) * 0.7)
+            share = min(need, (_left() - _g(45)) * (0.95 if self.only else 0.7))   # a dedicated run (event only=[...]) gives the lane the whole budget
             t_ds = time.time()
             self.do_per_entity(d, share)
             self.run["datasets"].setdefault(d["id"], {})["seconds"] = round(time.time() - t_ds, 1)
