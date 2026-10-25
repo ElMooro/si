@@ -13,8 +13,8 @@
     {"from_function": "justhodl-analyst-consensus", "keys": ["FMP_KEY"]}
   ],
   "schedule": {
-    "rule_name": "mean-reversion-daily",
+    "scheduler_name": "mean-reversion-sched",
     "cron": "cron(30 13 ? * MON-FRI *)",
-    "description": "Mean-reversion price engine — weekdays 13:30 UTC, after the screener refresh"
+    "description": "Mean-reversion price engine — weekdays 13:30 UTC via EventBridge Scheduler mean-reversion-sched (preserve-only reference; the classic rule mean-reversion-daily no longer exists)"
   }
 }

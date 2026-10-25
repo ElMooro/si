@@ -13,8 +13,8 @@
     {"from_function": "justhodl-analyst-consensus", "keys": ["FMP_KEY"]}
   ],
   "schedule": {
-    "rule_name": "fundamentals-engine-daily",
-    "cron": "cron(0 13 ? * MON-FRI *)",
-    "description": "FMP Fundamentals X-Ray — daily 13:00 UTC, before master-ranker / pm-decision refresh"
+    "scheduler_name": "fundamentals-engine-sched",
+    "cron": "cron(1 13 ? * MON-FRI *)",
+    "description": "FMP Fundamentals X-Ray — weekdays 13:01 UTC via EventBridge Scheduler fundamentals-engine-sched (preserve-only reference; the classic rule fundamentals-engine-daily no longer exists)"
   }
 }
