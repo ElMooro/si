@@ -1,0 +1,29 @@
+{
+  "runtime": "python3.12",
+  "memory": 1024,
+  "timeout": 900,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "EIA v2 full-catalog warehouse: walks the route tree, banks every leaf route's metadata, full history as offset pages and a daily newest-rows file (petroleum, natural gas, electricity/RTO, coal, nuclear, STEO/AEO, international); data/warm/eia-bank/.",
+  "inherit_env": [
+    {
+      "from_function": "justhodl-real-economy-collector",
+      "keys": [
+        "EIA_API_KEY"
+      ]
+    }
+  ],
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "EIA_BANK_BUDGET_S": "780",
+    "EIA_BANK_WORKERS": "4",
+    "EIA_BANK_RPS": "1.5"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-eia-bank-daily",
+    "cron": "cron(31 21 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "EIA v2 full-catalog warehouse, daily 21:31 UTC"
+  }
+}

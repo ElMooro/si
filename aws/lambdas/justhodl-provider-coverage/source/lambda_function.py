@@ -40,6 +40,7 @@ BANKS = {
     "fmp-walker": {"provider": "fmp", "manifest": "data/warm/fmp/manifest.json", "prefix": "data/warm/fmp/", "engine": "justhodl-fmp-walker", "scope": "non-bulk families (per symbol / 13F / insiders / Senate-House / transcripts / estimates / ETF / economics / calendars / news / 1-min bars)"},
     "polygon-bank": {"provider": "polygon", "manifest": "data/warm/polygon-bank/manifest.json", "prefix": "data/warm/polygon-bank/", "engine": "justhodl-polygon-bank", "scope": "REST families beyond the tape"},
     "provider-bank": {"provider": None, "manifest": "data/warm/provider-bank/manifest.json", "prefix": "data/warm/provider-bank/", "engine": "justhodl-provider-bank", "scope": "Trading Economics / CoinMarketCap / NewsAPI / Nasdaq Data Link / CryptoQuant splits"},
+    "eia-bank": {"provider": "eia", "manifest": "data/warm/eia-bank/manifest.json", "prefix": "data/warm/eia-bank/", "engine": "justhodl-eia-bank", "scope": "EIA v2 full catalog (every leaf route, full history + daily newest rows)"},
 }
 # the lanes that existed before the banks (so the card can say the whole picture, not only the new engines)
 LEGACY = {
@@ -50,6 +51,7 @@ LEGACY = {
     "newsapi": ["justhodl-news-wire, buzz-velocity, forward-orders, asia-leads, financial-secretary"],
     "ndl": ["nasdaq-datalink-agent (Function URL, 24 datasets)"],
     "cq": ["justhodl-cryptoquant (410 metrics daily), justhodl-cq-feed (189 paths latest)"],
+    "eia": ["justhodl-real-economy-collector, eia-energy-agent, justhodl-freight-pulse (17 series), justhodl-grid-queue (triggers disabled 2026-10-20)"],
 }
 PLAN_HINTS = {
     "fmp": "FMP Ultimate (paid): 3,000 calls/min, bulk + batch, 1-minute intraday, transcripts, 13F, full history",
@@ -59,6 +61,7 @@ PLAN_HINTS = {
     "newsapi": "NewsAPI: plan not in the repo - capped at 60 requests/day by the bank",
     "ndl": "Nasdaq Data Link: entitled databases are read from /api/v3/databases daily",
     "cq": "CryptoQuant Professional: 1-year window per series; per-exchange / per-miner / hourly are recorded probes",
+    "eia": "EIA v2 (free key, 5,000 requests/hour): every leaf route is banked; refusals are recorded per leaf",
 }
 
 s3 = boto3.client("s3", region_name="us-east-1")
@@ -141,8 +144,8 @@ def lambda_handler(event, context=None):
         banks[bid] = b
     providers = {}
     pb = banks.get("provider-bank") or {}
-    for prov in ("fmp", "polygon", "te", "cmc", "newsapi", "ndl", "cq"):
-        if prov in ("fmp", "polygon"):
+    for prov in ("fmp", "polygon", "te", "cmc", "newsapi", "ndl", "cq", "eia"):
+        if prov in ("fmp", "polygon", "eia"):
             mine = [b for b in banks.values() if BANKS[b["bank"]]["provider"] == prov]
             served = sorted({e if isinstance(e, str) else e[0] for b in mine for e in (b.get("served") or [])})
             refused = [list(e) if isinstance(e, (list, tuple)) else [e, None] for b in mine for e in (b.get("refused") or [])]
@@ -165,7 +168,7 @@ def lambda_handler(event, context=None):
             "legacy_lanes": LEGACY.get(prov, []), "served": served, "served_n": len(served), "refused": refused, "untested": untested,
             "coverage": round(len(served) / denom, 3) if denom else None, "phase": phase,
             "objects_banked": objects, "gb_banked": round(nbytes / 1e9, 3), "skipped": skipped,
-            "catalog_cards": {k: v for k, v in cards.items() if k.startswith(prov) or (prov == "cq" and k.startswith("cryptoquant")) or (prov == "polygon" and k.startswith("polygon")) or (prov == "te" and k.startswith("te-")) or (prov == "ndl" and k.startswith("nasdaq")) or (prov == "newsapi" and k == "newsapi")},
+            "catalog_cards": {k: v for k, v in cards.items() if k.startswith(prov) or (prov == "cq" and k.startswith("cryptoquant")) or (prov == "polygon" and k.startswith("polygon")) or (prov == "te" and k.startswith("te-")) or (prov == "ndl" and k.startswith("nasdaq")) or (prov == "newsapi" and k == "newsapi") or (prov == "eia" and k.startswith("eia"))},
         }
     doc = {
         "engine": ENGINE, "version": VERSION, "generated_at": datetime.now(timezone.utc).isoformat(), "schema_version": "provider-coverage.v1",

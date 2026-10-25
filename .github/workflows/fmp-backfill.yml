@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       engines:
-        description: 'space-separated subset (default: justhodl-fmp-bank justhodl-fmp-walker justhodl-polygon-bank justhodl-provider-bank)'
+        description: 'space-separated subset (default: justhodl-fmp-bank justhodl-fmp-walker justhodl-polygon-bank justhodl-provider-bank justhodl-eia-bank)'
         required: false
         default: ''
       max_minutes:
