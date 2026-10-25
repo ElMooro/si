@@ -402,9 +402,9 @@ def statements(path, symbol, period="annual", limit=None, years=None):
         held = [y for y in held if y in set(years)]
     periods = ["annual"] if period == "annual" else (["Q1", "Q2", "Q3", "Q4"] if period == "quarter" else [period])
     if limit and years is None:
-        # a bounded ask scans only the years that can hold it (+2 for a company with a gap); every year-file is a
-        # whole-market table, so unbounded depth would thrash the container's text budget
-        held = held[: -(-int(limit) // len(periods)) + 2]
+        # a bounded ask scans only the years that can hold it (+1 for a company with a gap); every year-file is a
+        # whole-market table (~10-20 MB decoded), so depth is what decides whether the working set fits the budget
+        held = held[: -(-int(limit) // len(periods)) + 1]
     out = []
     misses = 0
     for y in held:
