@@ -211,6 +211,26 @@ def test_bankfirst_steps_aside_when_it_would_cost_more():
         fmp_bank.STATS["table_refetches"] = 0
         fmp_bankfirst._ctl["since"] -= 1000
         assert _get("https://financialmodelingprep.com/stable/key-executives?symbol=A&apikey=S") == [{"symbol": "A"}]
+        # the marginal rule: slow attempts that keep HITTING are a warm-up and stay; slow attempts with no hit step aside
+        real_try_bank = fmp_bank.try_bank
+        fmp_bankfirst.RECENT_SLOW_S = 0.01
+
+        def slow_try_bank(path, qs=""):
+            time.sleep(0.02)
+            return real_try_bank(path, qs)
+        fmp_bank.try_bank = slow_try_bank
+        try:
+            fmp_bankfirst._reset_ctl(time.time())
+            for _ in range(12):
+                assert _get("https://financialmodelingprep.com/stable/key-executives?symbol=A&apikey=S") == [{"symbol": "A"}]
+            assert fmp_bankfirst._ctl["off"] is None, fmp_bankfirst._ctl["off"]
+            fmp_bankfirst._reset_ctl(time.time())
+            for i in range(12):
+                _get("https://financialmodelingprep.com/stable/key-executives?symbol=NOPE%d&apikey=S" % i)
+            assert fmp_bankfirst._ctl["off"] and "no hit" in fmp_bankfirst._ctl["off"], fmp_bankfirst._ctl["off"]
+        finally:
+            fmp_bank.try_bank = real_try_bank
+            fmp_bankfirst.RECENT_SLOW_S = 0.5
     finally:
         fmp_bankfirst.uninstall()
 

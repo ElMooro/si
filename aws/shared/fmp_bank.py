@@ -37,13 +37,15 @@ _MAX_CACHED = 24
 
 
 def _text_budget():
-    """Chars of decoded CSV kept per container: 20% of the Lambda's memory, clamped to [48 MB, 512 MB]; local 256 MB."""
+    """Chars of decoded CSV kept per container: 30% of the Lambda's memory, clamped to [48 MB, 640 MB]; local 256 MB.
+    (First light 2026-10-25: at 20% the 512 MB engines thrashed on two statement year-files; the engines themselves use
+    ~100-250 MB, and a table costs ~1.3x its text while it is being built.)"""
     try:
         mb = int(os.environ.get("FMP_BANK_TEXT_BUDGET_MB") or 0)
         if mb:
             return mb << 20
         mem = int(os.environ.get("AWS_LAMBDA_FUNCTION_MEMORY_SIZE") or 0)
-        return max(48 << 20, min(512 << 20, (mem << 20) // 5)) if mem else 256 << 20
+        return max(48 << 20, min(640 << 20, (mem << 20) * 3 // 10)) if mem else 256 << 20
     except (TypeError, ValueError):
         return 256 << 20
 

@@ -26,8 +26,9 @@ Freshness guards (a bank must never masquerade as today's print):
   * never: quotes, searches, screeners, calendars, snapshots, treasury/market-risk - always live.
 Cost guards (the bank must be cheaper than the provider or it steps aside for the rest of the invocation):
   * MISS_STORM (25) consecutive misses on one dataset -> that dataset goes live for the rest of the process;
-  * fmp_bank.thrashing() (tables evicted and re-read) or mean bank time > 0.3 s after 20 attempts, or 90 s of bank time
-    in total -> everything goes live for the rest of the process (one log line).
+  * fmp_bank.thrashing() (tables evicted and re-read), the last 10 attempts averaging > 0.5 s with no hit among them
+    (slow AND useless - a warm-up that pays off is not penalised), or 90 s of bank time in total -> everything goes live
+    for the rest of the 15-minute window (one log line); a running-stats line every 50 attempts and on the first hit.
 Counters: STATS = {"hits", "misses", "stale", "unshaped", "passthrough", "errors", "bypassed"}; print_stats() logs one line.
 """
 from __future__ import annotations
@@ -46,16 +47,18 @@ SLOW_MAX_AGE_DAYS = 30.0
 BULK_MAX_AGE_DAYS = 2.0
 MISS_STORM = 25
 BANK_TIME_CAP_S = float(os.environ.get("FMP_BANKFIRST_TIME_CAP_S") or 90)
-BANK_MEAN_CAP_S = 0.3
 STATEMENT_LIMIT_MAX = {"annual": 12, "quarter": 16}
 STATS = {"hits": 0, "misses": 0, "stale": 0, "unshaped": 0, "passthrough": 0, "errors": 0, "bypassed": 0}
 _installed = {"done": False, "real": None}
-_ctl = {"bank_time": 0.0, "attempts": 0, "off": None, "miss_run": {}, "off_heads": set(), "since": 0.0}
+_ctl = {"bank_time": 0.0, "attempts": 0, "off": None, "miss_run": {}, "off_heads": set(), "since": 0.0, "recent": [], "hits": 0}
 CTL_WINDOW_S = 900.0                   # a warm container serves many invocations: the cost guards reset every 15 minutes
+RECENT_N = 10                          # the marginal rule looks at the last RECENT_N attempts, not the warm-up average
+RECENT_SLOW_S = 0.5
+STATS_EVERY = 50                       # one running-stats line every STATS_EVERY attempts (and on the first hit)
 
 
 def _reset_ctl(now=None):
-    _ctl.update(bank_time=0.0, attempts=0, off=None, miss_run={}, off_heads=set(), since=(now if now is not None else time.time()))
+    _ctl.update(bank_time=0.0, attempts=0, off=None, miss_run={}, off_heads=set(), since=(now if now is not None else time.time()), recent=[], hits=0)
 STATEMENT_HEADS = {"income-statement", "balance-sheet-statement", "cash-flow-statement", "income-statement-growth", "balance-sheet-statement-growth",
                    "cash-flow-statement-growth", "key-metrics", "ratios", "financial-growth"}
 COMMON_PARAMS = {"symbol", "limit", "period", "from", "to"}
@@ -227,29 +230,43 @@ def answer(url):
     rows = fmp_bank.try_bank(path, urllib.parse.urlencode({k: v for k, v in q.items() if k not in ("from", "to")}))
     spent = time.time() - t0
     _ctl["bank_time"] += spent
-    if _ctl["bank_time"] > BANK_TIME_CAP_S:
-        _bypass("bank time cap %.0fs" % BANK_TIME_CAP_S)
-    elif _ctl["attempts"] >= 20 and _ctl["bank_time"] / _ctl["attempts"] > BANK_MEAN_CAP_S:
-        _bypass("mean bank time %.2fs > %.2fs" % (_ctl["bank_time"] / _ctl["attempts"], BANK_MEAN_CAP_S))
-    elif fmp_bank.thrashing():
-        _bypass("table cache thrashing (working set exceeds this container's text budget)")
+    served = None
     if rows is None:
         STATS["misses"] += 1
         n = _ctl["miss_run"][head] = _ctl["miss_run"].get(head, 0) + 1
         if n >= MISS_STORM:
             _ctl["off_heads"].add(head)
             print("[fmp-bankfirst] %s: %d consecutive misses - live for the rest of this invocation" % (head, n))
-        return None
-    _ctl["miss_run"][head] = 0
-    if not _fresh_enough(head, rows, q):
-        STATS["stale"] += 1
-        return None
-    rows = _window(rows, q)
-    if rows is None:
-        STATS["unshaped"] += 1
-        return None
-    STATS["hits"] += 1
-    return json.dumps(rows, separators=(",", ":"), default=str).encode("utf-8")
+    else:
+        _ctl["miss_run"][head] = 0
+        if not _fresh_enough(head, rows, q):
+            STATS["stale"] += 1
+        else:
+            win = _window(rows, q)
+            if win is None:
+                STATS["unshaped"] += 1
+            else:
+                STATS["hits"] += 1
+                _ctl["hits"] += 1
+                served = json.dumps(win, separators=(",", ":"), default=str).encode("utf-8")
+                if _ctl["hits"] == 1:
+                    print_stats("[fmp-bankfirst] first hit:")
+    # cost guards: the first table of a family costs seconds (fetch + decode + index once per container) and that is an
+    # investment, so the marginal rule judges the LAST RECENT_N attempts - slow AND useless (no hit among them) steps aside;
+    # thrashing (tables evicted and re-read) and the absolute cap step aside whatever the hit rate.
+    rec = _ctl["recent"]
+    rec.append((spent, served is not None))
+    if len(rec) > RECENT_N:
+        del rec[0]
+    if _ctl["bank_time"] > BANK_TIME_CAP_S:
+        _bypass("bank time cap %.0fs" % BANK_TIME_CAP_S)
+    elif len(rec) >= RECENT_N and sum(x[0] for x in rec) / len(rec) > RECENT_SLOW_S and not any(x[1] for x in rec):
+        _bypass("last %d attempts averaged %.2fs with no hit" % (RECENT_N, sum(x[0] for x in rec) / len(rec)))
+    elif fmp_bank.thrashing():
+        _bypass("table cache thrashing (working set exceeds this container's text budget)")
+    if _ctl["attempts"] % STATS_EVERY == 0:
+        print_stats()
+    return served
 
 
 def _headers(n):
