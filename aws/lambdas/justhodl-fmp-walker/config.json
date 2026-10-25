@@ -1,0 +1,29 @@
+{
+  "runtime": "python3.12",
+  "memory": 1536,
+  "timeout": 900,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "FMP Ultimate non-bulk warehouse: ~160 datasets (per-symbol histories, 13F, insiders, Senate/House, transcripts, estimates, ETF holdings, economics, calendars, news, lists, 1-min chart bars) from fmp-walker-spec.json; verbatim JSON gz, data/warm/fmp/.",
+  "inherit_env": [
+    {
+      "from_function": "justhodl-fmp-ratios",
+      "keys": [
+        "FMP_KEY"
+      ]
+    }
+  ],
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "FMP_WALKER_BUDGET_S": "780",
+    "FMP_WALKER_WORKERS": "12",
+    "FMP_WALKER_RPS": "18"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-fmp-walker-daily",
+    "cron": "cron(27 23 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "FMP Ultimate non-bulk warehouse walker, daily 23:27 UTC (after fmp-bank 23:13)"
+  }
+}

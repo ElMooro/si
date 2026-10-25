@@ -1,0 +1,72 @@
+name: FMP warehouse backfill (bounded conductor)
+
+# Why: justhodl-fmp-bank and justhodl-fmp-walker each do one 13-minute budget per invoke and never self-chain (no
+# event loops, 2026-10-17 doctrine).  Their daily Scheduler runs alone would take months to finish the first full lap
+# over FMP Ultimate (eod-bulk since 2000, every statement year since 1985, ~160 non-bulk datasets x ~11k symbols).
+# This conductor is the external, bounded re-kick: once a day (the GitHub-cron floor), for at most 5 h 20 min, it
+# invokes each engine again whenever that engine still reports phase BACKFILL and its lease is free, alternating between
+# the two, waiting for each run's state write before the next kick.  When both report STEADY it disables itself.
+# Guard-rails: lease-guarded (a Scheduler run and a kick can never overlap), <= 12 kicks per engine per day (well under
+# the governor's anomaly floors: ~$0.3-0.5/day per engine), 401/403 from FMP stops the day, AWS creds only on the runner.
+on:
+  schedule:
+    - cron: '41 2 * * *'          # 02:41 UTC daily; the engines' own schedules fire 23:13 / 23:27 UTC
+  workflow_dispatch:
+    inputs:
+      engines:
+        description: 'space-separated subset (default: justhodl-fmp-bank justhodl-fmp-walker)'
+        required: false
+        default: ''
+      max_minutes:
+        description: 'wall-clock cap for this run (default 320)'
+        required: false
+        default: '320'
+      max_kicks:
+        description: 'max kicks per engine this run (default 12)'
+        required: false
+        default: '12'
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: fmp-backfill
+  cancel-in-progress: false
+
+jobs:
+  conduct:
+    runs-on: ubuntu-latest
+    timeout-minutes: 345
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            scripts/fmp_backfill_conductor.py
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Conduct the backfill
+        id: conduct
+        env:
+          ENGINES: ${{ inputs.engines }}
+          MAX_MINUTES: ${{ inputs.max_minutes || '320' }}
+          MAX_KICKS: ${{ inputs.max_kicks || '12' }}
+        run: |
+          set -euo pipefail
+          python3 -m pip install -q boto3
+          python3 scripts/fmp_backfill_conductor.py --engines "${ENGINES}" --max-minutes "${MAX_MINUTES}" --max-kicks "${MAX_KICKS}" | tee conductor.log
+          tail -n 40 conductor.log >> "$GITHUB_STEP_SUMMARY"
+          grep -q '^ALL_STEADY$' conductor.log && echo "all_steady=true" >> "$GITHUB_OUTPUT" || echo "all_steady=false" >> "$GITHUB_OUTPUT"
+      - name: Disable this workflow once both engines are STEADY (the daily schedules carry on alone)
+        if: steps.conduct.outputs.all_steady == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api -X PUT "repos/${{ github.repository }}/actions/workflows/fmp-backfill.yml/disable" && echo "fmp-backfill.yml disabled: backfill complete" >> "$GITHUB_STEP_SUMMARY"

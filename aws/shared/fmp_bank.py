@@ -211,3 +211,171 @@ def try_bank(path, qs=""):
     if path in SNAPSHOTS and sym:
         return snapshot(path, sym)
     return None
+
+
+# ---------------------------------------------------------------- the walker bank (non-bulk families) ----------------
+WALKER_ROOT = "data/warm/fmp/"
+
+
+def _period_split(base_annual, base_quarter):
+    def pick(q):
+        p = str(q.get("period", "annual")).lower()
+        return base_quarter if p in ("quarter", "quarterly", "q", "q1", "q2", "q3", "q4") else base_annual
+    return pick
+
+
+# /stable path -> walker dataset id (str) or chooser(query) -> dataset id.  Entity = symbol unless noted.
+WALKER_PATHS = {
+    "analyst-estimates": _period_split("analyst-estimates-annual", "analyst-estimates-quarter"),
+    "enterprise-values": _period_split("enterprise-values-annual", "enterprise-values-quarter"),
+    "key-metrics": _period_split("key-metrics-annual", "key-metrics-quarter"),
+    "ratios": _period_split("ratios-annual", "ratios-quarter"),
+    "financial-growth": _period_split("financial-growth-annual", "financial-growth-quarter"),
+    "income-statement-as-reported": _period_split("income-statement-as-reported-annual", "income-statement-as-reported-quarter"),
+    "balance-sheet-statement-as-reported": _period_split("balance-sheet-statement-as-reported-annual", "balance-sheet-statement-as-reported-quarter"),
+    "cash-flow-statement-as-reported": _period_split("cash-flow-statement-as-reported-annual", "cash-flow-statement-as-reported-quarter"),
+    "financial-statement-full-as-reported": "financial-statement-full-as-reported-annual",
+    "revenue-product-segmentation": _period_split("revenue-product-segmentation-annual", "revenue-product-segmentation-quarter"),
+    "revenue-geographic-segmentation": _period_split("revenue-geographic-segmentation-annual", "revenue-geographic-segmentation-quarter"),
+    "price-target": "price-target", "price-target-consensus": "price-target-consensus", "price-target-news": "price-target-news",
+    "grades": "grades", "grades-historical": "grades-historical", "grades-news": "grades-news",
+    "ratings-historical": "ratings-historical", "historical-rating": "historical-rating",
+    "analyst-stock-recommendations": "analyst-stock-recommendations",
+    "levered-discounted-cash-flow": "levered-discounted-cash-flow", "owner-earnings": "owner-earnings",
+    "financial-reports-dates": "financial-reports-dates",
+    "company-core-information": "company-core-information", "company-notes": "company-notes", "key-executives": "key-executives",
+    "governance-executive-compensation": "governance-executive-compensation", "employee-count": "employee-count",
+    "historical/employee-count": "historical-employee-count", "historical/shares-float": "historical-shares-float",
+    "market-capitalization": "market-capitalization", "historical-market-capitalization": "historical-market-capitalization",
+    "dividends": "dividends", "splits": "splits", "earnings": "earnings", "earnings-surprises": "earnings-surprises",
+    "sec-profile": "sec-profile", "sec-filings-search/symbol": "sec-filings-search-symbol",
+    "acquisition-of-beneficial-ownership": "acquisition-of-beneficial-ownership", "fail_to_deliver": "fail-to-deliver",
+    "insider-trading/search": "insider-trading-search", "insider-trading/statistics": "insider-trading-statistics",
+    "senate-trades": "senate-trades", "house-trades": "house-trades",
+    "esg-ratings": "esg-ratings", "esg-disclosures": "esg-disclosures",
+    "news/stock": "news-stock", "news/press-releases": "news-press-releases", "historical/social-sentiment": "historical-social-sentiment",
+    "stock-peers": "stock-peers", "industry-classification-search": "industry-classification-search",
+    "etf/info": "etf-info", "etf/holdings": "etf-holdings", "etf/portfolio-dates": "etf-portfolio-dates",
+    "etf/sector-weightings": "etf-sector-weightings", "etf/country-weightings": "etf-country-weightings",
+    "etf/asset-exposure": "etf-asset-exposure", "etf/holder": "etf-holder",
+    "funds/disclosure-dates": "funds-disclosure-dates", "funds/disclosure-holders-latest": "funds-disclosure-holders-latest",
+    "historical-price-eod/full": "historical-price-eod-full", "historical-price-eod/dividend-adjusted": "historical-price-eod-dividend-adjusted",
+    "historical-price-eod/non-split-adjusted": "historical-price-eod-non-split-adjusted",
+    "earning-call-transcript-dates": "earning-call-transcript-dates",
+    "economic-indicators": ("economic-indicators", "name"),
+    "commitment-of-traders-report": ("commitment-of-traders-report", "symbol"),
+    "commitment-of-traders-analysis": ("commitment-of-traders-analysis", "symbol"),
+    "institutional-ownership/dates": ("institutional-ownership-dates", "cik"),
+    "institutional-ownership/holder-performance-summary": ("institutional-ownership-holder-performance-summary", "cik"),
+    "exchange-market-hours": ("exchange-market-hours", "exchange"), "holidays-by-exchange": ("holidays-by-exchange", "exchange"),
+}
+WALKER_PERIOD_PATHS = {
+    "institutional-ownership/symbol-positions-summary": ("institutional-ownership-symbol-positions-summary", "symbol"),
+    "institutional-ownership/extract-analytics/holder": ("institutional-ownership-extract-analytics-holder", "symbol"),
+    "institutional-ownership/holder-industry-breakdown": ("institutional-ownership-holder-industry-breakdown", "cik"),
+    "institutional-ownership/extract": ("institutional-ownership-extract", "cik"),
+    "earning-call-transcript": ("earning-call-transcript", "symbol"),
+    "funds/disclosure": ("funds-disclosure", "symbol"),
+}
+WALKER_LISTS = {
+    "stock-list", "etf-list", "actively-trading-list", "financial-statement-symbol-list", "tradable-list", "available-exchanges",
+    "available-sectors", "available-industries", "available-countries", "index-list", "commodities-list", "forex-list",
+    "cryptocurrency-list", "earnings-transcript-list", "commitment-of-traders-list", "insider-trading-transaction-type",
+    "standard-industrial-classification-list", "symbol-change", "all-exchange-market-hours", "market-risk-premium", "treasury-rates",
+    "sp500-constituent", "nasdaq-constituent", "dowjones-constituent", "historical-sp500-constituent", "historical-nasdaq-constituent",
+    "historical-dowjones-constituent",
+}
+_SAFE = None
+
+
+def _safe(s):
+    import re
+    global _SAFE
+    _SAFE = _SAFE or re.compile(r"[^A-Za-z0-9._=^-]")
+    return _SAFE.sub("_", str(s))[:120] or "_"
+
+
+def _wjson(key):
+    raw = _get(key)
+    if not raw:
+        return None
+    try:
+        return json.loads(raw.decode("utf-8", "replace"))
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def walker_manifest():
+    raw = _get(WALKER_ROOT + "manifest.json")
+    try:
+        return json.loads(raw) if raw else {}
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def walker(dataset, entity=None, period=None, day=None, exchange=None):
+    """Rows banked by justhodl-fmp-walker: lists (entity None -> latest), per-entity files, per-entity-period files
+    (period=(year, quarter)), dated feeds (day='YYYY-MM-DD') and month windows (day='YYYY-MM').  None when not banked."""
+    key = WALKER_ROOT + dataset
+    if entity is None and period is None and day is None:
+        return _wjson(key + "/latest.json.gz")
+    if entity is not None:
+        key += "/" + _safe(entity)
+    if exchange:
+        key += "/" + _safe(exchange)
+    if period:
+        key += "/%dQ%d" % (int(period[0]), int(period[1]))
+    if day:
+        key += ("/%s/%s" % (day[:4], day)) if (entity is None and len(day) == 10) else ("/" + day)
+    return _wjson(key + ".json.gz")
+
+
+def try_walker(path, q):
+    """Answer a /stable path + parsed query from the walker bank (same shapes the live endpoint returns) or None."""
+    head = (path or "").strip("/")
+    if head in WALKER_LISTS and not q.get("symbol"):
+        return walker(head.replace("/", "-"))
+    spec = WALKER_PATHS.get(head)
+    if spec is not None:
+        if callable(spec):
+            ds, ent_key = spec(q), "symbol"
+        elif isinstance(spec, tuple):
+            ds, ent_key = spec
+        else:
+            ds, ent_key = spec, "symbol"
+        ent = q.get(ent_key)
+        if not ent:
+            return None
+        rows = walker(ds, ent, exchange=q.get("exchange") if ds.startswith("historical-sector") or ds.startswith("historical-industry") else None)
+        if rows is None:
+            return None
+        lim = q.get("limit")
+        if isinstance(rows, list) and str(lim or "").isdigit():
+            rows = rows[: int(lim)]
+        return rows
+    pspec = WALKER_PERIOD_PATHS.get(head)
+    if pspec and q.get(pspec[1]) and q.get("year") and q.get("quarter"):
+        try:
+            return walker(pspec[0], q.get(pspec[1]), period=(int(q["year"]), int(str(q["quarter"]).replace("Q", ""))))
+        except (TypeError, ValueError):
+            return None
+    return None
+
+
+_try_bank_bulk = try_bank
+
+
+def try_bank(path, qs=""):  # noqa: F811 - the public entry point now covers both banks
+    """Bulk bank first (fmp-bank), then the walker bank (fmp-walker); None -> the caller goes live."""
+    hit = _try_bank_bulk(path, qs)
+    if hit:
+        return hit
+    from urllib.parse import parse_qs
+    q = {k: v[0] for k, v in parse_qs(qs or "").items()}
+    p = (path or "").strip("/")
+    if "/" in p and "symbol" not in q and p.split("/")[0] in WALKER_PATHS and p.count("/") == 1 and not p.startswith(("historical/", "insider-trading/", "etf/", "funds/", "news/", "institutional-ownership/", "sec-filings-search/", "historical-price-eod/")):
+        p, _, q["symbol"] = p.partition("/")                # legacy path-style 'dividends/AAPL'
+    try:
+        return try_walker(p, q)
+    except Exception:  # noqa: BLE001
+        return None
