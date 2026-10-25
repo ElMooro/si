@@ -574,3 +574,10 @@ def lambda_handler(event=None,context=None):
     archive=_price_archive(raw);precondition={'IfMatch':etag} if etag else {'IfNoneMatch':'*'}
     S3.put_object(Bucket=BUCKET,Key=HEAD,Body=raw,ContentType='application/json',CacheControl='public, max-age=900',**precondition)
     return {'statusCode':200,'body':json.dumps({'measurement_contract':CONTRACT,'request_occurrences':len(selected),'archive':archive})}
+
+
+try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
+    from fmp_bankfirst import install as _fmp_bankfirst_install
+    _fmp_bankfirst_install()
+except Exception:  # noqa: BLE001 - the shim never blocks the engine
+    pass

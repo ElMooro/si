@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Apply the bank-first FMP shim to engines: insert one guarded install block after the module docstring and any
 `from __future__` imports (so it precedes `from urllib.request import urlopen` bindings).  Idempotent; prints the engines
-changed.  Usage: python3 scripts/fmp_bankfirst_apply.py <engine> [<engine> ...]  (or --list-file FILE)"""
+changed.  Usage: python3 scripts/fmp_bankfirst_apply.py [--append] <engine> [<engine> ...]  (or --list-file FILE)
+
+--append puts the block at the END of the module instead: for engines whose tests pin the complete predecessor bytes
+as a prefix (the repo's append-below-the-predecessor convention).  Only valid when the module calls
+`urllib.request.urlopen(...)` by attribute (a `from urllib.request import urlopen` name would already be bound)."""
 import ast
 import json
 import sys
@@ -20,13 +24,21 @@ MARK = "from fmp_bankfirst import install"
 NEVER = {"justhodl-fmp-bank", "justhodl-fmp-walker", "justhodl-fmp-ratios", "justhodl-provider-catalog", "justhodl-provider-coverage", "justhodl-provider-bank", "justhodl-polygon-bank", "justhodl-eia-bank"}
 
 
-def apply(engine):
+def apply(engine, append=False):
     if engine in NEVER:
         raise SystemExit("refusing to install the bank-first shim in %s: banks and provider probes stay live-only" % engine)
     p = ROOT / "aws" / "lambdas" / engine / "source" / "lambda_function.py"
     src = p.read_text(encoding="utf-8")
     if MARK in src:
         return False
+    if append:
+        import re
+        if re.search(r"^\s*from urllib\.request import .*\burlopen\b", src, re.M):
+            raise SystemExit("%s binds urlopen by name at import; an appended install would not intercept it" % engine)
+        out = src + ("" if src.endswith("\n") else "\n") + "\n\n" + BLOCK
+        ast.parse(out)
+        p.write_text(out, encoding="utf-8")
+        return True
     tree = ast.parse(src)
     insert_line = 0
     body = tree.body
@@ -47,9 +59,11 @@ def apply(engine):
 
 def main():
     args = sys.argv[1:]
+    append = "--append" in args
+    args = [a for a in args if a != "--append"]
     if args and args[0] == "--list-file":
         args = json.loads(Path(args[1]).read_text())
-    changed = [e for e in args if apply(e)]
+    changed = [e for e in args if apply(e, append)]
     print(json.dumps({"changed": changed, "already": [e for e in args if e not in changed]}))
 
 
