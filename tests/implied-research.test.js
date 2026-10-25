@@ -46,5 +46,6 @@ test('native page, whole predecessor and fresh edge publications remain wired',(
  const html=fs.readFileSync(path.join(__dirname,'../implied-prob.html'),'utf8');assert.match(html,/jh-implied-research.js\?v=20260920-native1/);assert.match(html,/three-outcome distribution/);assert.doesNotMatch(html,/jh-enhance|ny_fed_12m_prob_pct|what the market is PRICING/);
  for(const m of html.matchAll(/<script[^>]+src="(\/[^"?]+)(?:\?[^\"]*)?"/g))assert.ok(fs.existsSync(path.join(__dirname,'..',m[1])));
  const worker=fs.readFileSync(path.join(__dirname,'../cloudflare/workers/justhodl-data-proxy/src/index.js'),'utf8');assert.match(worker,/'implied-prob.json'/);assert.match(worker,/tail-research\|implied-research/);
- assert.equal(fs.statSync(path.join(__dirname,'../aws/lambdas/justhodl-implied-prob/source/legacy_implied_prob.py')).size,23950);
+ // 2026-10-25: get_spot_price moved from /v2/last/trade (NOT_AUTHORIZED on this Polygon key, ops 6641) to the entitled single-ticker snapshot; the rest of the predecessor is byte-identical (git 69bb02645e).
+ assert.equal(fs.statSync(path.join(__dirname,'../aws/lambdas/justhodl-implied-prob/source/legacy_implied_prob.py')).size,24280);
 });
