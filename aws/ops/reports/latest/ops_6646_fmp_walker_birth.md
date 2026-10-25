@@ -1,31 +1,38 @@
 # ops 6646 - justhodl-fmp-walker: declare, first run + 1 kick, data.html card, chain proof
 
-**Status:** failure  
-**Duration:** 965.8s  
-**Finished:** 2026-10-25T16:42:59+00:00  
+**Status:** success  
+**Duration:** 765.6s  
+**Finished:** 2026-10-25T17:21:02+00:00  
 
-## Error
+## Data
 
-```
-SystemExit: 1
-```
+| calls | http | key_status | kick | phase | puts | retries | seconds | unchanged | universes |
+|---|---|---|---|---|---|---|---|---|---|
+| 5098 | {"ok": 4937, "http404": 25, "empty": 136} | ok | 1 | BACKFILL | 997 | 0 | 760.2 | 36 | {"all": 94118, "tierA": 94118, "etfs_us": 94118, "transcript_symbols": 11559, "chart": 315, "holder_ciks": 5287, "senate_ids": 0, "exchanges": 63, "sectors": 11, "industries": 159, "cot_symbols": 65, "commodities": 40, "forex": 1551, "cryptos": 4793, "cryptos_top": 200, "indexes": 428, "econ_names": 23, "us_exchanges": 3, "sec_form_types": 10, "social_types": 2, "social_sources": 2, "years_2010": 17, "quarters_2013": 56} |
 
 ## Log
 ## 1. function + schedule
 
-- `16:26:54` justhodl-fmp-walker: runtime python3.12, memory 1536, timeout 900, state Active, modified 2026-10-25T16:16:29
-- `16:26:54` env keys: ['FMP_KEY', 'FMP_WALKER_BUDGET_S', 'FMP_WALKER_RPS', 'FMP_WALKER_WORKERS', 'S3_BUCKET'] (values never printed)
-- `16:26:54` schedule justhodl-fmp-walker-daily: cron(27 23 * * ? *) ENABLED tz UTC target justhodl-fmp-walker
+- `17:08:17` justhodl-fmp-walker: runtime python3.12, memory 2048, timeout 900, state Active, modified 2026-10-25T16:57:33
+- `17:08:17` env keys: ['FMP_KEY', 'FMP_WALKER_BUDGET_S', 'FMP_WALKER_RPS', 'FMP_WALKER_WORKERS', 'S3_BUCKET'] (values never printed)
+- `17:08:17` schedule justhodl-fmp-walker-daily: cron(27 23 * * ? *) ENABLED tz UTC target justhodl-fmp-walker
 ## 2. deployed schedule manifest := committed (additions-only)
 
-- `16:26:54` S3 1028 entries, repo 1029; added [('scheduler', 'justhodl-fmp-walker-daily')] removed 0 changed 0
-- `16:26:54` ✅ manifest uploaded (+1), backup backups/schedule-manifest/20261025T162654Z/
+- `17:08:17` S3 1030 entries, repo 1032; added [('scheduler', 'justhodl-provider-bank-daily'), ('scheduler', 'justhodl-provider-coverage-daily')] removed 0 changed 0
+- `17:08:18` ✅ manifest uploaded (+2), backup backups/schedule-manifest/20261025T170817Z/
 ## 3. first run + backfill kicks
 
-- `16:26:54` kick 1: async invoke 202 at 16:26:54
-- `16:42:59` ⚠ no state write within 16 min after kick 1 - read CloudWatch /aws/lambda/justhodl-fmp-walker
-- `16:42:59` endpoints served: None
-- `16:42:59` endpoints refused (recorded, not guessed): []
-- `16:42:59` universes: None
-- `16:42:59` per-dataset (first 40): {}
-- `16:42:59` ✗ nothing banked after 1 kicks - see catalog verdicts above
+- `17:08:18` kick 1: async invoke 202 at 17:08:18
+- `17:21:02` endpoints served: ['actively-trading-list', 'all-exchange-market-hours', 'all-industry-classification', 'available-countries', 'available-exchanges', 'available-industries', 'available-sectors', 'batch-etf-quotes', 'batch-index-quotes', 'batch-mutualfund-quotes', 'biggest-gainers', 'biggest-losers', 'cik-list', 'commitment-of-traders-list', 'commodities-list', 'crowdfunding-offerings-latest', 'cryptocurrency-list', 'delisted-companies', 'dividends-calendar', 'dowjones-constituent', 'earning-call-transcript-latest', 'earnings-calendar', 'earnings-transcript-list', 'economic-calendar', 'etf-list', 'financial-statement-symbol-list', 'fmp-articles', 'forex-list', 'fundraising-latest', 'grades-latest-news', 'historical-dowjones-constituent', 'historical-nasdaq-constituent', 'historical-sp500-constituent', 'house-latest', 'index-list', 'industry-pe-snapshot', 'industry-performance-snapshot', 'insider-trading-latest', 'insider-trading-transaction-type', 'institutional-ownership-latest', 'ipos-calendar', 'ipos-disclosure', 'ipos-prospectus', 'latest-financial-statements', 'market-risk-premium', 'mergers-acquisitions-latest', 'most-actives', 'nasdaq-constituent', 'news-crypto-latest', 'news-forex-latest', 'news-general-latest', 'news-press-releases-latest', 'news-stock-latest', 'price-target-latest-news', 'sec-filings-8k', 'sec-filings-financials', 'sec-filings-search-form-type', 'sector-pe-snapshot', 'sector-performance-snapshot', 'senate-latest', 'senate-positions', 'senate-profile', 'shares-float-all', 'sp500-constituent', 'splits-calendar', 'standard-industrial-classification-list', 'stock-list', 'symbol-change', 'treasury-rates']
+- `17:21:02` endpoints refused (recorded, not guessed): [['13f-asset-allocation', 'http404'], ['earning-calendar-confirmed', 'http404'], ['pre-post-market', 'http404'], ['quotes-commodity', 'http404'], ['quotes-crypto', 'http404'], ['quotes-forex', 'http404'], ['senate-trading-rss-feed', 'http404'], ['stock-news-sentiments-rss-feed', 'http404'], ['tradable-list', 'http404']]
+- `17:21:02` universes: {'all': 94118, 'tierA': 94118, 'etfs_us': 94118, 'transcript_symbols': 11559, 'chart': 315, 'holder_ciks': 5287, 'senate_ids': 0, 'exchanges': 63, 'sectors': 11, 'industries': 159, 'cot_symbols': 65, 'commodities': 40, 'forex': 1551, 'cryptos': 4793, 'cryptos_top': 200, 'indexes': 428, 'econ_names': 23, 'us_exchanges': 3, 'sec_form_types': 10, 'social_types': 2, 'social_sources': 2, 'years_2010': 17, 'quarters_2013': 56}
+- `17:21:02` per-dataset (first 40): {"stock-list": {"objects": 2, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "etf-list": {"objects": 2, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "actively-trading-list": {"objects": 2, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "financial-statement-symbol-list": {"objects": 2, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "tradable-list": {"objects": 0, "lap": 0, "cursor": null, "universe_size": null, "last_verdict": "http404"}, "available-exchanges": {"objects": 0, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "available-sectors": {"objects": 0, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "available-industries": {"objects": 0, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "available-countries": {"objects": 0, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "index-list": {"objects": 0, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "commodities-list": {"objects": 2, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "forex-list": {"objects": 0, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "cryptocurrency-list": {"objects": 0, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "earnings-transcript-list": {"objects": 0, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "commitment-of-traders-list": {"objects": 0, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "insider-trading-transaction-type": {"objects": 0, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "standard-industrial-classification-list": {"objects": 0, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "symbol-change": {"objects": 0, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "all-exchange-market-hours": {"objects": 2, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "market-risk-premium": {"objects": 0, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "treasury-rates": {"objects": 0, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "sp500-constituent": {"objects": 0, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "nasdaq-constituent": {"objects": 0, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "dowjones-constituent": {"objects": 0, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "historical-sp500-constituent": {"objects": 0, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "historical-nasdaq-constituent": {"objects": 0, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "historical-dowjones-constituent": {"objects": 0, "lap": 0, "cursor": 0, "universe_size": null, "last_verdict": "ok"}, "biggest-gainers": {"objects": 0, "lap": 0, "cursor": 0, "universe_
+- `17:21:02` ✅ walker bank: 997 objects, 398.4 MB, 37/182 datasets banked, phase BACKFILL (fmp-backfill.yml + the daily 23:27 UTC run continue the backfill)
+## 4. data.html card (extra-providers.json, add-only) + catalog refresh
+
+- `17:21:02` ✅ extra-providers.json += fmp-walker (14 entries)
+- `17:21:02` justhodl-provider-catalog invoked async (card lands within ~10 min; daily 06:20 otherwise)
+## 5. the fmp_book -> fmp_bank chain is in the fleet
+
+- `17:21:02` justhodl-fmp-ratios bundle: fmp_bank.py=True fmp_book.py=True (fmp_bank.try_walker present = the walker bank is in the chain)
+- `17:21:02` ✅ ops 6646 complete
