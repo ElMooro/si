@@ -1,0 +1,18 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 120,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Provider-coverage scoreboard: folds the bank manifests (fmp-bank, fmp-walker, polygon-bank, provider-bank), the provider catalog and the engine manifest into data/provider-coverage.json - served/refused/untested/skipped per provider, banked GB, consumers.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-provider-coverage-daily",
+    "cron": "cron(47 6 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Provider-coverage scoreboard, daily 06:47 UTC (after provider-catalog 06:20)"
+  }
+}
