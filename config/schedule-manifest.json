@@ -14925,6 +14925,21 @@
      "path": null
     }
    ]
+  },
+  {
+   "expr": "cron(58 23 * * ? *)",
+   "group": "default",
+   "kind": "scheduler",
+   "name": "justhodl-tv-bars-fmp-append",
+   "state": "ENABLED",
+   "timezone": "UTC",
+   "targets": [
+    {
+     "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-tv-bars",
+     "input": "{\"mode\":\"fmp-append\"}",
+     "path": null
+    }
+   ]
   }
  ]
 }

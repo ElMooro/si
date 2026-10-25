@@ -725,6 +725,170 @@ def polygon_append(event, context):
     return {"ok": True, "mode": "polygon-append", **cur["polygon_append"], "sample": dict(list(per_sym.items())[:5])}
 
 
+# ---------------------------------------------------------------------------------------------------------------------
+# v1.3 (2026-10-25, Khalid: "100% of the data pulled and used"): mode=fmp-append.  The names outside Polygon's US tape
+# (indexes, forex, crypto, non-US listings) read the FMP warehouse - justhodl-fmp-walker's historical-price-eod-full,
+# refreshed every run by its v1.2.0 daily price lane - never the provider, never a guess: a TradingView symbol is
+# appended only when its FMP spelling is PROVEN (an FMP_MAP entry whose symbol is a member of the banked FMP list of the
+# right kind) and the first new bar is continuous with the bank's last bar (a close jump beyond 25% + 5%/session of gap,
+# capped at 100%, is recorded as a series/scale mismatch and nothing is written - this is what catches a yield quoted
+# x10 or a different continuous futures series).  Only sessions after the bank's last bar and no later than the last
+# completed session are appended; US-namespace names are stamped 09:30 America/New_York like every row before them,
+# other names inherit their own series' time of day.  Per-bar label fmp-eod-full:bank.  Append-only, never a hole:
+# FMP's file is the complete history, so every missing session is present or the name is skipped.
+# ---------------------------------------------------------------------------------------------------------------------
+FMP_SRC = "fmp-eod-full:bank"
+FMP_MAP = {   # TradingView symbol -> (FMP symbol, the banked FMP list that must contain it)
+    "I:SPX": ("^GSPC", "index-list"), "I:NDX": ("^NDX", "index-list"), "XETR:DAX": ("^GDAXI", "index-list"),
+    "SSE:000001": ("000001.SS", "index-list"), "US:^MOVE": ("^MOVE", "index-list"), "US:^TNX": ("^TNX", "index-list"),
+    "US:^IRX": ("^IRX", "index-list"), "US:^TYX": ("^TYX", "index-list"), "TVC:US10Y": ("^TNX", "index-list"),
+    "FX:EURUSD": ("EURUSD", "forex-list"), "C:BRLUSD": ("BRLUSD", "forex-list"),
+    "X:BTCUSD": ("BTCUSD", "cryptocurrency-list"), "COINBASE:BTCUSD": ("BTCUSD", "cryptocurrency-list"),
+    "COINBASE:ETHUSD": ("ETHUSD", "cryptocurrency-list"), "X:PEPEUSD": ("PEPEUSD", "cryptocurrency-list"),
+    "HKEX:700": ("0700.HK", "stock-list"),
+    # CME_MINI:ES1! is deliberately absent: FMP's ESUSD is a different continuous series (its own roll convention).
+}
+FMP_BASE_JUMP, FMP_JUMP_PER_SESSION, FMP_JUMP_CAP = 0.25, 0.05, 1.0
+
+
+def _fmp_list_members(fmp_bank, name, cache):
+    if name not in cache:
+        rows = fmp_bank.walker(name)
+        cache[name] = {str(r.get("symbol")).upper() for r in rows if isinstance(r, dict) and r.get("symbol")} if isinstance(rows, list) else None
+    return cache[name]
+
+
+def _sessions_between(a, b):
+    """Weekday count strictly after a and up to b."""
+    from datetime import timedelta as _td
+    n, d = 0, a
+    while d < b:
+        d = d + _td(days=1)
+        if d.weekday() < 5:
+            n += 1
+    return n
+
+
+def fmp_append(event, context):
+    """mode=fmp-append: append the sessions missing from each mapped non-tape name from the FMP warehouse (bank only)."""
+    from datetime import date as _date, timedelta as _td
+    import fmp_bank
+    idx = _gj(UNIV_IDX_KEY, {"symbols": {}})
+    syms = idx.get("symbols") or {}
+    last_ok = last_completed_session()
+    if event.get("through"):
+        last_ok = min(last_ok, _date.fromisoformat(event["through"]))
+    only = set(event.get("symbols") or [])
+    lists = {}
+    done = fail = skipped = unproven = stale_bank = 0
+    appended_rows = 0
+    per_sym, verdicts = {}, {}
+    failures = {}
+    for sym, (fsym, lname) in sorted(FMP_MAP.items()):
+        if only and sym not in only:
+            continue
+        meta = syms.get(sym)
+        if not isinstance(meta, dict) or not meta.get("key"):
+            verdicts[sym] = "not_banked_by_chart"
+            continue
+        if context and context.get_remaining_time_in_millis() < 25000:
+            break
+        last = (meta.get("last") or "")[:10]
+        try:
+            last_d = _date.fromisoformat(last) if last else None
+        except ValueError:
+            last_d = None
+        if last_d is not None and last_d >= last_ok:
+            verdicts[sym] = "current"
+            continue
+        members = _fmp_list_members(fmp_bank, lname, lists)
+        if members is None:
+            verdicts[sym] = "fmp_list_not_banked:%s" % lname
+            unproven += 1
+            continue
+        if fsym.upper() not in members:
+            verdicts[sym] = "fmp_symbol_not_in_%s:%s" % (lname, fsym)
+            failures[sym] = {"err": ("fmp-append: %s is not in the banked %s" % (fsym, lname))[:100], "at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+            unproven += 1
+            continue
+        hist = fmp_bank.walker("historical-price-eod-full", fsym)
+        if not isinstance(hist, list) or not hist:
+            verdicts[sym] = "fmp_history_not_banked:%s" % fsym
+            stale_bank += 1
+            continue
+        try:
+            key_s3 = meta["key"]
+            old = read_bank(s3, BUCKET, key_s3)
+            if not old or not old.get("bars"):
+                skipped += 1
+                verdicts[sym] = "chart_bank_unreadable"
+                continue
+            prev = old["bars"][-1]
+            prev_dt = datetime.fromtimestamp(prev[0], tz=timezone.utc)
+            prev_date = prev_dt.date()
+            us_ns = str(sym).split(":")[0].upper() in POLY_US_NS
+            tod = prev[0] - int(datetime(prev_date.year, prev_date.month, prev_date.day, tzinfo=timezone.utc).timestamp())
+            rows = []
+            for r in hist:
+                if not isinstance(r, dict):
+                    continue
+                try:
+                    d = _date.fromisoformat(str(r.get("date"))[:10])
+                    o, h, l, c = float(r["open"]), float(r["high"]), float(r["low"]), float(r["close"])
+                except (KeyError, TypeError, ValueError):
+                    continue
+                if d <= prev_date or d > last_ok:
+                    continue
+                v = r.get("volume")
+                v = float(v) if isinstance(v, (int, float)) and v >= 0 else None
+                ts = session_open_ts(d) if us_ns else int(datetime(d.year, d.month, d.day, tzinfo=timezone.utc).timestamp()) + tod
+                cand = [ts, o, h, l, c, v]
+                if valid_bar(cand):
+                    rows.append(cand)
+            rows.sort()
+            if not rows:
+                verdicts[sym] = "fmp_bank_has_no_newer_session (newest %s)" % max((str(r.get("date"))[:10] for r in hist if isinstance(r, dict)), default=None)
+                stale_bank += 1
+                continue
+            # continuity proof: the first new close against the bank's last close, tolerance grows with the gap
+            first_date = datetime.fromtimestamp(rows[0][0], tz=timezone.utc).date()
+            gap = max(1, _sessions_between(prev_date, first_date))
+            tol = min(FMP_JUMP_CAP, FMP_BASE_JUMP + FMP_JUMP_PER_SESSION * gap)
+            if prev[4] and abs(rows[0][4] / prev[4] - 1.0) > tol:
+                verdicts[sym] = "series_or_scale_mismatch: bank close %s -> fmp %s over %d sessions (tol %.0f%%)" % (prev[4], rows[0][4], gap, tol * 100)
+                failures[sym] = {"err": ("fmp-append: " + verdicts[sym])[:100], "at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+                fail += 1
+                continue
+            have = {r[0] for r in old.get("bars", [])}
+            rows = [r for r in rows if r[0] not in have]
+            if not rows:
+                skipped += 1
+                verdicts[sym] = "already_present"
+                continue
+            doc = merged_document(old, rows, old.get("symbol") or sym, old.get("tv_symbol") or sym, FMP_SRC)
+            s3.put_object(Bucket=BUCKET, Key=key_s3, Body=gzip.compress(json.dumps(doc).encode()),
+                          ContentType="application/gzip", CacheControl="public, max-age=900")
+            syms[sym] = {"key": key_s3, "n": doc["n"], "first": doc["first_date"], "last": doc["last_date"], "as_of": doc["as_of"]}
+            per_sym[sym] = {"appended": len(rows), "last": doc["last_date"], "fmp": fsym}
+            verdicts[sym] = "appended %d through %s from %s" % (len(rows), doc["last_date"], fsym)
+            appended_rows += len(rows)
+            done += 1
+        except Exception as e:
+            failures[sym] = {"err": ("fmp-append: " + str(e))[:100], "at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+            verdicts[sym] = "error: %s" % str(e)[:80]
+            fail += 1
+    cur = _gj(UNIV_IDX_KEY, {"symbols": {}})
+    cur.setdefault("symbols", {}).update({k: syms[k] for k in per_sym})
+    cur.setdefault("failures", {}).update(failures)
+    cur["updated_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    cur["n_symbols"] = len(cur["symbols"])
+    cur["fmp_append"] = {"at": cur["updated_at"], "through": last_ok.isoformat(), "mapped": len(FMP_MAP), "appended_symbols": done, "appended_rows": appended_rows,
+                        "failed": fail, "skipped": skipped, "unproven": unproven, "fmp_bank_not_ready": stale_bank, "verdicts": verdicts}
+    s3.put_object(Bucket=BUCKET, Key=UNIV_IDX_KEY, Body=json.dumps(cur, default=str).encode(),
+                  ContentType="application/json", CacheControl="no-cache")
+    return {"ok": True, "mode": "fmp-append", **{k: v for k, v in cur["fmp_append"].items() if k != "verdicts"}, "verdicts": verdicts}
+
+
 def lambda_handler(event, context):
     event = event or {}
     if event.get("mode") == "pull":
@@ -733,6 +897,8 @@ def lambda_handler(event, context):
         return universe_refresh(event, context)
     if event.get("mode") == "polygon-append":
         return polygon_append(event, context)
+    if event.get("mode") == "fmp-append":
+        return fmp_append(event, context)
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
     session = _p("/justhodl/tradingview/sessionid")
     sign = _p("/justhodl/tradingview/sessionid_sign")
