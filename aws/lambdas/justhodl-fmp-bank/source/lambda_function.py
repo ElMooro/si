@@ -1,5 +1,5 @@
 """
-justhodl-fmp-bank v1.1.0 -- the FMP Ultimate warehouse (bulk + EOD), banked verbatim on S3.
+justhodl-fmp-bank v1.2.0 -- the FMP Ultimate warehouse (bulk + EOD), banked verbatim on S3.
 
 Why (Khalid, 2026-10-23: "I want 100% of the data pulled and used by my system"): the provider audit found FMP
 Ultimate ($139/month) consumed live by 233 engines (~7,000 per-symbol calls a day) and banked NOWHERE - the data.html
@@ -44,6 +44,10 @@ Key: managed_secret(("FMP_KEY", "FMP_API_KEY"), ("/justhodl/fmp/api-key",)).  Ne
 Schedule: EventBridge Scheduler justhodl-fmp-bank-daily cron(13 23 * * ? *) UTC (after FMP's EOD prints ~21:30,
 after justhodl-fmp-ratios 22:38; the provider-publication slot cap for FMP is 4/min - minute :13 is free).
 Cost: ~10-14 min x 2 GB a day once the backfill is done (~$2.5/month); S3 ~1-3 GB/year of new objects.
+v1.2.0 (2026-10-25, after reading the first runs' logs: 103-113 retries per 171-190 calls): a 429 means the bulk lane is
+rate-limited per minute - the next call waits 61 s and the steady pace doubles (AIMD back toward 0.25 s after ten
+clean calls); a 429 / 5xx / timeout never marks a (year, period) or an EOD date as done - it stays pending; earlier
+transient "done" marks are re-queued.
 v1.1.0 (2026-10-25, after the first live kicks): gzip streams straight to /tmp (ephemeral 4 GB; one ETF-holder part is
 >400 MB raw), 600 s read timeout (bulk files are generated server-side), http verdict counts in the run record, the
 dated walk takes FMP_BANK_DATED_SHARE of the budget so the EOD walk from 2000 progresses every run, and the end of a
@@ -68,7 +72,7 @@ import boto3
 from managed_secret import managed_secret
 
 ENGINE = "justhodl-fmp-bank"
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 ROOT = "data/warm/fmp-bank/"
 STATE_KEY = ROOT + "_state/state.json"
@@ -136,14 +140,32 @@ class Fetch:
     run can say how many 429s / timeouts it saw (v1.1.0: the first live runs retried 103 of 171 calls silently).
     """
 
+    COOLDOWN_S = float(os.environ.get("FMP_BANK_429_COOLDOWN_S", "61") or 61)   # bulk endpoints are limited per minute
+
     def __init__(self, key):
         self.key = key
         self.calls = 0
         self.retries = 0
         self.http = {}
+        self.pace = PACE_S
+        self.cooldown_until = 0.0
+        self.ok_streak = 0
 
     def _count(self, v):
         self.http[v] = self.http.get(v, 0) + 1
+
+    def _wait(self):
+        """Honour the cooldown after a 429 (the next bulk call waits for the next minute) and the adaptive pace."""
+        now = time.time()
+        if self.cooldown_until > now:
+            if _left() < (self.cooldown_until - now) + 40:
+                return False
+            time.sleep(self.cooldown_until - now)
+        gap = self.pace - (time.time() - _last_call[0])
+        if gap > 0:
+            time.sleep(gap)
+        _last_call[0] = time.time()
+        return True
 
     def get(self, endpoint, params):
         q = dict(params or {})
@@ -151,10 +173,9 @@ class Fetch:
         url = "%s/%s?%s" % (STABLE, endpoint, urllib.parse.urlencode(q))
         delay = 3.0
         for attempt in range(5):
-            gap = PACE_S - (time.time() - _last_call[0])
-            if gap > 0:
-                time.sleep(gap)
-            _last_call[0] = time.time()
+            if not self._wait():
+                self._count("err:budget")
+                return ("err:budget", TMP, 0, 0, "")
             self.calls += 1
             try:
                 req = urllib.request.Request(url, headers=UA)
@@ -179,6 +200,10 @@ class Fetch:
                 rows = max(rows - 1, 0)                        # header
                 if not head or head.lstrip()[:1] in (b"{", b"["):
                     rows = 0                                   # a JSON body (error / []) is not a CSV
+                self.ok_streak += 1
+                if self.ok_streak >= 10 and self.pace > PACE_S:
+                    self.pace = max(PACE_S, self.pace / 2)         # AIMD: ten clean calls halve the pace back toward normal
+                    self.ok_streak = 0
                 if n == 0 or rows == 0:
                     self._count("empty")
                     return ("empty", TMP, n, 0, h.hexdigest())
@@ -187,7 +212,15 @@ class Fetch:
             except urllib.error.HTTPError as e:
                 code = e.code
                 self._count("http%d" % code)
-                if code == 429 or code >= 500:
+                if code == 429:
+                    self.ok_streak = 0
+                    self.pace = min(60.0, max(self.pace * 2, 2.0))  # and the steady pace doubles
+                    self.cooldown_until = time.time() + self.COOLDOWN_S
+                    if attempt < 2:
+                        self.retries += 1
+                        continue                                    # _wait() sleeps through the cooldown
+                    return ("http429", TMP, 0, 0, "")
+                if code >= 500:
                     if attempt < 4 and _left() > delay + 30:
                         self.retries += 1
                         time.sleep(delay)
@@ -276,6 +309,8 @@ def do_snapshot(fx, state, cat, today):
 def _dated_jobs(state, cur_year):
     """(endpoint, year, period) in priority order: newest years first so a fresh warehouse is useful on day one."""
     done = state["dated_done"]
+    for k in [k for k, d in done.items() if str(d.get("verdict", "")) not in ("ok", "empty", "http404", "http400")]:
+        del done[k]                                                  # v1.2.0: transient verdicts recorded as done by v1.0/1.1 are re-queued
     jobs = []
     for y in range(cur_year, YEAR_FLOOR - 1, -1):
         refresh = y >= cur_year - REFRESH_YEARS + 1
@@ -298,6 +333,7 @@ def do_dated(fx, state, cat, today, until=None):
     state["today"] = today
     jobs = _dated_jobs(state, cur_year)
     state["dated_pending"] = len(jobs)
+    transient = 0
     for ep, y, p, k in jobs:
         if _left() < 45 or (until and time.time() > until):
             return False
@@ -313,13 +349,19 @@ def do_dated(fx, state, cat, today, until=None):
                 state["hashes"][key] = sha
             rec["key"] = key
             _record(cat, ep, "ok", n, rows, {"last_year": y, "last_period": p})
-        elif v == "empty":
-            _record(cat, ep, "empty", 0, 0, {"last_year": y, "last_period": p})
+            transient = 0
+        elif v == "empty" or v in ("http404", "http400"):
+            _record(cat, ep, v, 0, 0, {"last_year": y, "last_period": p})   # a real answer: nothing for that year/period
+            transient = 0
         else:
             _record(cat, ep, v, 0, 0, {"last_year": y, "last_period": p})
             if v in ("http401", "http403"):
                 state["key_status"] = "unauthorized"
                 return False
+            transient += 1                                           # 429 / 5xx / timeout / budget: stays PENDING (v1.2.0)
+            if v == "err:budget" or transient >= 3:
+                return False
+            continue
         state["dated_done"][k] = rec
         state["dated_pending"] -= 1
     return True
@@ -351,6 +393,9 @@ def do_eod(fx, state, cat):
             state["key_status"] = "unauthorized"
             _record(cat, "eod-bulk", v)
             return False
+        elif v in ("http429", "err:budget"):
+            _record(cat, "eod-bulk", v, 0, 0, {"last_date": ds})
+            return False                                  # rate limit / out of time: the date stays at the cursor (v1.2.0)
         else:
             e["failures"][ds] = e["failures"].get(ds, 0) + 1
             _record(cat, "eod-bulk", v, 0, 0, {"last_date": ds})

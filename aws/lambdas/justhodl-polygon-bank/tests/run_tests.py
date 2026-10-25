@@ -77,7 +77,7 @@ class FakePolygon:
         elif path == "/v1/marketstatus/now":
             body = J({"market": "closed", "serverTime": "2026-10-25T00:00:00Z"})
         elif path == "/v1/marketstatus/upcoming":
-            body = J([{"date": "2026-11-26", "exchange": "NYSE", "name": "Thanksgiving", "status": "closed"}])
+            body = J([{"date": "2026-11-26", "exchange": "NYSE", "name": "Thanksgiving", "status": "closed"}])   # a bare list
         elif path == "/v2/snapshot/locale/us/markets/stocks/tickers":
             body = J({"status": "DELAYED", "tickers": [{"ticker": "AAPL", "day": {"c": 1}}, {"ticker": "MSFT", "day": {"c": 2}}]})
         elif path.startswith("/v2/aggs/grouped/locale/global/market/"):
@@ -151,6 +151,7 @@ def test_first_run():
     latest = gz(s3, root + "tickers-stocks-active/latest.json.gz")
     assert len(latest) == 3, latest
     assert any(k.startswith(root + "market-status-now/daily/") for k in s3.store)
+    assert gz(s3, root + "market-holidays/latest.json.gz")["results"][0]["name"] == "Thanksgiving"   # bare-list response banked
     assert root + "snapshot-stocks-all/latest.json.gz" in s3.store
     # dated grouped crypto: weekends included, the empty day not written
     gc = [k for k in s3.store if k.startswith(root + "grouped-crypto/")]
@@ -210,6 +211,25 @@ def test_429_retry_and_only():
     fake.rate_limit_once.add("/v1/marketstatus/now")
     out = lf.lambda_handler({"only": ["market-status-now"]}, None)
     assert out["key_status"] == "ok" and fake.by_path["/v1/marketstatus/now"] == 2 and out["calls"] == 2
+
+
+def test_429_storm_stops_a_dataset_without_moving_its_cursor():
+    lf, s3, fake = boot()
+    real = fake.__call__
+
+    def stormy(req, timeout=0):
+        url = req.full_url if hasattr(req, "full_url") else req
+        if "/market/crypto/" in url:
+            fake.calls.append(url)
+            raise urllib.error.HTTPError(url, 429, "Too Many", {}, io.BytesIO(b"{}"))
+        return real(req, timeout)
+    import urllib.request as ur
+    ur.urlopen = stormy
+    out = lf.lambda_handler({"only": ["grouped-crypto"]}, None)
+    root = lf._spec()["root"]
+    st = json.loads(s3.store[root + "_state/state.json"])
+    assert st["datasets"]["grouped-crypto"].get("cursor_date", "2018-01-01") <= "2018-01-02", st["datasets"]["grouped-crypto"]
+    assert out["calls"] < 200, out["calls"]           # the storm guard stopped the dataset instead of burning the budget
 
 
 if __name__ == "__main__":

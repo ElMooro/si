@@ -193,6 +193,23 @@ def test_parted_bulk_end_is_not_a_refusal():
     assert out["run"]["http"]["ok"] >= 9, out["run"]["http"]
 
 
+def test_429_keeps_the_year_pending_and_cools_down():
+    lf, s3, fake = boot()
+    lf.Fetch.COOLDOWN_S = 0.2
+    fake.rate_limit_once.update({"income-statement-bulk", "cash-flow-statement-bulk", "rating-bulk"})
+    out = lf.lambda_handler({"only": ["snapshot", "dated"]}, None)
+    assert out["run"]["http"].get("http429") == 3, out["run"]["http"]
+    st = json.loads(s3.store[lf.STATE_KEY])
+    # each 429'd call was retried after the cooldown and then succeeded -> banked, never recorded as done-with-429
+    assert all(d["verdict"] in ("ok", "empty", "http404", "http400") for d in st["dated_done"].values()), {k: d["verdict"] for k, d in st["dated_done"].items() if d["verdict"] not in ("ok", "empty")}
+    assert lf.ROOT + "income-statement-bulk/2026/annual.csv.gz" in s3.store
+    # a transient verdict recorded as done by an older version is re-queued on the next run
+    st["dated_done"]["ratios-bulk/2025/Q1"] = {"verdict": "http429", "day": "2026-10-24"}
+    s3.store[lf.STATE_KEY] = json.dumps(st).encode()
+    jobs = lf._dated_jobs(st, 2026)
+    assert ("ratios-bulk", 2025, "Q1", "ratios-bulk/2025/Q1") in jobs
+
+
 if __name__ == "__main__":
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     for t in tests:

@@ -1,5 +1,5 @@
 """
-justhodl-polygon-bank v1.0.0 -- the Polygon/Massive REST families the fleet never banked, verbatim on S3.
+justhodl-polygon-bank v1.1.0 -- the Polygon/Massive REST families the fleet never banked, verbatim on S3.
 
 Why (Khalid, 2026-10-25: "fix it all, I want 100% of the data pulled and used by my system"): the provider audit found
 the Polygon plans (Stocks delayed, Options, Futures Basic, ETF Global) ~70% used: the grouped-daily tape, options chains
@@ -42,13 +42,13 @@ import boto3
 from managed_secret import managed_secret
 
 ENGINE = "justhodl-polygon-bank"
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 HOST = os.environ.get("POLYGON_HOST", "https://api.polygon.io")
 UA = {"User-Agent": "JustHodl Research (raafouis@gmail.com) polygon-bank/" + VERSION}
 BUDGET_S = int(os.environ.get("POLYGON_BANK_BUDGET_S", "780") or 780)
-WORKERS = int(os.environ.get("POLYGON_BANK_WORKERS", "10") or 10)
-RPS = float(os.environ.get("POLYGON_BANK_RPS", "15") or 15)
+WORKERS = int(os.environ.get("POLYGON_BANK_WORKERS", "4") or 4)
+RPS = float(os.environ.get("POLYGON_BANK_RPS", "4") or 4)        # v1.1.0: the first run saw 624 x 429 at 15/s; polygon-full lives at ~3/s
 MAX_BYTES = int(os.environ.get("POLYGON_BANK_MAX_BYTES", "40000000") or 40_000_000)
 CHART_IDX_KEY = "data/warm/tv-bars/universe/_index.json"
 CORE = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA", "AVGO", "BRK.B", "JPM", "LLY", "V", "UNH", "XOM", "MA", "COST", "HD", "PG", "JNJ", "ABBV",
@@ -114,7 +114,7 @@ class Bucket:
         while True:
             with self.lock:
                 now = time.time()
-                rate = self.rps if now > self.slow_until else self.rps / 2
+                rate = self.rps if now > self.slow_until else self.rps / 4
                 self.tokens = min(rate, self.tokens + (now - self.t) * rate)
                 self.t = now
                 if self.tokens >= 1:
@@ -125,7 +125,7 @@ class Bucket:
 
     def throttled(self):
         with self.lock:
-            self.slow_until = time.time() + 60
+            self.slow_until = time.time() + 120
 
 
 class Fetch:
@@ -176,6 +176,12 @@ class Fetch:
                 except ValueError:
                     self._count("err:NotJSON")
                     return ("err:NotJSON", None, n, None)
+                if isinstance(data, list):                      # /v1/marketstatus/upcoming answers a bare list
+                    if not data:
+                        self._count("empty")
+                        return ("empty", None, 0, None)
+                    self._count("ok")
+                    return ("ok", {"status": "OK", "results": data}, n, None)
                 status = str((data or {}).get("status") or "")
                 if status in ("NOT_AUTHORIZED",):
                     self._count("http403")
@@ -241,6 +247,8 @@ class Fetch:
                 continue
             if v == "empty" and n:
                 break
+            if v == "err:budget":
+                return ("err:budget", None, total, n)
             if n:
                 break
             return (v, data, total, 0)
@@ -329,10 +337,15 @@ class Walker:
     def ds(self, d):
         return self.ds_state.setdefault(d["id"], {"objects": 0, "bytes": 0, "cursor": 0, "lap": 0, "ok": 0, "empty": 0, "fail": 0})
 
+    def storm(self, d):
+        return self.run.setdefault("storm", {}).get(d["id"], 0) >= 15
+
     def record(self, d, verdict, nbytes=0, rows=0, extra=None):
         e = self.cat.setdefault(d["id"], {"dataset": d["id"], "path": d["path"], "kind": d["kind"]})
         e["last_verdict"] = verdict
         e["last_at"] = _now().isoformat()
+        storm = self.run.setdefault("storm", {})
+        storm[d["id"]] = storm.get(d["id"], 0) + 1 if verdict == "http429" else 0
         if verdict == "ok":
             e["last_ok_at"] = e["last_at"]
             e["last_rows"] = rows
@@ -411,25 +424,33 @@ class Walker:
         edge = self.today - timedelta(days=1)
         days = [edge - timedelta(days=i) for i in range(2)]
         n_back = 0
-        while cur <= edge and n_back < int(d.get("days_per_run") or 400):
+        while cur <= edge and n_back < int(d.get("days_per_run") or 60):
             days.append(cur)
             cur += timedelta(days=1)
             n_back += 1
         futures = []
         for day in sorted(set(days)):
-            if _left() < 30:
+            if _left() < 30 or self.storm(d):
                 break
             if day.weekday() >= 5 and not d.get("weekends"):
                 continue
             futures.append(self.pool.submit(self._dated_job, d, day.isoformat()))
-        stop = False
+        verdicts = {}
         for f in as_completed(futures):
-            if f.result() in ("http401", "http403", "http402"):
-                stop = True
-        if not stop:
-            st["cursor_date"] = cur.isoformat()
+            ds_s, v = f.result()
+            verdicts[ds_s] = v
+        bad = sorted(k for k, v in verdicts.items() if v not in ("ok", "empty"))
+        new_cursor = cur
+        if bad:
+            first_bad = date.fromisoformat(bad[0])
+            if first_bad < new_cursor:
+                new_cursor = first_bad                                  # resume at the first unanswered day
+        if verdicts:
+            st["cursor_date"] = new_cursor.isoformat()
 
     def _dated_job(self, d, ds_s):
+        if self.storm(d):
+            return ds_s, "storm"
         v, payload, nb, _ = self.fx.get(self.url(d, day=ds_s), self.params(d))
         if v == "ok":
             self.bank(d, self.root + d["id"] + "/%s/%s.json.gz" % (ds_s[:4], ds_s), payload, {"path": d["path"], "date": ds_s})
@@ -439,7 +460,7 @@ class Walker:
             self.record(d, "empty")
         else:
             self.record(d, v, nb)
-        return v
+        return ds_s, v
 
     def do_window(self, d):
         st = self.ds(d)
@@ -472,7 +493,8 @@ class Walker:
                 self.record(d, "empty")
             else:
                 self.record(d, v, nb)
-                if v.startswith("http4"):
+                if v.startswith("http4") or v == "err:budget" or self.storm(d):
+                    st["cursor_month"] = "%04d-%02d" % min((y, m), (cy, cm))
                     return
         st["cursor_month"] = "%04d-%02d" % (cy, cm) if (cy, cm) <= tm else "%04d-%02d" % tm
 
@@ -511,7 +533,7 @@ class Walker:
         t_end = min(time.time() + share_s, _t0 + BUDGET_S - 25)
         futures, n_done, start = [], 0, cursor
         stop = False
-        while time.time() < t_end and n_done < len(uni) and not stop:
+        while time.time() < t_end and n_done < len(uni) and not stop and not self.storm(d):
             futures.append(self.pool.submit(self._entity_job, d, uni[cursor]))
             cursor = (cursor + 1) % len(uni)
             n_done += 1
@@ -584,10 +606,10 @@ class Walker:
         if settle(futures):
             return
         futures = []
-        while time.time() < t_end:                                  # then older days, round-robin
+        while time.time() < t_end and not self.storm(d):            # then older days, round-robin
             progressed = False
             for sym in uni:
-                if time.time() > t_end:
+                if time.time() > t_end or self.storm(d):
                     break
                 rec = per[sym]
                 oldest = date.fromisoformat(rec["oldest"]) if rec.get("oldest") else edge
