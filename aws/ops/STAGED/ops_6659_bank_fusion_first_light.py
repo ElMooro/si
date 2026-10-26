@@ -30,6 +30,8 @@ ENGINES = [
     ("justhodl-equity-ftd", "data/equity-ftd.json", 240),
     ("justhodl-stock-valuations", "data/stock-valuations.json", 420),
     ("justhodl-analyst-consensus", "data/analyst-consensus.json", 420),
+    ("justhodl-quality-on-sale", "data/quality-on-sale.json", 300),
+    ("justhodl-beneish", "data/beneish.json", 540),
 ]
 
 
@@ -83,6 +85,14 @@ def summarize(fn, doc):
     elif fn == "justhodl-analyst-consensus":
         out.append("method %s | universe %s | from_book %s | basis %s | with data %s" % (doc.get("method"), doc.get("universe_size"), doc.get("n_from_book"), str(doc.get("universe_basis"))[:140], doc.get("n_with_data")))
         out.append("top5 %s" % [(t.get("ticker"), t.get("composite_score"), t.get("upside_pct")) for t in (doc.get("top_consensus_25") or [])[:5]])
+    elif fn == "justhodl-quality-on-sale":
+        bs = doc.get("book_screen") or {}
+        out.append("version %s | regime %s | 5-of-5 %s | book_screen available %s n %s as_of %s" % (doc.get("version"), doc.get("regime"), doc.get("n_qualified_5_of_5"), bs.get("available"), bs.get("n"), json.dumps(bs.get("as_of"))[:60]))
+        out.append("book candidates %s" % [(c.get("ticker"), c.get("quality_pct"), c.get("off_52w_high_pct")) for c in (bs.get("candidates") or [])[:8]])
+    elif fn == "justhodl-beneish":
+        m = doc.get("market") or {}
+        out.append("version %s | top-50 state %s (%s) | analyzed %s | market candidates %s scored %s red %s (%s%%)" % (doc.get("version"), doc.get("universe_state"), doc.get("universe_state_scope"), doc.get("n_universe_analyzed"), m.get("n_candidates"), m.get("n_scored_total"), m.get("n_red_total"), m.get("pct_red_total")))
+        out.append("market top red flags %s" % [(x.get("ticker"), x.get("m_score")) for x in (m.get("top_red_flags") or [])[:8]])
     return "\n".join(out)
 
 

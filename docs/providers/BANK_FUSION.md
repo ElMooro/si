@@ -71,11 +71,13 @@ as the fallback when the book is absent (`factor book unavailable` in the output
 | `justhodl-equity-ftd` | 1.1.0 | F | every FTD candidate carries `squeeze` = short interest % float, days to cover, float, short-volume ratio, market cap, 21-day return; the signal rationale quotes them; 20d volume / price fall back to the bank (`vol_source`) |
 | `justhodl-stock-valuations` | 1.6.0 | U | the HP small/mid-cap universe ($75M–$3B, > 150k avg volume, NYSE/NASDAQ common) comes from the book; the FMP company-screener (a search endpoint no bank holds) is the second rung |
 | `justhodl-analyst-consensus` | 1.1 | U + F | 200 curated names → + every analyst-covered US common stock (≥ 3 targets last month, ≥ $300M, up to 2,500); a name the book holds is scored from the book with zero live calls (`source: factor-book`, `target_basis`); composite weights unchanged |
+| `justhodl-quality-on-sale` | 1.1.0 | U | the 5-gate desk stays on its static 50 (its four upstream feeds cover those); a labelled `book_screen` asks the whole market the same question with the bank's facts (quality composite top decile, Piotroski ≥ 7, ROIC ≥ 20%, ≥ 20% off the 52-week high, Altman Z ≥ 3, ≥ $1B) |
+| `justhodl-beneish` | 1.1.0 | U + H | the M-Score across every US common stock ≥ $500M from the bank's statement files (no live call, no pacing); the top-50 `universe_state` keeps its meaning; a `market` block carries the whole-market and per-sector red-flag rates with Altman Z / income quality / SBC / short % float context on each flag |
 
 ### Queue (next waves, from the fusion map)
 
 - squeeze / short: pre-pump-detector, pump-mechanics, ignition, short-interest, early-movers, momentum-leaders (SI % float, DTC, float, short-volume ratio).
-- quality / value screens: quality-on-sale, coffee-can, buyback-yield-ranking, eva-spread, gf-value, beneish (income quality pre-screen), smart-beta, fortress, forensic-screen.
+- quality / value screens: coffee-can, buyback-yield-ranking, eva-spread, smart-beta, fortress, forensic-screen; gf-value needs a memory redesign first (it runs at its 1.5 GB ceiling on the S&P 500 alone).
 - earnings: pead-detector, post-earnings-mean-rev, earnings-quality, eps-revision-velocity, estimate-revisions, rating-change-cluster, starmine (surprises, estimates, grades).
 - insider / 13F / political feeds: insider-radar, insider-cluster-scanner, insider-aggregate, smart-money-*, 13f-*, political-trades (walker feed readers).
 - energy: refining-stress, inventory-drawdown, commodity-curves, metals-miners (an `eia_bank` reader).
@@ -87,5 +89,9 @@ as the fallback when the book is absent (`factor book unavailable` in the output
 
 - `aws/ops/STAGED/ops_6658_bank_factors_birth.py` — the book's birth: schedule declared, first join, coverage per source,
   `schema_found`, AAPL / NVDA / GME / SPY read back, first whole-market screen.
-- Wave-1 first light: `aws/ops/STAGED/ops_6659_bank_fusion_first_light.py` reads each engine's output for the new
-  labels (`universe_basis`, `price_source`, `bank_context`, `squeeze`, `source: factor-book`) after their next run.
+- Wave-1 first light: `aws/ops/STAGED/ops_6659_bank_fusion_first_light.py` kicks the fused engines once and reads each
+  output for the new labels (`universe_basis`, `price_source`, `bank_context`, `squeeze`, `source: factor-book`,
+  `book_screen`, `market`) plus the log groups for errors.
+- The book's first join (ops 6658, 03:47 UTC) died Runtime.OutOfMemory in 19 s decoding whole-market CSVs into strings;
+  v1.0.1 streams every table once into a SQLite staging file on /tmp (benchmark: 25k symbols, 600k ETF-holder rows,
+  64 s, 725 MB peak) - the trap for any future whole-market join: never `.decode()` a bulk file, stream it.
