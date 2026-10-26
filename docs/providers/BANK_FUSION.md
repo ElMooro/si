@@ -165,6 +165,20 @@ caveat, stated in every document's `years`: the FMP bank holds statements for fi
 cut off by the bandwidth block), so the book is 4-5 annual years / 19-20 quarters deep today and deepens automatically
 when the bank does (KHALID_ACTIONS 0o).
 
+### Wave 3b (2026-10-26) - the per-ticker shape, completed
+
+Tracing one failing desk request end to end (ops 6669) showed the container at 1,023 MB resident before any work: the
+request died in 1.1 s right after "[research] fetching AAPL". A per-ticker desk that decodes whole-market tables for
+every snapshot ask (profile, ratios-ttm, key-metrics-ttm, scores, rating, DCF, targets, consensus, peers) churns
+15-60 MB strings through a 1 GB heap until fragmentation pins it at the ceiling. The history book now also inverts the
+nine SNAPSHOT bulks into `<bulk>/latest/<SYMBOL>.json.gz` (one tiny verbatim row per symbol, description included) and
+`fmp_bank.snapshot(path, symbol)` reads that document first - so a per-ticker consumer touches no whole-market table at
+all. Two reader fixes from the same trace: a history-book answer is as fresh as the bank (the shim had rejected it for
+lacking a `pulled_at`), and the book's `phase` turns BACKFILL again when any block is older than 20 h, so the daily
+conductor kicks (fmp-backfill.yml) refresh every block every day even though one 900 s run only covers half of them.
+Rule of the platform from here: point lookups read per-symbol documents (factor book, history book); whole-market scans
+read the tables / SQLite - never the other way round.
+
 ### Queue (next waves, from the fusion map)
 
 - squeeze / short: pre-pump-detector, pump-mechanics, ignition, short-interest, early-movers, momentum-leaders (SI % float, DTC, float, short-volume ratio).

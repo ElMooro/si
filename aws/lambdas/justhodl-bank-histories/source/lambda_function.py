@@ -41,7 +41,7 @@ from botocore.config import Config
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import fmp_bank  # noqa: E402  (bundled shared module: the FMP bank manifest + value typing)
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 SCHEMA = "history-book/1.0"
 ENGINE = "justhodl-bank-histories"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -57,6 +57,14 @@ FLOOR_QUARTER = int(os.environ.get("HISTORY_BOOK_FLOOR_QUARTER", "2016"))
 DB_PATH = os.environ.get("HISTORY_BOOK_DB", "/tmp/history-book.sqlite")
 UNIVERSE_MODE = os.environ.get("HISTORY_BOOK_UNIVERSE", "factor-book")      # factor-book | all
 STALE_AFTER_S = 2 * 86400
+FRESH_WITHIN_S = int(os.environ.get("HISTORY_BOOK_FRESH_WITHIN_S", str(20 * 3600)))   # a block older than this is pending again (phase BACKFILL -> the conductor kicks)
+# v1.1.0: the SNAPSHOT bulks too - one tiny document per symbol under <bulk>/latest/<SYMBOL>.json.gz, so a per-ticker desk's
+# /profile, /ratios-ttm, /key-metrics-ttm, /financial-scores, /rating, /discounted-cash-flow, /price-target-summary,
+# /grades-consensus, /stock-peers asks are one small read each instead of a whole-market table decode (equity-research's
+# 1 GB container sat at 1,023 MB resident from table churn and died on the next allocation).
+SNAPSHOT_BULKS = [("profile", "profile-bulk"), ("ratios-ttm", "ratios-ttm-bulk"), ("key-metrics-ttm", "key-metrics-ttm-bulk"), ("financial-scores", "scores-bulk"),
+                  ("rating", "rating-bulk"), ("discounted-cash-flow", "dcf-bulk"), ("price-target-summary", "price-target-summary-bulk"),
+                  ("grades-consensus", "upgrades-downgrades-consensus-bulk"), ("stock-peers", "peers-bulk")]
 # (endpoint, bulk) in priority order: the desk's statements first, then the metric families.
 BULKS = [("income-statement", "income-statement-bulk"), ("balance-sheet-statement", "balance-sheet-statement-bulk"),
          ("cash-flow-statement", "cash-flow-statement-bulk"), ("ratios", "ratios-bulk"), ("key-metrics", "key-metrics-bulk"),
@@ -135,6 +143,28 @@ def held_files(man, bulk, kind):
         if y >= floor:
             out.append((y, parts[2], FMP_ROOT + "%s/%d/%s.csv.gz" % (bulk, y, parts[2])))
     out.sort(key=lambda t: (-t[0], t[1]))
+    return out
+
+
+def _exists(key):
+    try:
+        _s3().head_object(Bucket=BUCKET, Key=key)
+        return True
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def snapshot_files(bulk):
+    """[(None, "latest", key)] for a snapshot bulk: one latest.csv.gz or its part-N files (the FMP bank's layout)."""
+    whole = FMP_ROOT + bulk + "/latest.csv.gz"
+    if _exists(whole):
+        return [(0, "latest", whole)]
+    out = []
+    for part in range(0, 41):
+        k = FMP_ROOT + "%s/part-%d/latest.csv.gz" % (bulk, part)
+        if not _exists(k):
+            break
+        out.append((0, "latest", k))
     return out
 
 
@@ -236,7 +266,7 @@ def stage_block(files, universe, deadline, notes):
             d = (row[i_date].strip() if (i_date is not None and i_date < len(row)) else "") or ""
             fy = (row[i_fy].strip() if (i_fy is not None and i_fy < len(row)) else "") or str(year)
             per = (row[i_per].strip() if (i_per is not None and i_per < len(row)) else "") or period
-            ord_ = "%s|%s|%s" % (d or ("%s-00-00" % fy), fy, per)
+            ord_ = "%s|%s|%s" % (d or ("%s-00-00" % fy), fy, per) if period != "latest" else "latest"
             typed = fmp_bank._typed(dict(zip(header, row)))
             st.add(sym, ord_, period, json.dumps(typed, separators=(",", ":"), default=str))
             rows_n += 1
@@ -254,7 +284,7 @@ def emit_block(endpoint, bulk, kind, st, as_of, hashes, deadline, stats):
     bytes_out = 0
     with ThreadPoolExecutor(max_workers=WORKERS) as pool:
         for sym, rows in st.iter_symbols():
-            years = sorted({str(r.get("fiscalYear") or str(r.get("date") or "")[:4]) for r in rows if (r.get("fiscalYear") or r.get("date"))}, reverse=True)
+            years = sorted({str(r.get("fiscalYear") or str(r.get("date") or "")[:4]) for r in rows if (r.get("fiscalYear") or r.get("date"))}, reverse=True) if kind != "latest" else []
             doc = {"symbol": sym, "endpoint": endpoint, "bulk": bulk, "period": kind, "schema": SCHEMA, "as_of": as_of, "n": len(rows), "years": years, "rows": rows}
             body = json.dumps(doc, separators=(",", ":"), default=str)
             h = hashlib.sha1(body.encode("utf-8")).hexdigest()[:20]
@@ -326,8 +356,18 @@ def lambda_handler(event=None, context=None):
                 blocks.setdefault(bid, {})["files"] = 0
                 continue
             order.append((bid, endpoint, bulk, kind, files))
-    # oldest-refreshed first; never-built blocks first of all, in BULKS priority order
-    order.sort(key=lambda t: (blocks.get(t[0], {}).get("refreshed_at") or "", BULKS.index((t[1], t[2]))))
+    for endpoint, bulk in SNAPSHOT_BULKS:
+        bid = "%s/latest" % bulk
+        if only and bid not in only:
+            continue
+        files = snapshot_files(bulk)
+        if not files:
+            blocks.setdefault(bid, {})["files"] = 0
+            continue
+        order.append((bid, endpoint, bulk, "latest", files))
+    prio = {b: i for i, (_, b) in enumerate(BULKS + SNAPSHOT_BULKS)}
+    # oldest-refreshed first; never-built blocks first of all, then the priority order (statements, metrics, snapshots)
+    order.sort(key=lambda t: (blocks.get(t[0], {}).get("refreshed_at") or "", prio.get(t[2], 99)))
     notes, done_blocks = [], []
     reserve = min(120.0, budget * 0.15)                 # time kept for the manifest / state writes
     for bid, endpoint, bulk, kind, files in order:
@@ -352,17 +392,20 @@ def lambda_handler(event=None, context=None):
         st.close()
         _put_json_gz(hashes_key, new_hashes)
         secs = round(time.time() - tb, 1)
-        blocks[bid] = {"endpoint": endpoint, "bulk": bulk, "period": kind, "files": len(files), "years": [files[-1][0], files[0][0]], "rows": rows_n,
+        blocks[bid] = {"endpoint": endpoint, "bulk": bulk, "period": kind, "files": len(files), "years": ([files[-1][0], files[0][0]] if kind != "latest" else None), "rows": rows_n,
                        "symbols": stats.get("symbols", 0), "written": stats.get("written", 0), "unchanged": stats.get("unchanged", 0), "failed": stats.get("failed", 0),
                        "bytes": stats.get("bytes", 0), "seconds": secs, "refreshed_at": now.isoformat(), "as_of": as_of, "partial": bool(stats.get("deadline_hit"))}
         done_blocks.append(bid)
         print("[history-book] %s: %d files, %d rows, %d symbols, written %d unchanged %d failed %d, %.0f s" % (bid, len(files), rows_n, stats.get("symbols", 0), stats.get("written", 0), stats.get("unchanged", 0), stats.get("failed", 0), secs))
         _put_json(STATE_KEY, state)
     stale = [bid for bid, b in blocks.items() if b.get("refreshed_at") and (now - datetime.fromisoformat(b["refreshed_at"])).total_seconds() > STALE_AFTER_S]
-    pending = [bid for bid, *_ in order if bid not in done_blocks and not (blocks.get(bid, {}).get("refreshed_at") and bid not in stale)]
+    def _fresh(bid):
+        ra = blocks.get(bid, {}).get("refreshed_at")
+        return bool(ra) and (now - datetime.fromisoformat(ra)).total_seconds() <= FRESH_WITHIN_S and not blocks.get(bid, {}).get("partial")
+    pending = [bid for bid, *_ in order if bid not in done_blocks and not _fresh(bid)]
     phase = "STEADY" if not pending and not stale else "BACKFILL"
     manifest = {"schema": SCHEMA, "version": VERSION, "engine": ENGINE, "updated_at": now.isoformat(), "as_of": as_of, "prefix": ROOT, "phase": phase, "pending_blocks": pending,
-                "layout": ROOT + "<bulk>/<annual|quarter>/<SYMBOL>.json.gz", "universe": "factor-book" if universe else "all symbols in the files",
+                "layout": ROOT + "<bulk>/<annual|quarter|latest>/<SYMBOL>.json.gz", "universe": "factor-book" if universe else "all symbols in the files",
                 "universe_size": len(universe) if universe else None, "floor_annual": FLOOR_ANNUAL, "floor_quarter": FLOOR_QUARTER,
                 "blocks": blocks, "stale_blocks": stale, "last_run": {"started": now.isoformat(), "seconds": round(time.time() - t0, 1), "blocks": done_blocks, "notes": notes},
                 "read_with": "aws/shared/fmp_bank.statements (history book first) / fmp_bankfirst"}

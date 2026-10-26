@@ -168,7 +168,7 @@ def test_bankfirst_bulk_statements_indexed_and_bounded():
         for i in range(300):
             assert len(_get("https://financialmodelingprep.com/stable/profile?symbol=%s&apikey=S" % syms[(i * 67) % 20000])) == 1
         assert time.time() - t0 < first + 1.5, "indexed lookups must be O(1) after the first parse"
-        assert fmp_bank.STATS["table_builds"] == 2 and fmp_bank.STATS["s3_gets"] <= 5, fmp_bank.STATS   # 2 parts + whole-file probe + part-2 probe + manifest
+        assert fmp_bank.STATS["table_builds"] == 2 and fmp_bank.STATS["s3_gets"] <= 6, fmp_bank.STATS   # 2 parts + whole-file probe + part-2 probe + manifest + one history-book manifest probe (wave 3b, cached per container)
         # statements: explicit bounded limit -> bank, newest first, only the years that can hold it are read
         rows = _get("https://financialmodelingprep.com/stable/income-statement?symbol=S00001&limit=3&apikey=S")
         assert [r["date"] for r in rows] == ["2025-12-31", "2024-12-31", "2023-12-31"] and rows[0]["revenue"] == 2025

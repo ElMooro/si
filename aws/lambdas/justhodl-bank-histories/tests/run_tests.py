@@ -90,6 +90,9 @@ def seed(lf, s3):
         "income-statement-bulk/2025/annual", "income-statement-bulk/2024/annual", "income-statement-bulk/1999/annual", "income-statement-bulk/2025/Q1",
         "income-statement-bulk/2025/Q2", "income-statement-bulk/2025/Q3", "ratios-bulk/2025/annual", "balance-sheet-statement-bulk/2025/annual"]}).encode()
     s3.store[lf.FACTOR_UNIVERSE_KEY] = jgz({"symbols": ["AAPL", "MSFT", "TINY"]})                                                   # SAP is Frankfurt -> out of the book
+    s3.store[R + "profile-bulk/part-0/latest.csv.gz"] = csv_gz([{"symbol": "AAPL", "companyName": "Apple Inc.", "price": 347.7, "mktCap": 5074761240500, "description": "Apple designs...", "isEtf": "false"}])
+    s3.store[R + "profile-bulk/part-1/latest.csv.gz"] = csv_gz([{"symbol": "MSFT", "companyName": "Microsoft", "price": 524.5, "mktCap": 3900000000000, "description": "Microsoft develops...", "isEtf": "false"}, {"symbol": "SAP", "companyName": "SAP SE", "price": 1, "mktCap": 1, "description": "x", "isEtf": "false"}])
+    s3.store[R + "ratios-ttm-bulk/latest.csv.gz"] = csv_gz([{"symbol": "AAPL", "peRatioTTM": 39.2, "priceToSalesRatioTTM": 9.1}, {"symbol": "MSFT", "peRatioTTM": 30.0, "priceToSalesRatioTTM": 12.0}])
 
 
 def test_inverts_year_files_into_per_symbol_docs_write_if_changed():
@@ -115,18 +118,41 @@ def test_inverts_year_files_into_per_symbol_docs_write_if_changed():
     assert man["blocks"]["income-statement-bulk/quarter"]["symbols"] == 1
     hashes = json.loads(gzip.decompress(s3.store[lf.ROOT + "_state/hashes/income-statement-bulk__annual.json.gz"]))
     assert set(hashes) == {"AAPL", "MSFT"}
+    # v1.1.0: snapshot blocks -> one tiny doc per symbol, verbatim row (description kept), part files merged
+    prof = json.loads(gzip.decompress(s3.store[lf.ROOT + "profile-bulk/latest/MSFT.json.gz"]))
+    assert prof["period"] == "latest" and prof["years"] == [] and prof["rows"][0]["companyName"] == "Microsoft" and prof["rows"][0]["description"] == "Microsoft develops..." and prof["rows"][0]["mktCap"] == 3900000000000, prof
+    assert lf.ROOT + "profile-bulk/latest/SAP.json.gz" not in s3.store and lf.ROOT + "ratios-ttm-bulk/latest/AAPL.json.gz" in s3.store
+    assert man["blocks"]["profile-bulk/latest"]["files"] == 2 and man["blocks"]["profile-bulk/latest"]["symbols"] == 2 and man["blocks"]["profile-bulk/latest"]["years"] is None
+    assert man["blocks"]["scores-bulk/latest"]["files"] == 0                      # not banked in the fixture -> recorded, nothing written
     # second run: nothing changed -> no document re-put
     puts = s3.puts
     out2 = lf.lambda_handler({}, None)
     assert out2["ok"]
     man2 = json.loads(s3.store[lf.MANIFEST_KEY])
     assert man2["blocks"]["income-statement-bulk/annual"]["written"] == 0 and man2["blocks"]["income-statement-bulk/annual"]["unchanged"] == 2
-    doc_puts = sum(1 for k in s3.store if k.startswith(lf.ROOT) and "/_state/" not in k and k != lf.MANIFEST_KEY)
+    doc_puts = sum(1 for k in s3.store if k.startswith(lf.ROOT) and "/_state/" not in k and k != lf.MANIFEST_KEY and "/latest/" not in k)
     assert doc_puts == 5 and all(b.get("written", 0) == 0 for b in man2["blocks"].values()), (doc_puts, man2["blocks"])   # AAPL+MSFT annual, AAPL quarter, AAPL+MSFT ratios; nothing re-put
     # lease: a run inside another run's lease is skipped
     st = json.loads(s3.store[lf.STATE_KEY])
     assert st["phase"] == "STEADY" and st["updated_at"] and "lease_until" not in st and st["last_run"]["puts"] == 0, st
     assert man2["phase"] == "STEADY" and man2["pending_blocks"] == []
+    # a block refreshed > 20 h ago is pending again (phase BACKFILL) even though it is not yet "stale" (> 2 days)
+    st["blocks"]["income-statement-bulk/annual"]["refreshed_at"] = "2026-10-25T01:00:00+00:00"
+    s3.store[lf.STATE_KEY] = json.dumps(st).encode()
+    import time as _time
+    real_time, calls = _time.time, {"n": 0}
+
+    def fast_clock():                                                            # the run's first tick sets the deadline; every later tick is past it
+        calls["n"] += 1
+        return real_time() + (0 if calls["n"] <= 1 else 10_000)
+    lf.time.time = fast_clock
+    try:
+        out3 = lf.lambda_handler({}, None)
+    finally:
+        lf.time.time = real_time
+    assert out3["ok"] and out3["blocks"] == [] and out3["phase"] == "BACKFILL" and out3["pending"] == ["income-statement-bulk/annual"], out3
+    st = json.loads(s3.store[lf.STATE_KEY])
+    st.pop("lease_until", None)
     st["lease_until"] = 4102444800.0                                                    # 2100-01-01, epoch seconds (the conductor's contract)
     s3.store[lf.STATE_KEY] = json.dumps(st).encode()
     assert lf.lambda_handler({}, None)["skipped"].startswith("lease held")
@@ -150,7 +176,18 @@ def test_fmp_bank_statements_read_the_history_book_first_and_the_shim_accepts_de
     fmp_bank._TABLES.clear()
     rows = fmp_bank.statements("income-statement", "SAP", period="annual", limit=5)
     assert rows and rows[0]["symbol"] == "SAP"
+    # snapshots: the per-symbol document answers first (no table decode); the symbol field is carried
+    fmp_bank._TABLES.clear(); fmp_bank._MISSING.clear(); fmp_bank.STATS["table_builds"] = 0
+    prow = fmp_bank.snapshot("profile", "aapl")
+    assert prow and prow[0]["companyName"] == "Apple Inc." and prow[0]["symbol"] == "AAPL" and prow[0]["description"] == "Apple designs..." and fmp_bank.STATS["table_builds"] == 0, prow
+    assert fmp_bank.try_bank("profile", "symbol=MSFT")[0]["price"] == 524.5 and fmp_bank.STATS["table_builds"] == 0
+    assert fmp_bank.snapshot("ratios-ttm", "MSFT")[0]["peRatioTTM"] == 30.0
+    assert fmp_bank.snapshot("profile", "SAP")[0]["companyName"] == "SAP SE" and fmp_bank.STATS["table_builds"] >= 1       # outside the book: the table path still answers
     import fmp_bankfirst as fb
+    rows_hist = fmp_bank.try_bank("income-statement", "symbol=AAPL&period=annual&limit=20")
+    assert fb._fresh_enough("income-statement", rows_hist, {"symbol": "AAPL", "period": "annual", "limit": "20"}) is True, "a history-book answer is as fresh as the bank"
+    rows_snap = fmp_bank.try_bank("profile", "symbol=AAPL")
+    assert fb._fresh_enough("profile", rows_snap, {"symbol": "AAPL"}) is True
     assert fb._shaped("income-statement", "income-statement", {"symbol": "AAPL", "period": "annual", "limit": "20"}) is True       # the book holds it
     assert fb._shaped("income-statement", "income-statement", {"symbol": "ZZZZ", "period": "annual", "limit": "20"}) is False      # nobody holds it: live
     assert fb._shaped("income-statement", "income-statement", {"symbol": "ZZZZ", "period": "annual", "limit": "10"}) is True       # inside the year-file ceiling

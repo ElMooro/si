@@ -193,7 +193,8 @@ def _fresh_enough(head, rows, q, now=None):
             want -= timedelta(days=1)
         return newest >= want.isoformat()            # the bank must reach the window's end; being newer is fine
     key = fmp_bank._LAST.get("key") or ""
-    if key.startswith(fmp_bank.ROOT):                 # bulk bank: the manifest's updated_at is the bank's clock
+    if key.startswith(fmp_bank.ROOT) or key.startswith(getattr(fmp_bank, "HISTORY_ROOT", "data/warm/history-book/")):
+        # bulk bank, or the history book inverted from it (wave 3): the bank manifest's updated_at is the clock
         age = _age_days(fmp_bank.as_of())
         return age is not None and age <= BULK_MAX_AGE_DAYS
     meta = fmp_bank._LAST.get("meta") or {}

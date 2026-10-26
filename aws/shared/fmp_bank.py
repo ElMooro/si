@@ -396,12 +396,35 @@ def _snapshot_keys(bulk):
     return keys
 
 
+def snapshot_doc(path, symbol):
+    """One symbol's latest snapshot rows from the history book's `<bulk>/latest/<SYM>.json.gz` (wave 3b): the per-ticker
+    shape - one small read, no whole-market table.  None when the block or the symbol is not there."""
+    bulk = SNAPSHOTS.get(path)
+    if not bulk or not symbol:
+        return None
+    b = (history_manifest().get("blocks") or {}).get("%s/latest" % bulk)
+    if not (isinstance(b, dict) and b.get("refreshed_at") and b.get("symbols") and not b.get("partial")):
+        return None
+    sym = _norm(symbol)
+    for cand in dict.fromkeys([sym, sym.replace("-", "."), sym.replace(".", "-")]):
+        doc = _wjson(HISTORY_ROOT + "%s/latest/%s.json.gz" % (bulk, cand.replace("/", "_")))
+        if isinstance(doc, dict) and isinstance(doc.get("rows"), list) and doc["rows"]:
+            return doc
+    return None
+
+
 def snapshot(path, symbol=None):
     """Latest banked snapshot rows for an endpoint family (ratios-ttm, key-metrics-ttm, scores, rating, dcf,
-    price-target-summary, grades-consensus, stock-peers, profile); the whole market when symbol is None."""
+    price-target-summary, grades-consensus, stock-peers, profile); the whole market when symbol is None.
+    For one symbol the history book's per-symbol document answers first (wave 3b); the bulk table is the fallback."""
     bulk = SNAPSHOTS.get(path)
     if not bulk:
         return None
+    if symbol is not None:
+        doc = snapshot_doc(path, symbol)
+        if doc is not None:
+            STATS["history_book_hits"] = STATS.get("history_book_hits", 0) + 1
+            return [dict(r, symbol=r.get("symbol") or _norm(symbol)) for r in doc["rows"] if isinstance(r, dict)]
     keys = _snapshot_keys(bulk)
     if not keys:
         return None
