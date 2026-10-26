@@ -20,6 +20,21 @@ their designed "preserve previous publication" under the FMP bandwidth block (th
 reviewed changes); the event bus itself has routed nothing since 2026-10-17 - the monitor now says so instead of timing
 out, and the Telegram alert path still ends at a dead bot token (KHALID_ACTIONS item 0, the SNS confirmation click).
 
+## After the fleet lane (census 14:46-20:48 UTC, ops 6664 re-run)
+
+184 functions invoked, **7 with errors** (13 in the morning census). The five engines above: **0 errors**. The remaining
+seven: four reviewed-contract engines raising their designed "preserve previous publication" under the FMP block
+(momentum-leaders, earnings-pead, eps-revision-velocity - the bank held nothing newer; estimate-revisions - its
+Polygon/Benzinga calendar answers 403 on this key, since Oct 10), portfolio-snapshot once (`OrderingUnavailable: Snapshot
+retention conflicts with lifecycle expiry`, pre-existing), cftc-futures-positioning-agent once (120 s timeout, legacy
+agent) - and **justhodl-equity-research, the why.html desk, 16 errors in 129 user requests**: ops 6683 showed 19 of 145
+requests dying out-of-memory or at 300 s with a median heap of 976 MB on the *successful* ones. Cause: every book miss
+(a delisted, foreign or OTC name - ALPN, DOCMF, VINO, INNV, ARTR) fell back to decoding whole-market statement year-files
+and the profile bulk inside a 1 GB request-serving container that never shrinks back; the bank-time cap was hit at 97 s
+of bank time for the same reason. Fix (fmp_bank, lane ER): at or below 1 GB a point lookup never falls back from the
+per-symbol books to a whole-market table decode once the book is built - the books answer or the shim goes live
+(`FMP_BANK_POINT_SCAN_MIN_MB`, `STATS.book_only_misses`); batch engines above 1 GB keep the scan. Verified by ops 6685.
+
 Platform lessons recorded:
 * A nightly "read everything under a prefix" engine must list only its own document family and read incrementally;
   a prefix is shared by families that grow at different rates (`equity-research/industry2/` is 80 % of the bytes).
@@ -28,3 +43,5 @@ Platform lessons recorded:
 * When a producer adds a field to a contract-pinned document, the validator's test suite must drive the real producer
   (the drift ran live for weeks because the genealogy tests used hand-written fixtures only).
 * An engine whose only job is to invoke another is switched off with it.
+* A request-serving container must never decode a whole-market table for one symbol's answer: the per-symbol books are
+  the only bank path at 1 GB. The morning's cold-container proof (227 MB) hid this because it asked for a name the book held.
