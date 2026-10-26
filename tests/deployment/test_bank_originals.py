@@ -11,11 +11,17 @@ from datetime import datetime, timezone
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(ROOT, "aws", "shared"))
 
-import bank_originals  # noqa: E402
-import fmp_bank  # noqa: E402
-import fmp_bankfirst  # noqa: E402
-
+# The deploy gate collects every test module in ONE interpreter before running any test, and test_fmp_bank_reader.py
+# patches boto3.client at import time expecting to be fmp_bank's first importer - so the bank modules are imported
+# lazily here (inside the tests), never at collection.
 NOW = datetime(2026, 10, 22, 23, 0, tzinfo=timezone.utc)
+
+
+def _modules():
+    import bank_originals
+    import fmp_bank
+    import fmp_bankfirst
+    return bank_originals, fmp_bank, fmp_bankfirst
 
 
 class _FixedDT(datetime):
@@ -40,7 +46,27 @@ def _put(s3, key, rows, **meta):
     s3.meta[key] = meta
 
 
+_ORIGINAL = {}
+
+
+def _restore():
+    """Leave fmp_bank / fmp_bankfirst as we found them (one interpreter for the whole gate)."""
+    _, fmp_bank, fmp_bankfirst = _modules()
+    if _ORIGINAL:
+        fmp_bank._S3 = _ORIGINAL["s3"]
+        fmp_bankfirst.datetime = _ORIGINAL["dt"]
+    fmp_bank._cache.clear()
+    fmp_bank._TABLES.clear()
+    fmp_bank._MISSING.clear()
+    fmp_bank._EVICTED.clear()
+    fmp_bank.reset_last_answer()
+    fmp_bankfirst._reset_ctl(time.time())
+
+
 def _fresh_bank(s3):
+    _, fmp_bank, fmp_bankfirst = _modules()
+    if not _ORIGINAL:
+        _ORIGINAL.update(s3=fmp_bank._S3, dt=fmp_bankfirst.datetime)
     fmp_bank._S3 = s3
     fmp_bank._cache.clear()
     fmp_bank._TABLES.clear()
@@ -54,9 +80,17 @@ def _fresh_bank(s3):
 
 
 def test_bank_original_carries_the_banks_provenance_and_answers_only_what_the_bank_answers():
+    bank_originals, fmp_bank, fmp_bankfirst = _modules()
     s3 = S3()
     _fresh_bank(s3)
     fmp_bankfirst.datetime = _FixedDT
+    try:
+        _provenance_case(bank_originals, fmp_bank, s3)
+    finally:
+        _restore()
+
+
+def _provenance_case(bank_originals, fmp_bank, s3):
     W = fmp_bank.WALKER_ROOT
     fresh = "2026-10-22T20:00:00Z"
     _put(s3, W + "analyst-estimates-annual/AAPL.json.gz", [{"symbol": "AAPL", "date": "2026-12-31", "epsAvg": 7.5}], pulled_at=fresh)
@@ -90,6 +124,7 @@ def test_bank_original_carries_the_banks_provenance_and_answers_only_what_the_ba
 
 
 def test_vintage_rule_admits_only_newer_bank_content():
+    bank_originals, _, _ = _modules()
     prov = {"object": "x", "pulled_at": "2026-10-22T20:00:00+00:00", "as_of": None}
     assert bank_originals.newer_than(prov, None)                                   # no earlier original: admitted
     assert bank_originals.newer_than(prov, "2026-10-21T23:59:00+00:00")             # pulled after the previous receipt
@@ -101,11 +136,16 @@ def test_vintage_rule_admits_only_newer_bank_content():
 
 
 def test_bank_original_never_raises_when_the_bank_is_unavailable():
+    bank_originals, _, _ = _modules()
+
     class Broken:
         def get_object(self, Bucket, Key):
             raise RuntimeError("s3 down")
     _fresh_bank(Broken())
-    assert bank_originals.bank_original("https://financialmodelingprep.com/stable/analyst-estimates?symbol=AAPL&period=annual&limit=5", now=NOW) is None
+    try:
+        assert bank_originals.bank_original("https://financialmodelingprep.com/stable/analyst-estimates?symbol=AAPL&period=annual&limit=5", now=NOW) is None
+    finally:
+        _restore()
 
 
 if __name__ == "__main__":
