@@ -35,6 +35,10 @@ Edge basis:
   Robust to data-mining critique due to simple 2-factor structure.
 
 Schedule: daily 22:45 UTC (after IPO Pipeline, GF Value).
+
+v1.1.0 (2026-10-26, bank fusion): universe = S&P 500 + the whole US market from the factor book (US common stocks >=
+$200M outside the excluded sectors, pre-ranked by the bank's earnings yield + ROIC, 1,200 candidates); prices and
+market caps come from the book's bank close (labelled per row), statements from the bank-first /stable path.
 """
 
 try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
@@ -53,7 +57,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/magic-formula.json"
 
@@ -70,6 +74,16 @@ EXCLUDED_SECTORS = {"Financial Services", "Financials", "Utilities",
 # Industries within Financials we double-exclude
 EXCLUDED_INDUSTRIES = {"Banks", "Insurance", "REITs",
                        "Capital Markets", "Asset Management"}
+# v1.1.0 (bank fusion, 2026-10-26): the universe is the whole US market from the factor book (justhodl-bank-factors),
+# not the S&P 500 only - Greenblatt's own universe was every US stock above a size floor.  The book pre-ranks by its
+# own earnings yield + ROIC so the exact EBIT/EV pass below fits the budget; prices/market caps come from the book's
+# bank close (labelled) so the screen does not depend on 1,700 live /quote calls.
+MIN_MCAP_USD = float(os.environ.get("MF_MIN_MCAP_USD", "200000000"))
+BOOK_CANDIDATES = int(os.environ.get("MF_BOOK_CANDIDATES", "1200"))
+try:
+    import bank_enrich as _book
+except Exception:  # noqa: BLE001 - without the SDK the engine is the S&P 500 screen it was
+    _book = None
 
 
 def http_get(url, timeout=15, retries=2):
@@ -103,16 +117,67 @@ def get_sp500():
             for s in data if s.get("symbol")]
 
 
+def get_book_candidates():
+    """Whole-market candidates from the factor book: US common stocks >= MIN_MCAP_USD outside Greenblatt's excluded
+    sectors with a positive bank earnings yield and ROIC, pre-ranked by the sum of their ranks (the exact EBIT/EV and
+    Greenblatt-ROIC pass re-ranks them).  [] when the book is not there."""
+    if _book is None or not _book.available():
+        return [], None
+    rows = _book.screen(lambda r: (r.get("mcap") or 0) >= MIN_MCAP_USD and r.get("sector") not in EXCLUDED_SECTORS
+                        and r.get("industry") not in EXCLUDED_INDUSTRIES and (r.get("earnings_yield") or 0) > 0 and (r.get("roic") or 0) > 0,
+                        fields=["earnings_yield", "roic", "sector", "industry", "mcap"])
+    if not rows:
+        return [], _book.as_of()
+    by_ey = sorted(rows, key=lambda r: -r["earnings_yield"])
+    by_roic = sorted(rows, key=lambda r: -r["roic"])
+    rank = {r["symbol"]: 0 for r in rows}
+    for i, r in enumerate(by_ey):
+        rank[r["symbol"]] += i
+    for i, r in enumerate(by_roic):
+        rank[r["symbol"]] += i
+    rows.sort(key=lambda r: rank[r["symbol"]])
+    return [(r["symbol"], r.get("sector"), r.get("industry")) for r in rows[:BOOK_CANDIDATES]], _book.as_of()
+
+
+def get_universe():
+    """S&P 500 constituents (the original list) + the factor book's whole-market candidates; symbol -> (sector, industry)."""
+    uni = {}
+    for sym, sec, ind in get_sp500():
+        uni[sym] = (sec, ind)
+    book, book_as_of = get_book_candidates()
+    for sym, sec, ind in book:
+        uni.setdefault(sym, (sec, ind))
+    return uni, len(book), book_as_of
+
+
+def book_quote(symbol):
+    """quote-shaped row from the factor book (bank close, labelled) or None."""
+    if _book is None or not _book.available():
+        return None
+    try:
+        return _book.quote(symbol)
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def get_ticker_data(symbol):
-    """Parallel fetch of income, balance, quote, profile for ticker."""
+    """income, balance, profile (bank-first /stable) + the quote: the factor book's bank close first (a daily screen
+    after the close needs the close, and it does not spend 1,700 live calls), the live /quote only when the book lacks
+    the name."""
     q = urllib.parse.quote_plus(symbol)
     endpoints = {
-        "quote":   f"quote?symbol={q}",
         "income":  f"income-statement?symbol={q}&limit=2",
         "balance": f"balance-sheet-statement?symbol={q}&limit=2",
         "profile": f"profile?symbol={q}",
     }
     out = {}
+    bq = book_quote(symbol)
+    if bq and bq.get("price") and bq.get("marketCap"):
+        out["quote"] = [bq]
+        out["price_source"] = "factor-book close as of %s" % ((bq.get("as_of") or {}).get("fmp-bank") or "")[:10]
+    else:
+        endpoints["quote"] = f"quote?symbol={q}"
+        out["price_source"] = "live quote"
     with ThreadPoolExecutor(max_workers=4) as ex:
         futures = {ex.submit(fmp, p): k for k, p in endpoints.items()}
         for f in as_completed(futures):
@@ -182,6 +247,7 @@ def compute_magic(symbol, sector, industry):
             "sector": sector,
             "industry": industry,
             "price": q0.get("price"),
+            "price_source": d.get("price_source"),
             "market_cap_usd": mc,
             "ebit_ttm": ebit,
             "enterprise_value": ev,
@@ -217,15 +283,17 @@ def lambda_handler(event, context):
         return {"statusCode": 500,
                 "body": json.dumps({"ok": False, "error": "no_fmp_key"})}
     try:
-        universe = get_sp500()
+        universe, n_book, book_as_of = get_universe()
         if not universe:
             return {"statusCode": 500, "body": json.dumps({"ok": False,
-                                                           "error": "no_sp500"})}
+                                                           "error": "no_universe"})}
+        universe_label = ("S&P 500 + US common stocks >= $%dM from the factor book (%d candidates, bank as of %s), ex-Financials/Utilities/REITs"
+                          % (MIN_MCAP_USD / 1e6, n_book, (book_as_of or {}).get("fmp-bank", "?")[:10])) if n_book else "S&P 500 ex-Financials/Utilities/REITs (factor book unavailable)"
 
         results = []
         with ThreadPoolExecutor(max_workers=8) as ex:
             futures = {ex.submit(compute_magic, sym, sec, ind):
-                       sym for sym, sec, ind in universe}
+                       sym for sym, (sec, ind) in universe.items()}
             for f in as_completed(futures):
                 r = f.result()
                 if r:
@@ -281,7 +349,10 @@ def lambda_handler(event, context):
         payload = {
             "version": VERSION,
             "generated_at": started,
-            "universe": "S&P 500 ex-Financials/Utilities/REITs",
+            "universe": universe_label,
+            "n_universe": len(universe),
+            "n_book_candidates": n_book,
+            "book_as_of": book_as_of,
             "regime": regime,
             "n_universe_eligible": len(results),
             "median_earnings_yield_pct": median_ey,
@@ -299,7 +370,8 @@ def lambda_handler(event, context):
                 "ranking": "ascending(rank_ey + rank_roic) - lower is better",
                 "excluded_sectors": sorted(EXCLUDED_SECTORS),
                 "excluded_industries": sorted(EXCLUDED_INDUSTRIES),
-                "universe": "S&P 500 constituents",
+                "universe": universe_label,
+                "price_basis": "factor-book bank close when the book holds the name (labelled per row in price_source), else live /quote",
                 "regime_bands": {
                     "ABUNDANT_OPPORTUNITY": ("top10_avg_ey >= 15% AND "
                                              "top10_avg_roic >= 30%"),
@@ -313,7 +385,8 @@ def lambda_handler(event, context):
                            "vs S&P 9.5%. Academic replications (Gray & "
                            "Carlisle 2013) show 4-8% alpha. Two-factor "
                            "structure resists data-mining."),
-            "sources": ["FMP /stable/quote", "FMP /stable/income-statement",
+            "sources": ["factor book data/warm/factor-book (justhodl-bank-factors; aws/shared/bank_enrich)",
+                        "FMP /stable/quote (only when the book lacks the name)", "FMP /stable/income-statement",
                         "FMP /stable/balance-sheet-statement",
                         "FMP /stable/profile",
                         "FMP /stable/sp500-constituent"],

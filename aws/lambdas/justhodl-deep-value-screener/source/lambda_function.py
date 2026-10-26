@@ -46,6 +46,48 @@ TIMEOUT_BUDGET_S = int(os.environ.get("TIMEOUT_BUDGET_S", "240"))
 
 S3 = boto3.client("s3", region_name=REGION)
 
+# v1.1 (2026-10-26, bank fusion): the universe starts from the whole US market in the factor book (justhodl-bank-factors)
+# - every common stock >= MIN_MCAP whose bank numbers already look like net cash (cash/share vs price), a Graham
+# net-current-asset discount or a sub-0.6x sales multiple - instead of a 600-name seed list; the exact cash + investments
+# - debt test below still decides.  Prices / market caps / 52-week highs come from the book's bank close (labelled), so
+# the screen does not depend on hundreds of live /quote calls; each row carries the book's Altman Z, Piotroski, short %
+# float, analyst upside and value composite as context.
+try:
+    import bank_enrich as _book
+except Exception:  # noqa: BLE001 - without the SDK the engine is the seed-list screen it was
+    _book = None
+
+
+def book_candidates():
+    """Whole-market net-cash candidates from the factor book, best cash/mcap first; ([], None) when the book is absent."""
+    if _book is None or not _book.available():
+        return [], None
+
+    def looks_cheap(r):
+        if (r.get("mcap") or 0) < MIN_MCAP:
+            return False
+        px, cps, ncav, ps = r.get("price"), r.get("cash_per_share"), r.get("net_current_asset_value"), r.get("ps")
+        cash_pct = (cps / px) if (cps and px and px > 0) else 0.0
+        ncav_pct = (ncav / r["mcap"]) if (ncav and r.get("mcap")) else 0.0
+        return cash_pct >= 0.25 or ncav_pct >= 0.15 or (ps is not None and 0 < ps <= 0.6)
+    rows = _book.screen(looks_cheap, fields=["price", "cash_per_share", "net_current_asset_value", "ps", "mcap"])
+    rows.sort(key=lambda r: -((r.get("cash_per_share") or 0) / r["price"] if r.get("price") else 0))
+    return [r["symbol"] for r in rows[:MAX_TICKERS]], _book.as_of()
+
+
+def book_quote(symbol):
+    """quote-shaped row (price, marketCap, yearHigh) from the factor book's bank close, with context; None when absent."""
+    if _book is None or not _book.available():
+        return None
+    try:
+        q = _book.quote(symbol)
+        if not q or not q.get("price") or not q.get("marketCap"):
+            return None
+        q["bank_context"] = _book.lookup(symbol, ["altman_z", "piotroski", "composite_value", "composite_quality", "short_pct_float", "pt_upside_pct", "dcf_upside_pct"])
+        return q
+    except Exception:  # noqa: BLE001
+        return None
+
 
 # ─────────────────────────────────────────────────────────────────────
 # UNIVERSE
@@ -83,8 +125,13 @@ def _http_get_json(url, timeout=15):
 
 
 def get_universe():
-    """Return up to MAX_TICKERS, prioritizing the unified universe (data/universe.json)."""
+    """Return up to MAX_TICKERS: the factor book's whole-market net-cash candidates first, then the unified universe
+    (data/universe.json) and the older seeds fill the remainder."""
     universe = []
+    book_syms, book_as_of = book_candidates()
+    universe.extend(book_syms)
+    get_universe.book = (len(book_syms), book_as_of)
+    print(f"[deep-value] factor book candidates: {len(book_syms)} (bank as of {(book_as_of or {}).get('fmp-bank')})")
 
     # PRIMARY: pull from unified universe (master pool)
     try:
@@ -197,8 +244,11 @@ def evaluate_ticker(symbol, deadline_at):
     if time.time() > deadline_at:
         return {"symbol": symbol, "status": "deadline_skip"}
 
-    # Quote first — fast, gives mcap and 52w high
-    q = fetch_quote(symbol)
+    # Quote first — the factor book's bank close (labelled) when it holds the name, else the live /quote
+    q = book_quote(symbol)
+    price_source = "factor-book close as of %s" % (((q or {}).get("as_of") or {}).get("fmp-bank") or "")[:10] if q else "live quote"
+    if not q:
+        q = fetch_quote(symbol)
     if not q:
         return {"symbol": symbol, "status": "no_quote"}
     mcap = q.get("marketCap") or 0
@@ -310,6 +360,8 @@ def evaluate_ticker(symbol, deadline_at):
         "score": round(min(score, 100), 1),
         "flag": flag,
         "status": "ok",
+        "price_source": price_source,
+        "bank_context": q.get("bank_context"),
         "fundamentals": {
             "market_cap": mcap,
             "price": price,
@@ -346,7 +398,7 @@ def _build_rationale(sym, mcap, nc_pct, rev_yield, m2r, ph, cf_pos, cf_total, se
 def lambda_handler(event=None, context=None):
     started = time.time()
     deadline_at = started + TIMEOUT_BUDGET_S
-    print(f"[deep-value] starting v1.0, max_tickers={MAX_TICKERS}, budget={TIMEOUT_BUDGET_S}s")
+    print(f"[deep-value] starting v1.1 (bank fusion), max_tickers={MAX_TICKERS}, budget={TIMEOUT_BUDGET_S}s")
 
     universe = get_universe()
     print(f"[deep-value] universe size: {len(universe)}")
@@ -384,11 +436,14 @@ def lambda_handler(event=None, context=None):
 
     out = {
         "schema_version": 1,
-        "method": "deep_value_screener_v1",
+        "method": "deep_value_screener_v1.1",
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime()),
         "duration_s": round(time.time() - started, 1),
         "stats": {
             "n_universe": len(universe),
+            "n_book_candidates": getattr(get_universe, "book", (0, None))[0],
+            "book_as_of": getattr(get_universe, "book", (0, None))[1],
+            "universe_basis": ("factor book whole-market net-cash candidates (%d) + unified universe / seeds" % getattr(get_universe, "book", (0, None))[0]) if getattr(get_universe, "book", (0, None))[0] else "unified universe / seeds (factor book unavailable)",
             "n_qualifying": len(results),
             "n_tier_a": len(tier_a),
             "n_tier_b": len(tier_b),

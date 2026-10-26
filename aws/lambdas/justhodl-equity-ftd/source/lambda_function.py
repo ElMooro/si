@@ -9,6 +9,11 @@ the trailing-file mean, ETF/fund exclusion, liquidity floors, and
 schema-v2 "ftd-squeeze" UP [21,63] signals vs SPY through the fleet
 grading loop (checker-v3). Twice-weekly Scheduler; skips cheaply when
 the SEC hasn't published a new file.
+
+v1.1.0 (2026-10-26, bank fusion): every candidate row carries the factor book's squeeze facts (short interest % of
+float and days to cover from Polygon, float and short-volume ratio, market cap, 21-day return) under `squeeze`, the
+signal rationale quotes them, and the 20d volume / last close fall back to the book's bank values when FMP has
+nothing (row `vol_source`).  Floors and the spike logic are unchanged.
 """
 
 try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
@@ -28,7 +33,7 @@ import boto3
 
 from signals_emit import log_signal
 
-VERSION = "1.0.1"
+VERSION = "1.1.0"
 BUCKET = "justhodl-dashboard-live"
 KEY = "data/equity-ftd.json"
 UA = {"User-Agent": "JustHodl research admin@justhodl.ai"}
@@ -141,6 +146,40 @@ def is_etfish(desc):
     return any(t in u for t in ETFISH)
 
 
+try:  # v1.1.0 (2026-10-26, bank fusion): the factor book (justhodl-bank-factors) adds the squeeze facts the SEC file cannot
+    import bank_enrich as _book  # know - short interest % float, days to cover, float, short-volume ratio - and backs the volume/price read
+except Exception:  # noqa: BLE001
+    _book = None
+
+
+def book_context(sym):
+    """Squeeze context from the factor book for one candidate (None when the book lacks it)."""
+    if _book is None or not _book.available():
+        return None
+    try:
+        r = _book.lookup(sym, ["short_pct_float", "days_to_cover", "float_shares", "short_volume_ratio", "mcap", "avg_volume", "close", "ret_21d"])
+    except Exception:  # noqa: BLE001
+        return None
+    if not r:
+        return None
+    return {"si_pct_float": rnd(r.get("short_pct_float"), 2), "dtc_si": rnd(r.get("days_to_cover"), 2),
+            "float_m": rnd((r.get("float_shares") or 0) / 1e6, 1) if r.get("float_shares") else None,
+            "sv_ratio": rnd(r.get("short_volume_ratio"), 3), "mcap_m": rnd((r.get("mcap") or 0) / 1e6, 0) if r.get("mcap") else None,
+            "ret_21d": rnd(r.get("ret_21d"), 2), "_avg_volume": r.get("avg_volume"), "_close": r.get("close")}
+
+
+def vol_price(sym, key):
+    """20d avg volume + last close: FMP light (bank-first) first, the factor book's bank average volume + close when
+    FMP has nothing (labelled through `vol_source` on the row)."""
+    av, px = fmp_vol_price(sym, key)
+    if av and px:
+        return av, px, "fmp"
+    ctx = book_context(sym) or {}
+    if ctx.get("_avg_volume") and ctx.get("_close"):
+        return float(ctx["_avg_volume"]), float(ctx["_close"]), "factor-book"
+    return av, px, "none"
+
+
 def fmp_vol_price(sym, key):
     """20d avg volume + last close from FMP light; None on any gap."""
     try:
@@ -165,9 +204,10 @@ def fmp_vol_price(sym, key):
     return None, None
 
 
-def evaluate(files, vol_fn, floors=FLOORS, max_signals=MAX_SIGNALS):
+def evaluate(files, vol_fn, floors=FLOORS, max_signals=MAX_SIGNALS, ctx_fn=None):
     """Pure decision core (unit-tested): returns (rows, qualifiers).
-    rows = enriched candidate list; qualifiers pass every floor."""
+    rows = enriched candidate list; qualifiers pass every floor.  vol_fn may return (avg, px) or (avg, px, source);
+    ctx_fn(sym) -> squeeze context dict from the factor book (v1.1.0), attached to the row, floors unchanged."""
     latest = files[0]["per"]
     spk = spike_map(files)
     by_usd = sorted(latest.items(), key=lambda x: -x[1]["usd"])[:250]
@@ -181,15 +221,21 @@ def evaluate(files, vol_fn, floors=FLOORS, max_signals=MAX_SIGNALS):
         e = latest[sym]
         if is_etfish(e["desc"]):
             continue
-        av, px = vol_fn(sym)
+        got = vol_fn(sym)
+        av, px = got[0], got[1]
+        src = got[2] if len(got) > 2 else "fmp"
         peak = max(e["days"].values()) if e["days"] else 0
         r = {"t": sym, "q": e["q"], "usd": rnd(e["usd"] / 1e6, 2),
              "peak_day_q": peak,
              "spike": rnd(spk.get(sym, (None, None))[0], 2),
              "base": rnd(spk.get(sym, (None, None))[1], 0),
-             "avg20": rnd(av, 0), "px": rnd(px, 2),
+             "avg20": rnd(av, 0), "px": rnd(px, 2), "vol_source": src,
              "dtc_peak": rnd(peak / av, 2) if av else None,
              "desc": e["desc"][:40]}
+        if ctx_fn is not None:
+            ctx = ctx_fn(sym)
+            if ctx:
+                r["squeeze"] = {k: v for k, v in ctx.items() if not k.startswith("_")}
         rows.append(r)
     quals = [r for r in rows
              if (r["px"] or 0) >= floors["price"]
@@ -222,7 +268,7 @@ def lambda_handler(event, context):
                "generated_at": datetime.now(timezone.utc).isoformat()}
         print(json.dumps(out))
         return out
-    rows, quals = evaluate(files, lambda s: fmp_vol_price(s, key))
+    rows, quals = evaluate(files, lambda s: vol_price(s, key), ctx_fn=book_context)
     logged, sigs = 0, []
     tbl = ddb.Table("justhodl-signals")
     for r in quals:
@@ -231,7 +277,9 @@ def lambda_handler(event, context):
             confidence=min(0.75, 0.55 + (r["spike"] or 0) / 30.0),
             rationale=(f"FTD spike {r['spike']}x vs trailing mean; "
                        f"${r['usd']}M fails, peak-day DTC "
-                       f"{r['dtc_peak']} vs 20d volume"),
+                       f"{r['dtc_peak']} vs 20d volume"
+                       + (f"; short interest {r['squeeze'].get('si_pct_float')}% of float, "
+                          f"{r['squeeze'].get('dtc_si')} days to cover (factor book)" if r.get("squeeze") and r["squeeze"].get("si_pct_float") is not None else "")),
             benchmark="SPY",
             metadata={"engine": "equity-ftd",
                       "tag": files[0]["tag"], "q": r["q"],
@@ -252,6 +300,8 @@ def lambda_handler(event, context):
            "latest_meta": files[0]["meta"],
            "universe_n": files[0]["meta"]["n_symbols"],
            "n_candidates": len(rows),
+           "book_as_of": (_book.as_of() if (_book is not None and _book.available()) else None),
+           "n_with_squeeze_context": sum(1 for r in rows if r.get("squeeze")),
            "floors": FLOORS,
            "top_dollars": top_d, "top_spikes": top_s,
            "qualifiers": quals, "signals": sigs, "logged": logged}

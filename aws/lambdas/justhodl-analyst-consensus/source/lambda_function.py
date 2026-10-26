@@ -38,6 +38,12 @@ Telegram alerts:
   • NEW STRONG BUYS — composite >= 80, wasn't >= 80 last run
   • TARGET RUSH — target median rose >5% in 30d AND >3 analyst revisions
   • CONSENSUS BREAK — recommendation flipped (was BUY → now HOLD or worse)
+
+v1.1 (2026-10-26, bank fusion): the universe is the 200 curated names PLUS every US common stock the factor book
+(justhodl-bank-factors) shows with >= 3 analysts in the last month and >= $300M of market cap - the whole analyst-
+covered market - and a name the book holds is scored from the book (bank close, last-month average target, consensus
+counts, earnings surprises; zero live calls, labelled `source: factor-book`); the live /stable path remains for names
+the book lacks.  Composite weights are unchanged.
 """
 
 try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
@@ -95,6 +101,72 @@ UNIVERSE_TICKERS = [
 UNIVERSE_TICKERS = sorted(set(UNIVERSE_TICKERS))[:200]
 
 s3 = boto3.client("s3", region_name="us-east-1")
+BOOK_CANDIDATES = int(os.environ.get("AC_BOOK_CANDIDATES", "2500"))
+BOOK_MIN_ANALYSTS = int(os.environ.get("AC_BOOK_MIN_ANALYSTS", "3"))
+BOOK_MIN_MCAP = float(os.environ.get("AC_BOOK_MIN_MCAP", "300000000"))
+try:
+    import bank_enrich as _book
+except Exception:  # noqa: BLE001 - without the SDK the engine is the 200-name screen it was
+    _book = None
+
+
+def book_universe():
+    """Every analyst-covered US common stock in the factor book (>= BOOK_MIN_ANALYSTS targets last month, >= BOOK_MIN_MCAP),
+    largest first; ([], None) when the book is not there."""
+    if _book is None or not _book.available():
+        return [], None
+    rows = _book.screen(lambda r: (r.get("pt_n_1m") or 0) >= BOOK_MIN_ANALYSTS and (r.get("mcap") or 0) >= BOOK_MIN_MCAP, fields=["pt_n_1m", "mcap"])
+    rows.sort(key=lambda r: -(r.get("mcap") or 0))
+    return [r["symbol"] for r in rows[:BOOK_CANDIDATES]], _book.as_of()
+
+
+def fetch_one_book(symbol):
+    """The consensus row from the factor book (no live call): bank close, last-month average target, consensus counts,
+    the banked earnings surprises.  None when the book lacks the name or has no analyst data for it."""
+    if _book is None or not _book.available():
+        return None
+    try:
+        d = _book.factor(symbol)
+    except Exception:  # noqa: BLE001
+        return None
+    if not d:
+        return None
+    pt, cons, prof, ident = d.get("price_target") or {}, d.get("consensus") or {}, d.get("profile") or {}, d.get("identity") or {}
+    if not pt and not cons:
+        return None
+    out = {"symbol": symbol, "source": "factor-book", "as_of": d.get("as_of")}
+    out["price"] = prof.get("price") if prof.get("price") is not None else (d.get("returns") or {}).get("close")
+    out["market_cap"] = ident.get("mcap")
+    out["change_pct"] = (d.get("returns") or {}).get("ret_1d")
+    tm = pt.get("lastMonthAvgPriceTarget") or pt.get("lastQuarterAvgPriceTarget")
+    if tm:
+        out["target_median"] = tm
+        out["target_mean"] = tm
+        out["target_basis"] = "last-month average price target (FMP price-target-summary, factor book)"
+        out["n_targets_1m"] = pt.get("lastMonthCount")
+    if cons:
+        out["rec_strong_buy"] = cons.get("strongBuy", 0) or 0
+        out["rec_buy"] = cons.get("buy", 0) or 0
+        out["rec_hold"] = cons.get("hold", 0) or 0
+        out["rec_sell"] = cons.get("sell", 0) or 0
+        out["rec_strong_sell"] = cons.get("strongSell", 0) or 0
+        out["rec_consensus"] = cons.get("consensus", "") or ""
+    sur = [r for r in (d.get("surprises") or []) if isinstance(r, dict)]
+    reported = []
+    for r in sorted(sur, key=lambda r: str(r.get("date") or ""), reverse=True):
+        a = r.get("actualEarningResult", r.get("epsActual"))
+        e = r.get("estimatedEarning", r.get("epsEstimated"))
+        if a is not None and e is not None:
+            reported.append((a, e))
+    reported = reported[:8]
+    if reported:
+        beats = sum(1 for a, e in reported if (a or 0) > (e or 0))
+        out["beats_8q"] = beats
+        out["beat_pct_8q"] = round(100 * beats / len(reported), 1)
+        a, e = reported[0]
+        if e:
+            out["last_surprise_pct"] = round(100 * (a - e) / abs(e), 1)
+    return out
 
 
 def fmp_get(path, params=None, retries=2, timeout=20):
@@ -140,8 +212,11 @@ def pct(x):
 
 
 def fetch_one(symbol):
-    """Fetch all consensus data for one symbol. Returns combined dict."""
-    out = {"symbol": symbol}
+    """Fetch all consensus data for one symbol. Returns combined dict.  v1.1: the factor book answers first."""
+    book = fetch_one_book(symbol)
+    if book:
+        return book
+    out = {"symbol": symbol, "source": "live"}
 
     # Quote (for current price)
     q = fmp_get("quote", {"symbol": symbol})
@@ -333,10 +408,13 @@ def lambda_handler(event, context):
 
     prior = get_s3_json(S3_KEY, {}) or {}
 
-    # Fetch universe in parallel
+    # Fetch universe in parallel: the curated 200 + the factor book's analyst-covered market
+    book_syms, book_as_of = book_universe()
+    universe = list(dict.fromkeys(list(UNIVERSE_TICKERS) + book_syms))
+    print(f"[consensus] universe: {len(UNIVERSE_TICKERS)} curated + {len(book_syms)} factor-book = {len(universe)}")
     results = {}
     with ThreadPoolExecutor(max_workers=10) as ex:
-        futs = {ex.submit(fetch_one, sym): sym for sym in UNIVERSE_TICKERS}
+        futs = {ex.submit(fetch_one, sym): sym for sym in universe}
         for f in as_completed(futs):
             sym = futs[f]
             try:
@@ -388,10 +466,13 @@ def lambda_handler(event, context):
 
     # Build output
     output = {
-        "schema_version": "1.0",
-        "method": "consensus_engine_v1",
+        "schema_version": "1.1",
+        "method": "consensus_engine_v1.1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "universe_size": len(UNIVERSE_TICKERS),
+        "universe_size": len(universe),
+        "universe_basis": ("%d curated + %d factor-book analyst-covered names (>= %d targets last month, >= $%dM; bank as of %s)" % (len(UNIVERSE_TICKERS), len(book_syms), BOOK_MIN_ANALYSTS, BOOK_MIN_MCAP / 1e6, (book_as_of or {}).get("fmp-bank", "?")[:10])) if book_syms else "%d curated names (factor book unavailable)" % len(UNIVERSE_TICKERS),
+        "n_from_book": sum(1 for t in results.values() if t.get("source") == "factor-book"),
+        "book_as_of": book_as_of,
         "n_with_data": len(ranked),
         "top_consensus_25": [
             {"ticker": t["symbol"], "composite_score": t["composite_score"],
@@ -495,7 +576,8 @@ def lambda_handler(event, context):
         "headers": {"Content-Type": "application/json"},
         "body": json.dumps({
             "ok": True,
-            "n_universe": len(UNIVERSE_TICKERS),
+            "n_universe": len(universe),
+            "n_from_book": sum(1 for t in results.values() if t.get("source") == "factor-book"),
             "n_with_data": len(ranked),
             "top_5": [t["symbol"] for t in top_consensus[:5]],
             "duration_s": round(time.time()-t0, 1),

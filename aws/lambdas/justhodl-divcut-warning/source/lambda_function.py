@@ -31,6 +31,12 @@ STATE MACHINE
   ELEVATED         3-7 names with 3+ signals
   NORMAL           1-2 names
   QUIET            none flagged
+
+v1.1.0 (2026-10-26, bank fusion): the universe is no longer the 60-name curated list alone - every US dividend payer
+in the factor book (justhodl-bank-factors) with a yield >= 3% and a risk marker (payout >= 70%, net debt/EBITDA >= 4x
+or yield >= 8%) is assessed too, up to DIVCUT_BOOK_CANDIDATES names ordered by yield.  Price / market cap / yield come
+from the book's bank close (labelled) instead of a live /quote; each warning carries the book's Altman Z, Piotroski,
+short interest % float and analyst upside as context.
 """
 
 try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
@@ -51,7 +57,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
-VERSION = "v1.0.0"
+VERSION = "v1.1.0"
 ENGINE = "justhodl-divcut-warning"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/divcut-warning.json"
@@ -63,6 +69,41 @@ TELEGRAM_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "8678089260")
 s3 = boto3.client("s3", region_name="us-east-1")
 ssm = boto3.client("ssm", region_name="us-east-1")
 SSM_STATE_KEY = "/justhodl/divcut-warning/state"
+BOOK_CANDIDATES = int(os.environ.get("DIVCUT_BOOK_CANDIDATES", "400"))
+BOOK_MIN_MCAP = float(os.environ.get("DIVCUT_BOOK_MIN_MCAP", "1000000000"))
+BOOK_MIN_YIELD = float(os.environ.get("DIVCUT_BOOK_MIN_YIELD", "0.03"))
+try:
+    import bank_enrich as _book
+except Exception:  # noqa: BLE001 - without the SDK the engine is the curated-list screen it was
+    _book = None
+
+
+def book_candidates():
+    """Whole-market dividend payers at risk, from the factor book: US common stocks >= $1B paying >= 3% with payout
+    >= 70%, net debt/EBITDA >= 4x or yield >= 8%; ordered by yield.  ([], None) when the book is not there."""
+    if _book is None or not _book.available():
+        return [], None
+    rows = _book.screen(lambda r: (r.get("mcap") or 0) >= BOOK_MIN_MCAP and (r.get("dividend_yield") or 0) >= BOOK_MIN_YIELD
+                        and ((r.get("payout_ratio") or 0) >= 0.7 or (r.get("net_debt_ebitda") or 0) >= 4.0 or (r.get("dividend_yield") or 0) >= 0.08),
+                        fields=["dividend_yield", "payout_ratio", "net_debt_ebitda", "mcap"])
+    rows.sort(key=lambda r: -(r.get("dividend_yield") or 0))
+    return [r["symbol"] for r in rows[:BOOK_CANDIDATES]], _book.as_of()
+
+
+def book_quote(ticker):
+    """price / market cap / yield from the factor book's bank close (labelled), or None."""
+    if _book is None or not _book.available():
+        return None
+    try:
+        q = _book.quote(ticker)
+        if not q or not q.get("price"):
+            return None
+        row = _book.lookup(ticker, ["dividend_yield", "altman_z", "piotroski", "short_pct_float", "pt_upside_pct", "payout_ratio"]) or {}
+        q["yield"] = row.get("dividend_yield")
+        q["bank_context"] = {k: row.get(k) for k in ("altman_z", "piotroski", "short_pct_float", "pt_upside_pct")}
+        return q
+    except Exception:  # noqa: BLE001
+        return None
 
 # Curated high-yield/at-risk universe -- liquid names paying material dividends
 # where cuts would cause real damage. Mix of S&P 500 + high-yield REITs/MLPs.
@@ -156,11 +197,14 @@ def telegram_send(text):
 def assess_ticker(ticker):
     """Compute all 5 cut-signals for a ticker."""
     try:
-        # 1. Quote (price, yield, mcap)
-        q = fmp_get("quote", {"symbol": ticker})
-        if not q or not isinstance(q, list) or not q:
-            return None
-        q = q[0]
+        # 1. Quote (price, yield, mcap): the factor book's bank close first (labelled), the live /quote when the book lacks the name
+        q = book_quote(ticker)
+        price_source = "factor-book close as of %s" % (((q or {}).get("as_of") or {}).get("fmp-bank") or "")[:10] if q else "live quote"
+        if not q:
+            q = fmp_get("quote", {"symbol": ticker})
+            if not q or not isinstance(q, list) or not q:
+                return None
+            q = q[0]
         price = q.get("price")
         if not price or price <= 0:
             return None
@@ -234,6 +278,8 @@ def assess_ticker(ticker):
             "ticker": ticker,
             "name": q.get("name"),
             "price": price,
+            "price_source": price_source,
+            "bank_context": q.get("bank_context"),
             "yield_pct": round(yield_pct, 2),
             "mcap_billions": round(mcap / 1e9, 2) if mcap else None,
             "n_signals": n_signals,
@@ -256,8 +302,11 @@ def lambda_handler(event, context):
     started = time.time()
     try:
         warnings = []
+        book_syms, book_as_of = book_candidates()
+        universe = list(dict.fromkeys(list(UNIVERSE) + book_syms))
+        print(f"universe: {len(UNIVERSE)} curated + {len(book_syms)} factor-book candidates = {len(universe)}")
         with ThreadPoolExecutor(max_workers=8) as exe:
-            futs = {exe.submit(assess_ticker, t): t for t in UNIVERSE}
+            futs = {exe.submit(assess_ticker, t): t for t in universe}
             for fut in as_completed(futs):
                 res = fut.result()
                 if res:
@@ -304,7 +353,9 @@ def lambda_handler(event, context):
             "state": state,
             "signal_strength": min(100, n_high * 12 + n_mid * 5),
             "summary": {
-                "universe_size": len(UNIVERSE),
+                "universe_size": len(universe),
+                "universe_basis": ("curated list (%d) + factor book dividend payers at risk (%d; bank as of %s)" % (len(UNIVERSE), len(book_syms), (book_as_of or {}).get("fmp-bank", "?")[:10])) if book_syms else "curated list (%d); factor book unavailable" % len(UNIVERSE),
+                "book_as_of": book_as_of,
                 "flagged_n": n_flagged,
                 "high_risk_n": n_high,
                 "mid_risk_n": n_mid,
@@ -325,7 +376,8 @@ def lambda_handler(event, context):
                 "edge_basis": "Brav-Graham-Harvey-Michaely (2005); historical 60-80% hit on 4+ signals",
                 "use_case": "AVOIDANCE — exit position or hedge with puts before cut announced",
             },
-            "sources": ["FMP /stable/quote", "FMP /stable/ratios-ttm",
+            "sources": ["factor book data/warm/factor-book (justhodl-bank-factors; aws/shared/bank_enrich) for price/mcap/yield/context",
+                         "FMP /stable/quote (only when the book lacks the name)", "FMP /stable/ratios-ttm",
                          "FMP /stable/cash-flow-statement",
                          "FMP /stable/analyst-estimates"],
             "why_now": (f"{n_flagged} dividend-paying names show 3+ cut-risk signals. "

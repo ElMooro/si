@@ -206,6 +206,42 @@ def lookup(symbol, fields=None):
     return {k: cols[k][i] for k in names}
 
 
+def prescreen(where, order_by=None, descending=True, limit=1500, fields=None, common_only=True):
+    """Whole-market candidate list for an engine whose universe used to be capped by per-symbol API cost: the symbols
+    whose matrix row satisfies `where`, ordered by `order_by` (a field name or a callable row -> number), capped.
+    Returns [] when the book is not there, so a caller keeps its old universe as the fallback."""
+    hits = screen(where, fields=fields, common_only=common_only)
+    if order_by is not None:
+        keyf = order_by if callable(order_by) else (lambda r, f=order_by: r.get(f))
+        hits = [r for r in hits if keyf(r) is not None]
+        hits.sort(key=keyf, reverse=descending)
+    return [r["symbol"] for r in hits[:limit]]
+
+
+def quote(symbol):
+    """A quote-shaped read of the factor book for an engine whose live FMP /quote call failed or is not needed at EOD:
+    price is the bank's last price (FMP profile-bulk as of the bank's pull, after the close), 52-week high/low from
+    the Polygon tape.  Labelled `as_of` + `source`; it is the close, never a live tick.  None when the book lacks it."""
+    d = factor(symbol)
+    if not d:
+        return None
+    prof, ident, ret = d.get("profile") or {}, d.get("identity") or {}, d.get("returns") or {}
+    lk = {str(k).lower(): k for k in prof}
+
+    def p(*names):
+        for n in names:
+            k = lk.get(n.lower())
+            if k is not None and prof.get(k) not in (None, ""):
+                return prof[k]
+        return None
+    price = p("price") if p("price") is not None else ret.get("close")
+    return {"symbol": ident.get("symbol") or str(symbol).upper(), "name": ident.get("name") or p("companyname"), "price": price,
+            "marketCap": ident.get("mcap") if ident.get("mcap") is not None else p("marketcap", "mktcap"),
+            "yearHigh": ret.get("high_52w"), "yearLow": ret.get("low_52w"), "previousClose": ret.get("close"), "avgVolume": p("averagevolume", "volavg"),
+            "exchange": ident.get("exchange"), "sector": ident.get("sector"), "industry": ident.get("industry"), "beta": p("beta"),
+            "sharesOutstanding": (d.get("float") or {}).get("outstandingShares"), "as_of": (d.get("as_of") or {}), "source": "factor-book (bank close, not a live tick)"}
+
+
 def _discover(doc, cap=2000):
     """Symbols mentioned in an engine's output: values under keys named symbol/ticker (bounded walk)."""
     found, seen = [], set()

@@ -35,7 +35,7 @@ OUT_KEY = "data/stock-valuations.json"
 STATE_KEY = "data/_value/state.json"
 UP_STATE = "data/_upside/state.json.gz"
 FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
-VERSION = "1.5.1"
+VERSION = "1.6.0"
 DIAG = []
 SECTOR_ALIAS = {"Financial Services": "Financials", "Consumer Cyclical":
                  "Consumer Discretionary", "Healthcare": "Health Care",
@@ -222,8 +222,38 @@ def fetch_hp_raw(t):
     return r
 
 
+try:  # v1.6.0 (2026-10-26, bank fusion): the HP small/mid-cap universe comes from the factor book (justhodl-bank-factors)
+    import bank_enrich as _book  # first - the FMP company-screener is a search endpoint no bank holds and it fails with the key
+except Exception:  # noqa: BLE001
+    _book = None
+
+HP_BOOK_MIN_MCAP, HP_BOOK_MAX_MCAP, HP_BOOK_MIN_AVG_VOL = 75e6, 3e9, 150_000
+
+
+def hp_universe_book():
+    """Small/mid caps ($75M-$3B, avg volume > 150k, NYSE/NASDAQ common stocks) from the factor book, largest first;
+    ([], None) when the book is not there."""
+    if _book is None or not _book.available():
+        return [], None
+    try:
+        rows = _book.screen(lambda r: HP_BOOK_MIN_MCAP <= (r.get("mcap") or 0) <= HP_BOOK_MAX_MCAP and (r.get("avg_volume") or 0) > HP_BOOK_MIN_AVG_VOL
+                            and r.get("exchange") in ("NYSE", "NASDAQ") and "." not in r["symbol"],
+                            fields=["mcap", "avg_volume", "sector", "industry", "exchange"])
+    except Exception as e:  # noqa: BLE001
+        DIAG.append(f"factor book universe: {str(e)[:60]}")
+        return [], None
+    FUND_IND = ("Asset Management -", "Closed-End Fund", "Shell Compan", "Exchange Traded Fund")
+    rows = [r for r in rows if not any((r.get("industry") or "").startswith(fi) for fi in FUND_IND)]
+    rows.sort(key=lambda r: -(r.get("mcap") or 0))
+    return [(r["symbol"], SECTOR_ALIAS.get(r.get("sector") or "", r.get("sector")), r.get("mcap"), r.get("industry")) for r in rows[:400]], _book.as_of()
+
+
 def hp_universe():
-    """FMP company-screener ladder; fallback = union of existing desk lists."""
+    """Factor book small/mid caps first (v1.6.0); then the FMP company-screener ladder; fallback = union of desk lists."""
+    rows, as_of = hp_universe_book()
+    if len(rows) > 50:
+        DIAG.append(f"hp universe: factor book {len(rows)} rows (bank as of {(as_of or {}).get('fmp-bank', '?')[:10]})")
+        return rows, "factor_book_small_mid_caps"
     try:
         j = jget("https://financialmodelingprep.com/stable/company-screener?"
                   "marketCapMoreThan=75000000&marketCapLowerThan=3000000000"
@@ -401,8 +431,9 @@ def lambda_handler(event=None, context=None):
         st["hist_asof"] = datetime.now(timezone.utc).date().isoformat()
     DIAG.append(f"hist cache: {len(st['hist'])} names with >=5y, {hgot2} refreshed")
 
-    if st.get("hp_asof", "") < week_ago or not st.get("hp_rows"):
-        rows, src = hp_universe()
+    book_ready = _book is not None and _book.available()
+    if st.get("hp_asof", "") < week_ago or not st.get("hp_rows") or (book_ready and st.get("hp_src") != "factor_book_small_mid_caps"):
+        rows, src = hp_universe()           # v1.6.0: re-seeded from the factor book the first run it is available
         st["hp_rows"], st["hp_src"] = rows, src
         st["hp_asof"] = datetime.now(timezone.utc).date().isoformat()
         st["hp"] = {t: v for t, v in st["hp"].items() if t in {r[0] for r in rows}}
