@@ -57,7 +57,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
-VERSION = "v1.1.0"
+VERSION = "v1.1.1"
 ENGINE = "justhodl-divcut-warning"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/divcut-warning.json"
@@ -69,7 +69,12 @@ TELEGRAM_CHAT = os.environ.get("TELEGRAM_CHAT_ID", "8678089260")
 s3 = boto3.client("s3", region_name="us-east-1")
 ssm = boto3.client("ssm", region_name="us-east-1")
 SSM_STATE_KEY = "/justhodl/divcut-warning/state"
-BOOK_CANDIDATES = int(os.environ.get("DIVCUT_BOOK_CANDIDATES", "400"))
+BOOK_CANDIDATES = int(os.environ.get("DIVCUT_BOOK_CANDIDATES", "250"))
+RUN_BUDGET_S = float(os.environ.get("DIVCUT_BUDGET_S", "360"))        # the function has 540 s; stop submitting names at 360 s
+try:
+    import fmp_bank as _bank
+except Exception:  # noqa: BLE001
+    _bank = None
 BOOK_MIN_MCAP = float(os.environ.get("DIVCUT_BOOK_MIN_MCAP", "1000000000"))
 BOOK_MIN_YIELD = float(os.environ.get("DIVCUT_BOOK_MIN_YIELD", "0.03"))
 try:
@@ -194,13 +199,28 @@ def telegram_send(text):
         print(f"telegram error: {e}")
 
 
-def assess_ticker(ticker):
-    """Compute all 5 cut-signals for a ticker."""
+def bank_get(path, params):
+    """The bank's answer for a /stable path (statements, TTM ratios, estimates) or None - never a live call.  v1.1.1:
+    the factor-book candidates are assessed from the banks only; the first light (446 names, each live call under the
+    FMP block costing retries) ran past the function's 540 s three times."""
+    if _bank is None:
+        return None
+    try:
+        return _bank.try_bank(path, urllib.parse.urlencode(params or {}))
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def assess_ticker(ticker, bank_only=False):
+    """Compute all 5 cut-signals for a ticker.  bank_only: every read answered from the banks, no live call."""
+    get = (lambda path, params=None: bank_get(path, params)) if bank_only else fmp_get
     try:
         # 1. Quote (price, yield, mcap): the factor book's bank close first (labelled), the live /quote when the book lacks the name
         q = book_quote(ticker)
         price_source = "factor-book close as of %s" % (((q or {}).get("as_of") or {}).get("fmp-bank") or "")[:10] if q else "live quote"
         if not q:
+            if bank_only:
+                return None
             q = fmp_get("quote", {"symbol": ticker})
             if not q or not isinstance(q, list) or not q:
                 return None
@@ -214,7 +234,7 @@ def assess_ticker(ticker):
         if not yield_pct or yield_pct < 1.5:
             return None  # Not material dividend payer
         # 2. Ratios (payout ratio, debt/ebitda)
-        ratios = fmp_get("ratios-ttm", {"symbol": ticker})
+        ratios = get("ratios-ttm", {"symbol": ticker})
         payout_ratio = None
         debt_ebitda = None
         if isinstance(ratios, list) and ratios:
@@ -226,7 +246,7 @@ def assess_ticker(ticker):
             if de is not None:
                 debt_ebitda = de
         # 3. FCF coverage: cash flow statement / dividend paid
-        cfs = fmp_get("cash-flow-statement", {"symbol": ticker, "period": "annual", "limit": 1})
+        cfs = get("cash-flow-statement", {"symbol": ticker, "period": "annual", "limit": 1})
         fcf = None
         div_paid = None
         if isinstance(cfs, list) and cfs:
@@ -236,7 +256,7 @@ def assess_ticker(ticker):
         if fcf and div_paid and div_paid > 0:
             fcf_coverage = round(fcf / div_paid, 2)
         # 4. EPS revisions (trailing 90d direction). Use analyst-estimates change
-        est = fmp_get("analyst-estimates", {"symbol": ticker, "period": "annual", "limit": 2})
+        est = get("analyst-estimates", {"symbol": ticker, "period": "annual", "limit": 2})
         eps_rev_pct = None
         if isinstance(est, list) and len(est) >= 2:
             curr = est[0].get("estimatedEpsAvg") or est[0].get("epsAvg")
@@ -305,10 +325,22 @@ def lambda_handler(event, context):
         book_syms, book_as_of = book_candidates()
         universe = list(dict.fromkeys(list(UNIVERSE) + book_syms))
         print(f"universe: {len(UNIVERSE)} curated + {len(book_syms)} factor-book candidates = {len(universe)}")
+        curated = set(UNIVERSE)
+        budget_hit = False
         with ThreadPoolExecutor(max_workers=8) as exe:
-            futs = {exe.submit(assess_ticker, t): t for t in universe}
+            futs = {}
+            for t in universe:
+                if time.time() - started > RUN_BUDGET_S:
+                    budget_hit = True
+                    print(f"budget: stopped submitting at {len(futs)}/{len(universe)} names")
+                    break
+                futs[exe.submit(assess_ticker, t, t not in curated)] = t
             for fut in as_completed(futs):
-                res = fut.result()
+                try:
+                    res = fut.result()
+                except Exception as e:  # noqa: BLE001
+                    print(f"assess failed: {e}")
+                    continue
                 if res:
                     warnings.append(res)
         warnings.sort(key=lambda x: -x["score"])
@@ -354,6 +386,9 @@ def lambda_handler(event, context):
             "signal_strength": min(100, n_high * 12 + n_mid * 5),
             "summary": {
                 "universe_size": len(universe),
+                "n_assessed": len(futs),
+                "budget_hit": budget_hit,
+                "book_candidates_read": "banks only (no live call)",
                 "universe_basis": ("curated list (%d) + factor book dividend payers at risk (%d; bank as of %s)" % (len(UNIVERSE), len(book_syms), (book_as_of or {}).get("fmp-bank", "?")[:10])) if book_syms else "curated list (%d); factor book unavailable" % len(UNIVERSE),
                 "book_as_of": book_as_of,
                 "flagged_n": n_flagged,

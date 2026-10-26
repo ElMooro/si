@@ -62,6 +62,9 @@ def boot():
     import boto3
     stub = Stub()
     boto3.client = lambda *a, **k: stub
+
+    class Calls(list):
+        bank = None
     sys.modules["fmp_bankfirst"] = types.ModuleType("fmp_bankfirst")
     sys.modules["fmp_bankfirst"].install = lambda: None
     ms = types.ModuleType("managed_secret")
@@ -77,11 +80,13 @@ def boot():
     lf.get_state = lambda: {}
     lf.set_state = lambda st: None
     lf.telegram_send = lambda text: None
-    calls = []
+    calls = Calls()
 
     def fake_fmp_get(path, params=None):
         calls.append((path, params))
-        sym = (params or {}).get("symbol")
+        return data_for(path, (params or {}).get("symbol"))
+
+    def data_for(path, sym):
         if path == "quote":
             return [{"price": 20.0, "marketCap": 1.2e11, "yield": 6.5, "name": "AT&T"}] if sym == "T" else None
         if path == "ratios-ttm":
@@ -92,6 +97,15 @@ def boot():
             return [{"estimatedEpsAvg": 1.0}, {"estimatedEpsAvg": 1.3 if sym == "RISKY" else 1.0}]
         return None
     lf.fmp_get = fake_fmp_get
+    bank_calls = []
+
+    class FakeBank(types.ModuleType):
+        def try_bank(self, path, qs):
+            params = dict(x.split("=") for x in qs.split("&") if x)
+            bank_calls.append((path, params.get("symbol")))
+            return data_for(path, params.get("symbol"))
+    lf._bank = FakeBank("fmp_bank")
+    calls.bank = bank_calls
     return lf, stub, book, calls
 
 
@@ -102,13 +116,16 @@ def test_universe_adds_the_books_at_risk_payers_and_quotes_come_from_the_bank_cl
     out = lf.lambda_handler({}, None)
     assert out["statusCode"] == 200, out
     doc = json.loads(stub.store[lf.S3_KEY])
-    assert doc["version"] == "v1.1.0" and doc["summary"]["universe_size"] == 3 and "factor book" in doc["summary"]["universe_basis"]   # MO, T curated + RISKY
+    assert doc["version"] == "v1.1.1" and doc["summary"]["universe_size"] == 3 and "factor book" in doc["summary"]["universe_basis"]   # MO, T curated + RISKY
     w = {x["ticker"]: x for x in doc["warnings"]}
     assert "RISKY" in w and w["RISKY"]["n_signals"] == 5, w.get("RISKY")                 # payout 130, FCF 0.2x, EPS -23%, debt 5.5x, yield 9%
     assert w["RISKY"]["price_source"].startswith("factor-book close as of 2026-10-25") and w["RISKY"]["bank_context"]["altman_z"] == 1.1
     assert w["RISKY"]["yield_pct"] == 9.0 and w["RISKY"]["mcap_billions"] == 5.0
     assert "T" in w and w["T"]["price_source"] == "live quote" and w["T"]["bank_context"] is None     # not in the book -> the live quote path, unchanged
     assert not any(p == "quote" and (q or {}).get("symbol") in ("RISKY", "MO") for p, q in calls)        # no live quote for book names
+    assert not any((q or {}).get("symbol") == "RISKY" for p, q in calls) and any(q == "RISKY" for p, q in calls.bank)   # the book candidate was read from the banks only
+    assert any((q or {}).get("symbol") == "MO" for p, q in calls)                                                      # the curated name keeps its live-capable path
+    assert doc["summary"]["n_assessed"] == 3 and doc["summary"]["budget_hit"] is False
     assert doc["warnings"][0]["ticker"] == "RISKY" and doc["state"] in ("NORMAL", "ELEVATED", "HIGH_RISK_RICH")
 
 

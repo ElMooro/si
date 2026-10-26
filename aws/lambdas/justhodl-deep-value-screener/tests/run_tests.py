@@ -34,6 +34,8 @@ class FakeBook(types.ModuleType):
         "RICH": {"symbol": "RICH", "mcap": 1e12, "price": 300.0, "cash_per_share": 5.0, "net_current_asset_value": -1e9, "ps": 8.0, "altman_z": 6.0, "piotroski": 8, "composite_value": 10.0, "composite_quality": 95.0, "short_pct_float": 1.0, "pt_upside_pct": 5.0, "dcf_upside_pct": -10.0},
         "SMALLC": {"symbol": "SMALLC", "mcap": 5e7, "price": 2.0, "cash_per_share": 1.5, "net_current_asset_value": 3e7, "ps": 0.3, "altman_z": 1.0, "piotroski": 3, "composite_value": 99.0, "composite_quality": 20.0, "short_pct_float": 30.0, "pt_upside_pct": None, "dcf_upside_pct": None},
         "CHEAPSALES": {"symbol": "CHEAPSALES", "mcap": 8e8, "price": 50.0, "cash_per_share": 2.0, "net_current_asset_value": 1e7, "ps": 0.5, "altman_z": 2.2, "piotroski": 6, "composite_value": 70.0, "composite_quality": 50.0, "short_pct_float": 4.0, "pt_upside_pct": 12.0, "dcf_upside_pct": 8.0},
+        "SHELLISH": {"symbol": "SHELLISH", "mcap": 3e8, "price": 10.0, "cash_per_share": 10.0, "net_current_asset_value": 3e8, "ps": None, "altman_z": None, "piotroski": None, "composite_value": None, "composite_quality": None, "short_pct_float": None, "pt_upside_pct": None, "dcf_upside_pct": None},   # no revenue: a cash shell
+        "FOREIGN": {"symbol": "FOREIGN", "mcap": 6e8, "price": 12.0, "cash_per_share": 8.0, "net_current_asset_value": 2e8, "ps": 0.7, "is_adr": True, "altman_z": 3.0, "piotroski": 5, "composite_value": 80.0, "composite_quality": 50.0, "short_pct_float": 1.0, "pt_upside_pct": 5.0, "dcf_upside_pct": 1.0},
     }
     on = True
 
@@ -82,7 +84,7 @@ def boot():
 def test_book_candidates_lead_the_universe_and_rows_carry_the_bank_close_and_context():
     lf, stub, book, calls = boot()
     syms, as_of = lf.book_candidates()
-    assert syms == ["CASHCO", "NETNET", "CHEAPSALES"], syms      # ordered by cash/price 0.6, 0.15, 0.04; RICH fails all three gates; SMALLC below $200M; cap 3 (MAX_TICKERS)
+    assert syms == ["CASHCO", "NETNET", "CHEAPSALES"], syms      # ordered by cash/price 0.6, 0.15, 0.04; RICH fails the cheapness gates; SMALLC below $200M; SHELLISH has no revenue; FOREIGN is an ADR; cap 3
     uni = lf.get_universe()
     assert uni == ["CASHCO", "NETNET", "CHEAPSALES"], uni        # MAX_TICKERS reached by the book; the seeds would follow otherwise
     out = lf.lambda_handler({}, None)

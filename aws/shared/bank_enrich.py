@@ -159,7 +159,7 @@ def matrix(max_age_s=1800):
     return None
 
 
-IDENTITY_COLS = ("symbol", "sector", "industry", "exchange", "is_etf", "is_otc", "is_fund", "is_preferred")
+IDENTITY_COLS = ("symbol", "sector", "industry", "exchange", "is_etf", "is_otc", "is_fund", "is_preferred", "is_warrant_unit", "is_shell", "is_adr")
 
 
 def index(max_age_s=1800):
@@ -236,9 +236,10 @@ def rows(fields=None, where=None, limit=None):
 
 def screen(where, fields=None, limit=None, common_only=True):
     """Whole-market screen over the matrix: rows where `where(row)` is true (US common stocks by default: no ETFs,
-    mutual funds, OTC names or preferred shares - a preferred carries its issuer's fundamentals under its own ticker)."""
+    mutual funds, OTC names, preferred shares, warrants/units/rights or blank-check shells - a preferred or a warrant
+    carries its issuer's fundamentals under its own ticker; a SPAC is cash by construction)."""
     def pred(r):
-        if common_only and (r.get("is_etf") or r.get("is_otc") or r.get("is_fund") or r.get("is_preferred")):
+        if common_only and (r.get("is_etf") or r.get("is_otc") or r.get("is_fund") or r.get("is_preferred") or r.get("is_warrant_unit") or r.get("is_shell")):
             return False
         try:
             return bool(where(r))
@@ -366,7 +367,7 @@ def _flatten(d):
     """A per-symbol document flattened to the matrix's field names (identity, curated fields, ranks, composites)."""
     out = {}
     ident = d.get("identity") or {}
-    out.update({k: ident.get(k) for k in ("symbol", "name", "exchange", "sector", "industry", "country", "is_etf", "is_otc", "is_adr", "is_fund", "is_preferred", "ipo_date", "mcap")})
+    out.update({k: ident.get(k) for k in ("symbol", "name", "exchange", "sector", "industry", "country", "is_etf", "is_otc", "is_adr", "is_fund", "is_preferred", "is_warrant_unit", "is_shell", "ipo_date", "mcap")})
     for k, v in (d.get("derived") or {}).items():
         out[k] = v
     for k, v in (d.get("returns") or {}).items():

@@ -64,13 +64,19 @@ def book_candidates():
         return [], None
 
     def looks_cheap(r):
-        if (r.get("mcap") or 0) < MIN_MCAP:
+        # an OPERATING company (it has revenue: a positive sales multiple), US-domiciled common stock (no ADR), with the
+        # bank's numbers already pointing at net cash; SPAC shells, warrants, preferreds, funds never enter (SDK flags).
+        # first light 2026-10-26: without these two gates the 500 candidates were cash shells and foreign ADRs whose
+        # statements the bulk does not hold -> 492 "no_balance"
+        if (r.get("mcap") or 0) < MIN_MCAP or r.get("is_adr"):
             return False
         px, cps, ncav, ps = r.get("price"), r.get("cash_per_share"), r.get("net_current_asset_value"), r.get("ps")
+        if ps is None or ps <= 0 or ps > 3.0:
+            return False
         cash_pct = (cps / px) if (cps and px and px > 0) else 0.0
         ncav_pct = (ncav / r["mcap"]) if (ncav and r.get("mcap")) else 0.0
-        return cash_pct >= 0.25 or ncav_pct >= 0.15 or (ps is not None and 0 < ps <= 0.6)
-    rows = _book.screen(looks_cheap, fields=["price", "cash_per_share", "net_current_asset_value", "ps", "mcap"])
+        return cash_pct >= 0.25 or ncav_pct >= 0.15 or ps <= 0.6
+    rows = _book.screen(looks_cheap, fields=["price", "cash_per_share", "net_current_asset_value", "ps", "mcap", "is_adr"])
     rows.sort(key=lambda r: -((r.get("cash_per_share") or 0) / r["price"] if r.get("price") else 0))
     return [r["symbol"] for r in rows[:MAX_TICKERS]], _book.as_of()
 
