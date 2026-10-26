@@ -153,8 +153,9 @@ the factor book's US-listed universe, write-if-changed by hash state, lease-guar
 refresh times (`stale_blocks`, `phase`). `fmp_bank.statements()` reads the book first (one small object, any depth),
 the year-file scan stays as the fallback, and the shim accepts a statement ask deeper than its ceiling whenever the book
 holds the symbol (`fmp_bank.history_has`). First build is conducted by `.github/workflows/fmp-backfill.yml`
-(lease-guarded, counted kicks; a subset dispatch can no longer disable the daily backfill). equity-research moves to
-1.5 GB for headroom; its 10-thread first touch is covered by the one-loader-per-table fix.
+(lease-guarded, counted kicks; a subset dispatch can no longer disable the daily backfill). equity-research stays at
+1 GB (its config is pinned by tests/test_capital_structure_final_consumers.py - a reviewed contract); the book removes the
+working-set problem and the one-loader-per-table fix covers its 10-thread first touch.
 
 ### Queue (next waves, from the fusion map)
 
