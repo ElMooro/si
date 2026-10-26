@@ -15,6 +15,12 @@ Detect ACCUMULATION BEFORE PRICE across 8 independent pillars, each probe-tolera
 
 Composite = coverage-renormalized weighted z-blend → 0-100. Top calls logged to the
 closed loop (schema v2, Decimal confidence) and graded vs SPY at 5/21/63d.
+
+v1.2.0 (2026-10-26, bank fusion wave 2): the factor book answers the profile (market cap / sector / name, bank close)
+before the live FMP profile call (`profile_source`); the insider pillar counts 45 days of the WHOLE banked FMP insider
+feed (fmp-walker `insider-trading-latest`, one read for every name) before one live insider-trading/search call per
+ticker (`insider_source`); every rank carries the book's `squeeze` block (short interest % float, days to cover, float,
+short-volume ratio) as context. Pillars, weights, z-blend and the closed-loop log are unchanged.
 """
 
 try:  # bank-first Polygon (aws/shared/polygon_bankfirst): /v2/aggs daily bars answered from the warehouse when complete, else live
@@ -35,6 +41,15 @@ from statistics import mean, stdev
 from decimal import Decimal
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
+try:  # v1.2.0 (2026-10-26, bank fusion): factor book = profile facts + squeeze context per name
+    import bank_enrich as _book
+except Exception:  # noqa: BLE001
+    _book = None
+try:  # v1.2.0: the banked whole-market insider feed (fmp-walker insider-trading-latest, per day)
+    import fmp_bank as _bank
+except Exception:  # noqa: BLE001
+    _bank = None
+INSIDER_BANK_DAYS = int(os.environ.get("IGNITION_INSIDER_BANK_DAYS", "45"))
 
 S3 = boto3.client("s3", region_name="us-east-1")
 DDB = boto3.resource("dynamodb", region_name="us-east-1")
@@ -43,7 +58,7 @@ OUT_KEY = "data/ignition.json"
 FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 POLY_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
 UA = {"User-Agent": "JustHodl Research admin@justhodl.ai"}
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 
 DEFAULT_UNIVERSE = ["NVDA","AMD","AVGO","TSM","MU","SMCI","VRT","ETN","PWR","ANET","CLS","FLEX","JBL",
                     "COHR","LITE","MRVL","ARM","ASML","AMAT","LRCX","KLAC","TER","ONTO","CAMT","ACLS",
@@ -191,6 +206,35 @@ def edgar_profile(ticker, cik):
             "shelf_active": shelf}
 
 
+def _book_ok():
+    return _book is not None and _book.available()
+
+
+def load_insider_bank(days=None):
+    """{ticker: (buys, distinct buyers)} over the last `days` calendar days of the banked FMP insider feed (P-type open-market
+    purchases), plus the number of banked days.  ({}, 0) when the bank has none - the live per-ticker rung then stands."""
+    if _bank is None or not hasattr(_bank, "walker_days"):
+        return {}, 0
+    try:
+        days_rows = _bank.walker_days("insider-trading-latest", days=days or INSIDER_BANK_DAYS)
+    except Exception as e:  # noqa: BLE001
+        print(f"[insider-bank] {str(e)[:60]}")
+        return {}, 0
+    buys, buyers = {}, {}
+    for _day, rows in days_rows:
+        for r in rows:
+            if not isinstance(r, dict):
+                continue
+            sym = str(r.get("symbol") or "").upper()
+            if sym and str(r.get("transactionType") or "").upper().startswith("P"):
+                buys[sym] = buys.get(sym, 0) + 1
+                buyers.setdefault(sym, set()).add(r.get("reportingName") or r.get("reportingCik") or "?")
+    out = {sym: (n, len(buyers.get(sym) or ())) for sym, n in buys.items()}
+    if days_rows:
+        print(f"[insider-bank] {len(days_rows)} banked days, {sum(len(r) for _, r in days_rows)} rows, {len(out)} tickers with P-type buys")
+    return out, len(days_rows)
+
+
 # ── per-ticker pillars (FMP + Polygon) ─────────────────────────────
 def obv_divergence(ticker):
     end = datetime.now(timezone.utc).date().isoformat()
@@ -218,13 +262,36 @@ def obv_divergence(ticker):
             "adv30": round(mean(r["v"] for r in rows[-30:]), 0)}
 
 
-def fmp_pillars(ticker, probes):
+def fmp_pillars(ticker, probes, insider_bank=None):
     out = {}
-    p = fmp("profile", {"symbol": ticker}) or []
-    p0 = p[0] if isinstance(p, list) and p else {}
-    out["mkt_cap"] = p0.get("mktCap") or p0.get("marketCap")
-    out["name"] = p0.get("companyName")
-    out["sector"] = p0.get("sector")
+    q = None
+    if _book_ok():
+        try:
+            q = _book.quote(ticker)
+        except Exception as e:  # noqa: BLE001
+            print(f"[book] {ticker}: {str(e)[:60]}")
+    if q and (q.get("marketCap") is not None or q.get("sector")):
+        out["mkt_cap"] = q.get("marketCap")
+        out["sector"] = q.get("sector")
+        out["name"] = q.get("name")
+        if not out["name"]:
+            try:
+                out["name"] = ((_book.factor(ticker) or {}).get("identity") or {}).get("name")
+            except Exception:  # noqa: BLE001
+                out["name"] = None
+        out["profile_source"] = "factor-book"
+    else:
+        p = fmp("profile", {"symbol": ticker}) or []
+        p0 = p[0] if isinstance(p, list) and p else {}
+        out["mkt_cap"] = p0.get("mktCap") or p0.get("marketCap")
+        out["name"] = p0.get("companyName")
+        out["sector"] = p0.get("sector")
+        out["profile_source"] = "fmp-live" if p0 else None
+    if _book_ok():
+        try:
+            out["squeeze"] = _book.squeeze(ticker)
+        except Exception:  # noqa: BLE001
+            out["squeeze"] = None
     if probes.get("grades"):
         g = fmp("grades", {"symbol": ticker, "limit": 40}) or []
         cut = (datetime.now(timezone.utc) - timedelta(days=30)).date().isoformat()
@@ -248,13 +315,18 @@ def fmp_pillars(ticker, probes):
         h = fmp(ep, prm) or []
         h0 = h[0] if isinstance(h, list) and h else (h if isinstance(h, dict) else {})
         out["inst_investors_chg"] = h0.get("investorsHoldingChange") or h0.get("newPositions")
-    if probes.get("insider_fmp"):
+    if insider_bank is not None and probes.get("insider_bank"):
+        n, k = insider_bank.get(ticker, (0, 0))
+        out["insider_buys45"], out["insider_buyers45"] = n, k
+        out["insider_source"] = "fmp-walker bank (%s days)" % probes.get("insider_bank")
+    elif probes.get("insider_fmp"):
         it = fmp("insider-trading/search", {"symbol": ticker, "limit": 40}) or []
         cut = (datetime.now(timezone.utc) - timedelta(days=45)).date().isoformat()
         buys = [r for r in (it if isinstance(it, list) else [])
                 if str(r.get("transactionDate", ""))[:10] >= cut and "P" in str(r.get("transactionType", ""))]
         out["insider_buys45"] = len(buys)
         out["insider_buyers45"] = len({r.get("reportingName") for r in buys})
+        out["insider_source"] = "fmp-live"
     return out
 
 
@@ -330,8 +402,14 @@ def lambda_handler(event=None, context=None):
             break
         except Exception:
             continue
-    it = fmp("insider-trading/search", {"symbol": "NVDA", "limit": 2})
-    probes["insider_fmp"] = isinstance(it, list) and len(it) > 0
+    insider_bank, bank_days = load_insider_bank()
+    probes["insider_bank"] = bank_days if insider_bank else False
+    if insider_bank:
+        probes["insider_fmp"] = False                      # the banked whole feed answers the pillar; no live call per name
+    else:
+        it = fmp("insider-trading/search", {"symbol": "NVDA", "limit": 2})
+        probes["insider_fmp"] = isinstance(it, list) and len(it) > 0
+    probes["factor_book"] = bool(_book_ok())
 
     ftd_map, ftd_files = load_ftd()
     probes["ftd"] = bool(ftd_map)
@@ -347,7 +425,7 @@ def lambda_handler(event=None, context=None):
         od = obv_divergence(t)
         if od:
             r.update(od)
-        r.update(fmp_pillars(t, probes))
+        r.update(fmp_pillars(t, probes, insider_bank))
         if probes["edgar"] and t in cik:
             ep = edgar_profile(t, cik[t])
             if ep:
@@ -383,6 +461,7 @@ def lambda_handler(event=None, context=None):
         for r in rows:
             if r["ticker"] in per:
                 r["insider_buys45"] = per[r["ticker"]]
+                r["insider_source"] = "platform brief %s" % probes.get("insider_brief")
 
     # z-scores per pillar
     avail = {
@@ -442,6 +521,9 @@ def lambda_handler(event=None, context=None):
            "generated_at": datetime.now(timezone.utc).isoformat(),
            "duration_s": round(time.time() - t0, 1),
            "universe_source": usrc, "universe_n": len(universe), "scored_n": len(rows),
+           "book_as_of": (_book.as_of() if _book_ok() else None),
+           "factor_book": ("profile + squeeze context from the bank close on %d of %d names" % (sum(1 for r in rows if r.get("profile_source") == "factor-book"), len(rows))) if _book_ok() else "factor book unavailable",
+           "insider_feed": ("fmp-walker bank (%s days)" % probes["insider_bank"]) if probes.get("insider_bank") else ("fmp-live" if probes.get("insider_fmp") else "unavailable"),
            "pillar_availability": {**{k: bool(v) for k, v in avail.items()},
                                     "shelf": probes.get("edgar", False)},
            "probes": {k: (v if isinstance(v, (bool, str)) else bool(v)) for k, v in probes.items()},

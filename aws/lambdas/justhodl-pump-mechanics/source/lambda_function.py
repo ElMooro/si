@@ -76,6 +76,12 @@ data/pump-mechanics.json
 SCHEDULE
 ════════
 cron(15 * * * ? *) — hourly at :15 (after positioning at :10)
+
+v1.1.0 (2026-10-26, bank fusion wave 2): the factor book answers the profile (shares outstanding / float / market cap /
+price, bank close) before the live FMP profile call (`profile_source`); price history comes from the Polygon EOD bank
+first, FMP second (`history_source`); and the squeeze PROFILE finally sits next to the REAL short interest: the
+Polygon bank's short interest % of float + days to cover and the 5-session short-volume ratio in `short_interest`.
+The proxy score and its components are unchanged (relative ranker); the SI block is labelled context.
 """
 
 try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
@@ -95,8 +101,17 @@ from typing import Dict, List, Optional
 
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
+try:  # v1.1.0 (2026-10-26, bank fusion): factor book = profile facts + real short interest per candidate
+    import bank_enrich as _book
+except Exception:  # noqa: BLE001
+    _book = None
+try:  # v1.1.0: the Polygon EOD bank answers daily-bar asks in Polygon's envelope (complete sessions only)
+    import polygon_bankfirst as _poly_bank
+except Exception:  # noqa: BLE001
+    _poly_bank = None
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+VERSION = "1.1.0"
 
 S3_BUCKET     = "justhodl-dashboard-live"
 RADAR_KEY     = "data/convergence-radar.json"
@@ -112,7 +127,40 @@ s3 = boto3.client("s3", region_name="us-east-1")
 # FMP fetchers
 # ═════════════════════════════════════════════════════════════════════
 
+def _book_ok() -> bool:
+    return _book is not None and _book.available()
+
+
+def fetch_profile_book(ticker: str) -> Optional[dict]:
+    """Profile-shaped facts from the factor book (bank close): shares outstanding + float (FMP shares-float-all), market
+    cap and price (FMP profile-bulk).  None when the book lacks the name."""
+    if not _book_ok():
+        return None
+    try:
+        q = _book.quote(ticker)
+        if not q:
+            return None
+        row = _book.lookup(ticker, ["outstanding_shares", "float_shares"]) or {}
+        return {"sharesOutstanding": q.get("sharesOutstanding") or row.get("outstanding_shares"), "floatShares": row.get("float_shares"),
+                "marketCap": q.get("marketCap"), "price": q.get("price"), "companyName": q.get("name"), "sector": q.get("sector"),
+                "source": "factor-book", "as_of": q.get("as_of")}
+    except Exception as e:  # noqa: BLE001
+        print(f"[profile] book {ticker}: {str(e)[:80]}")
+        return None
+
+
 def fetch_profile(ticker: str) -> Optional[dict]:
+    """Factor book first (v1.1.0), live FMP profile second; the dict carries `source`."""
+    p = fetch_profile_book(ticker)
+    if p:
+        return p
+    p = fetch_profile_live(ticker)
+    if p:
+        p["source"] = "fmp-live"
+    return p
+
+
+def fetch_profile_live(ticker: str) -> Optional[dict]:
     try:
         url = f"https://financialmodelingprep.com/stable/profile?symbol={ticker}&apikey={FMP_KEY}"
         req = urllib.request.Request(url, headers={"User-Agent": "justhodl/mechanics"})
@@ -126,7 +174,40 @@ def fetch_profile(ticker: str) -> Optional[dict]:
         return None
 
 
+def fetch_price_history_polygon_bank(ticker: str, days: int = 90) -> List[dict]:
+    """Daily rows (date/open/high/low/close/volume) from the Polygon EOD bank; [] when not banked or not complete."""
+    if _poly_bank is None:
+        return []
+    try:
+        end = datetime.now(timezone.utc).date()
+        start = end - timedelta(days=days)
+        raw = _poly_bank.answer("https://api.polygon.io/v2/aggs/ticker/%s/range/1/day/%s/%s?adjusted=true&sort=asc&limit=5000"
+                                % (ticker, start.isoformat(), end.isoformat()))
+        if not raw:
+            return []
+        rows = [{"date": datetime.fromtimestamp(r["t"] / 1000, tz=timezone.utc).date().isoformat(), "open": r.get("o"), "high": r.get("h"),
+                 "low": r.get("l"), "close": r.get("c"), "volume": r.get("v")} for r in ((json.loads(raw) or {}).get("results") or []) if r.get("c") and r.get("t")]
+        return sorted(rows, key=lambda x: x["date"])
+    except Exception as e:  # noqa: BLE001
+        print(f"[price] polygon bank {ticker}: {str(e)[:80]}")
+        return []
+
+
 def fetch_price_history(ticker: str, days: int = 90) -> List[dict]:
+    """Polygon EOD bank first (v1.1.0), FMP (bank-first shim, then live) second; rows carry no source - see
+    fetch_price_history_src for the label."""
+    return fetch_price_history_src(ticker, days)[0]
+
+
+def fetch_price_history_src(ticker: str, days: int = 90):
+    rows = fetch_price_history_polygon_bank(ticker, days)
+    if rows:
+        return rows, "polygon-eod-bank"
+    rows = fetch_price_history_fmp(ticker, days)
+    return rows, ("fmp" if rows else None)
+
+
+def fetch_price_history_fmp(ticker: str, days: int = 90) -> List[dict]:
     try:
         end = datetime.now(timezone.utc).date()
         start = end - timedelta(days=days)
@@ -398,7 +479,18 @@ def enrich_candidate(cand: dict, options_map: Dict[str, dict],
                        sec_map: Dict[str, dict]) -> dict:
     ticker = cand["ticker"]
     profile = fetch_profile(ticker)
-    rows = fetch_price_history(ticker, 90)
+    rows, history_source = fetch_price_history_src(ticker, 90)
+    short_interest = None
+    if _book_ok():
+        try:
+            sq = _book.squeeze(ticker)
+        except Exception as e:  # noqa: BLE001
+            print(f"[squeeze] book {ticker}: {str(e)[:80]}")
+            sq = None
+        if sq:
+            short_interest = {"si_pct_float": sq.get("short_pct_float"), "days_to_cover": sq.get("days_to_cover"), "float_shares": sq.get("float_shares"),
+                              "short_volume_ratio_5d": sq.get("short_volume_ratio"), "ret_21d": sq.get("ret_21d"), "composite_squeeze_pct": sq.get("composite_squeeze"),
+                              "as_of": sq.get("as_of"), "source": "factor-book: polygon-bank short interest (latest settlement) + FMP float; bank close, not a live tick"}
 
     shares_out = (profile or {}).get("sharesOutstanding") or (profile or {}).get("shares_outstanding")
     # Fallback: derive from marketCap / price (FMP /stable/profile doesn't expose shares directly)
@@ -466,9 +558,16 @@ def enrich_candidate(cand: dict, options_map: Dict[str, dict],
             "shorts_covering_flag": options_data.get("shorts_covering", False),
             "squeeze_proxy_score": sq_score,
             "squeeze_potential":   classify_squeeze_potential(sq_score),
-            "squeeze_caveat":      ("Score is a PROXY built from float / rotation / options-flow / "
-                                      "concentration. Direct SI requires FINRA Reg SHO (manual setup). "
-                                      "Use as relative ranker, not absolute SI %."),
+            "profile_source":      (profile or {}).get("source"),
+            "history_source":      history_source,
+            "short_interest":      short_interest,
+            "squeeze_caveat":      (("Score is a PROXY built from float / rotation / options-flow / concentration (relative ranker, unchanged). "
+                                      "The REPORTED short interest is in short_interest: %s%% of float, %s days to cover (Polygon short-interest bank, latest settlement)."
+                                      % (short_interest.get("si_pct_float"), short_interest.get("days_to_cover")))
+                                     if short_interest and short_interest.get("si_pct_float") is not None else
+                                     ("Score is a PROXY built from float / rotation / options-flow / "
+                                      "concentration. Reported SI not banked for this name (factor book %s). "
+                                      "Use as relative ranker, not absolute SI %%." % ("on" if _book_ok() else "unavailable"))),
         },
 
         "options_structure": options_data,
@@ -531,15 +630,20 @@ def lambda_handler(event, context):
     # Sort by squeeze proxy score descending (highest pump+squeeze potential first)
     enriched.sort(key=lambda r: -(r.get("squeeze_profile", {}).get("squeeze_proxy_score", 0) or 0))
 
+    n_si = sum(1 for c in enriched if (c.get("squeeze_profile") or {}).get("short_interest"))
     output = {
         "schema_version": "1.0",
+        "version":        VERSION,
         "generated_at":   datetime.now(timezone.utc).isoformat(),
         "elapsed_sec":    round(time.time() - t0, 2),
         "n_candidates":   len(enriched),
         "candidates":     enriched,
+        "book_as_of":     (_book.as_of() if _book_ok() else None),
+        "factor_book":    ("short interest + profile from the bank on %d of %d candidates" % (n_si, len(enriched))) if _book_ok() else "factor book unavailable",
         "metadata": {
-            "squeeze_score_caveat": ("Proxy score — direct SI %/days-to-cover requires "
-                                       "FINRA Reg SHO data (KHALID_ACTIONS #2). Use as relative ranker."),
+            "squeeze_score_caveat": ("Proxy score (relative ranker, components unchanged). Reported short interest % float / "
+                                       "days to cover now ride along per candidate in squeeze_profile.short_interest from the "
+                                       "Polygon short-interest bank via the factor book (bank close)."),
             "options_data_source": "Existing options-flow engine — TIER/flags + locally computed IV rank proxy from ATR range.",
             "components": {
                 "float_tier_weight":         30,

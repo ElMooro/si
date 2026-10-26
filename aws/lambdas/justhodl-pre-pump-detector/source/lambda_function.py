@@ -20,6 +20,11 @@ The new score combines:
   - Recent consolidation (ret_5d in -10% to +20% — pause before next leg)
 
 OUTPUT: data/pre-pump-signals.json
+
+v2.1.0 (2026-10-26, bank fusion wave 2): price history comes from the Polygon EOD bank first (data/warm/polygon-full/eod,
+no key, no call), the FMP path (bank-first shim, then live) second - each result carries `history_source`; every result
+carries the factor book's `squeeze` block (short interest % float, days to cover, float, short-volume ratio, market cap,
+21/63-day returns; bank close) so the pre-pump score reads next to the real squeeze facts. Scoring unchanged.
 """
 
 try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
@@ -29,8 +34,19 @@ except Exception:  # noqa: BLE001 - the shim never blocks the engine
     pass
 import io, json, os, time, urllib.request, urllib.error, statistics
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime, timedelta, timezone
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
+try:  # v2.1.0 (2026-10-26, bank fusion): the factor book's squeeze facts per result
+    import bank_enrich as _book
+except Exception:  # noqa: BLE001
+    _book = None
+try:  # v2.1.0: the Polygon EOD bank answers a daily-bar ask in Polygon's envelope (complete sessions only, never a tick)
+    import polygon_bankfirst as _poly_bank
+except Exception:  # noqa: BLE001
+    _poly_bank = None
+
+VERSION = "2.1.0"
 
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -60,7 +76,28 @@ def get_universe():
         return []
 
 
-def fetch_history(symbol, days=210):
+def fetch_history_polygon_bank(symbol, days=210):
+    """Daily closes/volumes from the Polygon EOD bank (whole US tape, complete sessions): the bank answers only when its
+    last session is the last completed one, so a stale bank is a miss, never a stale answer.  None when not banked."""
+    if _poly_bank is None:
+        return None
+    try:
+        end = datetime.now(timezone.utc).date()
+        start = end - timedelta(days=int(days * 1.55) + 10)
+        raw = _poly_bank.answer("https://api.polygon.io/v2/aggs/ticker/%s/range/1/day/%s/%s?adjusted=true&sort=asc&limit=5000"
+                                % (symbol, start.isoformat(), end.isoformat()))
+        if not raw:
+            return None
+        res = (json.loads(raw) or {}).get("results") or []
+        out = [{"date": datetime.fromtimestamp(r["t"] / 1000, tz=timezone.utc).date().isoformat(), "close": float(r["c"]), "volume": float(r.get("v") or 0)}
+               for r in res if r.get("c") and r.get("t")]
+        out.sort(key=lambda x: x["date"])
+        return out[-days:] if len(out) >= 120 else None
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def fetch_history_fmp(symbol, days=210):
     url = "https://financialmodelingprep.com/stable/historical-price-eod/full?symbol=" + symbol + "&apikey=" + FMP_KEY
     try:
         d = _http_get_json(url, timeout=15)
@@ -78,6 +115,15 @@ def fetch_history(symbol, days=210):
         return out
     except Exception:
         return None
+
+
+def fetch_history(symbol, days=210):
+    """(rows, source): the Polygon EOD bank first (v2.1.0), then FMP (bank-first shim, then live)."""
+    rows = fetch_history_polygon_bank(symbol, days)
+    if rows:
+        return rows, "polygon-eod-bank"
+    rows = fetch_history_fmp(symbol, days)
+    return (rows, "fmp") if rows else (None, None)
 
 
 def compute_signals(symbol, history):
@@ -277,12 +323,13 @@ def lambda_handler(event=None, context=None):
     def evaluate(sym):
         if time.time() > deadline_at:
             return ("deadline", sym)
-        h = fetch_history(sym, days=210)
+        h, src = fetch_history(sym, days=210)
         if not h:
             return ("no_history", sym)
         sig = compute_signals(sym, h)
         if not sig:
             return ("no_signal", sym)
+        sig["history_source"] = src
         return ("ok", sig)
 
     with ThreadPoolExecutor(max_workers=N_WORKERS) as pool:
@@ -301,6 +348,23 @@ def lambda_handler(event=None, context=None):
 
     print("[prepump-v2] OK: " + str(len(results)) + ", no_history: " + str(n_no_history))
     results.sort(key=lambda x: x["score"], reverse=True)
+    hist_src = {}
+    for r in results:
+        hist_src[r.get("history_source")] = hist_src.get(r.get("history_source"), 0) + 1
+
+    # v2.1.0: the factor book's squeeze facts next to every score (context, not a scoring input)
+    book_ok = _book is not None and _book.available()
+    n_sq = 0
+    if book_ok:
+        try:
+            sq = _book.squeezes([r["symbol"] for r in results])
+        except Exception as e:  # noqa: BLE001
+            print("[prepump-v2] factor book squeeze read failed: " + str(e)[:80])
+            sq = {}
+        for r in results:
+            r["squeeze"] = sq.get(r["symbol"])
+            n_sq += 1 if r["squeeze"] else 0
+    print("[prepump-v2] history sources " + json.dumps(hist_src) + "; factor book " + ("squeeze on %d/%d" % (n_sq, len(results)) if book_ok else "unavailable"))
 
     tier_a = [r for r in results if r["tier"] == "TIER_A_BREAKING"]
     tier_b = [r for r in results if r["tier"] == "TIER_B_BUILDING"]
@@ -308,6 +372,7 @@ def lambda_handler(event=None, context=None):
     out = {
         "schema_version": 2,
         "method": "pre_pump_detector_v2_calibrated",
+        "version": VERSION,
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime()),
         "duration_s": round(time.time() - started, 1),
         "stats": {
@@ -317,7 +382,12 @@ def lambda_handler(event=None, context=None):
             "n_tier_b": len(tier_b),
             "n_no_history": n_no_history,
             "n_no_signal": n_no_signal,
+            "history_sources": hist_src,
+            "n_with_squeeze": n_sq,
         },
+        "universe_basis": "data/universe.json (first %d)" % MAX_TICKERS,
+        "book_as_of": (_book.as_of() if book_ok else None),
+        "factor_book": ("squeeze context on %d of %d results (bank close, not a live tick)" % (n_sq, len(results))) if book_ok else "factor book unavailable",
         "summary": {
             "top_25_overall": [
                 {
@@ -331,6 +401,9 @@ def lambda_handler(event=None, context=None):
                     "ret_60d": r["metrics"]["ret_60d_pct"],
                     "ret_30d": r["metrics"]["ret_30d_pct"],
                     "ret_5d": r["metrics"]["ret_5d_pct"],
+                    "history_source": r.get("history_source"),
+                    "si_pct_float": (r.get("squeeze") or {}).get("short_pct_float"),
+                    "days_to_cover": (r.get("squeeze") or {}).get("days_to_cover"),
                 }
                 for r in results[:25]
             ],
