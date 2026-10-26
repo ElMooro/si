@@ -236,6 +236,47 @@ def answer(url, now=None):
     return _envelope(ticker, sel)
 
 
+def bars(ticker, sessions=None, start=None, end=None, complete_only=True, now=None):
+    """Daily bars for one ticker straight from the Polygon EOD bank (no key, no call): newest-last list of
+    {t (ms), date, o, h, l, c, v, vw, n} - the last `sessions`, or the [start, end] date window (ISO strings / dates).
+    `complete_only` (default) answers only when the bank's last session is the last completed US session (a stale
+    bank is a miss, never a stale answer); pass False for a history whose end is not today's close.  [] when unbanked.
+    (wave 2: smart-beta / pre-pump / pump-mechanics re-parsed the HTTP envelope from answer(); this is the reader.)"""
+    try:
+        doc = _get(ROOT + "".join(ch if (ch.isalnum() or ch in "._-^") else "_" for ch in str(ticker).upper())[:80] + ".json.gz")
+    except Exception:  # noqa: BLE001
+        return []
+    if not isinstance(doc, dict) or not doc.get("rows"):
+        return []
+    rows = [r for r in doc["rows"] if isinstance(r, list) and len(r) >= 5 and r[0] is not None]
+    if not rows:
+        return []
+    now = now or datetime.now(timezone.utc)
+    if complete_only and _row_date(rows[-1][0]) != _last_completed_session(now):
+        return []
+    out = []
+    for r in rows:
+        d = {k: v for k, v in zip(FIELDS, r) if v is not None}
+        if "c" not in d:
+            continue
+        d["date"] = _row_date(r[0]).isoformat()
+        out.append(d)
+    if start is not None:
+        s0 = start if isinstance(start, str) else start.isoformat()
+        out = [d for d in out if d["date"] >= s0]
+    if end is not None:
+        e0 = end if isinstance(end, str) else end.isoformat()
+        out = [d for d in out if d["date"] <= e0]
+    if sessions:
+        out = out[-int(sessions):]
+    return out
+
+
+def closes(ticker, sessions=252, complete_only=True, now=None):
+    """[(date, close), ...] newest-last for the last `sessions` from the Polygon EOD bank; [] when unbanked / stale."""
+    return [(d["date"], d["c"]) for d in bars(ticker, sessions=sessions, complete_only=complete_only, now=now)]
+
+
 def _headers(n):
     h = HTTPMessage()
     h["Content-Type"] = "application/json; charset=utf-8"

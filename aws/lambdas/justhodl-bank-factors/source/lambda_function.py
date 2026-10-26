@@ -51,7 +51,7 @@ from botocore.config import Config
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import fmp_bank  # noqa: E402  (aws/shared, bundled)
 
-VERSION = "1.0.4"
+VERSION = "1.0.5"
 SCHEMA = "factor-book/1.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 ROOT = "data/warm/factor-book/"
@@ -240,7 +240,75 @@ FIELDS = [
     ("high_52w", "returns", ("high_52w",)), ("low_52w", "returns", ("low_52w",)), ("from_52w_high_pct", "returns", ("from_52w_high_pct",)),
     ("dollar_vol_20d", "returns", ("dollar_vol_20d",)), ("volatility_20d", "returns", ("volatility_20d",)),
 ]
-IDENTITY = ("symbol", "name", "exchange", "sector", "industry", "country", "is_etf", "is_otc", "is_adr", "is_fund", "is_preferred", "is_warrant_unit", "is_shell", "ipo_date", "cik")
+IDENTITY = ("symbol", "name", "exchange", "sector", "industry", "country", "is_etf", "is_otc", "is_adr", "is_fund", "is_preferred", "is_warrant_unit", "is_shell", "is_debt_or_structured", "is_common", "security_type", "ipo_date", "cik")
+# Polygon reference-ticker instrument types (v3/reference/tickers `type`): the authoritative verdict on what a ticker IS.
+# FMP's profile-bulk names a preferred / baby bond after its ISSUER (UZD = "United States Cellular", OXLCM = "Oxford Lane
+# Capital"), so symbol + name heuristics missed plain-ticker notes and preferreds; the divcut-warning first light ranked
+# four 6% senior notes as 63%-yield dividend payers.  v1.0.5 joins the type per symbol and folds it into the flags.
+POLY_TYPE_PREFERRED = {"PFD", "ADRP", "ADRR", "ADRW"}
+POLY_TYPE_WARRANT_UNIT = {"WARRANT", "RIGHT", "UNIT"}
+POLY_TYPE_ETF = {"ETF", "ETN", "ETV", "ETS"}
+POLY_TYPE_FUND = {"FUND", "BASKET"}
+POLY_TYPE_DEBT_STRUCTURED = {"BOND", "AGEN", "SP", "EQLK", "OTHER"}
+POLY_TYPE_COMMON = {"CS", "ADRC", "OS", "GDR", "NYRS", "LT"}
+PREF_SERIES_RE = re.compile(r"-PR?([A-Z])$")
+
+
+def load_polygon_types():
+    """{polygon ticker: type} from the Polygon bank's active US stock reference list (tickers-stocks-active/latest.json.gz,
+    every page merged by justhodl-polygon-bank).  {} when not banked - the heuristics then stand alone."""
+    doc = _get_json(POLY_ROOT + "tickers-stocks-active/latest.json.gz")
+    rows = doc.get("results") if isinstance(doc, dict) else doc
+    out = {}
+    for r in rows or []:
+        if isinstance(r, dict) and r.get("ticker") and r.get("type"):
+            out[str(r["ticker"]).upper()] = str(r["type"]).upper()
+    return out
+
+
+def poly_type(sym, types):
+    """The Polygon type for an FMP symbol: plain, dot-class (BRK-B -> BRK.B), preferred series (BAC-PL -> BACpL),
+    warrant (X-WT -> X.WS / Xws), unit (X-U -> X.U); None when the reference list does not carry it."""
+    if not types or not sym:
+        return None
+    s = str(sym).upper()
+    cands = [s, s.replace("-", ".")]
+    m = PREF_SERIES_RE.search(s)
+    if m:
+        cands.append(s[:m.start()] + "p" + m.group(1))
+    if s.endswith("-WT"):
+        cands += [s[:-3] + ".WS", s[:-3] + "ws", s[:-3] + "WS"]
+    if s.endswith("-U"):
+        cands += [s[:-2] + ".U", s[:-2] + "U"]
+    for c in cands:
+        t = types.get(c.upper())                 # the reference map is upper-cased (Polygon writes BACpL, ABRpD)
+        if t:
+            return t
+    return None
+
+
+def apply_security_type(ident, types):
+    """Fold the Polygon instrument type into the identity flags (never un-flags a heuristic hit) and set is_common."""
+    t = poly_type(ident.get("symbol"), types)
+    ident["security_type"] = t
+    if t in POLY_TYPE_PREFERRED:
+        ident["is_preferred"] = True
+    if t in POLY_TYPE_WARRANT_UNIT:
+        ident["is_warrant_unit"] = True
+    if t in POLY_TYPE_ETF:
+        ident["is_etf"] = True
+    if t in POLY_TYPE_FUND:
+        ident["is_fund"] = True
+    ident["is_debt_or_structured"] = t in POLY_TYPE_DEBT_STRUCTURED
+    if t in ("ADRC", "ADRP", "ADRR", "ADRW", "GDR"):
+        ident["is_adr"] = True
+    flagged = ident.get("is_etf") or ident.get("is_fund") or ident.get("is_otc") or ident.get("is_preferred") or ident.get("is_warrant_unit") or ident.get("is_shell") or ident.get("is_debt_or_structured")
+    ident["is_common"] = (t in POLY_TYPE_COMMON) if t else (not flagged)
+    if t and t not in POLY_TYPE_COMMON:
+        ident["is_common"] = False
+    elif flagged:
+        ident["is_common"] = False
+    return ident
 WARRANT_RE = re.compile(r"(WS|WW|WSA|WSB|-WT|\.WS|\.WT)$")
 
 
@@ -807,7 +875,7 @@ def percentiles(rows, field, higher_is_better, group=None):
     for i, r in enumerate(rows):
         if group is not None and r.get("sector") != group:
             continue
-        if r.get("is_etf") or r.get("is_fund") or r.get("is_otc") or r.get("is_preferred") or r.get("is_warrant_unit") or r.get("is_shell"):
+        if r.get("is_common") is False or r.get("is_etf") or r.get("is_fund") or r.get("is_otc") or r.get("is_preferred") or r.get("is_warrant_unit") or r.get("is_shell") or r.get("is_debt_or_structured"):
             continue
         v = r.get(field)
         if v is None:
@@ -863,6 +931,12 @@ def lambda_handler(event=None, context=None):
     src = Sources()
     src.stage_profile()
     uni = src.universe
+    ptypes = load_polygon_types()                                       # v1.0.5: authoritative instrument types
+    for ident in uni.values():
+        apply_security_type(ident, ptypes)
+    src.coverage["polygon_types"] = {"reference_tickers": len(ptypes), "typed": sum(1 for u in uni.values() if u.get("security_type"))}
+    if not ptypes:
+        src.notes.append("polygon tickers-stocks-active not banked: instrument types from symbol/name heuristics only")
     if not uni:
         src.close()
         state.pop("lease_until", None)
@@ -984,7 +1058,7 @@ def lambda_handler(event=None, context=None):
         futs = [pool.submit(lambda k=k: _put_json_gz(ROOT + "matrix/cols/%s.json.gz" % k, cols[k], {"n": len(rows)}, client=_s3())) for k in keys if k != "symbol"]
         futs.append(pool.submit(lambda: _put_json_gz(ROOT + "matrix/index.json.gz", {"schema": SCHEMA, "version": VERSION, "generated_at": now.isoformat(), "as_of": src.as_of, "n": len(rows),
                                                                                       "symbols": [r["symbol"] for r in rows], "columns": [k for k in keys if k != "symbol"],
-                                                                                      "identity": {k: cols[k] for k in ("sector", "industry", "exchange", "is_etf", "is_otc", "is_fund", "is_preferred", "is_warrant_unit", "is_shell", "is_adr") if k in cols}}, {"n": len(rows)}, client=_s3())))
+                                                                                      "identity": {k: cols[k] for k in ("name", "sector", "industry", "exchange", "is_etf", "is_otc", "is_fund", "is_preferred", "is_warrant_unit", "is_shell", "is_adr", "is_debt_or_structured", "is_common", "security_type") if k in cols}}, {"n": len(rows)}, client=_s3())))
         for f in as_completed(futs):
             try:
                 cbytes += f.result()
@@ -997,7 +1071,8 @@ def lambda_handler(event=None, context=None):
                           "unchanged": unchanged, "failed": failed, "bytes": bytes_out, "notes": src.notes}}
     _put_json_gz_plain(STATE_KEY, state)
     manifest = {"schema": SCHEMA, "version": VERSION, "engine": "justhodl-bank-factors", "updated_at": now.isoformat(), "as_of": src.as_of,
-                "symbols": docs_n, "universe": len(uni), "common_stocks": sum(1 for u in uni.values() if not (u["is_etf"] or u["is_fund"] or u["is_otc"] or u.get("is_preferred") or u.get("is_warrant_unit") or u.get("is_shell"))),
+                "symbols": docs_n, "universe": len(uni), "common_stocks": sum(1 for u in uni.values() if u.get("is_common")), "typed_by_polygon": sum(1 for u in uni.values() if u.get("security_type")),
+                "debt_or_structured": sum(1 for u in uni.values() if u.get("is_debt_or_structured")),
                 "preferreds": sum(1 for u in uni.values() if u.get("is_preferred")), "funds": sum(1 for u in uni.values() if u["is_fund"]),
                 "warrants_units": sum(1 for u in uni.values() if u.get("is_warrant_unit")), "shells": sum(1 for u in uni.values() if u.get("is_shell")),
                 "etfs": sum(1 for u in uni.values() if u["is_etf"]), "otc": sum(1 for u in uni.values() if u["is_otc"]),

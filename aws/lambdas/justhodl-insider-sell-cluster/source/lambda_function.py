@@ -37,6 +37,13 @@ Data sources:
   - FMP /stable/insider-trading (last 14 days, sell only)
   - FMP /stable/quote (current price + market cap for liquidity gate)
 
+v1.1.0 (2026-10-26, bank fusion wave 2): the first rung of the feed ladder is the FMP walker bank - the WHOLE
+insider feed per calendar day (data/warm/fmp/insider-trading-latest/<YYYY>/<date>.json.gz, 16 days read, 14-day
+window kept), not 8 live pages; price / market cap for the liquidity gate come from the factor book's bank close
+(labelled `price_source`), the live /stable/quote stays as a capped fallback; every cluster carries a labelled
+`bank_context` (Altman Z, Piotroski, short % float, analyst upside, 21/63-day returns).  Filters, thresholds and the
+scoring are unchanged.  The live rungs stand when the bank has nothing (`source_used`).
+
 Schedule: daily 23:30 UTC after most insider filings settle.
 """
 
@@ -56,7 +63,19 @@ from datetime import datetime, timedelta
 
 import boto3
 
-VERSION = "1.0.0"
+try:  # v1.1.0 bank fusion: the walker's whole insider feed per day (no key) and the factor book's bank close
+    import fmp_bank as _bank
+except Exception:  # noqa: BLE001
+    _bank = None
+try:
+    import bank_enrich as _book
+except Exception:  # noqa: BLE001
+    _book = None
+
+VERSION = "1.1.0"
+BANK_FEED_DAYS = int(os.environ.get("INSIDER_BANK_FEED_DAYS", "16"))      # 14-day window + filing lag
+LIVE_QUOTE_CAP = int(os.environ.get("INSIDER_LIVE_QUOTE_CAP", "25"))      # live /stable/quote calls per run, at most
+BANK_CONTEXT_FIELDS = ["altman_z", "piotroski", "short_pct_float", "days_to_cover", "pt_upside_pct", "ret_21d", "ret_63d", "from_52w_high_pct", "composite_quality"]
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/insider-sell-cluster.json"
 SSM_STATE_KEY = "/justhodl/insider-sell-cluster/state"
@@ -92,6 +111,43 @@ def http_get(url, timeout=15, retries=2):
             last = e
             time.sleep(0.6 * (i + 1))
     raise RuntimeError(f"http_get failed: {last}")
+
+
+def _is_sale(row):
+    """Strict sale test for the banked feed (which carries every transaction type): S-Sale rows only."""
+    tt = (row.get("transactionType") or "").upper().strip()
+    return tt.startswith("S-") or tt == "S" or tt == "SALE"
+
+
+def fetch_bank_sells(days=None):
+    """First rung (v1.1.0): the banked whole-market insider feed, filtered as the live path filters (14-day window,
+    non-10b5-1, sells only) while it is read so only the window's sells are retained.  ([] , 0, 0) when not banked."""
+    if _bank is None or not hasattr(_bank, "walker_days"):
+        return [], 0, 0
+    try:
+        banked = _bank.walker_days("insider-trading-latest", days=days or BANK_FEED_DAYS)
+    except Exception:  # noqa: BLE001
+        banked = []
+    cutoff = datetime.utcnow().date() - timedelta(days=14)
+    out, n_rows = [], 0
+    for _day, rows in banked:
+        for row in rows:
+            n_rows += 1
+            if not isinstance(row, dict) or not _is_sale(row):
+                continue
+            ds = row.get("transactionDate") or row.get("filingDate")
+            if not ds:
+                continue
+            try:
+                if datetime.strptime(ds[:10], "%Y-%m-%d").date() < cutoff:
+                    continue
+            except Exception:
+                continue
+            notes = (row.get("planType") or row.get("acquisitionDisposition") or row.get("typeOfOwner") or "").upper()
+            if "10B5-1" in notes or "PLAN" in notes:
+                continue
+            out.append(row)
+    return out, len(banked), n_rows
 
 
 def fetch_insider_sells(from_date, page_limit=8):
@@ -162,6 +218,44 @@ def fmp_quote(symbol):
     except Exception:
         pass
     return None
+
+
+def book_quote(symbol):
+    """Price / market cap from the factor book (bank close, labelled) - None when the book lacks the name."""
+    if _book is None or not _book.available():
+        return None
+    try:
+        q = _book.quote(symbol)
+    except Exception:  # noqa: BLE001
+        q = None
+    if not q or q.get("price") is None:
+        return None
+    return {"price": q.get("price"), "market_cap": q.get("marketCap"), "name": q.get("name"),
+            "price_source": "factor-book (bank close, not a live tick)"}
+
+
+def book_name(symbol):
+    """Company name from the symbol's factor-book document (identity), for the few clusters that pass the gate."""
+    if _book is None or not _book.available():
+        return None
+    try:
+        d = _book.factor(symbol)
+    except Exception:  # noqa: BLE001
+        d = None
+    return ((d or {}).get("identity") or {}).get("name") if d else None
+
+
+def book_context(symbol):
+    """Labelled bank facts the engine never had (every value may be None - an unbanked fact, never a guess)."""
+    if _book is None or not _book.available():
+        return None
+    try:
+        row = _book.lookup(symbol, BANK_CONTEXT_FIELDS)
+    except Exception:  # noqa: BLE001
+        row = None
+    if not row:
+        return None
+    return {k: row.get(k) for k in BANK_CONTEXT_FIELDS} | {"source": "factor-book", "as_of": _book.as_of()}
 
 
 def aggregate_clusters(sells):
@@ -264,20 +358,32 @@ def lambda_handler(event, context):
     start = time.time()
     try:
         from_date = (datetime.utcnow() - timedelta(days=14)).strftime("%Y-%m-%d")
-        sells = fetch_insider_sells(from_date, page_limit=8)
+        sells, bank_days, bank_rows = fetch_bank_sells()
+        if sells:
+            source_used = "fmp-walker bank (%d days, %d feed rows)" % (bank_days, bank_rows)
+        else:
+            sells = fetch_insider_sells(from_date, page_limit=8)
+            source_used = "fmp live /stable/insider-trading/latest" if sells else "unavailable"
+        feed_basis = {"source": source_used, "bank_days": bank_days, "bank_feed_rows": bank_rows, "window_days": 14}
         clusters = aggregate_clusters(sells)
-        # Pull market cap for liquidity gate ($500M+)
+        # Pull market cap for liquidity gate ($500M+): the factor book first, live quotes capped
         tickers = [c["ticker"] for c in clusters]
-        quotes = {}
-        if tickers:
+        quotes = {t: book_quote(t) for t in tickers}
+        missing = [t for t in tickers if quotes.get(t) is None][:LIVE_QUOTE_CAP]
+        if missing:
             with ThreadPoolExecutor(max_workers=6) as ex:
-                futs = {ex.submit(fmp_quote, t): t for t in tickers}
+                futs = {ex.submit(fmp_quote, t): t for t in missing}
                 for f in as_completed(futs):
                     t = futs[f]
                     try:
-                        quotes[t] = f.result()
+                        q = f.result()
+                        quotes[t] = (q | {"price_source": "fmp live /stable/quote"}) if q else None
                     except Exception:
                         quotes[t] = None
+        price_sources = {}
+        for q in quotes.values():
+            if q:
+                price_sources[q.get("price_source")] = price_sources.get(q.get("price_source"), 0) + 1
         scored = []
         for c in clusters:
             q = quotes.get(c["ticker"])
@@ -305,12 +411,14 @@ def lambda_handler(event, context):
             }
             scored.append({
                 **c,
-                "name": q.get("name"),
+                "name": q.get("name") or book_name(c["ticker"]),
                 "price": q.get("price"),
+                "price_source": q.get("price_source"),
                 "market_cap_usd": q.get("market_cap"),
                 "composite_score": round(score, 3),
                 "severity": severity,
                 "trade_ticket": ticket,
+                "bank_context": book_context(c["ticker"]),
             })
         scored.sort(key=lambda c: c["composite_score"], reverse=True)
         n_high = sum(1 for c in scored if c["composite_score"] >= 0.65)
@@ -334,6 +442,10 @@ def lambda_handler(event, context):
             "n_high_severity": n_high,
             "n_medium_severity": n_med,
             "n_raw_sells_scanned": len(sells),
+            "source_used": source_used,
+            "feed_basis": feed_basis,
+            "price_sources": price_sources,
+            "book_as_of": (_book.as_of() if (_book is not None and _book.available()) else None),
             "top_clusters": scored[:15],
             "all_clusters": scored,
             "methodology": (
@@ -347,7 +459,8 @@ def lambda_handler(event, context):
                 "sells precede -3 to -8% / 60d. Treat as RISK AVOIDANCE — "
                 "exit longs / hedge rather than aggressive short."
             ),
-            "sources": ["FMP /stable/insider-trading", "FMP /stable/quote"],
+            "sources": ["fmp-walker bank insider-trading-latest (whole feed per day)", "factor book (bank close + context)",
+                        "FMP /stable/insider-trading (fallback)", "FMP /stable/quote (capped fallback)"],
             "why_now": f"{n_high} HIGH + {n_med} MEDIUM defensive flags",
             "run_seconds": round(time.time() - start, 2),
         }

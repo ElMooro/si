@@ -59,6 +59,9 @@ from bank_enrich import factor, factors, matrix, screen, prescreen, lookup, quot
   intraday desk.
 - `attach(out)` → adds `out["bank_enrichment"] = {source, as_of, fields, rows{sym:{…}}, missing}` to an engine's output
   (symbols discovered from the document; additive, the engine's own keys untouched).
+- `context(sym)` → the standard labelled `bank_context` block (Altman Z, Piotroski, SI % float, DTC, analyst / DCF upside,
+  consensus, 21/63-session returns, 52-week distance, composites) + `as_of` + `source`; `prescreen_rows()` = `prescreen()`
+  returning rows; `quote()` now carries `name`.
 - `squeeze(sym)` / `squeezes([...])` → the standard short-squeeze block (SI % float, days to cover, float, short-volume
   ratio, market cap, average volume, bank close, 21/63-session returns, distance from the 52-week high, squeeze
   composite) from the projection — the equity-ftd pattern once, for every squeeze / pump / ignition engine (wave 2).
@@ -68,7 +71,9 @@ Feed readers live next door in `aws/shared/fmp_bank.py` (no key, bank-only): `wa
 daily-dated feed (the whole FMP insider feed per day), `walker_latest(dataset, lookback_days)` for the newest banked
 page-set of a latest-pages feed (13F latest, senate/house latest, news, M&A), `walker_pages(dataset)` to iterate a
 paged reference feed (shares-float-all) one page at a time, `walker(dataset, entity, period=...)` for per-entity files,
-`statements(path, symbol, period, limit)` for statement history.
+`statements(path, symbol, period, limit)` for statement history; `walker_days(..., where=)` / `walker_latest_days(...)` filter on
+read.  `polygon_bankfirst.bars(ticker, sessions)` / `closes(ticker, n)` read daily bars straight from the Polygon EOD bank
+(complete sessions only by default).
 
 ## 3. Engine integrations
 
@@ -92,6 +97,44 @@ as the fallback when the book is absent (`factor book unavailable` in the output
 | `justhodl-quality-on-sale` | 1.1.0 | U | the 5-gate desk stays on its static 50 (its four upstream feeds cover those); a labelled `book_screen` asks the whole market the same question with the bank's facts (quality composite top decile, Piotroski ≥ 7, ROIC ≥ 20%, ≥ 20% off the 52-week high, Altman Z ≥ 3, ≥ $1B) |
 | `justhodl-insider-radar` | 1.2.1 | E + F | the first rung of its source ladder is now 35 banked days of the whole FMP insider feed (walker `insider-trading-latest`, per day since 2024) instead of one live page of 1,000 rows; the live and S3 rungs stand. The 60-day decline join reads the desk's rings, then the book's `ret_63d` (Polygon tape) for every other US-listed name, then a capped live Polygon read (40 per run, 60 s) — `ret_60d_basis` counts each; P/S context from the book's `ps` first |
 | `justhodl-beneish` | 1.1.0 | U + H | the M-Score across every US common stock ≥ $500M from the bank's statement files (no live call, no pacing); the top-50 `universe_state` keeps its meaning; a `market` block carries the whole-market and per-sector red-flag rates with Altman Z / income quality / SBC / short % float context on each flag |
+
+### Wave 2 (2026-10-26, 18 engines; built by four parallel builders under the wave-1 rules, reviewed, gate-tested)
+
+| Engine | Version | Mode | What changed |
+|---|---|---|---|
+| `justhodl-pre-pump-detector` | 2.1.0 | F + H | price history from the Polygon EOD bank first (`history_source` per row), FMP second; the standard `squeeze` block on every result; `universe_basis`, `book_as_of`, `factor_book` labels |
+| `justhodl-pump-mechanics` | 1.1.0 | F + H | profile from the book (`profile_source`), history bank-first; `squeeze_profile.short_interest` = the REAL SI % float / days to cover / short-volume ratio next to the proxy score (score byte-unchanged; SEC/massive consumer contracts untouched) |
+| `justhodl-ignition` | 1.2.0 | F + E | profile pillar from the book; insider pillar from 45 banked feed days instead of one live search per ticker (live rung kept); `squeeze` context per rank |
+| `justhodl-coffee-can` | 1.1.0 | F | quotes from the bank close (`price_source`), thesis series from `fmp_bank.statements` (`thesis_detail.sources`), `bank_context` per holding; thesis rules untouched |
+| `justhodl-buyback-yield-ranking` | 1.1.0 | U + F | master-ranker list + whole-market buyback candidates (≥ $2B, non-ADR, shrinking share count; cap 600, bank-only); TTM cash flows from the bank's quarterly statements (`cashflow_source`); five gates + weights unchanged |
+| `justhodl-eva-spread` | 1.1.0 | F + U | TTM inputs from the book, EVA history from bank statements; new labelled `market` block (every US common ≥ $2B, cap 1,500: spread, regime, sector breakdown, super-compounders) next to the unchanged STATIC_TOP50 `universe_state` |
+| `justhodl-smart-beta` | 1.1.0 | F + U | value/quality inputs from the book, 252 closes from the Polygon EOD bank; new `market` block (cap 1,500) with low-vol labelled PROXY (`factor_notes`) |
+| `justhodl-dividend-growth` | 1.1.0 | U + F | universe = book dividend payers (0.5–9 %) ∪ screener rows, top 700 by mcap; dividend history from the walker (`history_source`); `bank_context`; the screener failing is no longer fatal |
+| `justhodl-pead-detector` | 1.1.0 | F + U | earnings rows walker → book surprises → live (one call instead of two); drift from book returns (`drift_basis`); beat-streak candidates from `prescreen_rows` (cap 600); scoring/tiers untouched |
+| `justhodl-post-earnings-mean-rev` | 1.1.0 | F + U | report date walker → book → live; price from the bank close; 80 closes walker → Polygon EOD bank → live (`history_source`); universe = master-ranker 120 + banked earnings-calendar names that reported 5–15 sessions ago (≥ $2B, cap 200) |
+| `justhodl-rating-change-cluster` | 1.1.0 | E + F | feed = banked `grades-latest-news` days (deduped, window-bounded; `feed_basis`), live page fallback; picks priced from the book |
+| `justhodl-starmine` | 1.1.0 | U + F | static top-50 core + analyst-covered candidates from `prescreen_rows` (pt_n_1q ≥ 5, ≥ $5B, cap 150); prices/grades/targets/surprises bank-first with `basis` per row; pacing applies to live calls only |
+| `justhodl-insider-sell-cluster` | 1.1.0 | E + F | 16 banked feed days filtered on read (strict `S-` sale test; 10b5-1 excluded); quotes bank-first, live capped 25; `bank_context` |
+| `justhodl-insider-cluster-scanner` | 2.1.0 | E + F | 33 banked feed days of purchases mapped to the Form-4 schema (SEC EDGAR sample + XML parse stands as the fallback); top-50 enrichment from the book (`fundamentals_source`); issuer name from the book (the FMP feed carries none) |
+| `justhodl-insider-buyback-confluence` | 1.1.0 | E + F | feeder first, 60 banked feed days fill the names it lacks (`insider_source`); quotes bank-first, live capped 20 |
+| `justhodl-smart-money-tracker` | 2.1.0 | E | discovery from the banked 13F latest page-set (200 CIKs vs 80 live); per-filer walker files first, live capped 40 |
+| `justhodl-smart-money-holdings` | 1.1.0 | E | per-fund `institutional-ownership-extract` from the walker (4-quarter fallback), live extract only for unbanked funds, capped 20 |
+| `justhodl-political-trades` | 1.1.0 | E + F | senate/house latest from the walker first (3,000 rows per chamber at 256 MB), live ladder only for a chamber the bank lacks; `bank_context` on clusters and large trades |
+
+Skipped as reviewed-contract engines (byte-pinned sources / archived originals; each needs its own reviewed change):
+`justhodl-momentum-leaders`, `justhodl-pump-positioning`, `justhodl-estimate-revisions` (with `eps-revision-velocity`,
+`earnings-quality`, `short-interest` from wave 1).
+
+Wave-2 lessons folded into the platform: (1) a FakeBook that returns rows where the real `prescreen()` returns symbols
+passed two engines' tests and would have emptied their book universes in production — `prescreen_rows()` now exists and
+`tests/deployment/test_bank_sdk_contracts.py` checks every SDK call in every engine against the real modules' attributes
+and signatures; (2) the book's `ret_*` / `from_52w_high_pct` / `short_pct_float` / `pt_upside_pct` are PERCENT, its
+`dividend_yield` / `fcf_yield` / `roic` / growth fields are FRACTIONS (FMP's own units) — insider-radar v1.2.1 multiplied
+a percent by 100 (fixed in v1.2.2); (3) the whole insider feed is ~3,000 rows a day — stream and filter on read
+(`walker_days(where=...)`), never retain 35 raw days (insider-radar v1.2.2, 1 GB); (4) FMP's profile names a preferred /
+baby bond after its ISSUER, so symbol + name heuristics missed plain-ticker notes (UZD, OXLCM ranked as 63 %-yield
+dividend payers) — book v1.0.5 joins the Polygon reference list's instrument `type` per symbol (`security_type`,
+`is_common`, `is_debt_or_structured`) and the SDK's `common_only` honours it.
 
 ### Queue (next waves, from the fusion map)
 

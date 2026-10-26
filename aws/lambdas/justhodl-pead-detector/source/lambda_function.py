@@ -37,6 +37,14 @@ Tiers:
   TIER_B_BUILDING: 2Q streak, avg beat >3%
 
 OUTPUT: data/pead-signals.json
+
+v1.1.0 (2026-10-26, bank fusion wave 2): the earnings history comes from the warehouse first - the FMP walker's
+per-symbol `earnings` file (EPS + revenue, every quarter), then the factor book's surprises + calendar blocks - and the
+live /stable/earnings call is only the fallback (one call per name instead of two).  The post-earnings drift reads the
+book's tape returns (ret_5d/21d/63d, `drift_basis`) before the live price history.  The universe is data/universe.json
+plus the book's whole-market beat-streak candidates (beat rate >= 75% over 4 quarters, avg surprise > 3%,
+`universe_basis`).  Every row carries `bank_context` (Altman Z, Piotroski, short % float, analyst upside, consensus,
+growth / street composites) and `earnings_basis`.  Floors, scoring and tiers unchanged.
 """
 
 try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
@@ -49,6 +57,14 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
+try:  # v1.1.0 bank fusion: the factor book (aws/shared/bank_enrich) + the FMP walker bank (aws/shared/fmp_bank)
+    import bank_enrich as _book
+except Exception:  # noqa: BLE001
+    _book = None
+try:
+    import fmp_bank as _bank
+except Exception:  # noqa: BLE001
+    _bank = None
 
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -57,8 +73,149 @@ FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 N_WORKERS = int(os.environ.get("N_WORKERS", "12"))
 MAX_TICKERS = int(os.environ.get("MAX_TICKERS", "1500"))
 TIMEOUT_BUDGET_S = int(os.environ.get("TIMEOUT_BUDGET_S", "550"))
+VERSION = "1.1.0"
+BOOK_CANDIDATES = int(os.environ.get("PEAD_BOOK_CANDIDATES", "600"))       # whole-market beat-streak names added to the universe
+BOOK_MIN_MCAP = float(os.environ.get("PEAD_BOOK_MIN_MCAP", "50000000"))   # $50M: the engine scans every cap bucket
+BANK_CONTEXT_FIELDS = ("mcap", "sector", "industry", "altman_z", "piotroski", "short_pct_float", "pt_upside_pct", "pt_n_1m", "consensus_score",
+                       "beat_rate_4q", "avg_surprise_pct_4q", "composite_growth", "composite_street", "composite_quality")
+BASIS = {"fmp-walker earnings": 0, "factor-book surprises+calendar": 0, "fmp live": 0, "none": 0}
+import threading as _threading
+_BASIS_LOCK = _threading.Lock()
 
 S3 = boto3.client("s3", region_name=REGION)
+
+
+def book_ok():
+    return _book is not None and _book.available()
+
+
+def cap_bucket_from_mcap(m):
+    """The universe file's size buckets, from a market cap (book candidates only)."""
+    try:
+        m = float(m or 0)
+    except (TypeError, ValueError):
+        return "?"
+    if m <= 0:
+        return "?"
+    if m < 50e6:
+        return "nano"
+    if m < 300e6:
+        return "micro"
+    if m < 2e9:
+        return "small"
+    if m < 10e9:
+        return "mid"
+    if m < 200e9:
+        return "large"
+    return "mega"
+
+
+def book_candidates(exclude):
+    """Whole-market beat-streak candidates from the factor book: beat rate >= 75% over the last 4 quarters, average
+    surprise > 3%, >= BOOK_MIN_MCAP, US common stocks (ETF/OTC/fund/preferred excluded by the SDK), largest first."""
+    if not book_ok():
+        return []
+    try:
+        rows = _book.prescreen_rows(lambda r: (r.get("beat_rate_4q") or 0) >= 0.75 and (r.get("avg_surprise_pct_4q") or 0) > 3
+                               and (r.get("mcap") or 0) >= BOOK_MIN_MCAP and not r.get("is_adr"),
+                               order_by="mcap", descending=True, limit=BOOK_CANDIDATES + len(exclude),
+                               fields=["beat_rate_4q", "avg_surprise_pct_4q", "mcap", "sector"])
+    except Exception as e:  # noqa: BLE001
+        print("[pead] factor book candidates failed: " + str(e)[:80])
+        return []
+    out = []
+    for r in rows:
+        sym = r.get("symbol")
+        if not sym or sym in exclude:
+            continue
+        out.append({"symbol": sym, "sector": r.get("sector") or "?", "market_cap": r.get("mcap") or 0,
+                    "cap_bucket": cap_bucket_from_mcap(r.get("mcap")), "from_book": True})
+        if len(out) >= BOOK_CANDIDATES:
+            break
+    return out
+
+
+def _num(x):
+    try:
+        return float(x) if x is not None and x != "" else None
+    except (TypeError, ValueError):
+        return None
+
+
+def bank_earnings_rows(symbol):
+    """The symbol's earnings rows in the /stable/earnings shape ({date, epsActual, epsEstimated, revenueActual,
+    revenueEstimated}) from the warehouse: the walker's per-symbol `earnings` file first (complete, with revenue), then
+    the factor book document (surprises = EPS actual vs estimate per report, calendar = the next / latest reports with
+    revenue).  (rows, basis) or (None, None) when neither bank holds the name."""
+    if _bank is not None:
+        try:
+            rows = _bank.walker("earnings", symbol)
+        except Exception:  # noqa: BLE001
+            rows = None
+        if isinstance(rows, list) and rows:
+            return [r for r in rows if isinstance(r, dict) and r.get("date")], "fmp-walker earnings"
+    if not book_ok():
+        return None, None
+    try:
+        d = _book.factor(symbol)
+    except Exception:  # noqa: BLE001
+        d = None
+    if not d:
+        return None, None
+    by_date = {}
+    for r in (d.get("surprises") or []):
+        if not isinstance(r, dict) or not r.get("date"):
+            continue
+        by_date[str(r["date"])[:10]] = {"date": str(r["date"])[:10], "symbol": symbol,
+                                        "epsActual": _num(r.get("actualEarningResult", r.get("epsActual"))),
+                                        "epsEstimated": _num(r.get("estimatedEarning", r.get("epsEstimated"))),
+                                        "revenueActual": None, "revenueEstimated": None}
+    for r in ((d.get("calendar") or {}).get("earnings") or []):
+        if not isinstance(r, dict) or not r.get("date"):
+            continue
+        day = str(r["date"])[:10]
+        row = by_date.get(day) or {"date": day, "symbol": symbol, "epsActual": None, "epsEstimated": None, "revenueActual": None, "revenueEstimated": None}
+        for k in ("epsActual", "epsEstimated", "revenueActual", "revenueEstimated"):
+            if r.get(k) is not None:
+                row[k] = _num(r.get(k))
+        by_date[day] = row
+    if not by_date:
+        return None, None
+    return list(by_date.values()), "factor-book surprises+calendar"
+
+
+def bank_context(symbol):
+    """The book's facts the engine never had, as a labelled block (None when the book lacks the name)."""
+    if not book_ok():
+        return None
+    try:
+        row = _book.lookup(symbol, list(BANK_CONTEXT_FIELDS))
+    except Exception:  # noqa: BLE001
+        row = None
+    if not row:
+        return None
+    out = {k: row.get(k) for k in BANK_CONTEXT_FIELDS}
+    out["source"] = "factor-book"
+    return out
+
+
+def book_drift(symbol, days_since_earnings):
+    """Post-earnings drift from the book's tape returns at the horizon nearest the days since the report
+    (5 / 21 / 63 sessions); (drift_pct, basis) or (None, None)."""
+    if not book_ok() or days_since_earnings is None:
+        return None, None
+    try:
+        row = _book.lookup(symbol, ["ret_5d", "ret_21d", "ret_63d"])
+    except Exception:  # noqa: BLE001
+        row = None
+    if not row:
+        return None, None
+    sessions = days_since_earnings * 252.0 / 365.0
+    field = "ret_5d" if sessions <= 10 else ("ret_21d" if sessions <= 40 else "ret_63d")
+    v = _num(row.get(field))
+    if v is None:
+        return None, None
+    return v * 100.0, "factor-book " + field
 
 
 def fetch_url(url, timeout=15):
@@ -80,20 +237,40 @@ def get_universe():
         return []
 
 
+def past_from_rows(rows, limit=12):
+    """Reported quarters (epsActual present) newest first, from /stable/earnings-shaped rows."""
+    past = [e for e in rows if isinstance(e, dict) and e.get("epsActual") is not None]
+    past.sort(key=lambda x: x.get("date", "") or "", reverse=True)
+    return past[:limit]
+
+
+def window_from_rows(rows):
+    """Events within +/- 90 days of today, each with `_days_diff` (the old calendar read, without the second call)."""
+    out = []
+    for e in rows:
+        dt_str = (e.get("date") or "") if isinstance(e, dict) else ""
+        if not dt_str:
+            continue
+        try:
+            dt = datetime.strptime(dt_str[:10], "%Y-%m-%d")
+        except Exception:
+            continue
+        days_diff = (dt - datetime.now()).days
+        if -90 <= days_diff <= 90:
+            out.append({**e, "_days_diff": days_diff})
+    return out
+
+
 def fetch_earnings_surprises(symbol, limit=12):
     """FMP /stable/earnings — returns past + future earnings with both
-    eps + revenue actual/estimate. 164 quarters of history per ticker."""
+    eps + revenue actual/estimate. 164 quarters of history per ticker.  (Live fallback path.)"""
     url = ("https://financialmodelingprep.com/stable/earnings?"
            "symbol=" + symbol + "&apikey=" + FMP_KEY)
     try:
         d = fetch_url(url, timeout=12)
         if not isinstance(d, list):
             return None
-        # Filter to events with epsActual (i.e., past earnings, not future)
-        past = [e for e in d if e.get("epsActual") is not None]
-        # Sort newest first
-        past.sort(key=lambda x: x.get("date", ""), reverse=True)
-        return past[:limit]
+        return past_from_rows(d, limit)
     except Exception:
         return None
 
@@ -158,8 +335,19 @@ def evaluate_ticker(stock):
     sector = stock.get("sector", "?")
     market_cap = stock.get("market_cap", 0)
 
-    # Get earnings surprises
-    surprises = fetch_earnings_surprises(sym, limit=8)
+    # Earnings rows: the warehouse first (walker file / factor book), the live /stable/earnings call as the fallback
+    rows, earnings_basis = bank_earnings_rows(sym)
+    if rows is None:
+        try:
+            rows = fetch_url("https://financialmodelingprep.com/stable/earnings?symbol=" + sym + "&apikey=" + FMP_KEY, timeout=12)
+        except Exception:
+            rows = None
+        earnings_basis = "fmp live" if isinstance(rows, list) and rows else "none"
+    with _BASIS_LOCK:
+        BASIS[earnings_basis] = BASIS.get(earnings_basis, 0) + 1
+    if not isinstance(rows, list) or not rows:
+        return None
+    surprises = past_from_rows(rows, limit=8)
     if not surprises or len(surprises) < 3:
         return None
 
@@ -248,10 +436,14 @@ def evaluate_ticker(stock):
         except Exception:
             pass
 
-    # Post-earnings price drift (if recent earnings within 60 days)
+    # Post-earnings price drift (if recent earnings within 60 days): the book's tape returns first, live history after
     drift_pct = None
+    drift_basis = None
     if days_since_earnings is not None and days_since_earnings < 60:
+        drift_pct, drift_basis = book_drift(sym, days_since_earnings)
+    if drift_pct is None and days_since_earnings is not None and days_since_earnings < 60:
         history = fetch_history(sym, days=90)
+        drift_basis = "fmp live history" if history else None
         if history:
             # Compare today vs price at announcement time (approximate)
             today_close = history[-1]["close"]
@@ -261,10 +453,10 @@ def evaluate_ticker(stock):
             if past_close and past_close > 0:
                 drift_pct = (today_close - past_close) / past_close * 100
 
-    # Get next earnings date
+    # Next earnings date: from the same rows (no second call)
     upcoming_earnings = None
     days_to_next = None
-    cal = fetch_earnings_calendar(sym)
+    cal = window_from_rows(rows)
     if cal:
         future_events = [e for e in cal if e.get("_days_diff", -100) > 0]
         if future_events:
@@ -363,11 +555,18 @@ def evaluate_ticker(stock):
     else:
         tier = "QUIET"
 
+    ctx = bank_context(sym)
+    if ctx and stock.get("from_book"):
+        sector = ctx.get("sector") or sector
+        market_cap = ctx.get("mcap") or market_cap
     return {
         "symbol": sym,
         "score": round(score, 1),
         "tier": tier,
         "flags": flags,
+        "earnings_basis": earnings_basis,
+        "drift_basis": drift_basis,
+        "bank_context": ctx,
         "metrics": {
             "streak": streak,
             "avg_beat_pct": round(avg_beat_pct, 2),
@@ -396,12 +595,20 @@ def evaluate_ticker(stock):
 def lambda_handler(event=None, context=None):
     started = time.time()
     deadline = started + TIMEOUT_BUDGET_S
-    print("[pead] starting v1.0")
+    print("[pead] starting v" + VERSION)
+    for k in BASIS:
+        BASIS[k] = 0
 
     universe = get_universe()
+    n_file = len(universe)
+    book = book_candidates({(s.get("symbol") or "").upper() for s in universe})
+    universe = universe + book
+    book_as_of = _book.as_of() if book_ok() else None
+    universe_basis = ("data/universe.json (%d) + factor book beat-streak candidates (%d: beat rate >= 75%% / 4q, avg surprise > 3%%, >= $%dM)"
+                      % (n_file, len(book), int(BOOK_MIN_MCAP / 1e6))) if book else ("data/universe.json (%d); factor book unavailable" % n_file)
     if not universe:
         return {"statusCode": 200, "body": json.dumps({"n": 0})}
-    print("[pead] universe: " + str(len(universe)) + " stocks")
+    print("[pead] universe: " + str(len(universe)) + " stocks (" + universe_basis + ")")
 
     results = []
     n_no_data = 0
@@ -427,7 +634,7 @@ def lambda_handler(event=None, context=None):
             except Exception:
                 n_no_data += 1
 
-    print("[pead] OK: " + str(len(results)) + ", no_data: " + str(n_no_data))
+    print("[pead] OK: " + str(len(results)) + ", no_data: " + str(n_no_data) + ", earnings basis: " + json.dumps(BASIS))
     results.sort(key=lambda x: -x["score"])
 
     by_tier = {
@@ -451,11 +658,17 @@ def lambda_handler(event=None, context=None):
 
     out = {
         "schema_version": 1,
-        "method": "pead_detector_v1",
+        "method": "pead_detector_v1.1",
+        "version": VERSION,
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime()),
         "duration_s": round(time.time() - started, 1),
+        "universe_basis": universe_basis,
+        "book_as_of": book_as_of,
         "stats": {
             "n_universe": len(universe),
+            "n_universe_file": n_file,
+            "n_book_candidates": len(book),
+            "earnings_basis": dict(BASIS),
             "n_evaluated": len(results),
             "n_no_data": n_no_data,
             "n_tier_s": len(by_tier["tier_s"]),

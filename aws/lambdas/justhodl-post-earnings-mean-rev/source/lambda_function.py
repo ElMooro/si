@@ -35,6 +35,14 @@ Data sources:
   - FMP /stable/historical-price-eod/light (RSI, 50d MA, std deviation)
 
 Schedule: daily 00:00 UTC (after US close + a few hours).
+
+v1.1.0 (2026-10-26, bank fusion wave 2): every per-name fact is read from the warehouse first and the live FMP call is
+the fallback - the last report date from the FMP walker's per-symbol `earnings` file or the factor book's surprises /
+calendar blocks (`earnings_date_source`), the price from the factor book's bank close (`price_source`), the 80 closes
+from the walker's daily price bank or the Polygon EOD bank (`history_source`).  The universe is master-ranker's 120
+plus every US common stock >= $2B / >= 500k avg volume that reported 5-15 trading days ago according to the banked
+earnings calendar (`universe_basis`).  Each setup carries `bank_context` (analyst upside, consensus, beat rate, last
+surprise, short % float, Altman Z, momentum composite).  Thresholds, scoring and the state machine unchanged.
 """
 
 try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
@@ -49,11 +57,29 @@ import time
 import urllib.request
 import urllib.parse
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+try:  # v1.1.0 bank fusion: the factor book, the FMP walker bank and the Polygon EOD bank (all bank-only, no key)
+    import bank_enrich as _book
+except Exception:  # noqa: BLE001
+    _book = None
+try:
+    import fmp_bank as _bank
+except Exception:  # noqa: BLE001
+    _bank = None
+try:
+    import polygon_bankfirst as _poly
+except Exception:  # noqa: BLE001
+    _poly = None
+
+VERSION = "1.1.0"
+BOOK_CANDIDATES = int(os.environ.get("POST_EARN_BOOK_CANDIDATES", "200"))
+BOOK_MIN_MCAP = float(os.environ.get("POST_EARN_BOOK_MIN_MCAP", "2000000000"))
+BOOK_MIN_AVG_VOL = float(os.environ.get("POST_EARN_BOOK_MIN_AVG_VOL", "500000"))
+BANK_CONTEXT_FIELDS = ("pt_upside_pct", "pt_n_1m", "consensus_score", "beat_rate_4q", "last_surprise_pct", "short_pct_float", "altman_z", "composite_momentum", "mcap", "sector")
+BANK = {"hits": 0, "earnings_date": {}, "quote": {}, "history": {}}
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/post-earnings-mean-rev.json"
 SSM_STATE_KEY = "/justhodl/post-earnings-mean-rev/state"
@@ -184,6 +210,163 @@ def fmp_earnings_recent(symbol, from_date):
     return None, None
 
 
+def _count(kind, basis):
+    BANK[kind][basis] = BANK[kind].get(basis, 0) + 1
+    if basis != "fmp live":
+        BANK["hits"] += 1
+
+
+def book_ok():
+    return _book is not None and _book.available()
+
+
+def _past_dates(rows, today):
+    out = []
+    for r in rows or []:
+        if not isinstance(r, dict):
+            continue
+        ds = r.get("date") or r.get("earningsDate")
+        if not ds:
+            continue
+        try:
+            dd = datetime.strptime(str(ds)[:10], "%Y-%m-%d").date()
+        except Exception:
+            continue
+        if dd <= today and (r.get("epsActual") is not None or r.get("actualEarningResult") is not None or dd >= today - timedelta(days=45)):
+            out.append((dd, r))
+    out.sort(key=lambda x: x[0], reverse=True)
+    return out
+
+
+def bank_earnings_date(symbol, today=None):
+    """Most recent report date (<= today) from the warehouse: the walker's per-symbol `earnings` file, then the factor
+    book document (calendar.earnings / surprises).  (iso_date, row, basis) or (None, None, None)."""
+    today = today or datetime.now(timezone.utc).date()
+    if _bank is not None:
+        try:
+            rows = _bank.walker("earnings", symbol)
+        except Exception:  # noqa: BLE001
+            rows = None
+        past = _past_dates(rows, today) if isinstance(rows, list) else []
+        if past:
+            return past[0][0].isoformat(), past[0][1], "fmp-walker earnings"
+    if book_ok():
+        try:
+            d = _book.factor(symbol)
+        except Exception:  # noqa: BLE001
+            d = None
+        if d:
+            rows = list(((d.get("calendar") or {}).get("earnings") or [])) + list(d.get("surprises") or [])
+            past = _past_dates(rows, today)
+            if past:
+                return past[0][0].isoformat(), past[0][1], "factor-book calendar/surprises"
+    return None, None, None
+
+
+def bank_quote(symbol):
+    """The factor book's bank close as a quote (labelled; never a live tick) or None."""
+    if not book_ok():
+        return None
+    try:
+        q = _book.quote(symbol)
+    except Exception:  # noqa: BLE001
+        q = None
+    return q if q and q.get("price") else None
+
+
+def bank_closes(symbol, days=80):
+    """Daily closes newest first from the banks: the FMP walker's daily price file, then the Polygon EOD bank (a window
+    ending at the newest session the bank holds).  (closes, basis, as_of) or ([], None, None)."""
+    if _bank is not None:
+        try:
+            rows = _bank.walker("historical-price-eod-full", symbol)
+        except Exception:  # noqa: BLE001
+            rows = None
+        if isinstance(rows, list) and rows:
+            dated = [(str(r.get("date"))[:10], r.get("close") if r.get("close") is not None else r.get("price")) for r in rows if isinstance(r, dict) and r.get("date")]
+            dated = [(d, float(c)) for d, c in dated if c is not None]
+            dated.sort(key=lambda x: x[0], reverse=True)
+            if len(dated) >= 55:
+                return [c for _, c in dated[:days]], "fmp-walker eod", dated[0][0]
+    if _poly is not None:
+        today = datetime.now(timezone.utc).date()
+        start = (today - timedelta(days=int(days * 1.7) + 10)).isoformat()
+        for back in range(0, 5):
+            end = (today - timedelta(days=back)).isoformat()
+            try:
+                raw = _poly.answer("https://api.polygon.io/v2/aggs/ticker/%s/range/1/day/%s/%s?adjusted=true&sort=asc&limit=500" % (urllib.parse.quote(symbol), start, end))
+            except Exception:  # noqa: BLE001
+                raw = None
+            if not raw:
+                continue
+            try:
+                res = json.loads(raw).get("results") or []
+            except Exception:  # noqa: BLE001
+                res = []
+            closes = [float(r["c"]) for r in res if isinstance(r, dict) and r.get("c") is not None]
+            if len(closes) >= 55:
+                closes.reverse()
+                last = datetime.fromtimestamp(res[-1]["t"] / 1000.0, tz=timezone.utc).date().isoformat() if res and res[-1].get("t") else end
+                return closes[:days], "polygon-bank eod", last
+            break
+    return [], None, None
+
+
+def bank_context(symbol):
+    if not book_ok():
+        return None
+    try:
+        row = _book.lookup(symbol, list(BANK_CONTEXT_FIELDS))
+    except Exception:  # noqa: BLE001
+        row = None
+    if not row:
+        return None
+    out = {k: row.get(k) for k in BANK_CONTEXT_FIELDS}
+    out["source"] = "factor-book"
+    return out
+
+
+def book_candidates(exclude, today=None):
+    """Every US common stock that reported 5-15 trading days ago per the banked FMP earnings calendar (current + previous
+    month windows), >= BOOK_MIN_MCAP and >= BOOK_MIN_AVG_VOL in the factor book, not an ADR; {symbol: report_date},
+    largest first, capped.  {} when the banks are not there."""
+    if _bank is None or not book_ok():
+        return {}
+    today = today or datetime.now(timezone.utc).date()
+    months = {today.strftime("%Y-%m"), (today.replace(day=1) - timedelta(days=1)).strftime("%Y-%m")}
+    dates = {}
+    for m in sorted(months):
+        try:
+            rows = _bank.walker("earnings-calendar", day=m)
+        except Exception:  # noqa: BLE001
+            rows = None
+        for r in rows or []:
+            if not isinstance(r, dict) or not r.get("symbol") or not r.get("date"):
+                continue
+            try:
+                dd = datetime.strptime(str(r["date"])[:10], "%Y-%m-%d").date()
+            except Exception:
+                continue
+            td = int((today - dd).days * 5 / 7)
+            if dd <= today and 5 <= td <= 15:
+                sym = str(r["symbol"]).upper()
+                if sym not in exclude and (sym not in dates or dd > dates[sym]):
+                    dates[sym] = dd
+    if not dates:
+        return {}
+    ranked = []
+    for sym, dd in dates.items():
+        try:
+            row = _book.lookup(sym, ["mcap", "avg_volume", "is_adr"])
+        except Exception:  # noqa: BLE001
+            row = None
+        if not row or (row.get("mcap") or 0) < BOOK_MIN_MCAP or (row.get("avg_volume") or 0) < BOOK_MIN_AVG_VOL or row.get("is_adr"):
+            continue
+        ranked.append((row.get("mcap") or 0, sym, dd))
+    ranked.sort(reverse=True)
+    return {sym: dd.isoformat() for _, sym, dd in ranked[:BOOK_CANDIDATES]}
+
+
 def trading_days_between(from_date_str):
     """Approximate trading days between from_date and today (weekdays only)."""
     if not from_date_str:
@@ -254,25 +437,41 @@ def iv_percentile_proxy(closes, lookback=60):
     return round(100.0 * below / len(rolling_sorted), 1)
 
 
-def analyze_ticker(symbol, from_date):
-    """Full multi-factor analysis for one ticker."""
+def analyze_ticker(symbol, from_date, known_date=None):
+    """Full multi-factor analysis for one ticker (bank first, live fallback for every input)."""
     # 1. Earnings within 5-15 trading days ago
-    ed, e_row = fmp_earnings_recent(symbol, from_date)
+    if known_date:
+        ed, e_row, ed_src = known_date, None, "fmp-walker earnings-calendar"
+    else:
+        ed, e_row, ed_src = bank_earnings_date(symbol)
+    if not ed:
+        ed, e_row = fmp_earnings_recent(symbol, from_date)
+        ed_src = "fmp live" if ed else None
     if not ed:
         return None
+    _count("earnings_date", ed_src)
     days_ago = trading_days_between(ed)
     if days_ago is None or days_ago < 5 or days_ago > 15:
         return None
     # 2. Pull price + history
-    quote = fmp_quote(symbol)
+    quote = bank_quote(symbol)
+    px_src = "factor-book close" if quote else None
+    if not quote:
+        quote = fmp_quote(symbol)
+        px_src = "fmp live" if quote else None
     if not quote:
         return None
+    _count("quote", px_src)
     price = quote.get("price")
     if not price:
         return None
-    closes = fmp_history(symbol, 80)
+    closes, hist_src, hist_as_of = bank_closes(symbol, 80)
+    if len(closes) < 55:
+        closes = fmp_history(symbol, 80)
+        hist_src, hist_as_of = ("fmp live" if len(closes) >= 55 else None), None
     if len(closes) < 55:
         return None
+    _count("history", hist_src)
     if abs(closes[0] - price) > price * 0.05:
         closes = [price] + closes
     # 3. RSI extreme
@@ -326,7 +525,12 @@ def analyze_ticker(symbol, from_date):
         "ticker": symbol,
         "direction": direction,
         "price": price,
+        "price_source": px_src,
         "earnings_date": ed,
+        "earnings_date_source": ed_src,
+        "history_source": hist_src,
+        "history_as_of": hist_as_of,
+        "bank_context": bank_context(symbol),
         "days_post_earnings": days_ago,
         "rsi14": r14,
         "price_ext_std_50d": ext_std,
@@ -379,11 +583,20 @@ def state_changed(new_state):
 def lambda_handler(event, context):
     start = time.time()
     try:
+        for k in ("earnings_date", "quote", "history"):
+            BANK[k] = {}
+        BANK["hits"] = 0
         universe = load_universe()
+        core = universe[:120]
+        book = book_candidates(set(core))
+        book_as_of = _book.as_of() if book_ok() else None
+        universe_basis = ("master-ranker (%d) + factor book / banked earnings calendar: reported 5-15 trading days ago, >= $%dB, >= %dk avg volume (%d)"
+                          % (len(core), int(BOOK_MIN_MCAP / 1e9), int(BOOK_MIN_AVG_VOL / 1e3), len(book))) if book else ("master-ranker (%d); factor book unavailable" % len(core))
         from_date = (datetime.utcnow() - timedelta(days=30)).strftime("%Y-%m-%d")
         setups = []
         with ThreadPoolExecutor(max_workers=4) as ex:
-            futs = {ex.submit(analyze_ticker, t, from_date): t for t in universe[:120]}
+            futs = {ex.submit(analyze_ticker, t, from_date): t for t in core}
+            futs.update({ex.submit(analyze_ticker, t, from_date, dd): t for t, dd in book.items()})
             for f in as_completed(futs):
                 try:
                     res = f.result()
@@ -410,9 +623,11 @@ def lambda_handler(event, context):
         # fetch errored. Blind says blind, not calm.
         data_sufficiency = {"http_ok": _HTTP["ok"],
                             "http_err": _HTTP["err"],
-                            "rule": "QUIET only claimable when >=1 fetch "
+                            "bank_reads": BANK["hits"],
+                            "bank_basis": {k: BANK[k] for k in ("earnings_date", "quote", "history")},
+                            "rule": "QUIET only claimable when >=1 fetch (live or bank) "
                                     "answered; else INSUFFICIENT_DATA"}
-        if state == "QUIET" and _HTTP["ok"] == 0 and _HTTP["err"] > 0:
+        if state == "QUIET" and _HTTP["ok"] == 0 and BANK["hits"] == 0 and _HTTP["err"] > 0:
             state, strength = "INSUFFICIENT_DATA", 0.0
 
         out = {
@@ -426,7 +641,10 @@ def lambda_handler(event, context):
             "n_high_conviction": n_high,
             "n_long_setups": n_long,
             "n_short_setups": n_short,
-            "universe_size": len(universe),
+            "universe_size": len(core) + len(book),
+            "universe_basis": universe_basis,
+            "n_book_candidates": len(book),
+            "book_as_of": book_as_of,
             "top_setups": setups[:15],
             "all_setups": setups,
             "methodology": (
@@ -442,9 +660,12 @@ def lambda_handler(event, context):
             ),
             "sources": [
                 "s3://justhodl-dashboard-live/data/master-ranker.json (universe)",
-                "FMP /stable/earnings-calendar",
-                "FMP /stable/quote",
-                "FMP /stable/historical-price-eod/light",
+                "factor book data/warm/factor-book (bank close, analyst / surprise context, candidate gates)",
+                "FMP walker bank data/warm/fmp (earnings, earnings-calendar, historical-price-eod-full)",
+                "Polygon EOD bank data/warm/polygon-full/eod (closes fallback)",
+                "FMP /stable/earnings-calendar (live fallback)",
+                "FMP /stable/quote (live fallback)",
+                "FMP /stable/historical-price-eod/light (live fallback)",
             ],
             "why_now": f"{n_high} high-conviction + {n_med} moderate; {n_long} LONG, {n_short} SHORT",
             "run_seconds": round(time.time() - start, 2),

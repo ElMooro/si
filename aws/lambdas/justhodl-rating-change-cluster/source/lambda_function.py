@@ -34,6 +34,12 @@ STATE MACHINE
   CLUSTER_SELL_ACTIVE 2-4 tickers with 3+ downgrades
   NORMAL              isolated signals
   QUIET               no clustering
+
+v1.1.0 (2026-10-26, bank fusion wave 2): the rating feed is the FMP walker's banked `grades-latest-news` days (every
+page of the feed, one file per day, unioned over the 14-day window + 3 days of late rows and deduplicated), and the live
+page is only the fallback; the price / market cap / name context for a cluster comes from the factor book (bank close,
+`price_source`) before the live quote; every pick carries `bank_context` (analyst upside, consensus, Altman Z, 21-day
+return, short % float).  Thresholds, clustering, the $500M size filter and the state machine unchanged.
 """
 
 try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
@@ -53,8 +59,18 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
+try:  # v1.1.0 bank fusion: the factor book + the FMP walker bank (bank-only, no key)
+    import bank_enrich as _book
+except Exception:  # noqa: BLE001
+    _book = None
+try:
+    import fmp_bank as _bank
+except Exception:  # noqa: BLE001
+    _bank = None
 
-VERSION = "v1.0.0"
+VERSION = "v1.1.0"
+FEED_LATE_DAYS = 3                         # banked days read beyond the cluster window (late-published rows)
+BANK_CONTEXT_FIELDS = ("pt_upside_pct", "pt_n_1m", "consensus_score", "altman_z", "ret_21d", "short_pct_float", "sector", "composite_street")
 ENGINE = "justhodl-rating-change-cluster"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/rating-change-cluster.json"
@@ -169,27 +185,106 @@ def telegram_send(text):
         print(f"telegram error: {e}")
 
 
-def fetch_recent_changes():
-    """Pull recent rating actions across the market.
-    FMP /stable/grades and /stable/upgrades-downgrades-consensus."""
-    # Approach 1: pull the upgrades-downgrades feed (limit 1000)
+def book_ok():
+    return _book is not None and _book.available()
+
+
+def _row_key(item):
+    return (str(item.get("symbol") or item.get("ticker") or "").upper(), str(item.get("gradingCompany") or item.get("firm") or "").lower().strip(),
+            str(item.get("publishedDate") or item.get("date") or "")[:10], str(item.get("newGrade") or ""), str(item.get("action") or ""))
+
+
+def bank_feed(window_start, today):
+    """The banked grades-latest-news feed: one file per banked day (<id>/<YYYY-MM-DD>.json.gz, every page of that day's
+    feed), unioned over the window + FEED_LATE_DAYS, deduplicated, rows outside the window dropped.  (rows, n_days)."""
+    if _bank is None:
+        return [], 0
+    rows, seen, n_days = [], set(), 0
+    span = (today - window_start).days + FEED_LATE_DAYS
+    for i in range(span + 1):
+        day = (today - dt.timedelta(days=i)).isoformat()
+        try:
+            got_day, page = _bank.walker_latest("grades-latest-news", lookback_days=1, end=day)
+        except Exception:  # noqa: BLE001
+            got_day, page = None, None
+        if not page or got_day != day:
+            continue
+        n_days += 1
+        for item in page:
+            if not isinstance(item, dict):
+                continue
+            ds = str(item.get("publishedDate") or item.get("date") or item.get("publishedAt") or "")[:10]
+            if not ds or ds < window_start.isoformat() or ds > today.isoformat():
+                continue
+            k = _row_key(item)
+            if k in seen:
+                continue
+            seen.add(k)
+            rows.append(item)
+    return rows, n_days
+
+
+def fetch_recent_changes(window_start=None, today=None):
+    """Recent rating actions across the market: the banked feed days first (whole feed, deduplicated), the live
+    /stable/grades-latest-news page (limit 1000) as the fallback.  (feed, basis)."""
+    today = today or dt.date.today()
+    window_start = window_start or (today - dt.timedelta(days=CLUSTER_WINDOW_DAYS))
+    feed, n_days = bank_feed(window_start, today)
+    if feed:
+        return feed, "fmp-walker grades-latest-news (%d banked days)" % n_days
     feed = fmp_get("grades-latest-news", {"limit": 1000}) or []
-    if not feed or not isinstance(feed, list):
-        # Fallback: use grades-latest-news
-        feed = fmp_get("grades-latest-news", {"limit": 1000}) or []
     if not isinstance(feed, list):
         feed = []
-    return feed
+    return feed, ("fmp live grades-latest-news" if feed else "none")
+
+
+def price_context(ticker):
+    """(price, mcap, name, basis): the factor book's bank close + identity first, the live quote as the fallback."""
+    if book_ok():
+        try:
+            q = _book.quote(ticker)
+        except Exception:  # noqa: BLE001
+            q = None
+        if q and q.get("price") and q.get("marketCap"):
+            name = q.get("name")
+            if not name:
+                try:
+                    name = ((_book.factor(ticker) or {}).get("identity") or {}).get("name")
+                except Exception:  # noqa: BLE001
+                    name = None
+            return q["price"], q["marketCap"], name, "factor-book close"
+    try:
+        q = fmp_get("quote", {"symbol": ticker})
+        if q and isinstance(q, list) and q:
+            return q[0].get("price"), q[0].get("marketCap"), q[0].get("name"), "fmp live"
+    except Exception:
+        pass
+    return None, None, None, None
+
+
+def bank_context(ticker):
+    if not book_ok():
+        return None
+    try:
+        row = _book.lookup(ticker, list(BANK_CONTEXT_FIELDS))
+    except Exception:  # noqa: BLE001
+        row = None
+    if not row:
+        return None
+    out = {k: row.get(k) for k in BANK_CONTEXT_FIELDS}
+    out["source"] = "factor-book"
+    return out
 
 
 def lambda_handler(event, context):
     print(f"=== {ENGINE} {VERSION} start ===")
     started = time.time()
     try:
-        feed = fetch_recent_changes()
-        print(f"feed size: {len(feed)}")
         today = dt.date.today()
         window_start = today - dt.timedelta(days=CLUSTER_WINDOW_DAYS)
+        feed, feed_basis = fetch_recent_changes(window_start, today)
+        print(f"feed size: {len(feed)} ({feed_basis})")
+        price_basis = {}
 
         # Group by ticker, count major-bank actions within window
         up_clusters = defaultdict(list)
@@ -245,18 +340,11 @@ def lambda_handler(event, context):
             n = len(unique_events)
             if n < MIN_CLUSTER_SIZE:
                 continue
-            # Get quote for price context
-            try:
-                q = fmp_get("quote", {"symbol": ticker})
-                if not q or not isinstance(q, list) or not q:
-                    continue
-                price = q[0].get("price")
-                mcap = q[0].get("marketCap")
-                name = q[0].get("name")
-            except Exception:
-                price, mcap, name = None, None, None
+            # Price context: the factor book's bank close first, the live quote as the fallback
+            price, mcap, name, px_src = price_context(ticker)
             if not price or not mcap or mcap < 500_000_000:
                 continue
+            price_basis[px_src] = price_basis.get(px_src, 0) + 1
             # Trade ticket
             ticket = {
                 "strategy": "long_post_cluster",
@@ -277,6 +365,8 @@ def lambda_handler(event, context):
                 "ticker": ticker,
                 "name": name,
                 "price": price,
+                "price_source": px_src,
+                "bank_context": bank_context(ticker),
                 "mcap_billions": round(mcap / 1e9, 2),
                 "n_major_upgrades": n,
                 "upgrades": unique_events[:6],
@@ -297,17 +387,10 @@ def lambda_handler(event, context):
             n = len(unique_events)
             if n < MIN_CLUSTER_SIZE:
                 continue
-            try:
-                q = fmp_get("quote", {"symbol": ticker})
-                if not q or not isinstance(q, list) or not q:
-                    continue
-                price = q[0].get("price")
-                mcap = q[0].get("marketCap")
-                name = q[0].get("name")
-            except Exception:
-                price, mcap, name = None, None, None
+            price, mcap, name, px_src = price_context(ticker)
             if not price or not mcap or mcap < 500_000_000:
                 continue
+            price_basis[px_src] = price_basis.get(px_src, 0) + 1
             ticket = {
                 "strategy": "avoid_or_short_post_cluster",
                 "action": "EXIT longs or initiate short / buy puts",
@@ -321,6 +404,8 @@ def lambda_handler(event, context):
                 "ticker": ticker,
                 "name": name,
                 "price": price,
+                "price_source": px_src,
+                "bank_context": bank_context(ticker),
                 "mcap_billions": round(mcap / 1e9, 2),
                 "n_major_downgrades": n,
                 "downgrades": unique_events[:6],
@@ -375,6 +460,9 @@ def lambda_handler(event, context):
                                     (len(buy_picks) + len(sell_picks)) * 3),
             "summary": {
                 "feed_size": len(feed),
+                "feed_basis": feed_basis,
+                "price_basis": price_basis,
+                "book_as_of": (_book.as_of() if book_ok() else None),
                 "cluster_window_days": CLUSTER_WINDOW_DAYS,
                 "min_cluster_size": MIN_CLUSTER_SIZE,
                 "rich_cluster_size": RICH_CLUSTER_SIZE,
@@ -393,8 +481,9 @@ def lambda_handler(event, context):
                 "size_filter": "mcap >= $500M",
                 "edge_basis": "Womack 1996 (Journal of Finance); Bradshaw-Brown-Huang 2019; Liang 2024",
             },
-            "sources": ["FMP /stable/grades-news", "FMP /stable/grades-latest-news",
-                         "FMP /stable/quote"],
+            "sources": ["FMP walker bank data/warm/fmp/grades-latest-news (one file per banked day, whole feed)",
+                         "factor book data/warm/factor-book (bank close, analyst / balance-sheet context)",
+                         "FMP /stable/grades-latest-news (live fallback)", "FMP /stable/quote (live fallback)"],
             "why_now": (f"{len(buy_picks)} BUY clusters ({n_buy_rich} rich) + "
                         f"{len(sell_picks)} SELL clusters ({n_sell_rich} rich) detected in "
                         f"the last {CLUSTER_WINDOW_DAYS} days. Major-bank consensus shifts "

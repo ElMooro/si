@@ -72,6 +72,10 @@ fmp_bank._MISSING.clear()
 days = fmp_bank.walker_days("insider-trading-latest", days=5)
 assert [d for d, _ in days] == [_d1, _d2] and len(days[1][1]) == 2, days                       # newest first, unbanked days skipped
 assert fmp_bank.walker_days("insider-trading-latest", days=0) == [] and fmp_bank.walker_days("nope-feed", days=3) == []
+buys = fmp_bank.walker_days("insider-trading-latest", days=5, where=lambda r: str(r.get("transactionType", "")).startswith("P"))
+assert [(d, len(r)) for d, r in buys] == [(_d1, 1), (_d2, 1)] and buys[1][1][0]["symbol"] == "CCC", buys        # filter-on-read keeps only the purchases
+assert fmp_bank.walker_latest_days("senate-latest", days=5) == [(_d2, [{"symbol": "NVDA", "type": "Purchase"}])]
+assert fmp_bank.walker_latest_days("senate-latest", days=5, where=lambda r: r.get("symbol") == "AAPL") == [(_d2, [])]
 day, rows = fmp_bank.walker_latest("senate-latest", lookback_days=5)
 assert day == _d2 and rows[0]["symbol"] == "NVDA", (day, rows)
 assert fmp_bank.walker_latest("house-latest", lookback_days=3) == (None, None)

@@ -21,6 +21,12 @@ OUTPUT SCHEMA: same as v1 but with proper QoQ data:
   filers: [{cik, investor_name, market_value, qoq_change_pct,
             securities_added, securities_removed, performance_pct, ...}]
   summary: {biggest_gainers, biggest_decliners, most_active, ...}
+
+v2.1.0 (2026-10-26, bank fusion wave 2): the FMP walker bank is the first rung of both reads - discovery from the
+newest banked institutional-ownership/latest page-set (data/warm/fmp/institutional-ownership-latest/<day>.json.gz, up
+to 60 pages instead of 5 live pages) and each filer's holder-performance-summary from its banked per-CIK file
+(data/warm/fmp/institutional-ownership-holder-performance-summary/<cik>.json.gz); the live calls stand as the fallback
+and are capped per run (`source` per filer, `source_used`, `feed_basis`).  Ranking and the summary are unchanged.
 """
 
 try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
@@ -30,6 +36,7 @@ except Exception:  # noqa: BLE001 - the shim never blocks the engine
     pass
 import json
 import os
+import threading
 import time
 import urllib.request
 import urllib.error
@@ -45,6 +52,15 @@ S3_BUCKET = "justhodl-dashboard-live"
 S3_KEY = "screener/smart-money.json"
 
 s3 = boto3.client("s3", region_name="us-east-1")
+
+try:  # v2.1.0 bank fusion: the walker's 13F feeds (no key)
+    import fmp_bank as _bank
+except Exception:  # noqa: BLE001
+    _bank = None
+VERSION = "2.1.0"
+BANK_DISCOVER_TARGET = int(os.environ.get("SM_BANK_DISCOVER_TARGET", "200"))     # filers discovered from the banked feed
+LIVE_DISCOVER_TARGET = 80                                                          # the v2 live discovery, unchanged
+LIVE_FILER_CAP = int(os.environ.get("SM_LIVE_FILER_CAP", "40"))                    # live holder-performance-summary calls per run, at most
 
 # Curated list of well-known hedge funds / asset managers (CIK numbers).
 # Some CIKs may be wrong/missing — invalid ones just return no data + are skipped.
@@ -105,6 +121,41 @@ def fmp(path, params="", retries=2):
     return None
 
 
+def discover_bank_ciks(target=None):
+    """First rung: distinct filer CIKs from the newest banked institutional-ownership/latest page-set.
+    Returns ({cik: name}, day, n_rows); ({}, None, 0) when the bank has none."""
+    if _bank is None or not hasattr(_bank, "walker_latest"):
+        return {}, None, 0
+    try:
+        day, rows = _bank.walker_latest("institutional-ownership-latest", lookback_days=10)
+    except Exception:  # noqa: BLE001
+        day, rows = None, None
+    if not rows:
+        return {}, None, 0
+    discovered = {}
+    for r in rows:
+        if not isinstance(r, dict):
+            continue
+        cik = r.get("cik")
+        name = r.get("name") or r.get("investorName")
+        if cik and str(cik) not in discovered:
+            discovered[str(cik)] = name
+            if len(discovered) >= (target or BANK_DISCOVER_TARGET):
+                break
+    return discovered, day, len(rows)
+
+
+def bank_performance(cik):
+    """The filer's banked holder-performance-summary rows (the live endpoint's shape) or None when not banked."""
+    if _bank is None:
+        return None
+    try:
+        rows = _bank.walker("institutional-ownership-holder-performance-summary", cik)
+    except Exception:  # noqa: BLE001
+        rows = None
+    return rows if isinstance(rows, list) and rows else None
+
+
 def discover_more_ciks(target=50):
     """Pull recent 13F filings to find more CIKs beyond the curated list."""
     discovered = {}
@@ -124,10 +175,24 @@ def discover_more_ciks(target=50):
     return discovered
 
 
+_live_budget = {"n": 0}
+_live_lock = threading.Lock()
+
+
 def fetch_filer(cik_name):
     cik, fallback_name = cik_name
-    data = fmp("institutional-ownership/holder-performance-summary",
-                 f"&cik={cik}")
+    data = bank_performance(cik)
+    source = "fmp-walker bank"
+    if data is None:
+        with _live_lock:
+            allowed = _live_budget["n"] < LIVE_FILER_CAP
+            if allowed:
+                _live_budget["n"] += 1
+        if not allowed:
+            return None                                   # live reads capped for the run: this filer waits for the bank
+        data = fmp("institutional-ownership/holder-performance-summary",
+                     f"&cik={cik}")
+        source = "fmp live"
     if not isinstance(data, list) or not data:
         return None
     # Sort by date desc, take most recent
@@ -164,16 +229,23 @@ def fetch_filer(cik_name):
         "avg_holding_period": latest.get("averageHoldingPeriod"),
         "avg_holding_period_top10": latest.get("averageHoldingPeriodTop10"),
         "turnover": latest.get("turnover"),
+        "source": source,
     }
 
 
 def lambda_handler(event, context):
     started = time.time()
 
-    # 1. Discover additional CIKs
+    # 1. Discover additional CIKs: the banked latest feed first (v2.1.0), the live pages when the bank has none
+    _live_budget["n"] = 0
     print("[sm] discovering recent 13F filers...")
-    discovered = discover_more_ciks(target=80)
-    print(f"[sm] discovered {len(discovered)} CIKs from latest filings")
+    discovered, bank_day, bank_rows = discover_bank_ciks()
+    if discovered:
+        source_used = "fmp-walker bank institutional-ownership-latest (%s, %d rows)" % (bank_day, bank_rows)
+    else:
+        discovered = discover_more_ciks(target=LIVE_DISCOVER_TARGET)
+        source_used = "fmp live institutional-ownership/latest" if discovered else "curated list only"
+    print(f"[sm] discovered {len(discovered)} CIKs ({source_used})")
 
     # 2. Combine curated + discovered (dedupe)
     seen = set()
@@ -194,7 +266,10 @@ def lambda_handler(event, context):
         for result in ex.map(fetch_filer, all_targets):
             if result:
                 filers.append(result)
-    print(f"[sm] fetched performance for {len(filers)} filers")
+    source_counts = {}
+    for f in filers:
+        source_counts[f.get("source")] = source_counts.get(f.get("source"), 0) + 1
+    print(f"[sm] fetched performance for {len(filers)} filers {source_counts}; live calls used {_live_budget['n']}/{LIVE_FILER_CAP}")
 
     # 4. Sort by AUM desc
     filers.sort(key=lambda f: -(f.get("market_value") or 0))
@@ -244,8 +319,12 @@ def lambda_handler(event, context):
             pass
 
     payload = {
+        "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "elapsed_seconds": round(time.time() - started, 1),
+        "source_used": source_used,
+        "feed_basis": {"discovery": source_used, "bank_day": bank_day, "bank_feed_rows": bank_rows, "n_targets": len(all_targets),
+                       "filer_sources": source_counts, "live_filer_calls": _live_budget["n"], "live_filer_cap": LIVE_FILER_CAP},
         "as_of_date": as_of,
         "as_of_quarter": quarter_label,
         "n_filers": len(filers),

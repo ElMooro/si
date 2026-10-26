@@ -24,7 +24,7 @@ class FakeBank(types.ModuleType):
 
 
 class FakeBook(types.ModuleType):
-    """bank_enrich stand-in: ret_63d / ps per symbol from the book's matrix (fractions / multiples, as the book writes them)."""
+    """bank_enrich stand-in: ret_63d / ps per symbol from the book's matrix (ret_* in PERCENT, as the book writes them)."""
     rows = {}
     on = True
 
@@ -66,9 +66,11 @@ def test_bank_feed_is_the_first_rung_and_normalizes_like_the_live_feed():
     bank.days = {(today - timedelta(days=1)).isoformat(): [row("AAA", (today - timedelta(days=1)).isoformat())] * 3,
                  (today - timedelta(days=9)).isoformat(): [row("BBB", (today - timedelta(days=9)).isoformat())]}
     rows, got = lf.fetch_bank_feed(days=12)
-    assert got == 2 and len(rows) == 4 and lf.DIAG[-1].startswith("bank/insider-trading-latest: 4 rows over 2 banked days")
-    norm = lf.normalize(rows)
+    assert got == 2 and len(rows) == 4 and lf.DIAG[-1].startswith("bank/insider-trading-latest: 4 rows over 2 banked days (of 12); 4 in the window"), lf.DIAG[-1]
+    norm = rows                                                       # v1.2.2: the feed comes back normalized day by day
     assert norm[0]["ticker"] == "AAA" and norm[0]["type"] == "P-Purchase" and norm[0]["value"] == 10000.0 and norm[0]["insider"] == "Jane Doe"
+    rows, got = lf.fetch_bank_feed(days=12, cutoff=(today - timedelta(days=5)).isoformat())
+    assert got == 2 and len(rows) == 3 and all(r["ticker"] == "AAA" for r in rows), "rows before the cutoff must be dropped as each day is read"
     bank.days = {}
     lf.DIAG.clear()
     assert lf.fetch_bank_feed(days=3) == ([], 0) and lf.DIAG[-1] == "bank/insider-trading-latest: no banked days"
@@ -85,7 +87,7 @@ def test_decline_join_reads_the_factor_book_and_caps_live_polygon():
         sym = "T%02d" % i
         feed += [row(sym, "A %d" % i), row(sym, "B %d" % i)]
         if i < 50:
-            book.rows[sym] = {"ret_63d": -0.40 if i < 20 else 0.05, "ps": 1.5}
+            book.rows[sym] = {"ret_63d": -40.0 if i < 20 else 5.0, "ps": 1.5}      # percent, like the book
     bank.days = {d: feed}
     live = []
     lf.jget = lambda url, timeout=35: live.append(url) or {"results": []}
@@ -99,7 +101,7 @@ def test_decline_join_reads_the_factor_book_and_caps_live_polygon():
     assert basis["factor_book"] == 50 and basis["rings"] == 0, basis
     assert basis["polygon_live"] == 0 and basis["none"] == 10, basis          # live Polygon returned nothing -> counted as none
     assert len([u for u in live if "api.polygon.io" in u]) == 4, "live Polygon reads must stop at the cap (4), got %d" % len(live)
-    assert out["book_as_of"] == {"tape": "2026-10-24"} and out["version"] == "1.2.1"
+    assert out["book_as_of"] == {"tape": "2026-10-24"} and out["version"] == "1.2.2"
     assert len(out["decline_clusters"]) == 10 and all(c["ret_60d_pct"] == -40.0 for c in out["decline_clusters"])   # output caps the list at 10 of the 20
     assert all(c["ps_ttm"] == 1.5 for c in out["clusters"] if c["ticker"] in book.rows), "P/S must come from the book"
     assert any(x.startswith("ps_ttm:") and "from the factor book" in x for x in out["diagnostics"])

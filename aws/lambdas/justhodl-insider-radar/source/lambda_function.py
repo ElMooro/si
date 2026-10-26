@@ -37,7 +37,7 @@ OUT_KEY = "data/insider-radar.json"
 UP_STATE = "data/_upside/state.json.gz"
 FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 POLYGON_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
-VERSION = "1.2.1"
+VERSION = "1.2.2"
 DIAG = []
 RANK = (("CEO", 3.0), ("CHIEF EXECUTIVE", 3.0), ("CFO", 2.8), ("CHIEF FINANCIAL", 2.8),
          ("PRESIDENT", 2.4), ("COO", 2.2), ("CHAIR", 2.2), ("DIRECTOR", 1.8),
@@ -81,7 +81,7 @@ try:  # v1.2.0 (2026-10-26, bank fusion): the FMP walker banks the WHOLE insider
     import fmp_bank as _bank  # (data/warm/fmp/insider-trading-latest/<YYYY>/<date>.json.gz) - 30 days of it beat one live page of 1,000 rows
 except Exception:  # noqa: BLE001
     _bank = None
-BANK_FEED_DAYS = int(os.environ.get("INSIDER_BANK_FEED_DAYS", "35"))
+BANK_FEED_DAYS = int(os.environ.get("INSIDER_BANK_FEED_DAYS", "31"))   # the desk window is 30 days; v1.2.2 streams day by day
 try:  # v1.2.1: the factor book's tape returns (ret_63d ~ 60 trading days) answer the decline join for every US-listed name
     import bank_enrich as _book  # in one matrix-index read per container; live Polygon is the last rung and is capped
 except Exception:  # noqa: BLE001
@@ -90,11 +90,14 @@ LIVE_RET_CAP = int(os.environ.get("INSIDER_LIVE_RET_CAP", "40"))      # live Pol
 LIVE_RET_BUDGET_S = float(os.environ.get("INSIDER_LIVE_RET_BUDGET_S", "60"))
 
 
-def fetch_bank_feed(days=None):
-    """The banked insider feed for the last `days` calendar days (newest first); [] when the bank has none of them."""
+def fetch_bank_feed(days=None, cutoff=None):
+    """The banked insider feed for the last `days` calendar days, NORMALIZED day by day (newest first); only rows dated on
+    or after `cutoff` (YYYY-MM-DD) are kept and each day's raw page is dropped before the next is read - the whole feed is
+    ~3,000 Form-4 rows a day, and holding 35 raw days + a normalized copy saturated the 512 MB container (v1.2.1 timed out
+    at 300 s).  ([] , 0) when the bank has none of them."""
     if _bank is None:
         return [], 0
-    rows, got = [], 0
+    rows, got, n_raw = [], 0, 0
     today = datetime.now(timezone.utc).date()
     for i in range(days or BANK_FEED_DAYS):
         day = (today - timedelta(days=i)).isoformat()
@@ -103,10 +106,14 @@ def fetch_bank_feed(days=None):
         except Exception:  # noqa: BLE001
             page = None
         if isinstance(page, list) and page:
-            rows.extend(page)
             got += 1
+            n_raw += len(page)
+            for r in normalize(page):
+                if cutoff is None or r["date"] >= cutoff:
+                    rows.append(r)
+            del page
     if got:
-        DIAG.append(f"bank/insider-trading-latest: {len(rows)} rows over {got} banked days (of {days or BANK_FEED_DAYS})")
+        DIAG.append(f"bank/insider-trading-latest: {n_raw} rows over {got} banked days (of {days or BANK_FEED_DAYS}); {len(rows)} in the window")
     else:
         DIAG.append("bank/insider-trading-latest: no banked days")
     return rows, got
@@ -211,16 +218,16 @@ def ps_ttm_map(tickers, cap=25):
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     DIAG.clear()
-    raw, bank_days = fetch_bank_feed()
-    source = "fmp-walker bank (%d days)" % bank_days if raw else None
-    if not raw:
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=30)).date().isoformat()
+    rows, bank_days = fetch_bank_feed(cutoff=cutoff)          # already normalized + windowed (v1.2.2)
+    source = "fmp-walker bank (%d days)" % bank_days if rows else None
+    if not rows:
         raw = fetch_fmp()
         source = "fmp" if raw else None
-    if not raw:
-        raw = fetch_s3_fallback()
-        source = "s3_sec_briefs" if raw else "unavailable"
-    rows = normalize(raw)
-    cutoff = (datetime.now(timezone.utc) - timedelta(days=30)).date().isoformat()
+        if not raw:
+            raw = fetch_s3_fallback()
+            source = "s3_sec_briefs" if raw else "unavailable"
+        rows = normalize(raw)
     buys = [r for r in rows if r["date"] >= cutoff and r["type"].upper().startswith("P")]
     sells_n = sum(1 for r in rows if r["date"] >= cutoff and r["type"].upper().startswith("S"))
     for b in buys:
@@ -253,7 +260,7 @@ def lambda_handler(event=None, context=None):
             row = _book.lookup(t, ["ret_63d"])
             if row and row.get("ret_63d") is not None:
                 try:
-                    val, basis = round(float(row["ret_63d"]) * 100, 1), "factor_book"
+                    val, basis = round(float(row["ret_63d"]), 1), "factor_book"     # the book's ret_* are already percent
                 except (TypeError, ValueError):
                     val = None
         if val is None and live_n[0] < LIVE_RET_CAP and (time.time() - t_live0) < LIVE_RET_BUDGET_S:

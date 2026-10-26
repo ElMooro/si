@@ -33,6 +33,12 @@ STORAGE:
 Telegram fires ONLY on a thesis transition to THESIS_BROKEN — never on price.
 
 Schedule: daily cron(0 13 ? * MON-FRI *).
+
+v1.1.0 (2026-10-26, bank fusion wave 2): the quote comes from the factor book (the bank close, labelled
+`price_source`), the 5-year thesis series (income / key-metrics / ratios) from the dated FMP statement bulks
+(`fmp_bank.statements`, no key, labelled per source), and every holding carries a `bank_context` block (Altman Z,
+Piotroski, ROIC, revenue growth, short % float, analyst / DCF upside, quality composite).  Live FMP stays the
+fallback for anything the banks lack; the thesis rules themselves are unchanged.
 """
 
 try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
@@ -44,7 +50,16 @@ import json, os, time, math
 from datetime import datetime, timezone, date
 from urllib import request, error
 import boto3
+try:  # v1.1.0: the factor book (aws/shared/bank_enrich) - quote at the bank close + thesis context, projection reads only
+    import bank_enrich as _book
+except Exception:  # noqa: BLE001
+    _book = None
+try:  # the FMP statement bulks (aws/shared/fmp_bank) - 5 annual rows per statement without a live call
+    import fmp_bank as _bank
+except Exception:  # noqa: BLE001
+    _bank = None
 
+VERSION = "1.1.0"
 S3_BUCKET = "justhodl-dashboard-live"
 HOLDINGS_KEY = "data/coffee-can-holdings.json"
 DASHBOARD_KEY = "data/coffee-can.json"
@@ -86,6 +101,57 @@ def fmp(path, symbol, limit=None):
     if limit:
         url += f"&limit={limit}"
     return _get_json(url)
+
+
+def book_ok():
+    try:
+        return _book is not None and _book.available()
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def bank_series(path, symbol, limit=5):
+    """Annual statement rows for one symbol from the FMP bank (bank-only, no key), newest first; None when unbanked."""
+    if _bank is None:
+        return None
+    try:
+        rows = _bank.statements(path, symbol, period="annual", limit=limit)
+    except Exception:  # noqa: BLE001
+        return None
+    return rows if isinstance(rows, list) and rows else None
+
+
+CONTEXT_FIELDS = ["altman_z", "piotroski", "roic", "revenue_growth", "gross_margin", "net_debt_ebitda", "short_pct_float",
+                  "pt_upside_pct", "dcf_upside_pct", "composite_quality", "from_52w_high_pct", "ret_252d", "mcap"]
+
+
+def bank_context(symbol):
+    """The factor book's facts for one holding (whole-market percentiles included) - additive context, never a sell signal."""
+    if not book_ok():
+        return None
+    try:
+        row = _book.lookup(symbol, CONTEXT_FIELDS)
+    except Exception:  # noqa: BLE001
+        return None
+    if not row:
+        return None
+    ctx = {k: row.get(k) for k in CONTEXT_FIELDS}
+    ctx["as_of"] = _book.as_of()
+    ctx["source"] = "factor-book"
+    return ctx
+
+
+def book_quote(symbol):
+    """Quote-shaped read of the bank close from the factor book, or None (the live /quote is the fallback)."""
+    if not book_ok():
+        return None
+    try:
+        q = _book.quote(symbol)
+    except Exception:  # noqa: BLE001
+        return None
+    if not q or q.get("price") is None:
+        return None
+    return q
 
 
 def maybe_telegram(msg):
@@ -135,10 +201,21 @@ def drawdown_note(dd_frac):
 
 # ───────────────────────── thesis health ─────────────────────────
 def check_thesis(symbol):
-    """Re-check multibagger thesis pillars against fresh fundamentals."""
-    income = fmp("income-statement", symbol, limit=5) or []
-    km = fmp("key-metrics", symbol, limit=5) or []
-    ratios = fmp("ratios", symbol, limit=5) or []
+    """Re-check multibagger thesis pillars against fresh fundamentals (bank statements first, live FMP as the fallback)."""
+    sources = {}
+
+    def series(path):
+        rows = bank_series(path, symbol)
+        if rows:
+            sources[path] = "fmp-bank"
+            return rows
+        rows = fmp(path, symbol, limit=5) or []
+        sources[path] = "fmp live" if rows else "unavailable"
+        return rows
+
+    income = series("income-statement")
+    km = series("key-metrics")
+    ratios = series("ratios")
 
     signals = []
     broken = 0
@@ -228,14 +305,22 @@ def check_thesis(symbol):
         "signals": signals,
         "latest_revenue": revs[0] if revs else None,
         "latest_roic_pct": round(roics[0] * 100, 1) if roics else None,
+        "sources": sources,
     }
 
 
 def enrich_holding(h, prior_holding):
     """Compute live tracking + thesis health for one committed holding."""
     sym = h.get("symbol")
-    quote = fmp("quote", sym) or []
-    q = quote[0] if isinstance(quote, list) and quote else {}
+    q, price_source = {}, None
+    bq = book_quote(sym)
+    if bq:
+        q = {"price": bq.get("price"), "yearHigh": bq.get("yearHigh"), "yearLow": bq.get("yearLow"), "name": bq.get("name")}
+        price_source = "factor-book (bank close, as of %s)" % json.dumps(bq.get("as_of"), default=str)
+    else:
+        quote = fmp("quote", sym) or []
+        q = quote[0] if isinstance(quote, list) and quote else {}
+        price_source = "fmp live quote" if q else ("factor book unavailable; live quote unavailable" if not book_ok() else "live quote unavailable")
     price = q.get("price")
     year_high = q.get("yearHigh")
     year_low = q.get("yearLow")
@@ -310,6 +395,8 @@ def enrich_holding(h, prior_holding):
         "verdict": verdict,
         "year_high": year_high,
         "year_low": year_low,
+        "price_source": price_source,
+        "bank_context": bank_context(sym),
         "notes": h.get("notes", []),
         "_prior_health": (prior_holding or {}).get("thesis_health"),
     }
@@ -323,9 +410,13 @@ def action_add(holdings, event):
     holdings = [h for h in holdings if h.get("symbol") != sym]
     entry_price = event.get("entry_price")
     if entry_price is None:
-        q = fmp("quote", sym) or []
-        if isinstance(q, list) and q:
-            entry_price = q[0].get("price")
+        bq = book_quote(sym)
+        if bq:
+            entry_price = bq.get("price")
+        else:
+            q = fmp("quote", sym) or []
+            if isinstance(q, list) and q:
+                entry_price = q[0].get("price")
     holdings.append({
         "symbol": sym,
         "name": event.get("name"),
@@ -416,12 +507,24 @@ def lambda_handler(event, context):
                           + "; ".join(e["thesis_detail"]["signals"][:3]))
         e.pop("_prior_health", None)
 
+    price_sources = {}
+    for e in enriched:
+        k = str(e.get("price_source") or "none").split(" (")[0]
+        price_sources[k] = price_sources.get(k, 0) + 1
+    thesis_sources = {}
+    for e in enriched:
+        for path, src in ((e.get("thesis_detail") or {}).get("sources") or {}).items():
+            thesis_sources[src] = thesis_sources.get(src, 0) + 1
     out = {
         "schema_version": "1.0",
         "method": "coffee_can_v1",
+        "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "elapsed_s": round(time.time() - t0, 1),
         "last_action": msg,
+        "book_as_of": (_book.as_of() if book_ok() else None),
+        "facts_basis": {"price_sources": price_sources, "thesis_series_sources": thesis_sources,
+                        "factor_book": "available" if book_ok() else "factor book unavailable"},
         "n_holdings": n,
         "portfolio": {
             "n_winners": len(winners),

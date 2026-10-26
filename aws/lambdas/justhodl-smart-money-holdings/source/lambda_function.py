@@ -36,6 +36,12 @@ EXPECTED METRICS
 - Runtime: 30-90s (paginated, 8-worker parallel)
 
 EVENTBRIDGE: cron(30 14 * * ? *) — daily 14:30 UTC, 30 min after smart-money-tracker
+
+v1.1.0 (2026-10-26, bank fusion wave 2): each fund's holdings are read first from the FMP walker bank's per-CIK
+quarter file (data/warm/fmp/institutional-ownership-extract/<cik>/<YYYY>Q<q>.json.gz - the whole extract, pages
+merged, same row shape), with the same latest-quarter + 3-quarter fallback; the live paginated extract stands as the
+fallback for funds/quarters the bank lacks and is capped per run (`source` per fund, `source_counts`, `feed_basis`).
+Noise filter, inverted index and the fund summaries are unchanged.
 """
 
 try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
@@ -45,6 +51,7 @@ except Exception:  # noqa: BLE001 - the shim never blocks the engine
     pass
 import json
 import os
+import threading
 import time
 import urllib.request
 import urllib.error
@@ -61,6 +68,15 @@ S3_BUCKET = "justhodl-dashboard-live"
 S3_KEY = "screener/smart-money-holdings.json"
 
 s3 = boto3.client("s3", region_name="us-east-1")
+
+try:  # v1.1.0 bank fusion: the walker's 13F extract files (no key)
+    import fmp_bank as _bank
+except Exception:  # noqa: BLE001
+    _bank = None
+VERSION = "1.1.0"
+LIVE_FUND_CAP = int(os.environ.get("SMH_LIVE_FUND_CAP", "20"))      # funds fetched live (paginated) per run, at most
+_live_budget = {"n": 0}
+_live_lock = threading.Lock()
 
 # Concentrated + active funds — high-signal positioning.
 # Expanded from 24 → 35 via probe step 452 (2026-05-11). All CIKs validated
@@ -209,8 +225,54 @@ def _yq_offset(year, quarter, delta_quarters):
     return new_year, new_quarter
 
 
+def _collect_holdings(rows, all_holdings, seen_cusips):
+    """Append the extract rows that count (symbol, shares only, deduped by cusip|symbol); returns how many were new."""
+    new_count = 0
+    for h in rows:
+        if not isinstance(h, dict):
+            continue
+        cusip = h.get("securityCusip")
+        sym = h.get("symbol")
+        key = f"{cusip}|{sym}"
+        if key in seen_cusips:
+            continue
+        seen_cusips.add(key)
+        if not sym or not isinstance(sym, str) or len(sym) > 8:
+            continue
+        if h.get("putCallShare") and h["putCallShare"] not in ("", "Share", None):
+            continue
+        all_holdings.append({
+            "symbol": sym,
+            "shares": h.get("shares") or 0,
+            "value": h.get("value") or 0,
+            "name": h.get("nameOfIssuer"),
+            "title_class": h.get("titleOfClass"),
+        })
+        new_count += 1
+    return new_count
+
+
+def bank_extract(cik, year, quarter):
+    """The fund's banked extract for one quarter (pages merged, the live endpoint's row shape) or None when not banked."""
+    if _bank is None:
+        return None
+    try:
+        rows = _bank.walker("institutional-ownership-extract", cik, period=(int(year), int(quarter)))
+    except Exception:  # noqa: BLE001
+        rows = None
+    return rows if isinstance(rows, list) and rows else None
+
+
+def _live_allowed():
+    with _live_lock:
+        if _live_budget["n"] < LIVE_FUND_CAP:
+            _live_budget["n"] += 1
+            return True
+    return False
+
+
 def fetch_fund_holdings(args):
-    """Paginate all holdings for one fund.
+    """All holdings for one fund: the banked quarter file first (v1.1.0), then the live paginated extract (capped).
 
     Stage 16.6: tries up to QUARTER_FALLBACK quarters back if the latest
     one returns empty. This catches funds that file late (e.g. Engine No. 1
@@ -219,6 +281,28 @@ def fetch_fund_holdings(args):
     """
     cik, name, latest_year, latest_quarter = args
     QUARTER_FALLBACK = 4  # try latest + 3 quarters back = up to 1 year of fallback
+
+    # bank first: the newest banked quarter in the fallback range
+    for delta in range(QUARTER_FALLBACK):
+        year, quarter = _yq_offset(latest_year, latest_quarter, delta)
+        rows = bank_extract(cik, year, quarter)
+        if rows is None:
+            continue
+        all_holdings, seen_cusips = [], set()
+        _collect_holdings(rows, all_holdings, seen_cusips)
+        if all_holdings:
+            all_holdings.sort(key=lambda h: -(h.get("value") or 0))
+            return {"cik": cik, "name": name,
+                    "n_holdings": len(all_holdings),
+                    "total_value": sum(h.get("value") or 0 for h in all_holdings),
+                    "as_of_year": year, "as_of_quarter": quarter,
+                    "fallback_used": delta, "source": "fmp-walker bank",
+                    "holdings": all_holdings}
+
+    if not _live_allowed():
+        return {"cik": cik, "name": name, "n_holdings": 0, "total_value": 0,
+                "as_of_year": latest_year, "as_of_quarter": latest_quarter,
+                "fallback_used": -1, "source": "unbanked (live cap reached)", "holdings": []}
 
     for delta in range(QUARTER_FALLBACK):
         year, quarter = _yq_offset(latest_year, latest_quarter, delta)
@@ -229,26 +313,7 @@ def fetch_fund_holdings(args):
                        f"&cik={cik}&year={year}&quarter={quarter}&page={page}")
             if not isinstance(data, list) or not data:
                 break
-            new_count = 0
-            for h in data:
-                cusip = h.get("securityCusip")
-                sym = h.get("symbol")
-                key = f"{cusip}|{sym}"
-                if key in seen_cusips:
-                    continue
-                seen_cusips.add(key)
-                if not sym or not isinstance(sym, str) or len(sym) > 8:
-                    continue
-                if h.get("putCallShare") and h["putCallShare"] not in ("", "Share", None):
-                    continue
-                all_holdings.append({
-                    "symbol": sym,
-                    "shares": h.get("shares") or 0,
-                    "value": h.get("value") or 0,
-                    "name": h.get("nameOfIssuer"),
-                    "title_class": h.get("titleOfClass"),
-                })
-                new_count += 1
+            new_count = _collect_holdings(data, all_holdings, seen_cusips)
             if new_count == 0 or len(data) < 10:
                 break
 
@@ -259,13 +324,13 @@ def fetch_fund_holdings(args):
                     "n_holdings": len(all_holdings),
                     "total_value": sum(h.get("value") or 0 for h in all_holdings),
                     "as_of_year": year, "as_of_quarter": quarter,
-                    "fallback_used": delta,
+                    "fallback_used": delta, "source": "fmp live",
                     "holdings": all_holdings}
 
     # No quarter had data → return empty
     return {"cik": cik, "name": name, "n_holdings": 0, "total_value": 0,
             "as_of_year": latest_year, "as_of_quarter": latest_quarter,
-            "fallback_used": -1, "holdings": []}
+            "fallback_used": -1, "source": "fmp live (empty)", "holdings": []}
 
 
 def lambda_handler(event, context):
@@ -273,17 +338,22 @@ def lambda_handler(event, context):
     year, quarter = get_latest_filed_quarter()
     print(f"[smh] using Q{quarter} {year}")
 
-    # Fetch holdings for all funds in parallel
+    # Fetch holdings for all funds in parallel (bank first, live capped)
+    _live_budget["n"] = 0
     targets = [(cik, name, year, quarter) for cik, name in CONCENTRATED_FUNDS]
     fund_results = []
+    source_counts = {}
     with ThreadPoolExecutor(max_workers=8) as ex:
         for result in ex.map(fetch_fund_holdings, targets):
+            src = (result or {}).get("source") or "none"
             if result and result["n_holdings"] > 0:
                 fund_results.append(result)
+                source_counts[src] = source_counts.get(src, 0) + 1
             else:
-                print(f"[smh] {result['name'] if result else '?'}: 0 holdings")
+                source_counts["empty: " + src] = source_counts.get("empty: " + src, 0) + 1
+                print(f"[smh] {result['name'] if result else '?'}: 0 holdings ({src})")
 
-    print(f"[smh] fetched {sum(f['n_holdings'] for f in fund_results)} total holdings across {len(fund_results)} funds")
+    print(f"[smh] fetched {sum(f['n_holdings'] for f in fund_results)} total holdings across {len(fund_results)} funds {source_counts}; live funds {_live_budget['n']}/{LIVE_FUND_CAP}")
 
     # Build inverse mapping
     by_symbol = defaultdict(list)
@@ -367,13 +437,18 @@ def lambda_handler(event, context):
             "name": f["name"],
             "n_holdings": f["n_holdings"],
             "total_value": f["total_value"],
+            "as_of_quarter": "Q%s %s" % (f.get("as_of_quarter"), f.get("as_of_year")),
+            "source": f.get("source"),
             "top_holdings": top_with_pct,
         })
     fund_summaries.sort(key=lambda f: -f["total_value"])
 
     payload = {
+        "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "elapsed_seconds": round(time.time() - started, 1),
+        "source_used": "fmp-walker bank institutional-ownership-extract first, live extract capped" if source_counts.get("fmp-walker bank") else "fmp live extract (bank has no extract files)",
+        "feed_basis": {"source_counts": source_counts, "live_fund_calls": _live_budget["n"], "live_fund_cap": LIVE_FUND_CAP},
         "as_of_quarter": f"Q{quarter} {year}",
         "year": year,
         "quarter": quarter,

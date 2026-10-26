@@ -33,6 +33,14 @@ Edge basis:
   predicts abnormal returns). Peyer-Vermaelen 2009 (buyback announcement
   + insider buying = strong forward signal). Fenn-Liang 2001.
 
+v1.1.0 (2026-10-26, bank fusion wave 2): the insider side also reads the FMP walker bank - the WHOLE insider feed per
+calendar day (data/warm/fmp/insider-trading-latest/<YYYY>/<date>.json.gz, 60 days, open-market purchases aggregated
+per ticker while read) - so the confluence is no longer limited to the names the insider-buys-enriched feeder kept
+(`insider_source` per row: feeder / bank / feeder+bank; the feeder's stats win where both have the name, the bank fills
+what it lacks).  Price / market cap for the quality gate come from the factor book's bank close (`price_source`), the
+live /stable/quote stays as a capped fallback; every confluence carries a labelled `bank_context`.  Scores, multiplier
+and the $500M gate are unchanged.
+
 Schedule: daily 23 UTC after both feeders refresh.
 """
 
@@ -47,10 +55,23 @@ import time
 import urllib.request
 import urllib.parse
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+try:  # v1.1.0 bank fusion: the walker's whole insider feed per day (no key) and the factor book's bank close
+    import fmp_bank as _bank
+except Exception:  # noqa: BLE001
+    _bank = None
+try:
+    import bank_enrich as _book
+except Exception:  # noqa: BLE001
+    _book = None
+
+VERSION = "1.1.0"
+BANK_FEED_DAYS = int(os.environ.get("INSIDER_BANK_FEED_DAYS", "60"))      # the insider score's recency ladder ends at 60 days
+LIVE_QUOTE_CAP = int(os.environ.get("INSIDER_LIVE_QUOTE_CAP", "20"))
+BANK_CONTEXT_FIELDS = ["altman_z", "piotroski", "short_pct_float", "pt_upside_pct", "composite_quality", "composite_value", "ret_63d", "from_52w_high_pct"]
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/insider-buyback-confluence.json"
 SSM_STATE_KEY = "/justhodl/insider-buyback-confluence/state"
@@ -121,6 +142,107 @@ def extract_insider_tickers(insider_data):
             "feeder_score": float(score_existing) if score_existing else None,
         }
     return out
+
+
+def bank_insider_tickers(days=None):
+    """Insider stats per ticker from the banked whole-market feed (open-market purchases, last `days` calendar days),
+    aggregated while read: distinct buyers, $ value, days since the last buy.  ({}, 0, 0) when nothing is banked."""
+    if _bank is None or not hasattr(_bank, "walker_days"):
+        return {}, 0, 0
+    try:
+        banked = _bank.walker_days("insider-trading-latest", days=days or BANK_FEED_DAYS)
+    except Exception:  # noqa: BLE001
+        banked = []
+    today = datetime.now(timezone.utc).date()
+    agg, n_rows = {}, 0
+    for _day, rows in banked:
+        for r in rows:
+            n_rows += 1
+            if not isinstance(r, dict):
+                continue
+            tt = (r.get("transactionType") or "").upper().strip()
+            if not (tt.startswith("P-") or tt == "P"):
+                continue
+            tk = (r.get("symbol") or "").strip().upper()
+            if not tk or len(tk) > 8:
+                continue
+            try:
+                value = float(r.get("securitiesTransacted") or 0) * float(r.get("price") or 0)
+            except (TypeError, ValueError):
+                value = 0.0
+            d = (r.get("transactionDate") or r.get("filingDate") or "")[:10]
+            a = agg.setdefault(tk, {"buyers": set(), "value": 0.0, "last": ""})
+            who = (r.get("reportingName") or "").strip().upper()
+            if who:
+                a["buyers"].add(who)
+            a["value"] += max(value, 0.0)
+            if d > a["last"]:
+                a["last"] = d
+    out = {}
+    for tk, a in agg.items():
+        days_since = None
+        try:
+            days_since = (today - datetime.strptime(a["last"], "%Y-%m-%d").date()).days if a["last"] else None
+        except ValueError:
+            days_since = None
+        out[tk] = {"ticker": tk, "n_buyers": max(1, len(a["buyers"])), "total_value_usd": round(a["value"], 2),
+                   "days_since_last_buy": days_since, "feeder_score": None, "insider_source": "bank"}
+    return out, len(banked), n_rows
+
+
+def merge_insider_sides(feeder, bank):
+    """The feeder's stats first (its own enrichment), the bank fills the names it lacks; both -> the max of each count."""
+    out = {}
+    for tk, f in feeder.items():
+        b = bank.get(tk)
+        row = dict(f)
+        row["insider_source"] = "feeder+bank" if b else "feeder"
+        if b:
+            row["n_buyers"] = max(int(row.get("n_buyers") or 1), b["n_buyers"])
+            row["total_value_usd"] = max(float(row.get("total_value_usd") or 0), b["total_value_usd"])
+            if row.get("days_since_last_buy") is None:
+                row["days_since_last_buy"] = b["days_since_last_buy"]
+        out[tk] = row
+    for tk, b in bank.items():
+        if tk not in out:
+            out[tk] = dict(b)
+    return out
+
+
+def book_quote(symbol):
+    """Price / market cap from the factor book (bank close, labelled) - None when the book lacks the name."""
+    if _book is None or not _book.available():
+        return None
+    try:
+        q = _book.quote(symbol)
+    except Exception:  # noqa: BLE001
+        q = None
+    if not q or q.get("price") is None:
+        return None
+    return {"price": q.get("price"), "market_cap": q.get("marketCap"), "name": q.get("name"), "exchange": q.get("exchange"),
+            "price_source": "factor-book (bank close, not a live tick)"}
+
+
+def book_name(symbol):
+    if _book is None or not _book.available():
+        return None
+    try:
+        d = _book.factor(symbol)
+    except Exception:  # noqa: BLE001
+        d = None
+    return ((d or {}).get("identity") or {}).get("name") if d else None
+
+
+def book_context(symbol):
+    if _book is None or not _book.available():
+        return None
+    try:
+        row = _book.lookup(symbol, BANK_CONTEXT_FIELDS)
+    except Exception:  # noqa: BLE001
+        row = None
+    if not row:
+        return None
+    return {k: row.get(k) for k in BANK_CONTEXT_FIELDS} | {"source": "factor-book", "as_of": _book.as_of()}
 
 
 def extract_buyback_tickers(engine_data, scanner_data=None):
@@ -247,13 +369,20 @@ def lambda_handler(event, context):
         buyback_engine = fetch_s3_json("data/buyback-engine.json")
         buyback = fetch_s3_json("data/buyback-scanner.json")
 
-        insider_t = extract_insider_tickers(insider)
+        insider_feeder = extract_insider_tickers(insider)
+        insider_bank, bank_days, bank_rows = bank_insider_tickers()
+        insider_t = merge_insider_sides(insider_feeder, insider_bank)
         buyback_t = extract_buyback_tickers(buyback_engine, buyback)
 
         feeder_status = {
             "insider_keys": list(insider.keys())[:8] if isinstance(insider, dict) else None,
             "insider_error": insider.get("_error") if isinstance(insider, dict) else None,
             "insider_tickers_count": len(insider_t),
+            "insider_feeder_tickers": len(insider_feeder),
+            "insider_bank_tickers": len(insider_bank),
+            "insider_bank_days": bank_days,
+            "insider_bank_feed_rows": bank_rows,
+            "insider_source_used": ("fmp-walker bank insider-trading-latest (%d days) + feeder" % bank_days) if insider_bank else "feeder only (bank has no insider feed days)",
             "buyback_engine_scored": buyback_engine.get("n_scored") if isinstance(buyback_engine, dict) else None,
             "buyback_keys": list(buyback.keys())[:8] if isinstance(buyback, dict) else None,
             "buyback_error": buyback.get("_error") if isinstance(buyback, dict) else None,
@@ -263,17 +392,23 @@ def lambda_handler(event, context):
         # 2. Find intersection
         common = sorted(set(insider_t.keys()) & set(buyback_t.keys()))
 
-        # 3. Fetch quote/marketcap for each common ticker in parallel
-        quotes = {}
-        if common:
+        # 3. Quote / market cap for each common ticker: the factor book first (bank close), live quotes capped
+        quotes = {t: book_quote(t) for t in common}
+        missing = [t for t in common if quotes.get(t) is None][:LIVE_QUOTE_CAP]
+        if missing:
             with ThreadPoolExecutor(max_workers=6) as ex:
-                futs = {ex.submit(fmp_quote, t): t for t in common}
+                futs = {ex.submit(fmp_quote, t): t for t in missing}
                 for f in as_completed(futs):
                     t = futs[f]
                     try:
-                        quotes[t] = f.result()
+                        q = f.result()
+                        quotes[t] = (q | {"price_source": "fmp live /stable/quote"}) if q else None
                     except Exception:
                         quotes[t] = None
+        price_sources = {}
+        for q in quotes.values():
+            if q:
+                price_sources[q.get("price_source")] = price_sources.get(q.get("price_source"), 0) + 1
 
         # 4. Score each confluence
         confluences = []
@@ -292,10 +427,13 @@ def lambda_handler(event, context):
             composite = round(min(1.0, (ins_score * 0.55 + byb_score * 0.45) * mult), 3)
             confluences.append({
                 "ticker": t,
-                "name": quote.get("name"),
+                "name": quote.get("name") or book_name(t),
                 "exchange": quote.get("exchange"),
                 "market_cap_usd": mcap,
                 "price": quote.get("price"),
+                "price_source": quote.get("price_source"),
+                "insider_source": ins.get("insider_source"),
+                "bank_context": book_context(t),
                 "insider_score": round(ins_score, 3),
                 "buyback_score": round(byb_score, 3),
                 "composite_score": composite,
@@ -335,6 +473,8 @@ def lambda_handler(event, context):
             "n_confluences": len(confluences),
             "n_high_conviction": n_high,
             "feeders": feeder_status,
+            "price_sources": price_sources,
+            "book_as_of": (_book.as_of() if (_book is not None and _book.available()) else None),
             "top_confluences": confluences[:15],
             "all_confluences": confluences,
             "methodology": (
@@ -347,8 +487,11 @@ def lambda_handler(event, context):
             ),
             "sources": [
                 "s3://justhodl-dashboard-live/data/insider-buys-enriched.json",
+                "fmp-walker bank insider-trading-latest (whole feed per day, 60 days)",
+                "s3://justhodl-dashboard-live/data/buyback-engine.json",
                 "s3://justhodl-dashboard-live/data/buyback-scanner.json",
-                "FMP /stable/quote (market cap freshness)",
+                "factor book (bank close + context)",
+                "FMP /stable/quote (capped fallback)",
             ],
             "why_now": f"{n_high} high-conviction + {n_med} moderate confluences",
             "run_seconds": round(time.time() - start, 2),

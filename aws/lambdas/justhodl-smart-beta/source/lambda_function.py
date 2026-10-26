@@ -41,6 +41,14 @@ Output:
 
 Universe: STATIC_TOP50_SPX (deterministic, FMP-quota friendly).
 Schedule: daily 00:15 UTC (post-midnight, fresh FMP quota).
+
+v1.1.0 (2026-10-26, bank fusion wave 2): the value / quality inputs (PE, PB, ROIC, gross margin) come from the factor
+book (FMP TTM bulks at the bank close, labelled `facts_source`), the 252-session price series for momentum and
+low-vol from the Polygon EOD bank (data/warm/polygon-full/eod, labelled `price_source`); live FMP stays the fallback
+for a name the banks lack.  The STATIC_TOP50_SPX ranks keep their cross-engine meaning; a labelled `market` block
+ranks the same four factors across every US common stock >= $2B from the book alone (momentum = the tape's
+252-session minus 21-session return; low-vol from the book's 20-day realised vol, a labelled proxy for the 252-day
+figure the core universe uses).  Factor formulas, ranks, thresholds and regime rules are unchanged.
 """
 
 try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
@@ -60,9 +68,21 @@ import urllib.parse
 from datetime import datetime, timezone
 
 import boto3
+try:  # v1.1.0: the factor book (aws/shared/bank_enrich) - TTM facts + the whole-market factor ranks, projection reads only
+    import bank_enrich as _book
+except Exception:  # noqa: BLE001
+    _book = None
+try:  # the Polygon EOD bank layout (aws/shared/polygon_bankfirst) - one gzipped file of daily rows per US ticker
+    import polygon_bankfirst as _peod
+except Exception:  # noqa: BLE001
+    _peod = None
 
 # ---------- Constants ----------
-VERSION = "1.0.1"
+VERSION = "1.1.0"
+MARKET_MIN_MCAP_USD = 2_000_000_000
+MARKET_CANDIDATES = int(os.environ.get("SMART_BETA_MARKET_CANDIDATES", "1500"))
+BOOK_FIELDS = ["pe", "pb", "roic", "gross_margin", "ret_252d", "ret_21d", "volatility_20d", "mcap", "sector"]
+EOD_ROOT = "data/warm/polygon-full/eod/"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/smart-beta.json"
 FMP_BASE = "https://financialmodelingprep.com/stable"
@@ -185,6 +205,67 @@ ND_FACTOR_FIELDS = ("priceToEarningsRatioTTM", "priceToBookRatioTTM",
                     "returnOnInvestedCapitalTTM", "grossProfitMarginTTM")
 
 
+# ---------- factor book + Polygon EOD bank ----------
+def book_ok():
+    try:
+        return _book is not None and _book.available()
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def facts_from_row(row):
+    """A factor-book matrix row in the two live-call shapes the factor functions read (key-metrics-ttm, ratios-ttm)."""
+    if not row:
+        return None
+    km = {"returnOnInvestedCapitalTTM": row.get("roic")}
+    ratios = {"priceToEarningsRatioTTM": row.get("pe"), "priceToBookRatioTTM": row.get("pb"), "grossProfitMarginTTM": row.get("gross_margin")}
+    if all(v is None for v in (row.get("roic"), row.get("pe"), row.get("pb"), row.get("gross_margin"))):
+        return None
+    return km, ratios
+
+
+def book_facts(symbol):
+    if not book_ok():
+        return None
+    try:
+        return facts_from_row(_book.lookup(symbol, BOOK_FIELDS))
+    except Exception:  # noqa: BLE001
+        return None
+
+
+_EOD_S3 = None
+
+
+def bank_prices(symbol, days=PRICE_HISTORY_DAYS):
+    """Daily closes for the last `days` calendar days from the Polygon EOD bank (one file per ticker, rows
+    [t_ms, o, h, l, c, v, vw, n]) as [{date, close}] oldest -> newest, with the last session's date; ([], None) when
+    the bank has no file for the name.  Bank-only: no key, no live call."""
+    global _EOD_S3
+    import gzip
+    from datetime import timedelta
+    root = getattr(_peod, "ROOT", None) or EOD_ROOT
+    bucket = getattr(_peod, "BUCKET", None) or S3_BUCKET
+    safe = "".join(ch if (ch.isalnum() or ch in "._-^") else "_" for ch in str(symbol))[:80]
+    try:
+        if _EOD_S3 is None:
+            _EOD_S3 = boto3.client("s3", region_name="us-east-1")
+        raw = _EOD_S3.get_object(Bucket=bucket, Key=root + safe + ".json.gz")["Body"].read()
+        doc = json.loads(gzip.decompress(raw))
+    except Exception:  # noqa: BLE001
+        return [], None
+    rows = [r for r in (doc.get("rows") or []) if isinstance(r, list) and len(r) >= 5 and r[0] is not None and r[4] is not None] if isinstance(doc, dict) else []
+    if not rows:
+        return [], None
+    start = datetime.now(timezone.utc).date() - timedelta(days=days)
+    out = []
+    for r in rows:
+        d = datetime.fromtimestamp(r[0] / 1000.0, tz=timezone.utc).date()
+        if d >= start:
+            out.append({"date": d.isoformat(), "close": r[4]})
+    out.sort(key=lambda x: x["date"])
+    return out, (out[-1]["date"] if out else None)
+
+
 # ---------- Factor computation ----------
 def compute_value(km, ratios):
     """Value = 0.5 * (1/PE) + 0.5 * (1/PB). Higher = cheaper.
@@ -264,15 +345,26 @@ def compute_low_vol(prices):
 
 # ---------- Per-ticker pipeline ----------
 def analyze_ticker(symbol, sector):
-    km = fmp_key_metrics_ttm(symbol)
-    time.sleep(FMP_SLEEP_SEC)
-    ratios = fmp_ratios_ttm(symbol)
-    time.sleep(FMP_SLEEP_SEC)
-    prices_raw = fmp_historical_prices(symbol)
-    time.sleep(FMP_SLEEP_SEC)
-    # Ensure prices are oldest->newest
-    prices = sorted([p for p in prices_raw if p.get("date")],
-                    key=lambda x: x["date"])
+    facts = book_facts(symbol)
+    if facts:
+        km, ratios = facts
+        facts_source = "factor-book (bank close)"
+    else:
+        km = fmp_key_metrics_ttm(symbol)
+        time.sleep(FMP_SLEEP_SEC)
+        ratios = fmp_ratios_ttm(symbol)
+        time.sleep(FMP_SLEEP_SEC)
+        facts_source = "fmp live" if (km or ratios) else ("factor book unavailable; live unavailable" if not book_ok() else "live unavailable")
+    prices, last_session = bank_prices(symbol)
+    if len(prices) >= 252:
+        price_source = "polygon-eod bank (last session %s)" % last_session
+    else:
+        prices_raw = fmp_historical_prices(symbol)
+        time.sleep(FMP_SLEEP_SEC)
+        # Ensure prices are oldest->newest
+        prices = sorted([p for p in prices_raw if p.get("date")],
+                        key=lambda x: x["date"])
+        price_source = "fmp live historical-price-eod" if prices else "unavailable"
 
     value_raw, pe, pb = compute_value(km, ratios)
     quality_raw, roic, gm = compute_quality(km, ratios)
@@ -287,6 +379,79 @@ def analyze_ticker(symbol, sector):
         "momentum": {"twelve_minus_one_pct": momentum_pct,
                       "ret_12m_pct": ret_12m, "ret_1m_pct": ret_1m},
         "low_vol": {"raw": lowvol_raw, "annualized_vol_pct": vol_annual_pct},
+        "facts_source": facts_source,
+        "price_source": price_source,
+    }
+
+
+# ---------- whole-market pass (factor book, bank-only) ----------
+def market_pass():
+    """The four factors ranked across every US common stock >= $2B from the factor book alone (no live call):
+    value / quality exactly as the core; momentum = ret_252d - ret_21d from the tape (percent); low-vol from the
+    book's 20-day realised vol (annualised %), a labelled proxy for the core's 252-day figure."""
+    if not book_ok():
+        return {"available": False, "reason": "factor book unavailable"}
+    try:
+        rows = _book.screen(lambda r: (r.get("mcap") or 0) >= MARKET_MIN_MCAP_USD and not r.get("is_adr"), fields=BOOK_FIELDS)
+    except Exception as e:  # noqa: BLE001
+        return {"available": False, "reason": "factor book screen failed: %s" % str(e)[:80]}
+    rows.sort(key=lambda r: -(r.get("mcap") or 0))
+    rows = rows[:MARKET_CANDIDATES]
+    per = []
+    for r in rows:
+        facts = facts_from_row(r)
+        km, ratios = facts if facts else ({}, {})
+        value_raw, pe, pb = compute_value(km, ratios)
+        quality_raw, roic, gm = compute_quality(km, ratios)
+        r252, r21, vol = r.get("ret_252d"), r.get("ret_21d"), r.get("volatility_20d")
+        mom = round(float(r252) - float(r21), 2) if isinstance(r252, (int, float)) and isinstance(r21, (int, float)) else None
+        lv_raw = round(-float(vol) / 100.0, 4) if isinstance(vol, (int, float)) and vol > 0 else None
+        per.append({"ticker": r["symbol"], "sector": r.get("sector"), "market_cap_usd": r.get("mcap"),
+                    "value": {"raw": value_raw, "pe_ttm": pe, "pb_ttm": pb},
+                    "quality": {"raw": quality_raw, "roic_ttm": roic, "gross_margin_ttm": gm},
+                    "momentum": {"twelve_minus_one_pct": mom, "ret_12m_pct": r252, "ret_1m_pct": r21},
+                    "low_vol": {"raw": lv_raw, "annualized_vol_pct": vol}})
+    val_raws = [x["value"]["raw"] for x in per]
+    qual_raws = [x["quality"]["raw"] for x in per]
+    mom_raws = [x["momentum"]["twelve_minus_one_pct"] for x in per]
+    lv_raws = [x["low_vol"]["raw"] for x in per]
+    for x in per:
+        x["value"]["pct"] = percentile_rank(x["value"]["raw"], val_raws)
+        x["quality"]["pct"] = percentile_rank(x["quality"]["raw"], qual_raws)
+        x["momentum"]["pct"] = percentile_rank(x["momentum"]["twelve_minus_one_pct"], mom_raws)
+        x["low_vol"]["pct"] = percentile_rank(x["low_vol"]["raw"], lv_raws)
+        pcts = [p for p in (x["value"]["pct"], x["quality"]["pct"], x["momentum"]["pct"], x["low_vol"]["pct"]) if p is not None]
+        x["composite"] = round(sum(pcts) / len(pcts), 1) if pcts else None
+        x["n_factors_valid"] = len(pcts)
+    medians = {}
+    for f in ("value", "quality", "momentum", "low_vol"):
+        pcts = [x[f]["pct"] for x in per if x[f]["pct"] is not None]
+        medians[f] = round(statistics.median(pcts), 1) if pcts else None
+    valid = [x for x in per if x.get("composite") is not None and x["n_factors_valid"] >= 3]
+    by_comp = sorted(valid, key=lambda x: -x["composite"])
+    diversified = sorted([x for x in valid if x["n_factors_valid"] == 4 and all(x[f]["pct"] >= 60 for f in ("value", "quality", "momentum", "low_vol"))],
+                         key=lambda x: -x["composite"])[:25]
+
+    def slim(x):
+        return {"ticker": x["ticker"], "sector": x.get("sector"), "market_cap_usd": x.get("market_cap_usd"), "composite": x.get("composite"),
+                "n_factors_valid": x.get("n_factors_valid"), "value_pct": x["value"].get("pct"), "quality_pct": x["quality"].get("pct"),
+                "momentum_pct": x["momentum"].get("pct"), "low_vol_pct": x["low_vol"].get("pct"), "pe_ttm": x["value"].get("pe_ttm"),
+                "pb_ttm": x["value"].get("pb_ttm"), "roic_ttm": x["quality"].get("roic_ttm"), "gross_margin_ttm": x["quality"].get("gross_margin_ttm"),
+                "twelve_minus_one_pct": x["momentum"].get("twelve_minus_one_pct"), "vol_20d_annualized_pct": x["low_vol"].get("annualized_vol_pct")}
+    return {
+        "available": True,
+        "universe_basis": "factor book: US common stocks >= $2B (cap %d, bank-only reads; not ADRs)" % MARKET_CANDIDATES,
+        "book_as_of": _book.as_of(),
+        "factor_notes": {"value": "0.5/PE + 0.5/PB from the TTM ratios bulk (as the core)",
+                         "quality": "0.5*ROIC + 0.5*gross margin from the TTM bulks (as the core)",
+                         "momentum": "tape ret_252d - ret_21d (percent; the core uses 252/22 closes)",
+                         "low_vol": "PROXY: the book's 20-day realised vol, annualised % (the core uses 252-day realised vol)"},
+        "n_candidates": len(per), "n_valid": len(valid), "factor_medians": medians,
+        "top_25": [slim(x) for x in by_comp[:25]],
+        "bottom_25": [slim(x) for x in list(reversed(by_comp[-25:]))],
+        "diversified_leaders": [slim(x) for x in diversified],
+        "factor_leaders": {f: [slim(x) for x in sorted([x for x in per if x[f]["pct"] is not None], key=lambda x: -x[f]["pct"])[:10]]
+                           for f in ("value", "quality", "momentum", "low_vol")},
     }
 
 
@@ -359,6 +524,17 @@ def lambda_handler(event, context):
         r["composite"] = round(sum(pcts) / len(pcts), 1) if pcts else None
         r["n_factors_valid"] = len(pcts)
 
+    facts_counts, price_counts = {}, {}
+    for r in per_ticker:
+        k = str(r.get("facts_source") or "none").split(" (")[0]
+        facts_counts[k] = facts_counts.get(k, 0) + 1
+        k2 = str(r.get("price_source") or "none").split(" (")[0]
+        price_counts[k2] = price_counts.get(k2, 0) + 1
+    try:
+        market = market_pass()
+    except Exception as e:  # noqa: BLE001
+        market = {"available": False, "reason": "market pass failed: %s" % str(e)[:100]}
+
     # 3. Market factor regime: which factor has highest median pct
     factor_medians = {}
     for f in ("value", "quality", "momentum", "low_vol"):
@@ -418,6 +594,8 @@ def lambda_handler(event, context):
             "quality_pct": r["quality"].get("pct"),
             "momentum_pct": r["momentum"].get("pct"),
             "low_vol_pct": r["low_vol"].get("pct"),
+            "facts_source": r.get("facts_source"),
+            "price_source": r.get("price_source"),
         }
         if include_raw:
             out.update({
@@ -448,6 +626,13 @@ def lambda_handler(event, context):
         "version": VERSION,
         "generated_at": started.isoformat(),
         "n_universe": len(STATIC_TOP50_SPX),
+        "universe_basis": "STATIC_TOP50_SPX; TTM facts %s; prices %s" % (
+            "from the factor book (bank close) where held, live FMP otherwise" if book_ok() else "live FMP (factor book unavailable)",
+            "from the Polygon EOD bank where held, live FMP otherwise"),
+        "book_as_of": (_book.as_of() if book_ok() else None),
+        "facts_source_counts": facts_counts,
+        "price_source_counts": price_counts,
+        "market": market,
         "n_analyzed": len(per_ticker),
         "n_valid": len(valid),
         "n_diversified_leaders": len(diversified),
@@ -495,9 +680,11 @@ def lambda_handler(event, context):
                        "factor approach is the methodology powering iShares "
                        "MSCI USA Multifactor (LRGF, ~$2B AUM) and similar."),
         "sources": {
-            "key_metrics": "FMP /stable/key-metrics-ttm",
-            "ratios": "FMP /stable/ratios-ttm",
-            "prices": "FMP /stable/historical-price-eod/full",
+            "factor_book": "data/warm/factor-book (PE, PB, ROIC, gross margin at the bank close; the market pass)",
+            "polygon_eod_bank": "data/warm/polygon-full/eod/<ticker>.json.gz (252-session closes)",
+            "key_metrics": "FMP /stable/key-metrics-ttm - fallback",
+            "ratios": "FMP /stable/ratios-ttm - fallback",
+            "prices": "FMP /stable/historical-price-eod/full - fallback",
             "universe": "STATIC_TOP50_SPX",
         },
     }

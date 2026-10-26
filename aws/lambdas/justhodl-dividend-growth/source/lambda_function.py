@@ -34,6 +34,12 @@ High-yield names that fail the gates are quarantined in a YIELD-TRAP list.
 
 OUTPUT data/dividend-growth.json     SCHEDULE daily 14:20 UTC
 Real data only. Research, not advice.
+
+v1.1.0 (2026-10-26, bank fusion wave 2): the universe is every US common dividend payer in the yield band from the
+factor book (TTM ratios + scores at the bank close, `facts_source`), merged with the stock-screener rows (which keep
+the names), top UNIVERSE_CAP by market cap as before; the per-payment dividend history comes from the FMP walker bank
+(`fmp_bank.walker("dividends", sym)`, `history_source`) with the live /stable/dividends call as the fallback; each
+compounder carries a `bank_context` block.  Gates, tiers and the score are unchanged.
 """
 
 try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
@@ -51,11 +57,22 @@ from datetime import datetime, timezone
 
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
+try:  # v1.1.0: the factor book (aws/shared/bank_enrich) - whole-market dividend payers + their TTM facts, projection reads
+    import bank_enrich as _book
+except Exception:  # noqa: BLE001
+    _book = None
+try:  # the FMP walker bank (aws/shared/fmp_bank) - per-payment dividend history per symbol, no key
+    import fmp_bank as _bank
+except Exception:  # noqa: BLE001
+    _bank = None
 
 s3 = boto3.client("s3")
 S3_BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/dividend-growth.json"
 SCHEMA = "dividend-growth-1.0"
+VERSION = "1.1.0"
+BOOK_FIELDS = ["dividend_yield", "mcap", "price", "fcf_yield", "pe", "piotroski", "altman_z", "debt_to_equity", "sector", "industry",
+               "payout_ratio", "short_pct_float", "pt_upside_pct", "composite_quality"]
 
 FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 FMP_BASE = "https://financialmodelingprep.com/stable"
@@ -85,6 +102,59 @@ def median(xs):
         return None
     n = len(xs)
     return xs[n // 2] if n % 2 else (xs[n // 2 - 1] + xs[n // 2]) / 2.0
+
+
+# ------------------------------------------------------ factor book / banks
+def book_ok():
+    try:
+        return _book is not None and _book.available()
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def book_payers():
+    """Every US common dividend payer in the yield band from the factor book, as screener-shaped rows (yield / FCF yield
+    in percent like the screener; the book's ratios-ttm values are fractions).  [] when the book is absent."""
+    if not book_ok():
+        return []
+    try:
+        rows = _book.screen(lambda r: isinstance(r.get("dividend_yield"), (int, float)) and r["dividend_yield"] > 0
+                            and (r.get("mcap") or 0) > 0 and MIN_YIELD <= r["dividend_yield"] * 100.0 <= MAX_YIELD,
+                            fields=BOOK_FIELDS)
+    except Exception:  # noqa: BLE001
+        return []
+    out = []
+    for r in rows:
+        fy = r.get("fcf_yield")
+        out.append({"symbol": r["symbol"], "name": "", "sector": r.get("sector") or "", "industry": r.get("industry") or "",
+                    "price": r.get("price"), "marketCap": r.get("mcap"), "dividendYield": round(r["dividend_yield"] * 100.0, 4),
+                    "fcfYieldCalc": (round(fy * 100.0, 4) if isinstance(fy, (int, float)) else None), "peRatio": r.get("pe"),
+                    "piotroski": r.get("piotroski"), "altmanZ": r.get("altman_z"), "debtToEquity": r.get("debt_to_equity"),
+                    "_facts_source": "factor-book (bank close)",
+                    "_bank_context": {"payout_ratio": r.get("payout_ratio"), "short_pct_float": r.get("short_pct_float"),
+                                      "pt_upside_pct": r.get("pt_upside_pct"), "composite_quality": r.get("composite_quality"),
+                                      "as_of": _book.as_of(), "source": "factor-book"}})
+    return out
+
+
+def bank_dividends(symbol):
+    """The per-payment dividend history banked by the FMP walker (same rows the live /stable/dividends gives), or None."""
+    if _bank is None:
+        return None
+    try:
+        rows = _bank.walker("dividends", symbol)
+    except Exception:  # noqa: BLE001
+        return None
+    return rows if isinstance(rows, list) and rows else None
+
+
+def fetch_history(symbol):
+    """(symbol, records, source): walker bank first, live FMP as the fallback."""
+    rows = bank_dividends(symbol)
+    if rows:
+        return symbol, rows, "fmp-walker bank"
+    _, data = fetch_dividends(symbol)
+    return symbol, data, ("fmp live" if data else "unavailable")
 
 
 # ---------------------------------------------------------------- FMP fetch
@@ -248,6 +318,9 @@ def score_name(row, m):
 
     entry = {
         "symbol": sym,
+        "facts_source": row.get("_facts_source") or "stock-screener",
+        "history_source": row.get("_history_source"),
+        "bank_context": row.get("_bank_context"),
         "name": row.get("name") or "",
         "sector": sector,
         "industry": row.get("industry") or "",
@@ -351,23 +424,38 @@ def lambda_handler(event, context):
     t0 = time.time()
     now = datetime.now(timezone.utc)
 
+    book_rows = book_payers()
     try:
         sc = json.loads(s3.get_object(
             Bucket=S3_BUCKET, Key="screener/data.json")["Body"].read())
     except Exception as e:
-        return {"statusCode": 500, "body": "screener read failed: %s" % e}
+        if not book_rows:
+            return {"statusCode": 500, "body": "screener read failed: %s" % e}
+        sc = {"stocks": []}                        # the book carries the universe; the screener only adds names
 
     rows = sc.get("stocks")
     if not isinstance(rows, list):
         bs = sc.get("by_symbol") or {}
         rows = list(bs.values()) if isinstance(bs, dict) else []
 
-    # universe: dividend payers in a sane yield band, biggest first
-    payers = []
+    # universe: dividend payers in a sane yield band, biggest first - the factor book's whole-market payers first (their
+    # facts), the screener's rows for the names the book lacks (and for every name's company name)
+    screener_by = {}
     for r in rows:
-        if not isinstance(r, dict):
-            continue
-        sym = (r.get("symbol") or "").upper()
+        if isinstance(r, dict) and r.get("symbol"):
+            screener_by[str(r["symbol"]).upper()] = r
+    merged = {}
+    for r in book_rows:
+        sym = r["symbol"].upper()
+        sr = screener_by.get(sym)
+        if sr and sr.get("name"):
+            r["name"] = sr["name"]
+        merged[sym] = r
+    for sym, r in screener_by.items():
+        if sym not in merged:
+            merged[sym] = dict(r, _facts_source="stock-screener")
+    payers = []
+    for sym, r in merged.items():
         dy = num(r.get("dividendYield"))
         mc = num(r.get("marketCap"))
         if not sym or dy is None or mc is None:
@@ -378,16 +466,23 @@ def lambda_handler(event, context):
     payers.sort(key=lambda x: x[0], reverse=True)
     payers = payers[:UNIVERSE_CAP]
     n_universe = len(payers)
+    n_book = sum(1 for _, _, r in payers if str(r.get("_facts_source", "")).startswith("factor-book"))
+    universe_basis = ("factor book: US common dividend payers %.1f-%.1f%% yield (%d in the book, %d in the top %d) + stock-screener names (%d)"
+                      % (MIN_YIELD, MAX_YIELD, len(book_rows), n_book, UNIVERSE_CAP, len(screener_by)) if book_rows
+                      else "stock-screener dividend payers %.1f-%.1f%% yield, top %d by market cap; factor book unavailable" % (MIN_YIELD, MAX_YIELD, UNIVERSE_CAP))
 
     by_symbol = {sym: r for _, sym, r in payers}
     symbols = list(by_symbol.keys())
 
-    # pull dividend history concurrently
+    # pull dividend history concurrently: the walker bank first, live FMP for the names it lacks
     hist = {}
+    history_sources = {}
     with ThreadPoolExecutor(max_workers=WORKERS) as ex:
-        for sym, data in ex.map(fetch_dividends, symbols):
+        for sym, data, src in ex.map(fetch_history, symbols):
+            history_sources[src] = history_sources.get(src, 0) + 1
             if data:
                 hist[sym] = data
+                by_symbol[sym]["_history_source"] = src
 
     compounders = []
     yield_traps = []
@@ -436,12 +531,23 @@ def lambda_handler(event, context):
         "Score blends the dividend growth rate, streak length, cash coverage, "
         "balance-sheet quality and a moderate-yield preference.")
 
+    facts_sources = {}
+    for _, _, r in payers:
+        k = str(r.get("_facts_source") or "stock-screener").split(" (")[0]
+        facts_sources[k] = facts_sources.get(k, 0) + 1
     out = {
         "ok": True,
         "schema_version": SCHEMA,
+        "version": VERSION,
         "generated_at": now.strftime("%Y-%m-%d %H:%M UTC"),
         "elapsed_s": round(time.time() - t0, 1),
-        "source": "stock-screener universe + FMP /stable/dividends history",
+        "source": ("factor book + stock-screener universe; FMP walker bank dividends history (live /stable/dividends fallback)"
+                   if book_rows else "stock-screener universe + FMP /stable/dividends history (factor book unavailable)"),
+        "universe_basis": universe_basis,
+        "n_book_candidates": len(book_rows),
+        "book_as_of": (_book.as_of() if book_ok() else None),
+        "facts_source_counts": facts_sources,
+        "history_source_counts": history_sources,
         "headline": headline,
         "how_to_read": how_to_read,
         "n_evaluated": n_universe,

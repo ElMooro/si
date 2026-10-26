@@ -24,11 +24,11 @@ from ops_report import report  # noqa: E402
 REGION = "us-east-1"
 LIVE = "justhodl-dashboard-live"
 CFG = Config(retries={"max_attempts": 10, "mode": "standard"}, connect_timeout=10, read_timeout=300)
-WAVE2 = ("justhodl-pre-pump-detector justhodl-pump-mechanics justhodl-ignition justhodl-momentum-leaders justhodl-pump-positioning "
+WAVE2 = ("justhodl-pre-pump-detector justhodl-pump-mechanics justhodl-ignition "
          "justhodl-coffee-can justhodl-buyback-yield-ranking justhodl-eva-spread justhodl-smart-beta justhodl-dividend-growth "
-         "justhodl-pead-detector justhodl-post-earnings-mean-rev justhodl-rating-change-cluster justhodl-starmine justhodl-estimate-revisions "
+         "justhodl-pead-detector justhodl-post-earnings-mean-rev justhodl-rating-change-cluster justhodl-starmine "
          "justhodl-insider-cluster-scanner justhodl-insider-sell-cluster justhodl-insider-buyback-confluence justhodl-smart-money-holdings "
-         "justhodl-smart-money-tracker justhodl-political-trades")
+         "justhodl-smart-money-tracker justhodl-political-trades justhodl-insider-radar justhodl-divcut-warning")
 FUNCTIONS = (os.environ.get("FUNCTIONS") or WAVE2).split()
 OUTPUTS = {"justhodl-pre-pump-detector": "data/pre-pump-signals.json", "justhodl-pead-detector": "data/pead-signals.json",
            "justhodl-insider-cluster-scanner": "data/insider-clusters.json", "justhodl-smart-money-holdings": "screener/smart-money-holdings.json",
@@ -97,7 +97,7 @@ def logs_tail(logs, fn, since_ms, pattern, limit=40):
 def main():
     s3, lam, logs = c("s3"), c("lambda"), c("logs")
     with report("ops_6663_bank_fusion_wave2_light") as r:
-        r.heading("ops 6663 - bank fusion wave 2: first light (%d engines)" % len(FUNCTIONS))
+        r.heading("ops 6663 - bank fusion wave 2: first light (%d engines; + insider-radar v1.2.2 and divcut on book v1.0.5)" % len(FUNCTIONS))
         r.section("0. the factor book")
         man = jget(s3, "data/warm/factor-book/manifest.json") or {}
         r.log("factor book: symbols %s updated %s as_of %s" % (man.get("symbols"), man.get("updated_at"), json.dumps(man.get("as_of"))))

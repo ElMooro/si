@@ -55,6 +55,17 @@ OUTPUT
    s3://justhodl-dashboard-live/data/eva-spread.json
    Schedule: daily 00:45 UTC (after Smart Beta 00:15)
 
+v1.1.0 (2026-10-26, bank fusion wave 2)
+───────────────────────────────────────
+   The TTM inputs (market cap, price, beta, ROIC, invested capital, EV, effective
+   tax, revenue/share) come from the factor book (FMP bulks at the bank close,
+   labelled `source`), the 3-year EVA series from the dated FMP statement bulks
+   (`fmp_bank.statements`, labelled `history_source`); live FMP stays the
+   fallback for a name the banks lack.  The STATIC_TOP50_SPX universe_state keeps
+   its cross-engine meaning; a labelled `market` block asks the same EVA question
+   of every US common stock >= $2B from the book (bank-only; EVA momentum for the
+   top names by spread).  Formulas, WACC inputs and thresholds are unchanged.
+
 ═══════════════════════════════════════════════════════════════════════════════
 """
 
@@ -76,8 +87,21 @@ try:
     import _fred_shim  # noqa: F401
 except Exception:
     pass
+try:  # v1.1.0: the factor book (aws/shared/bank_enrich) - TTM facts + the whole-market candidate list, projection reads only
+    import bank_enrich as _book
+except Exception:  # noqa: BLE001
+    _book = None
+try:  # the FMP statement bulks (aws/shared/fmp_bank) - the 3-year EVA series without a live call
+    import fmp_bank as _bank
+except Exception:  # noqa: BLE001
+    _bank = None
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
+MARKET_MIN_MCAP_USD = 2_000_000_000
+MARKET_CANDIDATES = int(os.environ.get("EVA_MARKET_CANDIDATES", "1500"))
+MARKET_MOMENTUM_TOP = int(os.environ.get("EVA_MARKET_MOMENTUM_TOP", "60"))
+BOOK_FIELDS = ["mcap", "price", "beta", "roic", "invested_capital", "ev", "effective_tax_rate", "revenue_per_share", "sector",
+               "altman_z", "piotroski", "pt_upside_pct", "composite_quality"]
 
 FMP_BASE = "https://financialmodelingprep.com/stable"
 FMP_KEY = os.environ.get("FMP_KEY", "")
@@ -204,6 +228,55 @@ def fmp_key_metrics_annual(symbol, years=HISTORY_YEARS):
     return d if isinstance(d, list) else []
 
 
+# ---------- factor book / FMP bank ----------
+def book_ok():
+    try:
+        return _book is not None and _book.available()
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def facts_from_row(row):
+    """The factor-book matrix row in the four live-call shapes analyze_ticker reads (quote, profile, key-metrics-ttm,
+    ratios-ttm), or None when the row lacks the EVA core (ROIC / invested capital / market cap)."""
+    if not row or row.get("mcap") is None or row.get("roic") is None or row.get("invested_capital") is None:
+        return None
+    q = {"marketCap": row.get("mcap"), "price": row.get("price")}
+    prof = {"beta": row.get("beta")}
+    km = {"returnOnInvestedCapitalTTM": row.get("roic"), "investedCapitalTTM": row.get("invested_capital"),
+          "enterpriseValueTTM": row.get("ev")}
+    ratios = {"effectiveTaxRateTTM": row.get("effective_tax_rate"), "revenuePerShareTTM": row.get("revenue_per_share")}
+    return q, prof, km, ratios
+
+
+def book_facts(symbol):
+    if not book_ok():
+        return None, None
+    try:
+        row = _book.lookup(symbol, BOOK_FIELDS)
+    except Exception:  # noqa: BLE001
+        return None, None
+    return facts_from_row(row), row
+
+
+def bank_annual(path, symbol, years=HISTORY_YEARS):
+    """Annual statement rows from the FMP bank (bank-only, no key), newest first; None when unbanked."""
+    if _bank is None:
+        return None
+    try:
+        rows = _bank.statements(path, symbol, period="annual", limit=years)
+    except Exception:  # noqa: BLE001
+        return None
+    return rows if isinstance(rows, list) and rows else None
+
+
+def bank_context_from_row(row):
+    if not row:
+        return None
+    return {"altman_z": row.get("altman_z"), "piotroski": row.get("piotroski"), "pt_upside_pct": row.get("pt_upside_pct"),
+            "composite_quality": row.get("composite_quality"), "as_of": (_book.as_of() if book_ok() else None), "source": "factor-book"}
+
+
 # ---------- Stats ----------
 def safe_float(x):
     try:
@@ -266,12 +339,24 @@ def compute_wacc(market_cap, total_debt, beta, eff_tax,
 
 
 # ---------- EVA ----------
-def compute_eva_history(symbol, wacc_pct):
-    """Pull 3y annual income + key metrics, compute EVA per year, return trend."""
-    inc = fmp_income_statement(symbol)
-    time.sleep(FMP_SLEEP_SEC)
-    km_hist = fmp_key_metrics_annual(symbol)
-    time.sleep(FMP_SLEEP_SEC)
+def compute_eva_history(symbol, wacc_pct, bank_only=False, source_out=None):
+    """3y annual income + key metrics (FMP bank first, live FMP as the fallback), EVA per year, return trend."""
+    inc = bank_annual("income-statement", symbol)
+    km_hist = bank_annual("key-metrics", symbol)
+    if inc and km_hist:
+        if source_out is not None:
+            source_out["history_source"] = "fmp-bank statements"
+    elif bank_only:
+        if source_out is not None:
+            source_out["history_source"] = "unbanked (bank-only pass)"
+        return None
+    else:
+        inc = fmp_income_statement(symbol)
+        time.sleep(FMP_SLEEP_SEC)
+        km_hist = fmp_key_metrics_annual(symbol)
+        time.sleep(FMP_SLEEP_SEC)
+        if source_out is not None:
+            source_out["history_source"] = "fmp live" if (inc and km_hist) else "unavailable"
     if not inc or not km_hist:
         return None
     # Index both by year
@@ -323,15 +408,28 @@ def compute_eva_momentum(series):
 
 
 # ---------- Per-ticker analysis ----------
-def analyze_ticker(symbol, sector, rf_pct, ig_spread_pct):
-    q = fmp_quote(symbol)
-    time.sleep(FMP_SLEEP_SEC)
-    prof = fmp_profile(symbol)
-    time.sleep(FMP_SLEEP_SEC)
-    km = fmp_key_metrics_ttm(symbol)
-    time.sleep(FMP_SLEEP_SEC)
-    ratios = fmp_ratios_ttm(symbol)
-    time.sleep(FMP_SLEEP_SEC)
+def analyze_ticker(symbol, sector, rf_pct, ig_spread_pct, bank_only=False, row=None):
+    """One name's EVA read.  `row` = its factor-book matrix row when the caller already holds it (the market pass);
+    bank_only = never fall back to live FMP (the whole-market pass pays no live call)."""
+    labels = {}
+    facts = facts_from_row(row) if row is not None else None
+    if facts is None and row is None:
+        facts, row = book_facts(symbol)
+    if facts:
+        q, prof, km, ratios = facts
+        labels["source"] = "factor-book (bank close)"
+    elif bank_only:
+        return {"ticker": symbol, "sector": sector, "ok": False, "reason": "not in the factor book (bank-only pass)", "source": None}
+    else:
+        q = fmp_quote(symbol)
+        time.sleep(FMP_SLEEP_SEC)
+        prof = fmp_profile(symbol)
+        time.sleep(FMP_SLEEP_SEC)
+        km = fmp_key_metrics_ttm(symbol)
+        time.sleep(FMP_SLEEP_SEC)
+        ratios = fmp_ratios_ttm(symbol)
+        time.sleep(FMP_SLEEP_SEC)
+        labels["source"] = "fmp live" if (q or km) else "unavailable"
 
     market_cap = safe_float(q.get("marketCap"))
     price = safe_float(q.get("price"))
@@ -349,13 +447,13 @@ def analyze_ticker(symbol, sector, rf_pct, ig_spread_pct):
     if (roic_ttm is None or invested_capital is None or
             invested_capital <= 0 or market_cap is None):
         return {"ticker": symbol, "sector": sector, "ok": False,
-                "reason": "missing core fields (roic/ic/mcap)"}
+                "reason": "missing core fields (roic/ic/mcap)", "source": labels.get("source")}
 
     wacc_pct, wacc_comp = compute_wacc(
         market_cap, total_debt, beta, eff_tax, rf_pct, ig_spread_pct)
     if wacc_pct is None:
         return {"ticker": symbol, "sector": sector, "ok": False,
-                "reason": "wacc calc failed"}
+                "reason": "wacc calc failed", "source": labels.get("source")}
 
     roic_pct = roic_ttm * 100.0
     eva_spread_pct = round(roic_pct - wacc_pct, 3)
@@ -363,7 +461,7 @@ def analyze_ticker(symbol, sector, rf_pct, ig_spread_pct):
     mva = round(market_cap - invested_capital, 0)
 
     # EVA history & momentum
-    eva_series = compute_eva_history(symbol, wacc_pct)
+    eva_series = compute_eva_history(symbol, wacc_pct, bank_only=bank_only, source_out=labels)
     eva_momentum_pct = compute_eva_momentum(eva_series) if eva_series else None
 
     # EVA Margin
@@ -395,7 +493,100 @@ def analyze_ticker(symbol, sector, rf_pct, ig_spread_pct):
         "value_creator": eva_spread_pct > 0,
         "super_compounder": (eva_spread_pct > 5 and roic_pct > 20 and
                              (eva_momentum_pct or 0) > 0),
+        "source": labels.get("source"),
+        "history_source": labels.get("history_source"),
+        "bank_context": bank_context_from_row(row) if row else None,
     }
+
+
+# ---------- whole-market pass (factor book, bank-only) ----------
+def market_pass(rf_pct, ig_spread_pct):
+    """The same EVA question asked of every US common stock >= $2B the factor book holds with ROIC + invested capital:
+    EVA spread for all, EVA momentum (bank statement history) for the top MARKET_MOMENTUM_TOP by spread.  Bank-only -
+    no live call - and labelled; {} when the book is absent."""
+    if not book_ok():
+        return {"available": False, "reason": "factor book unavailable"}
+    try:
+        rows = _book.screen(lambda r: (r.get("mcap") or 0) >= MARKET_MIN_MCAP_USD and not r.get("is_adr")
+                            and r.get("roic") is not None and (r.get("invested_capital") or 0) > 0,
+                            fields=BOOK_FIELDS)
+    except Exception as e:  # noqa: BLE001
+        return {"available": False, "reason": "factor book screen failed: %s" % str(e)[:80]}
+    rows.sort(key=lambda r: -(r.get("mcap") or 0))
+    rows = rows[:MARKET_CANDIDATES]
+    results = []
+    for r in rows:
+        try:
+            # spread only here (no history): momentum is computed below for the top names
+            res = _eva_spread_only(r["symbol"], r.get("sector"), rf_pct, ig_spread_pct, r)
+        except Exception as e:  # noqa: BLE001
+            res = {"ticker": r.get("symbol"), "sector": r.get("sector"), "ok": False, "reason": "exception: %s" % str(e)[:80]}
+        results.append(res)
+    valid = [x for x in results if x.get("ok")]
+    valid.sort(key=lambda x: -x["eva_spread_pct"])
+    for x in valid[:MARKET_MOMENTUM_TOP]:
+        series = compute_eva_history(x["ticker"], x["wacc_pct"], bank_only=True, source_out=x)
+        x["eva_momentum_pct"] = compute_eva_momentum(series) if series else None
+        x["eva_history"] = series
+        rev = series[-1].get("revenue") if series else None
+        x["eva_margin_pct"] = round(100.0 * x["eva_usd"] / rev, 2) if rev and rev > 0 else None
+        x["super_compounder"] = bool(x["eva_spread_pct"] > 5 and x["roic_ttm_pct"] > 20 and (x["eva_momentum_pct"] or 0) > 0)
+    n_valid = len(valid)
+    n_creators = sum(1 for x in valid if x.get("value_creator"))
+    spreads = [x["eva_spread_pct"] for x in valid]
+    slim = lambda x: {k: x.get(k) for k in ("ticker", "sector", "market_cap_usd", "roic_ttm_pct", "wacc_pct", "eva_spread_pct", "eva_usd",
+                                             "eva_momentum_pct", "eva_margin_pct", "mva_usd", "mva_multiple", "super_compounder", "history_source", "bank_context")}
+    return {
+        "available": True,
+        "universe_basis": "factor book: US common stocks >= $2B with TTM ROIC + invested capital (cap %d, bank-only reads; not ADRs)" % MARKET_CANDIDATES,
+        "book_as_of": _book.as_of(),
+        "momentum_scope": "EVA momentum + margin computed for the top %d names by EVA spread (FMP bank statement history); null elsewhere" % MARKET_MOMENTUM_TOP,
+        "n_candidates": len(rows),
+        "n_valid": n_valid,
+        "n_value_creators": n_creators,
+        "n_value_destroyers": n_valid - n_creators,
+        "pct_value_creators": round(100.0 * n_creators / n_valid, 1) if n_valid else None,
+        "regime": classify_universe(results),
+        "n_super_compounders": sum(1 for x in valid if x.get("super_compounder")),
+        "medians": {"eva_spread_pct": round(statistics.median(spreads), 2) if spreads else None,
+                    "roic_pct": round(statistics.median([x["roic_ttm_pct"] for x in valid]), 2) if valid else None,
+                    "wacc_pct": round(statistics.median([x["wacc_pct"] for x in valid]), 2) if valid else None},
+        "sector_breakdown": sector_breakdown(results),
+        "top_25_eva_spread": [slim(x) for x in valid[:25]],
+        "bottom_10_destroyers": [slim(x) for x in sorted(valid, key=lambda x: x["eva_spread_pct"])[:10]],
+        "super_compounders": [slim(x) for x in valid[:MARKET_MOMENTUM_TOP] if x.get("super_compounder")],
+    }
+
+
+def _eva_spread_only(symbol, sector, rf_pct, ig_spread_pct, row):
+    """analyze_ticker's TTM arithmetic from a factor-book row, without the statement history (the market pass)."""
+    facts = facts_from_row(row)
+    if not facts:
+        return {"ticker": symbol, "sector": sector, "ok": False, "reason": "missing core fields (roic/ic/mcap)", "source": "factor-book (bank close)"}
+    q, prof, km, ratios = facts
+    market_cap = safe_float(q.get("marketCap"))
+    price = safe_float(q.get("price"))
+    beta = safe_float(prof.get("beta"))
+    eff_tax = safe_float(ratios.get("effectiveTaxRateTTM"))
+    roic_ttm = safe_float(km.get("returnOnInvestedCapitalTTM"))
+    invested_capital = safe_float(km.get("investedCapitalTTM"))
+    ev = safe_float(km.get("enterpriseValueTTM"))
+    total_debt = max(0.0, ev - market_cap) if (ev is not None and market_cap is not None) else None
+    if roic_ttm is None or invested_capital is None or invested_capital <= 0 or market_cap is None:
+        return {"ticker": symbol, "sector": sector, "ok": False, "reason": "missing core fields (roic/ic/mcap)", "source": "factor-book (bank close)"}
+    wacc_pct, wacc_comp = compute_wacc(market_cap, total_debt, beta, eff_tax, rf_pct, ig_spread_pct)
+    if wacc_pct is None:
+        return {"ticker": symbol, "sector": sector, "ok": False, "reason": "wacc calc failed", "source": "factor-book (bank close)"}
+    roic_pct = roic_ttm * 100.0
+    eva_spread_pct = round(roic_pct - wacc_pct, 3)
+    eva_usd = round((eva_spread_pct / 100.0) * invested_capital, 0)
+    return {"ticker": symbol, "sector": sector, "ok": True, "price_usd": price, "market_cap_usd": market_cap,
+            "invested_capital_usd": invested_capital, "total_debt_usd": total_debt, "roic_ttm_pct": round(roic_pct, 3),
+            "wacc_pct": wacc_pct, "eva_spread_pct": eva_spread_pct, "eva_usd": eva_usd, "eva_margin_pct": None,
+            "eva_momentum_pct": None, "mva_usd": round(market_cap - invested_capital, 0),
+            "mva_multiple": round(market_cap / invested_capital, 2), "wacc_components": wacc_comp, "eva_history": None,
+            "value_creator": eva_spread_pct > 0, "super_compounder": False, "source": "factor-book (bank close)",
+            "history_source": None, "bank_context": bank_context_from_row(row)}
 
 
 # ---------- Aggregation ----------
@@ -471,6 +662,20 @@ def lambda_handler(event, context):
 
     valid = [r for r in results if r.get("ok")]
     n_valid = len(valid)
+    source_counts = {}
+    for r in results:
+        k = r.get("source") or "none"
+        source_counts[k] = source_counts.get(k, 0) + 1
+    history_counts = {}
+    for r in valid:
+        k = r.get("history_source") or "none"
+        history_counts[k] = history_counts.get(k, 0) + 1
+
+    # whole-market pass from the factor book (bank-only, labelled; {} -> unavailable)
+    try:
+        market = market_pass(rf_pct, ig_oas_pct)
+    except Exception as e:  # noqa: BLE001
+        market = {"available": False, "reason": "market pass failed: %s" % str(e)[:100]}
 
     # Universe state
     regime = classify_universe(results)
@@ -507,6 +712,11 @@ def lambda_handler(event, context):
         "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "universe": "STATIC_TOP50_SPX (cross-engine fusion with #4/#7/#8)",
+        "universe_basis": "STATIC_TOP50_SPX; TTM facts %s" % ("from the factor book (bank close) where held, live FMP otherwise" if book_ok() else "live FMP (factor book unavailable)"),
+        "book_as_of": (_book.as_of() if book_ok() else None),
+        "source_counts": source_counts,
+        "history_source_counts": history_counts,
+        "market": market,
         "universe_state": regime,
         "n_analyzed": len(results),
         "n_valid": n_valid,
@@ -568,6 +778,8 @@ def lambda_handler(event, context):
              "mva_usd": r.get("mva_usd"),
              "value_creator": r.get("value_creator"),
              "super_compounder": r.get("super_compounder"),
+             "source": r.get("source"), "history_source": r.get("history_source"),
+             "bank_context": r.get("bank_context"),
              "reason": r.get("reason")} for r in results],
         "methodology": {
             "framework": "Stern Stewart EVA + Bennett Stewart (2002) EVA Momentum",
@@ -594,12 +806,14 @@ def lambda_handler(event, context):
             },
         },
         "data_sources": {
-            "fmp_quote": "/stable/quote (market cap, price)",
-            "fmp_profile": "/stable/profile (beta)",
-            "fmp_key_metrics_ttm": "/stable/key-metrics-ttm (ROIC, IC, EV)",
-            "fmp_ratios_ttm": "/stable/ratios-ttm (effective tax)",
-            "fmp_income_statement": "/stable/income-statement (3y, EVA series)",
-            "fmp_key_metrics_annual": "/stable/key-metrics (3y, IC series)",
+            "factor_book": "data/warm/factor-book (TTM market cap, price, beta, ROIC, invested capital, EV, effective tax, revenue/share at the bank close; the market pass)",
+            "fmp_bank_statements": "data/warm/fmp-bank income-statement-bulk + key-metrics-bulk annual (3y EVA series, no live call)",
+            "fmp_quote": "/stable/quote (market cap, price) - fallback",
+            "fmp_profile": "/stable/profile (beta) - fallback",
+            "fmp_key_metrics_ttm": "/stable/key-metrics-ttm (ROIC, IC, EV) - fallback",
+            "fmp_ratios_ttm": "/stable/ratios-ttm (effective tax) - fallback",
+            "fmp_income_statement": "/stable/income-statement (3y, EVA series) - fallback",
+            "fmp_key_metrics_annual": "/stable/key-metrics (3y, IC series) - fallback",
             "fred_dgs10": "10Y Treasury (risk-free)",
             "fred_bamlc0a4cbbb": "BBB IG OAS (cost of debt spread)",
         },

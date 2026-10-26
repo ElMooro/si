@@ -16,6 +16,14 @@ PIPELINE:
 5. SCORE: Role-tier weighted (CEO/CFO=100, Director=40, 10%-Owner=20)
 6. ENRICH: FMP fundamentals for top 50 (mcap, 52w high/low, sector, industry)
 7. RATIONALE: Plain-english explanation per cluster
+
+v2.1.0 (2026-10-26, bank fusion wave 2): the first rung of the transaction ladder is the FMP walker bank - the WHOLE
+insider feed per calendar day (data/warm/fmp/insider-trading-latest/<YYYY>/<date>.json.gz, LOOKBACK_DAYS + 3 days read,
+open-market purchases kept) - every Form 4 purchase in the window instead of a 1,500-filing sample of 7 business days of
+SEC filings; the SEC EDGAR parse stands as the fallback when the bank has nothing (`source_used`).  The top-50 enrichment
+reads the factor book's documents first (bank close, labelled `fundamentals_source`), the live FMP profile/quote pair
+stays as the fallback; every enriched cluster carries a labelled `bank_context`.  Clustering, scoring, thresholds,
+the `clusters` / `all_ticker_buys` shapes and the alerts are unchanged (additive fields only).
 """
 from __future__ import annotations
 
@@ -50,6 +58,19 @@ N_WORKERS = int(os.environ.get("N_WORKERS", "8"))
 FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 
 S3 = boto3.client("s3", region_name="us-east-1")
+
+try:  # v2.1.0 bank fusion: the walker's whole insider feed per day (no key) and the factor book
+    import fmp_bank as _bank
+except Exception:  # noqa: BLE001
+    _bank = None
+try:
+    import bank_enrich as _book
+except Exception:  # noqa: BLE001
+    _book = None
+VERSION = "2.1.0"
+BANK_FEED_DAYS = int(os.environ.get("INSIDER_BANK_FEED_DAYS", str(LOOKBACK_DAYS + 3)))      # window + filing lag
+BANK_CONTEXT_FIELDS = ["altman_z", "piotroski", "short_pct_float", "days_to_cover", "pt_upside_pct", "ret_21d", "ret_63d", "composite_quality", "composite_value"]
+_ACCESSION_RE = re.compile(r"(\d{10}-\d{2}-\d{6})")
 
 # ROLE TIERS
 ROLE_TIERS = {
@@ -282,6 +303,124 @@ def parse_form4(xml_text, accession, filed_date):
     return transactions
 
 # ───────────────────────────────────────────────────────────────────
+# BANKED FEED (v2.1.0) - the walker's whole insider feed, mapped to the Form 4 transaction schema above
+# ───────────────────────────────────────────────────────────────────
+def _role_from_owner(type_of_owner):
+    """FMP typeOfOwner ('officer: Chief Executive Officer', 'director', '10 percent owner') -> the parser's role text."""
+    t = (type_of_owner or "").strip()
+    if not t:
+        return "Unknown"
+    parts = []
+    for piece in t.split(","):
+        piece = piece.strip()
+        if piece.lower().startswith("officer:"):
+            piece = piece.split(":", 1)[1].strip() or "Officer"
+        if piece.lower() == "director":
+            piece = "Director"
+        elif piece.lower() in ("10 percent owner", "10% owner"):
+            piece = "10% Owner"
+        if piece:
+            parts.append(piece)
+    return ", ".join(parts) or "Unknown"
+
+
+def bank_feed_transactions(days=None):
+    """First rung: open-market purchases (P-Purchase, acquired) from the banked feed, in the parser's transaction shape,
+    filtered while read so only the window's purchases >= MIN_BUY_VALUE are retained.  Returns (txns, n_days, n_rows)."""
+    if _bank is None or not hasattr(_bank, "walker_days"):
+        return [], 0, 0
+    try:
+        banked = _bank.walker_days("insider-trading-latest", days=days or BANK_FEED_DAYS)
+    except Exception:  # noqa: BLE001
+        banked = []
+    txns, n_rows = [], 0
+    for _day, rows in banked:
+        for r in rows:
+            n_rows += 1
+            if not isinstance(r, dict):
+                continue
+            tt = (r.get("transactionType") or "").upper().strip()
+            if not (tt.startswith("P-") or tt == "P"):
+                continue
+            ad = (r.get("acquisitionOrDisposition") or r.get("acquisitionDisposition") or "A").upper().strip()
+            if ad and ad != "A":
+                continue
+            ticker = (r.get("symbol") or "").strip().upper()
+            if not ticker or ticker == "N/A" or len(ticker) > 6:
+                continue
+            try:
+                shares = float(r.get("securitiesTransacted") or 0)
+                price = float(r.get("price") or 0)
+            except (TypeError, ValueError):
+                continue
+            if shares <= 0 or price <= 0:
+                continue
+            value = shares * price
+            if value < MIN_BUY_VALUE:
+                continue
+            filed = (r.get("filingDate") or r.get("transactionDate") or "")[:10]
+            txn_date = (r.get("transactionDate") or filed)[:10]
+            m = _ACCESSION_RE.search(str(r.get("url") or r.get("link") or ""))
+            accession = m.group(1) if m else "bank-%s-%s-%s-%d" % (ticker, r.get("reportingCik") or r.get("reportingName") or "", txn_date, int(shares))
+            role = _role_from_owner(r.get("typeOfOwner"))
+            txns.append({
+                "ticker": ticker, "company": r.get("companyName") or "", "cik": str(r.get("companyCik") or ""),      # the feed has no issuer name; the book fills it for the enriched top 50
+                "insider_name": (r.get("reportingName") or "Unknown").strip(), "role": role,
+                "role_tier": role_tier(role), "shares": int(shares),
+                "price": round(price, 4), "value": round(value, 2),
+                "txn_date": txn_date, "filed_date": filed, "accession": accession,
+            })
+    return txns, len(banked), n_rows
+
+
+def book_fundamentals(ticker):
+    """The enrich_ticker() shape from the factor book's document (bank close; the tape's 52-week range) - None when absent."""
+    if _book is None or not _book.available():
+        return None
+    try:
+        d = _book.factor(ticker)
+    except Exception:  # noqa: BLE001
+        d = None
+    if not d:
+        return None
+    ident, prof, ret, flt = d.get("identity") or {}, d.get("profile") or {}, d.get("returns") or {}, d.get("float") or {}
+    lk = {str(k).lower(): k for k in prof}
+
+    def p(*names):
+        for n in names:
+            k = lk.get(n.lower())
+            if k is not None and prof.get(k) not in (None, ""):
+                return prof[k]
+        return None
+    price = p("price") if p("price") is not None else ret.get("close")
+    high_52w, low_52w = ret.get("high_52w") or 0, ret.get("low_52w") or 0
+    price = price or 0
+    return {
+        "market_cap": ident.get("mcap") if ident.get("mcap") is not None else (p("marketcap", "mktcap") or 0),
+        "price_now": price,
+        "high_52w": high_52w, "low_52w": low_52w,
+        "pct_from_52w_high": round((price - high_52w) / high_52w * 100, 2) if high_52w else 0,
+        "pct_from_52w_low": round((price - low_52w) / low_52w * 100, 2) if low_52w else 0,
+        "sector": ident.get("sector") or "", "industry": ident.get("industry") or "", "country": p("country") or ident.get("country") or "",
+        "company_name": ident.get("name") or p("companyname") or "",
+        "shares_outstanding": flt.get("outstandingShares") or p("sharesoutstanding") or 0,
+        "fundamentals_source": "factor-book (bank close, not a live tick)", "book_as_of": d.get("as_of"),
+    }
+
+
+def book_context(ticker):
+    if _book is None or not _book.available():
+        return None
+    try:
+        row = _book.lookup(ticker, BANK_CONTEXT_FIELDS)
+    except Exception:  # noqa: BLE001
+        row = None
+    if not row:
+        return None
+    return {k: row.get(k) for k in BANK_CONTEXT_FIELDS} | {"source": "factor-book", "as_of": _book.as_of()}
+
+
+# ───────────────────────────────────────────────────────────────────
 # FMP ENRICHMENT
 # ───────────────────────────────────────────────────────────────────
 def fmp_get(path, params=None, timeout=10):
@@ -471,29 +610,41 @@ def build_rationale(cluster):
 # ───────────────────────────────────────────────────────────────────
 def lambda_handler(event, context):
     t0 = time.time()
-    print(f"[insider-cluster] starting v2, lookback={LOOKBACK_DAYS}d, max_filings={MAX_FILINGS_TO_PARSE}")
-    
-    # 1. PULL daily indices
-    end_date = datetime.now(timezone.utc).date()
-    business_days = get_business_days(end_date, N_BUSINESS_DAYS_INDEX)
-    print(f"[insider-cluster] pulling daily index for {N_BUSINESS_DAYS_INDEX} biz days: {business_days[-1]} → {business_days[0]}")
-    
-    all_filings = []
-    idx_errors = 0
-    for d in business_days:
-        try:
-            filings = get_daily_form4_index(d)
-            all_filings.extend(filings)
-        except Exception as e:
-            print(f"[insider-cluster] index error {d}: {type(e).__name__}: {e}")
-            idx_errors += 1
-    print(f"[insider-cluster] found {len(all_filings)} Form 4 filings ({idx_errors} index errors)")
-    
-    # 2. SAMPLE: take most recent N (sort desc by date_filed, take top N)
-    all_filings.sort(key=lambda f: f.get("date_filed", ""), reverse=True)
-    sampled = all_filings[:MAX_FILINGS_TO_PARSE]
-    print(f"[insider-cluster] sampling top {len(sampled)} most recent for parsing")
-    
+    print(f"[insider-cluster] starting v{VERSION}, lookback={LOOKBACK_DAYS}d, max_filings={MAX_FILINGS_TO_PARSE}")
+    deadline = t0 + (context.get_remaining_time_in_millis() / 1000) - 60 if context else t0 + 540
+
+    # 0. BANKED FEED FIRST (v2.1.0): every open-market purchase in the window from the walker's whole feed
+    all_txns, bank_days, bank_rows = bank_feed_transactions()
+    all_filings, sampled = [], []
+    idx_errors = n_parsed = n_no_purchase = n_parse_error = 0
+    if all_txns:
+        source_used = "fmp-walker bank insider-trading-latest (%d days, %d feed rows, %d purchases)" % (bank_days, bank_rows, len(all_txns))
+        print(f"[insider-cluster] {source_used}")
+    else:
+        source_used = "sec_edgar_form4_sample"
+        print(f"[insider-cluster] bank has no insider feed days - SEC EDGAR fallback")
+    feed_basis = {"source": source_used, "bank_days": bank_days, "bank_feed_rows": bank_rows, "window_days": LOOKBACK_DAYS}
+
+    if not all_txns:
+        # 1. PULL daily indices
+        end_date = datetime.now(timezone.utc).date()
+        business_days = get_business_days(end_date, N_BUSINESS_DAYS_INDEX)
+        print(f"[insider-cluster] pulling daily index for {N_BUSINESS_DAYS_INDEX} biz days: {business_days[-1]} → {business_days[0]}")
+        for d in business_days:
+            try:
+                filings = get_daily_form4_index(d)
+                all_filings.extend(filings)
+            except Exception as e:
+                print(f"[insider-cluster] index error {d}: {type(e).__name__}: {e}")
+                idx_errors += 1
+        print(f"[insider-cluster] found {len(all_filings)} Form 4 filings ({idx_errors} index errors)")
+
+        # 2. SAMPLE: take most recent N (sort desc by date_filed, take top N)
+        all_filings.sort(key=lambda f: f.get("date_filed", ""), reverse=True)
+        sampled = all_filings[:MAX_FILINGS_TO_PARSE]
+        print(f"[insider-cluster] sampling top {len(sampled)} most recent for parsing")
+        print(f"[insider-cluster] parse deadline: {deadline - t0:.0f}s from start")
+
     # 3. PARSE in parallel
     def _fetch_parse(f):
         try:
@@ -501,14 +652,7 @@ def lambda_handler(event, context):
             return parse_form4(xml, f["accession"], f["date_filed"])
         except Exception:
             return []
-    
-    all_txns = []
-    n_parsed = 0
-    n_no_purchase = 0
-    n_parse_error = 0
-    deadline = t0 + (context.get_remaining_time_in_millis() / 1000) - 60 if context else t0 + 540
-    print(f"[insider-cluster] parse deadline: {deadline - t0:.0f}s from start")
-    
+
     with ThreadPoolExecutor(max_workers=N_WORKERS) as ex:
         futures = {ex.submit(_fetch_parse, f): f for f in sampled}
         for fut in as_completed(futures):
@@ -552,18 +696,38 @@ def lambda_handler(event, context):
     
     raw_clusters.sort(key=lambda c: c["score"], reverse=True)
     
-    # 5. ENRICH top 50
+    # 5. ENRICH top 50: the factor book first (bank close, labelled), the live FMP profile/quote pair for the rest
     enrich_top = raw_clusters[:50]
-    print(f"[insider-cluster] enriching top {len(enrich_top)} with FMP fundamentals")
+    print(f"[insider-cluster] enriching top {len(enrich_top)} (factor book first, FMP fallback)")
+    fundamentals_sources = {}
     if enrich_top and (time.time() < deadline + 30):
         with ThreadPoolExecutor(max_workers=6) as ex:
-            future_to_idx = {ex.submit(enrich_ticker, c["ticker"]): i for i, c in enumerate(enrich_top)}
+            future_to_idx = {ex.submit(book_fundamentals, c["ticker"]): i for i, c in enumerate(enrich_top)}
             for fut in as_completed(future_to_idx):
                 idx = future_to_idx[fut]
                 try:
-                    enrich_top[idx]["fundamentals"] = fut.result()
+                    enrich_top[idx]["fundamentals"] = fut.result() or {}
                 except Exception:
                     enrich_top[idx]["fundamentals"] = {}
+        pending = [i for i, c in enumerate(enrich_top) if not c.get("fundamentals")]
+        if pending:
+            with ThreadPoolExecutor(max_workers=6) as ex:
+                future_to_idx = {ex.submit(enrich_ticker, enrich_top[i]["ticker"]): i for i in pending}
+                for fut in as_completed(future_to_idx):
+                    idx = future_to_idx[fut]
+                    try:
+                        f = fut.result() or {}
+                        if f:
+                            f["fundamentals_source"] = "fmp live /stable/profile + /stable/quote"
+                        enrich_top[idx]["fundamentals"] = f
+                    except Exception:
+                        enrich_top[idx]["fundamentals"] = {}
+        for c in enrich_top:
+            src = (c.get("fundamentals") or {}).get("fundamentals_source") or "none"
+            fundamentals_sources[src] = fundamentals_sources.get(src, 0) + 1
+            c["bank_context"] = book_context(c["ticker"])
+            if not c.get("company") and (c.get("fundamentals") or {}).get("company_name"):
+                c["company"] = c["fundamentals"]["company_name"]
     
     # 6. RATIONALE
     for c in enrich_top:
@@ -585,12 +749,19 @@ def lambda_handler(event, context):
     output = {
         "schema_version": "2.1",
         "method": "insider_cluster_scanner_v2",
+        "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "lookback_days": LOOKBACK_DAYS,
         "duration_s": round(time.time() - t0, 1),
+        "source_used": source_used,
+        "feed_basis": feed_basis,
+        "fundamentals_sources": fundamentals_sources,
+        "book_as_of": (_book.as_of() if (_book is not None and _book.available()) else None),
         "stats": {
             "n_form4_filings_scanned": len(all_filings),
             "n_form4_parsed": n_parsed,
+            "n_bank_feed_days": bank_days,
+            "n_bank_feed_rows": bank_rows,
             "n_buy_transactions": len(all_txns),
             "n_unique_tickers": len(by_ticker),
             "n_clusters": len(final_clusters),

@@ -18,6 +18,13 @@ Telegram alerts:
   1. New $500K+ trade by any tracked member
   2. New cluster (3+ members same ticker within 7d)
   3. Pelosi/Crenshaw/Khanna specifically (high-watch names)
+
+v1.1.0 (2026-10-26, bank fusion wave 2): the first rung of each chamber's ladder is the FMP walker bank - the newest
+banked senate-latest / house-latest page-set (data/warm/fmp/<feed>/<day>.json.gz, up to 30 pages x 100 rows instead of
+one live page of 200), capped to the newest MAX_FEED_ROWS rows; the live endpoint candidates stand as the fallback
+(`endpoints` names the rung used, `feed_basis` the day and row counts).  Cluster tickers and large trades carry a
+labelled `bank_context` from the factor book (market cap, sector, 21/63-day returns).  Cluster, size and watch rules
+are unchanged.
 """
 
 try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
@@ -72,6 +79,46 @@ SIZE_RANGES = {
 LARGE_TRADE_THRESHOLD = 500_000
 
 s3 = boto3.client("s3", region_name="us-east-1")
+
+try:  # v1.1.0 bank fusion: the walker's congressional feeds (no key) and the factor book
+    import fmp_bank as _bank
+except Exception:  # noqa: BLE001
+    _bank = None
+try:
+    import bank_enrich as _book
+except Exception:  # noqa: BLE001
+    _book = None
+VERSION = "1.1.0"
+MAX_FEED_ROWS = int(os.environ.get("POLITICAL_MAX_FEED_ROWS", "3000"))     # newest rows kept per chamber (256 MB engine)
+BANK_CONTEXT_FIELDS = ["mcap", "sector", "industry", "ret_21d", "ret_63d", "from_52w_high_pct", "short_pct_float"]
+
+
+def bank_feed(dataset):
+    """The newest banked page-set of a congressional feed: (day, rows) or (None, []) when none of the last 10 days is banked."""
+    if _bank is None or not hasattr(_bank, "walker_latest"):
+        return None, []
+    try:
+        day, rows = _bank.walker_latest(dataset, lookback_days=10)
+    except Exception:  # noqa: BLE001
+        day, rows = None, None
+    if not rows or not isinstance(rows, list):
+        return None, []
+    rows = [r for r in rows if isinstance(r, dict)]
+    rows.sort(key=lambda r: str(r.get("transactionDate") or r.get("date") or ""), reverse=True)
+    return day, rows[:MAX_FEED_ROWS]
+
+
+def book_context(symbol):
+    """Labelled bank facts for a traded name (every value may be None - an unbanked fact, never a guess)."""
+    if _book is None or not _book.available() or not symbol:
+        return None
+    try:
+        row = _book.lookup(symbol, BANK_CONTEXT_FIELDS)
+    except Exception:  # noqa: BLE001
+        row = None
+    if not row:
+        return None
+    return {k: row.get(k) for k in BANK_CONTEXT_FIELDS} | {"source": "factor-book", "as_of": _book.as_of()}
 
 
 def http_get_json(url, timeout=HTTP_TIMEOUT):
@@ -139,7 +186,21 @@ def fetch_disclosures():
 
     senate_data, house_data = [], []
     senate_endpoint, house_endpoint = None, None
-    for url in candidates_senate:
+    basis = {}
+    # v1.1.0: the banked page-sets first
+    day, rows = bank_feed("senate-latest")
+    if rows:
+        senate_data, senate_endpoint = rows, "fmp-walker bank senate-latest"
+        basis["senate"] = {"source": senate_endpoint, "day": day, "rows": len(rows)}
+        print(f"[senate] bank {day} n={len(rows)}")
+    day, rows = bank_feed("house-latest")
+    if rows:
+        house_data, house_endpoint = rows, "fmp-walker bank house-latest"
+        basis["house"] = {"source": house_endpoint, "day": day, "rows": len(rows)}
+        print(f"[house] bank {day} n={len(rows)}")
+    if senate_data and house_data:
+        return {"senate": senate_data, "senate_endpoint": senate_endpoint, "house": house_data, "house_endpoint": house_endpoint, "basis": basis}
+    for url in (candidates_senate if not senate_data else []):
         try:
             data = http_get_json(url)
             if isinstance(data, list) and data:
@@ -152,7 +213,7 @@ def fetch_disclosures():
             print(f"[senate] HTTP {e.code} on {url.split('?')[0]}")
         except Exception as e:
             print(f"[senate] err on {url.split('?')[0]}: {str(e)[:80]}")
-    for url in candidates_house:
+    for url in (candidates_house if not house_data else []):
         try:
             data = http_get_json(url)
             if isinstance(data, list) and data:
@@ -166,9 +227,13 @@ def fetch_disclosures():
         except Exception as e:
             print(f"[house] err on {url.split('?')[0]}: {str(e)[:80]}")
 
+    for chamber, data, ep in (("senate", senate_data, senate_endpoint), ("house", house_data, house_endpoint)):
+        if chamber not in basis:
+            basis[chamber] = {"source": ("fmp live " + ep) if ep else "unavailable", "day": None, "rows": len(data)}
     return {
         "senate": senate_data, "senate_endpoint": senate_endpoint,
         "house": house_data, "house_endpoint": house_endpoint,
+        "basis": basis,
     }
 
 
@@ -300,14 +365,25 @@ def lambda_handler(event, context):
     cutoff = (datetime.now(timezone.utc) - timedelta(days=30)).strftime("%Y-%m-%d")
     recent_disclosures = [t for t in all_trades if t.get("disclosure_date", "") >= cutoff]
 
+    # v1.1.0: labelled bank context on the names the desk shows (clusters + large trades), a few dozen lookups at most
+    ctx_cache = {}
+    for t in clusters[:10] + large_trades[:15]:
+        tk = t.get("ticker")
+        if tk not in ctx_cache:
+            ctx_cache[tk] = book_context(tk)
+        t["bank_context"] = ctx_cache[tk]
+
     output = {
         "schema_version": "1.0",
         "method": "political_trades_v1",
+        "version": VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "endpoints": {
             "senate": raw.get("senate_endpoint"),
             "house": raw.get("house_endpoint"),
         },
+        "feed_basis": raw.get("basis"),
+        "book_as_of": (_book.as_of() if (_book is not None and _book.available()) else None),
         "stats": {
             "n_senate": len(senate_trades),
             "n_house": len(house_trades),

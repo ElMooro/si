@@ -607,10 +607,12 @@ def walker(dataset, entity=None, period=None, day=None, exchange=None):
     return _wjson(key + ".json.gz")
 
 
-def walker_days(dataset, days=30, end=None):
+def walker_days(dataset, days=30, end=None, where=None):
     """A daily_dated walker feed (insider-trading-latest, sector/industry pe + performance snapshots, 13f-asset-allocation):
     [(day, rows), ...] newest first for the last `days` calendar days ending at `end` (today UTC); days the bank lacks are
-    skipped (a miss is cached, so the scan is cheap).  [] when nothing is banked."""
+    skipped (a miss is cached, so the scan is cheap).  `where(row) -> bool` filters each day's rows AS THEY ARE READ, so a
+    whole-feed day file is never retained past the predicate (the insider feed is ~3,000 rows a day).  [] when nothing is
+    banked."""
     from datetime import date, datetime, timedelta, timezone
     out = []
     try:
@@ -621,6 +623,28 @@ def walker_days(dataset, days=30, end=None):
         day = (last - timedelta(days=i)).isoformat()
         rows = walker(dataset, day=day)
         if isinstance(rows, list) and rows:
+            if where is not None:
+                rows = [r for r in rows if where(r)]
+            out.append((day, rows))
+    return out
+
+
+def walker_latest_days(dataset, days=10, end=None, where=None):
+    """Every banked day of a latest_pages walker feed (<id>/<YYYY-MM-DD>.json.gz: grades-latest-news, price-target-latest-news,
+    institutional-ownership-latest, senate/house-latest, news-*) in the last `days`: [(day, rows), ...] newest first,
+    `where` filtering on read.  Successive page-sets overlap (each day re-pulls the newest rows) - de-duplicate downstream."""
+    from datetime import date, datetime, timedelta, timezone
+    out = []
+    try:
+        last = date.fromisoformat(end) if end else datetime.now(timezone.utc).date()
+    except (TypeError, ValueError):
+        last = datetime.now(timezone.utc).date()
+    for i in range(max(0, int(days))):
+        day = (last - timedelta(days=i)).isoformat()
+        rows = _wjson(WALKER_ROOT + dataset + "/" + day + ".json.gz")
+        if isinstance(rows, list) and rows:
+            if where is not None:
+                rows = [r for r in rows if where(r)]
             out.append((day, rows))
     return out
 

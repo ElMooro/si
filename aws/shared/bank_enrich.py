@@ -159,7 +159,7 @@ def matrix(max_age_s=1800):
     return None
 
 
-IDENTITY_COLS = ("symbol", "sector", "industry", "exchange", "is_etf", "is_otc", "is_fund", "is_preferred", "is_warrant_unit", "is_shell", "is_adr")
+IDENTITY_COLS = ("symbol", "name", "sector", "industry", "exchange", "is_etf", "is_otc", "is_fund", "is_preferred", "is_warrant_unit", "is_shell", "is_adr", "is_debt_or_structured", "is_common", "security_type")
 
 
 def index(max_age_s=1800):
@@ -239,7 +239,7 @@ def screen(where, fields=None, limit=None, common_only=True):
     mutual funds, OTC names, preferred shares, warrants/units/rights or blank-check shells - a preferred or a warrant
     carries its issuer's fundamentals under its own ticker; a SPAC is cash by construction)."""
     def pred(r):
-        if common_only and (r.get("is_etf") or r.get("is_otc") or r.get("is_fund") or r.get("is_preferred") or r.get("is_warrant_unit") or r.get("is_shell")):
+        if common_only and (r.get("is_common") is False or r.get("is_etf") or r.get("is_otc") or r.get("is_fund") or r.get("is_preferred") or r.get("is_warrant_unit") or r.get("is_shell") or r.get("is_debt_or_structured")):
             return False
         try:
             return bool(where(r))
@@ -280,7 +280,18 @@ def prescreen(where, order_by=None, descending=True, limit=1500, fields=None, co
     return [r["symbol"] for r in hits[:limit]]
 
 
-QUOTE_FIELDS = ("symbol", "price", "mcap", "high_52w", "low_52w", "close", "avg_volume", "beta", "outstanding_shares", "exchange", "sector", "industry", "is_adr")
+def prescreen_rows(where, order_by=None, descending=True, limit=1500, fields=None, common_only=True):
+    """prescreen() that returns the matrix ROWS (symbol + identity + the requested fields) instead of the symbols -
+    for an engine that wants the screening facts next to the candidate.  [] when the book is not there."""
+    hits = screen(where, fields=fields, common_only=common_only)
+    if order_by is not None:
+        keyf = order_by if callable(order_by) else (lambda r, f=order_by: r.get(f))
+        hits = [r for r in hits if keyf(r) is not None]
+        hits.sort(key=keyf, reverse=descending)
+    return hits[:limit]
+
+
+QUOTE_FIELDS = ("symbol", "name", "price", "mcap", "high_52w", "low_52w", "close", "avg_volume", "beta", "outstanding_shares", "exchange", "sector", "industry", "is_adr")
 
 
 def quote(symbol):
@@ -293,7 +304,7 @@ def quote(symbol):
     if row is not None and index() is not None:
         if row.get("price") is None and row.get("close") is None:
             return None
-        return {"symbol": row.get("symbol") or str(symbol).upper(), "name": None, "price": row.get("price") if row.get("price") is not None else row.get("close"),
+        return {"symbol": row.get("symbol") or str(symbol).upper(), "name": row.get("name"), "price": row.get("price") if row.get("price") is not None else row.get("close"),
                 "marketCap": row.get("mcap"), "yearHigh": row.get("high_52w"), "yearLow": row.get("low_52w"), "previousClose": row.get("close"),
                 "avgVolume": row.get("avg_volume"), "exchange": row.get("exchange"), "sector": row.get("sector"), "industry": row.get("industry"), "beta": row.get("beta"),
                 "sharesOutstanding": row.get("outstanding_shares"), "as_of": as_of(), "source": "factor-book (bank close, not a live tick)"}
@@ -345,6 +356,26 @@ def squeezes(symbols):
         b = squeeze(s)
         if b is not None:
             out[s] = b
+    return out
+
+
+CONTEXT_FIELDS = ("altman_z", "piotroski", "short_pct_float", "days_to_cover", "pt_upside_pct", "dcf_upside_pct", "consensus_score", "ret_21d", "ret_63d",
+                  "from_52w_high_pct", "composite_value", "composite_quality", "composite_momentum", "composite_squeeze", "composite_street")
+
+
+def context(symbol, fields=CONTEXT_FIELDS):
+    """The standard labelled `bank_context` block for one output row: the requested book fields (defaults: Altman Z,
+    Piotroski, short % float, days to cover, analyst / DCF upside, consensus, 21/63-session returns, distance from the
+    52-week high, the composites) + `as_of` + `source`.  None when the book lacks the name.  One projection read per
+    container; every wave-2 engine re-implemented this - use it instead."""
+    if index() is None:
+        return None
+    row = lookup(symbol, list(fields))
+    if row is None:
+        return None
+    out = {k: row.get(k) for k in fields}
+    out["as_of"] = as_of()
+    out["source"] = "factor-book (bank close)"
     return out
 
 

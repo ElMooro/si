@@ -32,6 +32,14 @@ Output:
 - per-ticker breakdown of all 3 components
 
 Schedule: daily 23:30 UTC (after FMP daily quota reset window).
+
+v1.1.0 (2026-10-26, bank fusion wave 2): every per-ticker input is read from the warehouse first - grades from the FMP
+walker's per-symbol `grades` file, the price-target consensus from its `price-target-consensus` file (then the factor
+book's price-target summary), surprises from its `earnings` file (then the book's surprises block) - and the live
+/stable call is only the fallback (`basis` per row, `basis_counts` on the document; the 0.4 s pacing applies to live
+calls only).  Prices / market caps come from the factor book's bank close (`price_source`).  The universe is the static
+S&P top-50 plus the book's analyst-covered US common stocks (>= 5 targets last quarter, >= $5B; `universe_basis`,
+`n_book_candidates`).  Top / bottom rows carry `bank_context`.  Factor weights, z-scoring and regime bands unchanged.
 """
 
 try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the warehouse banks when fresh, else live
@@ -52,8 +60,23 @@ from datetime import datetime, timezone, timedelta
 
 import boto3
 
+try:  # v1.1.0 bank fusion: the factor book + the FMP walker bank (bank-only, no key)
+    import bank_enrich as _book
+except Exception:  # noqa: BLE001
+    _book = None
+try:
+    import fmp_bank as _bank
+except Exception:  # noqa: BLE001
+    _bank = None
+
 # ---------- Constants ----------
-VERSION = "1.0.2"
+VERSION = "1.1.0"
+BOOK_CANDIDATES = int(os.environ.get("STARMINE_BOOK_CANDIDATES", "150"))
+BOOK_MIN_MCAP = float(os.environ.get("STARMINE_BOOK_MIN_MCAP", "5000000000"))
+BOOK_MIN_PT_N = int(os.environ.get("STARMINE_BOOK_MIN_PT_N", "5"))
+BANK_CONTEXT_FIELDS = ("consensus_score", "pt_upside_pct", "pt_n_1q", "beat_rate_4q", "altman_z", "short_pct_float", "composite_street", "ret_63d")
+BASIS = {"grades": {}, "pt": {}, "esp": {}, "price": {}}
+UNIVERSE_META = {}
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/starmine.json"
 FMP_BASE = "https://financialmodelingprep.com/stable"
@@ -238,24 +261,61 @@ def fmp_quote_batch(symbols):
     return []
 
 
-def acquire_universe_with_prices(target_n=UNIVERSE_TOP_N):
-    """Single-call resilient universe acquisition.
+def book_ok():
+    return _book is not None and _book.available()
 
-    Uses STATIC_TOP50_SPX as the mcap-ranked baseline (deterministic, no
-    sp500-constituent + 10x quote-batch calls that triple-tax FMP rate limit).
-    Fetches current prices in ONE batched quote call. If FMP fails, returns
-    entries with price=None (PTD lens will be null but RRM + ESP still work).
+
+def _count(kind, basis):
+    BASIS[kind][basis] = BASIS[kind].get(basis, 0) + 1
+
+
+def book_candidates(exclude):
+    """Analyst-covered US common stocks from the factor book (>= BOOK_MIN_PT_N price targets last quarter,
+    >= BOOK_MIN_MCAP, not ADRs; ETF/OTC/fund/preferred excluded by the SDK), largest first, minus `exclude`."""
+    if not book_ok():
+        return []
+    try:
+        rows = _book.prescreen_rows(lambda r: (r.get("pt_n_1q") or 0) >= BOOK_MIN_PT_N and (r.get("mcap") or 0) >= BOOK_MIN_MCAP and not r.get("is_adr"),
+                               order_by="mcap", descending=True, limit=BOOK_CANDIDATES + len(exclude), fields=["pt_n_1q", "mcap", "sector"])
+    except Exception:  # noqa: BLE001
+        return []
+    out = []
+    for r in rows:
+        sym = r.get("symbol")
+        if not sym or sym in exclude:
+            continue
+        out.append({"symbol": sym, "sector": r.get("sector") or "", "from_book": True})
+        if len(out) >= BOOK_CANDIDATES:
+            break
+    return out
+
+
+def acquire_universe_with_prices(target_n=UNIVERSE_TOP_N):
+    """Universe + prices, bank first.
+
+    STATIC_TOP50_SPX stays the deterministic core (mcap-ranked S&P names); the factor book adds its analyst-covered
+    US common stocks (`from_book`).  Prices / market caps come from the book's bank close (`price_source`
+    factor-book close); only the names the book lacks go to ONE batched live quote call per 50.  If every source
+    fails an entry keeps price=None (PTD lens null; RRM + ESP still work).
     """
-    universe = list(STATIC_TOP50_SPX)[:target_n]
-    syms = [u["symbol"] for u in universe]
-    quotes = fmp_quote_batch(syms)
-    price_map = {}
-    mcap_map = {}
-    for q in quotes:
-        sym = q.get("symbol")
-        if sym:
-            price_map[sym] = q.get("price")
-            mcap_map[sym] = q.get("marketCap")
+    core = list(STATIC_TOP50_SPX)[:target_n]
+    book = book_candidates({u["symbol"] for u in core})
+    universe = core + book
+    price_map, mcap_map, src_map = {}, {}, {}
+    if book_ok():
+        for u in universe:
+            try:
+                row = _book.lookup(u["symbol"], ["price", "mcap"])
+            except Exception:  # noqa: BLE001
+                row = None
+            if row and row.get("price"):
+                price_map[u["symbol"]], mcap_map[u["symbol"]], src_map[u["symbol"]] = row["price"], row.get("mcap"), "factor-book close"
+    missing = [u["symbol"] for u in universe if u["symbol"] not in price_map]
+    for i in range(0, len(missing), 50):
+        for q in fmp_quote_batch(missing[i:i + 50]):
+            sym = q.get("symbol")
+            if sym and q.get("price"):
+                price_map[sym], mcap_map[sym], src_map[sym] = q.get("price"), q.get("marketCap"), "fmp live"
     out = []
     for u in universe:
         sym = u["symbol"]
@@ -263,11 +323,22 @@ def acquire_universe_with_prices(target_n=UNIVERSE_TOP_N):
             "symbol": sym,
             "sector": u.get("sector", ""),
             "price": price_map.get(sym),
+            "price_source": src_map.get(sym),
             "market_cap_usd": mcap_map.get(sym),
+            "from_book": bool(u.get("from_book")),
         })
+        if src_map.get(sym):
+            _count("price", src_map[sym])
     n_priced = sum(1 for u in out if u["price"])
     source = (f"static_top{target_n}_live_prices" if n_priced > 0
               else f"static_top{target_n}_no_prices")
+    if book:
+        source += f"+factor_book_{len(book)}"
+    UNIVERSE_META.update(
+        universe_basis=(f"static S&P top-{target_n} ({len(core)}) + factor book analyst-covered US common stocks "
+                        f"(>= {BOOK_MIN_PT_N} targets last quarter, >= ${int(BOOK_MIN_MCAP / 1e9)}B; {len(book)})") if book
+        else f"static S&P top-{target_n} ({len(core)}); factor book unavailable",
+        n_book_candidates=len(book), book_as_of=(_book.as_of() if book_ok() else None))
     return out, source, n_priced
 
 
@@ -298,6 +369,85 @@ def fmp_earnings_surprises(symbol):
            f"&limit=12&apikey={FMP_KEY}")
     d = http_json(url)
     return d if isinstance(d, list) else []
+
+
+# ---------- Bank-first readers (v1.1.0) ----------
+def grades_for(symbol):
+    """(rows, basis): the walker's per-symbol grades file, else the live /stable/grades call."""
+    if _bank is not None:
+        try:
+            rows = _bank.walker("grades", symbol)
+        except Exception:  # noqa: BLE001
+            rows = None
+        if isinstance(rows, list) and rows:
+            return rows, "fmp-walker grades"
+    rows = fmp_grades(symbol)
+    time.sleep(FMP_SLEEP_SEC)
+    return rows, ("fmp live" if rows else "none")
+
+
+def pt_for(symbol):
+    """(pt_data, basis): the walker's price-target-consensus file, else the factor book's price-target summary
+    (last-quarter average target + count), else the live call."""
+    if _bank is not None:
+        try:
+            rows = _bank.walker("price-target-consensus", symbol)
+        except Exception:  # noqa: BLE001
+            rows = None
+        if isinstance(rows, list) and rows and isinstance(rows[0], dict):
+            return rows[0], "fmp-walker price-target-consensus"
+        if isinstance(rows, dict) and rows:
+            return rows, "fmp-walker price-target-consensus"
+    if book_ok():
+        try:
+            row = _book.lookup(symbol, ["pt_avg_1q", "pt_avg_1m", "pt_n_1q", "pt_n_1m"])
+        except Exception:  # noqa: BLE001
+            row = None
+        if row and (row.get("pt_avg_1q") or row.get("pt_avg_1m")):
+            return {"targetMean": row.get("pt_avg_1q") or row.get("pt_avg_1m"),
+                    "numberOfAnalysts": row.get("pt_n_1q") or row.get("pt_n_1m")}, "factor-book price-target summary (1q avg)"
+    pt = fmp_pt_consensus(symbol)
+    time.sleep(FMP_SLEEP_SEC)
+    return pt, ("fmp live" if pt else "none")
+
+
+def surprises_for(symbol):
+    """(rows, basis): reported quarters from the walker's earnings file, else the factor book's surprises block
+    (actualEarningResult / estimatedEarning), else the live /stable/earnings call."""
+    if _bank is not None:
+        try:
+            rows = _bank.walker("earnings", symbol)
+        except Exception:  # noqa: BLE001
+            rows = None
+        if isinstance(rows, list) and rows:
+            past = [r for r in rows if isinstance(r, dict) and r.get("epsActual") is not None]
+            if past:
+                return past, "fmp-walker earnings"
+    if book_ok():
+        try:
+            doc = _book.factor(symbol)
+        except Exception:  # noqa: BLE001
+            doc = None
+        sur = [r for r in ((doc or {}).get("surprises") or []) if isinstance(r, dict)]
+        if sur:
+            return sur, "factor-book surprises"
+    rows = fmp_earnings_surprises(symbol)
+    time.sleep(FMP_SLEEP_SEC)
+    return rows, ("fmp live" if rows else "none")
+
+
+def bank_context(symbol):
+    if not book_ok():
+        return None
+    try:
+        row = _book.lookup(symbol, list(BANK_CONTEXT_FIELDS))
+    except Exception:  # noqa: BLE001
+        row = None
+    if not row:
+        return None
+    out = {k: row.get(k) for k in BANK_CONTEXT_FIELDS}
+    out["source"] = "factor-book"
+    return out
 
 
 # ---------- Factor computation ----------
@@ -481,13 +631,13 @@ def composite_score(z_rrm, z_ptd, z_esp):
 
 # ---------- Main analyze ----------
 def analyze_ticker(symbol, price):
-    """Run all 3 factor computations for one ticker."""
-    grades = fmp_grades(symbol)
-    time.sleep(FMP_SLEEP_SEC)
-    pt = fmp_pt_consensus(symbol)
-    time.sleep(FMP_SLEEP_SEC)
-    surp = fmp_earnings_surprises(symbol)
-    time.sleep(FMP_SLEEP_SEC)
+    """Run all 3 factor computations for one ticker (bank first; live calls paced)."""
+    grades, g_basis = grades_for(symbol)
+    pt, p_basis = pt_for(symbol)
+    surp, s_basis = surprises_for(symbol)
+    _count("grades", g_basis)
+    _count("pt", p_basis)
+    _count("esp", s_basis)
     rrm = compute_rrm(grades)
     ptd = compute_ptd(pt, price)
     esp = compute_esp(surp)
@@ -497,6 +647,7 @@ def analyze_ticker(symbol, price):
         "rrm": rrm,
         "ptd": ptd,
         "esp": esp,
+        "basis": {"grades": g_basis, "pt": p_basis, "esp": s_basis},
     }
 
 
@@ -528,10 +679,13 @@ def telegram_notify(msg):
 def lambda_handler(event, context):
     started = datetime.now(timezone.utc)
     log = []
+    for k in BASIS:
+        BASIS[k] = {}
+    UNIVERSE_META.clear()
 
-    if not FMP_KEY:
+    if not FMP_KEY and not book_ok():
         return {"statusCode": 500,
-                "body": json.dumps({"ok": False, "error": "FMP_KEY not set"})}
+                "body": json.dumps({"ok": False, "error": "FMP_KEY not set and the factor book is unavailable"})}
 
     # 1. Acquire universe + current prices in ONE batched FMP call (was 11)
     universe, universe_source, n_priced = acquire_universe_with_prices()
@@ -554,6 +708,8 @@ def lambda_handler(event, context):
             row = analyze_ticker(sym, px)
             row["sector"] = u.get("sector", "")
             row["market_cap_usd"] = u.get("market_cap_usd")
+            row["price_source"] = u.get("price_source")
+            row["from_book"] = u.get("from_book", False)
             per_ticker.append(row)
         except Exception as e:
             log.append(f"analyze_err {sym}: {str(e)[:80]}")
@@ -561,6 +717,7 @@ def lambda_handler(event, context):
             log.append(f"progress: {i+1}/{len(universe)}")
 
     log.append(f"per_ticker_completed: {len(per_ticker)}")
+    log.append("basis: " + json.dumps(BASIS, sort_keys=True))
 
     # 4. Z-score normalization across universe
     rrm_vals = [t["rrm"]["rrm_raw"] for t in per_ticker]
@@ -609,6 +766,10 @@ def lambda_handler(event, context):
         "universe_median_composite_z": (round(median_z, 2)
                                          if median_z is not None else None),
         "universe_source_tier": universe_source,
+        "universe_basis": UNIVERSE_META.get("universe_basis"),
+        "n_book_candidates": UNIVERSE_META.get("n_book_candidates", 0),
+        "book_as_of": UNIVERSE_META.get("book_as_of"),
+        "basis_counts": BASIS,
         "n_universe_analyzed": len(per_ticker),
         "n_scored": len(scored),
         "median_rrm_raw": (round(statistics.median(rrm_vals), 2)
@@ -620,7 +781,9 @@ def lambda_handler(event, context):
         "sector_breakdown_top_25": sector_top25,
         "top_25_conviction": [
             {"ticker": t["ticker"], "sector": t["sector"],
-             "price": t["price"], "starmine_score": t["starmine_score"],
+             "price": t["price"], "price_source": t.get("price_source"), "basis": t.get("basis"),
+             "from_book": t.get("from_book", False), "bank_context": bank_context(t["ticker"]),
+             "starmine_score": t["starmine_score"],
              "z_rrm": t["z_rrm"], "z_ptd": t["z_ptd"], "z_esp": t["z_esp"],
              "rrm_raw": t["rrm"]["rrm_raw"],
              "n_upgrades_90d": t["rrm"]["n_upgrades"],
@@ -637,7 +800,9 @@ def lambda_handler(event, context):
         ],
         "bottom_25_conviction": [
             {"ticker": t["ticker"], "sector": t["sector"],
-             "price": t["price"], "starmine_score": t["starmine_score"],
+             "price": t["price"], "price_source": t.get("price_source"), "basis": t.get("basis"),
+             "from_book": t.get("from_book", False), "bank_context": bank_context(t["ticker"]),
+             "starmine_score": t["starmine_score"],
              "z_rrm": t["z_rrm"], "z_ptd": t["z_ptd"], "z_esp": t["z_esp"],
              "rrm_raw": t["rrm"]["rrm_raw"],
              "n_upgrades_90d": t["rrm"]["n_upgrades"],
@@ -660,17 +825,17 @@ def lambda_handler(event, context):
             },
             "composite_weights": {"rrm": 0.50, "ptd": 0.25, "esp": 0.25},
             "score_mapping": "z -> standard-normal CDF -> 0-100 percentile",
-            "universe": f"S&P 500 top-{UNIVERSE_TOP_N} by market cap",
+            "universe": (UNIVERSE_META.get("universe_basis") or f"S&P 500 top-{UNIVERSE_TOP_N} by market cap"),
             "regime_bands": {"BULLISH_REVISIONS": "median z >= +1.0",
                              "NEUTRAL_REVISIONS": "-1.0 < median z < +1.0",
                              "BEARISH_REVISIONS": "median z <= -1.0"},
         },
         "sources": {
-            "constituents": "FMP /stable/sp500-constituent",
-            "quotes": "FMP /stable/quote",
-            "grades": "FMP /stable/grades (analyst rating changes)",
-            "price_target": "FMP /stable/price-target-consensus",
-            "earnings_surprises": "FMP /stable/earnings-surprises",
+            "constituents": "static S&P top-50 + factor book data/warm/factor-book (analyst-covered US common stocks)",
+            "quotes": "factor book bank close (FMP /stable/quote live fallback)",
+            "grades": "FMP walker bank data/warm/fmp/grades (FMP /stable/grades live fallback)",
+            "price_target": "FMP walker bank price-target-consensus, factor book price-target summary (FMP /stable/price-target-consensus live fallback)",
+            "earnings_surprises": "FMP walker bank earnings, factor book surprises (FMP /stable/earnings live fallback)",
         },
         "edge_basis": ("Refinitiv StarMine showed analyst-revision-weighted "
                        "composites generate ~5-8% annualized alpha vs "

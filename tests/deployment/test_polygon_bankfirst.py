@@ -150,7 +150,26 @@ def test_polygon_bankfirst_session_window_and_never_inside_the_banks():
         assert "from polygon_bankfirst import install" not in open(os.path.join(ROOT, "aws", "lambdas", fn, "source", "lambda_function.py")).read(), fn
 
 
+def test_polygon_bankfirst_bars_and_closes_read_the_bank_directly():
+    """wave 2 (2026-10-26): bars()/closes() are the direct readers (no envelope re-parse); complete_only makes a one-session-lag
+    bank a miss, never a stale answer."""
+    s3 = S3()
+    pb._S3 = s3
+    pb._cache.clear()
+    pb.datetime = _FixedDT
+    weekdays = [d for d in range(1, 23) if datetime(2026, 10, d).weekday() < 5]
+    _bank(s3, "AAPL", weekdays)
+    _bank(s3, "LAG", [d for d in weekdays if d <= 21])
+    b = pb.bars("aapl", sessions=5)
+    assert [x["date"] for x in b] == ["2026-10-16", "2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22"] and b[-1]["c"] == 122.5 and b[-1]["v"] == 22000.0, b
+    assert pb.closes("AAPL", sessions=3) == [("2026-10-20", 120.5), ("2026-10-21", 121.5), ("2026-10-22", 122.5)]
+    assert pb.bars("AAPL", start="2026-10-05", end="2026-10-07") and all("2026-10-05" <= x["date"] <= "2026-10-07" for x in pb.bars("AAPL", start="2026-10-05", end="2026-10-07"))
+    assert pb.closes("LAG") == [] and len(pb.closes("LAG", complete_only=False)) == 15       # one session behind: a miss unless the caller accepts history
+    assert pb.bars("NOPE") == [] and pb.closes("NOPE") == []
+
+
 if __name__ == "__main__":
     test_polygon_bankfirst_answers_complete_windows_in_polygons_envelope()
     test_polygon_bankfirst_session_window_and_never_inside_the_banks()
+    test_polygon_bankfirst_bars_and_closes_read_the_bank_directly()
     print("ok polygon_bankfirst")
