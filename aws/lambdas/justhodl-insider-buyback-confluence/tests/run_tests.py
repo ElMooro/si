@@ -19,9 +19,9 @@ os.environ["TELEGRAM_BOT_TOKEN"] = ""
 class FakeBank(types.ModuleType):
     days = []
 
-    def walker_days(self, dataset, days=30, end=None):
+    def walker_days(self, dataset, days=30, end=None, where=None):
         assert dataset == "insider-trading-latest" and days == 60
-        return list(self.days)
+        return [(d, [r for r in rows if where is None or where(r)]) for d, rows in self.days]      # mirrors the real reader: filter on read
 
 
 class FakeBook(types.ModuleType):
@@ -115,7 +115,7 @@ def test_bank_feed_widens_the_insider_side_and_the_book_answers_quotes():
     rc = lf.lambda_handler({}, None)
     assert rc["statusCode"] == 200, rc
     out = stubs["s3"].written[lf.S3_KEY]
-    assert out["version"] == "1.1.0" and out["feeders"]["insider_bank_days"] == 2 and out["feeders"]["insider_bank_feed_rows"] == 7
+    assert out["version"] == "1.1.0" and out["feeders"]["insider_bank_days"] == 2 and out["feeders"]["insider_bank_feed_rows"] == 6   # the S-Sale row never leaves the reader (filtered on read)
     assert out["feeders"]["insider_feeder_tickers"] == 1 and out["feeders"]["insider_bank_tickers"] == 4 and out["feeders"]["insider_tickers_count"] == 4
     assert out["feeders"]["insider_source_used"].startswith("fmp-walker bank insider-trading-latest (2 days) + feeder")
     rows = {c["ticker"]: c for c in out["all_confluences"]}

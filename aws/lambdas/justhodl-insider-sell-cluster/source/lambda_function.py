@@ -125,7 +125,8 @@ def fetch_bank_sells(days=None):
     if _bank is None or not hasattr(_bank, "walker_days"):
         return [], 0, 0
     try:
-        banked = _bank.walker_days("insider-trading-latest", days=days or BANK_FEED_DAYS)
+        banked = _bank.walker_days("insider-trading-latest", days=days or BANK_FEED_DAYS,
+                                   where=lambda r: isinstance(r, dict) and _is_sale(r))      # sales only, filtered as each day is read (the feed is ~3,000 rows a day)
     except Exception:  # noqa: BLE001
         banked = []
     cutoff = datetime.utcnow().date() - timedelta(days=14)

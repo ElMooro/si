@@ -18,9 +18,9 @@ os.environ["TELEGRAM_TOKEN"] = ""
 class FakeBank(types.ModuleType):
     days = []
 
-    def walker_days(self, dataset, days=30, end=None):
+    def walker_days(self, dataset, days=30, end=None, where=None):
         assert dataset == "insider-trading-latest" and days == 33, (dataset, days)
-        return list(self.days)
+        return [(d, [r for r in rows if where is None or where(r)]) for d, rows in self.days]      # mirrors the real reader: filter on read
 
 
 class FakeBook(types.ModuleType):
@@ -110,7 +110,7 @@ def test_bank_feed_is_the_first_rung_and_maps_to_the_form4_schema():
     rc = lf.lambda_handler({}, Ctx())
     body = json.loads(rc["body"])
     out = s3.written[lf.S3_KEY]
-    assert out["version"] == "2.1.0" and out["source_used"].startswith("fmp-walker bank insider-trading-latest (3 days, 8 feed rows, 6 purchases)"), out["source_used"]      # raw purchases; the duplicate accession and the 40-day-old row fall in build_clusters
+    assert out["version"] == "2.1.0" and out["source_used"].startswith("fmp-walker bank insider-trading-latest (3 days, 7 feed rows, 6 purchases)"), out["source_used"]      # raw purchases; the duplicate accession and the 40-day-old row fall in build_clusters
     assert out["stats"]["n_buy_transactions"] == 6 and out["stats"]["n_form4_filings_scanned"] == 0 and out["stats"]["n_bank_feed_days"] == 3
     assert not sec_calls, "the SEC ladder must not run when the bank answers"
     tickers = {c["ticker"]: c for c in out["clusters"]}

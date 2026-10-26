@@ -216,7 +216,8 @@ def load_insider_bank(days=None):
     if _bank is None or not hasattr(_bank, "walker_days"):
         return {}, 0
     try:
-        days_rows = _bank.walker_days("insider-trading-latest", days=days or INSIDER_BANK_DAYS)
+        days_rows = _bank.walker_days("insider-trading-latest", days=days or INSIDER_BANK_DAYS,
+                                      where=lambda r: isinstance(r, dict) and str(r.get("transactionType") or "").upper().startswith("P"))   # purchases only, filtered as each day is read
     except Exception as e:  # noqa: BLE001
         print(f"[insider-bank] {str(e)[:60]}")
         return {}, 0

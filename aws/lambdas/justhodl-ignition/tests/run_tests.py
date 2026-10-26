@@ -46,9 +46,9 @@ class FakeBook(types.ModuleType):
 class FakeBank(types.ModuleType):
     days = []
 
-    def walker_days(self, dataset, days=30, end=None):
+    def walker_days(self, dataset, days=30, end=None, where=None):
         assert dataset == "insider-trading-latest"
-        return list(self.days)
+        return [(d, [r for r in rows if where is None or where(r)]) for d, rows in self.days]      # mirrors the real reader: filter on read
 
 
 class S3Stub:

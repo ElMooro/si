@@ -330,7 +330,8 @@ def bank_feed_transactions(days=None):
     if _bank is None or not hasattr(_bank, "walker_days"):
         return [], 0, 0
     try:
-        banked = _bank.walker_days("insider-trading-latest", days=days or BANK_FEED_DAYS)
+        banked = _bank.walker_days("insider-trading-latest", days=days or BANK_FEED_DAYS,
+                                   where=lambda r: isinstance(r, dict) and ((r.get("transactionType") or "").upper().strip().startswith("P-") or (r.get("transactionType") or "").upper().strip() == "P"))   # purchases only, on read
     except Exception:  # noqa: BLE001
         banked = []
     txns, n_rows = [], 0

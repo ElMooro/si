@@ -19,9 +19,9 @@ os.environ["TELEGRAM_BOT_TOKEN"] = ""
 class FakeBank(types.ModuleType):
     days = []
 
-    def walker_days(self, dataset, days=30, end=None):
+    def walker_days(self, dataset, days=30, end=None, where=None):
         assert dataset == "insider-trading-latest" and days == 16
-        return list(self.days)
+        return [(d, [r for r in rows if where is None or where(r)]) for d, rows in self.days]      # mirrors the real reader: filter on read
 
 
 class FakeBook(types.ModuleType):
@@ -110,8 +110,8 @@ def test_bank_feed_is_the_first_rung_with_the_strict_sale_filter_and_book_quotes
     rc = lf.lambda_handler({}, None)
     assert rc["statusCode"] == 200, rc
     out = stubs["s3"].written[lf.S3_KEY]
-    assert out["version"] == "1.1.0" and out["source_used"].startswith("fmp-walker bank (3 days, 13 feed rows)"), out["source_used"]
-    assert out["feed_basis"]["bank_days"] == 3 and out["n_raw_sells_scanned"] == 6, out["feed_basis"]      # 3 BIG + 3 SMALL; purchases, 10b5-1 and the 20-day-old row dropped
+    assert out["version"] == "1.1.0" and out["source_used"].startswith("fmp-walker bank (3 days, 10 feed rows)"), out["source_used"]
+    assert out["feed_basis"]["bank_days"] == 3 and out["n_raw_sells_scanned"] == 6, out["feed_basis"]      # 3 BIG + 3 SMALL; purchases never leave the reader (filtered on read), 10b5-1 and the 20-day-old row dropped here
     assert [c["ticker"] for c in out["all_clusters"]] == ["BIG"], out["all_clusters"]
     big = out["all_clusters"][0]
     assert big["n_distinct_sellers"] == 3 and big["total_sale_value_usd"] == 15_000_000 and big["price_source"].startswith("factor-book")
