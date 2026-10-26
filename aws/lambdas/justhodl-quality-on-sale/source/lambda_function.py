@@ -50,6 +50,10 @@ UNIVERSE
 STATIC_TOP50_SPX (cross-engine fusion consistency with #4/#7/#8/#10).
 Same 50 names used by Predictability, Smart Beta, EVA, StarMine — ensures
 all 5 inputs have data for every name evaluated.
+v1.1.0 adds `book_screen`: the whole US market asked the same question with
+the factor book's facts (quality top decile, Piotroski >= 7, ROIC >= 20%,
+>= 20% off the 52-week high, Altman Z >= 3) — a labelled watchlist beside
+the 5-gate desk, never a replacement.
 
 OUTPUT
 ──────
@@ -87,7 +91,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/quality-on-sale.json"
 
@@ -115,6 +119,36 @@ STATIC_TOP50_SPX = [
 ]
 
 s3 = boto3.client("s3", region_name="us-east-1")
+
+# v1.1.0 (2026-10-26, bank fusion): the 5-gate conjunction above runs on the static 50 because its four upstream feeds
+# cover those 50.  The factor book (justhodl-bank-factors) lets the same idea be asked of the WHOLE US market with the
+# bank's own facts: quality composite in the top decile, Piotroski >= 7, ROIC >= 20%, >= 20% off the 52-week high,
+# Altman Z >= 3 (no distress).  It is published as a separate, labelled `book_screen` block - the 5-gate verdicts are
+# unchanged - so a reader gets both the proven desk and the market-wide watchlist.
+BOOK_SCREEN_LIMIT = int(os.environ.get("QOS_BOOK_SCREEN_LIMIT", "60"))
+try:
+    import bank_enrich as _book
+except Exception:  # noqa: BLE001
+    _book = None
+
+
+def book_screen():
+    """Whole-market quality-on-sale candidates from the factor book; {} when the book is not there."""
+    if _book is None or not _book.available():
+        return {"available": False}
+    try:
+        rows = _book.screen(lambda r: (r.get("composite_quality") or 0) >= QUALITY_PCTILE_MIN and (r.get("piotroski") or 0) >= 7
+                            and (r.get("roic") or 0) >= ROIC_MIN_PCT / 100.0 and r.get("from_52w_high_pct") is not None and r["from_52w_high_pct"] <= -DRAWDOWN_MIN_PCT
+                            and (r.get("altman_z") or 0) >= 3.0 and (r.get("mcap") or 0) >= 1e9,
+                            fields=["composite_quality", "piotroski", "roic", "from_52w_high_pct", "altman_z", "mcap", "gross_margin", "pe", "pt_upside_pct", "composite_value"])
+    except Exception as e:  # noqa: BLE001
+        return {"available": True, "error": type(e).__name__}
+    rows.sort(key=lambda r: (-(r.get("composite_quality") or 0), r.get("from_52w_high_pct") or 0))
+    return {"available": True, "source": "factor book (justhodl-bank-factors; aws/shared/bank_enrich)", "as_of": _book.as_of(),
+            "rule": "composite_quality >= %d pct AND piotroski >= 7 AND roic >= %d%% AND >= %d%% off the 52-week high AND altman_z >= 3 AND mcap >= $1B (US common stocks)" % (QUALITY_PCTILE_MIN, ROIC_MIN_PCT, DRAWDOWN_MIN_PCT),
+            "n": len(rows), "candidates": [{"ticker": r["symbol"], "sector": r.get("sector"), "quality_pct": r.get("composite_quality"), "piotroski": r.get("piotroski"),
+                                             "roic_pct": round((r.get("roic") or 0) * 100, 1), "off_52w_high_pct": r.get("from_52w_high_pct"), "altman_z": r.get("altman_z"),
+                                             "mcap_b": round((r.get("mcap") or 0) / 1e9, 1), "pe": r.get("pe"), "pt_upside_pct": r.get("pt_upside_pct"), "value_pct": r.get("composite_value")} for r in rows[:BOOK_SCREEN_LIMIT]]}
 
 
 def fetch_s3_json(key):
@@ -475,6 +509,7 @@ def lambda_handler(event=None, context=None):
         "qualified_5_of_5": qualified,
         "near_qualified_4_of_5": near_qualified[:15],
         "all_evaluated": results,
+        "book_screen": book_screen(),
         "feeds_available": feeds_available,
         "methodology": {
             "framework": "Buffett-style Quality-on-Sale 5-condition AND gate",
