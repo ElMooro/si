@@ -1,41 +1,30 @@
 # ops 6669 - equity-research: one request traced end to end (read-only)
 
-**Status:** failure  
-**Duration:** 33.6s  
-**Finished:** 2026-10-26T11:30:57+00:00  
-
-## Error
-
-```
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 98, in report
-    yield r
-  File "/home/runner/work/si/si/aws/ops/STAGED/ops_6669_equity_research_trace.py", line 67, in main
-    resp = lam.invoke(FunctionName=FN, InvocationType="RequestResponse", Payload=json.dumps({"queryStringParameters": {"ticker": "AAPL", "refresh": "1"}, "rawQueryString": "ticker=AAPL&refresh=1"}).encode())
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
-    return self._make_api_call(operation_name, kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
-    return func(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
-    raise error_class(parsed_response, operation_name)
-botocore.errorfactory.TooManyRequestsException: An error occurred (TooManyRequestsException) when calling the Invoke operation (reached max retries: 8): Rate Exceeded.
-
-```
+**Status:** success  
+**Duration:** 31.9s  
+**Finished:** 2026-10-26T11:35:10+00:00  
 
 ## Log
 ## 1. the shim's decisions on the runner (same code the function runs)
 
-- `11:30:24` profile?symbol=AAPL -> shaped True | bank rows 1 in 0.37s | fresh_enough True | never False
-- `11:30:24` quote?symbol=AAPL -> shaped True | bank rows 0 in 0.00s | fresh_enough None | never True
-- `11:30:24` income-statement?symbol=AAPL&period=annual&limit=20 -> shaped True | bank rows 4 in 0.00s | fresh_enough True | never False
-- `11:30:24` ratios?symbol=AAPL&period=annual&limit=15 -> shaped True | bank rows 3 in 0.00s | fresh_enough True | never False
-- `11:30:24` key-metrics-ttm?symbol=AAPL -> shaped True | bank rows 1 in 0.12s | fresh_enough True | never False
-- `11:30:24` historical-price-eod/light?symbol=AAPL&from=2016-10-26 -> shaped True | bank rows 5000 in 0.25s | fresh_enough True | never False
-- `11:30:24` fmp_bank STATS {"s3_gets": 7, "s3_misses": 0, "table_builds": 0, "table_evictions": 0, "table_refetches": 0, "history_book_hits": 4} | history book phase STEADY
-- `11:30:24` fmp-bank manifest updated_at 2026-10-26T02:55:44.008955+00:00 endpoints_served 28
+- `11:34:38` profile?symbol=AAPL -> shaped True | bank rows 1 in 0.16s | fresh_enough True | never False
+- `11:34:38` quote?symbol=AAPL -> shaped True | bank rows 0 in 0.00s | fresh_enough None | never True
+- `11:34:38` income-statement?symbol=AAPL&period=annual&limit=20 -> shaped True | bank rows 4 in 0.00s | fresh_enough True | never False
+- `11:34:38` ratios?symbol=AAPL&period=annual&limit=15 -> shaped True | bank rows 3 in 0.00s | fresh_enough True | never False
+- `11:34:38` key-metrics-ttm?symbol=AAPL -> shaped True | bank rows 1 in 0.03s | fresh_enough True | never False
+- `11:34:38` historical-price-eod/light?symbol=AAPL&from=2016-10-26 -> shaped True | bank rows 5000 in 0.09s | fresh_enough True | never False
+- `11:34:38` fmp_bank STATS {"s3_gets": 7, "s3_misses": 0, "table_builds": 0, "table_evictions": 0, "table_refetches": 0, "history_book_hits": 4} | history book phase STEADY
+- `11:34:38` fmp-bank manifest updated_at 2026-10-26T02:55:44.008955+00:00 endpoints_served 28
 ## 2. one invocation, traced
 
-- `11:30:25` deployed: modified 2026-10-26T11:07:39, 1024 MB, 300 s
+- `11:34:38` deployed: modified 2026-10-26T11:33:37, 1024 MB, 300 s
+- `11:34:44` invoke RequestId 59c0e9ac-9732-4c1b-b349-6151ce72b3de: status 200, 142036 bytes, FunctionError None, head b'{"statusCode": 200, "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Cache-Control": "public, max-age=3600"}, "body": "{\\"capital_structure_context\\": {\\"contract\\"'
+- `11:35:10` 3 log lines for this request:
+- `11:35:10`    START RequestId: 59c0e9ac-9732-4c1b-b349-6151ce72b3de Version: $LATEST
+- `11:35:10`    END RequestId: 59c0e9ac-9732-4c1b-b349-6151ce72b3de
+- `11:35:10`    REPORT RequestId: 59c0e9ac-9732-4c1b-b349-6151ce72b3de	Duration: 4752.45 ms	Billed Duration: 5386 ms	Memory Size: 1024 MB	Max Memory Used: 227 MB	Init Duration: 633.23 ms	 ⏎ XRAY TraceId: 1-6adf3ace-16477f126ac9f0a8427a4da4	SegmentId: f6e0fa77e85e4831	Sampled: true
+- `11:35:10` engine / shim lines since the invoke (3):
+- `11:35:10`    11:34:39 | [research] fetching AAPL
+- `11:35:10`    11:34:40 | [fmp-bankfirst] first hit: hits=1 stale=0 misses=0 unshaped=0 passthrough=1 bypassed=0 errors=0 bank_time=0.2s
+- `11:35:10`    11:34:41 | [research] 23/43 endpoints returned data
+- `11:35:10` ✅ ops 6669 complete (read-only)
