@@ -59,7 +59,16 @@ from bank_enrich import factor, factors, matrix, screen, prescreen, lookup, quot
   intraday desk.
 - `attach(out)` → adds `out["bank_enrichment"] = {source, as_of, fields, rows{sym:{…}}, missing}` to an engine's output
   (symbols discovered from the document; additive, the engine's own keys untouched).
+- `squeeze(sym)` / `squeezes([...])` → the standard short-squeeze block (SI % float, days to cover, float, short-volume
+  ratio, market cap, average volume, bank close, 21/63-session returns, distance from the 52-week high, squeeze
+  composite) from the projection — the equity-ftd pattern once, for every squeeze / pump / ignition engine (wave 2).
 - Never raises, never fabricates (a missing name is in `missing`), every answer carries `as_of`.
+
+Feed readers live next door in `aws/shared/fmp_bank.py` (no key, bank-only): `walker_days(dataset, days)` for a
+daily-dated feed (the whole FMP insider feed per day), `walker_latest(dataset, lookback_days)` for the newest banked
+page-set of a latest-pages feed (13F latest, senate/house latest, news, M&A), `walker_pages(dataset)` to iterate a
+paged reference feed (shares-float-all) one page at a time, `walker(dataset, entity, period=...)` for per-entity files,
+`statements(path, symbol, period, limit)` for statement history.
 
 ## 3. Engine integrations
 

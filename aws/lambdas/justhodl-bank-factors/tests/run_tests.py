@@ -267,6 +267,10 @@ def test_bank_enrich_sdk_reads_the_book_and_attaches_with_provenance():
     assert qt and qt["source"].startswith("factor-book (bank close") and qt["price"] is not None and qt["marketCap"] is not None, qt
     assert qt["sector"] is not None and qt["exchange"] is not None and qt["symbol"] == "AAPL" and qt["as_of"]["fmp-bank"], qt
     assert len(be._DOCS) == n_docs and be.quote("NOPE") is None, "quote() must come from the projection, not the symbol documents"
+    # squeeze(): the standard block from the projection, labelled; absent name -> None
+    sq = be.squeeze("tiny")
+    assert sq and sq["symbol"] == "TINY" and sq["short_pct_float"] == 25.0 and sq["source"].startswith("factor-book") and sq["as_of"]["fmp-bank"], sq
+    assert set(be.SQUEEZE_FIELDS) <= set(sq) and be.squeeze("NOPE") is None and set(be.squeezes(["TINY", "NOPE", "aapl"])) == {"TINY", "AAPL"}
     # many symbols -> the matrix path; the same field names
     out2 = be.attach({"rows": [{"symbol": s} for s in ("AAPL MSFT XOM JPM TINY BRK-B SPY OTCX ABR-PD".split() * 3)]}, fields=["altman_z", "composite_value"])
     assert out2["bank_enrichment"]["n"] == 9 and out2["bank_enrichment"]["rows"]["MSFT"]["altman_z"] == 2.0

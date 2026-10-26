@@ -607,6 +607,63 @@ def walker(dataset, entity=None, period=None, day=None, exchange=None):
     return _wjson(key + ".json.gz")
 
 
+def walker_days(dataset, days=30, end=None):
+    """A daily_dated walker feed (insider-trading-latest, sector/industry pe + performance snapshots, 13f-asset-allocation):
+    [(day, rows), ...] newest first for the last `days` calendar days ending at `end` (today UTC); days the bank lacks are
+    skipped (a miss is cached, so the scan is cheap).  [] when nothing is banked."""
+    from datetime import date, datetime, timedelta, timezone
+    out = []
+    try:
+        last = date.fromisoformat(end) if end else datetime.now(timezone.utc).date()
+    except (TypeError, ValueError):
+        last = datetime.now(timezone.utc).date()
+    for i in range(max(0, int(days))):
+        day = (last - timedelta(days=i)).isoformat()
+        rows = walker(dataset, day=day)
+        if isinstance(rows, list) and rows:
+            out.append((day, rows))
+    return out
+
+
+def walker_latest(dataset, lookback_days=10, end=None):
+    """The newest banked page-set of a latest_pages walker feed (institutional-ownership-latest, senate-latest,
+    house-latest, news-*-latest, mergers-acquisitions-latest, grades/price-target news ...), written as
+    <id>/<YYYY-MM-DD>.json.gz: (day, rows) or (None, None) when none of the last `lookback_days` days is banked."""
+    from datetime import date, datetime, timedelta, timezone
+    try:
+        last = date.fromisoformat(end) if end else datetime.now(timezone.utc).date()
+    except (TypeError, ValueError):
+        last = datetime.now(timezone.utc).date()
+    for i in range(max(1, int(lookback_days))):
+        day = (last - timedelta(days=i)).isoformat()
+        rows = _wjson(WALKER_ROOT + dataset + "/" + day + ".json.gz")
+        if isinstance(rows, list) and rows:
+            return day, rows
+    return None, None
+
+
+def walker_pages(dataset, day=None, lookback_days=10, max_pages=400):
+    """Iterate the pages of a paged reference feed (shares-float-all, cik-list ...; <id>/<day>/pNNN.json.gz) one page at
+    a time - memory stays at one page.  Yields (day, page_no, rows); nothing when the bank has no such day."""
+    from datetime import date, datetime, timedelta, timezone
+    days = [day] if day else []
+    if not days:
+        last = datetime.now(timezone.utc).date()
+        days = [(last - timedelta(days=i)).isoformat() for i in range(max(1, int(lookback_days)))]
+    for d in days:
+        first = _wjson(WALKER_ROOT + dataset + "/" + d + "/p000.json.gz")
+        if not isinstance(first, list):
+            continue
+        yield d, 0, first
+        for page in range(1, max(1, int(max_pages))):
+            rows = _wjson(WALKER_ROOT + dataset + "/" + d + "/p%03d.json.gz" % page)
+            if not isinstance(rows, list):
+                return
+            yield d, page, rows
+        return
+
+
+
 def try_walker(path, q):
     """Answer a /stable path + parsed query from the walker bank (same shapes the live endpoint returns) or None."""
     head = (path or "").strip("/")

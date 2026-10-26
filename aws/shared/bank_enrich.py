@@ -317,6 +317,37 @@ def quote(symbol):
             "sharesOutstanding": (d.get("float") or {}).get("outstandingShares"), "as_of": (d.get("as_of") or {}), "source": "factor-book (bank close, not a live tick)"}
 
 
+SQUEEZE_FIELDS = ("short_pct_float", "days_to_cover", "float_shares", "short_volume_ratio", "mcap", "avg_volume", "close", "ret_21d", "ret_63d", "from_52w_high_pct", "composite_squeeze")
+
+
+def squeeze(symbol):
+    """The standard short-squeeze context block for one symbol from the column projection: short interest % of float
+    and days to cover (Polygon bank, latest settlement), float, 5-session short-volume ratio, market cap, 20-day average
+    volume, bank close, 21/63-session returns, distance from the 52-week high and the squeeze composite percentile.
+    None when the book lacks the name or the index is absent; every value may be None (an unbanked fact, never a guess).
+    Labelled `as_of` + `source`.  The wave-1 equity-ftd pattern, once, for every squeeze / pump / ignition engine."""
+    if index() is None:
+        return None
+    row = lookup(symbol, list(SQUEEZE_FIELDS))
+    if row is None:
+        return None
+    out = {k: row.get(k) for k in SQUEEZE_FIELDS}
+    out["symbol"] = str(symbol).upper()
+    out["as_of"] = as_of()
+    out["source"] = "factor-book (polygon-bank short interest + FMP float + Polygon tape; bank close, not a live tick)"
+    return out
+
+
+def squeezes(symbols):
+    """squeeze() for many symbols -> {symbol: block}; names the book lacks are absent (one projection read)."""
+    out = {}
+    for s in dict.fromkeys(str(x).upper() for x in (symbols or []) if x):
+        b = squeeze(s)
+        if b is not None:
+            out[s] = b
+    return out
+
+
 def _discover(doc, cap=2000):
     """Symbols mentioned in an engine's output: values under keys named symbol/ticker (bounded walk)."""
     found, seen = [], set()

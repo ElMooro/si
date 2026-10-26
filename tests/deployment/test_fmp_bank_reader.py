@@ -58,6 +58,27 @@ assert len(_got) == 8 and all(t is _got[0] for t in _got), "every waiter must ge
 fmp_bank._fetch = _orig_fetch
 assert fmp_bank._load_slots() in (1, 2)
 
+# 2026-10-26 (bank fusion wave 2): feed readers for the walker's three feed layouts
+W = fmp_bank.WALKER_ROOT
+from datetime import datetime as _dt, timedelta as _td, timezone as _tz
+_today = _dt.now(_tz.utc).date()
+_d0, _d1, _d2 = [(_today - _td(days=i)).isoformat() for i in (0, 1, 2)]
+store[W + "insider-trading-latest/%s/%s.json.gz" % (_d1[:4], _d1)] = gz(json.dumps([{"symbol": "AAA", "transactionType": "P-Purchase"}]))
+store[W + "insider-trading-latest/%s/%s.json.gz" % (_d2[:4], _d2)] = gz(json.dumps([{"symbol": "BBB", "transactionType": "S-Sale"}, {"symbol": "CCC", "transactionType": "P-Purchase"}]))
+store[W + "senate-latest/%s.json.gz" % _d2] = gz(json.dumps([{"symbol": "NVDA", "type": "Purchase"}]))
+store[W + "shares-float-all/%s/p000.json.gz" % _d1] = gz(json.dumps([{"symbol": "AAPL", "floatShares": 1}, {"symbol": "MSFT", "floatShares": 2}]))
+store[W + "shares-float-all/%s/p001.json.gz" % _d1] = gz(json.dumps([{"symbol": "XOM", "floatShares": 3}]))
+fmp_bank._MISSING.clear()
+days = fmp_bank.walker_days("insider-trading-latest", days=5)
+assert [d for d, _ in days] == [_d1, _d2] and len(days[1][1]) == 2, days                       # newest first, unbanked days skipped
+assert fmp_bank.walker_days("insider-trading-latest", days=0) == [] and fmp_bank.walker_days("nope-feed", days=3) == []
+day, rows = fmp_bank.walker_latest("senate-latest", lookback_days=5)
+assert day == _d2 and rows[0]["symbol"] == "NVDA", (day, rows)
+assert fmp_bank.walker_latest("house-latest", lookback_days=3) == (None, None)
+pages = list(fmp_bank.walker_pages("shares-float-all", lookback_days=5))
+assert [(d, n, len(r)) for d, n, r in pages] == [(_d1, 0, 2), (_d1, 1, 1)], pages
+assert list(fmp_bank.walker_pages("shares-float-all", day=_d0)) == []
+
 
 def test_fmp_bank_reader_and_book_chain():
     pass  # assertions above ran at import (module-level, like the sibling byte tests)
