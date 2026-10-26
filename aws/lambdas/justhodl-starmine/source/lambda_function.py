@@ -70,7 +70,7 @@ except Exception:  # noqa: BLE001
     _bank = None
 
 # ---------- Constants ----------
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 BOOK_CANDIDATES = int(os.environ.get("STARMINE_BOOK_CANDIDATES", "150"))
 BOOK_MIN_MCAP = float(os.environ.get("STARMINE_BOOK_MIN_MCAP", "5000000000"))
 BOOK_MIN_PT_N = int(os.environ.get("STARMINE_BOOK_MIN_PT_N", "5"))
@@ -191,8 +191,10 @@ STATIC_TOP50_SPX = [
 def fmp_sp500_with_retry(max_retries=5):
     """Tier 1: FMP /stable/sp500-constituent with exponential backoff on 429."""
     url = f"{FMP_BASE}/sp500-constituent?apikey={FMP_KEY}"
-    backoffs = [5, 15, 30, 60, 90]
+    backoffs = [5, 10, 10, 10, 10]        # v1.1.1: the walker bank answers this list first; under an FMP block the 3-tier ladder (S3 screener) must not wait 200 s
     for attempt in range(max_retries):
+        if _LIVE["off"]:
+            break
         d = http_json(url)
         if isinstance(d, list) and d:
             return d, "fmp_sp500_constituent"
@@ -372,6 +374,37 @@ def fmp_earnings_surprises(symbol):
 
 
 # ---------- Bank-first readers (v1.1.0) ----------
+# v1.1.1 (2026-10-26): a live circuit breaker.  The first light ran 3 x 900 s to the timeout: the walker's grades file is
+# banked for a minority of the 200-name universe, the shim went live for the family after 25 misses, and every live
+# /stable call under the FMP bandwidth block answered 429 after http_json's 5 s + 10 s retry sleeps - 200 names x 15 s.
+# Live calls now stop for the rest of the run after LIVE_FAIL_STOP consecutive empty answers or LIVE_BUDGET_S of live
+# time; the bank paths (walker files, factor book) carry on and the output says how many names went without.
+LIVE_BUDGET_S = float(os.environ.get("STARMINE_LIVE_BUDGET_S", "150"))
+LIVE_FAIL_STOP = int(os.environ.get("STARMINE_LIVE_FAIL_STOP", "8"))
+_LIVE = {"seconds": 0.0, "fails": 0, "calls": 0, "off": None}
+
+
+def live_call(fn, *args):
+    """Run one live FMP fetch under the breaker: None without a call once the breaker is off."""
+    if _LIVE["off"]:
+        return None
+    t0 = time.time()
+    try:
+        out = fn(*args)
+    except Exception:  # noqa: BLE001
+        out = None
+    _LIVE["seconds"] += time.time() - t0
+    _LIVE["calls"] += 1
+    _LIVE["fails"] = 0 if out else _LIVE["fails"] + 1
+    if _LIVE["fails"] >= LIVE_FAIL_STOP:
+        _LIVE["off"] = "%d consecutive empty live answers (FMP down or blocked) - live stopped for this run" % _LIVE["fails"]
+        print("[starmine] " + _LIVE["off"])
+    elif _LIVE["seconds"] > LIVE_BUDGET_S:
+        _LIVE["off"] = "live budget %.0fs spent after %d calls - live stopped for this run" % (LIVE_BUDGET_S, _LIVE["calls"])
+        print("[starmine] " + _LIVE["off"])
+    return out
+
+
 def grades_for(symbol):
     """(rows, basis): the walker's per-symbol grades file, else the live /stable/grades call."""
     if _bank is not None:
@@ -381,8 +414,9 @@ def grades_for(symbol):
             rows = None
         if isinstance(rows, list) and rows:
             return rows, "fmp-walker grades"
-    rows = fmp_grades(symbol)
-    time.sleep(FMP_SLEEP_SEC)
+    rows = live_call(fmp_grades, symbol)
+    if not _LIVE["off"]:
+        time.sleep(FMP_SLEEP_SEC)
     return rows, ("fmp live" if rows else "none")
 
 
@@ -406,8 +440,9 @@ def pt_for(symbol):
         if row and (row.get("pt_avg_1q") or row.get("pt_avg_1m")):
             return {"targetMean": row.get("pt_avg_1q") or row.get("pt_avg_1m"),
                     "numberOfAnalysts": row.get("pt_n_1q") or row.get("pt_n_1m")}, "factor-book price-target summary (1q avg)"
-    pt = fmp_pt_consensus(symbol)
-    time.sleep(FMP_SLEEP_SEC)
+    pt = live_call(fmp_pt_consensus, symbol)
+    if not _LIVE["off"]:
+        time.sleep(FMP_SLEEP_SEC)
     return pt, ("fmp live" if pt else "none")
 
 
@@ -431,8 +466,9 @@ def surprises_for(symbol):
         sur = [r for r in ((doc or {}).get("surprises") or []) if isinstance(r, dict)]
         if sur:
             return sur, "factor-book surprises"
-    rows = fmp_earnings_surprises(symbol)
-    time.sleep(FMP_SLEEP_SEC)
+    rows = live_call(fmp_earnings_surprises, symbol)
+    if not _LIVE["off"]:
+        time.sleep(FMP_SLEEP_SEC)
     return rows, ("fmp live" if rows else "none")
 
 
@@ -677,6 +713,7 @@ def telegram_notify(msg):
 
 
 def lambda_handler(event, context):
+    _LIVE.update(seconds=0.0, fails=0, calls=0, off=None)                 # v1.1.1: the live breaker is per run
     started = datetime.now(timezone.utc)
     log = []
     for k in BASIS:
@@ -770,6 +807,7 @@ def lambda_handler(event, context):
         "n_book_candidates": UNIVERSE_META.get("n_book_candidates", 0),
         "book_as_of": UNIVERSE_META.get("book_as_of"),
         "basis_counts": BASIS,
+        "live_state": {"calls": _LIVE["calls"], "seconds": round(_LIVE["seconds"], 1), "stopped": _LIVE["off"]},     # v1.1.1 circuit breaker
         "n_universe_analyzed": len(per_ticker),
         "n_scored": len(scored),
         "median_rrm_raw": (round(statistics.median(rrm_vals), 2)

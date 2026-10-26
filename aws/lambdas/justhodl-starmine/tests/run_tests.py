@@ -120,7 +120,11 @@ def test_book_universe_bank_first_inputs_and_labels():
     lf.http_json = lambda url, retries=2: live.append(url) or {"_error": "HTTP 429", "_code": 429}
     lf.lambda_handler({}, None)
     out = s3.written[lf.S3_KEY]
-    assert out["ok"] and out["version"] == "1.1.0" and out["n_book_candidates"] == 20 and out["book_as_of"] == {"fmp-bank": "2026-10-25"}
+    assert out["ok"] and out["version"] == "1.1.1" and out["n_book_candidates"] == 20 and out["book_as_of"] == {"fmp-bank": "2026-10-25"}
+    # v1.1.1: live calls stop after LIVE_FAIL_STOP consecutive empty answers - 50 static names x 3 families never costs 150 live calls
+    ls = out["live_state"]
+    assert ls["stopped"] and "consecutive empty live answers" in ls["stopped"] and ls["calls"] == lf.LIVE_FAIL_STOP, ls
+    assert len([u for u in live if "financialmodelingprep" in u]) <= lf.LIVE_FAIL_STOP + 2, len(live)
     assert out["universe_source_tier"].endswith("+factor_book_20") and "analyst-covered" in out["universe_basis"], out["universe_source_tier"]
     assert out["n_universe_analyzed"] == 70 and out["n_scored"] >= 17 and len(out["top_25_conviction"]) == 25
     bc = out["basis_counts"]
