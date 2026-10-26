@@ -81,7 +81,6 @@ as the fallback when the book is absent (`factor book unavailable` in the output
 | `justhodl-stock-valuations` | 1.6.0 | U | the HP small/mid-cap universe ($75M–$3B, > 150k avg volume, NYSE/NASDAQ common) comes from the book; the FMP company-screener (a search endpoint no bank holds) is the second rung |
 | `justhodl-analyst-consensus` | 1.1 | U + F | 200 curated names → + every analyst-covered US common stock (≥ 3 targets last month, ≥ $300M, up to 2,500); a name the book holds is scored from the book with zero live calls (`source: factor-book`, `target_basis`); composite weights unchanged |
 | `justhodl-quality-on-sale` | 1.1.0 | U | the 5-gate desk stays on its static 50 (its four upstream feeds cover those); a labelled `book_screen` asks the whole market the same question with the bank's facts (quality composite top decile, Piotroski ≥ 7, ROIC ≥ 20%, ≥ 20% off the 52-week high, Altman Z ≥ 3, ≥ $1B) |
-| `justhodl-eps-revision-velocity` | 1.1 | U | the analyst-covered market from the book (≥ 3 targets last month, ≥ $300M) leads the universe before the seed lists; bank-close quotes labelled per row |
 | `justhodl-insider-radar` | 1.2.0 | E | the first rung of its source ladder is now 35 banked days of the whole FMP insider feed (walker `insider-trading-latest`, per day since 2024) instead of one live page of 1,000 rows; the live and S3 rungs stand |
 | `justhodl-beneish` | 1.1.0 | U + H | the M-Score across every US common stock ≥ $500M from the bank's statement files (no live call, no pacing); the top-50 `universe_state` keeps its meaning; a `market` block carries the whole-market and per-sector red-flag rates with Altman Z / income quality / SBC / short % float context on each flag |
 
@@ -89,7 +88,7 @@ as the fallback when the book is absent (`factor book unavailable` in the output
 
 - squeeze / short: pre-pump-detector, pump-mechanics, ignition, short-interest, early-movers, momentum-leaders (SI % float, DTC, float, short-volume ratio).
 - quality / value screens: coffee-can, buyback-yield-ranking, eva-spread, smart-beta, fortress, forensic-screen; gf-value needs a memory redesign first (it runs at its 1.5 GB ceiling on the S&P 500 alone).
-- earnings: pead-detector, post-earnings-mean-rev, earnings-quality, estimate-revisions, rating-change-cluster, starmine (surprises, estimates, grades).
+- earnings: pead-detector, post-earnings-mean-rev, estimate-revisions, rating-change-cluster, starmine (surprises, estimates, grades). `eps-revision-velocity`, `earnings-quality` and `short-interest` run reviewed original-source contracts (acquisition plans, archived originals, "preserve previous publication") - a fusion there is its own reviewed change, not a universe patch (the 2026-10-26 eps-revision-velocity patch touched only its dormant legacy path and was withdrawn).
 - insider / 13F / political feeds: insider-cluster-scanner, insider-sell-cluster, insider-aggregate, insider-buyback-confluence, smart-money-*, 13f-*, political-trades (walker feed readers, the insider-radar pattern).
 - energy: refining-stress, inventory-drawdown, commodity-curves, metals-miners (an `eia_bank` reader).
 - crypto: crypto-scorecard, crypto-etf-arb, crypto-* (CMC history, CryptoQuant hourly).

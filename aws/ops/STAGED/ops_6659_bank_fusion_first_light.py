@@ -33,7 +33,6 @@ ENGINES = [
     ("justhodl-quality-on-sale", "data/quality-on-sale.json", 300),
     ("justhodl-beneish", "data/beneish.json", 540),
     ("justhodl-insider-radar", "data/insider-radar.json", 240),
-    ("justhodl-eps-revision-velocity", "data/eps-revision-velocity.json", 300),
 ]
 
 
