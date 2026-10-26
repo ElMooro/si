@@ -76,6 +76,11 @@ buys = fmp_bank.walker_days("insider-trading-latest", days=5, where=lambda r: st
 assert [(d, len(r)) for d, r in buys] == [(_d1, 1), (_d2, 1)] and buys[1][1][0]["symbol"] == "CCC", buys        # filter-on-read keeps only the purchases
 assert fmp_bank.walker_latest_days("senate-latest", days=5) == [(_d2, [{"symbol": "NVDA", "type": "Purchase"}])]
 assert fmp_bank.walker_latest_days("senate-latest", days=5, where=lambda r: r.get("symbol") == "AAPL") == [(_d2, [])]
+store[W + "historical-price-eod-full/AAPL.json.gz"] = gz(json.dumps([{"symbol": "AAPL", "date": "2026-10-23", "open": 345.0, "high": 349.0, "low": 344.0, "close": 347.725, "volume": 41000000, "vwap": 347.1}, {"symbol": "AAPL", "date": "2026-10-22", "open": 340.0, "high": 346.0, "low": 339.0, "close": 345.2, "volume": 39000000, "vwap": 344.0}]))
+fmp_bank._MISSING.clear()
+light = fmp_bank.try_bank("historical-price-eod/light", "symbol=AAPL&from=2016-10-26")
+assert light == [{"symbol": "AAPL", "date": "2026-10-23", "price": 347.725, "volume": 41000000}, {"symbol": "AAPL", "date": "2026-10-22", "price": 345.2, "volume": 39000000}], light   # the light endpoint from the full file
+assert fmp_bank.try_bank("historical-price-eod/full", "symbol=AAPL")[0]["close"] == 347.725
 day, rows = fmp_bank.walker_latest("senate-latest", lookback_days=5)
 assert day == _d2 and rows[0]["symbol"] == "NVDA", (day, rows)
 assert fmp_bank.walker_latest("house-latest", lookback_days=3) == (None, None)

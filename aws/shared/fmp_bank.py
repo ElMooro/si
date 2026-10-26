@@ -624,6 +624,7 @@ WALKER_PATHS = {
     "funds/disclosure-dates": "funds-disclosure-dates", "funds/disclosure-holders-latest": "funds-disclosure-holders-latest",
     "historical-price-eod/full": "historical-price-eod-full", "historical-price-eod/dividend-adjusted": "historical-price-eod-dividend-adjusted",
     "historical-price-eod/non-split-adjusted": "historical-price-eod-non-split-adjusted",
+    "historical-price-eod/light": "historical-price-eod-full",            # projected to FMP's light shape below (symbol, date, price, volume)
     "earning-call-transcript-dates": "earning-call-transcript-dates",
     "economic-indicators": ("economic-indicators", "name"),
     "commitment-of-traders-report": ("commitment-of-traders-report", "symbol"),
@@ -793,6 +794,10 @@ def try_walker(path, q):
         rows = walker(ds, ent, exchange=q.get("exchange") if ds.startswith("historical-sector") or ds.startswith("historical-industry") else None)
         if rows is None:
             return None
+        if head == "historical-price-eod/light" and isinstance(rows, list):
+            # the light endpoint is the full file's (symbol, date, price=close, volume) - the same bank file answers both
+            rows = [{"symbol": r.get("symbol") or ent, "date": r.get("date"), "price": r.get("close") if r.get("close") is not None else r.get("price"), "volume": r.get("volume")}
+                    for r in rows if isinstance(r, dict) and r.get("date")]
         lim = q.get("limit")
         if isinstance(rows, list) and str(lim or "").isdigit():
             rows = rows[: int(lim)]
