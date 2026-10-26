@@ -1,0 +1,254 @@
+# ops 6663 - bank fusion wave 2: first light (20 engines; + insider-radar v1.2.2 and divcut on book v1.0.5)
+
+**Status:** success  
+**Duration:** 859.1s  
+**Finished:** 2026-10-26T06:50:16+00:00  
+
+## Log
+## 0. the factor book
+
+- `06:35:57` factor book: symbols 27215 updated 2026-10-26T04:50:58.823489+00:00 as_of {"fmp-bank": "2026-10-26T02:55:44.008955+00:00", "fmp-walker": "2026-10-26T03:03:34.986368+00:00", "polygon-bank": "2026-10-26T04:44:17.818169+00:00", "float": "2026-10-25", "polygon-short-interest": "2026-09-30", "polygon-tape": "2026-10-23"}
+## 1. deployed versions + kicks
+
+- `06:35:58` justhodl-pre-pump-detector: modified 2026-10-26T06:27:27, 1024 MB, 300 s, desc 
+- `06:35:58`    kick -> 202 (output data/pre-pump-signals.json, previous stamp 2026-10-25T11:15:56+00:00)
+- `06:35:58` justhodl-pump-mechanics: modified 2026-10-26T06:27:53, 768 MB, 240 s, desc Squeeze proxy + options skew + float rotation per pump candidate. SI i
+- `06:35:58`    kick -> 202 (output data/pump-mechanics.json, previous stamp 2026-10-25T13:15:42.130807+00:00)
+- `06:35:58` justhodl-ignition: modified 2026-10-26T06:28:12, 1024 MB, 600 s, desc Ignition v1.1.0 — inst lens pinned to fully-filed 13F quarter (ops 336
+- `06:35:58`    kick -> 202 (output data/ignition.json, previous stamp 2026-10-25T10:30:47.669343+00:00)
+- `06:35:59` justhodl-coffee-can: modified 2026-10-26T06:28:39, 512 MB, 300 s, desc Coffee-Can Tracker — multibagger holding-discipline + thesis-break det
+- `06:35:59`    kick -> 202 (output data/coffee-can.json, previous stamp 2026-10-23T13:00:18.303639+00:00)
+- `06:35:59` justhodl-buyback-yield-ranking: modified 2026-10-26T06:29:10, 1024 MB, 540 s, desc TTM buyback yield ranking. 5-factor quality: gross+net yield, FCF cove
+- `06:35:59`    kick -> 202 (output data/buyback-yield-ranking.json, previous stamp 2026-10-25T14:02:10Z)
+- `06:35:59` justhodl-eva-spread: modified 2026-10-26T06:29:37, 1024 MB, 600 s, desc Pro Pack v3 #10 EVA Spread. Stern Stewart EVA=NOPAT-WACC*IC + Bennett 
+- `06:35:59`    kick -> 202 (output data/eva-spread.json, previous stamp 2026-10-25T00:47:20.056323+00:00)
+- `06:35:59` justhodl-smart-beta: modified 2026-10-26T06:30:05, 1024 MB, 600 s, desc Refinitiv/MSCI Smart Beta Composite: 4-factor (Value+Quality+Momentum+
+- `06:35:59`    kick -> 202 (output data/smart-beta.json, previous stamp 2026-10-26T00:26:05.361721+00:00)
+- `06:36:00` justhodl-dividend-growth: modified 2026-10-26T06:30:31, 512 MB, 300 s, desc Dividend-growth compounder screen - ranks stocks RAISING the dividend 
+- `06:36:00`    kick -> 202 (output data/dividend-growth.json, previous stamp 2026-10-25 13:45 UTC)
+- `06:36:00` justhodl-pead-detector: modified 2026-10-26T06:30:50, 2048 MB, 600 s, desc 
+- `06:36:00`    kick -> 202 (output data/pead-signals.json, previous stamp 2026-10-25T08:00:55+00:00)
+- `06:36:00` justhodl-post-earnings-mean-rev: modified 2026-10-26T06:31:17, 1024 MB, 540 s, desc Post-earnings drift exhaustion / mean-rev scanner. 4-factor: earnings 
+- `06:36:00`    kick -> 202 (output data/post-earnings-mean-rev.json, previous stamp 2026-10-26T00:02:09Z)
+- `06:36:00` justhodl-rating-change-cluster: modified 2026-10-26T06:31:44, 512 MB, 300 s, desc Major-bank rating-change cluster detector. 3+ upgrades or downgrades w
+- `06:36:01`    kick -> 202 (output data/rating-change-cluster.json, previous stamp 2026-10-25T23:32:06.359031Z)
+- `06:36:01` justhodl-starmine: modified 2026-10-26T06:32:12, 1536 MB, 900 s, desc StarMine Analyst Skill Ranking (Refinitiv gap-closer): top-150 SP500 r
+- `06:36:01`    kick -> 202 (output data/starmine.json, previous stamp 2026-10-24T23:33:00.604607+00:00)
+- `06:36:01` justhodl-insider-cluster-scanner: modified 2026-10-26T06:32:30, 1536 MB, 900 s, desc 
+- `06:36:01`    kick -> 202 (output data/insider-clusters.json, previous stamp 2026-10-25T14:00:58.385254+00:00)
+- `06:36:01` justhodl-insider-sell-cluster: modified 2026-10-26T06:32:56, 768 MB, 300 s, desc Insider sell cluster defensive scanner. Excludes 10b5-1 plan trades. >
+- `06:36:01`    kick -> 202 (output data/insider-sell-cluster.json, previous stamp 2026-10-25T23:30:10Z)
+- `06:36:02` justhodl-insider-buyback-confluence: modified 2026-10-26T06:33:24, 768 MB, 300 s, desc Insider x buyback double-signal confluence: tickers with fresh insider
+- `06:36:02`    kick -> 202 (output data/insider-buyback-confluence.json, previous stamp 2026-10-25T23:00:07Z)
+- `06:36:02` justhodl-smart-money-holdings: modified 2026-10-26T06:33:50, 1024 MB, 600 s, desc Builds inverse mapping {symbol: top funds holding it} for screener int
+- `06:36:02`    kick -> 202 (output screener/smart-money-holdings.json, previous stamp 2026-10-25T14:31:37.535863+00:00)
+- `06:36:02` justhodl-smart-money-tracker: modified 2026-10-26T06:34:20, 512 MB, 120 s, desc Top hedge funds / institutional holders activity (13F-based)
+- `06:36:02`    kick -> 202 (output screener/smart-money.json, previous stamp 2026-10-25T14:00:50.091547+00:00)
+- `06:36:03` justhodl-political-trades: modified 2026-10-26T06:34:50, 256 MB, 120 s, desc Political trades tracker — Senate + House STOCK Act filings via FMP
+- `06:36:03`    kick -> 202 (output data/political-trades.json, previous stamp 2026-10-23T13:45:28.612694+00:00)
+- `06:36:03` justhodl-insider-radar: modified 2026-10-26T06:27:09, 1024 MB, 300 s, desc Insider radar v1.2.2: Form-4 open-market buys, clusters and the 60-day
+- `06:36:03`    kick -> 202 (output data/insider-radar.json, previous stamp 2026-10-25T14:40:29.679355+00:00)
+- `06:36:03` justhodl-divcut-warning: modified 2026-10-26T06:24:16, 1024 MB, 540 s, desc Dividend cut early-warning engine (v1.1.1): 5-signal cut-risk model ov
+- `06:36:03`    kick -> 202 (output data/divcut-warning.json, previous stamp 2026-10-26T05:44:59.659093Z)
+## 2. outputs after the kicks
+
+- `06:50:08` == justhodl-pre-pump-detector (data/pre-pump-signals.json) FRESH output
+- `06:50:08`    stamp 2026-10-26T06:36:21+00:00 | top keys ['all_qualifying', 'book_as_of', 'duration_s', 'factor_book', 'generated_at', 'method', 'schema_version', 'stats', 'summary', 'universe_basis', 'version']
+- `06:50:08`    universe_basis x1: "data/universe.json (first 600)"
+- `06:50:08`    book_as_of x1: {fmp-bank,fmp-walker,polygon-bank,float,polygon-short-interest,polygon-tape}
+- `06:50:08`    squeeze x119: {short_pct_float,days_to_cover,float_shares,short_volume_ratio,mcap,avg_volume}
+- `06:50:08`    source x119: "factor-book (polygon-bank short interest + FMP float + Polygon tape; bank close, not a li
+- `06:50:08`    method x1: "pre_pump_detector_v2_calibrated"
+- `06:50:08`    version x1: "2.1.0"
+- `06:50:08`    REPORT dur 23020.58 ms | max mem 218 / 1024 MB
+- `06:50:08`    logs: ['[prepump-v2] universe: 600 tickers', '[prepump-v2] history sources {"fmp": 119}; factor book squeeze on 119/119']
+- `06:50:08` == justhodl-pump-mechanics (data/pump-mechanics.json) FRESH output
+- `06:50:08`    stamp 2026-10-26T06:35:59.422520+00:00 | top keys ['error', 'generated_at', 'schema_version', 'status']
+- `06:50:08` ⚠    no fusion label found in the output
+- `06:50:08`    REPORT dur 208.03 ms | max mem 93 / 768 MB
+- `06:50:08`    logs: nothing matched (no error, no fusion line)
+- `06:50:08` == justhodl-ignition (data/ignition.json) FRESH output
+- `06:50:08`    stamp 2026-10-26T06:36:18.622758+00:00 | top keys ['book_as_of', 'duration_s', 'engine', 'factor_book', 'ftd_files', 'generated_at', 'insider_feed', 'methodology', 'pillar_availability', 'probes', 'ranks', 'regime_at_log', 'scored_n', 'signals_logged', 'top_calls', 'universe_n', 'universe_source', 'version']
+- `06:50:08`    book_as_of x1: {fmp-bank,fmp-walker,polygon-bank,float,polygon-short-interest,polygon-tape}
+- `06:50:08`    squeeze x40: {short_pct_float,days_to_cover,float_shares,short_volume_ratio,mcap,avg_volume}
+- `06:50:08`    source x40: "factor-book (polygon-bank short interest + FMP float + Polygon tape; bank close, not a li
+- `06:50:08`    version x1: "1.2.0"
+- `06:50:08`    REPORT dur 18988.06 ms | max mem 1015 / 1024 MB
+- `06:50:09`    logs: nothing matched (no error, no fusion line)
+- `06:50:09` == justhodl-coffee-can (data/coffee-can.json) FRESH output
+- `06:50:09`    stamp 2026-10-26T06:35:59.995542+00:00 | top keys ['book_as_of', 'discipline_reminder', 'elapsed_s', 'facts_basis', 'generated_at', 'holdings', 'last_action', 'method', 'n_holdings', 'portfolio', 'schema_version', 'version']
+- `06:50:09`    book_as_of x1: {fmp-bank,fmp-walker,polygon-bank,float,polygon-short-interest,polygon-tape}
+- `06:50:09`    method x1: "coffee_can_v1"
+- `06:50:09`    version x1: "1.1.0"
+- `06:50:09`    REPORT dur 303.79 ms | max mem 93 / 512 MB
+- `06:50:09`    logs: nothing matched (no error, no fusion line)
+- `06:50:09` == justhodl-buyback-yield-ranking (data/buyback-yield-ranking.json) FRESH output
+- `06:50:09`    stamp 2026-10-26T06:36:22Z | top keys ['all_ranked', 'as_of', 'book_as_of', 'cashflow_source_counts', 'engine', 'methodology', 'n_book_candidates', 'n_medium', 'n_qualified', 'n_strong', 'n_tickets', 'price_source_counts', 'run_seconds', 'signal_strength', 'sources', 'state', 'top_20_ranked', 'trade_tickets']
+- `06:50:09`    universe_basis x1: "factor book: US common stocks >= $2B with a shrinking share count or repurchases in the l
+- `06:50:09`    price_source x302: "factor-book (bank close)"
+- `06:50:09`    book_as_of x1: {fmp-bank,fmp-walker,polygon-bank,float,polygon-short-interest,polygon-tape}
+- `06:50:09`    bank_context x302: {altman_z,piotroski,fcf_yield,shares_growth,buyback_growth,pt_upside_pct}
+- `06:50:09`    source x302: "factor-book"
+- `06:50:09`    n_book_candidates x1: 600
+- `06:50:09`    version x1: "1.1.0"
+- `06:50:09`    REPORT dur 22592.44 ms | max mem 345 / 1024 MB
+- `06:50:09`    logs: nothing matched (no error, no fusion line)
+- `06:50:09` == justhodl-eva-spread (data/eva-spread.json) FRESH output
+- `06:50:09`    stamp 2026-10-26T06:36:12.185903+00:00 | top keys ['all_tickers', 'book_as_of', 'bottom_5_destroyers', 'data_sources', 'duration_seconds', 'engine', 'generated_at', 'history_source_counts', 'market', 'methodology', 'n_analyzed', 'n_super_compounders', 'n_valid', 'n_value_creators', 'n_value_destroyers', 'sector_breakdown', 'source_counts', 'super_compounders']
+- `06:50:09`    universe_basis x2: "STATIC_TOP50_SPX; TTM facts from the factor book (bank close) where held, live FMP otherw | "factor book: US common stocks >= $2B with TTM ROIC + invested capital (cap 1500, bank-onl
+- `06:50:09`    book_as_of x2: {fmp-bank,fmp-walker,polygon-bank,float,polygon-short-interest,polygon-tape}
+- `06:50:09`    bank_context x129: {altman_z,piotroski,pt_upside_pct,composite_quality,as_of,source} | null
+- `06:50:09`    source x177: "factor-book" | "factor-book (bank close)"
+- `06:50:09`    universe x1: "STATIC_TOP50_SPX (cross-engine fusion with #4/#7/#8)"
+- `06:50:09`    version x1: "1.1.0"
+- `06:50:09`    REPORT dur 11823.18 ms | max mem 444 / 1024 MB
+- `06:50:10`    logs: nothing matched (no error, no fusion line)
+- `06:50:10` == justhodl-smart-beta (data/smart-beta.json) FRESH output
+- `06:50:10`    stamp 2026-10-26T06:36:00.449503+00:00 | top keys ['all_tickers', 'book_as_of', 'bottom_25_laggards', 'diversified_factor_leaders', 'edge_basis', 'factor_leaders', 'factor_medians', 'factor_regime', 'factor_spread_points', 'facts_source_counts', 'generated_at', 'lagging_factor', 'leading_factor', 'market', 'methodology', 'n_analyzed', 'n_diversified_leaders', 'n_universe']
+- `06:50:10`    universe_basis x2: "STATIC_TOP50_SPX; TTM facts from the factor book (bank close) where held, live FMP otherw | "factor book: US common stocks >= $2B (cap 1500, bank-only reads; not ADRs)"
+- `06:50:10`    price_source x141: "fmp live historical-price-eod"
+- `06:50:10`    book_as_of x2: {fmp-bank,fmp-walker,polygon-bank,float,polygon-short-interest,polygon-tape}
+- `06:50:10`    universe x2: "STATIC_TOP50_SPX (shared with #4 #7)" | "STATIC_TOP50_SPX"
+- `06:50:10`    version x1: "1.1.0"
+- `06:50:10`    REPORT dur 30004.11 ms | max mem 135 / 1024 MB
+- `06:50:10`    logs: nothing matched (no error, no fusion line)
+- `06:50:10` == justhodl-dividend-growth (data/dividend-growth.json) FRESH output
+- `06:50:10`    stamp 2026-10-26 06:36 UTC | top keys ['book_as_of', 'compounders', 'elapsed_s', 'facts_source_counts', 'generated_at', 'headline', 'history_source_counts', 'how_to_read', 'n_book_candidates', 'n_compounders', 'n_evaluated', 'n_with_history', 'ok', 'schema_version', 'source', 'summary', 'universe_basis', 'version']
+- `06:50:10`    universe_basis x1: "factor book: US common dividend payers 0.5-9.0% yield (1747 in the book, 699 in the top 7
+- `06:50:10`    book_as_of x1: {fmp-bank,fmp-walker,polygon-bank,float,polygon-short-interest,polygon-tape}
+- `06:50:10`    source x1: "factor book + stock-screener universe; FMP walker bank dividends history (live /stable/di
+- `06:50:10`    n_book_candidates x1: 1747
+- `06:50:10`    version x1: "1.1.0"
+- `06:50:11`    REPORT dur 17903.38 ms | max mem 136 / 512 MB
+- `06:50:11`    logs: nothing matched (no error, no fusion line)
+- `06:50:11` == justhodl-pead-detector (data/pead-signals.json) FRESH output
+- `06:50:11`    stamp 2026-10-26T06:36:17+00:00 | top keys ['all_qualifying', 'book_as_of', 'duration_s', 'generated_at', 'method', 'schema_version', 'stats', 'summary', 'universe_basis', 'version']
+- `06:50:11`    universe_basis x1: "data/universe.json (1500) + factor book beat-streak candidates (600: beat rate >= 75% / 4
+- `06:50:11`    book_as_of x1: {fmp-bank,fmp-walker,polygon-bank,float,polygon-short-interest,polygon-tape}
+- `06:50:11`    bank_context x400: {mcap,sector,industry,altman_z,piotroski,short_pct_float}
+- `06:50:11`    source x400: "factor-book"
+- `06:50:11`    n_book_candidates x1: 600
+- `06:50:11`    method x1: "pead_detector_v1.1"
+- `06:50:11`    version x1: "1.1.0"
+- `06:50:11`    REPORT dur 16823.26 ms | max mem 197 / 2048 MB
+- `06:50:11`    logs: ['[pead] universe: 2100 stocks (data/universe.json (1500) + factor book beat-streak candidates (600: beat rate >= 75% / 4q, avg surprise > 3%, >= $50M))', '[pead] OK: 2050, no_data: 50, earnings basis: {"fmp-walker earnings": 0, "factor-book surprises+calendar": 2074, "fmp live": 0, "none": 26}']
+- `06:50:11` == justhodl-post-earnings-mean-rev (data/post-earnings-mean-rev.json) FRESH output
+- `06:50:11`    stamp 2026-10-26T06:36:10Z | top keys ['all_setups', 'as_of', 'book_as_of', 'data_sufficiency', 'engine', 'methodology', 'n_book_candidates', 'n_high_conviction', 'n_long_setups', 'n_setups', 'n_short_setups', 'run_seconds', 'signal_strength', 'sources', 'state', 'top_setups', 'universe_basis', 'universe_size']
+- `06:50:11`    universe_basis x1: "master-ranker (120) + factor book / banked earnings calendar: reported 5-15 trading days 
+- `06:50:11`    price_source x6: "factor-book close"
+- `06:50:11`    book_as_of x1: {fmp-bank,fmp-walker,polygon-bank,float,polygon-short-interest,polygon-tape}
+- `06:50:11`    bank_context x6: {pt_upside_pct,pt_n_1m,consensus_score,beat_rate_4q,last_surprise_pct,short_pct_float}
+- `06:50:11`    source x6: "factor-book"
+- `06:50:11`    n_book_candidates x1: 55
+- `06:50:11`    version x1: "1.1.0"
+- `06:50:11`    REPORT dur 9390.39 ms | max mem 179 / 1024 MB
+- `06:50:11`    logs: nothing matched (no error, no fusion line)
+- `06:50:11` == justhodl-rating-change-cluster (data/rating-change-cluster.json) FRESH output
+- `06:50:11`    stamp 2026-10-26T06:36:02.388102Z | top keys ['as_of', 'buy_picks', 'engine', 'forward_expectations', 'methodology', 'run_seconds', 'sell_picks', 'signal_strength', 'sources', 'state', 'summary', 'version', 'why_now']
+- `06:50:11`    feed_basis x1: "fmp-walker grades-latest-news (1 banked days)"
+- `06:50:11`    book_as_of x1: {fmp-bank,fmp-walker,polygon-bank,float,polygon-short-interest,polygon-tape}
+- `06:50:11`    version x1: "v1.1.0"
+- `06:50:12`    REPORT dur 786.81 ms | max mem 99 / 512 MB
+- `06:50:13`    logs: nothing matched (no error, no fusion line)
+- `06:50:13` == justhodl-starmine (data/starmine.json) output NOT refreshed within 14 min - showing the previous one
+- `06:50:13`    stamp 2026-10-24T23:33:00.604607+00:00 | top keys ['bottom_25_conviction', 'edge_basis', 'generated_at', 'log_summary', 'median_esp_hit_pct', 'median_ptd_pct', 'median_rrm_raw', 'methodology', 'n_scored', 'n_universe_analyzed', 'ok', 'sector_breakdown_top_25', 'sources', 'top_25_conviction', 'universe_median_composite_z', 'universe_regime', 'universe_source_tier', 'version']
+- `06:50:13`    universe x1: "S&P 500 top-50 by market cap"
+- `06:50:13`    version x1: "1.0.2"
+- `06:50:13` ⚠    no fusion label found in the output
+- `06:50:13`    logs: nothing matched (no error, no fusion line)
+- `06:50:13` == justhodl-insider-cluster-scanner (data/insider-clusters.json) FRESH output
+- `06:50:13`    stamp 2026-10-26T06:36:11.717530+00:00 | top keys ['all_ticker_buys', 'book_as_of', 'clusters', 'duration_s', 'feed_basis', 'fundamentals_sources', 'generated_at', 'lookback_days', 'method', 'schema_version', 'source_used', 'stats', 'thresholds', 'version']
+- `06:50:13`    source_used x1: "fmp-walker bank insider-trading-latest (30 days, 312595 feed rows, 14195 purchases)"
+- `06:50:13`    feed_basis x1: {source,bank_days,bank_feed_rows,window_days}
+- `06:50:13`    book_as_of x50: {fmp-bank,fmp-walker,polygon-bank,float,polygon-short-interest,polygon-tape} | {float,fmp-bank,fmp-walker,polygon-bank,polygon-short-interest,polygon-tape}
+- `06:50:13`    bank_context x50: {altman_z,piotroski,short_pct_float,days_to_cover,pt_upside_pct,ret_21d} | null
+- `06:50:13`    source x50: "fmp-walker bank insider-trading-latest (30 days, 312595 feed rows, 14195 purchases)" | "factor-book"
+- `06:50:13`    method x1: "insider_cluster_scanner_v2"
+- `06:50:13`    version x1: "2.1.0"
+- `06:50:13`    REPORT dur 9506.06 ms | max mem 953 / 1536 MB
+- `06:50:13`    logs: ['[insider-cluster] enriching top 50 (factor book first, FMP fallback)']
+- `06:50:13` == justhodl-insider-sell-cluster (data/insider-sell-cluster.json) FRESH output
+- `06:50:13`    stamp 2026-10-26T06:36:06Z | top keys ['all_clusters', 'as_of', 'book_as_of', 'engine', 'feed_basis', 'methodology', 'n_clusters', 'n_high_severity', 'n_medium_severity', 'n_raw_sells_scanned', 'price_sources', 'run_seconds', 'signal_strength', 'source_used', 'sources', 'state', 'top_clusters', 'version']
+- `06:50:13`    price_source x46: "factor-book (bank close, not a live tick)"
+- `06:50:13`    source_used x1: "fmp-walker bank (13 days, 55734 feed rows)"
+- `06:50:13`    feed_basis x1: {source,bank_days,bank_feed_rows,window_days}
+- `06:50:13`    book_as_of x1: {fmp-bank,fmp-walker,polygon-bank,float,polygon-short-interest,polygon-tape}
+- `06:50:13`    bank_context x46: {altman_z,piotroski,short_pct_float,days_to_cover,pt_upside_pct,ret_21d}
+- `06:50:13`    source x47: "fmp-walker bank (13 days, 55734 feed rows)" | "factor-book"
+- `06:50:13`    version x1: "1.1.0"
+- `06:50:14`    REPORT dur 4733.10 ms | max mem 205 / 768 MB
+- `06:50:14`    logs: nothing matched (no error, no fusion line)
+- `06:50:14` == justhodl-insider-buyback-confluence (data/insider-buyback-confluence.json) FRESH output
+- `06:50:14`    stamp 2026-10-26T06:42:19Z | top keys ['all_confluences', 'as_of', 'book_as_of', 'engine', 'feeders', 'methodology', 'n_confluences', 'n_high_conviction', 'price_sources', 'run_seconds', 'signal_strength', 'sources', 'state', 'top_confluences', 'version', 'why_now']
+- `06:50:14`    price_source x2: "factor-book (bank close, not a live tick)"
+- `06:50:14`    book_as_of x1: {fmp-bank,fmp-walker,polygon-bank,float,polygon-short-interest,polygon-tape}
+- `06:50:14`    bank_context x2: {altman_z,piotroski,short_pct_float,pt_upside_pct,composite_quality,composite_value}
+- `06:50:14`    source x2: "factor-book"
+- `06:50:14`    version x1: "1.1.0"
+- `06:50:14`    REPORT dur 300000.00 ms | max mem 768 / 768 MB
+- `06:50:14`    REPORT dur 21222.99 ms | max mem 468 / 768 MB
+- `06:50:15`    logs: nothing matched (no error, no fusion line)
+- `06:50:15` == justhodl-smart-money-holdings (screener/smart-money-holdings.json) FRESH output
+- `06:50:15`    stamp 2026-10-26T06:36:19.634112+00:00 | top keys ['as_of_quarter', 'elapsed_seconds', 'feed_basis', 'funds', 'generated_at', 'holdings', 'n_funds_attempted', 'n_funds_scanned', 'n_symbols', 'quarter', 'source_used', 'version', 'year']
+- `06:50:15`    source_used x1: "fmp live extract (bank has no extract files)"
+- `06:50:15`    feed_basis x1: {source_counts,live_fund_calls,live_fund_cap}
+- `06:50:15`    version x1: "1.1.0"
+- `06:50:15`    REPORT dur 16525.82 ms | max mem 105 / 1024 MB
+- `06:50:15`    logs: nothing matched (no error, no fusion line)
+- `06:50:15` == justhodl-smart-money-tracker (screener/smart-money.json) FRESH output
+- `06:50:15`    stamp 2026-10-26T06:36:13.339404+00:00 | top keys ['as_of_date', 'as_of_quarter', 'elapsed_seconds', 'feed_basis', 'filers', 'generated_at', 'n_filers', 'source_used', 'summary', 'version']
+- `06:50:15`    source_used x1: "fmp-walker bank institutional-ownership-latest (2026-10-25, 100 rows)"
+- `06:50:15`    feed_basis x1: {discovery,bank_day,bank_feed_rows,n_targets,filer_sources,live_filer_calls}
+- `06:50:15`    version x1: "2.1.0"
+- `06:50:15`    REPORT dur 9936.08 ms | max mem 109 / 512 MB
+- `06:50:15`    logs: nothing matched (no error, no fusion line)
+- `06:50:15` == justhodl-political-trades (data/political-trades.json) FRESH output
+- `06:50:15`    stamp 2026-10-26T06:36:05.021109+00:00 | top keys ['book_as_of', 'clusters_top_10', 'duration_s', 'endpoints', 'feed_basis', 'generated_at', 'high_watch_recent_15', 'large_trades_top_15', 'method', 'schema_version', 'stats', 'trades_recent_50', 'version']
+- `06:50:15`    feed_basis x1: {senate,house}
+- `06:50:15`    book_as_of x1: {fmp-bank,fmp-walker,polygon-bank,float,polygon-short-interest,polygon-tape}
+- `06:50:15`    bank_context x4: {mcap,sector,industry,ret_21d,ret_63d,from_52w_high_pct} | null
+- `06:50:15`    source x5: "fmp-walker bank senate-latest" | "fmp-walker bank house-latest" | "factor-book"
+- `06:50:15`    method x1: "political_trades_v1"
+- `06:50:15`    version x1: "1.1.0"
+- `06:50:15`    REPORT dur 1990.24 ms | max mem 110 / 256 MB
+- `06:50:16`    logs: nothing matched (no error, no fusion line)
+- `06:50:16` == justhodl-insider-radar (data/insider-radar.json) FRESH output
+- `06:50:16`    stamp 2026-10-26T06:36:18.207816+00:00 | top keys ['book_as_of', 'clusters', 'decline_buys', 'decline_clusters', 'diagnostics', 'engine', 'finviz_buy_confirm', 'finviz_buys', 'finviz_sells', 'generated_at', 'latest_buys', 'logged', 'methodology', 'n_buys', 'n_raw', 'n_sells', 'ret_60d_basis', 'source_used']
+- `06:50:16`    source_used x1: "fmp-walker bank (28 days)"
+- `06:50:16`    book_as_of x1: {fmp-bank,fmp-walker,polygon-bank,float,polygon-short-interest,polygon-tape}
+- `06:50:16`    ret_60d_basis x1: {rings,factor_book,polygon_live,none}
+- `06:50:16`    version x1: "1.2.2"
+- `06:50:16`    REPORT dur 14259.37 ms | max mem 640 / 1024 MB
+- `06:50:16`    logs: nothing matched (no error, no fusion line)
+- `06:50:16` == justhodl-divcut-warning (data/divcut-warning.json) FRESH output
+- `06:50:16`    stamp 2026-10-26T06:37:07.722036Z | top keys ['as_of', 'engine', 'forward_expectations', 'methodology', 'run_seconds', 'signal_strength', 'sources', 'state', 'summary', 'version', 'warnings', 'why_now']
+- `06:50:16`    universe_basis x1: "curated list (82) + factor book dividend payers at risk (250; bank as of 2026-10-26)"
+- `06:50:16`    price_source x30: "factor-book close as of 2026-10-26"
+- `06:50:16`    book_as_of x1: {fmp-bank,fmp-walker,polygon-bank,float,polygon-short-interest,polygon-tape}
+- `06:50:16`    bank_context x30: {altman_z,piotroski,short_pct_float,pt_upside_pct}
+- `06:50:16`    version x1: "v1.1.1"
+- `06:50:16`    REPORT dur 63293.32 ms | max mem 419 / 1024 MB
+- `06:50:16`    logs: ['universe: 82 curated + 250 factor-book candidates = 314']
+## 3. verdict
+
+- `06:50:16` justhodl-pre-pump-detector: fresh
+- `06:50:16` justhodl-pump-mechanics: fresh
+- `06:50:16` justhodl-ignition: fresh
+- `06:50:16` justhodl-coffee-can: fresh
+- `06:50:16` justhodl-buyback-yield-ranking: fresh
+- `06:50:16` justhodl-eva-spread: fresh
+- `06:50:16` justhodl-smart-beta: fresh
+- `06:50:16` justhodl-dividend-growth: fresh
+- `06:50:16` justhodl-pead-detector: fresh
+- `06:50:16` justhodl-post-earnings-mean-rev: fresh
+- `06:50:16` justhodl-rating-change-cluster: fresh
+- `06:50:16` ⚠ justhodl-starmine: not refreshed
+- `06:50:16` justhodl-insider-cluster-scanner: fresh
+- `06:50:16` justhodl-insider-sell-cluster: fresh
+- `06:50:16` justhodl-insider-buyback-confluence: fresh
+- `06:50:16` justhodl-smart-money-holdings: fresh
+- `06:50:16` justhodl-smart-money-tracker: fresh
+- `06:50:16` justhodl-political-trades: fresh
+- `06:50:16` justhodl-insider-radar: fresh
+- `06:50:16` justhodl-divcut-warning: fresh
+- `06:50:16` ✅ ops 6663 complete
