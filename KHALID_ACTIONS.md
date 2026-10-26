@@ -45,9 +45,24 @@ This file tracks items that require **your direct action** (registration, creden
   the 0o decision below.
 * **Why it also helps with 0o:** every one of these now takes price / market cap / fundamentals from the bank close
   instead of live FMP calls, so they keep working while the FMP key is bandwidth-blocked - and they stop spending calls.
-* **Next waves (no decision needed):** the remaining quality/value and earnings engines, 13F/political readers, energy
-  (an EIA reader), crypto (CMC / CryptoQuant), ETF flows - in the order the fusion map ranks them; the reviewed-contract
-  engines as their own reviewed changes.
+* **Wave 3c (2026-10-26 16:30 UTC) - the six reviewed-contract engines, each its own reviewed change.** eps-revision-velocity,
+  momentum-leaders, earnings-pead, estimate-revisions and pump-positioning now ask the warehouse bank for the SAME provider
+  request before any live call and retain the bank's copy with its provenance (which bank object, when the bank pulled it) -
+  admitted only when it is newer than what they already hold, so nothing stale is ever presented as a new observation; quotes
+  stay live. Their pinned predecessor code, transport contracts and acceptance scripts are untouched (`docs/providers/BANK_FUSION.md`,
+  wave 3c). short-interest is FINRA-original and needed nothing from FMP; instead the factor book (v1.0.6, next join 02:50 UTC)
+  carries FINRA's own short interest beside Polygon's for every book reader.
+* **Fleet health (2026-10-26 16:00 UTC) - the five engines that were failing on their own schedules are fixed and verified**
+  (`docs/ops/FLEET_HEALTH_2026-10-26.md`): analytics-snapshot (was reading 11.9 GB a night, 80 % of it the desk's peer-price
+  cache; now top-level only + incremental by ETag: 307 s cold, 47 s warm, 20,005 research rows complete), earnings-whisper
+  (a 55 MB input in a 256 MB function; now 2.9 s), event-flow-monitor (the Oct 12-16 storm logs in memory; now streamed, 11 s -
+  and it reports what is true: the event bus has routed nothing since Oct 17), signal-genealogy (its validator rejected the
+  collector's new `research_context` receipt on 205 captures; admitted, typed, never published - first clean publication 16:06 UTC),
+  treasury-auto-updater (only invoked treasury-api, which you switched off on Oct 20; switched off with it).
+* **Fleet lane (started 16:34 UTC, ~3 h):** the scaled bank-time cap, the light-price mapping and the FINRA join ride to the
+  292 bank-module importers; a census after it tells which engines still error.
+* **Next waves (no decision needed):** the remaining quality/value engines, earnings-quality (its own reviewed change),
+  13F/political readers, energy (an EIA reader), crypto (CMC / CryptoQuant), ETF flows - in the order the fusion map ranks them.
 
 ### 0o. FMP has cut the key off: "Bandwidth Limit Reach" on every call since ~2026-10-26 01:00 UTC - your decision
 

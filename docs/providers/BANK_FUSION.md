@@ -198,11 +198,44 @@ Final proof (ops 6669, 11:34 UTC, a cold container): equity-research for AAPL an
 4.75 s at 227 MB - from 1,024 MB pinned, out-of-memory crashes and 300 s timeouts in the morning - with 23 of its 43
 asks served from the bank and the rest the live-only families.
 
+### Wave 3c (2026-10-26) - the reviewed-contract engines: a bank rung, not a universe patch
+
+Six engines run reviewed original-source contracts: they retain every provider response whole, publish how it was received
+(credential header, no redirects, bounds, stop on 401/403/429) and refuse to publish anything they did not receive -
+"preserve previous publication".  Their openers bypass the fleet's `urlopen` shim on purpose, so under the FMP bandwidth block
+they went live, got 429 and preserved.  The fusion is a **bank rung** that keeps every one of those properties:
+
+- `aws/shared/bank_originals.py` asks the warehouse bank for the SAME FMP URL (`fmp_bankfirst.answer`: FMP's own shape, only
+  when the bank table is fresh for that family) and returns the bytes with the bank's provenance - `bank.object` (the S3 object
+  the answer came from), `bank.pulled_at` (when the bank pulled it from FMP), `bank.as_of`.  `fmp_bank.last_answer()` exposes
+  the provenance; manifest reads are provenance-neutral (`_meta_get`) so a bulk head names its bulk object.
+- Each engine's fetch asks the rung before opening a live connection; a bank original is retained through the engine's own
+  immutable path and recorded with `transport='warehouse_bank'`, `network_attempted=False`, `bank={object,pulled_at,as_of}`;
+  the live rung is unchanged and carries a typed `bank_attempt` (`no_bank_answer`, `bank_vintage_not_newer`, ...).
+- **The vintage rule**: a bank original is admitted only when its pull time is strictly later than the previous retained
+  original for the same request (`bank_originals.newer_than`) - older content would read as a reversal; the same pull is not a
+  new observation.  Quotes are never banked (the live quote probe / gate stays).  A preserved head under the block therefore
+  means "the bank held nothing newer than what was retained" - the honest outcome; the rung pays off the day the bank refreshes.
+- Predecessor bytes (the pinned halves above each `# Whole predecessor ...` marker), transport literals, compiler-identity
+  file sets and endpoint scopes pinned by the acceptance scripts (ops 6243/6250/6281/6283/6284) are untouched; the rung
+  reports in its own `bank_rung` block (`n_bank_originals`, `n_live_originals`, `n_vintage_refused`, ...).
+
+Shipped as one reviewed change each (commits on 2026-10-26, lane RC green): **eps-revision-velocity 1.4.0** (estimates + grades
+from the bank; the market-cap budget gate reads the bank's profile original when the live quote is unavailable; one live quote
+probe per run decides live mode after a 429 so the window completes bank-only), **momentum-leaders 2.1.0** (every 290-day price
+window + SPY), **earnings-pead 1.3.0** (earnings + whole EOD price; credential check behind the rung), **estimate-revisions
+3.4.0** (annual analyst-estimates, limit 6; the Polygon/Benzinga calendar stays live), **pump-positioning schema 2.1** (history
++ profile; quote live).  `short-interest` is FINRA-original by design and needs nothing from FMP; its fusion runs the other
+way - the factor book (v1.0.6) joins FINRA's own short interest from `data/short-interest-tickers.json` beside Polygon's
+(`finra_short_interest`, `finra_days_to_cover`, `finra_si_change_pct`, `finra_vs_polygon_si_pct`; `short_pct_float` falls back
+to FINRA where Polygon holds no file, `short_source` says which), so every book reader gets the original source's numbers.
+First light: `ops_6680_contract_engines_first_light.py`.
+
 ### Queue (next waves, from the fusion map)
 
 - squeeze / short: pre-pump-detector, pump-mechanics, ignition, short-interest, early-movers, momentum-leaders (SI % float, DTC, float, short-volume ratio).
 - quality / value screens: coffee-can, buyback-yield-ranking, eva-spread, smart-beta, fortress, forensic-screen; gf-value needs a memory redesign first (it runs at its 1.5 GB ceiling on the S&P 500 alone).
-- earnings: pead-detector, post-earnings-mean-rev, estimate-revisions, rating-change-cluster, starmine (surprises, estimates, grades). `eps-revision-velocity`, `earnings-quality` and `short-interest` run reviewed original-source contracts (acquisition plans, archived originals, "preserve previous publication") - a fusion there is its own reviewed change, not a universe patch (the 2026-10-26 eps-revision-velocity patch touched only its dormant legacy path and was withdrawn).
+- earnings: rating-change-cluster, starmine (done, wave 2); `earnings-quality` still runs a reviewed original-source contract and takes the wave-3c bank rung as its own reviewed change.
 - insider / 13F / political feeds: insider-cluster-scanner, insider-sell-cluster, insider-aggregate, insider-buyback-confluence, smart-money-*, 13f-*, political-trades (walker feed readers, the insider-radar pattern).
 - energy: refining-stress, inventory-drawdown, commodity-curves, metals-miners (an `eia_bank` reader).
 - crypto: crypto-scorecard, crypto-etf-arb, crypto-* (CMC history, CryptoQuant hourly).
