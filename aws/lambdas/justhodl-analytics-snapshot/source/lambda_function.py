@@ -17,9 +17,14 @@ Why a separate snapshot Lambda (vs. having the prewarm do it):
 
 Schedule: cron(0 9 * * ? *) = 09:00 UTC = 04:00 ET — one hour after the
 prewarm finishes at 03:00 ET so the snapshot picks up fresh data.
+
+v2.0.0 (2026-10-26): tables are the top level of their prefix and reads are
+incremental by ETag with a persisted state (see the S3 readers section).
 """
+VERSION = "2.0.0"
+import gzip
 import json
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from botocore.config import Config as BotoConfig
 import os
 import time
@@ -203,8 +208,27 @@ def flatten_critique(doc: dict) -> dict:
 
 
 # ═══════════════════════════════════════════════════════════════════
-# S3 readers
+# S3 readers — incremental (v2.0.0, 2026-10-26)
 # ═══════════════════════════════════════════════════════════════════
+# ops 6674 sized the three prefixes: equity-research/ holds 35,572 objects / 11.9 GB, of which
+# equity-research/industry2/ (the desk's 10-year peer-price cache, ~600 KB each, not research reports) is
+# 15,566 objects / 9.4 GB.  Reading everything every night (16 workers, 600 s) timed out 3/3 on 10-26 at
+# 282 MB.  Two changes:
+#   1. A table is the TOP LEVEL of its prefix (Delimiter="/"): sub-folders are other document families.
+#   2. Reads are incremental: analytics/_state/<table>.json.gz keeps {key: {etag, row}} from the previous
+#      run; a listed object whose ETag is unchanged is not read again, a key that disappeared is dropped,
+#      and only new / changed objects are fetched - under a deadline (the function's remaining time minus
+#      a reserve for writing).  A changed object not reached before the deadline keeps its previous row
+#      (real data, carrying its own generated_at) and is counted in `pending`; the flat files and the
+#      manifest say `complete: false` with the count, and the next run continues.  Nothing stale is
+#      presented as current: every row carries generated_at, and the meta carries the pending count.
+STATE_PREFIX = "analytics/_state/"
+WORKERS = 16
+RESERVE_S = 45           # kept free at the end of the run for writing the tables + manifest
+DEFAULT_BUDGET_S = 540   # when no context is given (local runs)
+SCHEMA_VERSION = "1.2"   # 1.1 + meta.complete / meta.pending / meta.n_errors
+
+
 def _read_one(key, flattener):
     try:
         body = s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()
@@ -214,47 +238,124 @@ def _read_one(key, flattener):
         return None, f"[skip] {key}: {type(e).__name__}: {str(e)[:120]}"
 
 
-def read_all_under_prefix(prefix: str, flattener) -> list:
-    """List + read every JSON file under prefix, flatten each, return list of rows.
-
-    2026-10-08: the three prefixes grew past what a sequential GET loop can read inside the
-    timeout (21/21 runs died at 120 s right after "[snapshot] starting"). Reads are now
-    concurrent (16 workers); the output is sorted afterwards so results are unchanged."""
-    keys = []
+def list_prefix(prefix: str) -> dict:
+    """{key: etag} for the engine-readable objects at the TOP LEVEL of prefix (sub-folders excluded)."""
+    out = {}
     pag = s3.get_paginator("list_objects_v2")
-    for page in pag.paginate(Bucket=S3_BUCKET, Prefix=prefix):
+    for page in pag.paginate(Bucket=S3_BUCKET, Prefix=prefix, Delimiter="/"):
         for obj in (page.get("Contents") or []):
             key = obj["Key"]
             if not key.endswith(".json") or key.endswith("manifest.json") or key.endswith("latest.json"):
                 continue
-            keys.append(key)
-    rows = []
-    skipped = 0
-    with ThreadPoolExecutor(max_workers=16) as ex:
-        for row, err in ex.map(lambda k: _read_one(k, flattener), keys):
-            if err:
-                print(err)
-                skipped += 1
-            elif row is not None:
-                rows.append(row)
-    print(f"[snapshot] {prefix}: listed {len(keys)} objects")
-    return rows, skipped
+            out[key] = (obj.get("ETag") or "").strip('"')
+    return out
+
+
+def _state_key(table: str) -> str:
+    return f"{STATE_PREFIX}{table}.json.gz"
+
+
+def load_state(table: str) -> dict:
+    """Previous run's {key: {"etag", "row" | None, "error"?}}; {} when absent or unreadable."""
+    try:
+        raw = s3.get_object(Bucket=S3_BUCKET, Key=_state_key(table))["Body"].read()
+        doc = json.loads(gzip.decompress(raw))
+        rows = doc.get("rows") if isinstance(doc, dict) else None
+        return rows if isinstance(rows, dict) else {}
+    except Exception as e:
+        print(f"[snapshot] state {table}: none ({type(e).__name__})")
+        return {}
+
+
+def save_state(table: str, rows: dict, generated_at: str):
+    body = gzip.compress(json.dumps({"schema_version": SCHEMA_VERSION, "table": table, "updated_at": generated_at,
+                                     "n_keys": len(rows), "rows": rows}, default=str).encode())
+    s3.put_object(Bucket=S3_BUCKET, Key=_state_key(table), Body=body, ContentType="application/json",
+                  ContentEncoding="gzip", CacheControl="no-cache")
+
+
+def read_table(table: str, prefix: str, flattener, deadline: float) -> dict:
+    """Incremental read of one table.  Returns {"rows": [...], "listed", "reused", "read", "errors", "pending",
+    "dropped", "state": {key: {...}}}.  `pending` = changed/new objects not reached before the deadline."""
+    listed = list_prefix(prefix)
+    previous = load_state(table)
+    state, todo, reused = {}, [], 0
+    for key, etag in listed.items():
+        old = previous.get(key)
+        if old and old.get("etag") == etag:
+            state[key] = old
+            reused += 1
+        else:
+            todo.append(key)
+    dropped = len(previous) - sum(1 for k in previous if k in listed)
+    read = errors = pending = 0
+    todo.sort()
+    if todo:
+        with ThreadPoolExecutor(max_workers=WORKERS) as ex:
+            futures = {}
+            idx = 0
+            # submit in waves so a deadline stop does not leave thousands of queued GETs behind
+            while idx < len(todo) or futures:
+                while idx < len(todo) and len(futures) < WORKERS * 2 and time.time() < deadline:
+                    k = todo[idx]
+                    futures[ex.submit(_read_one, k, flattener)] = k
+                    idx += 1
+                if not futures:
+                    break
+                done = next(as_completed(list(futures)))
+                k = futures.pop(done)
+                row, err = done.result()
+                read += 1
+                if err:
+                    print(err)
+                    errors += 1
+                    # keep the previous row of a changed object when the new body cannot be flattened
+                    old = previous.get(k)
+                    state[k] = {"etag": listed[k], "row": old.get("row") if old else None, "error": err[:160]}
+                else:
+                    state[k] = {"etag": listed[k], "row": row}
+            left = todo[idx:]
+            for k in left:  # not reached: previous row (if any) stays, the object stays pending
+                old = previous.get(k)
+                if old:
+                    state[k] = old
+                pending += 1
+    rows = [v["row"] for v in state.values() if isinstance(v.get("row"), dict)]
+    rows.sort(key=lambda r: r.get("ticker") or "")
+    print(f"[snapshot] {prefix}: listed {len(listed)} top-level objects; reused {reused}, read {read}, errors {errors}, "
+          f"pending {pending}, dropped {dropped}; rows {len(rows)}")
+    return {"rows": rows, "listed": len(listed), "reused": reused, "read": read, "errors": errors,
+            "pending": pending, "dropped": dropped, "state": state}
 
 
 # ═══════════════════════════════════════════════════════════════════
 # Handler
 # ═══════════════════════════════════════════════════════════════════
+# smallest first, so the small tables complete even on a run whose budget the big one exhausts
+TABLES = (
+    ("research_critique", CRITIQUE_PREFIX, "analytics/research_critique_flat.json"),
+    ("edgar_insiders",    EDGAR_PREFIX,    "analytics/edgar_insiders_flat.json"),
+    ("equity_research",   RESEARCH_PREFIX, "analytics/equity_research_flat.json"),
+)
+
+
+def _flattener(table):
+    return {"equity_research": flatten_research, "edgar_insiders": flatten_edgar, "research_critique": flatten_critique}[table]
+
+
 def lambda_handler(event, context):
     t0 = time.time()
-    print(f"[snapshot] starting at {datetime.now(timezone.utc).isoformat()}")
+    budget = DEFAULT_BUDGET_S
+    try:
+        budget = context.get_remaining_time_in_millis() / 1000.0
+    except Exception:
+        pass
+    deadline = t0 + max(0.0, budget - RESERVE_S)   # no time left to read -> every changed object stays pending, tables still publish
+    print(f"[snapshot] starting at {datetime.now(timezone.utc).isoformat()} (budget {budget:.0f}s, reserve {RESERVE_S}s)")
 
-    # Read + flatten
-    research_rows, research_skipped = read_all_under_prefix(RESEARCH_PREFIX, flatten_research)
-    edgar_rows,    edgar_skipped    = read_all_under_prefix(EDGAR_PREFIX,    flatten_edgar)
-    critique_rows, critique_skipped = read_all_under_prefix(CRITIQUE_PREFIX, flatten_critique)
-    print(f"[snapshot] research: {len(research_rows)} rows ({research_skipped} skipped)")
-    print(f"[snapshot] edgar:    {len(edgar_rows)} rows ({edgar_skipped} skipped)")
-    print(f"[snapshot] critique: {len(critique_rows)} rows ({critique_skipped} skipped)")
+    results = {}
+    for table, prefix, _ in TABLES:
+        results[table] = read_table(table, prefix, _flattener(table), deadline)
 
     # ETF flows — read the single daily snapshot (already flattened per-ETF inside)
     etf_flow_rows = []
@@ -268,50 +369,57 @@ def lambda_handler(event, context):
         print(f"[snapshot] etf_flows: {len(etf_flow_rows)} rows")
     except Exception as e:
         print(f"[snapshot] etf_flows unavailable: {e}")
-
-    # Sort by ticker for deterministic output
-    research_rows.sort(key=lambda r: r.get("ticker") or "")
-    edgar_rows.sort(key=lambda r: r.get("ticker") or "")
-    critique_rows.sort(key=lambda r: r.get("ticker") or "")
     etf_flow_rows.sort(key=lambda r: r.get("ticker") or "")
 
+    generated_at = datetime.now(timezone.utc).isoformat()
+    pending_total = sum(r["pending"] for r in results.values())
     meta = {
-        "generated_at":     datetime.now(timezone.utc).isoformat(),
-        "schema_version":   "1.1",  # bumped to add critique table
+        "generated_at":     generated_at,
+        "schema_version":   SCHEMA_VERSION,
         "n_rows":           None,
         "generation_elapsed_s": None,
+        "complete":         pending_total == 0,
+        "pending":          0,
     }
 
-    # Write consolidated files
+    # Write consolidated files (+ the per-table state for the next incremental run)
     written = []
-    for name, rows, public_key in [
-        ("equity_research", research_rows, "analytics/equity_research_flat.json"),
-        ("edgar_insiders",  edgar_rows,    "analytics/edgar_insiders_flat.json"),
-        ("research_critique", critique_rows, "analytics/research_critique_flat.json"),
-        ("etf_flows",       etf_flow_rows, "analytics/etf_flows_flat.json"),
-    ]:
+    for table, prefix, public_key in TABLES:
+        res = results[table]
         out = {
             **meta,
-            "table_name":           name,
-            "n_rows":               len(rows),
+            "table_name":           table,
+            "n_rows":               len(res["rows"]),
             "generation_elapsed_s": round(time.time() - t0, 1),
-            "rows":                 rows,
+            "complete":             res["pending"] == 0,
+            "pending":              res["pending"],
+            "n_errors":             res["errors"],
+            "source_prefix":        prefix,
+            "rows":                 res["rows"],
         }
         body = json.dumps(out, default=str).encode()
-        s3.put_object(
-            Bucket=S3_BUCKET,
-            Key=public_key,
-            Body=body,
-            ContentType="application/json",
-            CacheControl="public, max-age=300",
-        )
+        s3.put_object(Bucket=S3_BUCKET, Key=public_key, Body=body, ContentType="application/json",
+                      CacheControl="public, max-age=300")
         size_kb = round(len(body) / 1024, 1)
-        print(f"[snapshot] wrote {public_key} ({size_kb}KB · {len(rows)} rows)")
-        written.append({"key": public_key, "n_rows": len(rows), "size_kb": size_kb})
+        print(f"[snapshot] wrote {public_key} ({size_kb}KB · {len(res['rows'])} rows · pending {res['pending']})")
+        written.append({"key": public_key, "n_rows": len(res["rows"]), "size_kb": size_kb, "pending": res["pending"]})
+        try:
+            save_state(table, res["state"], generated_at)
+        except Exception as e:
+            print(f"[snapshot] state {table} not saved: {type(e).__name__}: {str(e)[:120]}")
+    out = {**meta, "table_name": "etf_flows", "n_rows": len(etf_flow_rows), "generation_elapsed_s": round(time.time() - t0, 1),
+           "complete": True, "pending": 0, "rows": etf_flow_rows}
+    body = json.dumps(out, default=str).encode()
+    s3.put_object(Bucket=S3_BUCKET, Key="analytics/etf_flows_flat.json", Body=body, ContentType="application/json",
+                  CacheControl="public, max-age=300")
+    written.append({"key": "analytics/etf_flows_flat.json", "n_rows": len(etf_flow_rows), "size_kb": round(len(body) / 1024, 1), "pending": 0})
 
     # Also write a manifest pointer
     manifest = {
-        "snapshot_generated_at": meta["generated_at"],
+        "snapshot_generated_at": generated_at,
+        "complete": pending_total == 0,
+        "pending": {t: results[t]["pending"] for t, _, _ in TABLES},
+        "read_stats": {t: {k: results[t][k] for k in ("listed", "reused", "read", "errors", "pending", "dropped")} for t, _, _ in TABLES},
         "tables": [
             {"name": "equity_research",   "key": "analytics/equity_research_flat.json"},
             {"name": "edgar_insiders",    "key": "analytics/edgar_insiders_flat.json"},
@@ -321,7 +429,7 @@ def lambda_handler(event, context):
         "schema_research_columns": list(flatten_research({}).keys()),
         "schema_edgar_columns":    list(flatten_edgar({}).keys()),
         "schema_critique_columns": list(flatten_critique({}).keys()),
-        "schema_etf_flows_columns": (etf_flow_rows[0].keys() if etf_flow_rows else []),
+        "schema_etf_flows_columns": (list(etf_flow_rows[0].keys()) if etf_flow_rows else []),
     }
     s3.put_object(
         Bucket=S3_BUCKET,
@@ -332,18 +440,21 @@ def lambda_handler(event, context):
     )
 
     elapsed = round(time.time() - t0, 1)
-    print(f"[snapshot] DONE in {elapsed}s")
+    print(f"[snapshot] DONE in {elapsed}s · complete={pending_total == 0} pending={pending_total}")
 
     return {
         "statusCode": 200,
         "body": json.dumps({
-            "n_research_rows": len(research_rows),
-            "n_edgar_rows":    len(edgar_rows),
-            "n_critique_rows": len(critique_rows),
+            "n_research_rows": len(results["equity_research"]["rows"]),
+            "n_edgar_rows":    len(results["edgar_insiders"]["rows"]),
+            "n_critique_rows": len(results["research_critique"]["rows"]),
             "n_etf_flow_rows": len(etf_flow_rows),
-            "research_skipped": research_skipped,
-            "edgar_skipped":    edgar_skipped,
-            "critique_skipped": critique_skipped,
+            "research_skipped": results["equity_research"]["errors"],
+            "edgar_skipped":    results["edgar_insiders"]["errors"],
+            "critique_skipped": results["research_critique"]["errors"],
+            "complete":        pending_total == 0,
+            "pending":         pending_total,
+            "read_stats":      manifest["read_stats"],
             "written":         written,
             "elapsed_s":       elapsed,
         }),

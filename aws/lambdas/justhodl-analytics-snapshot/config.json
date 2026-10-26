@@ -4,12 +4,12 @@
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
   "timeout": 600,
-  "memory": 512,
+  "memory": 1024,
   "architectures": [
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Reads all equity-research/*.json + edgar-insiders/*.json, flattens to analytics/equity_research_flat.json + edgar_insiders_flat.json. Consumed by /analytics.html (DuckDB-WASM SQL workbench).",
+  "description": "Incremental (ETag) flatten of the TOP LEVEL of equity-research/*.json + edgar-insiders/*.json + equity-critique/*.json into analytics/*_flat.json for /analytics.html (DuckDB-WASM); state in analytics/_state/. v2.0.0 2026-10-26.",
   "environment_keys": [],
   "schedule": {
     "expression": "cron(0 9 * * ? *)",
