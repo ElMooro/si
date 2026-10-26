@@ -91,6 +91,12 @@ ZERO DETERIORATION
   ✓ Pure consumer of existing 7 S3 feeds + earnings-tracker calendar
   ✓ No Lambda touched
   ✓ No FMP / external API calls — entirely S3-based
+
+v1.1.0 (2026-10-26): the inputs grew (ops 6674: eps-revision-velocity.json 55 MB, options-flow-scanner.json
+19 MB, 8k-filings.json 5.5 MB, revenue-acceleration.json 4 MB) and the 256 MB function thrashed to its 60 s
+timeout at "Loading data…" (3/3 runs, 24 h).  Each input is now loaded, reduced to the fields the scorers
+read, and released before the next one is fetched; the function has a config.json (1536 MB / 180 s) so the
+deploy lane applies the budget.  Scoring and the output schema are unchanged.
 """
 import json
 import os
@@ -99,20 +105,39 @@ from datetime import datetime, timezone
 
 import boto3
 
+VERSION = "1.1.0"
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY_OUT = os.environ.get("S3_KEY_OUT", "data/earnings-whisper.json")
 
 S3 = boto3.client("s3", region_name=REGION)
+INPUT_BYTES = {}
 
 
 def fetch_json(key, default=None):
     try:
         obj = S3.get_object(Bucket=BUCKET, Key=key)
-        return json.loads(obj["Body"].read())
+        raw = obj["Body"].read()
+        INPUT_BYTES[key] = len(raw)
+        doc = json.loads(raw)
+        del raw
+        return doc
     except Exception as e:
         print(f"[whisper] fetch_json({key}) failed: {e}")
+        INPUT_BYTES[key] = None
         return default
+
+
+def load_index(key, builder):
+    """Fetch one input, keep only what its scorer reads, release the document before the next fetch."""
+    doc = fetch_json(key)
+    idx = builder(doc)
+    del doc
+    return idx
+
+
+def _slim(rec, fields):
+    return {k: rec.get(k) for k in fields if k in rec}
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -291,14 +316,23 @@ def score_smart_money(ticker, smart_idx):
 # ─────────────────────────────────────────────────────────────────────────────
 # INDEX BUILDERS
 # ─────────────────────────────────────────────────────────────────────────────
+# Each index keeps only the fields its scorer reads (score_* above), so a 55 MB input does not stay resident.
+EPS_FIELDS = ("flag", "score")
+OPTIONS_FIELDS = ("score", "tier", "flags")
+TXN_FIELDS = ("txn_date", "side", "code", "role")
+FILING_FIELDS = ("filed_at", "items")
+REVENUE_FIELDS = ("tier",)
+SMART_FIELDS = ("score", "legend_buyers")
+
+
 def build_eps_idx(eps_data):
     if not eps_data:
         return {}
     out = {}
     for r in (eps_data.get("all_qualifying") or []):
-        sym = r.get("symbol")
+        sym = r.get("symbol") if isinstance(r, dict) else None
         if sym:
-            out[sym] = r
+            out[sym] = _slim(r, EPS_FIELDS)
     return out
 
 
@@ -307,9 +341,9 @@ def build_options_idx(opt_data):
         return {}
     out = {}
     for r in (opt_data.get("all_qualifying") or []):
-        sym = r.get("symbol")
+        sym = r.get("symbol") if isinstance(r, dict) else None
         if sym:
-            out[sym] = r
+            out[sym] = _slim(r, OPTIONS_FIELDS)
     return out
 
 
@@ -318,9 +352,9 @@ def build_transactions_idx(insider_data):
         return {}
     out = {}
     for t in (insider_data.get("transactions") or []):
-        sym = t.get("ticker")
+        sym = t.get("ticker") if isinstance(t, dict) else None
         if sym and sym != "N/A":
-            out.setdefault(sym, []).append(t)
+            out.setdefault(sym, []).append(_slim(t, TXN_FIELDS))
     return out
 
 
@@ -329,9 +363,9 @@ def build_filings_idx(filings_data):
         return {}
     out = {}
     for f in (filings_data.get("filings") or []):
-        sym = f.get("ticker")
+        sym = f.get("ticker") if isinstance(f, dict) else None
         if sym and sym != "N/A":
-            out.setdefault(sym, []).append(f)
+            out.setdefault(sym, []).append(_slim(f, FILING_FIELDS))
     return out
 
 
@@ -340,9 +374,9 @@ def build_revenue_idx(rev_data):
         return {}
     out = {}
     for r in (rev_data.get("all_qualifying") or rev_data.get("top_setups") or []):
-        sym = r.get("symbol") or r.get("ticker")
+        sym = (r.get("symbol") or r.get("ticker")) if isinstance(r, dict) else None
         if sym:
-            out[sym] = r
+            out[sym] = _slim(r, REVENUE_FIELDS)
     return out
 
 
@@ -351,9 +385,9 @@ def build_smart_idx(smart_data):
         return {}
     out = {}
     for r in (smart_data.get("clusters") or []):
-        sym = r.get("ticker")
+        sym = r.get("ticker") if isinstance(r, dict) else None
         if sym:
-            out[sym] = r
+            out[sym] = _slim(r, SMART_FIELDS)
     return out
 
 
@@ -370,23 +404,18 @@ def tier_for_score(score):
 def lambda_handler(event, context):
     started = time.time()
 
-    # Load all 7 inputs
-    print("[whisper] Loading data…")
+    # Load the 7 inputs one at a time: fetch -> reduce to the scored fields -> release (v1.1.0)
+    print(f"[whisper] v{VERSION} Loading data…")
+    INPUT_BYTES.clear()
     earnings_tracker = fetch_json("data/earnings-tracker.json") or {}
-    eps_data         = fetch_json("data/eps-revision-velocity.json")
-    options_data     = fetch_json("data/options-flow-scanner.json")
-    insider_data     = fetch_json("data/insider-trades.json")
-    filings_data     = fetch_json("data/8k-filings.json")
-    revenue_data     = fetch_json("data/revenue-acceleration.json")
-    smart_data       = fetch_json("data/smart-money-clusters.json")
-
-    # Build indices
-    eps_idx     = build_eps_idx(eps_data)
-    options_idx = build_options_idx(options_data)
-    txn_idx     = build_transactions_idx(insider_data)
-    filings_idx = build_filings_idx(filings_data)
-    rev_idx     = build_revenue_idx(revenue_data)
-    smart_idx   = build_smart_idx(smart_data)
+    eps_idx     = load_index("data/eps-revision-velocity.json", build_eps_idx)
+    options_idx = load_index("data/options-flow-scanner.json", build_options_idx)
+    txn_idx     = load_index("data/insider-trades.json", build_transactions_idx)
+    filings_idx = load_index("data/8k-filings.json", build_filings_idx)
+    rev_idx     = load_index("data/revenue-acceleration.json", build_revenue_idx)
+    smart_idx   = load_index("data/smart-money-clusters.json", build_smart_idx)
+    print(f"[whisper] inputs loaded in {time.time() - started:.1f}s: " + ", ".join(
+        f"{k.split('/')[-1]}={v / 1e6:.1f}MB" if v else f"{k.split('/')[-1]}=missing" for k, v in INPUT_BYTES.items()))
 
     feed_health = {
         "eps_velocity": bool(eps_idx),
@@ -476,6 +505,8 @@ def lambda_handler(event, context):
         "top_setups": setups[:30],   # top 30
         "all_setups": setups,         # full list for completeness
         "duration_s": round(time.time() - started, 2),
+        "engine_version": VERSION,
+        "input_bytes": dict(INPUT_BYTES),
     }
 
     body_bytes = json.dumps(payload, indent=2, default=str).encode("utf-8")

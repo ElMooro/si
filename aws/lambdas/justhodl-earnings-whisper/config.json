@@ -1,0 +1,14 @@
+{
+  "function_name": "justhodl-earnings-whisper",
+  "region": "us-east-1",
+  "runtime": "python3.12",
+  "handler": "lambda_function.lambda_handler",
+  "timeout": 180,
+  "memory": 1536,
+  "architectures": [
+    "x86_64"
+  ],
+  "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Earnings whisper v1.1.0: pre-earnings surprise probability from 7 S3 feeds (eps-revision-velocity 55 MB, options-flow 19 MB ... loaded one at a time and reduced to the scored fields). 1536 MB / 180 s after the 256 MB / 60 s thrash-timeouts of 2026-10-26.",
+  "environment_keys": []
+}
