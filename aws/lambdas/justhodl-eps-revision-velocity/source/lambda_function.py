@@ -53,6 +53,32 @@ S3 = boto3.client("s3", region_name=REGION)
 SOURCE_S3 = boto3.client('s3', region_name=REGION, config=Config(connect_timeout=3, read_timeout=5,
                           retries={'total_max_attempts':1, 'mode':'standard'}))
 
+# v1.1 (2026-10-26, bank fusion): the universe starts from the factor book's analyst-covered market (justhodl-bank-factors:
+# every US common stock with >= 3 price targets last month and >= MIN_MCAP), largest first, before the seed lists; the
+# quote (price / market cap) comes from the book's bank close (labelled) instead of a live /quote per name.
+try:
+    import bank_enrich as _book
+except Exception:  # noqa: BLE001
+    _book = None
+
+
+def book_candidates():
+    if _book is None or not _book.available():
+        return [], None
+    rows = _book.screen(lambda r: (r.get("pt_n_1m") or 0) >= 3 and (r.get("mcap") or 0) >= MIN_MCAP, fields=["pt_n_1m", "mcap"])
+    rows.sort(key=lambda r: -(r.get("mcap") or 0))
+    return [r["symbol"] for r in rows[:MAX_TICKERS]], _book.as_of()
+
+
+def book_quote(symbol):
+    if _book is None or not _book.available():
+        return None
+    try:
+        q = _book.quote(symbol)
+        return q if q and q.get("price") and q.get("marketCap") else None
+    except Exception:  # noqa: BLE001
+        return None
+
 
 SP500_BACKUP = [
     "AAPL","MSFT","GOOGL","GOOG","AMZN","NVDA","META","TSLA","AVGO","JPM","WMT","LLY","V","MA",
@@ -81,6 +107,10 @@ def _http_get_json(url, timeout=12):
 
 def get_universe():
     universe = []
+    book_syms, book_as_of = book_candidates()
+    universe.extend(book_syms)
+    get_universe.book = (len(book_syms), book_as_of)
+    print(f"[eps-velocity] factor book analyst-covered candidates: {len(book_syms)} (bank as of {(book_as_of or {}).get('fmp-bank')})")
     # PRIMARY: unified universe
     try:
         obj = S3.get_object(Bucket=BUCKET, Key="data/universe.json")
@@ -153,7 +183,10 @@ def evaluate_ticker(symbol, deadline_at):
     if time.time() > deadline_at:
         return None
 
-    q = fetch_quote(symbol)
+    q = book_quote(symbol)
+    price_source = "factor-book close as of %s" % (((q or {}).get("as_of") or {}).get("fmp-bank") or "")[:10] if q else "live quote"
+    if not q:
+        q = fetch_quote(symbol)
     if not q:
         return None
     mcap = q.get("marketCap") or 0
@@ -298,6 +331,7 @@ def evaluate_ticker(symbol, deadline_at):
     return {
         "symbol": symbol,
         "company": q.get("name", symbol),
+        "price_source": price_source,
         "score": round(score, 1),
         "flag": flag,
         "status": "ok",
@@ -373,11 +407,14 @@ def _legacy_lambda_handler(event=None, context=None):
 
     out = {
         "schema_version": 1,
-        "method": "eps_revision_velocity_v1",
+        "method": "eps_revision_velocity_v1.1",
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime()),
         "duration_s": round(time.time() - started, 1),
         "stats": {
             "n_universe": len(universe),
+            "n_book_candidates": getattr(get_universe, "book", (0, None))[0],
+            "book_as_of": getattr(get_universe, "book", (0, None))[1],
+            "universe_basis": ("factor book analyst-covered names (%d) + unified universe / seeds" % getattr(get_universe, "book", (0, None))[0]) if getattr(get_universe, "book", (0, None))[0] else "unified universe / seeds (factor book unavailable)",
             "n_qualifying": len(results),
             "n_tier_a": len(tier_a),
             "n_tier_b": len(tier_b),
