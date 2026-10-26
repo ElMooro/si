@@ -1,4 +1,4 @@
-"""ops 6677 - read-only follow-up to ops 6676: every REPORT line since 16:00 UTC for the four fixed engines (did
+"""ops 6679 - read-only follow-up to ops 6676: every REPORT line since 16:00 UTC for the four fixed engines (did
 analytics-snapshot run twice behind the probe's 333 s invoke? did signal-genealogy publish at 16:06 and then time out?)
 plus signal-genealogy's own log lines in that window.  Nothing is written.  No key involved.
 """
@@ -36,8 +36,8 @@ def events(logs, fn, pattern, limit=400):
 
 def main():
     logs = boto3.client("logs", region_name=REGION, config=CFG)
-    with report("ops_6677_first_light_report_lines") as r:
-        r.heading("ops 6677 - REPORT lines since %s UTC for the four fixed engines (read-only)" % time.strftime("%H:%M", time.gmtime(SINCE)))
+    with report("ops_6679_first_light_report_lines") as r:
+        r.heading("ops 6679 - REPORT lines since %s UTC for the four fixed engines (read-only)" % time.strftime("%H:%M", time.gmtime(SINCE)))
         for fn in FUNCTIONS:
             r.section(fn)
             try:
@@ -60,7 +60,7 @@ def main():
                 r.log("%s | %s" % (time.strftime("%H:%M:%S", time.gmtime(e["timestamp"] / 1000)), e.get("message", "").strip().replace("\n", " ⏎ ")[:240]))
         except Exception as e:  # noqa: BLE001
             r.warn("snapshot lines: %s" % type(e).__name__)
-        r.ok("ops 6677 complete (read-only)")
+        r.ok("ops 6679 complete (read-only)")
 
 
 if __name__ == "__main__":
