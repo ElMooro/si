@@ -6,6 +6,25 @@ This file tracks items that require **your direct action** (registration, creden
 
 ## 🔴 Time-sensitive
 
+### 0p. Bank fusion - the banked data is now inside the engines (2026-10-26); nothing to do, read when you like
+
+* **What exists now.** `justhodl-bank-factors` joins the banks once a day (02:50 UTC) into a **factor book**: one document
+  per US-listed symbol (27,215 on the first join; 6,880 common stocks, 5,773 ETFs, 10,248 OTC, the rest funds/preferreds
+  flagged) with Altman Z / Piotroski, FMP rating, DCF, analyst targets + consensus, ~120 TTM metrics and ratios, latest
+  fiscal-year growth, earnings surprises, float, Polygon short interest, ETF holders, peers, tape returns, percentile
+  ranks (market and sector) and six transparent composites - plus one whole-market matrix for screens. Any engine reads
+  it in one call (`aws/shared/bank_enrich`). Doctrine and the engine queue: `docs/providers/BANK_FUSION.md`.
+* **Wave 1 (deployed, each labelled and with its old path as the fallback):** magic-formula (S&P 500 -> the whole market
+  >= $200M), divcut-warning (60 names -> every at-risk US dividend payer), deep-value-screener (whole-market net-cash
+  candidates), equity-ftd (short interest / float / days-to-cover on every FTD candidate), stock-valuations (small/mid
+  universe from the book, not the dead FMP screener), analyst-consensus (the whole analyst-covered market, zero live
+  calls for book names), quality-on-sale (whole-market `book_screen`), beneish (M-Score across every US stock >= $500M),
+  insider-radar (35 banked days of the full insider feed), eps-revision-velocity (analyst-covered market first).
+* **Why it also helps with 0o:** every one of these now takes price / market cap / fundamentals from the bank close
+  instead of live FMP calls, so they keep working while the FMP key is bandwidth-blocked - and they stop spending calls.
+* **Next waves (no decision needed):** squeeze engines, the remaining quality/value screens, earnings and insider/13F
+  engines, energy (an EIA reader), crypto (CMC / CryptoQuant), ETF flows - in the order the fusion map ranks them.
+
 ### 0o. FMP has cut the key off: "Bandwidth Limit Reach" on every call since ~2026-10-26 01:00 UTC - your decision
 
 * **What happened.** FMP Ultimate carries **150 GB of response bandwidth per rolling 30 days** (separate from the
