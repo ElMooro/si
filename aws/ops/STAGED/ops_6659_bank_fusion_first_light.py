@@ -33,6 +33,7 @@ ENGINES = [
     ("justhodl-quality-on-sale", "data/quality-on-sale.json", 300),
     ("justhodl-beneish", "data/beneish.json", 540),
     ("justhodl-insider-radar", "data/insider-radar.json", 240),
+    ("justhodl-eps-revision-velocity", "data/eps-revision-velocity.json", 300),
 ]
 
 
@@ -90,6 +91,10 @@ def summarize(fn, doc):
         bs = doc.get("book_screen") or {}
         out.append("version %s | regime %s | 5-of-5 %s | book_screen available %s n %s as_of %s" % (doc.get("version"), doc.get("regime"), doc.get("n_qualified_5_of_5"), bs.get("available"), bs.get("n"), json.dumps(bs.get("as_of"))[:60]))
         out.append("book candidates %s" % [(c.get("ticker"), c.get("quality_pct"), c.get("off_52w_high_pct")) for c in (bs.get("candidates") or [])[:8]])
+    elif fn == "justhodl-eps-revision-velocity":
+        st = doc.get("stats") or {}
+        rows = doc.get("all_qualifying") or doc.get("results") or []
+        out.append("method %s | universe %s book %s | basis %s | qualifying %s | price_source %s" % (doc.get("method"), st.get("n_universe"), st.get("n_book_candidates"), str(st.get("universe_basis"))[:100], st.get("n_qualifying"), {str(r.get("price_source"))[:24]: sum(1 for x in rows if x.get("price_source") == r.get("price_source")) for r in rows}))
     elif fn == "justhodl-insider-radar":
         out.append("version %s | source_used %s | n_raw %s | buys %s clusters %s | diag %s" % (doc.get("version"), doc.get("source_used"), doc.get("n_raw"), len(doc.get("latest_buys") or []), len(doc.get("clusters") or []), [d for d in (doc.get("diag") or doc.get("DIAG") or []) if "bank" in str(d)][:2]))
     elif fn == "justhodl-beneish":
