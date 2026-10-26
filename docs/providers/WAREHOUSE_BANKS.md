@@ -102,7 +102,12 @@ Deploy traps met on the way (all fixed in-repo): config `description` > 256 char
 (8 engines trimmed); a config `schedule` naming a classic rule that no longer exists fails the existing-schedule guard
 (`mean-reversion`, `fundamentals-engine` → preserve-only Scheduler references; `cascade-validator` → the live rule name
 and cron; `research-backtest` → cadence-only string, it has no live binding); byte-pinned fixtures are a lane of
-their own.
+their own; `portfolio-risk` / `portfolio-snapshot` deploy behind the ordered-Worker prerequisite
+(`scripts/check_worker_prerequisite.py` proves the retained Worker release — `data/ops/releases/worker-justhodl-data-proxy.json`
+`commit` — is an ancestor of HEAD with a byte-identical Worker build tree), and the lane checks out 50 commits: once the
+release sat 116 commits behind main (2026-10-26) the proof failed on a source change that never touched the Worker
+("Ordered Worker prerequisite not verified; native deployment refused"); `scripts/deploy_lambdas.sh` now deepens the
+checkout from HEAD (300 / 800 / 2000 commits, then unshallow) before asking, so the check — unchanged — can see the release.
 
 Not pulled, on purpose (each bank's manifest carries the list): technical indicators and TTM statements (derived from
 banked bars/quarters), `company-outlook` (a composite), custom DCF (parametric), `financial-reports-json/xlsx` (the SEC
