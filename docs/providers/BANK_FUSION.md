@@ -229,7 +229,15 @@ window + SPY), **earnings-pead 1.3.0** (earnings + whole EOD price; credential c
 way - the factor book (v1.0.6) joins FINRA's own short interest from `data/short-interest-tickers.json` beside Polygon's
 (`finra_short_interest`, `finra_days_to_cover`, `finra_si_change_pct`, `finra_vs_polygon_si_pct`; `short_pct_float` falls back
 to FINRA where Polygon holds no file, `short_source` says which), so every book reader gets the original source's numbers.
-First light: `ops_6680_contract_engines_first_light.py`.
+First light (ops 6680, 16:38 UTC, under the FMP block): eps-revision-velocity 1.4.0 published once right after its deploy
+(5 bank originals, 10 market-cap gates from the bank's profile, 14 live attempts skipped after the first 429), then its next run
+met 25+ consecutive bank misses on `analyst-estimates` (the walker holds that dataset for a minority of its universe window) and
+preserved; momentum-leaders / pump-positioning ask prices `to=today` during the US session, when the price bank never answers a
+current ask (it would carry a partial bar) - their bank rung pays off at off-session runs; earnings-pead's `earnings` family and
+every FAST head go stale 1 day after the walker's last pull (Oct 25) while the FMP bandwidth hold lasts; estimate-revisions has
+preserved its 2026-10-10 publication for a different reason - its forward calendar is Polygon/Benzinga, which answers 403 on
+this key (ops 6641) and the contract pins that endpoint. All five preserved honestly; the rung's value shows the day the walker
+refreshes (KHALID_ACTIONS 0o).
 
 ### Queue (next waves, from the fusion map)
 
