@@ -38,8 +38,9 @@ This file tracks items that require **your direct action** (registration, creden
   recompute - one ticker's 20 years of statements meant decoding ~60 whole-market files. A new engine, the **history
   book** (`justhodl-bank-histories`, daily 03:05 UTC), now writes every US-listed symbol's statement / ratio / metric
   history AND its latest profile / ratios / scores / rating / DCF / targets / consensus / peers as small per-symbol
-  objects, and the desk reads those (AAPL answered in 2.6 s with the full report at 09:17 UTC; 21 of its 43 data asks
-  come from the bank, the rest are live-only families like news and transcripts). Statement depth is 4-5 fiscal years
+  objects, and the desk reads those (final check 11:34 UTC on a cold container: AAPL's full report in 4.8 s at 227 MB,
+  down from a 1 GB container crashing or timing out at 300 s; 23 of its 43 data asks come from the bank, the rest are
+  live-only families like quotes, news and transcripts that stay empty until FMP is back). Statement depth is 4-5 fiscal years
   today because that is what the FMP bank holds; it deepens by itself the day the bank's backfill resumes - which is
   the 0o decision below.
 * **Why it also helps with 0o:** every one of these now takes price / market cap / fundamentals from the bank close

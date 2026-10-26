@@ -186,6 +186,18 @@ report, 21 of its 43 asks from the bank (the rest are live-only families: quote,
 the light price endpoint is now served from the banked full file too (`historical-price-eod/light` = symbol, date,
 price, volume), so its 10-year price history and SPY benchmark stop going live.
 
+Two more faults surfaced by tracing single requests after that (ops 6669/6670) and both are fixed: (1) the shim's flat
+90 s bank-time cap is per container per 15-minute window - a request-serving container spends a few seconds of bank time
+per request across hundreds of requests, hit the cap, went into bypass, and every ask went live (429) -> "0/43 endpoints
+returned data"; the cap now scales with the window's wall time (35 %, 90 s floor). (2) starmine ran 3 x 900 s to the
+timeout: the walker's `grades` file is banked for a minority of its 200 names, the shim went live for the family after
+25 misses, and each live call cost 15 s of 429 retry sleeps; v1.1.1 carries a live circuit breaker (8 consecutive empty
+live answers or 150 s of live time end live calls for the run, `live_state` in the output).
+
+Final proof (ops 6669, 11:34 UTC, a cold container): equity-research for AAPL answered the full 142 KB report in
+4.75 s at 227 MB - from 1,024 MB pinned, out-of-memory crashes and 300 s timeouts in the morning - with 23 of its 43
+asks served from the bank and the rest the live-only families.
+
 ### Queue (next waves, from the fusion map)
 
 - squeeze / short: pre-pump-detector, pump-mechanics, ignition, short-interest, early-movers, momentum-leaders (SI % float, DTC, float, short-volume ratio).
