@@ -8,9 +8,12 @@ from types import SimpleNamespace
 from unittest.mock import patch
 from urllib.parse import quote_plus
 import ast,base64,hashlib,json,math,sys,time,unittest,urllib.request,urllib.error
-ROOT=Path(__file__).resolve().parents[4];SRC=ROOT/'aws/lambdas/justhodl-earnings-pead/source';sys.path.insert(0,str(SRC))
+ROOT=Path(__file__).resolve().parents[4];SRC=ROOT/'aws/lambdas/justhodl-earnings-pead/source';sys.path.insert(0,str(SRC));sys.path.insert(1,str(ROOT/'aws/shared'))
 from pead_observations import CONTRACT,strict,clock,number,symbol,envelope,original,universe,dossier,earnings_event,event_differences,price_coverage,acquisition_plan,acquisition_progress
+import bank_originals as real_bank_originals
 TODAY='2026-09-27'
+# The bank rung as the existing tests see it: no bank answer, so every acquisition goes live exactly as before v1.3.0.
+NO_BANK=SimpleNamespace(bank_original=lambda url,now=None:None,newer_than=real_bank_originals.newer_than,TRANSPORT=real_bank_originals.TRANSPORT)
 
 
 def events():
@@ -59,7 +62,7 @@ def native(memory=None,**extra):
         'N_WORKERS':6,'MAX_TICKERS':3,'TIMEOUT_BUDGET_S':260,'CONTRACT':CONTRACT,'strict':strict,'clock':clock,'number':number,'symbol':symbol,
         'envelope':envelope,'original':original,'universe':universe,'dossier':dossier,'acquisition_plan':acquisition_plan,'acquisition_progress':acquisition_progress,'datetime':datetime,'timezone':timezone,
         'ThreadPoolExecutor':ThreadPoolExecutor,'urllib':urllib,'quote_plus':quote_plus,'hashlib':hashlib,'json':json,'time':time,'math':math,
-        'Path':Path,'__file__':str(SRC/'lambda_function.py'),**extra}
+        'Path':Path,'__file__':str(SRC/'lambda_function.py'),'bank_originals':NO_BANK,'_PEAD_RUN':{'vintages':{}},**extra}
     tree=ast.parse((SRC/'lambda_function.py').read_bytes());fns=[n for n in tree.body if isinstance(n,ast.FunctionDef) and (n.name.startswith('_pead_') or n.name=='lambda_handler')]
     exec(compile(ast.Module(body=fns,type_ignores=[]),'<isolated active revenue functions>','exec'),scope);return scope
 
@@ -180,6 +183,157 @@ class Tests(unittest.TestCase):
         m=Memory();m.data['data/earnings-pead.json']=json.dumps({'measurement_contract':CONTRACT,'generated_at':'2099-01-01T00:00:00Z'}).encode();ns=native(m)
         with self.assertRaises(ValueError):ns['lambda_handler']()
         self.assertEqual(m.writes,[])
+
+
+def fake_bank(answers,pulled_at='2026-09-26T05:00:00+00:00'):
+    """A warehouse-bank stand-in in bank_originals' shape: answers(ticker, endpoint) -> rows | None."""
+    calls=[]
+    def bank_original(url,now=None):
+        calls.append(url)
+        endpoint='earnings' if '/stable/earnings?' in url else 'historical-price-eod/full'
+        ticker=url.rsplit('symbol=',1)[1]
+        rows=answers(ticker,endpoint)
+        if rows is None:return None
+        return {'raw':json.dumps(rows,separators=(',',':')).encode(),'transport':'warehouse_bank','received_at':datetime.now(timezone.utc).isoformat(),
+                'bank':{'object':'data/warm/fmp-walker/'+endpoint.replace('/','-')+'/'+ticker+'.json.gz','pulled_at':pulled_at,'as_of':None}}
+    return SimpleNamespace(bank_original=bank_original,newer_than=real_bank_originals.newer_than,TRANSPORT='warehouse_bank',calls=calls)
+
+
+def bank_rows(ticker,endpoint):
+    if endpoint=='earnings':
+        values=events()
+        for row in values:row['symbol']=ticker
+        return values
+    return [{'symbol':ticker,'date':'2026-08-01','close':10,'volume':100},{'symbol':ticker,'date':'2026-09-25','close':20,'volume':200}]
+
+
+def forbid_live():
+    def build_opener(*handlers):raise AssertionError('live rung must not be opened')
+    return SimpleNamespace(request=SimpleNamespace(Request=urllib.request.Request,HTTPRedirectHandler=urllib.request.HTTPRedirectHandler,build_opener=build_opener),error=urllib.error)
+
+
+def live_opener(raw=None,requests=None):
+    class Response:
+        def __init__(self,raw):self.raw=raw
+        def __enter__(self):return self
+        def __exit__(self,*a):pass
+        def read(self,n):return self.raw[:n]
+    def build_opener(*handlers):
+        def open(req,timeout):
+            if requests is not None:requests.append(req.full_url)
+            body=raw if raw is not None else json.dumps(bank_rows(req.full_url.rsplit('symbol=',1)[1],'earnings' if '/stable/earnings?' in req.full_url else 'historical-price-eod/full')).encode()
+            return Response(body)
+        return SimpleNamespace(open=open)
+    return SimpleNamespace(request=SimpleNamespace(Request=urllib.request.Request,HTTPRedirectHandler=urllib.request.HTTPRedirectHandler,build_opener=build_opener),error=urllib.error)
+
+
+class BankRung(unittest.TestCase):
+    """v1.3.0: the warehouse bank answers the same request first; provenance explicit; live exactly as before otherwise."""
+    def test_bank_rung_answers_first_records_provenance_and_publishes_without_live_calls(self):
+        m=Memory();bank=fake_bank(bank_rows);ns=native(m,bank_originals=bank,urllib=forbid_live())
+        ns['lambda_handler']();p=strict(m.data['data/earnings-pead.json'])
+        self.assertEqual(p['version'],'1.3.0');self.assertEqual(p['measurement_contract'],CONTRACT)
+        self.assertEqual(p['bank_rung'],{'module':'bank_originals','rule':'warehouse original admitted only when its pulled_at is later than the previous retained original for the same request',
+            'available':True,'n_bank_originals':6,'n_live_originals':0,'n_vintage_refused':0})
+        self.assertEqual(len(bank.calls),6);self.assertTrue(all('apikey' not in u for u in bank.calls))
+        self.assertEqual(len(p['request_records']),3);self.assertEqual(p['n_event_observations'],12);self.assertEqual(p['n_price_records'],6)
+        for row in p['request_records']:
+            for a in row['acquisitions']:
+                self.assertEqual((a['status'],a['transport'],a['network_attempted']),('received','warehouse_bank',False))
+                self.assertEqual(set(a['bank']),{'object','pulled_at','as_of'});self.assertEqual(a['bank']['pulled_at'],'2026-09-26T05:00:00+00:00')
+                self.assertIsNotNone(clock(a['received_at']));self.assertNotIn('bank_attempt',a)
+            self.assertEqual(row['source_population_status'],'received_event_array');self.assertEqual(row['price_coverage']['records'],2)
+            self.assertEqual(row['event_differences'][0]['differences']['eps']['actual_minus_reported_estimate'],1)
+        self.assertTrue(p['acquisition_progress']['cycle_complete']);self.assertEqual(p['acquisition_progress']['stop_reason'],'planned_window_complete')
+        self.assertTrue(any('warehouse-bank original' in c for c in p['caveats']));self.assertFalse(p['calls_eligible'])
+        # the next run's plan treats bank originals as visited outcomes (a complete cycle restarts the population)
+        plan=acquisition_plan(p['universe_membership']['selected'],p);self.assertEqual(plan['plan_reason'],'previous_cycle_complete_or_retired')
+        # a bank original satisfies the preserve-previous rule on its own: no live rung, no credential needed
+        m=Memory();ns=native(m,bank_originals=fake_bank(bank_rows),urllib=forbid_live(),FMP_KEY='');ns['lambda_handler']()
+        self.assertEqual(strict(m.data['data/earnings-pead.json'])['bank_rung']['n_bank_originals'],6)
+
+    def test_vintage_rule_refuses_older_bank_content_and_falls_back_to_live(self):
+        m=Memory();requests=[]
+        previous={'schema_version':1,'request_records':[{'ticker':'TEST','acquisitions':[{'endpoint':'earnings','status':'received','received_at':'2026-09-26T20:00:00+00:00'}]}]}
+        m.previous=json.dumps(previous).encode();m.data['data/earnings-pead.json']=m.previous
+        bank=fake_bank(bank_rows,pulled_at='2026-09-26T05:00:00+00:00')          # pulled BEFORE the retained live original
+        ns=native(m,bank_originals=bank,urllib=live_opener(requests=requests));ns['lambda_handler']();p=strict(m.data['data/earnings-pead.json'])
+        self.assertEqual(ns['_PEAD_RUN']['vintages'],{('TEST','earnings'):'2026-09-26T20:00:00+00:00'})
+        self.assertEqual({k:p['bank_rung'][k] for k in ('n_bank_originals','n_live_originals','n_vintage_refused')},{'n_bank_originals':4,'n_live_originals':2,'n_vintage_refused':2})
+        self.assertEqual(sorted(requests),['https://financialmodelingprep.com/stable/earnings?symbol=TEST']*2)
+        for row in p['request_records']:
+            earnings,prices=row['acquisitions']
+            if row['ticker']=='TEST':
+                self.assertEqual((earnings['transport'],earnings['network_attempted']),('provider',True))
+                self.assertEqual(earnings['bank_attempt']['status'],'bank_vintage_not_newer');self.assertEqual(earnings['bank_attempt']['bank']['pulled_at'],'2026-09-26T05:00:00+00:00')
+            else:self.assertEqual(earnings['transport'],'warehouse_bank')
+            self.assertEqual(prices['transport'],'warehouse_bank')          # no retained price original before: admitted
+        # a bank pull AFTER the retained original is admitted, equal is not
+        for pulled,expected in (('2026-09-26T20:00:01+00:00','warehouse_bank'),('2026-09-26T20:00:00+00:00','provider')):
+            m=Memory();m.previous=json.dumps(previous).encode();m.data['data/earnings-pead.json']=m.previous
+            ns=native(m,bank_originals=fake_bank(bank_rows,pulled_at=pulled),urllib=live_opener());ns['lambda_handler']()
+            self.assertEqual(strict(m.data['data/earnings-pead.json'])['request_records'][0]['acquisitions'][0]['transport'],expected,pulled)
+
+    def test_previous_vintages_use_pull_time_for_bank_originals_and_receipt_for_live(self):
+        ns=native();f=ns['_pead_previous_vintages']
+        previous={'request_records':[
+            {'ticker':'A','acquisitions':[{'endpoint':'earnings','status':'received','received_at':'2026-09-20T08:00:00+00:00'},
+                                          {'endpoint':'historical-price-eod/full','status':'received','transport':'warehouse_bank','received_at':'2026-09-20T08:00:05+00:00','bank':{'object':'x','pulled_at':'2026-09-19T05:00:00+00:00','as_of':None}}]},
+            {'ticker':'A','acquisitions':[{'endpoint':'earnings','status':'invalid_original','received_at':'2026-09-21T08:00:00+00:00'}]},
+            {'ticker':'B','acquisitions':[{'endpoint':'earnings','status':'rate_limited'},{'endpoint':'historical-price-eod/full','status':'received','transport':'warehouse_bank','received_at':'2026-09-20T08:00:05+00:00','bank':{'object':'x','pulled_at':None,'as_of':'2026-09-18T00:00:00+00:00'}}]},
+            {'ticker':'C','acquisitions':[{'endpoint':'earnings','status':'received','received_at':'not a clock'}]},'junk',{'ticker':'D','acquisitions':None}]}
+        self.assertEqual(f(previous),{('A','earnings'):'2026-09-21T08:00:00+00:00',('A','historical-price-eod/full'):'2026-09-19T05:00:00+00:00',('B','historical-price-eod/full'):'2026-09-18T00:00:00+00:00'})
+        self.assertEqual(f(None),{});self.assertEqual(f({'request_records':'x'}),{})
+
+    def test_no_bank_answer_and_unavailable_rung_go_live_exactly_as_before(self):
+        requests=[];ns=native(urllib=live_opener(requests=requests))
+        a=ns['_pead_fetch']('TEST','earnings')
+        self.assertEqual((a['status'],a['transport'],a['network_attempted'],a['bank_attempt']),('received','provider',True,{'status':'no_bank_answer'}))
+        self.assertEqual(requests,['https://financialmodelingprep.com/stable/earnings?symbol=TEST']);self.assertEqual(len(original(a)),4)
+        ns=native(urllib=live_opener(),bank_originals=None)
+        self.assertEqual(ns['_pead_fetch']('TEST','earnings')['bank_attempt'],{'status':'bank_rung_unavailable'})
+        def rate(*a,**k):raise urllib.error.HTTPError('redacted',429,'slow',{},None)
+        ns=native(urllib=SimpleNamespace(request=SimpleNamespace(Request=urllib.request.Request,HTTPRedirectHandler=urllib.request.HTTPRedirectHandler,build_opener=lambda *a:SimpleNamespace(open=rate)),error=urllib.error))
+        a=ns['_pead_fetch']('TEST','earnings');self.assertEqual((a['status'],a['http_status'],a['bank_attempt']),('rate_limited',429,{'status':'no_bank_answer'}))
+        ns=native(FMP_KEY='');self.assertEqual(ns['_pead_fetch']('TEST','earnings'),{'endpoint':'earnings','status':'credential_unavailable','bank_attempt':{'status':'no_bank_answer'}})
+        self.assertEqual(ns['_pead_fetch']('bad ticker','earnings')['status'],'invalid_symbol_not_requested')
+        with self.assertRaises(ValueError):ns['_pead_fetch']('TEST','profile')
+
+    def test_engine_request_shapes_are_answered_by_the_real_bank_shim(self):
+        import gzip;import fmp_bank,fmp_bankfirst
+        class S3:
+            def __init__(self):self.store,self.meta,self.gets={},{},[]
+            def get_object(self,Bucket,Key):
+                self.gets.append(Key)
+                if Key not in self.store:raise KeyError(Key)
+                return {'Body':BytesIO(self.store[Key]),'Metadata':self.meta.get(Key,{})}
+        def put(s3,key,rows,**meta):s3.store[key]=gzip.compress(json.dumps(rows).encode());s3.meta[key]=meta
+        def fresh(s3):
+            fmp_bank._S3=s3;fmp_bank._cache.clear();fmp_bank._TABLES.clear();fmp_bank._MISSING.clear();fmp_bank._EVICTED.clear()
+            fmp_bankfirst._reset_ctl(time.time())
+        NOW=datetime(2026,10,22,23,0,tzinfo=timezone.utc)                       # Thursday after the close: Oct 22 is the last completed session
+        class Fixed(datetime):
+            @classmethod
+            def now(cls,tz=None):return NOW if tz else NOW.replace(tzinfo=None)
+        saved=fmp_bankfirst.datetime;fmp_bankfirst.datetime=Fixed
+        try:
+            s3=S3();fresh(s3);W=fmp_bank.WALKER_ROOT
+            put(s3,W+'earnings/TEST.json.gz',bank_rows('TEST','earnings'),pulled_at='2026-10-22T20:00:00Z')
+            put(s3,W+'historical-price-eod-full/TEST.json.gz',[{'symbol':'TEST','date':'2026-10-22','close':1,'volume':1},{'symbol':'TEST','date':'2026-10-21','close':2,'volume':2}],pulled_at='2026-10-22T20:00:00Z')
+            earnings=real_bank_originals.bank_original('https://financialmodelingprep.com/stable/earnings?symbol=TEST',now=NOW)
+            self.assertIsNotNone(earnings);self.assertEqual(original(envelope(earnings['raw'],'earnings',earnings['received_at'])),bank_rows('TEST','earnings'))
+            self.assertEqual(earnings['bank'],{'object':W+'earnings/TEST.json.gz','pulled_at':'2026-10-22T20:00:00+00:00','as_of':None})
+            prices=real_bank_originals.bank_original('https://financialmodelingprep.com/stable/historical-price-eod/full?symbol=TEST',now=NOW)
+            self.assertIsNotNone(prices);self.assertEqual([r['date'] for r in json.loads(prices['raw'])],['2026-10-22','2026-10-21'])
+            self.assertEqual(price_coverage('TEST',envelope(prices['raw'],'historical-price-eod/full',prices['received_at']),'2026-10-23')['records'],2)
+            self.assertIsNone(real_bank_originals.bank_original('https://financialmodelingprep.com/stable/earnings?symbol=NOBODY',now=NOW))
+            # during the US session the live price answer would carry a partial bar: the bank steps aside for prices only
+            fmp_bankfirst.datetime=type('InSession',(datetime,),{'now':classmethod(lambda cls,tz=None:datetime(2026,10,22,15,0,tzinfo=timezone.utc))})
+            fresh(s3)
+            self.assertIsNone(real_bank_originals.bank_original('https://financialmodelingprep.com/stable/historical-price-eod/full?symbol=TEST'))
+            self.assertIsNotNone(real_bank_originals.bank_original('https://financialmodelingprep.com/stable/earnings?symbol=TEST'))
+            self.assertTrue(all(k.startswith(W) or k.endswith('manifest.json') for k in s3.gets))
+        finally:fmp_bankfirst.datetime=saved
 
 
 if __name__=='__main__':

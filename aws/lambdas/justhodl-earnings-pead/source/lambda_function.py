@@ -386,6 +386,14 @@ from datetime import datetime,timezone
 from urllib.parse import quote_plus
 import hashlib,math
 from pead_observations import CONTRACT,strict,clock,number,symbol,envelope,original,universe,dossier,acquisition_plan,acquisition_progress
+try:  # bank rung (v1.3.0, aws/shared/bank_originals): the warehouse bank answers the SAME FMP request before any live call
+    import bank_originals
+except Exception:  # noqa: BLE001 - the module is packaged with every engine; its absence only means live-as-before
+    bank_originals=None
+
+# Per-invocation state the acquisition threads read: the previous publication's retained-original vintages, keyed by
+# (ticker, endpoint).  Set by lambda_handler before the pool starts; never written by a worker.
+_PEAD_RUN={'vintages':{}}
 
 
 def _pead_source_identity():
@@ -394,22 +402,60 @@ def _pead_source_identity():
             for name in ('lambda_function.py','pead_observations.py') for raw in [(directory/name).read_bytes()]}
 
 
+def _pead_previous_vintages(previous):
+    """{(ticker, endpoint): newest content vintage (iso)} among the previous publication's retained originals.
+    A live original's vintage is its receipt (the provider served it then); a warehouse-bank original's vintage is the
+    bank's pull time (bank.pulled_at, else as_of) - the engine's own receipt of a bank copy says nothing about the
+    content's age.  The bank rung admits a bank original only when its vintage is strictly newer than this."""
+    out={}
+    records=previous.get('request_records') if isinstance(previous,dict) else None
+    for row in records if isinstance(records,list) else []:
+        if not isinstance(row,dict):continue
+        group=row.get('acquisitions')
+        for a in group if isinstance(group,list) else []:
+            if not isinstance(a,dict) or a.get('status') not in ('received','invalid_original'):continue
+            if a.get('transport')=='warehouse_bank':
+                bank=a.get('bank') if isinstance(a.get('bank'),dict) else {}
+                stamp=bank.get('pulled_at') or bank.get('as_of')
+            else:stamp=a.get('received_at')
+            when=clock(stamp)
+            if when is None:continue
+            key=(row.get('ticker'),a.get('endpoint'))
+            if key not in out or when>clock(out[key]):out[key]=stamp
+    return out
+
+
 def _pead_fetch(ticker,endpoint):
     if not ticker or symbol(ticker)!=ticker:return {'endpoint':endpoint,'status':'invalid_symbol_not_requested'}
-    if not FMP_KEY:return {'endpoint':endpoint,'status':'credential_unavailable'}
-    url='https://financialmodelingprep.com/stable/'+endpoint+'?symbol='+quote_plus(ticker)
     if endpoint not in ('earnings','historical-price-eod/full'):raise ValueError('Undeclared endpoint')
+    url='https://financialmodelingprep.com/stable/'+endpoint+'?symbol='+quote_plus(ticker)
+    # Bank rung (v1.3.0): the warehouse bank is asked for the SAME request first.  Its answer is FMP's own shape, produced
+    # only when the bank's table is fresh for this endpoint family; it is retained like any original, with the bank's
+    # provenance (object, pulled_at = provider vintage, as_of) next to this engine's own receipt time, and admitted only
+    # when that vintage is newer than the previous retained original for this request (older content would read as a
+    # reversal).  No key, no connection.  Everything the bank does not answer goes live exactly as before.
+    bank_attempt={'status':'bank_rung_unavailable'} if bank_originals is None else {'status':'no_bank_answer'}
+    bank=bank_originals.bank_original(url) if bank_originals is not None else None
+    if bank is not None:
+        if bank_originals.newer_than(bank['bank'],_PEAD_RUN['vintages'].get((ticker,endpoint))):
+            out=envelope(bank['raw'],endpoint,bank['received_at'])
+            out.update(transport='warehouse_bank',network_attempted=False,bank=bank['bank'])
+            return out
+        bank_attempt={'status':'bank_vintage_not_newer','bank':bank['bank']}
+    if not FMP_KEY:return {'endpoint':endpoint,'status':'credential_unavailable','bank_attempt':bank_attempt}
     req=urllib.request.Request(url,headers={'apikey':FMP_KEY,'User-Agent':'JustHodl-PEAD-Observations/1.1'})
     class NoRedirect(urllib.request.HTTPRedirectHandler):
         def redirect_request(self,req,fp,code,msg,headers,newurl):return None
     try:
         with urllib.request.build_opener(NoRedirect()).open(req,timeout=10) as response:raw=response.read(2*1024*1024+1)
-        if len(raw)>2*1024*1024:return {'endpoint':endpoint,'status':'response_exceeds_bound','original_retained':False}
-        if FMP_KEY.encode() in raw:return {'endpoint':endpoint,'status':'credential_echo_withheld','original_retained':False}
-        return envelope(raw,endpoint,datetime.now(timezone.utc).isoformat())
+        if len(raw)>2*1024*1024:return {'endpoint':endpoint,'status':'response_exceeds_bound','original_retained':False,'bank_attempt':bank_attempt}
+        if FMP_KEY.encode() in raw:return {'endpoint':endpoint,'status':'credential_echo_withheld','original_retained':False,'bank_attempt':bank_attempt}
+        out=envelope(raw,endpoint,datetime.now(timezone.utc).isoformat())
+        out.update(transport='provider',network_attempted=True,bank_attempt=bank_attempt)
+        return out
     except Exception as exc:
         return {'endpoint':endpoint,'status':'rate_limited' if getattr(exc,'code',None)==429 else 'unavailable',
-                'http_status':getattr(exc,'code',None),'error_type':type(exc).__name__}
+                'http_status':getattr(exc,'code',None),'error_type':type(exc).__name__,'bank_attempt':bank_attempt}
 
 
 def _pead_company(member):
@@ -468,6 +514,7 @@ def lambda_handler(event=None,context=None):
     if previous and previous.get('measurement_contract')==CONTRACT:
         stamp=clock(previous.get('generated_at'))
         if stamp is None or stamp>=checked:raise ValueError('Previous generation clock invalid')
+    _PEAD_RUN['vintages']=_pead_previous_vintages(previous)
     raw,source_etag=_pead_object('data/universe.json',8*1024*1024)
     capture=envelope(raw,'data/universe.json',datetime.now(timezone.utc).isoformat());capture['etag']=source_etag
     membership=universe(capture,min(MAX_TICKERS,1500));selected=membership['selected']
@@ -495,8 +542,14 @@ def lambda_handler(event=None,context=None):
     for i,(member,group) in enumerate(zip(selected,captures)):
         row=dossier(member,group,today);row['request_index']=i;records.append(row)
     prior_ref=_pead_archive(previous_raw) if previous_raw is not None else None
-    packet={'engine':'justhodl-earnings-pead','version':'1.2.1','schema_version':2,'measurement_contract':CONTRACT,
-        'method':'complete_earnings_events_and_price_source_coverage','status':'RESEARCH_ONLY','source_files':_pead_source_identity(),
+    flat=[a for group in captures for a in group if isinstance(a,dict)]
+    bank_rung={'module':'bank_originals','rule':'warehouse original admitted only when its pulled_at is later than the previous retained original for the same request',
+        'available':bank_originals is not None,
+        'n_bank_originals':sum(a.get('transport')=='warehouse_bank' for a in flat),
+        'n_live_originals':sum(a.get('transport')=='provider' for a in flat),
+        'n_vintage_refused':sum((a.get('bank_attempt') or {}).get('status')=='bank_vintage_not_newer' for a in flat)}
+    packet={'engine':'justhodl-earnings-pead','version':'1.3.0','schema_version':2,'measurement_contract':CONTRACT,
+        'method':'complete_earnings_events_and_price_source_coverage','status':'RESEARCH_ONLY','source_files':_pead_source_identity(),'bank_rung':bank_rung,
         'generated_at':datetime.now(timezone.utc).isoformat(),'acquisition_started_at':checked.isoformat(),'checked_as_of':today,
         'universe_acquisition':capture,'universe_membership':membership,'request_records':records,'previous_publication':prior_ref,
         'acquisition_progress':acquisition_progress(plan,visited,stop_reason,total_bytes),
@@ -513,7 +566,8 @@ def lambda_handler(event=None,context=None):
             'Preannouncement consensus and first-release vintages remain unverified. No beat streak, earnings tier or future-return forecast is published.',
             'Price rows do not establish currency, corporate-action continuity, release timing, session entry, benchmark returns or costs. No postearnings drift is qualified.',
             'No guidance source is acquired. Revenue actual/estimate fields are retained when present but do not establish guidance raises.',
-            'The same FMP evidence can feed multiple fundamental desks; repeated sources do not create independent agreement.'],
+            'The same FMP evidence can feed multiple fundamental desks; repeated sources do not create independent agreement.',
+            'A warehouse-bank original (transport warehouse_bank) is the bank\'s copy of the provider response at the bank\'s pull time (bank.pulled_at), received by this engine later (received_at); it is not a first release and adds no independent evidence.'],
         'duration_s':round(time.monotonic()-started,2)}
     raw=json.dumps(packet,ensure_ascii=False,separators=(',',':'),allow_nan=False).encode('utf-8')
     if len(raw)>64*1024*1024 or remaining()<15:raise ValueError('Whole publication exceeds reserve; preserve previous current packet')
