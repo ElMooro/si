@@ -1,6 +1,155 @@
 {
-  "observed_at": "2026-10-26T03:49:17.467377+00:00",
+  "observed_at": "2026-10-26T04:02:33.700745+00:00",
   "runs": [
+    {
+      "id": 40266930855,
+      "path": ".github/workflows/deploy-lambdas.yml",
+      "head_sha": "9f8c3eb709c8d9defd4f3b036c4004e538c4a5a1",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-10-26T04:01:34Z",
+      "updated_at": "2026-10-26T04:01:58Z",
+      "jobs": [
+        {
+          "id": 121391254807,
+          "name": "Deploy changed Lambdas",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T04:01:37Z",
+          "completed_at": "2026-10-26T04:01:56Z",
+          "steps": [
+            {
+              "number": 1,
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T04:01:38Z",
+              "completed_at": "2026-10-26T04:01:39Z"
+            },
+            {
+              "number": 2,
+              "name": "Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T04:01:39Z",
+              "completed_at": "2026-10-26T04:01:52Z"
+            },
+            {
+              "number": 3,
+              "name": "Pin exact recovery checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T04:01:52Z",
+              "completed_at": "2026-10-26T04:01:52Z"
+            },
+            {
+              "number": 4,
+              "name": "Configure AWS credentials",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T04:01:52Z",
+              "completed_at": "2026-10-26T04:01:52Z"
+            },
+            {
+              "number": 5,
+              "name": "Detect changed Lambdas",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T04:01:52Z",
+              "completed_at": "2026-10-26T04:01:54Z"
+            },
+            {
+              "number": 6,
+              "name": "Run deployment preflight tests",
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-26T04:01:54Z",
+              "completed_at": "2026-10-26T04:01:54Z"
+            },
+            {
+              "number": 7,
+              "name": "Prime selected governed aliases before any code staging",
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-26T04:01:54Z",
+              "completed_at": "2026-10-26T04:01:54Z"
+            },
+            {
+              "number": 8,
+              "name": "Preserve long validation connections on the ephemeral runner",
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-26T04:01:54Z",
+              "completed_at": "2026-10-26T04:01:54Z"
+            },
+            {
+              "number": 9,
+              "name": "Deploy each changed Lambda",
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-26T04:01:54Z",
+              "completed_at": "2026-10-26T04:01:54Z"
+            },
+            {
+              "number": 10,
+              "name": "Commit a redacted failure report to main (lanes cannot read job logs)",
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-26T04:01:54Z",
+              "completed_at": "2026-10-26T04:01:54Z"
+            },
+            {
+              "number": 11,
+              "name": "Preserve numbered candidate release evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T04:01:54Z",
+              "completed_at": "2026-10-26T04:01:54Z"
+            },
+            {
+              "number": 12,
+              "name": "Commit Function URL patches back",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T04:01:54Z",
+              "completed_at": "2026-10-26T04:01:54Z"
+            },
+            {
+              "number": 13,
+              "name": "Summary",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T04:01:54Z",
+              "completed_at": "2026-10-26T04:01:54Z"
+            },
+            {
+              "number": 25,
+              "name": "Post Configure AWS credentials",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T04:01:54Z",
+              "completed_at": "2026-10-26T04:01:54Z"
+            },
+            {
+              "number": 26,
+              "name": "Post Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T04:01:54Z",
+              "completed_at": "2026-10-26T04:01:54Z"
+            },
+            {
+              "number": 27,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T04:01:54Z",
+              "completed_at": "2026-10-26T04:01:54Z"
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": 40265343198,
       "path": ".github/workflows/deploy-lambdas.yml",
