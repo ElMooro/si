@@ -3,13 +3,13 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory": 512,
-  "timeout": 360,
+  "memory": 1024,
+  "timeout": 600,
   "architectures": [
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Reported FINRA settlement positions with complete source replay, revision and denominator diagnostics, explicit dates and descriptive-only eligibility.",
+  "description": "Reported FINRA settlement positions with complete source replay, revision and denominator diagnostics, explicit dates, descriptive-only eligibility; 600 s keeps the per-ticker consumer layer's 120 s reserve after the ~250 s research run.",
   "environment": {},
   "retained_legacy_schedule": {
     "name": "justhodl-short-interest-sched",
