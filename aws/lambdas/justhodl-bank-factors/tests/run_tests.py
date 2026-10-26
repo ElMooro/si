@@ -187,7 +187,7 @@ def test_join_writes_one_doc_per_us_symbol_with_derived_fields_ranks_and_a_matri
     assert jpm0["short_source"] == "finra" and abs(jpm0["short_pct_float"] - 2.0) < 1e-9 and jpm0["finra_days_to_cover"] == 2.0 and jpm0["finra_si_change_pct"] == -20.0, jpm0
     assert "finra_vs_polygon_si_pct" not in jpm0 and jpm0["si_settlement_date"] == "2026-10-15"
     assert man["coverage"]["finra_short"] == 3 and man["as_of"]["finra-short-interest"] == "2026-10-15", man["coverage"]
-    assert man["sources"]["finra_short"] == {"tickers": 3, "settlement_date": "2026-10-15", "generated_at": "2026-10-25T01:00:00+00:00"}, man["sources"]
+    assert man["sources"]["finra_short"] == {"source": "short-interest-tickers", "tickers": 3, "settlement_date": "2026-10-15", "generated_at": "2026-10-25T01:00:00+00:00"}, man["sources"]
     assert "finra_short_interest" in man["fields"] and "finra_vs_polygon_si_pct" in man["fields"]
     assert d["etf_holder_count"] == 2 and abs(d["etf_weight_sum"] - 14.5) < 1e-9 and aapl["etf_holders"]["top"][0]["etf"] == "QQQ"
     assert d["n_peers"] == 3 and d["next_earnings_date"] == "2026-10-29", d
@@ -235,6 +235,62 @@ def test_join_writes_one_doc_per_us_symbol_with_derived_fields_ranks_and_a_matri
     assert out3["written"] >= 1 and out3["written"] <= 8, out3          # MSFT changed; ranks of its sector peers may move too
     msft = json.loads(gzip.decompress(s3.store[lf.ROOT + "symbols/MSFT.json.gz"]))
     assert msft["scores"]["altmanZScore"] == 9.9 and msft["ranks"]["pct_altman_z"] == 100.0
+
+
+def finra_shard_fixture():
+    """A real FINRA research head + one record shard built with the short-interest modules' own field contract."""
+    import short_interest_research_model as si_model
+    import short_interest_research_store as si_store
+    import short_interest_measurements as si_meas
+    def point(**values):
+        base = {name: None for name in si_meas.POINT_FIELDS}
+        base.update(values)
+        return [base[name] for name in si_meas.POINT_FIELDS]
+    def record(sym, name, si, prev, adv, dtc, pct, settlement="2026-10-15"):
+        ident = {"symbolCode": sym, "issueName": name, "issuerServicesGroupExchangeCode": "R", "marketClassCode": "NNM"}
+        return {"identity": ident, "latest_settlement_present": True, "observations": [point(
+            settlementDate=settlement, currentShortPositionQuantity=si, previousShortPositionQuantity=prev, averageDailyVolumeQuantity=adv,
+            daysToCoverQuantity=dtc, changePercent=pct, computed_change_shares=str(int(si) - int(prev)), computed_change_pct=pct,
+            days_to_cover_status="matches_reconstructed_rounded_ratio", change_pct_reconciliation="matches_rounded_formula",
+            reconstructed_position_to_reported_adv_days=dtc, matches_reported_previous_quantity=True, revisionFlag=None, stockSplitFlag=None, **ident)]}
+    records = {}
+    for args in (("AAPL", "Apple Inc. Common Stock", "11000000", "10000000", "50000000", "0.22", "10.0"),
+                 ("JPM", "JPMorgan Chase", "20000000", "25000000", "10000000", "2.0", "-20.0"),
+                 ("TINY", "Tiny Corp", "1000000", "400000", "100000", "10", "150.0")):
+        rec = record(*args)
+        rid = si_model.record_id(tuple(rec["identity"][k] for k in si_meas.GRAIN))
+        records[rid] = rec
+    shard = {"contract": "short-interest-record-shard.v1", "records": records}
+    body = si_model.encoded(shard)
+    ref = si_store.identity(body, "records")
+    head = {"contract": si_model.CONTRACT, "engine": "justhodl-short-interest", "generated_at": "2026-10-26T21:01:07+00:00", "settlement_date": "2026-10-15",
+            "record_shards": {"00": ref}, "counts": {"issues": 3}, "calls_eligible": False, "sizing_eligible": False, "execution_eligible": False, "forecast_qualified": False}
+    return si_model.CURRENT, si_model.encoded(head), ref["key"], body
+
+
+def test_finra_join_reads_the_research_head_shards_when_the_consumer_artifact_is_absent():
+    lf, s3 = boot()
+    today = date(2026, 10, 26)
+    seed(lf, s3, today)
+    del s3.store["data/short-interest-tickers.json"]                       # the layer has never published (16 MB bound vs a 19 MB artifact)
+    head_key, head, shard_key, shard = finra_shard_fixture()
+    s3.store[head_key] = head
+    s3.store[shard_key] = shard
+    out = lf.lambda_handler({}, None)
+    assert out["ok"], out
+    man = json.loads(s3.store[lf.MANIFEST_KEY])
+    assert man["coverage"]["finra_short"] == 3 and man["as_of"]["finra-short-interest"] == "2026-10-15", man["coverage"]
+    src = man["sources"]["finra_short"]
+    assert src["source"] == "research-head-shards" and src["tickers"] == 3 and src["shards"] == 1 and src["ambiguous_symbols"] == 0, src
+    d = json.loads(gzip.decompress(s3.store[lf.ROOT + "symbols/AAPL.json.gz"]))["derived"]
+    assert d["finra_short_interest"] == 11000000 and d["finra_days_to_cover"] == 0.22 and d["finra_si_change_pct"] == 10.0 and d["short_source"] == "polygon", d
+    jpm = json.loads(gzip.decompress(s3.store[lf.ROOT + "symbols/JPM.json.gz"]))["derived"]
+    assert jpm["short_source"] == "finra" and abs(jpm["short_pct_float"] - 2.0) < 1e-9, jpm
+    # a shard whose bytes differ from the head's identity is refused whole (nothing partial)
+    s3.store[shard_key] = shard + b" "
+    lf.lambda_handler({"force": True}, None)
+    man = json.loads(s3.store[lf.MANIFEST_KEY])
+    assert man["coverage"]["finra_short"] == 0 and "shards failed verification" in man["sources"]["finra_short"]["reason"], man["sources"]["finra_short"]
 
 
 def test_lease_missing_bank_and_no_returns_flag():

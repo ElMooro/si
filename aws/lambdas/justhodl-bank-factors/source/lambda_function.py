@@ -982,7 +982,7 @@ def lambda_handler(event=None, context=None):
     cal_earn = load_calendar_month(src, "earnings-calendar")
     cal_div = load_calendar_month(src, "dividends-calendar")
     shorts, shortvol = load_polygon_short(uni, src, deadline - reserve["short"])
-    finra = load_finra_short(src)                                        # v1.0.6: FINRA's own short interest beside Polygon's
+    finra = load_finra_short(src, max(deadline - reserve["pass1"] - 120, time.time() + 30))   # v1.0.6: FINRA's own short interest beside Polygon's
     log("float %d, short %d, short-volume %d, finra short %d, calendars %d/%d (%.0fs)" % (len(floats), len(shorts), len(shortvol), len(finra), len(cal_earn), len(cal_div), time.time() - t0))
     returns, rinfo = returns_from_tape(uni, deadline - reserve["pass1"] - 60, reserve["returns"]) if not event.get("no_returns") else ({}, {"sessions": 0, "skipped": True})
     src.coverage["returns"] = rinfo
@@ -1117,23 +1117,88 @@ def _put_json_gz_plain(key, obj):
 FINRA_TICKERS_KEY = "data/short-interest-tickers.json"
 
 
-def load_finra_short(src: Sources):
-    """FINRA's bi-monthly short interest per ticker from justhodl-short-interest's consumer layer (contract
-    short-interest-tickers.v1: by_ticker[SYM] = {short_interest, prev_short_interest, change_pct, avg_daily_volume,
-    days_to_cover, dtc_effective, dtc_status, settlement_date, latest, ...}).  Values are kept as reported; the join is by
-    FINRA's symbol.  Unavailable -> {} and a note, never zeros."""
+def _finra_from_research_head(src: Sources, stop_at):
+    """FINRA short interest straight from justhodl-short-interest's reviewed research head (data/short-interest.json,
+    contract short-interest-original-research.v1) and its 256 record shards, projected per ticker with the consumer
+    layer's own pure function (short_interest_tickers.build_tickers_projection) - exactly what the layer would publish as
+    data/short-interest-tickers.json.  Why here: the layer's artifact is ~19 MB and its evidence store admits 16 MB, so the
+    layer has never published (ops 6682/6684/6686); the book is the per-ticker shape anyway.  Every shard is verified
+    against the head's identity (sha256 + bytes) before it is used.  Returns (by_ticker, meta) or ({}, reason)."""
+    try:
+        import short_interest_research_model as si_model
+        import short_interest_research_store as si_store
+        import short_interest_tickers as si_tickers
+    except Exception as e:  # noqa: BLE001
+        return {}, "short-interest modules not packaged (%s)" % type(e).__name__
+    raw = _get_bytes(si_model.CURRENT, client=_s3())
+    if not raw:
+        return {}, "%s unavailable" % si_model.CURRENT
+    try:
+        packet = si_model.strict(raw)
+    except Exception as e:  # noqa: BLE001
+        return {}, "head unreadable (%s)" % type(e).__name__
+    if not isinstance(packet, dict) or packet.get("contract") != si_model.CONTRACT or not isinstance(packet.get("record_shards"), dict):
+        return {}, "head is not %s with record shards" % si_model.CONTRACT
+    refs = packet["record_shards"]
+    shards, bad, total = {}, [], 0
+
+    def one(item):
+        prefix, ref = item
+        if time.time() > stop_at:
+            return prefix, None, "budget"
+        key = ref.get("key") if isinstance(ref, dict) else None
+        if not isinstance(key, str) or not key.startswith(si_model.PREFIX + "records/"):
+            return prefix, None, "bad ref"
+        body = _get_bytes(key, client=_s3())
+        if not body or si_store.identity(body, "records") != ref:
+            return prefix, None, "identity differs or unavailable"
+        try:
+            doc = si_model.strict(body)
+        except Exception as e:  # noqa: BLE001
+            return prefix, None, type(e).__name__
+        if not isinstance(doc, dict) or doc.get("contract") != "short-interest-record-shard.v1":
+            return prefix, None, "not a record shard"
+        return prefix, (doc, len(body)), None
+    with ThreadPoolExecutor(max_workers=WORKERS) as pool:
+        for prefix, got, err in pool.map(one, sorted(refs.items())):
+            if got is None:
+                bad.append("%s: %s" % (prefix, err))
+                continue
+            shards[prefix] = got[0]
+            total += got[1]
+    if any(b.endswith(": budget") for b in bad):
+        return {}, "shard reads stopped by the budget at %d/%d" % (len(shards), len(refs))
+    if bad:
+        return {}, "%d of %d shards failed verification (%s)" % (len(bad), len(refs), "; ".join(bad[:3]))
+    proj = si_tickers.build_tickers_projection(shards)
+    by = proj.get("by_ticker") or {}
+    return by, {"source": "research-head-shards", "settlement_date": packet.get("settlement_date"), "generated_at": packet.get("generated_at"),
+                "shards": len(shards), "shard_bytes": total, "ambiguous_symbols": len(proj.get("ambiguous_symbols") or []),
+                "unresolved_occurrences": len(proj.get("unresolved_occurrences") or [])}
+
+
+def load_finra_short(src: Sources, stop_at=None):
+    """FINRA's bi-monthly short interest per ticker: the consumer layer's artifact (data/short-interest-tickers.json,
+    contract short-interest-tickers.v1) when it exists, else the same projection computed from the research head's
+    record shards (see _finra_from_research_head).  by_ticker[SYM] = {short_interest, prev_short_interest, change_pct,
+    avg_daily_volume, days_to_cover, dtc_effective, dtc_status, settlement_date, latest, ...} as the layer reports them.
+    Unavailable -> {} and a note, never zeros."""
+    stop_at = stop_at or (time.time() + 240)
     doc = _get_json(FINRA_TICKERS_KEY, client=_s3())
     by = doc.get("by_ticker") if isinstance(doc, dict) and doc.get("contract") == "short-interest-tickers.v1" else None
-    if not isinstance(by, dict) or not by:
-        src.notes.append("finra short interest: %s unavailable or not the short-interest-tickers.v1 contract" % FINRA_TICKERS_KEY)
-        src.coverage["finra_short"] = {"tickers": 0}
-        return {}
+    meta = {"source": "short-interest-tickers", "settlement_date": doc.get("settlement_date"), "generated_at": doc.get("generated_at")} if isinstance(by, dict) and by else None
+    if meta is None:
+        by, meta = _finra_from_research_head(src, stop_at)
+        if not by:
+            src.notes.append("finra short interest: %s absent and the research head gave nothing: %s" % (FINRA_TICKERS_KEY, meta))
+            src.coverage["finra_short"] = {"tickers": 0, "reason": str(meta)[:200]}
+            return {}
     out = {}
     for sym, row in by.items():
         if isinstance(row, dict) and isinstance(sym, str) and sym:
             out[sym.upper()] = row
-    src.coverage["finra_short"] = {"tickers": len(out), "settlement_date": doc.get("settlement_date"), "generated_at": doc.get("generated_at")}
-    src.as_of["finra-short-interest"] = doc.get("settlement_date")
+    src.coverage["finra_short"] = dict(meta, tickers=len(out))
+    src.as_of["finra-short-interest"] = meta.get("settlement_date")
     return out
 
 
