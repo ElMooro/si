@@ -157,6 +157,14 @@ holds the symbol (`fmp_bank.history_has`). First build is conducted by `.github/
 1 GB (its config is pinned by tests/test_capital_structure_final_consumers.py - a reviewed contract); the book removes the
 working-set problem and the one-loader-per-table fix covers its 10-thread first touch.
 
+First light (ops 6668, 2026-10-26 07:51-08:04 UTC): one 760 s run built eight blocks - income / balance / cash-flow
+annual + quarter and ratios annual + quarter - ~15,400 symbols each (every US-listed name with statements), 59k annual
+and 230k quarterly rows per statement; key-metrics and the growth files follow on the next kicks. equity-research for
+AAPL (refresh=1) answered HTTP 200 with an 84 KB report where it had answered 404 "No data" an hour earlier. Depth
+caveat, stated in every document's `years`: the FMP bank holds statements for fiscal 2022-2026 only (its deep backfill was
+cut off by the bandwidth block), so the book is 4-5 annual years / 19-20 quarters deep today and deepens automatically
+when the bank does (KHALID_ACTIONS 0o).
+
 ### Queue (next waves, from the fusion map)
 
 - squeeze / short: pre-pump-detector, pump-mechanics, ignition, short-interest, early-movers, momentum-leaders (SI % float, DTC, float, short-volume ratio).

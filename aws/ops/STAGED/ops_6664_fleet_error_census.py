@@ -1,4 +1,4 @@
-"""ops 6664 - read-only fleet error census since the FMP bandwidth block (2026-10-26 ~01:00 UTC): which engines are
+"""ops 6664 - read-only fleet error census (default: the last 6 hours; CENSUS_HOURS / CENSUS_SINCE env): which engines are
 failing NOW, how (errors / timeouts / out-of-memory), and whether they are FMP consumers - the data-driven queue for bank
 fusion wave 3 instead of the keyword map.
 
@@ -25,7 +25,7 @@ from ops_report import report  # noqa: E402
 
 REGION = "us-east-1"
 CFG = Config(retries={"max_attempts": 10, "mode": "standard"}, connect_timeout=10, read_timeout=120)
-SINCE = datetime(2026, 10, 26, 1, 0, tzinfo=timezone.utc)
+SINCE = datetime.fromisoformat(os.environ["CENSUS_SINCE"]) if os.environ.get("CENSUS_SINCE") else (datetime.now(timezone.utc) - timedelta(hours=int(os.environ.get("CENSUS_HOURS") or "6"))).replace(microsecond=0)
 FUSED = set(("justhodl-bank-factors justhodl-magic-formula justhodl-divcut-warning justhodl-deep-value-screener justhodl-equity-ftd "
              "justhodl-stock-valuations justhodl-analyst-consensus justhodl-quality-on-sale justhodl-beneish justhodl-insider-radar "
              "justhodl-pre-pump-detector justhodl-pump-mechanics justhodl-ignition justhodl-coffee-can justhodl-buyback-yield-ranking "

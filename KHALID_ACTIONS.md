@@ -33,6 +33,13 @@ This file tracks items that require **your direct action** (registration, creden
   political-trades (the whole banked insider, 13F and congressional feeds as the first rung). Three engines were left
   alone on purpose - momentum-leaders, pump-positioning, estimate-revisions carry reviewed, byte-pinned contracts (like
   eps-revision-velocity, earnings-quality, short-interest) and need their own reviewed change.
+* **Wave 3a (2026-10-26 08:00 UTC) - the why.html desk is back.** The fleet error census found your per-ticker research
+  desk (`equity-research`) failing on user traffic: 52 out-of-memory crashes, and "No data for ticker AAPL" when it had to
+  recompute - one ticker's 20 years of statements meant decoding ~60 whole-market files. A new engine, the **history
+  book** (`justhodl-bank-histories`, daily 03:05 UTC), now writes every US-listed symbol's statement / ratio / metric
+  history as one small object, and the desk reads that (AAPL answered in full again at 08:04 UTC). It is 4-5 fiscal
+  years deep today because that is what the FMP bank holds; it deepens by itself the day the bank's backfill resumes -
+  which is the 0o decision below.
 * **Why it also helps with 0o:** every one of these now takes price / market cap / fundamentals from the bank close
   instead of live FMP calls, so they keep working while the FMP key is bandwidth-blocked - and they stop spending calls.
 * **Next waves (no decision needed):** the remaining quality/value and earnings engines, 13F/political readers, energy
