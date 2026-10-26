@@ -2,6 +2,7 @@
 justhodl-insider-radar v1.0 — Form-4 open-market buys, cluster + decline logic
 ==============================================================================
 Finviz Module 4, desk-grade. Source ladder (every rung lands in DIAG):
+  0. the FMP walker's banked insider-trading/latest feed, 35 days deep (v1.2.0, bank fusion 2026-10-26)
   1. FMP /stable insider endpoints (may be plan-gated — captured honestly)
   2. existing desk SEC briefs on S3 (probed)
   3. honest 'unavailable' brief
@@ -36,7 +37,7 @@ OUT_KEY = "data/insider-radar.json"
 UP_STATE = "data/_upside/state.json.gz"
 FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 POLYGON_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
-VERSION = "1.1.1"
+VERSION = "1.2.0"
 DIAG = []
 RANK = (("CEO", 3.0), ("CHIEF EXECUTIVE", 3.0), ("CFO", 2.8), ("CHIEF FINANCIAL", 2.8),
          ("PRESIDENT", 2.4), ("COO", 2.2), ("CHAIR", 2.2), ("DIRECTOR", 1.8),
@@ -74,6 +75,35 @@ def poly_ret60(t):
         DIAG.append(f"poly_ret60 {t}: {str(e)[:40]}")
     _PX60[t] = val
     return val
+
+
+try:  # v1.2.0 (2026-10-26, bank fusion): the FMP walker banks the WHOLE insider-trading/latest feed per day since 2024
+    import fmp_bank as _bank  # (data/warm/fmp/insider-trading-latest/<YYYY>/<date>.json.gz) - 30 days of it beat one live page of 1,000 rows
+except Exception:  # noqa: BLE001
+    _bank = None
+BANK_FEED_DAYS = int(os.environ.get("INSIDER_BANK_FEED_DAYS", "35"))
+
+
+def fetch_bank_feed(days=None):
+    """The banked insider feed for the last `days` calendar days (newest first); [] when the bank has none of them."""
+    if _bank is None:
+        return [], 0
+    rows, got = [], 0
+    today = datetime.now(timezone.utc).date()
+    for i in range(days or BANK_FEED_DAYS):
+        day = (today - timedelta(days=i)).isoformat()
+        try:
+            page = _bank.walker("insider-trading-latest", day=day)
+        except Exception:  # noqa: BLE001
+            page = None
+        if isinstance(page, list) and page:
+            rows.extend(page)
+            got += 1
+    if got:
+        DIAG.append(f"bank/insider-trading-latest: {len(rows)} rows over {got} banked days (of {days or BANK_FEED_DAYS})")
+    else:
+        DIAG.append("bank/insider-trading-latest: no banked days")
+    return rows, got
 
 
 def fetch_fmp():
@@ -163,8 +193,11 @@ def ps_ttm_map(tickers, cap=25):
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     DIAG.clear()
-    raw = fetch_fmp()
-    source = "fmp" if raw else None
+    raw, bank_days = fetch_bank_feed()
+    source = "fmp-walker bank (%d days)" % bank_days if raw else None
+    if not raw:
+        raw = fetch_fmp()
+        source = "fmp" if raw else None
     if not raw:
         raw = fetch_s3_fallback()
         source = "s3_sec_briefs" if raw else "unavailable"
