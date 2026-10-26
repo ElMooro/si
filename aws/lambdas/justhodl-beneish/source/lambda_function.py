@@ -26,7 +26,9 @@ Interpretation:
   TATA  Total Accruals to Total Assets - cash vs accrual divergence
   LVGI  Leverage Index                - debt covenant pressure?
 
-Universe: top-50 SP500 by mcap (STATIC_TOP50_SPX shared with starmine).
+Universe: top-50 SP500 by mcap (STATIC_TOP50_SPX shared with starmine) for the
+universe_state; v1.1.0 adds every US common stock >= $500M from the factor book,
+scored from the bank's statements (`market` block, `all_tickers` carry them all).
 Output: per-ticker M-Score + risk category + 8 component breakdowns
         + top 10 RED FLAGS + market-wide median + composite distribution.
 
@@ -50,7 +52,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = "data/beneish.json"
 FMP_BASE = "https://financialmodelingprep.com/stable"
@@ -61,6 +63,58 @@ TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 UNIVERSE_TOP_N = 50
 FMP_SLEEP_SEC = 0.4
 HTTP_TIMEOUT = 20
+# v1.1.0 (2026-10-26, bank fusion): the M-Score is a fraud screen - it earns its keep across the WHOLE market, not the
+# top 50.  Every US common stock >= BENEISH_MIN_MCAP in the factor book (justhodl-bank-factors) is scored from the
+# bank's statements (aws/shared/fmp_bank, the bulk statement files - no provider call, no sleep); the live /stable
+# path with its pacing stays for the static 50 only.  The top-50 `universe_state` keeps its meaning; a new `market`
+# block carries the whole-market red-flag rate and the per-sector rates.
+BENEISH_MIN_MCAP = float(os.environ.get("BENEISH_MIN_MCAP", "500000000"))
+BENEISH_BOOK_LIMIT = int(os.environ.get("BENEISH_BOOK_LIMIT", "4000"))
+BENEISH_BUDGET_S = float(os.environ.get("BENEISH_BUDGET_S", "480"))
+try:
+    import bank_enrich as _book
+except Exception:  # noqa: BLE001
+    _book = None
+try:
+    import fmp_bank as _bank
+except Exception:  # noqa: BLE001
+    _bank = None
+
+
+def book_universe():
+    """[(symbol, sector)] for every US common stock >= BENEISH_MIN_MCAP in the factor book, largest first; [] without the book."""
+    if _book is None or not _book.available():
+        return [], None
+    rows = _book.screen(lambda r: (r.get("mcap") or 0) >= BENEISH_MIN_MCAP, fields=["mcap", "sector"])
+    rows.sort(key=lambda r: -(r.get("mcap") or 0))
+    return [(r["symbol"], r.get("sector") or "") for r in rows[:BENEISH_BOOK_LIMIT]], _book.as_of()
+
+
+def analyze_ticker_bank(symbol):
+    """M-Score from the bank's statement files only (3 annual periods, newest first); None when the bank lacks them."""
+    if _bank is None:
+        return None
+    try:
+        income = _bank.statements("income-statement", symbol, period="annual", limit=3) or []
+        bs = _bank.statements("balance-sheet-statement", symbol, period="annual", limit=3) or []
+        cf = _bank.statements("cash-flow-statement", symbol, period="annual", limit=3) or []
+    except Exception:  # noqa: BLE001
+        return None
+    if len(income) < 2 or len(bs) < 2 or len(cf) < 1:
+        return None
+    res = compute_beneish(income, bs, cf)
+    if res is not None:
+        res["source"] = "fmp-bank statements"
+    return res
+
+
+def book_context(symbol):
+    if _book is None or not _book.available():
+        return None
+    try:
+        return _book.lookup(symbol, ["income_quality", "altman_z", "sbc_to_revenue", "short_pct_float", "dso", "revenue_growth"])
+    except Exception:  # noqa: BLE001
+        return None
 
 # Same static universe used by starmine for cross-tool consistency
 STATIC_TOP50_SPX = [
@@ -362,18 +416,47 @@ def lambda_handler(event, context):
                 "body": json.dumps({"ok": False, "error": "FMP_KEY not set"})}
 
     per_ticker = []
+    top50 = {t["symbol"] for t in STATIC_TOP50_SPX[:UNIVERSE_TOP_N]}
     for i, t in enumerate(STATIC_TOP50_SPX[:UNIVERSE_TOP_N]):
         sym = t["symbol"]
         try:
-            res = analyze_ticker(sym)
+            res = analyze_ticker_bank(sym) or analyze_ticker(sym)      # the bank first; the paced live path when it lacks the name
             if res is not None:
                 res["ticker"] = sym
                 res["sector"] = t.get("sector", "")
+                res.setdefault("source", "live /stable")
                 per_ticker.append(res)
         except Exception as e:
             log.append(f"err {sym}: {str(e)[:80]}")
         if i % 10 == 9:
             log.append(f"progress: {i+1}/{UNIVERSE_TOP_N}")
+
+    # v1.1.0: the whole market from the factor book, bank statements only (no live call, no pacing), within the budget
+    book_syms, book_as_of = book_universe()
+    n_book_done, n_book_skipped = 0, 0
+    t_book = time.time()
+    for sym, sector in book_syms:
+        if sym in top50:
+            continue
+        if time.time() - t_book > BENEISH_BUDGET_S:
+            log.append(f"book budget hit after {n_book_done} names")
+            break
+        try:
+            res = analyze_ticker_bank(sym)
+        except Exception as e:  # noqa: BLE001
+            log.append(f"err {sym}: {str(e)[:80]}")
+            res = None
+        if res is None:
+            n_book_skipped += 1
+            continue
+        res["ticker"] = sym
+        res["sector"] = sector
+        per_ticker.append(res)
+        n_book_done += 1
+    log.append(f"factor-book universe: {len(book_syms)} names, {n_book_done} scored, {n_book_skipped} without bank statements")
+    for t in per_ticker:
+        if t["verdict"] == "LIKELY_MANIPULATOR":
+            t["bank_context"] = book_context(t["ticker"])
 
     if not per_ticker:
         return {"statusCode": 500,
@@ -381,18 +464,30 @@ def lambda_handler(event, context):
                                     "error": "no tickers analyzed",
                                     "log": log[-5:]})}
 
-    # Classify + aggregate
+    # Classify + aggregate (the top-50 state keeps its original meaning; the whole market is reported separately)
+    core = [t for t in per_ticker if t["ticker"] in top50]
     m_scores = [t["m_score"] for t in per_ticker]
-    n_red = sum(1 for t in per_ticker
-                if t["verdict"] == "LIKELY_MANIPULATOR")
-    n_watch = sum(1 for t in per_ticker if t["verdict"] == "WATCH_LIST")
-    n_clean = sum(1 for t in per_ticker
-                  if t["verdict"] == "UNLIKELY_MANIPULATOR")
+    n_red = sum(1 for t in core if t["verdict"] == "LIKELY_MANIPULATOR")
+    n_watch = sum(1 for t in core if t["verdict"] == "WATCH_LIST")
+    n_clean = sum(1 for t in core if t["verdict"] == "UNLIKELY_MANIPULATOR")
+    mkt_red = [t for t in per_ticker if t["verdict"] == "LIKELY_MANIPULATOR"]
+    by_sector = {}
+    for t in per_ticker:
+        sec = t.get("sector") or "Unknown"
+        d = by_sector.setdefault(sec, {"n": 0, "red": 0})
+        d["n"] += 1
+        d["red"] += 1 if t["verdict"] == "LIKELY_MANIPULATOR" else 0
+    market = {"source": "factor book universe (US common stocks >= $%dM) scored from the bank's statements" % (BENEISH_MIN_MCAP / 1e6),
+              "book_as_of": book_as_of, "n_candidates": len(book_syms), "n_scored_total": len(per_ticker), "n_red_total": len(mkt_red),
+              "pct_red_total": round(100.0 * len(mkt_red) / len(per_ticker), 2) if per_ticker else None,
+              "by_sector": {k: {"n": v["n"], "red": v["red"], "pct_red": round(100.0 * v["red"] / v["n"], 1)} for k, v in sorted(by_sector.items())},
+              "top_red_flags": [{"ticker": t["ticker"], "sector": t.get("sector"), "m_score": t["m_score"], "fiscal_year_t": t.get("fiscal_year_t"), "bank_context": t.get("bank_context")}
+                                for t in sorted(mkt_red, key=lambda x: -x["m_score"])[:50]]}
 
     red_flags = sorted(
-        [t for t in per_ticker if t["verdict"] == "LIKELY_MANIPULATOR"],
+        [t for t in core if t["verdict"] == "LIKELY_MANIPULATOR"],         # the top-50 desk, as before; the market is in `market`
         key=lambda x: x["m_score"], reverse=True)
-    cleanest = sorted(per_ticker, key=lambda x: x["m_score"])[:10]
+    cleanest = sorted(core, key=lambda x: x["m_score"])[:10]
 
     median_m = round(statistics.median(m_scores), 3)
     max_m = max(m_scores)
@@ -417,7 +512,9 @@ def lambda_handler(event, context):
         "version": VERSION,
         "generated_at": started.isoformat(),
         "universe_state": universe_state,
+        "universe_state_scope": "STATIC_TOP50_SPX (%d scored)" % len(core),
         "n_universe_analyzed": len(per_ticker),
+        "market": market,
         "n_likely_manipulator": n_red,
         "n_watch_list": n_watch,
         "n_unlikely_manipulator": n_clean,
