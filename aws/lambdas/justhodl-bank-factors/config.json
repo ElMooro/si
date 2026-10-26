@@ -11,7 +11,8 @@
     "FACTOR_BOOK_WORKERS": "24",
     "FACTOR_BOOK_RETURNS_SESSIONS": "253",
     "FACTOR_BOOK_RETURNS_BUDGET_S": "300",
-    "FMP_BANK_TEXT_BUDGET_MB": "1200"
+    "FMP_BANK_TEXT_BUDGET_MB": "48",
+    "FACTOR_BOOK_DB": "/tmp/factor-book.sqlite"
   },
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-bank-factors-daily",
@@ -19,5 +20,6 @@
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Factor book join, daily 02:50 UTC (after fmp-bank 23:13, fmp-walker 23:27 and polygon-full 02:29 have banked the day)"
-  }
+  },
+  "ephemeral_storage": 2048
 }

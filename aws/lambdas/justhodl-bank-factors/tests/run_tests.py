@@ -19,6 +19,7 @@ os.environ["FACTOR_BOOK_BUDGET_S"] = "120"
 os.environ["FACTOR_BOOK_WORKERS"] = "4"
 os.environ["FACTOR_BOOK_RETURNS_SESSIONS"] = "30"
 os.environ["AWS_LAMBDA_FUNCTION_MEMORY_SIZE"] = "3008"
+os.environ["FACTOR_BOOK_DB"] = os.path.join(os.environ.get("TMPDIR", "/tmp"), "factor-book-test.sqlite")
 
 
 class S3Stub:
@@ -29,6 +30,11 @@ class S3Stub:
         if Key not in self.store:
             raise KeyError("NoSuchKey: " + Key)
         return {"Body": io.BytesIO(self.store[Key]), "Metadata": self.meta.get(Key) or {}}
+
+    def head_object(self, Bucket, Key):
+        if Key not in self.store:
+            raise KeyError("NoSuchKey: " + Key)
+        return {"ContentLength": len(self.store[Key])}
 
     def put_object(self, Bucket, Key, Body, **kw):
         self.store[Key] = Body if isinstance(Body, bytes) else Body.encode()

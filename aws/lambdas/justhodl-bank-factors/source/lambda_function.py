@@ -20,6 +20,10 @@ What it writes (data/warm/factor-book/, write-if-changed, gzip JSON):
     manifest.json              counts, coverage per source, as_of per source, which source columns were found, formulas
     _state/state.json          per-symbol content hashes (write-if-changed), lease
 
+v1.0.1 (2026-10-26): the first join ran out of 3 GB in 19 s decoding whole-market CSVs into strings; every bank table is
+now STREAMED once (gunzip -> text -> csv.reader) into a SQLite staging file on /tmp keyed (block, symbol), and the
+documents are assembled from indexed lookups - memory stays flat whatever the files weigh (ephemeral storage 2 GB).
+
 Doctrine: bank-only (no provider call, no key); once a day (Scheduler, after the banks); one invoke, one budget, no
 self-chaining; verbatim numbers (FMP's / Polygon's own values; derived fields are arithmetic on them and say so); a
 missing source is recorded in coverage, never guessed; every value carries the bank's as_of.
@@ -34,6 +38,7 @@ import json
 import math
 import os
 import re
+import sqlite3
 import sys
 import threading
 import time
@@ -46,7 +51,7 @@ from botocore.config import Config
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import fmp_bank  # noqa: E402  (aws/shared, bundled)
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 SCHEMA = "factor-book/1.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 ROOT = "data/warm/factor-book/"
@@ -61,6 +66,7 @@ WORKERS = int(os.environ.get("FACTOR_BOOK_WORKERS", "24"))
 RETURNS_SESSIONS = int(os.environ.get("FACTOR_BOOK_RETURNS_SESSIONS", "253"))
 RETURNS_BUDGET_S = float(os.environ.get("FACTOR_BOOK_RETURNS_BUDGET_S", "300"))
 MAX_SYMBOLS = int(os.environ.get("FACTOR_BOOK_MAX_SYMBOLS", "40000"))
+DB_PATH = os.environ.get("FACTOR_BOOK_DB", "/tmp/factor-book.sqlite")
 
 US_EXCHANGES = {"NASDAQ", "NYSE", "AMEX", "NYSE AMERICAN", "NYSEARCA", "NYSE ARCA", "CBOE", "BATS", "OTC", "PNK", "OTCQB", "OTCQX", "OTCBB", "OTCM"}
 OTC_EXCHANGES = {"OTC", "PNK", "OTCQB", "OTCQX", "OTCBB", "OTCM"}
@@ -254,15 +260,52 @@ POSITIVE_ONLY = {"pe", "ev_ebitda", "ps", "p_fcf", "pb", "peg"}       # a negati
 
 
 # ------------------------------------------------------------------------------------------------- source loading --
-class Sources:
-    """Opens every bank table once (fmp_bank's indexed tables) and answers per-symbol lookups."""
+def _stream_csv(key):
+    """Yield (header, rows) from a banked gzip CSV WITHOUT holding it in memory: the S3 body is gunzipped and decoded as
+    a stream (the first join of 2026-10-26 ran out of 3 GB in 19 s by decoding whole-market files into strings)."""
+    try:
+        body = s3.get_object(Bucket=BUCKET, Key=key)["Body"]
+    except Exception:  # noqa: BLE001
+        return None, iter(())
+    gz = gzip.GzipFile(fileobj=body)
+    text = io.TextIOWrapper(gz, encoding="utf-8", errors="replace", newline="")
+    reader = csv.reader(text)
+    try:
+        header = next(reader)
+    except StopIteration:
+        return [], iter(())
+    return header, reader
 
-    def __init__(self):
+
+def _exists(key):
+    try:
+        s3.head_object(Bucket=BUCKET, Key=key)
+        return True
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def _snapshot_keys(bulk):
+    whole = FMP_ROOT + bulk + "/latest.csv.gz"
+    if _exists(whole):
+        return [whole]
+    keys = []
+    for part in range(0, 41):
+        k = FMP_ROOT + "%s/part-%d/latest.csv.gz" % (bulk, part)
+        if not _exists(k):
+            break
+        keys.append(k)
+    return keys
+
+
+class Sources:
+    """Streams every bank table ONCE into a SQLite staging file on /tmp (block, symbol) -> typed row JSON, so memory
+    stays flat whatever the files weigh; assembly then reads one symbol's rows with indexed lookups."""
+
+    def __init__(self, db_path=DB_PATH):
         self.as_of = {}
         self.found = {}
         self.coverage = {}
-        self.bulk = {}                   # block -> [table keys]
-        self.dated = {}                  # block -> [(year, key)]
         self.notes = []
         man = fmp_bank.manifest() or {}
         self.as_of["fmp-bank"] = man.get("updated_at")
@@ -271,144 +314,208 @@ class Sources:
         self.as_of["fmp-walker"] = wman.get("updated_at")
         pman = _get_json(POLY_ROOT + "manifest.json") or {}
         self.as_of["polygon-bank"] = pman.get("updated_at")
+        try:
+            os.remove(db_path)
+        except OSError:
+            pass
+        self.db = sqlite3.connect(db_path)
+        self.db.execute("PRAGMA journal_mode=OFF")
+        self.db.execute("PRAGMA synchronous=OFF")
+        self.db.execute("PRAGMA temp_store=MEMORY")
+        self.db.execute("PRAGMA cache_size=-200000")
+        self.db.execute("CREATE TABLE rows (block TEXT, symbol TEXT, year INTEGER, row TEXT)")
+        self.universe = {}
+        self._pending = []
 
-    def open_bulk(self, block, bulk):
-        keys = fmp_bank._snapshot_keys(bulk)
-        self.bulk[block] = keys
-        self.coverage[block] = {"files": len(keys)}
+    # -- staging -------------------------------------------------------------------------------------------------
+    def _flush(self):
+        if self._pending:
+            self.db.executemany("INSERT INTO rows VALUES (?,?,?,?)", self._pending)
+            self._pending = []
+
+    def _stage(self, block, sym, row, year=None):
+        self._pending.append((block, sym, year, json.dumps(row, separators=(",", ":"), default=str)))
+        if len(self._pending) >= 5000:
+            self._flush()
+
+    def finish_staging(self):
+        self._flush()
+        self.db.execute("CREATE INDEX ix_rows ON rows (block, symbol)")
+        self.db.commit()
+
+    def stage_profile(self, bulk="profile-bulk"):
+        """One streaming pass: decides the universe (US-listed, actively trading) and keeps those rows."""
+        keys = _snapshot_keys(bulk)
+        self.coverage["profile"] = {"files": len(keys)}
+        if not keys:
+            self.notes.append("profile: not banked (%s)" % bulk)
+            return
+        for key in keys:
+            header, reader = _stream_csv(key)
+            if not header:
+                continue
+            self.found["profile.columns"] = header
+            lk = {h.lower().replace("_", ""): i for i, h in enumerate(header)}
+
+            def col(*names):
+                for n in names:
+                    i = lk.get(n.lower().replace("_", ""))
+                    if i is not None:
+                        return i
+                return None
+            i_sym, i_ex = col("symbol"), col("exchangeShortName", "exchange")
+            i_act, i_etf, i_fund, i_adr = col("isActivelyTrading"), col("isEtf"), col("isFund"), col("isAdr")
+            i_name, i_sec, i_ind, i_cty = col("companyName", "name"), col("sector"), col("industry"), col("country")
+            i_mc, i_ipo, i_cik, i_cur = col("marketCap", "mktCap"), col("ipoDate"), col("cik"), col("currency")
+            if i_sym is None or i_ex is None:
+                self.notes.append("profile: symbol/exchange columns missing")
+                continue
+            for row in reader:
+                if len(row) <= max(i_sym, i_ex):
+                    continue
+                ex = row[i_ex].strip().upper()
+                if ex not in US_EXCHANGES:
+                    continue
+                if i_act is not None and i_act < len(row) and row[i_act].strip().lower() == "false":
+                    continue
+                sym = row[i_sym].strip().upper()
+                if not sym or len(sym) > 12 or " " in sym or sym in self.universe:
+                    continue
+
+                def g(i):
+                    return (row[i] or None) if (i is not None and i < len(row)) else None
+                self.universe[sym] = {"symbol": sym, "name": g(i_name), "exchange": ex, "sector": g(i_sec), "industry": g(i_ind), "country": g(i_cty),
+                                      "mcap": num(g(i_mc)), "is_etf": (g(i_etf) or "").strip().lower() == "true", "is_fund": (g(i_fund) or "").strip().lower() == "true",
+                                      "is_adr": (g(i_adr) or "").strip().lower() == "true", "is_otc": ex in OTC_EXCHANGES, "ipo_date": g(i_ipo), "cik": g(i_cik), "currency": g(i_cur)}
+                self._stage("profile", sym, fmp_bank._typed(dict(zip(header, row))))
+                if len(self.universe) >= MAX_SYMBOLS:
+                    break
+        self._flush()
+
+    def stage_bulk(self, block, bulk):
+        """Snapshot bulk (latest.csv.gz or part-N files): the universe's rows only."""
+        keys = _snapshot_keys(bulk)
+        self.coverage[block] = {"files": len(keys), "rows": 0}
         if not keys:
             self.notes.append("%s: not banked (%s)" % (block, bulk))
-        return keys
+            return
+        n = 0
+        for key in keys:
+            header, reader = _stream_csv(key)
+            if not header:
+                continue
+            low = [h.strip().lower() for h in header]
+            if "symbol" not in low:
+                self.notes.append("%s: no symbol column (%s)" % (block, header[:6]))
+                continue
+            si = low.index("symbol")
+            for row in reader:
+                if si >= len(row):
+                    continue
+                sym = row[si].strip().upper()
+                hit = sym in self.universe or sym.replace(".", "-") in self.universe
+                if not hit:
+                    continue
+                self._stage(block, sym if sym in self.universe else sym.replace(".", "-"), fmp_bank._typed(dict(zip(header, row))))
+                n += 1
+        self._flush()
+        self.coverage[block]["rows"] = n
 
-    def open_dated(self, block, bulk, years=2, period="annual"):
+    def stage_etf_holders(self, bulk="etf-holder-bulk"):
+        """etf-holder-bulk lists (etf, asset, weight, shares, value) per ETF; stored inverted: asset -> one row per ETF."""
+        keys = _snapshot_keys(bulk)
+        self.coverage["etf_holders"] = {"files": len(keys), "rows": 0}
+        if not keys:
+            self.notes.append("etf_holders: not banked (%s)" % bulk)
+            return
+        n = 0
+        for key in keys:
+            header, reader = _stream_csv(key)
+            if not header:
+                continue
+            self.found["etf_holders.columns"] = header
+            lk = {h.lower().replace("_", ""): i for i, h in enumerate(header)}
+
+            def col(*names):
+                for nme in names:
+                    i = lk.get(nme.lower().replace("_", ""))
+                    if i is not None:
+                        return i
+                return None
+            i_etf, i_asset = col("symbol", "etfSymbol"), col("asset", "holdingSymbol", "ticker")
+            i_w, i_sh, i_mv = col("weightPercentage", "weight"), col("sharesNumber", "shares"), col("marketValue")
+            if i_etf is None or i_asset is None:
+                self.notes.append("etf_holders: symbol/asset columns missing (%s)" % header[:8])
+                continue
+            for row in reader:
+                if len(row) <= max(i_etf, i_asset):
+                    continue
+                asset = row[i_asset].strip().upper()
+                key_sym = asset if asset in self.universe else asset.replace(".", "-")
+                if key_sym not in self.universe:
+                    continue
+                self._stage("etf_holders", key_sym, [row[i_etf], num(row[i_w]) if i_w is not None and i_w < len(row) else None,
+                                                     num(row[i_sh]) if i_sh is not None and i_sh < len(row) else None, num(row[i_mv]) if i_mv is not None and i_mv < len(row) else None])
+                n += 1
+        self._flush()
+        self.coverage["etf_holders"]["rows"] = n
+
+    def stage_dated(self, block, bulk, years=2, period="annual"):
+        """Dated bulks (growth per fiscal year, surprises per year): the newest `years` files, universe rows only."""
         held = sorted({int(k.split("/")[1]) for k in self.fmp_dated_keys if k.startswith(bulk + "/") and k.split("/")[2].startswith(period)}, reverse=True)
         if not held:
             y = datetime.now(timezone.utc).year
             held = [y, y - 1, y - 2]
-        keys = []
-        for y in held[: years + 1]:
-            k = FMP_ROOT + "%s/%d/%s.csv.gz" % (bulk, y, period)
-            if fmp_bank._table(k) is not None:
-                keys.append((y, k))
-            if len(keys) >= years:
+        used = []
+        for y in held:
+            if len(used) >= years:
                 break
-        self.dated[block] = keys
-        self.coverage[block] = {"files": len(keys), "years": [y for y, _ in keys]}
-        if not keys:
+            key = FMP_ROOT + "%s/%d/%s.csv.gz" % (bulk, y, period)
+            header, reader = _stream_csv(key)
+            if not header:
+                continue
+            used.append(y)
+            low = [h.strip().lower() for h in header]
+            if "symbol" not in low:
+                continue
+            si = low.index("symbol")
+            for row in reader:
+                if si >= len(row):
+                    continue
+                sym = row[si].strip().upper()
+                key_sym = sym if sym in self.universe else sym.replace(".", "-")
+                if key_sym not in self.universe:
+                    continue
+                self._stage(block, key_sym, fmp_bank._typed(dict(zip(header, row))), year=y)
+        self._flush()
+        self.coverage[block] = {"files": len(used), "years": used}
+        if not used:
             self.notes.append("%s: no dated files (%s)" % (block, bulk))
-        return keys
 
+    # -- reading --------------------------------------------------------------------------------------------------
     def rows(self, block, symbol):
-        out = []
-        for k in self.bulk.get(block) or []:
-            out.extend(fmp_bank._rows_for(k, symbol) or [])
-        return out
+        cur = self.db.execute("SELECT row FROM rows WHERE block=? AND symbol=?", (block, symbol))
+        return [json.loads(r[0]) for r in cur.fetchall()]
 
     def rows_dated(self, block, symbol):
+        cur = self.db.execute("SELECT row, year FROM rows WHERE block=? AND symbol=?", (block, symbol))
         out = []
-        for y, k in self.dated.get(block) or []:
-            for r in fmp_bank._rows_for(k, symbol) or []:
-                r = dict(r)
-                r.setdefault("_year", y)
-                out.append(r)
+        for raw, y in cur.fetchall():
+            r = json.loads(raw)
+            r.setdefault("_year", y)
+            out.append(r)
         out.sort(key=lambda r: str(r.get("date") or r.get("fiscalYear") or r.get("_year") or ""), reverse=True)
         return out
 
+    def holders(self, symbol):
+        cur = self.db.execute("SELECT row FROM rows WHERE block='etf_holders' AND symbol=?", (symbol,))
+        return [tuple(json.loads(r[0])) for r in cur.fetchall()]
 
-def load_etf_holders(src: Sources):
-    """etf-holder-bulk lists (etf symbol, asset, weight, shares, market value) per ETF; the factor book needs the
-    inverse -- for each ASSET, which ETFs hold it -- so the parts are streamed once into asset -> [(etf, w, sh, mv)]."""
-    inv = {}
-    cols_seen = None
-    for key in src.bulk.get("etf_holders") or []:
-        t = fmp_bank._table(key)
-        if t is None:
-            continue
-        reader = csv.reader(io.StringIO(t.text))
+    def close(self):
         try:
-            header = next(reader)
-        except StopIteration:
-            continue
-        cols_seen = header
-        lk = {h.lower().replace("_", ""): i for i, h in enumerate(header)}
-
-        def col(*names):
-            for n in names:
-                i = lk.get(n.lower().replace("_", ""))
-                if i is not None:
-                    return i
-            return None
-        i_etf, i_asset = col("symbol", "etfSymbol"), col("asset", "holdingSymbol", "ticker")
-        i_w, i_sh, i_mv = col("weightPercentage", "weight"), col("sharesNumber", "shares"), col("marketValue")
-        if i_etf is None or i_asset is None:
-            src.notes.append("etf_holders: symbol/asset columns missing (%s)" % header[:8])
-            continue
-        for row in reader:
-            if len(row) <= max(i_etf, i_asset):
-                continue
-            asset = row[i_asset].strip().upper()
-            if not asset:
-                continue
-            inv.setdefault(asset, []).append((row[i_etf], num(row[i_w]) if i_w is not None and i_w < len(row) else None,
-                                              num(row[i_sh]) if i_sh is not None and i_sh < len(row) else None, num(row[i_mv]) if i_mv is not None and i_mv < len(row) else None))
-    src.found["etf_holders.columns"] = cols_seen
-    src.coverage["etf_holders"] = {"assets": len(inv), "files": len(src.bulk.get("etf_holders") or [])}
-    return inv
-
-
-def universe_from_profile(src: Sources):
-    """Stream profile-bulk once (never materialise 94k dicts): US-listed symbols with their identity fields."""
-    uni = {}
-    cols_seen = None
-    for key in src.bulk.get("profile") or []:
-        t = fmp_bank._table(key)
-        if t is None:
-            continue
-        reader = csv.reader(io.StringIO(t.text))
-        try:
-            header = next(reader)
-        except StopIteration:
-            continue
-        cols_seen = header
-        lk = {h.lower().replace("_", ""): i for i, h in enumerate(header)}
-
-        def col(*names):
-            for n in names:
-                i = lk.get(n.lower().replace("_", ""))
-                if i is not None:
-                    return i
-            return None
-        i_sym, i_ex = col("symbol"), col("exchangeShortName", "exchange")
-        i_act, i_etf, i_fund, i_adr = col("isActivelyTrading"), col("isEtf"), col("isFund"), col("isAdr")
-        i_name, i_sec, i_ind, i_cty = col("companyName", "name"), col("sector"), col("industry"), col("country")
-        i_mc, i_ipo, i_cik, i_cur = col("marketCap", "mktCap"), col("ipoDate"), col("cik"), col("currency")
-        if i_sym is None or i_ex is None:
-            src.notes.append("profile: symbol/exchange columns missing")
-            continue
-        for row in reader:
-            if len(row) <= max(i_sym, i_ex):
-                continue
-            ex = row[i_ex].strip().upper()
-            if ex not in US_EXCHANGES:
-                continue
-            if i_act is not None and row[i_act].strip().lower() == "false":
-                continue
-            sym = row[i_sym].strip().upper()
-            if not sym or len(sym) > 12 or " " in sym:
-                continue
-            mc = num(row[i_mc]) if i_mc is not None else None
-            uni[sym] = {"symbol": sym, "name": row[i_name] if i_name is not None else None, "exchange": ex,
-                        "sector": (row[i_sec] or None) if i_sec is not None else None, "industry": (row[i_ind] or None) if i_ind is not None else None,
-                        "country": (row[i_cty] or None) if i_cty is not None else None, "mcap": mc,
-                        "is_etf": (row[i_etf].strip().lower() == "true") if i_etf is not None else False,
-                        "is_fund": (row[i_fund].strip().lower() == "true") if i_fund is not None else False,
-                        "is_adr": (row[i_adr].strip().lower() == "true") if i_adr is not None else False,
-                        "is_otc": ex in OTC_EXCHANGES, "ipo_date": (row[i_ipo] or None) if i_ipo is not None else None,
-                        "cik": (row[i_cik] or None) if i_cik is not None else None, "currency": (row[i_cur] or None) if i_cur is not None else None}
-            if len(uni) >= MAX_SYMBOLS:
-                break
-    src.found["profile.columns"] = cols_seen
-    return uni
+            self.db.close()
+        except Exception:  # noqa: BLE001
+            pass
 
 
 # ------------------------------------------------------------------------------------------------- walker joins ---
@@ -530,7 +637,7 @@ def _strip(row, drop=()):
     return {k: v for k, v in row.items() if str(k).lower() not in drop and k != "symbol" and not str(k).startswith("_")}
 
 
-def assemble(sym, ident, src: Sources, floats, shorts, shortvol, cal_earn, cal_div, returns, holders_inv=None):
+def assemble(sym, ident, src: Sources, floats, shorts, shortvol, cal_earn, cal_div, returns, holders_inv=None):  # holders_inv kept for signature stability
     """One symbol's document from every source (verbatim rows) + derived fields.  Pure function of the inputs."""
     doc = {"symbol": sym, "polygon_ticker": _poly(sym), "schema": SCHEMA, "identity": ident}
     prof = _first(src.rows("profile", sym))
@@ -547,7 +654,7 @@ def assemble(sym, ident, src: Sources, floats, shorts, shortvol, cal_earn, cal_d
     if isinstance(peers, str):
         peers = [p.strip() for p in re.split(r"[,\s|]+", peers) if p.strip()]
     doc["peers"] = peers if isinstance(peers, list) else None
-    holders = (holders_inv or {}).get(sym) or (holders_inv or {}).get(sym.replace("-", "."))
+    holders = src.holders(sym)
     if holders:
         hs = [{"etf": e, "weight_pct": w, "shares": sh, "market_value": mv} for e, w, sh, mv in holders]
         hs.sort(key=lambda x: -(x["weight_pct"] or 0))
@@ -716,19 +823,26 @@ def lambda_handler(event=None, context=None):
     log("v%s start; budget %.0fs" % (VERSION, deadline - t0))
 
     src = Sources()
-    for block, bulk in (("profile", "profile-bulk"), ("scores", "scores-bulk"), ("rating", "rating-bulk"), ("dcf", "dcf-bulk"),
-                        ("price_target", "price-target-summary-bulk"), ("consensus", "upgrades-downgrades-consensus-bulk"),
-                        ("key_metrics_ttm", "key-metrics-ttm-bulk"), ("ratios_ttm", "ratios-ttm-bulk"), ("peers", "peers-bulk"), ("etf_holders", "etf-holder-bulk")):
-        src.open_bulk(block, bulk)
-    src.open_dated("growth", "income-statement-growth-bulk", years=2)
-    src.open_dated("cf_growth", "cash-flow-statement-growth-bulk", years=2)
-    src.open_dated("surprises", "earnings-surprises-bulk", years=2, period="year")
-    if not src.bulk.get("profile"):
+    src.stage_profile()
+    uni = src.universe
+    if not uni:
+        src.close()
         state.pop("lease_until", None)
         _put_json_gz_plain(STATE_KEY, state)
-        return {"ok": False, "error": "profile-bulk not banked; nothing to join", "notes": src.notes}
-    uni = universe_from_profile(src)
+        return {"ok": False, "error": "profile-bulk not banked (or no US-listed rows); nothing to join", "notes": src.notes}
     log("universe %d US-listed symbols (%.0fs)" % (len(uni), time.time() - t0))
+    for block, bulk in (("scores", "scores-bulk"), ("rating", "rating-bulk"), ("dcf", "dcf-bulk"), ("price_target", "price-target-summary-bulk"),
+                        ("consensus", "upgrades-downgrades-consensus-bulk"), ("key_metrics_ttm", "key-metrics-ttm-bulk"), ("ratios_ttm", "ratios-ttm-bulk"), ("peers", "peers-bulk")):
+        src.stage_bulk(block, bulk)
+        if time.time() > deadline - reserve["pass1"] - min(300.0, budget * 0.3):
+            src.notes.append("staging stopped after %s (budget)" % block)
+            break
+    src.stage_etf_holders()
+    src.stage_dated("growth", "income-statement-growth-bulk", years=2)
+    src.stage_dated("cf_growth", "cash-flow-statement-growth-bulk", years=2)
+    src.stage_dated("surprises", "earnings-surprises-bulk", years=2, period="year")
+    src.finish_staging()
+    log("staged: %s (%.0fs)" % (json.dumps({k: v for k, v in src.coverage.items()})[:600], time.time() - t0))
     floats = load_float(src)
     cal_earn = load_calendar_month(src, "earnings-calendar")
     cal_div = load_calendar_month(src, "dividends-calendar")
@@ -739,8 +853,7 @@ def lambda_handler(event=None, context=None):
     src.as_of["polygon-tape"] = rinfo.get("last_session")
     log("returns: %s (%.0fs)" % (json.dumps(rinfo), time.time() - t0))
 
-    holders_inv = load_etf_holders(src)
-    log("etf holders: %d assets (%.0fs)" % (len(holders_inv), time.time() - t0))
+    holders_inv = None
 
     # pass 1: the curated rows for every symbol (small) -> cross-sectional ranks
     syms = sorted(uni)
@@ -815,6 +928,7 @@ def lambda_handler(event=None, context=None):
                 if failed <= 3:
                     log("put failed: %s" % type(e).__name__)
     found = schema_found(sample)
+    src.close()
     docs_n = written + unchanged
     log("pass 2: %d written, %d unchanged, %d failed, %.1f MB (%.0fs)" % (written, unchanged, failed, bytes_out / 1e6, time.time() - t0))
     # matrix + universe
