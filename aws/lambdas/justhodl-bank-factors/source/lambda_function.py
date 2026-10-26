@@ -51,7 +51,7 @@ from botocore.config import Config
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import fmp_bank  # noqa: E402  (aws/shared, bundled)
 
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 SCHEMA = "factor-book/1.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 ROOT = "data/warm/factor-book/"
@@ -193,7 +193,7 @@ FIELDS = [
     ("mcap", "profile", ("marketCap", "mktCap")), ("price", "profile", ("price",)), ("beta", "profile", ("beta",)),
     ("avg_volume", "profile", ("averageVolume", "volAvg")), ("last_dividend", "profile", ("lastDividend", "lastDiv")),
     ("altman_z", "scores", ("altmanZScore",)), ("piotroski", "scores", ("piotroskiScore",)),
-    ("rating_score", "rating", ("overallScore", "ratingScore")), ("dcf_score", "rating", ("discountedCashFlowScore", "ratingDetailsDCFScore")),
+    ("rating_score", "rating", ("overallScore", "ratingScore", "score", "ratingDetailsOverallScore")), ("dcf_score", "rating", ("discountedCashFlowScore", "ratingDetailsDCFScore")),
     ("roe_score", "rating", ("returnOnEquityScore", "ratingDetailsROEScore")), ("roa_score", "rating", ("returnOnAssetsScore", "ratingDetailsROAScore")),
     ("de_score", "rating", ("debtToEquityScore", "ratingDetailsDEScore")), ("pe_score", "rating", ("priceToEarningsScore", "ratingDetailsPEScore")),
     ("pb_score", "rating", ("priceToBookScore", "ratingDetailsPBScore")),
@@ -240,7 +240,17 @@ FIELDS = [
     ("high_52w", "returns", ("high_52w",)), ("low_52w", "returns", ("low_52w",)), ("from_52w_high_pct", "returns", ("from_52w_high_pct",)),
     ("dollar_vol_20d", "returns", ("dollar_vol_20d",)), ("volatility_20d", "returns", ("volatility_20d",)),
 ]
-IDENTITY = ("symbol", "name", "exchange", "sector", "industry", "country", "is_etf", "is_otc", "is_adr", "is_fund", "ipo_date", "cik")
+IDENTITY = ("symbol", "name", "exchange", "sector", "industry", "country", "is_etf", "is_otc", "is_adr", "is_fund", "is_preferred", "ipo_date", "cik")
+PREFERRED_RE = re.compile(r"(-P[A-Z]{0,2}|\.PR[A-Z]{0,2}|-PR[A-Z]{0,2})$")
+
+
+def is_preferred(sym, name):
+    """Preferred shares / units carry the issuer's fundamentals under their own ticker (ABR-PD, ABR-PE ...); they are
+    documented but never ranked as common stocks."""
+    if PREFERRED_RE.search(sym or ""):
+        return True
+    n = (name or "").lower()
+    return any(k in n for k in (" preferred", " pref ", "pfd", "depositary share", "% series", "% notes", "% cumulative", "% non-cumulative"))
 # percentile ranks: (field, higher_is_better) -- stored as pct_<field> (universe) and spct_<field> (within sector)
 RANKED = [("pe", False), ("ev_ebitda", False), ("ps", False), ("p_fcf", False), ("pb", False), ("fcf_yield", True), ("earnings_yield", True),
           ("roic", True), ("roe", True), ("gross_margin", True), ("operating_margin", True), ("altman_z", True), ("piotroski", True),
@@ -386,7 +396,8 @@ class Sources:
                     return (row[i] or None) if (i is not None and i < len(row)) else None
                 self.universe[sym] = {"symbol": sym, "name": g(i_name), "exchange": ex, "sector": g(i_sec), "industry": g(i_ind), "country": g(i_cty),
                                       "mcap": num(g(i_mc)), "is_etf": (g(i_etf) or "").strip().lower() == "true", "is_fund": (g(i_fund) or "").strip().lower() == "true",
-                                      "is_adr": (g(i_adr) or "").strip().lower() == "true", "is_otc": ex in OTC_EXCHANGES, "ipo_date": g(i_ipo), "cik": g(i_cik), "currency": g(i_cur)}
+                                      "is_adr": (g(i_adr) or "").strip().lower() == "true", "is_otc": ex in OTC_EXCHANGES, "is_preferred": is_preferred(sym, g(i_name)),
+                                      "ipo_date": g(i_ipo), "cik": g(i_cik), "currency": g(i_cur)}
                 self._stage("profile", sym, fmp_bank._typed(dict(zip(header, row))))
                 if len(self.universe) >= MAX_SYMBOLS:
                     break
@@ -683,9 +694,18 @@ def assemble(sym, ident, src: Sources, floats, shorts, shortvol, cal_earn, cal_d
         price = doc["returns"].get("close")
     d["price_used"] = price
     dcf = num(pick(doc["dcf"], "dcf")) if doc["dcf"] else None
-    d["dcf_upside_pct"] = pct(dcf, price)
-    pt = num(pick(doc["price_target"], "lastMonthAvgPriceTarget", "lastQuarterAvgPriceTarget")) if doc["price_target"] else None
+    d["dcf_upside_pct"] = pct(dcf, price) if dcf and dcf > 0 else None
+    pt, ptn = None, None
+    if doc["price_target"]:
+        pt = num(pick(doc["price_target"], "lastMonthAvgPriceTarget"))
+        ptn = num(pick(doc["price_target"], "lastMonthCount"))
+        if not pt or pt <= 0 or not ptn:                         # FMP writes 0 for "no target last month": not a -100% upside
+            pt = num(pick(doc["price_target"], "lastQuarterAvgPriceTarget"))
+            ptn = num(pick(doc["price_target"], "lastQuarterCount"))
+        if not pt or pt <= 0 or not ptn:
+            pt = None
     d["pt_upside_pct"] = pct(pt, price)
+    d["pt_n_used"] = ptn if pt else None
     c = doc["consensus"]
     if c:
         sb, b, h, s, ss = (num(pick(c, "strongBuy")) or 0, num(pick(c, "buy")) or 0, num(pick(c, "hold")) or 0, num(pick(c, "sell")) or 0, num(pick(c, "strongSell")) or 0)
@@ -769,7 +789,7 @@ def percentiles(rows, field, higher_is_better, group=None):
     for i, r in enumerate(rows):
         if group is not None and r.get("sector") != group:
             continue
-        if r.get("is_etf") or r.get("is_fund") or r.get("is_otc"):
+        if r.get("is_etf") or r.get("is_fund") or r.get("is_otc") or r.get("is_preferred"):
             continue
         v = r.get(field)
         if v is None:
@@ -946,7 +966,8 @@ def lambda_handler(event=None, context=None):
                           "unchanged": unchanged, "failed": failed, "bytes": bytes_out, "notes": src.notes}}
     _put_json_gz_plain(STATE_KEY, state)
     manifest = {"schema": SCHEMA, "version": VERSION, "engine": "justhodl-bank-factors", "updated_at": now.isoformat(), "as_of": src.as_of,
-                "symbols": docs_n, "universe": len(uni), "common_stocks": sum(1 for u in uni.values() if not (u["is_etf"] or u["is_fund"] or u["is_otc"])),
+                "symbols": docs_n, "universe": len(uni), "common_stocks": sum(1 for u in uni.values() if not (u["is_etf"] or u["is_fund"] or u["is_otc"] or u.get("is_preferred"))),
+                "preferreds": sum(1 for u in uni.values() if u.get("is_preferred")), "funds": sum(1 for u in uni.values() if u["is_fund"]),
                 "etfs": sum(1 for u in uni.values() if u["is_etf"]), "otc": sum(1 for u in uni.values() if u["is_otc"]),
                 "coverage": cov, "sources": src.coverage, "schema_found": found, "fields": [f for f, _, _ in FIELDS], "ranked": [f for f, _ in RANKED],
                 "composites": {k: "mean of pct_" + ", pct_".join(v) + " (lower-is-better fields inverted; >= 2 inputs)" for k, v in COMPOSITES.items()},

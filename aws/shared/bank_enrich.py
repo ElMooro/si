@@ -163,7 +163,7 @@ def rows(fields=None, where=None, limit=None):
         return []
     cols = m["cols"]
     names = list(cols) if fields is None else [f for f in fields if f in cols]
-    for ident in ("symbol", "sector", "industry", "exchange", "is_etf", "is_otc"):
+    for ident in ("symbol", "sector", "industry", "exchange", "is_etf", "is_otc", "is_fund", "is_preferred"):
         if ident in cols and ident not in names:
             names.insert(0, ident)
     out = []
@@ -177,9 +177,10 @@ def rows(fields=None, where=None, limit=None):
 
 
 def screen(where, fields=None, limit=None, common_only=True):
-    """Whole-market screen over the matrix: rows where `where(row)` is true (US common stocks by default)."""
+    """Whole-market screen over the matrix: rows where `where(row)` is true (US common stocks by default: no ETFs,
+    mutual funds, OTC names or preferred shares - a preferred carries its issuer's fundamentals under its own ticker)."""
     def pred(r):
-        if common_only and (r.get("is_etf") or r.get("is_otc")):
+        if common_only and (r.get("is_etf") or r.get("is_otc") or r.get("is_fund") or r.get("is_preferred")):
             return False
         try:
             return bool(where(r))
@@ -305,7 +306,7 @@ def _flatten(d):
     """A per-symbol document flattened to the matrix's field names (identity, curated fields, ranks, composites)."""
     out = {}
     ident = d.get("identity") or {}
-    out.update({k: ident.get(k) for k in ("symbol", "name", "exchange", "sector", "industry", "country", "is_etf", "is_otc", "is_adr", "ipo_date", "mcap")})
+    out.update({k: ident.get(k) for k in ("symbol", "name", "exchange", "sector", "industry", "country", "is_etf", "is_otc", "is_adr", "is_fund", "is_preferred", "ipo_date", "mcap")})
     for k, v in (d.get("derived") or {}).items():
         out[k] = v
     for k, v in (d.get("returns") or {}).items():

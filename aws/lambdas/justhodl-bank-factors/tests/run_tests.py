@@ -80,18 +80,18 @@ def boot():
     return lf, s3
 
 
-SYMS = ["AAPL", "MSFT", "XOM", "JPM", "TINY", "BRK-B", "SPY", "OTCX", "SAP"]      # SAP: Frankfurt -> out; SPY: ETF; OTCX: OTC
+SYMS = ["AAPL", "MSFT", "XOM", "JPM", "TINY", "BRK-B", "SPY", "OTCX", "SAP", "ABR-PD"]      # SAP: Frankfurt -> out; SPY: ETF; OTCX: OTC; ABR-PD: a preferred
 
 
 def seed(lf, s3, today):
     R = lf.FMP_ROOT
     prof = []
     for i, s in enumerate(SYMS):
-        prof.append({"symbol": s, "price": 100 + 10 * i, "beta": 1.0 + i / 10, "volAvg": 1000000 * (i + 1), "mktCap": [3e12, 2.5e12, 4e11, 5e11, 1.5e8, 9e11, 5e11, 2e7, 2e11][i],
-                     "lastDiv": 1.0, "range": "1-2", "changes": 0.5, "companyName": s + " Inc", "currency": "USD", "cik": "0000%d" % (320193 + i), "isin": "US%d" % i, "cusip": str(i) * 9,
-                     "exchange": "Nasdaq", "exchangeShortName": ["NASDAQ", "NASDAQ", "NYSE", "NYSE", "NASDAQ", "NYSE", "AMEX", "PNK", "XETRA"][i],
-                     "industry": ["Consumer Electronics", "Software", "Oil & Gas", "Banks", "Software", "Insurance", "", "Software", "Software"][i],
-                     "website": "https://x", "description": "long text " * 50, "ceo": "x", "sector": ["Technology", "Technology", "Energy", "Financial Services", "Technology", "Financial Services", "", "Technology", "Technology"][i],
+        prof.append({"symbol": s, "price": 100 + 10 * i, "beta": 1.0 + i / 10, "volAvg": 1000000 * (i + 1), "mktCap": [3e12, 2.5e12, 4e11, 5e11, 1.5e8, 9e11, 5e11, 2e7, 2e11, 5e8][i],
+                     "lastDiv": 1.0, "range": "1-2", "changes": 0.5, "companyName": (s + " Inc") if s != "ABR-PD" else "Arbor Realty Trust 6.25% Series D Preferred", "currency": "USD", "cik": "0000%d" % (320193 + i), "isin": "US%d" % i, "cusip": str(i) * 9,
+                     "exchange": "Nasdaq", "exchangeShortName": ["NASDAQ", "NASDAQ", "NYSE", "NYSE", "NASDAQ", "NYSE", "AMEX", "PNK", "XETRA", "NYSE"][i],
+                     "industry": ["Consumer Electronics", "Software", "Oil & Gas", "Banks", "Software", "Insurance", "", "Software", "Software", "REIT - Mortgage"][i],
+                     "website": "https://x", "description": "long text " * 50, "ceo": "x", "sector": ["Technology", "Technology", "Energy", "Financial Services", "Technology", "Financial Services", "", "Technology", "Technology", "Real Estate"][i],
                      "country": "US", "fullTimeEmployees": 1000, "phone": "1", "address": "a", "city": "c", "state": "s", "zip": "z", "dcfDiff": 1, "dcf": 1, "image": "i",
                      "ipoDate": "1980-12-12", "defaultImage": "false", "isEtf": "true" if s == "SPY" else "false", "isActivelyTrading": "true", "isAdr": "false", "isFund": "false"})
     s3.store[R + "profile-bulk/part-0/latest.csv.gz"] = csv_gz(prof)
@@ -102,7 +102,7 @@ def seed(lf, s3, today):
     s3.store[R + "price-target-summary-bulk/latest.csv.gz"] = csv_gz([{"symbol": s, "lastMonthCount": 5, "lastMonthAvgPriceTarget": (100 + 10 * i) * 1.1, "lastQuarterCount": 10, "lastQuarterAvgPriceTarget": 1, "lastYearCount": 1, "lastYearAvgPriceTarget": 1, "allTimeCount": 1, "allTimeAvgPriceTarget": 1, "publishers": "x"} for i, s in enumerate(stocks)])
     s3.store[R + "upgrades-downgrades-consensus-bulk/latest.csv.gz"] = csv_gz([{"symbol": s, "strongBuy": 2, "buy": 4, "hold": 2, "sell": 1 if s != "XOM" else 4, "strongSell": 1, "consensus": "Buy"} for s in stocks])
     s3.store[R + "key-metrics-ttm-bulk/latest.csv.gz"] = csv_gz([{"symbol": s, "marketCap": 1, "enterpriseValueTTM": 2, "evToEBITDATTM": 8 + 3 * i, "evToSalesTTM": 2, "freeCashFlowYieldTTM": 0.02 + 0.01 * i, "earningsYieldTTM": 0.03, "returnOnInvestedCapitalTTM": 0.05 * (i + 1), "returnOnEquityTTM": 0.2, "returnOnAssetsTTM": 0.1, "netDebtToEBITDATTM": 1.0 + i, "grahamNumberTTM": 50, "daysOfSalesOutstandingTTM": 40} for i, s in enumerate(stocks)])
-    s3.store[R + "ratios-ttm-bulk/latest.csv.gz"] = csv_gz([{"symbol": s, "priceToEarningsRatioTTM": [30, 35, 12, 11, -5, 15, 9][i], "priceToBookRatioTTM": 5, "priceToSalesRatioTTM": 3, "priceToFreeCashFlowRatioTTM": 25, "grossProfitMarginTTM": 0.4 + 0.02 * i, "netProfitMarginTTM": 0.2, "operatingProfitMarginTTM": 0.3, "dividendYieldTTM": 0.01, "dividendPayoutRatioTTM": 0.2, "currentRatioTTM": 1.1, "debtToEquityRatioTTM": 1.5, "interestCoverageRatioTTM": 20} for i, s in enumerate(stocks)])
+    s3.store[R + "ratios-ttm-bulk/latest.csv.gz"] = csv_gz([{"symbol": s, "priceToEarningsRatioTTM": [30, 35, 12, 11, -5, 15, 9, 8][i], "priceToBookRatioTTM": 5, "priceToSalesRatioTTM": 3, "priceToFreeCashFlowRatioTTM": 25, "grossProfitMarginTTM": 0.4 + 0.02 * i, "netProfitMarginTTM": 0.2, "operatingProfitMarginTTM": 0.3, "dividendYieldTTM": 0.01, "dividendPayoutRatioTTM": 0.2, "currentRatioTTM": 1.1, "debtToEquityRatioTTM": 1.5, "interestCoverageRatioTTM": 20} for i, s in enumerate(stocks)])
     s3.store[R + "peers-bulk/latest.csv.gz"] = csv_gz([{"symbol": s, "peersList": "A,B,C"} for s in stocks])
     s3.store[R + "etf-holder-bulk/part-0/latest.csv.gz"] = csv_gz([{"symbol": "SPY", "asset": "AAPL", "name": "Apple", "isin": "x", "cusip": "y", "sharesNumber": 100, "weightPercentage": 6.5, "marketValue": 1e9, "updatedAt": "2026-10-24", "updated": "x"},
                                                                        {"symbol": "QQQ", "asset": "AAPL", "name": "Apple", "isin": "x", "cusip": "y", "sharesNumber": 50, "weightPercentage": 8.0, "marketValue": 5e8, "updatedAt": "2026-10-24", "updated": "x"},
@@ -150,10 +150,10 @@ def test_join_writes_one_doc_per_us_symbol_with_derived_fields_ranks_and_a_matri
     stocks, sessions = seed(lf, s3, today)
     out = lf.lambda_handler({}, None)
     assert out["ok"], out
-    assert out["symbols"] == 8 and out["written"] == 8 and out["failed"] == 0, out      # 9 profiles - SAP (Frankfurt) = 8 US-listed, SPY + OTCX kept with flags
+    assert out["symbols"] == 9 and out["written"] == 9 and out["failed"] == 0, out      # 10 profiles - SAP (Frankfurt) = 9 US-listed; SPY, OTCX, ABR-PD kept with flags
     man = json.loads(s3.store[lf.MANIFEST_KEY])
-    assert man["universe"] == 8 and man["etfs"] == 1 and man["otc"] == 1 and man["common_stocks"] == 6, man
-    assert man["coverage"]["scores"] == 7 and man["coverage"]["short"] == 2 and man["coverage"]["float"] == 7 and man["coverage"]["returns"] == 6, man["coverage"]
+    assert man["universe"] == 9 and man["etfs"] == 1 and man["otc"] == 1 and man["preferreds"] == 1 and man["common_stocks"] == 6, man
+    assert man["coverage"]["scores"] == 8 and man["coverage"]["short"] == 2 and man["coverage"]["float"] == 8 and man["coverage"]["returns"] == 6, man["coverage"]
     assert man["schema_found"]["altman_z"] == "scores.altmanZScore" and man["schema_found"]["pe"] == "ratios_ttm.priceToEarningsRatioTTM", man["schema_found"]
     assert man["as_of"]["fmp-bank"].startswith("2026-10-25") and man["as_of"]["float"] == "2026-10-25" and man["as_of"]["polygon-tape"] == sessions[-1].isoformat()
     aapl = json.loads(gzip.decompress(s3.store[lf.ROOT + "symbols/AAPL.json.gz"]))
@@ -185,18 +185,20 @@ def test_join_writes_one_doc_per_us_symbol_with_derived_fields_ranks_and_a_matri
     assert spy["identity"]["is_etf"] is True and not spy["ranks"], spy["ranks"]                # ETFs are documented but never ranked
     otc = json.loads(gzip.decompress(s3.store[lf.ROOT + "symbols/OTCX.json.gz"]))
     assert otc["identity"]["is_otc"] is True and not otc["ranks"]
+    pref = json.loads(gzip.decompress(s3.store[lf.ROOT + "symbols/ABR-PD.json.gz"]))
+    assert pref["identity"]["is_preferred"] is True and not pref["ranks"] and pref["scores"]            # documented, never ranked
     # the matrix: columnar, every symbol, curated fields + ranks + composites
     m = json.loads(gzip.decompress(s3.store[lf.ROOT + "matrix/core.json.gz"]))
-    assert m["n"] == 8 and len(m["symbols"]) == 8 and "altman_z" in m["cols"] and "pct_pe" in m["cols"] and "composite_value" in m["cols"]
+    assert m["n"] == 9 and len(m["symbols"]) == 9 and "altman_z" in m["cols"] and "pct_pe" in m["cols"] and "composite_value" in m["cols"] and "is_preferred" in m["cols"]
     i = m["symbols"].index("AAPL")
     assert m["cols"]["altman_z"][i] == 1.0 and m["cols"]["dcf_upside_pct"][i] == -10.0 and m["cols"]["short_pct_float"][i] == 1.0 and m["cols"]["sector"][i] == "Technology"
     assert "BRK-B" in m["symbols"] and m["cols"]["close"][m["symbols"].index("BRK-B")] > 400                  # dash <-> dot joined to the tape
     uni = json.loads(gzip.decompress(s3.store[lf.ROOT + "universe.json.gz"]))
-    assert set(uni["symbols"]) == {"AAPL", "MSFT", "XOM", "JPM", "TINY", "BRK-B", "SPY", "OTCX"}
+    assert set(uni["symbols"]) == {"AAPL", "MSFT", "XOM", "JPM", "TINY", "BRK-B", "SPY", "OTCX", "ABR-PD"}
     # second run: nothing changed -> no symbol doc re-put (write-if-changed); matrix/universe/manifest/state refreshed
     puts = s3.puts
     out2 = lf.lambda_handler({}, None)
-    assert out2["written"] == 0 and out2["unchanged"] == 8, out2
+    assert out2["written"] == 0 and out2["unchanged"] == 9, out2
     assert s3.puts - puts == 5, s3.puts - puts                                                              # lease, matrix, universe, state, manifest
     # a changed bank value re-writes only that symbol
     s3.store[lf.FMP_ROOT + "scores-bulk/latest.csv.gz"] = csv_gz([{"symbol": s, "reportedCurrency": "USD", "altmanZScore": (9.9 if s == "MSFT" else 1.0 + i), "piotroskiScore": 3 + (i % 6), "workingCapital": 1, "totalAssets": 2, "retainedEarnings": 3, "ebit": 4, "marketCap": 5, "totalLiabilities": 6, "revenue": 7} for i, s in enumerate(stocks)])
@@ -204,7 +206,7 @@ def test_join_writes_one_doc_per_us_symbol_with_derived_fields_ranks_and_a_matri
     fmp_bank._TABLES.clear()
     fmp_bank._cache.clear()
     out3 = lf.lambda_handler({}, None)
-    assert out3["written"] >= 1 and out3["written"] <= 7, out3          # MSFT changed; ranks of its sector peers may move too
+    assert out3["written"] >= 1 and out3["written"] <= 8, out3          # MSFT changed; ranks of its sector peers may move too
     msft = json.loads(gzip.decompress(s3.store[lf.ROOT + "symbols/MSFT.json.gz"]))
     assert msft["scores"]["altmanZScore"] == 9.9 and msft["ranks"]["pct_altman_z"] == 100.0
 
@@ -245,9 +247,9 @@ def test_bank_enrich_sdk_reads_the_book_and_attaches_with_provenance():
     fs = be.factors(["AAPL", "XOM", "NOPE"])
     assert set(fs) == {"AAPL", "XOM"}
     m = be.matrix()
-    assert m["n"] == 8 and be.lookup("JPM", ["pe", "pct_pe"]) == {"pe": 11.0, "pct_pe": 100.0}
+    assert m["n"] == 9 and be.lookup("JPM", ["pe", "pct_pe"]) == {"pe": 11.0, "pct_pe": 100.0}
     cheap = be.screen(lambda r: r["pe"] is not None and 0 < r["pe"] < 20, fields=["pe", "mcap"])
-    assert {r["symbol"] for r in cheap} == {"XOM", "JPM", "BRK-B"}, cheap                                 # TINY (-5) and SPY/OTCX excluded
+    assert {r["symbol"] for r in cheap} == {"XOM", "JPM", "BRK-B"}, cheap                                 # TINY (-5) and SPY/OTCX/ABR-PD (pe 9, a preferred) excluded
     out = {"generated": "x", "picks": [{"ticker": "AAPL", "score": 1}, {"ticker": "NOPE", "score": 0}], "nested": {"rows": [{"symbol": "TINY"}]}}
     out = be.attach(out)
     b = out["bank_enrichment"]
@@ -255,8 +257,8 @@ def test_bank_enrich_sdk_reads_the_book_and_attaches_with_provenance():
     assert b["rows"]["AAPL"]["altman_z"] == 1.0 and b["rows"]["AAPL"]["pt_upside_pct"] == 10.0 and b["rows"]["TINY"]["short_pct_float"] == 25.0
     assert set(b["fields"]) == set(be.DEFAULT_FIELDS) and out["picks"][0]["score"] == 1                     # additive: the engine's own keys untouched
     # many symbols -> the matrix path; the same field names
-    out2 = be.attach({"rows": [{"symbol": s} for s in ("AAPL MSFT XOM JPM TINY BRK-B SPY OTCX".split() * 4)]}, fields=["altman_z", "composite_value"])
-    assert out2["bank_enrichment"]["n"] == 8 and out2["bank_enrichment"]["rows"]["MSFT"]["altman_z"] == 2.0
+    out2 = be.attach({"rows": [{"symbol": s} for s in ("AAPL MSFT XOM JPM TINY BRK-B SPY OTCX ABR-PD".split() * 3)]}, fields=["altman_z", "composite_value"])
+    assert out2["bank_enrichment"]["n"] == 9 and out2["bank_enrichment"]["rows"]["MSFT"]["altman_z"] == 2.0
     # a dead bucket never raises
     be._tls.c = S3Stub()
     be._DOCS.clear()
