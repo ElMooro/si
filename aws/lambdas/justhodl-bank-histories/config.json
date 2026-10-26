@@ -1,0 +1,25 @@
+{
+  "runtime": "python3.12",
+  "memory": 3008,
+  "timeout": 900,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "History book: per-symbol statement / ratio / metric / growth histories inverted daily from the FMP bank's whole-market year-files into data/warm/history-book/<bulk>/<annual|quarter>/<SYMBOL>.json.gz; bank-only, no key; read via fmp_bank.statements.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "HISTORY_BOOK_BUDGET_S": "840",
+    "HISTORY_BOOK_WORKERS": "24",
+    "HISTORY_BOOK_FLOOR_ANNUAL": "2000",
+    "HISTORY_BOOK_FLOOR_QUARTER": "2016",
+    "HISTORY_BOOK_DB": "/tmp/history-book.sqlite",
+    "HISTORY_BOOK_UNIVERSE": "factor-book"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-bank-histories-daily",
+    "cron": "cron(5 3 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "History book inversion, daily 03:05 UTC (after fmp-bank 23:13 has banked the day's year-files and the factor book 02:50 has written the universe)"
+  },
+  "ephemeral_storage": 6144
+}

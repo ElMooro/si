@@ -136,6 +136,26 @@ baby bond after its ISSUER, so symbol + name heuristics missed plain-ticker note
 dividend payers) — book v1.0.5 joins the Polygon reference list's instrument `type` per symbol (`security_type`,
 `is_common`, `is_debt_or_structured`) and the SDK's `common_only` honours it.
 
+### Wave 3a (2026-10-26) - the history book, for the on-demand per-ticker desks
+
+The fleet error census since the FMP block (ops 6664; 169 engines invoked, 9 with errors) put one failure far ahead of
+the rest: `justhodl-equity-research`, the why.html per-ticker desk - 52 `Runtime.OutOfMemory` in 722 user-driven
+invocations, memory pinned at 1,023 MB on every request, and "No data for ticker AAPL" when forced to recompute. Cause:
+it asks 20 annual + 22 quarterly years of three statements plus 15 years of ratios / key metrics for ONE ticker; in the
+whole-market year-file layout that is ~60 tables (hundreds of MB decoded) per request, so the bank-first shim's table
+cache thrashed and it stepped aside, the live FMP call answered 429, and the statement asks were deeper than the shim's
+year-file ceiling (12 annual / 16 quarterly) anyway.
+
+`justhodl-bank-histories` (daily 03:05 UTC, 3 GB, 6 GB /tmp) inverts the year-files once a day into per-symbol
+documents - `data/warm/history-book/<bulk>/<annual|quarter>/<SYMBOL>.json.gz`, the nine dated bulks (income / balance /
+cash-flow statements, their growth files, financial-growth, ratios, key-metrics), annual from 2000, quarterly from 2016,
+the factor book's US-listed universe, write-if-changed by hash state, lease-guarded, `manifest.json` with per-block
+refresh times (`stale_blocks`, `phase`). `fmp_bank.statements()` reads the book first (one small object, any depth),
+the year-file scan stays as the fallback, and the shim accepts a statement ask deeper than its ceiling whenever the book
+holds the symbol (`fmp_bank.history_has`). First build is conducted by `.github/workflows/fmp-backfill.yml`
+(lease-guarded, counted kicks; a subset dispatch can no longer disable the daily backfill). equity-research moves to
+1.5 GB for headroom; its 10-thread first touch is covered by the one-loader-per-table fix.
+
 ### Queue (next waves, from the fusion map)
 
 - squeeze / short: pre-pump-detector, pump-mechanics, ignition, short-interest, early-movers, momentum-leaders (SI % float, DTC, float, short-volume ratio).

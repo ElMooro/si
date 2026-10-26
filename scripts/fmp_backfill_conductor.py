@@ -28,6 +28,7 @@ ENGINES = {
     "justhodl-provider-bank": {"state": "data/warm/provider-bank/_state/state.json", "manifest": "data/warm/provider-bank/manifest.json", "wait_s": 16 * 60},
     "justhodl-eia-bank": {"state": "data/warm/eia-bank/_state/state.json", "manifest": "data/warm/eia-bank/manifest.json", "wait_s": 16 * 60},
     "justhodl-polygon-eod": {"state": "data/warm/polygon-full/eod/_state/state.json", "manifest": "data/warm/polygon-full/eod/manifest.json", "wait_s": 16 * 60},
+    "justhodl-bank-histories": {"state": "data/warm/history-book/_state/state.json", "manifest": "data/warm/history-book/manifest.json", "wait_s": 16 * 60},
 }
 CFG = Config(retries={"max_attempts": 10, "mode": "standard"}, connect_timeout=10, read_timeout=120)
 

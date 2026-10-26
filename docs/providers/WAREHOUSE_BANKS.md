@@ -122,3 +122,12 @@ Benzinga.
 
 Operations: birth ops 6640 (fmp-bank), 6646 (fmp-walker), 6647 (polygon-bank), 6648 (provider-bank), 6650 (eia-bank);
 logs/state read-only op 6649. Every bank's `manifest.json` and `catalog.json` are public under its prefix.
+
+## The history book (2026-10-26, bank fusion wave 3a)
+
+`justhodl-bank-histories` turns the FMP bank's whole-market statement year-files into one small document per symbol
+and block (`data/warm/history-book/<bulk>/<annual|quarter>/<SYMBOL>.json.gz`) so a per-ticker consumer reads one object
+instead of decoding twenty whole-market tables. Daily 03:05 UTC after the bank (23:13) and the factor book (02:50);
+blocks oldest-refreshed first inside the budget; `manifest.json` lists `blocks` (files, years, symbols, refreshed_at),
+`stale_blocks` and `phase` (BACKFILL until every block is built, then STEADY). Reader: `fmp_bank.history(path, symbol,
+kind)` / `fmp_bank.statements()` (book first). Doctrine: `docs/providers/BANK_FUSION.md` wave 3a.

@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       engines:
-        description: 'space-separated subset (default: justhodl-fmp-bank justhodl-fmp-walker justhodl-polygon-bank justhodl-provider-bank justhodl-eia-bank justhodl-polygon-eod)'
+        description: 'space-separated subset (default: justhodl-fmp-bank justhodl-fmp-walker justhodl-polygon-bank justhodl-provider-bank justhodl-eia-bank justhodl-polygon-eod justhodl-bank-histories)'
         required: false
         default: ''
       max_minutes:
@@ -64,8 +64,10 @@ jobs:
           python3 scripts/fmp_backfill_conductor.py --engines "${ENGINES}" --max-minutes "${MAX_MINUTES}" --max-kicks "${MAX_KICKS}" | tee conductor.log
           tail -n 40 conductor.log >> "$GITHUB_STEP_SUMMARY"
           grep -q '^ALL_STEADY$' conductor.log && echo "all_steady=true" >> "$GITHUB_OUTPUT" || echo "all_steady=false" >> "$GITHUB_OUTPUT"
-      - name: Disable this workflow once both engines are STEADY (the daily schedules carry on alone)
-        if: steps.conduct.outputs.all_steady == 'true'
+      - name: Disable this workflow once every default engine is STEADY (the daily schedules carry on alone)
+        # a dispatch that conducts a SUBSET (e.g. only the history book's first build) must never switch the daily
+        # backfill off for the engines it did not look at
+        if: steps.conduct.outputs.all_steady == 'true' && (github.event_name != 'workflow_dispatch' || inputs.engines == '')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

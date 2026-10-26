@@ -416,6 +416,55 @@ def snapshot(path, symbol=None):
     return out or None
 
 
+HISTORY_ROOT = "data/warm/history-book/"
+_HIST_MAN = {"at": 0.0, "doc": None}
+
+
+def history_manifest(max_age_s=900):
+    """The history book's manifest (justhodl-bank-histories): per-block refresh times; {} when the book is not there."""
+    now = time.time()
+    if _HIST_MAN["doc"] is not None and now - _HIST_MAN["at"] < max_age_s:
+        return _HIST_MAN["doc"]
+    raw = _get(HISTORY_ROOT + "manifest.json")
+    try:
+        doc = json.loads(raw) if raw else {}
+    except Exception:  # noqa: BLE001
+        doc = {}
+    _HIST_MAN.update(at=now, doc=doc if isinstance(doc, dict) else {})
+    return _HIST_MAN["doc"]
+
+
+def history_block(path, kind):
+    """The history-book block record for (endpoint path, annual|quarter) when it has been built; None otherwise."""
+    bulk = STATEMENTS.get(path)
+    if not bulk:
+        return None
+    b = (history_manifest().get("blocks") or {}).get("%s/%s" % (bulk, kind))
+    return b if isinstance(b, dict) and b.get("refreshed_at") and b.get("symbols") and not b.get("partial") else None
+
+
+def history(path, symbol, kind="annual"):
+    """One symbol's full statement / ratio / metric history from the history book: the document
+    {symbol, endpoint, period, as_of, years, rows (newest first)} or None when the book has no such block or symbol.
+    One small object, any depth - the per-ticker shape the whole-market year-files are not."""
+    block = history_block(path, kind)
+    if block is None:
+        return None
+    bulk = STATEMENTS[path]
+    sym = _norm(symbol)
+    for cand in dict.fromkeys([sym, sym.replace("-", "."), sym.replace(".", "-")]):
+        doc = _wjson(HISTORY_ROOT + "%s/%s/%s.json.gz" % (bulk, kind, cand.replace("/", "_")))
+        if isinstance(doc, dict) and isinstance(doc.get("rows"), list):
+            return doc
+    return None
+
+
+def history_has(path, symbol, period="annual"):
+    """True when the history book can answer this (path, symbol, period) - the bank-first shim then takes any limit."""
+    kind = "annual" if str(period).lower() in ("annual", "fy") else "quarter"
+    return history(path, symbol, kind) is not None
+
+
 def statements(path, symbol, period="annual", limit=None, years=None):
     """History rows for one symbol from the dated bulks, newest first (what /stable/<path>?symbol=&period=&limit= gave).
 
@@ -425,6 +474,20 @@ def statements(path, symbol, period="annual", limit=None, years=None):
     bulk = STATEMENTS.get(path)
     if not bulk:
         return None
+    # wave 3 (2026-10-26): the history book answers per symbol in one small read, any depth
+    kind = "annual" if period == "annual" else "quarter"
+    hdoc = history(path, symbol, kind)
+    if hdoc is not None:
+        rows = [r for r in hdoc["rows"] if isinstance(r, dict)]
+        if period not in ("annual", "quarter"):
+            rows = [r for r in rows if str(r.get("period") or "").upper() == str(period).upper()]
+        if years is not None:
+            ys = {int(y) for y in years}
+            rows = [r for r in rows if str(r.get("fiscalYear") or str(r.get("date") or "")[:4]).isdigit() and int(str(r.get("fiscalYear") or str(r.get("date") or "")[:4])) in ys]
+        if rows:
+            rows.sort(key=lambda r: str(r.get("date") or r.get("fiscalYear") or ""), reverse=True)
+            STATS["history_book_hits"] = STATS.get("history_book_hits", 0) + 1
+            return rows[:limit] if limit else rows
     man = manifest()
     held = sorted({int(k.split("/")[1]) for k in (man.get("dated_keys") or []) if k.startswith(bulk + "/")}, reverse=True)
     if not held:

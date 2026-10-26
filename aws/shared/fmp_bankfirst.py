@@ -155,11 +155,17 @@ def _shaped(head, path, q):
         if not lim.isdigit():
             return False
         period = str(q.get("period", "annual")).lower()
-        if period in ("fy", "annual"):
-            return int(lim) <= STATEMENT_LIMIT_MAX["annual"]
-        if period in ("quarter", "quarterly", "q1", "q2", "q3", "q4"):
-            return int(lim) <= STATEMENT_LIMIT_MAX["quarter"]
-        return False
+        if period not in ("fy", "annual", "quarter", "quarterly", "q1", "q2", "q3", "q4"):
+            return False
+        ceiling = STATEMENT_LIMIT_MAX["annual"] if period in ("fy", "annual") else STATEMENT_LIMIT_MAX["quarter"]
+        if int(lim) <= ceiling:
+            return True
+        # deeper than the year-file scan allows: fine when the history book (wave 3) holds the symbol - one small read
+        try:
+            import fmp_bank
+            return bool(q.get("symbol")) and fmp_bank.history_has(head if head in STATEMENT_HEADS else path, q.get("symbol"), period)
+        except Exception:  # noqa: BLE001
+            return False
     return True
 
 
