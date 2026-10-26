@@ -289,6 +289,18 @@ from pathlib import Path
 import urllib.parse
 from estimate_observations import CONTRACT, strict, number, day, clock, envelope, dossier, calendar_capture, calendar_projection
 from benzinga import _key as _calendar_key
+# Bank rung (2026-10-26; Khalid: the reviewed-contract engines each as a separate reviewed change).  The SAME FMP URL is
+# first asked of the warehouse bank (aws/shared/bank_originals -> fmp_bankfirst.answer: FMP's own shape, only when the
+# bank's table is fresh for that family).  A bank original is retained exactly like a live one and labelled as what it is:
+# the bank's copy of the provider response at the bank's pull time (`bank.pulled_at`), received by this engine at
+# `received_at`.  It is admitted only when that vintage is later than the previous publication's retained original for the
+# same symbol (older content would read as a reversal); otherwise, and whenever the bank has no answer, the live rung runs
+# exactly as before.  The forward calendar (Polygon/Benzinga) is never banked.  The live transport bounds declared in
+# `estimate_transport` are unchanged; the bank rung is a non-network acquisition declared separately in `bank_rung`.
+try:
+    import bank_originals
+except Exception:  # noqa: BLE001 - packaged from aws/shared with every engine; absent means no bank rung
+    bank_originals = None
 
 
 def _estimate_source_identity():
@@ -298,12 +310,64 @@ def _estimate_source_identity():
             for raw in [(directory/name).read_bytes()]}
 
 
+def _estimate_set_prior_receipts(previous_rows):
+    """The vintage rule's baseline: receipt clock of the previous publication's unique retained original per symbol
+    (the same unique-prior rule `dossier` compares against; no unique received prior -> no baseline -> any vintage)."""
+    by_symbol={}
+    for row in previous_rows or []:
+        if isinstance(row,dict):by_symbol.setdefault(row.get('ticker'),[]).append(row)
+    receipts={}
+    for symbol,rows in by_symbol.items():
+        a=rows[0].get('acquisition') if len(rows)==1 and isinstance(rows[0].get('acquisition'),dict) else None
+        if a and a.get('status')=='received' and isinstance(a.get('received_at'),str):receipts[symbol]=a['received_at']
+    globals()['_ESTIMATE_PRIOR_RECEIPTS']=receipts
+    return receipts
+
+
+def _estimate_prior_receipt(symbol):
+    return (globals().get('_ESTIMATE_PRIOR_RECEIPTS') or {}).get(symbol)
+
+
+def _estimate_bank_original(url,symbol):
+    """Bank rung: (acquisition record, None) when the warehouse bank answers the SAME URL with a vintage newer than the
+    previous retained original for this symbol; otherwise (None, bank_attempt) and the live rung runs unchanged.
+    A bank record is the live record's shape (envelope) plus typed provenance: transport='warehouse_bank',
+    network_attempted=False, bank={object, pulled_at, as_of} - pulled_at is the provider vintage, received_at the engine's receipt."""
+    rung=globals().get('bank_originals')
+    if rung is None:
+        try:import bank_originals as rung
+        except Exception:return None,{'status':'bank_rung_unavailable'}
+    try:answer=rung.bank_original(url)
+    except Exception as exc:return None,{'status':'bank_rung_error','error_type':type(exc).__name__}
+    if not answer:return None,{'status':'no_bank_answer'}
+    prior=_estimate_prior_receipt(symbol)
+    if not rung.newer_than(answer['bank'],prior):
+        return None,{'status':'bank_vintage_not_newer','bank':answer['bank'],'previous_received_at':prior}
+    # received_at is THIS engine's receipt clock (bounded by the run), exactly as the live rung stamps its own receipt.
+    try:record=envelope(answer['raw'],datetime.now(timezone.utc).isoformat())
+    except Exception as exc:return None,{'status':'bank_answer_unshaped','error_type':type(exc).__name__,'bank':answer['bank']}
+    record.update(transport='warehouse_bank',network_attempted=False,bank=answer['bank'])
+    return record,None
+
+
+def _estimate_bank_rung_identity():
+    """bank_originals is packaged from aws/shared; it is not one of the four compiler files the transport acceptance
+    pins, so its identity is declared here (None when the package does not carry it)."""
+    from pathlib import Path as _Path
+    here=globals().get('__file__')
+    path=_Path(here).resolve().parent/'bank_originals.py' if here else None
+    if path is None or not path.exists():return None
+    raw=path.read_bytes();return {'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}
+
+
 def _estimate_fetch(symbol):
     import re
     if not isinstance(symbol,str) or not re.fullmatch(r'[A-Z0-9][A-Z0-9.\-]{0,19}',symbol):
         return {'status':'invalid_symbol_not_requested'}
-    if not FMP_KEY:return {'status':'credential_unavailable'}
     url='https://financialmodelingprep.com/stable/analyst-estimates?symbol='+urllib.parse.quote_plus(symbol)+'&period=annual&limit=6'
+    record,bank_attempt=_estimate_bank_original(url,symbol)
+    if record is not None:return record
+    if not FMP_KEY:return {'status':'credential_unavailable','bank_attempt':bank_attempt}
     class NoRedirect(urllib.request.HTTPRedirectHandler):
         def redirect_request(self,req,fp,code,msg,headers,newurl):return None
     try:
@@ -312,11 +376,13 @@ def _estimate_fetch(symbol):
         if len(raw)>1024*1024:raise ValueError('Complete response exceeds acquisition bound')
         # Never publish an echoed credential, including an error masquerading as data.
         if FMP_KEY.encode() in raw:raise ValueError('Credential echo')
-        return envelope(raw,datetime.now(timezone.utc).isoformat())
+        record=envelope(raw,datetime.now(timezone.utc).isoformat())
+        record.update(transport='provider',network_attempted=True,bank_attempt=bank_attempt)
+        return record
     except Exception as exc:
         code=getattr(exc,'code',None)
         return {'status':'rate_limited' if code==429 else 'authorization_unavailable' if code in (401,403) else 'unavailable',
-                'http_status':code,'error_type':type(exc).__name__}
+                'http_status':code,'error_type':type(exc).__name__,'bank_attempt':bank_attempt}
 
 
 def _estimate_calendar_fetch():
@@ -377,6 +443,15 @@ def lambda_handler(event=None,context=None):
         _,row=pair;row=row if isinstance(row,dict) else {};target=day(row.get('date'));importance=number(row.get('importance'))
         return ((target-checked.date()).days if target else 999,-(importance if importance is not None else 0))
     selected=sorted(enumerate(calendar),key=priority)[:FMP_SEED_CAP]
+    prior_by_symbol={}
+    if previous and previous.get('measurement_contract')==CONTRACT:
+        old_rows=previous.get('request_records')
+        if not isinstance(old_rows,list):raise ValueError('Complete prior observation population required')
+        for row in old_rows:
+            if not isinstance(row,dict):raise ValueError('Invalid prior observation')
+            prior_by_symbol.setdefault(row.get('ticker'),[]).append(row)
+    # The bank rung's vintage baseline is the previous publication's unique retained original per symbol.
+    _estimate_set_prior_receipts([row for rows in prior_by_symbol.values() for row in rows])
     acquisitions=[{'status':'not_attempted_runtime_rate_or_size_limit'} for _ in selected]
     def remaining():
         value=(context.get_remaining_time_in_millis()/1000 if context and hasattr(context,'get_remaining_time_in_millis') else 120-(time.monotonic()-started))
@@ -393,13 +468,9 @@ def lambda_handler(event=None,context=None):
             if any(acquisitions[index].get('status') in ('rate_limited','authorization_unavailable') for index,_ in jobs):break
             if sum(a.get('original_bytes',0) for a in acquisitions)>=4*1024*1024:break
     if not any(a.get('status')=='received' for a in acquisitions):raise ValueError('All estimate acquisitions failed; preserve previous output')
-    prior_by_symbol={}
-    if previous and previous.get('measurement_contract')==CONTRACT:
-        old_rows=previous.get('request_records')
-        if not isinstance(old_rows,list):raise ValueError('Complete prior observation population required')
-        for row in old_rows:
-            if not isinstance(row,dict):raise ValueError('Invalid prior observation')
-            prior_by_symbol.setdefault(row.get('ticker'),[]).append(row)
+    n_bank=sum(a.get('status')=='received' and a.get('transport')=='warehouse_bank' for a in acquisitions)
+    n_live=sum(a.get('status')=='received' and a.get('transport')!='warehouse_bank' for a in acquisitions)
+    n_refused=sum((a.get('bank_attempt') or {}).get('status')=='bank_vintage_not_newer' for a in acquisitions)
     records=[]
     for request_index,((calendar_index,row),acquisition) in enumerate(zip(selected,acquisitions)):
         symbol=row.get('ticker') if isinstance(row,dict) else None
@@ -410,9 +481,12 @@ def lambda_handler(event=None,context=None):
         records.append(record)
     selected_indices={index for index,_ in selected}
     prior_ref=_estimate_archive(previous_raw) if previous_raw is not None else None
-    out={'engine':'justhodl-estimate-revisions','version':'3.3.0','measurement_contract':CONTRACT,'source_files':_estimate_source_identity(),
+    out={'engine':'justhodl-estimate-revisions','version':'3.4.0','measurement_contract':CONTRACT,'source_files':_estimate_source_identity(),
          'generated_at':datetime.now(timezone.utc).isoformat(),'acquisition_started_at':checked.isoformat(),'checked_as_of':today,'status':'RESEARCH_ONLY',
          'estimate_transport':{'credential_location':'header','follow_redirects':False,'automatic_retries':False,'timeout_seconds':12,'max_response_bytes':1024*1024},
+         'bank_rung':{'module':'bank_originals','module_identity':_estimate_bank_rung_identity(),
+                      'rule':'warehouse original admitted only when its pulled_at is later than the previous retained original for the same request; the forward calendar is live',
+                      'network_attempted':False,'n_bank_originals':n_bank,'n_live_originals':n_live,'n_vintage_refused':n_refused},
          'calendar_rows':calendar,'calendar_original_http_retained':True,'calendar_acquisition':calendar_acquisition,
          'calendar_evidence':{k:v for k,v in calendar_evidence.items() if k!='rows'},
          'calendar_transport':{'credential_location':'header','follow_redirects':False,'automatic_retries':False,'timeout_seconds':15,'max_response_bytes':8*1024*1024},
@@ -431,7 +505,8 @@ def lambda_handler(event=None,context=None):
                     'A consensus-average change does not verify a fixed analyst panel, corporate actions, first publication time or forecast edge.',
                     'Provider analyst estimates update weekly according to documentation; fetching daily does not make them daily observations.',
                     'Only one calendar response is requested. Every returned occurrence is retained; continuation pages, provider universe completeness and first-release availability remain unverified.',
-                    'Reported calendar clocks are not market-session labels. Provider importance is subjective event importance, not forecast confidence.'],
+                    'Reported calendar clocks are not market-session labels. Provider importance is subjective event importance, not forecast confidence.',
+                    'A warehouse-bank original (transport warehouse_bank) is the bank\'s copy of the provider response at the bank\'s pull time (bank.pulled_at), received by this engine at received_at; it is not a first release and is admitted only when newer than the previous retained original.'],
          'elapsed_s':round(time.monotonic()-started,2)}
     raw=json.dumps(out,ensure_ascii=False,separators=(',',':'),allow_nan=False).encode('utf-8')
     if len(raw)>32*1024*1024:raise ValueError('Whole publication exceeds bound; preserve previous output')

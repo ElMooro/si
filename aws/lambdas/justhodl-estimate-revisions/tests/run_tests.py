@@ -7,9 +7,22 @@ from io import BytesIO
 from types import SimpleNamespace
 from unittest.mock import patch
 import ast,base64,hashlib,json,sys,time,tempfile,unittest,urllib.request,urllib.error,urllib.parse
-ROOT=Path(__file__).resolve().parents[4];SRC=ROOT/'aws/lambdas/justhodl-estimate-revisions/source';sys.path.insert(0,str(SRC))
+ROOT=Path(__file__).resolve().parents[4];SRC=ROOT/'aws/lambdas/justhodl-estimate-revisions/source';sys.path.insert(0,str(SRC));sys.path.insert(1,str(ROOT/'aws/shared'))
 from estimate_observations import CONTRACT,number,strict,day,clock,envelope,original,projection,compare,dossier,calendar_capture,calendar_original,calendar_projection
+import bank_originals as real_bank_originals
 NOW=datetime.now(timezone.utc).date().isoformat()
+
+
+def bank_rung(answer=None):
+    """The engine's view of aws/shared/bank_originals: the real vintage rule, a stubbed bank answer (None = no bank answer)."""
+    return SimpleNamespace(TRANSPORT=real_bank_originals.TRANSPORT,newer_than=real_bank_originals.newer_than,vintage=real_bank_originals.vintage,
+                           bank_original=(answer if callable(answer) else (lambda url:answer)))
+
+
+def bank_answer(values=None,pulled_at=None,received_at=None,obj='data/warm/fmp-walker/analyst-estimates-annual/TEST.json.gz'):
+    raw=json.dumps(rows() if values is None else values).encode()
+    return {'raw':raw,'transport':'warehouse_bank','received_at':received_at or datetime.now(timezone.utc).isoformat(),
+            'bank':{'object':obj,'pulled_at':pulled_at or (NOW+'T05:00:00+00:00'),'as_of':NOW}}
 
 
 def rows(eps=2,target='2030-12-31',currency='USD'):
@@ -49,6 +62,7 @@ def native(memory=None,**extra):
            'HORIZON_DAYS':75,'MIN_IMPORTANCE':2,'FMP_SEED_CAP':280,'CONTRACT':CONTRACT,'strict':strict,'number':number,'day':day,'clock':clock,'envelope':envelope,'dossier':dossier,
            'calendar_capture':calendar_capture,'calendar_projection':calendar_projection,'_calendar_key':lambda:'calendar-fixture-secret',
            'datetime':datetime,'timezone':timezone,'ThreadPoolExecutor':ThreadPoolExecutor,'hashlib':hashlib,'json':json,'time':time,'urllib':urllib,
+           'bank_originals':bank_rung(None),
            'fetch_calendar':lambda **kw:[{'ticker':'TEST','date':NOW,'importance':2,'fiscal_period':'Q1'}],**extra}
     tree=ast.Module(body=[n for n in ast.parse((SRC/'lambda_function.py').read_bytes()).body if isinstance(n,ast.FunctionDef) and (n.name.startswith('_estimate_') or n.name=='lambda_handler')],type_ignores=[])
     exec(compile(tree,'<actual native observation functions>','exec'),scope)
@@ -183,8 +197,143 @@ class Tests(unittest.TestCase):
             calls.append(symbol);return {'status':'authorization_unavailable','http_status':403} if len(calls)==1 else acquisition()
         ns['_estimate_fetch']=acquire;ns['lambda_handler']();p=strict(ns['S3'].data['data/estimate-revisions.json'])
         self.assertEqual(len(calls),10);self.assertEqual(p['source_files'],ns['_estimate_source_identity']());self.assertEqual(len(p['source_files']),4)
-        self.assertEqual(p['version'],'3.3.0');self.assertFalse(p['estimate_transport']['follow_redirects'])
+        self.assertEqual(p['version'],'3.4.0');self.assertFalse(p['estimate_transport']['follow_redirects'])
+        self.assertEqual(p['estimate_transport'],{'credential_location':'header','follow_redirects':False,'automatic_retries':False,'timeout_seconds':12,'max_response_bytes':1024*1024})
+        self.assertEqual(p['bank_rung']['module'],'bank_originals');self.assertFalse(p['bank_rung']['network_attempted'])
+        self.assertEqual((p['bank_rung']['n_bank_originals'],p['bank_rung']['n_live_originals'],p['bank_rung']['n_vintage_refused']),(0,9,0))
         self.assertTrue(ns['S3'].bodies);self.assertTrue(all(body.closed for body in ns['S3'].bodies))
+
+    # ---- bank rung (2026-10-26) --------------------------------------------------------------------------------------
+    def test_bank_rung_answers_before_any_network_and_records_the_banks_provenance(self):
+        ns=native(bank_originals=bank_rung(bank_answer(rows(3),pulled_at=NOW+'T05:00:00+00:00',received_at='2000-01-01T00:00:00+00:00')))
+        with patch.object(urllib.request,'build_opener',side_effect=AssertionError('No network when the bank answers')):
+            out=ns['_estimate_fetch']('TEST')
+        self.assertEqual(out['status'],'received');self.assertEqual(out['transport'],'warehouse_bank');self.assertFalse(out['network_attempted'])
+        self.assertEqual(out['bank'],{'object':'data/warm/fmp-walker/analyst-estimates-annual/TEST.json.gz','pulled_at':NOW+'T05:00:00+00:00','as_of':NOW})
+        self.assertIsNotNone(clock(out['received_at']));self.assertNotEqual(out['received_at'],out['bank']['pulled_at'])
+        self.assertNotEqual(out['received_at'],'2000-01-01T00:00:00+00:00','the engine stamps its own receipt, not the helper clock');self.assertEqual(clock(out['received_at']).date().isoformat(),NOW)
+        self.assertEqual(original(out)[0]['epsAvg'],3);self.assertNotIn('bank_attempt',out)
+        # the whole-original tamper checks still bind a bank record
+        bad=dict(out);bad['original_bytes']+=1
+        with self.assertRaises(ValueError):original(bad)
+
+    def test_bank_rung_vintage_rule_refuses_older_content_and_falls_to_the_live_rung(self):
+        previous=json.dumps({'measurement_contract':CONTRACT,'generated_at':NOW+'T00:30:00Z','request_records':[
+            {'ticker':'TEST','acquisition':acquisition(rows(2),NOW+'T00:10:00Z')},
+            {'ticker':'DUP','acquisition':acquisition(rows(2),NOW+'T00:10:00Z')},{'ticker':'DUP','acquisition':acquisition(rows(2),NOW+'T00:10:00Z')},
+            {'ticker':'FAILED','acquisition':{'status':'rate_limited'}}]}).encode()
+        ns=native(Memory(previous),bank_originals=bank_rung(bank_answer(rows(9),pulled_at=NOW+'T00:00:00+00:00')))
+        receipts=ns['_estimate_set_prior_receipts'](strict(previous)['request_records'])
+        self.assertEqual(receipts,{'TEST':NOW+'T00:10:00Z'})            # DUP (two priors) and FAILED (no received original) have no baseline
+        live=json.dumps(rows(5)).encode();seen=[]
+        def factory(*handlers):
+            def open(req,timeout):seen.append(req);return BytesIO(live)
+            return SimpleNamespace(open=open)
+        with patch.object(urllib.request,'build_opener',factory):out=ns['_estimate_fetch']('TEST')
+        self.assertEqual(len(seen),1);self.assertEqual(out['transport'],'provider');self.assertTrue(out['network_attempted'])
+        self.assertEqual(original(out)[0]['epsAvg'],5)
+        self.assertEqual(out['bank_attempt']['status'],'bank_vintage_not_newer');self.assertEqual(out['bank_attempt']['previous_received_at'],NOW+'T00:10:00Z')
+        self.assertEqual(out['bank_attempt']['bank']['pulled_at'],NOW+'T00:00:00+00:00')
+        with patch.object(urllib.request,'build_opener',side_effect=AssertionError('no baseline -> the bank answers')):
+            for symbol in ('DUP','FAILED','NEW'):self.assertEqual(ns['_estimate_fetch'](symbol)['transport'],'warehouse_bank',symbol)
+        # a 429 on the live rung keeps its status and carries the refused bank attempt
+        error=urllib.error.HTTPError('redacted',429,'never expose',{},None)
+        with patch.object(urllib.request,'build_opener',return_value=SimpleNamespace(open=lambda *a,**k:(_ for _ in ()).throw(error))):out=ns['_estimate_fetch']('TEST')
+        self.assertEqual(out['status'],'rate_limited');self.assertEqual(out['bank_attempt']['status'],'bank_vintage_not_newer');self.assertNotIn('original_base64',out)
+
+    def test_bank_rung_absence_errors_and_unshaped_answers_leave_the_live_rung_exactly_as_before(self):
+        live=json.dumps(rows(0)).encode()
+        for rung,status in [(bank_rung(None),'no_bank_answer'),(None,'bank_rung_unavailable'),
+                            (bank_rung(lambda url:(_ for _ in ()).throw(RuntimeError('bank down'))),'bank_rung_error'),
+                            (bank_rung(bank_answer(rows()*7)),'bank_answer_unshaped')]:
+            ns=native(bank_originals=rung);seen=[]
+            if rung is None:del ns['bank_originals']
+            def factory(*handlers):
+                def open(req,timeout):seen.append(req);return BytesIO(live)
+                return SimpleNamespace(open=open)
+            with patch.object(urllib.request,'build_opener',factory):out=ns['_estimate_fetch']('TEST')
+            self.assertEqual(len(seen),1,status);self.assertEqual(out['status'],'received');self.assertEqual(out['transport'],'provider')
+            self.assertEqual(out['bank_attempt']['status'],status if rung is not None else out['bank_attempt']['status'])
+            if rung is None:self.assertIn(out['bank_attempt']['status'],('bank_rung_unavailable','no_bank_answer'))   # the real module may be importable
+            self.assertEqual(seen[0].full_url,'https://financialmodelingprep.com/stable/analyst-estimates?symbol=TEST&period=annual&limit=6')
+            self.assertEqual(seen[0].get_header('Apikey'),ns['FMP_KEY'])
+        ns=native();ns['FMP_KEY']=''
+        with patch.object(urllib.request,'build_opener',side_effect=AssertionError('no key, no network')):out=ns['_estimate_fetch']('TEST')
+        self.assertEqual(out['status'],'credential_unavailable');self.assertEqual(out['bank_attempt']['status'],'no_bank_answer')
+
+    def test_bank_originals_publish_count_compare_and_replay_like_live_ones(self):
+        memory=Memory(json.dumps({'measurement_contract':CONTRACT,'generated_at':NOW+'T00:30:00Z','request_records':[
+            {'ticker':'TEST','acquisition':acquisition(rows(2),NOW+'T00:10:00Z')}]}).encode())
+        calendar=[{'ticker':'TEST','date':NOW,'importance':2},{'ticker':'OTHER','date':NOW,'importance':2}]
+        answers={'TEST':bank_answer(rows(3),pulled_at=NOW+'T05:00:00+00:00'),'OTHER':None}
+        ns=native(memory,fetch_calendar=lambda **kw:calendar,bank_originals=bank_rung(lambda url:answers[urllib.parse.parse_qs(urllib.parse.urlsplit(url).query)['symbol'][0]]))
+        live=json.dumps(rows(4)).encode()
+        with patch.object(urllib.request,'build_opener',return_value=SimpleNamespace(open=lambda *a,**k:BytesIO(live))):ns['lambda_handler']()
+        p=strict(memory.data['data/estimate-revisions.json'])
+        by={r['ticker']:r for r in p['request_records']}
+        self.assertEqual(by['TEST']['acquisition']['transport'],'warehouse_bank');self.assertEqual(by['OTHER']['acquisition']['transport'],'provider')
+        self.assertEqual(by['OTHER']['acquisition']['bank_attempt'],{'status':'no_bank_answer'})
+        self.assertEqual(p['bank_rung']['n_bank_originals'],1);self.assertEqual(p['bank_rung']['n_live_originals'],1);self.assertEqual(p['bank_rung']['n_vintage_refused'],0)
+        self.assertEqual(p['n_fmp_enriched'],2);self.assertEqual(p['n_estimate_observations'],2)
+        # the bank original compares against the retained live prior like any ordered snapshot: 2 -> 3
+        self.assertEqual(by['TEST']['comparisons'][0]['status'],'observed_same_target_consensus_change');self.assertEqual(by['TEST']['comparisons'][0]['eps_change'],1)
+        self.assertEqual(by['TEST']['comparisons'][0]['prior_received_at'],NOW+'T00:10:00Z')
+        # replay: the dossier is a pure function of (symbol, acquisition, date, prior) - bank fields ride inside the acquisition
+        for r in p['request_records']:
+            expected=dossier(r['ticker'],r['acquisition'],p['checked_as_of'],acquisition(rows(2),NOW+'T00:10:00Z') if r['ticker']=='TEST' else None)
+            expected.update(request_index=r['request_index'],calendar_index=r['calendar_index']);self.assertEqual(r,expected)
+        self.assertTrue(any('warehouse-bank original' in c for c in p['caveats']))
+        self.assertIn('bank_rung',p);self.assertNotIn('bank_rung',p['estimate_transport'])
+
+    def test_bank_originals_pass_the_reviewed_acceptance_verifiers(self):
+        """The two read-only acceptance verifiers (ops 6243 observation replay, ops 6281 transport + four-file compiler identity)
+        accept a publication that carries a bank original; its receipt is bounded by the run clocks like a live one."""
+        import importlib.util
+        for name in ('aws/ops/staged','aws/ops','aws/ops/checks'):
+            if str(ROOT/name) not in sys.path:sys.path.append(str(ROOT/name))
+        try:import ops_6243_estimate_observations_acceptance as op6243,ops_6281_estimate_transport_acceptance as op6281
+        except Exception as exc:self.skipTest('acceptance verifiers not importable here: %s'%type(exc).__name__)
+        prev=json.dumps({'measurement_contract':CONTRACT,'generated_at':NOW+'T00:30:00Z','acquisition_started_at':NOW+'T00:00:00Z','checked_as_of':NOW,
+                         'request_records':[{'ticker':'TEST','acquisition':acquisition(rows(2),NOW+'T00:10:00Z')}]}).encode()
+        memory=Memory(prev);calendar=[{'ticker':'TEST','date':NOW,'importance':2},{'ticker':'OTHER','date':NOW,'importance':2}]
+        stale=bank_answer(rows(3),pulled_at=NOW+'T05:00:00+00:00',received_at='2000-01-01T00:00:00+00:00')   # a helper clock outside the run: ignored
+        answers={'TEST':stale,'OTHER':None}
+        ns=native(memory,fetch_calendar=lambda **kw:calendar,bank_originals=bank_rung(lambda url:answers[urllib.parse.parse_qs(urllib.parse.urlsplit(url).query)['symbol'][0]]))
+        live=json.dumps(rows(4)).encode()
+        with patch.object(urllib.request,'build_opener',return_value=SimpleNamespace(open=lambda *a,**k:BytesIO(live))):ns['lambda_handler']()
+        raw=memory.data['data/estimate-revisions.json']
+        r1=op6243.publication(raw,prev);self.assertEqual(r1['status'],'published_original_estimate_observations_replayed');self.assertEqual(r1['estimate_observations'],2)
+        r2=op6281.publication(raw,prev);self.assertTrue(r2['current_compiler_publication_verified']);self.assertEqual(r2['compiler_files'],4)
+        p=strict(raw);self.assertEqual([r['acquisition']['transport'] for r in p['request_records']],['warehouse_bank','provider'])
+        self.assertNotEqual(p['request_records'][0]['acquisition']['received_at'],stale['received_at'])
+
+    def test_real_bank_rung_answers_the_engines_exact_url_from_the_walker_bank(self):
+        """The REAL aws/shared chain (bank_originals -> fmp_bankfirst._shaped/answer -> fmp_bank walker files) on a fake bank."""
+        import gzip,io
+        import fmp_bank,fmp_bankfirst
+        class S3:
+            def __init__(self):self.store,self.meta,self.gets={},{},[]
+            def get_object(self,Bucket,Key):
+                self.gets.append(Key)
+                if Key not in self.store:raise KeyError(Key)
+                return {'Body':io.BytesIO(self.store[Key]),'Metadata':self.meta.get(Key,{})}
+        s3=S3();pulled=datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+        values=[dict(rows(2+i)[0],date='%d-12-31'%(2026+i)) for i in range(8)]       # eight annual rows banked; limit=6 applies
+        s3.store[fmp_bank.WALKER_ROOT+'analyst-estimates-annual/TEST.json.gz']=gzip.compress(json.dumps(values).encode());s3.meta[fmp_bank.WALKER_ROOT+'analyst-estimates-annual/TEST.json.gz']={'pulled_at':pulled}
+        fmp_bank._S3=s3;fmp_bank._cache.clear();fmp_bank._TABLES.clear();fmp_bank._MISSING.clear();fmp_bank._EVICTED.clear();fmp_bankfirst._reset_ctl(time.time())
+        try:
+            url='https://financialmodelingprep.com/stable/analyst-estimates?symbol=TEST&period=annual&limit=6'
+            self.assertTrue(fmp_bankfirst._shaped('analyst-estimates','analyst-estimates',{'symbol':'TEST','period':'annual','limit':'6'}))
+            answer=real_bank_originals.bank_original(url)
+            self.assertIsNotNone(answer);self.assertEqual(len(json.loads(answer['raw'])),6);self.assertEqual(answer['bank']['object'],fmp_bank.WALKER_ROOT+'analyst-estimates-annual/TEST.json.gz')
+            self.assertEqual(answer['bank']['pulled_at'][:19],pulled[:19])
+            ns=native(bank_originals=real_bank_originals)
+            with patch.object(urllib.request,'build_opener',side_effect=AssertionError('the bank answered')):out=ns['_estimate_fetch']('TEST')
+            self.assertEqual(out['transport'],'warehouse_bank');self.assertEqual(len(original(out)),6);self.assertEqual(original(out)[0]['date'],'2026-12-31')
+            self.assertIsNone(real_bank_originals.bank_original('https://financialmodelingprep.com/stable/analyst-estimates?symbol=UNBANKED&period=annual&limit=6'))
+            self.assertIsNone(real_bank_originals.bank_original('https://api.polygon.io/benzinga/v1/earnings?limit=1000'))
+        finally:
+            fmp_bank._S3=None;fmp_bank._cache.clear();fmp_bank._TABLES.clear();fmp_bank._MISSING.clear();fmp_bank._EVICTED.clear()
 
     def test_compiler_identity_uses_all_four_actual_package_files(self):
         fn=next(n for n in ast.parse((SRC/'lambda_function.py').read_bytes()).body if isinstance(n,ast.FunctionDef) and n.name=='_estimate_source_identity')
