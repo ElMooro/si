@@ -73,11 +73,20 @@ def test_bank_original_carries_the_banks_provenance_and_answers_only_what_the_ba
     # a price window is answered from the walker file with from/to applied, in FMP's shape
     px = bank_originals.bank_original("https://financialmodelingprep.com/stable/historical-price-eod/full?symbol=AAPL&from=2026-10-01&to=2026-10-22&apikey=S", now=NOW)
     assert px is not None and [r["date"] for r in json.loads(px["raw"])] == ["2026-10-22", "2026-10-21"]
+    # a bulk-served head (profile from profile-bulk) names the bulk object, not the manifest the freshness guard reads after it
+    R = fmp_bank.ROOT
+    s3.store[R + "profile-bulk/latest.csv.gz"] = gzip.compress(b"symbol,companyName,currency,marketCap\nAAPL,Apple,USD,3000000000000\n")
+    s3.meta[R + "profile-bulk/latest.csv.gz"] = {"pulled_at": "2026-10-22T05:00:00Z"}
+    s3.store[R + "manifest.json"] = json.dumps({"updated_at": "2026-10-22T05:00:00Z", "endpoints_served": ["profile"]}).encode()
+    pr = bank_originals.bank_original("https://financialmodelingprep.com/stable/profile?symbol=AAPL&apikey=S", now=NOW)
+    assert pr is not None and json.loads(pr["raw"])[0]["marketCap"] == 3000000000000
+    assert pr["bank"]["object"] == R + "profile-bulk/latest.csv.gz" and pr["bank"]["pulled_at"] == "2026-10-22T05:00:00+00:00"
     # never-banked (quote), unknown symbol, non-FMP URL -> None, and nothing opened a connection
     assert bank_originals.bank_original("https://financialmodelingprep.com/stable/quote?symbol=AAPL&apikey=S", now=NOW) is None
     assert bank_originals.bank_original("https://financialmodelingprep.com/stable/analyst-estimates?symbol=ZZZZ&period=annual&limit=5", now=NOW) is None
     assert bank_originals.bank_original("https://api.polygon.io/benzinga/v1/earnings?ticker=AAPL", now=NOW) is None
-    assert all(k.startswith(W) or k.endswith("manifest.json") for k in s3.gets)
+    H = getattr(fmp_bank, "HISTORY_ROOT", "data/warm/history-book/")
+    assert all(k.startswith((W, R, H)) for k in s3.gets), [k for k in s3.gets if not k.startswith((W, R, H))]
 
 
 def test_vintage_rule_admits_only_newer_bank_content():

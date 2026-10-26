@@ -367,8 +367,18 @@ def _norm(tk):
     return str(tk or "").upper().strip()
 
 
+def _meta_get(key):
+    """A metadata read (manifests) through the bytes cache that never counts as the thread's last ANSWER: the
+    freshness guard reads the manifest after the table, and bank_originals records last_answer() as provenance."""
+    saved = (_LAST.get("key"), _LAST.get("meta"))
+    try:
+        return _get(key)
+    finally:
+        _LAST["key"], _LAST["meta"] = saved
+
+
 def manifest():
-    raw = _get(ROOT + "manifest.json")
+    raw = _meta_get(ROOT + "manifest.json")
     try:
         return json.loads(raw) if raw else {}
     except Exception:  # noqa: BLE001
@@ -455,7 +465,7 @@ def history_manifest(max_age_s=900):
     now = time.time()
     if _HIST_MAN["doc"] is not None and now - _HIST_MAN["at"] < max_age_s:
         return _HIST_MAN["doc"]
-    raw = _get(HISTORY_ROOT + "manifest.json")
+    raw = _meta_get(HISTORY_ROOT + "manifest.json")
     try:
         doc = json.loads(raw) if raw else {}
     except Exception:  # noqa: BLE001
