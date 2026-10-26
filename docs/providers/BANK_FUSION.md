@@ -179,6 +179,13 @@ conductor kicks (fmp-backfill.yml) refresh every block every day even though one
 Rule of the platform from here: point lookups read per-symbol documents (factor book, history book); whole-market scans
 read the tables / SQLite - never the other way round.
 
+Verified (ops 6668 / 6669, 09:02-09:17 UTC): the nine snapshot blocks built in one 728 s run (profile 27,215 symbols,
+ratios-ttm 16,897, key-metrics-ttm 16,896, scores 16,138, rating 11,532, DCF 9,385, targets 4,248, consensus 6,943, peers
+24,317); the book's 25 blocks all fresh (`phase STEADY`); equity-research for AAPL answered in 2.6 s with a 113 KB
+report, 21 of its 43 asks from the bank (the rest are live-only families: quote, news, transcripts, SEC filings) - and
+the light price endpoint is now served from the banked full file too (`historical-price-eod/light` = symbol, date,
+price, volume), so its 10-year price history and SPY benchmark stop going live.
+
 ### Queue (next waves, from the fusion map)
 
 - squeeze / short: pre-pump-detector, pump-mechanics, ignition, short-interest, early-movers, momentum-leaders (SI % float, DTC, float, short-volume ratio).
