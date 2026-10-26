@@ -44,6 +44,7 @@ class FakeFMP:
         self.calls = []
         self.serve_403 = False
         self.rate_limit_once = set()
+        self.bandwidth_limited = False
         self.unknown = {"peers-bulk"}                      # pretend the plan does not serve this one
 
     def __call__(self, req, timeout=0):
@@ -59,6 +60,8 @@ class FakeFMP:
         if path in self.rate_limit_once:
             self.rate_limit_once.discard(path)
             raise urllib.error.HTTPError(url, 429, "Too Many", {}, io.BytesIO(b"{}"))
+        if self.bandwidth_limited:
+            raise urllib.error.HTTPError(url, 429, "Too Many", {}, io.BytesIO(b'{"Error Message": "Bandwidth Limit Reach . Please upgrade your plan"}'))
         if path == "profile-bulk" and q.get("part") != "0":
             body = b"[]"                                   # parts beyond 0 are empty
         elif path == "etf-holder-bulk" and q.get("part") != "0":
@@ -145,6 +148,26 @@ def test_429_retried():
     out = lf.lambda_handler({"only": ["snapshot"]}, None)
     assert out["run"]["retries"] >= 1
     assert lf.ROOT + "rating-bulk/latest.csv.gz" in s3.store
+
+
+def test_bandwidth_limit_parks_the_bank_and_bytes_are_counted():
+    """v1.3.0: FMP's 429 'Bandwidth Limit Reach' (the plan's 150 GB / 30 days) stops the run after five refusals and parks
+    the bank for the day; a normal run counts the bytes it received against its per-run budget."""
+    lf, s3, fake = boot()
+    out = lf.lambda_handler({"only": ["snapshot"]}, None)
+    assert out["run"]["bytes_received"] > 0 and out["run"]["bytes_budget"] == lf.Fetch.BYTES_PER_RUN
+    fake.bandwidth_limited = True
+    out2 = lf.lambda_handler({"only": ["snapshot"], "force": True}, None)
+    st = json.loads(s3.store[lf.STATE_KEY])
+    assert st.get("bandwidth_hold_until", 0) > __import__("time").time() + 3600 and "Bandwidth" in st["bandwidth_note"], st.get("bandwidth_note")
+    assert out2["run"]["http"].get("http429_bandwidth", 0) >= 5 and not out2["run"]["http"].get("ok"), out2["run"]["http"]
+    assert out2["run"]["calls"] < 40, out2["run"]["calls"]
+    man = json.loads(s3.store[lf.MANIFEST_KEY])
+    assert man["bandwidth_hold_until"] == st["bandwidth_hold_until"]
+    assert lf.lambda_handler({}, None).get("skipped") == "bandwidth_hold"
+    fake.bandwidth_limited = False
+    out3 = lf.lambda_handler({"only": ["snapshot"], "force": True}, None)
+    assert "bandwidth_hold_until" not in json.loads(s3.store[lf.STATE_KEY]) and out3["key_status"] == "ok"
 
 
 def test_lease_and_budget():

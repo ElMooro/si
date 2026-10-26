@@ -54,6 +54,8 @@ class FakeFMP:
         self.by_endpoint = {}
         self.serve_403 = False
         self.rate_limit_once = set()
+        self.bandwidth_limited = False                         # every call -> 429 "Bandwidth Limit Reach" (the plan's 30-day quota spent)
+        self.price_days = ["2026-10-%02d" % d for d in range(1, 24) if __import__("datetime").date(2026, 10, d).weekday() < 5]
         self.unknown = {"senate-trading-rss-feed", "esg-benchmark"}
 
     def __call__(self, req, timeout=0):
@@ -66,6 +68,15 @@ class FakeFMP:
         self.by_endpoint[ep] = self.by_endpoint.get(ep, 0) + 1
         if self.serve_403:
             raise urllib.error.HTTPError(url, 403, "Forbidden", {}, io.BytesIO(b"{}"))
+        if self.bandwidth_limited:
+            raise urllib.error.HTTPError(url, 429, "Too Many", {}, io.BytesIO(b'{"Error Message": "Bandwidth Limit Reach . Please upgrade your plan"}'))
+        if ep == "historical-price-eod/full":                  # newest first, honours from=
+            frm = q.get("from", "1900-01-01")
+            body = J([{"symbol": q.get("symbol"), "date": d, "open": 1, "high": 2, "low": 0.5, "close": 1.5, "volume": 10} for d in reversed(self.price_days) if d >= frm])
+            resp = io.BytesIO(body)
+            resp.__enter__ = lambda s=resp: s
+            resp.__exit__ = lambda s=resp, *a: None
+            return resp
         if ep in self.unknown:
             raise urllib.error.HTTPError(url, 404, "Not Found", {}, io.BytesIO(b"{}"))
         if ep in self.rate_limit_once:
@@ -260,6 +271,66 @@ def test_daily_price_lane_runs_first_complete_and_shares_the_prefix():
     steps = [x["step"] for x in json.loads(s3.store[root + "_state/state.json"])["last_run"]["steps"]]
     assert steps.index("per_entity_daily") < steps.index("per_entity"), steps
     assert fake.by_endpoint["historical-price-eod/full"] >= uc["price_daily"]
+
+
+def test_price_histories_are_extended_incrementally_not_redownloaded():
+    """v1.3.0: a banked price history is fetched from (newest banked - 7 days) and merged; the plan's bandwidth is finite."""
+    lf, s3, fake, out = test_first_run_banks_lists_feeds_windows_and_rotates_entities()
+    root = lf._spec()["root"]
+    aapl = gz(s3, root + "historical-price-eod-full/AAPL.json.gz")
+    assert aapl[0]["date"] == "2026-10-23" and aapl[-1]["date"] == "2026-10-01" and len(aapl) == 17, (aapl[0], aapl[-1], len(aapl))
+    first_calls = [u for u in fake.calls if "historical-price-eod/full" in u and "symbol=AAPL" in u]
+    assert first_calls and "from=1960-01-01" in first_calls[0]
+    # a new session appears at FMP; the second run asks only from (2026-10-23 - 7 d) and the file gains the day, keeps the rest verbatim
+    fake.price_days.append("2026-10-26")
+    fake.calls.clear()
+    lf.lambda_handler({"only": ["historical-price-eod-full-daily"]}, None)
+    calls = [u for u in fake.calls if "historical-price-eod/full" in u and "symbol=AAPL" in u]
+    assert calls and "from=2026-10-16" in calls[0], calls[:1]
+    aapl2 = gz(s3, root + "historical-price-eod-full/AAPL.json.gz")
+    assert aapl2[0]["date"] == "2026-10-26" and len(aapl2) == 18 and aapl2[-1]["date"] == "2026-10-01"
+    assert [r["date"] for r in aapl2] == sorted({r["date"] for r in aapl2}, reverse=True)
+    st = json.loads(s3.store[root + "_state/state.json"])
+    assert st["last_run"]["bytes_received"] > 0 and st["last_run"]["bytes_budget"] == lf.BYTES_PER_RUN
+
+
+def test_bandwidth_limit_parks_the_walker_for_the_day():
+    """v1.3.0: FMP's 429 'Bandwidth Limit Reach' is not a per-minute limit - the run stops, records, and the next
+    invocation is skipped until the hold expires (schedules probe once a day; the conductor reads the hold)."""
+    lf, s3, fake, out = test_first_run_banks_lists_feeds_windows_and_rotates_entities()
+    root = lf._spec()["root"]
+    fake.bandwidth_limited = True
+    fake.calls.clear()
+    out2 = lf.lambda_handler({}, None)
+    st = json.loads(s3.store[root + "_state/state.json"])
+    assert st.get("bandwidth_hold_until", 0) > __import__("time").time() + 3600, st.get("bandwidth_hold_until")
+    assert "Bandwidth" in st["bandwidth_note"]
+    assert st["last_run"]["http"].get("http429_bandwidth", 0) >= 1 and not st["last_run"]["http"].get("ok")
+    assert len(fake.calls) < 200, len(fake.calls)                     # it stopped asking after 20 consecutive bandwidth refusals (x4 retries)
+    man = json.loads(s3.store[root + "manifest.json"])
+    assert man["bandwidth_hold_until"] == st["bandwidth_hold_until"]
+    # the next invocation is skipped, nothing is called
+    fake.calls.clear()
+    out3 = lf.lambda_handler({}, None)
+    assert out3.get("skipped") == "bandwidth_hold" and fake.calls == [], out3
+    # force runs anyway; when FMP answers again the hold is lifted
+    fake.bandwidth_limited = False
+    out4 = lf.lambda_handler({"force": True}, None)
+    st = json.loads(s3.store[root + "_state/state.json"])
+    assert "bandwidth_hold_until" not in st and out4.get("key_status") == "ok", out4
+
+
+def test_bytes_budget_stops_a_run():
+    lf, s3, fake, out = test_first_run_banks_lists_feeds_windows_and_rotates_entities()
+    root = lf._spec()["root"]
+    lf.BYTES_PER_RUN = 2000                                           # tiny budget: the second run stops almost at once
+    fake.calls.clear()
+    lf.lambda_handler({"force": True}, None)
+    st = json.loads(s3.store[root + "_state/state.json"])
+    assert st["last_run"]["bytes_received"] >= 2000 and len(fake.calls) < 60, (st["last_run"]["bytes_received"], len(fake.calls))
+    cat = json.loads(s3.store[root + "catalog.json"])["datasets"]
+    assert any(v.get("last_verdict") == "err:bandwidth_budget" for v in cat.values())
+    lf.BYTES_PER_RUN = 1536 * 1024 * 1024
 
 
 def test_second_run_is_write_if_changed_and_resumes():

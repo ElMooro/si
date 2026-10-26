@@ -60,6 +60,7 @@ def main():
     kicks = {n: 0 for n in names}
     steady = {n: False for n in names}
     unauthorized = False
+    bandwidth_held = []
     print("%s conductor start: engines=%s max_minutes=%d max_kicks=%d" % (now(), names, a.max_minutes, a.max_kicks))
     while time.time() < t_end and not all(steady.values()) and any(kicks[n] < a.max_kicks for n in names if not steady[n]):
         progressed = False
@@ -80,6 +81,13 @@ def main():
                 continue
             if float(st.get("lease_until") or 0) > time.time():
                 print("%s %s lease held until %s - skip this turn" % (now(), n, datetime.fromtimestamp(float(st["lease_until"]), timezone.utc).strftime("%H:%M:%S")))
+                continue
+            if float(st.get("bandwidth_hold_until") or 0) > time.time():
+                # the provider said the plan's bandwidth is spent: kicking would only add refusals; the engine's own
+                # schedule probes once a day and lifts the hold when answers return
+                print("%s %s BANDWIDTH_HOLD until %s - nothing to conduct (%s)" % (now(), n, datetime.fromtimestamp(float(st["bandwidth_hold_until"]), timezone.utc).strftime("%m-%d %H:%M"), st.get("bandwidth_note", "")[:120]))
+                steady[n] = True            # for this run only: the day's quota is spent, not the backfill finished
+                bandwidth_held.append(n)
                 continue
             prev = st.get("updated_at")
             resp = lam.invoke(FunctionName=n, InvocationType="Event", Payload=b"{}")
@@ -104,7 +112,9 @@ def main():
     for n in names:
         man = jget(s3, ENGINES[n]["manifest"])
         print("%s %s final: phase %s kicks %d objects %s %.1f MB" % (now(), n, man.get("phase"), kicks[n], man.get("objects"), (man.get("bytes") or 0) / 1e6))
-    if all(steady.values()) and not unauthorized:
+    if bandwidth_held:
+        print("BANDWIDTH_HOLD %s" % " ".join(bandwidth_held))
+    if all(steady.values()) and not unauthorized and not bandwidth_held:
         print("ALL_STEADY")
     return 2 if unauthorized else 0
 

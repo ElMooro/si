@@ -72,7 +72,7 @@ import boto3
 from managed_secret import managed_secret
 
 ENGINE = "justhodl-fmp-bank"
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 ROOT = "data/warm/fmp-bank/"
 STATE_KEY = ROOT + "_state/state.json"
@@ -85,7 +85,8 @@ PACE_S = float(os.environ.get("FMP_BANK_PACE_S", "0.25") or 0.25)
 EOD_FLOOR = os.environ.get("FMP_EOD_FLOOR", "2000-01-01")
 YEAR_FLOOR = int(os.environ.get("FMP_YEAR_FLOOR", "1985") or 1985)
 REFRESH_YEARS = 2                      # newest N fiscal years are re-pulled every run
-MAX_BYTES = int(os.environ.get("FMP_BANK_MAX_BYTES", "3000000000") or 3_000_000_000)   # raw bytes; gz lands in /tmp (ephemeral 4 GB)
+MAX_BYTES = int(os.environ.get("FMP_BANK_MAX_BYTES", "3000000000") or 3_000_000_000)
+BANDWIDTH_HOLD_S = int(os.environ.get("FMP_BANK_BANDWIDTH_HOLD_S", "72000") or 72000)   # v1.3.0: a "Bandwidth Limit Reach" answer parks the bank for 20 h   # raw bytes; gz lands in /tmp (ephemeral 4 GB)
 TMP = "/tmp/fmp-bank.csv.gz"
 READ_TIMEOUT_S = int(os.environ.get("FMP_BANK_READ_TIMEOUT_S", "600") or 600)      # bulk files are generated server-side; first byte can take minutes
 DATED_SHARE = float(os.environ.get("FMP_BANK_DATED_SHARE", "0.6") or 0.6)          # of the budget left after the snapshots; the rest goes to the EOD walk
@@ -142,6 +143,8 @@ class Fetch:
 
     COOLDOWN_S = float(os.environ.get("FMP_BANK_429_COOLDOWN_S", "61") or 61)   # bulk endpoints are limited per minute
 
+    BYTES_PER_RUN = int(os.environ.get("FMP_BANK_BYTES_PER_RUN", str(2048 * 1024 * 1024)) or 2048 * 1024 * 1024)   # v1.3.0: the plan's bandwidth (150 GB / 30 days) is shared by the whole fleet
+
     def __init__(self, key):
         self.key = key
         self.calls = 0
@@ -150,9 +153,17 @@ class Fetch:
         self.pace = PACE_S
         self.cooldown_until = 0.0
         self.ok_streak = 0
+        self.bytes = 0                         # raw bytes received this run
+        self.bandwidth_limited = 0             # consecutive 429s whose body says "Bandwidth Limit Reach"
 
     def _count(self, v):
         self.http[v] = self.http.get(v, 0) + 1
+
+    def over_budget(self):
+        return self.bytes >= self.BYTES_PER_RUN
+
+    def bandwidth_exhausted(self):
+        return self.bandwidth_limited >= 5
 
     def _wait(self):
         """Honour the cooldown after a 429 (the next bulk call waits for the next minute) and the adaptive pace."""
@@ -173,6 +184,12 @@ class Fetch:
         url = "%s/%s?%s" % (STABLE, endpoint, urllib.parse.urlencode(q))
         delay = 3.0
         for attempt in range(5):
+            if self.over_budget():
+                self._count("err:bandwidth_budget")
+                return ("err:bandwidth_budget", TMP, 0, 0, "")
+            if self.bandwidth_exhausted():
+                self._count("http429_bandwidth")
+                return ("http429_bandwidth", TMP, 0, 0, "")
             if not self._wait():
                 self._count("err:budget")
                 return ("err:budget", TMP, 0, 0, "")
@@ -204,6 +221,8 @@ class Fetch:
                 if self.ok_streak >= 10 and self.pace > PACE_S:
                     self.pace = max(PACE_S, self.pace / 2)         # AIMD: ten clean calls halve the pace back toward normal
                     self.ok_streak = 0
+                self.bytes += n
+                self.bandwidth_limited = 0
                 if n == 0 or rows == 0:
                     self._count("empty")
                     return ("empty", TMP, n, 0, h.hexdigest())
@@ -211,6 +230,15 @@ class Fetch:
                 return ("ok", TMP, n, rows, h.hexdigest())
             except urllib.error.HTTPError as e:
                 code = e.code
+                if code == 429:
+                    try:
+                        msg = e.read(400).decode("utf-8", "replace")
+                    except Exception:  # noqa: BLE001
+                        msg = ""
+                    if "Bandwidth" in msg:                          # v1.3.0: not the per-minute limit - the plan's 30-day bandwidth is spent
+                        self.bandwidth_limited += 1
+                        self._count("http429_bandwidth")
+                        return ("http429_bandwidth", TMP, 0, 0, "")
                 self._count("http%d" % code)
                 if code == 429:
                     self.ok_streak = 0
@@ -421,6 +449,8 @@ def write_manifest(state, cat, fx, run):
            + len([k for k in sizes if k.endswith("latest.csv.gz")]) + state["eod"]["sessions"],
            "eod": {k: v for k, v in state["eod"].items() if k != "failures"},
            "dated_pending": state.get("dated_pending"), "phase": state["phase"], "key_status": state["key_status"],
+           "bandwidth_hold_until": state.get("bandwidth_hold_until"), "bandwidth_note": state.get("bandwidth_note"),
+           "bytes_received_last_run": (run or {}).get("bytes_received"), "bytes_budget_per_run": Fetch.BYTES_PER_RUN,
            "endpoints_served": cat_doc["served"], "endpoints_not_served": cat_doc["not_served"],
            "dated_keys": sorted(k for k, v in state["dated_done"].items() if v.get("verdict") == "ok"),
            "label": "FMP Ultimate bulk + EOD warehouse (verbatim CSV, gz) - never LIVE; refreshed daily 23:13 UTC",
@@ -441,6 +471,8 @@ def lambda_handler(event, context=None):
         state = _fresh_state()
     if float(state.get("lease_until") or 0) > time.time() and not event.get("force"):
         return {"skipped": "lease_held", "lease_until": state["lease_until"]}
+    if float(state.get("bandwidth_hold_until") or 0) > time.time() and not event.get("force"):
+        return {"skipped": "bandwidth_hold", "bandwidth_hold_until": state["bandwidth_hold_until"], "key_status": state.get("key_status")}
     state["lease_until"] = time.time() + BUDGET_S + 120
     state["runs"] = state.get("runs", 0) + 1
     _put_json(STATE_KEY, state)
@@ -473,7 +505,15 @@ def lambda_handler(event, context=None):
         state["phase"] = "STEADY" if (state.get("dated_pending") == 0 and eod_edge_reached) else "BACKFILL"
     finally:
         run["calls"], run["retries"], run["http"], run["seconds"] = fx.calls, fx.retries, fx.http, round(time.time() - _t0, 1)
+        run["bytes_received"], run["bytes_budget"] = fx.bytes, fx.BYTES_PER_RUN
         run["finished_at"] = _now().isoformat()
+        if fx.bandwidth_exhausted():
+            state["bandwidth_hold_until"] = time.time() + BANDWIDTH_HOLD_S
+            state["bandwidth_note"] = "FMP 429 'Bandwidth Limit Reach' at %s: the plan's 30-day bandwidth is spent; holding %d h" % (_now().isoformat(timespec="seconds"), BANDWIDTH_HOLD_S // 3600)
+            run["bandwidth_hold_until"] = state["bandwidth_hold_until"]
+        elif fx.http.get("ok"):
+            state.pop("bandwidth_hold_until", None)
+            state.pop("bandwidth_note", None)
         state["last_run"] = run
         state["lease_until"] = 0
         state["updated_at"] = _now().isoformat()

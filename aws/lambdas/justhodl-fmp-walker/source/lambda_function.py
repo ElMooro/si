@@ -57,12 +57,15 @@ from botocore.config import Config
 from managed_secret import managed_secret
 
 ENGINE = "justhodl-fmp-walker"
-VERSION = "1.2.1"
+VERSION = "1.3.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 STABLE = "https://financialmodelingprep.com/stable"
 UA = {"User-Agent": "JustHodl Research (raafouis@gmail.com) fmp-walker/" + VERSION}
 BUDGET_S = int(os.environ.get("FMP_WALKER_BUDGET_S", "780") or 780)
 WORKERS = int(os.environ.get("FMP_WALKER_WORKERS", "12") or 12)
+BYTES_PER_RUN = int(os.environ.get("FMP_WALKER_BYTES_PER_RUN", str(1536 * 1024 * 1024)) or 1536 * 1024 * 1024)   # v1.3.0: FMP Ultimate = 150 GB per rolling 30 days, shared by the whole fleet
+BANDWIDTH_HOLD_S = int(os.environ.get("FMP_WALKER_BANDWIDTH_HOLD_S", "72000") or 72000)                                # a "Bandwidth Limit Reach" answer parks the walker for 20 h
+PRICE_INCREMENT_DAYS = 7                                                                                               # price histories: fetch from (newest banked - 7 d) and merge, not the whole file
 RPS = float(os.environ.get("FMP_WALKER_RPS", "18") or 18)   # 18 req/s is the proven ceiling for this key: 28 req/s drew 503 x 429 in one run (2026-10-25 23:27 UTC); the price lane gets its own daily run instead
 PER_ENTITY_MAX_BYTES = int(os.environ.get("FMP_WALKER_MAX_BYTES", "25000000") or 25_000_000)
 CHART_IDX_KEY = "data/warm/tv-bars/universe/_index.json"
@@ -170,11 +173,20 @@ class Fetch:
         self.calls = 0
         self.retries = 0
         self.http = {}
+        self.bytes = 0                         # bytes received this run (the plan's 30-day bandwidth is what runs out, not calls)
+        self.bandwidth_limited = 0             # consecutive 429s whose body says the plan's bandwidth is spent
         self.lock = threading.Lock()
 
-    def _count(self, verdict):
+    def _count(self, verdict, nbytes=0):
         with self.lock:
             self.http[verdict] = self.http.get(verdict, 0) + 1
+            self.bytes += nbytes
+
+    def over_budget(self):
+        return self.bytes >= BYTES_PER_RUN
+
+    def bandwidth_exhausted(self):
+        return self.bandwidth_limited >= 20
 
     def get(self, endpoint, params, max_bytes=PER_ENTITY_MAX_BYTES):
         q = {k: v for k, v in (params or {}).items() if v is not None and v != ""}
@@ -184,6 +196,10 @@ class Fetch:
         for attempt in range(4):
             if _left() < _g(20):
                 return ("err:budget", None, 0)
+            if self.over_budget():
+                return ("err:bandwidth_budget", None, 0)
+            if self.bandwidth_exhausted():
+                return ("http429_bandwidth", None, 0)
             self.bucket.take()
             with self.lock:
                 self.calls += 1
@@ -209,17 +225,29 @@ class Fetch:
                     self._count("err:NotJSON")
                     return ("err:NotJSON", None, n)
                 if isinstance(data, dict) and ("Error Message" in data or "error" in data and len(data) <= 2):
-                    self._count("fmp_error")
+                    self._count("fmp_error", n)
                     return ("fmp_error", data, n)
+                with self.lock:
+                    self.bandwidth_limited = 0
                 if data == [] or data == {}:
-                    self._count("empty")
+                    self._count("empty", n)
                     return ("empty", None, 0)
-                self._count("ok")
+                self._count("ok", n)
                 return ("ok", data, n)
             except urllib.error.HTTPError as e:
                 code = e.code
                 if code == 429:
                     self.bucket.throttled()
+                    try:
+                        msg = e.read(400).decode("utf-8", "replace")
+                    except Exception:  # noqa: BLE001
+                        msg = ""
+                    if "Bandwidth" in msg:
+                        with self.lock:
+                            self.bandwidth_limited += 1
+                        if self.bandwidth_exhausted():
+                            self._count("http429_bandwidth")
+                            return ("http429_bandwidth", None, 0)
                 if (code == 429 or code >= 500) and attempt < 3:
                     with self.lock:
                         self.retries += 1
@@ -423,6 +451,18 @@ def build_universes(spec, root, state, lists, fx=None):
     out["years_2010"] = [str(y) for y in range(2010, y0 + 1)]
     out["quarters_2013"] = ["%d-Q%d" % (y, qq) for y in range(2013, y0 + 1) for qq in (1, 2, 3, 4) if (y, qq) <= (y0, (_today().month - 1) // 3 + 1)]
     return out
+
+
+def _merge_by_date(prev_rows, new_rows):
+    """FMP's own newest-first order; new rows replace same-date rows, everything older is kept verbatim."""
+    by_date = {}
+    for r in prev_rows:
+        if isinstance(r, dict) and r.get("date"):
+            by_date[str(r["date"])[:10]] = r
+    for r in new_rows:
+        if isinstance(r, dict) and r.get("date"):
+            by_date[str(r["date"])[:10]] = r
+    return [by_date[k] for k in sorted(by_date, reverse=True)]
 
 
 def trailing_quarters(n):
@@ -700,10 +740,6 @@ class Walker:
         if extra_params:
             pe.update(extra_params)
         maxb = int(d.get("max_bytes") or PER_ENTITY_MAX_BYTES)
-        if d.get("paged"):
-            v, data, nb, npages = self.fx.pages(d["endpoint"], self.params(d, pe), limit=d.get("limit"), max_pages=int(d.get("max_pages") or 10), max_bytes=maxb)
-        else:
-            v, data, nb = self.fx.get(d["endpoint"], self.params(d, pe), maxb)
         key = self.root + (d.get("store_as") or d["id"]) + "/" + safe(ent)     # store_as: two datasets, one prefix (daily lane + long tail)
         if extra_params and extra_params.get("exchange"):
             key += "/" + safe(extra_params["exchange"])
@@ -712,6 +748,28 @@ class Walker:
         if d.get("dated_always"):
             key += "/" + self.today_s
         key += ".json.gz"
+        # v1.3.0 incremental histories: a banked price history is extended from (its newest date - PRICE_INCREMENT_DAYS),
+        # not re-downloaded from 1960 - the plan's bandwidth (150 GB / 30 days) is what the full files burned through
+        prev_rows, inc_params = None, dict(self.params(d, pe))
+        if d.get("endpoint", "").startswith("historical-price-eod/") and not period and not d.get("paged"):
+            prev_rows = _j(key)
+            newest = max((str(r.get("date") or "")[:10] for r in prev_rows if isinstance(r, dict)), default="") if isinstance(prev_rows, list) and prev_rows else ""
+            if newest:
+                try:
+                    inc_params["from"] = (datetime.strptime(newest, "%Y-%m-%d").date() - timedelta(days=PRICE_INCREMENT_DAYS)).isoformat()
+                except ValueError:
+                    prev_rows = None
+            else:
+                prev_rows = None
+        if d.get("paged"):
+            v, data, nb, npages = self.fx.pages(d["endpoint"], self.params(d, pe), limit=d.get("limit"), max_pages=int(d.get("max_pages") or 10), max_bytes=maxb)
+        else:
+            v, data, nb = self.fx.get(d["endpoint"], inc_params, maxb)
+        if v == "ok" and prev_rows is not None and isinstance(data, list):
+            data = _merge_by_date(prev_rows, data)
+        elif v == "empty" and prev_rows is not None:
+            v = "ok"                                              # nothing new since the increment window: the banked history stands
+            data = prev_rows
         if v == "ok":
             self.bank(d, key, data, {"endpoint": d["endpoint"], "entity": ent, "pulled_at": self.today_s, **{k: str(v2) for k, v2 in (pe.items()) if k not in (d.get("entity_param"),)}})
         elif v == "empty":
@@ -993,6 +1051,8 @@ def write_manifest(spec, state, cat, run):
            "objects": objects, "bytes": nbytes, "pages": objects, "pages_bytes": nbytes,
            "datasets": len([k for k, v in per.items() if v.get("objects")]), "datasets_declared": len(spec["datasets"]),
            "phase": phase, "key_status": state.get("key_status"), "universe_counts": state.get("universe_counts"),
+           "bandwidth_hold_until": state.get("bandwidth_hold_until"), "bandwidth_note": state.get("bandwidth_note"),
+           "bytes_received_last_run": (run or {}).get("bytes_received"), "bytes_budget_per_run": BYTES_PER_RUN,
            "endpoints_served": served, "endpoints_refused": refused, "skipped": spec.get("skipped"),
            "per_dataset": per, "run": run, "runs": state.get("runs"),
            "label": "FMP Ultimate non-bulk families (verbatim JSON, gz) - never LIVE; refreshed daily 23:27 UTC; rotation per dataset published"}
@@ -1016,6 +1076,10 @@ def lambda_handler(event, context=None):
         state = {"version": VERSION, "started_at": _now().isoformat(), "runs": 0, "key_status": "unknown", "phase": "BACKFILL", "datasets": {}}
     if float(state.get("lease_until") or 0) > time.time() and not event.get("force"):
         return {"skipped": "lease_held", "lease_until": state["lease_until"]}
+    if float(state.get("bandwidth_hold_until") or 0) > time.time() and not event.get("force"):
+        # v1.3.0: FMP answered "Bandwidth Limit Reach" (the plan's 150 GB / 30 days is spent): nothing to pull until it
+        # ages out; one probe a day (the schedules) is enough, the conductor reads this and does not kick
+        return {"skipped": "bandwidth_hold", "bandwidth_hold_until": state["bandwidth_hold_until"], "key_status": state.get("key_status")}
     state["lease_until"] = time.time() + BUDGET_S + 120
     state["runs"] = state.get("runs", 0) + 1
     _put_json(state_key, state)
@@ -1031,7 +1095,15 @@ def lambda_handler(event, context=None):
         run = w.run
         run["calls"], run["retries"], run["http"] = w.fx.calls, w.fx.retries, w.fx.http
         run["puts"], run["unchanged"], run["put_bytes"] = w.store.puts, w.store.unchanged, w.store.bytes
+        run["bytes_received"], run["bytes_budget"] = w.fx.bytes, BYTES_PER_RUN
         run["seconds"], run["finished_at"] = round(time.time() - _t0, 1), _now().isoformat()
+        if w.fx.bandwidth_exhausted():
+            state["bandwidth_hold_until"] = time.time() + BANDWIDTH_HOLD_S
+            state["bandwidth_note"] = "FMP 429 'Bandwidth Limit Reach' at %s: the plan's 30-day bandwidth is spent; holding %d h (schedules probe once a day)" % (_now().isoformat(timespec="seconds"), BANDWIDTH_HOLD_S // 3600)
+            run["bandwidth_hold_until"] = state["bandwidth_hold_until"]
+        elif w.fx.http.get("ok"):
+            state.pop("bandwidth_hold_until", None)
+            state.pop("bandwidth_note", None)
         state["last_run"] = run
         state["lease_until"] = 0
         state["updated_at"] = _now().isoformat()
