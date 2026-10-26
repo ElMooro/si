@@ -3,14 +3,16 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory": 512,
-  "timeout": 120,
-  "architectures": ["x86_64"],
+  "memory": 1024,
+  "timeout": 300,
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Institutional-grade event bus health monitor. Watches coordinator audit log, detects silence/spikes/error anomalies, fires Telegram alerts with cool-down.",
+  "description": "Event bus health monitor v1.1.0: streams the coordinator audit day-logs (finished days cached as per-event counts under system-events/audit/_counts/), detects silence/spikes/error anomalies, Telegram alerts with cool-down.",
   "schedule": {
     "rule_name": "event-flow-monitor-hourly",
     "cron": "cron(0 5 * * ? *)",
-    "description": "Event flow health monitor — hourly on the hour"
+    "description": "Event flow health monitor - daily 05:00 UTC (cadence floor 2026-10-20)"
   }
 }

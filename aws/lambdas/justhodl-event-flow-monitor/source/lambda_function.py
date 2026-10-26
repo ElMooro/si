@@ -54,12 +54,23 @@ Telegram digest — only on anomalies (no noise on healthy days)
 
 SCHEDULE
 ════════
-cron(0 * * * ? *) — hourly, on the hour. Anomalies are time-sensitive.
+cron(0 5 * * ? *) — daily 05:00 UTC since the 2026-10-20 cadence floor (one run per 24 h).
+
+v1.1.0 (2026-10-26)
+═══════════════════
+ops 6674: the five storm days (Oct 12-16) left 22-33 MB day-logs inside the 14-day window and the function
+parsed every line of every day into memory (512 MB ceiling, 120 s timeout, 3/3 runs).  Day-logs are now
+streamed line by line; a finished day (before today) is reduced to its per-event counts once and cached at
+system-events/audit/_counts/<day>.json (the day-log is immutable after midnight UTC), so a run reads today's
+log plus 13 small count files.  Reading stops at a time budget and the output says how many of the 14 days
+its baselines cover (window_days_read) - it never presents a shorter window as the full one.
 """
+VERSION = "1.1.0"
 
 import json
 import os
 import statistics
+import time
 import urllib.parse
 import urllib.request
 from collections import defaultdict
@@ -118,46 +129,99 @@ ssm = boto3.client("ssm", region_name=REGION)
 cw  = boto3.client("cloudwatch", region_name=REGION)
 
 
-# ─── Audit log readers ──────────────────────────────────────────────────
+# ─── Audit log readers (v1.1.0: streamed, cached per day, budgeted) ────────
+
+COUNTS_PREFIX = AUDIT_PREFIX + "_counts/"
+READ_RESERVE_S = 30          # left for analysis + writes
+DEFAULT_BUDGET_S = 270
+COUNTS_SCHEMA = "event-flow-day-counts.v1"
+
 
 def _date_key(d: datetime) -> str:
     return d.strftime("%Y-%m-%d")
 
 
-def read_audit_day(date_str: str) -> list:
-    """Return list of audit-log entries for the given day. Empty list on
-    missing or unreadable file (treated as "no events that day")."""
+def _slim(entry: dict) -> dict:
+    """What the analysis reads of a today-entry: ts, event and the engine.error detail fields."""
+    det = entry.get("detail") if isinstance(entry.get("detail"), dict) else {}
+    return {"ts": entry.get("ts"), "event": entry.get("event"),
+            "detail": {k: det.get(k) for k in ("engine", "_source_engine", "phase", "error") if k in det}}
+
+
+def stream_audit_day(date_str: str, keep_entries: bool):
+    """Stream one day-log.  Returns (counts {event: n}, entries [slim] | None, present bool).
+    A missing day is (empty, [], False); an unreadable line is skipped."""
     key = f"{AUDIT_PREFIX}{date_str}.jsonl"
+    counts, entries = defaultdict(int), ([] if keep_entries else None)
     try:
         obj = s3.get_object(Bucket=BUCKET, Key=key)
-        body = obj["Body"].read().decode("utf-8")
-        out = []
-        for line in body.split("\n"):
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                out.append(json.loads(line))
-            except json.JSONDecodeError:
-                continue
-        return out
     except (s3.exceptions.NoSuchKey, ClientError):
-        return []
+        return {}, entries, False
     except Exception as e:
         print(f"[ev-flow] err reading {key}: {e}")
-        return []
+        return {}, entries, False
+    body = obj["Body"]
+    try:
+        for raw in body.iter_lines():
+            if not raw:
+                continue
+            try:
+                e = json.loads(raw)
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                continue
+            if not isinstance(e, dict):
+                continue
+            counts[e.get("event", "unknown")] += 1
+            if keep_entries:
+                entries.append(_slim(e))
+    finally:
+        try:
+            body.close()
+        except Exception:
+            pass
+    return dict(counts), entries, True
 
 
-def read_recent_window(days: int) -> dict:
-    """Read audit logs for `days` calendar days ending today (UTC).
-    Returns {date_str: [entries]}."""
+def read_day_counts_cached(date_str: str) -> tuple:
+    """Per-event counts for a FINISHED day: the cached summary when present, else one streamed pass that is
+    then cached (the day-log never changes after midnight UTC).  Returns (counts, present)."""
+    ckey = f"{COUNTS_PREFIX}{date_str}.json"
+    try:
+        doc = json.loads(s3.get_object(Bucket=BUCKET, Key=ckey)["Body"].read())
+        if isinstance(doc, dict) and doc.get("schema") == COUNTS_SCHEMA and isinstance(doc.get("counts"), dict):
+            return {k: int(v) for k, v in doc["counts"].items()}, bool(doc.get("present", True))
+    except Exception:
+        pass
+    counts, _, present = stream_audit_day(date_str, keep_entries=False)
+    try:
+        s3.put_object(Bucket=BUCKET, Key=ckey, ContentType="application/json", CacheControl="no-cache",
+                      Body=json.dumps({"schema": COUNTS_SCHEMA, "day": date_str, "present": present, "n_events": sum(counts.values()),
+                                       "counts": counts, "summarised_at": datetime.now(timezone.utc).isoformat()}).encode("utf-8"))
+    except Exception as e:
+        print(f"[ev-flow] counts cache {date_str} not written: {e}")
+    return counts, present
+
+
+def read_recent_window(days: int, deadline: float = None) -> dict:
+    """Audit activity for `days` calendar days ending today (UTC).
+    Returns {"counts": {date: {event: n}}, "today_entries": [slim], "days_read": n, "days_present": n,
+             "days_skipped": [dates not read before the deadline]}."""
     now = datetime.now(timezone.utc)
-    out = {}
-    for i in range(days):
-        d = now - timedelta(days=i)
-        ds = _date_key(d)
-        out[ds] = read_audit_day(ds)
-    return out
+    today = _date_key(now)
+    counts, skipped, present_days = {}, [], 0
+    tc, today_entries, present = stream_audit_day(today, keep_entries=True)
+    counts[today] = tc
+    present_days += int(present)
+    for i in range(1, days):
+        ds = _date_key(now - timedelta(days=i))
+        if deadline is not None and time.time() >= deadline:
+            skipped.append(ds)
+            continue
+        c, p = read_day_counts_cached(ds)
+        counts[ds] = c
+        present_days += int(p)
+    return {"counts": counts, "today_entries": today_entries, "days_read": days - len(skipped),
+            "days_present": present_days, "days_skipped": skipped}
 
 
 # ─── Analysis ────────────────────────────────────────────────────────────
@@ -206,12 +270,11 @@ def compute_pulse(entries_today: list) -> dict:
 
 
 def aggregate_by_event(window: dict) -> dict:
-    """Count events per type per day. Returns {event_name: {date: count}}."""
-    out = defaultdict(lambda: defaultdict(int))
-    for date_str, entries in window.items():
-        for e in entries:
-            event_name = e.get("event", "unknown")
-            out[event_name][date_str] += 1
+    """Pivot {date: {event: count}} into {event_name: {date: count}}."""
+    out = defaultdict(dict)
+    for date_str, day_counts in window.items():
+        for event_name, n in (day_counts or {}).items():
+            out[event_name][date_str] = out[event_name].get(date_str, 0) + int(n)
     return {k: dict(v) for k, v in out.items()}
 
 
@@ -466,8 +529,8 @@ def alert_for_anomalies(anomalies: list, pulse: dict,
             send_telegram(
                 f"🔴 <b>Event bus silent</b>\n"
                 f"No events in last {SILENCE_RED_HOURS}h.\n"
-                f"Last event: {pulse.get('last_event_ts','?')[:19]} "
-                f"({pulse.get('last_event_type','?')})\n"
+                f"Last event: {(pulse.get('last_event_ts') or '?')[:19]} "
+                f"({pulse.get('last_event_type') or '?'})\n"
                 f"<i>Check coordinator + producers immediately.</i>"
             )
             last[key] = now_iso
@@ -522,15 +585,24 @@ def alert_for_anomalies(anomalies: list, pulse: dict,
 @track_errors
 def handler(event, context):
     started = datetime.now(timezone.utc)
+    t0 = time.time()
     today_str = _date_key(started)
-    
-    # Read window
-    window = read_recent_window(BASELINE_WINDOW_DAYS)
-    today_entries = window.get(today_str, [])
-    
+    budget = DEFAULT_BUDGET_S
+    try:
+        budget = context.get_remaining_time_in_millis() / 1000.0
+    except Exception:
+        pass
+    deadline = t0 + max(0.0, budget - READ_RESERVE_S)
+
+    # Read window (streamed; finished days from the per-day counts cache; budgeted)
+    read = read_recent_window(BASELINE_WINDOW_DAYS, deadline)
+    today_entries = read["today_entries"]
+    if read["days_skipped"]:
+        print(f"[ev-flow] budget: {len(read['days_skipped'])} of {BASELINE_WINDOW_DAYS} days not read ({read['days_skipped'][:3]}...)")
+
     # Compute analyses
     pulse = compute_pulse(today_entries)
-    by_event_by_day = aggregate_by_event(window)
+    by_event_by_day = aggregate_by_event(read["counts"])
     baselines = compute_baselines(by_event_by_day, today_str)
     rate_anomalies = detect_anomalies(by_event_by_day, baselines, today_str)
     engine_errors = compute_engine_errors(today_entries)
@@ -560,8 +632,12 @@ def handler(event, context):
     # Output
     output = {
         "schema_version":    "1.0",
+        "engine_version":    VERSION,
         "generated_at":      started.isoformat(),
         "window_days":       BASELINE_WINDOW_DAYS,
+        "window_days_read":  read["days_read"],
+        "audit_days_present": read["days_present"],
+        "days_not_read":     read["days_skipped"],
         "pulse":             pulse,
         "totals_today": {
             "n_events":           len(today_entries),
@@ -605,10 +681,11 @@ def handler(event, context):
     except Exception as e:
         print(f"[ev-flow] ssm pulse put: {e}")
     
-    print(f"[ev-flow] pulse={pulse['status']} "
+    print(f"[ev-flow] v{VERSION} pulse={pulse['status']} "
           f"events_today={len(today_entries)} "
+          f"days_read={read['days_read']}/{BASELINE_WINDOW_DAYS} present={read['days_present']} "
           f"anomalies={len(all_anomalies)} "
-          f"alerts_sent={len(alert_result['sent'])}")
+          f"alerts_sent={len(alert_result['sent'])} in {time.time() - t0:.1f}s")
     
     return {
         "statusCode": 200,
