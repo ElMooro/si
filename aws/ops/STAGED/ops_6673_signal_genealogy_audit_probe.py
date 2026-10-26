@@ -19,6 +19,7 @@ from botocore.config import Config
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "aws" / "ops"))
+sys.path.insert(0, str(ROOT / "aws" / "shared"))  # instrument_identity (the lane packages aws/shared into the function)
 sys.path.insert(0, str(ROOT / "aws" / "lambdas" / "justhodl-signal-genealogy" / "source"))
 from ops_report import report  # noqa: E402
 
