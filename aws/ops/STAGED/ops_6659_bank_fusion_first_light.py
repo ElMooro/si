@@ -32,6 +32,7 @@ ENGINES = [
     ("justhodl-analyst-consensus", "data/analyst-consensus.json", 420),
     ("justhodl-quality-on-sale", "data/quality-on-sale.json", 300),
     ("justhodl-beneish", "data/beneish.json", 540),
+    ("justhodl-insider-radar", "data/insider-radar.json", 240),
 ]
 
 
@@ -89,6 +90,8 @@ def summarize(fn, doc):
         bs = doc.get("book_screen") or {}
         out.append("version %s | regime %s | 5-of-5 %s | book_screen available %s n %s as_of %s" % (doc.get("version"), doc.get("regime"), doc.get("n_qualified_5_of_5"), bs.get("available"), bs.get("n"), json.dumps(bs.get("as_of"))[:60]))
         out.append("book candidates %s" % [(c.get("ticker"), c.get("quality_pct"), c.get("off_52w_high_pct")) for c in (bs.get("candidates") or [])[:8]])
+    elif fn == "justhodl-insider-radar":
+        out.append("version %s | source_used %s | n_raw %s | buys %s clusters %s | diag %s" % (doc.get("version"), doc.get("source_used"), doc.get("n_raw"), len(doc.get("latest_buys") or []), len(doc.get("clusters") or []), [d for d in (doc.get("diag") or doc.get("DIAG") or []) if "bank" in str(d)][:2]))
     elif fn == "justhodl-beneish":
         m = doc.get("market") or {}
         out.append("version %s | top-50 state %s (%s) | analyzed %s | market candidates %s scored %s red %s (%s%%)" % (doc.get("version"), doc.get("universe_state"), doc.get("universe_state_scope"), doc.get("n_universe_analyzed"), m.get("n_candidates"), m.get("n_scored_total"), m.get("n_red_total"), m.get("pct_red_total")))
