@@ -4,7 +4,7 @@
   "timeout": 900,
   "handler": "lambda_function.lambda_handler",
   "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Whole-market factor book joined once a day from the provider banks (FMP bulk + walker, Polygon short interest + tape): one doc per US symbol + one matrix under data/warm/factor-book/; bank-only, no key; read via aws/shared/bank_enrich.",
+  "description": "Whole-market factor book joined daily from the provider banks (FMP bulk + walker, Polygon short interest + tape, FINRA short interest via short-interest-tickers): one doc per US symbol + one matrix under data/warm/factor-book/. v1.0.6.",
   "env": {
     "S3_BUCKET": "justhodl-dashboard-live",
     "FACTOR_BOOK_BUDGET_S": "840",

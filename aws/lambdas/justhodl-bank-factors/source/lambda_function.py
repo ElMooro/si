@@ -51,7 +51,7 @@ from botocore.config import Config
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import fmp_bank  # noqa: E402  (aws/shared, bundled)
 
-VERSION = "1.0.5"
+VERSION = "1.0.6"
 SCHEMA = "factor-book/1.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 ROOT = "data/warm/factor-book/"
@@ -234,6 +234,11 @@ FIELDS = [
     ("float_shares", "float", ("floatShares",)), ("outstanding_shares", "float", ("outstandingShares",)), ("free_float_pct", "float", ("freeFloat",)),
     ("short_interest", "short", ("short_interest",)), ("days_to_cover", "short", ("days_to_cover",)), ("short_pct_float", "derived", "short_pct_float"),
     ("short_volume_ratio", "derived", "short_volume_ratio"),
+    # v1.0.6: FINRA's own bi-monthly short interest (the original source, via justhodl-short-interest's consumer layer
+    # data/short-interest-tickers.json) beside Polygon's redistribution; short_pct_float falls back to FINRA when Polygon
+    # has no file for the ticker (short_source says which), and finra_vs_polygon_si_pct shows the two disagreeing
+    ("finra_short_interest", "derived", "finra_short_interest"), ("finra_days_to_cover", "derived", "finra_days_to_cover"),
+    ("finra_si_change_pct", "derived", "finra_si_change_pct"), ("finra_vs_polygon_si_pct", "derived", "finra_vs_polygon_si_pct"),
     ("etf_holder_count", "derived", "etf_holder_count"), ("etf_weight_sum", "derived", "etf_weight_sum"), ("n_peers", "derived", "n_peers"),
     ("close", "returns", ("close",)), ("ret_1d", "returns", ("ret_1d",)), ("ret_5d", "returns", ("ret_5d",)), ("ret_21d", "returns", ("ret_21d",)),
     ("ret_63d", "returns", ("ret_63d",)), ("ret_126d", "returns", ("ret_126d",)), ("ret_252d", "returns", ("ret_252d",)),
@@ -734,7 +739,7 @@ def _strip(row, drop=()):
     return {k: v for k, v in row.items() if str(k).lower() not in drop and k != "symbol" and not str(k).startswith("_")}
 
 
-def assemble(sym, ident, src: Sources, floats, shorts, shortvol, cal_earn, cal_div, returns, holders_inv=None):  # holders_inv kept for signature stability
+def assemble(sym, ident, src: Sources, floats, shorts, shortvol, cal_earn, cal_div, returns, holders_inv=None, finra=None):  # holders_inv kept for signature stability
     """One symbol's document from every source (verbatim rows) + derived fields.  Pure function of the inputs."""
     doc = {"symbol": sym, "polygon_ticker": _poly(sym), "schema": SCHEMA, "identity": ident}
     prof = _first(src.rows("profile", sym))
@@ -770,6 +775,10 @@ def assemble(sym, ident, src: Sources, floats, shorts, shortvol, cal_earn, cal_d
     doc["short"] = sh
     sv = shortvol.get(_poly(sym))
     doc["short_volume"] = sv
+    fs = None
+    if finra:
+        fs = finra.get(sym) or finra.get(sym.replace(".", "-")) or finra.get(sym.replace("-", ".")) or finra.get(_poly(sym))
+    doc["finra_short"] = fs
     doc["calendar"] = {"earnings": [_strip(r) for r in (cal_earn.get(sym) or [])[:3]] or None,
                        "dividends": [_strip(r) for r in (cal_div.get(sym) or [])[:3]] or None}
     doc["returns"] = returns.get(_poly(sym))
@@ -813,10 +822,24 @@ def assemble(sym, ident, src: Sources, floats, shorts, shortvol, cal_earn, cal_d
         d["avg_surprise_pct_4q"] = round(sum(sp) / len(sp), 4) if sp else None
         d["last_surprise_pct"] = round(sp[0], 4) if sp else None
         d["last_surprise_date"] = pick(rows[0], "date") if rows else None
+    flt = num(pick(fl, "floatShares")) if fl else None
     if sh:
-        si, flt = num(sh.get("short_interest")), num(pick(fl, "floatShares")) if fl else None
+        si = num(sh.get("short_interest"))
         d["short_pct_float"] = round(si / flt * 100.0, 4) if si is not None and flt else None
         d["si_settlement_date"] = sh.get("settlement_date")
+        d["short_source"] = "polygon"
+    if fs:
+        fsi = num(fs.get("short_interest"))
+        d["finra_short_interest"] = fsi
+        d["finra_days_to_cover"] = num(fs.get("dtc_effective")) if fs.get("dtc_effective") is not None else num(fs.get("days_to_cover"))
+        d["finra_si_change_pct"] = num(fs.get("change_pct"))
+        d["finra_settlement_date"] = fs.get("settlement_date")
+        if sh and fsi and num(sh.get("short_interest")):
+            d["finra_vs_polygon_si_pct"] = round((num(sh.get("short_interest")) - fsi) / fsi * 100.0, 4)
+        if not sh and fsi is not None:                       # Polygon holds no file for the ticker: FINRA's own figure stands in
+            d["short_pct_float"] = round(fsi / flt * 100.0, 4) if flt else None
+            d["si_settlement_date"] = fs.get("settlement_date")
+            d["short_source"] = "finra"
     if sv:
         d["short_volume_ratio"] = sv.get("ratio")
     d["etf_holder_count"] = doc["etf_holders"]["count"] if doc["etf_holders"] else None
@@ -959,7 +982,8 @@ def lambda_handler(event=None, context=None):
     cal_earn = load_calendar_month(src, "earnings-calendar")
     cal_div = load_calendar_month(src, "dividends-calendar")
     shorts, shortvol = load_polygon_short(uni, src, deadline - reserve["short"])
-    log("float %d, short %d, short-volume %d, calendars %d/%d (%.0fs)" % (len(floats), len(shorts), len(shortvol), len(cal_earn), len(cal_div), time.time() - t0))
+    finra = load_finra_short(src)                                        # v1.0.6: FINRA's own short interest beside Polygon's
+    log("float %d, short %d, short-volume %d, finra short %d, calendars %d/%d (%.0fs)" % (len(floats), len(shorts), len(shortvol), len(finra), len(cal_earn), len(cal_div), time.time() - t0))
     returns, rinfo = returns_from_tape(uni, deadline - reserve["pass1"] - 60, reserve["returns"]) if not event.get("no_returns") else ({}, {"sessions": 0, "skipped": True})
     src.coverage["returns"] = rinfo
     src.as_of["polygon-tape"] = rinfo.get("last_session")
@@ -971,7 +995,7 @@ def lambda_handler(event=None, context=None):
     syms = sorted(uni)
     rows = []
     for sym in syms:
-        rows.append(core_fields(assemble(sym, uni[sym], src, floats, shorts, shortvol, cal_earn, cal_div, returns, holders_inv)))
+        rows.append(core_fields(assemble(sym, uni[sym], src, floats, shorts, shortvol, cal_earn, cal_div, returns, holders_inv, finra)))
         if time.time() > deadline - reserve["pass1"]:
             src.notes.append("pass 1 stopped at %d/%d symbols (budget)" % (len(rows), len(syms)))
             break
@@ -983,7 +1007,7 @@ def lambda_handler(event=None, context=None):
     # pass 2: full documents, ranks attached, write-if-changed, threaded, nothing retained
     hashes = state.get("hashes") or {}
     new_hashes = {}
-    cov = {b: 0 for b in ("profile", "scores", "rating", "dcf", "price_target", "consensus", "key_metrics_ttm", "ratios_ttm", "peers", "etf_holders", "growth", "cf_growth", "surprises", "float", "short", "short_volume", "returns")}
+    cov = {b: 0 for b in ("profile", "scores", "rating", "dcf", "price_target", "consensus", "key_metrics_ttm", "ratios_ttm", "peers", "etf_holders", "growth", "cf_growth", "surprises", "float", "short", "short_volume", "finra_short", "returns")}
     sample = []
     written, failed, bytes_out, unchanged, pending = 0, 0, 0, 0, 0
 
@@ -997,7 +1021,7 @@ def lambda_handler(event=None, context=None):
             if time.time() > deadline - reserve["pass2"]:
                 src.notes.append("pass 2 stopped by the budget at %d/%d symbols" % (written + unchanged + pending, len(rows)))
                 break
-            doc = assemble(sym, uni[sym], src, floats, shorts, shortvol, cal_earn, cal_div, returns, holders_inv)
+            doc = assemble(sym, uni[sym], src, floats, shorts, shortvol, cal_earn, cal_div, returns, holders_inv, finra)
             r = by_sym.get(sym) or {}
             doc["ranks"] = {k: v for k, v in r.items() if k.startswith(("pct_", "spct_"))}
             doc["composites"] = {k[len("composite_"):]: v for k, v in r.items() if k.startswith("composite_")}
@@ -1088,6 +1112,29 @@ def lambda_handler(event=None, context=None):
 
 def _put_json_gz_plain(key, obj):
     s3.put_object(Bucket=BUCKET, Key=key, Body=json.dumps(obj, default=str).encode(), ContentType="application/json", CacheControl="no-cache")
+
+
+FINRA_TICKERS_KEY = "data/short-interest-tickers.json"
+
+
+def load_finra_short(src: Sources):
+    """FINRA's bi-monthly short interest per ticker from justhodl-short-interest's consumer layer (contract
+    short-interest-tickers.v1: by_ticker[SYM] = {short_interest, prev_short_interest, change_pct, avg_daily_volume,
+    days_to_cover, dtc_effective, dtc_status, settlement_date, latest, ...}).  Values are kept as reported; the join is by
+    FINRA's symbol.  Unavailable -> {} and a note, never zeros."""
+    doc = _get_json(FINRA_TICKERS_KEY, client=_s3())
+    by = doc.get("by_ticker") if isinstance(doc, dict) and doc.get("contract") == "short-interest-tickers.v1" else None
+    if not isinstance(by, dict) or not by:
+        src.notes.append("finra short interest: %s unavailable or not the short-interest-tickers.v1 contract" % FINRA_TICKERS_KEY)
+        src.coverage["finra_short"] = {"tickers": 0}
+        return {}
+    out = {}
+    for sym, row in by.items():
+        if isinstance(row, dict) and isinstance(sym, str) and sym:
+            out[sym.upper()] = row
+    src.coverage["finra_short"] = {"tickers": len(out), "settlement_date": doc.get("settlement_date"), "generated_at": doc.get("generated_at")}
+    src.as_of["finra-short-interest"] = doc.get("settlement_date")
+    return out
 
 
 def load_polygon_short(uni, src: Sources, stop_at):

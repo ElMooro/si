@@ -127,6 +127,12 @@ def seed(lf, s3, today):
                                                                      {"settlement_date": "2026-10-15", "short_interest": 1000000, "avg_daily_volume": 125000, "days_to_cover": 8.0, "ticker": "TINY"}]})
     s3.store[P + "short-interest/AAPL.json.gz"] = jgz({"results": [{"settlement_date": "2026-10-15", "short_interest": 10000000, "avg_daily_volume": 50000000, "days_to_cover": 0.2, "ticker": "AAPL"}]})
     s3.store[P + "short-volume/TINY.json.gz"] = jgz({"results": [{"date": "2026-10-%02d" % d, "short_volume": 60, "total_volume": 100, "ticker": "TINY"} for d in range(17, 25)]})
+    # v1.0.6: FINRA's own short interest via justhodl-short-interest's consumer layer (strings as the layer reports them)
+    s3.store["data/short-interest-tickers.json"] = json.dumps({"contract": "short-interest-tickers.v1", "schema_version": "1", "generated_at": "2026-10-25T01:00:00+00:00",
+        "settlement_date": "2026-10-15", "source": "FINRA", "by_ticker": {
+            "AAPL": {"ticker": "AAPL", "short_interest": "11000000", "prev_short_interest": "10000000", "change_pct": "10.0", "avg_daily_volume": "50000000", "days_to_cover": "0.22", "dtc_effective": "0.22", "dtc_status": "reported", "settlement_date": "2026-10-15", "latest": True},
+            "JPM": {"ticker": "JPM", "short_interest": "20000000", "prev_short_interest": "25000000", "change_pct": "-20.0", "avg_daily_volume": "10000000", "days_to_cover": None, "dtc_effective": "2.0", "dtc_status": "reconstructed", "settlement_date": "2026-10-15", "latest": True},
+            "TINY": {"ticker": "TINY", "short_interest": "1000000", "prev_short_interest": "400000", "change_pct": "150.0", "avg_daily_volume": "100000", "days_to_cover": "10", "dtc_effective": "10", "dtc_status": "reported", "settlement_date": "2026-10-15", "latest": True}}}).encode()
     G = lf.GROUPED_ROOT
     d, n = today, 0
     sessions = []
@@ -172,7 +178,17 @@ def test_join_writes_one_doc_per_us_symbol_with_derived_fields_ranks_and_a_matri
     assert abs(d["dcf_upside_pct"] - (-10.0)) < 1e-6 and abs(d["pt_upside_pct"] - 10.0) < 1e-6, d
     assert d["consensus_n"] == 10 and abs(d["consensus_score"] - 0.5) < 1e-9, d           # (2*2 + 4 - 1 - 2*1) / 10
     assert d["beat_rate_4q"] == 0.75 and d["last_surprise_pct"] == 10.0 and d["last_surprise_date"] == "2026-07-31", d   # 3 of 4 beat, newest first
-    assert abs(d["short_pct_float"] - 1.0) < 1e-9 and d["si_settlement_date"] == "2026-10-15", d
+    assert abs(d["short_pct_float"] - 1.0) < 1e-9 and d["si_settlement_date"] == "2026-10-15" and d["short_source"] == "polygon", d
+    # v1.0.6 FINRA beside Polygon: AAPL has both (Polygon 10.0M vs FINRA 11.0M -> -9.09 %), JPM only FINRA (stands in for short_pct_float)
+    assert d["finra_short_interest"] == 11000000 and d["finra_days_to_cover"] == 0.22 and d["finra_si_change_pct"] == 10.0 and d["finra_settlement_date"] == "2026-10-15", d
+    assert abs(d["finra_vs_polygon_si_pct"] - (-9.0909)) < 1e-3, d
+    assert aapl["finra_short"]["dtc_status"] == "reported"
+    jpm0 = json.loads(gzip.decompress(s3.store[lf.ROOT + "symbols/JPM.json.gz"]))["derived"]
+    assert jpm0["short_source"] == "finra" and abs(jpm0["short_pct_float"] - 2.0) < 1e-9 and jpm0["finra_days_to_cover"] == 2.0 and jpm0["finra_si_change_pct"] == -20.0, jpm0
+    assert "finra_vs_polygon_si_pct" not in jpm0 and jpm0["si_settlement_date"] == "2026-10-15"
+    assert man["coverage"]["finra_short"] == 3 and man["as_of"]["finra-short-interest"] == "2026-10-15", man["coverage"]
+    assert man["sources"]["finra_short"] == {"tickers": 3, "settlement_date": "2026-10-15", "generated_at": "2026-10-25T01:00:00+00:00"}, man["sources"]
+    assert "finra_short_interest" in man["fields"] and "finra_vs_polygon_si_pct" in man["fields"]
     assert d["etf_holder_count"] == 2 and abs(d["etf_weight_sum"] - 14.5) < 1e-9 and aapl["etf_holders"]["top"][0]["etf"] == "QQQ"
     assert d["n_peers"] == 3 and d["next_earnings_date"] == "2026-10-29", d
     assert aapl["growth"]["growthRevenue"] == 0.05 and aapl["growth"]["fiscalYear"] == "2025"             # newest fiscal year wins
