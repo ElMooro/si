@@ -415,6 +415,7 @@ class Sources:
             header, reader = _stream_csv(key)
             if not header:
                 continue
+            self.found[block + ".columns"] = header
             low = [h.strip().lower() for h in header]
             if "symbol" not in low:
                 self.notes.append("%s: no symbol column (%s)" % (block, header[:6]))
@@ -982,7 +983,7 @@ def lambda_handler(event=None, context=None):
                 "symbols": docs_n, "universe": len(uni), "common_stocks": sum(1 for u in uni.values() if not (u["is_etf"] or u["is_fund"] or u["is_otc"] or u.get("is_preferred"))),
                 "preferreds": sum(1 for u in uni.values() if u.get("is_preferred")), "funds": sum(1 for u in uni.values() if u["is_fund"]),
                 "etfs": sum(1 for u in uni.values() if u["is_etf"]), "otc": sum(1 for u in uni.values() if u["is_otc"]),
-                "coverage": cov, "sources": src.coverage, "schema_found": found, "fields": [f for f, _, _ in FIELDS], "ranked": [f for f, _ in RANKED],
+                "coverage": cov, "sources": src.coverage, "schema_found": found, "source_columns": src.found, "fields": [f for f, _, _ in FIELDS], "ranked": [f for f, _ in RANKED],
                 "composites": {k: "mean of pct_" + ", pct_".join(v) + " (lower-is-better fields inverted; >= 2 inputs)" for k, v in COMPOSITES.items()},
                 "matrix": {"key": ROOT + "matrix/core.json.gz", "bytes": mbytes, "n": len(rows), "columns_prefix": ROOT + "matrix/cols/", "columns_bytes": cbytes, "index": ROOT + "matrix/index.json.gz"}, "objects": docs_n + 3, "pages": docs_n, "pages_bytes": bytes_out,
                 "last_run": state["last_run"], "notes": src.notes, "prefix": ROOT, "read_with": "aws/shared/bank_enrich.py (factor / factors / matrix / attach)"}
