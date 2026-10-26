@@ -23,6 +23,7 @@ BUCKET = 'justhodl-dashboard-live'
 PREFIX = 'data/research-forecasts/'
 CONTRACT = 'genealogy-public-archive-audit.v1'
 MAX_OBJECT_BYTES = 32 * 1024 * 1024
+REF_FIELDS = {'forecast_id', 'key', 'sha256', 'created', 'registered_at', 'symbol', 'direction', 'source_key'}
 
 
 def require(ok, code):
@@ -141,6 +142,24 @@ def validate_protocol_ref(ref):
     clock(ref['first_stored_at'])
 
 
+def validate_context_ref(context, fid, created):
+    """The collector attaches a prospective research-context receipt to each record reference since 2026-10
+    (prospective_journal.register -> research_network_prospective.retain_context): a retained sidecar
+    (contexts/<forecast_id>.json), a retention failure, or - for a forecast that already existed - no backfill.  It is a
+    per-capture receipt, not part of the record's identity, and grants nothing; only the collector's three shapes are
+    admitted and each must agree with the reference's created flag."""
+    require(type(context) is dict and type(context.get('status')) is str, 'record_ref_context_schema')
+    status = context['status']
+    if status == 'retained':
+        require(set(context) == {'key', 'sha256', 'status'} and created is True, 'record_ref_context_schema')
+        require(hex64(context['sha256']) and context['key'] == PREFIX+'contexts/'+fid+'.json', 'record_ref_context_identity')
+    elif status == 'context_not_retained':
+        require(set(context) == {'status', 'reason'} and type(context['reason']) is str
+                and re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]{0,63}', context['reason']) is not None and created is True, 'record_ref_context_schema')
+    else:
+        require(status == 'existing_forecast_not_backfilled' and set(context) == {'status'} and created is False, 'record_ref_context_schema')
+
+
 def validate_capture(doc, evidence):
     base = {'contract', 'generated_at', 'started_at', 'protocol_ref', 'sources', 'records',
             'coverage', 'sizing_eligible', 'promotion_eligible'}
@@ -211,10 +230,12 @@ def validate_capture(doc, evidence):
             expected_refs[fid] = (source, observed)
     refs = {}
     for ref in doc['records']:
-        require(type(ref) is dict and set(ref) == {'forecast_id', 'key', 'sha256', 'created', 'registered_at', 'symbol', 'direction', 'source_key'}, 'record_ref_schema')
+        require(type(ref) is dict and REF_FIELDS <= set(ref) <= REF_FIELDS | {'research_context'}, 'record_ref_schema')
         fid = ref['forecast_id']
         require(hex64(fid) and hex64(ref['sha256']) and ref['key'] == PREFIX+'records/'+fid+'.json', 'record_ref_identity')
         require(fid not in refs and type(ref['created']) is bool, 'record_ref_duplicate_or_created')
+        if 'research_context' in ref:
+            validate_context_ref(ref['research_context'], fid, ref['created'])
         registered = clock(ref['registered_at'])
         require(registered <= generated and (not ref['created'] or registered >= started), 'record_ref_clock')
         source = sources.get(ref['source_key'])
@@ -290,7 +311,7 @@ def audit(client, inventories, workers=8, capture_observer=None):
                     captures.append(summary)
                     for fid, ref in refs.items():
                         reference_counts[fid] += 1
-                        stable = {k: v for k, v in ref.items() if k != 'created'}
+                        stable = {k: v for k, v in ref.items() if k not in ('created', 'research_context')}
                         if fid in references and canonical(references[fid]) != canonical(stable):
                             reference_conflicts.append({'forecast_id': fid, 'capture': receipt['key']})
                         references[fid] = stable

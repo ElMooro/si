@@ -213,6 +213,118 @@ class Archive(unittest.TestCase):
         self.assertEqual(result['unique_referenced_records'], 0)
         self.assertEqual(result['capture_scans_complete'], 0)
 
+    def test_research_context_receipts_are_admitted_per_capture_and_never_conflict(self):
+        """2026-10-26: 205 live captures failed record_ref_schema because the collector (prospective_journal.register)
+        now attaches a research_context receipt to every record reference.  The three collector shapes validate, a
+        repeated capture of the same forecast (existing_forecast_not_backfilled) is not a reference conflict, and the
+        pre-receipt shape still validates."""
+        store, capture, _ = fixture()
+        first, second_ref = capture['records']
+        first['research_context'] = {'key': model.PREFIX+'contexts/'+first['forecast_id']+'.json', 'sha256': 'e'*64, 'status': 'retained'}
+        second_ref['research_context'] = {'status': 'context_not_retained', 'reason': 'ClientError'}
+        for key in list(store.objects):
+            if '/captures/' in key: del store.objects[key]
+        add_capture(store, capture)
+        repeat = deepcopy(capture)
+        repeat['generated_at'] = (NOW+timedelta(minutes=1)).isoformat()
+        for ref in repeat['records']:
+            ref['created'] = False
+            ref['research_context'] = {'status': 'existing_forecast_not_backfilled'}
+        add_capture(store, repeat)
+        result = model.audit(store, store.inventories())
+        self.assertTrue(result['record_body_and_storage_checks_complete'], result['failures'])
+        self.assertEqual((result['validated_captures'], result['validated_records']), (2, 2))
+        self.assertEqual(result['reference_conflicts'], [])
+        self.assertEqual(result['unique_referenced_records'], 2)
+        self.assertEqual(result['total_record_reference_occurrences'], 4)
+        self.assertFalse(result['forecast_qualified'])
+        evidence = {'key': 'test', 'sha256': 'a'*64, 'last_modified': capture['generated_at']}
+        bad = (
+            ('status_missing', {'key': 'x', 'sha256': 'e'*64}, True),
+            ('status_unknown', {'status': 'backfilled'}, True),
+            ('retained_extra_key', {'key': model.PREFIX+'contexts/'+first['forecast_id']+'.json', 'sha256': 'e'*64, 'status': 'retained', 'note': 1}, True),
+            ('retained_wrong_path', {'key': model.PREFIX+'contexts/'+'f'*64+'.json', 'sha256': 'e'*64, 'status': 'retained'}, True),
+            ('retained_bad_hash', {'key': model.PREFIX+'contexts/'+first['forecast_id']+'.json', 'sha256': 'zz', 'status': 'retained'}, True),
+            ('retained_but_existing', {'key': model.PREFIX+'contexts/'+first['forecast_id']+'.json', 'sha256': 'e'*64, 'status': 'retained'}, False),
+            ('not_retained_without_reason', {'status': 'context_not_retained'}, True),
+            ('existing_but_created', {'status': 'existing_forecast_not_backfilled'}, True),
+            ('not_a_dict', 'retained', True),
+        )
+        for name, context, created in bad:
+            mutated = deepcopy(capture)
+            mutated['records'][0]['created'] = created
+            mutated['records'][0]['research_context'] = context
+            with self.subTest(name=name), self.assertRaisesRegex(ValueError, 'record_ref_context_'):
+                model.validate_capture(mutated, evidence)
+        plain = deepcopy(capture)
+        for ref in plain['records']:
+            del ref['research_context']
+        summary, refs = model.validate_capture(plain, evidence)
+        self.assertEqual(len(refs), 2)
+        with self.assertRaisesRegex(ValueError, 'record_ref_schema'):
+            extra = deepcopy(plain); extra['records'][0]['other'] = 1
+            model.validate_capture(extra, evidence)
+        with self.assertRaisesRegex(ValueError, 'record_ref_context_schema'):
+            noisy = deepcopy(capture); noisy['records'][1]['research_context'] = {'status': 'context_not_retained', 'reason': 'boom: ' + 'x' * 80}
+            model.validate_capture(noisy, evidence)
+
+    def test_real_collector_references_reconcile_with_sidecar_success_failure_and_mixed_vintages(self):
+        """The producer -> validator contract itself (the 2026-10-26 drift ran live because nothing drove the real
+        prospective_journal.register() into the validator): first registration (sidecar retained / retention failed),
+        repeat registration (existing_forecast_not_backfilled), and a pre-receipt capture next to a post-receipt repeat."""
+        import prospective_journal as pj
+
+        class Precondition(Exception):
+            def __init__(self):
+                super().__init__('412'); self.response = {'Error': {'Code': 'PreconditionFailed'}}
+
+        class S3(Store):
+            def __init__(self, fail_context):
+                super().__init__(); self.fail_context = fail_context
+            def put_object(self, **kw):
+                key = kw['Key']
+                if self.fail_context and '/contexts/' in key: raise RuntimeError('boom')
+                if kw.get('IfNoneMatch') == '*' and key in self.objects: raise Precondition()
+                self.objects[key] = (kw['Body'], NOW)
+            def head_object(self, **kw):
+                return {'LastModified': self.objects[kw['Key']][1]}
+
+        def capture_from(store, pref, source, refs, at):
+            return add_capture(store, {'contract': 'prospective-research-capture.v1', 'started_at': (NOW-timedelta(seconds=1)).isoformat(),
+                'generated_at': (at+timedelta(seconds=1)).isoformat(), 'protocol_ref': pref, 'sources': [source], 'records': refs,
+                'coverage': {'candidate_sources': 1, 'sources_scanned': 1, 'source_read_failures': [], 'candidate_scan_complete': True},
+                'sizing_eligible': False, 'promotion_eligible': False})
+
+        for fail_context in (False, True):
+            with self.subTest(fail_context=fail_context):
+                base, capture, _ = fixture()
+                for key in list(base.objects):
+                    if '/captures/' in key or '/records/' in key: del base.objects[key]
+                s3 = S3(fail_context); s3.objects = base.objects
+                pref, source = capture['protocol_ref'], capture['sources'][0]
+                first = pj.register(s3, model.BUCKET, source, pref, 'c'*64, now=NOW)
+                repeat = pj.register(s3, model.BUCKET, source, pref, 'c'*64, now=NOW+timedelta(minutes=1))
+                self.assertEqual([r['created'] for r in first + repeat], [True, False])
+                self.assertEqual(first[0]['research_context']['status'], 'context_not_retained' if fail_context else 'retained')
+                self.assertEqual(repeat[0]['research_context'], {'status': 'existing_forecast_not_backfilled'})
+                capture_from(s3, pref, source, first, NOW)
+                capture_from(s3, pref, source, repeat, NOW+timedelta(minutes=1))
+                result = model.audit(s3, s3.inventories())
+                self.assertTrue(result['record_body_and_storage_checks_complete'], result['failures'])
+                self.assertEqual((result['reference_conflicts'], result['reference_errors']), ([], []))
+                self.assertEqual((result['validated_captures'], result['validated_records'], result['total_record_reference_occurrences']), (2, 1, 2))
+                self.assertNotIn('research_context', json.dumps(result), 'the receipt never reaches the published audit')
+                # mixed vintages: a pre-receipt capture (no research_context) next to the post-receipt repeat
+                plain = deepcopy(first)
+                for r in plain: del r['research_context']
+                for key in list(s3.objects):
+                    if '/captures/' in key: del s3.objects[key]
+                capture_from(s3, pref, source, plain, NOW)
+                capture_from(s3, pref, source, repeat, NOW+timedelta(minutes=1))
+                result = model.audit(s3, s3.inventories())
+                self.assertTrue(result['record_body_and_storage_checks_complete'], result['failures'])
+                self.assertEqual(result['reference_conflicts'], [])
+
 
 if __name__ == '__main__':
     unittest.main()
