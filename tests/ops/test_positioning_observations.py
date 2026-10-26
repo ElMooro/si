@@ -133,6 +133,40 @@ class Tests(unittest.TestCase):
         self.assertEqual(m.selection({'pump_candidates':[]})['status'],'reported_empty_selection')
         with self.assertRaises(ValueError):m.selection({'pump_candidates':[{'ticker':'../BAD'}]})
         with self.assertRaises(ValueError):m.selection({})
+    def test_warehouse_originals_are_admitted_only_as_typed_non_network_receipts_on_banked_kinds(self):
+        bank={'object':'data/warm/fmp/historical-price-eod-full/SYNA.json.gz','pulled_at':'2026-09-27T23:27:00+00:00','as_of':None}
+        a,b,s=captures()
+        b[0].update(http_status=None,network_attempted=False,transport='warehouse_bank',bank=dict(bank))          # history from the bank
+        b[2].update(http_status=None,network_attempted=False,transport='warehouse_bank',bank={'as_of':'2026-09-28','pulled_at':None,'object':'x'})   # profile, any key order
+        b[1].update(transport='provider',bank_attempt=None)                                                       # quote live
+        p=m.build(a,b,s,AT);self.assertEqual(p['bank_rung']['n_bank_originals'],2);self.assertEqual(p['bank_rung']['n_live_originals'],1)
+        self.assertEqual(p['bank_rung']['n_vintage_refused'],0);self.assertEqual(p['bank_rung']['kinds'],['history','profile'])
+        self.assertEqual(p['acquisitions'][0]['transport'],'warehouse_bank');self.assertEqual(p['acquisitions'][0]['bank'],bank);self.assertIsNone(p['acquisitions'][0]['http_status'])
+        self.assertEqual(p['coverage']['measured_descriptive_fields'],7);self.assertEqual(p['schema_version'],'2.1')
+        self.assertEqual(m.previous_vintage(b[0]),bank['pulled_at']);self.assertEqual(m.previous_vintage(b[2]),'2026-09-28');self.assertEqual(m.previous_vintage(b[1]),AT)
+        self.assertIsNone(m.previous_vintage(dict(b[1],status='http_error')));self.assertIsNone(m.previous_vintage('junk'))
+        # a refused bank vintage on a live record is counted and shown
+        a,b,s=captures();b[0].update(transport='provider',bank_attempt={'status':'bank_vintage_not_newer','bank':dict(bank)});b[2]['bank_attempt']={'status':'no_bank_answer'}
+        p=m.build(a,b,s,AT);self.assertEqual((p['bank_rung']['n_bank_originals'],p['bank_rung']['n_live_originals'],p['bank_rung']['n_vintage_refused']),(0,3,1))
+        self.assertEqual(p['acquisitions'][0]['bank_attempt']['status'],'bank_vintage_not_newer');self.assertIsNone(p['acquisitions'][0]['bank'])
+        # records without the fields (every publication before 2026-10-26) still replay
+        a,b,s=captures();self.assertEqual(m.build(a,b,s,AT)['bank_rung']['n_live_originals'],3)
+        for change in (dict(transport='warehouse_bank'),                                                           # transport without provenance
+                       dict(bank=dict(bank)),                                                                     # provenance without transport
+                       dict(transport='warehouse_bank',bank=dict(bank)),                                           # bank original claiming the live HTTP 200 / network
+                       dict(transport='warehouse_bank',bank=dict(bank),http_status=None),                          # ... still network_attempted True
+                       dict(transport='warehouse_bank',bank=dict(bank,extra=1),http_status=None,network_attempted=False),
+                       dict(transport='warehouse_bank',bank={'object':1,'pulled_at':None,'as_of':None},http_status=None,network_attempted=False),
+                       dict(transport='courier',http_status=None,network_attempted=False),
+                       dict(transport='warehouse_bank',bank=dict(bank),http_status=None,network_attempted=False,bank_attempt={'status':'no_bank_answer'}),
+                       dict(bank_attempt={'status':'unknown'}),dict(bank_attempt={'status':'bank_vintage_not_newer'}),
+                       dict(bank_attempt={'status':'no_bank_answer','bank':dict(bank)}),dict(bank_attempt='no_bank_answer')):
+            a,b,s=captures();b[0].update(change)
+            with self.assertRaises(ValueError,msg=str(change)):m.build(a,b,s,AT)
+        a,b,s=captures();b[1].update(http_status=None,network_attempted=False,transport='warehouse_bank',bank=dict(bank))   # a quote can never be a warehouse original
+        with self.assertRaises(ValueError):m.build(a,b,s,AT)
+        a,b,s=captures();b[0].update(status='not_attempted_stop',http_status=None,network_attempted=False,transport='warehouse_bank',bank=dict(bank));b[0].pop('original_ref')
+        with self.assertRaises(ValueError):m.build(a,b,s,AT)
     def test_exact_json_precision_duplicate_keys_nonfinite_and_whole_gzip(self):
         raw=b'{"price":0.12345678901234567890123456789}'
         self.assertEqual(m.strict(raw)['price'],Decimal('0.12345678901234567890123456789'))

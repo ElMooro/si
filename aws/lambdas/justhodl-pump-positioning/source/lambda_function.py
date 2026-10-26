@@ -1032,6 +1032,7 @@ import urllib.error
 import context_evidence_store
 import managed_secret as managed_secret_module
 import positioning_observations as observations
+import bank_originals
 from context_evidence_store import ContextStore,encode,code,now
 
 
@@ -1041,17 +1042,44 @@ class _PositioningNoRedirect(urllib.request.HTTPRedirectHandler):
         raise urllib.error.HTTPError(req.full_url,status,'Provider redirect refused',headers,fp)
 
 
-def _positioning_request(ticker,kind,as_of,started,stop):
+def _positioning_previous_vintages(previous):
+    """{(ticker,kind): content vintage} of the previous publication's retained originals (bank pull time for a warehouse
+    original, provider receipt for a live one); {} when the previous head is absent, legacy-shaped or unreadable.  The
+    bank rung admits a warehouse original only when its vintage is newer than this."""
+    try:
+        packet=observations.strict(previous) if previous is not None else None
+        rows=packet.get('acquisitions') if isinstance(packet,dict) and packet.get('measurement_contract')==observations.CONTRACT else None
+    except Exception:rows=None   # an unreadable previous head only means no vintage to compare against
+    out={}
+    for a in rows if isinstance(rows,list) else []:
+        vintage=observations.previous_vintage(a)
+        if vintage is not None:out[(a.get('ticker'),a.get('kind'))]=vintage
+    return out
+
+
+def _positioning_request(ticker,kind,as_of,started,stop,previous_vintage=None):
     requested=now();url=observations.endpoint(ticker,kind,as_of)
     attempt={'ticker':ticker,'kind':kind,'endpoint':url,'requested_at':requested,'received_at':requested,
              'status':'not_attempted_stop','http_status':None,'content_encoding':'','network_attempted':False}
+    # Bank rung (2026-10-26): history and profile originals are asked of the warehouse bank first - the SAME URL, FMP's
+    # own shape, retained and measured exactly like a live body, with the bank's provenance on the record.  A warehouse
+    # original is admitted only when its vintage (the bank's pull time) is newer than the previous retained original for
+    # this request; older content would read as a reversal.  Quotes are never banked.  The bank needs no credential and
+    # a provider stop (401/403/429 on the live rung) does not apply to it; a bank answer never sets stop.  The live rung
+    # below keeps its original stop / credential / budget order.
+    if kind in observations.BANK_KINDS and time.monotonic()-started<=150:
+        bank=bank_originals.bank_original(url)
+        if bank is not None and bank_originals.newer_than(bank['bank'],previous_vintage):
+            attempt.update(status='received',received_at=now(),transport=bank_originals.TRANSPORT,bank=dict(bank['bank']))
+            return attempt,bank['raw']
+        attempt['bank_attempt']={'status':'bank_vintage_not_newer','bank':dict(bank['bank'])} if bank is not None else {'status':'no_bank_answer'}
     if stop.is_set() or not FMP_KEY:return attempt,None
     if time.monotonic()-started>150:
         attempt['status']='not_attempted_budget';return attempt,None
     request=urllib.request.Request(url,headers={'User-Agent':'JustHodl/positioning-observations','apikey':FMP_KEY,'Accept-Encoding':'identity'})
     opener=urllib.request.build_opener(_PositioningNoRedirect());response=None
     try:
-        attempt['network_attempted']=True
+        attempt['network_attempted']=True;attempt['transport']='provider'
         try:
             response=opener.open(request,timeout=12);status=response.status
         except urllib.error.HTTPError as exc:response=exc;status=exc.code
@@ -1114,11 +1142,12 @@ def lambda_handler(event,context):
         radar=observations.strict(radar_raw,inputs['radar'].get('content_encoding',''))
         universe=observations.selection(radar);as_of=datetime.now(timezone.utc).date()
         planned=[(ticker,kind) for ticker in universe['selected_tickers'] for kind in ('history','quote','profile')]
-        outcomes=[None]*len(planned)
+        outcomes=[None]*len(planned);vintages=_positioning_previous_vintages(previous if etag is not None else None)
         # At most twelve original source occurrences, three original endpoint
-        # kinds and four active requests. No retry or substitute provider.
+        # kinds and four active requests. No retry or substitute provider; the
+        # warehouse bank is a rung in front of the provider, not a substitute.
         with ThreadPoolExecutor(max_workers=4) as executor:
-            futures={executor.submit(_positioning_request,ticker,kind,as_of,started,stop):index for index,(ticker,kind) in enumerate(planned)}
+            futures={executor.submit(_positioning_request,ticker,kind,as_of,started,stop,vintages.get((ticker,kind))):index for index,(ticker,kind) in enumerate(planned)}
             try:
                 for future in as_completed(futures,timeout=max(1,175-(time.monotonic()-started))):
                     if time.monotonic()-started>175:raise ValueError('Complete collection budget exhausted')
@@ -1138,7 +1167,7 @@ def lambda_handler(event,context):
             'stored_source_bytes':total,'controls':{'candidate_occurrences':12,'lookback_calendar_days':90,'active_requests':4,
                 'maximum_planned_provider_requests':36,'per_source_bytes':observations.MAX_SOURCE_BYTES,
                 'aggregate_source_bytes':64*1024*1024,'acquisition_budget_s':150,'collection_budget_s':175,'publication_budget_s':240,
-                'provider_retries':0,'stop_on_http_status':[401,403,429]}}
+                'provider_retries':0,'stop_on_http_status':[401,403,429],'bank_rung':packet['bank_rung']}}
         packet['replay']={'input_ref':store.retain(encode(manifest),'inputs'),'source_files':compilers,'previous_publication':previous_ref,'originals_public':False}
         packet['acquisition_started_at']=started_at;body=encode(packet);ref=store.retain(body,'outputs')
         if time.monotonic()-started>240:raise ValueError('Publication budget exhausted')

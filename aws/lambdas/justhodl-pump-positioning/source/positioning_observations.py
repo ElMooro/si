@@ -18,6 +18,30 @@ INPUTS={'radar':'data/convergence-radar.json','earnings':'data/earnings-tracker.
         'catalysts':'data/catalysts.json','clusters':'data/catalyst-clusters.json'}
 FLAGS=dict.fromkeys(('calls_eligible','ranking_eligible','sizing_eligible','execution_eligible','forecast_qualified'),False)
 MAX_SOURCE_BYTES=8*1024*1024
+# 2026-10-26 bank rung: a history or profile original may be received from the warehouse bank (aws/shared/bank_originals)
+# instead of the provider.  It is retained and measured exactly like a live body; its acquisition record says so.
+TRANSPORTS=('provider','warehouse_bank')
+BANK_KINDS=('history','profile')                      # quote is never banked
+BANK_PROVENANCE=('object','pulled_at','as_of')
+BANK_ATTEMPT_STATUSES=('no_bank_answer','bank_vintage_not_newer')
+
+
+def bank_provenance(attempt):
+    """Typed warehouse provenance of an attempt, or None.  Raises on a malformed block."""
+    bank=attempt.get('bank')
+    if bank is None:return None
+    if type(bank) is not dict or set(bank)!=set(BANK_PROVENANCE) or any(v is not None and type(v) is not str for v in bank.values()):
+        raise ValueError('Typed warehouse provenance required')
+    return bank
+
+
+def previous_vintage(attempt):
+    """The content vintage of a retained original: the bank's pull time for a warehouse original, the provider receipt
+    for a live one.  None when the attempt holds no original."""
+    if not isinstance(attempt,dict) or attempt.get('status')!='received':return None
+    bank=attempt.get('bank') if isinstance(attempt.get('bank'),dict) else None
+    if bank is not None:return bank.get('pulled_at') or bank.get('as_of')
+    return attempt.get('received_at')
 
 
 def sha(raw):return hashlib.sha256(raw).hexdigest()
@@ -205,7 +229,7 @@ def build(input_attempts,attempts,sources,generated_at):
     selected=selection(docs['radar']);expected=[(ticker,kind) for ticker in selected['selected_tickers'] for kind in ('history','quote','profile')]
     if not isinstance(attempts,list) or [(a.get('ticker'),a.get('kind')) for a in attempts]!=expected:raise ValueError('Every original bounded request outcome required in declared order')
     statuses=('received','http_error','transport_unavailable','source_limit_exceeded','not_attempted_budget','not_attempted_stop')
-    captures=[];by={}
+    captures=[];by={};rung={'n_bank_originals':0,'n_live_originals':0,'n_vintage_refused':0}
     for index,a in enumerate(attempts):
         ticker,kind=expected[index];_clocks(a,generated)
         if a.get('endpoint')!=endpoint(ticker,kind,generated.date()) or a.get('status') not in statuses:raise ValueError('Unexpected provider request scope')
@@ -213,14 +237,29 @@ def build(input_attempts,attempts,sources,generated_at):
         status=a.get('http_status');network=a.get('network_attempted')
         if type(network) is not bool or (status is not None and (type(status) is not int or not 100<=status<=599)):
             raise ValueError('Literal transport outcome required')
-        if a['status']=='received' and (raw is None or status!=200 or not network):raise ValueError('Complete successful provider response required')
+        transport=a.get('transport');bank=bank_provenance(a);bank_attempt=a.get('bank_attempt')
+        if transport not in (None,)+TRANSPORTS or (transport=='warehouse_bank')!=(bank is not None):raise ValueError('Literal transport kind with matching provenance required')
+        if bank_attempt is not None and (type(bank_attempt) is not dict or bank_attempt.get('status') not in BANK_ATTEMPT_STATUSES
+                or set(bank_attempt)-{'status','bank'} or ('bank' in bank_attempt)!=(bank_attempt['status']=='bank_vintage_not_newer')
+                or ('bank' in bank_attempt and bank_provenance(bank_attempt) is None) or bank is not None):
+            raise ValueError('Literal bank attempt outcome required')
+        if bank is not None:
+            # A warehouse original is a complete received body with no network attempt and no HTTP status of its own;
+            # only banked kinds may carry one.  It is measured exactly like a live body.
+            if kind not in BANK_KINDS or a['status']!='received' or raw is None or status is not None or network:
+                raise ValueError('Complete warehouse original without a provider transport required')
+            rung['n_bank_originals']+=1
+        else:
+            if a['status']=='received' and (raw is None or status!=200 or not network):raise ValueError('Complete successful provider response required')
+            if a['status']=='received':rung['n_live_originals']+=1
+        if bank_attempt is not None and bank_attempt['status']=='bank_vintage_not_newer':rung['n_vintage_refused']+=1
         if a['status']=='http_error' and (raw is None or status is None or status==200 or not network):raise ValueError('Complete failed HTTP response required')
         if a['status'].startswith('not_attempted_') and (network or status is not None):raise ValueError('Unattempted request cannot claim HTTP response')
         if a['status'] in ('transport_unavailable','source_limit_exceeded') and not network:raise ValueError('Transport outcome requires attempted request')
         if a['status'] not in ('received','http_error') and raw is not None:raise ValueError('Unavailable request cannot claim a complete body')
         doc=_object(raw,a.get('content_encoding','')) if a['status']=='received' else None
         by[(ticker,kind)]=(doc,a)
-        captures.append({k:a.get(k) for k in ('ticker','kind','endpoint','status','http_status','network_attempted','requested_at','received_at','original_ref')})
+        captures.append({k:a.get(k) for k in ('ticker','kind','endpoint','status','http_status','network_attempted','requested_at','received_at','original_ref','transport','bank','bank_attempt')})
     observations=[];measured=0
     for ticker in selected['selected_tickers']:
         hdoc,ha=by[(ticker,'history')];history=price_history(hdoc,ticker,generated.date());metrics=measurements(history)
@@ -246,15 +285,18 @@ def build(input_attempts,attempts,sources,generated_at):
     if selected['selected_tickers'] and not measured:raise ValueError('No valid completed-date measurement; preserve prior publication')
     basket={'status':'unqualified','positions':[],'n_positions':None,'total_exposure':None,'cash_pct':None,
             'max_risk_at_stops_pct':None,'sector_breakdown':{},'suggested_additions':[],**FLAGS}
-    return {'schema_version':'2.0','measurement_contract':CONTRACT,'generated_at':generated_at,'status':'research_only',
+    return {'schema_version':'2.1','measurement_contract':CONTRACT,'generated_at':generated_at,'status':'research_only',
         'call':'WAIT','call_semantics':'abstain',**FLAGS,'macro_regime':None,'candidates':[],'n_candidates':None,
         'portfolio_basket':dict(basket),'aggressive_basket':dict(basket),'sizing_assumptions':None,
         'selection':selected,'source_inputs':inputs,'acquisitions':captures,'price_observations':observations,
         'coverage':{'selected_unique_tickers':len(selected['selected_tickers']),'planned_provider_requests':len(expected),
             'measured_descriptive_fields':measured,'independent_roots':None,'eligible_votes':0},
+        'bank_rung':{'module':'bank_originals','kinds':list(BANK_KINDS),
+            'rule':'warehouse original admitted only when its pulled_at is later than the previous retained original for the same request; quotes never',**rung},
         'model_requests':0,'notifications_sent':0,'quality':{'status':'research_only','observation_freshness':'unqualified'},
         'limitations':['Selection order is inherited source scope, not an investment rank.',
             'Reported-date windows do not establish exchange sessions, corporate-action adjustment or total returns.',
             'Profile currency does not establish quote currency, FX conversion or portfolio valuation.',
             'No score is treated as a win probability, and no grade, allocation, stop, profit target or downside bound is recommended.',
-            'WAIT means abstain, not a recommendation to hold. Complete originals remain private.']}
+            'WAIT means abstain, not a recommendation to hold. Complete originals remain private.',
+            'A warehouse-bank original is the bank\'s copy of the provider response at the bank\'s pull time (bank.pulled_at), not a first release; its receipt time is when this engine read the bank.']}
