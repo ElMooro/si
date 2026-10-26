@@ -144,7 +144,11 @@ This file tracks items that require **your direct action** (registration, creden
   "planned activity" in Cost Anomaly Detection (ops 6642, 2026-10-24).
 * **Fixes measured (Oct 24, ops 6644):** S3 data transfer down ~93% (40 GB on Oct 23 -> ~2.9 GB/day on Oct 24); Apple's
   crawler refused on every request (~5,800 a day); the expensive alarm line is gone ($0.51-0.64/day before, $0 on Oct 24).
-* **November projection: ~$173 of AWS usage + $29 Business Support+ = ~$202** (band up to ~$225 if the Cloudflare-path
+* **First clean day measured: Oct 25 = $6.27** (projected $6.34) -> **November ~$171 of usage + $29 Business Support+ = ~$200**
+  (ops 6677). The new data banks (bank-histories, polygon-eod, bank-factors - built Oct 25-26 on your "fix it all")
+  wrote ~1 M files on Oct 26 to fill themselves (~$10 once; a storage-growth warning issue may appear on Oct 27 - expected);
+  they write only changed files afterwards - their steady cost is read on Oct 28.
+* (earlier estimate) **November projection: ~$173 of AWS usage + $29 Business Support+ = ~$202** (band up to ~$225 if the Cloudflare-path
   egress stays at today's pace).
 * **Your decisions (2026-10-23 13:21 CT) - done / open:**
   - Business Support+: **kept**, as you said.

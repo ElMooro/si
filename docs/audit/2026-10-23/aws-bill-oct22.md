@@ -92,6 +92,24 @@ Oct 22 and a 17 GB/day pace on Oct 23; if the higher figure holds, add ~$20/mont
   the alarm ran most of it). Components point to a steady day at or under the $6.34 projection; the first full day with
   every fix (Oct 25) is readable on Oct 26.
 
+**First clean day, Oct 25 (ops 6677, read 2026-10-26 16:16 UTC, Cost Explorer estimate): $6.27** against the $6.34
+projection - S3 $3.45 (direct egress 3.3 GB = $0.30, was 40 GB on Oct 23; archive copies 129,199 Intelligent-Tiering
+PUTs $0.65 and **0** Standard-IA; IT monitoring $0.001; EarlyDelete-SIA $0.007), Lambda $1.91, CloudWatch $0.48
+(Metrics Insights alarm $0.003), Secrets Manager $0.12, ECR $0.09, Cost Explorer $0.08, DynamoDB $0.07. (ops 6677's
+summary line read the egress as 0.1 GB - Lambda's own DataTransfer-Out-Bytes line overwrote S3's in its lookup; the
+per-service lines above are right.) **November from Oct 25: $6.27 x 30 = $188, minus a fresh month's free allowances
+(Lambda 400 k GB-s $6.67 + requests $0.20, 99 GB of the 100 GB free egress $8.91, 10 alarms $1.00) = ~$171 of usage, plus
+Business Support+ $29 = ~$200.**
+
+**New writers from Oct 25 (ops 6678, access logs):** the provider banks another session built on Khalid's Oct 25 "fix it
+all, I want 100% of the data pulled and used" - justhodl-bank-histories (data/warm/history-book/), justhodl-polygon-eod
+(data/warm/polygon-full/), justhodl-bank-factors (data/warm/factor-book/), justhodl-polygon-bank, justhodl-worldbank-full -
+took the live bucket from ~89 k writes on Oct 23 and ~146 k on Oct 25 to a ~1.05 M/day pace on Oct 26 (639 k from
+bank-histories alone). All three big ones write only changed files (content-hash state), so Oct 26 is their first
+population: ~$5 of live PUTs + ~$5 of archive copies once, and a probable storage-fuse warning (>= 500 k new objects in a
+day) on the morning of Oct 27 - expected, not a runaway. Their steady daily writes (Oct 27, the first weekday) decide the
+final November figure; checked on Oct 28.
+
 Note (2026-10-23 20:20 UTC): `aws/ops/reports/latest/ops_6622_monthly_bill_projection.md` (written by another session
 under the same ops number) projects ~$326/month because it prices support as AWS's old Business plan ($100 or 10%) and
 counts the archive's daily replication PUTs as ~$4.50/month. Business Support+ is the greater of $29/month or 9% of
