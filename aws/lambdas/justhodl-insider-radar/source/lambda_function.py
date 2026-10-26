@@ -37,7 +37,7 @@ OUT_KEY = "data/insider-radar.json"
 UP_STATE = "data/_upside/state.json.gz"
 FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 POLYGON_KEY = managed_secret(('POLYGON_KEY', 'POLYGON_API_KEY', 'POLY_KEY'), ("/justhodl/polygon/api-key",))
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 DIAG = []
 RANK = (("CEO", 3.0), ("CHIEF EXECUTIVE", 3.0), ("CFO", 2.8), ("CHIEF FINANCIAL", 2.8),
          ("PRESIDENT", 2.4), ("COO", 2.2), ("CHAIR", 2.2), ("DIRECTOR", 1.8),
@@ -82,6 +82,12 @@ try:  # v1.2.0 (2026-10-26, bank fusion): the FMP walker banks the WHOLE insider
 except Exception:  # noqa: BLE001
     _bank = None
 BANK_FEED_DAYS = int(os.environ.get("INSIDER_BANK_FEED_DAYS", "35"))
+try:  # v1.2.1: the factor book's tape returns (ret_63d ~ 60 trading days) answer the decline join for every US-listed name
+    import bank_enrich as _book  # in one matrix-index read per container; live Polygon is the last rung and is capped
+except Exception:  # noqa: BLE001
+    _book = None
+LIVE_RET_CAP = int(os.environ.get("INSIDER_LIVE_RET_CAP", "40"))      # live Polygon 60-day reads per run, at most
+LIVE_RET_BUDGET_S = float(os.environ.get("INSIDER_LIVE_RET_BUDGET_S", "60"))
 
 
 def fetch_bank_feed(days=None):
@@ -171,9 +177,21 @@ def weight(title):
 
 
 def ps_ttm_map(tickers, cap=25):
-    """Per-ticker FMP P/S TTM for small lists (clusters/decline buys)."""
+    """Per-ticker P/S TTM for small lists (clusters/decline buys): the factor book first (FMP ratios-ttm-bulk banked after the
+    close, one matrix read), the live FMP ratios-ttm endpoint only for the names the book lacks (v1.2.1)."""
     out = {}
-    for t in list(dict.fromkeys(tickers))[:cap]:
+    want = list(dict.fromkeys(tickers))[:cap]
+    if _book is not None and _book.available():
+        for t in want:
+            row = _book.lookup(t, ["ps"])
+            v = (row or {}).get("ps")
+            if isinstance(v, (int, float)) and v > 0:
+                out[t] = round(float(v), 2)
+        if out:
+            DIAG.append("ps_ttm: %d/%d from the factor book" % (len(out), len(want)))
+    for t in want:
+        if t in out:
+            continue
         try:
             j = jget(f"https://financialmodelingprep.com/stable/ratios-ttm?symbol={t}"
                       f"&apikey={FMP_KEY}", timeout=10)
@@ -219,11 +237,32 @@ def lambda_handler(event=None, context=None):
     except Exception as e:
         DIAG.append(f"rings: {str(e)[:50]}")
 
+    # 60-day return per ticker, computed once: universe rings -> factor book (Polygon tape, bank close) -> live Polygon
+    # (capped: the first light of v1.2.0 spent 300 s on one live call per insider ticker and timed out three times).
+    book_ok = _book is not None and _book.available()
+    ret_cache, ret_basis, live_n, t_live0 = {}, {"rings": 0, "factor_book": 0, "polygon_live": 0, "none": 0}, [0], time.time()
+
     def ret60(t):
+        if t in ret_cache:
+            return ret_cache[t]
+        val, basis = None, "none"
         r = rings.get(t)
         if r and len(r) > 61 and r[-61]:
-            return round((r[-1] / r[-61] - 1) * 100, 1)
-        return poly_ret60(t)
+            val, basis = round((r[-1] / r[-61] - 1) * 100, 1), "rings"
+        elif book_ok:
+            row = _book.lookup(t, ["ret_63d"])
+            if row and row.get("ret_63d") is not None:
+                try:
+                    val, basis = round(float(row["ret_63d"]) * 100, 1), "factor_book"
+                except (TypeError, ValueError):
+                    val = None
+        if val is None and live_n[0] < LIVE_RET_CAP and (time.time() - t_live0) < LIVE_RET_BUDGET_S:
+            live_n[0] += 1
+            val = poly_ret60(t)
+            basis = "polygon_live" if val is not None else "none"
+        ret_basis[basis] += 1
+        ret_cache[t] = val
+        return val
 
     # clusters: ≥2 distinct insiders / ticker / ≤14d span
     byt = {}
@@ -250,6 +289,7 @@ def lambda_handler(event=None, context=None):
                             if (ret60(b["ticker"]) or 0) <= -25],
                            key=lambda x: x["ret_60d_pct"])[:25]
     decline_clusters = [c for c in clusters if (c["ret_60d_pct"] or 0) <= -25]
+    DIAG.append("ret60 basis: %s (live cap %d, book %s)" % (ret_basis, LIVE_RET_CAP, "as_of %s" % _book.as_of() if book_ok else "unavailable"))
 
     # P/S context: cheap + insiders buying = the strongest version of the signal
     psm = ps_ttm_map([c["ticker"] for c in clusters[:20]]
@@ -305,6 +345,7 @@ def lambda_handler(event=None, context=None):
         DIAG.append("finviz insider overlay fail: " + str(_e)[:60])
 
     out = {"engine": "insider-radar", "version": VERSION,
+           "ret_60d_basis": ret_basis, "book_as_of": (_book.as_of() if book_ok else None),
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "source_used": source, "n_raw": len(rows),
             "window_days": 30, "n_buys": len(buys), "n_sells": sells_n,
@@ -316,7 +357,7 @@ def lambda_handler(event=None, context=None):
             "logged": logged, "diagnostics": list(DIAG),
             "methodology": ("Form-4 open-market purchases (P-type), 30d window. Clusters = "
                              "≥2 distinct insiders ≤14d. Decline join = ticker −25%+ over 60 "
-                             "sessions from the desk's own close-rings (Polygon 60d fallback for micro-caps outside the rings). Officer rank weights "
+                             "sessions from the desk's own close-rings, then the factor book's tape returns (bank close) for every other US-listed name, then a capped live Polygon 60d read. Officer rank weights "
                              "CEO 3.0 → director 1.8. Cluster∩decline logs to the graded "
                              "closed loop (insider_cluster_decline, 63d horizon). "
                              "Research, not advice.")}

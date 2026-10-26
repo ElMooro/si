@@ -75,13 +75,13 @@ as the fallback when the book is absent (`factor book unavailable` in the output
 | Engine | Version | Mode | What changed |
 |---|---|---|---|
 | `justhodl-magic-formula` | 1.1.0 | U | S&P 500 → S&P 500 + every US common stock ≥ $200M outside Greenblatt's excluded sectors (1,200 candidates pre-ranked by the bank's EY + ROIC; exact EBIT/EV pass unchanged); prices/market caps = bank close (`price_source` per row); no live /quote per name |
-| `justhodl-divcut-warning` | 1.1.0 | U + F | 60 curated names → + every US dividend payer ≥ $1B yielding ≥ 3% with a risk marker (payout ≥ 70%, net debt/EBITDA ≥ 4×, yield ≥ 8%), up to 400; bank-close quotes; `bank_context` (Altman Z, Piotroski, short % float, analyst upside) on every warning |
+| `justhodl-divcut-warning` | 1.1.1 | U + F | 60 curated names → + every US dividend payer ≥ $1B yielding ≥ 3% with a risk marker (payout ≥ 70%, net debt/EBITDA ≥ 4×, yield ≥ 8%), up to 250; the book's names are assessed bank-only (no live retries) inside a 360 s budget (`n_assessed`, `budget_hit`); bank-close quotes; `bank_context` (Altman Z, Piotroski, short % float, analyst upside) on every warning; 1 GB |
 | `justhodl-deep-value-screener` | 1.1 | U + F | seed list → whole-market net-cash candidates (cash/share vs price ≥ 25%, NCAV/mcap ≥ 15% or P/S ≤ 0.6; ≥ $200M) first; bank-close quotes + 52-week high from the tape; `bank_context` per row |
 | `justhodl-equity-ftd` | 1.1.0 | F | every FTD candidate carries `squeeze` = short interest % float, days to cover, float, short-volume ratio, market cap, 21-day return; the signal rationale quotes them; 20d volume / price fall back to the bank (`vol_source`) |
-| `justhodl-stock-valuations` | 1.6.0 | U | the HP small/mid-cap universe ($75M–$3B, > 150k avg volume, NYSE/NASDAQ common) comes from the book; the FMP company-screener (a search endpoint no bank holds) is the second rung |
+| `justhodl-stock-valuations` | 1.6.0 | U | the HP small/mid-cap universe ($75M–$3B, > 150k avg volume, NYSE/NASDAQ common) comes from the book; the FMP company-screener (a search endpoint no bank holds) is the second rung; 1.5 GB (its 400-name HP loop touches ~28 quarterly statement year-files through the bank, which must stay resident) |
 | `justhodl-analyst-consensus` | 1.1 | U + F | 200 curated names → + every analyst-covered US common stock (≥ 3 targets last month, ≥ $300M, up to 2,500); a name the book holds is scored from the book with zero live calls (`source: factor-book`, `target_basis`); composite weights unchanged |
 | `justhodl-quality-on-sale` | 1.1.0 | U | the 5-gate desk stays on its static 50 (its four upstream feeds cover those); a labelled `book_screen` asks the whole market the same question with the bank's facts (quality composite top decile, Piotroski ≥ 7, ROIC ≥ 20%, ≥ 20% off the 52-week high, Altman Z ≥ 3, ≥ $1B) |
-| `justhodl-insider-radar` | 1.2.0 | E | the first rung of its source ladder is now 35 banked days of the whole FMP insider feed (walker `insider-trading-latest`, per day since 2024) instead of one live page of 1,000 rows; the live and S3 rungs stand |
+| `justhodl-insider-radar` | 1.2.1 | E + F | the first rung of its source ladder is now 35 banked days of the whole FMP insider feed (walker `insider-trading-latest`, per day since 2024) instead of one live page of 1,000 rows; the live and S3 rungs stand. The 60-day decline join reads the desk's rings, then the book's `ret_63d` (Polygon tape) for every other US-listed name, then a capped live Polygon read (40 per run, 60 s) — `ret_60d_basis` counts each; P/S context from the book's `ps` first |
 | `justhodl-beneish` | 1.1.0 | U + H | the M-Score across every US common stock ≥ $500M from the bank's statement files (no live call, no pacing); the top-50 `universe_state` keeps its meaning; a `market` block carries the whole-market and per-sector red-flag rates with Altman Z / income quality / SBC / short % float context on each flag |
 
 ### Queue (next waves, from the fusion map)
@@ -105,3 +105,22 @@ as the fallback when the book is absent (`factor book unavailable` in the output
 - The book's first join (ops 6658, 03:47 UTC) died Runtime.OutOfMemory in 19 s decoding whole-market CSVs into strings;
   v1.0.1 streams every table once into a SQLite staging file on /tmp (benchmark: 25k symbols, 600k ETF-holder rows,
   64 s, 725 MB peak) - the trap for any future whole-market join: never `.decode()` a bulk file, stream it.
+- First light (ops 6659 + 6661, 2026-10-26 04:58–05:40 UTC): magic-formula 910 eligible / every price from the bank
+  close (185 s, 1.5 GB); analyst-consensus 649 names, 644 scored from the book; quality-on-sale `book_screen` 3 names;
+  beneish 2,968 scored, 463 red flags (18 s); deep-value ran but 492/500 of its first whole-market candidates were
+  SPAC shells / ADRs with no balance sheet → the pre-screen now requires common, non-ADR, 0 < P/S ≤ 3 (v1.1).
+  Three engines failed and were fixed before wave 1 could be called verified:
+  - **divcut-warning** and **stock-valuations** died `Runtime.OutOfMemory` (768 MB in 9 s; 640 MB in 56 s) in their
+    per-ticker phase. Cause: `aws/shared/fmp_bank._table()` had no per-key in-flight dedup — eight worker threads each
+    missed the cache for the same bulk CSV at the same instant and each fetched + decoded it (gz bytes + bytes + str ≈
+    3× the file). Fix: one loader per key (waiters reuse the built table) and at most one whole-market decode in flight
+    below 1.5 GB (two above); `bank_enrich` document cache 3000 → 500; `quote()` reads the column projection instead of
+    a per-symbol document. divcut also assesses the book's names bank-only within a 360 s budget (446 live-retrying
+    names → ≤ 250 bank reads); stock-valuations moved to 1.5 GB so its ~28 quarterly year-files stay resident.
+  - **insider-radar** timed out 3 × 300 s: 35 banked feed days meant one live Polygon 60-day read per insider ticker
+    (hundreds, serial). Fix (v1.2.1): rings → the book's `ret_63d` → live Polygon capped at 40 reads / 60 s, computed
+    once per ticker; P/S from the book's `ps`.
+  - **equity-ftd** did not refresh: it runs only when a new SEC FTD file lands (expected; its fusion is covered by its
+    offline test and the next SEC drop).
+  - `eps-revision-velocity`: "All provider populations unavailable; preserve previous publication" is its pre-existing
+    reviewed contract, not a fusion failure — the patch there was withdrawn (see queue).

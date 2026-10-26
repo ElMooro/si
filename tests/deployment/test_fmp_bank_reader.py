@@ -38,6 +38,26 @@ pr=fmp_bank.snapshot("profile","600519")[0]
 assert pr["symbol"]=="600519" and pr["cik"]=="0000320193" and pr["fiscalYear"]=="2025" and pr["isEtf"] is False and pr["isActivelyTrading"] is True, pr
 assert pr["marketCap"]==3900000000000 and isinstance(pr["marketCap"],int) and pr["beta"]==1.25 and pr["zip"]=="95014" and pr["ipoDate"]=="1980-12-12", pr
 
+# 2026-10-26 (bank fusion first light): eight engine threads each decoded the same 60 MB bulk at the same instant ->
+# Runtime.OutOfMemory.  One loader per key: concurrent callers wait for the first decode and reuse the table.
+import threading, time as _time
+_fetch_calls = {"n": 0}
+_orig_fetch = fmp_bank._fetch
+def _slow_fetch(key):
+    _fetch_calls["n"] += 1
+    _time.sleep(0.2)
+    return _orig_fetch(key)
+fmp_bank._fetch = _slow_fetch
+fmp_bank._TABLES.clear(); fmp_bank._MISSING.clear(); fmp_bank._LOADING.clear()
+_key = R + "ratios-ttm-bulk/latest.csv.gz"
+_got = []
+_threads = [threading.Thread(target=lambda: _got.append(fmp_bank._table(_key))) for _ in range(8)]
+[t.start() for t in _threads]; [t.join() for t in _threads]
+assert _fetch_calls["n"] == 1, "eight concurrent first touches of one table must fetch + decode it once, fetched %d times" % _fetch_calls["n"]
+assert len(_got) == 8 and all(t is _got[0] for t in _got), "every waiter must get the one built table"
+fmp_bank._fetch = _orig_fetch
+assert fmp_bank._load_slots() in (1, 2)
+
 
 def test_fmp_bank_reader_and_book_chain():
     pass  # assertions above ran at import (module-level, like the sibling byte tests)

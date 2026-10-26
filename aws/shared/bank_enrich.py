@@ -39,7 +39,7 @@ _tls = threading.local()
 _LOCK = threading.Lock()
 _DOCS: dict = {}            # symbol -> (fetched_at, doc|None)
 _DOC_TTL = 1800
-_DOC_MAX = int(os.environ.get("BANK_ENRICH_DOC_CACHE", "3000"))
+_DOC_MAX = int(os.environ.get("BANK_ENRICH_DOC_CACHE", "500"))      # ~150 KB a parsed document; 500 keeps a 512 MB engine honest
 _MATRIX: dict = {"at": 0.0, "doc": None}
 _MANIFEST: dict = {"at": 0.0, "doc": None}
 _INDEX: dict = {"at": 0.0, "doc": None}
@@ -280,10 +280,23 @@ def prescreen(where, order_by=None, descending=True, limit=1500, fields=None, co
     return [r["symbol"] for r in hits[:limit]]
 
 
+QUOTE_FIELDS = ("symbol", "price", "mcap", "high_52w", "low_52w", "close", "avg_volume", "beta", "outstanding_shares", "exchange", "sector", "industry", "is_adr")
+
+
 def quote(symbol):
     """A quote-shaped read of the factor book for an engine whose live FMP /quote call failed or is not needed at EOD:
     price is the bank's last price (FMP profile-bulk as of the bank's pull, after the close), 52-week high/low from
-    the Polygon tape.  Labelled `as_of` + `source`; it is the close, never a live tick.  None when the book lacks it."""
+    the Polygon tape.  Labelled `as_of` + `source`; it is the close, never a live tick.  None when the book lacks it.
+    Read from the column projection (a few small columns per container) - the per-symbol document only when the
+    index is not there."""
+    row = lookup(symbol, list(QUOTE_FIELDS))
+    if row is not None and index() is not None:
+        if row.get("price") is None and row.get("close") is None:
+            return None
+        return {"symbol": row.get("symbol") or str(symbol).upper(), "name": None, "price": row.get("price") if row.get("price") is not None else row.get("close"),
+                "marketCap": row.get("mcap"), "yearHigh": row.get("high_52w"), "yearLow": row.get("low_52w"), "previousClose": row.get("close"),
+                "avgVolume": row.get("avg_volume"), "exchange": row.get("exchange"), "sector": row.get("sector"), "industry": row.get("industry"), "beta": row.get("beta"),
+                "sharesOutstanding": row.get("outstanding_shares"), "as_of": as_of(), "source": "factor-book (bank close, not a live tick)"}
     d = factor(symbol)
     if not d:
         return None

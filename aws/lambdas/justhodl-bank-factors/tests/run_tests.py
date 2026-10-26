@@ -261,6 +261,12 @@ def test_bank_enrich_sdk_reads_the_book_and_attaches_with_provenance():
     assert b["source"] == "justhodl-bank-factors" and b["as_of"]["fmp-bank"] and b["n"] == 2 and b["missing"] == ["NOPE"], b
     assert b["rows"]["AAPL"]["altman_z"] == 1.0 and b["rows"]["AAPL"]["pt_upside_pct"] == 10.0 and b["rows"]["TINY"]["short_pct_float"] == 25.0
     assert set(b["fields"]) == set(be.DEFAULT_FIELDS) and out["picks"][0]["score"] == 1                     # additive: the engine's own keys untouched
+    # quote(): the column projection answers it (no per-symbol document read); labelled as the bank close with identity
+    n_docs = len(be._DOCS)
+    qt = be.quote("aapl")
+    assert qt and qt["source"].startswith("factor-book (bank close") and qt["price"] is not None and qt["marketCap"] is not None, qt
+    assert qt["sector"] is not None and qt["exchange"] is not None and qt["symbol"] == "AAPL" and qt["as_of"]["fmp-bank"], qt
+    assert len(be._DOCS) == n_docs and be.quote("NOPE") is None, "quote() must come from the projection, not the symbol documents"
     # many symbols -> the matrix path; the same field names
     out2 = be.attach({"rows": [{"symbol": s} for s in ("AAPL MSFT XOM JPM TINY BRK-B SPY OTCX ABR-PD".split() * 3)]}, fields=["altman_z", "composite_value"])
     assert out2["bank_enrichment"]["n"] == 9 and out2["bank_enrichment"]["rows"]["MSFT"]["altman_z"] == 2.0

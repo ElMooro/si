@@ -132,7 +132,24 @@ class _Lines:
 
 
 _TABLES: dict = {}                     # key -> _Table (LRU by touched; total chars <= _text_budget())
-_LOCK = threading.Lock()               # eviction only; concurrent builds of one table are benign (last writer wins)
+_LOCK = threading.Lock()               # eviction + the per-key load registry
+_LOADING: dict = {}                    # key -> threading.Lock held while that table is being fetched/decoded
+
+
+def _load_slots():
+    """Whole-market tables decoding at once per container: one below 1.5 GB (a build costs ~2.3x the table's text while
+    gz bytes, bytes and str coexist), two above; local 2."""
+    try:
+        mem = int(os.environ.get("AWS_LAMBDA_FUNCTION_MEMORY_SIZE") or 0)
+    except (TypeError, ValueError):
+        mem = 0
+    return 2 if (not mem or mem >= 1536) else 1
+
+
+_LOAD_SLOTS = threading.BoundedSemaphore(_load_slots())
+# 2026-10-26 (bank fusion first light): eight worker threads of a 768 MB engine each missed `_TABLES` for the same
+# ratios-ttm bulk at the same instant and each fetched + decoded the 60 MB file (gz bytes + bytes + str = ~3x) ->
+# Runtime.OutOfMemory in 9 s.  One loader per key now; the others wait and reuse; two decodes in flight at most.
 _MISSING: dict = {}                    # key -> time the bank answered "no such object" (negative cache, _TTL)
 STATS = {"s3_gets": 0, "s3_misses": 0, "table_builds": 0, "table_evictions": 0, "table_refetches": 0}
 _EVICTED: set = set()
@@ -235,34 +252,46 @@ def _get(key):
 
 
 def _table(key):
-    """The decoded, indexable CSV at `key` (None when not banked), kept per container within _text_budget()."""
+    """The decoded, indexable CSV at `key` (None when not banked), kept per container within _text_budget().
+    One loader per key: concurrent callers of the same table wait for the first decode and reuse it."""
     t = _TABLES.get(key)
     if t is not None:
         t.touched = time.time()
         _LAST["key"], _LAST["meta"] = key, t.meta
         return t
-    raw, meta = _fetch(key)
-    if not raw:
-        return None
-    if key in _EVICTED:
-        STATS["table_refetches"] += 1
-    text = raw.decode("utf-8", "replace")
-    del raw
-    budget = _text_budget()
-    if len(text) > budget:                            # one file larger than the whole budget: serve it uncached
+    with _LOCK:
+        lock = _LOADING.get(key)
+        if lock is None:
+            lock = _LOADING[key] = threading.Lock()
+    with lock:
+        t = _TABLES.get(key)                          # loaded by the thread we waited for
+        if t is not None:
+            t.touched = time.time()
+            _LAST["key"], _LAST["meta"] = key, t.meta
+            return t
+        with _LOAD_SLOTS:
+            raw, meta = _fetch(key)
+            if not raw:
+                return None
+            if key in _EVICTED:
+                STATS["table_refetches"] += 1
+            text = raw.decode("utf-8", "replace")
+            del raw
+        budget = _text_budget()
+        if len(text) > budget:                            # one file larger than the whole budget: serve it uncached
+            STATS["table_builds"] += 1
+            _LAST["key"], _LAST["meta"] = key, meta
+            return _Table(key, text, meta)
+        with _LOCK:
+            while _TABLES and sum(len(x.text) for x in _TABLES.values()) + len(text) > budget:
+                victim = min(_TABLES.values(), key=lambda x: x.touched)
+                _TABLES.pop(victim.key, None)
+                _EVICTED.add(victim.key)
+                STATS["table_evictions"] += 1
+        t = _TABLES[key] = _Table(key, text, meta)
         STATS["table_builds"] += 1
         _LAST["key"], _LAST["meta"] = key, meta
-        return _Table(key, text, meta)
-    with _LOCK:
-        while _TABLES and sum(len(x.text) for x in _TABLES.values()) + len(text) > budget:
-            victim = min(_TABLES.values(), key=lambda x: x.touched)
-            _TABLES.pop(victim.key, None)
-            _EVICTED.add(victim.key)
-            STATS["table_evictions"] += 1
-    t = _TABLES[key] = _Table(key, text, meta)
-    STATS["table_builds"] += 1
-    _LAST["key"], _LAST["meta"] = key, meta
-    return t
+        return t
 
 
 def _rows(key):
