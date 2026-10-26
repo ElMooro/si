@@ -19,11 +19,25 @@ This file tracks items that require **your direct action** (registration, creden
   candidates), equity-ftd (short interest / float / days-to-cover on every FTD candidate), stock-valuations (small/mid
   universe from the book, not the dead FMP screener), analyst-consensus (the whole analyst-covered market, zero live
   calls for book names), quality-on-sale (whole-market `book_screen`), beneish (M-Score across every US stock >= $500M),
-  insider-radar (35 banked days of the full insider feed), eps-revision-velocity (analyst-covered market first).
+  insider-radar (the full banked insider feed, 30 days). First light found three faults and they are fixed: two engines
+  ran out of memory because eight threads decoded the same whole-market file at once (one loader per table now, fleet
+  redeploy in progress), insider-radar timed out on one live Polygon call per insider ticker (reads the book now), and
+  four 6 % senior notes (UZD, UZE, UZF, OXLCM) had ranked as 63 %-yield dividend payers because FMP names a baby bond after
+  its issuer - the book now joins Polygon's instrument type per symbol, so notes, preferreds, warrants and funds can never
+  enter a stock screen again.
+* **Wave 2 (deployed 2026-10-26, 18 more engines, same rules):** pre-pump-detector, pump-mechanics, ignition (real short
+  interest / days-to-cover next to every squeeze score; history from the Polygon bank), coffee-can, buyback-yield-ranking,
+  eva-spread, smart-beta, dividend-growth (whole-market candidates and bank statements instead of live FMP calls),
+  pead-detector, post-earnings-mean-rev, rating-change-cluster, starmine (banked earnings / grades / targets first),
+  insider-sell-cluster, insider-cluster-scanner, insider-buyback-confluence, smart-money-tracker, smart-money-holdings,
+  political-trades (the whole banked insider, 13F and congressional feeds as the first rung). Three engines were left
+  alone on purpose - momentum-leaders, pump-positioning, estimate-revisions carry reviewed, byte-pinned contracts (like
+  eps-revision-velocity, earnings-quality, short-interest) and need their own reviewed change.
 * **Why it also helps with 0o:** every one of these now takes price / market cap / fundamentals from the bank close
   instead of live FMP calls, so they keep working while the FMP key is bandwidth-blocked - and they stop spending calls.
-* **Next waves (no decision needed):** squeeze engines, the remaining quality/value screens, earnings and insider/13F
-  engines, energy (an EIA reader), crypto (CMC / CryptoQuant), ETF flows - in the order the fusion map ranks them.
+* **Next waves (no decision needed):** the remaining quality/value and earnings engines, 13F/political readers, energy
+  (an EIA reader), crypto (CMC / CryptoQuant), ETF flows - in the order the fusion map ranks them; the reviewed-contract
+  engines as their own reviewed changes.
 
 ### 0o. FMP has cut the key off: "Bandwidth Limit Reach" on every call since ~2026-10-26 01:00 UTC - your decision
 
