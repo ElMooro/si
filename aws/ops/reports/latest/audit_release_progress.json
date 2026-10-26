@@ -1,22 +1,320 @@
 {
-  "observed_at": "2026-10-25T23:06:11.316458+00:00",
+  "observed_at": "2026-10-26T00:57:57.932163+00:00",
   "runs": [
+    {
+      "id": 40246940396,
+      "path": ".github/workflows/deploy-lambdas.yml",
+      "head_sha": "79a78c474b549dde1bd804b3fbd81231408ae1b9",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-10-25T23:55:59Z",
+      "updated_at": "2026-10-26T00:53:15Z",
+      "jobs": [
+        {
+          "id": 121344102784,
+          "name": "Deploy changed Lambdas",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T00:52:53Z",
+          "completed_at": "2026-10-26T00:53:14Z",
+          "steps": [
+            {
+              "number": 1,
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:52:54Z",
+              "completed_at": "2026-10-26T00:52:55Z"
+            },
+            {
+              "number": 2,
+              "name": "Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:52:55Z",
+              "completed_at": "2026-10-26T00:53:09Z"
+            },
+            {
+              "number": 3,
+              "name": "Pin exact recovery checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:53:09Z",
+              "completed_at": "2026-10-26T00:53:09Z"
+            },
+            {
+              "number": 4,
+              "name": "Configure AWS credentials",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:53:09Z",
+              "completed_at": "2026-10-26T00:53:09Z"
+            },
+            {
+              "number": 5,
+              "name": "Detect changed Lambdas",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:53:09Z",
+              "completed_at": "2026-10-26T00:53:11Z"
+            },
+            {
+              "number": 6,
+              "name": "Run deployment preflight tests",
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-26T00:53:11Z",
+              "completed_at": "2026-10-26T00:53:11Z"
+            },
+            {
+              "number": 7,
+              "name": "Prime selected governed aliases before any code staging",
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-26T00:53:11Z",
+              "completed_at": "2026-10-26T00:53:11Z"
+            },
+            {
+              "number": 8,
+              "name": "Preserve long validation connections on the ephemeral runner",
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-26T00:53:11Z",
+              "completed_at": "2026-10-26T00:53:11Z"
+            },
+            {
+              "number": 9,
+              "name": "Deploy each changed Lambda",
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-26T00:53:11Z",
+              "completed_at": "2026-10-26T00:53:11Z"
+            },
+            {
+              "number": 10,
+              "name": "Commit a redacted failure report to main (lanes cannot read job logs)",
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-26T00:53:11Z",
+              "completed_at": "2026-10-26T00:53:11Z"
+            },
+            {
+              "number": 11,
+              "name": "Preserve numbered candidate release evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:53:11Z",
+              "completed_at": "2026-10-26T00:53:11Z"
+            },
+            {
+              "number": 12,
+              "name": "Commit Function URL patches back",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:53:11Z",
+              "completed_at": "2026-10-26T00:53:11Z"
+            },
+            {
+              "number": 13,
+              "name": "Summary",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:53:11Z",
+              "completed_at": "2026-10-26T00:53:11Z"
+            },
+            {
+              "number": 25,
+              "name": "Post Configure AWS credentials",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:53:11Z",
+              "completed_at": "2026-10-26T00:53:11Z"
+            },
+            {
+              "number": 26,
+              "name": "Post Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:53:11Z",
+              "completed_at": "2026-10-26T00:53:11Z"
+            },
+            {
+              "number": 27,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:53:11Z",
+              "completed_at": "2026-10-26T00:53:11Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 40246940375,
+      "path": ".github/workflows/deploy-lambdas.yml",
+      "head_sha": "79a78c474b549dde1bd804b3fbd81231408ae1b9",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-10-25T23:55:59Z",
+      "updated_at": "2026-10-26T00:57:28Z",
+      "jobs": [
+        {
+          "id": 121344204860,
+          "name": "Deploy changed Lambdas",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-26T00:53:18Z",
+          "completed_at": "2026-10-26T00:57:27Z",
+          "steps": [
+            {
+              "number": 1,
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:53:18Z",
+              "completed_at": "2026-10-26T00:53:20Z"
+            },
+            {
+              "number": 2,
+              "name": "Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:53:20Z",
+              "completed_at": "2026-10-26T00:53:34Z"
+            },
+            {
+              "number": 3,
+              "name": "Pin exact recovery checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:53:34Z",
+              "completed_at": "2026-10-26T00:53:34Z"
+            },
+            {
+              "number": 4,
+              "name": "Configure AWS credentials",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:53:34Z",
+              "completed_at": "2026-10-26T00:53:39Z"
+            },
+            {
+              "number": 5,
+              "name": "Detect changed Lambdas",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:53:39Z",
+              "completed_at": "2026-10-26T00:53:39Z"
+            },
+            {
+              "number": 6,
+              "name": "Run deployment preflight tests",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:53:39Z",
+              "completed_at": "2026-10-26T00:56:48Z"
+            },
+            {
+              "number": 7,
+              "name": "Prime selected governed aliases before any code staging",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:56:48Z",
+              "completed_at": "2026-10-26T00:56:49Z"
+            },
+            {
+              "number": 8,
+              "name": "Preserve long validation connections on the ephemeral runner",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:56:49Z",
+              "completed_at": "2026-10-26T00:56:54Z"
+            },
+            {
+              "number": 9,
+              "name": "Deploy each changed Lambda",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:56:54Z",
+              "completed_at": "2026-10-26T00:57:23Z"
+            },
+            {
+              "number": 10,
+              "name": "Commit a redacted failure report to main (lanes cannot read job logs)",
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-26T00:57:23Z",
+              "completed_at": "2026-10-26T00:57:23Z"
+            },
+            {
+              "number": 11,
+              "name": "Preserve numbered candidate release evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:57:23Z",
+              "completed_at": "2026-10-26T00:57:24Z"
+            },
+            {
+              "number": 12,
+              "name": "Commit Function URL patches back",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:57:24Z",
+              "completed_at": "2026-10-26T00:57:25Z"
+            },
+            {
+              "number": 13,
+              "name": "Summary",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:57:25Z",
+              "completed_at": "2026-10-26T00:57:25Z"
+            },
+            {
+              "number": 25,
+              "name": "Post Configure AWS credentials",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:57:25Z",
+              "completed_at": "2026-10-26T00:57:25Z"
+            },
+            {
+              "number": 26,
+              "name": "Post Checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:57:25Z",
+              "completed_at": "2026-10-26T00:57:25Z"
+            },
+            {
+              "number": 27,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:57:25Z",
+              "completed_at": "2026-10-26T00:57:25Z"
+            }
+          ]
+        }
+      ]
+    },
     {
       "id": 40241180504,
       "path": ".github/workflows/deploy-lambdas.yml",
       "head_sha": "1d792d8f0cf41369d61c798efd8fddb948f6a8eb",
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "failure",
       "created_at": "2026-10-25T22:38:58Z",
-      "updated_at": "2026-10-25T22:40:29Z",
+      "updated_at": "2026-10-26T00:52:50Z",
       "jobs": [
         {
           "id": 121313441480,
           "name": "Deploy changed Lambdas",
-          "status": "in_progress",
-          "conclusion": null,
+          "status": "completed",
+          "conclusion": "failure",
           "started_at": "2026-10-25T22:40:29Z",
-          "completed_at": null,
+          "completed_at": "2026-10-26T00:52:50Z",
           "steps": [
             {
               "number": 1,
@@ -85,60 +383,387 @@
             {
               "number": 9,
               "name": "Deploy each changed Lambda",
-              "status": "in_progress",
-              "conclusion": null,
+              "status": "completed",
+              "conclusion": "failure",
               "started_at": "2026-10-25T22:45:30Z",
-              "completed_at": null
+              "completed_at": "2026-10-26T00:52:40Z"
             },
             {
               "number": 10,
               "name": "Commit a redacted failure report to main (lanes cannot read job logs)",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:52:40Z",
+              "completed_at": "2026-10-26T00:52:45Z"
             },
             {
               "number": 11,
               "name": "Preserve numbered candidate release evidence",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:52:45Z",
+              "completed_at": "2026-10-26T00:52:46Z"
             },
             {
               "number": 12,
               "name": "Commit Function URL patches back",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-10-26T00:52:46Z",
+              "completed_at": "2026-10-26T00:52:46Z"
             },
             {
               "number": 13,
               "name": "Summary",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:52:46Z",
+              "completed_at": "2026-10-26T00:52:47Z"
             },
             {
               "number": 25,
               "name": "Post Configure AWS credentials",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:52:47Z",
+              "completed_at": "2026-10-26T00:52:47Z"
             },
             {
               "number": 26,
               "name": "Post Checkout",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:52:47Z",
+              "completed_at": "2026-10-26T00:52:47Z"
+            },
+            {
+              "number": 27,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T00:52:47Z",
+              "completed_at": "2026-10-26T00:52:47Z"
             }
-          ]
+          ],
+          "failure_diagnostics": {
+            "available": true,
+            "function_failures": [
+              {
+                "function": "justhodl-portfolio-risk",
+                "aws_errors": [],
+                "validation_fields": [],
+                "stages": [],
+                "configuration_errors": [],
+                "transport_flags": []
+              }
+            ],
+            "exception_types": [
+              "KeyError",
+              "RuntimeError",
+              "ValueError"
+            ],
+            "aws_error_codes": [],
+            "missing_modules": [],
+            "traceback_locations": [],
+            "failed_test_names": [],
+            "javascript_test_locations": [],
+            "failed_javascript_test_numbers": [],
+            "validation_failures": [],
+            "failed_functions": [
+              "justhodl-portfolio-risk"
+            ],
+            "deployed_functions": [
+              "benzinga-news-agent",
+              "cftc-futures-positioning-agent",
+              "justhodl-13f-clone-alpha",
+              "justhodl-13f-positions",
+              "justhodl-13f-price-divergence",
+              "justhodl-52wk-quality-breakout",
+              "justhodl-activist-13d",
+              "justhodl-ai-infra-stack",
+              "justhodl-ai-rerating-radar",
+              "justhodl-alert-backtester",
+              "justhodl-alpha-calibrator",
+              "justhodl-alpha-compass",
+              "justhodl-alpha-research",
+              "justhodl-analyst-consensus",
+              "justhodl-anomaly-detector",
+              "justhodl-apac-flows",
+              "justhodl-apac-leadlag",
+              "justhodl-asia-leads",
+              "justhodl-asset-compass",
+              "justhodl-asymmetric-hunter",
+              "justhodl-backlog",
+              "justhodl-backtest-engine",
+              "justhodl-backtest-harness",
+              "justhodl-bagger-engine",
+              "justhodl-beneish",
+              "justhodl-beta-laggard",
+              "justhodl-bloomberg-v8",
+              "justhodl-bond-desk",
+              "justhodl-bond-trace",
+              "justhodl-bottleneck-boom",
+              "justhodl-bottleneck-research",
+              "justhodl-bottom",
+              "justhodl-breadth-divergence",
+              "justhodl-breadth-thrust",
+              "justhodl-buyback-engine",
+              "justhodl-buyback-scanner",
+              "justhodl-buyback-yield-ranking",
+              "justhodl-buzz-velocity",
+              "justhodl-calls-backtest",
+              "justhodl-capex-pulse",
+              "justhodl-capital-flow",
+              "justhodl-carry-surface",
+              "justhodl-cascade-validator",
+              "justhodl-catalyst-calendar",
+              "justhodl-cds-monitor",
+              "justhodl-cef-discount",
+              "justhodl-chart-data",
+              "justhodl-chart-patterns",
+              "justhodl-chart-vision",
+              "justhodl-chokepoint",
+              "justhodl-coffee-can",
+              "justhodl-commodity-curves",
+              "justhodl-concentration-liquidity",
+              "justhodl-convexity-scorer",
+              "justhodl-corporate-actions",
+              "justhodl-correlation-surface",
+              "justhodl-cot-tracker",
+              "justhodl-credit-equity-divergence",
+              "justhodl-crisis-canaries",
+              "justhodl-cro-escalation",
+              "justhodl-cross-asset-regime",
+              "justhodl-cross-asset-rv",
+              "justhodl-crypto-emergence",
+              "justhodl-crypto-etf-arb",
+              "justhodl-crypto-etf-flows",
+              "justhodl-cta-trend-exhaust",
+              "justhodl-cycle-clock",
+              "justhodl-cyclical-bagger",
+              "justhodl-deal-scanner",
+              "justhodl-deep-value-screener",
+              "justhodl-desk-returns",
+              "justhodl-dislocation-ai",
+              "justhodl-dislocation-detector",
+              "justhodl-divcut-warning",
+              "justhodl-divergence-engine-v2",
+              "justhodl-dividend-growth",
+              "justhodl-dxy-equity-divergence",
+              "justhodl-earnings",
+              "justhodl-earnings-blackout",
+              "justhodl-earnings-iv-crush",
+              "justhodl-earnings-nlp",
+              "justhodl-earnings-pead",
+              "justhodl-earnings-quality",
+              "justhodl-earnings-sentiment",
+              "justhodl-earnings-tracker",
+              "justhodl-econ-calendar",
+              "justhodl-edgar-authority",
+              "justhodl-edge-discovery",
+              "justhodl-eps-revision-velocity",
+              "justhodl-equity-ftd",
+              "justhodl-equity-research",
+              "justhodl-estimate-revisions",
+              "justhodl-etf-census",
+              "justhodl-etf-flows",
+              "justhodl-etf-true-flows",
+              "justhodl-eurodollar-plumbing",
+              "justhodl-eva-spread",
+              "justhodl-factor-decomposition",
+              "justhodl-factor-regime",
+              "justhodl-factor-risk",
+              "justhodl-failed-pattern-reversal",
+              "justhodl-failure-library",
+              "justhodl-fi-census",
+              "justhodl-fiat-peg-monitor",
+              "justhodl-financial-secretary",
+              "justhodl-fleet-monitor",
+              "justhodl-floor-audit",
+              "justhodl-fmp-ratios",
+              "justhodl-fmp-walker",
+              "justhodl-fomc-reaction",
+              "justhodl-forward-orders",
+              "justhodl-forward-returns",
+              "justhodl-fundamental-graphs",
+              "justhodl-fundamentals-engine",
+              "justhodl-gap-fill-confirm",
+              "justhodl-gap-metrics",
+              "justhodl-gf-value",
+              "justhodl-global-macro",
+              "justhodl-global-markets",
+              "justhodl-hedge-planner",
+              "justhodl-hedge-pnl",
+              "justhodl-hiring-velocity",
+              "justhodl-historical-analogs",
+              "justhodl-hkma-monitor",
+              "justhodl-ignition",
+              "justhodl-impact-graph",
+              "justhodl-implied-prob",
+              "justhodl-index-inclusion",
+              "justhodl-index-recon",
+              "justhodl-industry-rotation",
+              "justhodl-insider-aggregate",
+              "justhodl-insider-buyback-confluence",
+              "justhodl-insider-cluster-scanner",
+              "justhodl-insider-radar",
+              "justhodl-insider-sell-cluster",
+              "justhodl-interpretation-grader",
+              "justhodl-inventory-drawdown",
+              "justhodl-investor-agents",
+              "justhodl-investor-lenses",
+              "justhodl-ipo-pipeline",
+              "justhodl-journal-grader",
+              "justhodl-ka-metrics",
+              "justhodl-khalid-metrics",
+              "justhodl-leading-markets",
+              "justhodl-leadlag-graph",
+              "justhodl-liquidity-capacity",
+              "justhodl-liquidity-profile",
+              "justhodl-live-pulse",
+              "justhodl-lockup-expiration",
+              "justhodl-ma-reversion",
+              "justhodl-ma-target-predictor",
+              "justhodl-ma-tracker",
+              "justhodl-macro-calendar",
+              "justhodl-macro-leads",
+              "justhodl-macro-regime",
+              "justhodl-magic-formula",
+              "justhodl-market-map",
+              "justhodl-market-tape",
+              "justhodl-mean-reversion",
+              "justhodl-merger-arb",
+              "justhodl-metals-miners",
+              "justhodl-momentum-breakout",
+              "justhodl-momentum-leaders",
+              "justhodl-momentum-scanner",
+              "justhodl-multi-tf-convergence",
+              "justhodl-ndx-spx-spread",
+              "justhodl-news-sentiment",
+              "justhodl-news-wire",
+              "justhodl-nobrainer-tracker",
+              "justhodl-opex-calendar",
+              "justhodl-opportunities-research",
+              "justhodl-opportunity-engine",
+              "justhodl-options-analytics",
+              "justhodl-options-flow",
+              "justhodl-options-gamma",
+              "justhodl-outcome-checker",
+              "justhodl-pair-trades",
+              "justhodl-pairs-arb",
+              "justhodl-pairs-scanner",
+              "justhodl-paper-book",
+              "justhodl-pead-detector",
+              "justhodl-peer-comparison",
+              "justhodl-phase-detector",
+              "justhodl-pnl-attribution",
+              "justhodl-political-intel",
+              "justhodl-political-trades",
+              "justhodl-portfolio-analytics",
+              "justhodl-portfolio-sizer",
+              "justhodl-positioning-analog",
+              "justhodl-post-earnings-mean-rev",
+              "justhodl-pre-pump-detector",
+              "justhodl-precatalyst-vol-expansion",
+              "justhodl-predictability",
+              "justhodl-price-redundancy",
+              "justhodl-prospective-evaluator",
+              "justhodl-pump-earnings-nlp",
+              "justhodl-pump-mechanics",
+              "justhodl-pump-positioning",
+              "justhodl-quality-on-sale",
+              "justhodl-radar-backtest",
+              "justhodl-rating-change-cluster",
+              "justhodl-readthrough",
+              "justhodl-rebalance-radar",
+              "justhodl-refining-stress",
+              "justhodl-regime-conditional-trust",
+              "justhodl-regime-map",
+              "justhodl-reit-nav-discount",
+              "justhodl-research-papers",
+              "justhodl-resilience",
+              "justhodl-retail-sentiment",
+              "justhodl-revenue-acceleration",
+              "justhodl-risk-ratios",
+              "justhodl-rotation-chain",
+              "justhodl-rotation-dashboard",
+              "justhodl-rotation-radar",
+              "justhodl-russell-recon-frontrun",
+              "justhodl-rv-iv-scanner",
+              "justhodl-seasonality",
+              "justhodl-sector-earnings-diffusion",
+              "justhodl-sector-emergence",
+              "justhodl-sector-heatmap",
+              "justhodl-sector-rotation",
+              "justhodl-self-improvement",
+              "justhodl-sellside-views",
+              "justhodl-shadow-lab",
+              "justhodl-signal-backtest",
+              "justhodl-signal-harvester",
+              "justhodl-signal-portfolio",
+              "justhodl-signal-scorecard",
+              "justhodl-sizing-engine",
+              "justhodl-skew-tail-hedging",
+              "justhodl-smart-beta",
+              "justhodl-smart-money-cluster",
+              "justhodl-smart-money-holdings",
+              "justhodl-smart-money-tracker",
+              "justhodl-spac-floor-warrant",
+              "justhodl-spinoff-desk",
+              "justhodl-spx-history",
+              "justhodl-spx-ma",
+              "justhodl-starmine",
+              "justhodl-stock-ai-research",
+              "justhodl-stock-analyzer",
+              "justhodl-stock-buying",
+              "justhodl-stock-screener",
+              "justhodl-stock-valuations",
+              "justhodl-strategy-portfolio",
+              "justhodl-stress-loadings",
+              "justhodl-structural-pre-signals",
+              "justhodl-supply-chain-linkage",
+              "justhodl-supply-inflection-scanner",
+              "justhodl-sympathetic-momentum",
+              "justhodl-system-signal-logger",
+              "justhodl-tail-risk",
+              "justhodl-talent-migration",
+              "justhodl-tape-truth",
+              "justhodl-technical-overlays",
+              "justhodl-theme-classifier",
+              "justhodl-theme-detector",
+              "justhodl-theme-rotation",
+              "justhodl-theme-rotation-engine",
+              "justhodl-theme-second-wave",
+              "justhodl-theme-tier-classifier",
+              "justhodl-ticker-trends",
+              "justhodl-trade-evaluator",
+              "justhodl-trade-journal",
+              "justhodl-trade-logger",
+              "justhodl-trade-ticket-monitor",
+              "justhodl-trade-tickets",
+              "justhodl-tradingview",
+              "justhodl-trend-engine",
+              "justhodl-trend-reversal",
+              "justhodl-tv-bars",
+              "justhodl-tv-watchlist-tracker",
+              "justhodl-universe-builder",
+              "justhodl-universe-discovery",
+              "justhodl-upside-radar",
+              "justhodl-us-cycle",
+              "justhodl-valuations-agent",
+              "justhodl-vix-backwardation-trigger",
+              "justhodl-vix9d-vix-inversion",
+              "justhodl-vol-regime",
+              "justhodl-vol-target-unwind",
+              "justhodl-volatility-squeeze-hunter",
+              "justhodl-vrp",
+              "justhodl-vvix-vov-regime",
+              "justhodl-warroom-weights",
+              "justhodl-watchlist-debate",
+              "justhodl-wave-signal-logger",
+              "justhodl-whales"
+            ]
+          }
         }
       ]
     },
@@ -2827,304 +3452,6 @@
       "created_at": "2026-10-25T19:48:37Z",
       "updated_at": "2026-10-25T19:54:20Z",
       "jobs": []
-    },
-    {
-      "id": 40226907868,
-      "path": ".github/workflows/deploy-lambdas.yml",
-      "head_sha": "dea5803943f63275b180a7762473e6795cd71729",
-      "status": "completed",
-      "conclusion": "cancelled",
-      "created_at": "2026-10-25T19:37:28Z",
-      "updated_at": "2026-10-25T19:54:36Z",
-      "jobs": [
-        {
-          "id": 121272063696,
-          "name": "Deploy changed Lambdas",
-          "status": "completed",
-          "conclusion": "cancelled",
-          "started_at": "2026-10-25T19:45:48Z",
-          "completed_at": "2026-10-25T19:54:36Z",
-          "steps": [
-            {
-              "number": 1,
-              "name": "Set up job",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-25T19:45:49Z",
-              "completed_at": "2026-10-25T19:45:50Z"
-            },
-            {
-              "number": 2,
-              "name": "Checkout",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-25T19:45:50Z",
-              "completed_at": "2026-10-25T19:46:04Z"
-            },
-            {
-              "number": 3,
-              "name": "Pin exact recovery checkout",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-25T19:46:04Z",
-              "completed_at": "2026-10-25T19:46:04Z"
-            },
-            {
-              "number": 4,
-              "name": "Configure AWS credentials",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-25T19:46:04Z",
-              "completed_at": "2026-10-25T19:46:05Z"
-            },
-            {
-              "number": 5,
-              "name": "Detect changed Lambdas",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-25T19:46:05Z",
-              "completed_at": "2026-10-25T19:46:05Z"
-            },
-            {
-              "number": 6,
-              "name": "Run deployment preflight tests",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-25T19:46:05Z",
-              "completed_at": "2026-10-25T19:50:35Z"
-            },
-            {
-              "number": 7,
-              "name": "Prime selected governed aliases before any code staging",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-25T19:50:35Z",
-              "completed_at": "2026-10-25T19:50:38Z"
-            },
-            {
-              "number": 8,
-              "name": "Preserve long validation connections on the ephemeral runner",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-25T19:50:38Z",
-              "completed_at": "2026-10-25T19:50:40Z"
-            },
-            {
-              "number": 9,
-              "name": "Deploy each changed Lambda",
-              "status": "completed",
-              "conclusion": "cancelled",
-              "started_at": "2026-10-25T19:50:40Z",
-              "completed_at": "2026-10-25T19:54:32Z"
-            },
-            {
-              "number": 10,
-              "name": "Commit a redacted failure report to main (lanes cannot read job logs)",
-              "status": "completed",
-              "conclusion": "skipped",
-              "started_at": "2026-10-25T19:54:32Z",
-              "completed_at": "2026-10-25T19:54:32Z"
-            },
-            {
-              "number": 11,
-              "name": "Preserve numbered candidate release evidence",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-25T19:54:32Z",
-              "completed_at": "2026-10-25T19:54:33Z"
-            },
-            {
-              "number": 12,
-              "name": "Commit Function URL patches back",
-              "status": "completed",
-              "conclusion": "skipped",
-              "started_at": "2026-10-25T19:54:33Z",
-              "completed_at": "2026-10-25T19:54:33Z"
-            },
-            {
-              "number": 13,
-              "name": "Summary",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-25T19:54:33Z",
-              "completed_at": "2026-10-25T19:54:33Z"
-            },
-            {
-              "number": 25,
-              "name": "Post Configure AWS credentials",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-25T19:54:33Z",
-              "completed_at": "2026-10-25T19:54:33Z"
-            },
-            {
-              "number": 26,
-              "name": "Post Checkout",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-25T19:54:33Z",
-              "completed_at": "2026-10-25T19:54:33Z"
-            },
-            {
-              "number": 27,
-              "name": "Complete job",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-25T19:54:33Z",
-              "completed_at": "2026-10-25T19:54:33Z"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": 40226878599,
-      "path": ".github/workflows/deploy-lambdas.yml",
-      "head_sha": "dea5803943f63275b180a7762473e6795cd71729",
-      "status": "completed",
-      "conclusion": "success",
-      "created_at": "2026-10-25T19:37:05Z",
-      "updated_at": "2026-10-25T19:45:45Z",
-      "jobs": [
-        {
-          "id": 121271963125,
-          "name": "Deploy changed Lambdas",
-          "status": "completed",
-          "conclusion": "success",
-          "started_at": "2026-10-25T19:45:24Z",
-          "completed_at": "2026-10-25T19:45:45Z",
-          "steps": [
-            {
-              "number": 1,
-              "name": "Set up job",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-25T19:45:25Z",
-              "completed_at": "2026-10-25T19:45:26Z"
-            },
-            {
-              "number": 2,
-              "name": "Checkout",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-25T19:45:26Z",
-              "completed_at": "2026-10-25T19:45:39Z"
-            },
-            {
-              "number": 3,
-              "name": "Pin exact recovery checkout",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-25T19:45:39Z",
-              "completed_at": "2026-10-25T19:45:39Z"
-            },
-            {
-              "number": 4,
-              "name": "Configure AWS credentials",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-25T19:45:39Z",
-              "completed_at": "2026-10-25T19:45:40Z"
-            },
-            {
-              "number": 5,
-              "name": "Detect changed Lambdas",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-25T19:45:40Z",
-              "completed_at": "2026-10-25T19:45:41Z"
-            },
-            {
-              "number": 6,
-              "name": "Run deployment preflight tests",
-              "status": "completed",
-              "conclusion": "skipped",
-              "started_at": "2026-10-25T19:45:41Z",
-              "completed_at": "2026-10-25T19:45:41Z"
-            },
-            {
-              "number": 7,
-              "name": "Prime selected governed aliases before any code staging",
-              "status": "completed",
-              "conclusion": "skipped",
-              "started_at": "2026-10-25T19:45:41Z",
-              "completed_at": "2026-10-25T19:45:41Z"
-            },
-            {
-              "number": 8,
-              "name": "Preserve long validation connections on the ephemeral runner",
-              "status": "completed",
-              "conclusion": "skipped",
-              "started_at": "2026-10-25T19:45:41Z",
-              "completed_at": "2026-10-25T19:45:41Z"
-            },
-            {
-              "number": 9,
-              "name": "Deploy each changed Lambda",
-              "status": "completed",
-              "conclusion": "skipped",
-              "started_at": "2026-10-25T19:45:41Z",
-              "completed_at": "2026-10-25T19:45:41Z"
-            },
-            {
-              "number": 10,
-              "name": "Commit a redacted failure report to main (lanes cannot read job logs)",
-              "status": "completed",
-              "conclusion": "skipped",
-              "started_at": "2026-10-25T19:45:41Z",
-              "completed_at": "2026-10-25T19:45:41Z"
-            },
-            {
-              "number": 11,
-              "name": "Preserve numbered candidate release evidence",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-25T19:45:41Z",
-              "completed_at": "2026-10-25T19:45:41Z"
-            },
-            {
-              "number": 12,
-              "name": "Commit Function URL patches back",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-25T19:45:41Z",
-              "completed_at": "2026-10-25T19:45:41Z"
-            },
-            {
-              "number": 13,
-              "name": "Summary",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-25T19:45:41Z",
-              "completed_at": "2026-10-25T19:45:41Z"
-            },
-            {
-              "number": 25,
-              "name": "Post Configure AWS credentials",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-25T19:45:41Z",
-              "completed_at": "2026-10-25T19:45:41Z"
-            },
-            {
-              "number": 26,
-              "name": "Post Checkout",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-25T19:45:41Z",
-              "completed_at": "2026-10-25T19:45:41Z"
-            },
-            {
-              "number": 27,
-              "name": "Complete job",
-              "status": "completed",
-              "conclusion": "success",
-              "started_at": "2026-10-25T19:45:41Z",
-              "completed_at": "2026-10-25T19:45:41Z"
-            }
-          ]
-        }
-      ]
     },
     {
       "id": 34312891397,
