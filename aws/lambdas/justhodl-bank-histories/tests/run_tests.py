@@ -193,9 +193,43 @@ def test_fmp_bank_statements_read_the_history_book_first_and_the_shim_accepts_de
     assert fb._shaped("income-statement", "income-statement", {"symbol": "ZZZZ", "period": "annual", "limit": "10"}) is True       # inside the year-file ceiling
 
 
+def test_point_lookups_never_decode_whole_market_tables_in_a_1gb_container_once_the_book_is_built():
+    """2026-10-26: the why.html desk (1 GB, request-serving) died out-of-memory on 19 of 145 requests - every book miss
+    (a delisted / foreign / OTC name) decoded statement year-files and the profile bulk.  At <= POINT_SCAN_MIN_MB the books
+    answer or nobody does; above it (batch engines) the scan stays; with no book built the legacy scan stays everywhere."""
+    import os
+    lf, s3, fmp_bank = boot()
+    seed(lf, s3)
+    lf.lambda_handler({}, None)
+    fmp_bank._HIST_MAN.update(at=0.0, doc=None)
+    saved = os.environ.get("AWS_LAMBDA_FUNCTION_MEMORY_SIZE")
+    try:
+        os.environ["AWS_LAMBDA_FUNCTION_MEMORY_SIZE"] = "1024"
+        fmp_bank._TABLES.clear(); fmp_bank._MISSING.clear(); fmp_bank.STATS["table_builds"] = 0; fmp_bank.STATS["book_only_misses"] = 0
+        assert fmp_bank.statements("income-statement", "AAPL", period="annual", limit=20)[0]["date"] == "2025-09-27"      # the book answers as before
+        assert fmp_bank.statements("income-statement", "SAP", period="annual", limit=5) is None                            # book built, symbol absent: no scan
+        assert fmp_bank.snapshot("profile", "SAP") is None
+        assert fmp_bank.snapshot("profile", "aapl")[0]["companyName"] == "Apple Inc."
+        assert fmp_bank.STATS["table_builds"] == 0 and fmp_bank.STATS["book_only_misses"] == 2, fmp_bank.STATS
+        assert fmp_bank.statements("balance-sheet-statement", "AAPL", period="annual", limit=5) is None or fmp_bank.STATS["table_builds"] >= 0   # no balance block in the book: the legacy scan is allowed (nothing banked here either)
+        os.environ["AWS_LAMBDA_FUNCTION_MEMORY_SIZE"] = "1536"
+        fmp_bank._TABLES.clear(); fmp_bank._MISSING.clear(); fmp_bank.STATS["table_builds"] = 0
+        rows = fmp_bank.statements("income-statement", "SAP", period="annual", limit=5)
+        assert rows and rows[0]["symbol"] == "SAP" and fmp_bank.STATS["table_builds"] >= 1                                 # a batch engine still scans
+        assert fmp_bank.snapshot("profile", "SAP")[0]["companyName"] == "SAP SE"
+    finally:
+        if saved is None:
+            os.environ.pop("AWS_LAMBDA_FUNCTION_MEMORY_SIZE", None)
+        else:
+            os.environ["AWS_LAMBDA_FUNCTION_MEMORY_SIZE"] = saved
+        fmp_bank._TABLES.clear(); fmp_bank._MISSING.clear()
+
+
 if __name__ == "__main__":
     test_inverts_year_files_into_per_symbol_docs_write_if_changed()
     print("ok test_inverts_year_files_into_per_symbol_docs_write_if_changed")
     test_fmp_bank_statements_read_the_history_book_first_and_the_shim_accepts_deep_limits()
     print("ok test_fmp_bank_statements_read_the_history_book_first_and_the_shim_accepts_deep_limits")
-    print("2 tests passed")
+    test_point_lookups_never_decode_whole_market_tables_in_a_1gb_container_once_the_book_is_built()
+    print("ok test_point_lookups_never_decode_whole_market_tables_in_a_1gb_container_once_the_book_is_built")
+    print("3 tests passed")

@@ -36,6 +36,24 @@ _cache: dict = {}                      # small objects (JSON, manifests): key ->
 _MAX_CACHED = 24
 
 
+POINT_SCAN_MIN_MB = int(os.environ.get("FMP_BANK_POINT_SCAN_MIN_MB") or "1024")
+
+
+def _point_scans_allowed():
+    """May ONE symbol's answer fall back from the per-symbol books to a whole-market table decode?
+
+    2026-10-26, the why.html desk (justhodl-equity-research, 1 GB, request-serving): 145 requests in 7 h, median heap
+    976 MB, 19 died Runtime.OutOfMemory / 300 s - every book miss (a delisted, foreign or OTC name) decoded statement
+    year-files and the snapshot bulk into a container that never shrinks back.  At or below POINT_SCAN_MIN_MB the
+    books answer or nobody does (the shim then goes live); batch engines above it keep the scan.  Local runs (no
+    Lambda memory variable) keep the scan so the offline tests cover it."""
+    try:
+        mem = int(os.environ.get("AWS_LAMBDA_FUNCTION_MEMORY_SIZE") or 0)
+    except (TypeError, ValueError):
+        return True
+    return mem == 0 or mem > POINT_SCAN_MIN_MB
+
+
 def _text_budget():
     """Chars of decoded CSV kept per container: 30% of the Lambda's memory, clamped to [48 MB, 640 MB]; local 256 MB.
     (First light 2026-10-25: at 20% the 512 MB engines thrashed on two statement year-files; the engines themselves use
@@ -151,7 +169,7 @@ _LOAD_SLOTS = threading.BoundedSemaphore(_load_slots())
 # ratios-ttm bulk at the same instant and each fetched + decoded the 60 MB file (gz bytes + bytes + str = ~3x) ->
 # Runtime.OutOfMemory in 9 s.  One loader per key now; the others wait and reuse; two decodes in flight at most.
 _MISSING: dict = {}                    # key -> time the bank answered "no such object" (negative cache, _TTL)
-STATS = {"s3_gets": 0, "s3_misses": 0, "table_builds": 0, "table_evictions": 0, "table_refetches": 0}
+STATS = {"s3_gets": 0, "s3_misses": 0, "table_builds": 0, "table_evictions": 0, "table_refetches": 0, "book_only_misses": 0}
 _EVICTED: set = set()
 
 STATEMENTS = {
@@ -442,6 +460,10 @@ def snapshot(path, symbol=None):
         if doc is not None:
             STATS["history_book_hits"] = STATS.get("history_book_hits", 0) + 1
             return [dict(r, symbol=r.get("symbol") or _norm(symbol)) for r in doc["rows"] if isinstance(r, dict)]
+        b = (history_manifest().get("blocks") or {}).get("%s/latest" % bulk)
+        if isinstance(b, dict) and b.get("refreshed_at") and b.get("symbols") and not b.get("partial") and not _point_scans_allowed():
+            STATS["book_only_misses"] = STATS.get("book_only_misses", 0) + 1
+            return None
     keys = _snapshot_keys(bulk)
     if not keys:
         return None
@@ -528,6 +550,9 @@ def statements(path, symbol, period="annual", limit=None, years=None):
             rows.sort(key=lambda r: str(r.get("date") or r.get("fiscalYear") or ""), reverse=True)
             STATS["history_book_hits"] = STATS.get("history_book_hits", 0) + 1
             return rows[:limit] if limit else rows
+    if history_block(path, kind) is not None and not _point_scans_allowed():
+        STATS["book_only_misses"] = STATS.get("book_only_misses", 0) + 1       # the book is built and has no such symbol: no whole-market decode here
+        return None
     man = manifest()
     held = sorted({int(k.split("/")[1]) for k in (man.get("dated_keys") or []) if k.startswith(bulk + "/")}, reverse=True)
     if not held:
