@@ -199,7 +199,8 @@ def test_join_writes_one_doc_per_us_symbol_with_derived_fields_ranks_and_a_matri
     puts = s3.puts
     out2 = lf.lambda_handler({}, None)
     assert out2["written"] == 0 and out2["unchanged"] == 9, out2
-    assert s3.puts - puts == 5, s3.puts - puts                                                              # lease, matrix, universe, state, manifest
+    ncols = len(json.loads(gzip.decompress(s3.store[lf.ROOT + "matrix/index.json.gz"]))["columns"])
+    assert s3.puts - puts == 5 + ncols + 1, (s3.puts - puts, ncols)                                        # lease, matrix, universe, state, manifest + the column files + the index
     # a changed bank value re-writes only that symbol
     s3.store[lf.FMP_ROOT + "scores-bulk/latest.csv.gz"] = csv_gz([{"symbol": s, "reportedCurrency": "USD", "altmanZScore": (9.9 if s == "MSFT" else 1.0 + i), "piotroskiScore": 3 + (i % 6), "workingCapital": 1, "totalAssets": 2, "retainedEarnings": 3, "ebit": 4, "marketCap": 5, "totalLiabilities": 6, "revenue": 7} for i, s in enumerate(stocks)])
     import fmp_bank
@@ -248,6 +249,10 @@ def test_bank_enrich_sdk_reads_the_book_and_attaches_with_provenance():
     assert set(fs) == {"AAPL", "XOM"}
     m = be.matrix()
     assert m["n"] == 9 and be.lookup("JPM", ["pe", "pct_pe"]) == {"pe": 11.0, "pct_pe": 100.0}
+    idx = be.index()
+    assert idx and idx["n"] == 9 and "altman_z" in idx["columns"] and set(idx["identity"]) >= {"sector", "is_etf", "is_preferred"}
+    assert be.column("altman_z")[idx["symbols"].index("MSFT")] == 2.0 and be.column("nope") is None
+    assert set(be._COLS) == {"pe", "pct_pe", "altman_z"}                                                   # projection: only the asked columns were read
     cheap = be.screen(lambda r: r["pe"] is not None and 0 < r["pe"] < 20, fields=["pe", "mcap"])
     assert {r["symbol"] for r in cheap} == {"XOM", "JPM", "BRK-B"}, cheap                                 # TINY (-5) and SPY/OTCX/ABR-PD (pe 9, a preferred) excluded
     out = {"generated": "x", "picks": [{"ticker": "AAPL", "score": 1}, {"ticker": "NOPE", "score": 0}], "nested": {"rows": [{"symbol": "TINY"}]}}

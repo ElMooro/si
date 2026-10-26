@@ -51,7 +51,7 @@ from botocore.config import Config
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import fmp_bank  # noqa: E402  (aws/shared, bundled)
 
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 SCHEMA = "factor-book/1.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 ROOT = "data/warm/factor-book/"
@@ -959,6 +959,19 @@ def lambda_handler(event=None, context=None):
     matrix = {"schema": SCHEMA, "version": VERSION, "generated_at": now.isoformat(), "as_of": src.as_of, "n": len(rows), "symbols": [r["symbol"] for r in rows], "cols": cols,
               "fields": [f for f, _, _ in FIELDS], "ranked": [f for f, _ in RANKED], "composites": COMPOSITES, "positive_only": sorted(POSITIVE_ONLY)}
     mbytes = _put_json_gz(ROOT + "matrix/core.json.gz", matrix, {"n": len(rows)})
+    # v1.0.3: the same matrix as one file per column (projection pushdown for bank_enrich.rows/screen/lookup): an engine
+    # screening on five fields loads five small columns + the identity index, not the 37 MB whole; threaded puts
+    cbytes = 0
+    with ThreadPoolExecutor(max_workers=WORKERS) as pool:
+        futs = [pool.submit(lambda k=k: _put_json_gz(ROOT + "matrix/cols/%s.json.gz" % k, cols[k], {"n": len(rows)}, client=_s3())) for k in keys if k != "symbol"]
+        futs.append(pool.submit(lambda: _put_json_gz(ROOT + "matrix/index.json.gz", {"schema": SCHEMA, "version": VERSION, "generated_at": now.isoformat(), "as_of": src.as_of, "n": len(rows),
+                                                                                      "symbols": [r["symbol"] for r in rows], "columns": [k for k in keys if k != "symbol"],
+                                                                                      "identity": {k: cols[k] for k in ("sector", "industry", "exchange", "is_etf", "is_otc", "is_fund", "is_preferred") if k in cols}}, {"n": len(rows)}, client=_s3())))
+        for f in as_completed(futs):
+            try:
+                cbytes += f.result()
+            except Exception as e:  # noqa: BLE001
+                src.notes.append("matrix column put failed: %s" % type(e).__name__)
     _put_json_gz(ROOT + "universe.json.gz", {"schema": SCHEMA, "generated_at": now.isoformat(), "as_of": src.as_of, "n": len(uni), "symbols": uni}, {"n": len(uni)})
     # manifest + state
     state = {"version": VERSION, "runs": int(state.get("runs") or 0) + 1, "updated_at": now.isoformat(), "hashes": {**{k: v for k, v in hashes.items() if k in uni}, **new_hashes},
@@ -971,7 +984,7 @@ def lambda_handler(event=None, context=None):
                 "etfs": sum(1 for u in uni.values() if u["is_etf"]), "otc": sum(1 for u in uni.values() if u["is_otc"]),
                 "coverage": cov, "sources": src.coverage, "schema_found": found, "fields": [f for f, _, _ in FIELDS], "ranked": [f for f, _ in RANKED],
                 "composites": {k: "mean of pct_" + ", pct_".join(v) + " (lower-is-better fields inverted; >= 2 inputs)" for k, v in COMPOSITES.items()},
-                "matrix": {"key": ROOT + "matrix/core.json.gz", "bytes": mbytes, "n": len(rows)}, "objects": docs_n + 3, "pages": docs_n, "pages_bytes": bytes_out,
+                "matrix": {"key": ROOT + "matrix/core.json.gz", "bytes": mbytes, "n": len(rows), "columns_prefix": ROOT + "matrix/cols/", "columns_bytes": cbytes, "index": ROOT + "matrix/index.json.gz"}, "objects": docs_n + 3, "pages": docs_n, "pages_bytes": bytes_out,
                 "last_run": state["last_run"], "notes": src.notes, "prefix": ROOT, "read_with": "aws/shared/bank_enrich.py (factor / factors / matrix / attach)"}
     s3.put_object(Bucket=BUCKET, Key=MANIFEST_KEY, Body=json.dumps(manifest, indent=1, default=str).encode(), ContentType="application/json", CacheControl="no-cache")
     log("done: %d symbols, %d written, %d unchanged, %d failed, %.1f MB, %.0fs" % (docs_n, written, unchanged, failed, bytes_out / 1e6, time.time() - t0))

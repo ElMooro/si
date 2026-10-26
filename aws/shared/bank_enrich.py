@@ -42,6 +42,9 @@ _DOC_TTL = 1800
 _DOC_MAX = int(os.environ.get("BANK_ENRICH_DOC_CACHE", "3000"))
 _MATRIX: dict = {"at": 0.0, "doc": None}
 _MANIFEST: dict = {"at": 0.0, "doc": None}
+_INDEX: dict = {"at": 0.0, "doc": None}
+_COLS: dict = {}            # column name -> (fetched_at, list)
+_COL_TTL = 1800
 _MISS = object()
 
 # what attach() puts on an engine's output by default: the fields a desk reads first (all numeric, all from the matrix
@@ -156,18 +159,73 @@ def matrix(max_age_s=1800):
     return None
 
 
-def rows(fields=None, where=None, limit=None):
-    """Iterate the matrix as dict rows (identity + the requested fields, default all); `where(row) -> bool` filters."""
+IDENTITY_COLS = ("symbol", "sector", "industry", "exchange", "is_etf", "is_otc", "is_fund", "is_preferred")
+
+
+def index(max_age_s=1800):
+    """matrix/index.json.gz: the symbol list, the column names and the identity columns (small); None when absent."""
+    with _LOCK:
+        if _INDEX["doc"] is not None and time.time() - _INDEX["at"] < max_age_s:
+            return _INDEX["doc"]
+    doc = _get(ROOT + "matrix/index.json.gz")
+    if isinstance(doc, dict) and doc.get("symbols") and doc.get("columns"):
+        with _LOCK:
+            _INDEX.update(at=time.time(), doc=doc)
+        return doc
+    return None
+
+
+def column(name):
+    """One matrix column (list aligned with index()['symbols']) from matrix/cols/<name>.json.gz; None when absent."""
+    with _LOCK:
+        hit = _COLS.get(name)
+        if hit and time.time() - hit[0] < _COL_TTL:
+            return hit[1]
+    col = _get(ROOT + "matrix/cols/%s.json.gz" % name)
+    if not isinstance(col, list):
+        return None
+    with _LOCK:
+        if len(_COLS) > 64:
+            _COLS.clear()
+        _COLS[name] = (time.time(), col)
+    return col
+
+
+def _projection(fields):
+    """(symbols, {name: column}) for the requested fields + identity: per-column files when the index is there
+    (projection pushdown: an engine screening on five fields loads five small columns, not the whole matrix), else the
+    whole matrix.  None when the book is absent."""
+    want = [f for f in (fields or []) if f not in IDENTITY_COLS]
+    idx = index() if fields is not None else None
+    if idx:
+        cols = {"symbol": idx["symbols"]}
+        for k, v in (idx.get("identity") or {}).items():
+            cols[k] = v
+        for f in want:
+            if f in idx["columns"]:
+                c = column(f)
+                if c is not None and len(c) == len(idx["symbols"]):
+                    cols[f] = c
+        return idx["symbols"], cols
     m = matrix()
     if not m:
+        return None
+    return m["symbols"], m["cols"]
+
+
+def rows(fields=None, where=None, limit=None):
+    """Iterate the matrix as dict rows (identity + the requested fields, default all); `where(row) -> bool` filters.
+    With `fields` given the read is a projection (per-column files); with fields=None the whole matrix is read."""
+    proj = _projection(fields)
+    if not proj:
         return []
-    cols = m["cols"]
+    symbols, cols = proj
     names = list(cols) if fields is None else [f for f in fields if f in cols]
-    for ident in ("symbol", "sector", "industry", "exchange", "is_etf", "is_otc", "is_fund", "is_preferred"):
+    for ident in IDENTITY_COLS:
         if ident in cols and ident not in names:
             names.insert(0, ident)
     out = []
-    for i in range(m["n"]):
+    for i in range(len(symbols)):
         r = {k: cols[k][i] for k in names}
         if where is None or where(r):
             out.append(r)
@@ -190,19 +248,21 @@ def screen(where, fields=None, limit=None, common_only=True):
 
 
 def lookup(symbol, fields=None):
-    """Matrix-row view of one symbol (fast when many symbols are needed and the matrix is already loaded)."""
-    m = matrix()
-    if not m:
+    """Matrix-row view of one symbol (fast when many symbols are needed): a projection of the requested fields."""
+    proj = _projection(fields)
+    if not proj:
         return None
+    symbols, cols = proj
     sym = str(symbol or "").upper().strip()
-    idx = m.get("_index")
-    if idx is None:
-        idx = {s: i for i, s in enumerate(m["symbols"])}
-        m["_index"] = idx
-    i = idx.get(sym, idx.get(sym.replace(".", "-"), idx.get(sym.replace("-", "."))))
+    holder = index() if fields is not None else matrix()
+    pos = (holder or {}).get("_pos") if isinstance(holder, dict) else None
+    if pos is None:
+        pos = {s: i for i, s in enumerate(symbols)}
+        if isinstance(holder, dict):
+            holder["_pos"] = pos
+    i = pos.get(sym, pos.get(sym.replace(".", "-"), pos.get(sym.replace("-", "."))))
     if i is None:
         return None
-    cols = m["cols"]
     names = list(cols) if fields is None else [f for f in fields if f in cols]
     return {k: cols[k][i] for k in names}
 
@@ -278,10 +338,10 @@ def attach(doc, symbols=None, fields=DEFAULT_FIELDS, key="bank_enrichment", max_
             block["note"] = "no symbols to enrich"
             doc[key] = block
             return doc
-        m = matrix() if len(syms) > 25 else None
+        m = (index() or matrix()) if len(syms) > 25 else None
         if m:
             for s in syms:
-                r = lookup(s, fields)
+                r = lookup(s, list(fields))
                 if r is None:
                     block["missing"].append(s)
                 else:
