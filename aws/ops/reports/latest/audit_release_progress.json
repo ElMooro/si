@@ -1,5 +1,5 @@
 {
-  "observed_at": "2026-10-26T06:50:29.072954+00:00",
+  "observed_at": "2026-10-26T07:00:32.007614+00:00",
   "runs": [
     {
       "id": 40280886195,
@@ -61,33 +61,33 @@
             {
               "number": 6,
               "name": "Run deployment preflight tests",
-              "status": "in_progress",
-              "conclusion": null,
+              "status": "completed",
+              "conclusion": "success",
               "started_at": "2026-10-26T06:45:56Z",
-              "completed_at": null
+              "completed_at": "2026-10-26T06:51:41Z"
             },
             {
               "number": 7,
               "name": "Prime selected governed aliases before any code staging",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T06:51:41Z",
+              "completed_at": "2026-10-26T06:51:43Z"
             },
             {
               "number": 8,
               "name": "Preserve long validation connections on the ephemeral runner",
-              "status": "pending",
-              "conclusion": null,
-              "started_at": null,
-              "completed_at": null
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-10-26T06:51:43Z",
+              "completed_at": "2026-10-26T06:51:47Z"
             },
             {
               "number": 9,
               "name": "Deploy each changed Lambda",
-              "status": "pending",
+              "status": "in_progress",
               "conclusion": null,
-              "started_at": null,
+              "started_at": "2026-10-26T06:51:47Z",
               "completed_at": null
             },
             {
