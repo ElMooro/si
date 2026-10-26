@@ -19,8 +19,7 @@
    "justhodl-position-sizer-v2",
    "justhodl-risk-sizer",
    "permanent-market-intelligence",
-   "scrapeMacroData",
-   "treasury-auto-updater"
+   "scrapeMacroData"
   ],
   "daily-eve": [
    "bls-employment-api-v2",
@@ -637,15 +636,6 @@
     "daily-morn"
    ]
   },
-  "treasury-auto-updater": {
-   "fired_hours": [
-    11
-   ],
-   "per_day": 1.0,
-   "ticks": [
-    "daily-morn"
-   ]
-  },
   "justhodl-edge-engine": {
    "fired_hours": [],
    "per_day": 0.0,
@@ -833,5 +823,11 @@
   "removed_2026_10_22": {
    "justhodl-polygon-futures-curves": "removed 2026-10-22: Massive allows ~5 futures requests a minute, so the run is paced to ~9 minutes and cannot repeat every 5 minutes (every lane tick of 2026-10-21 failed, ops 6609); its daily 13:00 UTC run stays"
   }
+ },
+ "retired_2026_10_26": {
+  "why": "Khalid, 2026-10-26: fix the fleet-health failures - treasury-auto-updater only invoked treasury-api (held at concurrency 0 since 2026-10-20) and timed out at 3 s every day",
+  "removed": [
+   "treasury-auto-updater"
+  ]
  }
 }

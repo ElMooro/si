@@ -122,6 +122,13 @@
    "triggers": [],
    "tick": null,
    "hold": true
+  },
+  "treasury-auto-updater": {
+   "triggers": [],
+   "tick": "daily-morn",
+   "hold": false,
+   "added": "2026-10-26",
+   "why": "Khalid, 2026-10-26: fix the fleet-health failures. The function's only job is a synchronous invoke of treasury-api, which this plan holds at reserved concurrency 0 (switched off 2026-10-20 as a broken writer); every daily-morn tick since then throttled the invoke until the 3 s timeout (3 errors/day, ops 6672/6674). It leaves the daily-morn tick with its target; re-enable both together or neither."
   }
  },
  "delete": {

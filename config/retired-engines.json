@@ -1,6 +1,6 @@
 {
  "generated": "2026-10-20",
- "source": "docs/audit/2026-10-20/infrastructure-review.md + config/retire-plan-2026-10-20.json (ops 6563); two deletions reverted 2026-10-20 (ops 6565), see restored",
+ "source": "docs/audit/2026-10-20/infrastructure-review.md + config/retire-plan-2026-10-20.json (ops 6563); two deletions reverted 2026-10-20 (ops 6565), see restored; treasury-auto-updater switched off 2026-10-26 (ops 6675), the orphaned invoker of the held treasury-api",
  "switched_off": [
   "ecb-auto-updater",
   "ecb-data-daily-updater",
@@ -11,7 +11,8 @@
   "justhodl-transcript-indexer",
   "macro-financial-intelligence",
   "ofrapi",
-  "treasury-api"
+  "treasury-api",
+  "treasury-auto-updater"
  ],
  "deleted": [
   "aiapi-market-analyzer",
