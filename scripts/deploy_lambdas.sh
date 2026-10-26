@@ -27,6 +27,19 @@ for fn in $DEPLOY_TARGETS; do
     echo "──── Deploying $fn ────"
     if [ "$fn" = "justhodl-portfolio-risk" ] || [ "$fn" = "justhodl-portfolio-snapshot" ]; then
       # The new native writer must not reach AWS before its mirror protocol.
+      # The receipt-only check proves the retained Worker release is an ancestor of HEAD. The lane checks out
+      # 50 commits, so once the release is older than that the proof needs more history (2026-10-26: the
+      # release sat 116 commits behind main -> "Ordered Worker prerequisite not verified" on a source change
+      # that never touched the Worker). Deepen from HEAD, bounded, before asking; the check stays the judge.
+      worker_release=$(python3 -c 'import json,re; c=json.load(open("data/ops/releases/worker-justhodl-data-proxy.json")).get("commit"); print(c if isinstance(c,str) and re.fullmatch(r"[a-f0-9]{40}",c) else "")' 2>/dev/null || true)
+      if [ -n "$worker_release" ]; then
+        for depth in 300 800 2000; do
+          git merge-base --is-ancestor "$worker_release" HEAD 2>/dev/null && break
+          echo "worker prerequisite: retained release ${worker_release:0:7} not in the shallow history; deepening to $depth"
+          git fetch -q --depth="$depth" origin "$(git rev-parse HEAD)" 2>/dev/null || break
+        done
+        git merge-base --is-ancestor "$worker_release" HEAD 2>/dev/null || git fetch -q --unshallow origin 2>/dev/null || true
+      fi
       python3 scripts/check_worker_prerequisite.py --function "$fn" --region "$DEPLOY_AWS_REGION" --wait 180
     fi
     tmp=$(mktemp -d)
