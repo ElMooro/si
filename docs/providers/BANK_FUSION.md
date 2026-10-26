@@ -35,7 +35,16 @@ matrix** under `data/warm/factor-book/`:
 
 Every document carries `as_of` per source and the bank's own column names; `manifest.json` → `schema_found` says
 which column answered each curated field today (a `null` is a header the book did not recognise — it is fixed by
-adding the name, never by guessing a value). ETFs, funds and OTC names are documented but **never ranked**.
+adding the name, never by guessing a value). ETFs, mutual funds, OTC names and preferred shares (`is_preferred`: a
+preferred carries its issuer's fundamentals under its own ticker) are documented but **never ranked** and never in a
+`screen()`. The matrix is also written one file per column (`matrix/cols/<field>.json.gz` + `matrix/index.json.gz`),
+so a consumer asking for five fields reads five small columns, not the 37 MB whole (projection pushdown in the SDK).
+
+First join (ops 6658, 2026-10-26 04:23 UTC, 303 s, 77 MB): 27,215 US-listed symbols — 6,880 common stocks, 5,773 ETFs,
+10,248 OTC, the rest funds / preferreds; coverage: scores 16,138, key metrics 16,896, ratios 16,897, growth 14,161,
+surprises 8,414, consensus 6,943, targets 4,250, DCF 9,385, ETF holders 9,431 (1.8 M holder rows inverted), float
+27,081, short interest 1,434 (polygon-bank still backfilling the per-ticker files), tape returns 12,033; 85 of 86
+curated fields resolved on first contact (`rating_score`: FMP's rating-bulk has no overall score column).
 
 ## 2. The SDK — `aws/shared/bank_enrich.py`
 
