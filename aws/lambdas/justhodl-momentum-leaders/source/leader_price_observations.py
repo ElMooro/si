@@ -76,6 +76,31 @@ def validate_ref(ref):
     return ref
 
 
+TRANSPORTS = ('provider', 'warehouse_bank')
+BANK_KEYS = {'object', 'pulled_at', 'as_of'}
+
+
+def provenance(attempt):
+    """Typed acquisition provenance (2026-10-26 bank rung).  Returns the transport: 'provider' when undeclared - every
+    record retained before the rung - or 'warehouse_bank' for an original taken from the warehouse bank's copy of the
+    provider response (no network, no HTTP status; the bank's object, pull time and data date declared).  A declared
+    attempt at the bank that did not become the original is a typed `bank_attempt` with a status string."""
+    if not isinstance(attempt, dict): raise ValueError('Acquisition record required')
+    transport = attempt.get('transport', 'provider')
+    if transport not in TRANSPORTS: raise ValueError('Unknown acquisition transport')
+    if 'network_attempted' in attempt and type(attempt['network_attempted']) is not bool: raise ValueError('Typed network flag required')
+    bank = attempt.get('bank')
+    if transport == 'warehouse_bank':
+        if (not isinstance(bank, dict) or set(bank) != BANK_KEYS or any(v is not None and not isinstance(v, str) for v in bank.values())
+                or attempt.get('http_status') is not None or attempt.get('network_attempted') is not False):
+            raise ValueError('Warehouse-bank original requires bank provenance without a transport status')
+    elif bank is not None: raise ValueError('Bank provenance on a provider request')
+    bank_attempt = attempt.get('bank_attempt')
+    if bank_attempt is not None and (not isinstance(bank_attempt, dict) or not isinstance(bank_attempt.get('status'), str)):
+        raise ValueError('Typed bank attempt required')
+    return transport
+
+
 def content(attempt, sources):
     if attempt.get('status') != 'received':
         if 'original_ref' in attempt: raise ValueError('Unexpected original on unavailable request')
@@ -231,6 +256,7 @@ def history(attempt,sources,ticker,checked_at):
     at=clock(checked_at)
     if at is None: raise ValueError('Aware observation clock required')
     if attempt.get('endpoint') not in (None, endpoint(ticker)): raise ValueError('Requested issuer differs')
+    transport=provenance(attempt)
     raw=content(attempt,sources)
     window=attempt.get('request_window')
     if raw is not None:
@@ -239,9 +265,13 @@ def history(attempt,sources,ticker,checked_at):
     base={'ticker':ticker,'status':attempt.get('status'),'source_records':None,'selected_indices':[],
           'row_issues':[],'selected_rows':[],'measurements':None,'currency':None,'currency_verified':False,
           'adjustment_basis_verified':False,'session_calendar_verified':False,**FLAGS}
+    if transport=='warehouse_bank':
+        # The observation names its root: the bank's copy of the provider response (object + pull time), not a
+        # first release and not a live receipt.  Provider records keep their original shape byte for byte.
+        base.update(transport=transport,bank=attempt['bank'])
     if raw is None: return base
     if attempt.get('endpoint') != endpoint(ticker): raise ValueError('Original requested issuer differs')
-    if attempt.get('http_status') != 200: return {**base,'status':'http_unavailable'}
+    if transport!='warehouse_bank' and attempt.get('http_status') != 200: return {**base,'status':'http_unavailable'}
     try: doc=strict(raw,exact=True)
     except (ValueError,UnicodeError,RecursionError): return {**base,'status':'malformed_original'}
     if not isinstance(doc,list): return {**base,'status':'provider_error_or_unexpected_shape'}

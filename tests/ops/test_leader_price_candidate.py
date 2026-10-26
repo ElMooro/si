@@ -10,6 +10,7 @@ import ast,json,math,sys,threading,time,unittest,urllib.request,urllib.error
 ROOT=Path(__file__).resolve().parents[2];SRC=ROOT/'aws/lambdas/justhodl-momentum-leaders/source'
 sys.path[:0]=[str(SRC),str(ROOT/'aws/shared')]
 import leader_price_observations as m
+import bank_originals
 from momentum_research_boundary import exclusion
 AT='2026-09-28T01:00:00Z';WINDOW={'from':'2025-12-12','to':'2026-09-28'}
 
@@ -66,11 +67,24 @@ def native(memory=None):
     ns={'s3':memory or Memory(),'S3_BUCKET':'fixture','OUTPUT_KEY':m.HEAD,'MAX_UNIVERSE':60,'LOOKBACK_DAYS':90,
         'FMP_KEY':'SYNTHETIC_SECRET_ONLY','time':time,'datetime':datetime,'timezone':timezone,'timedelta':timedelta,'Path':Path,
         '__file__':str(SRC/'lambda_function.py'),'urllib':urllib,'json':json,'threading':threading,
-        'ThreadPoolExecutor':ThreadPoolExecutor,'momentum_exclusion':exclusion}
+        'ThreadPoolExecutor':ThreadPoolExecutor,'momentum_exclusion':exclusion,'bank_originals':bank_originals}
     ns.update({name:getattr(m,name) for name in ('CONTRACT','HEAD','FLAGS','INPUTS','sha','encode','strict','clock','symbol','endpoint','source_ref','validate_ref','content','universe','history','build')})
     tree=ast.parse((SRC/'lambda_function.py').read_bytes())
     nodes=[n for n in tree.body if isinstance(n,(ast.FunctionDef,ast.ClassDef)) and (n.name.startswith('_leaders_') or n.name in ('_LeadersSources','lambda_handler'))]
     exec(compile(ast.Module(body=nodes,type_ignores=[]),'<isolated native leader functions>','exec'),ns);return ns
+
+
+def bank_answer(pulled_at='2026-10-26T02:00:00+00:00',n=90):
+    """A fake warehouse-bank answer: FMP-shaped rows for the requested symbol with the bank's provenance."""
+    def answer(url,now=None):
+        ticker=url.split('symbol=')[1].split('&')[0]
+        raw=m.encode([dict(r,symbol=ticker) for r in rows(n)])
+        return {'raw':raw,'transport':'warehouse_bank','received_at':datetime.now(timezone.utc).isoformat(),
+                'bank':{'object':'data/warm/fmp-walker/historical-price-eod-full/'+ticker+'.json.gz','pulled_at':pulled_at,'as_of':None}}
+    return answer
+
+
+def never_open(*a,**k):raise AssertionError('No live provider connection may be opened when the bank answers')
 
 
 def fake_fetch(ticker,sources,remaining):
@@ -203,7 +217,7 @@ class Tests(unittest.TestCase):
             status=200
         class Opener:
             def open(self,req,timeout):requests.append((req,timeout));return Response(m.encode(rows()))
-        with patch.object(urllib.request,'build_opener',return_value=Opener()):out=ns['_leaders_fetch']('TEST',sources,lambda:200)
+        with patch.object(urllib.request,'build_opener',return_value=Opener()),patch.object(bank_originals,'bank_original',lambda url,now=None:None):out=ns['_leaders_fetch']('TEST',sources,lambda:200)
         self.assertEqual(out['status'],'received');self.assertEqual(requests[0][1],15)
         self.assertIn('&from=',requests[0][0].full_url);self.assertNotIn(ns['FMP_KEY'],requests[0][0].full_url)
         self.assertEqual((m.day(out['request_window']['to'])-m.day(out['request_window']['from'])).days,290)
@@ -211,16 +225,133 @@ class Tests(unittest.TestCase):
     def test_rate_limit_stops_further_requests_and_credential_echo_is_withheld(self):
         ns=native();sources=ns['_LeadersSources']()
         class Response(BytesIO):status=429
-        with patch.object(urllib.request,'build_opener') as opener:
+        with patch.object(urllib.request,'build_opener') as opener,patch.object(bank_originals,'bank_original',lambda url,now=None:None):
             opener.return_value.open.return_value=Response(b'{"error":"quota"}')
             self.assertEqual(ns['_leaders_fetch']('TEST',sources,lambda:200)['http_status'],429)
             self.assertEqual(ns['_leaders_fetch']('OTHER',sources,lambda:200)['status'],'not_attempted_runtime_rate_or_size_limit')
             self.assertEqual(opener.return_value.open.call_count,1)
         class Echo(BytesIO):status=200
         sources=ns['_LeadersSources']()
-        with patch.object(urllib.request,'build_opener') as opener:
+        with patch.object(urllib.request,'build_opener') as opener,patch.object(bank_originals,'bank_original',lambda url,now=None:None):
             opener.return_value.open.return_value=Echo(json.dumps({'error':ns['FMP_KEY']}).encode())
             self.assertEqual(ns['_leaders_fetch']('TEST',sources,lambda:200)['status'],'credential_echo_withheld');self.assertEqual(sources.raw,{})
+    # ── 2026-10-26 bank rung: the warehouse bank's copy of the provider response as a retained original ──
+    def test_bank_rung_retains_warehouse_original_with_provenance_and_opens_no_live_connection(self):
+        ns=native();sources=ns['_LeadersSources']()
+        with patch.object(bank_originals,'bank_original',bank_answer()),patch.object(urllib.request,'build_opener',never_open):
+            out=ns['_leaders_fetch']('TEST',sources,lambda:200)
+        self.assertEqual((out['status'],out['transport'],out['network_attempted'],out['http_status']),('received','warehouse_bank',False,None))
+        self.assertEqual(out['bank'],{'object':'data/warm/fmp-walker/historical-price-eod-full/TEST.json.gz','pulled_at':'2026-10-26T02:00:00+00:00','as_of':None})
+        self.assertEqual((m.day(out['request_window']['to'])-m.day(out['request_window']['from'])).days,290)
+        self.assertEqual(out['endpoint'],m.endpoint('TEST'));self.assertIn(out['original_ref']['key'],sources.raw)
+        self.assertFalse(sources.stop.is_set());self.assertNotIn('bank_attempt',out);self.assertEqual(m.provenance(out),'warehouse_bank')
+        obs=m.history(out,sources.raw,'TEST',datetime.now(timezone.utc).isoformat())
+        self.assertEqual(obs['status'],'parsed_completed_observations');self.assertEqual(obs['transport'],'warehouse_bank');self.assertEqual(obs['bank'],out['bank'])
+        self.assertEqual(obs['measurements']['status'],'descriptive_observations')
+        # a bank record claiming an HTTP status, a network attempt or an incomplete bank block is a contract violation
+        for bad in ({'http_status':200},{'network_attempted':True},{'bank':{'object':'x'}},{'transport':'mystery'}):
+            with self.assertRaises(ValueError):m.history({**out,**bad},sources.raw,'TEST',datetime.now(timezone.utc).isoformat())
+        with self.assertRaises(ValueError):m.provenance({'status':'received','bank':out['bank']})          # bank block on a provider record
+        # every record retained before the rung is a provider record with its original shape
+        sources2={};self.assertEqual(m.provenance(attempt(m.encode(rows()),sources2)),'provider')
+    def test_bank_vintage_not_newer_than_previous_original_falls_back_to_live_and_records_it(self):
+        ns=native();sources=ns['_LeadersSources']();sources.previous_vintages={'TEST':'2026-10-26T09:49:00+00:00'}
+        class Response(BytesIO):status=200
+        class Opener:
+            def open(self,req,timeout):return Response(m.encode(rows()))
+        with patch.object(bank_originals,'bank_original',bank_answer(pulled_at='2026-10-26T02:00:00+00:00')),patch.object(urllib.request,'build_opener',return_value=Opener()):
+            out=ns['_leaders_fetch']('TEST',sources,lambda:200)
+        self.assertEqual((out['status'],out['http_status']),('received',200));self.assertNotIn('transport',out);self.assertEqual(m.provenance(out),'provider')
+        self.assertEqual(out['bank_attempt']['status'],'bank_vintage_not_newer');self.assertEqual(out['bank_attempt']['previous_vintage'],'2026-10-26T09:49:00+00:00')
+        self.assertEqual(out['bank_attempt']['bank']['pulled_at'],'2026-10-26T02:00:00+00:00')
+        # the same bank pull a day later is newer than yesterday's bank original -> admitted; equal -> refused
+        sources.previous_vintages={'TEST':'2026-10-25T02:00:00+00:00'}
+        with patch.object(bank_originals,'bank_original',bank_answer(pulled_at='2026-10-26T02:00:00+00:00')),patch.object(urllib.request,'build_opener',never_open):
+            self.assertEqual(ns['_leaders_fetch']('TEST',sources,lambda:200)['transport'],'warehouse_bank')
+        sources.previous_vintages={'TEST':'2026-10-26T02:00:00+00:00'}
+        with patch.object(bank_originals,'bank_original',bank_answer(pulled_at='2026-10-26T02:00:00+00:00')),patch.object(urllib.request,'build_opener',return_value=Opener()):
+            self.assertEqual(ns['_leaders_fetch']('TEST',sources,lambda:200)['bank_attempt']['status'],'bank_vintage_not_newer')
+    def test_no_bank_answer_keeps_the_live_rung_exactly_and_a_bank_answer_never_sets_or_needs_the_provider_backoff(self):
+        ns=native();sources=ns['_LeadersSources']()
+        class Response(BytesIO):status=429
+        with patch.object(bank_originals,'bank_original',lambda url,now=None:None),patch.object(urllib.request,'build_opener') as opener:
+            opener.return_value.open.return_value=Response(b'{"error":"quota"}')
+            out=ns['_leaders_fetch']('TEST',sources,lambda:200)
+            self.assertEqual((out['http_status'],out['bank_attempt']),(429,{'status':'no_bank_answer'}));self.assertTrue(sources.stop.is_set())
+            self.assertEqual(ns['_leaders_fetch']('OTHER',sources,lambda:200)['status'],'not_attempted_runtime_rate_or_size_limit')
+            self.assertEqual(opener.return_value.open.call_count,1)
+        # after the provider back-off the bank still answers (no provider request), and a bank fault is a typed attempt, not a failure
+        with patch.object(bank_originals,'bank_original',bank_answer()),patch.object(urllib.request,'build_opener',never_open):
+            self.assertEqual(ns['_leaders_fetch']('OTHER',sources,lambda:200)['transport'],'warehouse_bank')
+        with patch.object(bank_originals,'bank_original',lambda url,now=None:(_ for _ in ()).throw(RuntimeError('bank down'))),patch.object(urllib.request,'build_opener',return_value=type('O',(),{'open':lambda s,r,timeout:type('R',(BytesIO,),{'status':200})(m.encode(rows()))})()):
+            sources=ns['_LeadersSources']();out=ns['_leaders_fetch']('TEST',sources,lambda:200)
+            self.assertEqual((out['status'],out['bank_attempt']),('received',{'status':'bank_error','error_type':'RuntimeError'}))
+        # the retention budget and the runtime reserve gate the bank rung exactly as the live one
+        sources=ns['_LeadersSources']();sources.bytes=96*1024*1024
+        with patch.object(bank_originals,'bank_original',never_open):self.assertEqual(ns['_leaders_fetch']('TEST',sources,lambda:200)['status'],'not_attempted_runtime_rate_or_size_limit')
+        with patch.object(bank_originals,'bank_original',never_open):self.assertEqual(ns['_leaders_fetch']('TEST',ns['_LeadersSources'](),lambda:10)['status'],'not_attempted_runtime_rate_or_size_limit')
+    def test_previous_vintages_are_the_provider_time_of_each_retained_original(self):
+        ns=native()
+        live={'status':'received','endpoint':m.endpoint('LIVE'),'received_at':'2026-10-25T09:49:00+00:00','http_status':200}
+        bank={'status':'received','endpoint':m.endpoint('BANK'),'received_at':'2026-10-25T09:49:00+00:00','transport':'warehouse_bank',
+              'bank':{'object':'o','pulled_at':'2026-10-25T02:00:00+00:00','as_of':None}}
+        failed={'status':'transport_unavailable','endpoint':m.endpoint('GONE'),'received_at':'2026-10-25T09:49:00+00:00'}
+        previous={'measurement_contract':m.CONTRACT,'request_records':[{'acquisition':live},{'acquisition':bank},{'acquisition':failed},{'acquisition':{'status':'invalid_symbol_not_requested'}}],
+                  'benchmark':{'acquisition':{**live,'endpoint':m.endpoint('SPY')}}}
+        self.assertEqual(ns['_leaders_previous_vintages'](previous),{'LIVE':'2026-10-25T09:49:00+00:00','BANK':'2026-10-25T02:00:00+00:00','SPY':'2026-10-25T09:49:00+00:00'})
+        self.assertEqual(ns['_leaders_previous_vintages']({'all_scored':[]}),{});self.assertEqual(ns['_leaders_previous_vintages'](None),{})
+    def test_bank_sourced_publication_counts_the_rung_and_replays_through_the_acceptance_check(self):
+        sys.path.insert(0,str(ROOT/'aws/ops/staged'));sys.path.insert(0,str(ROOT/'aws/ops'));sys.path.insert(0,str(ROOT/'aws/ops/checks'))
+        import ops_6267_leader_price_acceptance as op
+        memory=Memory();ns=native(memory)
+        with patch.object(bank_originals,'bank_original',bank_answer()),patch.object(urllib.request,'build_opener',never_open):ns['lambda_handler']()
+        raw=memory.data[m.HEAD];p=m.strict(raw)
+        self.assertEqual(p['version'],'2.1.0');self.assertEqual(p['bank_rung']['module'],'bank_originals')
+        self.assertEqual((p['bank_rung']['n_bank_originals'],p['bank_rung']['n_live_originals'],p['bank_rung']['n_vintage_refused']),(2,0,0))
+        self.assertEqual(p['bank_rung']['module_identity']['sha256'],m.sha((ROOT/'aws/shared/bank_originals.py').read_bytes()))
+        self.assertEqual(p['request_records'][0]['acquisition']['transport'],'warehouse_bank');self.assertEqual(p['benchmark']['acquisition']['transport'],'warehouse_bank')
+        self.assertEqual(p['request_records'][0]['observations']['status'],'parsed_completed_observations')
+        self.assertEqual(p['request_records'][0]['observations']['bank']['pulled_at'],'2026-10-26T02:00:00+00:00')
+        self.assertTrue(any('warehouse-bank original' in c for c in p['caveats']));self.assertEqual(p['source_files'].keys(),{'lambda_function.py','leader_price_observations.py','momentum_research_boundary.py'})
+        for k in m.FLAGS:self.assertIs(p[k],False)
+        result=op.publication(raw,memory.previous,op.read_sources(memory,p))
+        self.assertEqual(result['status'],'published_leader_originals_replayed');self.assertEqual(result['request_occurrences'],1)
+        # the next run sees the bank's pull time as the previous vintage: the same pull is refused, live follows
+        class Response(BytesIO):status=200
+        class Opener:
+            def open(self,req,timeout):return Response(m.encode([dict(r,symbol=req.full_url.split('symbol=')[1].split('&')[0]) for r in rows()]))
+        with patch.object(bank_originals,'bank_original',bank_answer()),patch.object(urllib.request,'build_opener',return_value=Opener()):ns['lambda_handler']()
+        p2=m.strict(memory.data[m.HEAD])
+        self.assertEqual((p2['bank_rung']['n_bank_originals'],p2['bank_rung']['n_live_originals'],p2['bank_rung']['n_vintage_refused']),(0,2,2))
+        self.assertEqual(p2['bank_rung']['previous_vintages_known'],2);self.assertEqual(p2['request_records'][0]['acquisition']['bank_attempt']['status'],'bank_vintage_not_newer')
+    def test_engine_request_shape_is_answered_by_the_real_bank_reader(self):
+        import gzip,fmp_bank,fmp_bankfirst
+        class S3:
+            def __init__(self):self.store={};self.meta={}
+            def get_object(self,Bucket,Key):
+                if Key not in self.store:raise KeyError(Key)
+                return {'Body':BytesIO(self.store[Key]),'Metadata':self.meta.get(Key,{})}
+        now=datetime(2026,10,22,23,0,tzinfo=timezone.utc)      # Thursday 23:00 UTC: Oct 22's session is complete
+        class FixedDT(datetime):
+            @classmethod
+            def now(cls,tz=None):return now if tz else now.replace(tzinfo=None)
+        s3=S3();W=fmp_bank.WALKER_ROOT
+        banked=[dict(r,symbol='TEST',date=(date(2026,10,22)-timedelta(days=89-i)).isoformat()) for i,r in enumerate(rows())]
+        s3.store[W+'historical-price-eod-full/TEST.json.gz']=gzip.compress(json.dumps(banked).encode());s3.meta[W+'historical-price-eod-full/TEST.json.gz']={'pulled_at':'2026-10-22T20:00:00Z'}
+        saved=(fmp_bank._S3,fmp_bankfirst.datetime)
+        fmp_bank._S3=s3;fmp_bank._cache.clear();fmp_bank._TABLES.clear();fmp_bank._MISSING.clear();fmp_bank._EVICTED.clear();fmp_bankfirst._reset_ctl(time.time());fmp_bankfirst.datetime=FixedDT
+        try:
+            url=m.endpoint('TEST')+'&from=2026-01-05&to=2026-10-22'
+            out=bank_originals.bank_original(url,now=now)
+            self.assertIsNotNone(out);rows_=json.loads(out['raw']);self.assertEqual(rows_[0]['symbol'],'TEST');self.assertEqual(len(rows_),90)
+            self.assertEqual(out['bank']['object'],W+'historical-price-eod-full/TEST.json.gz');self.assertEqual(out['bank']['pulled_at'],'2026-10-22T20:00:00+00:00')
+            self.assertIsNone(bank_originals.bank_original('https://financialmodelingprep.com/stable/quote?symbol=TEST',now=now))
+            ns=native();sources=ns['_LeadersSources']()
+            with patch.object(urllib.request,'build_opener',never_open):fetched=ns['_leaders_fetch']('TEST',sources,lambda:200)
+            self.assertEqual(fetched['transport'],'warehouse_bank')
+            obs=m.history(fetched,sources.raw,'TEST',datetime.now(timezone.utc).isoformat());self.assertEqual(obs['status'],'parsed_completed_observations')
+        finally:
+            fmp_bank._S3,fmp_bankfirst.datetime=saved;fmp_bank._cache.clear();fmp_bank._TABLES.clear();fmp_bank._MISSING.clear()
 
 
 if __name__=='__main__':unittest.main(verbosity=2)

@@ -538,6 +538,7 @@ def _write_error(message: str, **extras) -> dict:
 # Whole predecessor remains above. The active handler publishes dated observations only.
 from pathlib import Path
 import threading
+import bank_originals  # aws/shared, packaged with the function: the warehouse-bank rung (bank_original / newer_than)
 from leader_price_observations import (CONTRACT,HEAD,FLAGS,INPUTS,sha,encode,strict,clock,
     symbol,endpoint,source_ref,validate_ref,content,universe,history,build)
 
@@ -565,8 +566,31 @@ def _leaders_archive(raw):
     ref={'key':'data/momentum-leaders/history/'+sha(raw)+'.json','bytes':len(raw),'sha256':sha(raw)}
     _leaders_immutable(ref['key'],raw);return ref
 
+def _leaders_bank_identity():
+    root=Path(__file__).resolve().parent;path=root/'bank_originals.py'
+    if not path.exists():path=root.parents[2]/'shared/bank_originals.py'
+    raw=path.read_bytes();return {'bytes':len(raw),'sha256':sha(raw)}
+
+def _leaders_previous_vintages(previous):
+    """{ticker: provider vintage} of the previous publication's retained originals.  A live original's vintage is its
+    receipt (the provider answered then); a warehouse-bank original's is the bank's pull time.  The bank rung admits a
+    bank answer only when its pull time is later than this - the same content, or older content, is never retained
+    again as a new observation (bank_originals.newer_than)."""
+    out={}
+    if not isinstance(previous,dict) or previous.get('measurement_contract')!=CONTRACT:return out
+    rows=[r.get('acquisition') for r in (previous.get('request_records') or []) if isinstance(r,dict)]
+    rows.append((previous.get('benchmark') or {}).get('acquisition') if isinstance(previous.get('benchmark'),dict) else None)
+    for a in rows:
+        if not isinstance(a,dict) or a.get('status')!='received':continue
+        url=a.get('endpoint') or '';ticker=url.rsplit('symbol=',1)[-1] if 'symbol=' in url else None
+        if symbol(ticker) is None:continue
+        bank=a.get('bank') if a.get('transport')=='warehouse_bank' else None
+        vintage=(bank.get('pulled_at') or bank.get('as_of')) if isinstance(bank,dict) else a.get('received_at')
+        if isinstance(vintage,str) and clock(vintage) is not None:out[ticker]=vintage
+    return out
+
 class _LeadersSources:
-    def __init__(self):self.raw={};self.bytes=0;self.lock=threading.Lock();self.stop=threading.Event()
+    def __init__(self):self.raw={};self.bytes=0;self.lock=threading.Lock();self.stop=threading.Event();self.previous_vintages={}
     def capture(self,raw,url,requested_at):
         ref=source_ref(raw)
         with self.lock:
@@ -576,14 +600,35 @@ class _LeadersSources:
         return {'status':'received','endpoint':url,'requested_at':requested_at,
             'received_at':datetime.now(timezone.utc).isoformat(),'original_ref':ref}
 
+def _leaders_bank_rung(ticker,url,request_url,window,requested,sources):
+    """Ask the warehouse bank for the SAME request before any live connection (2026-10-26).  Returns the retained
+    acquisition record when the bank answers with content newer than the previous retained original for this ticker,
+    else a typed bank_attempt the live record carries.  No key, no network, no HTTP status; the bank's object and pull
+    time are the provenance; a bank answer never sets the provider back-off."""
+    try:bank=bank_originals.bank_original(request_url)
+    except Exception as exc:return {'status':'bank_error','error_type':type(exc).__name__}
+    if bank is None:return {'status':'no_bank_answer'}
+    prior=sources.previous_vintages.get(ticker) if hasattr(sources,'previous_vintages') else None
+    if not bank_originals.newer_than(bank['bank'],prior):
+        return {'status':'bank_vintage_not_newer','bank':bank['bank'],'previous_vintage':prior}
+    if FMP_KEY and FMP_KEY.encode() in bank['raw']:return {'status':'credential_echo_withheld'}
+    # Whole retention failures propagate exactly as for a live response.
+    out=sources.capture(bank['raw'],url,requested)
+    out.update(transport=bank_originals.TRANSPORT,network_attempted=False,bank=bank['bank'],http_status=None,request_window=window)
+    return out
+
 def _leaders_fetch(ticker,sources,remaining):
     if symbol(ticker) is None:return {'status':'invalid_symbol_not_requested'}
     url=endpoint(ticker);base={'endpoint':url,'status':'not_attempted_runtime_rate_or_size_limit'}
-    if remaining()<60 or sources.bytes>=96*1024*1024 or sources.stop.is_set():return base
-    if not FMP_KEY:return {**base,'status':'credential_unavailable'}
+    if remaining()<60 or sources.bytes>=96*1024*1024:return base
     requested=datetime.now(timezone.utc).isoformat()
     to=clock(requested).date();window={'from':(to-timedelta(days=290)).isoformat(),'to':to.isoformat()}
     request_url=url+'&from='+window['from']+'&to='+window['to']
+    rung=_leaders_bank_rung(ticker,url,request_url,window,requested,sources)
+    if rung.get('status')=='received':return rung
+    base['bank_attempt']=rung
+    if sources.stop.is_set():return base
+    if not FMP_KEY:return {**base,'status':'credential_unavailable'}
     base['request_window']=window
     class NoRedirect(urllib.request.HTTPRedirectHandler):
         def redirect_request(self,req,fp,code,msg,headers,newurl):return None
@@ -608,7 +653,7 @@ def _leaders_fetch(ticker,sources,remaining):
         elif isinstance(value,list):pending.extend(value)
     if reflected:return {**result,'status':'credential_echo_withheld','original_retained':False}
     # Whole retention failures propagate; they cannot become a successful empty response.
-    out=sources.capture(raw,url,requested);out['http_status']=status;out['request_window']=window;return out
+    out=sources.capture(raw,url,requested);out['http_status']=status;out['request_window']=window;out['bank_attempt']=base['bank_attempt'];return out
 
 def lambda_handler(event=None,context=None):
     started=time.monotonic();checked=datetime.now(timezone.utc)
@@ -625,7 +670,7 @@ def lambda_handler(event=None,context=None):
     def remaining():
         own=240-(time.monotonic()-started)
         return min(own,context.get_remaining_time_in_millis()/1000) if context and hasattr(context,'get_remaining_time_in_millis') else own
-    sources=_LeadersSources();captures={}
+    sources=_LeadersSources();sources.previous_vintages=_leaders_previous_vintages(previous);captures={}
     for key in INPUTS:
         requested=datetime.now(timezone.utc).isoformat()
         try:raw,source_etag=_leaders_object(key,8*1024*1024)
@@ -655,9 +700,16 @@ def lambda_handler(event=None,context=None):
     if selected and not any(r['observations']['status'] in ('parsed_completed_observations','reported_empty_history','unresolved_identity_or_window','no_completed_observations') for r in research['request_records']):
         raise ValueError('No received market observations; preserve current')
     prior_ref=_leaders_archive(previous_raw) if previous_raw is not None else None
-    packet={'engine':'justhodl-momentum-leaders','version':'2.0.0','schema_version':'2.0','measurement_contract':CONTRACT,
+    price_attempts=attempts+([benchmark_attempt] if selected else [])
+    bank_rung={'module':'bank_originals','module_identity':_leaders_bank_identity(),
+        'rule':'warehouse original admitted only when its pulled_at is later than the previous retained original for the same request',
+        'n_bank_originals':sum(a.get('transport')=='warehouse_bank' for a in price_attempts),
+        'n_live_originals':sum(a.get('status')=='received' and a.get('transport')!='warehouse_bank' for a in price_attempts),
+        'n_vintage_refused':sum((a.get('bank_attempt') or {}).get('status')=='bank_vintage_not_newer' for a in price_attempts),
+        'previous_vintages_known':len(sources.previous_vintages)}
+    packet={'engine':'justhodl-momentum-leaders','version':'2.1.0','schema_version':'2.0','measurement_contract':CONTRACT,
         'status':'RESEARCH_ONLY','method':'composite_selected_dated_price_observations','generated_at':finished,'acquisition_started_at':checked.isoformat(),
-        'source_files':_leaders_source_identity(),'input_acquisitions':captures,'previous_publication':prior_ref,
+        'source_files':_leaders_source_identity(),'bank_rung':bank_rung,'input_acquisitions':captures,'previous_publication':prior_ref,
         'acquisition_limits':{'MAX_UNIVERSE':60,'LOOKBACK_DAYS':90,'request_calendar_span':290,'original_configured_workers':8,
                               'active_workers':workers,'stock_acquisition_budget_seconds':120,'publication_budget_seconds':240},
         'retained_unique_source_bytes':sources.bytes,**research,'momentum_research_exclusion':momentum_exclusion(),
@@ -670,7 +722,8 @@ def lambda_handler(event=None,context=None):
             'The original 290-calendar-day request cannot establish a 52-week high. Available-window maxima carry actual dates, counts and scope.',
             'Missing benchmark endpoints and price windows remain unavailable. Zero historical volume remains in the denominator; no warm-container price cache is reused.',
             'No composite score, percentile leadership, pump confirmation, call, position size or execution authority is produced.',
-            'Corporate actions, currency, exchange calendars, total returns, first-release vintages, historical membership and forecast performance remain unverified.']}
+            'Corporate actions, currency, exchange calendars, total returns, first-release vintages, historical membership and forecast performance remain unverified.',
+            'A warehouse-bank original is the bank\'s copy of the provider response at the bank\'s pull time (declared on the record), not a first release and not a live receipt; it is admitted only when newer than the previous retained original for the same request, and quotes are never taken from the bank.']}
     raw=encode(packet)
     if len(raw)>64*1024*1024 or remaining()<15:raise ValueError('Whole publication exceeds reserve; preserve current')
     archive=_leaders_archive(raw);precondition={'IfMatch':etag} if etag else {'IfNoneMatch':'*'}
