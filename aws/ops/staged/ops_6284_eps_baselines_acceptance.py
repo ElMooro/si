@@ -32,7 +32,7 @@ def publication(raw,prior_raw=None,read_source=None):
     if p.get('measurement_contract')!=m.CONTRACT or p.get('version') in ('1.1.0','1.1.1'):
         return {'status':'pending_original_fanout_baseline_publication','bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest(),
             'generated_at':p.get('generated_at'),'version':p.get('version'),'current_compiler_publication_verified':False,'investment_authority':False}
-    if p.get('version') not in ('1.2.0','1.3.0') or 'estimate_baselines' not in p:raise ValueError('Recognized retained-baseline compiler required')
+    if p.get('version') not in ('1.2.0','1.3.0','1.4.0') or 'estimate_baselines' not in p:raise ValueError('Recognized retained-baseline compiler required')  # 1.4.0 (2026-10-26): the bank rung; baselines unchanged
     io=p.get('retained_source_io',{});workers=io.get('worker_limit')
     if type(workers) is not int or not 1<=workers<=10 or io!={'connect_timeout_seconds':3,'read_timeout_seconds':5,'total_attempts':1,
         'worker_limit':workers,'minimum_remaining_seconds':25,'source_bytes_limit':256*1024}:raise ValueError('Bounded owned-source transport differs')

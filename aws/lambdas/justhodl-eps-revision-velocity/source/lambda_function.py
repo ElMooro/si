@@ -431,6 +431,46 @@ import hashlib
 from eps_observations import (CONTRACT, strict, clock, number, symbol, envelope, original, universe, dossier, acquisition_plan, acquisition_progress,
                               estimate_descriptor, validate_estimate_descriptor, estimate_source_envelope,
                               previous_estimate_baselines, merge_estimate_baselines)
+import bank_originals  # the bank rung (aws/shared/bank_originals): warehouse-received originals with the bank's provenance
+
+# Run-scoped state the acquisition threads read (reset by lambda_handler at every run):
+#   baseline_received_at - per ticker, the receipt clock of the previous retained annual original (the vintage rule's reference);
+#   live_rate_limited    - set by the first live 429 of the run; later LIVE attempts are skipped, the bank rung still runs.
+_EPS_RUN = {'baseline_received_at': {}, 'live_rate_limited': False}
+BANK_RUNG_RULE = ('warehouse original admitted only when its pulled_at is later than the previous retained original for the same '
+                  'request; quotes never')
+NEVER_BANKED = ('quote',)
+
+
+def _eps_bank_record(url, endpoint, previous_received_at):
+    """The bank rung for one request.  Returns (acquisition | None, bank_attempt).
+
+    The acquisition is the engine's usual received envelope over the bank's bytes (FMP's own shape) plus typed provenance:
+    transport 'warehouse_bank', network_attempted False and bank = {object, pulled_at, as_of} exactly as the bank reports
+    them.  received_at is when THIS engine received the bytes from the bank; bank.pulled_at is the provider vintage.
+    A bank original is admitted only when that vintage is strictly later than the previous retained original's receipt
+    for the same request (bank_originals.newer_than): the retained baseline was received live at some clock T, and an
+    answer the bank pulled before T is older content that would read as a reversal, never as a revision."""
+    if endpoint in NEVER_BANKED:
+        return None, {'status': 'never_banked_endpoint'}
+    try:
+        bank = bank_originals.bank_original(url)
+    except Exception as exc:  # the bank rung never blocks the live rung
+        return None, {'status': 'bank_error', 'error_type': type(exc).__name__}
+    if not bank:
+        return None, {'status': 'no_bank_answer'}
+    prov = bank.get('bank') if isinstance(bank, dict) else None
+    if (not isinstance(prov, dict) or set(prov) != {'object', 'pulled_at', 'as_of'} or not isinstance(bank.get('raw'), bytes)
+            or any(v is not None and not isinstance(v, str) for v in prov.values()) or clock(bank.get('received_at')) is None
+            or bank.get('transport') != bank_originals.TRANSPORT):
+        return None, {'status': 'bank_answer_malformed'}
+    if not bank_originals.newer_than(prov, previous_received_at):
+        return None, {'status': 'bank_vintage_not_newer', 'bank': prov, 'previous_received_at': previous_received_at}
+    if len(bank['raw']) > 256*1024:
+        return None, {'status': 'bank_answer_exceeds_bound', 'bank': prov}
+    record = envelope(bank['raw'], endpoint, bank['received_at'])
+    record.update(transport=bank_originals.TRANSPORT, network_attempted=False, bank=prov)
+    return record, {'status': 'bank_original_admitted'}
 
 
 def _eps_source_identity():
@@ -444,13 +484,22 @@ def _eps_import_identity():
     return {'managed_secret.py':{'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}}
 
 
-def _eps_fetch(ticker, endpoint):
+def _eps_fetch(ticker, endpoint, previous_received_at=None):
     if symbol(ticker) != ticker or not ticker:
         return {'endpoint': endpoint, 'status': 'invalid_symbol_not_requested'}
-    if not FMP_KEY:
-        return {'endpoint': endpoint, 'status': 'credential_unavailable'}
     url = 'https://financialmodelingprep.com/stable/'+endpoint+'?symbol='+quote_plus(ticker)
-    if endpoint == 'analyst-estimates': url += '&period=annual&limit=5'
+    if endpoint == 'analyst-estimates':
+        url += '&period=annual&limit=5'
+        if previous_received_at is None: previous_received_at = _EPS_RUN['baseline_received_at'].get(ticker)   # the retained annual baseline's receipt
+    # bank rung first (v1.4.0): the same URL answered from the warehouse bank, with its provenance; live is the fallback
+    record, bank_attempt = _eps_bank_record(url, endpoint, previous_received_at)
+    if record is not None:
+        return record
+    if not FMP_KEY:
+        return {'endpoint': endpoint, 'status': 'credential_unavailable', 'bank_attempt': bank_attempt}
+    if _EPS_RUN.get('live_rate_limited'):
+        # the provider already answered 429 in this run: one refusal is the evidence, later live attempts are not made
+        return {'endpoint': endpoint, 'status': 'not_attempted_provider_rate_limit', 'bank_attempt': bank_attempt}
     req = urllib.request.Request(url, headers={'User-Agent':'JustHodl-EPS-Observations/1.1','apikey':FMP_KEY})
     class NoRedirect(urllib.request.HTTPRedirectHandler):
         def redirect_request(self, req, fp, code, msg, headers, newurl): return None
@@ -458,22 +507,48 @@ def _eps_fetch(ticker, endpoint):
         with urllib.request.build_opener(NoRedirect()).open(req, timeout=10) as response:
             raw = response.read(256*1024+1)
         if len(raw) > 256*1024:
-            return {'endpoint':endpoint,'status':'response_exceeds_bound','original_retained':False}
+            return {'endpoint':endpoint,'status':'response_exceeds_bound','original_retained':False,'bank_attempt':bank_attempt}
         if FMP_KEY.encode() in raw:
-            return {'endpoint':endpoint,'status':'credential_echo_withheld','original_retained':False}
-        return envelope(raw, endpoint, datetime.now(timezone.utc).isoformat())
+            return {'endpoint':endpoint,'status':'credential_echo_withheld','original_retained':False,'bank_attempt':bank_attempt}
+        out = envelope(raw, endpoint, datetime.now(timezone.utc).isoformat()); out['bank_attempt'] = bank_attempt
+        return out
     except Exception as exc:
-        return {'endpoint':endpoint,'status':'rate_limited' if getattr(exc,'code',None)==429 else 'authorization_unavailable' if getattr(exc,'code',None) in (401,403) else 'unavailable',
-                'http_status':getattr(exc,'code',None),'error_type':type(exc).__name__}
+        code = getattr(exc,'code',None)
+        if code == 429: _EPS_RUN['live_rate_limited'] = True
+        return {'endpoint':endpoint,'status':'rate_limited' if code==429 else 'authorization_unavailable' if code in (401,403) else 'unavailable',
+                'http_status':code,'error_type':type(exc).__name__,'bank_attempt':bank_attempt}
+
+
+def _eps_live_probe(ticker):
+    """One live quote request (quotes are never banked) whose outcome decides the run's live mode; see lambda_handler."""
+    return _eps_fetch(ticker, 'quote')
+
+
+def _eps_gate(ticker, quote_capture):
+    """The acquisition budget gate's market cap and where it came from: the live quote when it was received and names the
+    ticker, else the warehouse bank's profile original (FMP's profile shape carries marketCap).  The gate stays a request
+    budget selection, never a valuation claim; the profile original is retained whole on the quote record."""
+    quotes = original(quote_capture)
+    quote = quotes[0] if isinstance(quotes,list) and len(quotes)==1 and isinstance(quotes[0],dict) else {}
+    mcap = number(quote.get('marketCap'))
+    if quote.get('symbol') == ticker and mcap is not None:
+        return mcap, {'source': 'live_quote'}
+    record, attempt = _eps_bank_record('https://financialmodelingprep.com/stable/profile?symbol='+quote_plus(ticker), 'profile', None)
+    rows = original(record) if record is not None else None
+    row = rows[0] if isinstance(rows,list) and len(rows)==1 and isinstance(rows[0],dict) else {}
+    bank_mcap = number(row.get('marketCap'))
+    if record is not None and row.get('symbol') == ticker and bank_mcap is not None:
+        return bank_mcap, {'source': 'warehouse_bank_profile', 'market_cap': bank_mcap, 'original': record}
+    return None, {'source': 'unavailable', 'bank_attempt': attempt if record is None else {'status': 'profile_without_market_cap'}}
 
 
 def _eps_company(ticker):
-    captures = [_eps_fetch(ticker, 'quote')]; quotes = original(captures[0])
+    captures = [_eps_fetch(ticker, 'quote')]
     # Preserve the existing numerical acquisition budget gate, without claiming
     # that an unreported quote currency is USD or that market cap establishes value.
-    quote = quotes[0] if isinstance(quotes,list) and len(quotes)==1 and isinstance(quotes[0],dict) else {}
-    mcap = number(quote.get('marketCap'))
-    if quote.get('symbol') != ticker or mcap is None or mcap < MIN_MCAP:
+    # v1.4.0: when the live quote is unavailable the same numeric gate reads the bank's profile original (quotes are never banked).
+    mcap, gate = _eps_gate(ticker, captures[0]); captures[0]['gate'] = gate
+    if mcap is None or mcap < MIN_MCAP:
         captures.append({'endpoint':'analyst-estimates','status':'not_requested_original_quote_gate'})
         return captures
     captures.append(_eps_fetch(ticker, 'analyst-estimates')); parsed = original(captures[-1])
@@ -482,6 +557,27 @@ def _eps_company(ticker):
         return captures
     captures.append(_eps_fetch(ticker,'grades'))
     return captures
+
+
+def _eps_bank_rung_summary(records):
+    """Counts for the packet: originals received from the bank rung vs live, vintage refusals, live attempts skipped
+    after the run's first 429, gate sources.  Reads the records only."""
+    out = {'module':'bank_originals','rule':BANK_RUNG_RULE,'never_banked':list(NEVER_BANKED),'n_bank_originals':0,'n_live_originals':0,
+           'n_vintage_refused':0,'n_live_skipped_after_rate_limit':0,'n_gate_profile_originals':0,
+           'gate_sources':{'live_quote':0,'warehouse_bank_profile':0,'unavailable':0}}
+    for row in records:
+        for a in row.get('acquisitions') or []:
+            if a.get('status') == 'received':
+                out['n_bank_originals' if a.get('transport') == bank_originals.TRANSPORT else 'n_live_originals'] += 1
+            attempt = a.get('bank_attempt') or {}
+            if attempt.get('status') == 'bank_vintage_not_newer': out['n_vintage_refused'] += 1
+            if a.get('status') == 'not_attempted_provider_rate_limit': out['n_live_skipped_after_rate_limit'] += 1
+            gate = a.get('gate')
+            if isinstance(gate, dict):
+                src = gate.get('source')
+                if src in out['gate_sources']: out['gate_sources'][src] += 1
+                if src == 'warehouse_bank_profile': out['n_gate_profile_originals'] += 1
+    return out
 
 
 def _eps_object(key, bound):
@@ -552,6 +648,8 @@ def lambda_handler(event=None,context=None):
         stamp = clock(previous.get('generated_at'))
         if stamp is None or stamp>=checked: raise ValueError('Previous publication time invalid')
     baselines,bootstrap=previous_estimate_baselines(previous)
+    _EPS_RUN['baseline_received_at'] = {ticker: d.get('received_at') for ticker, d in baselines.items()}
+    _EPS_RUN['live_rate_limited'] = False
     captures = []
     for key in ('data/universe.json','screener/data.json'):
         try:
@@ -562,6 +660,17 @@ def lambda_handler(event=None,context=None):
         captures.append(capture)
     membership = universe(captures,SP500_BACKUP,min(MAX_TICKERS,500)); selected = membership['selected_symbols']
     plan=acquisition_plan(selected,previous);visited=[];stop_reason='planned_window_complete'
+    # v1.4.0 live probe: a provider 429 stops the acquisition window by contract (provider_rate_limit).  When the previous
+    # publication ended that way, or ran bank-only, ONE live quote request (quotes are never banked) decides this run's mode
+    # before the window: 429 -> every later live attempt is skipped as not_attempted_provider_rate_limit and the window runs
+    # on warehouse originals; anything else -> live attempts proceed as before.  The probe's whole response is retained here.
+    previous_live_rate_limited = isinstance(previous,dict) and ((previous.get('acquisition_progress') or {}).get('stop_reason')=='provider_rate_limit'
+                                                                or (previous.get('bank_rung') or {}).get('live_rate_limited') is True)
+    probe={'attempted':False,'reason':'previous_publication_saw_no_live_rate_limit' if not previous_live_rate_limited else 'no_planned_symbols_or_credential'}
+    if previous_live_rate_limited and plan['planned_symbols'] and FMP_KEY:
+        probe_ticker=plan['planned_symbols'][0];probed=_eps_live_probe(probe_ticker)
+        probe={'attempted':True,'ticker':probe_ticker,'endpoint':'quote','status':probed.get('status'),'http_status':probed.get('http_status'),
+               'original':probed if probed.get('status') in ('received','invalid_original') else None}
     acquisitions = [[{'endpoint':'quote','status':'not_attempted_runtime_rate_or_size_limit'}] for _ in selected]
     workers = max(1,min(N_WORKERS,10)); total_bytes = 0
     def remaining():
@@ -617,10 +726,11 @@ def lambda_handler(event=None,context=None):
     prior_ref = _eps_archive(previous_raw) if previous_raw is not None else None
     published_at=datetime.now(timezone.utc).isoformat()
     catalogue=merge_estimate_baselines(baselines,records,checked.isoformat(),published_at)
-    packet = {'engine':'justhodl-eps-revision-velocity','version':'1.3.0','schema_version':2,
+    packet = {'engine':'justhodl-eps-revision-velocity','version':'1.4.0','schema_version':2,
               'source_files':_eps_source_identity(),'source_imports':_eps_import_identity(),
               'transport':{'credential_location':'header','follow_redirects':False,'automatic_retries':False,
                            'timeout_seconds':10,'max_response_bytes':256*1024,'stop_after_authorization_error':True},
+              'bank_rung':dict(_eps_bank_rung_summary(records),live_probe=probe,live_rate_limited=bool(_EPS_RUN.get('live_rate_limited'))),
               'measurement_contract':CONTRACT,'method':'received_annual_targets_and_same_target_changes','status':'RESEARCH_ONLY',
               'generated_at':published_at,'acquisition_started_at':checked.isoformat(),'checked_as_of':today,
               'estimate_baselines':catalogue,
@@ -629,7 +739,8 @@ def lambda_handler(event=None,context=None):
                                     'worker_limit':workers,'minimum_remaining_seconds':25,'source_bytes_limit':256*1024},
               'universe_acquisitions':captures,'legacy_static_backup':SP500_BACKUP,'universe_membership':membership,'request_records':records,
               'acquisition_policy':{'request_limit':membership['request_limit'],'numeric_market_cap_floor':MIN_MCAP,
-                                    'threshold_currency_verified':False,'quote_gate_is_budget_selection_not_valuation':True},
+                                    'threshold_currency_verified':False,'quote_gate_is_budget_selection_not_valuation':True,
+                                    'gate_fallback':'the warehouse bank profile original (marketCap) when the live quote is unavailable; same numeric floor; selection budget only'},
               'previous_publication':prior_ref,'stats':{'n_universe':len(selected),'n_qualifying':None,'n_tier_a':None,'n_tier_b':None},
               'n_estimate_observations':sum(len(r['estimate_observations']) for r in records),
               'n_rating_observations':sum(len(r['rating_observations']) for r in records),
@@ -643,7 +754,8 @@ def lambda_handler(event=None,context=None):
                          'Rating actions remain separate records; a rating company name, unchanged sell opinion or future-dated action is not an earnings revision.',
                          'Raw quote units/timing, corporate actions, fixed analyst panels, complete provider history and independent predictive performance remain unverified.',
                          'The static backup is a legacy selection list, not verified present or historical S&P 500 membership.',
-                         'Same FMP annual estimates also feed Estimate Revisions; these are not independent votes. No six-month outperformance claim is made.'],
+                         'Same FMP annual estimates also feed Estimate Revisions; these are not independent votes. No six-month outperformance claim is made.',
+                         'A warehouse-bank original is the bank\'s copy of the provider response at the bank\'s pull time (bank.pulled_at), not a first release; it is admitted only when that pull is later than the previous retained original for the same request, and quotes are never taken from the bank.'],
               'duration_s':round(time.monotonic()-started,2)}
     raw = json.dumps(packet,ensure_ascii=False,separators=(',',':'),allow_nan=False).encode('utf-8')
     if len(raw)>64*1024*1024 or remaining()<15: raise ValueError('Whole publication exceeds reserve; preserve previous current packet')
