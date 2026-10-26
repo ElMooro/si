@@ -6,6 +6,29 @@ This file tracks items that require **your direct action** (registration, creden
 
 ## 🔴 Time-sensitive
 
+### 0o. FMP has cut the key off: "Bandwidth Limit Reach" on every call since ~2026-10-26 01:00 UTC - your decision
+
+* **What happened.** FMP Ultimate carries **150 GB of response bandwidth per rolling 30 days** (separate from the
+  3,000 calls/min; their page: capacity "becomes available gradually as older usage moves outside that 30-day period").
+  Two days of warehouse backfill - whole-market bulk files, full 1960-today price histories for ~13k names, the conductor's
+  extra kicks - spent it. Since ~01:00 UTC every FMP call from every engine answers 429 "Bandwidth Limit Reach . Please
+  upgrade your plan" (ops 6657: 12/12 at one call per second; 6656: the walker's price run 756/756).
+* **What the fleet does meanwhile.** The 213 bank-first engines read the banks for what they hold (profiles, statements,
+  ratios, metrics as of Oct 25; price histories through Fri Oct 23) and go live - and get 429 - for the rest. Engines
+  that never used the banks (the ones not on urllib, the shared-client six when the bank is stale) get nothing from FMP.
+  Polygon, EIA, FRED, SEC and the rest are untouched.
+* **What I changed so it cannot recur (deployed 02:20 UTC):** price histories are extended incrementally (from the newest
+  banked date - 7 days, merged; ~40 MB/day instead of ~20 GB/day); every bank run has a bytes budget (walker 1.5 GB,
+  bank 2 GB); a "Bandwidth Limit" answer parks a bank for 20 h and the conductor stops kicking it (the schedules probe
+  once a day and lift the hold when answers return).
+* **Your decision:** (a) **buy the bandwidth add-on** in the FMP dashboard (Dashboard -> plan add-ons; sizes/prices are
+  shown there, not on the public page) - with +150 GB the remaining backfill (~50 GB of long-tail histories, ~10 GB of
+  statements/EOD years) finishes in days and the steady state (~1.5 GB/day banks + ~0.7 GB/day fleet = ~65 GB/month)
+  fits the base plan afterwards; or (b) **wait** - the fleet's pre-Oct-23 usage was ~0.7 GB/day, so only that much
+  capacity frees up per day and the key stays effectively blocked for most of the next four weeks while the banks and
+  the fleet's live FMP calls are refused. Say "add-on bought" and I re-run the first-light and resume the backfill
+  under the new budgets; say "wait" and I keep the fleet on the banks and report daily.
+
 ### 0n. "Fix it all - 100% of the data pulled and used" - the provider banks are live (2026-10-25); your decisions below
 
 * **Done today (all read-only verified or deploying):** `justhodl-fmp-bank` (every FMP bulk file + eod-bulk since 2000;
