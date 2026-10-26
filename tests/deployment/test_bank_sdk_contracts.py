@@ -1,5 +1,5 @@
 """Bank-fusion SDK contract gate (2026-10-26, wave 2): every engine that imports the bank SDKs (bank_enrich, fmp_bank,
-polygon_bankfirst) may only call attributes the real modules have, with keyword arguments their real signatures accept.
+polygon_bankfirst, bank_originals) may only call attributes the real modules have, with keyword arguments their real signatures accept.
 
 Why: the per-engine offline tests stub the SDK with a FakeBook/FakeBank, so a call to a method that does not exist - or a
 keyword the real function does not take - passes the engine's own tests and fails in the Lambda (caught by a bare
@@ -16,7 +16,7 @@ import types
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(ROOT, "aws", "shared"))
-SDKS = ("bank_enrich", "fmp_bank", "polygon_bankfirst")
+SDKS = ("bank_enrich", "fmp_bank", "polygon_bankfirst", "bank_originals")
 
 
 def _real(name):

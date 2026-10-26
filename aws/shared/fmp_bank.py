@@ -200,6 +200,13 @@ def reset_last_answer():
     _LAST["key"], _LAST["meta"] = None, None
 
 
+def last_answer():
+    """Provenance of the last object this thread read: {"key": S3 key | None, "pulled_at": iso | None, "as_of": iso | None}.
+    The received-original research engines (aws/shared/bank_originals) record it next to a bank-served original."""
+    m = _LAST.get("meta") or {}
+    return {"key": _LAST.get("key"), "pulled_at": m.get("pulled_at"), "as_of": m.get("as_of") or m.get("date")}
+
+
 def last_answer_age_days():
     """Age in days of the last object read, from its pulled_at / as_of metadata (None when unknown)."""
     m = _LAST.get("meta") or {}
