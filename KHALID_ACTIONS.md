@@ -51,7 +51,9 @@ This file tracks items that require **your direct action** (registration, creden
   admitted only when it is newer than what they already hold, so nothing stale is ever presented as a new observation; quotes
   stay live. Their pinned predecessor code, transport contracts and acceptance scripts are untouched (`docs/providers/BANK_FUSION.md`,
   wave 3c). short-interest is FINRA-original and needed nothing from FMP; instead the factor book (v1.0.6, next join 02:50 UTC)
-  carries FINRA's own short interest beside Polygon's for every book reader.
+  carries FINRA's own short interest beside Polygon's for every book reader - read straight from short-interest's research
+  head and its 256 verified record shards (23,678 FINRA issues), because the engine's consumer artifact turned out never to
+  have been published (19 MB vs its evidence store's 16 MB bound; a reviewed redesign is queued).
 * **Fleet health (2026-10-26 16:00 UTC) - the five engines that were failing on their own schedules are fixed and verified**
   (`docs/ops/FLEET_HEALTH_2026-10-26.md`): analytics-snapshot (was reading 11.9 GB a night, 80 % of it the desk's peer-price
   cache; now top-level only + incremental by ETag: 307 s cold, 47 s warm, 20,005 research rows complete), earnings-whisper
@@ -59,8 +61,13 @@ This file tracks items that require **your direct action** (registration, creden
   and it reports what is true: the event bus has routed nothing since Oct 17), signal-genealogy (its validator rejected the
   collector's new `research_context` receipt on 205 captures; admitted, typed, never published - first clean publication 16:06 UTC),
   treasury-auto-updater (only invoked treasury-api, which you switched off on Oct 20; switched off with it).
-* **Fleet lane (started 16:34 UTC, ~3 h):** the scaled bank-time cap, the light-price mapping and the FINRA join ride to the
-  292 bank-module importers; a census after it tells which engines still error.
+* **Fleet lane FLEET2 green 18:48 UTC; census after it (ops 6664, 14:46-20:48): 184 engines ran, 7 erred - the five above at 0.**
+  The seven: four contract engines preserving under the FMP block (by design), portfolio-snapshot once, a legacy CFTC agent
+  once - and **your why.html desk: 16 of 129 user requests died out-of-memory**, because every name the books do not hold
+  (delisted / foreign / OTC - ALPN, DOCMF, VINO, INNV) decoded whole-market tables into its 1 GB container (median heap 976 MB
+  even on good requests). Fixed 21:05 UTC (`fmp_bank`: at 1 GB the per-symbol books answer or nobody does): six requests on one
+  container, including those names, ran at **224-266 MB**, 0.6-5.3 s each (ops 6685). Fleet lane FLEET3 carries the rule to the
+  other 291 bank readers (running).
 * **Next waves (no decision needed):** the remaining quality/value engines, earnings-quality (its own reviewed change),
   13F/political readers, energy (an EIA reader), crypto (CMC / CryptoQuant), ETF flows - in the order the fusion map ranks them.
 

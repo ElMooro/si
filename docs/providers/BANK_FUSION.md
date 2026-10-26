@@ -229,6 +229,15 @@ window + SPY), **earnings-pead 1.3.0** (earnings + whole EOD price; credential c
 way - the factor book (v1.0.6) joins FINRA's own short interest from `data/short-interest-tickers.json` beside Polygon's
 (`finra_short_interest`, `finra_days_to_cover`, `finra_si_change_pct`, `finra_vs_polygon_si_pct`; `short_pct_float` falls back
 to FINRA where Polygon holds no file, `short_source` says which), so every book reader gets the original source's numbers.
+The FINRA join's source (ops 6681/6682/6684/6686): `data/short-interest-tickers.json` has **never been published** - the
+consumer layer's artifact is 18.9 MB for 23,678 FINRA issues and its evidence store (`context_evidence_store`, shared by six
+engines) admits 16 MB, so `[tickers-layer] skipped: ValueError` on every run (the 600 s budget given to short-interest was
+necessary - the layer needs a 120 s reserve - but not sufficient). The book (v1.0.6b) therefore reads the research head
+`data/short-interest.json` and its 256 record shards directly, verifies each shard against the head's identity, and runs the
+layer's own pure projection (`short_interest_tickers.build_tickers_projection`) - the per-ticker shape the platform rule
+wants, without a 19 MB consumer blob. Making the layer itself publish needs a reviewed redesign (sharded per-ticker
+documents), queued.
+
 First light (ops 6680, 16:38 UTC, under the FMP block): eps-revision-velocity 1.4.0 published once right after its deploy
 (5 bank originals, 10 market-cap gates from the bank's profile, 14 live attempts skipped after the first 429), then its next run
 met 25+ consecutive bank misses on `analyst-estimates` (the walker holds that dataset for a minority of its universe window) and
