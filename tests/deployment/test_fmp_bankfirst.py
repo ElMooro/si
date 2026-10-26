@@ -231,6 +231,18 @@ def test_bankfirst_steps_aside_when_it_would_cost_more():
         finally:
             fmp_bank.try_bank = real_try_bank
             fmp_bankfirst.RECENT_SLOW_S = 0.5
+        # the absolute bank-time cap scales with the window's wall time (2026-10-26): a request-serving container that has
+        # spent 100 s of bank time over 10 minutes of requests stays on the bank (cap = 0.35 x 600 = 210 s); 300 s steps aside
+        fmp_bankfirst._reset_ctl(time.time() - 600)
+        fmp_bankfirst._ctl["bank_time"] = 100.0
+        assert _get("https://financialmodelingprep.com/stable/key-executives?symbol=A&apikey=S") == [{"symbol": "A"}] and fmp_bankfirst._ctl["off"] is None, fmp_bankfirst._ctl["off"]
+        fmp_bankfirst._ctl["bank_time"] = 300.0
+        _get("https://financialmodelingprep.com/stable/key-executives?symbol=A&apikey=S")
+        assert fmp_bankfirst._ctl["off"] and "bank time cap 210s" in fmp_bankfirst._ctl["off"], fmp_bankfirst._ctl["off"]
+        fmp_bankfirst._reset_ctl(time.time())                 # a fresh window: the 90 s floor applies
+        fmp_bankfirst._ctl["bank_time"] = 95.0
+        _get("https://financialmodelingprep.com/stable/key-executives?symbol=A&apikey=S")
+        assert fmp_bankfirst._ctl["off"] and "bank time cap 90s" in fmp_bankfirst._ctl["off"], fmp_bankfirst._ctl["off"]
     finally:
         fmp_bankfirst.uninstall()
 

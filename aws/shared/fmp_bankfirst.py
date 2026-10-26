@@ -47,6 +47,7 @@ SLOW_MAX_AGE_DAYS = 30.0
 BULK_MAX_AGE_DAYS = 2.0
 MISS_STORM = 25
 BANK_TIME_CAP_S = float(os.environ.get("FMP_BANKFIRST_TIME_CAP_S") or 90)
+BANK_TIME_SHARE = float(os.environ.get("FMP_BANKFIRST_TIME_SHARE") or 0.35)    # of the control window's wall time (15 min -> up to 315 s)
 STATEMENT_LIMIT_MAX = {"annual": 12, "quarter": 16}
 STATS = {"hits": 0, "misses": 0, "stale": 0, "unshaped": 0, "passthrough": 0, "errors": 0, "bypassed": 0}
 _installed = {"done": False, "real": None}
@@ -265,8 +266,12 @@ def answer(url):
     rec.append((spent, served is not None))
     if len(rec) > RECENT_N:
         del rec[0]
-    if _ctl["bank_time"] > BANK_TIME_CAP_S:
-        _bypass("bank time cap %.0fs" % BANK_TIME_CAP_S)
+    # the absolute cap scales with the window's wall time: a request-serving container (the why.html desk) spends a few
+    # seconds of bank time per request across hundreds of requests in 15 minutes - a flat 90 s put it into bypass (every
+    # ask live -> 429 under the FMP block -> "0/43 endpoints returned data"); a single batch invocation is unaffected
+    cap = max(BANK_TIME_CAP_S, BANK_TIME_SHARE * max(0.0, time.time() - _ctl["since"]))
+    if _ctl["bank_time"] > cap:
+        _bypass("bank time cap %.0fs" % cap)
     elif len(rec) >= RECENT_N and sum(x[0] for x in rec) / len(rec) > RECENT_SLOW_S and not any(x[1] for x in rec):
         _bypass("last %d attempts averaged %.2fs with no hit" % (RECENT_N, sum(x[0] for x in rec) / len(rec)))
     elif fmp_bank.thrashing():
