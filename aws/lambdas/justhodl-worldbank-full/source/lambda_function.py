@@ -31,9 +31,11 @@ Oct 26, 75.6 GB in the first 19 h of Oct 27, 99% of the bucket's
 growth), and the sealed archive replicates and keeps every version.
 Now:
   * the per-indicator crash record is a ~100-byte marker
-    (_state/inflight.json); a run that dies mid-indicator is still
-    counted against that indicator on the next start (the quarantine
-    at 4 dead tries is unchanged);
+    (_state/inflight.json), written only in a run that follows a run
+    which did not exit cleanly (v1.1.1 "careful" run: the state carries
+    run_open while a run is in flight); a run that dies mid-indicator
+    is counted against that indicator (the quarantine at 4 dead tries
+    is unchanged; the first crash costs one extra run to locate);
   * the state is checkpointed at most every CHECKPOINT_S seconds and at
     the end of a run, compact and gzip'd (readers accept plain JSON
     too, so the first v1.1.0 run reads the v1.0.0 state);
@@ -56,7 +58,7 @@ from datetime import datetime, timezone
 import boto3
 import chain_guard  # ops 5260 — bounded-lineage self-chaining (aws/shared)
 
-ENGINE_VERSION = "justhodl-worldbank-full v1.1.0 ops6700 checkpointed state, write-if-changed"
+ENGINE_VERSION = "justhodl-worldbank-full v1.1.1 ops6702 checkpointed state, write-if-changed, markers only after a crash"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 API = "https://api.worldbank.org/v2"
 ROOT = "data/warm/worldbank-full/"
@@ -67,7 +69,7 @@ MANIFEST_KEY = ROOT + "manifest.json"
 UA = {"User-Agent": "JustHodl Research (raafouis@gmail.com)",
       "Accept": "*/*"}
 BUDGET_S = int(os.environ.get("WB_BUDGET_S", "690"))
-CHECKPOINT_S = int(os.environ.get("WB_CHECKPOINT_S", "120"))
+CHECKPOINT_S = int(os.environ.get("WB_CHECKPOINT_S", "300"))
 BYTES_BUDGET = 2_000_000_000
 SPOOL_MAX = 64 * 1024 * 1024
 SPACING = 0.2
@@ -248,7 +250,7 @@ def write_manifest(state):
     tot = sum(v.get("bytes") or 0 for v in banked)
     _put_json(MANIFEST_KEY, {
         "as_of": _now(), "engine": "justhodl-worldbank-full",
-        "version": "1.1.0",
+        "version": "1.1.1",
         "indicators_catalog": state.get("n_indicators"),
         "banked": len(banked),
         "no_data": sum(1 for v in have.values()
@@ -271,13 +273,15 @@ def lambda_handler(event, ctx=None):
     STATS.update(state_writes=0, uploaded=0, unchanged=0)
     event = event or {}
     state = _j(STATE_KEY, None) or {
-        "version": "1.1.0", "phase": "DISCOVER", "queue": [],
+        "version": "1.1.1", "phase": "DISCOVER", "queue": [],
         "have": {}, "failures": {}}
     if float(state.get("lease_until") or 0) > time.time():
         return {"skipped": "lease_held"}
     state["lease_until"] = time.time() + BUDGET_S + 150
-    state["version"] = "1.1.0"
-    recovered = recover_inflight(state)
+    state["version"] = "1.1.1"
+    careful = bool(state.get("run_open"))               # the last run never reached its clean end
+    recovered = recover_inflight(state) if careful else None
+    state["run_open"] = True
     save_state(state)                                   # the lease, once
 
     if event.get("redrain") and state.get("phase") == "COMPLETE":
@@ -311,7 +315,8 @@ def lambda_handler(event, ctx=None):
                 checkpoint(state)
                 continue
             state["queue"][0][1] = att + 1
-            mark_inflight(iid, att + 1)                 # the crash record, ~100 bytes
+            if careful:
+                mark_inflight(iid, att + 1)             # the crash record, ~100 bytes, only after a crash
             if mirror_one(state, iid):
                 state["queue"].pop(0)
             checkpoint(state)
@@ -324,13 +329,15 @@ def lambda_handler(event, ctx=None):
     chain = bool(n_missing and depth < CHAIN_DEPTH_MAX
                  and not event.get("no_chain"))
     state["lease_until"] = 0
+    state["run_open"] = False
     state["as_of"] = _now()
     banked = [v for v in state["have"].values()
               if v.get("status") == "fresh"]
     state["n_banked"] = len(banked)
     state["bytes_total"] = sum(v.get("bytes") or 0 for v in banked)
     save_state(state)
-    mark_inflight(None, 0)                              # clean exit: nothing in flight
+    if careful:
+        mark_inflight(None, 0)                          # clean exit: nothing in flight
     write_manifest(state)
     if chain:
         try:
@@ -341,5 +348,5 @@ def lambda_handler(event, ctx=None):
             "banked": len(banked),
             "gb": round(state["bytes_total"] / 1e9, 2),
             "queue_left": n_missing, "chained": chain,
-            "recovered_inflight": recovered, "run": dict(STATS),
+            "careful": careful, "recovered_inflight": recovered, "run": dict(STATS),
             "elapsed_s": round(time.time() - _t0, 1)}

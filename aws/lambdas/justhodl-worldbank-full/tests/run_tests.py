@@ -148,7 +148,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(st["bytes_total"], sum(len(v) for v in ZIPS.values()))
         self.assertEqual(json.loads(gzip.decompress(S3MEM[L.CATALOG_KEY]))["n"], 5)
         man = json.loads(S3MEM[L.MANIFEST_KEY])
-        self.assertEqual((man["banked"], man["no_data"], man["failures"], man["phase"], man["version"]), (2, 1, 2, "COMPLETE", "1.1.0"))
+        self.assertEqual((man["banked"], man["no_data"], man["failures"], man["phase"], man["version"]), (2, 1, 2, "COMPLETE", "1.1.1"))
         self.assertFalse(out["chained"])
         self.assertTrue(all(k in st for k in ("phase", "queue", "have", "failures", "n_indicators", "n_banked", "bytes_total", "as_of", "version")))
 
@@ -160,9 +160,19 @@ class Tests(unittest.TestCase):
         state_writes = sum(1 for k, _ in PUTS if k == L.STATE_KEY)
         markers = [n for k, n in PUTS if k == L.INFLIGHT_KEY]
         self.assertLessEqual(state_writes, 4)                            # lease, discover, end - none per indicator
-        self.assertGreaterEqual(len(markers), 205)                       # one tiny crash record per attempt
-        self.assertLess(max(markers), 200)
+        self.assertEqual(markers, [])                                    # a run after a clean run writes no crash records
         self.assertEqual(state()["n_banked"], 202)
+        self.assertFalse(state()["run_open"])
+
+    def test_a_run_after_a_crash_is_careful_and_writes_one_marker_per_indicator(self):
+        S3MEM[L.STATE_KEY] = gzip.compress(json.dumps({"version": "1.1.1", "phase": "DRAIN", "run_open": True,
+                                                       "queue": [["NY.GDP.MKTP.CD", 0], ["SP.POP.TOTL", 0]], "have": {}, "failures": {}}).encode())
+        out = L.lambda_handler({}, None)
+        markers = [k for k, _ in PUTS if k == L.INFLIGHT_KEY]
+        self.assertTrue(out["careful"])
+        self.assertEqual(len(markers), 3)                                 # two indicators + the clean-exit clear
+        self.assertIsNone(json.loads(S3MEM[L.INFLIGHT_KEY])["iid"])
+        self.assertFalse(state()["run_open"])
 
     def test_checkpoints_follow_the_clock(self):
         MANY.extend("XX.IND.%03d" % i for i in range(30))
@@ -185,12 +195,12 @@ class Tests(unittest.TestCase):
                                          "have": {"NY.GDP.MKTP.CD": {"status": "fresh", "bytes": 10}}, "failures": {}}, indent=1).encode()
         out = L.lambda_handler({}, None)
         st = state()
-        self.assertEqual((out["phase"], st["version"], st["have"]["SP.POP.TOTL"]["status"]), ("COMPLETE", "1.1.0", "fresh"))
+        self.assertEqual((out["phase"], st["version"], st["have"]["SP.POP.TOTL"]["status"]), ("COMPLETE", "1.1.1", "fresh"))
         self.assertIn("NY.GDP.MKTP.CD", st["have"])
 
     def test_a_crash_mid_indicator_still_counts_toward_the_quarantine(self):
         S3MEM[L.STATE_KEY] = gzip.compress(json.dumps({"version": "1.1.0", "phase": "DRAIN", "queue": [["SP.POP.TOTL", 2]],
-                                                       "have": {}, "failures": {}}).encode())
+                                                       "run_open": True, "have": {}, "failures": {}}).encode())
         S3MEM[L.INFLIGHT_KEY] = json.dumps({"iid": "SP.POP.TOTL", "attempt": 4}).encode()   # the run that died
         out = L.lambda_handler({}, None)
         st = state()
