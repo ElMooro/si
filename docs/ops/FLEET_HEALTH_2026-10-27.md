@@ -103,6 +103,14 @@ that dies mid-indicator still counts toward the 4-try quarantine), the state is 
 + gzip (2.2 MB -> 216 KB), and each zip is hashed over its CSV content so a re-drain rewrites only what the Bank changed.
 First light (ops 6700): one run took 1,059 indicators off the queue writing 8 state versions / 1.68 MB - **0.002 MB of
 state per indicator instead of 4.4 MB**; v1.0.0 would have written ~4.7 GB for the same run.  The 143 GB of old state
-versions in the live bucket expire under the existing rule `ops6541-bound-noncurrent-versions` (10 newest, 1 day); the
-~170 GB of archived copies stay sealed (root-only delete) and cost ~$4 in their first month, falling to ~$0.70/month
-after 90 days in Intelligent-Tiering.
+versions in the live bucket expire under the existing rule `ops6541-bound-noncurrent-versions` (10 newest, 1 day), and
+the archive's copies under its own seal rule `archive-keep-3-old-copies` (3 newest, 1 day) - correction to the first
+note: the archive is NOT left holding them.  Khalid (19:36 ET): "if it's just multiple copies of the same thing I want
+them gone, I only need one copy".  ops 6701: every version is a snapshot of the same progress file (phase / queue /
+have counts; the World Bank data is in `src/<indicator>.zip`, untouched); the drain finished at 20:59 UTC (29,468
+indicators banked, queue 0).  The runner may not delete versions in either bucket (explicit deny in both bucket
+policies - by design), so the two lifecycle rules remove the 56,705 excess copies (153.5 GB) in each bucket; AWS stops
+billing storage for a copy once it is past its expiry date, even while the removal is queued.  What remains: the
+current file plus up to 10 (live) / 3 (archive) recent old copies, ~0.24 MB each since v1.1.0's gzip.  v1.1.1 writes
+the per-indicator crash marker only in the run after a crash and checkpoints every 300 s.  Follow-up check ops 6702
+(read-only) scheduled for 2026-10-29 15:07 UTC.
