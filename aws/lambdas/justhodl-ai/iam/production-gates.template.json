@@ -396,6 +396,20 @@
                   ]
                 },
                 {
+                  "Sid": "WriteSageMakerLogGroups",
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:DescribeLogStreams"
+                  ],
+                  "Resource": [
+                    "arn:aws:logs:us-east-1:857687956942:log-group:/aws/sagemaker/Clusters/jh-ai-*",
+                    "arn:aws:logs:us-east-1:857687956942:log-group:/aws/sagemaker/Endpoints/jh-ai-*",
+                    "arn:aws:logs:us-east-1:857687956942:log-group:/aws/sagemaker/ProcessingJobs/jh-ai-*",
+                    "arn:aws:logs:us-east-1:857687956942:log-group:/aws/sagemaker/TrainingJobs/jh-ai-*"
+                  ]
+                },
+                {
                   "Sid": "PublishNamespacedMetrics",
                   "Effect": "Allow",
                   "Action": [
@@ -2480,6 +2494,15 @@
                 "logs:FilterLogEvents"
               ],
               "Resource": "arn:aws:logs:us-east-1:857687956942:log-group:/aws/sagemaker/Endpoints/jh-ai-*:*"
+            },
+            {
+              "Sid": "ReadEndpointLogGroups",
+              "Effect": "Allow",
+              "Action": [
+                "logs:DescribeLogStreams",
+                "logs:FilterLogEvents"
+              ],
+              "Resource": "arn:aws:logs:us-east-1:857687956942:log-group:/aws/sagemaker/Endpoints/jh-ai-*"
             },
             {
               "Sid": "ReadOnlyApprovedParameters",

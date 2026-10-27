@@ -63,6 +63,15 @@
       "Resource": "arn:aws:logs:us-east-1:857687956942:log-group:/aws/sagemaker/Endpoints/jh-ai-*:*"
     },
     {
+      "Sid": "ReadEndpointLogGroups",
+      "Effect": "Allow",
+      "Action": [
+        "logs:DescribeLogStreams",
+        "logs:FilterLogEvents"
+      ],
+      "Resource": "arn:aws:logs:us-east-1:857687956942:log-group:/aws/sagemaker/Endpoints/jh-ai-*"
+    },
+    {
       "Sid": "ReadOnlyApprovedParameters",
       "Effect": "Allow",
       "Action": [
