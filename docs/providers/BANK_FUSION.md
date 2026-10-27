@@ -40,6 +40,13 @@ preferred carries its issuer's fundamentals under its own ticker) are documented
 `screen()`. The matrix is also written one file per column (`matrix/cols/<field>.json.gz` + `matrix/index.json.gz`),
 so a consumer asking for five fields reads five small columns, not the 37 MB whole (projection pushdown in the SDK).
 
+**Identity rule (v1.0.7, 2026-10-27).** Polygon's reference type decides what is common: when Polygon types a listing
+CS / ADRC / OS / GDR / NYRS / LT, the symbol and name heuristics no longer overrule it unless the name names the
+instrument ("6.25 % Notes", "Depositary Shares, each representing ... Preferred").  Before, the warrant regex ("ends in
+WS/WW") had excluded W.W. Grainger and News Corp, "depositary share" every ADR (ARM ...), " preferred" Preferred Bank and
+the substring " spac" AST SpaceMobile and Extra Space Storage from every `screen()` and rank (docs/ops/FLEET_HEALTH_2026-10-27.md
+section 4).  `data/universe.json` (universe-builder v4.1.0) applies its own listing rule to the same Polygon types.
+
 First join (ops 6658, 2026-10-26 04:23 UTC, 303 s, 77 MB): 27,215 US-listed symbols — 6,880 common stocks, 5,773 ETFs,
 10,248 OTC, the rest funds / preferreds; coverage: scores 16,138, key metrics 16,896, ratios 16,897, growth 14,161,
 surprises 8,414, consensus 6,943, targets 4,250, DCF 9,385, ETF holders 9,431 (1.8 M holder rows inverted), float
