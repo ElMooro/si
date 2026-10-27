@@ -1,6 +1,30 @@
 """
 justhodl-universe-builder v4 — EXHAUSTIVE all-US-listed universe.
 
+v4.1.0 (2026-10-27): a provider outage can no longer publish an empty universe.
+  On 2026-10-16 and 2026-10-26 every /company-screener range answered HTTP 429
+  (the FMP bandwidth block); each failed range returned [] and the run wrote a
+  0-stock data/universe.json over the good one, so every engine that selects
+  from it (earnings-pead, revenue-acceleration, momentum-breakout,
+  volatility-squeeze-hunter, microcap-float-squeeze, options-flow-scanner ...)
+  raised "No selected universe" for a day.  Now:
+  • a failed range (an exception or a non-list answer) is RECORDED, not
+    swallowed; its market-cap span is filled from the FMP bank's profile-bulk
+    (FMP's own whole-market profile file, banked verbatim each night by
+    justhodl-fmp-bank) with the screener's own request filters (NYSE/NASDAQ/
+    AMEX, actively trading, not ETF/fund, >= $1M) + this builder's filter +
+    the factor book's security type (no warrants/units/preferreds/notes);
+    those rows say source "bank_profile_bulk" and carry the bank's as_of, and
+    the document's `sources` block says which ranges came from where.  The bank
+    is used only while it is <= UNIVERSE_BANK_MAX_AGE_DAYS old (default 10).
+  • a publication guard: fewer than 1,000 stocks, < 85% of the previous
+    publication's total, or a cap bucket < 50% of its previous count -> nothing
+    is written, the previous publication stays, and the run fails loudly.
+  • event {"dry_run": true[, "force_bank": true]} builds without writing and
+    returns the comparison with the live publication (the verification path).
+  A healthy run reads nothing from the bank and keeps the v4 rows exactly; the
+  document only gains engine_version, sources and stats.by_source.
+
 v4 (2026-07-20): institutional coverage guarantee —
   • adaptive mcap-range BISECTION: FMP screener caps every response at 1000
     rows; when a range saturates we split it at the geometric midpoint and
@@ -52,17 +76,28 @@ try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the war
     _fmp_bankfirst_install()
 except Exception:  # noqa: BLE001 - the shim never blocks the engine
     pass
-import io, json, os, time, urllib.request, urllib.error, re
+import csv, gzip, io, json, os, time, urllib.request, urllib.error, re
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime, timezone
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
+ENGINE_VERSION = "4.1.0"
 REGION = "us-east-1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = os.environ.get("S3_KEY", "data/universe.json")
 FMP_KEY = managed_secret(('FMP_KEY', 'FMP_API_KEY'), ("/justhodl/fmp/api-key",))
 
 S3 = boto3.client("s3", region_name=REGION)
+
+# v4.1 bank fill + publication guard
+BANK_PREFIX = "data/warm/fmp-bank/profile-bulk/"          # part-N/latest.csv.gz, written by justhodl-fmp-bank
+BOOK_UNIVERSE_KEY = "data/warm/factor-book/universe.json.gz"  # symbol -> identity flags (Polygon-typed), justhodl-bank-factors
+BANK_MAX_AGE_DAYS = float(os.environ.get("UNIVERSE_BANK_MAX_AGE_DAYS") or "10")
+SCREEN_EXCHANGES = ("NYSE", "NASDAQ", "AMEX")             # the screener request's exchange filter
+MIN_PUBLISH = 1000                                        # a US-listed universe below this is never true
+GUARD_TOTAL_RATIO = 0.85                                  # vs the previous publication's total
+GUARD_BUCKET_RATIO = 0.5                                  # vs the previous publication's bucket count (buckets >= 50)
 
 # Cap buckets (low_inclusive, high_exclusive)
 CAP_BUCKETS = [
@@ -143,19 +178,26 @@ def _screener_call(low, high):
            "&limit=1000"
            "&apikey=" + FMP_KEY)
     data = fetch_url(url, timeout=30)
-    return data if isinstance(data, list) else []
+    if not isinstance(data, list):
+        # an error object ({"Error Message": ...}) is a failed range, never an empty one (v4.1)
+        raise ValueError("screener answered a %s, not a list%s" % (type(data).__name__, (": " + ",".join(sorted(map(str, data))[:4])) if isinstance(data, dict) else ""))
+    return data
 
 
-def fetch_screener_bucket(bucket_name, low, high, depth=0):
+def fetch_screener_bucket(bucket_name, low, high, depth=0, failed=None):
     """v4 EXHAUSTIVE: FMP caps responses at 1000 rows. When a range saturates,
     bisect at the geometric midpoint (mcap is log-distributed) and recurse until
     every sub-range returns <1000 — guarantees zero truncation of the listed
-    universe. Depth-capped; failures degrade to whatever was fetched."""
+    universe. Depth-capped.  v4.1: a failed (sub-)range is appended to `failed`
+    as {bucket, low, high, error} so the run can fill exactly that span from the
+    bank instead of publishing a hole."""
     try:
         rows = _screener_call(low, high)
     except Exception as e:
         print("[universe] range " + bucket_name + " " + str(low) + "-" + str(high)
               + " failed: " + str(e))
+        if failed is not None:
+            failed.append({"bucket": bucket_name, "low": low, "high": high, "error": str(e)[:160]})
         return []
     if len(rows) >= 1000 and depth < 10 and (high - low) > 2_000_000:
         mid = int((low * high) ** 0.5)
@@ -163,9 +205,163 @@ def fetch_screener_bucket(bucket_name, low, high, depth=0):
             mid = (low + high) // 2
         print("[universe] " + bucket_name + " saturated at 1000 (" + str(low) + "-"
               + str(high) + ") → bisect @ " + str(mid))
-        return (fetch_screener_bucket(bucket_name, low, mid, depth + 1)
-                + fetch_screener_bucket(bucket_name, mid, high, depth + 1))
+        return (fetch_screener_bucket(bucket_name, low, mid, depth + 1, failed)
+                + fetch_screener_bucket(bucket_name, mid, high, depth + 1, failed))
     return [{**d, "_cap_bucket": bucket_name} for d in rows]
+
+
+# ------------------------------------------------------------------ v4.1: the bank fill and the publication guard --
+def _truthy(v):
+    return str(v).strip().lower() in ("true", "1", "yes")
+
+
+def _num(v):
+    try:
+        x = float(v)
+    except (TypeError, ValueError):
+        return None
+    return x if x == x and abs(x) != float("inf") else None
+
+
+def bucket_of(mc):
+    for name, lo, hi in CAP_BUCKETS:
+        if lo <= mc < hi:
+            return name
+    return "unknown"
+
+
+def bank_profile_rows(s3=None, now=None):
+    """FMP's whole-market profile file as banked by justhodl-fmp-bank (profile-bulk/part-N/latest.csv.gz), STREAMED
+    (93k rows, ~38 MB gzip - never held in memory) and filtered like the screener request: exchange NYSE/NASDAQ/AMEX,
+    actively trading, not an ETF or fund, market cap >= the nano floor.  -> (rows in the screener's field names,
+    provenance {status, as_of = the oldest part's write time, age_days, objects, rows}).  Older than
+    BANK_MAX_AGE_DAYS -> no rows, status "stale"."""
+    s3 = s3 or S3
+    now = now or datetime.now(timezone.utc)
+    objs, kw = [], {"Bucket": BUCKET, "Prefix": BANK_PREFIX}
+    while True:
+        resp = s3.list_objects_v2(**kw)
+        objs += [o for o in resp.get("Contents", []) if o["Key"].endswith("/latest.csv.gz")]
+        if not resp.get("IsTruncated"):
+            break
+        kw["ContinuationToken"] = resp["NextContinuationToken"]
+    if not objs:
+        return [], {"status": "not_banked", "prefix": BANK_PREFIX}
+    as_of = min(o["LastModified"] for o in objs)
+    age = (now - as_of).total_seconds() / 86400.0
+    prov = {"status": "read", "objects": sorted(o["Key"] for o in objs), "as_of": as_of.isoformat(), "age_days": round(age, 2),
+            "max_age_days": BANK_MAX_AGE_DAYS}
+    if age > BANK_MAX_AGE_DAYS:
+        prov["status"] = "stale"
+        return [], prov
+    rows, stamp = [], as_of.isoformat()
+    for o in sorted(objs, key=lambda o: o["Key"]):
+        body = s3.get_object(Bucket=BUCKET, Key=o["Key"])["Body"]
+        with gzip.GzipFile(fileobj=body) as gz:
+            reader = csv.reader(io.TextIOWrapper(gz, encoding="utf-8", errors="replace", newline=""))
+            header = next(reader, None) or []
+            col = {h.strip(): i for i, h in enumerate(header)}
+            if any(k not in col for k in ("symbol", "exchange", "marketCap")):
+                prov.setdefault("unreadable_objects", []).append(o["Key"])
+                continue
+
+            def g(row, name):
+                i = col.get(name)
+                return row[i] if i is not None and i < len(row) else None
+            for row in reader:
+                ex = (g(row, "exchange") or "").strip().upper()
+                if ex not in SCREEN_EXCHANGES:
+                    continue
+                if "isActivelyTrading" in col and not _truthy(g(row, "isActivelyTrading")):
+                    continue
+                if _truthy(g(row, "isEtf")) or _truthy(g(row, "isFund")):
+                    continue
+                mc = _num(g(row, "marketCap"))
+                sym = (g(row, "symbol") or "").strip().upper()
+                if not sym or not mc or mc < CAP_BUCKETS[0][1]:
+                    continue
+                rows.append({"symbol": sym, "companyName": g(row, "companyName"), "marketCap": mc, "price": _num(g(row, "price")),
+                             "exchange": ex, "industry": g(row, "industry"), "sector": g(row, "sector"), "country": g(row, "country"),
+                             "_source": "bank_profile_bulk", "_as_of": stamp})
+    prov["rows"] = len(rows)
+    return rows, prov
+
+
+def book_identity(s3=None):
+    """symbol -> identity flags from the factor book's universe (Polygon reference types folded into is_common):
+    -> (flags, provenance).  {} when the book is not there - the builder's own filter then stands alone."""
+    try:
+        doc = json.loads(gzip.decompress((s3 or S3).get_object(Bucket=BUCKET, Key=BOOK_UNIVERSE_KEY)["Body"].read()))
+        syms = doc.get("symbols") if isinstance(doc, dict) else None
+        if not isinstance(syms, dict):
+            return {}, {"status": "malformed", "key": BOOK_UNIVERSE_KEY}
+        return syms, {"status": "read", "key": BOOK_UNIVERSE_KEY, "generated_at": doc.get("generated_at"), "symbols": len(syms)}
+    except Exception as e:  # noqa: BLE001
+        return {}, {"status": "unavailable", "key": BOOK_UNIVERSE_KEY, "error": type(e).__name__}
+
+
+def book_allows(symbol, ident):
+    """False only when the factor book knows the symbol and types it as not a common stock (warrant, unit, right,
+    preferred, note, ETF, fund ...) - the profile file lists those under their own tickers; the screener does not."""
+    f = ident.get(symbol) or ident.get(symbol.replace(".", "-")) or ident.get(symbol.replace("-", "."))
+    return not (isinstance(f, dict) and f.get("is_common") is False)
+
+
+def bank_fill(failed, s3=None, now=None):
+    """Rows for exactly the failed market-cap spans, from the bank -> (rows, provenance)."""
+    rows, prov = bank_profile_rows(s3, now)
+    if not rows:
+        return [], prov
+    ident, iprov = book_identity(s3)
+    out, outside, not_common = [], 0, 0
+    for r in rows:
+        mc = r["marketCap"]
+        if not any(f["low"] <= mc < f["high"] for f in failed):
+            outside += 1
+            continue
+        if not book_allows(r["symbol"], ident):
+            not_common += 1
+            continue
+        out.append({**r, "_cap_bucket": bucket_of(mc)})
+    prov.update(book_identity=iprov, in_failed_spans=len(out) + not_common, dropped_not_common=not_common, outside_failed_spans=outside)
+    return out, prov
+
+
+def previous_publication(s3=None):
+    """The live data/universe.json (dict) or None."""
+    try:
+        doc = json.loads((s3 or S3).get_object(Bucket=BUCKET, Key=S3_KEY)["Body"].read())
+        return doc if isinstance(doc, dict) else None
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def guard_violations(stocks, by_bucket, previous):
+    """Why this universe must NOT replace the live one ([] = publish)."""
+    out = []
+    if len(stocks) < MIN_PUBLISH:
+        out.append("only %d stocks (a US-listed universe is never below %d)" % (len(stocks), MIN_PUBLISH))
+    pst = (previous or {}).get("stats") or {}
+    prev_total = pst.get("total_stocks") if isinstance(pst.get("total_stocks"), int) else 0
+    if prev_total >= MIN_PUBLISH and len(stocks) < GUARD_TOTAL_RATIO * prev_total:
+        out.append("%d stocks < %d%% of the previous publication's %d" % (len(stocks), round(GUARD_TOTAL_RATIO * 100), prev_total))
+    for name, n in sorted((pst.get("by_cap_bucket") or {}).items()):
+        if isinstance(n, int) and n >= 50 and by_bucket.get(name, 0) < GUARD_BUCKET_RATIO * n:
+            out.append("bucket %s %d < %d%% of the previous %d" % (name, by_bucket.get(name, 0), round(GUARD_BUCKET_RATIO * 100), n))
+    return out
+
+
+def compare(stocks, previous):
+    """This build vs the live publication: membership overlap and bucket agreement (the dry-run verification)."""
+    prev = {s.get("symbol"): s for s in ((previous or {}).get("stocks") or []) if isinstance(s, dict)}
+    new = {s["symbol"]: s for s in stocks}
+    both = set(prev) & set(new)
+    return {"previous_total": len(prev), "new_total": len(new), "both": len(both),
+            "both_pct_of_previous": round(100.0 * len(both) / len(prev), 2) if prev else None,
+            "only_previous": len(set(prev) - set(new)), "only_new": len(set(new) - set(prev)),
+            "only_previous_sample": sorted(set(prev) - set(new))[:40], "only_new_sample": sorted(set(new) - set(prev))[:40],
+            "same_bucket": sum(1 for s in both if prev[s].get("cap_bucket") == new[s].get("cap_bucket")),
+            "previous_generated_at": (previous or {}).get("generated_at")}
 
 
 def fetch_quote_for_seed(symbol):
@@ -234,19 +430,38 @@ def is_valid_common_stock(stock):
 
 def lambda_handler(event=None, context=None):
     started = time.time()
-    print("[universe] v4.0 starting — exhaustive all-US-listed (bisection + ADRs)")
+    event = event if isinstance(event, dict) else {}
+    dry_run, force_bank = bool(event.get("dry_run")), bool(event.get("force_bank"))
+    print("[universe] v" + ENGINE_VERSION + " starting — exhaustive all-US-listed (bisection + ADRs)"
+          + (" [dry_run]" if dry_run else "") + (" [force_bank]" if force_bank else ""))
 
-    # Fetch all 6 cap buckets in parallel
-    all_raw = {}
-    with ThreadPoolExecutor(max_workers=6) as pool:
-        futures = {pool.submit(fetch_screener_bucket, name, lo, hi): (name, lo, hi)
-                   for name, lo, hi in CAP_BUCKETS}
-        for f in as_completed(futures):
-            name, lo, hi = futures[f]
-            data = f.result()
-            all_raw[name] = data
-            print("[universe] " + name + " ($" + str(lo // 1_000_000) +
-                  "M-): raw=" + str(len(data)))
+    # Fetch all 6 cap buckets in parallel; v4.1: failed (sub-)ranges are recorded
+    all_raw, failed = {}, []
+    if force_bank:
+        failed = [{"bucket": name, "low": lo, "high": hi, "error": "forced by event.force_bank"} for name, lo, hi in CAP_BUCKETS]
+        all_raw = {name: [] for name, _, _ in CAP_BUCKETS}
+    else:
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            futures = {pool.submit(fetch_screener_bucket, name, lo, hi, 0, failed): (name, lo, hi)
+                       for name, lo, hi in CAP_BUCKETS}
+            for f in as_completed(futures):
+                name, lo, hi = futures[f]
+                data = f.result()
+                all_raw[name] = data
+                print("[universe] " + name + " ($" + str(lo // 1_000_000) +
+                      "M-): raw=" + str(len(data)))
+    n_screener_rows = sum(len(v) for v in all_raw.values())
+
+    # v4.1: fill exactly the failed spans from the FMP bank's profile-bulk (labelled, dated)
+    previous = previous_publication()
+    fill_rows, fill = [], {"status": "not_needed"}
+    if failed:
+        print("[universe] " + str(len(failed)) + " screener range(s) failed - filling those market-cap spans from the FMP bank's profile-bulk")
+        try:
+            fill_rows, fill = bank_fill(failed)
+        except Exception as e:  # noqa: BLE001 - the guard below decides what an unfilled hole means
+            fill = {"status": "error", "error": type(e).__name__ + ": " + str(e)[:200]}
+        print("[universe] bank fill: " + json.dumps({k: fill.get(k) for k in ("status", "as_of", "age_days", "rows", "in_failed_spans", "dropped_not_common", "error")}))
 
     # Combine + dedupe (mid/large can return same stock if mcap crosses bucket boundary)
     by_symbol = {}
@@ -261,8 +476,13 @@ def lambda_handler(event=None, context=None):
                     by_symbol[sym] = s
             else:
                 by_symbol[sym] = s
+    n_bank_added = 0
+    for s in fill_rows:                      # the screener's own answer always wins over the bank's
+        if s["symbol"] not in by_symbol:
+            by_symbol[s["symbol"]] = s
+            n_bank_added += 1
 
-    print("[universe] combined: " + str(len(by_symbol)) + " unique symbols")
+    print("[universe] combined: " + str(len(by_symbol)) + " unique symbols" + (" (" + str(n_bank_added) + " from the bank)" if fill_rows else ""))
 
     # Filter to real common stocks
     valid_stocks = []
@@ -356,7 +576,7 @@ def lambda_handler(event=None, context=None):
         if _adr:
             n_adr += 1
 
-        final_stocks.append({
+        row = {
             "symbol": sym,
             "name": s.get("companyName") or "",
             "sector": sector,
@@ -368,14 +588,21 @@ def lambda_handler(event=None, context=None):
             "price": s.get("price"),
             "cap_bucket": cap_bucket,
             "source": s.get("_source") or "screener",
-        })
+        }
+        if s.get("_as_of"):
+            row["as_of"] = s["_as_of"]          # v4.1: a bank row's market cap / price are as of the bank's pull
+        final_stocks.append(row)
 
     # Sort by mcap descending so consumers get most-liquid first
     final_stocks.sort(key=lambda x: -(x.get("market_cap") or 0))
+    by_source = {}
+    for s in final_stocks:
+        by_source[s["source"]] = by_source.get(s["source"], 0) + 1
 
     out = {
         "schema_version": 4,
         "method": "universe_builder_v4_exhaustive_bisection",
+        "engine_version": ENGINE_VERSION,
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime()),
         "duration_s": round(time.time() - started, 1),
         "stats": {
@@ -385,6 +612,12 @@ def lambda_handler(event=None, context=None):
             "by_exchange": by_exchange,
             "n_adr": n_adr,
             "n_curated_seed_added": seed_added,
+            "by_source": by_source,
+        },
+        "sources": {
+            "screener": {"endpoint": "/stable/company-screener", "rows": n_screener_rows, "ranges_failed": len(failed),
+                         "failed_ranges": failed[:60]},
+            "bank_profile_bulk": dict(fill, added_before_filter=n_bank_added),
         },
         "cap_buckets": [
             {"name": name, "low": lo, "high": hi}
@@ -392,6 +625,21 @@ def lambda_handler(event=None, context=None):
         ],
         "stocks": final_stocks,
     }
+
+    # v4.1: the publication guard - a shrunken universe never replaces the live one
+    violations = guard_violations(final_stocks, by_bucket, previous)
+    if dry_run:
+        cmp = compare(final_stocks, previous)
+        print("[universe] dry run (nothing written): " + json.dumps({"violations": violations, "by_bucket": by_bucket, "by_source": by_source,
+                                                                    "compare": {k: v for k, v in cmp.items() if not k.endswith("_sample")}}))
+        return {"statusCode": 200, "body": json.dumps({"dry_run": True, "would_publish": not violations, "violations": violations,
+                                                       "total_stocks": len(final_stocks), "by_bucket": by_bucket, "by_source": by_source,
+                                                       "sources": out["sources"], "compare": cmp, "duration_s": round(time.time() - started, 1)}, default=str)}
+    if violations:
+        msg = ("universe NOT published: " + "; ".join(violations) + " - the previous publication (generated_at "
+               + str((previous or {}).get("generated_at")) + ") stays live")
+        print("[universe] " + msg)
+        raise RuntimeError(msg)
 
     body = json.dumps(out, default=str).encode()
     S3.put_object(Bucket=BUCKET, Key=S3_KEY, Body=body, ContentType="application/json")
@@ -403,6 +651,9 @@ def lambda_handler(event=None, context=None):
         "body": json.dumps({
             "total_stocks": len(final_stocks),
             "by_bucket": by_bucket,
+            "by_source": by_source,
+            "ranges_failed": len(failed),
+            "bank_fill": fill.get("status"),
             "duration_s": out["duration_s"],
         }),
     }
