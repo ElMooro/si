@@ -87,9 +87,11 @@ def bank_objects(age_days=1.0, rows=None):
             ub.BANK_PREFIX + "daily/2026-10-25.csv.gz": (b"not read", lm)}
 
 
-def book_objects():
-    doc = {"generated_at": "2026-10-27T02:55:00+00:00", "symbols": {"WARRW": {"is_common": False, "security_type": "WARRANT"},
-                                                                    "NANO0": {"is_common": True, "security_type": "CS"}}}
+def book_objects(extra=None):
+    syms = {"WARRW": {"is_common": False, "security_type": "WARRANT", "name": "Warr Holdings Warrants"},
+            "NANO0": {"is_common": True, "security_type": "CS", "name": "NANO0 Inc."}}
+    syms.update(extra or {})
+    doc = {"generated_at": "2026-10-27T02:55:00+00:00", "symbols": syms}
     return {ub.BOOK_UNIVERSE_KEY: (gzip.compress(json.dumps(doc).encode()), NOW)}
 
 
@@ -148,9 +150,11 @@ class TestUniverse(Base):
         self.assertEqual(doc["stats"]["by_cap_bucket"], {"nano": 4, "micro": 4, "small": 4, "mid": 4, "large": 4, "mega": 2, "unknown": 0})
         self.assertEqual(doc["sources"]["screener"]["ranges_failed"], 6)
         fill = doc["sources"]["bank_profile_bulk"]
-        # 24 reach the combined set (22 commons + PREF-PA + AMGT); the builder's own filter then drops the two
-        self.assertEqual((fill["status"], fill["added_before_filter"], fill["dropped_not_common"]), ("read", 24, 1))
-        self.assertEqual(fill["book_identity"]["status"], "read")
+        # the listing rule drops WARRW (Polygon WARRANT) and PREF-PA (untyped, preferred ticker) inside the fill; AMGT reaches
+        # the combined set and the builder's own filter drops it (fund industry)
+        self.assertEqual((fill["status"], fill["membership"], fill["added_before_filter"], fill["dropped_not_equity"]),
+                         ("read", "listing_rule_only", 23, 2))
+        self.assertEqual(doc["sources"]["listing_rule"]["status"], "read")
         self.assertNotIn(ub.BANK_PREFIX + "daily/2026-10-25.csv.gz", ub.S3.gets)  # only the latest parts are read
         self.assertEqual([s["market_cap"] for s in doc["stocks"]], sorted((s["market_cap"] for s in doc["stocks"]), reverse=True))
         self.assertEqual(json.loads(res["body"])["bank_fill"], "read")
@@ -225,7 +229,8 @@ class TestUniverse(Base):
         self.assertEqual(len(doc["stocks"]), 6)
         self.assertTrue(all(set(s) == V4_ROW_KEYS for s in doc["stocks"]))
         self.assertEqual(doc["sources"]["bank_profile_bulk"], {"status": "not_needed", "added_before_filter": 0})
-        self.assertFalse([k for k in ub.S3.gets if k.startswith(ub.BANK_PREFIX) or k == ub.BOOK_UNIVERSE_KEY])
+        self.assertTrue(doc["sources"]["listing_rule"]["applied"])
+        self.assertFalse([k for k in ub.S3.gets if k.startswith(ub.BANK_PREFIX)])
         self.assertNotIn(ub.BANK_PREFIX, ub.S3.lists)
         for k in ("schema_version", "method", "generated_at", "duration_s", "stats", "cap_buckets", "stocks"):
             self.assertIn(k, doc)
@@ -241,10 +246,86 @@ class TestUniverse(Base):
         self.assertEqual(ub.S3.puts, {})
         self.assertEqual(calls, [])                                           # force_bank: the screener is not called
         self.assertTrue(body["dry_run"] and body["would_publish"])
-        self.assertEqual((body["compare"]["both"], body["compare"]["only_previous"], body["compare"]["only_new"]), (20, 1, 2))
+        # membership = the previous publication's: MEGA0/MEGA1 are in the bank but were never listed -> not invented
+        self.assertEqual((body["compare"]["both"], body["compare"]["only_previous"], body["compare"]["only_new"]), (20, 1, 0))
         self.assertEqual(body["compare"]["only_previous_sample"], ["DELISTED"])
         self.assertEqual(body["compare"]["same_bucket"], 20)
-        self.assertEqual(body["by_source"], {"bank_profile_bulk": 22})
+        self.assertEqual(body["by_source"], {"bank_profile_bulk": 20})
+        fill = body["sources"]["bank_profile_bulk"]
+        self.assertEqual((fill["membership"], fill["dropped_not_member"]), ("previous_publication", 5))   # MEGA0-1, WARRW, PREF-PA, AMGT
+
+
+def ident_fixture():
+    common = {"SO": "The Southern Company", "PRU": "Prudential Financial, Inc.", "CMCSA": "Comcast Corporation", "BC": "Brunswick Corporation",
+              "VSEC": "VSE Corporation", "ASTL": "Algoma Steel Group Inc.", "T": "AT&T Inc.", "GOOG": "Alphabet Inc."}
+    out = {k: {"security_type": "CS", "name": v} for k, v in common.items()}
+    out.update({
+        "TBB": {"security_type": "SP", "name": "AT&T Inc. 5.35% GLB NTS 66"},
+        "SOMN": {"security_type": "SP", "name": "The Southern Company"},
+        "PRH": {"security_type": "SP", "name": "Prudential Financial, Inc. 5.95"},
+        "CCZ": {"security_type": "SP", "name": "Comcast Holdings Corp."},
+        "TPC": {"security_type": "PFD", "name": "Tutor Perini Corporation", "is_common": False},
+        "BCPC": {"security_type": "SP", "name": "Balchem Corp", "is_common": False},
+        "GWW": {"security_type": "CS", "name": "W.W. Grainger, Inc.", "is_warrant_unit": True, "is_common": False},
+        "ARM": {"security_type": "ADRC", "name": "Arm Holdings plc American Depositary Shares", "is_preferred": True, "is_common": False},
+        "TMUSL": {"security_type": "CS", "name": "T-Mobile US, Inc. 6.25 % Notes -01.09.69"},
+        "GOOGM": {"security_type": "CS", "name": "Alphabet Inc. Depository Shs Repr 1/20th Conv Pfd Registered Shs"},
+        "ACMEW": {"security_type": "WARRANT", "name": "Acme Corp"},
+        "MNR": {"security_type": "UNIT", "name": "Mach Natural Resources LP"},
+        "CCXIU": {"security_type": "UNIT", "name": "Churchill Capital Corp XI Units"},
+        "VSECU": {"security_type": "UNIT", "name": "VSE Corporation"},
+        "ASTLW": {"name": "Algoma Steel Group Inc."},
+        "BZH": {"name": "Beazer Homes USA, Inc."},
+        "PFBC": {"security_type": "CS", "name": "Preferred Bank"},
+    })
+    return out
+
+
+class TestListingRule(Base):
+    def test_notes_preferreds_warrants_out_misflagged_and_mistyped_commons_in(self):
+        rule = ub.ListingRule(ident_fixture())
+        expect = {"TBB": "note_by_name", "SOMN": "type_sp_issuer_sibling", "PRH": "type_sp_name", "CCZ": "type_sp_issuer_sibling",
+                  "TMUSL": "note_by_name", "GOOGM": "preferred_by_name", "ACMEW": "type_warrant", "CCXIU": "type_unit_name",
+                  "VSECU": "type_unit_secondary_ticker", "ASTLW": "untyped_by_name_or_ticker",
+                  "TPC": None, "BCPC": None, "GWW": None, "ARM": None, "MNR": None, "BZH": None, "PFBC": None, "SO": None}
+        names = {k: v["name"] for k, v in ident_fixture().items()}
+        got = {sym: rule.verdict(sym, names[sym])[1] for sym in expect}
+        self.assertEqual(got, expect)
+
+    def test_the_screener_path_drops_non_equity_listings_and_says_so(self):
+        live = [("SO", 100e9), ("SOMN", 105e9), ("TBB", 140e9), ("GWW", 60e9), ("TPC", 4e9), ("ACMEW", 50e6)]
+        extra = {k: v for k, v in ident_fixture().items() if k in {"SO", "SOMN", "TBB", "GWW", "TPC", "ACMEW"}}
+
+        def call(lo, hi):
+            names = {k: v["name"] for k, v in extra.items()}
+            return [dict(r, companyName=names[r["symbol"]]) for r in screener(live)(lo, hi)]
+        self.run_with({**book_objects(extra)}, call, min_publish=1)
+        doc = ub.S3.puts[ub.S3_KEY]
+        self.assertEqual(sorted(s["symbol"] for s in doc["stocks"]), ["GWW", "SO", "TPC"])
+        lr = doc["sources"]["listing_rule"]
+        self.assertEqual((lr["applied"], lr["dropped"], lr["by_reason"]),
+                         (True, 3, {"note_by_name": 1, "type_sp_issuer_sibling": 1, "type_warrant": 1}))
+        self.assertEqual(doc["stats"]["by_cap_bucket"]["mega"], 0)          # TBB / SOMN no longer pose as mega caps
+
+    def test_a_fill_never_invents_members_the_previous_publication_did_not_list(self):
+        prev_stocks = [{"symbol": s, "cap_bucket": ub.bucket_of(mc)} for s, mc in COMMONS if not s.startswith("SMAL")] + \
+                      [{"symbol": "SMAL0", "cap_bucket": "small"}]
+        prev = previous_objects(len(prev_stocks), {"small": 1}, prev_stocks)
+        small = next((lo, hi) for n, lo, hi in ub.CAP_BUCKETS if n == "small")
+        live = [(s, mc) for s, mc in COMMONS if not s.startswith("SMAL")]
+        self.run_with({**bank_objects(), **book_objects(), **prev}, screener(live, fail=lambda lo, hi: (lo, hi) == small))
+        doc = ub.S3.puts[ub.S3_KEY]
+        banked = sorted(s["symbol"] for s in doc["stocks"] if s["source"] == "bank_profile_bulk")
+        self.assertEqual(banked, ["SMAL0"])                                   # SMAL1-3 are in the bank but were never members
+        fill = doc["sources"]["bank_profile_bulk"]
+        self.assertEqual((fill["membership"], fill["dropped_not_member"]), ("previous_publication", 4))   # SMAL1-3 + WARRW
+
+    def test_without_the_book_the_v4_filter_stands_and_the_document_says_so(self):
+        live = [("SO", 100e9), ("TBB", 140e9), ("GWW", 60e9)]
+        self.run_with({}, screener(live), min_publish=1)
+        doc = ub.S3.puts[ub.S3_KEY]
+        self.assertEqual(sorted(s["symbol"] for s in doc["stocks"]), ["GWW", "SO", "TBB"])
+        self.assertEqual((doc["sources"]["listing_rule"]["status"], doc["sources"]["listing_rule"]["applied"]), ("unavailable", False))
 
 
 if __name__ == "__main__":

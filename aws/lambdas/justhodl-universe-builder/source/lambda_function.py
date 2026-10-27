@@ -11,19 +11,25 @@ v4.1.0 (2026-10-27): a provider outage can no longer publish an empty universe.
   • a failed range (an exception or a non-list answer) is RECORDED, not
     swallowed; its market-cap span is filled from the FMP bank's profile-bulk
     (FMP's own whole-market profile file, banked verbatim each night by
-    justhodl-fmp-bank) with the screener's own request filters (NYSE/NASDAQ/
-    AMEX, actively trading, not ETF/fund, >= $1M) + this builder's filter +
-    the factor book's security type (no warrants/units/preferreds/notes);
-    those rows say source "bank_profile_bulk" and carry the bank's as_of, and
-    the document's `sources` block says which ranges came from where.  The bank
-    is used only while it is <= UNIVERSE_BANK_MAX_AGE_DAYS old (default 10).
+    justhodl-fmp-bank), filtered like the screener request (NYSE/NASDAQ/AMEX,
+    actively trading, not ETF/fund, >= $1M) and limited to the previous
+    publication's members (the bank refreshes membership, it does not invent
+    it); those rows say source "bank_profile_bulk" and carry the bank's as_of,
+    and the document's `sources` block says which ranges came from where.  The
+    bank is used only while it is <= UNIVERSE_BANK_MAX_AGE_DAYS old (default 10).
+  • the listing rule (ListingRule, both paths): the screener returned an
+    issuer's notes, preferreds, warrants, rights and units with the ISSUER's
+    market cap - 172 of 5,230 live rows on 2026-10-27, AT&T's 5.35% notes as a
+    $140B large cap - and v4's suffix filter could not see them.  Polygon's
+    reference type (joined by the factor book) now decides, with a second
+    signal required for the types Polygon occasionally mis-assigns.
   • a publication guard: fewer than 1,000 stocks, < 85% of the previous
     publication's total, or a cap bucket < 50% of its previous count -> nothing
     is written, the previous publication stays, and the run fails loudly.
   • event {"dry_run": true[, "force_bank": true]} builds without writing and
     returns the comparison with the live publication (the verification path).
-  A healthy run reads nothing from the bank and keeps the v4 rows exactly; the
-  document only gains engine_version, sources and stats.by_source.
+  Rows keep the v4 shape; the document gains engine_version, sources
+  (screener / bank_profile_bulk / listing_rule) and stats.by_source.
 
 v4 (2026-07-20): institutional coverage guarantee —
   • adaptive mcap-range BISECTION: FMP screener caps every response at 1000
@@ -300,30 +306,108 @@ def book_identity(s3=None):
         return {}, {"status": "unavailable", "key": BOOK_UNIVERSE_KEY, "error": type(e).__name__}
 
 
-def book_allows(symbol, ident):
-    """False only when the factor book knows the symbol and types it as not a common stock (warrant, unit, right,
-    preferred, note, ETF, fund ...) - the profile file lists those under their own tickers; the screener does not."""
-    f = ident.get(symbol) or ident.get(symbol.replace(".", "-")) or ident.get(symbol.replace("-", "."))
-    return not (isinstance(f, dict) and f.get("is_common") is False)
+COMMON_TYPES = {"CS", "ADRC", "OS", "GDR", "NYRS", "LT"}          # Polygon reference types that are a company's equity
+NEVER_TYPES = {"WARRANT", "RIGHT", "ADRW", "ADRR", "BOND", "AGEN", "EQLK", "BASKET", "ETN", "ETV", "ETS"}
+CHECKED_TYPES = {"SP", "PFD", "ADRP", "UNIT"}                       # dropped only when a second signal agrees
+NOTE_NAME = re.compile(r"\d(?:\.\d+)?\s?%[^,]*?\b(notes?|nts?|debentures?|bonds?|subordinated|sub)\b", re.I)
+PREF_NAME = re.compile(r"\bpfd\b|\bpreferred (stock|shares?|securities)\b|depositary shares?,? (each )?represent|\bdepository shs\b"
+                       r"|\bperpetual\b|\bcumulative (redeemable|preferred|perpetual)\b|\bconv(ertible)? pfd\b", re.I)
+DEBT_NAME = re.compile(r"\d\s?%|\b\d{1,2}\.\d{1,3}\b|\b(limited|ltd|inc|corp|corporation|company|co|llc|plc|lp)\.?,?\s+\d+(\.\d*)?\s*$|"
+                       r"\b(notes?|nts?|nt|debentures?|bonds?|bd|preferred|pfd|perpetual|cumulative|depositary|"
+                       r"depository|subordinated|junior|jr|senior|sr|collateral|parrs|zones|series|units?|warrants?|rights?|"
+                       r"tangible equity|capital trust|trust preferred|acquisition|llc|ulc|finance (co|corp|llc|ulc))\b", re.I)
+WARRANT_NAME = re.compile(r"\bwarrants?\b|\brights?\b|\bunits?\b", re.I)
+NAME_STOP = {"inc", "corp", "corporation", "company", "co", "ltd", "limited", "plc", "the", "incorporated", "llc", "lp", "l", "p"}
 
 
-def bank_fill(failed, s3=None, now=None):
-    """Rows for exactly the failed market-cap spans, from the bank -> (rows, provenance)."""
+def _norm_name(name):
+    return " ".join(w for w in re.findall(r"[a-z0-9]+", (name or "").lower()) if w not in NAME_STOP)
+
+
+class ListingRule:
+    """Is a listing a company's equity?  The screener and the profile file both list an issuer's notes, preferreds,
+    warrants, rights and units under their own tickers WITH THE ISSUER'S MARKET CAP (2026-10-27, ops 6694: the live
+    universe carried 172 of them - AT&T's 5.35% notes TBB as a $140B large cap, Southern Co / Duke / Prudential notes,
+    Strategy's preferreds, SPAC warrants and rights).  Polygon's reference type, joined by the factor book, decides:
+      * WARRANT / RIGHT / bond-like types -> out;
+      * SP / PFD / ADRP / UNIT -> out when a second signal agrees: the name (coupon, notes, series, preferred, units,
+        LLC ...), an issuer sibling (a common-typed listing whose name this one's starts with - "Prudential Financial,
+        Inc. 5.95" vs PRU) or a secondary ticker (a dash, or a common ticker + one letter).  Polygon mis-types a few
+        plain commons (Tutor Perini TPC as PFD, Balchem BCPC as SP): with no second signal they stay;
+      * any type, a name like "6.25 % Notes" / "Junior Subordinated Notes" -> out (notes Polygon types CS);
+        a CS whose name is a preferred share -> out;
+      * untyped -> out only with a warrant/rights/units/preferred name or a warrant-style suffix on a common ticker.
+    The factor book's own is_common flag is NOT used: its symbol/name heuristics flag W.W. Grainger (GWW), News Corp
+    (NWS/NWSA) and every "American Depositary Shares" ADR (ARM)."""
+
+    def __init__(self, ident):
+        self.ident = ident or {}
+        self.common_syms, self.common_names = set(), {}
+        for sym, f in self.ident.items():
+            if isinstance(f, dict) and f.get("security_type") in COMMON_TYPES:
+                self.common_syms.add(sym)
+                n = _norm_name(f.get("name"))
+                if n:
+                    self.common_names.setdefault(n, set()).add(sym)
+
+    def _type(self, sym):
+        f = self.ident.get(sym) or self.ident.get(sym.replace(".", "-")) or self.ident.get(sym.replace("-", ".")) or {}
+        return f.get("security_type") if isinstance(f, dict) else None
+
+    def _sibling(self, sym, name):
+        words = _norm_name(name).split()
+        for k in range(len(words), 0, -1):
+            prefix = " ".join(words[:k])
+            if len(prefix) >= 5 and (self.common_names.get(prefix) or set()) - {sym}:
+                return True
+        return False
+
+    def verdict(self, sym, name):
+        """-> (keep, reason)"""
+        t, name = self._type(sym), name or ""
+        if NOTE_NAME.search(name):
+            return False, "note_by_name"
+        if t in COMMON_TYPES:
+            return (False, "preferred_by_name") if t == "CS" and PREF_NAME.search(name) else (True, None)
+        if t in NEVER_TYPES:
+            return False, "type_" + t.lower()
+        if t in CHECKED_TYPES:
+            if DEBT_NAME.search(name):
+                return False, "type_%s_name" % t.lower()
+            if self._sibling(sym, name):
+                return False, "type_%s_issuer_sibling" % t.lower()
+            if "-" in sym or (len(sym) >= 4 and sym[:-1] in self.common_syms):
+                return False, "type_%s_secondary_ticker" % t.lower()
+            return True, None
+        if t is None and (WARRANT_NAME.search(name) or PREF_NAME.search(name) or re.search(r"-P[A-Z]{0,2}$", sym)
+                          or (re.search(r"(W|WS|U|R|RT)$", sym) and (sym[:-1] in self.common_syms or sym[:-2] in self.common_syms))):
+            return False, "untyped_by_name_or_ticker"
+        return True, None
+
+
+def bank_fill(failed, s3=None, now=None, members=None, rule=None):
+    """Rows for exactly the failed market-cap spans, from the bank -> (rows, provenance).  `members` (the previous
+    publication's symbols) keeps a fill to names the screener itself listed - the bank refreshes membership it does not
+    invent; None (no usable previous publication) -> every profile row, with the listing rule only."""
     rows, prov = bank_profile_rows(s3, now)
     if not rows:
         return [], prov
-    ident, iprov = book_identity(s3)
-    out, outside, not_common = [], 0, 0
+    out, outside, not_member, not_equity = [], 0, 0, 0
     for r in rows:
         mc = r["marketCap"]
         if not any(f["low"] <= mc < f["high"] for f in failed):
             outside += 1
             continue
-        if not book_allows(r["symbol"], ident):
-            not_common += 1
+        if members is not None and r["symbol"] not in members:
+            not_member += 1
+            continue
+        if rule is not None and not rule.verdict(r["symbol"], r.get("companyName"))[0]:
+            not_equity += 1
             continue
         out.append({**r, "_cap_bucket": bucket_of(mc)})
-    prov.update(book_identity=iprov, in_failed_spans=len(out) + not_common, dropped_not_common=not_common, outside_failed_spans=outside)
+    prov.update(membership="previous_publication" if members is not None else "listing_rule_only",
+                in_failed_spans=len(out) + not_member + not_equity, dropped_not_member=not_member, dropped_not_equity=not_equity,
+                outside_failed_spans=outside)
     return out, prov
 
 
@@ -454,11 +538,15 @@ def lambda_handler(event=None, context=None):
 
     # v4.1: fill exactly the failed spans from the FMP bank's profile-bulk (labelled, dated)
     previous = previous_publication()
+    ident, ident_prov = book_identity()
+    rule = ListingRule(ident) if ident else None          # no book -> the v4 filter alone (said in sources.listing_rule)
+    prev_stocks = (previous or {}).get("stocks") if isinstance((previous or {}).get("stocks"), list) else []
+    members = {s.get("symbol") for s in prev_stocks if isinstance(s, dict)} if len(prev_stocks) >= MIN_PUBLISH else None
     fill_rows, fill = [], {"status": "not_needed"}
     if failed:
         print("[universe] " + str(len(failed)) + " screener range(s) failed - filling those market-cap spans from the FMP bank's profile-bulk")
         try:
-            fill_rows, fill = bank_fill(failed)
+            fill_rows, fill = bank_fill(failed, members=members, rule=rule)
         except Exception as e:  # noqa: BLE001 - the guard below decides what an unfilled hole means
             fill = {"status": "error", "error": type(e).__name__ + ": " + str(e)[:200]}
         print("[universe] bank fill: " + json.dumps({k: fill.get(k) for k in ("status", "as_of", "age_days", "rows", "in_failed_spans", "dropped_not_common", "error")}))
@@ -489,7 +577,13 @@ def lambda_handler(event=None, context=None):
     n_filtered_industry = 0
     n_filtered_symbol = 0
     n_filtered_other = 0
+    listing_drops = {}
     for sym, s in by_symbol.items():
+        if rule is not None:
+            keep, why = rule.verdict(sym, s.get("companyName"))
+            if not keep:
+                listing_drops.setdefault(why, []).append(sym)
+                continue
         if not is_valid_common_stock(s):
             sym_lower = sym.lower()
             industry_lower = (s.get("industry") or "").lower().strip()
@@ -505,7 +599,8 @@ def lambda_handler(event=None, context=None):
     print("[universe] valid: " + str(len(valid_stocks)) + 
           " (filtered industry: " + str(n_filtered_industry) +
           ", symbol: " + str(n_filtered_symbol) +
-          ", other: " + str(n_filtered_other) + ")")
+          ", other: " + str(n_filtered_other) +
+          ", not a company's equity: " + str(sum(len(v) for v in listing_drops.values())) + ")")
 
     # Add curated seed (with deduplication)
     existing_syms = {(s.get("symbol") or "").upper() for s in valid_stocks}
@@ -618,6 +713,10 @@ def lambda_handler(event=None, context=None):
             "screener": {"endpoint": "/stable/company-screener", "rows": n_screener_rows, "ranges_failed": len(failed),
                          "failed_ranges": failed[:60]},
             "bank_profile_bulk": dict(fill, added_before_filter=n_bank_added),
+            "listing_rule": dict(ident_prov, applied=rule is not None,
+                                 dropped=sum(len(v) for v in listing_drops.values()),
+                                 by_reason={k: len(v) for k, v in sorted(listing_drops.items())},
+                                 samples={k: sorted(v)[:12] for k, v in sorted(listing_drops.items())}),
         },
         "cap_buckets": [
             {"name": name, "low": lo, "high": hi}
