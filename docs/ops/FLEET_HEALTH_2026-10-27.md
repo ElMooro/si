@@ -87,3 +87,22 @@ publication); the three 600 s timeouts (causality-scanner, predictability, chart
 attempted" trio (dark-pool, share-flows, forensic-screen - the async retry of a failed first attempt is refused by
 design; the first attempt's failure is the thing to read); opportunity-screener at 256 MB; port-cargo's provider;
 research-backtest's deadline; portfolio-snapshot's ordering check; census-us once at 850 s.
+
+## 6. The S3 bytes-growth alarm (20:03 UTC): justhodl-worldbank-full
+
+Alarm `justhodl-guard-s3-bytes-growth-1d`: the live bucket grew 82.5 GB in one daily datapoint (threshold 80 GB).
+ops 6698 (bytes by writer from the access logs): **justhodl-worldbank-full wrote 70.8 GB on Oct 26 and 75.6 GB on
+Oct 27** - everything else together ~10 GB/day.  ops 6699: the engine wrote its whole state document
+(`data/warm/worldbank-full/_state/state.json`, 2.2 MB indented, the `have` map of 29,490 indicators) **twice per
+indicator**, so the weekly re-drain that started Oct 25 03:20 left 56,690 state versions / 143 GB in the live bucket
+while the indicator zips themselves total 0.48 GB; the sealed archive replicated every version (+44 GB Oct 25, +48 GB
+Oct 26).  This is also the "weekly ~140 GB spike" the governor's storage fuse was tuned around.
+
+**worldbank-full v1.1.0** (deployed 20:28 UTC): a ~100-byte inflight marker replaces the per-indicator state write (a run
+that dies mid-indicator still counts toward the 4-try quarantine), the state is checkpointed at most every 120 s, compact
++ gzip (2.2 MB -> 216 KB), and each zip is hashed over its CSV content so a re-drain rewrites only what the Bank changed.
+First light (ops 6700): one run took 1,059 indicators off the queue writing 8 state versions / 1.68 MB - **0.002 MB of
+state per indicator instead of 4.4 MB**; v1.0.0 would have written ~4.7 GB for the same run.  The 143 GB of old state
+versions in the live bucket expire under the existing rule `ops6541-bound-noncurrent-versions` (10 newest, 1 day); the
+~170 GB of archived copies stay sealed (root-only delete) and cost ~$4 in their first month, falling to ~$0.70/month
+after 90 days in Intelligent-Tiering.
