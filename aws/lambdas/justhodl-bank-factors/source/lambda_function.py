@@ -24,6 +24,10 @@ v1.0.1 (2026-10-26): the first join ran out of 3 GB in 19 s decoding whole-marke
 now STREAMED once (gunzip -> text -> csv.reader) into a SQLite staging file on /tmp keyed (block, symbol), and the
 documents are assembled from indexed lookups - memory stays flat whatever the files weigh (ephemeral storage 2 GB).
 
+v1.0.7 (2026-10-27): a Polygon common-stock type outweighs the symbol/name heuristics unless the NAME names the
+instrument (apply_security_type); "spac" is matched as a word.  W.W. Grainger, News Corp, every "American Depositary
+Shares" ADR (ARM ...), Preferred Bank, AST SpaceMobile, Extra Space Storage were is_common False (ops 6694/6695).
+
 Doctrine: bank-only (no provider call, no key); once a day (Scheduler, after the banks); one invoke, one budget, no
 self-chaining; verbatim numbers (FMP's / Polygon's own values; derived fields are arithmetic on them and say so); a
 missing source is recorded in coverage, never guessed; every value carries the bank's as_of.
@@ -51,7 +55,7 @@ from botocore.config import Config
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import fmp_bank  # noqa: E402  (aws/shared, bundled)
 
-VERSION = "1.0.6"
+VERSION = "1.0.7"
 SCHEMA = "factor-book/1.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 ROOT = "data/warm/factor-book/"
@@ -292,10 +296,30 @@ def poly_type(sym, types):
     return None
 
 
+# a listing's NAME naming the instrument (v1.0.7): the only heuristic evidence that outweighs a Polygon common-stock type
+NAMED_PREFERRED_OR_NOTE = re.compile(r"\bpfd\b|\bpreferred (stock|shares?|securities)\b|depositary shares?,? (each )?represent|\bdepository shs\b"
+                                     r"|\bperpetual\b|\bcumulative (redeemable|preferred|perpetual)\b|\bconv(ertible)? pfd\b"
+                                     r"|\d(?:\.\d+)?\s?%[^,]*?\b(notes?|nts?|debentures?|bonds?|subordinated|series)\b", re.I)
+NAMED_WARRANT_OR_UNIT = re.compile(r"\bwarrants?\b|\brights\b|\bunits\b|\bsub-?units?\b", re.I)
+
+
 def apply_security_type(ident, types):
-    """Fold the Polygon instrument type into the identity flags (never un-flags a heuristic hit) and set is_common."""
+    """Fold the Polygon instrument type into the identity flags and set is_common.
+
+    v1.0.7 (2026-10-27): when Polygon types the listing as a company's equity (POLY_TYPE_COMMON) the symbol/name
+    heuristics no longer overrule it unless the NAME names the instrument.  The "ends in WS/WW" warrant regex had flagged
+    W.W. Grainger (GWW), News Corp (NWS/NWSA), 1-800-FLOWERS, Wolverine, Worthington Steel; "depositary share" had flagged
+    every ADR named "American Depositary Shares" (ARM, PONY, CHA ...); " preferred" had flagged Preferred Bank - all of
+    them were is_common False and absent from every common-only screen and rank.  A CS-typed "6.25 % Notes" or
+    "Depositary Shares, each representing ... Preferred" keeps its flag (ops 6694/6695)."""
     t = poly_type(ident.get("symbol"), types)
     ident["security_type"] = t
+    if t in POLY_TYPE_COMMON:
+        name = ident.get("name") or ""
+        if ident.get("is_warrant_unit") and not NAMED_WARRANT_OR_UNIT.search(name):
+            ident["is_warrant_unit"] = False
+        if ident.get("is_preferred") and not NAMED_PREFERRED_OR_NOTE.search(name):
+            ident["is_preferred"] = False
     if t in POLY_TYPE_PREFERRED:
         ident["is_preferred"] = True
     if t in POLY_TYPE_WARRANT_UNIT:
@@ -329,7 +353,8 @@ def is_shell(name, industry):
     """Blank-check / SPAC shells: cash-rich by construction, no operations - never a net-net, never a value screen hit."""
     ind = (industry or "").lower()
     n = (name or "").lower()
-    return "shell compan" in ind or "blank check" in ind or "acquisition corp" in n or "acquisition co " in n or n.endswith("acquisition co") or "acquisition company" in n or " spac" in n
+    # v1.0.7: "spac" as a word - the substring " spac" had made AST SpaceMobile, Extra Space Storage, MDA Space ... shells
+    return "shell compan" in ind or "blank check" in ind or "acquisition corp" in n or "acquisition co " in n or n.endswith("acquisition co") or "acquisition company" in n or re.search(r"\bspac\b", n) is not None
 PREFERRED_RE = re.compile(r"(-P[A-Z]{0,2}|\.PR[A-Z]{0,2}|-PR[A-Z]{0,2})$")
 
 

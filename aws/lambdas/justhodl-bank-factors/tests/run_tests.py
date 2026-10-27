@@ -367,6 +367,34 @@ def test_bank_enrich_sdk_reads_the_book_and_attaches_with_provenance():
     assert be.attach({"a": 1}, symbols=["AAPL"])["bank_enrichment"]["missing"] == ["AAPL"]
 
 
+def test_a_polygon_common_type_outweighs_symbol_and_name_heuristics_unless_the_name_names_the_instrument():
+    """v1.0.7 (ops 6694/6695): GWW / NWSA / FLWS (warrant regex), ARM and every 'American Depositary Shares' ADR
+    ('depositary share'), Preferred Bank (' preferred') and AST SpaceMobile / Extra Space Storage (' spac') were
+    is_common False and missing from every common-only screen and rank."""
+    lf, _ = boot()
+    cases = {  # symbol: (name, industry, polygon type, expected is_common)
+        "GWW": ("W.W. Grainger, Inc.", "Industrial - Distribution", "CS", True),
+        "NWSA": ("News Corporation", "Publishing", "CS", True),
+        "FLWS": ("1-800-FLOWERS.COM, Inc.", "Specialty Retail", "CS", True),
+        "ARM": ("Arm Holdings plc American Depositary Shares", "Semiconductors", "ADRC", True),
+        "PFBC": ("Preferred Bank", "Banks - Regional", "CS", True),
+        "ASTS": ("AST SpaceMobile, Inc.", "Telecommunications Services", "CS", True),
+        "EXR": ("Extra Space Storage Inc.", "REIT - Industrial", "CS", True),
+        "TMUSL": ("T-Mobile US, Inc. 6.25 % Notes -01.09.69", "Telecommunications Services", "CS", False),
+        "FCNCN": ("First Citizens BancShares, Inc. Depositary Shares, each representing a 1/40th interest in a share of 5.625% Preferred",
+                  "Banks - Regional", "CS", False),
+        "ACMEW": ("Acme Corp Warrants", "Industrials", None, False),          # untyped: the heuristics stand
+        "SPACX": ("Example SPAC Acquisition Corp", "Shell Companies", "CS", False),
+    }
+    types = {k: v[2] for k, v in cases.items() if v[2]}
+    for sym, (name, industry, _, expected) in cases.items():
+        ident = {"symbol": sym, "name": name, "is_etf": False, "is_fund": False, "is_otc": False, "is_preferred": lf.is_preferred(sym, name),
+                 "is_warrant_unit": lf.is_warrant_unit(sym, name), "is_shell": lf.is_shell(name, industry)}
+        got = lf.apply_security_type(ident, types)
+        assert got["is_common"] is expected, (sym, got)
+    assert lf.is_shell("AST SpaceMobile, Inc.", "Telecommunications Services") is False and lf.is_shell("Some SPAC Holdings", "") is True
+
+
 if __name__ == "__main__":
     n = 0
     for name, fn in sorted(globals().items()):
