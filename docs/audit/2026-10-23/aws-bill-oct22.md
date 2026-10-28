@@ -110,6 +110,21 @@ population: ~$5 of live PUTs + ~$5 of archive copies once, and a probable storag
 day) on the morning of Oct 27 - expected, not a runaway. Their steady daily writes (Oct 27, the first weekday) decide the
 final November figure; checked on Oct 28.
 
+**First steady weekday with the new banks, Oct 27 (ops 6703/6704, read 2026-10-28 16:22 UTC, CE estimate): $8.34** -
+S3 $5.25 (live PUT/COPY/LIST 318,964 = $1.59, archive copies 292,585 = $1.46 in Intelligent-Tiering, egress 3.4 GB = $0.31,
+EarlyDelete-SIA $0.04), Lambda $2.14 (127 k GB-s), CloudWatch $0.53. Writes ~271 k (Oct 25 ~146 k, Oct 23 ~89 k). The
+banks' own run records: justhodl-bank-factors 27,138 written / 0 unchanged (prices and returns change daily - expected),
+justhodl-polygon-eod 12,634 / 0 (one new row per ticker per session - expected), justhodl-polygon-bank 1,212 / 89,
+**justhodl-bank-histories 123,637 written / 0 unchanged.** The history book rewrites every per-symbol file on every run:
+its write-if-changed hash covers the whole document including `as_of` (= the FMP bank manifest's `updated_at`, new on every
+bank update), so the hash never matches (emit_block, lambda_function.py ~line 288). Oct 27 it wrote ~110 k files, Oct 28
+~430 k by 16:00 UTC (~650 k/day pace) - each write is a live PUT ($0.005/1k) plus an archive copy ($0.005/1k), so
+~$1.10/day on Oct 27 and ~$4-6.50/day on Oct 28. Fix (owner session or Khalid's word - not applied here): hash the data
+(rows, years, n, schema, endpoint, bulk, period) without `as_of`; readers label as_of per block from the manifest (the
+engine's docstring), so unchanged files can stay unwritten. **November:** from Oct 27 as measured ~$233 of usage + $29 =
+**~$262**; with the history book fixed ~$200 + $29 = **~$229**; at the history book's Oct 28 pace ~$396 + 9% support
+$35.66 = **~$432**. No governor issue (storage fuse, S3 spend) was filed on Oct 26-28.
+
 Note (2026-10-23 20:20 UTC): `aws/ops/reports/latest/ops_6622_monthly_bill_projection.md` (written by another session
 under the same ops number) projects ~$326/month because it prices support as AWS's old Business plan ($100 or 10%) and
 counts the archive's daily replication PUTs as ~$4.50/month. Business Support+ is the greater of $29/month or 9% of

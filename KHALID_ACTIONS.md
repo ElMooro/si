@@ -166,6 +166,11 @@ This file tracks items that require **your direct action** (registration, creden
   "planned activity" in Cost Anomaly Detection (ops 6642, 2026-10-24).
 * **Fixes measured (Oct 24, ops 6644):** S3 data transfer down ~93% (40 GB on Oct 23 -> ~2.9 GB/day on Oct 24); Apple's
   crawler refused on every request (~5,800 a day); the expensive alarm line is gone ($0.51-0.64/day before, $0 on Oct 24).
+* **Decision needed - the history book rewrites every file, every run (ops 6703/6704, Oct 28):**
+  justhodl-bank-histories (built Oct 26 by another session) never skips an unchanged file - its fingerprint includes the
+  bank's update time, so 0 of 123,637 files counted as unchanged. ~110 k writes on Oct 27, ~430 k by 16:00 UTC on Oct 28
+  = $1-6.50/day (live write + archive copy). Fix = fingerprint the data without the date (a few lines). November:
+  ~$229 with the fix, ~$262 at Oct 27's level, ~$432 at Oct 28's pace. Say **"fix the history book"**.
 * **First clean day measured: Oct 25 = $6.27** (projected $6.34) -> **November ~$171 of usage + $29 Business Support+ = ~$200**
   (ops 6677). The new data banks (bank-histories, polygon-eod, bank-factors - built Oct 25-26 on your "fix it all")
   wrote ~1 M files on Oct 26 to fill themselves (~$10 once; a storage-growth warning issue may appear on Oct 27 - expected);
