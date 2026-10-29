@@ -55,6 +55,23 @@ def main():
                     name, key.rsplit("/", 1)[-1], len(vs), sum(v["Size"] for v in vs) / 1e9, len(old), KEEP[name], len(excess),
                     sum(v["Size"] for v in excess) / 1e9, len(eligible)))
         (r.ok if done else r.warn)("old copies beyond the rules: %s" % ("removed" if done else "still present - lifecycle has not finished"))
+        cw = boto3.client("cloudwatch", region_name="us-east-1")
+        for a in cw.describe_alarms(AlarmNames=["justhodl-guard-s3-bytes-growth-1d"]).get("MetricAlarms", []):
+            r.log("alarm %s: %s since %s - %s" % (a["AlarmName"], a["StateValue"], a.get("StateUpdatedTimestamp"), (a.get("StateReason") or "")[:200]))
+        from datetime import timedelta
+        for name, bucket in BUCKETS.items():
+            q = [{"Id": "b%d" % i, "MetricStat": {"Metric": {"Namespace": "AWS/S3", "MetricName": "BucketSizeBytes", "Dimensions": [
+                {"Name": "BucketName", "Value": bucket}, {"Name": "StorageType", "Value": c}]}, "Period": 86400, "Stat": "Average"}}
+                 for i, c in enumerate(["StandardStorage", "StandardIAStorage", "IntelligentTieringFAStorage", "IntelligentTieringIAStorage",
+                                        "GlacierInstantRetrievalStorage"])]
+            days = {}
+            for m in cw.get_metric_data(MetricDataQueries=q, StartTime=now - timedelta(days=7), EndTime=now)["MetricDataResults"]:
+                for t, v in zip(m["Timestamps"], m["Values"]):
+                    days[t.date().isoformat()] = days.get(t.date().isoformat(), 0) + v
+            prev = None
+            for d in sorted(days):
+                r.log("%-7s %s: %.1f GB%s" % (name, d, days[d] / 1e9, "" if prev is None else " (%+.1f GB)" % ((days[d] - prev) / 1e9)))
+                prev = days[d]
         r.ok("ops 6702 complete (read-only)")
 
 
