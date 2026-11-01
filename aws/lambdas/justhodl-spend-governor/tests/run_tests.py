@@ -267,7 +267,9 @@ def world(fns, limit=500, actual=100.0, alarm="OK", durations=None, daily=20.0, 
 
 
 def set_control(w, **kw):
-    c = {"mode": "enforce"}
+    # The suite is pinned to the 1st of the month and FakeBudgets answers THIS month's actual, so the v1.5.3
+    # stale-budget guard is off by default; test_month_rollover_with_a_stale_budget_figure_does_not_refreeze turns it on.
+    c = {"mode": "enforce", "thresholds": {"budget_rollover_days": 0}}
     c.update(kw)
     w["s3"].put_object(Bucket="b", Key=gov.PREFIX + "control.json", Body=json.dumps(c).encode())
 
@@ -387,6 +389,50 @@ def test_month_rollover_restores_cap_but_not_fuse():
     check(out["rollover"].get("restored", 0) >= 2 and out["stage"] == "NORMAL", "new month lifts the freeze")
     check(fz["justhodl-gamma"]["reserved"] == 5, "frozen function restored on the 1st")
     check(fz["justhodl-alpha"]["reserved"] == 0, "runaway-fuse hold survives the month boundary")
+
+
+def test_budget_actual_that_is_last_months_is_recognised():
+    cfg = core.merged_cfg()
+    first = datetime(2026, 11, 1, 0, 7, tzinfo=timezone.utc)
+    check(core.budget_actual_is_last_months(1176.94, 0.0, first, 10.26, cfg), "Nov 1 00:07: October's $1,176.94 vs CE $0.00 -> last month's")
+    check(core.budget_actual_is_last_months(1176.94, None, first, 10.26, cfg), "same with Cost Explorer unavailable")
+    check(not core.budget_actual_is_last_months(12.0, 9.5, first, 10.26, cfg), "a plausible first-day actual is kept")
+    check(not core.budget_actual_is_last_months(None, 0.0, first, 10.26, cfg), "no budget actual: nothing to ignore")
+    check(not core.budget_actual_is_last_months(1176.94, 0.0, datetime(2026, 11, 3, 0, 7, tzinfo=timezone.utc), 10.26, cfg),
+          "after budget_rollover_days the budget is trusted again")
+    check(core.budget_actual_is_last_months(40.0, 0.0, first, 0.0, cfg) and not core.budget_actual_is_last_months(14.0, 0.0, first, 0.0, cfg),
+          "a zero baseline still leaves $15 of room (3 days x the $5 floor)")
+
+
+def test_month_rollover_with_a_stale_budget_figure_does_not_refreeze():
+    """2026-11-01 00:07 UTC (issue #131): the rollover restored the October freeze and the same tick re-froze 904 functions
+    because describe_budget still answered October's total.  With v1.5.3 the stale figure is ignored."""
+    w = world(FLEET, actual=480)
+    set_control(w)
+    gov.lambda_handler({"action": "tick"}, Context())
+    st = state_of(w)
+    check(st["stage"] == "FREEZE", "last month ended frozen")
+    st["month"] = "2026-09"
+    w["s3"].put_object(Bucket="b", Key=gov.PREFIX + "state.json", Body=json.dumps(st).encode())
+    set_control(w, thresholds={"budget_rollover_days": 2})   # the live default
+    # the budget still says 480 (last month's total); Cost Explorer sees one day of the synthetic $20/day fleet
+    out = gov.lambda_handler({"action": "tick"}, Context())
+    fz = w["lambda"].fns
+    check(out["rollover"].get("restored", 0) >= 2, "new month lifts the freeze")
+    check(out["stage"] == "NORMAL" and out["decision"] == "NORMAL", "the stale $480 does not re-freeze the fleet: stage %s" % out["stage"])
+    check(out["thresholds"]["sources"].get("budget_actual_ignored") and out["thresholds"]["mtd"] < 100,
+          "the ignored figure is declared in sources; MTD comes from Cost Explorer")
+    check(fz["justhodl-gamma"]["reserved"] == 5 and fz["justhodl-alpha"]["reserved"] is None, "functions stay restored")
+    check(not any("-escalate-freeze.json" in k and "2026-10-01" in k for k in w["s3"].objects), "no escalate-freeze record")
+    st2 = gov.lambda_handler({"action": "status"}, Context())
+    check(st2["thresholds"]["sources"].get("budget_actual_ignored") and st2["thresholds"]["mtd"] < 100, "status reports the same MTD and sources")
+    # day 3 of the month: a budget at 480 is trusted again and freezes
+    gov.now_utc = lambda: PINNED + timedelta(days=2, hours=1)
+    try:
+        out = gov.lambda_handler({"action": "tick"}, Context())
+        check(out["stage"] == "FREEZE", "after budget_rollover_days the budget figure counts again")
+    finally:
+        gov.now_utc = lambda: PINNED
 
 
 def age_fuse(w, hours=1.0):

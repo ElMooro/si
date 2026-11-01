@@ -24,7 +24,7 @@ by an operator, because the 1st of the month does not fix a runaway.
 """
 from datetime import datetime, timedelta, timezone
 
-VERSION = "1.5.2"
+VERSION = "1.5.3"
 STAGES = ("NORMAL", "BRAKE", "FREEZE")
 LEVEL = {s: i for i, s in enumerate(STAGES)}
 
@@ -91,6 +91,14 @@ DEFAULTS = {
     # reported the next morning - the slow second check behind the hourly Lambda fuses
     "svc_alert_sagemaker": 2.0, "svc_alert_cloudwatch": 4.0, "svc_alert_dynamodb": 2.0, "svc_alert_ec2": 1.0,
     "svc_alert_lambda": 15.0, "svc_alert_transfer": 3.0, "svc_alert_other": 5.0,
+    # v1.5.3 (2026-11-01, issue #131): AWS Budgets rolls its monthly period over HOURS after midnight UTC; until then
+    # describe_budget's ActualSpend is LAST month's figure.  The 00:07 UTC tick on Nov 1 restored the October freeze
+    # and then re-froze 904 functions on "MTD $1,176.94" (October's total) against the $600 November cap, with Cost
+    # Explorer showing $0.00 for November.  In the first budget_rollover_days of a month a budget actual more than
+    # budget_rollover_lag_days of baseline above what Cost Explorer has seen for the month is ignored (see
+    # budget_actual_is_last_months); the hourly meter, fuses and engine caps are unaffected.
+    "budget_rollover_days": 2.0,
+    "budget_rollover_lag_days": 3.0,
 }
 
 PERSISTENT_USAGE_PATTERNS = (
@@ -189,6 +197,24 @@ def thresholds(cap, mtd, now, baseline, residual, cfg):
         "projected_eom": round(projected, 2), "frozen_eom": round(frozen_eom, 2),
         "cap_at_risk_even_frozen": frozen_eom > cap,
     }
+
+
+def budget_actual_is_last_months(b_actual, ce_mtd, now, baseline, cfg):
+    """True when a budget ActualSpend cannot belong to this month (v1.5.3, issue #131).
+
+    AWS Budgets rolls a monthly period over hours after midnight UTC, so on the 1st describe_budget still answers
+    last month's total.  In the first budget_rollover_days of a month, an actual more than budget_rollover_lag_days
+    of baseline (floor $5/day) above what Cost Explorer has seen for the month is last month's figure.  Budgets and
+    Cost Explorer read the same billing data with the same lag, so a genuine first-day spend never opens that gap.
+    """
+    if b_actual is None:
+        return False
+    day = (now - month_start(now)).total_seconds() / 86400.0
+    if day >= float(cfg.get("budget_rollover_days", DEFAULTS["budget_rollover_days"])):
+        return False
+    seen = float(ce_mtd or 0.0)
+    room = float(cfg.get("budget_rollover_lag_days", DEFAULTS["budget_rollover_lag_days"])) * max(float(baseline or 0.0), 5.0)
+    return float(b_actual) > seen + room
 
 
 def decide(stage, mtd, th, cap_at_stage, cfg, suppressed=False):

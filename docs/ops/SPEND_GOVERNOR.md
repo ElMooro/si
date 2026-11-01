@@ -206,3 +206,26 @@ This is the slow second check (a day late) behind the hourly Lambda fuses; it is
 DynamoDB, CloudWatch or a brand-new service start to bill - the classes the sealed IAM denies (ops 6578/6579) are
 meant to make impossible in the first place.
 
+
+## v1.5.3 (2026-11-01) - the budget figure is checked against the month at rollover
+
+At 2026-11-01 00:07 UTC the first tick of the month did exactly what it should - closed October, restored the 904
+functions Khalid had frozen on Oct 16 - and then re-froze all 904 of them (issue #131: "MTD $1176.94 >= freeze line
+$559.55 (cap $600.00)"). The $1,176.94 was **October's** total: AWS Budgets rolls a monthly period over hours after
+midnight UTC (the Budget's `LastUpdatedTime` still read 2026-10-31 21:36 at 11:19 UTC on Nov 1), so `describe_budget`
+answered last month's `ActualSpend` while Cost Explorer already showed $0.00 for November. `decide()` then held the
+FREEZE "until the 1st, a cap raise, or an operator release" - and the 1st had just passed, so nothing automatic could
+lift it; `freeze-resume.yml` (00:48 and 10:39 UTC) saw FREEZE and left the six GitHub jobs disabled.
+
+Now (`governor_core.budget_actual_is_last_months`): in the first `budget_rollover_days` (2) of a month, a budget actual
+more than `budget_rollover_lag_days` (3) days of baseline (floor $5/day) above what Cost Explorer has seen for the month
+is ignored - MTD comes from Cost Explorer alone, `thresholds.sources.budget_actual_ignored` says so, and the tick log
+carries the figure. Budgets and Cost Explorer read the same billing data with the same lag, so a genuine first-day
+spend never opens that gap; the hourly meter, both fuses and the $50 engine caps are untouched. The deploy also carries
+v1.5.2 (the storage fuse waits for a complete day), which never reached the account: its 2026-10-23 deploy failed the
+existing-schedule guard because `config.json` declared the tick as `cron(7 6 * * ? *)` while the live schedule is
+`cron(7 * * * ? *)` (hourly, exempt control plane in `config/cadence-floor.json`); `config.json` now matches the live
+binding.
+
+The Nov 1 freeze itself is not released by this version (a FREEZE is only ever lifted by the 1st, a cap raise or an
+operator): `{"action":"restore","suppress_hours":24}`, then `freeze-resume.yml` (`mode=resume`) for the GitHub jobs.

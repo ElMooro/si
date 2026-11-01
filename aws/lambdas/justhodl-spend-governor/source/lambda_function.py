@@ -180,6 +180,21 @@ def read_budget():
     return float(b["BudgetLimit"]["Amount"]), act, fc
 
 
+def month_to_date(ctx, b_actual, ce, now, baseline, cfg):
+    """MTD = max(Budget ActualSpend, Cost Explorer month-to-date) - except that a budget actual which cannot belong to
+    this month (v1.5.3: the period has not rolled over yet, issue #131) is ignored and reported in sources."""
+    ce_mtd = ce.get("mtd") if ce.get("month") == core.month_key(now) else None
+    sources = {"budget_actual": b_actual, "ce_mtd": ce_mtd}
+    if core.budget_actual_is_last_months(b_actual, ce_mtd, now, baseline, cfg):
+        sources["budget_actual_ignored"] = "budget period not rolled over yet (last month's figure)"
+        if ctx is not None:
+            ctx.log("budget actual $%.2f ignored on day %d: last month's figure (Cost Explorer MTD %s)" % (
+                b_actual, now.day, ce_mtd))
+        b_actual = None
+    mtd = max([v for v in (b_actual, ce_mtd) if v is not None] or [0.0])
+    return mtd, sources
+
+
 def _ce_pages(**kw):
     token = None
     while True:
@@ -1309,11 +1324,10 @@ def tick(event, context, trigger):
     except Exception as e:  # noqa: BLE001 - Budgets alone is enough to enforce
         ctx.log("cost explorer unavailable: %s" % lv.err_code(e))
         ce = state.get("ce") or {}
-    sources = {"budget_actual": b_actual, "ce_mtd": ce.get("mtd") if ce.get("month") == core.month_key(now) else None}
-    mtd = max([v for v in sources.values() if v is not None] or [0.0])
     cap, cap_src = core.effective_cap(limit, control, now)
     baseline, b_src = core.baseline_from_daily(ce.get("daily") or {}, now.date(), cfg)
     residual, r_src = core.residual_from_usage(ce.get("persistent_by_day") or {}, now.date(), cfg)
+    mtd, sources = month_to_date(ctx, b_actual, ce, now, baseline, cfg)
     th = core.thresholds(cap, mtd, now, baseline, residual, cfg)
     th.update({"cap_source": cap_src, "baseline_source": b_src, "residual_source": r_src,
                "budget_limit": limit, "budget_forecast": b_forecast, "sources": sources})
@@ -1440,11 +1454,12 @@ def action_status(event, context):
     ce = state.get("ce") or {}
     if event.get("refresh"):
         ce = refresh_ce(state, now, force=True)
-    mtd = max([v for v in (b_actual, ce.get("mtd") if ce.get("month") == core.month_key(now) else None) if v is not None] or [0.0])
     cap, cap_src = core.effective_cap(limit, control, now)
     baseline, _ = core.baseline_from_daily(ce.get("daily") or {}, now.date(), cfg)
     residual, _ = core.residual_from_usage(ce.get("persistent_by_day") or {}, now.date(), cfg)
+    mtd, sources = month_to_date(None, b_actual, ce, now, baseline, cfg)
     th = core.thresholds(cap, mtd, now, baseline, residual, cfg)
+    th["sources"] = sources
     by_stage = {}
     for e in (state.get("ledger") or {}).values():
         k = "%s/%s" % (e.get("stage"), e.get("lever"))
