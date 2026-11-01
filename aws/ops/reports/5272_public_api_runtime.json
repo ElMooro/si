@@ -3,44 +3,44 @@
   "read_only": true,
   "aws_sdk_calls": 0,
   "scope": "PUBLIC_HTTP_RESPONSE_AND_BROWSER_CORS_ONLY",
-  "source_sha": "76772f806c4cab1ae6cb78efaabafe2148c5601e",
-  "observed_at": "2026-10-31T05:29:35.499271+00:00",
+  "source_sha": "2c36cff8297ff6ea70f4e21af729450722d81923",
+  "observed_at": "2026-11-01T05:27:42.200565+00:00",
   "requests": [
     {
       "path": "/health",
-      "status": 200,
+      "status": 429,
       "content_type": "application/json",
       "cors_allow_origin": [
         "https://justhodl.ai"
       ],
       "cors_valid": true,
-      "bytes": 112,
-      "agent_matches": true,
+      "bytes": 103,
+      "agent_matches": false,
       "handler_error_present": false,
       "trace_field_present": false,
       "quote_count": null,
       "sector_count": null,
-      "provider_status": "HANDLER_READY",
-      "elapsed_s": 0.51
+      "provider_status": null,
+      "elapsed_s": 0.13
     },
     {
       "path": "/",
-      "status": 200,
+      "status": 429,
       "content_type": "application/json",
       "cors_allow_origin": [
         "https://justhodl.ai"
       ],
       "cors_valid": true,
-      "bytes": 35466,
-      "agent_matches": true,
+      "bytes": 103,
+      "agent_matches": false,
       "handler_error_present": false,
       "trace_field_present": false,
-      "quote_count": 24,
-      "sector_count": 11,
-      "provider_status": "PARTIAL",
-      "elapsed_s": 9.95
+      "quote_count": null,
+      "sector_count": null,
+      "provider_status": null,
+      "elapsed_s": 0.05
     }
   ],
   "raw_response_bodies_reported": 0,
-  "ok": true
+  "ok": false
 }
