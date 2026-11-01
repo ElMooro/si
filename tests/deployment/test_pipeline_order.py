@@ -256,8 +256,10 @@ def test_a_new_york_schedule_is_read_in_utc_and_written_back_in_its_own_zone():
     w = rule("w", "cron(46 13 * * ? *)", "w")
     plan, by = plan_for_schedules([sched("r", "cron(10 12 ? * MON-FRI *)", "r", "America/New_York")], [w], [engine("w", keys=["x"]), engine("r", reads=["x"])])
     assert not plan["actions"], "already after its writer in UTC terms"
-    # a New York reader that really is before its writer moves, and the cron it gets is in New York time
-    plan, by = plan_for_schedules([sched("r", "cron(0 9 ? * MON-FRI *)", "r", "America/New_York")], [w], [engine("w", keys=["x"]), engine("r", reads=["x"])])
+    # a New York reader that really is before its writer moves, and the cron it gets is in New York time.
+    # 08:00 New York is 12:00 UTC in summer and 13:00 UTC in winter - before the 13:46 writer either way (09:00 was
+    # only before it under daylight time, and the gate went red on 2026-11-01, the morning clocks went back).
+    plan, by = plan_for_schedules([sched("r", "cron(0 8 ? * MON-FRI *)", "r", "America/New_York")], [w], [engine("w", keys=["x"]), engine("r", reads=["x"])])
     a = by["r"]
     assert a["timezone"] == "America/New_York"
     assert po.utc_minute(a["after"]["expr"], "America/New_York") > 13 * 60 + 46
