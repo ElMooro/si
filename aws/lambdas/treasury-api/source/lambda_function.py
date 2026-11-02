@@ -6,6 +6,9 @@ import statistics
 
 s3 = boto3.client("s3")
 
+AUCTIONS_URL = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query"
+
+
 def lambda_handler(event, context):
     try:
         if event.get("source") == "aws.events":
@@ -123,19 +126,23 @@ def lambda_handler(event, context):
         }
 
 def get_comprehensive_auction_data(limit=500):
-    """Get comprehensive auction data for historical analysis"""
+    """Get comprehensive auction data for historical analysis.
+
+    Since 2026-05 Treasury FiscalData answers HTTP 400 ("Operator 'Invalid Filter Format' is not supported") to the old
+    `bid_to_cover_ratio:not.is.null` filter, which left this API empty from 2026-05-28 (ops 6712/6713).  Ask by date with
+    documented operators only (filter gte, sort, page[size]) and keep the complete auctions here."""
     try:
         # Get last 5 years of data for proper historical context
         start_date = (datetime.now() - timedelta(days=5*365)).strftime("%Y-%m-%d")
-        url = f"https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/auctions_query?filter=bid_to_cover_ratio:not.is.null,auction_date:gte:{start_date}&sort=-auction_date&limit={limit}"
-        
+        url = AUCTIONS_URL + "?filter=auction_date:gte:%s&sort=-auction_date&page%%5Bsize%%5D=10000" % start_date
+
         with urllib.request.urlopen(url, timeout=20) as response:
             data = json.loads(response.read())
-        
+
         if data and "data" in data and data["data"]:
-            return [auction for auction in data["data"] if has_all_required_data(auction)]
+            return [auction for auction in data["data"] if has_all_required_data(auction)][:limit]
         return []
-        
+
     except Exception as e:
         print(f"Error fetching comprehensive auction data: {e}")
         return []

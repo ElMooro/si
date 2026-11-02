@@ -7385,7 +7385,7 @@
    "expr": "rate(1 day)",
    "kind": "events",
    "name": "macro-financial-daily-execution",
-   "state": "DISABLED",
+   "state": "ENABLED",
    "targets": [
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:macro-financial-intelligence",
@@ -8174,6 +8174,20 @@
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-ticker-trends",
      "id": "1",
+     "input": null,
+     "path": null
+    }
+   ]
+  },
+  {
+   "expr": "cron(0 10 ? * MON,THU *)",
+   "kind": "events",
+   "name": "treasury-api-history-update",
+   "state": "ENABLED",
+   "targets": [
+    {
+     "arn": "arn:aws:lambda:us-east-1:857687956942:function:treasury-api",
+     "id": "treasury-api",
      "input": null,
      "path": null
     }

@@ -9,9 +9,7 @@
   "justhodl-ici-flows",
   "justhodl-kill-switch",
   "justhodl-transcript-indexer",
-  "macro-financial-intelligence",
   "ofrapi",
-  "treasury-api",
   "treasury-auto-updater"
  ],
  "deleted": [
@@ -69,6 +67,8 @@
  "restored": {
   "justhodl-insider-cluster-scanner": "data/insider-clusters.json is declared by insider-desk.html and read by 22 engines (199 Lambda fetches/day); the engine had lost its trigger (last output 2026-08-04) and was misclassified idle. Restored from backups/deleted-functions/20261020T205550Z/ and scheduled daily 13:50 UTC ahead of insider-industry-cluster (14:20).",
   "justhodl-warroom-weights": "Monthly engine (cron 1st 07:10 UTC, last output 2026-10-01) consumed by justhodl-canary-warroom and canaries.html; 'no invocation in 27 days' is the wrong test for a monthly job. Restored from the same backup; its Scheduler schedule justhodl-warroom-weights-monthly was never deleted.",
-  "justhodl-sec-bulk": "Restored 2026-10-23 (Khalid: '100% of the data pulled'): SEC XBRL companyfacts/submissions is the free full-history fundamentals source and the warehouse doctrine (2026-09-02) keeps every provider's history on data.html whether or not a page reads it yet. 'Orphan: nobody reads' was the wrong test for a warehouse lane. Weekly (SEC bulk refreshes nightly; quarterly data) - justhodl-sec-bulk-weekly ENABLED, the hourly/daily copies stay DISABLED."
+  "justhodl-sec-bulk": "Restored 2026-10-23 (Khalid: '100% of the data pulled'): SEC XBRL companyfacts/submissions is the free full-history fundamentals source and the warehouse doctrine (2026-09-02) keeps every provider's history on data.html whether or not a page reads it yet. 'Orphan: nobody reads' was the wrong test for a warehouse lane. Weekly (SEC bulk refreshes nightly; quarterly data) - justhodl-sec-bulk-weekly ENABLED, the hourly/daily copies stay DISABLED.",
+  "macro-financial-intelligence": "Restored 2026-11-02 (Khalid: 'turn these on'): it reads FRED (Fed MBS holdings WSHOMCB, DFF, T10Y2Y, DGS10, DGS2) into its own bucket macro-financial-intelligence/latest_brief.json and serves a page from its Function URL (justhodl-ultimate-orchestrator calls it); the Oct 20 'missing key' looked in the wrong bucket. v2.0.1 removed two constants presented as data (health 7.5, liquidity NORMAL), named the MBS series correctly and fixed the page's f-string crash; rule macro-financial-daily-execution rate(1 day) ENABLED (ops 6714).",
+  "treasury-api": "Restored 2026-11-02 (Khalid: 'turn these on'): Treasury FiscalData auctions API (TreasuryMarketAPI i1hgpjotq7 + Function URL; called by daily-liquidity-report, fmp-stock-picks-agent, email-reports-v2, ultimate-orchestrator) writing openbb-lambda-data/treasury_historical_comprehensive.json. It had answered nothing since 2026-05-28: FiscalData rejects the old bid_to_cover_ratio:not.is.null filter with HTTP 400 (ops 6713) - fixed; its history update rule (deleted before 2026-10) recreated as treasury-api-history-update cron(0 10 ? * MON,THU *) (ops 6714). treasury-auto-updater stays off (it only logged)."
  }
 }
