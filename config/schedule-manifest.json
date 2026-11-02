@@ -8180,20 +8180,6 @@
    ]
   },
   {
-   "expr": "cron(0 10 ? * MON,THU *)",
-   "kind": "events",
-   "name": "treasury-api-history-update",
-   "state": "ENABLED",
-   "targets": [
-    {
-     "arn": "arn:aws:lambda:us-east-1:857687956942:function:treasury-api",
-     "id": "treasury-api",
-     "input": null,
-     "path": null
-    }
-   ]
-  },
-  {
    "expr": "cron(15 21 ? * TUE-SAT *)",
    "kind": "events",
    "name": "tv-watchlist-tracker-daily",
@@ -14861,6 +14847,21 @@
     {
      "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-tradingview",
      "input": "{}",
+     "path": null
+    }
+   ]
+  },
+  {
+   "expr": "cron(0 10 ? * MON,THU *)",
+   "group": "default",
+   "kind": "scheduler",
+   "name": "treasury-api-history-update",
+   "state": "ENABLED",
+   "timezone": "UTC",
+   "targets": [
+    {
+     "arn": "arn:aws:lambda:us-east-1:857687956942:function:treasury-api",
+     "input": "{\"source\":\"aws.events\"}",
      "path": null
     }
    ]
