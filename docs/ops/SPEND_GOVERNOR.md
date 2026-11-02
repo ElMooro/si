@@ -229,3 +229,14 @@ binding.
 
 The Nov 1 freeze itself is not released by this version (a FREEZE is only ever lifted by the 1st, a cap raise or an
 operator): `{"action":"restore","suppress_hours":24}`, then `freeze-resume.yml` (`mode=resume`) for the GitHub jobs.
+
+**Released 2026-11-02 15:44 UTC (ops 6709).** Khalid's report that chart.html's ETF RESEARCH strip read "USD Unavailable"
+for SPY traced back to this freeze (ops 6708: the windows were in the data but valid only until 2026-11-02 00:00 UTC, the
+engines behind them held at concurrency 0). Guards before the release: the freeze was #131's (escalate-freeze 00:07:37,
+MTD $1,176.94), nothing escalated / restored / forced since, MTD $30.70 below the BRAKE line $492.80, budget actual
+$30.702 = Cost Explorer $30.7023 (Budgets had rolled over at 2026-11-01 15:59 UTC), v1.5.3 in enforce. The release was
+`{"action":"restore","suppress_hours":0}` - no suppression was needed once the budget agreed with Cost Explorer: 904
+restored, 0 failed, stage NORMAL. Read-back of all 914 functions: concurrency 0 only on the five CAP holds and
+`justhodl-signal-registry-ingest` (the parked keep/delete item). `freeze-resume.yml` `mode=resume` then re-enabled the six
+GitHub jobs and disabled itself. Issues #131, #133, #134 closed with the evidence. The fleet was dark for 39.6 h; every
+engine catches up on its own daily slot.

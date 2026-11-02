@@ -6,6 +6,16 @@ This file tracks items that require **your direct action** (registration, creden
 
 ## 🔴 Time-sensitive
 
+### 0q. The Nov 1 false freeze - RELEASED 2026-11-02 15:44 UTC; nothing to do
+
+At 00:07 UTC on Nov 1 the governor thawed the fleet as planned, then re-froze all 904 engines in the same minute: AWS
+Budgets still reported October's $1,176.94 as November's spend (Cost Explorer: $0.00). Everything on the site went stale
+(2 of 1,317 outputs fresh on Nov 2), which is why chart.html's ETF strip read "USD Unavailable" for SPY. v1.5.3 (Nov 1)
+stops the rollover misread; ops 6709 released the freeze under guards (MTD $30.70, forecast $311 vs the $600 cap; stage
+NORMAL, 904 restored, 0 failed; all safety lines armed), refreshed the ETF chain and confirmed the served strip shows SPY
++$5.23B / +$2.20B / +$1.58B (1 / 5 / 21 observations). The six GitHub jobs are back on. Still yours: item 0d (the five
+CAP holds).
+
 ### 0p. Bank fusion - the banked data is now inside the engines (2026-10-26); nothing to do, read when you like
 
 * **What exists now.** `justhodl-bank-factors` joins the banks once a day (02:50 UTC) into a **factor book**: one document
