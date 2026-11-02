@@ -186,6 +186,20 @@ re-emitted it on every run, so each run re-invoked itself through the bus: ~33M 
 16-hop recursive-loop breaker never fired. Every routed event also rewrote the whole day audit log in the
 versioned bucket, taking it from 0.9 TB to 145 TB of noncurrent copies.
 
+**Why it started on Monday Oct 12 and not before (traced 2026-11-02).** The cycle existed since the miss-calibrator
+was built: its weekly run (`cron(15 9 ? * MON *)`) published `near_miss.extreme` once per signal type with >= 50 near
+misses - three types (screener_top_pick 185, momentum_top_pick 141, valuation_composite 128) - and the coordinator
+routed each one back to it, so every hop tripled. What held it was an accident: the coordinator's 60 s dedupe hashed
+`(event, payload)`, and the re-emitted payloads were identical, so repeats inside a warm container were dropped and
+each Monday's chain died after 10-24 runs (Sep 14: 10, Sep 21: 16, Sep 28: 24, Oct 5: 12 - ops 6530). Commit
+42bedb1cd (2026-10-07, "Retry coordinator targets that were not accepted") re-keyed the dedupe on producer + event id
+(the EventBridge delivery id when `_event_id` is absent - `system_events.publish` never sets one) and made the handler
+raise when a target was not accepted. From then on no re-emission was a duplicate, and throttled invokes were retried
+from Lambda's async queue for up to 6 h. The first Monday after it, 09:15 UTC Oct 12: 969 calibrator runs in the first
+minute, ~2,500/min from 09:16, pinned at the account's concurrency ceiling (~720 calibrator + ~430 coordinator) for
+five days. Nobody was told: Telegram answered 401 and the SNS e-mail was unconfirmed. The rules below remove the
+cycle itself rather than relying on any dedupe.
+
 **Rules, enforced in code:**
 
 1. An engine never emits an event it consumes. `miss-calibrator` runs triggered by the coordinator are

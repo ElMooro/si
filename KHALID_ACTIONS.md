@@ -371,7 +371,14 @@ you without confirmation as before.
 `justhodl-guardrail-notify` gets 401 Unauthorized from Telegram. Create a new token with @BotFather and tell
 Claude; the SSM parameter is swapped by an ops script (never paste the token in chat or in the repo).
 
-### 0d. Two engines are locked off by the $50/month cap - decide before Nov 1
+### 0d. Two engines are locked off by the $50/month cap - your call (updated 2026-11-02)
+
+2026-11-02: of the five engines in the manual-release list, macro-financial-intelligence and treasury-api are back on
+(fixed and verified, ops 6712-6715); ofrapi stays off - its 42 "OFR indicators" are random numbers (synthetic), and
+nine engines already read the real OFR data; your call: rebuild it on OFR's real data or delete it. Why the
+coordinator and miss-calibrator looped: docs/EVENT_BUS.md, Loop safety. Normal cost if released: ~$0.11/month together.
+
+(original note)
 
 `justhodl-miss-calibrator` ($1,551 of Lambda cost in October) and `justhodl-event-coordinator` ($432) crossed the
 new per-engine cap and are held under CAP: the Nov 1 thaw will NOT restore them. The loop they caused was fixed on
