@@ -1,7 +1,7 @@
 {
   "source_sha256": "c5ffffd09d3df87e4c2d2bec7d0b248cb0dd0447f2590d71cb8b352610b4a1d0",
   "source_bytes": 11430,
-  "candidate_sha256": "d9775c219eb795a8cb3538ccf03e1ac29c85d907254c2d027b6c7e745e3aa547",
+  "candidate_sha256": "63fca0178f224a535bb3553d73e540ed052153a6b954dadfd2e45b9360079710",
   "edits": [
     [
       "          DENY=\" aws .github scripts ci config cloudflare ops docs supabase tools-src chrome-extension node_modules _partials _site \"",
@@ -18,6 +18,10 @@
     [
       "    - cron: '*/15 * * * *'   # retained site build cadence; source-only, no live feed probes",
       "    - cron: '17 5 * * *'   # once a day (Khalid 2026-10-20): every run purged the whole Cloudflare cache, 96x/day; pushes still deploy at once"
+    ],
+    [
+      "      - name: Set up Node 22\n        uses: actions/setup-node@v4\n        with:\n          node-version: '22'\n      - name: Block published credentials\n",
+      "      - name: Set up Node 22\n        uses: actions/setup-node@v4\n        with:\n          node-version: '22'\n      # 2026-11-03: ubuntu-latest rolled from 24.04 to 26.04 overnight and the system python3 changed with it. The\n      # output-role review (config/engine-output-roles.json) and the portable-order fixtures hash function bodies with\n      # ast.dump, which differs between Python minors, so every Pages build since 12:50 UTC failed on \"Internal family\n      # source review drift\". Pin the interpreter the reviews were bound with (deploy-lambdas and run-ops already do).\n      - name: Set up Python 3.12 (review hashes are bound to 3.12)\n        uses: actions/setup-python@v5\n        with:\n          python-version: '3.12'\n      - name: Block published credentials\n"
     ]
   ],
   "notes": [
