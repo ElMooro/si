@@ -138,12 +138,16 @@ def main():
             overflow = page.evaluate("() => document.documentElement.scrollWidth - document.documentElement.clientWidth")
             r.log("horizontal overflow at 390 px: %s px" % overflow)
             wide = page.evaluate("""() => { const cw = document.documentElement.clientWidth; const out = [];
-              for (const el of document.querySelectorAll('body *')) { const rct = el.getBoundingClientRect(); if (rct.right > cw + 1 && rct.width > 0) {
-                const inMain = !!el.closest('main'); out.push({tag: el.tagName, id: el.id || '', cls: String(el.className || '').slice(0, 60), right: Math.round(rct.right), w: Math.round(rct.width), inMain}); } }
-              return out.slice(0, 15); }""")
-            r.log("elements past the right edge at 390 px: %s" % json.dumps(wide))
+              const clipped = (el) => { for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) { const o = getComputedStyle(a).overflowX;
+                if ((o === 'auto' || o === 'scroll' || o === 'hidden' || o === 'clip') && a.getBoundingClientRect().right <= cw + 1) return true; } return false; };
+              for (const el of document.querySelectorAll('body *')) { const rct = el.getBoundingClientRect(); const cs = getComputedStyle(el);
+                if (rct.right > cw + 1 && rct.width > 0 && cs.position !== 'fixed' && !clipped(el)) {
+                  const inMain = !!el.closest('main'); out.push({tag: el.tagName, id: el.id || '', cls: String(el.className || '').slice(0, 60), right: Math.round(rct.right), w: Math.round(rct.width), pos: cs.position, inMain,
+                    path: (() => { const parts = []; let n = el; while (n && n !== document.body && parts.length < 6) { parts.unshift(n.tagName.toLowerCase() + (n.id ? '#' + n.id : '') + (n.className && typeof n.className === 'string' ? '.' + n.className.trim().split(/\\s+/)[0] : '')); n = n.parentElement; } return parts.join('>'); })()}); } }
+              return out.slice(0, 20); }""")
+            r.log("unclipped elements past the right edge at 390 px: %s" % json.dumps(wide))
             facts["phone_overflow_px"] = overflow
-            facts["phone_overflow_in_main"] = sum(1 for w in wide if w.get("inMain") and w.get("tag") not in ("TABLE", "TBODY", "THEAD", "TR", "TD", "TH"))
+            facts["phone_overflow_in_main"] = sum(1 for w in wide if w.get("inMain"))
 
             r.section("4. screenshot (0.5x, jpeg, base64)")
             ctx2 = browser.new_context(viewport={"width": 1440, "height": 900}, device_scale_factor=0.5)
