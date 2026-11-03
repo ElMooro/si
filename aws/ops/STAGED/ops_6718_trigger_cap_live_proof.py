@@ -2,7 +2,7 @@
 past it it gets shut down and I have to manually turn it back on").
 
 After deploy-lambdas shipped commit 6fde07603 (chain_guard v2 in every engine that starts engines, the coordinator,
-system_events; spend-governor v1.6.0):
+system_events; spend-governor v1.6.1):
   A. deployed code: chain_guard v2 markers in the function zips of a sample (coordinator, governor, a2a-bus, tv-bars,
      calibrator, symdir, equity-prewarm); the governor answers status with version 1.6.1.
   B. the ledger, for real: a 2-hop chain is admitted and counted in DynamoDB (then a revisit is refused as a loop -
@@ -78,7 +78,7 @@ def main():
                 fn, v2, wired, lam.get_function_configuration(FunctionName=fn)["LastModified"][:19]))
         st = gov(lam1, {"action": "status"})
         (r.ok if st.get("version") == "1.6.1" else r.fail)("governor version %s stage %s mode %s" % (st.get("version"), st.get("stage"), st.get("mode")))
-        if st.get("version") != "1.6.0":
+        if st.get("version") != "1.6.1":
             raise SystemExit(1)
 
         r.section("B. the ledger, for real")
