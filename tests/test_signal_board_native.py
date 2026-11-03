@@ -9,6 +9,7 @@ import io, json, sys, threading, unittest, urllib.error
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT/'aws/lambdas/justhodl-signal-board/source'
 sys.path.insert(0, str(SOURCE))
+sys.path.insert(1, str(ROOT/'aws/shared'))   # chain_guard (the trigger cap) is bundled with every function from aws/shared
 import board_store as store
 import lambda_function as handler
 
@@ -145,7 +146,8 @@ class Tests(unittest.TestCase):
         sys.path.insert(0, str(ROOT/'scripts'))
         import normalize_lambda_config as normalize
         cfg = json.loads((SOURCE.parent/'config.json').read_bytes())
-        self.assertEqual(cfg['schedule'], 'cron(15 0/6 * * ? *)')
+        # cron(15 2 * * ? *) since the 2026-10-20 cadence floor (every engine at most once a day; was every 6 h)
+        self.assertEqual(cfg['schedule'], 'cron(15 2 * * ? *)')
         self.assertEqual(cfg['preserved_schedule_reference']['rule_name'], 'signal-board-3h')
         normalized = normalize.normalize_config(cfg)
         self.assertNotIn('schedule', normalized)

@@ -103,7 +103,10 @@ def test_every_engine_start_goes_through_chain_guard():
 def test_relays_begin_their_lineage():
     g = event_graph.build_graph(ROOT)
     edges = g["edges"]
-    dsts = {e[1] for e in edges if e[2] in ("event", "invoke")}
+    routes = event_graph.load_routes(ROOT)
+    rules = event_graph.load_bus_rules(ROOT)
+    dsts = {e[1] for e in edges if e[2] in ("event", "invoke")} | {t for v in routes.values() for t in v} | {t for v in rules.values() for t in v}
+    dsts = {fn for fn in dsts if (LAMBDAS / fn / "source").is_dir()}
 
     def starts_engines(fn):
         node = g["nodes"].get(fn) or {}
@@ -116,7 +119,7 @@ def test_relays_begin_their_lineage():
         text = sources.get(fn, "")
         if not ("chain_guard.begin(" in text or "chain_guard.lambda_client(event" in text or "chain_guard.chain_invoke(" in text and "event=" in text):
             bad.append(fn)
-    assert not bad, "relay engines must call chain_guard.begin(event, context) at handler entry: %s" % bad
+    assert not bad, "relay engines must call chain_guard.begin(event, context) at handler entry: %s (destinations %s)" % (bad, sorted(dsts))
 
 
 def test_publish_side_guard_rails_present():

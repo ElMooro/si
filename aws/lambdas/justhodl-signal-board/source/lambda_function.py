@@ -1,11 +1,13 @@
 """Scheduled complete research inventory; public HTTP never runs acquisition."""
 import json, os
 import boto3
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 from botocore.config import Config
 import board_store as store
 
 def lambda_handler(event=None, context=None):
     event = event if isinstance(event, dict) else {}
+    chain_guard.begin(event, context)  # trigger cap: continue the chain this run was started by (a root otherwise)
     if event.get('validate_only') is True:
         store.qualified()
         return {'statusCode': 200, 'body': json.dumps({'contract': store.candidate.CONTRACT, 'validated': True, 'published': False})}
