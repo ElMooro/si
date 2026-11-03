@@ -240,3 +240,22 @@ restored, 0 failed, stage NORMAL. Read-back of all 914 functions: concurrency 0 
 `justhodl-signal-registry-ingest` (the parked keep/delete item). `freeze-resume.yml` `mode=resume` then re-enabled the six
 GitHub jobs and disabled itself. Issues #131, #133, #134 closed with the evidence. The fleet was dark for 39.6 h; every
 engine catches up on its own daily slot.
+
+## v1.6.0 / v1.6.1 (2026-11-03) - the trigger cap's shutdown lever
+
+Khalid (2026-11-02): engines past the fleet-wide trigger cap are shut down and only he turns them back on.
+`aws/shared/chain_guard.py` v2 refuses the start and writes one breach record per (day, source, target, rule) into the
+DynamoDB table `justhodl-event-breaker`, then asks `{"action":"trigger_breach","breach_id":...}`.  The governor reads
+the record (the evidence), holds every engine it names under stage CAP with `operator_hold` and the breach id
+(`hold_under_cap`, the same lever as the operator hold), records a `trigger-breach` event (GitHub issue "TRIGGER CAP:
+engines SHUT DOWN (manual release)" through governor-alerts.yml, plus e-mail) and marks the record applied; every tick
+sweeps records still pending (the engine's direct call found the governor busy).  Nothing automatic lifts the hold -
+not the 1st, not a restore, not a cap raise; `release_cap` does, one engine at a time.  Monitor mode records and holds
+nothing.  The governor's role got `dynamodb Get/Put/Update/Scan/Query` on the table (ops 6717).
+
+v1.6.1: the record's mark aliases every attribute name - `result` and `status` are DynamoDB reserved words, and the
+live proof (ops 6718) caught a ValidationException after the hold had already landed; the alert is now recorded before
+the mark so it reaches Khalid whatever else fails.  Proof on the real account (ops 6718, canary
+`justhodl-spend-governor-canary`): admit at the depth cap -> breach record -> hold (reserved 0, ledger CAP) -> event
+record -> issue #140 -> `release_cap` restored the canary exactly; a second breach the same day is not re-reported.
+

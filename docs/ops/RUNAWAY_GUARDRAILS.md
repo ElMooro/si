@@ -126,7 +126,7 @@ synchronous and cannot multiply, and are not in the lineage.
 
 **Proof:** `tests/test_chain_guard_trigger_cap.py` (17), `tests/test_event_coordinator_trigger_cap.py` (5), the
 governor's `run_tests.py` (trigger_breach / sweep / monitor mode), the gate `tests/deployment/test_trigger_cap.py`; the
-live shutdown path was exercised against the canary `justhodl-spend-governor-canary` (ops 6718).
+live shutdown path was exercised against the canary `justhodl-spend-governor-canary` (ops 6718, 2026-11-03 06:33 UTC: admit at the depth cap -> breach record -> hold -> trigger-breach event -> issue #140 -> release_cap restored it exactly; the proof caught governor v1.6.0's reserved-word bug, fixed in v1.6.1).
 
 ## Layer 3 - blast-radius caps
 
