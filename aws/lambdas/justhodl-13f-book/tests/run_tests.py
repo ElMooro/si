@@ -169,6 +169,8 @@ def test_build_and_handler():
     assert out["price_divergence"]["error"] == "KeyError" and out["price_divergence"]["state"] is None
     eng = {e["engine"]: e for e in out["engines"]}
     assert eng["justhodl-13f-positions"]["tier"] == "fresh" and eng["justhodl-13f-price-divergence"]["tier"] == "missing"
+    assert lf.tier(202.0, 168) == "fresh" and lf.tier(300.0, 168) == "stale" and lf.tier(202.0, 24) == "dead" and lf.tier(20.0, 168) == "fresh" and lf.tier(5.0, None) == "unscheduled" and lf.tier(None, 24) == "missing"
+    assert lf.tier(1300.0, 168) == "dead" and lf.tier(60.0, 72) == "fresh" and lf.tier(100.0, 72) == "stale"
     assert out["book"]["options_overlay"][0]["fund_key"] == "ELLIOTT" and out["book"]["options_overlay"][0]["put_share"] == 100.0
     json.dumps(out, allow_nan=False)  # serialisable, finite
     lf._s3 = lambda: s3

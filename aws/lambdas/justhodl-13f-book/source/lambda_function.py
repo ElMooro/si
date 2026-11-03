@@ -43,7 +43,7 @@ import os
 import re
 import time
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 CONTRACT = "13f-book.v1"
 ENGINE = "justhodl-13f-book"
 
@@ -82,27 +82,27 @@ SHORT = {
 ENGINES = [
     {"engine": "justhodl-13f-positions", "role": "native research: originals, chains, dated comparisons (the desk + 18 fund artifacts)",
      "outputs": ["data/13f-desk.json", "data/13f-positions.json", "data/holdings-research.json", "data/13f-by-ticker.json", "data/13f-flows-by-ticker.json"],
-     "schedule": "daily 15:40 UTC (Scheduler justhodl-holdings-originals-research) + 16:21 UTC (rule justhodl-13f-positions-sched)"},
+     "schedule": "daily 15:40 UTC (Scheduler justhodl-holdings-originals-research) + 16:21 UTC (rule justhodl-13f-positions-sched)", "expected_h": 24},
     {"engine": "justhodl-sec-13f", "role": "EDGAR filing detector: latest 13F-HR per tracked manager, new accessions",
-     "outputs": ["data/institutional-positions.json"], "schedule": "daily 03:31 UTC (rule justhodl-sec-13f-daily)"},
+     "outputs": ["data/institutional-positions.json"], "schedule": "daily 03:31 UTC (rule justhodl-sec-13f-daily)", "expected_h": 24},
     {"engine": "justhodl-13f-book", "role": "this book: boards, season, options overlay, observability",
-     "outputs": ["data/13f-book.json"], "schedule": "daily 16:37 UTC (Scheduler justhodl-13f-book-daily)"},
+     "outputs": ["data/13f-book.json"], "schedule": "daily 16:37 UTC (Scheduler justhodl-13f-book-daily)", "expected_h": 24},
     {"engine": "justhodl-13f-clone-alpha", "role": "clone-alpha: followable skill per manager from ~13 quarters of filings",
-     "outputs": ["data/13f-clone-alpha.json"], "schedule": "weekly Monday 08:30 UTC (Scheduler justhodl-13f-clone-alpha-weekly)"},
+     "outputs": ["data/13f-clone-alpha.json"], "schedule": "weekly Monday 08:30 UTC (Scheduler justhodl-13f-clone-alpha-weekly)", "expected_h": 168},
     {"engine": "justhodl-13f-price-divergence", "role": "aggregate 13F position change vs 60-day price return",
-     "outputs": ["data/13f-price-divergence.json"], "schedule": "weekdays 21:20 UTC (rule justhodl-13f-price-divergence-sched)"},
+     "outputs": ["data/13f-price-divergence.json"], "schedule": "weekdays 21:20 UTC (rule justhodl-13f-price-divergence-sched)", "expected_h": 72},
     {"engine": "justhodl-page-ai-commentary", "role": "the page's brief (deterministic source inventory under the no-paid-AI policy)",
-     "outputs": ["data/ai-commentary/13f.json"], "schedule": "weekdays 14:00 UTC (rule)"},
+     "outputs": ["data/ai-commentary/13f.json"], "schedule": "weekdays 14:00 UTC (rule justhodl-page-ai-commentary-daily)", "expected_h": 72},
     {"engine": "justhodl-smart-money-13f", "role": "AI-conviction funds' 13F books by bottleneck layer (smart-money-13f.html)",
-     "outputs": ["data/smart-money-13f.json"], "schedule": "weekly Monday 11:03 UTC"},
+     "outputs": ["data/smart-money-13f.json"], "schedule": "weekly Monday 11:03 UTC (rule smart-money-13f-weekly)", "expected_h": 168},
     {"engine": "justhodl-smart-money-cluster", "role": "cross-fund overlap clusters read from the 13F tape",
-     "outputs": ["data/smart-money-cluster.json"], "schedule": "daily 16:55 UTC (Scheduler justhodl-smart-money-cluster-hourly)"},
+     "outputs": ["data/smart-money-clusters.json"], "schedule": "daily 16:55 UTC (Scheduler justhodl-smart-money-cluster-hourly)", "expected_h": 24},
     {"engine": "justhodl-smart-money-holdings", "role": "famous-fund conviction holdings for the screener (schedule DISABLED)",
-     "outputs": ["screener/smart-money-holdings.json"], "schedule": "DISABLED (smart-money-holdings-sched 14:31 UTC)"},
+     "outputs": ["screener/smart-money-holdings.json"], "schedule": "DISABLED (smart-money-holdings-sched 14:31 UTC); runs only when another tick starts it", "expected_h": None},
     {"engine": "justhodl-smart-money-tracker", "role": "smart-money screener tape (schedule DISABLED)",
-     "outputs": ["screener/smart-money.json"], "schedule": "DISABLED (smart-money-tracker-sched 14:00 UTC)"},
+     "outputs": ["screener/smart-money.json"], "schedule": "DISABLED (smart-money-tracker-sched 14:00 UTC); runs only when another tick starts it", "expected_h": None},
     {"engine": "justhodl-institutional-footprint", "role": "13F footprint consumer (capital-flow lens)",
-     "outputs": ["data/institutional-footprint.json"], "schedule": "weekdays 23:10 UTC"},
+     "outputs": ["data/institutional-footprint.json"], "schedule": "weekdays 23:10 UTC (rule justhodl-institutional-footprint-daily)", "expected_h": 72},
 ]
 STATE_KEYS = ["data/13f-cusip-map.json", "data/13f-state/first-seen.json", "data/13f-state/cik-overrides.json"]
 
@@ -368,12 +368,18 @@ def clone_summary(managers):
     return rows
 
 
-def tier(age_h):
+def tier(age_h, expected_h=24):
+    """fresh / stale / dead against the engine's own cadence: fresh within 1.25x its expected interval (30 h for a
+    daily engine - the fleet-monitor tier), stale within 7x, dead beyond; a None cadence (DISABLED trigger) is
+    reported as 'unscheduled' with the age shown but never judged. Pure."""
     if age_h is None:
         return "missing"
-    if age_h < FRESH_H:
+    if expected_h is None:
+        return "unscheduled"
+    fresh = max(FRESH_H, expected_h * 1.25)
+    if age_h < fresh:
         return "fresh"
-    if age_h < DEAD_H:
+    if age_h < max(DEAD_H, expected_h * 7):
         return "stale"
     return "dead"
 
@@ -399,11 +405,11 @@ def get_json(s3, key):
     return json.loads(body or b"{}"), obj["LastModified"], len(body)
 
 
-def head(s3, key, now):
+def head(s3, key, now, expected_h=24):
     try:
         h = s3.head_object(Bucket=S3_BUCKET, Key=key)
         age = (now - h["LastModified"]).total_seconds() / 3600
-        return {"key": key, "bytes": h["ContentLength"], "last_modified": h["LastModified"].isoformat(timespec="seconds"), "age_h": round(age, 1), "tier": tier(age)}
+        return {"key": key, "bytes": h["ContentLength"], "last_modified": h["LastModified"].isoformat(timespec="seconds"), "age_h": round(age, 1), "tier": tier(age, expected_h)}
     except Exception as exc:  # noqa: BLE001
         return {"key": key, "bytes": None, "last_modified": None, "age_h": None, "tier": "missing", "error": type(exc).__name__}
 
@@ -502,15 +508,19 @@ def build(s3, now, log=print):
 
     engines = []
     for e in ENGINES:
-        outs = [head(s3, k, now) for k in e["outputs"]]
+        exp = e.get("expected_h", 24)
+        outs = [head(s3, k, now, exp) for k in e["outputs"]]
         ages = [o["age_h"] for o in outs if o["age_h"] is not None]
-        engines.append({**e, "objects": outs, "newest_age_h": min(ages) if ages else None, "tier": tier(min(ages)) if ages else "missing"})
-    state = [head(s3, k, now) for k in STATE_KEYS]
+        engines.append({**e, "objects": outs, "newest_age_h": min(ages) if ages else None, "tier": tier(min(ages), exp) if ages else "missing"})
+    state = [head(s3, k, now, None) for k in STATE_KEYS]   # the retired board's state: age shown, never judged
+    hr, _, _, hr_err = optional("data/holdings-research.json")
 
     out = {
         "engine": ENGINE, "version": VERSION, "contract": CONTRACT, "generated_at": now.isoformat(timespec="seconds"),
         "source": {"desk_key": DESK_KEY, "desk_generated_at": desk.get("generated_at"), "desk_last_modified": desk_mod.isoformat(timespec="seconds"), "desk_bytes": desk_bytes,
-                   "desk_contract": desk.get("contract"), "source_generated_at": desk.get("source_generated_at"), "source_originals": desk.get("source_originals"),
+                   "desk_contract": desk.get("contract"), "source_generated_at": desk.get("source_generated_at"),
+                   "source_originals": desk.get("source_originals") if desk.get("source_originals") is not None else hr.get("source_originals"),
+                   "holdings_research": {k: hr.get(k) for k in ("contract", "generated_at", "fund_count", "current_cohort_count", "refresh_status", "acquisition_mode", "source_request_count")} | {"error": hr_err},
                    "research": desk.get("research"), "legacy_snapshot": desk.get("legacy_snapshot"), "security_indexes": desk.get("security_indexes"),
                    "ticker_identity": desk.get("ticker_identity"), "methodology_url": desk.get("methodology_url"), "research_url": desk.get("research_url")},
         "cadence": "daily (cadence floor); the native research publishes 15:40 UTC, this book 16:37 UTC; EDGAR detector 03:31 UTC",

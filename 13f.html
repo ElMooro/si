@@ -1,16 +1,347 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>13F holdings desk · JustHodl</title><style>
-:root{--bg:#101313;--panel:#171c1c;--text:#edf1ec;--muted:#b0bbb8;--line:#34413d;--accent:#a7efc3}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,sans-serif}main{max-width:1450px;margin:auto;padding:28px 24px 64px}a{color:var(--accent)}h1{font-size:clamp(28px,4vw,43px);line-height:1.15;max-width:850px;margin:14px 0}h2{font-size:23px}h3{font-size:19px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:24px;margin:20px 0}.eyebrow,.dim{color:var(--muted)}.eyebrow{letter-spacing:.08em;font-size:13px}.warning{border-left:3px solid #e3bf7e;background:#27231b;padding:14px 18px;margin:18px 0}.controls{display:flex;gap:20px;align-items:end;flex-wrap:wrap;margin:22px 0}label{display:flex;flex-direction:column;gap:7px;max-width:100%}input,select,button{font:inherit;color:inherit;background:#182421;border:1px solid var(--line);border-radius:6px;min-height:44px;padding:9px 12px;max-width:100%}input{min-width:280px}button{cursor:pointer}button:disabled{opacity:.5;cursor:default}:focus-visible{outline:2px solid var(--accent);outline-offset:3px}.table-scroll{position:relative;overflow-x:auto;max-width:100%;margin:16px 0}table{border-collapse:collapse;width:100%;min-width:740px}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--muted);font-weight:600;font-size:13px}td{font-size:14px}td code{font-size:12px;word-break:break-all}code{overflow-wrap:anywhere}.pagination,nav{display:flex;gap:18px;align-items:center;flex-wrap:wrap}#row-evidence{margin-top:24px}summary{min-height:44px;cursor:pointer;padding:10px 0}#permanent{display:inline-block;padding:10px 0}#selection{max-width:600px}#state{font-weight:600;color:var(--accent)}@media(max-width:600px){main{padding:16px 10px 48px}.panel{padding:16px}.controls{display:block}.controls label{margin:15px 0}input,select{width:100%;min-width:0}nav{gap:12px}}
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>13F · Institutional Book · JustHodl</title>
+<meta name="jh-primary-engine" content="justhodl-13f-book, justhodl-13f-positions">
+<meta name="description" content="What 18 institutional managers reported at the latest 13F period and what changed: manager grid, cross-manager boards, concentrated books, clone-alpha, options overlay, filing evidence and the health of every 13F engine.">
+<style>
+:root{--bg:var(--jh-bg,#0C0B09);--panel:var(--jh-panel,#12110C);--panel2:var(--jh-panel-2,#17150E);--ink:var(--jh-ink,#e8e2d4);--dim:var(--jh-dim,#8a836f);--dim2:#a39b86;--amber:var(--jh-amber,#F0B429);--green:var(--jh-green,#6fce8a);--red:var(--jh-red,#E07A6A);--line:var(--jh-line,#2B2820);--line2:#1f1c16;--mono:var(--jh-mono,"IBM Plex Mono",ui-monospace,Menlo,monospace);--sans:var(--jh-sans,"IBM Plex Sans",system-ui,sans-serif)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.5 var(--sans)}
+main{max-width:1400px;margin:0 auto;padding:18px 20px 60px;display:flex;flex-direction:column;gap:18px}
+a{color:var(--amber);text-decoration:none}a:hover{color:#FFD45E;text-decoration:underline}
+h1,h2,h3{font-family:var(--mono);margin:0;letter-spacing:.01em}
+h1{font-size:clamp(22px,2.6vw,30px);line-height:1.2;font-weight:700;max-width:900px}
+h2{font-size:19px;line-height:1.3;font-weight:700}
+h3{font-size:13px;letter-spacing:.04em;text-transform:uppercase;font-weight:700}
+.nav{display:flex;gap:18px;flex-wrap:wrap;font-family:var(--mono);font-size:12px}
+.pnl{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;min-width:0}
+.sub{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;min-width:0}
+.eyebrow{font:600 10.5px/1.4 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim2)}
+.blurb{font:400 13px/1.55 var(--sans);color:#b8b09c;margin:0;max-width:980px}
+.warning{border:1px solid rgba(240,180,41,.45);background:rgba(240,180,41,.06);border-radius:8px;padding:12px 16px;margin:0;font:400 13px/1.55 var(--sans);color:#d8d0bc}
+.dim{color:var(--dim)}.dim2{color:var(--dim2)}.up{color:var(--green)}.dn{color:var(--red)}.am{color:var(--amber)}.ink{color:var(--ink)}.mono{font-family:var(--mono)}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{display:inline-flex;align-items:center;gap:6px;font:500 11px/1 var(--mono);padding:6px 8px;border-radius:4px;background:var(--bg);border:1px solid var(--line);color:#c9c2b0;white-space:nowrap}
+.pill b{color:var(--ink);font-weight:600}
+.c{display:inline-block;font:600 10px/1 var(--mono);letter-spacing:.06em;padding:4px 6px;border-radius:3px;background:rgba(138,131,111,.16);color:#c9c2b0;white-space:nowrap;vertical-align:middle}
+.c-up{background:rgba(111,206,138,.14);color:var(--green)}.c-dn{background:rgba(224,122,106,.16);color:var(--red)}.c-am{background:rgba(240,180,41,.14);color:var(--amber)}
+.c-new{background:rgba(240,180,41,.10);color:var(--amber);border:1px solid rgba(240,180,41,.4)}.c-abs{background:rgba(224,122,106,.10);color:var(--red);border:1px solid rgba(224,122,106,.4)}.c-k{background:var(--line2);color:var(--dim2);letter-spacing:.04em}
+.hdr{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:18px;align-items:start}
+.wr{display:grid;grid-template-columns:160px minmax(0,1fr) 340px;gap:18px;align-items:stretch}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(420px,100%),1fr));gap:14px}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(560px,100%),1fr));gap:14px}
+.gv{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:10px}
+@media(max-width:1000px){.wr,.hdr{grid-template-columns:1fr}}
+@media(max-width:600px){main{padding:12px 10px 48px}.pnl{padding:12px}}
+.scroll{overflow-x:auto;max-width:100%}
+.t{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+.t th{text-align:left;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim2);font-weight:600;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+.t td{padding:7px 8px;border-bottom:1px solid var(--line2);vertical-align:middle;white-space:nowrap}
+.t td.n,.t th.n{text-align:right;font-variant-numeric:tabular-nums}
+.t tr:hover td{background:var(--panel2)}
+.t td.w{white-space:normal;min-width:180px}
+.t button.row{all:unset;cursor:pointer;color:var(--ink);font-weight:600;min-height:28px;display:inline-flex;align-items:center}
+.t button.row:hover{color:var(--amber);text-decoration:underline}
+.t button.row:focus-visible{outline:1px solid var(--amber);outline-offset:2px}
+.bar{height:6px;background:var(--line2);border-radius:2px;overflow:hidden;min-width:60px;display:inline-block;vertical-align:middle}.bar i{display:block;height:100%;background:var(--amber)}.bar i.g{background:var(--green)}.bar i.r{background:var(--red)}.bar i.m{background:var(--dim)}
+.kv{display:flex;justify-content:space-between;gap:12px;font:500 12px/1.5 var(--mono);border-bottom:1px solid var(--line2);padding:5px 0}.kv:last-child{border-bottom:0}.kv b{font-weight:600;color:var(--ink)}
+.kpi{display:flex;flex-direction:column;gap:4px;padding:12px 14px;background:var(--bg);border:1px solid var(--line);border-radius:8px;min-width:0}
+.kpi .l{font:600 10px/1.3 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim2)}.kpi .v{font:700 22px/1.1 var(--mono);color:var(--ink)}.kpi .s{font:400 11.5px/1.4 var(--sans);color:var(--dim)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);font:600 12px/1 var(--mono);letter-spacing:.04em;cursor:pointer}
+.btn.pri{background:var(--amber);color:#0C0B09;border-color:var(--amber)}.btn.on{border-color:var(--amber);color:var(--amber)}.btn:disabled{opacity:.5;cursor:default}
+.btn.sm{min-height:36px;padding:0 12px}
+.ring text.n{font:700 30px var(--mono);fill:var(--ink)}.ring text.l{font:600 8.5px var(--mono);letter-spacing:.18em;fill:var(--dim2)}
+.sec-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.sec-head .meta{font:500 11.5px/1 var(--mono);color:var(--dim2)}
+.foot{font:400 12px/1.6 var(--sans);color:var(--dim);margin:0}
+.lim{font:400 13px/1.55 var(--sans);color:#c9c2b0;margin:0;padding-left:18px}.lim li{margin:4px 0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.state{font-family:var(--mono);font-size:12px;color:var(--amber)}
+.empty{font:400 12px/1.5 var(--sans);color:var(--dim)}
+/* evidence desk (Codex-built; ids are its contract) */
+#evidence-desk label{display:flex;flex-direction:column;gap:6px;max-width:100%;min-width:0}
+#evidence-desk input,#evidence-desk select{font:500 13px/1 var(--mono);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;min-height:44px;padding:9px 12px;max-width:100%}
+#evidence-desk input{min-width:240px}
+#evidence-desk button{font:600 12px/1 var(--mono);color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:6px;min-height:44px;padding:0 14px;cursor:pointer}
+#evidence-desk button:disabled{opacity:.5;cursor:default}
+#evidence-desk table{border-collapse:collapse;width:100%;min-width:740px;font-family:var(--mono);font-size:12px}
+#evidence-desk th,#evidence-desk td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line2);vertical-align:top}
+#evidence-desk th{color:var(--dim2);font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+#evidence-desk td code,#evidence-desk code{font-size:11px;overflow-wrap:anywhere}
+#evidence-desk .controls{display:flex;gap:14px;align-items:end;flex-wrap:wrap}
+#evidence-desk .pagination{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:10px}
+#evidence-desk summary{min-height:44px;cursor:pointer;padding:10px 0}
+#permanent{display:inline-block;padding:6px 0}
+#state{font-weight:600}
+:focus-visible{outline:1px solid var(--amber);outline-offset:2px}
 </style></head><body><main>
-<nav aria-label="Research links"><a href="/holdings-research.html">Holdings evidence</a><a href="/global-flow-desk.html">Global Flow Desk</a><a href="/capital-flow.html">Capital Flow</a><a href="/calls.html">Calls</a></nav>
-<header class="panel"><div class="eyebrow">13F HOLDINGS DESK · ORIGINAL SEC DISCLOSURES</div><h1>See what was reported. Trace what changed.</h1><p>Compare dated holdings, inspect amendment chains and trace every quantity to the original filing rows.</p><p id="state" aria-live="polite">Verifying retained holdings evidence…</p><p id="asof" class="dim"></p><a id="permanent">Permanent source snapshot</a></header>
+
+<nav class="nav" aria-label="Research links"><a href="/holdings-research.html">Holdings evidence</a><a href="/smart-money-13f.html">AI-conviction funds</a><a href="/global-flow-desk.html">Global Flow Desk</a><a href="/capital-flow.html">Capital Flow</a><a href="/calls.html">Calls</a></nav>
+
+<header class="hdr" id="top">
+  <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+    <div class="eyebrow">13F · Institutional book · original SEC disclosures · <span id="h-tracked">18</span> managers</div>
+    <h1 id="h-title">What the tracked managers reported at the latest 13F period — and what changed since the one before.</h1>
+    <p class="blurb">Every figure on this page is a reported quantity or a reported value from a retained 13F-HR information table, compared across two dated disclosures. Newly disclosed is not newly bought. Absent is not sold. A change in reported value carries the price move.</p>
+    <div class="pills" id="h-pills"><span class="pill">Loading <b>data/13f-book.json</b>…</span></div>
+    <p class="state" id="book-state" aria-live="polite">Loading the institutional book…</p>
+  </div>
+  <div class="pnl" id="season" style="border-color:rgba(240,180,41,.45);display:flex;flex-direction:column;gap:8px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><span class="eyebrow" style="color:var(--amber)" id="season-eyebrow">Filing season</span><span class="c c-am" id="season-chip">—</span></div>
+    <div class="mono" style="font-size:26px;font-weight:700;line-height:1.1" id="season-days">—</div>
+    <div id="season-kv"></div>
+    <div class="dim" style="font:400 11.5px/1.5 var(--sans)">When a tracked manager's 13F-HR is accepted by EDGAR, the detector records it on its next run and the book rebuilds from the original filing on its next run.</div>
+  </div>
+</header>
+
 <p class="warning">A change in reported market value is not a purchase or sale. Public holdings do not reveal interim trades, corporate-action adjustments, a manager’s complete portfolio, or current positioning. This research carries no Calls, sizing or execution authority.</p>
-<p id="refresh" class="dim"></p><p class="dim">This desk now uses complete native SEC evidence. <a href="/data/13f-positions.json">Canonical data contract</a>. Earlier purchase, sale and risk-appetite rankings were not established by these disclosures.</p>
-<section class="panel"><h2>Keep report periods separate</h2><p>Managers below belong to the retained roster. Older reports remain visible but are excluded from the current report-period cohort.</p><div id="coverage"></div></section>
-<div class="controls"><label for="selection">Filing manager<select id="selection"></select></label></div>
-<section class="panel" id="fund-summary" aria-label="Selected manager disclosure"></section>
-<section class="panel"><h2>Compare reported securities</h2><div class="controls"><label for="search">Search issuer, CUSIP or class<input id="search" type="search" maxlength="120" placeholder="For example, COCA COLA or 191216100"></label><label for="filter">Disclosure change<select id="filter"></select></label></div><div id="positions"></div><div class="pagination"><button id="prev" type="button" disabled>Previous securities</button><span id="page-count" aria-live="polite"></span><button id="next" type="button" disabled>Next securities</button></div><div id="row-evidence" aria-live="polite"></div><p class="dim">SH means reported shares; PRN means reported principal. Puts and calls are kept separate from outright holdings. Missing prior data is unavailable, not zero. “Newly present” and “absent” describe public disclosure, not verified entry or exit trades.</p><button id="download" type="button" disabled>Download complete fund research</button></section>
-<section class="panel"><h2>Filing and amendment evidence</h2><p>A restatement replaces its predecessor. An additional-holdings amendment is reviewed separately; an incomplete or ambiguous chain cannot support comparisons. Acceptance time, filing date and report date are different clocks.</p><div id="filing-chain"></div></section>
-<section class="panel"><h2>Portfolio interpretation</h2><p>These disclosures can identify securities to research and reveal dated concentration. They do not establish a return forecast or a position size. To quantify your own exposure, use the <a href="/global-flow-desk.html#scenario-form">explicit portfolio scenario calculator</a> with your entered price, currency, cash-income and cost assumptions.</p><p class="dim">No account is read or changed. Shared discretion can put the same economic position in multiple managers’ disclosures. Adding their reported values does not establish new capital entering a security.</p></section>
-<section class="panel"><h2>Reproduce this snapshot</h2><div id="evidence"></div><p>Fund details are verified against their retained content hashes before display. Source originals, parsed filings and full comparison records remain available. <a href="https://www.sec.gov/rules-regulations/staff-guidance/division-investment-management-frequently-asked-questions/frequently-asked-questions-about-form-13f" target="_blank" rel="noopener">SEC Form 13F guidance</a>.</p></section>
-</main><script src="/jh-holdings-research.js" defer></script><script src="/jh-holdings-research-page.js" defer></script><script src="/jh-nav-drawer.js" defer></script><script src="/sidebar.js" defer></script></body></html>
+
+<section class="pnl wr" aria-label="Book heartbeat" id="banner">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px">
+    <svg class="ring" viewBox="0 0 120 120" width="124" height="124" role="img" aria-label="managers current at the required period" id="ring">
+      <circle cx="60" cy="60" r="50" fill="none" stroke="#1f1c16" stroke-width="10"></circle>
+      <circle id="ring-arc" cx="60" cy="60" r="50" fill="none" stroke="#F0B429" stroke-width="10" stroke-dasharray="0 314.2" transform="rotate(-90 60 60)"></circle>
+      <text x="60" y="58" text-anchor="middle" class="n" id="ring-n">—</text>
+      <text x="60" y="76" text-anchor="middle" class="l">CURRENT</text>
+    </svg>
+    <span class="c c-k" id="ring-chip">LOADING</span>
+    <span class="dim2" style="font:500 10px/1.4 var(--mono);text-align:center" id="ring-sub"></span>
+  </div>
+  <div style="min-width:0;display:flex;flex-direction:column;gap:10px">
+    <div class="eyebrow" style="display:flex;gap:12px;flex-wrap:wrap"><span id="banner-kicker">Institutional book</span><span class="dim" id="banner-fresh"></span></div>
+    <div class="mono" style="font-size:20px;font-weight:700;line-height:1.35" id="banner-headline">Reading the book…</div>
+    <div class="blurb" style="font-size:12.5px" id="banner-sub"></div>
+    <div class="gv" id="verdicts"></div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;min-width:0" id="side"></div>
+</section>
+
+<section class="pnl" aria-label="Managers" style="display:flex;flex-direction:column;gap:12px">
+  <div class="sec-head"><h2>The managers</h2><span class="meta">one row per filer · select a manager for the drill-down and the evidence desk</span><span style="flex:1"></span><span class="chips" id="mgr-chips"></span></div>
+  <div class="scroll" id="mgr-table"><p class="empty">Loading…</p></div>
+  <p class="foot" id="mgr-foot">Reported value = sum of the filer's own value column for equity rows (SH, no put/call). "vs prior" compares two dated disclosures and includes the quarter's price move.</p>
+</section>
+
+<section class="pnl" aria-label="Manager drill-down" id="drill" style="display:flex;flex-direction:column;gap:12px">
+  <div class="sec-head"><h2 id="drill-title">Manager drill-down</h2><span class="meta" id="drill-meta">select a manager above</span></div>
+  <div id="drill-body"><p class="empty">Select a manager in the grid.</p></div>
+</section>
+
+<section class="pnl" aria-label="Cross-manager boards" style="display:flex;flex-direction:column;gap:12px">
+  <div class="sec-head"><h2 id="boards-title">Across the current books</h2><span class="meta" id="boards-meta"></span><span style="flex:1"></span><div style="display:flex;gap:6px"><button class="btn sm on" type="button" id="scope-cohort">CURRENT COHORT</button><button class="btn sm" type="button" id="scope-conc">CONCENTRATED</button></div></div>
+  <div class="g3" id="boards"><p class="empty">Loading…</p></div>
+  <p class="foot" id="boards-foot">RECLASS? marks an issuer whose old identity is absent while a new CUSIP or class for the same issuer appears — a reclassification or corporate action, not a trade. NO CURRENT HOLDER marks a security no current book reports; absence from a disclosure is not a sale.</p>
+</section>
+
+<section class="pnl" aria-label="Concentrated books" style="display:flex;flex-direction:column;gap:12px">
+  <div class="sec-head"><h2>The concentrated books</h2><span class="meta" id="conc-meta"></span></div>
+  <div class="g3" id="conc"><p class="empty">Loading…</p></div>
+</section>
+
+<section class="pnl" aria-label="Clone-alpha" style="display:flex;flex-direction:column;gap:12px">
+  <div class="sec-head"><h2>Clone-alpha · following the paperwork</h2><span class="meta" id="clone-meta"></span></div>
+  <p class="blurb" id="clone-method"></p>
+  <div class="scroll" id="clone"><p class="empty">Loading…</p></div>
+  <p class="foot">The 12% cap turns a Berkshire clone into a value tilt — disclosed in the method, not corrected. Hedge books carry options and shorts the 13F never shows; their clone is the long legs only.</p>
+</section>
+
+<section class="pnl" aria-label="Options overlay" style="display:flex;flex-direction:column;gap:12px">
+  <div class="sec-head"><h2>Options overlay</h2><span class="meta">13F option rows report the underlying's value — not premium, not net exposure</span></div>
+  <div class="scroll" id="options"><p class="empty">Loading…</p></div>
+</section>
+
+<section class="pnl" aria-label="Diversified books" style="display:flex;flex-direction:column;gap:12px">
+  <div class="sec-head"><h2>The diversified books · top of book</h2><span class="meta">share of reported equity value · ▲▼ reported quantity vs the prior period</span></div>
+  <div class="g3" id="diversified"><p class="empty">Loading…</p></div>
+</section>
+
+<section class="pnl" aria-label="Price divergence and brief" style="display:flex;flex-direction:column;gap:12px">
+  <div class="sec-head"><h2>Price divergence · AI brief</h2><span class="meta">two further 13F engines, shown as they publish</span></div>
+  <div class="g2" id="signals"><p class="empty">Loading…</p></div>
+</section>
+
+<section class="pnl" id="evidence-desk" aria-label="Filing evidence" style="display:flex;flex-direction:column;gap:14px">
+  <div class="sec-head"><h2>Filing evidence · amendment chains · reproduce this snapshot</h2><span class="meta">original SEC disclosures, verified against retained content hashes</span></div>
+  <p id="state" aria-live="polite">Verifying retained holdings evidence…</p>
+  <p id="asof" class="dim" style="margin:0"></p>
+  <p id="refresh" class="dim" style="margin:0"></p>
+  <p class="dim" style="margin:0">This desk uses complete native SEC evidence. <a href="/data/13f-positions.json">Canonical data contract</a> · <a id="permanent">Permanent source snapshot</a></p>
+  <div class="sub"><h3>Keep report periods separate</h3><p class="blurb" style="margin:6px 0 10px">Managers below belong to the retained roster. Older reports remain visible but are excluded from the current report-period cohort.</p><div id="coverage"></div></div>
+  <div class="controls"><label for="selection">Filing manager<select id="selection"></select></label></div>
+  <div class="sub" id="fund-summary" aria-label="Selected manager disclosure"></div>
+  <div class="sub"><h3>Compare reported securities</h3><div class="controls" style="margin:10px 0"><label for="search">Search issuer, CUSIP or class<input id="search" type="search" maxlength="120" placeholder="For example, COCA COLA or 191216100"></label><label for="filter">Disclosure change<select id="filter"></select></label></div><div class="scroll" id="positions"></div><div class="pagination"><button id="prev" type="button" disabled>Previous securities</button><span id="page-count" aria-live="polite"></span><button id="next" type="button" disabled>Next securities</button></div><div id="row-evidence" aria-live="polite" style="margin-top:12px"></div><p class="dim" style="margin:10px 0">SH means reported shares; PRN means reported principal. Puts and calls are kept separate from outright holdings. Missing prior data is unavailable, not zero. “Newly present” and “absent” describe public disclosure, not verified entry or exit trades.</p><button id="download" type="button" disabled>Download complete fund research</button></div>
+  <div class="sub"><h3>Filing and amendment evidence</h3><p class="blurb" style="margin:6px 0 10px">A restatement replaces its predecessor. An additional-holdings amendment is reviewed separately; an incomplete or ambiguous chain cannot support comparisons. Acceptance time, filing date and report date are different clocks.</p><div class="scroll" id="filing-chain"></div></div>
+  <div class="sub"><h3>Reproduce this snapshot</h3><div id="evidence" style="margin-top:6px"></div><p class="dim" style="margin:8px 0 0">Fund details are verified against their retained content hashes before display. Source originals, parsed filings and full comparison records remain available. <a href="https://www.sec.gov/rules-regulations/staff-guidance/division-investment-management-frequently-asked-questions/frequently-asked-questions-about-form-13f" target="_blank" rel="noopener">SEC Form 13F guidance</a>.</p></div>
+</section>
+
+<section class="pnl" aria-label="Reading rules" style="display:flex;flex-direction:column;gap:12px">
+  <div class="sec-head"><h2>How to read this book</h2><span style="flex:1"></span><span class="chips" id="quality"></span></div>
+  <div class="g2"><ol class="lim" id="limitations"></ol><ol class="lim" id="interpretation" start="6"><li>These disclosures identify securities to research and reveal dated concentration. They do not establish a return forecast or a position size. To quantify your own exposure, use the <a href="/global-flow-desk.html#scenario-form">explicit portfolio scenario calculator</a> with your entered assumptions.</li><li>No account is read or changed. Shared discretion can put the same economic position in multiple managers’ disclosures; adding their reported values does not establish new capital entering a security.</li></ol></div>
+</section>
+
+<section class="pnl" aria-label="13F engines" style="display:flex;flex-direction:column;gap:12px">
+  <div class="sec-head"><h2>The 13F engines · observability</h2><span class="meta" id="eng-meta">every output's age as this book saw it, plus the schedule each engine runs on</span></div>
+  <div class="scroll" id="engines"><p class="empty">Loading…</p></div>
+  <p class="foot" id="eng-foot"></p>
+</section>
+
+</main>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fin=v=>typeof v==='number'&&Number.isFinite(v);
+const money=v=>{if(!fin(v))return '—';const a=Math.abs(v),s=v<0?'−':'';if(a>=1e11)return s+'$'+(a/1e9).toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1})+'B';if(a>=1e9)return s+'$'+(a/1e9).toFixed(2)+'B';if(a>=1e6)return s+'$'+Math.round(a/1e6)+'M';if(a>=1e3)return s+'$'+Math.round(a/1e3)+'K';return s+'$'+Math.round(a);};
+const num=v=>fin(v)?Math.round(v).toLocaleString('en-US'):'—';
+const sgn=v=>fin(v)?(v>0?'+':v<0?'−':'')+Math.abs(v):'—';
+const pct1=v=>fin(v)?(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(1)+'%':'—';
+const pctp=v=>fin(v)?v.toFixed(1)+'%':'—';
+const cls=v=>fin(v)?(v>0?'up':v<0?'dn':'dim2'):'dim';
+const ageH=h=>fin(h)?(h<48?h.toFixed(1)+' h':(h/24).toFixed(0)+' d'):'—';
+const dUTC=iso=>{if(!iso)return '—';const d=new Date(iso);if(isNaN(d))return esc(iso);return d.toISOString().slice(0,16).replace('T',' ')+' UTC';};
+const dLong=iso=>{if(!iso)return '—';const d=new Date(iso+'T00:00:00Z');if(isNaN(d))return esc(iso);return d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});};
+const tierChip=t=>t==='fresh'?'<span class="c c-up">FRESH</span>':t==='stale'?'<span class="c c-am">STALE</span>':t==='dead'?'<span class="c c-dn">DEAD</span>':t==='unscheduled'?'<span class="c c-k">UNSCHEDULED</span>':'<span class="c c-dn">MISSING</span>';
+const statusChip=(s,flags)=>{const base=s==='CURRENT'?'<span class="c c-up">CURRENT</span>':s==='AMENDED'?'<span class="c c-am">AMENDED</span>':s==='NOTICE'?'<span class="c c-k">NOTICE FILED</span>':'<span class="c c-dn">DATED</span>';return base+(flags||[]).map(f=>f==='VALUATION_REVIEW'?' <span class="c c-am">VALUATION REVIEW</span>':f==='HEDGE_BOOK'?' <span class="c c-k">HEDGE BOOK</span>':'').join('');};
+const skillChip=c=>{if(!c||!fin(c.skill_score))return '<span class="c c-k">NOT SCORED</span>';const k=c.skill_score>=70?'c-up':c.skill_score>=50?'c-am':c.skill_score>=35?'c-k':'c-dn';return '<span class="c '+k+'">'+c.skill_score+' · '+esc(c.label||'')+'</span>';};
+const chg=st=>st==='reported_quantity_increased'?'<span class="c c-up">QUANTITY INCREASED</span>':st==='reported_quantity_decreased'?'<span class="c c-dn">QUANTITY DECREASED</span>':st==='newly_present_in_public_disclosure'?'<span class="c c-new">NEWLY PRESENT</span>':st==='not_present_in_current_public_disclosure'?'<span class="c c-abs">ABSENT</span>':st==='reported_quantity_unchanged'?'<span class="c c-k">UNCHANGED</span>':'<span class="c c-k">'+esc(st||'—')+'</span>';
+const arrow=st=>st==='reported_quantity_increased'?'<span class="up">▲</span>':st==='reported_quantity_decreased'?'<span class="dn">▼</span>':st==='newly_present_in_public_disclosure'?'<span class="am">NEW</span>':'';
+const barCls=st=>st==='reported_quantity_increased'?'g':st==='reported_quantity_decreased'?'r':st==='newly_present_in_public_disclosure'?'':'m';
+let BOOK=null,M={},SCOPE='cohort',SELECTED=null;
+const short=fk=>(M[fk]&&M[fk].short)||fk;
+const name=fk=>(M[fk]&&M[fk].display_name)||fk;
+const keys=list=>(list||[]).map(k=>'<span class="c c-k">'+esc(short(k))+'</span>').join(' ');
+
+function header(b){
+  const s=b.source||{},bk=b.book||{},se=b.season||{};
+  $('h-tracked').textContent=String(Object.keys(bk.managers||{}).length);
+  $('h-title').textContent='What '+Object.keys(bk.managers||{}).length+' managers reported at '+(bk.required_period||'the latest period')+' — and what changed since '+(priorOf(bk)||'the period before')+'.';
+  $('h-pills').innerHTML=['Report period <b>'+esc(bk.required_period)+'</b> · cohort <b>'+(bk.cohort||[]).length+' / '+Object.keys(bk.managers||{}).length+'</b>','Prior period <b>'+esc(priorOf(bk)||'—')+'</b>','Reported equity value <b>'+money(bk.cohort_equity_value_usd)+'</b> ('+(bk.cohort||[]).length+' current books)',(s.source_originals==null?null:'Source originals retained <b>'+esc(s.source_originals)+'</b>'),'Contract <b>'+esc(s.desk_contract||'—')+'</b> → <b>'+esc(b.contract)+'</b>'].filter(Boolean).map(x=>'<span class="pill">'+x+'</span>').join('');
+  $('book-state').textContent='Book generated '+dUTC(b.generated_at)+' · native research snapshot '+dUTC(s.desk_generated_at)+' · '+(bk.errors&&bk.errors.length?bk.errors.length+' artifact(s) unreadable':'every fund artifact read');
+  $('season-eyebrow').textContent='Filing season · period '+(se.next_period||'—');
+  const d=se.days_to_deadline;$('season-chip').textContent=fin(d)?(d<0?'DEADLINE PASSED':d===0?'DEADLINE TODAY':'WAITING'):'—';$('season-chip').className='c '+(fin(d)&&d<=0?'c-dn':'c-am');
+  $('season-days').innerHTML=fin(d)?(d>=0?d+' days <span class="dim2" style="font-size:12px;font-weight:500">to the deadline</span>':Math.abs(d)+' days <span class="dim2" style="font-size:12px;font-weight:500">past the deadline</span>'):'—';
+  const det=se.detector||{};
+  $('season-kv').innerHTML=[['Period of report',esc(se.next_period)],['Deadline ('+esc(se.deadline_rule||'')+')',dLong(se.deadline)],['Tracked managers · filed for this period',esc(se.tracked)+' · '+esc(se.n_filed_for_next)+(se.filed_for_next&&se.filed_for_next.length?' ('+esc(se.filed_for_next.map(short).join(', '))+')':'')],['EDGAR detector',det.generated_at?dUTC(det.generated_at)+' · '+esc(det.filings_seen)+' filings seen · '+((det.new_filings||[]).length)+' new':'not read'+(se.detector_error?' ('+esc(se.detector_error)+')':'')]].map(([k,v])=>'<div class="kv"><span class="dim2">'+k+'</span><b>'+v+'</b></div>').join('');
+}
+function priorOf(bk){const m=bk.managers||{};const c=(bk.cohort||[])[0];return c&&m[c]?m[c].prior_period:null;}
+function banner(b){
+  const bk=b.book||{},m=bk.managers||{},n=Object.keys(m).length,cur=(bk.cohort||[]).length,cc=bk.cohort_counts||{};
+  const frac=n?cur/n:0;$('ring-arc').setAttribute('stroke-dasharray',(314.16*frac).toFixed(1)+' 314.2');$('ring-n').textContent=cur+'/'+n;
+  const chains=Object.values(m).filter(x=>x.chain_status==='complete_selected_public_chain').length;
+  $('ring-chip').textContent=chains===n?'BOOK COMPLETE':chains+' OF '+n+' CHAINS';$('ring-chip').className='c '+(chains===n?'c-up':'c-am');
+  $('ring-sub').innerHTML=chains+' chains complete<br>'+(n-cur)+' managers dated · see the grid';
+  $('banner-kicker').textContent='Institutional book · '+(bk.required_period||'—')+' vs '+(priorOf(bk)||'—');
+  $('banner-fresh').textContent='book '+dUTC(b.generated_at)+' · native research '+dUTC((b.source||{}).desk_generated_at);
+  $('banner-headline').innerHTML=cur+' current books: <span class="am">'+num(cc.newly_present_in_public_disclosure)+'</span> positions newly disclosed · <span class="dn">'+num(cc.not_present_in_current_public_disclosure)+'</span> absent · <span class="up">'+num(cc.reported_quantity_increased)+'</span> reported quantities up · <span class="dn">'+num(cc.reported_quantity_decreased)+'</span> down.';
+  const hb=(bk.hedge_books||[]);
+  $('banner-sub').textContent='Counts are disclosure rows (equity and option rows). '+(hb.length?'Hedge books ('+hb.map(name).join(', ')+') report '+money(bk.hedge_books_equity_value_usd)+' of the '+money(bk.cohort_equity_value_usd)+' cohort equity value.':'Cohort equity value '+money(bk.cohort_equity_value_usd)+'.');
+  const conc=(bk.concentrated||[]).map(k=>m[k]).filter(Boolean).map(x=>({x,turn:(x.n_newly_present_equity||0)+(x.n_absent_equity||0)})).sort((a,b)=>b.turn-a.turn);
+  const t0=conc[0],t1=conc.slice(1,3);
+  const bd=(bk.boards||{}).cohort||{};const wh=(bd.widely_held||[])[0],dc=(bd.decreased||[])[0],ic=(bd.increased||[])[0],np=(bd.newly_present||[])[0];
+  const ov=(bk.options_overlay||[]).filter(o=>o.status!=='DATED'&&o.status!=='NOTICE');
+  const ca=((b.clone_alpha||{}).ranked||[]).filter(r=>fin(r.skill_score));const worth=ca.filter(r=>r.skill_score>=70),famous=ca.filter(r=>r.skill_score<35);
+  const tiles=[
+    ['Concentrated books turned over',t0?esc(name(t0.x.fund_key))+' '+t0.x.n_newly_present_equity+' new · '+t0.x.n_absent_equity+' absent of '+t0.x.n_equity_positions:'—','am',t1.map(t=>esc(name(t.x.fund_key))+' '+t.x.n_newly_present_equity+' new · '+t.x.n_absent_equity+' absent of '+t.x.n_equity_positions+'.').join(' ')+(conc.length?' Equity rows only; option rows are counted in the grid.':''),'rgba(240,180,41,.45)'],
+    ['Widest consensus moves',wh?esc(wh.issuer)+' held by '+wh.n_holders+' of '+cur+' · '+wh.n_inc+' up / '+wh.n_dec+' down':'—','ink',(dc?esc(dc.issuer)+': '+dc.n_dec+' of '+dc.n_holders+' holders reported fewer shares. ':'')+(ic?esc(ic.issuer)+': '+ic.n_inc+' of '+ic.n_holders+' holders reported more. ':'')+(np?esc(np.issuer)+' newly present in '+np.n_new+' books.':''),''],
+    ['Options overlay · hedge books',ov[0]?esc(name(ov[0].fund_key))+' puts '+money(ov[0].put_value_usd)+' · calls '+money(ov[0].call_value_usd):'no option rows','am',ov.slice(1,3).map(o=>esc(name(o.fund_key))+' puts '+money(o.put_value_usd)+' / calls '+money(o.call_value_usd)+'.').join(' ')+' Underlying values, not premium.','rgba(240,180,41,.45)'],
+    ['Clone-alpha · as of '+esc(((b.clone_alpha||{}).as_of||'').slice(0,10)),worth.length?worth.slice(0,4).map(r=>esc(name(r.fund_key))+' '+r.skill_score).join(' · '):'no manager scored ≥ 70','up',(worth.length?'WORTH CLONING on ≥ 6 closed windows. ':'')+(famous.length?famous.slice(0,3).map(r=>esc(name(r.fund_key))+' '+r.skill_score).join(', ')+': FAMOUS ≠ SKILLED — following the paperwork trailed SPY.':''),'rgba(111,206,138,.45)']];
+  $('verdicts').innerHTML=tiles.map(([l,v,k,t,bc])=>'<div class="sub"'+(bc?' style="border-color:'+bc+'"':'')+'><div class="eyebrow" style="font-size:10px">'+l+'</div><div class="mono '+k+'" style="font-size:15px;font-weight:700;margin:3px 0 4px">'+v+'</div><div class="dim2" style="font:400 12px/1.5 var(--sans)">'+t+'</div></div>').join('');
+  const det=(b.season||{}).detector||{},nf=(det.new_filings||[]).length,ai=b.ai_brief||{},pd=b.price_divergence||{};
+  $('side').innerHTML=[
+    '<div class="sub" style="border-color:'+(nf?'rgba(224,122,106,.7)':'rgba(224,122,106,.35)')+'"><div class="eyebrow" style="display:flex;justify-content:space-between;gap:8px;font-size:10px"><span>New filings · EDGAR detector</span><span class="dim">'+(det.generated_at?dUTC(det.generated_at).slice(11):'')+'</span></div><div class="mono ink" style="font-size:14px;font-weight:700;margin:4px 0">'+nf+' new filing'+(nf===1?'':'s')+' on the last run · '+esc(det.filings_seen==null?'—':det.filings_seen)+' seen</div><div class="dim2" style="font:400 11.5px/1.5 var(--sans)">'+(nf?esc(det.new_filings.map(x=>(x.fund||x.fund_key||'')+' '+(x.period||x.period_of_report||'')).join(', ')):'The detector lists a filing here when EDGAR accepts a tracked manager\'s 13F-HR.')+'</div></div>',
+    '<div class="sub"><div class="eyebrow" style="display:flex;justify-content:space-between;gap:8px;font-size:10px"><span>AI brief · 13f</span><span class="dim">'+(ai.generated_at?dUTC(ai.generated_at).slice(11):'')+'</span></div><div class="mono ink" style="font-size:14px;font-weight:700;margin:4px 0">'+esc(ai.portfolio_action||ai.posture||'—')+' · '+esc(ai.model||'—')+'</div><div class="dim2" style="font:400 11.5px/1.5 var(--sans)">'+esc(ai.headline||ai.error||'not published')+(fin(ai.model_api_calls)?' · '+ai.model_api_calls+' model calls':'')+'</div></div>',
+    '<div class="sub"><div class="eyebrow" style="font-size:10px">Price divergence · 13f</div><div class="mono dim2" style="font-size:13px;font-weight:600;margin:4px 0">'+esc(pd.state||pd.error||'not published')+(fin(pd.n_divergences)?' · '+pd.n_divergences+' divergences':'')+'</div><div class="dim2" style="font:400 11.5px/1.5 var(--sans)">'+esc(pd.why_now||'')+'</div></div>'].join('');
+}
+function grid(b){
+  const bk=b.book||{},m=bk.managers||{};
+  const order=Object.keys(m).sort((a,c)=>{const A=m[a],C=m[c];if(A.cohort!==C.cohort)return A.cohort?-1:1;return (C.total_value_usd||0)-(A.total_value_usd||0);});
+  const counts={CURRENT:0,AMENDED:0,NOTICE:0,DATED:0};order.forEach(k=>{counts[m[k].status]=(counts[m[k].status]||0)+1;});
+  $('mgr-chips').innerHTML='<span class="c c-up">CURRENT · '+counts.CURRENT+'</span><span class="c c-am">AMENDED · '+counts.AMENDED+'</span><span class="c c-k">NOTICE · '+counts.NOTICE+'</span><span class="c c-dn">DATED · '+counts.DATED+'</span>';
+  const rows=order.map(k=>{const x=m[k],c=x.counts||{},ls=x.latest_submission||{},eff=(x.filings||[]).find(f=>(x.effective_accessions||[]).includes(f.accession))||{};const vr=(x.flags||[]).includes('VALUATION_REVIEW');
+    return '<tr><td><button class="row" type="button" data-fund="'+esc(k)+'">'+esc(x.display_name)+'</button> <span class="dim">'+esc(x.cik||'')+'</span></td><td>'+esc(x.current_period||'—')+' · '+esc(eff.form||ls.form||'—')+(ls.form==='13F-NT'&&x.status==='NOTICE'?' <span class="dim2">13F-NT '+esc(ls.filed_at||'')+'</span>':'')+(eff.amendment_type?' <span class="dim2">'+esc(String(eff.amendment_type).toLowerCase())+(fin(eff.amendment_number)?' #'+eff.amendment_number:'')+'</span>':'')+'</td><td>'+esc(eff.filed_at||ls.filed_at||'—')+'</td><td class="n">'+num(x.n_equity_positions)+' · '+num(x.n_option_rows)+'</td><td class="n'+(vr?' dim2':'')+'">'+(vr?'cover '+esc(((x.filings||[]).slice(-1)[0]||{}).reported_value_sum||'—')+' <span class="dim">units unverified</span>':money(x.total_value_usd))+'</td><td class="n '+(vr?'dim':cls(x.value_change_pct))+'">'+(vr?'—':pct1(x.value_change_pct))+'</td><td class="n">'+pctp(x.top10_pct_of_book)+'</td><td class="n am">'+num(c.newly_present_in_public_disclosure)+'</td><td class="n dn">'+num(c.not_present_in_current_public_disclosure)+'</td><td class="n up">'+num(c.reported_quantity_increased)+'</td><td class="n dn">'+num(c.reported_quantity_decreased)+'</td><td class="n dim2">'+num(c.reported_quantity_unchanged)+'</td><td>'+(x.chain_status==='complete_selected_public_chain'?'<span class="c c-up">COMPLETE</span>':'<span class="c c-dn">'+esc(x.chain_status||'—')+'</span>')+'</td><td>'+skillChip(x.clone)+'</td><td>'+statusChip(x.status,x.flags)+(x.status==='DATED'&&fin(x.observation_age_days)?' <span class="dim2">'+num(x.observation_age_days)+' d</span>':'')+'</td></tr>';}).join('');
+  $('mgr-table').innerHTML='<table class="t" style="min-width:1240px"><thead><tr><th>Manager</th><th>Period · form</th><th>Filed</th><th class="n">Equity · option rows</th><th class="n">Reported value</th><th class="n">vs prior (incl. price)</th><th class="n">Top-10 %</th><th class="n">New</th><th class="n">Absent</th><th class="n">Up</th><th class="n">Down</th><th class="n">Flat</th><th>Chain</th><th>Clone SKILL</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table>';
+  const notes=[];order.forEach(k=>{const x=m[k];(x.valuation_reviews||[]).forEach(v=>notes.push(esc(x.display_name)+': '+esc(v)));if(x.status==='NOTICE')notes.push(esc(x.display_name)+"'s latest submission is a 13F-NT (notice) — its holdings are reported by another manager, so "+esc(x.current_period)+' stays its last public table.');});
+  $('mgr-foot').innerHTML='Reported value = sum of the filer\'s own value column for equity rows (SH, no put/call). "vs prior" compares two dated disclosures and includes the quarter\'s price move. Option rows are counted beside equity rows and never mixed into values.'+(notes.length?' '+notes.join(' '):'');
+  $('mgr-table').addEventListener('click',e=>{const btn=e.target.closest('button[data-fund]');if(btn)selectManager(btn.dataset.fund,true);});
+}
+function posRow(r,withChange){return '<tr><td class="w"><b>'+esc(r.issuer)+'</b> <span class="dim2">'+esc(r.class||'')+' · '+esc(r.cusip||'')+'</span></td><td><span class="bar" style="width:110px"><i class="'+barCls(r.status)+'" style="width:'+Math.min(100,Math.max(0,r.pct_of_book||0))+'%"></i></span> '+pctp(r.pct_of_book)+'</td><td class="n">'+money(r.value_usd)+'</td><td class="n">'+num(r.qty)+'</td>'+(withChange?'<td>'+chg(r.status)+'</td><td class="n '+cls(r.qty_change)+'">'+(fin(r.qty_change)?sgn(Math.round(r.qty_change)).replace(/\d+/,n=>Number(n).toLocaleString('en-US')):'—')+'</td><td class="n '+cls(r.qty_change_pct)+'">'+pct1(r.qty_change_pct)+'</td><td class="n '+cls(r.value_change_usd)+'">'+(fin(r.value_change_usd)?money(r.value_change_usd):'<span class="dim">no prior row</span>')+'</td>':'')+'</tr>';}
+function selectManager(fk,scroll){
+  const x=M[fk];if(!x)return;SELECTED=fk;
+  const ls=x.latest_submission||{},c=x.counts||{},cl=x.clone||{};
+  $('drill-title').textContent=esc(x.display_name)+' · '+esc(x.current_period||'—');
+  $('drill-meta').textContent=(x.official_name||'')+' · CIK '+(x.cik||'—')+' · '+(x.chain_status||'');
+  const kpis=[['Reported equity value',money(x.total_value_usd),'prior '+money(x.total_value_prior_usd)+' · <span class="'+cls(x.value_change_pct)+'">'+pct1(x.value_change_pct)+'</span> incl. price'],['Positions · option rows',num(x.n_equity_positions)+' · '+num(x.n_option_rows),'prior '+num(x.n_prior_equity_positions)+' equity rows'],['Top-10 share',pctp(x.top10_pct_of_book),(x.top10_pct_of_book||0)>=50?'concentrated book':'diversified book'],['Puts · calls',money(x.put_value_usd)+' · '+money(x.call_value_usd),'underlying value, not premium'],['Filed · accepted',esc(ls.filed_at||'—'),esc(ls.accepted_at?dUTC(ls.accepted_at).slice(11):'')+' · '+esc(ls.form||'—')],['Effective accession',esc((x.effective_accessions||[])[0]||ls.accession||'—'),'retained artifact · '+num(x.artifact&&x.artifact.bytes)+' bytes']];
+  const html=['<div class="chips">'+statusChip(x.status,x.flags)+' '+skillChip(cl)+(x.shared_discretion_positions?' <span class="c c-k">'+num(x.shared_discretion_positions)+' SHARED-DISCRETION ROWS</span>':'')+'</div>',
+    '<div class="gv" style="margin-top:10px">'+kpis.map(([l,v,s])=>'<div class="kpi"><span class="l">'+l+'</span><span class="v" style="font-size:'+(v.length>14?'15px':'22px')+'">'+v+'</span><span class="s">'+s+'</span></div>').join('')+'</div>',
+    '<h3 style="margin-top:14px">Reported positions · top of book</h3><div class="scroll" style="margin-top:8px"><table class="t" style="min-width:1100px"><thead><tr><th>Issuer · class · CUSIP</th><th>Share of book</th><th class="n">Reported value</th><th class="n">Reported qty</th><th>Change class</th><th class="n">Qty Δ</th><th class="n">Qty Δ %</th><th class="n">Value Δ (incl. price)</th></tr></thead><tbody>'+(x.top||[]).map(r=>posRow(r,true)).join('')+'</tbody></table></div>',
+    '<div class="g3" style="margin-top:12px">'+
+      '<div class="sub"><h3>Newly present · '+num(x.n_newly_present_equity)+' equity rows</h3>'+((x.newly_present||[]).length?(x.newly_present||[]).map(r=>'<div class="kv"><span>'+esc(r.issuer)+' <span class="dim2">'+esc(r.class||'')+'</span></span><b>'+money(r.value_usd)+' · '+pctp(r.pct_of_book)+'</b></div>').join(''):'<p class="empty">none</p>')+'</div>'+
+      '<div class="sub"><h3>Absent · '+num(x.n_absent_equity)+' equity rows</h3>'+((x.absent||[]).length?(x.absent||[]).map(r=>'<div class="kv"><span>'+esc(r.issuer)+' <span class="dim2">'+esc(r.class||'')+'</span></span><b>prior '+money(r.prior_value_usd)+'</b></div>').join(''):'<p class="empty">none</p>')+'<div class="dim2" style="font:400 11.5px/1.5 var(--sans);margin-top:6px">Absence is a disclosure fact, not a sale. Option identities are not listed here.</div></div>'+
+      '<div class="sub"><h3>Quantity up · '+num(x.n_increased_equity)+'</h3>'+((x.increased||[]).length?(x.increased||[]).map(r=>'<div class="kv"><span>'+esc(r.issuer)+'</span><b class="up">'+pct1(r.qty_change_pct)+' · '+money(r.value_change_usd)+'</b></div>').join(''):'<p class="empty">none</p>')+'</div>'+
+      '<div class="sub"><h3>Quantity down · '+num(x.n_decreased_equity)+'</h3>'+((x.decreased||[]).length?(x.decreased||[]).map(r=>'<div class="kv"><span>'+esc(r.issuer)+'</span><b class="dn">'+pct1(r.qty_change_pct)+' · '+money(r.value_change_usd)+'</b></div>').join(''):'<p class="empty">none</p>')+'</div>'+
+      '<div class="sub"><h3>Clone-alpha</h3>'+(fin(cl.skill_score)?'<div style="display:flex;align-items:center;gap:10px;margin:6px 0"><span class="bar" style="flex:1;height:8px"><i class="'+(cl.skill_score>=70?'g':cl.skill_score>=50?'':'r')+'" style="width:'+cl.skill_score+'%"></i></span><b class="mono" style="font-size:18px">'+cl.skill_score+'</b></div><div class="kv"><span>Clone · SPY · alpha %/yr</span><b><span class="'+cls(cl.ann_clone_pct)+'">'+pct1(cl.ann_clone_pct)+'</span> · '+pct1(cl.ann_spy_pct)+' · <span class="'+cls(cl.ann_alpha_pct)+'">'+pct1(cl.ann_alpha_pct)+'</span></b></div><div class="kv"><span>Hit rate · IR · windows</span><b>'+(fin(cl.hit_rate)?Math.round(cl.hit_rate*100)+'%':'—')+' · '+(fin(cl.ir)?cl.ir.toFixed(2):'—')+' · '+num(cl.n_windows)+'</b></div>'+(cl.last_window?'<div class="kv"><span>Last window '+esc(cl.last_window.q||'')+'</span><b>'+pct1(cl.last_window.ret)+' vs SPY '+pct1(cl.last_window.spy)+' · <span class="'+cls(cl.last_window.alpha)+'">'+pct1(cl.last_window.alpha)+'</span></b></div>':''):'<p class="empty">'+esc(cl.label||cl.note||cl.reason||'not scored (fewer than six closed windows)')+'</p>')+'</div>'+
+      '<div class="sub"><h3>Filing chain</h3>'+(x.filings||[]).map(f=>'<div class="kv"><span>'+esc(f.accession)+' <span class="dim2">'+esc(f.form||'')+' '+esc(f.period_of_report||'')+'</span></span><b>'+esc(f.filed_at||'')+(f.amendment_type?' · '+esc(String(f.amendment_type).toLowerCase()):'')+((x.effective_accessions||[]).includes(f.accession)?' <span class="c c-up">EFFECTIVE</span>':' <span class="c c-k">RETAINED</span>')+'</b></div>').join('')+'<div class="dim2" style="font:400 11.5px/1.5 var(--sans);margin-top:6px">Artifact sha256 '+esc((x.artifact&&x.artifact.sha256||'').slice(0,16))+'… · the evidence desk below verifies it before display.</div></div>'+
+    '</div>'].join('');
+  $('drill-body').innerHTML=html;
+  const sel=$('selection');if(sel&&Array.from(sel.options).some(o=>o.value===fk)&&sel.value!==fk){sel.value=fk;sel.dispatchEvent(new Event('change'));}
+  if(scroll){$('drill').scrollIntoView({behavior:'smooth',block:'start'});}
+}
+function boardTable(title,rows,kind){
+  const head=kind==='held'?'<th>Issuer · class</th><th class="n">Holders</th><th class="n">Reported value</th><th class="n">Up / down</th>':kind==='new'?'<th>Issuer · class</th><th class="n">Books</th><th class="n">Reported value</th><th>Note</th>':kind==='drop'?'<th>Issuer · class</th><th class="n">Absent</th><th class="n">Still held by</th><th>Note</th>':kind==='inc'?'<th>Issuer · class</th><th class="n">Up / down</th><th class="n">Holders</th><th class="n">Reported value</th>':'<th>Issuer · class</th><th class="n">Down / up</th><th class="n">Holders</th><th class="n">Reported value</th>';
+  const body=(rows||[]).slice(0,10).map(r=>{const nm='<td class="w">'+esc(r.issuer)+' <span class="dim2">'+esc(r.class||'')+'</span>'+(kind!=='new'&&r.n_new?' <span class="c c-new">NEW · '+(r.n_new>1?r.n_new:esc(short(r.new[0])))+'</span>':'')+(kind!=='drop'&&r.n_absent?' <span class="c c-abs">ABSENT · '+(r.n_absent>1?r.n_absent:esc(short(r.absent[0])))+'</span>':'')+'</td>';
+    if(kind==='held')return '<tr>'+nm+'<td class="n"><b>'+r.n_holders+'</b></td><td class="n">'+money(r.value_usd)+'</td><td class="n"><span class="up">'+r.n_inc+'</span> / <span class="dn">'+r.n_dec+'</span></td></tr>';
+    if(kind==='new')return '<tr>'+nm+'<td class="n"><b>'+r.n_new+'</b></td><td class="n">'+money(r.value_usd)+'</td><td>'+(r.reclass_candidate?'<span class="c c-am">RECLASS? · old identity absent</span> ':'')+keys(r.new)+'</td></tr>';
+    if(kind==='drop')return '<tr>'+nm+'<td class="n"><b class="dn">'+r.n_absent+'</b></td><td class="n">'+r.n_holders+'</td><td>'+(r.reclass_candidate?'<span class="c c-am">RECLASS? · new identity present</span> ':r.no_current_holder?'<span class="c c-dn">NO CURRENT HOLDER</span> ':'')+keys(r.absent)+'</td></tr>';
+    if(kind==='inc')return '<tr>'+nm+'<td class="n"><b class="up">'+r.n_inc+'</b> / '+(r.n_dec?'<span class="dn">'+r.n_dec+'</span>':'0')+'</td><td class="n">'+r.n_holders+'</td><td class="n">'+money(r.value_usd)+'</td></tr>';
+    return '<tr>'+nm+'<td class="n"><b class="dn">'+r.n_dec+'</b> / '+(r.n_inc?'<span class="up">'+r.n_inc+'</span>':'0')+'</td><td class="n">'+r.n_holders+'</td><td class="n">'+money(r.value_usd)+'</td></tr>';}).join('');
+  return '<div class="sub"><h3 style="margin-bottom:8px">'+title+'</h3><div class="scroll">'+(body?'<table class="t"><thead><tr>'+head+'</tr></thead><tbody>'+body+'</tbody></table>':'<p class="empty">nothing in this scope</p>')+'</div></div>';
+}
+function boards(){
+  const bk=BOOK.book||{},bd=(bk.boards||{})[SCOPE]||{},members=SCOPE==='cohort'?(bk.cohort||[]):(bk.concentrated||[]);
+  $('scope-cohort').className='btn sm'+(SCOPE==='cohort'?' on':'');$('scope-conc').className='btn sm'+(SCOPE==='concentrated'?' on':'');
+  $('boards-title').textContent=SCOPE==='cohort'?'Across the '+members.length+' current books':'Across the '+members.length+' concentrated books';
+  $('boards-meta').textContent=num(bd.n_identities)+' identities (CUSIP + class) · '+members.map(short).join(' ')+' · managers counted, dollars summed, nothing inferred';
+  $('boards').innerHTML=boardTable('Most widely held',bd.widely_held,'held')+boardTable('Largest reported value',bd.largest_value,'held')+boardTable('Newly present · most books',bd.newly_present,'new')+boardTable('Absent from disclosure · most books',bd.dropped,'drop')+boardTable('Reported quantity up · most books',bd.increased,'inc')+boardTable('Reported quantity down · most books',bd.decreased,'dec');
+  $('boards-foot').innerHTML='RECLASS? marks an issuer whose old identity is absent while a new CUSIP or class for the same issuer appears — a reclassification or corporate action, not a trade. NO CURRENT HOLDER marks a security no current book reports; absence from a disclosure is not a sale. Manager keys: '+Object.keys(M).sort().map(k=>esc(short(k))+' '+esc(name(k))).join(' · ')+'.';
+}
+function card(x){const conc=(x.top10_pct_of_book||0)>=50;const rows=(x.top||[]).slice(0,5).map(r=>'<div style="display:grid;grid-template-columns:minmax(0,1fr) 60px 52px;gap:8px;align-items:center;font-size:12px"><span>'+esc(r.issuer)+' '+arrow(r.status)+(r.status==='reported_quantity_increased'&&fin(r.qty_change_pct)?' <span class="up">'+pct1(r.qty_change_pct)+'</span>':r.status==='reported_quantity_decreased'&&fin(r.qty_change_pct)?' <span class="dn">'+pct1(r.qty_change_pct)+'</span>':'')+'</span><span class="bar"><i class="'+barCls(r.status)+'" style="width:'+Math.min(100,r.pct_of_book||0)+'%"></i></span><span style="text-align:right">'+pctp(r.pct_of_book)+'</span></div>').join('');
+  const chips=(x.newly_present||[]).slice(0,4).map(r=>'<span class="c c-new">NEW '+esc(r.issuer.split(' ').slice(0,2).join(' '))+' '+money(r.value_usd)+'</span>').concat((x.absent||[]).slice(0,3).map(r=>'<span class="c c-abs">ABSENT '+esc(r.issuer.split(' ').slice(0,2).join(' '))+' '+money(r.prior_value_usd)+'</span>')).concat((x.increased||[]).slice(0,2).map(r=>'<span class="c c-up">▲ '+esc(r.issuer.split(' ').slice(0,2).join(' '))+' '+pct1(r.qty_change_pct)+'</span>')).concat((x.decreased||[]).slice(0,2).map(r=>'<span class="c c-dn">▼ '+esc(r.issuer.split(' ').slice(0,2).join(' '))+' '+pct1(r.qty_change_pct)+'</span>')).concat(x.n_option_rows?['<span class="c c-am">PUTS '+money(x.put_value_usd)+' · CALLS '+money(x.call_value_usd)+'</span>']:[]).concat((x.flags||[]).includes('VALUATION_REVIEW')?['<span class="c c-am">VALUATION REVIEW</span>']:[]).join(' ');
+  const vr=(x.flags||[]).includes('VALUATION_REVIEW');
+  return '<div class="sub" style="display:flex;flex-direction:column;gap:8px'+(conc?';border-color:rgba(240,180,41,.35)':'')+'"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><button class="row mono" type="button" data-fund="'+esc(x.fund_key)+'" style="all:unset;cursor:pointer;font:700 13px/1.3 var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--ink)">'+esc(x.display_name)+'</button><span class="dim2 mono" style="font-size:11px">'+(vr?'units under review':money(x.total_value_usd))+' · '+num(x.n_equity_positions)+(x.n_option_rows?' + '+num(x.n_option_rows)+' opt':'')+' · top-10 '+pctp(x.top10_pct_of_book)+'</span></div><div class="mono" style="display:flex;flex-direction:column;gap:5px">'+rows+'</div><div class="chips">'+chips+'</div></div>';}
+function sections(b){
+  const bk=b.book||{},m=bk.managers||{};
+  const concKeys=(bk.concentrated||[]);const dated=Object.keys(m).filter(k=>!m[k].cohort);
+  $('conc-meta').textContent='≤ '+(bk.concentrated_max_positions||100)+' equity positions · '+num(((bk.boards||{}).concentrated||{}).n_identities)+' identities between them · every row matters';
+  $('conc').innerHTML=concKeys.map(k=>card(m[k])).join('')+dated.map(k=>card(m[k]).replace('<div class="sub" style="display:flex;flex-direction:column;gap:8px','<div class="sub" style="display:flex;flex-direction:column;gap:8px;border-color:rgba(224,122,106,.35)')).join('');
+  const div=(bk.cohort||[]).filter(k=>!concKeys.includes(k));
+  $('diversified').innerHTML=div.map(k=>{const x=m[k];return '<div class="sub mono" style="font-size:12px;display:flex;flex-direction:column;gap:5px"><div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:3px"><button class="row" type="button" data-fund="'+esc(k)+'" style="all:unset;cursor:pointer;font:700 13px/1.3 var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--ink)">'+esc(x.display_name)+'</button><span class="dim2" style="font-size:11px">'+money(x.total_value_usd)+' · top-10 '+pctp(x.top10_pct_of_book)+'</span></div>'+(x.top||[]).slice(0,5).map(r=>'<div class="kv"><span>'+esc(r.issuer)+' '+arrow(r.status)+'</span><b>'+pctp(r.pct_of_book)+'</b></div>').join('')+'<div class="chips" style="margin-top:4px">'+(x.newly_present||[]).slice(0,2).map(r=>'<span class="c c-new">NEW '+esc(r.issuer.split(' ').slice(0,2).join(' '))+' '+money(r.value_usd)+'</span>').join(' ')+' '+(x.absent||[]).slice(0,1).map(r=>'<span class="c c-abs">ABSENT '+esc(r.issuer.split(' ').slice(0,2).join(' '))+' '+money(r.prior_value_usd)+'</span>').join(' ')+(x.shared_discretion_positions?' <span class="c c-k">'+num(x.shared_discretion_positions)+' shared-discretion rows</span>':'')+'</div></div>';}).join('')||'<p class="empty">no diversified books in the cohort</p>';
+  const ca=b.clone_alpha||{};$('clone-meta').textContent='as of '+dUTC(ca.as_of)+' · '+esc(ca.status||'—')+(fin(ca.pct_complete)?' '+ca.pct_complete+'%':'')+(fin(ca.filings_done)?' · '+ca.filings_done+' filings':'')+' · weekly Monday';
+  $('clone-method').textContent=ca.method||ca.error||'';
+  const ranked=(ca.ranked||[]);
+  $('clone').innerHTML=ranked.length?'<table class="t" style="min-width:1180px"><thead><tr><th>Manager</th><th>SKILL 0–100</th><th>Label</th><th class="n">Clone %/yr</th><th class="n">SPY %/yr</th><th class="n">Alpha %/yr</th><th class="n">Hit rate</th><th class="n">IR</th><th class="n">Best / worst window</th><th class="n">Windows</th><th>Last window · alpha</th></tr></thead><tbody>'+ranked.map(r=>{const s=r.skill_score;const k=s>=70?'g':s>=50?'':s>=35?'m':'r';return '<tr><td><button class="row" type="button" data-fund="'+esc(r.fund_key)+'">'+esc(r.display_name)+'</button>'+(r.hedge_book?' <span class="c c-k">HEDGE BOOK</span>':'')+((M[r.fund_key]||{}).status==='DATED'?' <span class="c c-dn">DATED</span>':'')+'</td><td><span class="bar" style="width:120px"><i class="'+k+'" style="width:'+Math.max(1,s||0)+'%"></i></span> <b class="'+(s>=70?'up':s>=50?'am':s>=35?'dim2':'dn')+'">'+esc(s==null?'—':s)+'</b></td><td>'+skillChip(r).replace(/\d+ · /,'')+'</td><td class="n '+cls(r.ann_clone_pct)+'">'+pct1(r.ann_clone_pct)+'</td><td class="n">'+pct1(r.ann_spy_pct)+'</td><td class="n '+cls(r.ann_alpha_pct)+'">'+pct1(r.ann_alpha_pct)+'</td><td class="n">'+(fin(r.hit_rate)?Math.round(r.hit_rate*100)+'%':'—')+'</td><td class="n">'+(fin(r.ir)?r.ir.toFixed(2):'—')+'</td><td class="n"><span class="up">'+pct1(r.best_alpha)+'</span> / <span class="dn">'+pct1(r.worst_alpha)+'</span></td><td class="n">'+num(r.n_windows)+'</td><td>'+(r.last_window?esc(r.last_window.q||'')+' · <span class="'+cls(r.last_window.alpha)+'">'+pct1(r.last_window.alpha)+'</span>':'—')+'</td></tr>';}).join('')+'</tbody></table>':'<p class="empty">clone-alpha not published'+(ca.error?' ('+esc(ca.error)+')':'')+'</p>';
+  const ov=bk.options_overlay||[];
+  $('options').innerHTML=ov.length?'<table class="t" style="min-width:1000px"><thead><tr><th>Manager</th><th class="n">Option rows</th><th class="n">Puts (underlying value)</th><th class="n">Calls (underlying value)</th><th>Put share of option value</th><th class="n">Equity rows value</th><th class="n">Puts ÷ equity</th></tr></thead><tbody>'+ov.map(o=>'<tr><td><button class="row" type="button" data-fund="'+esc(o.fund_key)+'">'+esc(o.display_name)+'</button>'+(o.status==='DATED'?' <span class="c c-dn">DATED</span>':o.status==='NOTICE'?' <span class="c c-k">NOTICE</span>':'')+'</td><td class="n">'+num(o.n_option_rows)+'</td><td class="n dn">'+money(o.put_value_usd)+'</td><td class="n up">'+money(o.call_value_usd)+'</td><td><span class="bar" style="width:160px"><i class="r" style="width:'+(o.put_share||0)+'%"></i></span> <span class="dim2">'+pctp(o.put_share)+'</span></td><td class="n">'+money(o.equity_value_usd)+'</td><td class="n'+((o.puts_over_equity||0)>=0.5?' am':'')+'">'+(fin(o.puts_over_equity)?o.puts_over_equity.toFixed(2)+'×':'—')+'</td></tr>').join('')+'</tbody></table>':'<p class="empty">no manager reports option rows</p>';
+  const pd=b.price_divergence||{},ai=b.ai_brief||{};
+  const sig=(list,lab,k)=>(list||[]).length?'<div style="margin-top:8px"><div class="eyebrow" style="font-size:10px">'+lab+'</div>'+(list||[]).slice(0,10).map(x=>'<div class="kv"><span>'+esc(x.ticker||x.symbol||x.issuer||'')+' <span class="dim2">'+esc(x.name||'')+'</span></span><b class="'+k+'">'+esc(fin(x.score)?x.score:(x.signal||''))+'</b></div>').join('')+'</div>':'';
+  $('signals').innerHTML='<div class="sub"><h3>Price divergence · '+esc(pd.engine||'justhodl-13f-price-divergence')+' '+esc(pd.version||'')+'</h3><div class="chips" style="margin:8px 0"><span class="c '+(pd.state==='INSUFFICIENT_DATA'?'c-am':pd.state?'c-up':'c-dn')+'">'+esc(pd.state||pd.error||'NOT PUBLISHED')+'</span><span class="c c-k">as of '+dUTC(pd.as_of)+'</span>'+(fin(pd.n_bullish)?'<span class="c c-up">'+pd.n_bullish+' BULLISH</span>':'')+(fin(pd.n_bearish)?'<span class="c c-dn">'+pd.n_bearish+' BEARISH</span>':'')+(fin(pd.signal_strength)?'<span class="c c-k">STRENGTH '+pd.signal_strength+'</span>':'')+'</div><div class="dim2" style="font:400 12px/1.5 var(--sans)">'+esc(pd.why_now||'')+'</div>'+(pd.data_sufficiency?'<div class="kv" style="margin-top:6px"><span class="dim2">Data sufficiency</span><b>'+esc((pd.data_sufficiency.feeder_loaded?'feeder loaded':'feeder not loaded')+' · '+num(pd.data_sufficiency.n_feeder_tickers)+' tickers')+'</b></div><div class="dim2" style="font:400 11.5px/1.5 var(--sans)">'+esc(pd.data_sufficiency.rule||'')+'</div>':'')+sig(pd.top_bullish,'Top bullish divergences','up')+sig(pd.top_bearish,'Top bearish divergences','dn')+'<details style="margin-top:8px"><summary class="dim2" style="cursor:pointer;min-height:36px;display:flex;align-items:center">Methodology and sources</summary><div class="dim2" style="font:400 11.5px/1.5 var(--sans)">'+esc(pd.methodology||'')+'<br>'+esc((pd.sources||[]).join(' · '))+'</div></details></div>'+
+    '<div class="sub"><h3>AI brief · '+esc(ai.model||'not published')+'</h3><div class="chips" style="margin:8px 0"><span class="c '+(ai.portfolio_action==='WAIT'?'c-am':'c-k')+'">'+esc(ai.portfolio_action||ai.posture||'—')+'</span><span class="c c-k">'+dUTC(ai.generated_at)+'</span><span class="c c-k">'+esc(fin(ai.model_api_calls)?ai.model_api_calls+' MODEL CALLS':'')+'</span>'+(ai.calls_eligible===false?'<span class="c c-k">NOT CALLS-ELIGIBLE</span>':'')+'</div><div class="mono ink" style="font-size:13px;font-weight:600">'+esc(ai.headline||ai.error||'')+'</div><div class="dim2" style="font:400 12px/1.55 var(--sans);margin-top:6px">'+esc(ai.narrative||'')+'</div>'+(ai.divergence_signals?'<div class="dim2" style="font:400 11.5px/1.5 var(--sans);margin-top:6px">'+esc(ai.divergence_signals)+'</div>':'')+'</div>';
+  const q=b.quality||{};$('quality').innerHTML=Object.entries(q).map(([k,v])=>'<span class="c '+(v===true?'c-up':v===false?'c-k':'c-k')+'">'+esc(k.replace(/_/g,' ').toUpperCase())+' · '+esc(v===true?'YES':v===false?'NO':v)+'</span>').join(' ');
+  $('limitations').innerHTML=(b.limitations||[]).map(l=>'<li>'+esc(l)+'</li>').join('');$('interpretation').start=(b.limitations||[]).length+1;
+  const eng=b.engines||[];
+  $('engines').innerHTML=eng.length?'<table class="t" style="min-width:1100px"><thead><tr><th>Engine</th><th>Role</th><th>Outputs · age as this book saw them</th><th>Schedule</th><th>Tier</th></tr></thead><tbody>'+eng.map(e=>'<tr><td><b>'+esc(e.engine)+'</b></td><td class="w" style="font-family:var(--sans);font-size:12px;color:#c9c2b0">'+esc(e.role)+'</td><td class="w">'+(e.objects||[]).map(o=>'<div><a href="/'+esc(o.key)+'">'+esc(o.key)+'</a> <span class="dim2">'+(fin(o.bytes)?num(o.bytes)+' B · ':'')+ageH(o.age_h)+(o.last_modified?' · '+dUTC(o.last_modified):'')+'</span> '+tierChip(o.tier)+'</div>').join('')+'</td><td class="w" style="font-size:11px">'+esc(e.schedule)+'</td><td>'+tierChip(e.tier)+'</td></tr>').join('')+'</tbody></table>':'<p class="empty">no engine block in the book</p>';
+  const st=b.state_objects||[];$('eng-foot').innerHTML='Legacy state objects of the retired board (age shown, not judged): '+st.map(o=>esc(o.key)+' '+(fin(o.bytes)?num(o.bytes)+' B · ':'')+ageH(o.age_h)).join(' · ')+'. Tiers follow each engine\'s own cadence: fresh within 1.25× its interval (30 h for a daily engine), stale within 7×, dead beyond. Book run '+esc(fin(b.run_seconds)?b.run_seconds+' s':'')+' · '+esc(b.cadence||'')+'.';
+  document.querySelectorAll('#conc button[data-fund],#diversified button[data-fund],#clone button[data-fund],#options button[data-fund]').forEach(btn=>btn.addEventListener('click',()=>selectManager(btn.dataset.fund,true)));
+}
+async function load(){
+  try{
+    const r=await fetch('/data/13f-book.json',{cache:'no-store'});if(!r.ok)throw new Error('data/13f-book.json answered HTTP '+r.status);
+    BOOK=await r.json();M=(BOOK.book||{}).managers||{};
+    header(BOOK);banner(BOOK);grid(BOOK);boards();sections(BOOK);
+    const want=new URL(location.href).searchParams.get('fund');selectManager(want&&M[want]?want:(((BOOK.book||{}).cohort||[]).includes('BERKSHIRE')?'BERKSHIRE':Object.keys(M)[0]),false);
+    $('scope-cohort').addEventListener('click',()=>{SCOPE='cohort';boards();});$('scope-conc').addEventListener('click',()=>{SCOPE='concentrated';boards();});
+  }catch(err){$('book-state').textContent='The institutional book is not available: '+err.message+'. No substitute values are shown; the evidence desk below still reads the native research directly.';$('banner-headline').textContent='Book not published.';['mgr-table','boards','conc','clone','options','diversified','signals','engines'].forEach(id=>{$(id).innerHTML='<p class="empty">unavailable until data/13f-book.json is published by justhodl-13f-book</p>';});}
+}
+load();
+})();
+</script>
+<script src="/jh-holdings-research.js" defer></script><script src="/jh-holdings-research-page.js" defer></script><script src="/jh-nav-drawer.js" defer></script><script src="/sidebar.js" defer></script></body></html>
