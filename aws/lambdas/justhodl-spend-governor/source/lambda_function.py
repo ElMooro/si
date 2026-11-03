@@ -1000,10 +1000,23 @@ def _breach_get(bid):
 
 
 def _breach_mark(bid, status, result):
+    # every attribute aliased: `status` and `result` are DynamoDB reserved words (ops 6718 found `result`)
     client("dynamodb").update_item(TableName=TRIGGER_TABLE, Key={"pk": {"S": bid}},
-                                   UpdateExpression="SET #s = :s, applied_at = :at, result = :r",
-                                   ExpressionAttributeNames={"#s": "status"},
+                                   UpdateExpression="SET #s = :s, #at = :at, #r = :r",
+                                   ExpressionAttributeNames={"#s": "status", "#at": "applied_at", "#r": "result"},
                                    ExpressionAttributeValues={":s": {"S": status}, ":at": {"S": now_utc().isoformat()}, ":r": {"S": json.dumps(result, default=str)[:3000]}})
+
+
+def _breach_finish(ctx, bid, doc, results, now, enforce, via):
+    """The alert first (it must reach Khalid whatever else fails), then the record's mark."""
+    _breach_event(doc, results, now, via)
+    status = "applied" if enforce else "monitored"
+    try:
+        _breach_mark(bid, status, results)
+    except Exception as e:  # noqa: BLE001 - the hold and the alert stand; the sweep retries the mark
+        ctx.log("breach %s: mark failed: %s" % (bid, lv.err_code(e)))
+        status = "applied_unmarked"
+    return status
 
 
 def apply_breach(ctx, state, doc, now, enforce=True):
@@ -1052,9 +1065,8 @@ def action_trigger_breach(event, context):
     ctx = Ctx(control, state.setdefault("ledger", {}), context)
     results = apply_breach(ctx, state, doc, now, enforce)
     s3_put_json("state.json", state)
-    _breach_mark(bid, "applied" if enforce else "monitored", results)
-    _breach_event(doc, results, now, "direct")
-    return {"breach_id": bid, "status": "applied" if enforce else "monitored", "held": results}
+    status = _breach_finish(ctx, bid, doc, results, now, enforce, "direct")
+    return {"breach_id": bid, "status": status, "held": results}
 
 
 def sweep_breaches(ctx, state, now, enforce):
@@ -1076,9 +1088,8 @@ def sweep_breaches(ctx, state, now, enforce):
         bid = item["pk"]["S"]
         doc = json.loads((item.get("doc") or {}).get("S") or "{}")
         results = apply_breach(ctx, state, doc, now, enforce)
-        _breach_mark(bid, "applied" if enforce else "monitored", results)
-        _breach_event(doc, results, now, "sweep")
-        applied.append({"breach_id": bid, "held": results})
+        status = _breach_finish(ctx, bid, doc, results, now, enforce, "sweep")
+        applied.append({"breach_id": bid, "held": results, "status": status})
     return {"pending": len(items), "applied": applied}
 
 

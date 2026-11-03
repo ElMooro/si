@@ -270,6 +270,10 @@ class FakeDDB:
         return {"Item": it} if it else {}
 
     def update_item(self, TableName, Key, UpdateExpression, ExpressionAttributeNames=None, ExpressionAttributeValues=None, **kw):
+        import re as _re
+        for word in _re.findall(r"(#?[A-Za-z_]+)\s*=", UpdateExpression):      # DynamoDB: a bare reserved word is a ValidationException
+            if word.lower() in ("status", "result", "name", "value", "at", "key", "size", "count", "date", "time", "type") and not word.startswith("#"):
+                raise cerr("ValidationException")
         it = self.items[Key["pk"]["S"]]
         it["status"] = dict(ExpressionAttributeValues[":s"])
         it["result"] = dict(ExpressionAttributeValues[":r"])
