@@ -1,0 +1,21 @@
+{
+  "runtime": "python3.12",
+  "memory": 2048,
+  "timeout": 300,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "13F institutional book: manager grid, cross-manager boards, options overlay, filing season, clone-alpha join and 13F-family observability computed from the native holdings research artifacts into data/13f-book.json; reads S3 only, infers nothing.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "OUT_KEY": "data/13f-book.json",
+    "CONCENTRATED_MAX": "100",
+    "HEDGE_OPTION_ROWS": "1000"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-13f-book-daily",
+    "cron": "cron(37 16 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "13F institutional book, daily 16:37 UTC (after the native research snapshot 15:40 and reconcile 16:21; before smart-money-cluster 16:55)"
+  }
+}
