@@ -170,7 +170,7 @@ def main():
 
         ok = (facts.get("mgr_rows", 0) >= 18 and facts.get("boards_tables", 0) == 6 and facts.get("clone_rows", 0) >= 10 and facts.get("engines_rows", 0) >= 10
               and facts.get("bad_literals", 1) == 0 and facts.get("js_errors", 1) == 0 and facts.get("phone_overflow_in_main", 1) == 0
-              and facts.get("drill_after_click", "").startswith("Elliott") and facts.get("selection_after_click") == "ELLIOTT"
+              and "Elliott" in facts.get("drill_after_click", "") and facts.get("selection_after_click") == "ELLIOTT"   # the baked section badge prefixes the heading text
               and facts.get("positions_rows", 0) >= 1 and facts.get("selection_options", 0) >= 18)
         r.kv(**{k: str(v) for k, v in facts.items() if k in ("mgr_rows", "boards_tables", "clone_rows", "options_rows", "engines_rows", "selection_options", "positions_rows",
                                                               "bad_literals", "js_errors", "bad_responses", "phone_overflow_px", "phone_overflow_in_main", "scope_toggle", "drill_after_click", "selection_after_click")})
