@@ -55,6 +55,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      # 2026-11-03: ubuntu-latest rolled from 24.04 to 26.04 overnight and the system python3 changed with it. The
+      # output-role review (config/engine-output-roles.json) and the portable-order fixtures hash function bodies with
+      # ast.dump, which differs between Python minors, so every Pages build since 12:50 UTC failed on "Internal family
+      # source review drift". Pin the interpreter the reviews were bound with (deploy-lambdas and run-ops already do).
+      - name: Set up Python 3.12 (review hashes are bound to 3.12)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Block published credentials
         run: python3 scripts/check_secrets.py
       - name: Brain publication boundaries
