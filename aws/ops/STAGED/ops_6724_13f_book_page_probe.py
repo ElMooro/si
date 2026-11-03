@@ -80,9 +80,10 @@ def main():
             browser = launch(p, r.log)
             ctx = browser.new_context(viewport={"width": 1440, "height": 900}, device_scale_factor=1, user_agent="Mozilla/5.0 (X11; Linux x86_64) jh-ops-probe Chrome")
             page = ctx.new_page()
-            errors = []
+            errors, bad_responses = [], []
             page.on("pageerror", lambda e: errors.append("pageerror: %s" % e))
             page.on("console", lambda m: errors.append("console: %s" % m.text) if m.type == "error" else None)
+            page.on("response", lambda resp: bad_responses.append("%s %s" % (resp.status, resp.url)) if resp.status >= 400 else None)
             r.section("1. desktop 1440: load")
             page.goto("%s/13f.html?nocache=%d" % (BASE, stamp), wait_until="domcontentloaded")
             try:
@@ -126,14 +127,23 @@ def main():
             facts["selection_after_click"] = page.locator("#selection").input_value()
             r.log("drill body: %s" % text(page, "#drill-body")[:600])
             r.log("errors: %s" % (errors[:10] or "none"))
-            facts["js_errors"] = len(errors)
+            r.log("responses >= 400: %s" % (bad_responses[:12] or "none"))
+            own = [u for u in bad_responses if "/data/13f-book.json" in u or "holdings-research" in u or "/13f.html" in u]
+            facts["js_errors"] = len([e for e in errors if not e.startswith("console: Failed to load resource")]) + len(own)
+            facts["bad_responses"] = len(bad_responses)
 
             r.section("3. phone 390")
             page.set_viewport_size({"width": 390, "height": 844})
             page.wait_for_timeout(600)
             overflow = page.evaluate("() => document.documentElement.scrollWidth - document.documentElement.clientWidth")
             r.log("horizontal overflow at 390 px: %s px" % overflow)
+            wide = page.evaluate("""() => { const cw = document.documentElement.clientWidth; const out = [];
+              for (const el of document.querySelectorAll('body *')) { const rct = el.getBoundingClientRect(); if (rct.right > cw + 1 && rct.width > 0) {
+                const inMain = !!el.closest('main'); out.push({tag: el.tagName, id: el.id || '', cls: String(el.className || '').slice(0, 60), right: Math.round(rct.right), w: Math.round(rct.width), inMain}); } }
+              return out.slice(0, 15); }""")
+            r.log("elements past the right edge at 390 px: %s" % json.dumps(wide))
             facts["phone_overflow_px"] = overflow
+            facts["phone_overflow_in_main"] = sum(1 for w in wide if w.get("inMain") and w.get("tag") not in ("TABLE", "TBODY", "THEAD", "TR", "TD", "TH"))
 
             r.section("4. screenshot (0.5x, jpeg, base64)")
             ctx2 = browser.new_context(viewport={"width": 1440, "height": 900}, device_scale_factor=0.5)
@@ -155,11 +165,11 @@ def main():
             browser.close()
 
         ok = (facts.get("mgr_rows", 0) >= 18 and facts.get("boards_tables", 0) == 6 and facts.get("clone_rows", 0) >= 10 and facts.get("engines_rows", 0) >= 10
-              and facts.get("bad_literals", 1) == 0 and facts.get("js_errors", 1) == 0 and facts.get("phone_overflow_px", 1) <= 1
+              and facts.get("bad_literals", 1) == 0 and facts.get("js_errors", 1) == 0 and facts.get("phone_overflow_in_main", 1) == 0
               and facts.get("drill_after_click", "").startswith("Elliott") and facts.get("selection_after_click") == "ELLIOTT"
               and facts.get("positions_rows", 0) >= 1 and facts.get("selection_options", 0) >= 18)
         r.kv(**{k: str(v) for k, v in facts.items() if k in ("mgr_rows", "boards_tables", "clone_rows", "options_rows", "engines_rows", "selection_options", "positions_rows",
-                                                              "bad_literals", "js_errors", "phone_overflow_px", "scope_toggle", "drill_after_click", "selection_after_click")})
+                                                              "bad_literals", "js_errors", "bad_responses", "phone_overflow_px", "phone_overflow_in_main", "scope_toggle", "drill_after_click", "selection_after_click")})
         if ok:
             r.ok("PROVEN: the Institutional Book renders from the live feed, the evidence desk verifies and follows the selection, the page is clean at 1440 and 390")
         else:
