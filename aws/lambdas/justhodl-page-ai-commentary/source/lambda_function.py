@@ -19,6 +19,7 @@ from datetime import datetime, timezone
 from typing import Optional, Dict, List
 
 import boto3
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 from private_artifact import is_private_source
 from public_brain_projection import PUBLIC_CONTEXT_PRIVACY_VERSION, sanitize_public
 
@@ -464,6 +465,7 @@ def _legacy_lambda_handler(event, context):
 
 
 def lambda_handler(event, context):
+    chain_guard.begin(event, context)  # trigger cap: continue the chain this run was started by (a root otherwise)
     # Keep the original cadence; this entry never enters a model fallback.
     import commentary_store
     from botocore.config import Config

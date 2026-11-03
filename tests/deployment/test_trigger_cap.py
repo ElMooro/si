@@ -104,9 +104,13 @@ def test_relays_begin_their_lineage():
     g = event_graph.build_graph(ROOT)
     edges = g["edges"]
     dsts = {e[1] for e in edges if e[2] in ("event", "invoke")}
-    srcs = {e[0] for e in edges}
+
+    def starts_engines(fn):
+        node = g["nodes"].get(fn) or {}
+        return bool(node.get("published") or node.get("invokes") or node.get("self_invoke") or node.get("dynamic_publish") or node.get("dynamic_invoke"))
     sources = engine_sources()
-    relays = sorted((dsts & srcs) - set(CONTROL_PLANE) - set(REVIEWED_CONTRACT))
+    # a relay is started by another engine AND publishes or invokes anything - whether or not a route consumes it today
+    relays = sorted({fn for fn in dsts if starts_engines(fn)} - set(CONTROL_PLANE) - set(REVIEWED_CONTRACT))
     bad = []
     for fn in relays:
         text = sources.get(fn, "")

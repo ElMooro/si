@@ -21,6 +21,7 @@ import time
 import uuid
 from typing import Any, Dict, Optional
 
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 import jhsignal as J
 from jh_fusion_core import run_fusion, shadow_comparison
 from jh_registry import EngineRegistry, load_flags, load_universe
@@ -134,6 +135,7 @@ def load_correlation(s3: S3Store, registry: EngineRegistry) -> Optional[Dict[str
 
 @track_errors
 def lambda_handler(event=None, context=None):
+    chain_guard.begin(event, context)  # trigger cap: continue the chain this run was started by (a root otherwise)
     t0 = time.time()
     event = event if isinstance(event, dict) else {}
     now = J.utcnow()
