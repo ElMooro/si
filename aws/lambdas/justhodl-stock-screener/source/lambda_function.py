@@ -4,6 +4,7 @@ try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the war
 except Exception:  # noqa: BLE001 - the shim never blocks the engine
     pass
 from equity_donor_inputs import load_inputs, stock_context
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 import json, time, boto3, urllib.request, math
 try:
     from fabrication_guard import guard_output  # ops 4440 F8 (fixed header)
@@ -1399,8 +1400,7 @@ def lambda_handler(event, context):
     # high-conviction events flow to @Justhodl_bot. Async (Event invocation)
     # so this Lambda's response isn't blocked.
     try:
-        import boto3 as _boto3
-        _lam = _boto3.client("lambda", region_name="us-east-1")
+        _lam = chain_guard.lambda_client(region_name="us-east-1")
         _lam.invoke(
             FunctionName="justhodl-screener-alerts",
             InvocationType="Event",

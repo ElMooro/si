@@ -78,6 +78,29 @@ import os
 from datetime import datetime, timezone
 from typing import Optional
 
+# Trigger cap (chain_guard v2, 2026-11-02): every event carries the publisher's lineage (`_jh_chain`) so the coordinator
+# can count hops, engines and volume per chain, and a publisher that is already at the depth cap publishes nothing.
+try:
+    import chain_guard as _cg
+except Exception:  # noqa: BLE001 - a package without chain_guard still publishes (root lineage is stamped by the coordinator)
+    _cg = None
+
+
+def _lineage_or_refusal(event_name: str):
+    """(lineage to stamp, None) or (None, reason) when this run may not hand off further."""
+    if _cg is None:
+        return None, None
+    try:
+        lin = _cg.current()
+        if int(lin.get("hop") or 0) + 1 > int(_cg.LIMITS["handoff"]["max_hops"]):
+            print("[system_events] REFUSED publish '%s': this run is at hop %s of a %s-hop chain (%s)" % (
+                event_name, lin.get("hop"), _cg.LIMITS["handoff"]["max_hops"], " > ".join(lin.get("path") or [])))
+            return None, "max_hops"
+        return lin, None
+    except Exception as e:  # noqa: BLE001
+        print("[system_events] lineage unavailable (%s) - publishing as a root" % type(e).__name__)
+        return None, None
+
 # Defer boto3 import inside publish() to avoid cold-start cost when engines
 # import this module but don't actually emit events.
 EVENT_BUS_NAME = os.environ.get("JUSTHODL_EVENT_BUS", "justhodl-system-events")
@@ -117,10 +140,15 @@ def publish(event_name: str, detail: dict,
             source_engine = fn.replace("justhodl-", "")
         source = f"justhodl.{source_engine}"
         
+        lineage, refused = _lineage_or_refusal(event_name)
+        if refused:
+            return False
         # Attach standard fields so subscribers always see timestamp + source
         payload = dict(detail or {})
         payload.setdefault("_emitted_at", datetime.now(timezone.utc).isoformat())
         payload.setdefault("_source_engine", source_engine)
+        if lineage is not None:
+            payload[_cg.LINEAGE_KEY] = lineage
         
         entry = {
             "Source":       source,
@@ -158,6 +186,10 @@ def publish_many(events: list, bus_name: Optional[str] = None, *, client=None) -
             client = boto3.client("events", region_name=DEFAULT_REGION)
         default_source = os.environ.get("AWS_LAMBDA_FUNCTION_NAME", "unknown")\
                             .replace("justhodl-", "")
+        lineage, refused = _lineage_or_refusal("batch of %d" % len(events))
+        if refused:
+            return {"ok": False, "n_failed": len(events), "n_published": 0, "refused": refused,
+                    "results": [{"index": i, "ok": False, "event_id": None, "error_code": "TRIGGER_CAP_" + refused.upper()} for i in range(len(events))]}
         entries, indices = [], []
         for index, evt in enumerate(events):
             if len(evt) == 3:
@@ -168,6 +200,8 @@ def publish_many(events: list, bus_name: Optional[str] = None, *, client=None) -
             payload = dict(detail or {})
             payload.setdefault("_emitted_at", datetime.now(timezone.utc).isoformat())
             payload.setdefault("_source_engine", src)
+            if lineage is not None:
+                payload[_cg.LINEAGE_KEY] = lineage
             entries.append({
                 "Source":       f"justhodl.{src}",
                 "DetailType":   name,

@@ -63,6 +63,9 @@ class LoopGuardTests(unittest.TestCase):
                            'ROUTES': {'near_miss.extreme': {'invoke': ['justhodl-miss-calibrator', 'justhodl-other'],
                                                             'notify': False, 'audit': False}},
                            'send_telegram_alert': lambda *a: True,
+                           'lineage_of': lambda event, detail, source: {'id': 'c', 'root': 'justhodl-pub', 'hop': 0, 'path': ['justhodl-' + str((detail or {}).get('_source_engine') or 'pub')], 'self_hop': 0, 'n': 0},
+                           'trigger_admit': lambda src, dst, lin: {'allow': True, 'lineage': dict(lin, hop=lin['hop'] + 1, path=lin['path'] + [dst])},
+                           'chain_guard': SimpleNamespace(LINEAGE_KEY='_jh_chain'),
                            'breaker_allow': lambda fn, ev, now=None: {'allow': True}})
 
     def event(self, producer='miss-calibrator', source='justhodl.miss-calibrator'):

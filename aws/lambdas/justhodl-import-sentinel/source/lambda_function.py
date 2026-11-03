@@ -36,6 +36,7 @@ import time
 from datetime import datetime, timedelta, timezone
 
 import boto3
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 from botocore.config import Config
 
 REGION = "us-east-1"
@@ -46,8 +47,7 @@ FRED_STATE = "data/_state/fred-scoped-import.json"
 FRED_BUDGET_S = 780
 
 s3 = boto3.client("s3", region_name=REGION)
-lam = boto3.client("lambda", region_name=REGION,
-                   config=Config(read_timeout=20, retries={"max_attempts": 1}))
+lam = chain_guard.lambda_client(region_name=REGION, config=Config(read_timeout=20, retries={"max_attempts": 1}))
 ssm = boto3.client("ssm", region_name=REGION)
 cw = boto3.client("cloudwatch", region_name=REGION)
 

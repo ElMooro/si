@@ -1,0 +1,107 @@
+{
+ "version": 1,
+ "doc": [
+  "The fleet-wide trigger cap (Khalid, 2026-11-02): no engine may start other engines, or itself, past these limits; past them the engines involved are held at reserved concurrency 0 under the spend governor's stage CAP and only an operator's {\"action\":\"release_cap\"} turns them back on.",
+  "Enforced by aws/shared/chain_guard.py at every start: system_events.publish, the event coordinator, chain_guard.lambda_client().invoke, chain_guard.chain_invoke. The module embeds a copy of this file; tests/deployment/test_trigger_cap.py fails the deploy if they differ.",
+  "handoff = an async start (Event invoke or bus event), the class that can multiply. call = a synchronous RequestResponse start (the caller waits). self = an engine re-invoking itself (the walkers; past max_self_hops they park, not breach).",
+  "Daily budgets are >= 2x each engine's busiest normal day of the 60 days to 2026-11-02 (ops 6717; the Oct 12-16 storm excluded) - the Invocations metric counts web and schedule runs too, so these are generous. Change a number here, redeploy chain_guard's importers, and it is live.",
+  "handoff.repeat_allowed_pairs: the only engine pairs that may visit each other again inside one chain - exactly the multi-engine invoke cycles of config/loop-allowlist.json (each with its stop condition; the gate keeps the two files equal). Depth, volume and the daily budgets still bound them, so an allowlisted exchange can never run away either."
+ ],
+ "handoff": {
+  "max_hops": 3,
+  "max_engines_per_chain": 8,
+  "max_handoffs_per_chain": 12,
+  "max_handoffs_per_chain_by_source": {
+   "justhodl-equity-prewarm": 1500,
+   "justhodl-streaming-fanout": 100,
+   "justhodl-a2a-bus": 50,
+   "justhodl-backend-agent": 50
+  },
+  "repeat_allowed_pairs": [
+   [
+    "justhodl-a2a-bus",
+    "justhodl-backend-agent"
+   ]
+  ]
+ },
+ "call": {
+  "max_calls_per_chain": 3000
+ },
+ "self": {
+  "max_self_hops": 12,
+  "max_self_per_chain": 512
+ },
+ "daily": {
+  "triggered_default": 200,
+  "triggered": {
+   "justhodl-research-critique": 1500,
+   "justhodl-a2a-bus": 2000,
+   "justhodl-backend-agent": 250,
+   "justhodl-fred-catalog": 500,
+   "justhodl-census-us": 500,
+   "openbb-websocket-broadcast": 300
+  },
+  "called_default": 400,
+  "called": {
+   "justhodl-tv-bars": 20000,
+   "justhodl-fundamental-graphs": 8000,
+   "justhodl-a2a-bus": 2000,
+   "justhodl-factory-grader": 3000,
+   "treasury-api": 250
+  },
+  "triggers_out_default": 200,
+  "triggers_out": {
+   "justhodl-equity-prewarm": 1500,
+   "justhodl-streaming-fanout": 1000,
+   "justhodl-backend-agent": 2000,
+   "justhodl-a2a-bus": 250,
+   "justhodl-import-sentinel": 500
+  },
+  "self_default": 400,
+  "self": {
+   "justhodl-sdmx-walker": 4000,
+   "justhodl-boj-full": 2500,
+   "justhodl-equity-research": 6000,
+   "justhodl-symdir": 1000,
+   "justhodl-tv-bars": 500,
+   "justhodl-gdelt-full": 600,
+   "justhodl-census-us": 500,
+   "justhodl-fred-catalog": 500
+  }
+ },
+ "hold": {
+  "loop": [
+   "source",
+   "target"
+  ],
+  "max_hops": [
+   "source"
+  ],
+  "max_engines_per_chain": [
+   "source"
+  ],
+  "max_handoffs_per_chain": [
+   "source"
+  ],
+  "max_calls_per_chain": [
+   "source"
+  ],
+  "daily_triggered": [
+   "source",
+   "target"
+  ],
+  "daily_called": [
+   "source",
+   "target"
+  ],
+  "daily_triggers_out": [
+   "source"
+  ],
+  "max_self_per_chain": [
+   "source"
+  ],
+  "daily_self": [
+   "source"
+  ]
+ }
+}

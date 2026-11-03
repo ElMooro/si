@@ -50,6 +50,7 @@ from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor
 
 import boto3
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 S3_KEY = os.environ.get("S3_KEY", "data/institutional-positions.json")
@@ -252,7 +253,7 @@ def lambda_handler(event, context):
     # this is what makes the page update within minutes of a filing.
     if new_filings:
         try:
-            boto3.client("lambda").invoke(
+            chain_guard.lambda_client().invoke(
                 FunctionName=os.environ.get(
                     "POSITIONS_FN", "justhodl-13f-positions"),
                 InvocationType="Event",

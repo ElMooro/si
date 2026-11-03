@@ -36,6 +36,7 @@ import time
 from datetime import datetime, timezone
 
 import boto3
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 from market_history_integrity import ProviderDenied, stop_on_denial, validate_upgrade, read_bank, merged_document, valid_bar
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -481,7 +482,7 @@ def universe_refresh(event, context):
     shard, nshards = int(event.get("shard") or 0), int(event.get("nshards") or 1)
     if event.get("fanout"):
         n = int(event["fanout"])
-        lc = boto3.client("lambda", region_name="us-east-1")
+        lc = chain_guard.lambda_client(region_name="us-east-1")
         for i in range(n):
             lc.invoke(FunctionName=context.function_name, InvocationType="Event",
                       Payload=json.dumps({"mode": "refresh", "shard": i, "nshards": n}).encode())
@@ -890,6 +891,7 @@ def fmp_append(event, context):
 
 
 def lambda_handler(event, context):
+    chain_guard.begin(event, context)  # trigger cap: continue the chain this run was started by (a root otherwise)
     event = event or {}
     if event.get("mode") == "pull":
         return universe_pull(event, context)

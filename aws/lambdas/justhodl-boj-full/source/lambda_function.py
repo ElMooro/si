@@ -24,6 +24,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 import boto3
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 
 ENGINE_VERSION = "justhodl-boj-full v1.1.3 ops4987 manifest-totals"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -285,6 +286,7 @@ def write_manifest(state):
 
 
 def lambda_handler(event, ctx=None):
+    chain_guard.begin(event, ctx)  # trigger cap: continue the chain this run was started by (a root otherwise)
     global BUDGET_S
     t0 = time.time()
     event = event or {}
@@ -304,7 +306,7 @@ def lambda_handler(event, ctx=None):
             api_discover(state, t0)
             _put(STATE_KEY, state)
         dbs = sorted((state.get("api") or {}).get("dbs") or {})
-        _l = boto3.client("lambda", region_name="us-east-1")
+        _l = chain_guard.lambda_client(region_name="us-east-1")
         fn = os.environ.get("AWS_LAMBDA_FUNCTION_NAME",
                             "justhodl-boj-full")
         sent = 0

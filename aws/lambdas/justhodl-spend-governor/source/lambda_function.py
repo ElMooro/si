@@ -937,6 +937,30 @@ def engine_caps(ctx, state, cfg, now, enforce):
     return out
 
 
+def hold_under_cap(ctx, fn, reason, now, extra=None):
+    """Hold `fn` at concurrency 0 under stage CAP (manual release only): the lever behind the operator hold and the
+    trigger cap.  Returns a status string; never raises for an unreadable function."""
+    if ctx.exempt(fn):
+        return "exempt (control plane)"
+    e = ctx.ledger.get("lambda:" + fn)
+    if e:
+        if e.get("stage") == "CAP":
+            return "already held by CAP"
+        e.update(stage="CAP", capped_from=e.get("stage"), capped_at=now.isoformat(), reason=(reason or "")[:300], operator_hold=True)
+        e.update(extra or {})
+        return "upgraded from %s" % e["capped_from"]
+    entries = [dict(x, capped_at=now.isoformat(), reason=(reason or "")[:300], operator_hold=True, **(extra or {}))
+               for x in lv.lambda_discover(ctx, "CAP", [fn])]
+    if not entries:
+        try:
+            cur = lv.reserved_of(ctx, fn)
+        except Exception as ex:  # noqa: BLE001
+            return "function not readable: %s" % lv.err_code(ex)
+        return "nothing to do (reserved %s)" % cur
+    counts = apply_entries(ctx, entries, True, now)
+    return "held (%s)" % json.dumps(counts)
+
+
 def action_hold(event, context):
     """Operator switch-off: hold a function at concurrency 0 under stage CAP (manual release only) - for engines that
     have no trigger to disable (API / URL handlers) or that Khalid retired.  {"action":"hold","function":F,"confirm":F,"reason":...}"""
@@ -949,27 +973,113 @@ def action_hold(event, context):
     ctx = Ctx(control, state.setdefault("ledger", {}), context)
     if ctx.exempt(fn):
         return {"error": "%s is exempt (control plane)" % fn}
-    e = ctx.ledger.get("lambda:" + fn)
-    if e:
-        if e.get("stage") == "CAP":
-            return {"function": fn, "status": "already held by CAP"}
-        e.update(stage="CAP", capped_from=e.get("stage"), capped_at=now.isoformat(), reason=(event.get("reason") or "")[:300],
-                 operator_hold=True)
-        status = "upgraded from %s" % e["capped_from"]
-    else:
-        entries = [dict(x, capped_at=now.isoformat(), reason=(event.get("reason") or "")[:300], operator_hold=True)
-                   for x in lv.lambda_discover(ctx, "CAP", [fn])]
-        if not entries:
-            try:
-                cur = lv.reserved_of(ctx, fn)
-            except Exception as ex:  # noqa: BLE001
-                return {"error": "function not readable: %s" % lv.err_code(ex)}
-            return {"function": fn, "status": "nothing to do", "reserved": cur}
-        counts = apply_entries(ctx, entries, True, now)
-        status = "held (%s)" % json.dumps(counts)
+    status = hold_under_cap(ctx, fn, event.get("reason"), now)
+    if status.startswith("nothing to do") or status.startswith("function not readable"):
+        return {"function": fn, "status": status}
     s3_put_json("state.json", state)
     record_event("operator-hold", {"function": fn, "status": status, "reason": event.get("reason")}, now)
     return {"function": fn, "status": status, "reserved": lv.reserved_of(ctx, fn)}
+
+
+# ------------------------------------------------------------------- the trigger cap's shutdown (v1.6.0) --
+# chain_guard (aws/shared) refuses an engine start past config/trigger-limits.json and writes one breach record per
+# (day, source, target, rule) into the ledger table, then asks {"action":"trigger_breach","breach_id":...}.  The record
+# is the evidence: this action reads it, holds the engines it names under stage CAP (manual release_cap only), marks it
+# applied and records a 'trigger-breach' event (GitHub issue + e-mail).  Every tick sweeps records still pending (the
+# engine's call found the governor busy).  Nothing here is reversible by code: release_cap is Khalid's lever.
+TRIGGER_TABLE = os.environ.get("TRIGGER_LEDGER_TABLE", "justhodl-event-breaker")
+
+
+def _breach_get(bid):
+    item = client("dynamodb").get_item(TableName=TRIGGER_TABLE, Key={"pk": {"S": bid}}).get("Item")
+    if not item or (item.get("kind") or {}).get("S") != "breach":
+        return None
+    doc = json.loads((item.get("doc") or {}).get("S") or "{}")
+    doc["status"] = (item.get("status") or {}).get("S")
+    return doc
+
+
+def _breach_mark(bid, status, result):
+    client("dynamodb").update_item(TableName=TRIGGER_TABLE, Key={"pk": {"S": bid}},
+                                   UpdateExpression="SET #s = :s, applied_at = :at, result = :r",
+                                   ExpressionAttributeNames={"#s": "status"},
+                                   ExpressionAttributeValues={":s": {"S": status}, ":at": {"S": now_utc().isoformat()}, ":r": {"S": json.dumps(result, default=str)[:3000]}})
+
+
+def apply_breach(ctx, state, doc, now, enforce=True):
+    """Hold every engine a breach record names.  -> {function: status}."""
+    reason = "trigger cap: %s %s -> %s (%s, limit %s) chain %s" % (doc.get("kind"), doc.get("source"), doc.get("target"), doc.get("reason"),
+                                                                   doc.get("limit"), " > ".join((doc.get("lineage") or {}).get("path") or []))
+    results = {}
+    for fn in doc.get("hold") or []:
+        if not enforce:
+            results[fn] = "monitor mode: would hold"
+            continue
+        try:
+            results[fn] = hold_under_cap(ctx, fn, reason, now, extra={"trigger_breach": doc.get("id")})
+        except Exception as e:  # noqa: BLE001
+            results[fn] = "hold failed: %s" % lv.err_code(e)
+    return results
+
+
+def _breach_event(doc, results, now, via):
+    body = {"breach_id": doc.get("id"), "source": doc.get("source"), "target": doc.get("target"), "kind": doc.get("kind"), "rule": doc.get("reason"),
+            "limit": doc.get("limit"), "observed": doc.get("observed"), "chain": doc.get("lineage"), "held": results, "via": via,
+            "release": 'one per engine: {"action":"release_cap","function":F,"confirm":F,"reason":"..."} on justhodl-spend-governor'}
+    record_event("trigger-breach", body, now)
+    notify("JustHodl trigger cap: engines shut down (%s -> %s, %s)" % (doc.get("source"), doc.get("target"), doc.get("reason")),
+           ["%s started %s past the trigger cap (%s, limit %s). Chain: %s. Held under CAP (manual release only): %s. Record %s." % (
+               doc.get("source"), doc.get("target"), doc.get("reason"), doc.get("limit"), " > ".join((doc.get("lineage") or {}).get("path") or []),
+               json.dumps(results), doc.get("id"))], "enforce")
+
+
+def action_trigger_breach(event, context):
+    bid = str(event.get("breach_id") or "")
+    if not bid.startswith("breach#"):
+        return {"error": "trigger_breach needs breach_id (breach#...)"}
+    now = now_utc()
+    try:
+        doc = _breach_get(bid)
+    except Exception as e:  # noqa: BLE001
+        return {"error": "ledger unreadable: %s" % lv.err_code(e)}
+    if doc is None:
+        return {"error": "no such breach record", "breach_id": bid}
+    if doc.get("status") == "applied":
+        return {"breach_id": bid, "status": "already applied"}
+    control = load_control()
+    enforce = control.get("mode") == "enforce"
+    state = s3_get_json("state.json", None) or new_state(now)
+    ctx = Ctx(control, state.setdefault("ledger", {}), context)
+    results = apply_breach(ctx, state, doc, now, enforce)
+    s3_put_json("state.json", state)
+    _breach_mark(bid, "applied" if enforce else "monitored", results)
+    _breach_event(doc, results, now, "direct")
+    return {"breach_id": bid, "status": "applied" if enforce else "monitored", "held": results}
+
+
+def sweep_breaches(ctx, state, now, enforce):
+    """Apply breach records still pending (their engine found the governor busy).  -> {"pending": n, "applied": [...]}"""
+    ddb = client("dynamodb")
+    items, tok = [], None
+    while True:
+        kw = {"TableName": TRIGGER_TABLE, "FilterExpression": "kind = :k AND #s = :p", "ExpressionAttributeNames": {"#s": "status"},
+              "ExpressionAttributeValues": {":k": {"S": "breach"}, ":p": {"S": "pending"}}}
+        if tok:
+            kw["ExclusiveStartKey"] = tok
+        resp = ddb.scan(**kw)
+        items += resp.get("Items", [])
+        tok = resp.get("LastEvaluatedKey")
+        if not tok or len(items) > 500:
+            break
+    applied = []
+    for item in items:
+        bid = item["pk"]["S"]
+        doc = json.loads((item.get("doc") or {}).get("S") or "{}")
+        results = apply_breach(ctx, state, doc, now, enforce)
+        _breach_mark(bid, "applied" if enforce else "monitored", results)
+        _breach_event(doc, results, now, "sweep")
+        applied.append({"breach_id": bid, "held": results})
+    return {"pending": len(items), "applied": applied}
 
 
 def action_caps(event, context):
@@ -1381,6 +1491,11 @@ def tick(event, context, trigger):
     except Exception as e:  # noqa: BLE001 - the daily storage fuse must never block the cap path
         ctx.log("storage fuse failed: %s" % lv.err_code(e))
         out["storage"] = {"error": lv.err_code(e)}
+    try:
+        out["trigger_breaches"] = sweep_breaches(ctx, state, now, enforce)
+    except Exception as e:  # noqa: BLE001 - the sweep must never block the cap path
+        ctx.log("trigger breach sweep failed: %s" % lv.err_code(e))
+        out["trigger_breaches"] = {"error": lv.err_code(e)}
 
     sup = state.get("suppress_until")
     suppressed = bool(sup) and core.as_utc(sup) > now
@@ -1615,6 +1730,8 @@ def lambda_handler(event, context):
         return action_release_cap(event, context)
     if action == "hold":
         return action_hold(event, context)
+    if action == "trigger_breach":
+        return action_trigger_breach(event, context)
     if action == "release_anomaly":
         return action_release_anomaly(event, context)
     if action == "anomaly_selftest":

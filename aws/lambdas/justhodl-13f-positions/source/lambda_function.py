@@ -97,6 +97,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from collections import defaultdict
 
 import boto3
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 from botocore.exceptions import ClientError
 
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -1601,6 +1602,7 @@ def aggregate_by_ticker(fund_results):
 
 
 def lambda_handler(event, context):
+    chain_guard.begin(event, context)  # trigger cap: continue the chain this run was started by (a root otherwise)
     # Canonical native source only. The former producer remains inactive below
     # for audit; no event action can invoke price guesses or transaction scores.
     from holdings_canonical import handle
@@ -2681,7 +2683,7 @@ def legacy_lambda_handler(event, context):
         if any(x.get("first_seen") == new_since.get("generated_at")
                for x in (new_since.get("new_filings") or [])) and \
                 not new_since.get("seed_run"):
-            boto3.client("lambda").invoke(
+            chain_guard.lambda_client().invoke(
                 FunctionName="justhodl-page-ai-commentary",
                 InvocationType="Event",
                 Payload=json.dumps({"page": "13f"}).encode())

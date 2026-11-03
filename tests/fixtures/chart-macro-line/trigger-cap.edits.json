@@ -1,0 +1,42 @@
+{
+ "aws/lambdas/justhodl-symdir/source/lambda_function.py": {
+  "before_sha256": "71bfb5fe08276a4892be85178a89a905be4e3c926bbce5a43ec3a7387e70e051",
+  "after_sha256": "1c10a8a7e0f794f109bdc70f1c543bdca12e998f0421c3b12a0adce7709b4c22",
+  "edits": [
+   {
+    "before": "import boto3\n",
+    "after": "import boto3\nimport chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped\n"
+   },
+   {
+    "before": "        lc = boto3.client(\"lambda\", region_name=\"us-east-1\")\n",
+    "after": "        lc = chain_guard.lambda_client(region_name=\"us-east-1\")\n"
+   },
+   {
+    "before": "_lambda = boto3.client(\"lambda\", region_name=\"us-east-1\", config=Config(read_timeout=90, retries={\"max_attempts\": 1}))\n",
+    "after": "_lambda = chain_guard.lambda_client(region_name=\"us-east-1\", config=Config(read_timeout=90, retries={\"max_attempts\": 1}))\n"
+   },
+   {
+    "before": "def lambda_handler(event, context):\n",
+    "after": "def lambda_handler(event, context):\n    chain_guard.begin(event, context)  # trigger cap: continue the chain this run was started by (a root otherwise)\n"
+   }
+  ]
+ },
+ "aws/lambdas/justhodl-tv-bars/source/lambda_function.py": {
+  "before_sha256": "7a246ae6cfca9c0619f5873b5de4d4316effe2dc47716247f521b2d8ce4c8fc7",
+  "after_sha256": "efe50e856b261cb2889f4bd340533d9c23d6deedfed8c129c8ce90f261b56e4d",
+  "edits": [
+   {
+    "before": "import boto3\n",
+    "after": "import boto3\nimport chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped\n"
+   },
+   {
+    "before": "        lc = boto3.client(\"lambda\", region_name=\"us-east-1\")\n",
+    "after": "        lc = chain_guard.lambda_client(region_name=\"us-east-1\")\n"
+   },
+   {
+    "before": "def lambda_handler(event, context):\n",
+    "after": "def lambda_handler(event, context):\n    chain_guard.begin(event, context)  # trigger cap: continue the chain this run was started by (a root otherwise)\n"
+   }
+  ]
+ }
+}

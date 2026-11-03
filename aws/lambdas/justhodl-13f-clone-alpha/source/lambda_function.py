@@ -42,6 +42,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 
 import boto3
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = "data/13f-clone-alpha.json"
@@ -62,7 +63,7 @@ PRICE_BUDGET = int(os.environ.get("PRICE_BUDGET", "130"))
 MAX_HOPS = 10
 
 s3 = boto3.client("s3")
-lam = boto3.client("lambda")
+lam = chain_guard.lambda_client()
 
 WATCHLIST = {
     "BERKSHIRE": "0001067983", "BRIDGEWATER": "0001350694",
@@ -244,6 +245,7 @@ def close_ge(closes, d):
 
 
 def lambda_handler(event=None, context=None):
+    chain_guard.begin(event, context)  # trigger cap: continue the chain this run was started by (a root otherwise)
     event = event or {}
     hop = int(event.get("hop") or 0)
     t0 = time.time()

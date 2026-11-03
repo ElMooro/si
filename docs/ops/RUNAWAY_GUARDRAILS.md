@@ -8,6 +8,7 @@ that incident; together they cover loops the event bus never sees.
 |---|---|---|---|---|
 | 1 | **Deploy gate** | a loop being shipped at all | before deploy | `scripts/event_graph.py`, `tests/deployment/test_event_graph_acyclic.py` |
 | 2 | **Circuit breaker** | a loop through the event coordinator | at the budget (6-90 runs per target-hour) | `justhodl-event-coordinator`, DynamoDB `justhodl-event-breaker` |
+| 2b | **Trigger cap (2026-11-02)** | any engine starting engines, or itself, past a hard limit - every path (bus, direct invoke, self-continuation) | at the limit (the start is refused; the engines are SHUT DOWN until an operator releases them) | `aws/shared/chain_guard.py` v2 in every engine, the coordinator and `system_events`; counters in DynamoDB `justhodl-event-breaker`; shutdown by `justhodl-spend-governor` v1.6.0 `trigger_breach`; limits `config/trigger-limits.json` |
 | 3 | **Blast-radius caps** | a loop eating the shared Lambda pool | instantly | reserved concurrency + 15-min async event age on the coordinator, its targets and the a2a pair |
 | 4 | **Fast fuse** | any sustained runaway, any path | ~20 min | alarms `justhodl-runaway-*` -> SNS -> `justhodl-spend-governor` v1.1.0 |
 | 5 | **Money backstops** | anything else (any service) | hours to a day | hourly governor fuse + $500 cap, daily $40 budget, Cost Anomaly e-mails, bucket-size alarm, versioned-bucket bound |
@@ -76,6 +77,56 @@ retry), audited, and `BREAKER_OPEN` logged once per target-hour -> metric filter
 refuses every invoke (fail-closed) and alarm `justhodl-event-breaker-unavailable` e-mails.
 
 Raising a budget is a code change (`BREAKER_PER_HOUR` in the coordinator) and goes through the deploy gate.
+
+## Layer 2b - the trigger cap (chain_guard v2, 2026-11-02)
+
+Khalid, 2026-11-02 22:28 ET: "on top of the existing brakes I don't want engines to trigger each other or themselves in a
+never-ending loop; there should be a max of how many engines get triggered, and once it passes that limit it gets shut
+down and I have to manually turn it back on."
+
+**Where it runs.** One shared module, `aws/shared/chain_guard.py`, at every place an engine starts another engine:
+`system_events.publish` / `publish_many` (the bus), the coordinator's routing (`chain_guard.admit` before every invoke),
+`chain_guard.lambda_client().invoke()` (the guarded Lambda client every engine now uses for a direct invoke - the deploy
+gate `tests/deployment/test_trigger_cap.py` forbids a raw one) and `chain_guard.chain_invoke()` (the walkers'
+self-continuation).  Every triggered run carries a lineage (`_jh_chain`: chain id, root, hop, path, self-hop) so a chain
+is counted as one thing across engines; a run with no lineage (a schedule, a user, an operator) is a root.
+
+**The limits** (`config/trigger-limits.json`; the module embeds a copy and the gate keeps them equal):
+
+| Rule | Limit | On breach |
+|---|---|---|
+| depth | a chain may hand off at most **3** times (root -> A -> B -> C; D is refused) | hold the source |
+| loop | an engine already in the chain's path may not be started again (the one allowlisted pair a2a-bus <-> backend-agent may revisit; depth still binds) | hold source AND target |
+| fan-out | at most **8** distinct engines in one chain | hold the source |
+| volume | at most **12** hand-offs in one chain (per-source overrides for the known batch fan-outs: equity-prewarm 1500, streaming-fanout 100, a2a pair 50) | hold the source |
+| sync calls | at most 3000 worker calls in one chain; a target may be called at most 400/day (tv-bars 20000, fundamental-graphs 8000, a2a-bus 2000, factory-grader 3000, treasury-api 250) | hold source (and target for the daily budget) |
+| daily hand-offs | an engine may be started by other engines at most 200/day (research-critique 1500, a2a-bus 2000, backend-agent 250, fred-catalog / census-us 500, websocket-broadcast 300) and may start others at most 200/day (equity-prewarm 1500, streaming-fanout 1000, backend-agent 2000, a2a-bus 250, import-sentinel 500) | hold source AND target / hold the source |
+| self | a walker parks at 12 self-hops (v1 behaviour); at most 512 self-starts per chain and 400 per day (sdmx-walker 4000, boj-full 2500, equity-research 6000, symdir 1000, tv-bars 500, gdelt-full 600, census-us / fred-catalog 500) | hold the engine |
+
+Daily budgets are >= 2x each engine's busiest normal day of the 60 days to 2026-11-02 (ops 6717, the Oct 12-16 storm
+excluded; the Invocations metric counts web and schedule runs too, so they are generous).  The counters live in the
+DynamoDB table `justhodl-event-breaker` (TTL).  **If the table cannot answer, the start is refused and nobody is held**
+(fail-closed; no evidence, no shutdown).  A refused start is acknowledged and never retried.
+
+**The shutdown.** The first copy of an engine to see a breach writes one record per (day, source, target, rule) into
+the table and asks the governor `{"action":"trigger_breach","breach_id":...}`; the governor reads the record, holds
+the engines it names at reserved concurrency 0 under stage CAP with `operator_hold` (the same stage as the $50 cap and
+the Oct 20 retire holds), records a `trigger-breach` event (GitHub issue "TRIGGER CAP: engines SHUT DOWN (manual
+release)" + e-mail) and marks the record applied.  If the governor is busy, its next hourly tick sweeps pending
+records.  **Nothing automatic lifts the hold** - not the 1st of the month, not a restore, not a cap raise: only
+`{"action":"release_cap","function":F,"confirm":F,"reason":"..."}` on `justhodl-spend-governor`, one engine at a time,
+after the cause is fixed.
+
+**Not covered (by design, documented):** `justhodl-sdmx-walker` is pinned to its predecessor by a differential test
+(reviewed contract) and keeps its one bounded fan-out (one run per agency, agency runs never fan out); the control plane
+(the coordinator itself, the governor, the fan-out tick router `justhodl-scheduler`, `justhodl-chain-resumer`,
+`justhodl-schedule-liveness`, `justhodl-fleet-integrity`) starts engines as root runs and is bounded by its manifests
+and daily caps; HTTP calls between engines through Function URLs (e.g. `justhodl-ultimate-orchestrator`) are
+synchronous and cannot multiply, and are not in the lineage.
+
+**Proof:** `tests/test_chain_guard_trigger_cap.py` (17), `tests/test_event_coordinator_trigger_cap.py` (5), the
+governor's `run_tests.py` (trigger_breach / sweep / monitor mode), the gate `tests/deployment/test_trigger_cap.py`; the
+live shutdown path was exercised against the canary `justhodl-spend-governor-canary` (ops 6718).
 
 ## Layer 3 - blast-radius caps
 

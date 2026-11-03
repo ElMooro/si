@@ -32,6 +32,7 @@ from decimal import Decimal
 from datetime import datetime, timezone
 
 import boto3
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 
 TABLE_NAME = "justhodl-portfolio"
 ddb = boto3.resource("dynamodb", region_name="us-east-1")
@@ -47,7 +48,7 @@ SNAPSHOT_FN = "justhodl-portfolio-snapshot"
 _MUTATING = {"add_position", "remove_position", "update_position",
              "set_stop_loss"}
 _ssm = boto3.client("ssm", region_name="us-east-1")
-_lam = boto3.client("lambda", region_name="us-east-1")
+_lam = chain_guard.lambda_client(region_name="us-east-1")
 _token_cache = {"v": None}
 
 

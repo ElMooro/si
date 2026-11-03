@@ -60,6 +60,7 @@ from decimal import Decimal
 import boto3
 from botocore.exceptions import ClientError
 from governed_targets import governed_target, function_identity
+import chain_guard  # the fleet-wide trigger cap (v2, 2026-11-02): lineage, limits, shutdown
 
 from _sentry_lite import track_errors
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
@@ -324,16 +325,20 @@ def delivery_state(event_name: str, detail: dict, source=None, event_id=None) ->
 
 # ─── Actions ────────────────────────────────────────────────────────────
 
-def invoke_target(fn_name: str, event_name: str, detail: dict) -> dict:
+def invoke_target(fn_name: str, event_name: str, detail: dict, lineage: dict = None) -> dict:
     """Async-invoke a Lambda. We use Event invocation so the coordinator
-    doesn't block on the downstream Lambda finishing."""
+    doesn't block on the downstream Lambda finishing.  `lineage` (chain_guard) rides on the payload so the
+    target's own publishes and invokes continue the chain instead of starting a new one."""
     try:
-        payload = json.dumps({
+        body = {
             "trigger_event": event_name,
             "trigger_detail": detail,
             "triggered_by": "justhodl-event-coordinator",
             "triggered_at": datetime.now(timezone.utc).isoformat(),
-        }).encode()
+        }
+        if lineage:
+            body[chain_guard.LINEAGE_KEY] = lineage
+        payload = json.dumps(body).encode()
         resp = lam.invoke(
             FunctionName=governed_target(fn_name),
             InvocationType="Event",   # async
@@ -564,6 +569,24 @@ def is_self_loop(target_fn: str, detail: dict, source=None) -> bool:
     return bool(producer) and producer != "?" and producer == _engine_id(target_fn)
 
 
+# ─── Trigger cap (chain_guard v2, 2026-11-02) ───────────────────────────
+# Every routed invoke is a hand-off from the PUBLISHER to the target: chain_guard.admit counts the chain's hops,
+# engines and volume and the day's budgets, refuses past the limits (fail-closed when its ledger cannot answer)
+# and, on a breach, has the governor hold the engines involved (stage CAP, manual release).  The lineage the
+# publisher stamped into detail (system_events) is continued onto the target's payload.
+def lineage_of(event: dict, detail: dict, source) -> dict:
+    """The publisher's lineage from the event, or a root lineage at the publisher for a sender without one."""
+    lin = chain_guard.extract(event)
+    if lin is None:
+        producer = _engine_id((detail or {}).get("_source_engine")) or _engine_id(source) or "unknown"
+        lin = chain_guard.fresh(producer if producer.startswith("justhodl-") else "justhodl-" + producer)
+    return lin
+
+
+def trigger_admit(source_fn: str, target_fn: str, lineage: dict) -> dict:
+    return chain_guard.admit(source_fn, target_fn, lineage, "handoff")
+
+
 # ─── Circuit breaker (2026-10-17, after the Oct 12-16 loop) ─────────────
 # A durable budget of invocations per target per clock hour, shared by every copy of this function through
 # DynamoDB (the in-memory dedupe above is per warm container: 700 concurrent copies had 700 private caches).
@@ -694,6 +717,9 @@ def handler(event, context):
         "invokes": [],
     }
     
+    lineage = lineage_of(event, detail, source)
+    source_fn = lineage["path"][-1] if lineage.get("path") else "justhodl-" + (_engine_id(detail.get("_source_engine")) or _engine_id(source))
+    result["chain"] = {"id": lineage.get("id"), "hop": lineage.get("hop"), "path": lineage.get("path")}
     for fn in route.get("invoke") or []:
         if is_self_loop(fn, detail, source):
             # Never route an event back to the engine that emitted it (ops 6520 loop guard).
@@ -702,12 +728,19 @@ def handler(event, context):
         if fn in delivery["accepted"]:
             ir = {"ok": True, "status": 202, "accepted_on_previous_attempt": True}
         else:
+            cap = trigger_admit(source_fn, fn, lineage)
+            if not cap.get("allow"):
+                # The trigger cap refused (limit reached, or its ledger could not answer): acknowledged, never retried;
+                # on a breach the governor is already holding the engines named in cap["hold"].
+                result["invokes"].append({"fn": fn, "ok": True, "skipped": "trigger_cap:" + str(cap.get("reason")),
+                                          "trigger_cap": {k: cap.get(k) for k in ("reason", "limit", "observed", "hold", "breach_id", "state")}})
+                continue
             gate = breaker_allow(fn, event_name)
             if not gate["allow"]:
                 # Acknowledged, not retried: a retry would only knock on the same open breaker.
                 result["invokes"].append({"fn": fn, "ok": True, "skipped": gate["reason"], "breaker": gate})
                 continue
-            ir = invoke_target(fn, event_name, detail)
+            ir = invoke_target(fn, event_name, detail, cap.get("lineage"))
             if ir.get("ok") is True:
                 delivery["accepted"].add(fn)
         result["invokes"].append({"fn": fn, **ir})

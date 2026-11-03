@@ -13,6 +13,7 @@ import time
 from datetime import date, datetime, timedelta, timezone
 
 import boto3
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 from botocore.config import Config
 
 from factory_core import (AGENTS, DIRECTIONS, Invalid, NY, REGIMES, SCHEMA, SYMBOLS, VERSION, WORKERS,
@@ -468,4 +469,4 @@ def tick(event, store, lam):
 
 def lambda_handler(event, context):
     store = Store(boto3.client('s3', region_name='us-east-1', config=CFG), PRIVATE, PUBLIC, lambda: datetime.now(timezone.utc))
-    return tick(event, store, boto3.client('lambda', region_name='us-east-1', config=CFG))
+    return tick(event, store, chain_guard.lambda_client(event, context, region_name='us-east-1', config=CFG))

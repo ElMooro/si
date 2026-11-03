@@ -34,6 +34,7 @@ import time
 from datetime import datetime, timezone, timedelta
 
 import boto3
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 from governed_targets import governed_target, function_identity
 from botocore.config import Config
 
@@ -53,8 +54,7 @@ STATE_KEY = "data/backend-agent/state.json"
 MAX_ACTIONS_PER_RUN = 5
 
 s3 = boto3.client("s3", region_name=REGION)
-lam = boto3.client("lambda", region_name=REGION,
-                   config=Config(read_timeout=120, retries={"max_attempts": 1}))
+lam = chain_guard.lambda_client(region_name=REGION, config=Config(read_timeout=120, retries={"max_attempts": 1}))
 ev = boto3.client("events", region_name=REGION)
 
 
@@ -498,6 +498,7 @@ MAX_TURNS_WARN = 40
 
 @track_errors
 def lambda_handler(event, context):
+    chain_guard.begin(event, context)  # trigger cap: continue the chain this run was started by (a root otherwise)
     # ops 4423: audit the bus first — find problems without being told
     try:
         health = bus_health_sweep()

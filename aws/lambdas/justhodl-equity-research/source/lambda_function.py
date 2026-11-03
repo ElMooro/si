@@ -95,6 +95,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 import boto3
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
 # ═════════════════════════════════════════════════════════════════════
@@ -5583,6 +5584,7 @@ def build_gf_extras(raw, ia, iq, ba, bq, ca, closes, spy_closes, quote,
 
 
 def lambda_handler(event, context):
+    chain_guard.begin(event, context)  # trigger cap: continue the chain this run was started by (a root otherwise)
     t0 = time.time()
 
     # ── Async-invocation mode
@@ -5661,7 +5663,7 @@ def lambda_handler(event, context):
     # CDN edge cache for the result.
     if kickoff_mode:
         try:
-            _lam = boto3.client("lambda", region_name="us-east-1")
+            _lam = chain_guard.lambda_client(region_name="us-east-1")
             _lam.invoke(
                 FunctionName=context.function_name if context else "justhodl-equity-research",
                 InvocationType="Event",

@@ -80,6 +80,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta, timezone
 
 import boto3
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 from botocore.config import Config
 from directory_identity import evidence as identifier_evidence, population as identity_population
 from directory_index import (descriptor as index_descriptor, refresh as refresh_index,
@@ -1229,7 +1230,7 @@ def codelists_lane(event, context):
         # state says nothing is left is not invoked (the 20-minute schedule then costs nothing once complete)
         plan = event["fanout"] if isinstance(event["fanout"], dict) else {prov: int(event["fanout"])}
         out = {}
-        lc = boto3.client("lambda", region_name="us-east-1")
+        lc = chain_guard.lambda_client(region_name="us-east-1")
         for pv, n in plan.items():
             n = int(n)
             out[pv] = []
@@ -2672,7 +2673,7 @@ def r_bls(sid, rest, d):
 
 # ---------------- TradingView universe (any EXCHANGE:SYMBOL) and US equities, from the warehouse
 TV_UNIV = "data/warm/tv-bars/universe/"
-_lambda = boto3.client("lambda", region_name="us-east-1", config=Config(read_timeout=90, retries={"max_attempts": 1}))
+_lambda = chain_guard.lambda_client(region_name="us-east-1", config=Config(read_timeout=90, retries={"max_attempts": 1}))
 
 
 def _tv_safe(sym):
@@ -3358,6 +3359,7 @@ def _resp(obj, status=200, ttl=60):
 
 
 def lambda_handler(event, context):
+    chain_guard.begin(event, context)  # trigger cap: continue the chain this run was started by (a root otherwise)
     event = event or {}
     mode = event.get("mode")
     path = (event.get("rawPath") or "").rstrip("/")

@@ -48,6 +48,7 @@ import hmac
 from datetime import datetime, timezone
 
 import boto3
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 
 REGION = "us-east-1"
 S3_BUCKET = "justhodl-dashboard-live"
@@ -62,7 +63,7 @@ BROADCAST_FN = os.environ.get("BROADCAST_FN", "openbb-websocket-broadcast")
 
 s3 = boto3.client("s3", region_name=REGION)
 ssm = boto3.client("ssm", region_name=REGION)
-lam = boto3.client("lambda", region_name=REGION)
+lam = chain_guard.lambda_client(region_name=REGION)
 
 # ----- tracked engines ----------------------------------------------------
 # Each engine: (name, channel, s3_key, headline rules, flip-field rules)

@@ -29,6 +29,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 import boto3
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 
 from llm_router import council, classify_provider_error
 
@@ -668,7 +669,7 @@ def _wake_claude(thread_id, reason):
     """IMMEDIATE ping — invoke Claude's backend agent now instead of waiting
     for its 15-minute schedule (Khalid: 'no 15 minutes waiting')."""
     try:
-        boto3.client("lambda", region_name="us-east-1").invoke(
+        chain_guard.lambda_client(region_name="us-east-1").invoke(
             FunctionName=BACKEND_AGENT, InvocationType="Event",
             Payload=json.dumps({"wake": True, "thread_id": thread_id,
                                 "reason": reason}).encode())
@@ -804,6 +805,7 @@ def _agent_for_token(tok):
 
 @track_errors
 def lambda_handler(event, context):
+    chain_guard.begin(event, context)  # trigger cap: continue the chain this run was started by (a root otherwise)
     event = event or {}
     http = (event.get("requestContext") or {}).get("http") or {}
     is_http = bool(http)

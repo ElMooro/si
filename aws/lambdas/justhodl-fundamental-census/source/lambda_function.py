@@ -27,6 +27,7 @@ import time
 from datetime import datetime, timezone
 
 import boto3
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 from botocore.config import Config
 
 VERSION = "1.11.0"  # ops4229 recursion-break
@@ -45,7 +46,7 @@ DRAIN_RESERVE_MS = int(os.environ.get("CENSUS_DRAIN_RESERVE_MS", "120000"))
 CURSOR_KEY = "data/_state/fundamental-census-cursor.json"
 
 S3 = boto3.client("s3", region_name="us-east-1")
-LAM = boto3.client("lambda", region_name="us-east-1",
+LAM = chain_guard.lambda_client(region_name="us-east-1",
                    config=Config(read_timeout=420,
                                  connect_timeout=10,
                                  retries={"max_attempts": 0}))
@@ -780,6 +781,7 @@ def build_matrix(rows_by_t, uni, turn_map=None, flag_set=None):
 
 
 def lambda_handler(event, context):
+    chain_guard.begin(event, context)  # trigger cap: continue the chain this run was started by (a root otherwise)
     event = event or {}
     phase = event.get("phase") or "aggregate"
     uni = universe()

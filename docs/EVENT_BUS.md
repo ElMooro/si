@@ -223,6 +223,12 @@ cycle itself rather than relying on any dedupe.
    * **Fast fuse.** Sustained-runaway alarms reach the spend governor through SNS and it throttles the
      hottest sustained burners in seconds (`docs/ops/SPEND_GOVERNOR.md`).
 
+5. **The trigger cap (2026-11-02, `docs/ops/RUNAWAY_GUARDRAILS.md` layer 2b).** Every published event carries the
+   publisher's lineage (`_jh_chain`); the coordinator admits each routed invoke through `chain_guard.admit` (depth 3,
+   no revisits, 8 engines and 12 hand-offs per chain, daily budgets) and stamps the lineage onto the target's payload;
+   a publisher already at the depth cap publishes nothing.  Past a limit the start is refused and the engines involved
+   are held under stage CAP until an operator releases them.
+
 **Adding a route:** add it to `ROUTES`, then run `python3 scripts/event_graph.py`. Exit 0 = no loop. If the
 target publishes an event that leads back to the producer, change the design; the gate cannot be allowlisted
 for bus loops. Give a new busy target its own budget in `BREAKER_PER_HOUR` (2x its busiest normal hour).

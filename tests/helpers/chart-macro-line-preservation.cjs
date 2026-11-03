@@ -161,6 +161,14 @@ function peelAutohideHtml(raw,file){
  assert.equal(hash(raw),BEFORE,'chart.html');
  return raw;
 }
+// 2026-11-02: peel the fleet-wide trigger cap (chain_guard v2) from justhodl-tv-bars and justhodl-symdir before every older peel: the chain_guard import, the guarded Lambda client in place of the raw one, chain_guard.begin at handler entry - nothing else.
+function peelTriggerCap(raw,file){
+ const plan=JSON.parse(fs.readFileSync(path.join(R,'tests/fixtures/chart-macro-line/trigger-cap.edits.json'),'utf8'))[file];
+ if(!plan||hash(raw)!==plan.after_sha256)return raw;
+ for(const e of [...plan.edits].reverse()){assert.equal(raw.split(e.after).length,2,file+' trigger cap: '+e.after.slice(0,50));raw=raw.replace(e.after,e.before);}
+ assert.equal(hash(raw),plan.before_sha256,file);
+ return raw;
+}
 // 2026-10-25: peel justhodl-tv-bars v1.3 (mode=fmp-append: the non-tape chart names advance from the FMP warehouse, proof-gated - FMP_MAP + banked-list membership + continuity check) before the v1.2 peel.
 function peelFmpAppend(raw,file){
  const AFTER='7a246ae6cfca9c0619f5873b5de4d4316effe2dc47716247f521b2d8ce4c8fc7';
@@ -256,7 +264,7 @@ function peelUs10yRouteObsTest(raw,file){
  assert.equal(hash(raw),BEFORE,'tests/warehouse-observations.test.js');
  return raw;
 }
-function normalize(raw,file){raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
+function normalize(raw,file){raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
  if(digest===row.before_sha256||digest!==row.after_sha256)return raw;
  for(const e of [...row.replacements].reverse()){assert.equal(raw.split(e.after).length,2,file+': '+e.after.slice(0,60));raw=raw.replace(e.after,e.before);}
  assert.equal(hash(raw),row.before_sha256,file);assert.equal(raw,fs.readFileSync(path.join(R,row.before_path),'utf8'));return raw;

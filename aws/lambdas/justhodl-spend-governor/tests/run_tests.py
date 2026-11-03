@@ -257,9 +257,31 @@ class Context:
         return 600000
 
 
+class FakeDDB:
+    """The trigger ledger (v1.6.0): breach records the governor reads, marks and sweeps."""
+    def __init__(self):
+        self.items = {}
+
+    def breach(self, bid, doc, status="pending"):
+        self.items[bid] = {"pk": {"S": bid}, "kind": {"S": "breach"}, "status": {"S": status}, "doc": {"S": json.dumps(doc)}}
+
+    def get_item(self, TableName, Key):
+        it = self.items.get(Key["pk"]["S"])
+        return {"Item": it} if it else {}
+
+    def update_item(self, TableName, Key, UpdateExpression, ExpressionAttributeNames=None, ExpressionAttributeValues=None, **kw):
+        it = self.items[Key["pk"]["S"]]
+        it["status"] = dict(ExpressionAttributeValues[":s"])
+        it["result"] = dict(ExpressionAttributeValues[":r"])
+
+    def scan(self, TableName, FilterExpression=None, ExpressionAttributeNames=None, ExpressionAttributeValues=None, ExclusiveStartKey=None):
+        want = (ExpressionAttributeValues or {}).get(":p", {}).get("S", "pending")
+        return {"Items": [dict(v) for v in self.items.values() if v.get("kind", {}).get("S") == "breach" and v.get("status", {}).get("S") == want]}
+
+
 def world(fns, limit=500, actual=100.0, alarm="OK", durations=None, daily=20.0, ended=(), burst=()):
     w = {"lambda": FakeLambda(fns), "budgets": FakeBudgets(limit, actual), "ce": FakeCE(daily),
-         "cloudwatch": FakeCW(alarm, durations, ended, burst), "s3": FakeS3(), "sns": FakeSNS()}
+         "cloudwatch": FakeCW(alarm, durations, ended, burst), "s3": FakeS3(), "sns": FakeSNS(), "dynamodb": FakeDDB()}
     w["lambda-probe"] = w["lambda"]
     gov._clients.clear()
     gov.client = lambda name: w.get(name) or w.setdefault(name, Empty())
@@ -1244,6 +1266,77 @@ def test_storage_fuse_monitor_mode_changes_nothing():
     check(s["assessment"]["level"] == "trip" and not w["lambda"].puts and w["s3"].versioning == "Enabled" and any("[monitor]" in m["Subject"] for m in w["sns"].sent),
           "monitor mode: reports the trip, holds nothing")
     gov.now_utc = lambda: PINNED
+
+# ------------------------------------------------------------- v1.6.0 trigger cap --
+def breach_doc(src="justhodl-beta", dst="justhodl-gamma", reason="loop", hold=None):
+    return {"id": "breach#20261103#%s#%s#%s" % (src, dst, reason), "at": "2026-11-03T04:00:00+00:00", "source": src, "target": dst,
+            "kind": "handoff", "reason": reason, "limit": 1, "observed": 2, "hold": hold if hold is not None else [src, dst],
+            "lineage": {"id": "c1", "root": src, "hop": 1, "path": [src, dst], "self_hop": 0, "n": 1}, "function": src, "guard_version": "2.0.0"}
+
+
+def test_trigger_breach_holds_the_named_engines_under_cap():
+    w = world(FLEET)
+    set_control(w)
+    doc = breach_doc()
+    w["dynamodb"].breach(doc["id"], doc)
+    r = gov.lambda_handler({"action": "trigger_breach", "breach_id": doc["id"]}, Context())
+    check(r["status"] == "applied" and set(r["held"]) == {"justhodl-beta", "justhodl-gamma"}, "both ends of the loop held: %s" % json.dumps(r))
+    puts = sorted(w["lambda"].puts)
+    check(puts == [("justhodl-beta", 0), ("justhodl-gamma", 0)], "reserved concurrency 0 on both (%s)" % puts)
+    led = state_of(w)["ledger"]
+    e = led["lambda:justhodl-gamma"]
+    check(e["stage"] == "CAP" and e.get("operator_hold") and e.get("trigger_breach") == doc["id"] and e["before"] == {"reserved": 5},
+          "ledger: stage CAP, operator hold, breach id, before value kept (%s)" % json.dumps(e))
+    check(w["dynamodb"].items[doc["id"]]["status"]["S"] == "applied", "record marked applied")
+    check(any(k.endswith("-trigger-breach.json") for k in w["s3"].objects), "trigger-breach event recorded")
+    check(any("trigger cap" in m["Subject"] for m in w["sns"].sent), "e-mail sent")
+    # idempotent
+    r2 = gov.lambda_handler({"action": "trigger_breach", "breach_id": doc["id"]}, Context())
+    check(r2["status"] == "already applied" and len(w["lambda"].puts) == 2, "a second call changes nothing")
+    # nothing automatic releases it: a restore leaves CAP alone, release_cap lifts it
+    gov.lambda_handler({"action": "restore", "include_fuse": True}, Context())
+    check(w["lambda"].fns["justhodl-gamma"]["reserved"] == 0, "restore does not lift a trigger-cap hold")
+    r3 = gov.lambda_handler({"action": "release_cap", "function": "justhodl-gamma", "confirm": "justhodl-gamma", "reason": "fixed"}, Context())
+    check(r3["status"] == "restored" and w["lambda"].fns["justhodl-gamma"]["reserved"] == 5, "release_cap restores the exact previous value (%s)" % r3)
+
+
+def test_trigger_breach_refuses_bad_or_missing_records_and_exempts_the_control_plane():
+    w = world(FLEET)
+    set_control(w)
+    r = gov.lambda_handler({"action": "trigger_breach", "breach_id": "nonsense"}, Context())
+    check("error" in r, "needs a breach# id")
+    r = gov.lambda_handler({"action": "trigger_breach", "breach_id": "breach#20261103#a#b#loop"}, Context())
+    check(r.get("error") == "no such breach record", "unknown record refused")
+    doc = breach_doc(src="justhodl-spend-governor", dst="justhodl-alpha", hold=["justhodl-spend-governor", "justhodl-alpha"])
+    w["dynamodb"].breach(doc["id"], doc)
+    r = gov.lambda_handler({"action": "trigger_breach", "breach_id": doc["id"]}, Context())
+    check(r["held"]["justhodl-spend-governor"] == "exempt (control plane)" and w["lambda"].puts == [("justhodl-alpha", 0)],
+          "the governor itself is never held; the engine is (%s)" % json.dumps(r["held"]))
+
+
+def test_tick_sweeps_pending_breaches():
+    w = world(FLEET)
+    set_control(w)
+    doc = breach_doc(src="justhodl-alpha", dst="justhodl-beta", reason="max_hops", hold=["justhodl-alpha"])
+    w["dynamodb"].breach(doc["id"], doc)
+    done = breach_doc(src="justhodl-gamma", dst="justhodl-beta", reason="max_hops", hold=["justhodl-gamma"])
+    w["dynamodb"].breach(done["id"], done, status="applied")
+    out = gov.lambda_handler({"action": "tick"}, Context())
+    tb = out.get("trigger_breaches") or {}
+    check(tb.get("pending") == 1 and [a["breach_id"] for a in tb.get("applied", [])] == [doc["id"]], "the pending record is applied, the applied one left alone (%s)" % json.dumps(tb))
+    check(("justhodl-alpha", 0) in w["lambda"].puts and ("justhodl-gamma", 0) not in w["lambda"].puts, "only the pending record's engine is held")
+    check(w["dynamodb"].items[doc["id"]]["status"]["S"] == "applied", "swept record marked applied")
+
+
+def test_trigger_breach_in_monitor_mode_records_but_holds_nothing():
+    w = world(FLEET)
+    set_control(w, mode="monitor")
+    doc = breach_doc()
+    w["dynamodb"].breach(doc["id"], doc)
+    r = gov.lambda_handler({"action": "trigger_breach", "breach_id": doc["id"]}, Context())
+    check(r["status"] == "monitored" and not w["lambda"].puts and w["dynamodb"].items[doc["id"]]["status"]["S"] == "monitored",
+          "monitor mode: nothing held, record marked monitored (%s)" % json.dumps(r))
+
 
 if __name__ == "__main__":
     for name, fn in list(globals().items()):

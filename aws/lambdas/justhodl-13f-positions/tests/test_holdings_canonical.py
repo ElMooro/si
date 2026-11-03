@@ -1,5 +1,6 @@
 """Actual native fixtures, publication failures and the retired-writer boundary."""
 import ast
+from types import SimpleNamespace
 from copy import deepcopy
 from datetime import datetime, timezone
 import hashlib
@@ -196,6 +197,7 @@ class CanonicalHoldings(unittest.TestCase):
         handler = next(v for v in tree.body if isinstance(v, ast.FunctionDef) and v.name == 'lambda_handler')
         code = ast.Module(body=[handler], type_ignores=[])
         namespace = {'s3': object(), 'S3_BUCKET': 'fixture', 'USER_AGENT': 'fixture-UA',
+                     'chain_guard': SimpleNamespace(begin=lambda event, context=None: 0),   # trigger cap: lineage begins at handler entry
                      'legacy_lambda_handler': lambda *_: self.fail('retired writer reached')}
         exec(compile(ast.fix_missing_locations(code), '<actual-native-dispatch>', 'exec'), namespace)
         for event in (None, {}, {'trigger': 'new_filing'}, {'action': 'holdings_research_refresh'}):

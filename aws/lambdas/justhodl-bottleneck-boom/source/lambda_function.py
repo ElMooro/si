@@ -26,6 +26,7 @@ from datetime import datetime, timezone, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from statistics import mean, stdev
 import boto3
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 from decimal import Decimal
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
 
@@ -1422,7 +1423,7 @@ def lambda_handler(event=None, context=None):
                   ContentType="application/json", CacheControl="public, max-age=1800")
     print(f"[bottleneck] scored={len(rows)} logged={n_logged} in {out['duration_s']}s")
     try:
-        boto3.client("lambda", region_name="us-east-1").invoke(
+        chain_guard.lambda_client(region_name="us-east-1").invoke(
             FunctionName="justhodl-bottleneck-research", InvocationType="Event")
     except Exception as e:
         print(f"[bottleneck] research invoke failed: {str(e)[:80]}")

@@ -30,6 +30,9 @@ class DeliveryTests(unittest.TestCase):
             'governed_target':lambda fn:fn, 'lam':SimpleNamespace(invoke=invoke),
             'ROUTES':{'regime.changed':{'invoke':['target-a','target-b'],'notify':True,'audit':True}},
             'send_telegram_alert':lambda *args:self.notifications.append(args) or True,
+                           'lineage_of': lambda event, detail, source: {'id': 'c', 'root': 'justhodl-pub', 'hop': 0, 'path': ['justhodl-' + str((detail or {}).get('_source_engine') or 'pub')], 'self_hop': 0, 'n': 0},
+                           'trigger_admit': lambda src, dst, lin: {'allow': True, 'lineage': dict(lin, hop=lin['hop'] + 1, path=lin['path'] + [dst])},
+                           'chain_guard': SimpleNamespace(LINEAGE_KEY='_jh_chain'),
             'write_audit':lambda *args:self.audits.append(args),
             'breaker_allow':lambda fn, ev, now=None:{'allow':True}}
         names={'_payload_hash','delivery_state','invoke_target','handler','_engine_id','is_self_loop'}

@@ -50,6 +50,7 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 
 import boto3
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 KEY = os.environ.get("CENSUS_API_KEY", "")
@@ -891,6 +892,7 @@ def econ_run(ctx, shard=0, shards=1, recatalog=False):
 
 
 def lambda_handler(event, ctx):
+    chain_guard.begin(event, ctx)  # trigger cap: continue the chain this run was started by (a root otherwise)
     global _calls, _OV
     _calls = 0
     _OV = None                       # re-read overrides each invoke
@@ -903,7 +905,7 @@ def lambda_handler(event, ctx):
         n = int(event.get("shards") or ECON_DISPATCH_SHARDS)
         fn = os.environ.get("AWS_LAMBDA_FUNCTION_NAME",
                             "justhodl-census-us")
-        _lam = boto3.client("lambda", region_name="us-east-1")
+        _lam = chain_guard.lambda_client(region_name="us-east-1")
         # econ-v2 (ops 5168): dispatch only shards with work. COMPLETE
         # shards are re-cataloged once a day (new vintages appear on
         # data.json) instead of on every tick.

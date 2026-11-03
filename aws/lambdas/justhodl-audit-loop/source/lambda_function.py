@@ -30,6 +30,7 @@ import urllib.request
 from datetime import datetime, timezone, timedelta
 
 import boto3
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 from botocore.config import Config
 
 try:
@@ -47,8 +48,7 @@ BUS = "justhodl-a2a-bus"
 THREAD = "audit-loop-main"
 
 s3 = boto3.client("s3", region_name=REGION)
-lam = boto3.client("lambda", region_name=REGION,
-                   config=Config(read_timeout=60, retries={"max_attempts": 1}))
+lam = chain_guard.lambda_client(region_name=REGION, config=Config(read_timeout=60, retries={"max_attempts": 1}))
 ev = boto3.client("events", region_name=REGION)
 logs = boto3.client("logs", region_name=REGION)
 ssm = boto3.client("ssm", region_name=REGION)

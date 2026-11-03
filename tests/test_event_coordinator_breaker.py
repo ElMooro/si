@@ -73,6 +73,9 @@ class BreakerTests(unittest.TestCase):
             'BREAKER_TABLE': 'justhodl-event-breaker', '_breaker_logged': set(), 'ClientError': ClientError,
             'print': lambda *a: self.printed.append(' '.join(str(x) for x in a)),
             'write_audit': lambda *a: None, 'send_telegram_alert': lambda *a: True,
+                           'lineage_of': lambda event, detail, source: {'id': 'c', 'root': 'justhodl-pub', 'hop': 0, 'path': ['justhodl-' + str((detail or {}).get('_source_engine') or 'pub')], 'self_hop': 0, 'n': 0},
+                           'trigger_admit': lambda src, dst, lin: {'allow': True, 'lineage': dict(lin, hop=lin['hop'] + 1, path=lin['path'] + [dst])},
+                           'chain_guard': SimpleNamespace(LINEAGE_KEY='_jh_chain'),
             'ROUTES': {'near_miss.extreme': {'invoke': ['justhodl-miss-calibrator'], 'notify': False, 'audit': True},
                        'regime.changed': {'invoke': ['justhodl-alpha-compass'], 'notify': False, 'audit': False}}})
 

@@ -1,9 +1,10 @@
 import json
 import urllib.request
 import boto3
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 from datetime import datetime
 
-lambda_client = boto3.client('lambda')
+lambda_client = chain_guard.lambda_client()
 
 def lambda_handler(event, context):
     """Auto-update Treasury data and check for crisis"""

@@ -136,9 +136,11 @@ class ScheduleTests(unittest.TestCase):
         self.assertFalse(m.targets_ranker({'Arn':m.ARN+'-other'}))
     def test_timezone_and_weekday_contract(self):
         minute, hour, dom, month, weekdays, year = m.SPEC['cron'][5:-1].split()
-        self.assertEqual((minute, hour, dom, month, weekdays, year), ('15', '16', '?', '*', 'MON-FRI', '*'))
+        # 16:40 New York since the 2026-10-21 pipeline-order retime (was 16:15); the engine config, the ops-6494 spec and
+        # the live schedule justhodl-master-ranker-weekday-close agree (ops 6716 read-back).
+        self.assertEqual((minute, hour, dom, month, weekdays, year), ('40', '16', '?', '*', 'MON-FRI', '*'))
         zone = ZoneInfo(m.SPEC['timezone'])
-        # Fall and spring transitions retain 16:15 local, while UTC shifts.
+        # Fall and spring transitions retain 16:40 local, while UTC shifts.
         for day, utc_hour in [('2026-10-30',20), ('2026-11-02',21), ('2027-03-12',21), ('2027-03-15',20)]:
             local = datetime.fromisoformat(day).replace(hour=int(hour), minute=int(minute), tzinfo=zone)
             self.assertLess(local.weekday(), 5)

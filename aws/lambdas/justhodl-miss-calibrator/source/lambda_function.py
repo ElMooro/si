@@ -46,6 +46,7 @@ from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
 import boto3
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 from botocore.exceptions import ClientError
 
 from _sentry_lite import track_errors
@@ -182,6 +183,7 @@ def send_telegram(text: str):
 
 @track_errors
 def handler(event, context):
+    chain_guard.begin(event, context)  # trigger cap: continue the chain this run was started by (a root otherwise)
     started = datetime.now(timezone.utc)
     from_event = event_triggered(event)
     if from_event:

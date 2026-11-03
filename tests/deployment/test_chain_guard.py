@@ -21,6 +21,20 @@ sys.path.insert(0, str(ROOT / "aws" / "shared"))
 
 import chain_guard  # noqa: E402
 
+# chain_guard v2 (the trigger cap) counts every self-continuation in its DynamoDB ledger; the contract tests here run
+# against an in-memory ledger that honours the conditional ADD the module relies on.
+sys.path.insert(0, str(ROOT / "tests"))
+from test_chain_guard_trigger_cap import FakeDDB as _FakeLedger, FakeLambda as _FakeGov  # noqa: E402
+
+
+def _fresh_ledger():
+    chain_guard._ddb = _FakeLedger()
+    chain_guard._gov = _FakeGov()
+    chain_guard._ctx.update({"trace": None, "request_id": None, "lineage": None, "fn": None})
+
+
+_fresh_ledger()
+
 # Fan-outs: one async invoke per shard, no continuation payload. Structurally depth 1.
 FANOUT_ALLOW = {
     "justhodl-boj-full", "justhodl-sdmx-walker", "justhodl-tv-bars", "justhodl-symdir",
@@ -53,6 +67,7 @@ class _Ctx:
 
 
 def test_chain_invoke_chains_under_cap():
+    _fresh_ledger()
     lam, s3 = _Lam(), _S3()
     r = chain_guard.chain_invoke({"chain_depth": 4}, event={"chain_depth": 3, chain_guard.HOP_KEY: 3},
                                  context=_Ctx(), lam=lam, s3=s3, max_hops=12)
@@ -65,6 +80,7 @@ def test_chain_invoke_chains_under_cap():
 
 
 def test_chain_invoke_parks_at_cap_and_resets_hop():
+    _fresh_ledger()
     lam, s3 = _Lam(), _S3()
     r = chain_guard.chain_invoke({"chain_depth": 13}, event={chain_guard.HOP_KEY: 12},
                                  context=_Ctx(), lam=lam, s3=s3, max_hops=12)
@@ -81,6 +97,7 @@ def test_cap_is_under_aws_limit():
 
 
 def test_begin_stash_path():
+    _fresh_ledger()
     lam, s3 = _Lam(), _S3()
     chain_guard.begin({chain_guard.HOP_KEY: 5})
     r = chain_guard.chain_invoke({"phase": "x"}, context=_Ctx(), lam=lam, s3=s3)
@@ -88,6 +105,7 @@ def test_begin_stash_path():
 
 
 def test_fresh_event_starts_at_zero():
+    _fresh_ledger()
     lam, s3 = _Lam(), _S3()
     r = chain_guard.chain_invoke({"phase": "x"}, event={"phase": "start"}, context=_Ctx(), lam=lam, s3=s3)
     assert r["hop"] == 1

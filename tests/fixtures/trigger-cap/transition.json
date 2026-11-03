@@ -1,0 +1,43 @@
+{
+ "purpose": "chain_guard v2 (2026-11-02): the fleet-wide trigger cap. justhodl-symdir gained the chain_guard import, the guarded Lambda client and chain_guard.begin at handler entry; the previous preservation tail calls this layer first.",
+ "changes": {
+  "aws/lambdas/justhodl-symdir/source/lambda_function.py": {
+   "before_path": "tests/fixtures/trigger-cap/aws__lambdas__justhodl-symdir__source__lambda_function.py.before.txt",
+   "before_sha256": "71bfb5fe08276a4892be85178a89a905be4e3c926bbce5a43ec3a7387e70e051",
+   "after_sha256": "1c10a8a7e0f794f109bdc70f1c543bdca12e998f0421c3b12a0adce7709b4c22",
+   "replacements": [
+    {
+     "before": "import boto3\n",
+     "after": "import boto3\nimport chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped\n"
+    },
+    {
+     "before": "        lc = boto3.client(\"lambda\", region_name=\"us-east-1\")\n",
+     "after": "        lc = chain_guard.lambda_client(region_name=\"us-east-1\")\n"
+    },
+    {
+     "before": "_lambda = boto3.client(\"lambda\", region_name=\"us-east-1\", config=Config(read_timeout=90, retries={\"max_attempts\": 1}))\n",
+     "after": "_lambda = chain_guard.lambda_client(region_name=\"us-east-1\", config=Config(read_timeout=90, retries={\"max_attempts\": 1}))\n"
+    },
+    {
+     "before": "def lambda_handler(event, context):\n",
+     "after": "def lambda_handler(event, context):\n    chain_guard.begin(event, context)  # trigger cap: continue the chain this run was started by (a root otherwise)\n"
+    }
+   ]
+  },
+  "tests/chart_regional_macro_preservation.py": {
+   "before_path": "tests/fixtures/trigger-cap/tests__chart_regional_macro_preservation.py.before.txt",
+   "before_sha256": "57a9357d116e34cc1229994f678262e51be0ed681a9bb55b7f5494eb9e8339f7",
+   "after_sha256": "8a02fff263a8646c2f705ac166aceb57ab5a2cbf6ca45e706ece8464a7690b12",
+   "replacements": [
+    {
+     "before": "def normalize(file,raw):\n    manifest=json.loads((R/'tests/fixtures/chart-regional-macro/transition.json').read_bytes());t=manifest['changes'].get(file)\n",
+     "after": "def normalize(file,raw):\n    from trigger_cap_preservation import normalize as newer\n    raw=newer(file,raw)\n    manifest=json.loads((R/'tests/fixtures/chart-regional-macro/transition.json').read_bytes());t=manifest['changes'].get(file)\n"
+    }
+   ]
+  }
+ },
+ "predecessor_hashes": {
+  "aws/lambdas/justhodl-symdir/source/lambda_function.py": [],
+  "tests/chart_regional_macro_preservation.py": []
+ }
+}

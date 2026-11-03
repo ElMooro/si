@@ -6,6 +6,16 @@ This file tracks items that require **your direct action** (registration, creden
 
 ## 🔴 Time-sensitive
 
+### 0r. The trigger cap is live (2026-11-02): how an engine shut down by it comes back
+
+Your rule: no engine may start other engines, or itself, past a hard limit; past it the engines involved are shut
+down and only you turn them back on.  Limits: `config/trigger-limits.json` (depth 3, no revisits, 8 engines / 12
+hand-offs per chain, daily budgets at >= 2x each engine's real peak).  When it fires you get a GitHub issue
+"TRIGGER CAP: engines SHUT DOWN (manual release)" naming the engines, the chain and the rule.  To turn one back on,
+tell Claude "release <engine>" - it runs `{"action":"release_cap","function":F,"confirm":F,"reason":"..."}` on the
+governor after naming the cause.  To change a limit, say so: the number is edited in that one file and redeployed.
+Runbook: `docs/ops/RUNAWAY_GUARDRAILS.md`, layer 2b.
+
 ### 0q. The Nov 1 false freeze - RELEASED 2026-11-02 15:44 UTC; nothing to do
 
 At 00:07 UTC on Nov 1 the governor thawed the fleet as planned, then re-froze all 904 engines in the same minute: AWS

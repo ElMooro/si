@@ -7,6 +7,7 @@ so every agent automatically uses better-calibrated signals.
 
 import json
 import boto3
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 import math
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -478,6 +479,7 @@ def run_calibration():
 
 @track_errors
 def lambda_handler(event, context):
+    chain_guard.begin(event, context)  # trigger cap: continue the chain this run was started by (a root otherwise)
     report = run_calibration()
 
     # Count signals where horizon-aware weighting unfloors them — i.e. their

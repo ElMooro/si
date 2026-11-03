@@ -30,6 +30,7 @@ import urllib.error
 from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import boto3
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 
 # ═══════════════════════════════════════════════════════════════════
 # Config
@@ -160,8 +161,7 @@ def _fire_critique_async(ticker: str) -> dict:
     failure to fail the prewarm.
     """
     try:
-        import boto3
-        lam = boto3.client("lambda", region_name="us-east-1")
+        lam = chain_guard.lambda_client(region_name="us-east-1")
         lam.invoke(
             FunctionName="justhodl-research-critique",
             InvocationType="Event",
