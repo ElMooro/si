@@ -64,6 +64,7 @@ def load(published):
         "botocore.exceptions": types.SimpleNamespace(ClientError=ClientError),
         "_sentry_lite": types.SimpleNamespace(track_errors=lambda f: f),
         "managed_secret": types.SimpleNamespace(managed_secret=lambda *a, **k: ""),
+        "chain_guard": types.SimpleNamespace(begin=lambda event, context=None: 0),   # trigger cap: lineage begins at handler entry
         "system_events": types.SimpleNamespace(
             publish=lambda name, detail, **k: published.append(name) or True,
             publish_many=lambda evts, **k: [published.append(e[0]) for e in evts] and {"ok": True}),
