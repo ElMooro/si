@@ -99,7 +99,26 @@ BANK = {"XYZQ": [{"symbol": "XYZQ", "name": "Some New Thematic ETF", "assetClass
         "ZZBND": [{"symbol": "ZZBND", "name": "Some Core Fixed Income ETF", "assetClass": "Fixed Income", "securityCusip": "25434V872"}],
         "ODDB": [{"symbol": "ODDB", "name": "Odd Basket", "assetClass": "Thematic Basket", "securityCusip": "000000000"}]}
 BANK_CALLS = []
-sys.modules["fmp_bank"] = SimpleNamespace(walker=lambda dataset, entity=None, **kw: BANK_CALLS.append((dataset, entity)) or BANK.get(entity))
+# the profile bulk (FMP's own sector / industry per symbol, with its cusip and flags) - a handful of rows
+PROFILES = [
+    {"symbol": "AAPL", "companyName": "Apple Inc.", "sector": "Technology", "industry": "Consumer Electronics", "country": "US", "cusip": "037833100", "cik": "0000320193", "isEtf": "false", "isAdr": "false", "isFund": "false", "exchange": "NASDAQ"},
+    {"symbol": "GOOGL", "companyName": "Alphabet Inc.", "sector": "Communication Services", "industry": "Internet Content & Information", "country": "US", "cusip": "02079K305", "isEtf": "false", "isAdr": "false", "isFund": "false", "exchange": "NASDAQ"},
+    {"symbol": "HON", "companyName": "Honeywell International Inc.", "sector": "Industrials", "industry": "Conglomerates", "country": "US", "cusip": "438516205", "isEtf": "false", "isAdr": "false", "isFund": "false", "exchange": "NASDAQ"},
+    {"symbol": "APLS", "companyName": "Apellis Pharmaceuticals, Inc.", "sector": "Healthcare", "industry": "Biotechnology", "country": "US", "cusip": "03753U106", "isEtf": "false", "isAdr": "false", "isFund": "false", "exchange": "NASDAQ"},
+    {"symbol": "MSFT", "companyName": "Microsoft Corporation", "sector": "Technology", "industry": "Software - Infrastructure", "country": "US", "cusip": "594918104", "isEtf": "false", "isAdr": "false", "isFund": "false", "exchange": "NASDAQ"},
+    {"symbol": "TSLA", "companyName": "Tesla, Inc.", "sector": "Consumer Cyclical", "industry": "Auto Manufacturers", "country": "US", "cusip": "88160R101", "isEtf": "false", "isAdr": "false", "isFund": "false", "exchange": "NASDAQ"},
+    {"symbol": "AMBX", "companyName": "Ambiguous Co", "sector": "Energy", "industry": "Oil & Gas Integrated", "country": "US", "cusip": "AMBIG0001", "isEtf": "false", "isAdr": "false", "isFund": "false", "exchange": "NYSE"},   # OpenFIGI: ambiguous; FMP: a cusip row
+    {"symbol": "SPY", "companyName": "SPDR S&P 500 ETF Trust", "sector": "", "industry": "", "country": "US", "cusip": "78462F103", "isEtf": "true", "isAdr": "false", "isFund": "false", "exchange": "NYSEARCA"},
+    {"symbol": "DFAS", "companyName": "Dimensional U.S. Small Cap ETF", "sector": "", "industry": "", "country": "US", "cusip": "25434V500", "isEtf": "true", "isAdr": "false", "isFund": "false", "exchange": "NYSEARCA"},
+    {"symbol": "TSM", "companyName": "Taiwan Semiconductor Manufacturing Company Limited", "sector": "Technology", "industry": "Semiconductors", "country": "TW", "cusip": "874039100", "isEtf": "false", "isAdr": "true", "isFund": "false", "exchange": "NYSE"},
+    {"symbol": "AAPL.NE", "companyName": "Apple Inc. CDR", "sector": "Technology", "industry": "Consumer Electronics", "country": "CA", "cusip": "", "isEtf": "false", "isAdr": "false", "isFund": "false", "exchange": "NEO"},
+    {"symbol": "XONA.DE", "companyName": "Exxon Mobil Corporation", "sector": "Energy", "industry": "Oil & Gas Integrated", "country": "US", "cusip": "30231G102", "isEtf": "false", "isAdr": "false", "isFund": "false", "exchange": "XETRA"},   # a foreign listing seen first ...
+    {"symbol": "XOM", "companyName": "Exxon Mobil Corporation", "sector": "Energy", "industry": "Oil & Gas Integrated", "country": "US", "cusip": "30231G102", "isEtf": "false", "isAdr": "false", "isFund": "false", "exchange": "NYSE"},         # ... the US listing names the ticker
+    {"symbol": "0KCI.L", "companyName": "ONEOK, Inc.", "sector": "Energy", "industry": "Oil & Gas Midstream", "country": "US", "cusip": "682680103", "isEtf": "false", "isAdr": "false", "isFund": "false", "exchange": "LSE"},                 # London only: sector yes, ticker no
+]
+sys.modules["fmp_bank"] = SimpleNamespace(walker=lambda dataset, entity=None, **kw: BANK_CALLS.append((dataset, entity)) or BANK.get(entity),
+                                          snapshot=lambda path, symbol=None: [dict(r) for r in PROFILES] if path == "profile" and symbol is None else None,
+                                          as_of=lambda: "2026-11-03")
 
 import lambda_function as lf  # noqa: E402
 
@@ -259,7 +278,7 @@ def test_security_master_statuses_and_recheck_policy():
     assert rows["AMBIG0001"]["type_agreed"] is True and rows["AMBIG0001"]["security_type"] == "Common Stock" and rows["AMBIG0001"]["market_sector"] == "Equity" and rows["AMBIG0001"]["name"] == "AMBIGUOUS CO"
     assert FAKE_KEY not in json.dumps(rows)   # the key never lands in the state object
     cov = lf.master_coverage(rows, universe)
-    assert cov == {"identities": 11, "resolved": 8, "no_match": 1, "ambiguous": 1, "error": 1, "pending": 0, "typed_only": 1, "typed_only_value_pct": 0.0, "resolved_pct": 72.7, "resolved_value_pct": 100.0}
+    assert cov == {"identities": 11, "resolved": 8, "no_match": 1, "ambiguous": 1, "error": 1, "pending": 0, "resolved_by_source": {"openfigi": 8}, "typed_only": 1, "typed_only_value_pct": 0.0, "resolved_pct": 72.7, "resolved_value_pct": 100.0}
     # re-check policy: resolved 180 d, ambiguous 30 d, no_match 90 d, error 1 d; the never-checked first, by value
     later = NOW + timedelta(days=2)
     assert lf.master_due(rows, universe, later) == ["ERROR0001"]
@@ -360,7 +379,7 @@ def test_classer_and_universes():
 
 def test_build_boards_rotation_stance_contenders_snapshot():
     s3, out = built()
-    assert out["contract"] == "13f-book.v2" and out["version"] == "1.1.3" and out["book"]["required_period"] == "2026-06-30"
+    assert out["contract"] == "13f-book.v2" and out["version"] == "1.2.0" and out["book"]["required_period"] == "2026-06-30"
     b = out["book"]
     m = b["managers"]
     assert set(m) == {"ELLIOTT", "BERKSHIRE", "PERSHING"}
@@ -369,7 +388,10 @@ def test_build_boards_rotation_stance_contenders_snapshot():
     assert b["cohort"] == ["BERKSHIRE", "ELLIOTT"] and b["concentrated"] == ["BERKSHIRE", "ELLIOTT"]
     # the master was refreshed in-run and written; tickers now flow into the drill-downs
     sm = b["security_master"]
-    assert sm["refresh"]["skipped"] is False and sm["refresh"]["sent_us"] == 16 and sm["coverage"]["resolved"] == 14 and sm["coverage"]["no_match"] == 1 and sm["coverage"]["ambiguous"] == 1
+    assert sm["refresh"]["skipped"] is False and sm["refresh"]["sent_us"] == 16 and sm["coverage"]["resolved"] == 15 and sm["coverage"]["no_match"] == 1 and sm["coverage"]["ambiguous"] == 0
+    assert sm["coverage"]["resolved_by_source"] == {"openfigi": 14, "fmp-profile": 1} and sm["refresh"]["fmp_cusip_resolved"] == 1 and b["profiles"]["n_rows"] == 14 and b["profiles"]["cusip_bridge_resolved_this_run"] == 1
+    mrow = json.loads(s3.store["data/13f-security-master.json"])["by_cusip"]["AMBIG0001"]
+    assert mrow["status"] == "resolved" and mrow["ticker"] == "AMBX" and mrow["source"] == "fmp-profile" and mrow["query"] == "fmp-profile/cusip" and mrow["openfigi"]["status"] == "ambiguous" and mrow["openfigi"]["type_agreed"] is True
     assert "data/13f-security-master.json" in s3.store and json.loads(s3.store["data/13f-security-master.json"])["by_cusip"]["88160R101"]["ticker"] == "TSLA"
     assert m["ELLIOTT"]["top"][0]["ticker"] == "AAPL" and m["ELLIOTT"]["top"][0]["kind"] == "stock" and m["PERSHING"]["top"][0]["ticker"] == "MSFT"
     assert {r["ticker"]: r["kind"] for r in m["ELLIOTT"]["newly_present"]}["SPY"] == "fund" and {r["ticker"] for r in m["ELLIOTT"]["absent"]} == {"HON", "APLS"}
@@ -416,7 +438,29 @@ def test_build_boards_rotation_stance_contenders_snapshot():
     assert {r["ticker"]: r["sub"] for r in cb["etfs"]["widely_held"]}["XYZQ"] == "equity" and {r["ticker"]: r.get("class_source") for r in cb["etfs"]["widely_held"]}.get("XYZQ") is None   # rows carry sub, the source lives in the review block
     assert {r["cusip"] for r in b["review"]["unmapped_top"]} == {"999999999"} and b["review"]["etf_table_size"] > 600
     amb = next(r for r in cb["stocks"]["newly_present"] if r["cusip"] == "AMBIG0001")
-    assert amb["ticker"] is None and amb["kind"] == "stock" and amb["sub"] == "common" and amb["name"] == "AMBIGUOUS CO"   # typed by every venue's row, no US ticker
+    assert amb["ticker"] == "AMBX" and amb["kind"] == "stock" and amb["sub"] == "common" and amb["name"] == "Ambiguous Co" and amb["sector"] == "Energy" and amb["industry"] == "Oil & Gas Integrated"
+    # flows at reported prices on the rows: GOOGL 100->120 at 9000/120 = 75 (+1500) and 40->50 at 3750/50 = 75 (+750); AAPL 90->80 at 16000/80 = 200 (-2000); APLS dropped 900 + 90
+    googl = next(r for r in cb["stocks"]["widely_held"] if r["ticker"] == "GOOGL")
+    assert googl["inflow_usd"] == 2250.0 and googl["outflow_usd"] == 0.0 and googl["net_usd"] == 2250.0 and googl["sector"] == "Communication Services"
+    assert apple["inflow_usd"] == 0.0 and apple["outflow_usd"] == 2000.0 and apple["net_usd"] == -2000.0 and apple["industry"] == "Consumer Electronics"
+    assert ap["outflow_usd"] == 990.0 and ap["net_usd"] == -990.0
+    # the sector layer (cohort): FMP sectors and industries, flows, stances, top names; reclassified HON is value-only
+    sec = {r["name"]: r for r in b["sectors"]["cohort"]["sectors"]}
+    assert set(sec) == {"Technology", "Communication Services", "Healthcare", "Industrials", "Energy", "Consumer Cyclical", "Unclassified (no FMP profile)"}
+    assert sec["Technology"]["value_usd"] == 36000.0 and sec["Technology"]["value_prior_usd"] == 28500.0 and sec["Technology"]["net_usd"] == -2000.0 and sec["Technology"]["money_stance"] == "DISTRIBUTING" and sec["Technology"]["stance"] == "DISTRIBUTING"
+    assert sec["Technology"]["pairs"] == {"new": 0, "absent": 0, "more": 0, "fewer": 1, "flat": 1} and sec["Technology"]["net_pct_of_prior"] == -7.0 and sec["Technology"]["distributing"][0]["ticker"] == "AAPL" and sec["Technology"]["accumulating"] == []
+    assert sec["Communication Services"]["net_usd"] == 2250.0 and sec["Communication Services"]["money_stance"] == "ACCUMULATING" and sec["Communication Services"]["accumulating"][0]["ticker"] == "GOOGL" and sec["Communication Services"]["accumulating"][0]["net_usd"] == 2250.0
+    assert sec["Healthcare"]["n_identities"] == 0 and sec["Healthcare"]["n_identities_prior"] == 1 and sec["Healthcare"]["net_usd"] == -990.0 and sec["Healthcare"]["net_pct_of_prior"] == -100.0 and sec["Healthcare"]["distributing"][0]["ticker"] == "APLS" and sec["Healthcare"]["distributing"][0]["no_current_holder"] is True
+    assert sec["Industrials"]["value_usd"] == 500.0 and sec["Industrials"]["value_prior_usd"] == 450.0 and sec["Industrials"]["inflow_usd"] == 0.0 and sec["Industrials"]["outflow_usd"] == 0.0 and sec["Industrials"]["pairs"]["new"] == 0 and sec["Industrials"]["stance"] == "QUIET" and sec["Industrials"]["money_stance"] == "BALANCED"
+    assert sec["Energy"]["accumulating"][0]["ticker"] == "AMBX" and sec["Energy"]["net_usd"] == 50.0 and sec["Consumer Cyclical"]["accumulating"][0]["ticker"] == "TSLA" and sec["Consumer Cyclical"]["net_usd"] == 900.0
+    assert sec["Unclassified (no FMP profile)"]["value_usd"] == 60.0 and sec["Unclassified (no FMP profile)"]["accumulating"][0]["ticker"] == "MLT"
+    ind = {r["name"]: r for r in b["sectors"]["cohort"]["industries"]}
+    assert ind["Consumer Electronics"]["sector"] == "Technology" and ind["Consumer Electronics"]["level"] == "industry" and ind["Internet Content & Information"]["net_usd"] == 2250.0 and ind["Biotechnology"]["net_usd"] == -990.0
+    assert [r["name"] for r in b["sectors"]["cohort"]["top_inflow"]] == ["Internet Content & Information", "Auto Manufacturers", "Oil & Gas Integrated"]
+    assert [r["name"] for r in b["sectors"]["cohort"]["top_outflow"]] == ["Consumer Electronics", "Biotechnology"]
+    cov = b["sectors"]["cohort"]["coverage"]
+    assert cov == {"stocks_held": 6, "with_sector": 5, "with_sector_pct": 83.3, "with_sector_value_pct": 99.9}
+    assert abs(sum(r["share_pct"] for r in b["sectors"]["cohort"]["sectors"] if r["share_pct"]) - 100.0) < 0.1 and "FMP" in b["sectors"]["cohort"]["note"]
     # the period snapshot was written once and is reported in history
     assert b["history"]["snapshot"] == {"key": "data/13f-book/periods/2026-06-30.json", "written": True, "bytes": b["history"]["snapshot"]["bytes"], "reason": "new period"}
     snap = json.loads(s3.store["data/13f-book/periods/2026-06-30.json"])
@@ -443,7 +487,7 @@ def test_second_run_reuses_the_master_and_rewrites_nothing_unchanged():
     CALLS.clear()
     out2 = lf.build(s3b, NOW + timedelta(hours=1), log=lambda *a: None)
     sm = out2["book"]["security_master"]
-    assert sm["refresh"]["due"] == 0 and sm["refresh"]["requests"] == 0 and CALLS == [] and sm["refresh"]["changed"] == 0
+    assert sm["refresh"]["due"] == 0 and sm["refresh"]["requests"] == 0 and CALLS == [] and sm["refresh"]["changed"] == 0 and "fmp_cusip_resolved" not in sm["refresh"]
     assert "data/13f-security-master.json" not in {p["Key"] for p in s3b.puts}
     s3c = seed(master)
     s3c.store["data/13f-etf-classes-learned.json"] = s3.store["data/13f-etf-classes-learned.json"]
@@ -460,6 +504,44 @@ def test_second_run_reuses_the_master_and_rewrites_nothing_unchanged():
     out4 = lf.build(seed(), NOW, log=lambda *a: None, master_enabled=False)
     assert out4["book"]["security_master"]["coverage"]["pending"] == 16 and out4["book"]["boards"]["cohort"]["stocks"]["n_identities"] == 0 and out4["book"]["review"]["learned"]["last_run"]["skipped"] is True
     assert out4["book"]["rotation"]["cohort"]["buckets"][0]["bucket"] == "bonds" and out4["book"]["rotation"]["cohort"]["unmapped_value_pct"] > 0
+
+
+def test_profiles_and_fmp_bridge():
+    prof = lf.Profiles(PROFILES)
+    assert prof.n_rows == 14 and len(prof.by_sym) == 14 and len(prof.by_cusip) == 11 and len(prof.by_cusip_any) == 12   # the CDR row has no cusip; ONEOK only abroad
+    assert prof.by_cusip["30231G102"] == "XOM" and prof.by_cusip_any["30231G102"] == "XONA.DE" and prof.lookup(None, "682680103")["industry"] == "Oil & Gas Midstream" and "682680103" not in prof.by_cusip
+    assert prof.lookup("AAPL")["industry"] == "Consumer Electronics" and prof.lookup(None, "02079K305")["sector"] == "Communication Services" and prof.lookup("NOPE", "000000000") is None
+    assert prof.lookup("tsm")["industry"] == "Semiconductors" and lf.Profiles.flag("True") and not lf.Profiles.flag(None)
+    rows = {"AMBIG0001": {"status": "ambiguous", "type_agreed": True, "security_type": "Common Stock", "n_rows": 2, "query": "typed/any", "checked_at": "x"},
+            "25434V500": {"status": "resolved", "ticker": None, "security_type": "ETP", "security_type2": "Mutual Fund", "market_sector": "Equity"},
+            "999999999": {"status": "no_match"}, "037833100": {"status": "resolved", "ticker": "AAPL", "security_type": "Common Stock", "market_sector": "Equity"}, "874039100": {"status": "error", "reason": "request failed"}}
+    rows["682680103"] = {"status": "no_match"}
+    rows["30231G102"] = {"status": "ambiguous", "type_agreed": True, "security_type": "Common Stock", "market_sector": "Equity"}
+    universe = {c: {"value": lf.Decimal(1), "sh": True} for c in ("AMBIG0001", "25434V500", "999999999", "037833100", "874039100", "02079K305", "682680103", "30231G102")}
+    n = lf.master_fmp_bridge(rows, universe, prof, "2026-11-04T18:30:00+00:00")
+    assert n == 5 and rows["30231G102"]["ticker"] == "XOM" and rows["30231G102"]["exch_code"] == "NYSE" and rows["682680103"] == {"status": "no_match"} and rows["037833100"] == {"status": "resolved", "ticker": "AAPL", "security_type": "Common Stock", "market_sector": "Equity"}   # OpenFIGI's own answer is never overwritten
+    assert rows["AMBIG0001"]["ticker"] == "AMBX" and rows["AMBIG0001"]["security_type"] == "Common Stock" and rows["AMBIG0001"]["source"] == "fmp-profile" and rows["AMBIG0001"]["openfigi"]["status"] == "ambiguous"
+    assert rows["25434V500"]["ticker"] == "DFAS" and rows["25434V500"]["security_type"] == "ETP" and rows["25434V500"]["security_type2"] == "Mutual Fund" and rows["25434V500"]["openfigi"]["ticker"] is None
+    assert rows["874039100"]["ticker"] == "TSM" and rows["874039100"]["security_type"] == "ADR" and rows["874039100"]["security_type2"] == "Depositary Receipt"
+    assert rows["02079K305"]["ticker"] == "GOOGL" and rows["02079K305"]["openfigi"] is None and rows["999999999"] == {"status": "no_match"}
+    classes, _ = lf.load_etf_table()
+    cl = lf.Classer(rows, classes, {}, prof)
+    ident = lambda c: {"cusip": c, "class": "COM", "quantity_type": "SH", "put_call": None}
+    assert cl.of(ident("874039100"))["sub"] == "adr" and cl.of(ident("874039100"))["industry"] == "Semiconductors" and cl.of(ident("874039100"))["sector"] == "Technology"
+    assert cl.of(ident("25434V500"))["kind"] == "fund" and cl.of(ident("25434V500"))["sub"] == "equity" and "sector" not in cl.of(ident("25434V500"))
+    assert cl.of(ident("037833100"))["industry"] == "Consumer Electronics"
+    assert cl.of(ident("682680103"))["kind"] == "unmapped"   # London-only match: no ticker, still unmapped (sector lookups need a classed stock)
+    # profile bulk unavailable: the book still builds, sectors empty but coverage honest
+    keep = sys.modules["fmp_bank"].snapshot
+    sys.modules["fmp_bank"].snapshot = lambda path, symbol=None: None
+    lf._PROFILES["obj"] = None
+    try:
+        out = lf.build(seed(), NOW, log=lambda *a: None)
+        assert out["book"]["profiles"]["error"] == "profile bulk not banked" and out["book"]["profiles"]["n_rows"] == 0
+        assert [r["name"] for r in out["book"]["sectors"]["cohort"]["sectors"]] == ["Unclassified (no FMP profile)"] and out["book"]["sectors"]["cohort"]["coverage"]["with_sector"] == 0
+    finally:
+        sys.modules["fmp_bank"].snapshot = keep
+        lf._PROFILES["obj"] = None
 
 
 def test_status_and_season():
@@ -486,14 +568,14 @@ def test_handler():
     s3 = seed()
     lf._s3 = lambda: s3
     res = lf.lambda_handler({}, None)
-    assert res["statusCode"] == 200 and res["master_resolved"] == 14 and res["master_identities"] == 16
+    assert res["statusCode"] == 200 and res["master_resolved"] == 15 and res["master_identities"] == 16
     keys = [p["Key"] for p in s3.puts]
-    assert keys == ["data/13f-security-master.json", "data/13f-etf-classes-learned.json", "data/13f-book/periods/2026-06-30.json", "data/13f-book.json"]
+    assert keys == ["data/13f-security-master.json", "data/13f-security-master.json", "data/13f-etf-classes-learned.json", "data/13f-book/periods/2026-06-30.json", "data/13f-book.json"]   # the master twice on first light: OpenFIGI pass, then the FMP CUSIP bridge
     book_put = s3.puts[-1]
     assert book_put["CacheControl"] == "max-age=300" and BEGUN and BEGUN[-1] == {} and json.loads(book_put["Body"])["trigger"] == {"kind": "scheduled", "source_generated_at": None}
     lf.lambda_handler({"trigger": "holdings_research_published", "source_generated_at": "2026-11-03T15:41:16+00:00"}, SimpleNamespace(get_remaining_time_in_millis=lambda: 299000))
     assert json.loads(s3.puts[-1]["Body"])["trigger"] == {"kind": "holdings_research_published", "source_generated_at": "2026-11-03T15:41:16+00:00"}
-    assert [p["Key"] for p in s3.puts[4:]] == ["data/13f-book.json"]   # second run: master, learned classes and snapshot unchanged, only the book rewritten
+    assert [p["Key"] for p in s3.puts[5:]] == ["data/13f-book.json"]   # second run: master, learned classes and snapshot unchanged, only the book rewritten
 
 
 if __name__ == "__main__":

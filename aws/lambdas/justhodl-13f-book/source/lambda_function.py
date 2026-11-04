@@ -63,7 +63,7 @@ import chain_guard  # the fleet-wide trigger cap: every engine start is admitted
 import openfigi     # aws/shared: keyed OpenFIGI v3 client (SSM /justhodl/openfigi/api-key), fail-soft
 import fmp_bank     # aws/shared: the FMP warehouse reader (banked etf/info rows carry FMP's own assetClass) - S3 only
 
-VERSION = "1.1.3"
+VERSION = "1.2.0"
 CONTRACT = "13f-book.v2"
 ENGINE = "justhodl-13f-book"
 SCHEME = "v2"   # security-master query scheme: identifier typed by shape (CUSIP / CINS), US pass, any-exchange pass, ISIN pass
@@ -72,6 +72,8 @@ S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = os.environ.get("OUT_KEY", "data/13f-book.json")
 MASTER_KEY = os.environ.get("MASTER_KEY", "data/13f-security-master.json")
 LEARNED_KEY = os.environ.get("LEARNED_KEY", "data/13f-etf-classes-learned.json")
+SECTOR_TOP = int(os.environ.get("SECTOR_TOP", "8"))        # names shown per sector / industry row
+INDUSTRY_ROWS = int(os.environ.get("INDUSTRY_ROWS", "80"))  # industries kept per scope (by reported value)
 PERIODS_PREFIX = os.environ.get("PERIODS_PREFIX", "data/13f-book/periods/")
 DESK_KEY = "data/13f-desk.json"
 CLONE_KEY = "data/13f-clone-alpha.json"
@@ -260,10 +262,11 @@ class Classer:
     """CUSIP -> (kind, sub, bucket, ticker, name) through the security master and the reviewed ETF table. Pure given
     its inputs; caches per identity. kind: stock | fund | debt | other | unmapped (options are never classed)."""
 
-    def __init__(self, master_rows, etf_classes, learned=None):
+    def __init__(self, master_rows, etf_classes, learned=None, profiles=None):
         self.rows = master_rows or {}
         self.etf = etf_classes or {}
         self.learned = learned or {}       # ticker -> learned row ({"class": ..., "asset_class": raw FMP label, ...})
+        self.profiles = profiles           # Profiles (FMP profile bulk: sector / industry by symbol or CUSIP) or None
         self.cache = {}
 
     def of(self, identity):
@@ -274,6 +277,9 @@ class Classer:
         if key in self.cache:
             return self.cache[key]
         self.cache[key] = c = self._classify(cusip, qt, bool(ident.get("put_call")))
+        if c["kind"] == "stock" and self.profiles is not None:
+            prof = self.profiles.lookup(c["ticker"], cusip)
+            c["sector"], c["industry"] = (prof.get("sector"), prof.get("industry")) if prof else (None, None)
         return c
 
     def _classify(self, cusip, qt, option):
@@ -310,6 +316,119 @@ class Classer:
 def is_fund_type(stype, stype2):
     stype, stype2 = str(stype or ""), str(stype2 or "")
     return stype in FUND_TYPES or stype2 in ("Mutual Fund", "ETP") or stype.startswith("ETF")
+
+
+class Profiles:
+    """FMP's own sector / industry per symbol (and per CUSIP) from the banked profile bulk - the sector source. Pure
+    given its rows; built once per run from fmp_bank.snapshot("profile")."""
+
+    FIELDS = ("sector", "industry", "country", "companyName", "cik", "cusip", "isEtf", "isAdr", "isFund", "exchange")
+    US_EXCHANGES = {"NASDAQ", "NYSE", "AMEX", "NYSEARCA", "BATS", "CBOE", "NYSEAMERICAN", "OTC", "PNK"}
+
+    def __init__(self, rows):
+        self.by_sym, self.by_cusip, self.by_cusip_any, self.n_rows = {}, {}, {}, 0
+        for x in rows or []:
+            if not isinstance(x, dict):
+                continue
+            sym = str(x.get("symbol") or "").upper().strip()
+            if not sym:
+                continue
+            self.n_rows += 1
+            rec = {k: x.get(k) for k in self.FIELDS}
+            rec["sector"] = (str(rec["sector"]).strip() or None) if rec.get("sector") is not None else None
+            rec["industry"] = (str(rec["industry"]).strip() or None) if rec.get("industry") is not None else None
+            self.by_sym.setdefault(sym, rec)
+            c = str(x.get("cusip") or "").upper().strip()
+            if re.fullmatch(r"[A-Z0-9*@#]{8}[0-9]", c):
+                self.by_cusip_any.setdefault(c, sym)                      # any listing of the company: good enough for its sector
+                if str(x.get("exchange") or "").upper() in self.US_EXCHANGES:
+                    self.by_cusip.setdefault(c, sym)                      # the US listing: the only one that may name a 13F identity's ticker
+
+    def lookup(self, ticker, cusip=None):
+        rec = self.by_sym.get(str(ticker or "").upper()) if ticker else None
+        if rec is None and cusip:
+            sym = self.by_cusip.get(str(cusip).upper()) or self.by_cusip_any.get(str(cusip).upper())
+            rec = self.by_sym.get(sym) if sym else None
+        return rec
+
+    @staticmethod
+    def flag(v):
+        return str(v).strip().lower() in ("true", "1", "yes")
+
+
+def sectors_from(agg, level, skill=None):
+    """Stocks grouped by FMP sector (level 'sector') or industry (level 'industry'): reported value now / prior, manager
+    x identity pairs, tilt and stance, and the dollar size of the move at reported prices (inflow = new positions +
+    units added, outflow = dropped positions + units removed), with the names doing it. Pure."""
+    groups = {}
+    for p, a in agg.items():
+        c = a["cls"]
+        if c["kind"] != "stock" or not (a["holders"] or a["prior_holders"]):
+            continue
+        name = c.get(level) or ("Unclassified (no FMP profile)" if not c.get("sector") else "Unclassified industry")
+        g = groups.setdefault(name, {"name": name, "sector": c.get("sector") if level == "industry" else name, "value_usd": Decimal(0), "value_prior_usd": Decimal(0),
+                                     "inflow_usd": Decimal(0), "outflow_usd": Decimal(0), "identities": 0, "identities_prior": 0, "holders": set(),
+                                     "pairs_new": 0, "pairs_absent": 0, "pairs_more": 0, "pairs_fewer": 0, "pairs_flat": 0, "rows": []})
+        g["value_usd"] += a["value_usd"]
+        g["value_prior_usd"] += a["value_prior_usd"]
+        g["identities"] += 1 if a["holders"] else 0
+        g["identities_prior"] += 1 if a["prior_holders"] else 0
+        g["holders"].update(a["holders"])
+        if a["reclass_candidate"]:
+            continue                      # a CUSIP / class change moves value between identities, not into or out of the sector
+        g["inflow_usd"] += a["inflow_usd"]
+        g["outflow_usd"] += a["outflow_usd"]
+        g["pairs_new"] += len(a["new"])
+        g["pairs_absent"] += len(a["absent"])
+        g["pairs_more"] += len(a["inc"])
+        g["pairs_fewer"] += len(a["dec"])
+        g["pairs_flat"] += len(a["flat"])
+        g["rows"].append((p, a))
+    total = sum((g["value_usd"] for g in groups.values()), Decimal(0))
+    total_prior = sum((g["value_prior_usd"] for g in groups.values()), Decimal(0))
+    out = []
+    for g in groups.values():
+        up, down = g["pairs_new"] + g["pairs_more"], g["pairs_absent"] + g["pairs_fewer"]
+        net = g["inflow_usd"] - g["outflow_usd"]
+        sh_now, sh_pri = share(g["value_usd"], total), share(g["value_prior_usd"], total_prior)
+
+        def brief(p, a):
+            r = out_row(p, a, skill)
+            return {k: r[k] for k in ("id", "ticker", "issuer", "name", "sub", "n_holders", "n_prior_holders", "holder_delta", "value_usd", "inflow_usd", "outflow_usd", "net_usd", "votes", "stance", "no_current_holder")}
+        acc = sorted((brief(p, a) for p, a in g["rows"] if a["inflow_usd"] > a["outflow_usd"]), key=lambda r: -(r["net_usd"] or 0))[:SECTOR_TOP]
+        dist = sorted((brief(p, a) for p, a in g["rows"] if a["outflow_usd"] > a["inflow_usd"]), key=lambda r: (r["net_usd"] or 0))[:SECTOR_TOP]
+        out.append({"name": g["name"], "sector": g["sector"], "level": level,
+                    "value_usd": f(g["value_usd"]), "value_prior_usd": f(g["value_prior_usd"]), "value_change_pct": pct(g["value_usd"], g["value_prior_usd"]),
+                    "share_pct": sh_now, "share_prior_pct": sh_pri, "share_delta_pp": round(sh_now - sh_pri, 2) if sh_now is not None and sh_pri is not None else None,
+                    "n_identities": g["identities"], "n_identities_prior": g["identities_prior"], "n_managers": len(g["holders"]),
+                    "pairs": {"new": g["pairs_new"], "absent": g["pairs_absent"], "more": g["pairs_more"], "fewer": g["pairs_fewer"], "flat": g["pairs_flat"]},
+                    "net_pairs": up - down, "tilt_pct": round(100.0 * (up - down) / (up + down), 1) if (up + down) else None, "stance": bucket_stance(up, down),
+                    "inflow_usd": f(g["inflow_usd"]), "outflow_usd": f(g["outflow_usd"]), "net_usd": f(net),
+                    "net_pct_of_prior": f(round(100 * net / g["value_prior_usd"], 1)) if g["value_prior_usd"] else None,
+                    "money_stance": "ACCUMULATING" if g["value_prior_usd"] and net > g["value_prior_usd"] * Decimal("0.02") else "DISTRIBUTING" if g["value_prior_usd"] and net < -g["value_prior_usd"] * Decimal("0.02") else ("ACCUMULATING" if not g["value_prior_usd"] and net > 0 else "BALANCED"),
+                    "accumulating": acc, "distributing": dist})
+    out.sort(key=lambda r: -(r["value_usd"] or 0))
+    return out
+
+
+def sector_block(agg, skill=None):
+    """Both levels plus coverage. Pure."""
+    sectors = sectors_from(agg, "sector", skill)
+    industries = sectors_from(agg, "industry", skill)
+    n_known = sum(1 for a in agg.values() if a["cls"]["kind"] == "stock" and a["holders"] and a["cls"].get("sector"))
+    n_stock = sum(1 for a in agg.values() if a["cls"]["kind"] == "stock" and a["holders"])
+    v_known = sum((a["value_usd"] for a in agg.values() if a["cls"]["kind"] == "stock" and a["holders"] and a["cls"].get("sector")), Decimal(0))
+    v_stock = sum((a["value_usd"] for a in agg.values() if a["cls"]["kind"] == "stock" and a["holders"]), Decimal(0))
+    by_flow = sorted((r for r in industries if r["name"] and not r["name"].startswith("Unclassified")), key=lambda r: -(r["net_usd"] or 0))
+    return {"sectors": sectors, "industries": industries[:INDUSTRY_ROWS], "n_industries": len(industries),
+            "top_inflow": [{k: r[k] for k in ("name", "sector", "net_usd", "inflow_usd", "outflow_usd", "net_pct_of_prior", "tilt_pct", "stance", "money_stance", "n_managers", "value_usd")} for r in by_flow if (r["net_usd"] or 0) > 0][:12],
+            "top_outflow": [{k: r[k] for k in ("name", "sector", "net_usd", "inflow_usd", "outflow_usd", "net_pct_of_prior", "tilt_pct", "stance", "money_stance", "n_managers", "value_usd")} for r in reversed(by_flow) if (r["net_usd"] or 0) < 0][:12],
+            "coverage": {"stocks_held": n_stock, "with_sector": n_known, "with_sector_pct": round(100.0 * n_known / n_stock, 1) if n_stock else None,
+                         "with_sector_value_pct": f(round(100 * v_known / v_stock, 1)) if v_stock else None},
+            "note": ("Sectors and industries are FMP's own per-symbol classification from the bank's profile bulk, joined on the resolved ticker (or CUSIP). "
+                     "Inflow = new positions at their reported value + units added at the filing's own reported price; outflow = dropped positions at their "
+                     "last reported value + units removed at the current reported price; the quarter's price move is excluded from both but present in "
+                     "'value vs prior'. money_stance: net beyond +/-2% of the prior reported value. ETFs are not sectored here.")}
 
 
 def in_universe(cls, universe):
@@ -429,6 +548,7 @@ def aggregate(members, classer):
         ident = pos.get("identity") or {}
         return agg.setdefault(pid, {"issuer": (pos.get("issuer_names") or [""])[0], "class": ident.get("class"), "cusip": ident.get("cusip"),
                                     "cls": classer.of(ident), "holders": [], "prior_holders": [], "value_usd": Decimal(0), "value_prior_usd": Decimal(0),
+                                    "inflow_usd": Decimal(0), "outflow_usd": Decimal(0),
                                     "new": [], "absent": [], "inc": [], "dec": [], "flat": []})
 
     for m in members:
@@ -438,22 +558,31 @@ def aggregate(members, classer):
         for pid, pos in cur.items():
             a = slot(pid, pos)
             a["holders"].append(fk)
-            a["value_usd"] += dec(pos.get("reported_value_usd"))
+            v_now, q_now = dec(pos.get("reported_value_usd")), dec(pos.get("reported_quantity"))
+            a["value_usd"] += v_now
             st = (comp.get(pid) or {}).get("status")
             if st == "newly_present_in_public_disclosure":
                 a["new"].append(fk)
-            elif st == "reported_quantity_increased":
-                a["inc"].append(fk)
-            elif st == "reported_quantity_decreased":
-                a["dec"].append(fk)
+                a["inflow_usd"] += v_now                                   # a new position: its reported value
+            elif st in ("reported_quantity_increased", "reported_quantity_decreased"):
+                (a["inc"] if st == "reported_quantity_increased" else a["dec"]).append(fk)
+                q_prior = dec((pri.get(pid) or {}).get("reported_quantity"))
+                if q_now > 0:
+                    delta = (q_now - q_prior) * (v_now / q_now)             # units added or removed, at this filing's own reported price
+                    if delta >= 0:
+                        a["inflow_usd"] += delta
+                    else:
+                        a["outflow_usd"] += -delta
             elif st == "reported_quantity_unchanged":
                 a["flat"].append(fk)
         for pid, pos in pri.items():
             a = slot(pid, pos)
             a["prior_holders"].append(fk)
-            a["value_prior_usd"] += dec(pos.get("reported_value_usd"))
+            v_prior = dec(pos.get("reported_value_usd"))
+            a["value_prior_usd"] += v_prior
             if (comp.get(pid) or {}).get("status") == "not_present_in_current_public_disclosure":
                 a["absent"].append(fk)
+                a["outflow_usd"] += v_prior                                # a dropped position: its last reported value
     absent_cusips = {a["cusip"] for a in agg.values() if a["absent"]}
     absent_issuers = {issuer_key(a["issuer"]) for a in agg.values() if a["absent"]}
     new_cusips = {a["cusip"] for a in agg.values() if a["new"]}
@@ -486,9 +615,10 @@ def out_row(pid, a, skill=None):
     w_bear = [skill[k] for k in a["absent"] + a["dec"] if isinstance(skill.get(k), (int, float))]
     c = a["cls"]
     return {"id": pid[:12], "issuer": a["issuer"], "class": a["class"], "cusip": a["cusip"], "ticker": c["ticker"], "name": c["name"], "kind": c["kind"], "sub": c["sub"],
-            "bucket": c["bucket"], "security_type": c["security_type"],
+            "bucket": c["bucket"], "security_type": c["security_type"], "sector": c.get("sector"), "industry": c.get("industry"),
             "n_holders": len(a["holders"]), "n_prior_holders": len(a["prior_holders"]), "holder_delta": len(a["holders"]) - len(a["prior_holders"]),
             "value_usd": f(a["value_usd"]), "value_prior_usd": f(a["value_prior_usd"]),
+            "inflow_usd": f(a["inflow_usd"]), "outflow_usd": f(a["outflow_usd"]), "net_usd": f(a["inflow_usd"] - a["outflow_usd"]),
             "holders": sorted(a["holders"]), "new": sorted(a["new"]), "absent": sorted(a["absent"]), "inc": sorted(a["inc"]), "dec": sorted(a["dec"]),
             "n_new": len(a["new"]), "n_absent": len(a["absent"]), "n_inc": len(a["inc"]), "n_dec": len(a["dec"]), "n_flat": len(a["flat"]),
             "votes": {"bull": bull, "bear": bear, "net": bull - bear, "weighted_net": round((sum(w_bull) - sum(w_bear)) / 100.0, 2) if (w_bull or w_bear) else None,
@@ -959,10 +1089,60 @@ def master_coverage(rows, universe):
     total_v = sum(v.values()) or Decimal(1)
     typed = sum(1 for cusip in universe if (rows.get(cusip) or {}).get("status") == "ambiguous" and (rows.get(cusip) or {}).get("type_agreed"))
     typed_v = sum((u["value"] for cusip, u in universe.items() if (rows.get(cusip) or {}).get("status") == "ambiguous" and (rows.get(cusip) or {}).get("type_agreed")), Decimal(0))
+    src = Counter((rows.get(cusip) or {}).get("source") or "openfigi" for cusip in universe if (rows.get(cusip) or {}).get("status") == "resolved")
     return {"identities": len(universe), **{k: c.get(k, 0) for k in ("resolved", "no_match", "ambiguous", "error", "pending")},
+            "resolved_by_source": dict(src),
             "typed_only": typed, "typed_only_value_pct": f(round(100 * typed_v / total_v, 1)) if universe else None,
             "resolved_pct": round(100.0 * c.get("resolved", 0) / len(universe), 1) if universe else None,
             "resolved_value_pct": f(round(100 * v.get("resolved", Decimal(0)) / total_v, 1)) if universe else None}
+
+
+_PROFILES = {"as_of": None, "obj": None}
+
+
+def load_profiles(log=print):
+    """FMP's profile bulk from the bank (whole market, ~94k rows) as a Profiles index; cached per container by the
+    bank's as_of. Fail-soft: (None, reason) when the bulk is not banked or cannot be read."""
+    started = time.time()
+    try:
+        as_of = fmp_bank.as_of()
+    except Exception:  # noqa: BLE001
+        as_of = None
+    if _PROFILES["obj"] is not None and _PROFILES["as_of"] == as_of:
+        return _PROFILES["obj"], None
+    try:
+        rows = fmp_bank.snapshot("profile")
+    except Exception as exc:  # noqa: BLE001
+        return None, "%s: %s" % (type(exc).__name__, str(exc)[:120])
+    if not rows:
+        return None, "profile bulk not banked"
+    prof = Profiles(rows)
+    prof.as_of = as_of
+    _PROFILES["as_of"], _PROFILES["obj"] = as_of, prof
+    log("profiles: %d rows, %d symbols, %d cusips, bank as_of %s, %.1fs" % (prof.n_rows, len(prof.by_sym), len(prof.by_cusip), as_of, time.time() - started))
+    return prof, None
+
+
+def master_fmp_bridge(rows, universe, profiles, now_iso):
+    """Identities OpenFIGI left without a ticker (no_match / ambiguous / error / pending / resolved without a ticker):
+    FMP's profile row for the same CUSIP (the SEC/FMP-first bridge of Khalid's 2026-09-15 brief) resolves them with
+    FMP's own symbol and flags. Mutates rows; returns the count. Pure given its inputs."""
+    n = 0
+    for c in universe:
+        r = rows.get(c) or {}
+        if r.get("status") == "resolved" and r.get("ticker"):
+            continue
+        sym = profiles.by_cusip.get(c)
+        rec = profiles.by_sym.get(sym) if sym else None
+        if not rec:
+            continue
+        stype = "ETP" if Profiles.flag(rec.get("isEtf")) else "Open-End Fund" if Profiles.flag(rec.get("isFund")) else "ADR" if Profiles.flag(rec.get("isAdr")) else "Common Stock"
+        rows[c] = {"status": "resolved", "ticker": sym, "name": rec.get("companyName"), "figi": None, "composite_figi": None, "share_class_figi": None,
+                   "security_type": stype, "security_type2": "Mutual Fund" if stype in ("ETP", "Open-End Fund") else ("Depositary Receipt" if stype == "ADR" else "Common Stock"),
+                   "market_sector": "Equity", "exch_code": rec.get("exchange"), "checked_at": now_iso, "query": "fmp-profile/cusip", "scheme": SCHEME, "source": "fmp-profile",
+                   "openfigi": {k: r.get(k) for k in ("status", "reason", "query", "checked_at", "n_rows", "type_agreed", "ticker") if k in r} or None}
+        n += 1
+    return n
 
 
 # ───────────────────────────── AWS I/O ─────────────────────────────
@@ -1069,6 +1249,19 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
                        "recheck_days": RECHECK_DAYS, "n_rows": len(rows), "last_refresh": refresh, "by_cusip": rows}
                 master_bytes = put_json(s3, MASTER_KEY, doc, cache="max-age=600")
                 master_mod = now
+    # 2a. FMP's profile bulk: the sector / industry source and the CUSIP bridge for what OpenFIGI left unticked
+    profiles, profiles_err = load_profiles(log)
+    bridged = 0
+    if profiles is not None and master_enabled:
+        bridged = master_fmp_bridge(rows, universe, profiles, now.isoformat(timespec="seconds"))
+        if bridged:
+            refresh["fmp_cusip_resolved"] = bridged
+            doc = {"contract": "13f-security-master.v1", "engine": ENGINE, "version": VERSION, "generated_at": now.isoformat(timespec="seconds"),
+                   "source": "OpenFIGI v3 /mapping (ID_CUSIP / ID_CINS, exchCode US first, any exchange, derived ISIN) keyed via SSM; FMP profile bulk CUSIP bridge for the rest",
+                   "recheck_days": RECHECK_DAYS, "n_rows": len(rows), "last_refresh": refresh, "by_cusip": rows}
+            master_bytes = put_json(s3, MASTER_KEY, doc, cache="max-age=600")
+            master_mod = now
+            log("security master: %d identities resolved through the FMP profile CUSIP bridge" % bridged)
     coverage = master_coverage(rows, universe)
 
     # 2b. the learned ETF classes (FMP's own assetClass from the bank) for fund-like tickers the reviewed table lacks
@@ -1087,7 +1280,7 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
                                        "source": "FMP etf/info assetClass as banked by justhodl-fmp-walker (data/warm/fmp/etf-info/<ticker>.json.gz); mapped through FMP_CLASS",
                                        "vocabulary": FMP_CLASS, "recheck_days": LEARNED_RECHECK_DAYS, "n_rows": len(learned), "last_run": learn_stats, "by_ticker": learned}, cache="max-age=600")
             learned_mod = now
-    classer = Classer(rows, etf_classes, learned)
+    classer = Classer(rows, etf_classes, learned, profiles)
 
     # 3. per-manager boards
     managers, members, members_conc = {}, [], []
@@ -1160,6 +1353,7 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
             "stance": {u: stance_from(agg, u, skill) for u in ("all", "stocks", "etfs")},
             "contenders": {u: contenders_from(agg, u, skill) for u in ("all", "stocks", "etfs")},
             "rotation": rotation(mems, classer),
+            "sectors": sector_block(agg, skill),
         }
     # unclassified exchange-traded products and the largest unmapped identities, for review
     unclassified, unmapped, other_rows = {}, {}, []
@@ -1211,6 +1405,9 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
         "managers": managers,
         "boards": {s: scopes[s]["boards"] for s in scopes}, "stance": {s: scopes[s]["stance"] for s in scopes},
         "contenders": {s: scopes[s]["contenders"] for s in scopes}, "rotation": {s: scopes[s]["rotation"] for s in scopes},
+        "sectors": {s: scopes[s]["sectors"] for s in scopes},
+        "profiles": {"source": "FMP profile bulk (bank)", "n_rows": profiles.n_rows if profiles else 0, "n_cusips": len(profiles.by_cusip) if profiles else 0,
+                     "as_of": getattr(profiles, "as_of", None) if profiles else None, "error": profiles_err, "cusip_bridge_resolved_this_run": bridged},
         "scopes": {s: {"members": scopes[s]["members"], "n_identities": scopes[s]["n_identities"]} for s in scopes},
         "security_master": {"key": MASTER_KEY, "generated_at": master.get("generated_at"), "last_modified": master_mod.isoformat(timespec="seconds") if master_mod else None,
                             "bytes": master_bytes, "error": master_err, "n_rows": len(rows), "coverage": coverage, "refresh": refresh, "recheck_days": RECHECK_DAYS},
@@ -1232,6 +1429,9 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
             "holder_delta": "cohort managers reporting the identity now minus last period",
             "kind": "stock / fund (exchange-traded product) / debt (principal amount) / other / unmapped, from the CUSIP master",
             "class_source": "table = the reviewed ETF class table; fmp = FMP's own assetClass read from the bank; none = unclassified",
+            "sector / industry": "FMP's own classification per symbol (profile bulk), joined on the resolved ticker or the CUSIP; stocks only",
+            "inflow_usd / outflow_usd": "new positions at reported value + units added at the filing's reported price / dropped positions at last reported value + units removed at the current reported price",
+            "money_stance": "net flow beyond +/-2% of the prior reported value (ACCUMULATING / DISTRIBUTING), else BALANCED",
             "BALANCED": "a class whose net manager-identity pairs are within +/-%d%% of all its pairs" % int(TILT_PCT),
         },
     }
@@ -1268,7 +1468,7 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
                    "holdings_research": {k: hr.get(k) for k in ("contract", "generated_at", "fund_count", "current_cohort_count", "refresh_status", "acquisition_mode", "source_request_count")} | {"error": hr_err},
                    "research": desk.get("research"), "legacy_snapshot": desk.get("legacy_snapshot"), "security_indexes": desk.get("security_indexes"),
                    "ticker_identity": desk.get("ticker_identity"), "methodology_url": desk.get("methodology_url"), "research_url": desk.get("research_url"),
-                   "security_master": "OpenFIGI v3 /mapping by CUSIP / CINS / derived ISIN (keyed); a ticker is shown only for a resolved identifier",
+                   "security_master": "OpenFIGI v3 /mapping by CUSIP / CINS / derived ISIN (keyed), then FMP's profile bulk by CUSIP; a ticker is shown only for a resolved identifier",
                    "etf_classes_learned": {"key": LEARNED_KEY, "n": len(learned)},
                    "etf_classes": {"file": "13f-etf-classes.json (twin config/13f-etf-classes.json)", "reviewed": etf_reviewed, "n": len(etf_classes)}},
         "cadence": "daily (cadence floor) + hand-off after every native research publication; the native research publishes 15:40 UTC, this book 16:37 UTC; EDGAR detector 03:31 UTC",
