@@ -65,7 +65,7 @@
 
   <section class="st-sec" aria-label="Long accumulation with a tight price spread">
     <h2>Long accumulation · tight price spread <span class="m" id="coil-meta"></span></h2>
-    <p class="st-sub">The longest trailing run of sessions whose closes all sit inside 6% (VERY TIGHT, ≥ 40 sessions), 10% (TIGHT, ≥ 40), 15% (LONG BASE, ≥ 120) or 10% (FORMING, ≥ 20) of the last close. Score 0–100 = base length (35) + tightness (30) + Bollinger-width squeeze percentile (10) + volume dry-up (8) + accumulation inside the base — Chaikin money flow and up-volume / down-volume (12) — + relative strength holding through the base (5). The 13F stance and the fund's 21-observation flow sit beside the score as corroboration and never enter it.</p>
+    <p class="st-sub">The longest trailing run of sessions whose closes all sit inside 6% (VERY TIGHT, ≥ 40 sessions), 10% (TIGHT, ≥ 40), 15% (LONG BASE, ≥ 120) or 10% (FORMING, ≥ 20) of the last close — and only when that run is a contraction of the name's own yearly range (at most 60% of it), so a cash fund never coils; a stock pinned almost motionless inside a sliver of a base (ATR ≤ 0.6%, range ≤ 3.5%) trades like a pending deal and is flagged PINNED off the board. Score 0–100 = base length (35) + tightness (30) + Bollinger-width squeeze percentile (10) + volume dry-up (8) + accumulation inside the base — Chaikin money flow and up-volume / down-volume (12) — + relative strength holding through the base (5). The 13F stance and the fund's 21-observation flow sit beside the score as corroboration and never enter it.</p>
     <div class="st-row" id="coil-scope"></div>
     <div class="jh-tblwrap" style="max-height:560px" id="coil"></div>
   </section>
@@ -119,7 +119,7 @@
   function cellPct(v,d){return '<td class="'+D.cls(v)+'">'+pct(v,d)+"</td>";}
   function money(v){ if(v==null||!isFinite(v)) return "—"; var a=Math.abs(v), s=v<0?"−":v>0?"+":""; return s+"$"+(a>=1e9?(a/1e9).toFixed(2)+"B":a>=1e6?(a/1e6).toFixed(0)+"M":a>=1e3?(a/1e3).toFixed(0)+"K":a.toFixed(0)); }
   function tk(t){return "<a class=tk href='/chart.html?s="+encodeURIComponent(t)+"'>"+esc(t)+"</a>";}
-  function tier(c){ if(!c||!c.tier) return "—"; return '<span class="st-tier '+(TIER_CLS[c.tier]||"")+'" title="closes inside '+esc(c.base_range_pct)+'% for '+esc(c.base_len)+' sessions">'+esc(c.tier)+" · "+esc(c.base_len)+"</span>"; }
+  function tier(c){ if(!c||!c.tier) return "—"; if(c.flag) return '<span class="st-tier F" title="'+esc(c.flag_note||"")+'">'+esc(c.flag)+" · "+esc(c.base_len)+"</span>"; return '<span class="st-tier '+(TIER_CLS[c.tier]||"")+'" title="closes inside '+esc(c.base_range_pct)+'% for '+esc(c.base_len)+' sessions">'+esc(c.tier)+" · "+esc(c.base_len)+"</span>"; }
   function bar(v){ if(v==null) return "—"; return '<span class="st-bar" title="'+esc(v)+'"><i style="left:'+Math.max(0,Math.min(100,v))+'%"></i></span> '+num(v,0); }
   function tag(p){ return '<span class="tag '+(p&&p.code||"")+'">'+esc(p&&p.label||"—")+"</span>"; }
   function scopeOf(r){ var s=r.scopes||[]; return s.indexOf("desk")>=0?"DESK":s.indexOf("etf-desk")>=0?"ETF DESK":s.indexOf("sp500")>=0?"S&P 500":"13F"; }
@@ -217,7 +217,7 @@
   function kpis(d){
     var doc=d.doc, b=doc.boards||{}, br=(b.breadth||{}), bu=br.universe||{}, bd=br.desk||{}, bench=doc.benchmark||{}, s=bench.h||{};
     var regime=bench.above_200==null?"—":(bench.above_50&&bench.above_200)?"SPY ABOVE 50 & 200 DMA":(!bench.above_50&&!bench.above_200)?"SPY BELOW 50 & 200 DMA":bench.above_200?"SPY ABOVE 200, BELOW 50":"SPY ABOVE 50, BELOW 200";
-    var coiled=(doc.rows||[]).filter(function(r){return r.coil&&r.coil.tier;});
+    var coiled=(doc.rows||[]).filter(function(r){return r.coil&&r.coil.tier&&!r.coil.flag;});
     var vt=coiled.filter(function(r){return r.coil.tier==="VERY TIGHT";}).length;
     document.getElementById("kpis").innerHTML=[
       ["SPX live · 1W / 1M / 3M", pct(d.spy.d), "<span class='"+D.cls(s.w)+"'>"+pct(s.w)+"</span> · <span class='"+D.cls(s.m)+"'>"+pct(s.m)+"</span> · <span class='"+D.cls(s.q)+"'>"+pct(s.q)+"</span>"+(d.spy.px?" · SPY "+D.fmtPx(d.spy.px):"")],
@@ -235,8 +235,9 @@
     // 1. the coil board
     var scopes=["ALL","DESK","S&P 500","ETF DESK","13F"];
     chips("coil-scope",scopes,coilScope,function(v){coilScope=v;});
-    var coiled=rows.filter(function(r){ return r.coil&&r.coil.tier&&!r.stale&&inScope(r,coilScope); }).sort(sorter("coil")).slice(0,80);
-    document.getElementById("coil-meta").textContent=coiled.length+" of "+rows.filter(function(r){return r.coil&&r.coil.tier;}).length+" coiled names · as of "+(doc.as_of||"—");
+    var coiled=rows.filter(function(r){ return r.coil&&r.coil.tier&&!r.coil.flag&&!r.stale&&inScope(r,coilScope); }).sort(sorter("coil")).slice(0,80);
+    var pinned=rows.filter(function(r){return r.coil&&r.coil.flag;}).length;
+    document.getElementById("coil-meta").textContent=coiled.length+" of "+rows.filter(function(r){return r.coil&&r.coil.tier&&!r.coil.flag;}).length+" coiled names · as of "+(doc.as_of||"—")+(pinned?" · "+pinned+" deal-pinned names kept off the board":"");
     table("coil",COIL_COLS,coiled,"No name in this scope has held a base of 20+ sessions inside 10% of its last close.",coilRow);
     // 2. leaders / laggards
     chips("lead-scope",["DESK","ALL","S&P 500","ETF DESK","13F"],leadScope,function(v){leadScope=v;});

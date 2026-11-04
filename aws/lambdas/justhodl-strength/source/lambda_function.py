@@ -55,7 +55,7 @@ try:
 except Exception:  # noqa: BLE001
     etf_desk_catalog = None
 
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 CONTRACT = "strength.v1"
 ENGINE = "justhodl-strength"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -322,6 +322,7 @@ def base_lengths(c, tiers=BASE_TIERS, n_max=BASE_MAX):
 
 
 CONTRACTION_MAX = 0.6                                      # a base must be at most 60% of the instrument's own 252-session close range
+DEAL_ATR_PCT, DEAL_RANGE_PCT = 0.6, 3.5                    # a stock this still inside this thin a base is pinned by a pending deal, not accumulating
 
 
 def tier_of(found, ranges=None, range_252=None):
@@ -749,19 +750,23 @@ def row_for(t, meta, bars, bench, bank_last):
     row.update(rs_metrics(c_al, s_al))
     row["posture"] = posture(hh["d"], sh["d"])
     row["coil"] = coil(bars, c_al, s_al, row["rs_trend_63"])
+    cl = row["coil"]
+    if cl.get("tier") and row.get("kind") != "fund" and cl.get("atr14_pct") is not None and cl["atr14_pct"] <= DEAL_ATR_PCT and (cl.get("base_range_pct") or 99) <= DEAL_RANGE_PCT:
+        cl["flag"] = "PINNED"            # a stock printing almost no daily range inside a sliver of a base trades like a pending deal, not an accumulation
+        cl["flag_note"] = "deal-like: ATR %.2f%% <= %.1f%% and base range %.2f%% <= %.1f%%; kept off the coil board" % (cl["atr14_pct"], DEAL_ATR_PCT, cl["base_range_pct"], DEAL_RANGE_PCT)
     return row
 
 
 def boards_from(rows):
     live = [r for r in rows if r.get("strength") is not None and not r.get("stale")]
     by_strength = sorted(live, key=lambda r: -r["strength"])
-    coiled = sorted([r for r in live if (r.get("coil") or {}).get("tier")], key=lambda r: (-(r["coil"]["score"] or 0), -(r["coil"]["base_len"] or 0)))
+    coiled = sorted([r for r in live if (r.get("coil") or {}).get("tier") and not (r["coil"] or {}).get("flag")], key=lambda r: (-(r["coil"]["score"] or 0), -(r["coil"]["base_len"] or 0)))
     desk = [r for r in live if "desk" in r["scopes"]]
 
     def slim(r):
         return {"ticker": r["ticker"], "name": r["name"], "sleeve": r["sleeve"], "scopes": r["scopes"], "strength": r["strength"], "composite_pp": r["composite_pp"],
                 "vs": r["vs"], "rs_trend_63": r["rs_trend_63"], "rs_consistency_63": r["rs_consistency_63"], "ir_63": r["ir_63"], "pos_52w": r["pos_52w"],
-                "coil": {k: (r["coil"] or {}).get(k) for k in ("tier", "base_len", "base_range_pct", "score")} if r.get("coil") else None,
+                "coil": {k: (r["coil"] or {}).get(k) for k in ("tier", "base_len", "base_range_pct", "score", "flag")} if r.get("coil") else None,
                 "f13_stance": (r.get("f13") or {}).get("stance"), "flow_w21_pct": ((r.get("flow") or {}).get("w21") or {}).get("pct_aum")}
 
     def breadth(group):
@@ -772,7 +777,8 @@ def boards_from(rows):
             out["above_spy_" + k] = n
             out["pct_" + k] = f(100.0 * n / d, 1) if d else None
         out["rs_new_highs"] = sum(1 for r in group if r.get("rs_new_high"))
-        out["coiled"] = sum(1 for r in group if (r.get("coil") or {}).get("tier"))
+        out["coiled"] = sum(1 for r in group if (r.get("coil") or {}).get("tier") and not (r.get("coil") or {}).get("flag"))
+        out["pinned"] = sum(1 for r in group if (r.get("coil") or {}).get("flag"))
         return out
     return {"leaders": [slim(r) for r in by_strength[:BOARD]], "laggards": [slim(r) for r in by_strength[-BOARD:][::-1]],
             "coil": [slim(r) for r in coiled[:BOARD * 2]], "rs_new_highs": [slim(r) for r in by_strength if r.get("rs_new_high")][:BOARD],
@@ -914,6 +920,7 @@ def build(s3, now, log=print, remaining_s=300.0):
             "flow": "a configured fund's own latest 1 / 5 / 21 reporting-observation windows from the native ETF desk (USD, % of reported assets) while its source is current; aligned = the SPY-grid windows matched",
             "f13": "the 13F cohort's read of the ticker across two dated disclosures: holders, bull / bear manager votes, net dollars at reported prices. Newly disclosed is not bought; absent is not sold.",
             "posture": "day posture from close-to-close moves; the page overlays the live quote",
+            "pinned": "a stock whose 14-session ATR is <= 0.6% of price inside a base of <= 3.5% trades like a pending deal (merger arbitrage), not an accumulation: flagged PINNED and kept off the coil board",
             "splits": "bank bars are unadjusted; bars before a recorded split (corporate-actions) or an inferred one (close ratio >= 1.8 or <= 0.56 with volume moving the opposite way, 5 sessions each side) are rebased by the split factor",
         },
         "note": "Relative strength is a price fact, not a forecast. Fund flows are reported creation / redemption observations; 13F stances count managers. No trade, call or sizing is implied.",

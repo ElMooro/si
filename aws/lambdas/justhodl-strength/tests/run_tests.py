@@ -44,7 +44,7 @@ PROFILES = [
     {"symbol": "NEWB", "companyName": "New Listing Inc", "sector": "Technology", "industry": "Software - Application", "isEtf": "false", "exchangeShortName": "NASDAQ"},
 ]
 SP500 = [{"symbol": "AAPL", "name": "Apple Inc."}, {"symbol": "NVDA", "name": "NVIDIA"}, {"symbol": "COIL", "name": "Coil Industries"}, {"symbol": "LAGG", "name": "Laggard Corp"},
-         {"symbol": "BRK.B", "name": "Berkshire Hathaway"}, {"symbol": "NEWB", "name": "New Listing Inc"}, {"symbol": "SPLT", "name": "Reverse Split Co"}, {"symbol": "RCRD", "name": "Recorded Split Co"}]
+         {"symbol": "BRK.B", "name": "Berkshire Hathaway"}, {"symbol": "NEWB", "name": "New Listing Inc"}, {"symbol": "SPLT", "name": "Reverse Split Co"}, {"symbol": "RCRD", "name": "Recorded Split Co"}, {"symbol": "DEAL", "name": "Pending Deal Co"}]
 sys.modules["fmp_bank"] = SimpleNamespace(walker=lambda dataset, entity=None, **kw: [dict(r) for r in SP500] if dataset == "sp500-constituent" else None,
                                           snapshot=lambda path, symbol=None: [dict(r) for r in PROFILES] if path == "profile" and symbol is None else None)
 
@@ -155,6 +155,13 @@ def seed():
     # RCRD: a 2-for-1 split at session 250 recorded by the corporate-actions producer (price /2 after, volume x2)
     raw2 = series("bench", seed=11)
     s3.put(lf.bank_key("RCRD"), {"rows": bank_rows([c * 2.0 if i < 250 else c for i, c in enumerate(raw2)], vol_profile=lambda i: 500_000.0 if i < 250 else 1_000_000.0)})
+    # DEAL: a stock pinned by a pending acquisition - the last 120 sessions inside 0.6%, almost no intraday range
+    pinned = series("bench", seed=12)
+    rows = bank_rows([c if i < 180 else 50.0 * (1 + 0.003 * math.sin(i)) for i, c in enumerate(pinned)])
+    for i, r in enumerate(rows):
+        if i >= 180:
+            r[2], r[3] = r[4] * 1.001, r[4] * 0.999
+    s3.put(lf.bank_key("DEAL"), {"rows": rows})
     s3.put(lf.ACTIONS_INDEX_KEY, {"generated_at": "2026-11-04T06:40:00+00:00", "covered": 2, "tickers": {"RCRD": {"n_splits": 1, "n_events": 3}, "AAPL": {"n_splits": 0, "n_events": 4}}})
     s3.put(lf.ACTIONS_PREFIX + "RCRD.json", {"ticker": "RCRD", "events": [{"date": DATES[250].isoformat(), "type": "split", "ratio_from": 1, "ratio_to": 2, "factor": 0.5, "source": "polygon"},
                                                                           {"date": DATES[100].isoformat(), "type": "dividend_cash", "factor": 0.995}]})
@@ -281,7 +288,7 @@ def test_universe_assembly_and_ranks():
     assert u["GLD"]["sleeve"] == "ETF" and set(u["GLD"]["scopes"]) == {"desk", "etf-desk"}
     assert u["COIL"]["scopes"] == ["sp500", "13f"] and u["COIL"]["sleeve"] == "STOCK" and u["BRK.B"]["scopes"] == ["sp500"]
     assert u["NVDA"]["scopes"] == ["desk", "sp500", "13f"] and "SPY" in u and u["SPY"]["scopes"] == ["etf-desk"]
-    assert u["AAPL"]["name"] == "Apple" and len(u) == 51 + 7   # 51 distinct desk names (GLD sits in ETF and METAL) + SPY, COIL, LAGG, BRK.B, NEWB, SPLT, RCRD
+    assert u["AAPL"]["name"] == "Apple" and len(u) == 51 + 8   # 51 distinct desk names (GLD sits in ETF and METAL) + SPY, COIL, LAGG, BRK.B, NEWB, SPLT, RCRD, DEAL
     rows = [{"ticker": t, "vs": ({"d": d, "w": d * 2, "m": d * 3, "q": d * 4, "h": d * 5} if d is not None else None)} for t, d in (("A", 1.0), ("B", 2.0), ("C", 3.0), ("D", -1.0), ("E", None))]
     stats = lf.rank_rows(rows)
     by = {r["ticker"]: r for r in rows}
@@ -290,12 +297,12 @@ def test_universe_assembly_and_ranks():
 
 def test_build_rows_boards_flows_and_13f():
     s3, out = built()
-    assert out["contract"] == "strength.v1" and out["version"] == "1.0.2" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
-    assert out["benchmark"]["sessions"] == 300 and out["benchmark"]["h"]["q"] is not None and out["universe"]["n"] == 58
+    assert out["contract"] == "strength.v1" and out["version"] == "1.0.3" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
+    assert out["benchmark"]["sessions"] == 300 and out["benchmark"]["h"]["q"] is not None and out["universe"]["n"] == 59
     by = {r["ticker"]: r for r in out["rows"]}
     # unbanked desk names carry no row; the bank manifest's last session is the as-of
     assert "TLT" in out["universe"]["unbanked"] and "XLE" in out["universe"]["unbanked"] and "SIVR" in out["universe"]["unbanked"] and "TLT" not in by
-    assert set(by) == {"NVDA", "AAPL", "LAGG", "COIL", "QQQ", "GLD", "NEWB", "BRK.B", "SPLT", "RCRD"} and out["universe"]["n_rows"] == 10
+    assert set(by) == {"NVDA", "AAPL", "LAGG", "COIL", "QQQ", "GLD", "NEWB", "BRK.B", "SPLT", "RCRD", "DEAL"} and out["universe"]["n_rows"] == 11
     # strength ranks: the leader above the benchmark-like names above the laggard; the 30-session listing is unranked
     assert by["NVDA"]["strength"] > by["AAPL"]["strength"] > by["LAGG"]["strength"] and by["NEWB"]["strength"] is None and by["NEWB"]["vs"] is None and by["NEWB"]["sessions"] == 30
     assert by["NVDA"]["vs"]["q"] > 0 and by["LAGG"]["vs"]["q"] < 0 and by["NVDA"]["composite_pp"] > 0 and by["NVDA"]["rs_trend_63"] > 0 and by["NVDA"]["rs_consistency_63"] > 50
@@ -325,8 +332,9 @@ def test_build_rows_boards_flows_and_13f():
     assert by["NVDA"].get("splits") is None
     # boards and breadth
     b = out["boards"]
-    assert b["leaders"][0]["ticker"] in ("NVDA", "QQQ") and b["laggards"][0]["ticker"] == "LAGG" and b["n_ranked"] == 9
-    assert b["breadth"]["universe"]["n"] == 9 and b["breadth"]["universe"]["coiled"] == 5 and b["breadth"]["desk"]["n"] == 4 and "pct_q" in b["breadth"]["desk"]
+    assert b["leaders"][0]["ticker"] in ("NVDA", "QQQ") and b["laggards"][0]["ticker"] == "LAGG" and b["n_ranked"] == 10
+    assert b["breadth"]["universe"]["n"] == 10 and b["breadth"]["universe"]["coiled"] == 5 and b["breadth"]["universe"]["pinned"] == 1 and b["breadth"]["desk"]["n"] == 4 and "pct_q" in b["breadth"]["desk"]
+    assert by["DEAL"]["coil"]["flag"] == "PINNED" and by["DEAL"]["coil"]["tier"] == "VERY TIGHT" and "DEAL" not in [x["ticker"] for x in b["coil"]] and "deal-like" in by["DEAL"]["coil"]["flag_note"]
     assert [x["ticker"] for x in b["coil"]] == ["COIL", "RCRD", "GLD", "BRK.B", "LAGG"] and b["coil"][-1]["coil"]["tier"] == "FORMING"
     assert by["AAPL"]["coil"]["tier"] is None and by["AAPL"]["coil"]["len_6"] >= 40 and by["AAPL"]["coil"]["range_252_pct"] < 10   # inside 6% for months, but its whole year is 7%: no contraction, no coil
     assert by["COIL"]["coil"]["contraction"] < 0.1 and by["GLD"]["coil"]["contraction"] <= 0.6
@@ -334,7 +342,7 @@ def test_build_rows_boards_flows_and_13f():
     # sources and observability
     assert [s["engine"] for s in out["sources"]] == ["justhodl-polygon-eod", "justhodl-etf-global-desk", "justhodl-etf-fund-flows", "justhodl-13f-book"]
     assert all(s["tier"] == "fresh" for s in out["sources"]) and out["n_errors"] == 0 and out["sleeves"]["METAL"][0] == {"ticker": "GLD", "name": "Gold"}
-    assert out["universe"]["scopes"] == {"desk": 51, "etf-desk": 5, "sp500": 8, "13f": 3}
+    assert out["universe"]["scopes"] == {"desk": 51, "etf-desk": 5, "sp500": 9, "13f": 3}
 
 
 def test_build_without_the_optional_inputs():
@@ -345,7 +353,7 @@ def test_build_without_the_optional_inputs():
     by = {r["ticker"]: r for r in out["rows"]}
     assert by["QQQ"]["flow"] is None and by["NVDA"]["f13"] is None and out["n_errors"] == 3 and {e["input"] for e in out["errors"]} == {"etf-desk", "canonical-flows", "13f-tickers"}
     assert by["QQQ"]["kind"] == "fund" and by["NVDA"]["strength"] is not None and out["flows"]["n_configured"] == 0 and out["f13"]["n_in_universe"] == 0
-    assert out["universe"]["scopes"]["13f"] == 0 and len(out["boards"]["leaders"]) == 9
+    assert out["universe"]["scopes"]["13f"] == 0 and len(out["boards"]["leaders"]) == 10
 
 
 def test_bank_read_and_time_budget():
@@ -361,11 +369,11 @@ def test_handler():
     s3 = seed()
     lf._s3 = lambda: s3
     res = lf.lambda_handler({}, SimpleNamespace(get_remaining_time_in_millis=lambda: 299000))
-    assert res["statusCode"] == 200 and res["key"] == "data/strength.json" and res["rows"] == 10 and res["ranked"] == 9 and res["errors"] == 0
+    assert res["statusCode"] == 200 and res["key"] == "data/strength.json" and res["rows"] == 11 and res["ranked"] == 10 and res["errors"] == 0
     put = s3.puts[-1]
     assert put["Key"] == "data/strength.json" and put["CacheControl"] == "max-age=300" and BEGUN and BEGUN[-1] == {}
     doc = json.loads(put["Body"])
-    assert doc["trigger"] == {"kind": "scheduled"} and doc["contract"] == "strength.v1" and len(doc["rows"]) == 10 and doc["boards"]["coil"][0]["ticker"] == "COIL"
+    assert doc["trigger"] == {"kind": "scheduled"} and doc["contract"] == "strength.v1" and len(doc["rows"]) == 11 and doc["boards"]["coil"][0]["ticker"] == "COIL"
     assert "api.polygon.io" not in json.dumps(doc)
 
 
