@@ -125,7 +125,9 @@ def main():
         r.section("C. FMP walker: S&P 500 constituents + manifest")
         import fmp_bank as fb
         wm = fb.walker_manifest() or {}
-        r.log("walker manifest: %d datasets; price-ish: %s" % (len(wm.get("datasets") or wm), [k for k in (wm.get("datasets") or wm) if "price" in k or "constituent" in k][:12]))
+        ds_map = wm.get("datasets") if isinstance(wm.get("datasets"), (dict, list)) else wm
+        names = list(ds_map.keys()) if isinstance(ds_map, dict) else [str((d or {}).get("name") or (d or {}).get("dataset") or d)[:60] for d in (ds_map or [])]
+        r.log("walker manifest keys %s | %d datasets; price-ish: %s" % (sorted(wm.keys())[:20] if isinstance(wm, dict) else type(wm).__name__, len(names), [k for k in names if "price" in k or "constituent" in k][:12]))
         for ds in ("sp500-constituent", "nasdaq-constituent", "dowjones-constituent"):
             rows = fb.walker(ds)
             syms = [x.get("symbol") for x in rows if isinstance(x, dict)] if isinstance(rows, list) else []
