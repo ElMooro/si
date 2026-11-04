@@ -8,7 +8,8 @@
  * counts with separators (1,322), ratios (0.46×), dates (2026-06-30, 2026-11-04 17:12 UTC), and plain text; a dash,
  * "—" or an empty cell sorts last in both directions. A table opts out with data-jh-nosort; a header that already has
  * its own sorting (aria-sort, data-sort, onclick, a .sort class) is left alone. Pure client behaviour: nothing is
- * fetched, nothing is written, no row content changes. */
+ * fetched, nothing is written, no row content changes. A table without a <thead> sorts when its first row is made of
+ * <th> cells; header cells that span columns are left alone. */
 (function () {
   'use strict';
   if (window.__jhSortable) return;
@@ -46,9 +47,10 @@
   }
 
   function sortTable(table, idx, dir) {
-    var body = table.tBodies[0];
+    var rows = bodyRows(table, table.__jhHead);
+    if (!rows.length) return;
+    var body = rows[0].parentNode;
     if (!body) return;
-    var rows = Array.prototype.slice.call(body.rows);
     rows.forEach(function (r, i) { if (!r.hasAttribute('data-jh-i')) r.setAttribute('data-jh-i', String(i)); });   // original order, stamped once per row
     if (dir === 0) {
       rows.slice().sort(function (a, b) { return (+a.getAttribute('data-jh-i')) - (+b.getAttribute('data-jh-i')); }).forEach(function (r) { body.appendChild(r); });
@@ -65,7 +67,7 @@
   }
 
   function mark(table, th, dir) {
-    var ths = table.tHead.querySelectorAll('th');
+    var ths = (table.__jhHead || table.tHead || table).querySelectorAll('th');
     Array.prototype.forEach.call(ths, function (h) {
       h.removeAttribute('aria-sort');
       var a = h.querySelector('.jh-sort-arrow');
@@ -82,15 +84,29 @@
     return th.hasAttribute('onclick') || th.hasAttribute('data-sort') || th.hasAttribute('data-key') || th.hasAttribute('aria-sort') || /\bsort/i.test(th.className || '') || th.querySelector('button,a,input,select');
   }
 
+  function headerRow(table) {
+    if (table.tHead && table.tHead.rows.length) return table.tHead.rows[table.tHead.rows.length - 1];
+    var first = table.rows[0];                                              // no <thead>: a first row made of <th> cells is the header
+    if (first && first.cells.length && Array.prototype.every.call(first.cells, function (c) { return c.tagName === 'TH'; })) return first;
+    return null;
+  }
+
+  function bodyRows(table, head) {
+    var rows = [];
+    for (var i = 0; i < table.tBodies.length; i++) rows = rows.concat(Array.prototype.slice.call(table.tBodies[i].rows));
+    return rows.filter(function (r) { return r !== head; });
+  }
+
   function attach(table) {
     if (SEEN.has(table)) return;
-    if (!table.tHead || !table.tBodies.length || table.hasAttribute('data-jh-nosort') || table.closest('[data-jh-nosort]')) return;
-    var head = table.tHead.rows[table.tHead.rows.length - 1];
-    if (!head) return;
+    if (table.hasAttribute('data-jh-nosort') || table.closest('[data-jh-nosort]')) return;
+    var head = headerRow(table);
+    if (!head || !table.tBodies.length) return;
     var ths = Array.prototype.slice.call(head.cells);
-    if (ths.length < 2 || ths.some(function (th) { return th.colSpan > 1; })) return;
+    if (!ths.length || ths.some(function (th) { return th.colSpan > 1; })) return;
     if (ths.some(headerHasOwnSorting)) return;
     SEEN.add(table);
+    table.__jhHead = head;
     table.setAttribute('data-jh-sortable', '1');
     ths.forEach(function (th, idx) {
       th.style.cursor = 'pointer';
@@ -104,7 +120,8 @@
       var go = function (ev) {
         if (ev && ev.type === 'keydown' && ev.key !== 'Enter' && ev.key !== ' ') return;
         if (ev) ev.preventDefault();
-        var first = parseValue(cellText(table.tBodies[0].rows[0] || { cells: [] }, idx)).k === 0 ? -1 : 1;   // numbers: largest first; text: A→Z
+        var probe = bodyRows(table, table.__jhHead)[0] || { cells: [] };
+        var first = parseValue(cellText(probe, idx)).k === 0 ? -1 : 1;   // numbers: largest first; text: A→Z
         var cur = table.__jhSortIdx === idx ? table.__jhSortDir : 0;
         var next = cur === 0 ? first : cur === first ? -first : 0;
         table.__jhSortIdx = idx;
