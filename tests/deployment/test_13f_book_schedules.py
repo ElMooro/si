@@ -102,7 +102,8 @@ def test_book_reads_only_and_declares_its_outputs():
     assert 'OUT_KEY = os.environ.get("OUT_KEY", "data/13f-book.json")' in text and "put_json(s3, OUT_KEY, out)" in text
     mod = load_engine()
     outputs = {o for e in mod.ENGINES for o in e["outputs"]}
-    assert mod.CONTRACT == "13f-book.v2" and "data/13f-book.json" in outputs and "data/13f-security-master.json" in outputs
+    assert mod.CONTRACT == "13f-book.v2" and "data/13f-book.json" in outputs and "data/13f-security-master.json" in outputs and "data/13f-tickers.json" in outputs
+    assert 'TICKERS_KEY = os.environ.get("TICKERS_KEY", "data/13f-tickers.json")' in text and "put_json(s3, TICKERS_KEY, tbl" in text, "the per-ticker table is written every run"
     # the security master is keyed through aws/shared/openfigi (SSM) - no key literal, no urllib of its own
     assert "import openfigi" in text and "openfigi.get_api_key()" in text and "X-OPENFIGI-APIKEY" not in text and "urllib" not in text
 

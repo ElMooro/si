@@ -63,7 +63,7 @@ import chain_guard  # the fleet-wide trigger cap: every engine start is admitted
 import openfigi     # aws/shared: keyed OpenFIGI v3 client (SSM /justhodl/openfigi/api-key), fail-soft
 import fmp_bank     # aws/shared: the FMP warehouse reader (banked etf/info rows carry FMP's own assetClass) - S3 only
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 CONTRACT = "13f-book.v2"
 ENGINE = "justhodl-13f-book"
 SCHEME = "v2"   # security-master query scheme: identifier typed by shape (CUSIP / CINS), US pass, any-exchange pass, ISIN pass
@@ -75,6 +75,7 @@ LEARNED_KEY = os.environ.get("LEARNED_KEY", "data/13f-etf-classes-learned.json")
 SECTOR_TOP = int(os.environ.get("SECTOR_TOP", "8"))        # names shown per sector / industry row
 INDUSTRY_ROWS = int(os.environ.get("INDUSTRY_ROWS", "80"))  # industries kept per scope (by reported value)
 PERIODS_PREFIX = os.environ.get("PERIODS_PREFIX", "data/13f-book/periods/")
+TICKERS_KEY = os.environ.get("TICKERS_KEY", "data/13f-tickers.json")   # the cohort's read per ticker, for any page that looks a name up
 DESK_KEY = "data/13f-desk.json"
 CLONE_KEY = "data/13f-clone-alpha.json"
 DIVERGENCE_KEY = "data/13f-price-divergence.json"
@@ -122,7 +123,7 @@ ENGINES = [
     {"engine": "justhodl-sec-13f", "role": "EDGAR filing detector: latest 13F-HR per tracked manager, new accessions",
      "outputs": ["data/institutional-positions.json"], "schedule": "daily 03:31 UTC (rule justhodl-sec-13f-daily)", "expected_h": 24},
     {"engine": "justhodl-13f-book", "role": "this book: boards, rotation, stance, contenders, security master, season, observability",
-     "outputs": ["data/13f-book.json", "data/13f-security-master.json", "data/13f-etf-classes-learned.json"], "schedule": "daily 16:37 UTC (Scheduler justhodl-13f-book-daily) + after every native research publication (hand-off)", "expected_h": 24},
+     "outputs": ["data/13f-book.json", "data/13f-security-master.json", "data/13f-etf-classes-learned.json", "data/13f-tickers.json"], "schedule": "daily 16:37 UTC (Scheduler justhodl-13f-book-daily) + after every native research publication (hand-off)", "expected_h": 24},
     {"engine": "justhodl-13f-clone-alpha", "role": "clone-alpha: followable skill per manager from ~13 quarters of filings",
      "outputs": ["data/13f-clone-alpha.json"], "schedule": "weekly Monday 08:30 UTC (Scheduler justhodl-13f-clone-alpha-weekly)", "expected_h": 168},
     {"engine": "justhodl-13f-price-divergence", "role": "aggregate 13F position change vs 60-day price return",
@@ -1183,6 +1184,53 @@ def list_periods(s3):
         return [{"error": type(exc).__name__}]
 
 
+TICKER_COLUMNS = ["n_holders", "n_prior_holders", "holder_delta", "value_usd", "value_prior_usd", "inflow_usd", "outflow_usd", "net_usd",
+                  "bull", "bear", "stance", "kind", "bucket", "sector", "industry", "n_identities", "conc_n_holders", "conc_holder_delta"]
+
+
+def tickers_table(agg_cohort, agg_conc, required, cohort_keys, conc_keys, now):
+    """The cohort's read of every resolved ticker, one row per ticker (share classes of one issuer that resolve to the
+    same ticker are folded: holders are the union of managers, dollars are summed, votes are summed). Pure.
+    Columns: holders now / prior / delta, reported value now / prior, inflow / outflow / net at reported prices
+    (the book's definition: new value + units added x current reported price; absent prior value + units removed x
+    current reported price), bull / bear manager votes and the stance they give, kind / bucket / sector / industry,
+    the number of identities folded, and the concentrated scope's holders and delta. A reported position is not a
+    trade: 'more' is more units reported, 'newly disclosed' is not 'bought'."""
+    rows = {}
+    for p, a in (agg_cohort or {}).items():
+        c = a["cls"]
+        t = c.get("ticker")
+        if not t or not (a["holders"] or a["prior_holders"]) or a.get("reclass_candidate"):
+            continue
+        r = rows.setdefault(t, {"holders": set(), "prior": set(), "value": Decimal(0), "value_prior": Decimal(0), "inflow": Decimal(0), "outflow": Decimal(0),
+                                "bull": set(), "bear": set(), "kind": c.get("kind"), "bucket": c.get("bucket"), "sector": c.get("sector"), "industry": c.get("industry"),
+                                "n": 0, "conc": set(), "conc_prior": set()})
+        r["holders"].update(a["holders"])
+        r["prior"].update(a["prior_holders"])
+        r["value"] += a["value_usd"]
+        r["value_prior"] += a["value_prior_usd"]
+        r["inflow"] += a["inflow_usd"]
+        r["outflow"] += a["outflow_usd"]
+        r["bull"].update(a["new"] + a["inc"])
+        r["bear"].update(a["absent"] + a["dec"])
+        r["n"] += 1
+        ac = (agg_conc or {}).get(p)
+        if ac:
+            r["conc"].update(ac["holders"])
+            r["conc_prior"].update(ac["prior_holders"])
+    by_ticker = {}
+    for t, r in rows.items():
+        bull, bear = len(r["bull"]), len(r["bear"])
+        by_ticker[t] = [len(r["holders"]), len(r["prior"]), len(r["holders"]) - len(r["prior"]), f(r["value"]), f(r["value_prior"]), f(r["inflow"]), f(r["outflow"]),
+                        f(r["inflow"] - r["outflow"]), bull, bear, stance_of(bull, bear), r["kind"], r["bucket"], r["sector"], r["industry"], r["n"],
+                        len(r["conc"]), len(r["conc"]) - len(r["conc_prior"])]
+    return {"contract": "13f-tickers.v1", "engine": ENGINE, "version": VERSION, "period": required, "generated_at": now.isoformat(timespec="seconds"),
+            "n_cohort": len(cohort_keys or []), "n_concentrated": len(conc_keys or []), "n_tickers": len(by_ticker), "columns": TICKER_COLUMNS,
+            "note": "One row per resolved ticker across the cohort's two dated 13F-HR disclosures. Counts are managers; dollars are at reported prices. "
+                    "Newly disclosed is not bought, absent is not sold; no trades or flows are inferred.",
+            "by_ticker": by_ticker}
+
+
 def period_snapshot(required, cohort_keys, agg, now):
     """Compact per-period record of the cohort's identities (for traction across quarters). Pure."""
     by_id = {}
@@ -1342,11 +1390,13 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
     cohort_total = sum((managers[fk]["total_value_usd"] or 0) for fk in cohort_keys)
     hedge = [fk for fk in cohort_keys if managers[fk]["n_option_rows"] >= HEDGE_OPTION_ROWS]
     scopes = {}
-    agg_cohort = None
+    agg_cohort = agg_conc = None
     for name, mems in (("cohort", members), ("concentrated", members_conc)):
         agg = aggregate(mems, classer)
         if name == "cohort":
             agg_cohort = agg
+        else:
+            agg_conc = agg
         scopes[name] = {
             "members": [m["fk"] for m in mems], "n_identities": len(agg),
             "boards": {u: boards_from(agg, u, skill) for u in ("all", "stocks", "etfs")},
@@ -1398,6 +1448,15 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
         else:
             snapshot = {"key": snap_key, "written": False, "reason": "unchanged"}
 
+    # 6. the per-ticker table (every run; the strength desk and any page that looks a name up read it)
+    tickers = {"key": TICKERS_KEY, "written": False, "n_tickers": 0, "bytes": None, "error": None}
+    if agg_cohort is not None and cohort_keys:
+        try:
+            tbl = tickers_table(agg_cohort, agg_conc, required, cohort_keys, conc_keys, now)
+            tickers.update(written=True, n_tickers=tbl["n_tickers"], bytes=put_json(s3, TICKERS_KEY, tbl, cache="max-age=600"))
+        except Exception as exc:  # noqa: BLE001
+            tickers["error"] = "%s: %s" % (type(exc).__name__, str(exc)[:120])
+
     book = {
         "required_period": required, "cohort": cohort_keys, "concentrated": conc_keys, "concentrated_max_positions": CONCENTRATED_MAX,
         "hedge_books": hedge, "hedge_books_equity_value_usd": sum((managers[fk]["total_value_usd"] or 0) for fk in hedge),
@@ -1413,6 +1472,7 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
                             "bytes": master_bytes, "error": master_err, "n_rows": len(rows), "coverage": coverage, "refresh": refresh, "recheck_days": RECHECK_DAYS},
         "review": review,
         "history": {"prefix": PERIODS_PREFIX, "periods": list_periods(s3), "snapshot": snapshot},
+        "tickers": tickers,
         "options_overlay": sorted([{"fund_key": fk, "display_name": m["display_name"], "n_option_rows": m["n_option_rows"], "put_value_usd": m["put_value_usd"],
                                     "call_value_usd": m["call_value_usd"], "equity_value_usd": m["total_value_usd"],
                                     "put_share": f(round(100 * dec(m["put_value_usd"]) / (dec(m["put_value_usd"]) + dec(m["call_value_usd"])), 1)) if (m["put_value_usd"] or m["call_value_usd"]) else None,

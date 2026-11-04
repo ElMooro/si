@@ -379,7 +379,7 @@ def test_classer_and_universes():
 
 def test_build_boards_rotation_stance_contenders_snapshot():
     s3, out = built()
-    assert out["contract"] == "13f-book.v2" and out["version"] == "1.2.0" and out["book"]["required_period"] == "2026-06-30"
+    assert out["contract"] == "13f-book.v2" and out["version"] == "1.3.0" and out["book"]["required_period"] == "2026-06-30"
     b = out["book"]
     m = b["managers"]
     assert set(m) == {"ELLIOTT", "BERKSHIRE", "PERSHING"}
@@ -467,6 +467,18 @@ def test_build_boards_rotation_stance_contenders_snapshot():
     assert snap["contract"] == "13f-book-period.v1" and snap["cohort"] == ["BERKSHIRE", "ELLIOTT"] and snap["n_identities"] == 15
     assert snap["by_identity"]["a"] == ["AAPL", "stock", "equities", 2, 36000.0, 2, "037833100"] and snap["by_identity"]["x"][3] == 0 and snap["by_identity"]["x"][5] == 2 and snap["by_identity"]["xyz"][2] == "equities"
     assert b["history"]["periods"][0]["period"] == "2026-06-30"
+    # the per-ticker table: one row per resolved ticker, cohort scope, written every run
+    tk = b["tickers"]
+    assert tk["written"] is True and tk["key"] == "data/13f-tickers.json" and tk["error"] is None and tk["n_tickers"] == tk["n_tickers"] and tk["n_tickers"] >= 10
+    tbl = json.loads(s3.store["data/13f-tickers.json"])
+    assert tbl["contract"] == "13f-tickers.v1" and tbl["period"] == "2026-06-30" and tbl["columns"] == lf.TICKER_COLUMNS and tbl["n_cohort"] == 2 and tbl["n_concentrated"] == 2
+    row = dict(zip(tbl["columns"], tbl["by_ticker"]["AAPL"]))
+    assert row["n_holders"] == 2 and row["n_prior_holders"] == 2 and row["holder_delta"] == 0 and row["value_usd"] == 36000.0 and row["kind"] == "stock" and row["bucket"] == "equities"
+    assert row["sector"] == "Technology" and row["industry"] == "Consumer Electronics" and row["n_identities"] == 1 and row["conc_n_holders"] == 2
+    assert row["stance"] == lf.stance_of(row["bull"], row["bear"]) and row["net_usd"] == round(row["inflow_usd"] - row["outflow_usd"], 2)
+    spy = dict(zip(tbl["columns"], tbl["by_ticker"]["SPY"]))
+    assert spy["kind"] == "fund" and spy["bull"] >= 1 and spy["stance"] in ("ACCUMULATING", "CONTESTED")
+    assert all(len(v) == len(lf.TICKER_COLUMNS) for v in tbl["by_ticker"].values()) and "" not in tbl["by_ticker"] and None not in tbl["by_ticker"]
     # the rest of the book is unchanged
     assert b["cohort_equity_value_usd"] == 37180.0 + 23100.0
     assert m["ELLIOTT"]["clone"]["skill_score"] == 77 and out["clone_alpha"]["ranked"][0]["fund_key"] == "ELLIOTT"
@@ -570,12 +582,12 @@ def test_handler():
     res = lf.lambda_handler({}, None)
     assert res["statusCode"] == 200 and res["master_resolved"] == 15 and res["master_identities"] == 16
     keys = [p["Key"] for p in s3.puts]
-    assert keys == ["data/13f-security-master.json", "data/13f-security-master.json", "data/13f-etf-classes-learned.json", "data/13f-book/periods/2026-06-30.json", "data/13f-book.json"]   # the master twice on first light: OpenFIGI pass, then the FMP CUSIP bridge
+    assert keys == ["data/13f-security-master.json", "data/13f-security-master.json", "data/13f-etf-classes-learned.json", "data/13f-book/periods/2026-06-30.json", "data/13f-tickers.json", "data/13f-book.json"]   # the master twice on first light: OpenFIGI pass, then the FMP CUSIP bridge
     book_put = s3.puts[-1]
     assert book_put["CacheControl"] == "max-age=300" and BEGUN and BEGUN[-1] == {} and json.loads(book_put["Body"])["trigger"] == {"kind": "scheduled", "source_generated_at": None}
     lf.lambda_handler({"trigger": "holdings_research_published", "source_generated_at": "2026-11-03T15:41:16+00:00"}, SimpleNamespace(get_remaining_time_in_millis=lambda: 299000))
     assert json.loads(s3.puts[-1]["Body"])["trigger"] == {"kind": "holdings_research_published", "source_generated_at": "2026-11-03T15:41:16+00:00"}
-    assert [p["Key"] for p in s3.puts[5:]] == ["data/13f-book.json"]   # second run: master, learned classes and snapshot unchanged, only the book rewritten
+    assert [p["Key"] for p in s3.puts[6:]] == ["data/13f-tickers.json", "data/13f-book.json"]   # second run: master, learned classes and snapshot unchanged; the ticker table and the book rewritten
 
 
 if __name__ == "__main__":

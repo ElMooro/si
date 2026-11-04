@@ -1,0 +1,23 @@
+{
+  "runtime": "python3.12",
+  "memory": 2048,
+  "timeout": 300,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Relative strength vs the S&P 500 (1d-1y excess return, RS trend / consistency / information ratio, 52-week context) and the long-accumulation tight-spread detector for the strength desk, the ETF desk, the S&P 500 and the 13F most-held stocks, from the Polygon EOD bank, the native ETF desk's fund flows and the 13F per-ticker table into data/strength.json; reads S3 only.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "OUT_KEY": "data/strength.json",
+    "LOOKBACK_SESSIONS": "520",
+    "MAX_UNIVERSE": "900",
+    "F13_TOP": "300",
+    "BOARD_ROWS": "40"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-strength-daily",
+    "cron": "cron(40 3 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Strength desk, daily 03:40 UTC (after the Polygon EOD bank folds the last session at 03:10; the ETF desk 23:05 and the 13F book 16:37 of the previous day are current)"
+  }
+}

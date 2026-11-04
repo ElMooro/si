@@ -1,0 +1,336 @@
+"""justhodl-strength offline tests: an in-memory S3 holding a small Polygon EOD bank (gzip JSON per ticker, the bank's own
+row layout), a native ETF desk packet, a canonical flow packet, the 13F per-ticker table and the bank manifest; FMP's
+profile bulk and the S&P 500 walker list faked. The math (horizons, RS metrics, base lengths, coil score, posture,
+pattern, ranks), the flow / 13F joins, the universe assembly, the boards and the full build() + handler are checked.
+No network, no AWS.
+
+Run: python3 aws/lambdas/justhodl-strength/tests/run_tests.py
+"""
+from datetime import date, datetime, timedelta, timezone
+from types import SimpleNamespace
+import gzip
+import importlib.util
+import io
+import json
+import math
+import os
+import random
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+SRC = os.path.join(HERE, "..", "source")
+SHARED = os.path.join(HERE, "..", "..", "..", "shared")
+sys.path[:0] = [SRC]
+BEGUN = []
+sys.modules["chain_guard"] = SimpleNamespace(begin=lambda event, context=None: BEGUN.append(event) or 0)
+for name in ("boto3", "botocore", "botocore.config"):
+    if name not in sys.modules:
+        try:
+            __import__(name)
+        except ImportError:
+            sys.modules[name] = SimpleNamespace(client=lambda *a, **k: None, Config=lambda **k: None)
+_spec = importlib.util.spec_from_file_location("polygon_bankfirst", os.path.join(SHARED, "polygon_bankfirst.py"))
+pb = importlib.util.module_from_spec(_spec)
+sys.modules["polygon_bankfirst"] = pb
+_spec.loader.exec_module(pb)
+sys.modules["etf_desk_catalog"] = SimpleNamespace(DESK=("SPY", "QQQ", "GLD", "TLT", "XLE"))
+PROFILES = [
+    {"symbol": "AAPL", "companyName": "Apple Inc.", "sector": "Technology", "industry": "Consumer Electronics", "isEtf": "false", "exchangeShortName": "NASDAQ"},
+    {"symbol": "NVDA", "companyName": "NVIDIA Corporation", "sector": "Technology", "industry": "Semiconductors", "isEtf": "false", "exchangeShortName": "NASDAQ"},
+    {"symbol": "COIL", "companyName": "Coil Industries", "sector": "Industrials", "industry": "Specialty Industrial Machinery", "isEtf": "false", "exchangeShortName": "NYSE"},
+    {"symbol": "LAGG", "companyName": "Laggard Corp", "sector": "Consumer Cyclical", "industry": "Apparel Retail", "isEtf": "false", "exchangeShortName": "NYSE"},
+    {"symbol": "QQQ", "companyName": "Invesco QQQ Trust", "sector": "", "industry": "", "isEtf": "true", "exchangeShortName": "NASDAQ"},
+    {"symbol": "GLD", "companyName": "SPDR Gold Shares", "sector": "", "industry": "", "isEtf": "true", "exchangeShortName": "NYSEARCA"},
+    {"symbol": "NEWB", "companyName": "New Listing Inc", "sector": "Technology", "industry": "Software - Application", "isEtf": "false", "exchangeShortName": "NASDAQ"},
+]
+SP500 = [{"symbol": "AAPL", "name": "Apple Inc."}, {"symbol": "NVDA", "name": "NVIDIA"}, {"symbol": "COIL", "name": "Coil Industries"}, {"symbol": "LAGG", "name": "Laggard Corp"},
+         {"symbol": "BRK.B", "name": "Berkshire Hathaway"}, {"symbol": "NEWB", "name": "New Listing Inc"}]
+sys.modules["fmp_bank"] = SimpleNamespace(walker=lambda dataset, entity=None, **kw: [dict(r) for r in SP500] if dataset == "sp500-constituent" else None,
+                                          snapshot=lambda path, symbol=None: [dict(r) for r in PROFILES] if path == "profile" and symbol is None else None)
+
+import lambda_function as lf  # noqa: E402
+
+NOW = datetime(2026, 11, 4, 3, 40, tzinfo=timezone.utc)
+START = date(2024, 10, 1)
+
+
+class NoSuchKey(Exception):
+    pass
+
+
+class S3Stub:
+    def __init__(self):
+        self.store, self.puts = {}, []
+
+    def put(self, key, doc):
+        body = json.dumps(doc).encode()
+        self.store[key] = gzip.compress(body) if key.endswith(".gz") else body
+
+    def get_object(self, Bucket, Key):
+        if Key not in self.store:
+            raise NoSuchKey("NoSuchKey: " + Key)
+        return {"Body": io.BytesIO(self.store[Key]), "LastModified": datetime(2026, 11, 4, 3, 13, tzinfo=timezone.utc), "ContentLength": len(self.store[Key])}
+
+    def head_object(self, Bucket, Key):
+        if Key not in self.store:
+            raise NoSuchKey("NoSuchKey: " + Key)
+        return {"ContentLength": len(self.store[Key]), "LastModified": datetime(2026, 11, 4, 3, 13, tzinfo=timezone.utc)}
+
+    def put_object(self, **kw):
+        self.puts.append(kw)
+        self.store[kw["Key"]] = kw["Body"]
+
+
+def sessions(n):
+    out, d = [], START
+    while len(out) < n:
+        if d.weekday() < 5:
+            out.append(d)
+        d += timedelta(days=1)
+    return out
+
+
+DATES = sessions(300)
+
+
+def series(kind, n=300, seed=1):
+    """Synthetic daily closes: 'bench' a steady 0.04%/day drift with noise; 'leader' bench + 0.12%/day; 'laggard' bench - 0.10%/day;
+    'coil' a 150-session uptrend then 150 sessions flat inside a 4% band with shrinking volume; 'newb' 30 sessions."""
+    rnd = random.Random(seed)
+    px, out = 100.0, []
+    for i in range(n):
+        if kind == "bench":
+            r = 0.0004 + rnd.gauss(0, 0.003)
+        elif kind == "leader":
+            r = 0.0060 + rnd.gauss(0, 0.003)
+        elif kind == "laggard":
+            r = -0.0020 + rnd.gauss(0, 0.003)
+        elif kind == "coil":
+            r = 0.003 + rnd.gauss(0, 0.004) if i < 150 else 0.0
+        else:
+            r = rnd.gauss(0, 0.01)
+        px *= (1 + r)
+        if kind == "coil" and i >= 150:
+            px = 200.0 * (1 + 0.012 * math.sin(i / 3.0))   # +-1.2% around 200: a very tight base
+        out.append(px)
+    return out
+
+
+def bank_rows(closes, vol_profile=None):
+    rows = []
+    for i, (d, c) in enumerate(zip(DATES[-len(closes):], closes)):
+        t = int(datetime(d.year, d.month, d.day, 5, tzinfo=timezone.utc).timestamp() * 1000)
+        v = vol_profile(i) if vol_profile else 1_000_000.0
+        rows.append([t, c * 0.998, c * 1.006, c * 0.994, c, v, c, 1000])
+    return rows
+
+
+def desk_fund(t, w1, w5, w21, aum=1e10, eligible=True, valid="2026-11-05T00:00:00+00:00", aligned=True, own_end="2026-11-02"):
+    def win(n, usd, end):
+        return {"status": "matched_reporting_window", "requested_observations": n, "start_date": "2026-10-27", "end_date": end, "flow_usd_decimal": str(usd),
+                "end_reported_assets_usd_decimal": str(aum), "flow_to_end_assets_pct_decimal": str(round(usd / aum * 100, 4))}
+    fl = {"ticker": t, "source_valid_until": valid, "latest_effective_date": own_end, "latest_processed_date": own_end, "quality": {"status": "complete_acquired_history"},
+          "latest_observation": {"effective_date": own_end, "reported_assets_usd_decimal": str(aum)},
+          "latest_windows": {"1": win(1, w1, own_end), "5": win(5, w5, own_end), "21": win(21, w21, own_end)},
+          "aligned_windows": {k: (win(int(k), v, "2026-11-02") if aligned else {"status": "incomplete", "reasons": ["missing_reference_observations"]}) for k, v in (("1", w1), ("5", w5), ("21", w21))}}
+    return {"ticker": t, "flows": fl, "quality": {"flow_current_eligible": eligible}, "profiles": {"current": {"summary": {"text": {"description": {"value": t + " fund"}}}}}}
+
+
+def seed():
+    s3 = S3Stub()
+    bench = series("bench")
+    s3.put(pb.MANIFEST, {"last_session": DATES[-1].isoformat(), "updated_at": "2026-11-04T03:13:33+00:00", "tickers": 21088, "first_session": "2021-08-26"})
+    s3.put(lf.bank_key("SPY"), {"rows": bank_rows(bench)})
+    s3.put(lf.bank_key("NVDA"), {"rows": bank_rows(series("leader", seed=2))})
+    s3.put(lf.bank_key("AAPL"), {"rows": bank_rows(series("bench", seed=3))})
+    s3.put(lf.bank_key("LAGG"), {"rows": bank_rows(series("laggard", seed=4))})
+    s3.put(lf.bank_key("COIL"), {"rows": bank_rows(series("coil", seed=5), vol_profile=lambda i: 2_000_000.0 if i < 280 else 900_000.0)})
+    s3.put(lf.bank_key("QQQ"), {"rows": bank_rows(series("leader", seed=6))})
+    s3.put(lf.bank_key("GLD"), {"rows": bank_rows(series("bench", seed=7))})
+    s3.put(lf.bank_key("NEWB"), {"rows": bank_rows(series("newb", n=30, seed=8))})
+    s3.put(lf.bank_key("BRK.B"), {"rows": bank_rows(series("bench", seed=9))})
+    # TLT, XLE: configured desk funds with no bank file (unbanked) ; SIVR unbanked too
+    s3.put(lf.DESK_KEY, {"contract": "etf-desk-original-research.v1", "generated_at": "2026-11-03T23:06:42+00:00", "reference": {"end_date": "2026-11-02"},
+                         "funds": {"SPY": desk_fund("SPY", 5e9, 2e9, 1.5e9), "QQQ": desk_fund("QQQ", 2.4e8, 5.7e9, 3.9e9, aligned=False, own_end="2026-10-30"),
+                                   "GLD": desk_fund("GLD", -1.4e8, -3.2e7, -1.9e9), "TLT": desk_fund("TLT", 8e8, 1.2e9, -1.4e9, eligible=False),
+                                   "XLE": desk_fund("XLE", 0, 0, 0, valid="2026-11-03T00:00:00+00:00")}})
+    s3.put(lf.CANON_KEY, {"contract": "provider-fund-flow-research.v1", "generated_at": "2026-11-03T22:01:03+00:00", "reference": {"end_date": "2026-11-02"},
+                          "funds": {"SIVR": desk_fund("SIVR", 1e6, 5e6, 2e7)["flows"], "IBIT": desk_fund("IBIT", 1e8, 4e8, 9e8)["flows"]}})
+    s3.put(lf.TICKERS_KEY, {"contract": "13f-tickers.v1", "period": "2026-06-30", "generated_at": "2026-11-04T16:37:00+00:00", "n_tickers": 4, "columns": lf.F13_COLUMNS,
+                            "by_ticker": {"NVDA": [40, 36, 4, 1.2e11, 1.0e11, 9e9, 2e9, 7e9, 22, 6, "ACCUMULATING", "stock", "equities", "Technology", "Semiconductors", 1, 20, 2],
+                                          "AAPL": [38, 39, -1, 9e10, 9.5e10, 1e9, 4e9, -3e9, 8, 17, "DISTRIBUTING", "stock", "equities", "Technology", "Consumer Electronics", 1, 18, -1],
+                                          "COIL": [5, 3, 2, 2e9, 1.5e9, 6e8, 1e8, 5e8, 4, 1, "ACCUMULATING", "stock", "equities", "Industrials", "Specialty Industrial Machinery", 1, 2, 1],
+                                          "SPY": [12, 12, 0, 3e10, 2.9e10, 1e9, 1e9, 0, 3, 3, "CONTESTED", "fund", "equities", None, None, 1, 4, 0]}})
+    return s3
+
+
+def built(**kw):
+    s3 = seed()
+    return s3, lf.build(s3, NOW, log=lambda *a: None, **kw)
+
+
+def test_math_horizons_rs_and_base_lengths():
+    c = [100.0 * (1.01 ** i) for i in range(300)]
+    h = lf.horizons(c)
+    assert h["d"] == 1.0 and h["w"] == round((1.01 ** 5 - 1) * 100, 2) and h["y"] == round((1.01 ** 252 - 1) * 100, 2)
+    assert lf.horizons([100.0])["d"] is None
+    s = [100.0] * 300
+    rs = lf.rs_metrics(c, s)
+    assert rs["rs_trend_63"] is not None and rs["rs_trend_63"] > 200 and rs["rs_consistency_63"] == 100.0 and rs["rs_new_high"] is True and rs["rs_52w_pos"] == 100.0
+    assert rs["ir_63"] is None and rs["vol_63"] in (None, 0.0)   # a constant log-return has no tracking volatility: no ratio is invented
+    flat = [200.0 + (i % 2) * 2.0 for i in range(300)]          # closes 200 / 202: range 1% forever
+    found, ranges = lf.base_lengths(flat)
+    assert found[6.0] == 260 and found[10.0] == 260 and found[15.0] == 260 and ranges[6.0] < 1.1
+    trend = [100.0 * (1.003 ** i) for i in range(300)]          # 0.3%/day, range measured off the last close: 6% ~ 21 sessions, 10% ~ 36, 15% ~ 55
+    found, _ = lf.base_lengths(trend)
+    assert found == {6.0: 21, 10.0: 36, 15.0: 55}
+    assert lf.length_points(19) == 0 and lf.length_points(20) == 10.0 and lf.length_points(250) == 35.0 and 20 < lf.length_points(60) < 22
+    assert lf.tight_points(3.9) == 30 and lf.tight_points(6.0) == 25 and lf.tight_points(15.0) == 7 and lf.tight_points(15.1) == 0
+    assert lf.tier_of({6.0: 40, 10.0: 60, 15.0: 200}) == ("VERY TIGHT", 6.0) and lf.tier_of({6.0: 39, 10.0: 40, 15.0: 50}) == ("TIGHT", 10.0)
+    assert lf.tier_of({6.0: 10, 10.0: 25, 15.0: 130}) == ("LONG BASE", 15.0) and lf.tier_of({6.0: 10, 10.0: 25, 15.0: 60}) == ("FORMING", 10.0) and lf.tier_of({6.0: 5, 10.0: 19, 15.0: 60}) == (None, None)
+    assert lf.percentile_of(5, [1, 2, 3, 4, 5, 6]) == 75.0 and lf.percentile_of(None, [1]) is None
+    assert lf.composite({"d": 1.0, "w": 2.0, "m": 3.0, "q": 4.0, "h": 5.0}) == 3.15 and lf.composite({"d": None, "w": None, "m": None, "q": None, "h": None}) is None
+
+
+def test_posture_and_pattern():
+    assert lf.posture(0.5, -1.0)["code"] == "BID" and lf.posture(-0.1, -1.0)["code"] == "FLAT" and lf.posture(-0.3, -1.0)["code"] == "HOLD"
+    assert lf.posture(0.2, -0.3)["code"] == "BID" and lf.posture(-0.1, -0.3)["code"] == "HOLD" and lf.posture(1.0, 0.2)["code"] == "LEAD"
+    assert lf.posture(-0.5, 0.2)["code"] == "LAG" and lf.posture(0.3, 0.2)["code"] == "INLINE" and lf.posture(None, 0.2)["code"] == "NA"
+    flat = [{"c": 100.0 + (i % 2) * 0.5, "h": 100.8, "l": 99.8, "v": 1} for i in range(60)]
+    assert lf.pattern(flat) == "COIL"
+    up = [{"c": 100.0 * 1.01 ** i, "h": 100.0 * 1.01 ** i * 1.004, "l": 100.0 * 1.01 ** i * 0.996, "v": 1} for i in range(60)]
+    up[-1]["h"] = up[-1]["c"]                                   # closing on the 20-session high
+    assert lf.pattern(up) == "BREAKOUT" and lf.pattern(up[:30]) is None
+    down = [{"c": 100.0 * 0.99 ** i, "h": 100.0 * 0.99 ** i * 1.004, "l": 100.0 * 0.99 ** i * 0.996, "v": 1} for i in range(60)]
+    down[-1]["l"] = down[-1]["c"]                               # closing on the 20-session low
+    assert lf.pattern(down) == "BREAKDOWN"
+
+
+def test_coil_detector_on_a_long_tight_base():
+    closes = series("coil", seed=5)
+    bars = [dict(zip(["t", "o", "h", "l", "c", "v", "vw", "n"], r)) for r in bank_rows(closes, vol_profile=lambda i: 2_000_000.0 if i < 280 else 900_000.0)]
+    bench = series("bench")
+    out = lf.coil(bars, closes, bench, rs_trend=1.0)
+    assert out["tier"] == "VERY TIGHT" and out["base_len"] >= 120 and out["base_range_pct"] is not None and out["base_range_pct"] <= 2.6
+    assert out["len_6"] >= 120 and out["len_15"] >= out["len_10"] >= out["len_6"] and out["wick_range_pct"] > out["base_range_pct"]
+    assert out["vol_dry"] is not None and out["vol_dry"] < 0.6 and out["points"]["dry_up"] == 8.0 and out["points"]["tightness"] == 30.0
+    assert out["score"] is not None and out["score"] >= 70 and out["bb_width_pctile_252"] is not None and out["pos_in_base"] is not None
+    assert out["atr14_pct"] is not None and 0 < out["atr14_pct"] < 3
+    # a strong uptrend has no base at all
+    trend = [dict(zip(["t", "o", "h", "l", "c", "v", "vw", "n"], r)) for r in bank_rows([100.0 * 1.01 ** i for i in range(300)])]
+    none = lf.coil(trend, [b["c"] for b in trend], bench, rs_trend=50.0)
+    assert none["tier"] is None and none["base_len"] == 0 and none["score"] is None and none["len_15"] < 20
+    short = lf.coil(trend[:15], [b["c"] for b in trend[:15]], bench[:15], None)
+    assert short["tier"] is None and short["atr14_pct"] is None
+
+
+def test_flows_desk_and_canonical():
+    s3 = seed()
+    desk = json.loads(s3.store[lf.DESK_KEY])
+    flows, names = lf.flows_from_desk(desk, NOW.isoformat())
+    assert names["QQQ"] == "QQQ fund"
+    spy = flows["SPY"]
+    assert spy["current"] is True and spy["w1"]["usd"] == 5e9 and spy["w5"]["usd"] == 2e9 and spy["w21"]["pct_aum"] == 15.0 and spy["aligned"] == {"1": True, "5": True, "21": True}
+    assert spy["effective"] == "2026-11-02" and spy["aum_usd"] == 1e10 and spy["source"] == "etf-desk" and spy["reference_end"] == "2026-11-02"
+    qqq = flows["QQQ"]                                   # own windows matched although the SPY-aligned ones are not
+    assert qqq["current"] is True and qqq["w5"]["usd"] == 5.7e9 and qqq["w5"]["end"] == "2026-10-30" and qqq["aligned"] == {"1": False, "5": False, "21": False}
+    assert flows["TLT"]["current"] is False and flows["TLT"]["w5"] is None       # not eligible
+    assert flows["XLE"]["current"] is False and flows["XLE"]["w1"] is None       # validity passed
+    canon = lf.flows_from_canonical(json.loads(s3.store[lf.CANON_KEY]), NOW.isoformat())
+    assert canon["IBIT"]["source"] == "provider-flow-research" and canon["IBIT"]["current"] is True and canon["IBIT"]["w21"]["usd"] == 9e8
+    assert lf.window_of({"status": "incomplete"}) is None and lf.window_of(None) is None
+
+
+def test_universe_assembly_and_ranks():
+    f13 = lf.f13_rows(json.loads(seed().store[lf.TICKERS_KEY]))
+    assert f13["NVDA"]["stance"] == "ACCUMULATING" and f13["NVDA"]["n_holders"] == 40 and f13["AAPL"]["holder_delta"] == -1 and f13["SPY"]["kind"] == "fund"
+    u = lf.universe(["SPY", "QQQ", "GLD", "TLT", "XLE"], SP500, f13, {"QQQ": "QQQ fund"})
+    assert u["QQQ"]["scopes"] == ["desk", "etf-desk"] and u["QQQ"]["name"] == "Nasdaq 100" and u["QQQ"]["sleeve"] == "ETF"
+    assert u["GLD"]["sleeve"] == "ETF" and set(u["GLD"]["scopes"]) == {"desk", "etf-desk"}
+    assert u["COIL"]["scopes"] == ["sp500", "13f"] and u["COIL"]["sleeve"] == "STOCK" and u["BRK.B"]["scopes"] == ["sp500"]
+    assert u["NVDA"]["scopes"] == ["desk", "sp500", "13f"] and "SPY" in u and u["SPY"]["scopes"] == ["etf-desk"]
+    assert u["AAPL"]["name"] == "Apple" and len(u) == 51 + 5   # 51 distinct desk names (GLD sits in ETF and METAL) + SPY, COIL, LAGG, BRK.B, NEWB
+    rows = [{"ticker": t, "vs": ({"d": d, "w": d * 2, "m": d * 3, "q": d * 4, "h": d * 5} if d is not None else None)} for t, d in (("A", 1.0), ("B", 2.0), ("C", 3.0), ("D", -1.0), ("E", None))]
+    stats = lf.rank_rows(rows)
+    by = {r["ticker"]: r for r in rows}
+    assert by["C"]["strength"] == 87.5 and by["D"]["strength"] == 12.5 and by["E"]["strength"] is None and by["E"]["z"] is None and stats["d"]["mean"] == 1.25
+
+
+def test_build_rows_boards_flows_and_13f():
+    s3, out = built()
+    assert out["contract"] == "strength.v1" and out["version"] == "1.0.0" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
+    assert out["benchmark"]["sessions"] == 300 and out["benchmark"]["h"]["q"] is not None and out["universe"]["n"] == 56
+    by = {r["ticker"]: r for r in out["rows"]}
+    # unbanked desk names carry no row; the bank manifest's last session is the as-of
+    assert "TLT" in out["universe"]["unbanked"] and "XLE" in out["universe"]["unbanked"] and "SIVR" in out["universe"]["unbanked"] and "TLT" not in by
+    assert set(by) == {"NVDA", "AAPL", "LAGG", "COIL", "QQQ", "GLD", "NEWB", "BRK.B"} and out["universe"]["n_rows"] == 8
+    # strength ranks: the leader above the benchmark-like names above the laggard; the 30-session listing is unranked
+    assert by["NVDA"]["strength"] > by["AAPL"]["strength"] > by["LAGG"]["strength"] and by["NEWB"]["strength"] is None and by["NEWB"]["vs"] is None and by["NEWB"]["sessions"] == 30
+    assert by["NVDA"]["vs"]["q"] > 0 and by["LAGG"]["vs"]["q"] < 0 and by["NVDA"]["composite_pp"] > 0 and by["NVDA"]["rs_trend_63"] > 0 and by["NVDA"]["rs_consistency_63"] > 50
+    assert by["NVDA"]["ir_63"] is not None and by["NVDA"]["vol_63"] is not None and by["NVDA"]["pos_52w"] is not None and by["NVDA"]["above_200"] is True
+    assert by["NVDA"]["posture"]["code"] in ("LEAD", "LAG", "INLINE", "BID", "HOLD", "FLAT") and by["NVDA"]["pattern"] is not None
+    assert by["NVDA"]["name"] == "NVIDIA" and by["NVDA"]["sector"] == "Technology" and by["NVDA"]["industry"] == "Semiconductors" and by["NVDA"]["kind"] == "stock"
+    assert by["NVDA"]["scopes"] == ["desk", "sp500", "13f"] and by["COIL"]["scopes"] == ["sp500", "13f"] and by["COIL"]["name"] == "Coil Industries"
+    assert out["rows"][0]["strength"] == max(r["strength"] for r in out["rows"] if r["strength"] is not None)
+    # the coil board finds the long tight base first
+    assert out["boards"]["coil"][0]["ticker"] == "COIL" and out["boards"]["coil"][0]["coil"]["tier"] == "VERY TIGHT" and by["COIL"]["coil"]["score"] >= 70
+    assert by["COIL"]["coil"]["base_len"] >= 120 and by["COIL"]["coil"]["rs_hold_base"] is not None and by["COIL"]["f13"]["stance"] == "ACCUMULATING"
+    assert by["NVDA"]["coil"]["tier"] is None
+    # fund flows: the fund's own windows (QQQ matched although the SPY grid was not), stocks carry the 13F read instead
+    assert by["QQQ"]["flow"]["current"] is True and by["QQQ"]["flow"]["w5"]["usd"] == 5.7e9 and by["QQQ"]["flow"]["aligned"]["5"] is False and by["QQQ"]["kind"] == "fund"
+    assert by["GLD"]["flow"]["w21"]["usd"] == -1.9e9 and by["GLD"]["flow"]["w21"]["pct_aum"] == -19.0 and by["GLD"]["f13"] is None
+    assert by["NVDA"]["flow"] is None and by["NVDA"]["f13"]["n_holders"] == 40 and by["NVDA"]["f13"]["net_usd"] == 7e9 and by["AAPL"]["f13"]["stance"] == "DISTRIBUTING"
+    assert by["BRK.B"]["flow"] is None and by["BRK.B"]["f13"] is None and by["BRK.B"]["name"] == "Berkshire Hathaway"
+    fs = out["flows"]
+    assert fs["n_configured"] == 5 and fs["n_current_now"] == 5 and fs["n_in_universe"] == 2 and fs["n_universe_current"] == 2 and fs["n_universe_w5"] == 2 and fs["canonical_funds"] == 2
+    assert out["f13"] == {"period": "2026-06-30", "generated_at": "2026-11-04T16:37:00+00:00", "n_tickers": 4, "last_modified": "2026-11-04T03:13:00+00:00", "n_in_universe": 3}
+    # boards and breadth
+    b = out["boards"]
+    assert b["leaders"][0]["ticker"] in ("NVDA", "QQQ") and b["laggards"][0]["ticker"] == "LAGG" and b["n_ranked"] == 7
+    assert b["breadth"]["universe"]["n"] == 7 and b["breadth"]["universe"]["coiled"] == 5 and b["breadth"]["desk"]["n"] == 4 and "pct_q" in b["breadth"]["desk"]
+    assert [x["ticker"] for x in b["coil"]][:2] == ["COIL", "AAPL"] and b["coil"][-1]["ticker"] == "LAGG" and b["coil"][-1]["coil"]["tier"] == "FORMING"
+    assert all("spark" in by[t] for t in ("NVDA", "AAPL", "QQQ", "GLD", "LAGG")) and "spark" in by["COIL"] and len(by["NVDA"]["spark"]) == 60
+    # sources and observability
+    assert [s["engine"] for s in out["sources"]] == ["justhodl-polygon-eod", "justhodl-etf-global-desk", "justhodl-etf-fund-flows", "justhodl-13f-book"]
+    assert all(s["tier"] == "fresh" for s in out["sources"]) and out["n_errors"] == 0 and out["sleeves"]["METAL"][0] == {"ticker": "GLD", "name": "Gold"}
+    assert out["universe"]["scopes"] == {"desk": 51, "etf-desk": 5, "sp500": 6, "13f": 3}
+
+
+def test_build_without_the_optional_inputs():
+    s3 = seed()
+    for k in (lf.DESK_KEY, lf.CANON_KEY, lf.TICKERS_KEY):
+        del s3.store[k]
+    out = lf.build(s3, NOW, log=lambda *a: None)
+    by = {r["ticker"]: r for r in out["rows"]}
+    assert by["QQQ"]["flow"] is None and by["NVDA"]["f13"] is None and out["n_errors"] == 3 and {e["input"] for e in out["errors"]} == {"etf-desk", "canonical-flows", "13f-tickers"}
+    assert by["QQQ"]["kind"] == "fund" and by["NVDA"]["strength"] is not None and out["flows"]["n_configured"] == 0 and out["f13"]["n_in_universe"] == 0
+    assert out["universe"]["scopes"]["13f"] == 0 and len(out["boards"]["leaders"]) == 7
+
+
+def test_bank_read_and_time_budget():
+    s3 = seed()
+    rows = lf.read_bars(s3, "SPY", sessions=10)
+    assert len(rows) == 10 and rows[-1]["date"] == DATES[-1].isoformat() and set(rows[0]) >= {"date", "o", "h", "l", "c", "v"}
+    assert lf.read_bars(s3, "NOPE") == [] and lf.bank_key("BRK.B").endswith("/BRK.B.json.gz") and lf.bank_key("x y") .endswith("/X_Y.json.gz")
+    out = lf.build(s3, NOW, log=lambda *a: None, remaining_s=0.0)      # budget exhausted: the benchmark is read, the universe is skipped, nothing is guessed
+    assert out["universe"]["n_rows"] == 0 and len(out["universe"]["skipped_for_time"]) >= 50 and out["boards"]["n_ranked"] == 0
+
+
+def test_handler():
+    s3 = seed()
+    lf._s3 = lambda: s3
+    res = lf.lambda_handler({}, SimpleNamespace(get_remaining_time_in_millis=lambda: 299000))
+    assert res["statusCode"] == 200 and res["key"] == "data/strength.json" and res["rows"] == 8 and res["ranked"] == 7 and res["errors"] == 0
+    put = s3.puts[-1]
+    assert put["Key"] == "data/strength.json" and put["CacheControl"] == "max-age=300" and BEGUN and BEGUN[-1] == {}
+    doc = json.loads(put["Body"])
+    assert doc["trigger"] == {"kind": "scheduled"} and doc["contract"] == "strength.v1" and len(doc["rows"]) == 8 and doc["boards"]["coil"][0]["ticker"] == "COIL"
+    assert "api.polygon.io" not in json.dumps(doc)
+
+
+if __name__ == "__main__":
+    for name, fn in sorted(globals().items()):
+        if name.startswith("test_") and callable(fn):
+            fn()
+            print("ok", name)
+    print("justhodl-strength tests: all green")

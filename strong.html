@@ -4,18 +4,47 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Strength vs S&P 500 · JustHodl.AI</title>
-<meta name="description" content="Relative-strength engine versus the S&P 500 — ETFs, stocks, metals, crypto. Surfaces names that dump less, stay flat, or rise while SPX dumps.">
+<meta name="description" content="Relative strength versus the S&P 500 on 1 day to 1 year, RS trend and consistency, the long-accumulation tight-spread detector, reported fund flows and the 13F smart-money read — ETFs, stocks, metals, crypto.">
 <link rel="stylesheet" href="/jh-theme.css">
 <link rel="stylesheet" href="/jh-desk.css">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  .st-sec{margin:0 0 16px}
+  .st-sec h2{font:600 12px/1.3 "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;margin:0 0 6px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .st-sec h2 .m{font-weight:400;opacity:.65;text-transform:none;letter-spacing:0}
+  .st-sub{font-size:12px;opacity:.75;margin:0 0 8px;max-width:1100px}
+  .st-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 8px}
+  .jh-tbl th[data-sort]{cursor:pointer;white-space:nowrap;user-select:none}
+  .jh-tbl th[data-sort][aria-sort="descending"]::after{content:" ▾"}
+  .jh-tbl th[data-sort][aria-sort="ascending"]::after{content:" ▴"}
+  .jh-tbl td.nm{max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .st-tier{display:inline-block;padding:1px 6px;border-radius:3px;font:600 10px/1.6 "IBM Plex Mono",monospace;letter-spacing:.04em;border:1px solid rgba(255,255,255,.18)}
+  .st-tier.VT{background:rgba(38,255,175,.16);border-color:rgba(38,255,175,.5)}
+  .st-tier.T{background:rgba(38,255,175,.08);border-color:rgba(38,255,175,.3)}
+  .st-tier.LB{background:rgba(120,180,255,.12);border-color:rgba(120,180,255,.4)}
+  .st-tier.F{opacity:.8}
+  .st-chip{display:inline-block;padding:0 5px;border-radius:3px;font:500 10px/1.7 "IBM Plex Mono",monospace;border:1px solid rgba(255,255,255,.14);margin-right:4px;white-space:nowrap}
+  .st-chip.up{color:#26ffaf;border-color:rgba(38,255,175,.4)}
+  .st-chip.dn{color:#ff5577;border-color:rgba(255,85,119,.4)}
+  .st-bar{display:inline-block;height:6px;border-radius:3px;background:linear-gradient(90deg,#ff5577,#ffd166 50%,#26ffaf);vertical-align:middle;position:relative;width:60px;opacity:.9}
+  .st-bar i{position:absolute;top:-3px;width:2px;height:12px;background:#fff;margin-left:-1px}
+  .st-small{font-size:11px;opacity:.75}
+  .st-src td{font-size:11px}
+  .st-grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+  .st-grid2 .jh-card{min-width:0}
+  @media (max-width:1100px){.st-grid2{grid-template-columns:minmax(0,1fr)}}
+  .st-flow{white-space:nowrap}
+  .st-flow small{opacity:.7}
+</style>
 </head>
-<body data-research-context="data/etf-desk-research.json">
+<body data-research-context="data/strength.json">
 <header class="jh-ws-header">
   <a class="jh-ws-brand" href="/">JUSTHODL<span>.AI</span></a>
-  <span class="jh-ws-crumb">STRONG ENGINE · relative strength vs S&P 500 · D / W / M / 3M</span>
+  <span class="jh-ws-crumb">STRENGTH DESK · relative strength vs S&P 500 · 1D / 1W / 1M / 3M / 6M / 1Y · long-accumulation tight-spread detector</span>
   <nav class="jh-ws-links">
     <a href="/etf.html">ETF</a>
     <a href="/strong.html" class="on">Strong</a>
+    <a href="/13f.html">13F</a>
     <a href="/bonds.html">Bonds</a>
     <a href="/universe-heatmap.html">Heatmap</a>
     <a href="/chart.html">Chart</a>
@@ -25,92 +54,233 @@
   <div class="jh-hero">
     <div>
       <h1>STRENGTH vs S&P 500</h1>
-      <p>The board is built for the session where the index is under pressure. We keep names that are dumping only a little while SPX dumps hard, that are flat, or that are actually up. Strength on each horizon is asset return minus SPY return. Composite weights 35% day / 30% week / 20% month / 15% three-month.</p>
+      <p>Every figure is excess return against SPY computed from the Polygon EOD bank (five years of daily bars) by the strength engine each morning at 03:40 UTC; the day column and the day posture are overlaid live from the quote. Strength is the universe percentile of the 1D / 1W / 1M / 3M / 6M excess-return z-score (10 / 20 / 30 / 25 / 15). The base board lists the names whose closes have stayed inside a 6% / 10% / 15% band the longest — long accumulation with a tight price spread — with the volume and relative-strength evidence inside the base. Fund flows are the ETF desk's reported creation / redemption observations; the 13F read counts managers. Nothing here is a call.</p>
     </div>
-    <div class="jh-stamp" id="stamp">loading engine…</div>
+    <div class="jh-stamp" id="stamp">loading the strength artifact…</div>
   </div>
-  <div class="jh-kpis" id="kpis"></div>
-  <div data-etf-derived="strong"></div>
-  <div class="jh-card jh-focus" style="margin-bottom:14px">
-    <h3>Focus — holding up while the index is heavy</h3>
-    <div class="jh-tblwrap" style="max-height:320px" id="focus"></div>
-  </div>
-  <div class="jh-chips" id="chips"></div>
-  <div class="jh-tblwrap"><table class="jh-tbl" id="tbl"><thead></thead><tbody><tr><td class="jh-load" colspan="12">Comparing every sleeve to SPY…</td></tr></tbody></table></div>
-  <p class="jh-note" id="note"></p>
+
+  <section class="st-sec" aria-label="Verdict: index regime, breadth and bases">
+    <div class="jh-kpis" id="kpis"></div>
+  </section>
+
+  <section class="st-sec" aria-label="Long accumulation with a tight price spread">
+    <h2>Long accumulation · tight price spread <span class="m" id="coil-meta"></span></h2>
+    <p class="st-sub">The longest trailing run of sessions whose closes all sit inside 6% (VERY TIGHT, ≥ 40 sessions), 10% (TIGHT, ≥ 40), 15% (LONG BASE, ≥ 120) or 10% (FORMING, ≥ 20) of the last close. Score 0–100 = base length (35) + tightness (30) + Bollinger-width squeeze percentile (10) + volume dry-up (8) + accumulation inside the base — Chaikin money flow and up-volume / down-volume (12) — + relative strength holding through the base (5). The 13F stance and the fund's 21-observation flow sit beside the score as corroboration and never enter it.</p>
+    <div class="st-row" id="coil-scope"></div>
+    <div class="jh-tblwrap" style="max-height:560px" id="coil"></div>
+  </section>
+
+  <section class="st-sec" aria-label="Leaders and laggards by strength">
+    <h2>Leaders and laggards <span class="m" id="lead-meta"></span></h2>
+    <div class="st-row" id="lead-scope"></div>
+    <div class="st-grid2">
+      <div class="jh-card"><h3>Leaders — strongest vs SPY</h3><div class="jh-tblwrap" style="max-height:420px" id="leaders"></div></div>
+      <div class="jh-card"><h3>Laggards — weakest vs SPY</h3><div class="jh-tblwrap" style="max-height:420px" id="laggards"></div></div>
+    </div>
+    <p class="st-small" id="newhighs" style="margin-top:8px"></p>
+  </section>
+
+  <section class="st-sec" aria-label="Focus: holding up while the index is heavy">
+    <div class="jh-card jh-focus">
+      <h3>Focus — holding up while the index is heavy <span class="st-small" id="focus-meta"></span></h3>
+      <div class="jh-tblwrap" style="max-height:320px" id="focus"></div>
+    </div>
+  </section>
+
+  <section class="st-sec" aria-label="The desk: every sleeve against SPY">
+    <h2>The desk <span class="m" id="desk-meta"></span></h2>
+    <div class="jh-chips" id="chips"></div>
+    <div class="jh-tblwrap"><table class="jh-tbl" id="tbl"><thead></thead><tbody><tr><td class="jh-load" colspan="20">Reading the strength artifact…</td></tr></tbody></table></div>
+  </section>
+
+  <section class="st-sec" aria-label="Reading rules and definitions">
+    <h2>Reading rules</h2>
+    <div class="jh-card"><div id="defs" class="st-small"></div></div>
+  </section>
+
+  <section class="st-sec" aria-label="Sources and engine observability">
+    <h2>Sources and engine observability</h2>
+    <div class="jh-tblwrap" id="sources"></div>
+    <p class="jh-note" id="note"></p>
+  </section>
 </main>
 <script src="/private-artifacts.js?v=20260909"></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/jh-desk-core.js"></script>
-<script src="/jh-etf-desk-research.js?v=20260921-native1"></script>
-<script src="/jh-etf-fuse.js?v=20260921-native1"></script>
-<script src="/jh-etf-derived.js?v=20260921-native1"></script>
-<script src="/jh-strong-engine.js?v=20260921-etf-native1"></script>
+<script src="/jh-strong-engine.js?v=20261104-strength-v1"></script>
 <script>
 (function(){
-  var D=JHDesk, sleeve="ALL", sortK="score", sortDir=-1, DATA=null;
-  function cell(v){ return '<td class="'+D.cls(v)+'">'+D.fmtPct(v)+"</td>"; }
-  function tag(p){ return '<span class="tag '+(p&&p.code||"")+'">'+D.esc(p&&p.label||"—")+"</span>"; }
+  var D=JHDesk, DATA=null, sleeve="ALL", coilScope="ALL", leadScope="DESK";
+  var SORT={tbl:{k:"strength",dir:-1},coil:{k:"score",dir:-1},leaders:{k:"strength",dir:-1},laggards:{k:"strength",dir:1},focus:{k:"strength",dir:-1}};
+  var TIER_CLS={"VERY TIGHT":"VT","TIGHT":"T","LONG BASE":"LB","FORMING":"F"};
+  function esc(s){return D.esc(s);}
+  function pct(v,d){return v==null?"—":D.fmtPct(v,d==null?2:d);}
+  function num(v,d){return v==null||!isFinite(v)?"—":Number(v).toFixed(d==null?1:d);}
+  function cellPct(v,d){return '<td class="'+D.cls(v)+'">'+pct(v,d)+"</td>";}
+  function money(v){ if(v==null||!isFinite(v)) return "—"; var a=Math.abs(v), s=v<0?"−":v>0?"+":""; return s+"$"+(a>=1e9?(a/1e9).toFixed(2)+"B":a>=1e6?(a/1e6).toFixed(0)+"M":a>=1e3?(a/1e3).toFixed(0)+"K":a.toFixed(0)); }
+  function tk(t){return "<a class=tk href='/chart.html?s="+encodeURIComponent(t)+"'>"+esc(t)+"</a>";}
+  function tier(c){ if(!c||!c.tier) return "—"; return '<span class="st-tier '+(TIER_CLS[c.tier]||"")+'" title="closes inside '+esc(c.base_range_pct)+'% for '+esc(c.base_len)+' sessions">'+esc(c.tier)+" · "+esc(c.base_len)+"</span>"; }
+  function bar(v){ if(v==null) return "—"; return '<span class="st-bar" title="'+esc(v)+'"><i style="left:'+Math.max(0,Math.min(100,v))+'%"></i></span> '+num(v,0); }
+  function tag(p){ return '<span class="tag '+(p&&p.code||"")+'">'+esc(p&&p.label||"—")+"</span>"; }
+  function scopeOf(r){ var s=r.scopes||[]; return s.indexOf("desk")>=0?"DESK":s.indexOf("etf-desk")>=0?"ETF DESK":s.indexOf("sp500")>=0?"S&P 500":"13F"; }
+  function inScope(r,scope){ var s=r.scopes||[]; if(scope==="ALL") return true; if(scope==="DESK") return s.indexOf("desk")>=0; if(scope==="S&P 500") return s.indexOf("sp500")>=0; if(scope==="ETF DESK") return s.indexOf("etf-desk")>=0; if(scope==="13F") return s.indexOf("13f")>=0; return true; }
+  function smart(r){
+    var f=r.f13, fl=r.flow, out=[];
+    if(fl){
+      if(fl.current&&(fl.w5||fl.w1||fl.w21)){
+        var w=fl.w5||fl.w1||fl.w21, n=fl.w5?"5 obs":fl.w1?"1 obs":"21 obs";
+        out.push('<a class="st-chip '+(w.usd>0?"up":w.usd<0?"dn":"")+'" href="/etf.html?fund='+encodeURIComponent(r.ticker)+'" title="reported fund flow, '+n+', effective '+esc(w.end||fl.effective)+(fl.aligned&&fl.aligned["5"]?", SPY-aligned window matched":", fund\'s own reporting dates")+'">flow '+money(w.usd)+(w.pct_aum!=null?" · "+pct(w.pct_aum,2)+" AUM":"")+" · "+n+"</a>");
+        if(fl.w21&&fl.w5) out.push('<span class="st-chip '+(fl.w21.usd>0?"up":fl.w21.usd<0?"dn":"")+'" title="21 observations">21 obs '+money(fl.w21.usd)+(fl.w21.pct_aum!=null?" · "+pct(fl.w21.pct_aum,2):"")+"</span>");
+      } else if(fl.current===false) out.push('<span class="st-chip" title="valid until '+esc(fl.valid_until)+'">flow source overdue</span>');
+      else out.push('<span class="st-chip">flow windows unmatched</span>');
+    }
+    if(f){
+      var cls=f.stance==="ACCUMULATING"?"up":f.stance==="DISTRIBUTING"?"dn":"";
+      out.push('<a class="st-chip '+cls+'" href="/13f.html" title="13F cohort: '+esc(f.n_holders)+' holders (prior '+esc(f.n_prior_holders)+'), '+esc(f.bull)+' bull / '+esc(f.bear)+' bear manager votes, net '+money(f.net_usd)+' at reported prices">13F '+esc(f.n_holders)+" mgrs "+(f.holder_delta>0?"+":"")+esc(f.holder_delta)+" · "+money(f.net_usd)+" · "+esc(f.stance)+"</a>");
+    } else if(!fl) out.push('<span class="st-chip" title="no 13F cohort holder and not a desk fund">no flow · no 13F holder</span>');
+    else if(r.kind!=="fund") out.push('<span class="st-chip">13F: no cohort holder</span>');
+    return out.join("");
+  }
+  function flowCell(r){
+    var fl=r.flow;
+    if(!fl){ return r.kind==="fund"?'<span class="st-small">not a desk fund</span>':smart(r); }
+    return '<span class="st-flow">'+smart(r)+"</span>";
+  }
+  function get(r,k){
+    var L=r.live||{}, c=r.coil||{}, vs=r.vs||{}, h=r.h||{}, f=r.f13||{}, fl=r.flow||{};
+    switch(k){
+      case "px": return L.px!=null?L.px:r.px;
+      case "d": return L.d!=null?L.d:h.d;
+      case "vd": return L.vs_d!=null?L.vs_d:vs.d;
+      case "vw": return vs.w; case "vm": return vs.m; case "vq": return vs.q; case "vh": return vs.h; case "vy": return vs.y;
+      case "post": return (L.posture||r.posture||{}).rs;
+      case "tier": return c.tier?["FORMING","LONG BASE","TIGHT","VERY TIGHT"].indexOf(c.tier)+1:null;
+      case "base_len": return c.base_len||null; case "score": return c.score; case "base_range_pct": return c.base_range_pct; case "wick_range_pct": return c.wick_range_pct;
+      case "atr14_pct": return c.atr14_pct; case "bb": return c.bb_width_pctile_252; case "vol_dry": return c.vol_dry; case "cmf": return c.cmf_base; case "ud": return c.updown_vol;
+      case "rs_hold": return c.rs_hold_base; case "pos_in_base": return c.pos_in_base;
+      case "f13": return f.net_usd!=null?f.net_usd:null; case "flow": return fl.w5?fl.w5.pct_aum:fl.w1?fl.w1.pct_aum:null;
+      case "scope": return scopeOf(r);
+      default: return r[k];
+    }
+  }
+  function sorter(id){
+    var s=SORT[id];
+    return function(a,b){
+      var av=get(a,s.k), bv=get(b,s.k);
+      if(av==null&&bv==null) return 0; if(av==null) return 1; if(bv==null) return -1;   // blanks last either way
+      var c=typeof av==="string"?(av<bv?-1:av>bv?1:0):(av<bv?-1:av>bv?1:0);               // ascending ...
+      return s.dir<0?-c:c;                                                                  // ... flipped for dir -1 (largest first)
+    };
+  }
+  function head(id,cols){
+    var s=SORT[id];
+    return "<thead><tr>"+cols.map(function(c){ return '<th data-sort="'+c[0]+'"'+(s.k===c[0]?' aria-sort="'+(s.dir<0?"descending":"ascending")+'"':"")+' title="'+esc(c[2]||c[1])+'">'+esc(c[1])+"</th>"; }).join("")+"</tr></thead>";
+  }
+  function wire(id){
+    document.querySelectorAll("#"+id+" th[data-sort]").forEach(function(th){
+      th.onclick=function(){ var k=th.getAttribute("data-sort"), s=SORT[id]; if(s.k===k) s.dir*=-1; else { s.k=k; s.dir=-1; } draw(); };
+    });
+  }
+  var DESK_COLS=[["ticker","Ticker"],["name","Name"],["sleeve","Sleeve"],["px","Last","live quote when available, else the last close"],["d","D live","today's move, live quote"],["vd","RS D","today's move minus SPY's, live"],
+    ["vw","RS 1W","excess return vs SPY, 5 sessions"],["vm","RS 1M","21 sessions"],["vq","RS 3M","63 sessions"],["vh","RS 6M","126 sessions"],["vy","RS 1Y","252 sessions"],
+    ["strength","Strength","universe percentile of the weighted excess-return z-score"],["rs_trend_63","RS trend","annualized slope of the log RS line, 63 sessions, % per year"],["rs_consistency_63","Consistency","share of the last 63 sessions whose 21-session excess return was positive"],
+    ["ir_63","IR","63-session excess return over its tracking volatility"],["pos_52w","52w pos","where the last close sits in its 52-week range"],["post","Read","day posture vs SPX, live"],["pattern","Pattern"],["tier","Base","the coil tier and base length in sessions"],["flows","Flows · smart money","reported fund flow (ETF) or the 13F cohort read (stock)"],["as_of","As of"]];
+  function deskRow(r){
+    var L=r.live||{}, p=L.posture||r.posture;
+    return "<tr><td>"+tk(r.ticker)+"</td><td class=nm title='"+esc(r.name)+"'>"+esc(r.name)+"</td><td class=nm>"+esc(r.sleeve||"")+"</td><td>"+D.fmtPx(get(r,"px"))+"</td>"+
+      cellPct(get(r,"d"))+cellPct(get(r,"vd"))+cellPct(r.vs&&r.vs.w)+cellPct(r.vs&&r.vs.m)+cellPct(r.vs&&r.vs.q)+cellPct(r.vs&&r.vs.h)+cellPct(r.vs&&r.vs.y)+
+      "<td>"+bar(r.strength)+"</td>"+cellPct(r.rs_trend_63,1)+"<td>"+num(r.rs_consistency_63,0)+"%</td><td class='"+D.cls(r.ir_63)+"'>"+num(r.ir_63,2)+"</td><td>"+num(r.pos_52w,0)+"%</td>"+
+      "<td>"+tag(p)+"</td><td class=nm>"+esc(r.pattern||"—")+"</td><td>"+tier(r.coil)+"</td><td>"+flowCell(r)+"</td><td class=st-small>"+esc(r.as_of||"")+(L.px!=null?" · live":"")+"</td></tr>";
+  }
+  var COIL_COLS=[["ticker","Ticker"],["name","Name"],["scope","Scope"],["tier","Tier","VERY TIGHT / TIGHT / LONG BASE / FORMING"],["base_len","Base","sessions inside the band"],["base_range_pct","Range","close range over the base, % of the last close"],["wick_range_pct","Wick range","high-low range over the base"],
+    ["atr14_pct","ATR %","14-session average true range, % of price"],["bb","BB pctile","Bollinger bandwidth percentile over 252 sessions (low = squeezed)"],["vol_dry","Vol dry-up","last 20 sessions' average volume over the prior 120 (below 1 = drying up)"],["cmf","CMF","Chaikin money flow inside the base"],["ud","Up/Dn vol","volume on up-closes over volume on down-closes inside the base"],
+    ["rs_hold","RS hold","excess return vs SPY over the base, pp"],["pos_in_base","In base","where the last close sits inside the base, %"],["strength","Strength"],["score","Score","0-100"],["flows","Corroboration","13F stance · fund flows"],["px","Last"]];
+  function coilRow(r){
+    var c=r.coil||{};
+    return "<tr><td>"+tk(r.ticker)+"</td><td class=nm title='"+esc(r.name)+"'>"+esc(r.name)+"</td><td class=nm>"+esc(scopeOf(r))+"</td><td>"+tier(c)+"</td><td>"+esc(c.base_len)+"</td><td>"+num(c.base_range_pct,1)+"%</td><td>"+num(c.wick_range_pct,1)+"%</td>"+
+      "<td>"+num(c.atr14_pct,2)+"%</td><td>"+num(c.bb_width_pctile_252,0)+"</td><td class='"+(c.vol_dry!=null&&c.vol_dry<0.85?"up":"")+"'>"+num(c.vol_dry,2)+"×</td><td class='"+D.cls(c.cmf_base)+"'>"+num(c.cmf_base,3)+"</td><td class='"+(c.updown_vol!=null?(c.updown_vol>=1.05?"up":c.updown_vol<=0.95?"dn":""):"")+"'>"+num(c.updown_vol,2)+"</td>"+
+      cellPct(c.rs_hold_base,1)+"<td>"+num(c.pos_in_base,0)+"%</td><td>"+bar(r.strength)+"</td><td><b>"+num(c.score,1)+"</b></td><td>"+smart(r)+"</td><td>"+D.fmtPx(get(r,"px"))+"</td></tr>";
+  }
+  var LEAD_COLS=[["ticker","Ticker"],["name","Name"],["scope","Scope"],["strength","Strength"],["composite_pp","Composite","weighted excess return, pp"],["vw","RS 1W"],["vm","RS 1M"],["vq","RS 3M"],["vh","RS 6M"],["rs_trend_63","RS trend"],["rs_consistency_63","Consistency"],["ir_63","IR"],["pos_52w","52w pos"],["tier","Base"],["flows","Smart money"]];
+  function leadRow(r){
+    return "<tr><td>"+tk(r.ticker)+"</td><td class=nm title='"+esc(r.name)+"'>"+esc(r.name)+"</td><td class=nm>"+esc(scopeOf(r))+"</td><td>"+bar(r.strength)+"</td>"+cellPct(r.composite_pp)+cellPct(r.vs&&r.vs.w)+cellPct(r.vs&&r.vs.m)+cellPct(r.vs&&r.vs.q)+cellPct(r.vs&&r.vs.h)+
+      cellPct(r.rs_trend_63,1)+"<td>"+num(r.rs_consistency_63,0)+"%</td><td class='"+D.cls(r.ir_63)+"'>"+num(r.ir_63,2)+"</td><td>"+num(r.pos_52w,0)+"%</td><td>"+tier(r.coil)+"</td><td>"+smart(r)+"</td></tr>";
+  }
+  function table(id,cols,rows,empty,rowFn){
+    document.getElementById(id).innerHTML="<table class=jh-tbl>"+head(id,cols)+"<tbody>"+(rows.map(rowFn).join("")||"<tr><td colspan="+cols.length+" class=jh-load>"+esc(empty)+"</td></tr>")+"</tbody></table>";
+    wire(id);
+  }
+  function chips(id,list,cur,fn){
+    document.getElementById(id).innerHTML=list.map(function(c){ return '<button type="button" class="jh-chip'+(c===cur?" on":"")+'" data-s="'+esc(c)+'">'+esc(c)+"</button>"; }).join("");
+    document.querySelectorAll("#"+id+" [data-s]").forEach(function(b){ b.onclick=function(){ fn(b.getAttribute("data-s")); draw(); }; });
+  }
   function kpis(d){
-    var s=d.spy.h||{};
-    var n=d.focus.length;
-    var best=d.rows.slice().sort(function(a,b){return (b.score||-999)-(a.score||-999);})[0];
+    var doc=d.doc, b=doc.boards||{}, br=(b.breadth||{}), bu=br.universe||{}, bd=br.desk||{}, bench=doc.benchmark||{}, s=bench.h||{};
+    var regime=bench.above_200==null?"—":(bench.above_50&&bench.above_200)?"SPY ABOVE 50 & 200 DMA":(!bench.above_50&&!bench.above_200)?"SPY BELOW 50 & 200 DMA":bench.above_200?"SPY ABOVE 200, BELOW 50":"SPY ABOVE 50, BELOW 200";
+    var coiled=(doc.rows||[]).filter(function(r){return r.coil&&r.coil.tier;});
+    var vt=coiled.filter(function(r){return r.coil.tier==="VERY TIGHT";}).length;
     document.getElementById("kpis").innerHTML=[
-      ["SPX D / W / M / 3M", D.fmtPct(s.d), "<span class='"+D.cls(s.w)+"'>"+D.fmtPct(s.w)+"</span> · <span class='"+D.cls(s.m)+"'>"+D.fmtPct(s.m)+"</span> · <span class='"+D.cls(s.q)+"'>"+D.fmtPct(s.q)+"</span>"],
-      ["Regime", d.dump?"SPX HEAVY":"SPX NOT DUMPING", d.dump?"Focus board is live":"Leaders still ranked by RS"],
-      ["Holding up", n+" names", "bid / flat / dumping less"],
-      ["Strongest RS", best?best.ticker+" "+D.fmtPct(best.score):"—", best?best.name+" · composite":""]
+      ["SPX live · 1W / 1M / 3M", pct(d.spy.d), "<span class='"+D.cls(s.w)+"'>"+pct(s.w)+"</span> · <span class='"+D.cls(s.m)+"'>"+pct(s.m)+"</span> · <span class='"+D.cls(s.q)+"'>"+pct(s.q)+"</span>"+(d.spy.px?" · SPY "+D.fmtPx(d.spy.px):"")],
+      ["Regime", d.dump?"SPX HEAVY":regime, d.dump?"focus board is live · "+regime.toLowerCase():"6M "+pct(s.h)+" · 1Y "+pct(s.y)+" · "+num(bench.pos_52w,0)+"% of 52w range"],
+      ["Desk breadth vs SPY", (bd.pct_m==null?"—":num(bd.pct_m,0)+"%")+" beat on 1M", (bd.above_spy_w||0)+" / "+(bd.n||0)+" on 1W · "+(bd.above_spy_q||0)+" / "+(bd.n||0)+" on 3M"],
+      ["Universe breadth", (bu.pct_m==null?"—":num(bu.pct_m,0)+"%")+" beat on 1M", (bu.n||0)+" names ranked · "+(bu.rs_new_highs||0)+" RS lines at 52-week highs"],
+      ["Tight bases", coiled.length+" coiled", vt+" very tight · "+(bd.coiled||0)+" on the desk"],
+      ["Holding up now", d.focus.length+" names", d.dump?"bid / flat / dumping less than SPX":"SPX is not dumping; posture is live"]
     ].map(function(x){ return '<div class="jh-kpi"><div class="l">'+x[0]+'</div><div class="v">'+x[1]+'</div><div class="s">'+x[2]+"</div></div>"; }).join("");
   }
   function draw(){
     if(!DATA) return;
+    var doc=DATA.doc, rows=DATA.rows;
     kpis(DATA);
-    document.getElementById("chips").innerHTML=["ALL"].concat(DATA.sleeves).map(function(c){
-      return '<button type="button" class="jh-chip'+(c===sleeve?" on":"")+'" data-s="'+c+'">'+c+"</button>";
-    }).join("");
-    document.querySelectorAll("#chips [data-s]").forEach(function(b){ b.onclick=function(){ sleeve=b.getAttribute("data-s"); draw(); }; });
-    function get(r,k){
-      if(k==="flow1d") { var flow=r.nativeFund&&JHEtfDeskResearch.windowValue(r.nativeFund,1); return flow==null?null:Number(flow); }
-      if(k==="d") return r.h.d; if(k==="w") return r.h.w; if(k==="m") return r.h.m; if(k==="q") return r.h.q;
-      if(k==="vd") return r.vs.d; if(k==="vw") return r.vs.w; if(k==="vm") return r.vs.m; if(k==="vq") return r.vs.q;
-      if(k==="post") return r.post&&r.post.rs;
-      return r[k];
-    }
-    function sortFn(a,b){
-      var av=get(a,sortK), bv=get(b,sortK);
-      if(av==null&&bv==null) return 0; if(av==null) return 1; if(bv==null) return -1;
-      if(typeof av==="string") return sortDir*(av<bv?1:av>bv?-1:0);
-      return sortDir*((bv>av?1:bv<av?-1:0));
-    }
-    function tbody(rows){
-      return rows.map(function(r){
-        var flow=r.nativeFund&&JHEtfDeskResearch.windowValue(r.nativeFund,1);
-        return "<tr><td><a class=tk href='/chart.html?s="+encodeURIComponent(r.ticker)+"'>"+r.ticker+"</a></td>"+
-          "<td class=nm>"+D.esc(r.name)+"</td><td class=nm>"+r.sleeve+"</td><td>"+D.fmtPx(r.px)+"</td>"+
-          cell(r.h.d)+cell(r.h.w)+cell(r.h.m)+cell(r.h.q)+
-          cell(r.vs.d)+cell(r.vs.w)+cell(r.vs.m)+cell(r.vs.q)+
-          "<td class='"+D.cls(r.score)+"'>"+D.fmtPct(r.score)+"</td><td>"+tag(r.post)+"</td>"+
-          "<td>"+(r.nativeEtfContext&&flow!=null?"<a href='/etf.html?fund="+encodeURIComponent(r.ticker)+"'>"+JHEtfDeskResearch.exact(flow)+"</a>":"Unavailable")+"</td>"+
-          "<td>"+D.esc(r.flowObservation||"Unavailable")+"</td></tr>";
-      }).join("");
-    }
-    var heads=[["ticker","Ticker"],["name","Name"],["sleeve","Sleeve"],["px","Last"],["d","D"],["w","W"],["m","M"],["q","3M"],["vd","RS D"],["vw","RS W"],["vm","RS M"],["vq","RS 3M"],["score","Composite"],["post","Read"],["flow1d","Matched fund flow · 1 observation · USD"],["flowObservation","Latest flow observation"]];
-    var headHtml="<tr>"+heads.map(function(h){ return "<th data-k='"+h[0]+"'>"+h[1]+(sortK===h[0]?(sortDir<0?" ▾":" ▴"):"")+"</th>"; }).join("")+"</tr>";
-    var focus=DATA.focus.slice().sort(sortFn).slice(0,14);
-    document.getElementById("focus").innerHTML="<table class=jh-tbl><thead>"+headHtml+"</thead><tbody>"+(tbody(focus)||"<tr><td colspan=14 class=jh-load>No names holding up this session — SPX may not be dumping, or everything is in line.</td></tr>")+"</tbody></table>";
-    var rows=DATA.rows.filter(function(r){ return sleeve==="ALL"||r.sleeve===sleeve; }).slice().sort(sortFn);
-    document.querySelector("#tbl thead").innerHTML=headHtml;
-    document.querySelector("#tbl tbody").innerHTML=tbody(rows)||"<tr><td colspan=14 class=jh-load>No names in this sleeve.</td></tr>";
-    document.querySelectorAll("th[data-k]").forEach(function(th){
-      th.onclick=function(){ var k=th.getAttribute("data-k"); if(sortK===k) sortDir*=-1; else { sortK=k; sortDir=-1; } draw(); };
-    });
-    document.getElementById("stamp").innerHTML=(DATA.generated_at||"").slice(0,16).replace("T"," ")+" UTC<br>SPY "+D.fmtPx(DATA.spy.px)+"  "+D.fmtPct(DATA.spy.h.d);
-    document.getElementById("note").innerHTML="<b>Definition.</b> "+D.esc(DATA.sources.definition)+" "+D.esc(DATA.sources.quotes)+". "+D.esc(DATA.sources.flows)+" The return ranking has not completed original-source qualification or out-of-sample validation; it grants no sizing authority.";
+    // 1. the coil board
+    var scopes=["ALL","DESK","S&P 500","ETF DESK","13F"];
+    chips("coil-scope",scopes,coilScope,function(v){coilScope=v;});
+    var coiled=rows.filter(function(r){ return r.coil&&r.coil.tier&&!r.stale&&inScope(r,coilScope); }).sort(sorter("coil")).slice(0,80);
+    document.getElementById("coil-meta").textContent=coiled.length+" of "+rows.filter(function(r){return r.coil&&r.coil.tier;}).length+" coiled names · as of "+(doc.as_of||"—");
+    table("coil",COIL_COLS,coiled,"No name in this scope has held a base of 20+ sessions inside 10% of its last close.",coilRow);
+    // 2. leaders / laggards
+    chips("lead-scope",["DESK","ALL","S&P 500","ETF DESK","13F"],leadScope,function(v){leadScope=v;});
+    var ranked=rows.filter(function(r){ return r.strength!=null&&!r.stale&&inScope(r,leadScope); });
+    var leaders=ranked.slice().sort(sorter("leaders")).slice(0,15), laggards=ranked.slice().sort(sorter("laggards")).slice(0,15);
+    document.getElementById("lead-meta").textContent=ranked.length+" ranked in "+leadScope+" · percentile within the "+(doc.boards&&doc.boards.n_ranked||ranked.length)+"-name universe";
+    table("leaders",LEAD_COLS,leaders,"No ranked name in this scope.",leadRow);
+    table("laggards",LEAD_COLS,laggards,"No ranked name in this scope.",leadRow);
+    var nh=ranked.filter(function(r){return r.rs_new_high;}).sort(function(a,b){return (b.strength||0)-(a.strength||0);});
+    document.getElementById("newhighs").innerHTML=nh.length?"<b>RS line at a 52-week high ("+nh.length+"):</b> "+nh.slice(0,40).map(function(r){return tk(r.ticker);}).join(", ")+(nh.length>40?" …":""):"<b>RS line at a 52-week high:</b> none in this scope.";
+    // 3. focus (live posture)
+    var focus=DATA.focus.slice().sort(sorter("focus")).slice(0,14);
+    document.getElementById("focus-meta").textContent=DATA.dump?"SPX "+pct(DATA.spy.d)+" live":"SPX "+pct(DATA.spy.d)+" live — not a dump session";
+    table("focus",DESK_COLS,focus,"No desk name is holding up against SPX this session — SPX may not be dumping, or everything is in line.",deskRow);
+    // 4. the desk
+    chips("chips",["ALL"].concat(DATA.sleeves),sleeve,function(v){sleeve=v;});
+    var desk=DATA.desk.filter(function(r){ return sleeve==="ALL"||r.sleeve===sleeve||(sleeve==="METAL"&&(doc.sleeves.METAL||[]).some(function(x){return x.ticker===r.ticker;})); }).sort(sorter("tbl"));
+    document.getElementById("desk-meta").textContent=desk.length+" names · bars as of "+(doc.as_of||"—")+" · quotes "+(DATA.quotes_at||"").slice(11,16)+" UTC";
+    var t=document.getElementById("tbl");
+    t.querySelector("thead").outerHTML=head("tbl",DESK_COLS);
+    t.querySelector("tbody").innerHTML=desk.map(deskRow).join("")||"<tr><td colspan="+DESK_COLS.length+" class=jh-load>No names in this sleeve.</td></tr>";
+    wire("tbl");
+    // 5. definitions + sources
+    var defs=doc.definitions||{};
+    document.getElementById("defs").innerHTML=Object.keys(defs).map(function(k){ return "<div><b>"+esc(k)+"</b> — "+esc(defs[k])+"</div>"; }).join("")+"<div style='margin-top:6px'>"+esc(doc.note||"")+"</div>";
+    var src=(doc.sources||[]);
+    document.getElementById("sources").innerHTML="<table class='jh-tbl st-src'><thead><tr><th>Engine</th><th>Role</th><th>Schedule</th><th>Artifact</th><th>Last modified</th><th>Age (h)</th><th>Tier</th></tr></thead><tbody>"+
+      src.map(function(s){ return "<tr><td>"+esc(s.engine)+"</td><td class=nm>"+esc(s.role)+"</td><td>"+esc(s.schedule)+"</td><td>"+esc(s.key)+"</td><td>"+esc(s.last_modified||"—")+"</td><td>"+(s.age_h==null?"—":s.age_h)+"</td><td><span class='tag "+esc(s.tier)+"'>"+esc(s.tier)+"</span></td></tr>"; }).join("")+
+      "<tr><td>justhodl-strength</td><td class=nm>this desk: ranks, bases, flows and 13F joins</td><td>daily 03:40 UTC (Scheduler justhodl-strength-daily)</td><td>data/strength.json</td><td>"+esc(doc.generated_at||"")+"</td><td>"+num((Date.now()-Date.parse(doc.generated_at))/36e5,1)+"</td><td>"+esc(doc.version||"")+" · "+(doc.run_seconds||"?")+"s · "+(doc.universe?doc.universe.n_rows:"?")+" rows</td></tr></tbody></table>";
+    var u=doc.universe||{}, fl=doc.flows||{}, f13=doc.f13||{};
+    document.getElementById("note").innerHTML="<b>Universe.</b> "+esc(u.n_rows)+" names with bars ("+esc(u.scopes&&u.scopes.desk)+" desk · "+esc(u.scopes&&u.scopes["etf-desk"])+" ETF desk · "+esc(u.scopes&&u.scopes.sp500)+" S&P 500 · "+esc(u.scopes&&u.scopes["13f"])+" 13F most-held)"+(u.unbanked&&u.unbanked.length?"; unbanked: "+esc(u.unbanked.join(", ")):"")+". "+
+      "<b>Flows.</b> "+esc(fl.n_universe_current)+" of "+esc(fl.n_in_universe)+" desk funds in the universe have a current flow source (ETF desk generated "+esc((fl.desk_generated_at||"").slice(0,16))+", reference end "+esc(fl.reference_end)+"). "+
+      "<b>13F.</b> period "+esc(f13.period)+", "+esc(f13.n_in_universe)+" universe names with a cohort holder. "+
+      "The strength ranking is a price fact with no out-of-sample validation; it grants no sizing authority.";
+    document.getElementById("stamp").innerHTML="bars "+esc(doc.as_of||"")+" · engine "+esc((doc.generated_at||"").slice(0,16).replace("T"," "))+" UTC<br>SPY "+D.fmtPx(DATA.spy.px)+" "+pct(DATA.spy.d)+(DATA.spy.live?" live":" close");
   }
-  JHStrong.run().then(function(d){ DATA=d; draw(); }).catch(function(e){
-    document.querySelector("#tbl tbody").innerHTML="<tr><td colspan=12 class=jh-load>Engine failed: "+D.esc(e&&e.message||e)+"</td></tr>";
-  });
-  setInterval(function(){if(DATA)draw();},60000);
+  function load(){
+    JHStrong.run().then(function(d){ DATA=d; draw(); }).catch(function(e){
+      document.querySelector("#tbl tbody").innerHTML="<tr><td colspan=20 class=jh-load>"+esc(e&&e.message||e)+"</td></tr>";
+      document.getElementById("stamp").textContent="strength artifact unavailable";
+    });
+  }
+  load();
+  setInterval(load,60000);
 })();
 </script>
 </body>
