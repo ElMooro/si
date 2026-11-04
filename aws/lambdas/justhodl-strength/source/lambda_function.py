@@ -55,7 +55,7 @@ try:
 except Exception:  # noqa: BLE001
     etf_desk_catalog = None
 
-VERSION = "1.0.3"
+VERSION = "1.0.4"
 CONTRACT = "strength.v1"
 ENGINE = "justhodl-strength"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -583,7 +583,7 @@ def universe(etf_desk, sp500, f13, desk_names):
     for t in etf_desk or []:
         add(t, desk_names.get(t), "etf-desk", "ETF")
     for row in sp500 or []:
-        add(row.get("symbol"), row.get("name"), "sp500", "STOCK")
+        add(str(row.get("symbol") or "").replace("-", "."), row.get("name"), "sp500", "STOCK")   # FMP spells share classes BRK-B; the bank and the 13F master say BRK.B
     top = sorted(((t, v) for t, v in (f13 or {}).items() if v.get("kind") == "stock" and (v.get("n_holders") or 0) >= 2), key=lambda kv: -(kv[1]["n_holders"] or 0))[:F13_TOP]
     for t, v in top:
         add(t, None, "13f", "STOCK")

@@ -44,7 +44,7 @@ PROFILES = [
     {"symbol": "NEWB", "companyName": "New Listing Inc", "sector": "Technology", "industry": "Software - Application", "isEtf": "false", "exchangeShortName": "NASDAQ"},
 ]
 SP500 = [{"symbol": "AAPL", "name": "Apple Inc."}, {"symbol": "NVDA", "name": "NVIDIA"}, {"symbol": "COIL", "name": "Coil Industries"}, {"symbol": "LAGG", "name": "Laggard Corp"},
-         {"symbol": "BRK.B", "name": "Berkshire Hathaway"}, {"symbol": "NEWB", "name": "New Listing Inc"}, {"symbol": "SPLT", "name": "Reverse Split Co"}, {"symbol": "RCRD", "name": "Recorded Split Co"}, {"symbol": "DEAL", "name": "Pending Deal Co"}]
+         {"symbol": "BRK-B", "name": "Berkshire Hathaway"}, {"symbol": "NEWB", "name": "New Listing Inc"}, {"symbol": "SPLT", "name": "Reverse Split Co"}, {"symbol": "RCRD", "name": "Recorded Split Co"}, {"symbol": "DEAL", "name": "Pending Deal Co"}]
 sys.modules["fmp_bank"] = SimpleNamespace(walker=lambda dataset, entity=None, **kw: [dict(r) for r in SP500] if dataset == "sp500-constituent" else None,
                                           snapshot=lambda path, symbol=None: [dict(r) for r in PROFILES] if path == "profile" and symbol is None else None)
 
@@ -286,7 +286,7 @@ def test_universe_assembly_and_ranks():
     u = lf.universe(["SPY", "QQQ", "GLD", "TLT", "XLE"], SP500, f13, {"QQQ": "QQQ fund"})
     assert u["QQQ"]["scopes"] == ["desk", "etf-desk"] and u["QQQ"]["name"] == "Nasdaq 100" and u["QQQ"]["sleeve"] == "ETF"
     assert u["GLD"]["sleeve"] == "ETF" and set(u["GLD"]["scopes"]) == {"desk", "etf-desk"}
-    assert u["COIL"]["scopes"] == ["sp500", "13f"] and u["COIL"]["sleeve"] == "STOCK" and u["BRK.B"]["scopes"] == ["sp500"]
+    assert u["COIL"]["scopes"] == ["sp500", "13f"] and u["COIL"]["sleeve"] == "STOCK" and u["BRK.B"]["scopes"] == ["sp500"] and "BRK-B" not in u   # FMP's dash becomes the bank's dot
     assert u["NVDA"]["scopes"] == ["desk", "sp500", "13f"] and "SPY" in u and u["SPY"]["scopes"] == ["etf-desk"]
     assert u["AAPL"]["name"] == "Apple" and len(u) == 51 + 8   # 51 distinct desk names (GLD sits in ETF and METAL) + SPY, COIL, LAGG, BRK.B, NEWB, SPLT, RCRD, DEAL
     rows = [{"ticker": t, "vs": ({"d": d, "w": d * 2, "m": d * 3, "q": d * 4, "h": d * 5} if d is not None else None)} for t, d in (("A", 1.0), ("B", 2.0), ("C", 3.0), ("D", -1.0), ("E", None))]
@@ -297,7 +297,7 @@ def test_universe_assembly_and_ranks():
 
 def test_build_rows_boards_flows_and_13f():
     s3, out = built()
-    assert out["contract"] == "strength.v1" and out["version"] == "1.0.3" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
+    assert out["contract"] == "strength.v1" and out["version"] == "1.0.4" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
     assert out["benchmark"]["sessions"] == 300 and out["benchmark"]["h"]["q"] is not None and out["universe"]["n"] == 59
     by = {r["ticker"]: r for r in out["rows"]}
     # unbanked desk names carry no row; the bank manifest's last session is the as-of
