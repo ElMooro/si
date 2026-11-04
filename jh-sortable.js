@@ -93,7 +93,11 @@
 
   function bodyRows(table, head) {
     var rows = [];
-    for (var i = 0; i < table.tBodies.length; i++) rows = rows.concat(Array.prototype.slice.call(table.tBodies[i].rows));
+    if (table.tBodies.length) {
+      for (var i = 0; i < table.tBodies.length; i++) rows = rows.concat(Array.prototype.slice.call(table.tBodies[i].rows));
+    } else {
+      rows = Array.prototype.slice.call(table.rows);                       // rows appended straight to the <table> (script-built widgets)
+    }
     return rows.filter(function (r) { return r !== head; });
   }
 
@@ -101,7 +105,7 @@
     if (SEEN.has(table)) return;
     if (table.hasAttribute('data-jh-nosort') || table.closest('[data-jh-nosort]')) return;
     var head = headerRow(table);
-    if (!head || !table.tBodies.length) return;
+    if (!head || bodyRows(table, head).length < 1) return;
     var ths = Array.prototype.slice.call(head.cells);
     if (!ths.length || ths.some(function (th) { return th.colSpan > 1; })) return;
     if (ths.some(headerHasOwnSorting)) return;
