@@ -228,7 +228,12 @@ def test_split_adjustment_recorded_and_inferred():
     squeeze = [{"date": DATES[i].isoformat(), "c": 20.0 if i < 40 else 45.0, "v": 1000.0 if i < 40 else 1000.0} for i in range(60)]   # +125% with flat volume: not a split
     assert lf.infer_splits(squeeze) == []
     odd = [{"date": DATES[i].isoformat(), "c": 20.0 if i < 40 else 20.0 * 2.37, "v": 2370.0 if i < 40 else 1000.0} for i in range(60)]   # an unusual ratio is kept as measured
-    assert lf.infer_splits(odd)[0]["factor"] == 2.37
+    assert lf.infer_splits(odd)[0]["factor"] == 2.37 and lf.infer_splits(odd)[0]["evidence"] == "volume"
+    etha = [{"date": DATES[i].isoformat(), "c": 20.43 if i < 40 else 60.89, "v": 24_072_024.0 if i < 40 else 15_469_252.0} for i in range(60)]   # ETHA 2026-10-06: x2.98, volume 0.64x
+    got = lf.infer_splits(etha)
+    assert len(got) == 1 and got[0]["factor"] == 3.0 and got[0]["evidence"] == "ratio"
+    wrongway = [{"date": DATES[i].isoformat(), "c": 20.0 if i < 40 else 60.0, "v": 1000.0 if i < 40 else 1500.0} for i in range(60)]   # exactly x3 but volume rose: a squeeze, not a split
+    assert lf.infer_splits(wrongway) == []
 
 
 def test_posture_and_pattern():
@@ -237,6 +242,14 @@ def test_posture_and_pattern():
     assert lf.posture(-0.5, 0.2)["code"] == "LAG" and lf.posture(0.3, 0.2)["code"] == "INLINE" and lf.posture(None, 0.2)["code"] == "NA"
     flat = [{"c": 100.0 + (i % 2) * 0.5, "h": 100.8, "l": 99.8, "v": 1} for i in range(60)]
     assert lf.pattern(flat) == "COIL"
+    steady = [{"c": 100.0 * 1.004 ** i, "h": 100.0 * 1.004 ** i * 1.003, "l": 100.0 * 1.004 ** i * 0.997, "v": 1} for i in range(60)]   # a steady climb is an UPTREND, not a double bottom
+    assert lf.pattern(steady) == "UPTREND"
+    w = [{"c": 100.0, "h": 101.0, "l": 99.0, "v": 1} for _ in range(60)]
+    for i in (45, 52):
+        w[i] = {"c": 92.0, "h": 93.0, "l": 90.0, "v": 1}                                         # two separate lows a week apart ...
+    for i in range(53, 60):
+        w[i] = {"c": 96.0 + 0.3 * (i - 53), "h": 97.0 + 0.3 * (i - 53), "l": 95.0, "v": 1}     # ... then a bounce
+    assert lf.pattern(w) == "DOUBLE BOTTOM"
     up = [{"c": 100.0 * 1.01 ** i, "h": 100.0 * 1.01 ** i * 1.004, "l": 100.0 * 1.01 ** i * 0.996, "v": 1} for i in range(60)]
     up[-1]["h"] = up[-1]["c"]                                   # closing on the 20-session high
     assert lf.pattern(up) == "BREAKOUT" and lf.pattern(up[:30]) is None
@@ -297,7 +310,7 @@ def test_universe_assembly_and_ranks():
 
 def test_build_rows_boards_flows_and_13f():
     s3, out = built()
-    assert out["contract"] == "strength.v1" and out["version"] == "1.0.4" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
+    assert out["contract"] == "strength.v1" and out["version"] == "1.0.5" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
     assert out["benchmark"]["sessions"] == 300 and out["benchmark"]["h"]["q"] is not None and out["universe"]["n"] == 59
     by = {r["ticker"]: r for r in out["rows"]}
     # unbanked desk names carry no row; the bank manifest's last session is the as-of
@@ -325,7 +338,7 @@ def test_build_rows_boards_flows_and_13f():
     assert out["f13"] == {"period": "2026-06-30", "generated_at": "2026-11-04T16:37:00+00:00", "n_tickers": 4, "last_modified": "2026-11-04T03:13:00+00:00", "n_in_universe": 3}
     # splits: the unrecorded 1-for-3 reverse split is inferred from the volume-confirmed jump, the recorded 2-for-1 comes from corporate-actions; both series read continuous
     sp, rc = by["SPLT"], by["RCRD"]
-    assert sp["splits"] == [{"date": DATES[280].isoformat(), "factor": 3.0, "ratio": sp["splits"][0]["ratio"], "source": "inferred"}] and 2.9 <= sp["splits"][0]["ratio"] <= 3.1
+    assert sp["splits"] == [{"date": DATES[280].isoformat(), "factor": 3.0, "ratio": sp["splits"][0]["ratio"], "source": "inferred", "evidence": "volume"}] and 2.9 <= sp["splits"][0]["ratio"] <= 3.1
     assert rc["splits"][0]["source"] == "corporate-actions" and rc["splits"][0]["factor"] == 0.5 and len(rc["splits"]) == 1
     assert abs(sp["h"]["y"] - by["BRK.B"]["h"]["y"]) < 40 and abs(sp["vs"]["q"]) < 30 and abs(rc["vs"]["q"]) < 30 and abs(rc["h"]["y"]) < 60   # no 200% artefacts
     assert out["splits"]["n_rows_adjusted"] == 2 and out["splits"]["recorded"] == 1 and out["splits"]["inferred"] == 1 and out["splits"]["index_covered"] == 2

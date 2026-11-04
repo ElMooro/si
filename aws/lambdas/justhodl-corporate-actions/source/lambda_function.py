@@ -50,6 +50,15 @@ from datetime import datetime, timedelta, timezone
 import boto3
 from botocore.exceptions import ClientError
 
+try:  # key doctrine (Khalid 2026-09-15): the Polygon key lives in SSM; an env var only when it equals SSM
+    from managed_secret import managed_secret
+except Exception:  # noqa: BLE001 - offline tests without aws/shared on the path
+    def managed_secret(env_names, ssm_names=(), region="us-east-1"):
+        for name in env_names:
+            if os.environ.get(name):
+                return os.environ[name]
+        return ""
+
 POLYGON_SPLITS_URL = "https://api.polygon.io/v3/reference/splits"
 POLYGON_DIVS_URL = "https://api.polygon.io/v3/reference/dividends"
 POLYGON_AGGS_URL = ("https://api.polygon.io/v2/aggs/ticker/{t}"
@@ -463,8 +472,9 @@ def lambda_handler(event, context):
     """
     started = time.time()
     bucket = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
-    # POLYGON_API_KEY is authoritative; POLYGON_KEY kept as fleet fallback.
-    poly_key = os.environ.get("POLYGON_API_KEY") or os.environ.get("POLYGON_KEY", "")
+    # 2026-11-04 (ops 6742): every artifact in the index carried 0 events because this engine read the key from env only
+    # and its config never had one - the SSM parameter is the source (managed_secret: env first, then SSM).
+    poly_key = managed_secret(("POLYGON_API_KEY", "POLYGON_KEY", "POLY_KEY"), ("/justhodl/polygon/api-key",))
     event = event if isinstance(event, dict) else {}
     only = {str(t).upper().strip() for t in (event.get("tickers") or []) if str(t).strip()}
     max_tickers = event.get("max_tickers")

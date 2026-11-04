@@ -55,7 +55,7 @@ try:
 except Exception:  # noqa: BLE001
     etf_desk_catalog = None
 
-VERSION = "1.0.4"
+VERSION = "1.0.5"
 CONTRACT = "strength.v1"
 ENGINE = "justhodl-strength"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -432,7 +432,8 @@ def posture(d, sd):
 
 
 def pattern(bars):
-    """The desk's 40-session pattern read (COIL / GOLDEN CROSS / BREAKOUT / BREAKDOWN / DOUBLE BOTTOM / UPTREND / DOWNTREND / RANGE). Pure."""
+    """The desk's 40-session pattern read (COIL / GOLDEN CROSS / BREAKOUT / BREAKDOWN / DOUBLE BOTTOM / UPTREND / DOWNTREND / RANGE);
+    a double bottom needs its two lows at least five sessions apart (the legacy read called every steady uptrend one). Pure."""
     if len(bars) < 40:
         return None
     c = [float(b["c"]) for b in bars]
@@ -440,10 +441,12 @@ def pattern(bars):
     win = bars[-40:]
     hi20 = max(float(b.get("h", b["c"])) for b in win[-20:])
     lo20 = min(float(b.get("l", b["c"])) for b in win[-20:])
-    lows = sorted(float(b.get("l", b["c"])) for b in win)
+    lows_i = sorted(((float(b.get("l", b["c"])), i) for i, b in enumerate(win)), key=lambda x: x[0])
+    lows = [x[0] for x in lows_i]
     ma10, ma40 = sma(c, 10), sma(c, 40)
     rng = (hi20 - lo20) / last if last else 0
     bounce = (last - lows[0]) / lows[0] if lows and lows[0] > 0 else 0
+    two_swings = len(lows_i) >= 2 and abs(lows_i[0][1] - lows_i[1][1]) >= 5     # the desk's legacy test matched consecutive sessions in any uptrend
     if rng < 0.035:
         return "COIL"
     if ma10 > ma40 and c[-15] <= ma40:
@@ -452,7 +455,7 @@ def pattern(bars):
         return "BREAKOUT"
     if last <= lo20 * 1.001 and last <= c[-6]:
         return "BREAKDOWN"
-    if bounce >= 0.04 and len(lows) >= 2 and (lows[1] - lows[0]) / last < 0.015:
+    if bounce >= 0.04 and two_swings and (lows[1] - lows[0]) / last < 0.015:
         return "DOUBLE BOTTOM"
     if ma10 > ma40:
         return "UPTREND"
@@ -687,10 +690,12 @@ def apply_splits(bars, events):
 
 
 def infer_splits(bars):
-    """Unrecorded splits in unadjusted bars: a close-to-close ratio >= 1.8 or <= 0.56 whose volume moves the opposite
-    way by a matching amount (5 sessions each side, within x1.6) - a reverse split prints a 3x price with ~1/3 the
-    shares traded; a crash or a squeeze does not. The ratio snaps to the nearest common split ratio within 4%, else it is
-    kept as measured. Returns [{date, factor, ratio, source: 'inferred'}] oldest first. Pure."""
+    """Unrecorded splits in unadjusted bars: a close-to-close ratio >= 1.8 or <= 0.56 is a split when the shares traded
+    (5 sessions each side) moved inversely by about the same amount (within x1.6) - a reverse split prints a 3x price
+    with ~1/3 the shares - OR when the ratio lands within 2% of a common split ratio and volume at least moved in the
+    split's direction (ETHA 2026-10-06: x2.98 on volume 0.64x - a 1-for-3 reverse split). A crash or a squeeze moves
+    volume the other way. The ratio snaps to the nearest common split ratio within 4%, else it is kept as measured.
+    Returns [{date, factor, ratio, source: 'inferred', evidence}] oldest first. Pure."""
     found = []
     n = len(bars)
     for i in range(1, n):
@@ -705,11 +710,14 @@ def infer_splits(bars):
         if len(before) < 3 or len(after) < 3 or not sum(before) or not sum(after):
             continue
         vr = (sum(before) / len(before)) / (sum(after) / len(after))
-        if abs(math.log(vr) - math.log(r)) > math.log(1.6):
-            continue
         snap = min(COMMON_RATIOS, key=lambda x: abs(math.log(x) - math.log(r)))
+        exact = abs(math.log(snap) - math.log(r)) <= math.log(1.02)            # within 2% of a common split ratio
+        volume_matches = abs(math.log(vr) - math.log(r)) <= math.log(1.6)       # shares traded moved inversely by about the same amount
+        volume_direction = (vr > 1.0) if r > 1 else (vr < 1.0)                # ... or at least in the split's direction (a reverse split thins volume, a split thickens it)
+        if not (volume_matches or (exact and volume_direction)):
+            continue                                                            # a crash or a squeeze: volume explodes the other way
         ratio = snap if abs(math.log(snap) - math.log(r)) <= math.log(1.04) else r
-        found.append({"date": bars[i]["date"], "factor": f(ratio, 6), "ratio": f(r, 4), "source": "inferred"})
+        found.append({"date": bars[i]["date"], "factor": f(ratio, 6), "ratio": f(r, 4), "source": "inferred", "evidence": "volume" if volume_matches else "ratio"})
     return found
 
 
