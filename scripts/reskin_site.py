@@ -26,6 +26,11 @@ try:
     _NAV_V = _hl.md5(open("jh-nav-drawer.js","rb").read()).hexdigest()[:8]
 except Exception:
     pass
+_SORT_V = "0"
+try:
+    _SORT_V = _hl.md5(open("jh-sortable.js","rb").read()).hexdigest()[:8]
+except Exception:
+    pass
 
 import re
 import sys
@@ -178,6 +183,13 @@ def main(root):
                 for tag in ("</body>", "</BODY>"):
                     if tag in s2:
                         s2 = s2.replace(tag, '<script src="/jh-nav-drawer.js?v=' + _NAV_V + '" defer></script>' + tag, 1)
+                        break
+            if p.suffix.lower() == ".html" and "/jh-sortable.js" not in s2 and "jh-sortable-skip" not in s2:
+                # Khalid 2026-11-04: every table on every page sorts ascending / descending — one shared script,
+                # injected like the footer and the nav drawer so no page can ship without it.
+                for tag in ("</body>", "</BODY>"):
+                    if tag in s2:
+                        s2 = s2.replace(tag, '<script src="/jh-sortable.js?v=' + _SORT_V + '" defer></script>' + tag, 1)
                         break
             if s2 != s:
                 p.write_text(s2, encoding="utf-8")

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>13F · Institutional Book · JustHodl</title>
 <meta name="jh-primary-engine" content="justhodl-13f-book, justhodl-13f-positions">
-<meta name="description" content="What 18 institutional managers reported at the latest 13F period and what changed: smart-money stance per stock and ETF, asset-class rotation (equities, bonds, cash, gold, crypto), sector and industry flows at reported prices, contenders gaining or losing holders, cross-manager boards per universe, concentrated books, clone-alpha, options overlay, the CUSIP security master, filing evidence and the health of every 13F engine.">
+<meta name="description" content="What 18 institutional managers reported at the latest 13F period and what changed, verdict first: smart-money stance per stock and ETF, asset-class rotation (equities, bonds, cash, gold, crypto), sector and industry flows at reported prices, contenders gaining or losing holders, cross-manager boards per universe, concentrated books, clone-alpha, options overlay, the CUSIP security master, filing evidence and the health of every 13F engine.">
 <style>
 :root{--bg:var(--jh-bg,#0C0B09);--panel:var(--jh-panel,#12110C);--panel2:var(--jh-panel-2,#17150E);--ink:var(--jh-ink,#e8e2d4);--dim:var(--jh-dim,#8a836f);--dim2:#a39b86;--amber:var(--jh-amber,#F0B429);--green:var(--jh-green,#6fce8a);--red:var(--jh-red,#E07A6A);--line:var(--jh-line,#2B2820);--line2:#1f1c16;--mono:var(--jh-mono,"IBM Plex Mono",ui-monospace,Menlo,monospace);--sans:var(--jh-sans,"IBM Plex Sans",system-ui,sans-serif)}
 *{box-sizing:border-box}
@@ -122,29 +122,11 @@ h3{font-size:13px;letter-spacing:.04em;text-transform:uppercase;font-weight:700}
   <div style="display:flex;flex-direction:column;gap:10px;min-width:0" id="side"></div>
 </section>
 
-<section class="pnl" aria-label="Managers" style="display:flex;flex-direction:column;gap:12px">
-  <div class="sec-head"><h2>The managers</h2><span class="meta">one row per filer · select a manager for the drill-down and the evidence desk</span><span style="flex:1"></span><span class="chips" id="mgr-chips"></span></div>
-  <div class="scroll" id="mgr-table"><p class="empty">Loading…</p></div>
-  <p class="foot" id="mgr-foot">Reported value = sum of the filer's own value column for equity rows (SH, no put/call). "vs prior" compares two dated disclosures and includes the quarter's price move.</p>
-</section>
-
-<section class="pnl" aria-label="Manager drill-down" id="drill" style="display:flex;flex-direction:column;gap:12px">
-  <div class="sec-head"><h2 id="drill-title">Manager drill-down</h2><span class="meta" id="drill-meta">select a manager above</span></div>
-  <div id="drill-body"><p class="empty">Select a manager in the grid.</p></div>
-</section>
-
 <section class="pnl" aria-label="Smart money controls" id="smart" style="display:flex;flex-direction:column;gap:12px;border-color:rgba(240,180,41,.35)">
   <div class="sec-head"><h2>Smart money · what the cohort agrees on</h2><span class="meta" id="smart-meta"></span></div>
   <div class="ctrl"><div class="grp"><span class="lbl">Scope</span><button class="btn sm on" type="button" id="scope-cohort">CURRENT COHORT</button><button class="btn sm" type="button" id="scope-conc">CONCENTRATED</button></div><div class="grp"><span class="lbl">Universe</span><button class="btn sm on" type="button" id="univ-all">ALL</button><button class="btn sm" type="button" id="univ-stocks">STOCKS</button><button class="btn sm" type="button" id="univ-etfs">ETFs</button></div><span class="chips" id="stance-counts"></span></div>
   <p class="blurb" id="smart-blurb">Every stance is a count of managers across two dated disclosures: a manager newly disclosing or reporting more units is a bullish vote, a manager absent or reporting fewer units a bearish vote. ACCUMULATING / DISTRIBUTING need at least 2:1 agreement and a net of 2 or more managers; CONTESTED means they disagree. Weighted net multiplies each vote by the manager's clone-alpha SKILL. NO CURRENT HOLDER marks a name every book dropped — often a take-private, merger or delisting, which the filings cannot distinguish from selling. A reported position is not a trade; nothing here is a recommendation.</p>
   <div class="g2" id="stance"><p class="empty">Loading…</p></div>
-</section>
-
-<section class="pnl" aria-label="Asset-class rotation" style="display:flex;flex-direction:column;gap:12px">
-  <div class="sec-head"><h2 id="rot-title">Asset-class rotation</h2><span class="meta" id="rot-meta"></span></div>
-  <div id="rot-bars"></div>
-  <div class="scroll" id="rotation"><p class="empty">Loading…</p></div>
-  <p class="foot" id="rot-foot"></p>
 </section>
 
 <section class="pnl" aria-label="Sectors and industries" style="display:flex;flex-direction:column;gap:12px">
@@ -154,6 +136,13 @@ h3{font-size:13px;letter-spacing:.04em;text-transform:uppercase;font-weight:700}
   <div class="sub"><h3 style="margin-bottom:8px">Sectors</h3><div class="scroll" id="sectors"><p class="empty">Loading…</p></div></div>
   <div class="sub"><div class="sec-head" style="margin-bottom:8px"><h3>Industries · specific</h3><span class="meta" id="ind-meta"></span><span style="flex:1"></span><div class="grp" style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm on" type="button" id="ind-sort-net">BY NET $</button><button class="btn sm" type="button" id="ind-sort-value">BY VALUE</button><button class="btn sm" type="button" id="ind-sort-tilt">BY TILT</button></div></div><div class="chips" id="ind-filter" style="margin-bottom:8px"></div><div class="scroll" id="industries" style="max-height:640px;overflow-y:auto"><p class="empty">Loading…</p></div></div>
   <p class="foot" id="sec-foot"></p>
+</section>
+
+<section class="pnl" aria-label="Asset-class rotation" style="display:flex;flex-direction:column;gap:12px">
+  <div class="sec-head"><h2 id="rot-title">Asset-class rotation</h2><span class="meta" id="rot-meta"></span></div>
+  <div id="rot-bars"></div>
+  <div class="scroll" id="rotation"><p class="empty">Loading…</p></div>
+  <p class="foot" id="rot-foot"></p>
 </section>
 
 <section class="pnl" aria-label="Contenders" style="display:flex;flex-direction:column;gap:12px">
@@ -168,9 +157,25 @@ h3{font-size:13px;letter-spacing:.04em;text-transform:uppercase;font-weight:700}
   <p class="foot" id="boards-foot">RECLASS? marks an issuer whose old identity is absent while a new CUSIP or class for the same issuer appears — a reclassification or corporate action, not a trade. NO CURRENT HOLDER marks a security no current book reports; absence from a disclosure is not a sale.</p>
 </section>
 
+<section class="pnl" aria-label="Managers" style="display:flex;flex-direction:column;gap:12px">
+  <div class="sec-head"><h2>The managers</h2><span class="meta">one row per filer · select a manager for the drill-down and the evidence desk</span><span style="flex:1"></span><span class="chips" id="mgr-chips"></span></div>
+  <div class="scroll" id="mgr-table"><p class="empty">Loading…</p></div>
+  <p class="foot" id="mgr-foot">Reported value = sum of the filer's own value column for equity rows (SH, no put/call). "vs prior" compares two dated disclosures and includes the quarter's price move.</p>
+</section>
+
+<section class="pnl" aria-label="Manager drill-down" id="drill" style="display:flex;flex-direction:column;gap:12px">
+  <div class="sec-head"><h2 id="drill-title">Manager drill-down</h2><span class="meta" id="drill-meta">select a manager above</span></div>
+  <div id="drill-body"><p class="empty">Select a manager in the grid.</p></div>
+</section>
+
 <section class="pnl" aria-label="Concentrated books" style="display:flex;flex-direction:column;gap:12px">
   <div class="sec-head"><h2>The concentrated books</h2><span class="meta" id="conc-meta"></span></div>
   <div class="g3" id="conc"><p class="empty">Loading…</p></div>
+</section>
+
+<section class="pnl" aria-label="Diversified books" style="display:flex;flex-direction:column;gap:12px">
+  <div class="sec-head"><h2>The diversified books · top of book</h2><span class="meta">share of reported equity value · ▲▼ reported quantity vs the prior period</span></div>
+  <div class="g3" id="diversified"><p class="empty">Loading…</p></div>
 </section>
 
 <section class="pnl" aria-label="Clone-alpha" style="display:flex;flex-direction:column;gap:12px">
@@ -185,14 +190,16 @@ h3{font-size:13px;letter-spacing:.04em;text-transform:uppercase;font-weight:700}
   <div class="scroll" id="options"><p class="empty">Loading…</p></div>
 </section>
 
-<section class="pnl" aria-label="Diversified books" style="display:flex;flex-direction:column;gap:12px">
-  <div class="sec-head"><h2>The diversified books · top of book</h2><span class="meta">share of reported equity value · ▲▼ reported quantity vs the prior period</span></div>
-  <div class="g3" id="diversified"><p class="empty">Loading…</p></div>
-</section>
-
 <section class="pnl" aria-label="Price divergence and brief" style="display:flex;flex-direction:column;gap:12px">
   <div class="sec-head"><h2>Price divergence · AI brief</h2><span class="meta">two further 13F engines, shown as they publish</span></div>
   <div class="g2" id="signals"><p class="empty">Loading…</p></div>
+</section>
+
+<section class="pnl" aria-label="Security master" style="display:flex;flex-direction:column;gap:12px">
+  <div class="sec-head"><h2>Security master · CUSIP → ticker</h2><span class="meta" id="master-meta"></span></div>
+  <div class="gv" id="master-kpis"></div>
+  <div class="g2" id="master-lists"></div>
+  <p class="foot" id="master-foot"></p>
 </section>
 
 <section class="pnl" id="evidence-desk" aria-label="Filing evidence" style="display:flex;flex-direction:column;gap:14px">
@@ -207,13 +214,6 @@ h3{font-size:13px;letter-spacing:.04em;text-transform:uppercase;font-weight:700}
   <div class="sub"><h3>Compare reported securities</h3><div class="controls" style="margin:10px 0"><label for="search">Search issuer, CUSIP or class<input id="search" type="search" maxlength="120" placeholder="For example, COCA COLA or 191216100"></label><label for="filter">Disclosure change<select id="filter"></select></label></div><div class="scroll" id="positions"></div><div class="pagination"><button id="prev" type="button" disabled>Previous securities</button><span id="page-count" aria-live="polite"></span><button id="next" type="button" disabled>Next securities</button></div><div id="row-evidence" aria-live="polite" style="margin-top:12px"></div><p class="dim" style="margin:10px 0">SH means reported shares; PRN means reported principal. Puts and calls are kept separate from outright holdings. Missing prior data is unavailable, not zero. “Newly present” and “absent” describe public disclosure, not verified entry or exit trades.</p><button id="download" type="button" disabled>Download complete fund research</button></div>
   <div class="sub"><h3>Filing and amendment evidence</h3><p class="blurb" style="margin:6px 0 10px">A restatement replaces its predecessor. An additional-holdings amendment is reviewed separately; an incomplete or ambiguous chain cannot support comparisons. Acceptance time, filing date and report date are different clocks.</p><div class="scroll" id="filing-chain"></div></div>
   <div class="sub"><h3>Reproduce this snapshot</h3><div id="evidence" style="margin-top:6px"></div><p class="dim" style="margin:8px 0 0">Fund details are verified against their retained content hashes before display. Source originals, parsed filings and full comparison records remain available. <a href="https://www.sec.gov/rules-regulations/staff-guidance/division-investment-management-frequently-asked-questions/frequently-asked-questions-about-form-13f" target="_blank" rel="noopener">SEC Form 13F guidance</a>.</p></div>
-</section>
-
-<section class="pnl" aria-label="Security master" style="display:flex;flex-direction:column;gap:12px">
-  <div class="sec-head"><h2>Security master · CUSIP → ticker</h2><span class="meta" id="master-meta"></span></div>
-  <div class="gv" id="master-kpis"></div>
-  <div class="g2" id="master-lists"></div>
-  <p class="foot" id="master-foot"></p>
 </section>
 
 <section class="pnl" aria-label="Reading rules" style="display:flex;flex-direction:column;gap:12px">
@@ -466,4 +466,4 @@ async function load(){
 load();
 })();
 </script>
-<script src="/jh-holdings-research.js" defer></script><script src="/jh-holdings-research-page.js" defer></script><script src="/jh-nav-drawer.js" defer></script><script src="/sidebar.js" defer></script></body></html>
+<script src="/jh-holdings-research.js" defer></script><script src="/jh-holdings-research-page.js" defer></script><script src="/jh-nav-drawer.js" defer></script><script src="/sidebar.js" defer></script><script src="/jh-sortable.js" defer></script></body></html>
