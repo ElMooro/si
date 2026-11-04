@@ -115,6 +115,12 @@ def main():
             files += list(t.rglob("*.py")) + list(t.rglob("config.json"))
         else:
             files.append(t)
+            # a lambda's source implies its config.json (2026-11-04: justhodl-strength shipped a 371-char description
+            # because only the .py was preflighted; deploy-lambdas' own preflight then cost the round trip)
+            if t.suffix == ".py" and t.parent.name == "source" and (t.parent.parent / "config.json").is_file():
+                cfg = t.parent.parent / "config.json"
+                if cfg not in files:
+                    files.append(cfg)
     for f in files:
         if f.name == "config.json":
             check_config(f)

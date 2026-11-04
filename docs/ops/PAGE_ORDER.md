@@ -35,6 +35,7 @@ never renumbers it.
 | page | order (top → bottom) | proof |
 |---|---|---|
 | `13f.html` | season + heartbeat → smart-money stance → sectors & industries → asset-class rotation → contenders → cross-manager boards → manager grid → drill-down → concentrated / diversified books → clone-alpha → options overlay → divergence + brief → security master → evidence desk → reading rules → engines observability | ops 6738 |
+| `strong.html` | verdict (SPX regime, breadth, bases, holding up) → long accumulation · tight price spread → leaders / laggards → focus (live posture) → the desk (every sleeve vs SPY, flows / smart money) → reading rules → sources and engine observability. Tables sort through their own three-state headers (`data-sort`), so `/jh-sortable.js` leaves them alone | ops 6741 |
 
 ### To re-rank (page by page, each with a headless-Chrome proof)
 
