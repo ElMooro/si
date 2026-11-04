@@ -99,9 +99,28 @@ def test_book_reads_only_and_declares_its_outputs():
     text = SOURCE.read_text(encoding="utf-8")
     assert ".invoke(" not in text and "boto3.client(\"lambda\"" not in text, "the book is a reader: it must not start engines"
     assert "chain_guard.begin(event, context)" in text, "the book begins its lineage (sec-13f -> 13f-positions -> 13f-book)"
-    assert 'Key=OUT_KEY' in text and 'OUT_KEY = os.environ.get("OUT_KEY", "data/13f-book.json")' in text
+    assert 'OUT_KEY = os.environ.get("OUT_KEY", "data/13f-book.json")' in text and "put_json(s3, OUT_KEY, out)" in text
     mod = load_engine()
-    assert mod.CONTRACT == "13f-book.v1" and "data/13f-book.json" in {o for e in mod.ENGINES for o in e["outputs"]}
+    outputs = {o for e in mod.ENGINES for o in e["outputs"]}
+    assert mod.CONTRACT == "13f-book.v2" and "data/13f-book.json" in outputs and "data/13f-security-master.json" in outputs
+    # the security master is keyed through aws/shared/openfigi (SSM) - no key literal, no urllib of its own
+    assert "import openfigi" in text and "openfigi.get_api_key()" in text and "X-OPENFIGI-APIKEY" not in text and "urllib" not in text
+
+
+def test_etf_class_table_is_bundled_reviewed_and_mirrored():
+    """A fund-like identity is bucketed only through the reviewed table (source twin == config twin, enforced byte-for-byte
+    by test_bundled_config_identity); every class must be one the engine knows how to bucket."""
+    bundled = ROOT / "aws/lambdas/justhodl-13f-book/source/13f-etf-classes.json"
+    twin = ROOT / "config/13f-etf-classes.json"
+    assert bundled.read_bytes() == twin.read_bytes()
+    doc = json.loads(bundled.read_text(encoding="utf-8"))
+    assert doc["contract"] == "13f-etf-classes.v1" and doc["reviewed"]
+    mod = load_engine()
+    classes = doc["classes"]
+    assert len(classes) >= 250 and all(v in mod.CLASS_BUCKET for v in classes.values()), set(classes.values()) - set(mod.CLASS_BUCKET)
+    assert all(k == k.upper() and k.strip() == k for k in classes)
+    for t, c in (("SPY", "equity"), ("TLT", "bond"), ("BIL", "cash"), ("GLD", "gold"), ("SLV", "silver"), ("USO", "commodity"), ("IBIT", "crypto"), ("VXX", "volatility")):
+        assert classes[t] == c, (t, classes.get(t))
 
 
 if __name__ == "__main__":
