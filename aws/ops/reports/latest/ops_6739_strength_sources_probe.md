@@ -1,262 +1,314 @@
-# ops 6739 - strength engine sources (read-only) 2026-11-04T20:19+00:00
+# ops 6739 - strength engine sources (read-only) 2026-11-04T20:22+00:00
 
-**Status:** failure  
-**Duration:** 2.5s  
-**Finished:** 2026-11-04T20:19:31+00:00  
+**Status:** success  
+**Duration:** 3.6s  
+**Finished:** 2026-11-04T20:22:27+00:00  
 
-## Error
+## Data
 
-```
-Traceback (most recent call last):
-  File "/home/runner/work/si/si/aws/ops/ops_report.py", line 98, in report
-    yield r
-  File "/home/runner/work/si/si/aws/ops/STAGED/ops_6739_strength_sources_probe.py", line 128, in main
-    r.log("walker manifest: %d datasets; price-ish: %s" % (len(wm.get("datasets") or wm), [k for k in (wm.get("datasets") or wm) if "price" in k or "constituent" in k][:12]))
-                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-TypeError: object of type 'int' has no len()
-
-```
+| aligned_1 | aligned_5 | current_now | desk_funds | own_1 | own_21 | own_5 |
+|---|---|---|---|---|---|---|
+| 116 | 116 | 116 | 116 | 116 | 115 | 116 |
 
 ## Log
 ## A. ETF desk packet: flow windows for the strength universe
 
-- `20:19:29` written 2026-11-03T23:08:48+00:00 | generated 2026-11-03T23:06:42.323008+00:00 | query_date 2026-11-03 | version 2.0.0 | 5068083 bytes | reference end 2026-11-02 (77 obs) | quality {"configured_funds": 116, "flows_current_eligible": 116, "profiles_current_eligible": 116, "holdings_complete": 116, "status": "partial"}
-- `20:19:29` all 116 configured funds: {"aligned_1_matched": 116, "aligned_21_matched": 115, "aligned_5_matched": 116, "current_now": 116, "latest_eff_2026-11-02": 116, "own_1_matched": 116, "own_21_matched": 115, "own_5_matched": 116}
-- `20:19:29`   QQQ   eligible True | valid_until 2026-11-05T00:00:47.650276+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 241669907.5
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 241669907.5
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 5775498693.0
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 5775498693.0
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 3979145875.0
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 3979145875.0
-- `20:19:29`   IWM   eligible True | valid_until 2026-11-05T00:00:41.029656+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 307388843.3
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 307388843.3
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 472913813.4
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 472913813.4
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -2381074989.80
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -2381074989.80
-- `20:19:29`   DIA   eligible True | valid_until 2026-11-05T00:00:32.388097+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 0
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 0
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -496487551.2
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -496487551.2
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -434680334.00
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -434680334.00
-- `20:19:29`   XLK   eligible True | valid_until 2026-11-05T00:01:01.947514+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 493630442.25
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 493630442.25
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 597889310.75
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 597889310.75
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 2043974782.40
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 2043974782.40
-- `20:19:29`   SMH   eligible True | valid_until 2026-11-05T00:00:51.035176+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 -26137862.0
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 -26137862.0
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -204898654.0
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -204898654.0
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 2490303413.0
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 2490303413.0
-- `20:19:29`   XLF   eligible True | valid_until 2026-11-05T00:01:01.674028+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 -25432036.2
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 -25432036.2
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 934485571.15
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 934485571.15
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 483485376.10
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 483485376.10
-- `20:19:29`   XLE   eligible True | valid_until 2026-11-05T00:01:01.681023+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 -178481958.75
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 -178481958.75
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -155771889.15
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -155771889.15
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 1372061242.50
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 1372061242.50
-- `20:19:29`   XLU   eligible True | valid_until 2026-11-05T00:01:02.429944+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 -201980515.5
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 -201980515.5
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -260294134.05
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -260294134.05
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -689078674.50
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -689078674.50
-- `20:19:29`   XLP   eligible True | valid_until 2026-11-05T00:01:02.283532+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 -147528562.5
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 -147528562.5
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 86005277.3
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 86005277.3
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 230248949.80
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 230248949.80
-- `20:19:29`   XLV   eligible True | valid_until 2026-11-05T00:01:02.496847+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 175655153.9
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 175655153.9
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 797086707.45
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 797086707.45
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 1569502144.35
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 1569502144.35
-- `20:19:29`   XLI   eligible True | valid_until 2026-11-05T00:01:01.819351+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 -259513314.75
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 -259513314.75
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 31740634.15
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 31740634.15
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 292060033.05
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 292060033.05
-- `20:19:29`   XLY   eligible True | valid_until 2026-11-05T00:01:02.665142+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 86537085.75
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 86537085.75
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -65077292.50
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -65077292.50
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -198606307.75
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -198606307.75
-- `20:19:29`   GLD   eligible True | valid_until 2026-11-05T00:00:38.142037+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 -143454400.0
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 -143454400.0
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -32268400.0
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -32268400.0
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -1930516300.0
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -1930516300.0
-- `20:19:29`   TLT   eligible True | valid_until 2026-11-05T00:00:53.903597+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 842556789.0
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 842556789.0
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 1250441319.6
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 1250441319.6
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -1415628903.0
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -1415628903.0
-- `20:19:29`   HYG   eligible True | valid_until 2026-11-05T00:00:39.016936+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 185215176.0
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 185215176.0
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 301644842.1
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 301644842.1
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -301112064.2
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -301112064.2
-- `20:19:29`   EEM   eligible True | valid_until 2026-11-05T00:00:33.886167+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 0
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 0
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 0
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 0
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 0
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 0
-- `20:19:29`   FXI   eligible True | valid_until 2026-11-05T00:00:37.259306+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 0
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 0
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 0
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 0
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -25371422.4
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -25371422.4
-- `20:19:29`   EWJ   eligible True | valid_until 2026-11-05T00:00:36.103579+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 222973468.8
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 222973468.8
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 422306212.2
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 422306212.2
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 1039718364.00
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 1039718364.00
-- `20:19:29`   KRE   eligible True | valid_until 2026-11-05T00:00:42.392845+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 259323170.4
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 259323170.4
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -57638858.85
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -57638858.85
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 443843884.00
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 443843884.00
-- `20:19:29`   XBI   eligible True | valid_until 2026-11-05T00:01:01.057361+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 -148179438.2
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 -148179438.2
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 205574037.10
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 205574037.10
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 307815862.700
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 307815862.700
-- `20:19:29`   SLV   eligible True | valid_until 2026-11-05T00:00:50.399822+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 183155895.9
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 183155895.9
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 430370692.7
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 430370692.7
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 720790788.90
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 720790788.90
-- `20:19:29`   GDX   eligible True | valid_until 2026-11-05T00:00:37.418849+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 0
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 0
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 28901751.0
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 28901751.0
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 784327520.5
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 784327520.5
-- `20:19:29`   GDXJ  eligible True | valid_until 2026-11-05T00:00:37.520088+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 0
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 0
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -45142414.5
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -45142414.5
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 24534950.5
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 24534950.5
-- `20:19:29`   PPLT  eligible True | valid_until 2026-11-05T01:06:41.870352+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 0
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 0
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -10992000.0
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -10992000.0
-- `20:19:29`         aligned 21 incomplete 2026-10-05..2026-11-02 None reasons missing_reference_observations
-- `20:19:29`         own     21 incomplete 2026-10-05..2026-11-02 None reasons missing_reference_observations
-- `20:19:29`   CPER  eligible True | valid_until 2026-11-05T00:00:31.130083+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 0
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 0
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -13952950.0
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -13952950.0
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -37687450.0
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -37687450.0
-- `20:19:29`   IAU   eligible True | valid_until 2026-11-05T00:00:39.388182+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 -51475979.8
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 -51475979.8
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -157356185.8
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -157356185.8
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -249821751.75
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -249821751.75
-- `20:19:29`   SIVR  NOT A CONFIGURED DESK FUND
-- `20:19:29`   IBIT  eligible True | valid_until 2026-11-05T00:00:39.518413+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 -403350577.88
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 -403350577.88
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -352116533.00
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -352116533.00
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 131366579.72
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 131366579.72
-- `20:19:29`   ETHA  eligible True | valid_until 2026-11-05T00:00:34.418938+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 -137143972.16
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 -137143972.16
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -426491544.56
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -426491544.56
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -8055150441.289645
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -8055150441.289645
-- `20:19:29`   FBTC  eligible True | valid_until 2026-11-05T00:00:36.664371+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 6645947.3
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 6645947.3
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -170875193.425
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -170875193.425
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -749640450.575
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -749640450.575
-- `20:19:29`   BITO  eligible True | valid_until 2026-11-05T00:00:29.142500+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 29574815.0
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 29574815.0
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 34887334.0
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 34887334.0
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -32396688.0
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -32396688.0
-- `20:19:29`   SPY   eligible True | valid_until 2026-11-05T00:00:52.405870+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
-- `20:19:29`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 3929046929.6
-- `20:19:29`         own     1  matched_reporting_window 2026-11-02..2026-11-02 3929046929.6
-- `20:19:29`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 6129552143.75
-- `20:19:29`         own     5  matched_reporting_window 2026-10-27..2026-11-02 6129552143.75
-- `20:19:29`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 7762419019.50
-- `20:19:29`         own     21 matched_reporting_window 2026-10-05..2026-11-02 7762419019.50
-- `20:19:30` canonical packet: written 2026-11-03T22:02:05+00:00 | generated 2026-11-03T22:01:03.532773+00:00 | 300 funds | status {"complete_acquired_history": 298, "stale": 1, "unavailable": 1} | reference end 2026-11-02 | 3773946 bytes
-- `20:19:30` strength ETFs in the canonical 300 but not in the desk: -
+- `20:22:24` written 2026-11-03T23:08:48+00:00 | generated 2026-11-03T23:06:42.323008+00:00 | query_date 2026-11-03 | version 2.0.0 | 5068083 bytes | reference end 2026-11-02 (77 obs) | quality {"configured_funds": 116, "flows_current_eligible": 116, "profiles_current_eligible": 116, "holdings_complete": 116, "status": "partial"}
+- `20:22:24` all 116 configured funds: {"aligned_1_matched": 116, "aligned_21_matched": 115, "aligned_5_matched": 116, "current_now": 116, "latest_eff_2026-11-02": 116, "own_1_matched": 116, "own_21_matched": 115, "own_5_matched": 116}
+- `20:22:24`   QQQ   eligible True | valid_until 2026-11-05T00:00:47.650276+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 241669907.5
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 241669907.5
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 5775498693.0
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 5775498693.0
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 3979145875.0
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 3979145875.0
+- `20:22:24`   IWM   eligible True | valid_until 2026-11-05T00:00:41.029656+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 307388843.3
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 307388843.3
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 472913813.4
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 472913813.4
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -2381074989.80
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -2381074989.80
+- `20:22:24`   DIA   eligible True | valid_until 2026-11-05T00:00:32.388097+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 0
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 0
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -496487551.2
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -496487551.2
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -434680334.00
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -434680334.00
+- `20:22:24`   XLK   eligible True | valid_until 2026-11-05T00:01:01.947514+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 493630442.25
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 493630442.25
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 597889310.75
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 597889310.75
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 2043974782.40
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 2043974782.40
+- `20:22:24`   SMH   eligible True | valid_until 2026-11-05T00:00:51.035176+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 -26137862.0
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 -26137862.0
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -204898654.0
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -204898654.0
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 2490303413.0
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 2490303413.0
+- `20:22:24`   XLF   eligible True | valid_until 2026-11-05T00:01:01.674028+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 -25432036.2
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 -25432036.2
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 934485571.15
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 934485571.15
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 483485376.10
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 483485376.10
+- `20:22:24`   XLE   eligible True | valid_until 2026-11-05T00:01:01.681023+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 -178481958.75
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 -178481958.75
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -155771889.15
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -155771889.15
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 1372061242.50
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 1372061242.50
+- `20:22:24`   XLU   eligible True | valid_until 2026-11-05T00:01:02.429944+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 -201980515.5
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 -201980515.5
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -260294134.05
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -260294134.05
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -689078674.50
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -689078674.50
+- `20:22:24`   XLP   eligible True | valid_until 2026-11-05T00:01:02.283532+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 -147528562.5
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 -147528562.5
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 86005277.3
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 86005277.3
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 230248949.80
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 230248949.80
+- `20:22:24`   XLV   eligible True | valid_until 2026-11-05T00:01:02.496847+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 175655153.9
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 175655153.9
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 797086707.45
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 797086707.45
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 1569502144.35
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 1569502144.35
+- `20:22:24`   XLI   eligible True | valid_until 2026-11-05T00:01:01.819351+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 -259513314.75
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 -259513314.75
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 31740634.15
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 31740634.15
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 292060033.05
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 292060033.05
+- `20:22:24`   XLY   eligible True | valid_until 2026-11-05T00:01:02.665142+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 86537085.75
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 86537085.75
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -65077292.50
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -65077292.50
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -198606307.75
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -198606307.75
+- `20:22:24`   GLD   eligible True | valid_until 2026-11-05T00:00:38.142037+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 -143454400.0
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 -143454400.0
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -32268400.0
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -32268400.0
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -1930516300.0
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -1930516300.0
+- `20:22:24`   TLT   eligible True | valid_until 2026-11-05T00:00:53.903597+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 842556789.0
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 842556789.0
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 1250441319.6
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 1250441319.6
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -1415628903.0
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -1415628903.0
+- `20:22:24`   HYG   eligible True | valid_until 2026-11-05T00:00:39.016936+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 185215176.0
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 185215176.0
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 301644842.1
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 301644842.1
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -301112064.2
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -301112064.2
+- `20:22:24`   EEM   eligible True | valid_until 2026-11-05T00:00:33.886167+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 0
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 0
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 0
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 0
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 0
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 0
+- `20:22:24`   FXI   eligible True | valid_until 2026-11-05T00:00:37.259306+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 0
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 0
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 0
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 0
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -25371422.4
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -25371422.4
+- `20:22:24`   EWJ   eligible True | valid_until 2026-11-05T00:00:36.103579+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 222973468.8
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 222973468.8
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 422306212.2
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 422306212.2
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 1039718364.00
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 1039718364.00
+- `20:22:24`   KRE   eligible True | valid_until 2026-11-05T00:00:42.392845+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 259323170.4
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 259323170.4
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -57638858.85
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -57638858.85
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 443843884.00
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 443843884.00
+- `20:22:24`   XBI   eligible True | valid_until 2026-11-05T00:01:01.057361+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 -148179438.2
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 -148179438.2
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 205574037.10
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 205574037.10
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 307815862.700
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 307815862.700
+- `20:22:24`   SLV   eligible True | valid_until 2026-11-05T00:00:50.399822+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 183155895.9
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 183155895.9
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 430370692.7
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 430370692.7
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 720790788.90
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 720790788.90
+- `20:22:24`   GDX   eligible True | valid_until 2026-11-05T00:00:37.418849+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 0
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 0
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 28901751.0
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 28901751.0
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 784327520.5
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 784327520.5
+- `20:22:24`   GDXJ  eligible True | valid_until 2026-11-05T00:00:37.520088+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 0
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 0
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -45142414.5
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -45142414.5
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 24534950.5
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 24534950.5
+- `20:22:24`   PPLT  eligible True | valid_until 2026-11-05T01:06:41.870352+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 0
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 0
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -10992000.0
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -10992000.0
+- `20:22:24`         aligned 21 incomplete 2026-10-05..2026-11-02 None reasons missing_reference_observations
+- `20:22:24`         own     21 incomplete 2026-10-05..2026-11-02 None reasons missing_reference_observations
+- `20:22:24`   CPER  eligible True | valid_until 2026-11-05T00:00:31.130083+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 0
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 0
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -13952950.0
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -13952950.0
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -37687450.0
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -37687450.0
+- `20:22:24`   IAU   eligible True | valid_until 2026-11-05T00:00:39.388182+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 -51475979.8
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 -51475979.8
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -157356185.8
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -157356185.8
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -249821751.75
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -249821751.75
+- `20:22:24`   SIVR  NOT A CONFIGURED DESK FUND
+- `20:22:24`   IBIT  eligible True | valid_until 2026-11-05T00:00:39.518413+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 -403350577.88
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 -403350577.88
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -352116533.00
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -352116533.00
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 131366579.72
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 131366579.72
+- `20:22:24`   ETHA  eligible True | valid_until 2026-11-05T00:00:34.418938+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 -137143972.16
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 -137143972.16
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -426491544.56
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -426491544.56
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -8055150441.289645
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -8055150441.289645
+- `20:22:24`   FBTC  eligible True | valid_until 2026-11-05T00:00:36.664371+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 6645947.3
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 6645947.3
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 -170875193.425
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 -170875193.425
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -749640450.575
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -749640450.575
+- `20:22:24`   BITO  eligible True | valid_until 2026-11-05T00:00:29.142500+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 29574815.0
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 29574815.0
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 34887334.0
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 34887334.0
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 -32396688.0
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 -32396688.0
+- `20:22:24`   SPY   eligible True | valid_until 2026-11-05T00:00:52.405870+00:00 | latest_effective 2026-11-02 processed 2026-11-02 | status complete_acquired_history
+- `20:22:24`         aligned 1  matched_reporting_window 2026-11-02..2026-11-02 3929046929.6
+- `20:22:24`         own     1  matched_reporting_window 2026-11-02..2026-11-02 3929046929.6
+- `20:22:24`         aligned 5  matched_reporting_window 2026-10-27..2026-11-02 6129552143.75
+- `20:22:24`         own     5  matched_reporting_window 2026-10-27..2026-11-02 6129552143.75
+- `20:22:24`         aligned 21 matched_reporting_window 2026-10-05..2026-11-02 7762419019.50
+- `20:22:24`         own     21 matched_reporting_window 2026-10-05..2026-11-02 7762419019.50
+- `20:22:24` canonical packet: written 2026-11-03T22:02:05+00:00 | generated 2026-11-03T22:01:03.532773+00:00 | 300 funds | status {"complete_acquired_history": 298, "stale": 1, "unavailable": 1} | reference end 2026-11-02 | 3773946 bytes
+- `20:22:24` strength ETFs in the canonical 300 but not in the desk: -
 ## B. Polygon EOD bank
 
-- `20:19:30` manifest keys: ['engine', 'fields', 'first_session', 'gaps', 'holidays_recorded', 'label', 'last_run', 'last_session', 'layout', 'objects', 'pages', 'phase', 'runs', 'sessions_available', 'sessions_folded', 'sessions_pending', 'tickers', 'updated_at', 'version', 'window_start']
-- `20:19:30` manifest (scalars): {"engine": "justhodl-polygon-eod", "version": "1.0.0", "updated_at": "2026-11-04T03:13:33+00:00", "phase": "STEADY", "runs": 18, "sessions_available": 1303, "sessions_folded": 1303, "sessions_pending": 0, "first_session": "2021-08-26", "last_session": "2026-11-03", "tickers": 21088, "objects": 21088, "pages": 21088, "window_start": "2021-08-26", "gaps": ["2021-09-06"], "fields": ["t", "o", "h", "l", "c", "v", "vw", "n"], "layout": "data/warm/polygon-full/eod/<T>.json.gz", "label": "Polygon grouped-daily sessions (justhodl-polygon-full) transposed per ticker - never LIVE; daily 03:10 UTC after polygon-full 02:29", "last_run": {"started": "2026-11-04T03:10:35+00:00", "sessions": ["2026-11-03"], "rows": 12595, "tickers_written": 12595, "tickers_unchanged": 0, "unreadable": 0, "steps": [{"step": "fold", "seconds": 0.2, "sessions": 1, "rows": 12595}, {"step": "write", "seconds": 177.2, "tickers": 12595, "unchanged": 0, "left_unwritten": 0, "timed_out": false}]}}
-- `20:19:30` last completed session by the clock: 2026-11-03 | in session window now: True
-- `20:19:30`   SPY    1303 sessions 2021-08-26..2026-11-03 read 0.22s | complete_only answers: True | last close 754.35 vol 32891581.463552
-- `20:19:30`   QQQ    1303 sessions 2021-08-26..2026-11-03 read 0.09s | complete_only answers: True | last close 685.28 vol 37686353.751807
-- `20:19:30`   NVDA   1303 sessions 2021-08-26..2026-11-03 read 0.07s | complete_only answers: True | last close 206.69 vol 92167038.369409
-- `20:19:30`   GLD    1303 sessions 2021-08-26..2026-11-03 read 0.09s | complete_only answers: True | last close 359.26 vol 6191375.961247
-- `20:19:30`   IBIT    868 sessions 2022-09-08..2026-11-03 read 0.08s | complete_only answers: True | last close 44.05 vol 24757210.674499
-- `20:19:31`   SIVR   1303 sessions 2021-08-26..2026-11-03 read 0.24s | complete_only answers: True | last close 47.14 vol 1983022.23243
-- `20:19:31`   PPLT   1303 sessions 2021-08-26..2026-11-03 read 0.08s | complete_only answers: True | last close 12.82 vol 1731423.649913
-- `20:19:31`   BRK.B  1303 sessions 2021-08-26..2026-11-03 read 0.12s | complete_only answers: True | last close 557.07 vol 5524536.13478
-- `20:19:31`   ETHA    574 sessions 2024-07-23..2026-11-03 read 0.07s | complete_only answers: True | last close 51.78 vol 5052551.785294
-- `20:19:31`   KRE    1303 sessions 2021-08-26..2026-11-03 read 0.11s | complete_only answers: True | last close 72.88 vol 12069164.30224
-- `20:19:31`   COST   1303 sessions 2021-08-26..2026-11-03 read 0.08s | complete_only answers: True | last close 1019.26 vol 1917797.352259
+- `20:22:24` manifest keys: ['engine', 'fields', 'first_session', 'gaps', 'holidays_recorded', 'label', 'last_run', 'last_session', 'layout', 'objects', 'pages', 'phase', 'runs', 'sessions_available', 'sessions_folded', 'sessions_pending', 'tickers', 'updated_at', 'version', 'window_start']
+- `20:22:24` manifest (scalars): {"engine": "justhodl-polygon-eod", "version": "1.0.0", "updated_at": "2026-11-04T03:13:33+00:00", "phase": "STEADY", "runs": 18, "sessions_available": 1303, "sessions_folded": 1303, "sessions_pending": 0, "first_session": "2021-08-26", "last_session": "2026-11-03", "tickers": 21088, "objects": 21088, "pages": 21088, "window_start": "2021-08-26", "gaps": ["2021-09-06"], "fields": ["t", "o", "h", "l", "c", "v", "vw", "n"], "layout": "data/warm/polygon-full/eod/<T>.json.gz", "label": "Polygon grouped-daily sessions (justhodl-polygon-full) transposed per ticker - never LIVE; daily 03:10 UTC after polygon-full 02:29", "last_run": {"started": "2026-11-04T03:10:35+00:00", "sessions": ["2026-11-03"], "rows": 12595, "tickers_written": 12595, "tickers_unchanged": 0, "unreadable": 0, "steps": [{"step": "fold", "seconds": 0.2, "sessions": 1, "rows": 12595}, {"step": "write", "seconds": 177.2, "tickers": 12595, "unchanged": 0, "left_unwritten": 0, "timed_out": false}]}}
+- `20:22:24` last completed session by the clock: 2026-11-03 | in session window now: True
+- `20:22:24`   SPY    1303 sessions 2021-08-26..2026-11-03 read 0.07s | complete_only answers: True | last close 754.35 vol 32891581.463552
+- `20:22:24`   QQQ    1303 sessions 2021-08-26..2026-11-03 read 0.07s | complete_only answers: True | last close 685.28 vol 37686353.751807
+- `20:22:24`   NVDA   1303 sessions 2021-08-26..2026-11-03 read 0.09s | complete_only answers: True | last close 206.69 vol 92167038.369409
+- `20:22:25`   GLD    1303 sessions 2021-08-26..2026-11-03 read 0.11s | complete_only answers: True | last close 359.26 vol 6191375.961247
+- `20:22:25`   IBIT    868 sessions 2022-09-08..2026-11-03 read 0.08s | complete_only answers: True | last close 44.05 vol 24757210.674499
+- `20:22:25`   SIVR   1303 sessions 2021-08-26..2026-11-03 read 0.07s | complete_only answers: True | last close 47.14 vol 1983022.23243
+- `20:22:25`   PPLT   1303 sessions 2021-08-26..2026-11-03 read 0.06s | complete_only answers: True | last close 12.82 vol 1731423.649913
+- `20:22:25`   BRK.B  1303 sessions 2021-08-26..2026-11-03 read 0.06s | complete_only answers: True | last close 557.07 vol 5524536.13478
+- `20:22:25`   ETHA    574 sessions 2024-07-23..2026-11-03 read 0.14s | complete_only answers: True | last close 51.78 vol 5052551.785294
+- `20:22:25`   KRE    1303 sessions 2021-08-26..2026-11-03 read 0.13s | complete_only answers: True | last close 72.88 vol 12069164.30224
+- `20:22:25`   COST   1303 sessions 2021-08-26..2026-11-03 read 0.07s | complete_only answers: True | last close 1019.26 vol 1917797.352259
 ## C. FMP walker: S&P 500 constituents + manifest
 
+- `20:22:25` walker manifest keys ['bandwidth_hold_until', 'bandwidth_note', 'bytes', 'bytes_budget_per_run', 'bytes_received_last_run', 'datasets', 'datasets_declared', 'endpoints_refused', 'endpoints_served', 'engine', 'key_status', 'label', 'objects', 'pages', 'pages_bytes', 'per_dataset', 'phase', 'run', 'runs', 'skipped'] | 24 datasets; price-ish: []
+- `20:22:25`   sp500-constituent    503 rows | sample ['OKTA', 'TWLO', 'VYLR', 'BE', 'ILMN', 'P', 'RDDT', 'FERG']
+- `20:22:26`   nasdaq-constituent   101 rows | sample ['ADBE', 'AMAT', 'CSCO', 'FAST', 'MSFT', 'PAYX', 'QCOM', 'MRNA']
+- `20:22:26`   dowjones-constituent 30 rows | sample ['GOOGL', 'NVDA', 'SHW', 'AMZN', 'AMGN', 'CRM', 'HON', 'GS']
+## D. 13F book + latest period snapshot
+
+- `20:22:26` book 1.2.0 written 2026-11-04T18:34:28+00:00 | required_period 2026-06-30 | periods [{'key': 'data/13f-book/periods/2026-06-30.json', 'period': '2026-06-30', 'bytes': 670701, 'last_modified': '2026-11-04T16:43:29+00:00'}]
+- `20:22:26` snapshot data/13f-book/periods/2026-06-30.json: 9510 identities, 6036 tickers, 670701 bytes, columns ['ticker', 'kind', 'bucket', 'n_holders', 'value_usd', 'n_prior_holders', 'cusip']
+- `20:22:26`   AAPL  ['holders 9 prior 9 value 87198547201.0']
+- `20:22:26`   MSFT  ['holders 11 prior 11 value 17646598886.0']
+- `20:22:26`   NVDA  ['holders 11 prior 11 value 32510579543.0']
+- `20:22:26`   AMZN  ['holders 12 prior 11 value 21786340564.0']
+- `20:22:26`   META  ['holders 11 prior 11 value 10981517847.0']
+- `20:22:26`   GOOGL ['holders 13 prior 13 value 43571727892.0']
+- `20:22:26`   TSLA  ['holders 8 prior 9 value 7231222934.0']
+- `20:22:26`   AVGO  ['holders 11 prior 11 value 12895581416.0']
+- `20:22:26`   JPM   ['holders 8 prior 6 value 3215750016.0']
+- `20:22:26`   LLY   ['holders 9 prior 9 value 5584448043.0']
+- `20:22:26`   XOM   not in snapshot
+- `20:22:26`   UNH   ['holders 10 prior 9 value 3615204013.0']
+- `20:22:26`   V     ['holders 11 prior 11 value 3541272310.0']
+- `20:22:26`   MA    ['holders 7 prior 10 value 4036659306.0']
+- `20:22:26`   HD    ['holders 7 prior 5 value 3386782610.0']
+- `20:22:26`   COST  ['holders 6 prior 8 value 4142439304.0']
+- `20:22:26`   NFLX  ['holders 8 prior 11 value 2666094617.0']
+- `20:22:26`   AMD   ['holders 11 prior 9 value 7945023958.0']
+- `20:22:26`   ORCL  ['holders 8 prior 7 value 2871999898.0']
+- `20:22:26`   JNJ   ['holders 7 prior 7 value 3183309720.0']
+- `20:22:26`   QQQ   ['holders 6 prior 5 value 1494119469.0']
+- `20:22:26`   IWM   ['holders 4 prior 5 value 340604026.0']
+- `20:22:26`   DIA   ['holders 4 prior 4 value 249381279.0']
+- `20:22:26`   XLK   ['holders 3 prior 0 value 71691446.0', 'holders 0 prior 6 value 0.0']
+- `20:22:26`   SMH   ['holders 4 prior 4 value 158239529.0']
+- `20:22:26`   XLF   ['holders 7 prior 0 value 761536061.0', 'holders 0 prior 7 value 0.0']
+- `20:22:26`   XLE   ['holders 6 prior 0 value 625810241.0', 'holders 0 prior 4 value 0.0']
+- `20:22:26`   XLU   ['holders 6 prior 0 value 75030303.0', 'holders 0 prior 5 value 0.0']
+- `20:22:26`   XLP   ['holders 6 prior 0 value 232466570.0', 'holders 0 prior 5 value 0.0']
+- `20:22:26`   XLV   ['holders 6 prior 0 value 330916546.0', 'holders 0 prior 5 value 0.0']
+- `20:22:26`   XLI   ['holders 5 prior 0 value 69326280.0', 'holders 0 prior 5 value 0.0']
+- `20:22:26`   XLY   ['holders 5 prior 0 value 208994982.0', 'holders 0 prior 5 value 0.0']
+- `20:22:26` stance cohort/all keys: ['bullish', 'bearish', 'contested', 'n_bullish', 'n_bearish', 'n_contested', 'counts', 'min_agreement'] | accumulating 0 distributing 0
+## E. producers: schedules + last runs
+
+- `20:22:26` justhodl-polygon-eod: 3008 MB / 900 s, modified 2026-10-25T22:08:51, state Active
+- `20:22:26`    schedule justhodl-polygon-eod-daily: scheduler cron(10 3 * * ? *) ENABLED
+- `20:22:26`    stream last event 2026-11-04T03:10+00:00
+- `20:22:26`    stream last event 2026-11-03T03:13+00:00
+- `20:22:26`    stream last event 2026-10-31T03:13+00:00
+- `20:22:27` justhodl-etf-fund-flows: 2048 MB / 300 s, modified 2026-09-21T10:08:29, state Active
+- `20:22:27`    schedule justhodl-etf-fund-flows-daily: events cron(0 22 * * ? *) ENABLED
+- `20:22:27`    stream last event 2026-11-03T22:02+00:00
+- `20:22:27`    stream last event 2026-11-02T22:02+00:00
+- `20:22:27`    stream last event 2026-11-02T15:48+00:00
+- `20:22:27` justhodl-etf-global-desk: 4096 MB / 900 s, modified 2026-10-01T17:08:34, state Active
+- `20:22:27`    schedule justhodl-etf-global-desk-daily: events cron(5 23 * * ? *) ENABLED
+- `20:22:27`    stream last event 2026-11-03T23:08+00:00
+- `20:22:27`    stream last event 2026-11-02T23:08+00:00
+- `20:22:27`    stream last event 2026-11-02T15:55+00:00
+- `20:22:27` ✅ ops 6739 complete (read-only)
