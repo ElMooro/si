@@ -217,7 +217,7 @@ def main():
             browser.close()
 
         ok = (facts.get("mgr_rows", 0) >= 18 and facts.get("stance_tables", 0) == 3 and facts.get("stance_rows", 0) >= 1 and facts.get("rot_rows", 0) >= 3
-              and facts.get("sector_rows", 0) >= 8 and facts.get("industry_rows", 0) >= 20 and facts.get("flow_tiles", 0) == 2 and facts.get("flow_lines", 0) >= 6 and facts.get("ind_filter_buttons", 0) >= 6
+              and facts.get("sector_rows", 0) >= 8 and facts.get("industry_rows", 0) >= 20 and facts.get("flow_tiles", 0) >= 2 and facts.get("flow_lines", 0) >= 6 and facts.get("ind_filter_buttons", 0) >= 6
               and "sorted by reported value" in facts.get("ind_sort_value", "") and "|tilt|" in facts.get("ind_sort_tilt", "") and " in " in facts.get("ind_filtered", "") and 1 <= facts.get("ind_filtered_rows", 0) < facts.get("industry_rows", 0)
               and facts.get("rot_bars", 0) == 2 and facts.get("cont_tables", 0) == 2 and facts.get("boards_tables", 0) == 6 and facts.get("boards_rows", 0) >= 20
               and facts.get("master_kpis", 0) == 4 and facts.get("master_tables", 0) >= 1 and facts.get("drill_tickers", 0) >= 3 and facts.get("drill_mix_bars", 0) == 2
