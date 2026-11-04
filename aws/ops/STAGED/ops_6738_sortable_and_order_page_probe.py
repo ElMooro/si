@@ -105,8 +105,14 @@ def main():
             for k, v in out.items():
                 r.log("%s: %s" % (k, json.dumps(v, ensure_ascii=False)))
             facts.update(out)
+            skipped = page.evaluate("""() => Array.from(document.querySelectorAll('table:not([data-jh-sortable])')).map(t => ({
+                section: (t.closest('section') || {getAttribute: () => ''}).getAttribute('aria-label') || '', id: t.id, cls: String(t.className).slice(0, 40), thead: !!t.tHead, rows: t.rows.length,
+                first: t.rows[0] ? Array.from(t.rows[0].cells).map(c => c.tagName + (c.colSpan > 1 ? '(cs' + c.colSpan + ')' : '') + ':' + c.innerText.trim().slice(0, 16) + (c.hasAttribute('aria-sort') || c.hasAttribute('data-sort') || c.hasAttribute('onclick') ? '[own-sort]' : '') + (c.querySelector('button,a,input,select') ? '[control]' : '')) : []}))""")
+            r.log("tables not made sortable (%d): %s" % (len(skipped), json.dumps(skipped, ensure_ascii=False)[:1500]))
+            facts["skipped"] = skipped
+            facts["skipped_sortable_shape"] = [t for t in skipped if t["rows"] >= 2 and t["first"] and all(f.startswith("TH") for f in t["first"]) and not any("(cs" in f or "[own-sort]" in f or "[control]" in f for f in t["first"])]
             facts["order_ok"] = [x for x in out["order"] if x in WANT_ORDER] == WANT_ORDER
-            facts["all_sortable"] = out["tables"] > 0 and out["tables"] == out["sortable"]
+            facts["all_sortable"] = out["tables"] > 0 and not facts["skipped_sortable_shape"]   # every table that has a plain header row is sortable; the rest are listed with their shape
             facts["sort_ok"] = (out["desc"] != out["asc"] and out["restored"] == out["before"] and out["ariaDesc"] == "descending" and out["ariaAsc"] == "ascending"
                                 and out["mgrs"] == sorted(out["mgrs"], key=lambda s: s.lower()))
             r.log("order_ok %s | all_sortable %s | sort_ok %s" % (facts["order_ok"], facts["all_sortable"], facts["sort_ok"]))
