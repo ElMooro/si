@@ -3,7 +3,7 @@
   "reviewed": "2026-11-04",
   "note": "Reviewed asset class per exchange-traded product ticker (or 9-character CUSIP when OpenFIGI carries no ticker for the product), used by justhodl-13f-book to bucket fund-like 13F identities (ticker from the OpenFIGI ID_CUSIP/ID_CINS master). A ticker absent here is classed from FMP's own assetClass when the bank holds the fund's etf/info row, else shown as 'ETF - unclassified' and listed for review; it is never bucketed by name or guess. Classes: equity, bond, cash (T-bills and ultra-short), gold, silver, commodity, crypto, volatility, currency, multi_asset. Extended 2026-11-04 from the first-light unclassified list (ops 6731).",
   "classes": {
-    "25434V500": "equity",
+    "25434V500": "equity", "25434V708": "equity",
     "SPY": "equity", "IVV": "equity", "VOO": "equity", "VTI": "equity", "ITOT": "equity", "SPLG": "equity", "SPYG": "equity", "SPYV": "equity", "RSP": "equity", "QQQ": "equity", "QQQM": "equity", "IWM": "equity",
     "IWB": "equity", "IWF": "equity", "IWD": "equity", "IWN": "equity", "IWO": "equity", "IWR": "equity", "DIA": "equity", "MDY": "equity", "IJH": "equity", "IJR": "equity", "VXF": "equity", "VUG": "equity",
     "VTV": "equity", "VB": "equity", "VO": "equity", "VV": "equity", "IVW": "equity", "IVE": "equity", "SCHX": "equity", "SCHB": "equity", "SCHD": "equity", "SCHG": "equity", "SCHV": "equity", "SCHF": "equity",

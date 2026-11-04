@@ -63,7 +63,7 @@ import chain_guard  # the fleet-wide trigger cap: every engine start is admitted
 import openfigi     # aws/shared: keyed OpenFIGI v3 client (SSM /justhodl/openfigi/api-key), fail-soft
 import fmp_bank     # aws/shared: the FMP warehouse reader (banked etf/info rows carry FMP's own assetClass) - S3 only
 
-VERSION = "1.1.2"
+VERSION = "1.1.3"
 CONTRACT = "13f-book.v2"
 ENGINE = "justhodl-13f-book"
 SCHEME = "v2"   # security-master query scheme: identifier typed by shape (CUSIP / CINS), US pass, any-exchange pass, ISIN pass
@@ -291,7 +291,7 @@ class Classer:
         sector = row.get("market_sector") or ""
         stype = row.get("security_type") or ""
         stype2 = row.get("security_type2") or ""
-        if sector == "Pref":   # OpenFIGI's preferred-securities sector (incl. mandatory convertibles reported in shares)
+        if sector in ("Pref", "Pfd"):   # OpenFIGI's preferred-securities sector is spelled "Pfd" (mandatory convertibles reported in shares: GOOGL 6.25 05/15/29, SMCI 7 06/01/29 ...)
             return {**base, "kind": "stock", "sub": "preferred", "bucket": "equities"}
         if sector != "Equity":
             return {**base, "kind": "other", "sub": (sector or "unknown").lower(), "bucket": "other"}

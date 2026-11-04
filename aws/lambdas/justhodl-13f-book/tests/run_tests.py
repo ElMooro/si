@@ -334,7 +334,7 @@ def test_classer_and_universes():
             "REIT00001": {"status": "resolved", "ticker": "O", "name": "REALTY INCOME", "security_type": "REIT", "security_type2": "Common Stock", "market_sector": "Equity"},
             "ADR000001": {"status": "resolved", "ticker": "TSM", "name": "TAIWAN SEMI", "security_type": "ADR", "security_type2": "Depositary Receipt", "market_sector": "Equity"},
             "BOND00001": {"status": "resolved", "ticker": "T 4.3", "name": "AT&T", "security_type": "GLOBAL", "security_type2": "Corp", "market_sector": "Corp"},
-            "PREF00001": {"status": "resolved", "ticker": "GOOGL 6.25 05/15/29 B", "name": "ALPHABET INC", "security_type": "Convertible Preferred", "security_type2": "Preferred", "market_sector": "Pref"},
+            "PREF00001": {"status": "resolved", "ticker": "GOOGL 6.25 05/15/29 B", "name": "ALPHABET INC", "security_type": "PUBLIC", "security_type2": "Preferred", "market_sector": "Pfd"},
             "AMBIG0001": {"status": "ambiguous"}}
     classes, reviewed = lf.load_etf_table()
     assert classes["SPY"] == "equity" and classes["GLD"] == "gold" and classes["IBIT"] == "crypto" and classes["TLT"] == "bond" and classes["BIL"] == "cash" and reviewed
@@ -360,7 +360,7 @@ def test_classer_and_universes():
 
 def test_build_boards_rotation_stance_contenders_snapshot():
     s3, out = built()
-    assert out["contract"] == "13f-book.v2" and out["version"] == "1.1.2" and out["book"]["required_period"] == "2026-06-30"
+    assert out["contract"] == "13f-book.v2" and out["version"] == "1.1.3" and out["book"]["required_period"] == "2026-06-30"
     b = out["book"]
     m = b["managers"]
     assert set(m) == {"ELLIOTT", "BERKSHIRE", "PERSHING"}
