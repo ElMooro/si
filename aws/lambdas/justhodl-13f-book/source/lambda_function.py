@@ -63,7 +63,7 @@ import chain_guard  # the fleet-wide trigger cap: every engine start is admitted
 import openfigi     # aws/shared: keyed OpenFIGI v3 client (SSM /justhodl/openfigi/api-key), fail-soft
 import fmp_bank     # aws/shared: the FMP warehouse reader (banked etf/info rows carry FMP's own assetClass) - S3 only
 
-VERSION = "1.1.1"
+VERSION = "1.1.2"
 CONTRACT = "13f-book.v2"
 ENGINE = "justhodl-13f-book"
 SCHEME = "v2"   # security-master query scheme: identifier typed by shape (CUSIP / CINS), US pass, any-exchange pass, ISIN pass
@@ -231,8 +231,20 @@ def isin_from_cusip(cusip, country="US"):
 
 
 def fmp_class(label):
-    """FMP's assetClass label -> reviewed class, None when the label is not in the vocabulary. Pure."""
-    return FMP_CLASS.get(str(label or "").strip().lower()) or None
+    """FMP's assetClass label -> reviewed class: the exact vocabulary first, then the provider's own words inside the
+    label ('Sector Equity', 'International Equity', 'Emerging Markets Equity', 'Active Equities' are equity funds by
+    FMP's own classification). None when the label says nothing about the asset class ('Leveraged/Inverse'). Pure."""
+    lab = str(label or "").strip().lower()
+    if not lab:
+        return None
+    if lab in FMP_CLASS:
+        return FMP_CLASS[lab]
+    for needle, cls in (("fixed income", "bond"), ("bond", "bond"), ("real estate", "equity"), ("preferred", "equity"), ("equit", "equity"),
+                        ("commodit", "commodity"), ("currenc", "currency"), ("volatil", "volatility"), ("crypto", "crypto"), ("digital asset", "crypto"),
+                        ("multi", "multi_asset"), ("alternativ", "multi_asset"), ("allocation", "multi_asset")):
+        if needle in lab:
+            return cls
+    return None
 
 
 def load_etf_table(path=ETF_TABLE):
@@ -285,7 +297,7 @@ class Classer:
             return {**base, "kind": "other", "sub": (sector or "unknown").lower(), "bucket": "other"}
         if is_fund_type(stype, stype2):
             t = str(row.get("ticker") or "").upper()
-            cls = self.etf.get(t)
+            cls = self.etf.get(cusip) or (self.etf.get(t) if t else None)   # the reviewed table may key a product by its CUSIP (no ticker in OpenFIGI)
             if cls and cls in CLASS_BUCKET:
                 return {**base, "kind": "fund", "sub": cls, "bucket": CLASS_BUCKET[cls], "class_source": "table"}
             lr = self.learned.get(t) or {}
@@ -1150,14 +1162,17 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
             "rotation": rotation(mems, classer),
         }
     # unclassified exchange-traded products and the largest unmapped identities, for review
-    unclassified, unmapped = {}, {}
+    unclassified, unmapped, other_rows = {}, {}, []
     class_sources = Counter()
     for p, a in (agg_cohort or {}).items():
         c = a["cls"]
         if c["kind"] == "fund" and a["holders"]:
             class_sources[c.get("class_source") or "none"] += 1
+        if c["kind"] == "other" and a["holders"]:
+            other_rows.append({"id": p[:12], "issuer": a["issuer"], "cusip": a["cusip"], "class": a["class"], "ticker": c["ticker"], "name": c["name"], "security_type": c["security_type"],
+                               "sector": (rows.get(str(a["cusip"] or "").upper()) or {}).get("market_sector"), "value_usd": f(a["value_usd"]), "n_holders": len(a["holders"])})
         if c["kind"] == "fund" and c["sub"] == "unclassified" and a["holders"]:
-            u = unclassified.setdefault(c["ticker"], {"ticker": c["ticker"], "name": c["name"], "security_type": c["security_type"], "cusip": a["cusip"],
+            u = unclassified.setdefault(c["ticker"] or a["cusip"], {"ticker": c["ticker"], "name": c["name"], "security_type": c["security_type"], "cusip": a["cusip"],
                                                       "fmp_asset_class": c.get("fmp_asset_class"), "value_usd": Decimal(0), "n_holders": 0})
             u["value_usd"] += a["value_usd"]
             u["n_holders"] = max(u["n_holders"], len(a["holders"]))
@@ -1167,6 +1182,7 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
     review = {"unclassified_etfs": sorted(({**u, "value_usd": f(u["value_usd"])} for u in unclassified.values()), key=lambda r: -(r["value_usd"] or 0))[:150],
               "n_unclassified_etfs": len(unclassified), "unclassified_value_usd": f(unclassified_value),
               "unmapped_top": sorted(unmapped.values(), key=lambda r: -(r["value_usd"] or 0))[:60], "n_unmapped": len(unmapped),
+              "other_top": sorted(other_rows, key=lambda r: -(r["value_usd"] or 0))[:30], "n_other": len(other_rows),
               "etf_table_reviewed": etf_reviewed, "etf_table_size": len(etf_classes), "class_sources": dict(class_sources),
               "learned": {"key": LEARNED_KEY, "n_rows": len(learned), "last_modified": learned_mod.isoformat(timespec="seconds") if learned_mod else None, "error": learned_err, "last_run": learn_stats}}
 

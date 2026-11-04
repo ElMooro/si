@@ -320,6 +320,10 @@ def test_learned_etf_classes_from_the_bank():
     assert cl.of(ident("25434V872"))["bucket"] == "bonds" and cl.of(ident("78462F103"))["class_source"] == "table"
     assert cl.of(ident("000000000"))["sub"] == "unclassified" and cl.of(ident("000000000"))["fmp_asset_class"] == "Thematic Basket" and cl.of(ident("000000000"))["class_source"] is None
     assert lf.fmp_class("Fixed Income") == "bond" and lf.fmp_class("DIGITAL ASSETS") == "crypto" and lf.fmp_class("Real Estate") == "equity" and lf.fmp_class("Currency") == "currency" and lf.fmp_class("weird") is None and lf.fmp_class(None) is None
+    assert lf.fmp_class("Sector Equity") == "equity" and lf.fmp_class("Emerging Markets Equity") == "equity" and lf.fmp_class("Active Equities") == "equity" and lf.fmp_class("Leveraged/Inverse") is None and lf.fmp_class("Multi-Asset") == "multi_asset" and lf.fmp_class("Alternatives") == "multi_asset"
+    # a product the table keys by CUSIP (OpenFIGI carries no ticker for it)
+    cl2 = lf.Classer({"25434V500": {"status": "resolved", "ticker": None, "name": "DIMENSIONAL US SMALL CAP ETF", "security_type": "ETP", "security_type2": "Mutual Fund", "market_sector": "Equity"}}, classes)
+    assert cl2.of({"cusip": "25434V500", "class": "COM", "quantity_type": "SH", "put_call": None}) == {"ticker": None, "name": "DIMENSIONAL US SMALL CAP ETF", "security_type": "ETP", "master": "resolved", "class_source": "table", "kind": "fund", "sub": "equity", "bucket": "equities"}
 
 
 def test_classer_and_universes():
@@ -356,7 +360,7 @@ def test_classer_and_universes():
 
 def test_build_boards_rotation_stance_contenders_snapshot():
     s3, out = built()
-    assert out["contract"] == "13f-book.v2" and out["version"] == "1.1.1" and out["book"]["required_period"] == "2026-06-30"
+    assert out["contract"] == "13f-book.v2" and out["version"] == "1.1.2" and out["book"]["required_period"] == "2026-06-30"
     b = out["book"]
     m = b["managers"]
     assert set(m) == {"ELLIOTT", "BERKSHIRE", "PERSHING"}
