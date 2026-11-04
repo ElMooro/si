@@ -4,7 +4,7 @@
   "timeout": 300,
   "handler": "lambda_function.lambda_handler",
   "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Relative strength vs the S&P 500 (1d-1y excess return, RS trend / consistency / information ratio, 52-week context) and the long-accumulation tight-spread detector for the strength desk, the ETF desk, the S&P 500 and the 13F most-held stocks, from the Polygon EOD bank, the native ETF desk's fund flows and the 13F per-ticker table into data/strength.json; reads S3 only.",
+  "description": "Relative strength vs the S&P 500 (1D-1Y, RS trend, information ratio, 52-week context) and the long-accumulation tight-spread detector from the Polygon EOD bank, ETF desk flows and the 13F per-ticker table into data/strength.json; reads S3 only.",
   "env": {
     "S3_BUCKET": "justhodl-dashboard-live",
     "OUT_KEY": "data/strength.json",
