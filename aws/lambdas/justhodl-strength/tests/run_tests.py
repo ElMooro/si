@@ -188,6 +188,13 @@ def test_math_horizons_rs_and_base_lengths():
     assert lf.tight_points(3.9) == 30 and lf.tight_points(6.0) == 25 and lf.tight_points(15.0) == 7 and lf.tight_points(15.1) == 0
     assert lf.tier_of({6.0: 40, 10.0: 60, 15.0: 200}) == ("VERY TIGHT", 6.0) and lf.tier_of({6.0: 39, 10.0: 40, 15.0: 50}) == ("TIGHT", 10.0)
     assert lf.tier_of({6.0: 10, 10.0: 25, 15.0: 130}) == ("LONG BASE", 15.0) and lf.tier_of({6.0: 10, 10.0: 25, 15.0: 60}) == ("FORMING", 10.0) and lf.tier_of({6.0: 5, 10.0: 19, 15.0: 60}) == (None, None)
+    # a base that is not a contraction of the instrument's own yearly range is no coil (a T-bill fund sits inside 1% all year)
+    assert lf.tier_of({6.0: 260, 10.0: 260, 15.0: 260}, {6.0: 0.9, 10.0: 0.9, 15.0: 0.9}, 1.1) == (None, None)
+    assert lf.tier_of({6.0: 45, 10.0: 80, 15.0: 200}, {6.0: 5.5, 10.0: 9.0, 15.0: 14.0}, 30.0) == ("VERY TIGHT", 6.0)
+    assert lf.tier_of({6.0: 45, 10.0: 80, 15.0: 200}, {6.0: 5.5, 10.0: 9.0, 15.0: 14.0}, 8.0) == (None, None)
+    cash = [{"c": 100.0 + 0.002 * i, "h": 100.0 + 0.002 * i + 0.01, "l": 100.0 + 0.002 * i - 0.01, "v": 1e6} for i in range(300)]
+    c0 = lf.coil(cash, [b["c"] for b in cash], [100.0] * 300, 0.0)
+    assert c0["tier"] is None and c0["len_6"] == 260 and c0["range_252_pct"] is not None and c0["range_252_pct"] < 1.0
     assert lf.percentile_of(5, [1, 2, 3, 4, 5, 6]) == 75.0 and lf.percentile_of(None, [1]) is None
     assert lf.composite({"d": 1.0, "w": 2.0, "m": 3.0, "q": 4.0, "h": 5.0}) == 3.15 and lf.composite({"d": None, "w": None, "m": None, "q": None, "h": None}) is None
 
@@ -258,7 +265,7 @@ def test_universe_assembly_and_ranks():
 
 def test_build_rows_boards_flows_and_13f():
     s3, out = built()
-    assert out["contract"] == "strength.v1" and out["version"] == "1.0.0" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
+    assert out["contract"] == "strength.v1" and out["version"] == "1.0.1" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
     assert out["benchmark"]["sessions"] == 300 and out["benchmark"]["h"]["q"] is not None and out["universe"]["n"] == 56
     by = {r["ticker"]: r for r in out["rows"]}
     # unbanked desk names carry no row; the bank manifest's last session is the as-of
@@ -287,8 +294,10 @@ def test_build_rows_boards_flows_and_13f():
     # boards and breadth
     b = out["boards"]
     assert b["leaders"][0]["ticker"] in ("NVDA", "QQQ") and b["laggards"][0]["ticker"] == "LAGG" and b["n_ranked"] == 7
-    assert b["breadth"]["universe"]["n"] == 7 and b["breadth"]["universe"]["coiled"] == 5 and b["breadth"]["desk"]["n"] == 4 and "pct_q" in b["breadth"]["desk"]
-    assert [x["ticker"] for x in b["coil"]][:2] == ["COIL", "AAPL"] and b["coil"][-1]["ticker"] == "LAGG" and b["coil"][-1]["coil"]["tier"] == "FORMING"
+    assert b["breadth"]["universe"]["n"] == 7 and b["breadth"]["universe"]["coiled"] == 4 and b["breadth"]["desk"]["n"] == 4 and "pct_q" in b["breadth"]["desk"]
+    assert [x["ticker"] for x in b["coil"]] == ["COIL", "GLD", "BRK.B", "LAGG"] and b["coil"][-1]["coil"]["tier"] == "FORMING"
+    assert by["AAPL"]["coil"]["tier"] is None and by["AAPL"]["coil"]["len_6"] >= 40 and by["AAPL"]["coil"]["range_252_pct"] < 10   # inside 6% for months, but its whole year is 7%: no contraction, no coil
+    assert by["COIL"]["coil"]["contraction"] < 0.1 and by["GLD"]["coil"]["contraction"] <= 0.6
     assert all("spark" in by[t] for t in ("NVDA", "AAPL", "QQQ", "GLD", "LAGG")) and "spark" in by["COIL"] and len(by["NVDA"]["spark"]) == 60
     # sources and observability
     assert [s["engine"] for s in out["sources"]] == ["justhodl-polygon-eod", "justhodl-etf-global-desk", "justhodl-etf-fund-flows", "justhodl-13f-book"]

@@ -26,8 +26,9 @@ L10, L15); the chosen base is the (length, range) pair scoring best; score 0-100
 (up to 30) + Bollinger-width squeeze percentile (up to 10) + volume dry-up (up to 8) + accumulation inside the base
 (Chaikin money flow and up-volume / down-volume, up to 12) + relative strength holding through the base (up to 5).
 Tiers: VERY TIGHT (closes inside 6% for >= 40 sessions), TIGHT (inside 10% for >= 40), LONG BASE (inside 15% for >= 120),
-FORMING (inside 10% for >= 20). Fund flows and 13F stances are shown beside the coil as corroboration; they never
-enter the price score.
+FORMING (inside 10% for >= 20) - each only when the base is a contraction (at most 60% of the instrument's own
+252-session close range), so cash-like funds never coil. Fund flows and 13F stances are shown beside the coil as
+corroboration; they never enter the price score.
 
 FLOWS  for a configured fund: the fund's OWN latest 1 / 5 / 21 reporting-observation windows (USD and % of reported
 assets) and whether the SPY-aligned windows matched; for a stock: the 13F cohort's holders now / prior, bull / bear
@@ -54,7 +55,7 @@ try:
 except Exception:  # noqa: BLE001
     etf_desk_catalog = None
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 CONTRACT = "strength.v1"
 ENGINE = "justhodl-strength"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -317,17 +318,26 @@ def base_lengths(c, tiers=BASE_TIERS, n_max=BASE_MAX):
     return found, ranges
 
 
-def tier_of(found):
+CONTRACTION_MAX = 0.6                                      # a base must be at most 60% of the instrument's own 252-session close range
+
+
+def tier_of(found, ranges=None, range_252=None):
     """The base's label from the three trailing lengths, tightest first: VERY TIGHT (closes inside 6% for >= 40 sessions),
-    TIGHT (inside 10% for >= 40), LONG BASE (inside 15% for >= 120), FORMING (inside 10% for >= 20); else none. Returns
+    TIGHT (inside 10% for >= 40), LONG BASE (inside 15% for >= 120), FORMING (inside 10% for >= 20); else none. A tier
+    counts only when the base is a CONTRACTION of the instrument's own movement - its range at most 60% of the
+    252-session close range - so a T-bill or ultra-short bond fund that never moves is not a coil. Returns
     (label, threshold) - the base reported and scored is the labelled threshold's own run. Pure."""
-    if found.get(6.0, 0) >= 40:
+    def contracted(t):
+        if range_252 is None or ranges is None or t not in ranges:
+            return True
+        return range_252 > 0 and ranges[t] / range_252 <= CONTRACTION_MAX
+    if found.get(6.0, 0) >= 40 and contracted(6.0):
         return "VERY TIGHT", 6.0
-    if found.get(10.0, 0) >= 40:
+    if found.get(10.0, 0) >= 40 and contracted(10.0):
         return "TIGHT", 10.0
-    if found.get(15.0, 0) >= 120:
+    if found.get(15.0, 0) >= 120 and contracted(15.0):
         return "LONG BASE", 15.0
-    if found.get(10.0, 0) >= 20:
+    if found.get(10.0, 0) >= 20 and contracted(10.0):
         return "FORMING", 10.0
     return None, None
 
@@ -346,13 +356,15 @@ def tight_points(rng):
 def coil(bars, c_al, s_al, rs_trend):
     """The long-accumulation / tight-spread read for one ticker. Pure."""
     c = [float(b["c"]) for b in bars]
-    out = {"tier": None, "base_len": 0, "base_range_pct": None, "wick_range_pct": None, "len_6": 0, "len_10": 0, "len_15": 0, "atr14_pct": None,
+    out = {"tier": None, "base_len": 0, "base_range_pct": None, "wick_range_pct": None, "len_6": 0, "len_10": 0, "len_15": 0, "atr14_pct": None, "range_252_pct": None, "contraction": None,
            "bb_width_pct": None, "bb_width_pctile_252": None, "vol_dry": None, "cmf_base": None, "updown_vol": None, "obv_slope_base": None,
            "rs_hold_base": None, "pos_in_base": None, "score": None, "points": None}
     if len(c) < 20:
         return out
     found, ranges = base_lengths(c)
-    out.update(len_6=found[6.0], len_10=found[10.0], len_15=found[15.0], atr14_pct=atr_pct(bars))
+    year = c[-252:]
+    range_252 = 100.0 * (max(year) - min(year)) / c[-1] if len(year) >= 120 and c[-1] else None
+    out.update(len_6=found[6.0], len_10=found[10.0], len_15=found[15.0], atr14_pct=atr_pct(bars), range_252_pct=f(range_252))
     bw = bb_width(c)
     out["bb_width_pct"] = f(bw)
     series = bb_width_series(c)
@@ -363,12 +375,12 @@ def coil(bars, c_al, s_al, rs_trend):
         prior = [float(b.get("v") or 0) for b in bars[-140:-20]]
         pa = sum(prior) / len(prior)
         out["vol_dry"] = f((sum(recent) / 20) / pa, 2) if pa > 0 else None
-    tier, thr = tier_of(found)
+    tier, thr = tier_of(found, ranges, range_252)
     if tier is None:
         return out
     L, rng = found[thr], ranges[thr]
     win = bars[-L:]
-    out.update(tier=tier, base_len=L, base_range_pct=f(rng))
+    out.update(tier=tier, base_len=L, base_range_pct=f(rng), contraction=f(rng / range_252, 2) if range_252 else None)
     hi = max(float(b.get("h", b["c"])) for b in win)
     lo = min(float(b.get("l", b["c"])) for b in win)
     out["wick_range_pct"] = f(100.0 * (hi - lo) / c[-1])
@@ -799,7 +811,7 @@ def build(s3, now, log=print, remaining_s=300.0):
             "ir_63": "63-session excess log return over its tracking volatility (information ratio, per quarter)",
             "rs_vs_52w": "RS line vs its 252-session mean, % (Mansfield relative strength)",
             "coil": "longest trailing run of closes inside 6 / 10 / 15% of the last close; score = length (35) + tightness (30) + Bollinger-width squeeze (10) + volume dry-up (8) + accumulation inside the base: CMF and up/down volume (12) + RS holding (5)",
-            "tiers": "VERY TIGHT: closes inside 6% for >= 40 sessions; TIGHT: inside 10% for >= 40; LONG BASE: inside 15% for >= 120; FORMING: inside 10% for >= 20",
+            "tiers": "VERY TIGHT: closes inside 6% for >= 40 sessions; TIGHT: inside 10% for >= 40; LONG BASE: inside 15% for >= 120; FORMING: inside 10% for >= 20 - and the base must be a contraction: at most 60% of the instrument's own 252-session close range (a T-bill fund that never moves is not a coil)",
             "flow": "a configured fund's own latest 1 / 5 / 21 reporting-observation windows from the native ETF desk (USD, % of reported assets) while its source is current; aligned = the SPY-grid windows matched",
             "f13": "the 13F cohort's read of the ticker across two dated disclosures: holders, bull / bear manager votes, net dollars at reported prices. Newly disclosed is not bought; absent is not sold.",
             "posture": "day posture from close-to-close moves; the page overlays the live quote",
