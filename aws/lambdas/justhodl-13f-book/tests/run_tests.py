@@ -12,6 +12,9 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, "..", "source")
 sys.path[:0] = [SRC]
+from types import SimpleNamespace  # noqa: E402
+BEGUN = []
+sys.modules["chain_guard"] = SimpleNamespace(begin=lambda event, context=None: BEGUN.append(event) or 0)   # offline: the trigger cap's ledger is not reachable
 
 import lambda_function as lf  # noqa: E402
 
@@ -176,6 +179,9 @@ def test_build_and_handler():
     lf._s3 = lambda: s3
     res = lf.lambda_handler({}, None)
     assert res["statusCode"] == 200 and s3.puts and s3.puts[0]["Key"] == "data/13f-book.json" and s3.puts[0]["CacheControl"] == "max-age=300"
+    assert BEGUN and BEGUN[-1] == {} and json.loads(s3.puts[0]["Body"])["trigger"] == {"kind": "scheduled", "source_generated_at": None}
+    lf.lambda_handler({"trigger": "holdings_research_published", "source_generated_at": "2026-11-03T15:41:16+00:00"}, None)
+    assert json.loads(s3.puts[-1]["Body"])["trigger"] == {"kind": "holdings_research_published", "source_generated_at": "2026-11-03T15:41:16+00:00"}
 
 
 if __name__ == "__main__":

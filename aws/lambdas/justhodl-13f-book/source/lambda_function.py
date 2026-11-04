@@ -43,7 +43,9 @@ import os
 import re
 import time
 
-VERSION = "1.0.1"
+import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
+
+VERSION = "1.0.2"
 CONTRACT = "13f-book.v1"
 ENGINE = "justhodl-13f-book"
 
@@ -539,9 +541,12 @@ def build(s3, now, log=print):
 
 
 def lambda_handler(event, context):
+    chain_guard.begin(event, context)  # trigger cap: continue the chain this run was started by (sec-13f -> 13f-positions -> here), a root otherwise
     now = datetime.now(timezone.utc)
     s3 = _s3()
     out = build(s3, now)
+    trig = event.get("trigger") if isinstance(event, dict) else None
+    out["trigger"] = {"kind": trig or "scheduled", "source_generated_at": (event or {}).get("source_generated_at") if isinstance(event, dict) else None}
     body = json.dumps(out, separators=(",", ":"), ensure_ascii=False, default=str, allow_nan=False).encode("utf-8")
     s3.put_object(Bucket=S3_BUCKET, Key=OUT_KEY, Body=body, ContentType="application/json; charset=utf-8", CacheControl="max-age=300")
     b = out["book"]

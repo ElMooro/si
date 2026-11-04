@@ -1606,8 +1606,38 @@ def lambda_handler(event, context):
     # Canonical native source only. The former producer remains inactive below
     # for audit; no event action can invoke price guesses or transaction scores.
     from holdings_canonical import handle
-    return handle(event, s3, S3_BUCKET, USER_AGENT,
-                  request_id=getattr(context, 'aws_request_id', None))
+    result = handle(event, s3, S3_BUCKET, USER_AGENT,
+                    request_id=getattr(context, 'aws_request_id', None))
+    handoff_book(event, context, result)  # ops 6726: the Institutional Book (a reader) follows every publication
+    return result
+
+
+def handoff_book(event, context, result):
+    """After a native research publication, start justhodl-13f-book asynchronously through the trigger cap, so the
+    Institutional Book follows a new filing within minutes instead of waiting for its daily slot (Khalid 2026-11-03).
+    The book reads S3 only and invokes nothing (sec-13f -> 13f-positions -> 13f-book, hop 2 of 3). Never for read
+    actions, never when nothing was published, never fatal: a refusal or an error leaves the research result untouched."""
+    try:
+        action = event.get("action") if isinstance(event, dict) else None
+        if action == "holdings_research_read" or not isinstance(result, dict) or result.get("statusCode") != 200:
+            return False
+        body = json.loads(result.get("body") or "{}") if isinstance(result.get("body"), str) else (result.get("body") or {})
+        if not body.get("published"):
+            return False
+        payload = {"trigger": "holdings_research_published",
+                   "source_generated_at": body.get("source_generated_at") or body.get("generated_at"),
+                   "canonical_replay": body.get("canonical_replay")}
+        resp = chain_guard.lambda_client(event, context, soft=True).invoke(
+            FunctionName="justhodl-13f-book", InvocationType="Event",
+            Payload=json.dumps(payload, default=str).encode("utf-8"))
+        if resp.get("TriggerRefused"):
+            print(f"[13f] book hand-off refused by the trigger cap: {resp['TriggerRefused'].get('reason')}")
+            return False
+        print("[13f] book hand-off fired (justhodl-13f-book, async)")
+        return True
+    except Exception as exc:  # noqa: BLE001
+        print(f"[13f] book hand-off FAILED (non-fatal): {exc}")
+        return False
 
 
 def legacy_lambda_handler(event, context):

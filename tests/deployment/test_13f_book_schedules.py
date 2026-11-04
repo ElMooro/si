@@ -49,6 +49,9 @@ def words(expr):
 
 
 def load_engine():
+    shared = str(ROOT / "aws/shared")          # the book imports chain_guard (trigger cap) at module level
+    if shared not in sys.path:
+        sys.path.insert(0, shared)
     spec = importlib.util.spec_from_file_location("book13f", SOURCE)
     mod = importlib.util.module_from_spec(spec)
     sys.modules["book13f"] = mod
@@ -95,6 +98,7 @@ def test_book_schedule_is_declared_once_daily_and_targets_the_book():
 def test_book_reads_only_and_declares_its_outputs():
     text = SOURCE.read_text(encoding="utf-8")
     assert ".invoke(" not in text and "boto3.client(\"lambda\"" not in text, "the book is a reader: it must not start engines"
+    assert "chain_guard.begin(event, context)" in text, "the book begins its lineage (sec-13f -> 13f-positions -> 13f-book)"
     assert 'Key=OUT_KEY' in text and 'OUT_KEY = os.environ.get("OUT_KEY", "data/13f-book.json")' in text
     mod = load_engine()
     assert mod.CONTRACT == "13f-book.v1" and "data/13f-book.json" in {o for e in mod.ENGINES for o in e["outputs"]}

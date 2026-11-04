@@ -196,14 +196,45 @@ class CanonicalHoldings(unittest.TestCase):
         tree = ast.parse((Path(__file__).parents[1]/'source/lambda_function.py').read_text(encoding='utf-8'))
         handler = next(v for v in tree.body if isinstance(v, ast.FunctionDef) and v.name == 'lambda_handler')
         code = ast.Module(body=[handler], type_ignores=[])
+        handoffs = []
         namespace = {'s3': object(), 'S3_BUCKET': 'fixture', 'USER_AGENT': 'fixture-UA',
                      'chain_guard': SimpleNamespace(begin=lambda event, context=None: 0),   # trigger cap: lineage begins at handler entry
+                     'handoff_book': lambda event, context, result: handoffs.append((event, result)),   # ops 6726: the book follows a publication
                      'legacy_lambda_handler': lambda *_: self.fail('retired writer reached')}
         exec(compile(ast.fix_missing_locations(code), '<actual-native-dispatch>', 'exec'), namespace)
         for event in (None, {}, {'trigger': 'new_filing'}, {'action': 'holdings_research_refresh'}):
             with patch.object(c, 'handle', return_value='canonical') as handle:
                 self.assertEqual(namespace['lambda_handler'](event, None), 'canonical')
                 self.assertEqual(handle.call_args.args[0], event)
+        self.assertEqual([h[1] for h in handoffs], ['canonical'] * 4)   # the hand-off sees exactly the native result, after it
+
+    def test_actual_book_handoff_fires_only_after_a_publication_and_never_fails_the_run(self):
+        tree = ast.parse((Path(__file__).parents[1]/'source/lambda_function.py').read_text(encoding='utf-8'))
+        fn = next(v for v in tree.body if isinstance(v, ast.FunctionDef) and v.name == 'handoff_book')
+        calls = []
+        class Client:
+            def __init__(self, refuse=False): self.refuse = refuse
+            def invoke(self, **kw):
+                calls.append(kw)
+                return {'StatusCode': 0, 'TriggerRefused': {'reason': 'max_hops'}} if self.refuse else {'StatusCode': 202}
+        guard = SimpleNamespace(begin=lambda event, context=None: 0, lambda_client=lambda event=None, context=None, soft=False: Client())
+        namespace = {'json': json, 'chain_guard': guard}
+        exec(compile(ast.fix_missing_locations(ast.Module(body=[fn], type_ignores=[])), '<actual-book-handoff>', 'exec'), namespace)
+        handoff = namespace['handoff_book']
+        published = {'statusCode': 200, 'body': json.dumps({'published': True, 'canonical_replay': {'manifest_key': 'runs/x'}, 'source_generated_at': '2026-11-03T15:41:16+00:00'})}
+        self.assertTrue(handoff({'trigger': 'new_filing'}, None, published))
+        self.assertEqual(calls[-1]['FunctionName'], 'justhodl-13f-book'); self.assertEqual(calls[-1]['InvocationType'], 'Event')
+        self.assertEqual(json.loads(calls[-1]['Payload'])['trigger'], 'holdings_research_published')
+        self.assertEqual(json.loads(calls[-1]['Payload'])['source_generated_at'], '2026-11-03T15:41:16+00:00')
+        n = len(calls)
+        self.assertFalse(handoff({'action': 'holdings_research_read'}, None, published))                         # a read never starts the book
+        self.assertFalse(handoff({}, None, {'statusCode': 200, 'body': json.dumps({'published': False, 'reason': 'newer_source_already_published'})}))
+        self.assertFalse(handoff({}, None, {'statusCode': 500, 'body': '{}'})); self.assertFalse(handoff({}, None, 'canonical'))
+        self.assertEqual(len(calls), n)                                                                             # none of those invoked anything
+        namespace['chain_guard'] = SimpleNamespace(begin=guard.begin, lambda_client=lambda *a, **k: Client(refuse=True))
+        self.assertFalse(handoff({}, None, published))                                                              # a trigger-cap refusal is reported, not raised
+        namespace['chain_guard'] = SimpleNamespace(begin=guard.begin, lambda_client=lambda *a, **k: (_ for _ in ()).throw(RuntimeError('ledger down')))
+        self.assertFalse(handoff({}, None, published))                                                              # an error never fails the research run
 
 
 if __name__ == '__main__': unittest.main()
