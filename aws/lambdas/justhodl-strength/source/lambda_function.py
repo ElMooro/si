@@ -55,7 +55,7 @@ try:
 except Exception:  # noqa: BLE001
     etf_desk_catalog = None
 
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 CONTRACT = "strength.v1"
 ENGINE = "justhodl-strength"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -63,6 +63,9 @@ OUT_KEY = os.environ.get("OUT_KEY", "data/strength.json")
 DESK_KEY = os.environ.get("ETF_DESK_KEY", "data/etf-desk-research.json")
 CANON_KEY = os.environ.get("FLOW_CANON_KEY", "data/provider-fund-flow-research.json")
 TICKERS_KEY = os.environ.get("TICKERS_13F_KEY", "data/13f-tickers.json")
+ACTIONS_INDEX_KEY = "data/corporate-actions-index.json"            # justhodl-corporate-actions: Polygon splits / dividends per ticker
+ACTIONS_PREFIX = "data/corporate-actions/"
+COMMON_RATIOS = (2.0, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0, 15.0, 20.0, 25.0, 50.0, 1.5, 0.5, 1 / 3, 0.25, 0.2, 0.125, 0.1, 2 / 3, 0.05, 0.04, 0.02)
 BENCH = "SPY"
 LOOKBACK = int(os.environ.get("LOOKBACK_SESSIONS", "520"))
 MAX_UNIVERSE = int(os.environ.get("MAX_UNIVERSE", "900"))
@@ -656,6 +659,75 @@ def head(s3, key, now, expected_h):
         return {"key": key, "bytes": None, "last_modified": None, "age_h": None, "tier": "missing", "error": type(exc).__name__}
 
 
+def apply_splits(bars, events):
+    """Backward split adjustment of unadjusted bank bars: every bar BEFORE a split date is multiplied by the split's
+    price factor (to / from: a 2-for-1 split -> 0.5, a 1-for-3 reverse split -> 3.0) and its volume divided by it;
+    the bar on the split date itself already trades post-split. Returns new bars; the input is never mutated. Pure."""
+    ev = sorted([(str(e["date"]), float(e["factor"])) for e in events or [] if e.get("date") and e.get("factor")], key=lambda x: x[0])
+    if not ev:
+        return bars
+    out = []
+    for b in bars:
+        f = 1.0
+        for d, x in ev:
+            if b["date"] < d:
+                f *= x
+        if f == 1.0:
+            out.append(b)
+            continue
+        nb = dict(b)
+        for k in ("o", "h", "l", "c", "vw"):
+            if nb.get(k) is not None:
+                nb[k] = float(nb[k]) * f
+        if nb.get("v") is not None:
+            nb["v"] = float(nb["v"]) / f
+        out.append(nb)
+    return out
+
+
+def infer_splits(bars):
+    """Unrecorded splits in unadjusted bars: a close-to-close ratio >= 1.8 or <= 0.56 whose volume moves the opposite
+    way by a matching amount (5 sessions each side, within x1.6) - a reverse split prints a 3x price with ~1/3 the
+    shares traded; a crash or a squeeze does not. The ratio snaps to the nearest common split ratio within 4%, else it is
+    kept as measured. Returns [{date, factor, ratio, source: 'inferred'}] oldest first. Pure."""
+    found = []
+    n = len(bars)
+    for i in range(1, n):
+        pc, c = float(bars[i - 1]["c"]), float(bars[i]["c"])
+        if pc <= 0 or c <= 0:
+            continue
+        r = c / pc
+        if 0.56 < r < 1.8:
+            continue
+        before = [float(b.get("v") or 0) for b in bars[max(0, i - 5):i]]
+        after = [float(b.get("v") or 0) for b in bars[i:i + 5]]
+        if len(before) < 3 or len(after) < 3 or not sum(before) or not sum(after):
+            continue
+        vr = (sum(before) / len(before)) / (sum(after) / len(after))
+        if abs(math.log(vr) - math.log(r)) > math.log(1.6):
+            continue
+        snap = min(COMMON_RATIOS, key=lambda x: abs(math.log(x) - math.log(r)))
+        ratio = snap if abs(math.log(snap) - math.log(r)) <= math.log(1.04) else r
+        found.append({"date": bars[i]["date"], "factor": f(ratio, 6), "ratio": f(r, 4), "source": "inferred"})
+    return found
+
+
+def recorded_splits(s3, index, tickers):
+    """Split events for the tickers the corporate-actions producer covers with at least one split: {ticker: [events]}."""
+    out = {}
+    tk = (index or {}).get("tickers") or {}
+    for t in tickers:
+        ent = tk.get(t)
+        if not isinstance(ent, dict) or not ent.get("n_splits"):
+            continue
+        doc, _, _ = optional(s3, ACTIONS_PREFIX + t + ".json")
+        ev = [{"date": e.get("date"), "factor": e.get("factor"), "ratio_from": e.get("ratio_from"), "ratio_to": e.get("ratio_to"), "source": "corporate-actions"}
+              for e in ((doc or {}).get("events") or []) if isinstance(e, dict) and e.get("type") == "split" and e.get("date") and e.get("factor")]
+        if ev:
+            out[t] = ev
+    return out
+
+
 def row_for(t, meta, bars, bench, bank_last):
     c = [float(b["c"]) for b in bars]
     h = horizons(c) if len(c) >= 2 else {k: None for k, _ in HORIZONS}
@@ -766,6 +838,28 @@ def build(s3, now, log=print, remaining_s=300.0):
             bars_by[t] = b
     unbanked = sorted(t for t, b in bars_by.items() if b is not None and not b)
     skipped = sorted(t for t, b in bars_by.items() if b is None)
+    # 2b. splits: the bank's grouped-daily rows are unadjusted; recorded splits first, then volume-confirmed inferred ones
+    actions_index, actions_mod, actions_err = optional(s3, ACTIONS_INDEX_KEY)
+    if actions_err:
+        errors.append({"input": "corporate-actions-index", "error": actions_err})
+    recorded = recorded_splits(s3, actions_index, [t for t, b in bars_by.items() if b] + [BENCH])
+    splits_by = {}
+    for t in list(bars_by.keys()) + [BENCH]:
+        b = bench if t == BENCH else bars_by.get(t)
+        if not b:
+            continue
+        ev = list(recorded.get(t) or [])
+        adjusted = apply_splits(b, ev) if ev else b
+        inferred = [x for x in infer_splits(adjusted) if not any(abs((datetime.fromisoformat(x["date"]) - datetime.fromisoformat(r["date"])).days) <= 3 for r in ev)]
+        if inferred:
+            adjusted = apply_splits(adjusted, inferred)
+            ev = ev + inferred
+        if ev:
+            splits_by[t] = ev
+        if t == BENCH:
+            bench = adjusted
+        else:
+            bars_by[t] = adjusted
     # 3. rows
     rows = []
     for t in tickers:
@@ -773,6 +867,7 @@ def build(s3, now, log=print, remaining_s=300.0):
         if not b:
             continue
         r = row_for(t, u[t], b, bench, bank_last)
+        r["splits"] = splits_by.get(t)
         r["flow"] = flows.get(t)
         r["f13"] = f13.get(t)
         rows.append(r)
@@ -798,6 +893,10 @@ def build(s3, now, log=print, remaining_s=300.0):
         "as_of": bank_last, "bank": {"last_session": bank_last, "updated_at": man.get("updated_at"), "tickers": man.get("tickers"), "first_session": man.get("first_session"),
                                      "lookback_sessions": LOOKBACK},
         "benchmark": {"ticker": BENCH, "px": f(float(bench[-1]["c"])), "as_of": bench[-1]["date"], "h": bench_h, "sessions": len(bench), **bench_ctx},
+        "splits": {"index_generated_at": (actions_index or {}).get("generated_at"), "index_covered": (actions_index or {}).get("covered"), "index_last_modified": actions_mod,
+                   "n_rows_adjusted": sum(1 for r in rows if r.get("splits")), "recorded": sum(1 for r in rows for e in (r.get("splits") or []) if e.get("source") == "corporate-actions"),
+                   "inferred": sum(1 for r in rows for e in (r.get("splits") or []) if e.get("source") == "inferred"),
+                   "note": "bank bars are unadjusted grouped-daily rows; bars before a split are rebased by the split factor (recorded by justhodl-corporate-actions, or inferred from a volume-confirmed price jump)"},
         "universe": {"n": len(u), "n_rows": len(rows), "n_ranked": boards["n_ranked"], "scopes": {s: sum(1 for v in u.values() if s in v["scopes"]) for s in ("desk", "etf-desk", "sp500", "13f")},
                      "unbanked": unbanked, "skipped_for_time": skipped, "sp500_rows": len(sp500), "etf_desk_rows": len(etf_desk), "f13_rows": len(f13), "max": MAX_UNIVERSE},
         "sleeves": {sl: [{"ticker": t, "name": n} for t, n in items] for sl, items in SLEEVES.items()},
@@ -815,6 +914,7 @@ def build(s3, now, log=print, remaining_s=300.0):
             "flow": "a configured fund's own latest 1 / 5 / 21 reporting-observation windows from the native ETF desk (USD, % of reported assets) while its source is current; aligned = the SPY-grid windows matched",
             "f13": "the 13F cohort's read of the ticker across two dated disclosures: holders, bull / bear manager votes, net dollars at reported prices. Newly disclosed is not bought; absent is not sold.",
             "posture": "day posture from close-to-close moves; the page overlays the live quote",
+            "splits": "bank bars are unadjusted; bars before a recorded split (corporate-actions) or an inferred one (close ratio >= 1.8 or <= 0.56 with volume moving the opposite way, 5 sessions each side) are rebased by the split factor",
         },
         "note": "Relative strength is a price fact, not a forecast. Fund flows are reported creation / redemption observations; 13F stances count managers. No trade, call or sizing is implied.",
         "run_seconds": round(time.time() - started, 1),
