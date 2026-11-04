@@ -61,14 +61,17 @@ import time
 
 import chain_guard  # the fleet-wide trigger cap: every engine start is admitted, counted and stamped
 import openfigi     # aws/shared: keyed OpenFIGI v3 client (SSM /justhodl/openfigi/api-key), fail-soft
+import fmp_bank     # aws/shared: the FMP warehouse reader (banked etf/info rows carry FMP's own assetClass) - S3 only
 
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 CONTRACT = "13f-book.v2"
 ENGINE = "justhodl-13f-book"
+SCHEME = "v2"   # security-master query scheme: identifier typed by shape (CUSIP / CINS), US pass, any-exchange pass, ISIN pass
 
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = os.environ.get("OUT_KEY", "data/13f-book.json")
 MASTER_KEY = os.environ.get("MASTER_KEY", "data/13f-security-master.json")
+LEARNED_KEY = os.environ.get("LEARNED_KEY", "data/13f-etf-classes-learned.json")
 PERIODS_PREFIX = os.environ.get("PERIODS_PREFIX", "data/13f-book/periods/")
 DESK_KEY = "data/13f-desk.json"
 CLONE_KEY = "data/13f-clone-alpha.json"
@@ -83,6 +86,9 @@ MASTER_BUDGET_REQUESTS = int(os.environ.get("MASTER_BUDGET_REQUESTS", "100"))   
 MASTER_BUDGET_S = float(os.environ.get("MASTER_BUDGET_S", "150"))              # wall-clock cap for the refresh
 MASTER_RESERVE_S = 90.0                                                           # time kept for the rest of the build
 RECHECK_DAYS = {"resolved": 180, "ambiguous": 30, "no_match": 90, "error": 1}   # per-status re-query interval
+FMP_LOOKUPS_PER_RUN = int(os.environ.get("FMP_LOOKUPS_PER_RUN", "300"))         # banked etf/info reads per run (S3 only)
+LEARNED_RECHECK_DAYS = {"banked": 180, "missing": 14}
+MASTER_CANDIDATES = 12
 TOP = 10
 BOARD = 20
 STANCE_TOP = 15
@@ -114,7 +120,7 @@ ENGINES = [
     {"engine": "justhodl-sec-13f", "role": "EDGAR filing detector: latest 13F-HR per tracked manager, new accessions",
      "outputs": ["data/institutional-positions.json"], "schedule": "daily 03:31 UTC (rule justhodl-sec-13f-daily)", "expected_h": 24},
     {"engine": "justhodl-13f-book", "role": "this book: boards, rotation, stance, contenders, security master, season, observability",
-     "outputs": ["data/13f-book.json", "data/13f-security-master.json"], "schedule": "daily 16:37 UTC (Scheduler justhodl-13f-book-daily) + after every native research publication (hand-off)", "expected_h": 24},
+     "outputs": ["data/13f-book.json", "data/13f-security-master.json", "data/13f-etf-classes-learned.json"], "schedule": "daily 16:37 UTC (Scheduler justhodl-13f-book-daily) + after every native research publication (hand-off)", "expected_h": 24},
     {"engine": "justhodl-13f-clone-alpha", "role": "clone-alpha: followable skill per manager from ~13 quarters of filings",
      "outputs": ["data/13f-clone-alpha.json"], "schedule": "weekly Monday 08:30 UTC (Scheduler justhodl-13f-clone-alpha-weekly)", "expected_h": 168},
     {"engine": "justhodl-13f-price-divergence", "role": "aggregate 13F position change vs 60-day price return",
@@ -145,12 +151,20 @@ STOCK_SUBTYPES = {
     "Warrant": "warrant", "Right": "right", "Equity WRT": "warrant", "SPAC": "spac",
 }
 CLASS_BUCKET = {"equity": "equities", "bond": "bonds", "cash": "cash", "gold": "gold", "silver": "silver",
-                "commodity": "commodities", "crypto": "crypto", "volatility": "volatility"}
-BUCKET_ORDER = ["equities", "bonds", "cash", "gold", "silver", "commodities", "crypto", "volatility", "other", "funds_unclassified", "unmapped"]
-BUCKET_LABEL = {"equities": "Equities (stocks + equity ETFs)", "bonds": "Bonds (bond ETFs + notes/converts at principal)", "cash": "Cash & T-bills (ETFs)",
+                "commodity": "commodities", "crypto": "crypto", "volatility": "volatility", "currency": "currency", "multi_asset": "multi_asset"}
+BUCKET_ORDER = ["equities", "bonds", "cash", "gold", "silver", "commodities", "crypto", "volatility", "currency", "multi_asset", "other", "funds_unclassified", "unmapped"]
+BUCKET_LABEL = {"equities": "Equities (stocks, preferreds + equity ETFs)", "bonds": "Bonds (bond ETFs + notes/converts at principal)", "cash": "Cash & T-bills (ETFs)",
                 "gold": "Gold (ETFs/trusts)", "silver": "Silver (ETFs/trusts)", "commodities": "Commodities (ETFs)", "crypto": "Crypto (ETFs/trusts)",
-                "volatility": "Volatility (ETNs/ETFs)", "other": "Other (non-equity sector, shares)", "funds_unclassified": "ETF - unclassified (review the table)",
+                "volatility": "Volatility (ETNs/ETFs)", "currency": "Currency (ETFs/ETNs)", "multi_asset": "Multi-asset / alternative (ETFs)",
+                "other": "Other (non-equity sector, shares)", "funds_unclassified": "ETF - unclassified (review the table)",
                 "unmapped": "Unmapped CUSIPs (no OpenFIGI resolution yet)"}
+# FMP etf/info assetClass (the provider's own label, read from the bank) -> reviewed class vocabulary; unknown labels stay unclassified and are surfaced
+FMP_CLASS = {"equity": "equity", "fixed income": "bond", "bond": "bond", "commodity": "commodity", "commodities": "commodity", "currency": "currency",
+             "volatility": "volatility", "digital assets": "crypto", "crypto": "crypto", "cryptocurrency": "crypto", "real estate": "equity",
+             "preferred stock": "equity", "preferred": "equity", "multi-asset": "multi_asset", "multi asset": "multi_asset", "alternative": "multi_asset",
+             "alternatives": "multi_asset", "asset allocation": "multi_asset"}
+TILT_PCT = 15.0   # a class is ACCUMULATING / DISTRIBUTING when the net manager-identity pairs exceed this share of all pairs
+NAV_TICKER = re.compile(r"X[A-Z0-9]{2,6}X")
 
 
 # ───────────────────────────── pure helpers ─────────────────────────────
@@ -195,6 +209,32 @@ def issuer_key(name):
     return " ".join(toks[:2])
 
 
+def id_type(identifier):
+    """13F identifiers: a CUSIP (digit-led) or a CINS (letter-led, foreign issuers: Chubb H1467J104, Linde G54950103). Pure."""
+    return "ID_CINS" if str(identifier)[:1].isalpha() else "ID_CUSIP"
+
+
+def isin_from_cusip(cusip, country="US"):
+    """The ISIN defined by a US CUSIP: 'US' + CUSIP + Luhn check digit over the letter-expanded body. Exact, not a guess. Pure."""
+    body = country + cusip
+    digits = "".join(str(ord(ch) - 55) if ch.isalpha() else ch for ch in body)
+    total, double = 0, True
+    for ch in reversed(digits):
+        d = int(ch)
+        if double:
+            d *= 2
+            if d > 9:
+                d -= 9
+        total += d
+        double = not double
+    return body + str((10 - total % 10) % 10)
+
+
+def fmp_class(label):
+    """FMP's assetClass label -> reviewed class, None when the label is not in the vocabulary. Pure."""
+    return FMP_CLASS.get(str(label or "").strip().lower()) or None
+
+
 def load_etf_table(path=ETF_TABLE):
     try:
         with open(path, "r", encoding="utf-8") as fh:
@@ -208,9 +248,10 @@ class Classer:
     """CUSIP -> (kind, sub, bucket, ticker, name) through the security master and the reviewed ETF table. Pure given
     its inputs; caches per identity. kind: stock | fund | debt | other | unmapped (options are never classed)."""
 
-    def __init__(self, master_rows, etf_classes):
+    def __init__(self, master_rows, etf_classes, learned=None):
         self.rows = master_rows or {}
         self.etf = etf_classes or {}
+        self.learned = learned or {}       # ticker -> learned row ({"class": ..., "asset_class": raw FMP label, ...})
         self.cache = {}
 
     def of(self, identity):
@@ -226,25 +267,37 @@ class Classer:
     def _classify(self, cusip, qt, option):
         row = self.rows.get(cusip) or {}
         st = row.get("status")
-        base = {"ticker": row.get("ticker") if st == "resolved" else None, "name": row.get("name") if st == "resolved" else None,
-                "security_type": row.get("security_type") if st == "resolved" else None, "master": st or "pending"}
+        typed = st == "resolved" or (st == "ambiguous" and row.get("type_agreed"))   # type known from every venue's row, ticker only when resolved
+        base = {"ticker": row.get("ticker") if st == "resolved" else None, "name": row.get("name") if typed else None,
+                "security_type": row.get("security_type") if typed else None, "master": st or "pending", "class_source": None}
         if option:
             return {**base, "kind": "option", "sub": "option", "bucket": None}
         if qt == "PRN":
             return {**base, "kind": "debt", "sub": "principal", "bucket": "bonds"}
-        if st != "resolved":
+        if not typed:
             return {**base, "kind": "unmapped", "sub": st or "pending", "bucket": "unmapped"}
         sector = row.get("market_sector") or ""
         stype = row.get("security_type") or ""
         stype2 = row.get("security_type2") or ""
+        if sector == "Pref":   # OpenFIGI's preferred-securities sector (incl. mandatory convertibles reported in shares)
+            return {**base, "kind": "stock", "sub": "preferred", "bucket": "equities"}
         if sector != "Equity":
             return {**base, "kind": "other", "sub": (sector or "unknown").lower(), "bucket": "other"}
-        if stype in FUND_TYPES or stype2 in ("Mutual Fund", "ETP") or stype.startswith("ETF"):
-            cls = self.etf.get(str(row.get("ticker") or "").upper())
+        if is_fund_type(stype, stype2):
+            t = str(row.get("ticker") or "").upper()
+            cls = self.etf.get(t)
             if cls and cls in CLASS_BUCKET:
-                return {**base, "kind": "fund", "sub": cls, "bucket": CLASS_BUCKET[cls]}
-            return {**base, "kind": "fund", "sub": "unclassified", "bucket": "funds_unclassified"}
+                return {**base, "kind": "fund", "sub": cls, "bucket": CLASS_BUCKET[cls], "class_source": "table"}
+            lr = self.learned.get(t) or {}
+            if lr.get("class") in CLASS_BUCKET:
+                return {**base, "kind": "fund", "sub": lr["class"], "bucket": CLASS_BUCKET[lr["class"]], "class_source": "fmp"}
+            return {**base, "kind": "fund", "sub": "unclassified", "bucket": "funds_unclassified", "fmp_asset_class": lr.get("asset_class")}
         return {**base, "kind": "stock", "sub": STOCK_SUBTYPES.get(stype, "equity_other"), "bucket": "equities"}
+
+
+def is_fund_type(stype, stype2):
+    stype, stype2 = str(stype or ""), str(stype2 or "")
+    return stype in FUND_TYPES or stype2 in ("Mutual Fund", "ETP") or stype.startswith("ETF")
 
 
 def in_universe(cls, universe):
@@ -479,6 +532,14 @@ def contenders_from(agg, universe, skill=None):
             "n_new_to_cohort": sum(1 for r in rising if r["new_to_cohort"]), "n_left_cohort": sum(1 for r in fading if r["left_cohort"])}
 
 
+def bucket_stance(up, down):
+    """Class-level word: with few pairs the per-identity rule; otherwise the net share of all pairs (tilt). Pure."""
+    if up + down < 4:
+        return stance_of(up, down)
+    tilt = 100.0 * (up - down) / (up + down)
+    return "ACCUMULATING" if tilt >= TILT_PCT else "DISTRIBUTING" if tilt <= -TILT_PCT else "BALANCED"
+
+
 def rotation(members, classer):
     """Asset-class rotation across members: reported value now / prior per bucket (prior at prior-quarter prices), the
     manager-identity pairs newly disclosing / absent / more / fewer, and the top names. Pure."""
@@ -512,19 +573,21 @@ def rotation(members, classer):
         if not s:
             continue
         up, down = s["pairs_new"] + s["pairs_more"], s["pairs_absent"] + s["pairs_fewer"]
+        tilt = round(100.0 * (up - down) / (up + down), 1) if (up + down) else None
         sh_now, sh_pri = share(s["value_usd"], total), share(s["value_prior_usd"], total_prior)
         rows.append({"bucket": bucket, "label": BUCKET_LABEL[bucket], "value_usd": f(s["value_usd"]), "value_prior_usd": f(s["value_prior_usd"]),
                      "value_change_pct": pct(s["value_usd"], s["value_prior_usd"]), "share_pct": sh_now, "share_prior_pct": sh_pri,
                      "share_delta_pp": round(sh_now - sh_pri, 2) if sh_now is not None and sh_pri is not None else None,
                      "n_identities": s["identities"], "n_identities_prior": s["identities_prior"], "n_managers": len(s["holders"]),
                      "pairs": {"new": s["pairs_new"], "absent": s["pairs_absent"], "more": s["pairs_more"], "fewer": s["pairs_fewer"], "flat": s["pairs_flat"]},
-                     "net_pairs": up - down, "stance": stance_of(up, down),
+                     "net_pairs": up - down, "tilt_pct": tilt, "stance": bucket_stance(up, down),
                      "top": [{"name": n, "n_holders": h, "value_usd": f(v), "id": i} for v, n, h, i in sorted(s["top"], key=lambda t: -t[0])[:5]]})
     unmapped = next((r for r in rows if r["bucket"] == "unmapped"), None)
     return {"buckets": rows, "value_usd": f(total), "value_prior_usd": f(total_prior), "n_identities": sum(r["n_identities"] for r in rows),
             "unmapped_value_pct": unmapped["share_pct"] if unmapped else 0.0,
             "note": ("Reported values at each period's own prices (a bucket's change carries the quarter's move); 'pairs' count manager x identity "
-                     "reports across the two disclosures - a pattern, not a measured flow.")}
+                     "reports across the two disclosures - a pattern, not a measured flow; tilt = net pairs as a share of all pairs, ACCUMULATING / "
+                     "DISTRIBUTING beyond +/-%d%%, BALANCED between." % int(TILT_PCT))}
 
 
 def status_of(meta, boards, required):
@@ -675,15 +738,29 @@ def master_due(rows, universe, now):
             continue
         checked = parse_ts(r.get("checked_at"))
         days = RECHECK_DAYS.get(r.get("status"), 1)
-        if checked is None or (now - checked) >= timedelta(days=days):
-            due.append((2, -u["value"], c))
+        if r.get("status") != "resolved" and r.get("scheme") != SCHEME:
+            due.append((2, -u["value"], c))          # the query scheme improved since this unresolved row was written
+        elif checked is None or (now - checked) >= timedelta(days=days):
+            due.append((3, -u["value"], c))
     due.sort()
     return [c for _, _, c in due]
 
 
 def _collapse(rows):
-    """Multiple OpenFIGI rows for one CUSIP: one composite -> the composite row; else None (ambiguous). Pure."""
-    comps = {r.get("compositeFIGI") for r in rows if isinstance(r, dict)}
+    """Multiple OpenFIGI rows for one identifier -> the one row that identifies the security, or None (ambiguous):
+    the single US composite row; several US rows that agree on ticker and type (share-class listings); or one
+    composite across every venue (the composite row). Pure."""
+    rows = [r for r in rows if isinstance(r, dict)]
+    us = [r for r in rows if r.get("exchCode") == "US"]
+    if len(us) == 1:
+        return us[0]
+    if len(us) > 1:
+        primary = [r for r in us if not NAV_TICKER.fullmatch(str(r.get("ticker") or ""))]   # Bloomberg's NAV-quote tickers for closed-end funds (XFSLX is the NAV of FSSL)
+        if len(primary) == 1:
+            return primary[0]
+    if us and len({(r.get("ticker"), r.get("securityType")) for r in us}) == 1:
+        return next((r for r in us if r.get("figi") == r.get("compositeFIGI")), us[0])
+    comps = {r.get("compositeFIGI") for r in rows}
     if len(comps) == 1 and None not in comps:
         comp = comps.pop()
         return next((r for r in rows if r.get("figi") == comp), rows[0])
@@ -699,76 +776,166 @@ def master_row(item, now_iso, query):
         return {"status": "resolved", "ticker": row.get("ticker"), "name": row.get("name"), "figi": row.get("figi"),
                 "composite_figi": row.get("compositeFIGI"), "share_class_figi": row.get("shareClassFIGI"),
                 "security_type": row.get("securityType"), "security_type2": row.get("securityType2"), "market_sector": row.get("marketSector"),
-                "exch_code": row.get("exchCode"), "checked_at": now_iso, "query": query, "n_rows": len(item.get("data") or [])}
+                "exch_code": row.get("exchCode"), "checked_at": now_iso, "query": query, "scheme": SCHEME, "n_rows": len(item.get("data") or [])}
     if st == "ambiguous":
-        cands = [{k: r.get(k) for k in ("ticker", "exchCode", "name", "figi", "securityType", "compositeFIGI")} for r in (item.get("data") or [])[:6] if isinstance(r, dict)]
-        return {"status": "ambiguous", "reason": res.get("reason"), "candidates": cands, "checked_at": now_iso, "query": query}
+        data = [r for r in (item.get("data") or []) if isinstance(r, dict)]
+        data.sort(key=lambda r: 0 if r.get("exchCode") == "US" else 1 if str(r.get("exchCode") or "").startswith("U") else 2)
+        cands = [{k: r.get(k) for k in ("ticker", "exchCode", "name", "figi", "securityType", "marketSector", "compositeFIGI")} for r in data[:MASTER_CANDIDATES]]
+        out = {"status": "ambiguous", "reason": res.get("reason"), "candidates": cands, "n_rows": len(data), "checked_at": now_iso, "query": query, "scheme": SCHEME}
+        types = {(r.get("securityType"), r.get("securityType2"), r.get("marketSector")) for r in data}
+        if len(types) == 1:   # every venue agrees on what the security is: the type is known even when no US ticker is
+            stype, stype2, sector = types.pop()
+            out.update({"type_agreed": True, "security_type": stype, "security_type2": stype2, "market_sector": sector, "name": data[0].get("name")})
+        return out
     if st == "no_match":
-        return {"status": "no_match", "reason": res.get("reason"), "checked_at": now_iso, "query": query}
+        return {"status": "no_match", "reason": res.get("reason"), "checked_at": now_iso, "query": query, "scheme": SCHEME}
     reason = (item.get("error") if isinstance(item, dict) else None) or res.get("reason")
-    return {"status": "error", "reason": str(reason)[:120], "checked_at": now_iso, "query": query}
+    return {"status": "error", "reason": str(reason)[:120], "checked_at": now_iso, "query": query, "scheme": SCHEME}
+
+
+def _send(ids, make_job, api_key, deadline, batch, stats, now_iso, query, log):
+    """One OpenFIGI pass over `ids` (list of identifiers). Returns (results dict id -> master row or None when the
+    answer must not be written (deadline), set of ids that came back no_match)."""
+    if not ids:
+        return {}, []
+    jobs = [make_job(c) for c in ids]
+    res = openfigi.mapping(jobs, api_key=api_key, deadline=deadline)   # None api_key -> the client's own (cached) SSM read -> anonymous pacing when absent
+    stats["requests"] += math.ceil(len(jobs) / batch)
+    stats["sent"] += len(jobs)
+    if res is None:
+        res = [{"error": "request failed"} for _ in jobs]
+    out, missed = {}, []
+    for c, item in zip(ids, res):
+        if isinstance(item, dict) and item.get("error") == "deadline exhausted":
+            stats["deadline_hit"] = True
+            continue
+        row = master_row(item, now_iso, query)
+        if row["status"] == "no_match":
+            missed.append(c)
+        out[c] = row
+    log("security master pass %s: %d jobs, %d answered, %d no_match" % (query, len(jobs), len(out), len(missed)))
+    return out, missed
 
 
 def master_refresh(rows, universe, now, api_key, deadline_s, budget_requests, log=print):
-    """Query OpenFIGI for the due CUSIPs within a request budget and a wall-clock deadline. First pass restricted to
-    exchCode US (composite rows), second pass without the exchange for the first pass's no-matches. Mutates and
-    returns rows; returns stats. Network only through openfigi.mapping (fail-soft)."""
+    """Query OpenFIGI for the due identifiers within a request budget and a wall-clock deadline, three passes:
+      A. identifier typed by its shape (ID_CUSIP for digit-led, ID_CINS for letter-led) restricted to exchCode US;
+      B. the same identifier on any exchange for A's no-matches (collapsed to the US row / one composite when possible);
+      C. the ISIN defined by the CUSIP ('US' + CUSIP + check digit) on exchCode US for digit-led identifiers still
+         unresolved after B (OpenFIGI withholds some US CUSIP links but answers the ISIN).
+    Mutates and returns rows; returns stats. Network only through openfigi.mapping (fail-soft)."""
     started = time.time()
     now_iso = now.isoformat(timespec="seconds")
     due = master_due(rows, universe, now)
     batch = 100 if api_key else 10
-    us_cap = max(1, int(budget_requests * 0.7)) * batch
-    first = due[:us_cap]
     deadline = time.monotonic() + max(1.0, deadline_s)
-    stats = {"universe": len(universe), "due": len(due), "sent_us": 0, "sent_any": 0, "requests": 0, "keyed": bool(api_key),
-             "deadline_s": deadline_s, "budget_requests": budget_requests, "deadline_hit": False, "changed": 0}
-    pending_fallback = []
-    if first:
-        jobs = [{"idType": "ID_CUSIP", "idValue": c, "exchCode": "US"} for c in first]
-        res = openfigi.mapping(jobs, api_key=api_key, deadline=deadline)   # None -> the client's own (cached) SSM read -> anonymous pacing when absent
-        stats["sent_us"] = len(jobs)
-        stats["requests"] += math.ceil(len(jobs) / batch)
-        if res is None:
-            res = [{"error": "request failed"} for _ in jobs]
-        for c, item in zip(first, res):
-            if isinstance(item, dict) and item.get("error") == "deadline exhausted":
-                stats["deadline_hit"] = True
-                continue
-            r = master_row(item, now_iso, "ID_CUSIP/US")
-            if r["status"] == "no_match":
-                pending_fallback.append(c)
-                continue
-            rows[c] = r
+    stats = {"universe": len(universe), "due": len(due), "sent": 0, "sent_us": 0, "sent_any": 0, "sent_isin": 0, "requests": 0, "keyed": bool(api_key),
+             "deadline_s": deadline_s, "budget_requests": budget_requests, "deadline_hit": False, "changed": 0, "scheme": SCHEME}
+
+    def room():
+        return max(0, budget_requests - stats["requests"]) * batch
+
+    # A. typed, US
+    first = due[:min(room(), max(1, int(budget_requests * 0.6)) * batch)]
+    a_rows, a_missed = _send(first, lambda c: {"idType": id_type(c), "idValue": c, "exchCode": "US"}, api_key, deadline, batch, stats, now_iso, "typed/US", log)
+    stats["sent_us"] = len(first)
+    pending = {}
+    for c, row in a_rows.items():
+        if row["status"] == "no_match":
+            pending[c] = row            # written only if nothing better comes from B / C
+        else:
+            rows[c] = row
             stats["changed"] += 1
-    remaining_req = budget_requests - stats["requests"]
-    if pending_fallback and remaining_req > 0 and time.monotonic() < deadline:
-        second = pending_fallback[:remaining_req * batch]
-        jobs = [{"idType": "ID_CUSIP", "idValue": c} for c in second]
-        res = openfigi.mapping(jobs, api_key=api_key, deadline=deadline)
-        stats["sent_any"] = len(jobs)
-        stats["requests"] += math.ceil(len(jobs) / batch)
-        if res is None:
-            res = [{"error": "request failed"} for _ in jobs]
-        for c, item in zip(second, res):
-            if isinstance(item, dict) and item.get("error") == "deadline exhausted":
-                stats["deadline_hit"] = True
-                continue
-            rows[c] = master_row(item, now_iso, "ID_CUSIP")
+    # B. typed, any exchange
+    second = a_missed[:room()] if time.monotonic() < deadline else []
+    b_rows, b_missed = _send(second, lambda c: {"idType": id_type(c), "idValue": c}, api_key, deadline, batch, stats, now_iso, "typed/any", log)
+    stats["sent_any"] = len(second)
+    isin_candidates = []
+    for c, row in b_rows.items():
+        if row["status"] == "resolved":
+            rows[c] = row
             stats["changed"] += 1
-        for c in pending_fallback[len(second):]:
-            rows[c] = {"status": "error", "reason": "fallback pass skipped: budget", "checked_at": now_iso, "query": "ID_CUSIP/US"}
+            pending.pop(c, None)
+        else:
+            pending[c] = row            # ambiguous abroad or no match anywhere: try the ISIN for US CUSIPs
+            if id_type(c) == "ID_CUSIP":
+                isin_candidates.append(c)
+    # C. ISIN derived from the CUSIP, US
+    third = isin_candidates[:room()] if time.monotonic() < deadline else []
+    c_rows, _ = _send(third, lambda c: {"idType": "ID_ISIN", "idValue": isin_from_cusip(c), "exchCode": "US"}, api_key, deadline, batch, stats, now_iso, "isin/US", log)
+    stats["sent_isin"] = len(third)
+    for c, row in c_rows.items():
+        if row["status"] == "resolved":
+            rows[c] = row | {"isin": isin_from_cusip(c)}
             stats["changed"] += 1
-    elif pending_fallback:
-        for c in pending_fallback:
-            rows[c] = {"status": "error", "reason": "fallback pass skipped: budget or deadline", "checked_at": now_iso, "query": "ID_CUSIP/US"}
-            stats["changed"] += 1
+            pending.pop(c, None)
+        elif pending.get(c, {}).get("status") == "no_match" and row["status"] == "ambiguous":
+            pending[c] = row            # keep the richer answer (candidates) over a bare no-match
+    a_missed_set, second_set, isin_set, third_set = set(a_missed), set(second), set(isin_candidates), set(third)
+    stats["partial"] = 0
+    for c, row in pending.items():
+        partial = (c in a_missed_set and c not in second_set) or (c in isin_set and c not in third_set)
+        if partial:                     # a later pass never ran for it (budget or deadline): keep the answer, stay due for the next run
+            row = row | {"scheme": SCHEME + "-partial"}
+            stats["partial"] += 1
+        rows[c] = row
+        stats["changed"] += 1
     stats["seconds"] = round(time.time() - started, 1)
     stats["pending_after"] = len([c for c in universe if c not in rows])
-    log("security master: universe %d due %d sent %d+%d requests %d keyed %s changed %d pending %d %.1fs%s" % (
-        len(universe), len(due), stats["sent_us"], stats["sent_any"], stats["requests"], stats["keyed"], stats["changed"], stats["pending_after"],
-        stats["seconds"], " DEADLINE" if stats["deadline_hit"] else ""))
+    log("security master: universe %d due %d sent %d (US %d, any %d, isin %d) requests %d keyed %s changed %d pending %d %.1fs%s" % (
+        len(universe), len(due), stats["sent"], stats["sent_us"], stats["sent_any"], stats["sent_isin"], stats["requests"], stats["keyed"], stats["changed"],
+        stats["pending_after"], stats["seconds"], " DEADLINE" if stats["deadline_hit"] else ""))
     return stats
 
+
+def learn_etf_classes(learned, rows, universe, etf_classes, now, budget, log=print):
+    """For fund-like resolved identities the reviewed table does not know, read FMP's own assetClass from the banked
+    etf/info row (S3 only, fail-soft) and keep it in `learned` (ticker -> row). Returns stats. Mutates learned."""
+    started = time.time()
+    now_iso = now.isoformat(timespec="seconds")
+    want = {}
+    for c, u in universe.items():
+        r = rows.get(c) or {}
+        if r.get("status") != "resolved" or not is_fund_type(r.get("security_type"), r.get("security_type2")):
+            continue
+        t = str(r.get("ticker") or "").upper()
+        if not t or t in etf_classes:
+            continue
+        lr = learned.get(t)
+        if lr:
+            checked = parse_ts(lr.get("checked_at"))
+            days = LEARNED_RECHECK_DAYS["banked" if lr.get("banked") else "missing"]
+            if checked is not None and (now - checked) < timedelta(days=days):
+                continue
+        want[t] = max(want.get(t, Decimal(0)), u["value"])
+    order = sorted(want, key=lambda t: -want[t])[:max(0, budget)]
+    stats = {"fund_like_unknown_to_table": len(want), "looked_up": 0, "banked": 0, "classed": 0, "unknown_label": 0, "errors": 0, "labels": {}}
+    for t in order:
+        stats["looked_up"] += 1
+        try:
+            doc = fmp_bank.walker("etf-info", t)
+        except Exception:  # noqa: BLE001
+            stats["errors"] += 1
+            doc = None
+        row0 = doc[0] if isinstance(doc, list) and doc and isinstance(doc[0], dict) else (doc if isinstance(doc, dict) else None)
+        if row0 is None:
+            learned[t] = {"banked": False, "asset_class": None, "class": None, "checked_at": now_iso, "source": "fmp-bank etf/info (not banked)"}
+            continue
+        label = row0.get("assetClass")
+        cls = fmp_class(label)
+        learned[t] = {"banked": True, "asset_class": label, "class": cls, "name": row0.get("name"), "cusip": row0.get("securityCusip") or row0.get("cusip"),
+                      "updated_at": row0.get("updatedAt"), "checked_at": now_iso, "source": "fmp-bank etf/info"}
+        stats["banked"] += 1
+        stats["labels"][str(label)] = stats["labels"].get(str(label), 0) + 1
+        if cls:
+            stats["classed"] += 1
+        else:
+            stats["unknown_label"] += 1
+    stats["seconds"] = round(time.time() - started, 1)
+    stats["learned_total"] = len(learned)
+    log("etf classes learned: %d fund-like tickers unknown to the table, looked up %d, banked %d, classed %d, unknown label %d, errors %d, %.1fs" % (
+        len(want), stats["looked_up"], stats["banked"], stats["classed"], stats["unknown_label"], stats["errors"], stats["seconds"]))
+    return stats
 
 def master_coverage(rows, universe):
     """Status counts over the current universe, by identity and by reported value. Pure."""
@@ -778,7 +945,10 @@ def master_coverage(rows, universe):
         c[st] += 1
         v[st] += u["value"]
     total_v = sum(v.values()) or Decimal(1)
+    typed = sum(1 for cusip in universe if (rows.get(cusip) or {}).get("status") == "ambiguous" and (rows.get(cusip) or {}).get("type_agreed"))
+    typed_v = sum((u["value"] for cusip, u in universe.items() if (rows.get(cusip) or {}).get("status") == "ambiguous" and (rows.get(cusip) or {}).get("type_agreed")), Decimal(0))
     return {"identities": len(universe), **{k: c.get(k, 0) for k in ("resolved", "no_match", "ambiguous", "error", "pending")},
+            "typed_only": typed, "typed_only_value_pct": f(round(100 * typed_v / total_v, 1)) if universe else None,
             "resolved_pct": round(100.0 * c.get("resolved", 0) / len(universe), 1) if universe else None,
             "resolved_value_pct": f(round(100 * v.get("resolved", Decimal(0)) / total_v, 1)) if universe else None}
 
@@ -888,7 +1058,24 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
                 master_bytes = put_json(s3, MASTER_KEY, doc, cache="max-age=600")
                 master_mod = now
     coverage = master_coverage(rows, universe)
-    classer = Classer(rows, etf_classes)
+
+    # 2b. the learned ETF classes (FMP's own assetClass from the bank) for fund-like tickers the reviewed table lacks
+    try:
+        learned_doc, learned_mod, _ = get_json(s3, LEARNED_KEY)
+        learned_err = None
+    except Exception as exc:  # noqa: BLE001
+        learned_doc, learned_mod, learned_err = {}, None, type(exc).__name__
+    learned = learned_doc.get("by_ticker") if isinstance(learned_doc.get("by_ticker"), dict) else {}
+    learn_stats = {"skipped": True, "reason": "disabled"}
+    if master_enabled:
+        learn_stats = learn_etf_classes(learned, rows, universe, etf_classes, now, FMP_LOOKUPS_PER_RUN, log)
+        learn_stats["skipped"] = False
+        if learn_stats.get("looked_up"):
+            put_json(s3, LEARNED_KEY, {"contract": "13f-etf-classes-learned.v1", "engine": ENGINE, "version": VERSION, "generated_at": now.isoformat(timespec="seconds"),
+                                       "source": "FMP etf/info assetClass as banked by justhodl-fmp-walker (data/warm/fmp/etf-info/<ticker>.json.gz); mapped through FMP_CLASS",
+                                       "vocabulary": FMP_CLASS, "recheck_days": LEARNED_RECHECK_DAYS, "n_rows": len(learned), "last_run": learn_stats, "by_ticker": learned}, cache="max-age=600")
+            learned_mod = now
+    classer = Classer(rows, etf_classes, learned)
 
     # 3. per-manager boards
     managers, members, members_conc = {}, [], []
@@ -964,18 +1151,24 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
         }
     # unclassified exchange-traded products and the largest unmapped identities, for review
     unclassified, unmapped = {}, {}
+    class_sources = Counter()
     for p, a in (agg_cohort or {}).items():
         c = a["cls"]
+        if c["kind"] == "fund" and a["holders"]:
+            class_sources[c.get("class_source") or "none"] += 1
         if c["kind"] == "fund" and c["sub"] == "unclassified" and a["holders"]:
-            u = unclassified.setdefault(c["ticker"], {"ticker": c["ticker"], "name": c["name"], "security_type": c["security_type"], "cusip": a["cusip"], "value_usd": Decimal(0), "n_holders": 0})
+            u = unclassified.setdefault(c["ticker"], {"ticker": c["ticker"], "name": c["name"], "security_type": c["security_type"], "cusip": a["cusip"],
+                                                      "fmp_asset_class": c.get("fmp_asset_class"), "value_usd": Decimal(0), "n_holders": 0})
             u["value_usd"] += a["value_usd"]
             u["n_holders"] = max(u["n_holders"], len(a["holders"]))
         elif c["kind"] == "unmapped" and a["holders"]:
             unmapped[p] = {"id": p[:12], "issuer": a["issuer"], "cusip": a["cusip"], "class": a["class"], "master": c["master"], "value_usd": f(a["value_usd"]), "n_holders": len(a["holders"])}
-    review = {"unclassified_etfs": sorted(({**u, "value_usd": f(u["value_usd"])} for u in unclassified.values()), key=lambda r: -(r["value_usd"] or 0))[:60],
-              "n_unclassified_etfs": len(unclassified),
-              "unmapped_top": sorted(unmapped.values(), key=lambda r: -(r["value_usd"] or 0))[:40], "n_unmapped": len(unmapped),
-              "etf_table_reviewed": etf_reviewed, "etf_table_size": len(etf_classes)}
+    unclassified_value = sum((u["value_usd"] for u in unclassified.values()), Decimal(0))
+    review = {"unclassified_etfs": sorted(({**u, "value_usd": f(u["value_usd"])} for u in unclassified.values()), key=lambda r: -(r["value_usd"] or 0))[:150],
+              "n_unclassified_etfs": len(unclassified), "unclassified_value_usd": f(unclassified_value),
+              "unmapped_top": sorted(unmapped.values(), key=lambda r: -(r["value_usd"] or 0))[:60], "n_unmapped": len(unmapped),
+              "etf_table_reviewed": etf_reviewed, "etf_table_size": len(etf_classes), "class_sources": dict(class_sources),
+              "learned": {"key": LEARNED_KEY, "n_rows": len(learned), "last_modified": learned_mod.isoformat(timespec="seconds") if learned_mod else None, "error": learned_err, "last_run": learn_stats}}
 
     # 5. the period snapshot (written once per period, re-written when the cohort or its identity count changes)
     snapshot = {"key": None, "written": False, "reason": None}
@@ -1022,6 +1215,8 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
             "votes.weighted_net": "the same votes weighted by each manager's clone-alpha SKILL / 100 (managers without a SKILL are not weighted)",
             "holder_delta": "cohort managers reporting the identity now minus last period",
             "kind": "stock / fund (exchange-traded product) / debt (principal amount) / other / unmapped, from the CUSIP master",
+            "class_source": "table = the reviewed ETF class table; fmp = FMP's own assetClass read from the bank; none = unclassified",
+            "BALANCED": "a class whose net manager-identity pairs are within +/-%d%% of all its pairs" % int(TILT_PCT),
         },
     }
 
@@ -1057,7 +1252,8 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
                    "holdings_research": {k: hr.get(k) for k in ("contract", "generated_at", "fund_count", "current_cohort_count", "refresh_status", "acquisition_mode", "source_request_count")} | {"error": hr_err},
                    "research": desk.get("research"), "legacy_snapshot": desk.get("legacy_snapshot"), "security_indexes": desk.get("security_indexes"),
                    "ticker_identity": desk.get("ticker_identity"), "methodology_url": desk.get("methodology_url"), "research_url": desk.get("research_url"),
-                   "security_master": "OpenFIGI v3 /mapping by CUSIP (keyed); a ticker is shown only for a resolved CUSIP",
+                   "security_master": "OpenFIGI v3 /mapping by CUSIP / CINS / derived ISIN (keyed); a ticker is shown only for a resolved identifier",
+                   "etf_classes_learned": {"key": LEARNED_KEY, "n": len(learned)},
                    "etf_classes": {"file": "13f-etf-classes.json (twin config/13f-etf-classes.json)", "reviewed": etf_reviewed, "n": len(etf_classes)}},
         "cadence": "daily (cadence floor) + hand-off after every native research publication; the native research publishes 15:40 UTC, this book 16:37 UTC; EDGAR detector 03:31 UTC",
         "note": ("Every figure is a reported quantity or a reported value from a retained 13F-HR information table, compared across two dated "

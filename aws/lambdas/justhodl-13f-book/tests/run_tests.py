@@ -52,7 +52,15 @@ FIGI = {
     "00206R102": [_row("T 4.3 02/15/30", "AT&T INC", "GLOBAL", "Corp", sector="Corp", figi="BBG00P4BXG51")],   # a note: Corp sector, no exchange
     "88160R101": [_row("TSLA", "TESLA INC", "Common Stock", figi="BBG000N9MNX3")],
     "AMBIG0001": [_row("AMB", "AMBIGUOUS CO", "Common Stock", figi="BBG0000AMB01", comp="BBG0000AMB01"),
-                  _row("AMB", "AMBIGUOUS CO-B", "Common Stock", figi="BBG0000AMB02", comp="BBG0000AMB02")],
+                  _row("AMBB", "AMBIGUOUS CO-B", "Common Stock", figi="BBG0000AMB02", comp="BBG0000AMB02")],   # two US rows, different tickers
+    "H1467J104": [_row("CB", "CHUBB LTD", "Common Stock", figi="BBG000BR14K5")],                       # a CINS: answered only as ID_CINS
+    "30231G102": [_row("EXMOC", "EXXON MOBIL CORP", "Common Stock", figi="BBG00B8TC1V3", exch="CP"),   # OpenFIGI withholds the US CUSIP link ...
+                  _row("XOM", "EXXON MOBIL CORP", "Common Stock", figi="BBG01496HVM6", comp="BBG01496HVL7", exch="UZ")],
+    "US30231G1022": [_row("XOM", "EXXON MOBIL CORP", "Common Stock", figi="BBG000GZQ728")],            # ... but answers the derived ISIN
+    "CEFSAME01": [_row("PTY", "PIMCO CORP&INCOME OPPORTUNITY", "Closed-End Fund", "Mutual Fund", figi="BBG0000CEF01"),
+                  _row("PTY", "PIMCO CORP&INCOME OPPORTUNITY", "Closed-End Fund", "Mutual Fund", figi="BBG0000CEF02")],   # two US rows, same ticker + type
+    "CEFNAV001": [_row("FSSL", "FS SPECIALTY LENDING FUND", "Closed-End Fund", "Mutual Fund", figi="BBG002VNPPN2"),
+                  _row("XFSLX", "FS SPECIALTY LENDING FUND", "Closed-End Fund", "Mutual Fund", figi="BBG01YLVBPK2")],     # the second US row is Bloomberg's NAV-quote ticker
     "MULTI0001": [_row("MLT", "MULTI LISTED LTD", "Common Stock", figi="BBG0000MLT01", comp="BBG0000MLT00", exch="LN"),
                   _row("MLT", "MULTI LISTED LTD", "Common Stock", figi="BBG0000MLT00", comp="BBG0000MLT00", exch="US")],
 }
@@ -63,14 +71,20 @@ def fake_mapping(jobs, api_key=None, deadline=None):
     CALLS.append([dict(j) for j in jobs])
     out = []
     for j in jobs:
-        c, exch = j.get("idValue"), j.get("exchCode")
+        c, exch, it = j.get("idValue"), j.get("exchCode"), j.get("idType")
         rows = FIGI.get(c)
         if c == "ERROR0001":
             out.append({"error": "request failed"})
         elif c == "MULTI0001" and exch == "US":
             out.append({"warning": "No identifier found."})          # the US-only pass misses it, the any-exchange pass collapses it
+        elif c[:1].isalpha() and it == "ID_CUSIP":
+            out.append({"warning": "No identifier found."})          # a CINS is never found as a CUSIP
+        elif c == "30231G102" and exch == "US":
+            out.append({"warning": "No identifier found."})          # the withheld US link
         elif not rows:
             out.append({"warning": "No identifier found."})
+        elif exch == "US":
+            out.append({"data": [dict(r) for r in rows if r.get("exchCode") == "US"]} if any(r.get("exchCode") == "US" for r in rows) else {"warning": "No identifier found."})
         else:
             out.append({"data": [dict(r) for r in rows]})
     return out
@@ -79,6 +93,13 @@ def fake_mapping(jobs, api_key=None, deadline=None):
 openfigi.mapping = fake_mapping
 FAKE_KEY = "FAKE-OPENFIGI-KEY-NEVER-LOGGED"
 openfigi.get_api_key = lambda: FAKE_KEY   # never printed; the fake ignores it
+
+# the FMP bank: banked etf/info rows for a few tickers (FMP's own assetClass), nothing for the rest
+BANK = {"XYZQ": [{"symbol": "XYZQ", "name": "Some New Thematic ETF", "assetClass": "Equity", "securityCusip": "123456785", "updatedAt": "2026-10-25T08:15:40.030Z"}],
+        "ZZBND": [{"symbol": "ZZBND", "name": "Some Core Fixed Income ETF", "assetClass": "Fixed Income", "securityCusip": "25434V872"}],
+        "ODDB": [{"symbol": "ODDB", "name": "Odd Basket", "assetClass": "Thematic Basket", "securityCusip": "000000000"}]}
+BANK_CALLS = []
+sys.modules["fmp_bank"] = SimpleNamespace(walker=lambda dataset, entity=None, **kw: BANK_CALLS.append((dataset, entity)) or BANK.get(entity))
 
 import lambda_function as lf  # noqa: E402
 
@@ -215,22 +236,30 @@ def test_fund_boards_without_a_master():
 def test_security_master_statuses_and_recheck_policy():
     rows = {}
     universe = {c: {"value": lf.Decimal(v), "sh": sh} for c, v, sh in (("037833100", 36000, True), ("78462F103", 7000, True), ("999999999", 100, True),
-                                                                        ("AMBIG0001", 50, True), ("MULTI0001", 60, True), ("ERROR0001", 10, True), ("00206R102", 950000, False))}
+                                                                        ("AMBIG0001", 50, True), ("MULTI0001", 60, True), ("ERROR0001", 10, True), ("00206R102", 950000, False),
+                                                                        ("H1467J104", 500, True), ("30231G102", 400, True), ("CEFSAME01", 30, True), ("CEFNAV001", 20, True))}
     CALLS.clear()
     st = lf.master_refresh(rows, universe, NOW, FAKE_KEY, 30.0, 10, log=lambda *a: None)
-    assert st["sent_us"] == 7 and st["sent_any"] == 2 and st["requests"] == 2 and st["keyed"] is True and st["deadline_hit"] is False
+    assert st["sent_us"] == 11 and st["sent_any"] == 3 and st["sent_isin"] == 2 and st["requests"] == 3 and st["keyed"] is True and st["deadline_hit"] is False and st["partial"] == 0
     assert CALLS[0][0] == {"idType": "ID_CUSIP", "idValue": "037833100", "exchCode": "US"}   # SH by value first ...
     assert CALLS[0][-1]["idValue"] == "00206R102"                                           # ... the PRN identity last
-    assert all("exchCode" not in j for j in CALLS[1]) and {j["idValue"] for j in CALLS[1]} == {"999999999", "MULTI0001"}
-    assert rows["037833100"]["status"] == "resolved" and rows["037833100"]["ticker"] == "AAPL" and rows["037833100"]["figi"] == "BBG000B9XRY4" and rows["037833100"]["query"] == "ID_CUSIP/US"
+    assert {j["idValue"]: j["idType"] for j in CALLS[0]}["H1467J104"] == "ID_CINS"           # a CINS is typed by its shape
+    assert all("exchCode" not in j for j in CALLS[1]) and {j["idValue"] for j in CALLS[1]} == {"999999999", "MULTI0001", "30231G102"}
+    assert {j["idValue"] for j in CALLS[2]} == {"US9999999991", "US30231G1022"} and all(j["idType"] == "ID_ISIN" and j["exchCode"] == "US" for j in CALLS[2])
+    assert rows["037833100"]["status"] == "resolved" and rows["037833100"]["ticker"] == "AAPL" and rows["037833100"]["figi"] == "BBG000B9XRY4" and rows["037833100"]["query"] == "typed/US" and rows["037833100"]["scheme"] == "v2"
     assert rows["78462F103"]["security_type"] == "ETP" and rows["78462F103"]["security_type2"] == "Mutual Fund"
-    assert rows["999999999"]["status"] == "no_match" and rows["999999999"]["query"] == "ID_CUSIP"
-    assert rows["AMBIG0001"]["status"] == "ambiguous" and len(rows["AMBIG0001"]["candidates"]) == 2
-    assert rows["MULTI0001"]["status"] == "resolved" and rows["MULTI0001"]["figi"] == "BBG0000MLT00" and rows["MULTI0001"]["exch_code"] == "US" and rows["MULTI0001"]["n_rows"] == 2
+    assert rows["999999999"]["status"] == "no_match" and rows["999999999"]["query"] == "typed/any"
+    assert rows["AMBIG0001"]["status"] == "ambiguous" and len(rows["AMBIG0001"]["candidates"]) == 2 and rows["AMBIG0001"]["n_rows"] == 2
+    assert rows["MULTI0001"]["status"] == "resolved" and rows["MULTI0001"]["figi"] == "BBG0000MLT00" and rows["MULTI0001"]["exch_code"] == "US" and rows["MULTI0001"]["n_rows"] == 2 and rows["MULTI0001"]["query"] == "typed/any"
     assert rows["ERROR0001"]["status"] == "error" and "request failed" in rows["ERROR0001"]["reason"]
+    assert rows["H1467J104"] ["ticker"] == "CB" and rows["H1467J104"]["query"] == "typed/US"                         # CINS resolved on the first pass
+    assert rows["30231G102"]["ticker"] == "XOM" and rows["30231G102"]["query"] == "isin/US" and rows["30231G102"]["isin"] == "US30231G1022" and rows["30231G102"]["figi"] == "BBG000GZQ728"
+    assert rows["CEFSAME01"]["status"] == "resolved" and rows["CEFSAME01"]["ticker"] == "PTY" and rows["CEFSAME01"]["n_rows"] == 2   # two US rows, one ticker + type
+    assert rows["CEFNAV001"]["status"] == "resolved" and rows["CEFNAV001"]["ticker"] == "FSSL" and rows["CEFNAV001"]["n_rows"] == 2    # the NAV-quote row is set aside
+    assert rows["AMBIG0001"]["type_agreed"] is True and rows["AMBIG0001"]["security_type"] == "Common Stock" and rows["AMBIG0001"]["market_sector"] == "Equity" and rows["AMBIG0001"]["name"] == "AMBIGUOUS CO"
     assert FAKE_KEY not in json.dumps(rows)   # the key never lands in the state object
     cov = lf.master_coverage(rows, universe)
-    assert cov == {"identities": 7, "resolved": 4, "no_match": 1, "ambiguous": 1, "error": 1, "pending": 0, "resolved_pct": 57.1, "resolved_value_pct": 100.0}
+    assert cov == {"identities": 11, "resolved": 8, "no_match": 1, "ambiguous": 1, "error": 1, "pending": 0, "typed_only": 1, "typed_only_value_pct": 0.0, "resolved_pct": 72.7, "resolved_value_pct": 100.0}
     # re-check policy: resolved 180 d, ambiguous 30 d, no_match 90 d, error 1 d; the never-checked first, by value
     later = NOW + timedelta(days=2)
     assert lf.master_due(rows, universe, later) == ["ERROR0001"]
@@ -240,18 +269,57 @@ def test_security_master_statuses_and_recheck_policy():
     assert lf.master_due(rows, universe, later)[:2] == ["00206R102", "037833100"]
     universe["NEWONE001"] = {"value": lf.Decimal(1), "sh": True}
     assert lf.master_due(rows, universe, NOW)[0] == "NEWONE001"
-    # budget: 1 request keyed = 100 jobs; the fallback pass is skipped when the budget is spent and says so
+    # an unresolved row written under an older query scheme is due again (a resolved one is not)
+    old = {"X1": {"status": "no_match", "checked_at": NOW.isoformat(), "query": "ID_CUSIP/US"}, "X2": {"status": "resolved", "ticker": "T", "checked_at": NOW.isoformat(), "query": "ID_CUSIP/US"}}
+    assert lf.master_due(old, {"X1": {"value": lf.Decimal(1), "sh": True}, "X2": {"value": lf.Decimal(2), "sh": True}}, NOW) == ["X1"]
+    # budget: 1 request keyed = 100 jobs on the first pass; the later passes cannot run, so their rows stay due (scheme v2-partial)
     rows2 = {}
     st2 = lf.master_refresh(rows2, universe, NOW, FAKE_KEY, 30.0, 1, log=lambda *a: None)
-    assert st2["requests"] == 1 and rows2["999999999"]["status"] == "error" and "budget" in rows2["999999999"]["reason"]
+    assert st2["requests"] == 1 and st2["partial"] == 4 and rows2["999999999"]["status"] == "no_match" and rows2["999999999"]["scheme"] == "v2-partial" and rows2["037833100"]["status"] == "resolved"
+    assert "999999999" in lf.master_due(rows2, universe, NOW) and "037833100" not in lf.master_due(rows2, universe, NOW)
     # deadline exhausted answers are not written (retried next run)
     openfigi.mapping, keep = (lambda jobs, api_key=None, deadline=None: [{"error": "deadline exhausted"} for _ in jobs]), openfigi.mapping
     try:
         rows3 = {}
         st3 = lf.master_refresh(rows3, universe, NOW, FAKE_KEY, 30.0, 10, log=lambda *a: None)
-        assert st3["deadline_hit"] is True and rows3 == {} and st3["pending_after"] == 8
+        assert st3["deadline_hit"] is True and rows3 == {} and st3["pending_after"] == 12
     finally:
         openfigi.mapping = keep
+    assert lf.id_type("037833100") == "ID_CUSIP" and lf.id_type("G54950103") == "ID_CINS" and lf.isin_from_cusip("037833100") == "US0378331005" and lf.isin_from_cusip("30231G102") == "US30231G1022"
+
+
+def test_learned_etf_classes_from_the_bank():
+    rows = {"123456785": {"status": "resolved", "ticker": "XYZQ", "security_type": "ETP", "security_type2": "Mutual Fund", "market_sector": "Equity"},
+            "25434V872": {"status": "resolved", "ticker": "ZZBND", "security_type": "ETP", "security_type2": "Mutual Fund", "market_sector": "Equity"},
+            "000000000": {"status": "resolved", "ticker": "ODDB", "security_type": "ETP", "security_type2": "Mutual Fund", "market_sector": "Equity"},
+            "111111111": {"status": "resolved", "ticker": "NOTB", "security_type": "ETP", "security_type2": "Mutual Fund", "market_sector": "Equity"},
+            "78462F103": {"status": "resolved", "ticker": "SPY", "security_type": "ETP", "security_type2": "Mutual Fund", "market_sector": "Equity"},
+            "037833100": {"status": "resolved", "ticker": "AAPL", "security_type": "Common Stock", "security_type2": "Common Stock", "market_sector": "Equity"}}
+    universe = {c: {"value": lf.Decimal(v), "sh": True} for c, v in (("123456785", 70), ("25434V872", 50), ("000000000", 30), ("111111111", 20), ("78462F103", 7000), ("037833100", 36000))}
+    classes, _ = lf.load_etf_table()
+    learned = {}
+    BANK_CALLS.clear()
+    st = lf.learn_etf_classes(learned, rows, universe, classes, NOW, 10, log=lambda *a: None)
+    assert [e for _, e in BANK_CALLS] == ["XYZQ", "ZZBND", "ODDB", "NOTB"]        # fund-like, unknown to the table, by value; SPY (table) and AAPL (stock) never looked up
+    assert st["looked_up"] == 4 and st["banked"] == 3 and st["classed"] == 2 and st["unknown_label"] == 1 and st["labels"] == {"Equity": 1, "Fixed Income": 1, "Thematic Basket": 1}
+    assert learned["XYZQ"]["class"] == "equity" and learned["XYZQ"]["banked"] is True and learned["ZZBND"]["class"] == "bond" and learned["ODDB"]["class"] is None and learned["ODDB"]["asset_class"] == "Thematic Basket"
+    assert learned["NOTB"] == {"banked": False, "asset_class": None, "class": None, "checked_at": NOW.isoformat(timespec="seconds"), "source": "fmp-bank etf/info (not banked)"}
+    # budget of 2: only the two largest; re-check: banked 180 d, missing 14 d
+    learned2 = {}
+    lf.learn_etf_classes(learned2, rows, universe, classes, NOW, 2, log=lambda *a: None)
+    assert set(learned2) == {"XYZQ", "ZZBND"}
+    BANK_CALLS.clear()
+    lf.learn_etf_classes(learned, rows, universe, classes, NOW + timedelta(days=15), 10, log=lambda *a: None)
+    assert [e for _, e in BANK_CALLS] == ["NOTB"]
+    BANK_CALLS.clear()
+    lf.learn_etf_classes(learned, rows, universe, classes, NOW + timedelta(days=181), 10, log=lambda *a: None)
+    assert sorted(e for _, e in BANK_CALLS) == ["NOTB", "ODDB", "XYZQ", "ZZBND"]
+    cl = lf.Classer(rows, classes, learned)
+    ident = lambda c: {"cusip": c, "class": "COM", "quantity_type": "SH", "put_call": None}
+    assert cl.of(ident("123456785"))["sub"] == "equity" and cl.of(ident("123456785"))["class_source"] == "fmp" and cl.of(ident("123456785"))["bucket"] == "equities"
+    assert cl.of(ident("25434V872"))["bucket"] == "bonds" and cl.of(ident("78462F103"))["class_source"] == "table"
+    assert cl.of(ident("000000000"))["sub"] == "unclassified" and cl.of(ident("000000000"))["fmp_asset_class"] == "Thematic Basket" and cl.of(ident("000000000"))["class_source"] is None
+    assert lf.fmp_class("Fixed Income") == "bond" and lf.fmp_class("DIGITAL ASSETS") == "crypto" and lf.fmp_class("Real Estate") == "equity" and lf.fmp_class("Currency") == "currency" and lf.fmp_class("weird") is None and lf.fmp_class(None) is None
 
 
 def test_classer_and_universes():
@@ -262,18 +330,20 @@ def test_classer_and_universes():
             "REIT00001": {"status": "resolved", "ticker": "O", "name": "REALTY INCOME", "security_type": "REIT", "security_type2": "Common Stock", "market_sector": "Equity"},
             "ADR000001": {"status": "resolved", "ticker": "TSM", "name": "TAIWAN SEMI", "security_type": "ADR", "security_type2": "Depositary Receipt", "market_sector": "Equity"},
             "BOND00001": {"status": "resolved", "ticker": "T 4.3", "name": "AT&T", "security_type": "GLOBAL", "security_type2": "Corp", "market_sector": "Corp"},
+            "PREF00001": {"status": "resolved", "ticker": "GOOGL 6.25 05/15/29 B", "name": "ALPHABET INC", "security_type": "Convertible Preferred", "security_type2": "Preferred", "market_sector": "Pref"},
             "AMBIG0001": {"status": "ambiguous"}}
     classes, reviewed = lf.load_etf_table()
     assert classes["SPY"] == "equity" and classes["GLD"] == "gold" and classes["IBIT"] == "crypto" and classes["TLT"] == "bond" and classes["BIL"] == "cash" and reviewed
     cl = lf.Classer(rows, classes)
     ident = lambda c, qt="SH", pc=None: {"cusip": c, "class": "COM", "quantity_type": qt, "put_call": pc}
-    assert cl.of(ident("037833100")) == {"ticker": "AAPL", "name": "APPLE INC", "security_type": "Common Stock", "master": "resolved", "kind": "stock", "sub": "common", "bucket": "equities"}
+    assert cl.of(ident("037833100")) == {"ticker": "AAPL", "name": "APPLE INC", "security_type": "Common Stock", "master": "resolved", "class_source": None, "kind": "stock", "sub": "common", "bucket": "equities"}
+    assert cl.of(ident("PREF00001"))["kind"] == "stock" and cl.of(ident("PREF00001"))["sub"] == "preferred" and cl.of(ident("PREF00001"))["bucket"] == "equities"
     assert cl.of(ident("78462F103"))["kind"] == "fund" and cl.of(ident("78462F103"))["sub"] == "equity" and cl.of(ident("78462F103"))["bucket"] == "equities"
-    assert cl.of(ident("46438F101"))["bucket"] == "crypto" and cl.of(ident("123456785")) == {"ticker": "XYZQ", "name": "NEW ETF", "security_type": "ETP", "master": "resolved", "kind": "fund", "sub": "unclassified", "bucket": "funds_unclassified"}
-    assert cl.of(ident("REIT00001"))["sub"] == "reit" and cl.of(ident("ADR000001"))["sub"] == "adr" and cl.of(ident("BOND00001")) == {"ticker": "T 4.3", "name": "AT&T", "security_type": "GLOBAL", "master": "resolved", "kind": "other", "sub": "corp", "bucket": "other"}
+    assert cl.of(ident("46438F101"))["bucket"] == "crypto" and cl.of(ident("123456785")) == {"ticker": "XYZQ", "name": "NEW ETF", "security_type": "ETP", "master": "resolved", "class_source": None, "kind": "fund", "sub": "unclassified", "bucket": "funds_unclassified", "fmp_asset_class": None}
+    assert cl.of(ident("REIT00001"))["sub"] == "reit" and cl.of(ident("ADR000001"))["sub"] == "adr" and cl.of(ident("BOND00001")) == {"ticker": "T 4.3", "name": "AT&T", "security_type": "GLOBAL", "master": "resolved", "class_source": None, "kind": "other", "sub": "corp", "bucket": "other"}
     assert cl.of(ident("037833100", "PRN"))["kind"] == "debt" and cl.of(ident("037833100", "PRN"))["bucket"] == "bonds"
     assert cl.of(ident("037833100", "SH", "PUT"))["kind"] == "option" and cl.of(ident("037833100", "SH", "PUT"))["bucket"] is None
-    assert cl.of(ident("AMBIG0001")) == {"ticker": None, "name": None, "security_type": None, "master": "ambiguous", "kind": "unmapped", "sub": "ambiguous", "bucket": "unmapped"}
+    assert cl.of(ident("AMBIG0001")) == {"ticker": None, "name": None, "security_type": None, "master": "ambiguous", "class_source": None, "kind": "unmapped", "sub": "ambiguous", "bucket": "unmapped"}
     assert cl.of(ident("NOTCHECKED"))["sub"] == "pending"
     assert lf.in_universe(cl.of(ident("037833100")), "stocks") and not lf.in_universe(cl.of(ident("037833100")), "etfs") and lf.in_universe(cl.of(ident("037833100")), "all")
     assert lf.in_universe(cl.of(ident("78462F103")), "etfs") and lf.in_universe(cl.of(ident("AMBIG0001")), "all") and not lf.in_universe(cl.of(ident("AMBIG0001")), "stocks")
@@ -281,11 +351,12 @@ def test_classer_and_universes():
     assert not lf.in_universe(cl.of(ident("037833100", "SH", "PUT")), "rotation")
     assert lf.stance_of(0, 0) == "QUIET" and lf.stance_of(2, 0) == "ACCUMULATING" and lf.stance_of(4, 2) == "ACCUMULATING" and lf.stance_of(3, 2) == "CONTESTED"
     assert lf.stance_of(0, 1) == "DISTRIBUTING" and lf.stance_of(1, 2) == "DISTRIBUTING" and lf.stance_of(1, 1) == "CONTESTED"
+    assert lf.bucket_stance(2, 0) == "ACCUMULATING" and lf.bucket_stance(1, 1) == "CONTESTED" and lf.bucket_stance(60, 40) == "ACCUMULATING" and lf.bucket_stance(55, 45) == "BALANCED" and lf.bucket_stance(40, 60) == "DISTRIBUTING" and lf.bucket_stance(0, 0) == "QUIET"
 
 
 def test_build_boards_rotation_stance_contenders_snapshot():
     s3, out = built()
-    assert out["contract"] == "13f-book.v2" and out["version"] == "1.1.0" and out["book"]["required_period"] == "2026-06-30"
+    assert out["contract"] == "13f-book.v2" and out["version"] == "1.1.1" and out["book"]["required_period"] == "2026-06-30"
     b = out["book"]
     m = b["managers"]
     assert set(m) == {"ELLIOTT", "BERKSHIRE", "PERSHING"}
@@ -325,23 +396,28 @@ def test_build_boards_rotation_stance_contenders_snapshot():
     assert [r["ticker"] for r in ct["etfs"]["rising"]] == ["SPY"] and ct["stocks"]["rising"] == [] and [r["ticker"] for r in ct["stocks"]["fading"]] == ["APLS"]
     # rotation: equities / gold / crypto / bonds (TLT + the T note at principal) / unmapped, with the pairs counted per manager x identity
     rot = {r["bucket"]: r for r in b["rotation"]["cohort"]["buckets"]}
-    assert set(rot) == {"equities", "bonds", "gold", "crypto", "funds_unclassified", "unmapped"}
-    assert rot["equities"]["value_usd"] == 20000 + 9000 + 500 + 5000 + 16000 + 3750 + 2000 + 900 + 60 and rot["equities"]["n_managers"] == 2
-    assert rot["equities"]["pairs"] == {"new": 5, "absent": 3, "more": 2, "fewer": 1, "flat": 1} and rot["equities"]["net_pairs"] == 3 and rot["equities"]["stance"] == "CONTESTED"
+    assert set(rot) == {"equities", "bonds", "gold", "crypto", "unmapped"}   # XYZQ is classed through the bank (FMP assetClass Equity)
+    assert rot["equities"]["value_usd"] == 20000 + 9000 + 500 + 5000 + 16000 + 3750 + 2000 + 900 + 60 + 70 + 50 and rot["equities"]["n_managers"] == 2   # + the typed-but-unticked AMBIGUOUS CO
+    assert rot["equities"]["pairs"] == {"new": 7, "absent": 3, "more": 2, "fewer": 1, "flat": 1} and rot["equities"]["net_pairs"] == 5 and rot["equities"]["tilt_pct"] == 38.5 and rot["equities"]["stance"] == "ACCUMULATING"
     assert rot["gold"]["value_usd"] == 2000.0 and rot["gold"]["value_prior_usd"] == 3960.0 and rot["gold"]["pairs"] == {"new": 0, "absent": 1, "more": 0, "fewer": 1, "flat": 0} and rot["gold"]["stance"] == "DISTRIBUTING"
     assert rot["bonds"]["value_usd"] == 950000 + 450 and rot["bonds"]["value_prior_usd"] == 940000 + 880 and rot["bonds"]["top"][0]["name"] == "T 4.3 02/15/30"
-    assert rot["crypto"]["pairs"]["new"] == 1 and rot["crypto"]["top"][0]["name"] == "IBIT" and rot["unmapped"]["n_identities"] == 2 and rot["funds_unclassified"]["top"][0]["name"] == "XYZQ"
+    assert rot["crypto"]["pairs"]["new"] == 1 and rot["crypto"]["top"][0]["name"] == "IBIT" and rot["unmapped"]["n_identities"] == 1 and rot["gold"]["tilt_pct"] == -100.0
     assert abs(sum(r["share_pct"] for r in rot.values()) - 100.0) < 0.1 and b["rotation"]["cohort"]["unmapped_value_pct"] == rot["unmapped"]["share_pct"]
     # per-manager mix and the review lists
     mix = {r["bucket"]: r for r in m["BERKSHIRE"]["mix"]["buckets"]}
     assert set(mix) == {"equities", "bonds", "gold"} and mix["gold"]["value_usd"] == 0.0 and mix["gold"]["value_prior_usd"] == 360.0 and mix["bonds"]["pairs"]["fewer"] == 1
-    assert b["review"]["unclassified_etfs"] == [{"ticker": "XYZQ", "name": "SOME NEW THEMATIC ETF", "security_type": "ETP", "cusip": "123456785", "value_usd": 70.0, "n_holders": 1}]
-    assert {r["cusip"] for r in b["review"]["unmapped_top"]} == {"999999999", "AMBIG0001"} and b["review"]["etf_table_size"] > 250
+    assert b["review"]["unclassified_etfs"] == [] and b["review"]["class_sources"] == {"table": 4, "fmp": 1} and b["review"]["learned"]["n_rows"] == 1 and b["review"]["learned"]["last_run"]["classed"] == 1
+    learned = json.loads(s3.store["data/13f-etf-classes-learned.json"])
+    assert learned["contract"] == "13f-etf-classes-learned.v1" and learned["by_ticker"]["XYZQ"]["class"] == "equity" and learned["by_ticker"]["XYZQ"]["source"] == "fmp-bank etf/info"
+    assert {r["ticker"]: r["sub"] for r in cb["etfs"]["widely_held"]}["XYZQ"] == "equity" and {r["ticker"]: r.get("class_source") for r in cb["etfs"]["widely_held"]}.get("XYZQ") is None   # rows carry sub, the source lives in the review block
+    assert {r["cusip"] for r in b["review"]["unmapped_top"]} == {"999999999"} and b["review"]["etf_table_size"] > 600
+    amb = next(r for r in cb["stocks"]["newly_present"] if r["cusip"] == "AMBIG0001")
+    assert amb["ticker"] is None and amb["kind"] == "stock" and amb["sub"] == "common" and amb["name"] == "AMBIGUOUS CO"   # typed by every venue's row, no US ticker
     # the period snapshot was written once and is reported in history
     assert b["history"]["snapshot"] == {"key": "data/13f-book/periods/2026-06-30.json", "written": True, "bytes": b["history"]["snapshot"]["bytes"], "reason": "new period"}
     snap = json.loads(s3.store["data/13f-book/periods/2026-06-30.json"])
     assert snap["contract"] == "13f-book-period.v1" and snap["cohort"] == ["BERKSHIRE", "ELLIOTT"] and snap["n_identities"] == 15
-    assert snap["by_identity"]["a"] == ["AAPL", "stock", "equities", 2, 36000.0, 2, "037833100"] and snap["by_identity"]["x"][3] == 0 and snap["by_identity"]["x"][5] == 2
+    assert snap["by_identity"]["a"] == ["AAPL", "stock", "equities", 2, 36000.0, 2, "037833100"] and snap["by_identity"]["x"][3] == 0 and snap["by_identity"]["x"][5] == 2 and snap["by_identity"]["xyz"][2] == "equities"
     assert b["history"]["periods"][0]["period"] == "2026-06-30"
     # the rest of the book is unchanged
     assert b["cohort_equity_value_usd"] == 37180.0 + 23100.0
@@ -365,6 +441,11 @@ def test_second_run_reuses_the_master_and_rewrites_nothing_unchanged():
     sm = out2["book"]["security_master"]
     assert sm["refresh"]["due"] == 0 and sm["refresh"]["requests"] == 0 and CALLS == [] and sm["refresh"]["changed"] == 0
     assert "data/13f-security-master.json" not in {p["Key"] for p in s3b.puts}
+    s3c = seed(master)
+    s3c.store["data/13f-etf-classes-learned.json"] = s3.store["data/13f-etf-classes-learned.json"]
+    BANK_CALLS.clear()
+    out2c = lf.build(s3c, NOW + timedelta(hours=1), log=lambda *a: None)
+    assert BANK_CALLS == [] and out2c["book"]["review"]["learned"]["last_run"]["looked_up"] == 0 and "data/13f-etf-classes-learned.json" not in {p["Key"] for p in s3c.puts}
     assert out2["book"]["history"]["snapshot"] == {"key": "data/13f-book/periods/2026-06-30.json", "written": False, "reason": "unchanged"}
     assert out2["book"]["stance"]["cohort"]["all"]["bullish"][0]["ticker"] == "GOOGL"
     # no time left: the refresh is skipped honestly and the book still builds from the stored master
@@ -373,7 +454,7 @@ def test_second_run_reuses_the_master_and_rewrites_nothing_unchanged():
     assert out3["book"]["boards"]["cohort"]["stocks"]["widely_held"][0]["ticker"] in ("AAPL", "GOOGL")
     # master disabled entirely: everything is unmapped, nothing breaks
     out4 = lf.build(seed(), NOW, log=lambda *a: None, master_enabled=False)
-    assert out4["book"]["security_master"]["coverage"]["pending"] == 16 and out4["book"]["boards"]["cohort"]["stocks"]["n_identities"] == 0
+    assert out4["book"]["security_master"]["coverage"]["pending"] == 16 and out4["book"]["boards"]["cohort"]["stocks"]["n_identities"] == 0 and out4["book"]["review"]["learned"]["last_run"]["skipped"] is True
     assert out4["book"]["rotation"]["cohort"]["buckets"][0]["bucket"] == "bonds" and out4["book"]["rotation"]["cohort"]["unmapped_value_pct"] > 0
 
 
@@ -403,12 +484,12 @@ def test_handler():
     res = lf.lambda_handler({}, None)
     assert res["statusCode"] == 200 and res["master_resolved"] == 14 and res["master_identities"] == 16
     keys = [p["Key"] for p in s3.puts]
-    assert keys == ["data/13f-security-master.json", "data/13f-book/periods/2026-06-30.json", "data/13f-book.json"]
+    assert keys == ["data/13f-security-master.json", "data/13f-etf-classes-learned.json", "data/13f-book/periods/2026-06-30.json", "data/13f-book.json"]
     book_put = s3.puts[-1]
     assert book_put["CacheControl"] == "max-age=300" and BEGUN and BEGUN[-1] == {} and json.loads(book_put["Body"])["trigger"] == {"kind": "scheduled", "source_generated_at": None}
     lf.lambda_handler({"trigger": "holdings_research_published", "source_generated_at": "2026-11-03T15:41:16+00:00"}, SimpleNamespace(get_remaining_time_in_millis=lambda: 299000))
     assert json.loads(s3.puts[-1]["Body"])["trigger"] == {"kind": "holdings_research_published", "source_generated_at": "2026-11-03T15:41:16+00:00"}
-    assert [p["Key"] for p in s3.puts[3:]] == ["data/13f-book.json"]   # second run: master and snapshot unchanged, only the book rewritten
+    assert [p["Key"] for p in s3.puts[4:]] == ["data/13f-book.json"]   # second run: master, learned classes and snapshot unchanged, only the book rewritten
 
 
 if __name__ == "__main__":
