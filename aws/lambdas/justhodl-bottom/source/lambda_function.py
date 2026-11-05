@@ -417,6 +417,7 @@ def poly_aggs(ticker, mult, span, frm, to):
 
 
 CB_BASE = "https://api.exchange.coinbase.com"
+POLY_THROTTLED = []   # symbols whose Polygon call hit 429 this run; non-empty = skip Polygon for the rest of the lane
 
 
 def cb_candles(product, frm, to):
@@ -452,7 +453,7 @@ def bank_crypto_symbol(sym, today):
     frm = (datetime.strptime(last, "%Y-%m-%d") - timedelta(days=3)).strftime("%Y-%m-%d") if last else \
         (datetime.strptime(today, "%Y-%m-%d") - timedelta(days=365 * 6)).strftime("%Y-%m-%d")
     fresh, src, err = [], None, None
-    if POLY_KEY:
+    if POLY_KEY and not POLY_THROTTLED:
         try:
             for r in poly_aggs("X:%sUSD" % sym, 1, "day", frm, today):
                 d = datetime.fromtimestamp(r["t"] / 1000.0, tz=timezone.utc).strftime("%Y-%m-%d")
@@ -460,6 +461,10 @@ def bank_crypto_symbol(sym, today):
             src = "polygon"
         except Exception as e:
             err = "polygon %s" % str(e)[:40]
+            if isinstance(e, urllib.error.HTTPError) and e.code == 429:
+                POLY_THROTTLED.append(sym)   # the plan's minute is spent: the rest of the lane goes straight to Coinbase (the second first light paid 10 s of backoff per symbol)
+    elif POLY_KEY:
+        err = "polygon throttled"
     if not fresh:
         # 1.3.0: Polygon's crypto aggregates had been failing 59/64 symbols; Coinbase Exchange carries the same daily
         # candles (completed UTC days only) for every product it lists -- the bank keeps one calendar either way
@@ -1784,7 +1789,7 @@ def _run(event=None):
 
 
 def lambda_handler(event=None, context=None):
-    LOG.clear(); DEGRADED.clear(); ROW_ERRS.clear(); GATE_DIAG["D"].clear(); GATE_DIAG["W"].clear()
+    LOG.clear(); DEGRADED.clear(); ROW_ERRS.clear(); GATE_DIAG["D"].clear(); GATE_DIAG["W"].clear(); POLY_THROTTLED.clear()
     try:
         return _run(event or {})
     except Exception as e:
