@@ -590,7 +590,7 @@ elsewhere just moves the lie one field over.
    for ten days and nothing failed. A per-entity bank needs an identity gate: bank a payload under an entity's name
    only when every row names that entity (`entity_field` in `polygon-bank-spec.json`, verdict `mismatch`).
 3. **A crash that matches a split ratio is not a split, and a crash beside a listing is not a spin-off.** CORT −50.4%
-   on 8x volume matched "2-for-1" until the volume had to stay within x2.5 of the split's own ratio; Fiserv's −44% sat
+   on 6.9x the shares traded matched "2-for-1" until the volume had to stay within x2.5 of the split's own ratio; Fiserv's −44% sat
    two sessions after Qnity's listing date with a matching value until the new listing's FIRST BAR had to print on the
    collapse session. Name the real row that would turn each inference red before trusting it.
 4. **`scripts/gen_engine_manifest.py` reads a function that calls itself as an "analysis bound"** and marks the
