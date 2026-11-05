@@ -4,7 +4,7 @@ crosses, tape accumulation / distribution, signed dollar volume, the tight-base 
 Everything here is a pure function of daily bars ({date, o, h, l, c, v}, oldest first). Nothing reads S3, nothing
 guesses: a figure that needs more sessions than the bars hold is None.
 
-The coil detector and the split rebasing are the strength desk's own definitions (justhodl-strength 1.0.5), kept
+The coil detector and the split rebasing are the strength desk's own definitions (justhodl-strength 1.0.6), kept
 identical on purpose - tests/deployment/test_leaders_engine.py runs both engines on the same bars and fails on drift.
 """
 from __future__ import annotations
@@ -398,7 +398,7 @@ def ad_grade(score):
     return "A" if score >= AD_STRONG else "B" if score >= AD_LEAN else "E" if score <= -AD_STRONG else "D" if score <= -AD_LEAN else "C"
 
 
-def ad_block(bars, with_prior=True):
+def ad_read(bars):
     """Tape accumulation / distribution, -100..+100, from five price-and-volume reads:
 
       cmf21  Chaikin money flow, 21 sessions (/0.20)        cmf63  the same over 63 (/0.15)
@@ -406,9 +406,9 @@ def ad_block(bars, with_prior=True):
       obv63  net on-balance volume over 63 sessions as a share of the volume traded (/0.15)
       days   accumulation minus distribution sessions in the last 25 (/5)
 
-    each clipped to +-1, weighted 25 / 20 / 25 / 15 / 15 over the reads the bars support. >= +35 STRONG ACCUMULATION
-    (A), >= +12 ACCUMULATION (B), <= -12 DISTRIBUTION (D), <= -35 STRONG DISTRIBUTION (E), else NEUTRAL (C). delta_21 is
-    the score now minus the score 21 sessions ago."""
+    each clipped to +-1, weighted 25 / 20 / 25 / 15 / 15 over the reads the bars support. >= +60 STRONG ACCUMULATION
+    (A), >= +20 ACCUMULATION (B), <= -20 DISTRIBUTION (D), <= -60 STRONG DISTRIBUTION (E), else NEUTRAL (C); the
+    bands are AD_STRONG / AD_LEAN, set from the live distribution of the leaders (see the constants)."""
     out = {"score": None, "label": None, "grade": None, "cmf21": None, "cmf63": None, "ud50": None, "obv63": None, "acc_days": None, "dist_days": None, "delta_21": None, "score_21": None}
     n = len(bars)
     if n < 30:
@@ -441,8 +441,14 @@ def ad_block(bars, with_prior=True):
         w = sum(wt for k, wt in AD_WEIGHTS if k in comp)
         score = 100.0 * sum(comp[k] * wt for k, wt in AD_WEIGHTS if k in comp) / w
         out.update(score=f(score, 1), label=ad_label(score), grade=ad_grade(score))
-    if with_prior and n >= 30 + 21 and out["score"] is not None:
-        prior = ad_block(bars[:-21], with_prior=False)
+    return out
+
+
+def ad_block(bars):
+    """ad_read() of the bars, plus the same read 21 sessions ago: score_21 and delta_21 (the score now minus then)."""
+    out = ad_read(bars)
+    if len(bars) >= 30 + 21 and out["score"] is not None:
+        prior = ad_read(bars[:-21])
         if prior["score"] is not None:
             out["score_21"] = prior["score"]
             out["delta_21"] = f(out["score"] - prior["score"], 1)
@@ -750,12 +756,16 @@ def stitch(own, old_bars, old_ticker, source):
     return before + own, {"from": old_ticker, "on": start, "source": source, "sessions": len(before), "handover_x": f(x, 4), "first": before[0]["date"]}, None
 
 
-def separation_cut(bars, applied, ticker, mcap, sector, listings):
+def separation_cut(bars, applied, ticker, mcap, sector, listings, first_bar):
     """A company that hands most of itself to a newly listed one prints an overnight collapse that no holder lost
     (Corteva 2026-10-01: x0.16 the day Vylor listed). The collapse is read as a separation - and the history before it
-    as another company's - only on evidence: a close-to-close move of x0.56 or less that is not a split, and a common
-    stock of the same sector whose listing date is within SEPARATION_DAYS of it and whose market value is 0.5x-2x the
-    value that vanished. listings = [(date, ticker, mcap, sector)]. Returns (bars, cut). Pure."""
+    as another company's - only on evidence, all of it: a close-to-close move of x0.56 or less that is not a split; a
+    common stock of the same sector whose listing date is within SEPARATION_DAYS of it and whose market value is
+    0.5x-2x the value that vanished; and that stock's first bar in the bank printing on the very session of the
+    collapse (first_bar(ticker) -> date). The last condition is what tells a hand-out from a crash that happened to
+    share a week with a listing of the same size (Fiserv fell 44% on 2025-10-29, two sessions after Qnity's listing
+    date - nothing was handed out). listings = [(date, ticker, mcap, sector)]. Returns (bars, cut). Pure given
+    first_bar."""
     if not bars or not mcap or not listings:
         return bars, None
     last = float(bars[-1]["c"])
@@ -769,8 +779,7 @@ def separation_cut(bars, applied, ticker, mcap, sector, listings):
             continue
         vanished = (pc - c) * shares
         for d, t, m, sec in listings:
-            near = _days(d, bars[i]["date"])
-            if t != ticker and m and sec == sector and near is not None and abs(near) <= SEPARATION_DAYS and SEPARATION_VALUE[0] <= m / vanished <= SEPARATION_VALUE[1]:
+            if t != ticker and m and sec == sector and _near(d, bars[i]["date"], SEPARATION_DAYS) and SEPARATION_VALUE[0] <= m / vanished <= SEPARATION_VALUE[1] and first_bar(t) == bars[i]["date"]:
                 return bars[i:], {"reason": "separation", "date": bars[i]["date"], "ratio": f(c / pc, 4), "listing": t, "listing_date": d, "listing_mcap_usd": f(m, 0), "vanished_usd": f(vanished, 0), "dropped": i}
     return bars, None
 

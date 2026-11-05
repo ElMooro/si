@@ -497,17 +497,23 @@ def test_separation_cut_needs_a_matching_listing():
     mcap = 7.9e9                                                                          # 632M shares at 12.5: (77 - 12.5) x 632M = $40.8B vanished
     lists = [(day, "VYLR", 4.8e10, "Basic Materials"), ("2026-03-02", "SUNB", 3.4e10, "Industrials")]
     assert T.rebase(bars, None)[1] == []                                                  # not a split: the shares traded exploded
-    cut_bars, cut = T.separation_cut(bars, [], "CTVA", mcap, "Basic Materials", lists)
+    on_day = lambda t: day                                                                # noqa: E731 - the new listing's first bar prints on the session of the collapse
+    cut_bars, cut = T.separation_cut(bars, [], "CTVA", mcap, "Basic Materials", lists, on_day)
     assert len(cut_bars) == 25 and cut["reason"] == "separation" and cut["date"] == day and cut["listing"] == "VYLR" and cut["ratio"] == round(12.5 / 77.0, 4) and cut["dropped"] == 575
     assert 0.5 <= cut["listing_mcap_usd"] / cut["vanished_usd"] <= 2.0
     # a crash is a crash: another sector, another size, another week, or the listing is the ticker itself
-    assert T.separation_cut(bars, [], "CTVA", mcap, "Healthcare", lists) == (bars, None)
-    assert T.separation_cut(bars, [], "CTVA", mcap, "Basic Materials", [(day, "VYLR", 3.0e9, "Basic Materials")]) == (bars, None)
-    assert T.separation_cut(bars, [], "CTVA", mcap, "Basic Materials", [(DATES[-35].isoformat(), "VYLR", 4.8e10, "Basic Materials")]) == (bars, None)
-    assert T.separation_cut(bars, [], "VYLR", mcap, "Basic Materials", lists) == (bars, None)
-    assert T.separation_cut(bars, [], "CTVA", None, "Basic Materials", lists) == (bars, None) and T.separation_cut(bars, [], "CTVA", mcap, "Basic Materials", []) == (bars, None)
+    assert T.separation_cut(bars, [], "CTVA", mcap, "Healthcare", lists, on_day) == (bars, None)
+    assert T.separation_cut(bars, [], "CTVA", mcap, "Basic Materials", [(day, "VYLR", 3.0e9, "Basic Materials")], on_day) == (bars, None)
+    assert T.separation_cut(bars, [], "CTVA", mcap, "Basic Materials", [(DATES[-35].isoformat(), "VYLR", 4.8e10, "Basic Materials")], on_day) == (bars, None)
+    assert T.separation_cut(bars, [], "VYLR", mcap, "Basic Materials", lists, on_day) == (bars, None)
+    assert T.separation_cut(bars, [], "CTVA", None, "Basic Materials", lists, on_day) == (bars, None) and T.separation_cut(bars, [], "CTVA", mcap, "Basic Materials", [], on_day) == (bars, None)
+    # Fiserv 2025-10-29: a same-sector listing of the same size two sessions earlier - its first bar is not the collapse's session, so nothing was handed out
+    near = [(DATES[-27].isoformat(), "Q", 4.5e10, "Basic Materials")]
+    assert T.separation_cut(bars, [], "CTVA", mcap, "Basic Materials", near, lambda t: DATES[-27].isoformat()) == (bars, None)
+    assert T.separation_cut(bars, [], "CTVA", mcap, "Basic Materials", near, lambda t: None) == (bars, None)
+    assert T.separation_cut(bars, [], "CTVA", mcap, "Basic Materials", near, on_day)[1]["listing"] == "Q"               # the listing date may sit a few days off; the first bar may not
     # a collapse already rebased as a split is not weighed again
-    assert T.separation_cut(bars, [{"date": day}], "CTVA", mcap, "Basic Materials", lists) == (bars, None)
+    assert T.separation_cut(bars, [{"date": day}], "CTVA", mcap, "Basic Materials", lists, on_day) == (bars, None)
     # what is left as printed is listed, with how long ago
     assert T.jumps_of(bars) == [{"date": day, "ratio": round(12.5 / 77.0, 4), "ago": 24}] and T.jumps_of(bars, [{"date": day}]) == [] and T.jumps_of(bars_of([100.0, 150.0, 90.0])) == []
     assert T.jumps_of(bars_of([100.0, 190.0, 100.0])) == [{"date": DATES[-2].isoformat(), "ratio": 1.9, "ago": 1}, {"date": DATES[-1].isoformat(), "ratio": 0.5263, "ago": 0}]
@@ -522,6 +528,8 @@ CONT_BOOK = [
     brow("VYLR", "Vylor", "Basic Materials", "Agricultural Inputs", 4.8e10, cik="0002012866", ipo_date=DATES[-25].isoformat()),
     brow("LQDA", "Liquidia", "Healthcare", "Biotechnology", 3.8e9, cik="0001819576", ipo_date="2018-07-26"),
     brow("MERG", "Merged Co", "Technology", "Software - Application", 9.0e9, cik="0003333333", ipo_date="2001-01-01"),
+    brow("FISV", "Fiserv", "Technology", "Information Technology Services", 3.5e10, cik="0000798354", ipo_date="1986-09-25"),
+    brow("Q", "Qnity Electronics", "Technology", "Semiconductors", 2.5e10, dv=3e6, cik="0002058873", ipo_date=DATES[-258].isoformat()),
 ]
 
 
@@ -549,6 +557,9 @@ def seed_continuity():
     put("CTVA", bars_of([77.0 + 0.001 * i for i in range(575)] + [12.5 + 0.01 * i for i in range(25)], [3.7e6] * 575 + [8e7] * 5 + [1.2e7] * 20))
     put("VYLR", bars_on(DATES[-25:], [68.0 + 0.05 * i for i in range(25)], [2e7] * 25))
     put("LQDA", bars_of([70.0] * 574 + [30.0] * 26, [1.1e6] * 574 + [1.3e7] * 5 + [2e6] * 21))
+    # FISV: a 44% crash two sessions after a same-sector company of the same size got its listing date - a crash, not a hand-out
+    put("FISV", bars_of([115.0] * 344 + [64.4 + 0.001 * i for i in range(256)], [4e6] * 344 + [6e7] * 5 + [8e6] * 251))
+    put("Q", bars_on(DATES[-254:], [90.0] * 254))                                         # its first bar prints four sessions after its listing date
     # MERG: the record names the old symbol but the price does not hand over (a merger exchange): refused, the cut stands
     put("MERG", bars_on(DATES[-200:], [50.0] * 200))
     put("OLDM", bars_on(DATES[:-200], [20.0] * (N - 200)))
@@ -586,9 +597,12 @@ def test_build_reads_each_instrument_as_itself():
     # LQDA: a crash stays a crash, and says so
     lq = rows["LQDA"]
     assert lq["history"]["cut"] is None and lq["history"]["sessions"] == 600 and lq["history"]["jumps"] == [{"date": DATES[-26].isoformat(), "ratio": round(30.0 / 70.0, 4), "ago": 25}] and lq["h"]["q"] < -50
+    # FISV: (115 - 64.4) x 543M shares = $27.5B vanished beside Q's $25B listing two sessions earlier, same sector - and still a crash
+    fi = rows["FISV"]
+    assert fi["history"]["cut"] is None and fi["history"]["sessions"] == 600 and fi["history"]["jumps"] == [{"date": DATES[-256].isoformat(), "ratio": round(64.4 / 115.0, 4), "ago": 255}] and fi["h"]["y"] is not None
     # MERG: named by the record, refused by the tape
     assert rows["MERG"]["history"]["sessions"] == 200 and rows["MERG"]["history"]["stitched"] is None and h["refused"] == {"MERG": "OLDM: hand-over x2.500 is not one security continuing"}
-    assert h["n_cut"] == 4 and sorted(h["cut"]) == ["BNY", "CTVA", "JAN", "SPCX"] and h["n_stitched"] == 2 and sorted(h["stitched"]) == ["BNY", "VMRK"] and h["n_with_jumps"] == 1
+    assert h["n_cut"] == 4 and sorted(h["cut"]) == ["BNY", "CTVA", "JAN", "SPCX"] and h["n_stitched"] == 2 and sorted(h["stitched"]) == ["BNY", "VMRK"] and h["n_with_jumps"] == 2
     assert {"CTVA", "VYLR", "SPCX", "JAN", "MERG", "ACCO"} <= set(h["short"]) and "BNY" not in h["short"] and h["symbol_changes"]["rows"] == 1
     # the rest of the universe is untouched by all this
     assert rows["NVDA"]["history"]["cut"] is None and rows["META"]["splits"][0]["source"] == "polygon-splits"
@@ -742,6 +756,7 @@ def seed():
     s3.put(lf.BANK_FLOW_ROOT + "XSD.json.gz", flow_rows("AAAC", 40) + flow_rows("AAXJ", 40))
     s3.put(lf.BANK_FLOW_ROOT + "IAT.json.gz", flow_rows("IAT", last=date(2026, 10, 9)))
     s3.put(lf.BANK_FLOW_ROOT + "XLF.json.gz", {"results": flow_rows("XLF", flow=-1e7, nav=52.0, shares=1e9)})
+    s3.put(lf.BANK_FLOW_ROOT + "SMH.json.gz", flow_rows("SMH", flow=3e7, nav=400.0, shares=1e8))      # a desk fund: only its 63-observation window is the bank's
     cols = ["n_holders", "n_prior_holders", "holder_delta", "value_usd", "value_prior_usd", "inflow_usd", "outflow_usd", "net_usd", "bull", "bear", "stance", "kind", "bucket", "sector", "industry",
             "n_identities", "conc_n_holders", "conc_holder_delta"]
     s3.put(lf.TICKERS_KEY, {"contract": "13f-tickers.v1", "period": "2026-06-30", "generated_at": "2026-11-04T21:33:24+00:00", "n_cohort": 15, "columns": cols, "by_ticker": {
@@ -826,7 +841,12 @@ def test_build():
     assert etfs["XSD"]["flow"] is None and etfs["IAT"]["flow"]["current"] is False
     assert etfs["XLF"]["flow"]["source"] == "polygon-bank" and etfs["XLF"]["flow"]["current"] is True      # the desk's window expired; the bank's history is newer
     assert etfs["SMH"]["role"] == "industry" and etfs["XLK"]["role"] == "sector" and etfs["SMH"]["industries"] == ["Semiconductors"] and etfs["SMH"]["kind"] == "fund"
-    assert out["flows"]["polygon_bank"]["other_funds"] == 1 and out["flows"]["polygon_bank"]["this_fund"] == 3 and out["flows"]["by_source"] == {"etf-desk": 3, "provider-flow-research": 1, "polygon-bank": 2}
+    # the desks publish 1 / 5 / 21 observations; the 63-observation window of a desk fund is the banked history's, and says so
+    assert etfs["SMH"]["flow"]["w63"] == {"usd": 63 * 3e7, "pct_aum": 4.725, "end": "2026-11-03", "start": flow_rows("SMH")[62]["effective_date"], "source": "polygon-bank"} and etfs["SMH"]["flow"]["w21"]["usd"] != 21 * 3e7
+    assert etfs["SOXX"]["flow"]["w63"] is None                                                           # no banked history: no 63-observation window is made up
+    pb = out["flows"]["polygon_bank"]
+    assert pb["other_funds"] == 1 and pb["this_fund"] == 4 and pb["not_current"] == 1 and pb["w63_filled"] == 1 and pb["asked"] == pb["this_fund"] + pb["other_funds"] + pb["absent"] >= out["flows"]["n_funds"]
+    assert out["flows"]["by_source"] == {"etf-desk": 3, "provider-flow-research": 1, "polygon-bank": 2}
     assert "XSD" in out["flows"]["no_flow"] and "IAT" in out["flows"]["no_flow"]
     # boards and summary
     b = out["boards"]["leaders"]
@@ -841,6 +861,7 @@ def test_build():
     assert nv["history"] == {"sessions": 600, "from": DATES[-600].isoformat(), "cut": None, "stitched": None, "jumps": None} and rows["ACCO"]["history"]["sessions"] == 50
     assert out["n_errors"] == 0 and set(out["definitions"]) >= {"leaders", "ma", "cross", "double_top", "climax", "tight", "ad", "mf", "f13", "smart", "etf_flow", "history"} and len(out["limitations"]) >= 5
     assert [x["engine"] for x in out["sources"]][:2] == ["justhodl-bank-factors", "justhodl-polygon-eod"] and len(json.dumps(out)) < 2_500_000
+    assert any("cohort of 15 managers" in x for x in out["limitations"]) and not any("{" in x for x in out["limitations"])
     return s3, out
 
 

@@ -806,14 +806,14 @@ DEFINITIONS = {
     "f13": "the 13F cohort's read of the ticker across two dated quarterly disclosures: holders now / prior, bull / bear manager votes, dollars in / out / net at reported prices, stance. Newly disclosed is not bought, absent is not sold, and the filings are 45+ days old when they arrive",
     "insider": "open-market purchases (P) and sales (S) on Form 4 over the last 90 days from the banked feed: transactions, distinct insiders, dollars. Awards, option exercises, tax withholding and gifts are not counted. Sales are mostly scheduled plans; purchases are the informative side. Foreign private issuers (most ADRs) do not file Form 4",
     "smart": "13F leg (+2 ACCUMULATING, -2 DISTRIBUTING, +-1 when contested but net dollars are at least 10% of the larger of the two reported values) + insider leg (+1 on purchases of at least $100K exceeding sales, -1 on $10M+ of sales by three or more insiders with no purchase): BUYING at +2 or more, SELLING at -2 or less, LEANING at +-1, QUIET at 0, NO READ without either leg",
-    "etf_flow": "reported creations / redemptions of the industry's funds on the fund's own last 1 / 5 / 21 reporting observations, USD and % of reported assets: the native ETF desk, else the canonical 300-fund packet, else the Polygon bank's per-fund ETF Global history (used only when every row names the fund and its last observation is within 7 days). An industry with no fund of its own shows its sector fund, labelled a sector proxy",
+    "etf_flow": "reported creations / redemptions of the industry's funds on the fund's own last 1 / 5 / 21 / 63 reporting observations, USD and % of reported assets: the native ETF desk, else the canonical 300-fund packet, else the Polygon bank's per-fund ETF Global history (used only when every row names the fund and its last observation is within 7 days). The desks publish 1 / 5 / 21; the 63-observation window is always the banked history's, with its own end date. An industry with no fund of its own shows its sector fund, labelled a sector proxy",
     "industry": "an industry's row is its five largest leaders: cap-weighted (vs) and equal-weighted (ew_vs) excess return, share above the 50 / 200-session averages, average A/D score, the leaders' summed signed dollar volume and 13F dollars, and the 13F book's own industry layer (all the cohort's holdings in the industry, not only the leaders)",
-    "history": "the bars a row is computed from: sessions and the first date; cut = where the series was shortened (gap: the ticker printed nothing for more than 10 days, so the bars before belong to another security or another stretch; listing: bars older than the listing date; separation: an overnight collapse on the day a same-sector company worth 0.5x-2x the vanished value listed); stitched = the previous symbol's bars put back in front (named by Polygon's ticker events or FMP's symbol-change list, and only when the tape hands over within x0.7-x1.4); jumps = one-session moves beyond x1.8 / x0.56 that are real prints (a horizon spanning one says so). A horizon longer than the history is null",
+    "history": "the bars a row is computed from: sessions and the first date; cut = where the series was shortened (gap: the ticker printed nothing for more than 10 days, so the bars before belong to another security or another stretch; listing: bars older than the listing date; separation: an overnight collapse on the very session a newly listed same-sector company worth 0.5x-2x the vanished value printed its first bar); stitched = the previous symbol's bars put back in front (named by Polygon's ticker events or FMP's symbol-change list, and only when the tape hands over within x0.7-x1.4); jumps = one-session moves beyond x1.8 / x0.56 that are real prints (a horizon spanning one says so). A horizon longer than the history is null",
     "changes": "signals that appeared or went away against the previous session's publication",
 }
 LIMITATIONS = [
     "13F is quarterly and arrives up to 45 days after the quarter: the cohort read is the last two disclosures, not this week's trading.",
-    "FMP's all-institution ownership summaries are not banked (the provider's bandwidth hold), so the institutional read is the 13F desk's manager cohort only (f13.n_cohort managers).",
+    "FMP's all-institution ownership summaries are not banked (the provider's bandwidth hold), so the institutional read is the 13F desk's cohort of {n_cohort} managers only.",
     "Signed dollar volume and the A/D score are tape estimates from daily bars; every share bought was also sold.",
     "Insider data covers Form 4 filers; foreign private issuers (most ADRs) are exempt and carry no insider leg.",
     "Fund flows for funds outside the ETF desk and the canonical 300 come from the Polygon bank's rotation and can be several days behind; a history older than 7 days is shown as not current.",
@@ -904,15 +904,29 @@ def build(s3, now, log=print, remaining_s=300.0):
     if ev:
         splits_by[BENCH] = ev
     listings = listings_of(book)
+    first_bars = {t: b[0]["date"] for t, b in bars_by.items() if b}
+
+    def first_bar(t):
+        """The first session a ticker's own history prints in the bank (read once, and only for a listing that sits
+        beside a collapse)."""
+        if t not in first_bars:
+            try:
+                own, _ = T.own_history(read_bars(s3, t, 10 ** 6), ipo_by.get(t))
+                first_bars[t] = own[0]["date"] if own else None
+            except Exception as exc:  # noqa: BLE001
+                errors.append({"ticker": t, "error": "first bar %s" % type(exc).__name__})
+                first_bars[t] = None
+        return first_bars[t]
     for t, b in list(bars_by.items()):
         if b:
             b, ev = T.rebase(b, (rec.get(t) or []) + [e for o in alias.get(t, []) for e in rec.get(o) or []])
             if ev:
                 splits_by[t] = ev
-            # 2c. a collapse on the day a same-sector company of matching value lists is a separation, not a loss
+            # 2c. a collapse on the session a same-sector company of matching value prints its first bar is a
+            #     separation, not a loss
             m = meta_by.get(t)
             if m:
-                b, sep = T.separation_cut(b, ev, t, m["mcap"], m["sector"], listings)
+                b, sep = T.separation_cut(b, ev, t, m["mcap"], m["sector"], listings, first_bar)
                 if sep:
                     cuts[t] = sep
             jumps = T.jumps_of(b, ev)
@@ -949,7 +963,7 @@ def build(s3, now, log=print, remaining_s=300.0):
     for t, fl in (((canon_doc or {}).get("funds")) or {}).items():
         if t in etf_meta and t not in flows:
             flows[t] = packet_flow(fl, (fl.get("quality") or {}).get("status") == "complete_acquired_history", now_iso, "provider-flow-research")
-    bank_reads = {"asked": 0, "this_fund": 0, "other_funds": 0, "absent": 0, "not_current": 0}
+    bank_reads = {"asked": 0, "this_fund": 0, "other_funds": 0, "absent": 0, "not_current": 0, "w63_filled": 0}
 
     def bank_one(t):
         try:
@@ -959,16 +973,21 @@ def build(s3, now, log=print, remaining_s=300.0):
         rows = rows if isinstance(rows, list) else (rows.get("results") if isinstance(rows, dict) else None)
         fl = bank_flow(rows, t, bank_last)
         return t, fl, None if fl else ("other_funds" if rows else "absent")
-    need = [t for t in etf_meta if t not in flows or not flows[t]["current"]]
+    # every fund's banked history is read: it is the flow of a fund the desks do not carry (or carry out of date), and
+    # the 63-observation window of one they do - the desks publish 1 / 5 / 21 only, from the same provider
     with ThreadPoolExecutor(max_workers=8) as pool:
-        for t, fl, why in pool.map(bank_one, need):
+        for t, fl, why in pool.map(bank_one, sorted(etf_meta)):
             bank_reads["asked"] += 1
             if fl:
                 bank_reads["this_fund"] += 1
                 if not fl["current"]:
                     bank_reads["not_current"] += 1
-                if t not in flows or fl["current"]:
+                have = flows.get(t)
+                if have is None or (not have["current"] and fl["current"]):
                     flows[t] = fl
+                elif have["current"] and fl["current"] and have.get("w63") is None and fl.get("w63"):
+                    have["w63"] = dict(fl["w63"], source="polygon-bank")
+                    bank_reads["w63_filled"] += 1
             elif why in bank_reads:
                 bank_reads[why] += 1
             elif why:
@@ -1062,7 +1081,8 @@ def build(s3, now, log=print, remaining_s=300.0):
         "insiders": {**insider_meta, "n_leaders": len(insiders), "n_buying": sum(1 for v in insiders.values() if v["buys"]), "n_selling": sum(1 for v in insiders.values() if v["sells"])},
         "desks": {"phase_generated_at": (phase or {}).get("generated_at"), "phase_n": len(phases), "bottom_generated_at": (bottom or {}).get("generated_at"), "bottom_n": len(bottom_by),
                   "n_leaders_with_phase": sum(1 for r in rows if (r.get("desks") or {}).get("phase")), "n_leaders_on_bottom_desk": sum(1 for r in rows if (r.get("desks") or {}).get("bottom"))},
-        "sources": sources, "errors": errors[:60], "n_errors": len(errors), "definitions": DEFINITIONS, "limitations": LIMITATIONS,
+        "sources": sources, "errors": errors[:60], "n_errors": len(errors), "definitions": DEFINITIONS,
+        "limitations": [x.replace("{n_cohort}", str((tbl or {}).get("n_cohort") or "its")) for x in LIMITATIONS],
         "note": "Leaders are the largest companies of each industry, not a recommendation. Relative strength and the averages are price facts; accumulation / distribution and signed dollar volume are tape estimates; fund flows are reported creations / redemptions; 13F stances count managers across two dated disclosures. No trade, call or sizing is implied.",
         "run_seconds": round(time.time() - started, 1),
     }
