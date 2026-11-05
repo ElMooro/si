@@ -576,3 +576,32 @@ published `mcap_suspect[]` but still wrote the bad `market_cap` and
 `cap_tier`, so Vossloh ($1.08M cap vs $775M held) kept badging MICRO-CAP.
 If a value is not fit to publish, do not publish it — annotating it
 elsewhere just moves the lie one field over.
+
+## Traps banked — ops 6743–6750 (justhodl-leaders birth, 2026-11-05)
+
+1. **A ticker is not a security.** The Polygon EOD bank (`data/warm/polygon-full/eod/<T>.json.gz`) keys bars by
+   ticker, and tickers change hands and names: `BNY` was a muni fund until BK took it on 2026-05-21 (+1,524% "1Y"),
+   `B` Barnes → Barrick, `FISV` ← `FI`, `VMRK` ← `EQR`. A reader of that bank must cut each series to its own
+   continuous history and put the previous symbol's bars back in front only where a record names it AND the tape hands
+   over (`leaders_tape.own_history / predecessor / stitch / separation_cut`; records: `polygon-bank/ticker-events/`,
+   `fmp/symbol-change/latest`). `justhodl-strength` does not do this yet - same exposure for renamed S&P 500 names.
+2. **A provider that ignores an unknown filter returns the whole dataset.** The ETF Global endpoints filter on
+   `composite_ticker`; `ticker=` was silently ignored, so every fund's banked file held the first pages of ALL funds
+   for ten days and nothing failed. A per-entity bank needs an identity gate: bank a payload under an entity's name
+   only when every row names that entity (`entity_field` in `polygon-bank-spec.json`, verdict `mismatch`).
+3. **A crash that matches a split ratio is not a split, and a crash beside a listing is not a spin-off.** CORT −50.4%
+   on 8x volume matched "2-for-1" until the volume had to stay within x2.5 of the split's own ratio; Fiserv's −44% sat
+   two sessions after Qnity's listing date with a matching value until the new listing's FIRST BAR had to print on the
+   collapse session. Name the real row that would turn each inference red before trusting it.
+4. **`scripts/gen_engine_manifest.py` reads a function that calls itself as an "analysis bound"** and marks the
+   engine's output `ownership_status: incomplete` (unresolved write). Split the function instead of recursing. The
+   generator takes ~4 minutes: run it in the background, last, after every Lambda source edit, then
+   `scripts/build_page_data_contracts.py` (it embeds the manifest's hash).
+5. **The local sandbox sets `NODE_OPTIONS`;** the offline bake boundary (`scripts/run_offline_bake.py`) only allows
+   its Node parser child when that variable is unset, so `tests/test_offline_pages.py` fails locally and passes on
+   the runner. Run the Pages gates with `env -u NODE_OPTIONS` rather than skipping the test.
+6. **chart.html's bars are off-screen until the pointer reaches an edge** (`jh-chart-autohide.js`). A browser proof of
+   a toolbar button moves the mouse to y ≤ 6, waits for `#jh-ah-top.show`, then clicks - `page.click` alone times out.
+7. **`vs` is measured on the sessions both the instrument and SPY printed.** A thin fund that missed a session reads a
+   slightly different SPY leg than the benchmark's own return (CUT, CARZ), so "excess = return − benchmark return" is
+   an invariant only for instruments that traded every session; gate the bulk, list the exceptions.
