@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Capitulation · panic volume at the lows · JustHodl.AI</title>
+<meta name="description" content="Capitulation prints across every asset class — stocks, equity and sector ETFs, countries, bonds, gold and metals, commodities, currencies, spot crypto: panic volume at the lows, scored, read in context, followed through, linked to the Wyckoff sequence; market-wide panic breadth with its regime and cluster days.">
+<meta name="jh-primary-engine" content="justhodl-bottom">
+<link rel="stylesheet" href="/jh-theme.css">
+<link rel="stylesheet" href="/jh-desk.css">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  .cp-sec{margin:0 0 16px}
+  .cp-sec h2{font:600 12px/1.3 "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;margin:0 0 6px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .cp-sec h2 .m{font-weight:400;opacity:.65;text-transform:none;letter-spacing:0}
+  .cp-sub{font-size:12px;opacity:.75;margin:0 0 8px;max-width:1100px}
+  .cp-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 8px}
+  .cp-small{font:11px/1.5 "IBM Plex Mono",monospace;opacity:.75}
+  .jh-tbl th[data-sort]{cursor:pointer;white-space:nowrap;user-select:none}
+  .jh-tbl th[data-sort][aria-sort="descending"]::after{content:" ▾"}
+  .jh-tbl th[data-sort][aria-sort="ascending"]::after{content:" ▴"}
+  .jh-tbl td.nm{max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cp-read{font:600 14px/1.5 "IBM Plex Sans",system-ui,sans-serif;margin:0 0 10px;color:var(--fg1)}
+  .cp-regime{display:inline-block;padding:2px 9px;border-radius:4px;font:700 11px/1.7 "IBM Plex Mono",monospace;letter-spacing:.1em;border:1px solid var(--line-2);margin-right:8px;vertical-align:middle}
+  .cp-regime.EXTREME,.cp-regime.HIGH{color:var(--red);border-color:#6b2438;background:rgba(255,85,119,.12)}
+  .cp-regime.ELEVATED{color:var(--amber);border-color:#6b5414;background:rgba(251,191,36,.1)}
+  .cp-regime.NORMAL{color:var(--fg2)}
+  .cp-regime.QUIET{color:var(--green);border-color:#1f6b4a}
+  .cp-ctx{display:inline-block;padding:1px 6px;border-radius:3px;font:600 10px/1.6 "IBM Plex Mono",monospace;letter-spacing:.04em;border:1px solid rgba(255,255,255,.18)}
+  .cp-ctx.DECLINE{color:var(--amber);border-color:#6b5414}
+  .cp-ctx.SHOCK{color:var(--violet);border-color:#4c3d8a}
+  .cp-wy{display:inline-block;padding:1px 6px;border-radius:3px;font:600 10px/1.6 "IBM Plex Mono",monospace;letter-spacing:.04em;border:1px solid var(--line-2);color:var(--fg2)}
+  .cp-wy.same{color:var(--green);border-color:#1f6b4a}
+  .cp-score{display:inline-block;width:64px;height:7px;background:var(--bg-3);border-radius:3px;vertical-align:middle;position:relative;margin-right:6px}
+  .cp-score i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--cyan);opacity:.7}
+  .cp-chip{display:inline-block;padding:1px 6px;border-radius:3px;font:10px/1.6 "IBM Plex Mono",monospace;border:1px solid var(--line);color:var(--fg2);margin-right:4px}
+  .cp-chip.up{color:var(--green);border-color:#1f6b4a}.cp-chip.dn{color:var(--red);border-color:#6b2438}
+  .cp-chart{width:100%;height:auto;display:block;background:var(--bg-1);border:1px solid var(--line);border-radius:8px}
+  .cp-legend{font:11px/1.5 "IBM Plex Mono",monospace;color:var(--fg3);margin:6px 0 10px}
+  .cp-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px;margin:0 4px 0 10px}
+  .cp-grid2{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:12px}
+  .cp-tip{position:fixed;pointer-events:none;z-index:50;background:#111827;border:1px solid var(--line-2);border-radius:6px;padding:6px 9px;font:11px/1.5 "IBM Plex Mono",monospace;color:var(--fg1);display:none;max-width:280px}
+  .cp-defs dt{font:600 11px "IBM Plex Mono",monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--fg2);margin:8px 0 2px}
+  .cp-defs dd{margin:0;font-size:12px;line-height:1.5;color:var(--fg3)}
+  @media (max-width:1100px){.cp-grid2{grid-template-columns:minmax(0,1fr)}}
+  @media (max-width:640px){.jh-ws-header{flex-wrap:wrap;row-gap:4px;height:auto;padding:6px 12px}.jh-ws-crumb{display:none}.jh-ws-links{flex-wrap:wrap;gap:4px 10px;max-width:100%}.jh-hero{flex-wrap:wrap}}
+</style>
+</head>
+<body data-research-context="data/capitulation-desk.json">
+<header class="jh-ws-header">
+  <a class="jh-ws-brand" href="/">JUSTHODL<span>.AI</span></a>
+  <span class="jh-ws-crumb">CAPITULATION DESK · panic volume at the lows · stocks · ETFs · countries · bonds · gold & metals · commodities · currencies · crypto</span>
+  <nav class="jh-ws-links">
+    <a href="/chart.html">Chart</a>
+    <a href="/capitulation-desk.html" class="on">Capitulation</a>
+    <a href="/wyckoff-desk.html?tab=capit">Wyckoff</a>
+    <a href="/bottom.html">Bottom</a>
+    <a href="/strong.html">Strong</a>
+    <a href="/leaders.html">Leaders</a>
+  </nav>
+</header>
+<main class="jh-desk" id="app">
+  <div class="jh-hero">
+    <div>
+      <h1>CAPITULATION · PANIC VOLUME AT THE LOWS</h1>
+      <p>One session on any instrument the bottom desk scores: a down close at or under the asset class's floor, volume at least 2.5× the prior 50 sessions and the heaviest of 20, a range at least 1.5 ATR, the close in the bottom 30% of the bar, at the prior 20-session low or a crash. Every print is scored, read in context (a sell-off already underway, or an event shock), followed through (did the low hold, did the volume dry up) and linked to the Wyckoff sequence when it is the selling-climax bar. The breadth of prints across the whole universe, against five years of sessions, is the market-wide read. The bottom engine computes all of it each morning at 03:45 UTC from the Polygon EOD bank and the crypto bank. A print is where the crowd gave up — it is not a buy.</p>
+    </div>
+    <div class="jh-stamp" id="stamp">loading the capitulation artifact…</div>
+  </div>
+
+  <section class="cp-sec" aria-label="Verdict: panic regime, breadth and follow-through">
+    <p class="cp-read" id="read"></p>
+    <div class="jh-kpis" id="kpis"></div>
+  </section>
+
+  <section class="cp-sec" aria-label="Breadth: prints per session across every asset class">
+    <h2>Breadth · prints per session <span class="m" id="breadth-meta"></span></h2>
+    <p class="cp-sub">Every capitulation print across the scored universe, counted on the equity calendar (a crypto print on a weekend counts toward the next session). The 5-session sum against every 5-session window of the loaded history gives the regime; a session where at least 2.5% of the universe printed is a cluster session.</p>
+    <div class="cp-grid2">
+      <div>
+        <div id="chart"></div>
+        <div class="cp-legend"><i style="background:var(--cyan);opacity:.75"></i>prints per session <i style="background:var(--red)"></i>cluster session (≥ 2.5% of the universe) <i style="background:var(--amber)"></i>5-session sum <span style="margin-left:10px">┄ window 90th percentile of the 5-session sum</span></div>
+      </div>
+      <div class="jh-tblwrap" style="max-height:360px" id="desks"></div>
+    </div>
+  </section>
+
+  <section class="cp-sec" aria-label="Prints by asset class">
+    <h2>Prints <span class="m" id="prints-meta"></span></h2>
+    <div class="jh-chips" id="chips"></div>
+    <div class="cp-row" id="window"></div>
+    <div class="jh-tblwrap" style="max-height:640px"><table class="jh-tbl" id="tbl"><thead></thead><tbody><tr><td class="jh-load" colspan="24">Reading the capitulation artifact…</td></tr></tbody></table></div>
+  </section>
+
+  <section class="cp-sec" aria-label="Follow-through: what the tape did after the prints">
+    <h2>Follow-through <span class="m" id="ft-meta"></span></h2>
+    <p class="cp-sub">Of the prints at least five sessions old: did the low hold, how far did price bounce, how deep was the undercut, did the volume after the print run under the print's. The holding board lists the prints whose low has held on drying volume — the ones a Wyckoff secondary test could be forming on.</p>
+    <div class="cp-grid2">
+      <div class="jh-kpis" id="ft-kpis" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))"></div>
+      <div class="jh-card"><h3>By context</h3><div id="ft-ctx" class="cp-small"></div></div>
+    </div>
+    <div class="jh-card jh-focus" style="margin-top:12px"><h3>Holding board — low held, volume dried up <span class="cp-small" id="hold-meta"></span></h3><div class="jh-tblwrap" style="max-height:380px" id="hold"></div></div>
+  </section>
+
+  <section class="cp-sec" aria-label="The market's own prints: benchmarks">
+    <h2>Benchmarks · the market's own prints <span class="m" id="bench-meta"></span></h2>
+    <div class="jh-tblwrap" style="max-height:360px" id="bench"></div>
+  </section>
+
+  <section class="cp-sec" aria-label="Reading rules and definitions">
+    <h2>Reading rules</h2>
+    <div class="jh-card"><dl class="cp-defs" id="defs"></dl></div>
+  </section>
+
+  <section class="cp-sec" aria-label="Sources and engine observability">
+    <h2>Sources and engine observability</h2>
+    <div class="jh-tblwrap" id="sources"></div>
+    <p class="jh-note" id="note"></p>
+  </section>
+</main>
+<div class="cp-tip" id="tip"></div>
+<script src="/private-artifacts.js?v=20260909"></script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-desk-core.js"></script>
+<script>
+(function(){
+  var D=JHDesk, KEY="data/capitulation-desk.json", DOC=null, desk="ALL", win="LATEST";
+  var SORT={tbl:{k:"score",dir:-1},hold:{k:"score",dir:-1},bench:{k:"date",dir:-1},desks:{k:"prints_5",dir:-1}};
+  var LABEL={stocks:"Stocks",equity_etfs:"Equity & sector ETFs",countries:"Countries",bonds:"Bonds",gold_metals:"Gold & metals",commodities:"Commodities",currencies:"Currencies",crypto:"Crypto"};
+  function esc(s){return D.esc(s);}
+  function pct(v,d){return v==null?"—":D.fmtPct(v,d==null?2:d);}
+  function num(v,d){return v==null||!isFinite(v)?"—":Number(v).toFixed(d==null?1:d);}
+  function cellPct(v,d){return '<td class="'+D.cls(v)+'">'+pct(v,d)+"</td>";}
+  function sym(r){return r.asset_class==="crypto"?r.ticker+"-USD":r.ticker;}
+  function tk(r){var s=sym(r);return "<a class=tk data-t='"+esc(s)+"' target=_top href='/chart.html?s="+encodeURIComponent(s)+"'>"+esc(r.ticker)+"</a>";}
+  function ctx(c){return c?'<span class="cp-ctx '+esc(c)+'">'+esc(c)+"</span>":"—";}
+  function score(v){ if(v==null) return "—"; return '<span class="cp-score" title="'+esc(v)+'"><i style="width:'+Math.max(0,Math.min(100,v))+'%"></i></span>'+num(v,0); }
+  function wy(r){
+    var w=r.wyckoff; if(!w||!w.state) return '<span class="cp-small" title="no Wyckoff sequence on this name: a panic session that did not pass the full climax gates">no sequence</span>';
+    if(w.same_bar) return '<span class="cp-wy same" title="this print IS the selling climax of the bottom desk\'s sequence (score '+esc(w.score)+esc(w.grade||"")+', frame '+esc(w.frame)+')">'+esc(w.state)+" · SC</span>";
+    return '<span class="cp-wy" title="the bottom desk\'s sequence on this name, climax '+esc(w.sc_date||"?")+' (frame '+esc(w.frame)+'), not this bar">'+esc(w.state)+"</span>";
+  }
+  function fleet(r){
+    var out=[];
+    if(r.n_confirm){ var legs=(r.confirm||[]).map(function(l){return l.src+": "+l.read;}).join(" · "); out.push('<span class="cp-chip up" title="'+esc(legs)+'">fleet '+esc(r.n_confirm)+"</span>"); }
+    if(r.f13_net_usd_m!=null) out.push('<span class="cp-chip '+(r.f13_net_usd_m>0?"up":r.f13_net_usd_m<0?"dn":"")+'" title="13F institutions, net last quarter at reported prices">13F '+(r.f13_net_usd_m>0?"+":"")+esc(num(r.f13_net_usd_m,0))+"M</span>");
+    if(r.etf_flow&&(r.etf_flow.z90!=null||r.etf_flow.pct_aum_21d!=null)) out.push('<span class="cp-chip '+((r.etf_flow.pct_aum_21d||0)>0?"up":(r.etf_flow.pct_aum_21d||0)<0?"dn":"")+'" title="ETF flows: 90-day z-score / 21-day flow as % of AUM">flow z '+esc(num(r.etf_flow.z90,1))+" · "+esc(pct(r.etf_flow.pct_aum_21d,1))+"</span>");
+    return out.join("")||'<span class="cp-small">—</span>';
+  }
+  function get(r,k){
+    var a=r.after||{}, w=r.wyckoff||{};
+    switch(k){
+      case "since": return a.sessions_since; case "bounce": return a.bounce_pct; case "undercut": return a.undercut_pct;
+      case "held": return a.held==null?null:(a.held?1:0); case "vol_after": return a.vol_after_x; case "now": return a.now_vs_print_pct;
+      case "newlow": return r.new_low_60?2:r.new_low_20?1:0; case "wy": return w.state?(w.same_bar?2:1):0; case "fleet": return r.n_confirm||0;
+      case "desk": return LABEL[r.desk]||r.desk;
+      default: return r[k];
+    }
+  }
+  function sorter(id){
+    var s=SORT[id];
+    return function(a,b){
+      var av=get(a,s.k), bv=get(b,s.k);
+      if(av==null&&bv==null) return 0; if(av==null) return 1; if(bv==null) return -1;   // blanks last either way
+      var c=typeof av==="string"?(av<bv?-1:av>bv?1:0):(av<bv?-1:av>bv?1:0);
+      return s.dir<0?-c:c;
+    };
+  }
+  function head(id,cols){
+    var s=SORT[id];
+    return "<thead><tr>"+cols.map(function(c){ return '<th data-sort="'+c[0]+'"'+(s.k===c[0]?' aria-sort="'+(s.dir<0?"descending":"ascending")+'"':"")+' title="'+esc(c[2]||c[1])+'">'+esc(c[1])+"</th>"; }).join("")+"</tr></thead>";
+  }
+  function wire(id){
+    document.querySelectorAll("#"+id+" th[data-sort]").forEach(function(th){
+      th.onclick=function(){ var k=th.getAttribute("data-sort"), s=SORT[id]; if(s.k===k) s.dir*=-1; else { s.k=k; s.dir=-1; } draw(); };
+    });
+  }
+  var COLS=[["ticker","Ticker"],["name","Name"],["desk","Desk"],["date","Date","the session of the print"],["ret_pct","Ret","close-to-close return of the print session"],["vol_x","Vol ×","volume over the prior 50-session average"],
+    ["range_x","Range ×","the bar's range over the ATR(14) of the bars before it"],["loc","Close","where the close sits in the bar's range (0 = at the low)"],["context","Context","DECLINE = sell-off already underway; SHOCK = the bar is the drop"],["score","Score","0-100"],
+    ["dd20_pct","20d dd","the close vs the prior 20-session high"],["dd60_pct","60d dd","the close vs the prior 60-session high"],["bars_down","Down","down sessions in a row through the print"],["newlow","New low","60-session / 20-session low"],
+    ["wy","Wyckoff","the bottom desk's sequence state; SC = this print is its selling climax"],["since","Since","sessions since the print"],["bounce","Bounce","best close since vs the print's close"],["undercut","Undercut","worst low since vs the print's low"],
+    ["held","Held","no low under the print's low"],["vol_after","Vol after","the next five sessions' average volume vs the print's"],["now","Now","last close vs the print's close"],["fleet","Evidence","fleet confirmations · 13F · ETF flows"],["last","Last"]];
+  function row(r){
+    var a=r.after||{};
+    return "<tr><td>"+tk(r)+"</td><td class=nm title='"+esc(r.name)+"'>"+esc(r.name)+"</td><td class=nm>"+esc(LABEL[r.desk]||r.desk)+"</td><td>"+esc(r.date)+"</td>"+cellPct(r.ret_pct)+"<td>"+num(r.vol_x,1)+"×</td><td>"+num(r.range_x,1)+"×</td><td>"+num(100*(r.loc||0),0)+"%</td>"+
+      "<td>"+ctx(r.context)+"</td><td>"+score(r.score)+"</td>"+cellPct(r.dd20_pct,1)+cellPct(r.dd60_pct,1)+"<td>"+esc(r.bars_down)+"</td><td>"+(r.new_low_60?"60d":r.new_low_20?"20d":r.crash?"crash":"—")+"</td><td>"+wy(r)+"</td>"+
+      "<td>"+esc(a.sessions_since==null?"—":a.sessions_since)+"</td>"+cellPct(a.bounce_pct)+cellPct(a.undercut_pct)+"<td class='"+(a.held==null?"flat":a.held?"up":"dn")+"'>"+(a.held==null?"—":a.held?"held":"broke")+"</td>"+
+      "<td class='"+(a.vol_after_x==null?"flat":a.vol_after_x<1?"up":"dn")+"'>"+(a.vol_after_x==null?"—":num(a.vol_after_x,2)+"×")+"</td>"+cellPct(a.now_vs_print_pct)+"<td>"+fleet(r)+"</td><td>"+D.fmtPx(r.last)+"</td></tr>";
+  }
+  function pool(){
+    var rows=win==="LATEST"?(DOC.latest||[]):[].concat.apply([],(DOC.desk_order||[]).map(function(d){return (DOC.boards||{})[d]||[];}));
+    if(desk!=="ALL") rows=rows.filter(function(r){return r.desk===desk;});
+    return rows;
+  }
+  function drawKpis(){
+    var br=DOC.breadth||{}, ft=DOC.follow_through||{}, last=br.last_session||{}, b=DOC.benchmarks||{};
+    document.getElementById("read").innerHTML='<span class="cp-regime '+esc(br.regime||"")+'">'+esc(br.regime||"n/a")+"</span> "+esc(DOC.read||"");
+    var benchLatest=Object.keys(b).map(function(k){var p=(b[k].prints||[])[0];return p?{t:k,d:p.date,s:p.score}:null;}).filter(Boolean).sort(function(x,y){return x.d<y.d?1:x.d>y.d?-1:0;});
+    var k=[
+      ["Last session",esc(last.total==null?"—":last.total),esc(last.date||"")+" · "+esc(num(last.pct_of_scored,2))+"% of "+esc(br.n_scored)+" scored"],
+      ["Last 5 sessions",esc(br.sum_5==null?"—":br.sum_5),esc(num(br.sum_5_percentile,0))+"th percentile of "+esc(br.window_sessions)+" sessions · median "+esc(br.window_median_sum_5)+" · p90 "+esc(br.window_p90_sum_5)+" · max "+esc(br.window_max_sum_5)],
+      ["Cluster sessions",esc(br.n_clusters_window==null?"—":br.n_clusters_window),(br.clusters&&br.clusters.length?"last "+esc(br.clusters[br.clusters.length-1].date)+" · "+esc(br.clusters[br.clusters.length-1].total)+" prints":"none in the window")],
+      ["Prints · 60 sessions",esc(DOC.n_prints_60==null?"—":DOC.n_prints_60),(DOC.desk_order||[]).filter(function(d){return (DOC.counts||{})[d]&&DOC.counts[d].prints_60;}).map(function(d){return esc(LABEL[d]||d)+" "+esc(DOC.counts[d].prints_60);}).join(" · ")||"—"],
+      ["Lows held",ft.n?esc(num(ft.held_pct,0))+"%":"—",ft.n?"of "+esc(ft.n)+" prints ≥ 5 sessions old · volume dried up "+esc(num(ft.volume_dried_up_pct,0))+"% · now vs print "+esc(pct(ft.median_now_vs_print_pct,1))+" median":"no print old enough to judge"],
+      ["Benchmarks",benchLatest.length?esc(benchLatest[0].t):"none",benchLatest.length?"last print "+esc(benchLatest[0].d)+" · "+benchLatest.slice(0,4).map(function(x){return esc(x.t)+" "+esc(x.d.slice(5));}).join(" · "):"no SPY / QQQ / IWM / TLT / GLD / UUP / HYG / BTC print in 250 sessions"]
+    ];
+    document.getElementById("kpis").innerHTML=k.map(function(x){return '<div class="jh-kpi"><div class=l>'+x[0]+'</div><div class=v>'+x[1]+'</div><div class=s>'+x[2]+"</div></div>";}).join("");
+  }
+  function drawChart(){
+    var br=DOC.breadth||{}, S=br.sessions||[];
+    if(!S.length){ document.getElementById("chart").innerHTML='<p class="jh-load">no breadth series</p>'; return; }
+    var W=960,H=200,padL=34,padR=10,padT=10,padB=26, n=S.length, pw=(W-padL-padR)/n;
+    var mx=Math.max(1,Math.max.apply(null,S.map(function(s){return Math.max(s.total||0,s.sum_5||0);})),br.window_p90_sum_5||0);
+    function y(v){return padT+(H-padT-padB)*(1-v/mx);}
+    var svg='<svg class="cp-chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="capitulation prints per session, last '+n+' sessions">';
+    [0,0.25,0.5,0.75,1].forEach(function(f){ var v=Math.round(mx*f); svg+='<line x1="'+padL+'" x2="'+(W-padR)+'" y1="'+y(v)+'" y2="'+y(v)+'" stroke="#1c2433" stroke-width="1"/><text x="'+(padL-6)+'" y="'+(y(v)+3)+'" fill="#6f7b91" font-size="9" font-family="IBM Plex Mono,monospace" text-anchor="end">'+v+"</text>"; });
+    if(br.window_p90_sum_5!=null) svg+='<line x1="'+padL+'" x2="'+(W-padR)+'" y1="'+y(br.window_p90_sum_5)+'" y2="'+y(br.window_p90_sum_5)+'" stroke="#fbbf24" stroke-opacity=".55" stroke-dasharray="4 4" stroke-width="1"/>';
+    S.forEach(function(s,i){
+      var x=padL+i*pw, cl=s.pct_of_scored!=null&&s.pct_of_scored>=(DOC.params&&DOC.params.cluster_share_pct||2.5);
+      var h=Math.max(0,y(0)-y(s.total||0));
+      svg+='<rect data-i="'+i+'" x="'+(x+0.5).toFixed(1)+'" y="'+(y(s.total||0)).toFixed(1)+'" width="'+Math.max(1,pw-1).toFixed(1)+'" height="'+h.toFixed(1)+'" rx="1" fill="'+(cl?"#ff5577":"#22d3ee")+'" fill-opacity="'+(cl?"1":".75")+'"><title>'+esc(s.date)+": "+esc(s.total)+" prints ("+esc(num(s.pct_of_scored,2))+"% of the universe) · 5-session sum "+esc(s.sum_5)+(s.by_desk?" · "+Object.keys(s.by_desk).map(function(d){return (LABEL[d]||d)+" "+s.by_desk[d];}).join(", "):"")+"</title></rect>";
+    });
+    var path=S.map(function(s,i){return (i?"L":"M")+(padL+i*pw+pw/2).toFixed(1)+","+y(s.sum_5||0).toFixed(1);}).join(" ");
+    svg+='<path d="'+path+'" fill="none" stroke="#fbbf24" stroke-width="1.6"/>';
+    var step=Math.max(1,Math.round(n/8));
+    S.forEach(function(s,i){ if(i%step===0||i===n-1) svg+='<text x="'+(padL+i*pw+pw/2).toFixed(1)+'" y="'+(H-8)+'" fill="#6f7b91" font-size="9" font-family="IBM Plex Mono,monospace" text-anchor="middle">'+esc(s.date.slice(5))+"</text>"; });
+    svg+="</svg>";
+    document.getElementById("chart").innerHTML=svg;
+    document.getElementById("breadth-meta").textContent="last "+n+" of "+(br.window_sessions||n)+" sessions · "+(br.n_scored||0)+" instruments scored · regime "+(br.regime||"n/a")+" ("+num(br.sum_5_percentile,0)+"th percentile)";
+    var tip=document.getElementById("tip"), el=document.getElementById("chart");
+    el.onmousemove=function(e){ var t=e.target; if(t&&t.tagName==="rect"&&t.getAttribute("data-i")!=null){ var s=S[+t.getAttribute("data-i")]; tip.style.display="block"; tip.style.left=(e.clientX+12)+"px"; tip.style.top=(e.clientY+12)+"px"; tip.innerHTML="<b>"+esc(s.date)+"</b> · "+esc(s.total)+" prints · "+esc(num(s.pct_of_scored,2))+"% of the universe<br>5-session sum "+esc(s.sum_5)+(s.by_desk&&Object.keys(s.by_desk).length?"<br>"+Object.keys(s.by_desk).map(function(d){return esc(LABEL[d]||d)+" "+esc(s.by_desk[d]);}).join(" · "):""); } else tip.style.display="none"; };
+    el.onmouseleave=function(){ tip.style.display="none"; };
+  }
+  var DESK_COLS=[["label","Desk"],["scored","Scored","instruments scanned"],["prints_last_session","Last session"],["prints_5","Last 5","prints in the last five sessions"],["prints_5_pct_of_desk","% of desk","last five sessions' prints as a share of the desk's instruments"],["prints_60","60 sessions"]];
+  function drawDesks(){
+    var rows=(DOC.desk_order||[]).map(function(d){var c=(DOC.counts||{})[d]||{}; return {label:LABEL[d]||d,desk:d,scored:c.scored,prints_last_session:c.prints_last_session,prints_5:c.prints_5,prints_5_pct_of_desk:c.prints_5_pct_of_desk,prints_60:c.prints_60};});
+    rows.sort(sorter("desks"));
+    document.getElementById("desks").innerHTML='<table class="jh-tbl" id="desks-tbl">'+head("desks",DESK_COLS)+"<tbody>"+rows.map(function(r){return "<tr data-desk='"+esc(r.desk)+"'><td>"+esc(r.label)+"</td><td>"+esc(r.scored==null?"—":r.scored)+"</td><td>"+esc(r.prints_last_session==null?"—":r.prints_last_session)+"</td><td>"+esc(r.prints_5==null?"—":r.prints_5)+"</td><td>"+(r.prints_5_pct_of_desk==null?"—":num(r.prints_5_pct_of_desk,1)+"%")+"</td><td>"+esc(r.prints_60==null?"—":r.prints_60)+"</td></tr>";}).join("")+"</tbody></table>";
+    document.querySelectorAll("#desks-tbl th[data-sort]").forEach(function(th){ th.onclick=function(){ var k=th.getAttribute("data-sort"), s=SORT.desks; if(s.k===k) s.dir*=-1; else { s.k=k; s.dir=-1; } drawDesks(); }; });
+    document.querySelectorAll("#desks-tbl tr[data-desk]").forEach(function(tr){ tr.style.cursor="pointer"; tr.onclick=function(){ desk=tr.getAttribute("data-desk"); win="ALL"; draw(); document.getElementById("tbl").scrollIntoView({behavior:"smooth",block:"start"}); }; });
+  }
+  function drawChips(){
+    var all=(DOC.desk_order||[]);
+    var chips=[["ALL","All desks"]].concat(all.map(function(d){return [d,LABEL[d]||d];}));
+    document.getElementById("chips").innerHTML=chips.map(function(c){ var n=c[0]==="ALL"?(win==="LATEST"?(DOC.latest||[]).length:DOC.n_prints_60):(win==="LATEST"?((DOC.counts||{})[c[0]]||{}).prints_5:((DOC.counts||{})[c[0]]||{}).prints_60); return '<button class="jh-chip'+(desk===c[0]?" on":"")+'" data-desk="'+esc(c[0])+'">'+esc(c[1])+(n!=null?" · "+esc(n):"")+"</button>"; }).join("");
+    document.querySelectorAll("#chips .jh-chip").forEach(function(b){ b.onclick=function(){ desk=b.getAttribute("data-desk"); draw(); }; });
+    document.getElementById("window").innerHTML=[["LATEST","last "+(DOC.params&&DOC.params.latest_sessions||5)+" sessions"],["ALL","last "+(DOC.params&&DOC.params.keep_sessions||60)+" sessions"]].map(function(c){return '<button class="jh-chip'+(win===c[0]?" on":"")+'" data-win="'+c[0]+'">'+esc(c[1])+"</button>";}).join("")+'<span class="cp-small" style="margin-left:8px">click a ticker to open it in the chart · sort any column through its header (blanks last either way)</span>';
+    document.querySelectorAll("#window .jh-chip").forEach(function(b){ b.onclick=function(){ win=b.getAttribute("data-win"); draw(); }; });
+  }
+  function drawTable(){
+    var rows=pool().slice().sort(sorter("tbl"));
+    var t=document.getElementById("tbl");
+    t.innerHTML=head("tbl",COLS)+"<tbody>"+(rows.length?rows.map(row).join(""):'<tr><td colspan="24" class="jh-load">no capitulation print '+(desk==="ALL"?"on any desk":"on "+esc(LABEL[desk]||desk))+" in the "+(win==="LATEST"?"last five sessions":"last 60 sessions")+" — the crowd has not given up here</td></tr>")+"</tbody>";
+    wire("tbl");
+    document.getElementById("prints-meta").textContent=rows.length+" print"+(rows.length===1?"":"s")+" · "+(desk==="ALL"?"every desk":(LABEL[desk]||desk))+" · "+(win==="LATEST"?"since "+(DOC.latest_cut||""):"60 sessions")+" · newest and highest score first unless sorted";
+  }
+  var HOLD_COLS=[["ticker","Ticker"],["name","Name"],["desk","Desk"],["date","Date"],["ret_pct","Ret"],["vol_x","Vol ×"],["score","Score"],["context","Context"],["wy","Wyckoff"],["since","Since"],["undercut","Undercut"],["vol_after","Vol after"],["bounce","Bounce"],["now","Now"],["fleet","Evidence"],["last","Last"]];
+  function drawFollow(){
+    var ft=DOC.follow_through||{};
+    document.getElementById("ft-meta").textContent=ft.n?ft.n+" prints at least "+ft.min_sessions_since+" sessions old":"no print old enough to judge";
+    var k=ft.n?[["Lows held",num(ft.held_pct,0)+"%","no low under the print's low since"],["Median bounce",pct(ft.median_bounce_pct,1),"best close since vs the print's close"],["Median undercut",pct(ft.median_undercut_pct,1),"worst low since vs the print's low"],["Volume dried up",num(ft.volume_dried_up_pct,0)+"%","next five sessions' volume under the print's"],["Now vs print",pct(ft.median_now_vs_print_pct,1),"median last close vs the print's close"]]:[["Follow-through","—","no print old enough"]];
+    document.getElementById("ft-kpis").innerHTML=k.map(function(x){return '<div class="jh-kpi"><div class=l>'+esc(x[0])+'</div><div class=v>'+esc(x[1])+'</div><div class=s>'+esc(x[2])+"</div></div>";}).join("");
+    var bc=ft.by_context||{};
+    document.getElementById("ft-ctx").innerHTML=["DECLINE","SHOCK"].map(function(c){var x=bc[c]||{}; return ctx(c)+" "+esc(x.n||0)+" prints · lows held "+(x.held_pct==null?"—":num(x.held_pct,0)+"%")+" · now vs print "+esc(pct(x.median_now_vs_print_pct,1))+" median";}).join("<br>")+"<br><span style='opacity:.7'>A DECLINE print ends a move that was already underway — the Wyckoff climax lives here. A SHOCK print is an event gap out of a calm tape; a shock in an uptrend is not a bottom process.</span>";
+    var all=[].concat.apply([],(DOC.desk_order||[]).map(function(d){return (DOC.boards||{})[d]||[];}));
+    var hold=all.filter(function(r){var a=r.after||{}; return a.sessions_since>=3&&a.held&&a.vol_after_x!=null&&a.vol_after_x<1;}).sort(sorter("hold"));
+    document.getElementById("hold-meta").textContent=hold.length+" of "+all.length+" prints in 60 sessions";
+    document.getElementById("hold").innerHTML='<table class="jh-tbl" id="hold-tbl">'+head("hold",HOLD_COLS)+"<tbody>"+(hold.length?hold.map(function(r){var a=r.after||{}; return "<tr><td>"+tk(r)+"</td><td class=nm title='"+esc(r.name)+"'>"+esc(r.name)+"</td><td class=nm>"+esc(LABEL[r.desk]||r.desk)+"</td><td>"+esc(r.date)+"</td>"+cellPct(r.ret_pct)+"<td>"+num(r.vol_x,1)+"×</td><td>"+score(r.score)+"</td><td>"+ctx(r.context)+"</td><td>"+wy(r)+"</td><td>"+esc(a.sessions_since)+"</td>"+cellPct(a.undercut_pct)+"<td class=up>"+num(a.vol_after_x,2)+"×</td>"+cellPct(a.bounce_pct)+cellPct(a.now_vs_print_pct)+"<td>"+fleet(r)+"</td><td>"+D.fmtPx(r.last)+"</td></tr>";}).join(""):'<tr><td colspan="16" class="jh-load">no print in the last 60 sessions has held its low on drying volume for three sessions yet</td></tr>')+"</tbody></table>";
+    document.querySelectorAll("#hold-tbl th[data-sort]").forEach(function(th){ th.onclick=function(){ var k=th.getAttribute("data-sort"), s=SORT.hold; if(s.k===k) s.dir*=-1; else { s.k=k; s.dir=-1; } drawFollow(); }; });
+  }
+  var BENCH_COLS=[["ticker","Benchmark"],["date","Date"],["ret_pct","Ret"],["vol_x","Vol ×"],["range_x","Range ×"],["loc","Close"],["context","Context"],["score","Score"],["dd20_pct","20d dd"],["since","Since"],["bounce","Bounce"],["undercut","Undercut"],["held","Held"],["vol_after","Vol after"],["now","Now"],["last","Last"]];
+  function drawBench(){
+    var b=DOC.benchmarks||{}, order=["SPY","QQQ","IWM","TLT","HYG","GLD","UUP","BTC"], rows=[], none=[];
+    order.concat(Object.keys(b).filter(function(k){return order.indexOf(k)<0;})).forEach(function(k){ if(!b[k]) return; var ps=b[k].prints||[]; if(!ps.length) none.push(k+" (last "+D.fmtPx(b[k].last)+", "+(b[k].n_prints_window||0)+" in the window)"); ps.forEach(function(p){rows.push(p);}); });
+    rows.sort(sorter("bench"));
+    document.getElementById("bench-meta").textContent=rows.length+" print"+(rows.length===1?"":"s")+" in 250 sessions"+(none.length?" · none on "+none.map(function(s){return s.split(" ")[0];}).join(", "):"");
+    document.getElementById("bench").innerHTML='<table class="jh-tbl" id="bench-tbl">'+head("bench",BENCH_COLS)+"<tbody>"+(rows.length?rows.map(function(r){var a=r.after||{}; return "<tr><td>"+tk(r)+"</td><td>"+esc(r.date)+"</td>"+cellPct(r.ret_pct)+"<td>"+num(r.vol_x,1)+"×</td><td>"+num(r.range_x,1)+"×</td><td>"+num(100*(r.loc||0),0)+"%</td><td>"+ctx(r.context)+"</td><td>"+score(r.score)+"</td>"+cellPct(r.dd20_pct,1)+"<td>"+esc(a.sessions_since==null?"—":a.sessions_since)+"</td>"+cellPct(a.bounce_pct)+cellPct(a.undercut_pct)+"<td class='"+(a.held==null?"flat":a.held?"up":"dn")+"'>"+(a.held==null?"—":a.held?"held":"broke")+"</td><td>"+(a.vol_after_x==null?"—":num(a.vol_after_x,2)+"×")+"</td>"+cellPct(a.now_vs_print_pct)+"<td>"+D.fmtPx(r.last)+"</td></tr>";}).join(""):'<tr><td colspan="16" class="jh-load">no benchmark printed a capitulation session in the last 250 sessions'+(none.length?" — "+esc(none.join(" · ")):"")+"</td></tr>")+"</tbody></table>";
+    document.querySelectorAll("#bench-tbl th[data-sort]").forEach(function(th){ th.onclick=function(){ var k=th.getAttribute("data-sort"), s=SORT.bench; if(s.k===k) s.dir*=-1; else { s.k=k; s.dir=-1; } drawBench(); }; });
+  }
+  function drawDefs(){
+    var d=DOC.definitions||{}, order=["print","context","score","after","wyckoff","breadth","follow_through","not_a_call"];
+    document.getElementById("defs").innerHTML=order.filter(function(k){return d[k];}).map(function(k){return "<dt>"+esc(k.replace(/_/g," "))+"</dt><dd>"+esc(d[k])+"</dd>";}).join("");
+    var th=DOC.thresholds_by_desk||{};
+    document.getElementById("defs").innerHTML+="<dt>floors by desk</dt><dd>"+Object.keys(th).map(function(k){return esc(LABEL[k]||k)+" "+esc(th[k].ret_min)+"% (decline "+esc(th[k].decline_min)+"%)";}).join(" · ")+"</dd>";
+  }
+  function drawSources(){
+    var fa=DOC.feeds_asof||{}, rows=[["data/capitulation-desk.json","justhodl-bottom "+(DOC.engine_version||"")+" · capitulation "+(DOC.version||""),DOC.generated_at,"daily 03:45 UTC Tue–Sat (after the Polygon EOD fold) · session "+(DOC.session||"")+" · window "+((DOC.window||[]).join(" → "))],
+      ["data/warm/polygon-full/grouped/<year>/<date>.json.gz","Polygon EOD bank (justhodl-polygon-full)",DOC.session,"daily bars, every US stock and ETF wrapper; split repair from data/warm/katlin/splits.json"],
+      ["data/warm/katlin/crypto-bars/<SYM>.json.gz","spot crypto bank (Polygon X:SYMUSD; Coinbase Exchange daily candles when Polygon fails)",DOC.session,"completed UTC days; dollar volume"],
+      ["data/finviz-universe.json","universe and names (justhodl-finviz)",fa.finviz,"stocks ≥ $150M market cap, ETF wrappers ≥ $50M AUM, the named asset-class wrappers always"],
+      ["data/13f-flows-by-ticker.json","13F institutional flow (evidence)",fa.f13,"net last quarter at reported prices — a reported position is not a trade"],
+      ["etf-flows/daily.json","ETF flows (evidence)",fa.etf_flows,"90-day z-score, 21-day flow as % of AUM"],
+      ["data/accumulation-radar.json · data/phase-detector.json · data/fortress.json · data/katlin.json · data/insider-radar.json · data/dark-pool.json","fleet confirmations (evidence)",[fa.accumulation_radar,fa.phase_detector,fa.fortress,fa.katlin,fa.insider,fa.dark_pool].filter(Boolean)[0],"evidence on the row, never a gate"]];
+    document.getElementById("sources").innerHTML='<table class="jh-tbl"><thead><tr><th>Key</th><th>Producer</th><th>As of</th><th>Cadence · notes</th></tr></thead><tbody>'+rows.map(function(r){return "<tr><td class=nm>"+esc(r[0])+"</td><td class=nm>"+esc(r[1])+"</td><td>"+esc(r[2]||"—")+"</td><td class=nm style='white-space:normal'>"+esc(r[3])+"</td></tr>";}).join("")+"</tbody></table>";
+    var dg=(DOC.degraded||[]);
+    document.getElementById("note").innerHTML="<b>Engine:</b> justhodl-bottom "+esc(DOC.engine_version||"")+" · capitulation module "+esc(DOC.version||"")+" · contract "+esc(DOC.contract||"")+" · generated "+esc(DOC.generated_at||"")+" · scan errors "+esc(DOC.scan_errors==null?"—":DOC.scan_errors)+(dg.length?" · <b>degraded:</b> "+esc(dg.join("; ")):" · no degraded inputs")+". Every figure is computed by the engine from banked bars; nothing on this page is computed from a provider in the browser.";
+  }
+  function draw(){ drawChips(); drawTable(); }
+  function stamp(){
+    var g=DOC.generated_at?new Date(DOC.generated_at):null, age=g?(Date.now()-g.getTime())/36e5:null;
+    document.getElementById("stamp").innerHTML="session "+esc(DOC.session||"—")+" · generated "+esc(DOC.generated_at||"—")+(age!=null?" ("+(age<48?Math.round(age)+" h":Math.round(age/24)+" d")+" ago)":"")+(age!=null&&age>96?' · <span class="dn">STALE — the engine has not written since</span>':"")+"<br>"+esc((DOC.breadth||{}).n_scored||0)+" instruments scored · "+esc(DOC.n_prints_60||0)+" prints in 60 sessions";
+  }
+  async function boot(){
+    try{
+      DOC=await D.feed(KEY);
+      if(!DOC||DOC.contract!=="capitulation.v1") throw new Error("data/capitulation-desk.json is not published yet (justhodl-bottom 1.3.0 writes it daily at 03:45 UTC)");
+      stamp(); drawKpis(); drawChart(); drawDesks(); draw(); drawFollow(); drawBench(); drawDefs(); drawSources();
+    }catch(e){
+      document.getElementById("stamp").innerHTML='<span class="dn">'+esc(e.message||e)+"</span>";
+      document.querySelector("#tbl tbody").innerHTML='<tr><td colspan="24" class="jh-load">'+esc(e.message||e)+"</td></tr>";
+    }
+  }
+  document.addEventListener("click",function(e){
+    var a=e.target&&e.target.closest?e.target.closest("a.tk"):null;
+    if(!a||window.top===window) return;
+    try{
+      if(typeof window.top.jhOpenSymbol==="function"){        // inside the chart's workspace: load the symbol in the chart behind it
+        e.preventDefault();
+        window.top.jhOpenSymbol(a.getAttribute("data-t"));
+        var x=window.top.document.getElementById("wsx"); if(x) x.click();
+      }
+    }catch(err){ /* another origin: the link's own target=_top navigation stands */ }
+  });
+  boot();
+})();
+</script>
+</body>
+</html>

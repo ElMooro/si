@@ -227,7 +227,7 @@
       "13f": ["13F · Institutional book", "/13f.html"],
       leaders: ["Leaders · industry leaders vs S&P 500", "/leaders.html"],
       sc: ["Selling climax · Wyckoff daily", "/wyckoff-desk.html?tab=sc"],
-      capit: ["Capitulation · panic volume at the lows", "/wyckoff-desk.html?tab=capit"],
+      capit: ["Capitulation · panic volume at the lows", "/capitulation-desk.html"],
       bc: ["Buying climax · Wyckoff daily", "/wyckoff-desk.html?tab=bc"],
       spread: ["Candle spread · tight range + BB", "/wyckoff-desk.html?tab=spread"],
       spring: ["Spring · forming / fired / failed", "/wyckoff-desk.html?tab=spring"],

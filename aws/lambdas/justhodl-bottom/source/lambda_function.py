@@ -33,6 +33,13 @@ Built the way a fund's internal pattern desk is built:
 Output: data/bottom.json (+ data/bottom/history/{session}.json.gz). Consumers: bottom.html, katlin
 (structure join), fortress (evidence field), the fusion layer (adapter "bottom"), alert-router
 (check_bottom), the harvester (top_picks -> eng:bottom), the command desk.
+
+1.3.0 (2026-11-05, Khalid: "Capitulation · panic volume at the lows ... audit it and see if we can improve it. maybe add
+etfs, crypto, metal, bonds and other asset class too"): the cross-asset capitulation scan (capitulation.py) runs over the
+same loaded bars -- every scored instrument on every desk, the crypto lane included -- and writes data/capitulation-desk.json
+(prints by desk with their follow-through, the Wyckoff link, fleet evidence; breadth per session with the regime and
+cluster days; the benchmarks' own prints) plus a slim `capitulation` pointer block inside bottom.json. The crypto bank
+falls back to Coinbase Exchange daily candles when Polygon's crypto aggregates fail (the lane had been degraded 59/64).
 """
 
 try:  # bank-first Polygon (aws/shared/polygon_bankfirst): /v2/aggs daily bars answered from the warehouse when complete, else live
@@ -57,11 +64,13 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 from managed_secret import managed_secret  # env first, then SSM -- no literal credentials
+import capitulation as CAP  # the cross-asset panic-print scan (sibling module, zipped beside the handler)
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 ENGINE = "justhodl-bottom"
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/bottom.json"
+CAPIT_KEY = "data/capitulation-desk.json"   # not data/capitulation.json: that key belongs to the extremes-research engine (justhodl-capitulation)
 HIST_PREFIX = "data/bottom/history/"
 BARS_ROOT = "data/warm/polygon-full/grouped/"
 CRYPTO_ROOT = "data/warm/katlin/crypto-bars/"     # shared warehouse bank (katlin writes the same format)
@@ -398,24 +407,62 @@ def poly_aggs(ticker, mult, span, frm, to):
     return out
 
 
+CB_BASE = "https://api.exchange.coinbase.com"
+
+
+def cb_candles(product, frm, to):
+    """Coinbase Exchange daily candles for product (e.g. BTC-USD) from frm to to (ISO dates, `to` exclusive): rows in the
+    bank's own shape [date, o, h, l, c, v] (v in base units, like Polygon's). 300 candles per request, paced 0.12 s.
+    A product Coinbase does not list raises (HTTP 404) -- that symbol stays flagged, never fabricated."""
+    out = {}
+    cur = datetime.strptime(frm, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    end_all = datetime.strptime(to, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    while cur < end_all:
+        seg = min(cur + timedelta(days=295), end_all)
+        url = "%s/products/%s/candles?granularity=86400&start=%s&end=%s" % (CB_BASE, urllib.parse.quote(product), cur.strftime("%Y-%m-%dT00:00:00Z"), seg.strftime("%Y-%m-%dT00:00:00Z"))
+        j = poly_get(url)
+        if not isinstance(j, list):
+            raise RuntimeError("coinbase %s: %s" % (product, str(j)[:60]))
+        for row in j:
+            d = datetime.fromtimestamp(row[0], tz=timezone.utc).strftime("%Y-%m-%d")
+            if d >= to:
+                continue
+            out[d] = [d, float(row[3]), float(row[2]), float(row[1]), float(row[4]), float(row[5])]
+        cur = seg
+        time.sleep(0.12)
+    return [out[d] for d in sorted(out)]
+
+
 def bank_crypto_symbol(sym, today):
     key = CRYPTO_ROOT + sym + ".json.gz"
     doc = s3_json(key, None, quiet=True) or {"symbol": sym, "source": "polygon X:%sUSD daily" % sym, "rows": []}
     rows = doc.get("rows") or []
     last = rows[-1][0] if rows else None
-    if last == today or not POLY_KEY:
-        return doc, "cached" if last == today else "no-key"
+    if last == today:
+        return doc, "cached"
     frm = (datetime.strptime(last, "%Y-%m-%d") - timedelta(days=3)).strftime("%Y-%m-%d") if last else \
         (datetime.strptime(today, "%Y-%m-%d") - timedelta(days=365 * 6)).strftime("%Y-%m-%d")
-    try:
-        res = poly_aggs("X:%sUSD" % sym, 1, "day", frm, today)
-    except Exception as e:
-        return doc, "err:%s" % str(e)[:60]
+    fresh, src, err = [], None, None
+    if POLY_KEY:
+        try:
+            for r in poly_aggs("X:%sUSD" % sym, 1, "day", frm, today):
+                d = datetime.fromtimestamp(r["t"] / 1000.0, tz=timezone.utc).strftime("%Y-%m-%d")
+                fresh.append([d, float(r.get("o") or r["c"]), float(r.get("h") or r["c"]), float(r.get("l") or r["c"]), float(r["c"]), float(r.get("v") or 0.0)])
+            src = "polygon"
+        except Exception as e:
+            err = "polygon %s" % str(e)[:40]
+    if not fresh:
+        # 1.3.0: Polygon's crypto aggregates had been failing 59/64 symbols; Coinbase Exchange carries the same daily
+        # candles (completed UTC days only) for every product it lists -- the bank keeps one calendar either way
+        try:
+            fresh = cb_candles("%s-USD" % sym, frm, today)
+            src = "coinbase"
+        except Exception as e:
+            return doc, "err:%s|coinbase %s" % (err or "no-key", str(e)[:40])
     have = {r[0]: i for i, r in enumerate(rows)}
     added = 0
-    for r in res:
-        d = datetime.fromtimestamp(r["t"] / 1000.0, tz=timezone.utc).strftime("%Y-%m-%d")
-        row = [d, float(r.get("o") or r["c"]), float(r.get("h") or r["c"]), float(r.get("l") or r["c"]), float(r["c"]), float(r.get("v") or 0.0)]
+    for row in fresh:
+        d = row[0]
         if d in have:
             rows[have[d]] = row
         else:
@@ -424,9 +471,12 @@ def bank_crypto_symbol(sym, today):
     doc["rows"] = rows
     doc["banked_at"] = now_iso()
     doc["n"] = len(rows)
+    doc["last_source"] = src
+    if src == "coinbase":
+        doc["source"] = "polygon X:%sUSD daily; coinbase %s-USD daily candles when polygon fails" % (sym, sym)
     if added or not last:
         s3_put_json(key, doc, gz=True)
-    return doc, "ok:+%d" % added
+    return doc, "ok:%s+%d" % (src, added)
 
 
 def load_crypto(today, symbols):
@@ -452,9 +502,15 @@ def load_crypto(today, symbols):
             b.d.append(idx[d]); b.o.append(o); b.h.append(h); b.l.append(l); b.c.append(c); b.v.append(v * c)   # dollar volume
         bars[sym] = b
     nerr = sum(1 for s in status.values() if s.startswith("err"))
-    log("crypto lane: %d symbols, %d with >=200 days, %d errors" % (len(docs), len(bars), nerr))
+    srcs = {}
+    for s in status.values():
+        k = s.split("+")[0] if s.startswith("ok:") else s.split(":")[0]
+        srcs[k] = srcs.get(k, 0) + 1
+    log("crypto lane: %d symbols, %d with >=200 days, %d errors, sources %s" % (len(docs), len(bars), nerr, json.dumps(srcs, sort_keys=True)))
+    if nerr:
+        log("crypto lane errors: %s" % "; ".join("%s %s" % (s, st[:70]) for s, st in status.items() if st.startswith("err"))[:600])
     if nerr and nerr >= max(1, len(symbols) // 2):
-        DEGRADED.append("crypto lane: %d/%d Polygon errors" % (nerr, len(symbols)))
+        DEGRADED.append("crypto lane: %d/%d bank errors (polygon and coinbase)" % (nerr, len(symbols)))
     return dates, bars
 
 
@@ -1549,6 +1605,7 @@ DEFINITIONS = {
     "base_rates": "Every sequence detected in the ~5-year window is graded from the tape: +21/+63-bar returns from the trigger fill (raw and stop-managed), stop-hit and target-1-hit rates, three stop rules measured on the same trades (paper / climax-low / 1 ATR), and the paper's counterfactual -- the crowd buying the automatic rally vs the professional waiting for the trigger. The findings block states, in words, where the tape agrees with the paper and where it does not.",
     "stop_rules": "paper = 0.1 ATR under the test low (what the paper prescribes); climax = 0.25 ATR under the lower of the climax low and the test low (the structural floor); wide = 1 ATR under the test low. Each is managed independently on every historical trigger so their stop-hit rates and managed returns are comparable.",
     "confirmations": "Fleet evidence joined by ticker: accumulation-radar, phase-detector, fortress, katlin, 13F institutional flow, insider clusters, dark-pool state, ETF flows. Evidence on the row, never a gate: the tape decides, the fleet confirms.",
+    "capitulation": "The cross-asset panic-print scan (data/capitulation-desk.json; the `capitulation` block here is its slim pointer): one session on any scored instrument -- stocks, equity / sector / country ETFs, bonds, gold & metals, commodities, currencies, spot crypto -- that closed at or under the desk's floor on >= 2.5x the prior 50-session volume (the heaviest of 20), a range >= 1.5 ATR, the close in the bottom 30% of the bar, at the prior 20-session low or a crash; scored 0-100, read in context (DECLINE vs SHOCK), followed through (held / bounce / undercut / volume after), linked to the Wyckoff sequence when the print is the climax bar, and counted per session into a breadth series whose 5-session sum against the ~5-year window gives the regime (QUIET / NORMAL / ELEVATED / HIGH / EXTREME) and the cluster days. A print is where the crowd gave up; the sequence is the entry logic.",
 }
 
 
@@ -1568,6 +1625,8 @@ def _run(event=None):
     rows, hist = [], []
     n_scored = 0
     bench_rows = {}
+    cap = CAP.Accumulator(dates)          # 1.3.0: the cross-asset panic-print scan rides the same loaded bars
+    cap_bench = {}
     for sym, (cls, sub) in uni.items():
         b = bars.get(sym)
         if b is None or len(b.c) < P["min_sessions"]:
@@ -1579,20 +1638,22 @@ def _run(event=None):
         if adv is None or adv < P["min_adv_usd"]:
             continue
         n_scored += 1
+        desk = DESK.get(sub, "stocks")
+        cap.add(sym, desk, cls, ((F["finviz"].get(to_fv(sym)) or {}).get("company") or sym)[:60], b.o, b.h, b.l, b.c, b.v, b.d, dates)
         try:
             r, evD, evW = build_row(sym, cls, sub, b, dates, F, len(dates) - 1)
         except Exception as e:
             row_error(cls, sym, e)
             continue
-        desk = DESK.get(sub, "stocks")
         for E in evD:
             hist.append(hist_row(sym, desk, cls, E, "D", P["D"]))
         for E in evW:
             hist.append(hist_row(sym, desk, cls, E, "W", P["W"]))
         if r is not None:
             rows.append(r)
-    log("equities/wrappers: %d scored, %d rows with a live or recent sequence, %d historical sequences in %.0fs" % (n_scored, len(rows), len(hist), time.time() - t0))
-    # benchmarks (state of the market's own bottom process)
+    log("equities/wrappers: %d scored, %d rows with a live or recent sequence, %d historical sequences, %d capitulation prints kept in %.0fs" % (
+        n_scored, len(rows), len(hist), len(cap.prints), time.time() - t0))
+    # benchmarks (state of the market's own bottom process, and its own panic prints)
     for bsym in BENCH:
         b = bars.get(bsym)
         if b is None or len(b.c) < P["min_sessions"]:
@@ -1601,11 +1662,16 @@ def _run(event=None):
         curW, evW, _, _ = run_frame(b, dates, "W", "equity_etfs")
         bench_rows[bsym] = {"last": rnd(b.c[-1], 2), "daily": (curD or {}).get("state") or "NONE", "weekly": (curW or {}).get("state") or "NONE",
                             "daily_sc_date": dates[b.d[curD["sc_i"]]] if curD else None, "n_sequences_5y": len(evD)}
+        try:
+            cap_bench[bsym] = CAP.bench_prints(bsym, {"TLT": "bonds", "HYG": "bonds", "GLD": "gold_metals", "UUP": "currencies"}.get(bsym, "equity_etfs"), b.o, b.h, b.l, b.c, b.v, b.d, dates)
+        except Exception as e:
+            row_error("bench-capit", bsym, e)
     # crypto lane (spot, dollar volume, its own calendar)
     try:
         cdates, cbars = load_crypto(today, list(dict.fromkeys(P["crypto_symbols"])))
         for sym, b in cbars.items():
             n_scored += 1
+            cap.add(sym, "crypto", "crypto", sym, b.o, b.h, b.l, b.c, b.v, b.d, cdates)
             try:
                 r, evD, evW = build_row(sym, "crypto", "crypto", b, cdates, F, len(cdates) - 1)
             except Exception as e:
@@ -1621,6 +1687,10 @@ def _run(event=None):
             b = cbars["BTC"]
             curD, evD, _, _ = run_frame(b, cdates, "D", "crypto")
             bench_rows["BTC"] = {"last": rnd(b.c[-1], 0), "daily": (curD or {}).get("state") or "NONE", "weekly": None, "daily_sc_date": cdates[b.d[curD["sc_i"]]] if curD else None, "n_sequences_5y": len(evD)}
+            try:
+                cap_bench["BTC"] = CAP.bench_prints("BTC", "crypto", b.o, b.h, b.l, b.c, b.v, b.d, cdates)
+            except Exception as e:
+                row_error("bench-capit", "BTC", e)
     except Exception as e:
         DEGRADED.append("crypto lane failed: %s" % str(e)[:120])
         log("crypto lane failed: %s" % traceback.format_exc()[-400:])
@@ -1649,6 +1719,36 @@ def _run(event=None):
                "new_failed": [r["ticker"] for r in rows if r["state"] in ("FAILED", "STOPPED") and prev_state.get(r["ticker"]) not in ("FAILED", "STOPPED")][:40],
                "prior_session": prev.get("session")}
     br = base_rates(hist)
+    # 1.3.0: the capitulation block -- every print joined to the name's sequence row and the fleet's evidence, written to
+    # its own artifact (the desk page reads it); bottom.json carries the slim pointer block
+    capit = None
+    try:
+        wy = {r["ticker"]: {k: r.get(k) for k in ("sc_date", "state", "grade", "score", "frame", "actionable")} for r in rows}
+
+        def _extra(t, cls):
+            ex = {}
+            f = F["f13"].get(t) or F["f13"].get(to_fv(t))
+            if isinstance(f, dict):
+                net = fnum(f.get("net_usd_m") or f.get("net") or f.get("net_flow_usd_m"))
+                if net is not None:
+                    ex["f13_net_usd_m"] = rnd(net, 1)
+            fl = F["flows"].get(t)
+            if isinstance(fl, dict):
+                z = fnum(fl.get("z90") or fl.get("flow_z90") or fl.get("z_score_90d"))
+                pa = fnum(fl.get("pct_aum_21d"))
+                if z is not None or pa is not None:
+                    ex["etf_flow"] = {"z90": rnd(z, 2), "pct_aum_21d": rnd(pa, 2)}
+            return ex
+        capit = CAP.build(cap, wy, lambda t, cls: confirmations(t, cls, F), _extra, cap_bench)
+        capit.update({"engine": ENGINE, "engine_version": VERSION, "generated_at": now_iso(), "session": session,
+                      "window": [dates[0], dates[-1]], "feeds_asof": F["asof"], "degraded": list(DEGRADED)})
+        nb = s3_put_json(CAPIT_KEY, capit)
+        log("capitulation: %s (%d bytes) scored=%d prints_60=%d latest=%d regime=%s sum_5=%s pct=%s clusters=%d errors=%d" % (
+            CAPIT_KEY, nb, capit["breadth"]["n_scored"], capit["n_prints_60"], len(capit["latest"]), capit["breadth"]["regime"], capit["breadth"]["sum_5"],
+            capit["breadth"]["sum_5_percentile"], capit["breadth"]["n_clusters_window"], capit["scan_errors"]))
+    except Exception as e:
+        DEGRADED.append("capitulation block failed: %s" % str(e)[:120])
+        log("capitulation block failed: %s" % traceback.format_exc()[-600:])
     out = {"engine": ENGINE, "version": VERSION, "generated_at": now_iso(), "session": session, "elapsed_s": round(time.time() - t0, 1),
            "method": {"source": "Khalid's paper 'How to spot a bottom' (Wyckoff: selling climax -> automatic rally -> secondary test on diminished volume -> trigger above the test candle's high -> stop under the test low)",
                       "frames": ["D", "W"], "params": {"D": P["D"], "W": P["W"]}, "hygiene": {k: P[k] for k in ("min_price", "min_adv_usd", "min_mcap", "min_etf_aum", "min_sessions", "min_weeks")}},
@@ -1659,12 +1759,14 @@ def _run(event=None):
                             "note": "how many candidate bars (>= climax_vol_x volume) each gate rejected over the whole window: range, not a new low of the move, shallow decline, not prolonged, above the average, not in the bottom of the yearly range, not the heaviest volume of the decline, heavy only vs a rising volume regime"},
            "board": board, "board_all": [{k: r.get(k) for k in ("ticker", "company", "asset_class", "sub_class", "desk", "frame", "state", "grade", "score", "last", "sc_date", "st_date", "trigger_date", "st_vol_ratio_sc", "st_depth_class", "bars_in_state", "weekly_state", "daily_state", "n_confirm", "dist_sc_low_pct")} for r in rows],
            "by_desk": by_desk, "desk_labels": DESK_LABEL, "weekly_live": weekly_live, "top_picks": top_picks, "changes": changes,
+           "capitulation": CAP.slim(capit) if capit else None,
            "base_rates": br, "definitions": DEFINITIONS, "feeds_asof": F["asof"], "degraded": DEGRADED, "row_errors": ROW_ERRS, "log": LOG[-60:]}
     for r in rows:
         out["counts"]["by_state"][r["state"]] = out["counts"]["by_state"].get(r["state"], 0) + 1
         out["counts"]["by_desk"][r["desk"]] = out["counts"]["by_desk"].get(r["desk"], 0) + 1
     n = s3_put_json(OUT_KEY, out)
-    snap = {"session": session, "generated_at": out["generated_at"], "version": VERSION, "board_all": out["board_all"], "top_picks": top_picks, "market": out["market"]["breadth"], "changes": changes}
+    snap = {"session": session, "generated_at": out["generated_at"], "version": VERSION, "board_all": out["board_all"], "top_picks": top_picks, "market": out["market"]["breadth"], "changes": changes,
+            "capitulation": {k: out["capitulation"].get(k) for k in ("regime", "sum_5", "sum_5_percentile", "sum_5_pct_of_scored", "n_scored", "last_session", "counts", "n_prints_60")} if out.get("capitulation") else None}
     s3_put_json(HIST_PREFIX + session + ".json.gz", snap, gz=True)
     log("wrote %s (%d bytes) rows=%d triggered=%d test_confirmed=%d testing=%d climax=%d failed=%d elapsed=%.0fs" % (
         OUT_KEY, n, len(rows), out["counts"]["by_state"].get("TRIGGERED", 0) + out["counts"]["by_state"].get("MARKUP", 0), out["counts"]["by_state"].get("ST_CONFIRMED", 0),

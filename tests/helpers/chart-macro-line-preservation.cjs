@@ -298,7 +298,30 @@ function peelLeadersRail(raw,file){
  assert.equal(hash(raw),BEFORE,'jh-chart-tvrail.js');
  return raw;
 }
-function normalize(raw,file){raw=peelLeadersHtml(raw,file);raw=peelLeadersEngine(raw,file);raw=peelLeadersRail(raw,file);raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
+// 2026-11-05 (b): peel the Capitulation workspace re-route (rail meta capit -> /capitulation-desk.html, chart.html rail cache-bust) before the Leaders peels.
+function peelCapitHtml(raw,file){
+ const AFTER='11c209334122515ebe61e6ebb10f76aa3c5f05f2d2b518a82e16325613257827';
+ const BEFORE='a7f076b4c5b328fd2d6832daf4b0e3be74f7f945e1aaa03d76532b5a6ea1a1d6';
+ const FROM='&cds=20261015&capit=20261105&ldr=20261105"></script>';
+ const TO='&cds=20261015&ldr=20261105"></script>';
+ if(file!=='chart.html'||hash(raw)!==AFTER)return raw;
+ assert.equal(raw.split(FROM).length,2,'chart.html capitulation rail cache');
+ raw=raw.replace(FROM,TO);
+ assert.equal(hash(raw),BEFORE,'chart.html');
+ return raw;
+}
+function peelCapitRail(raw,file){
+ const AFTER='2455f7e859dfa18f50d75f669fcd95538eb32944ba9f1e1b5e10dbee38393a79';
+ const BEFORE='cde2a7d704a24a5682119d4331e852306c01fdd28c9f2c3e647d7f9157ac3c40';
+ const FROM='      capit: ["Capitulation · panic volume at the lows", "/capitulation-desk.html"],\n';
+ const TO='      capit: ["Capitulation · panic volume at the lows", "/wyckoff-desk.html?tab=capit"],\n';
+ if(file!=='jh-chart-tvrail.js'||hash(raw)!==AFTER)return raw;
+ assert.equal(raw.split(FROM).length,2,'jh-chart-tvrail.js capitulation meta');
+ raw=raw.replace(FROM,TO);
+ assert.equal(hash(raw),BEFORE,'jh-chart-tvrail.js');
+ return raw;
+}
+function normalize(raw,file){raw=peelCapitHtml(raw,file);raw=peelCapitRail(raw,file);raw=peelLeadersHtml(raw,file);raw=peelLeadersEngine(raw,file);raw=peelLeadersRail(raw,file);raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
  if(digest===row.before_sha256||digest!==row.after_sha256)return raw;
  for(const e of [...row.replacements].reverse()){assert.equal(raw.split(e.after).length,2,file+': '+e.after.slice(0,60));raw=raw.replace(e.after,e.before);}
  assert.equal(hash(raw),row.before_sha256,file);assert.equal(raw,fs.readFileSync(path.join(R,row.before_path),'utf8'));return raw;

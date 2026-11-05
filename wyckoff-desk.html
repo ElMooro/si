@@ -63,8 +63,8 @@ footer{margin-top:22px;font-size:11px;color:var(--mut)}
   var TABS = [
     { id: "sc", lab: "Selling climax", why: "Wyckoff SC: climactic volume at a new low of a real decline, wide range, close in the lower half. Source of truth is the Bottom desk (daily). Phase-detector SC events are a second clock — 400-name book, not the full warehouse.",
       memo: ["Daily bars only.", "Board: bottom harvest rows in CLIMAX or TESTING.", "The climax is climactic volume at a new low of a real decline, a wide range, and a close off the low.", "This tab is the location of the climax. It is not a buy."] },
-    { id: "capit", lab: "Capitulation", why: "Panic print, not the whole SC sequence. Tape rule: wide down bar, close in the lower fifth, volume ≥1.75×. This board is stricter on the Bottom harvest: daily CLIMAX / fresh TESTING / NO_RALLY, vol ≥3.5× the 50d average, range ≥1.5× ATR, decline ≥15%, still within 15% of the climax low, SC bar ≤21 calendar days. Not a buy. Wait for the automatic rally and a light-volume test.",
-      memo: ["Daily bars only.", "State is CLIMAX, TESTING, or NO_RALLY.", "Climax volume at least 3.5 times the 50-day average.", "Climax range at least 1.5 times ATR.", "Decline of at least 15%.", "Climax bar is no older than 21 calendar days.", "Unless the state is still CLIMAX, price is still within 15% of the climax low.", "Not a buy. The next proof is the automatic rally and a light-volume test."] },
+    { id: "capit", lab: "Capitulation", why: "The selling-climax bars of the Bottom harvest that printed as panic: daily CLIMAX / fresh TESTING / NO_RALLY, climax volume ≥3.5× the 50-day average, range ≥1.5× ATR, decline ≥15%, still within 15% of the climax low, SC bar ≤21 calendar days. Stocks only here (the harvest board). The full cross-asset capitulation desk — every panic print on stocks, ETFs, countries, bonds, gold & metals, commodities, currencies and crypto, with breadth and follow-through — is /capitulation-desk.html. Not a buy. Wait for the automatic rally and a light-volume test.",
+      memo: ["Daily bars only.", "State is CLIMAX, TESTING, or NO_RALLY.", "Climax volume at least 3.5 times the 50-day average.", "Climax range at least 1.5 times ATR.", "Decline of at least 15%.", "Climax bar is no older than 21 calendar days.", "Unless the state is still CLIMAX, price is still within 15% of the climax low.", "Every asset class, the breadth of panic across the universe and what the tape did after each print: /capitulation-desk.html (data/capitulation-desk.json, the same engine).", "Not a buy. The next proof is the automatic rally and a light-volume test."] },
     { id: "bc", lab: "Buying climax", why: "Wyckoff BC on daily bars: climactic volume at/near a high, wide range, close off the extreme. Phase-detector live BC events (daily). Not a short by itself — wait for SOW / UT. Distribution beginning is listed as context.",
       memo: ["Daily bars.", "Phase-detector buying-climax events: climactic volume at or near a high, a wide range, and a close off the extreme.", "Not a short by itself. The next proof is weakness on the reaction or an upthrust.", "Distribution beginning is context, not the signal."] },
     { id: "spread", lab: "Candle spread", why: "Tight price range + tight Bollinger. Katlin: bbw percentile ≤ 20 and squeeze, ranked by BB tightness then range-contraction leg. This is coiling, not a trigger. Open Daily on the chart to see the squeeze.",
@@ -383,7 +383,11 @@ footer{margin-top:22px;font-size:11px;color:var(--mut)}
     ];
     if (tab === "spring") { kpis.push(["Fired", fired]); kpis.push(["Forming", forming]); kpis.push(["Failed (DIST)", failed]); }
     if (tab === "sc") kpis.push(["Daily climax", rows.filter(function (r) { return r.a === "CLIMAX"; }).length]);
-    if (tab === "capit") kpis.push(["Vol ≥3.5×", rows.length]);
+    if (tab === "capit") {
+      kpis.push(["Vol ≥3.5×", rows.length]);
+      var cap = DATA.bottom && DATA.bottom.capitulation;
+      if (cap && cap.regime) { kpis.push(["Panic breadth", cap.regime]); kpis.push(["Prints · 5 sessions", (cap.sum_5 == null ? "—" : cap.sum_5) + (cap.sum_5_percentile != null ? " · p" + Math.round(cap.sum_5_percentile) : "")]); }
+    }
     document.getElementById("kpi").innerHTML = kpis.map(function (k) { return "<div><span>" + esc(k[0]) + "</span><b>" + esc(k[1]) + "</b></div>"; }).join("");
     if (!rows.length) {
       document.getElementById("board").innerHTML = "<tr><td class=empty colspan=9>" + esc(spec.empty || "No names match this scan on the current harvests.") + "</td></tr>";

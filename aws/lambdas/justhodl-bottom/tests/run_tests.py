@@ -16,6 +16,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 SRC = HERE.parent / "source" / "lambda_function.py"
 sys.path.insert(0, str(HERE.parents[2] / "shared"))
+sys.path.insert(0, str(HERE.parent / "source"))   # sibling modules the handler imports (capitulation)
 
 
 class _NoAWS:
@@ -246,10 +247,210 @@ def test_resolved_sequence_is_not_actionable(m):
     return "resolved MARKUP row not actionable (%.0f%% above the trigger level); fresh trigger actionable" % ((r["last"] / r["trigger_level"] - 1) * 100)
 
 
+# ---- 1.3.0: the cross-asset capitulation scan (capitulation.py) ------------------------------------------------------
+def _calendar(n, start=(2021, 1, 4)):
+    from datetime import date, timedelta
+    d0 = date(*start)
+    out, k = [], 0
+    while len(out) < n:
+        d = d0 + timedelta(days=k); k += 1
+        if d.weekday() < 5:
+            out.append(d.isoformat())
+    return out
+
+
+def _flat(n, px=100.0, vol=1_000_000, seed=3, drift=0.0, noise=0.004):
+    """n quiet bars: small noise, steady volume, a 1% range."""
+    random.seed(seed)
+    o, h, l, c, v = [], [], [], [], []
+    p = px
+    for _ in range(n):
+        nx = p * (1 + drift + random.uniform(-noise, noise))
+        hi, lo = max(p, nx) * 1.004, min(p, nx) * 0.996
+        o.append(p); c.append(nx); h.append(hi); l.append(lo); v.append(vol * random.uniform(0.85, 1.15)); p = nx
+    return o, h, l, c, v
+
+
+def _panic_bar(o, h, l, c, v, drop_pct, vol_x, close_loc=0.1, range_mult=3.0):
+    """append one panic bar: gaps down, wide range (range_mult x the recent range), closes near its low on vol_x x volume."""
+    p = c[-1]
+    rng = (sum(h[-14:]) - sum(l[-14:])) / 14.0 * range_mult
+    close = p * (1 + drop_pct / 100.0)
+    low = close - close_loc * rng
+    high = low + rng
+    o.append(min(high, p * 0.995)); c.append(close); h.append(high); l.append(low); v.append(sum(v[-50:]) / 50.0 * vol_x)
+
+
+def test_capitulation_print_detected(m):
+    cap = m.CAP
+    o, h, l, c, v = _flat(120)
+    # a 20-session decline first (so the context is DECLINE), then the panic bar
+    p = c[-1]
+    for i in range(20):
+        nx = p * 0.991; o.append(p); c.append(nx); h.append(p * 1.002); l.append(nx * 0.997); v.append(1_050_000); p = nx
+    _panic_bar(o, h, l, c, v, -6.0, 4.5, close_loc=0.08)
+    found = cap.scan(o, h, l, c, v, "stocks")
+    assert len(found) == 1, [f["i"] for f in found]
+    f = found[0]
+    assert f["i"] == len(c) - 1 and f["vol_x"] >= 4.0 and f["vol_dominant"] and f["range_x"] >= 1.5 and f["loc"] <= 0.3
+    assert f["new_low_20"] and f["new_low_60"] and f["context"] == "DECLINE", f
+    assert f["bars_down"] >= 20 and f["dd20_pct"] < -15 and 60 <= f["score"] <= 100, (f["bars_down"], f["dd20_pct"], f["score"])
+    # the same bar with ordinary volume is not a print; a down bar closing in its upper half is not a print
+    v2 = list(v); v2[-1] = v2[-2] * 1.3
+    assert cap.scan(o, h, l, c, v2, "stocks") == []
+    c3, h3 = list(c), list(h)
+    c3[-1] = l[-1] + 0.7 * (h[-1] - l[-1])
+    assert cap.scan(o, h3, l, c3, v, "stocks") == []
+    return "panic print: -%.1f%% on %.1fx volume, %.1f ATR range, close %.0f%% up the bar, score %s (DECLINE)" % (-f["ret_pct"], f["vol_x"], f["range_x"], 100 * f["loc"], f["score"])
+
+
+def test_capitulation_shock_and_desk_floors(m):
+    cap = m.CAP
+    # an event gap out of a flat tape: SHOCK, qualifies through the crash rule even with no decline before it
+    o, h, l, c, v = _flat(120)
+    _panic_bar(o, h, l, c, v, -7.0, 3.0, close_loc=0.15)
+    f = cap.scan(o, h, l, c, v, "stocks")
+    assert len(f) == 1 and f[0]["context"] == "SHOCK" and f[0]["crash"] is True, f
+    # desk floors: a -1.4% bar on panic volume is a print for bonds, never for stocks (floor -3%)
+    o, h, l, c, v = _flat(120, noise=0.002)
+    _panic_bar(o, h, l, c, v, -1.4, 3.2, close_loc=0.1)
+    assert len(cap.scan(o, h, l, c, v, "bonds")) == 1 and cap.scan(o, h, l, c, v, "stocks") == []
+    # crypto needs -5%
+    o, h, l, c, v = _flat(120)
+    _panic_bar(o, h, l, c, v, -4.0, 3.5, close_loc=0.1)
+    assert cap.scan(o, h, l, c, v, "crypto") == [] and len(cap.scan(o, h, l, c, v, "equity_etfs")) == 1
+    # the ATR gate uses the bars BEFORE the print: a second panic bar right after the first still measures against the quiet range
+    o, h, l, c, v = _flat(120)
+    _panic_bar(o, h, l, c, v, -6.0, 4.0)
+    _panic_bar(o, h, l, c, v, -6.0, 4.0)
+    assert len(cap.scan(o, h, l, c, v, "stocks")) == 2
+    return "SHOCK vs DECLINE, desk floors (bonds -1% / stocks -3% / crypto -5%), prior-ATR gate"
+
+
+def test_capitulation_follow_through_and_breadth(m):
+    cap = m.CAP
+    dates = _calendar(181)    # every instrument below carries 181 bars on this calendar
+    acc = cap.Accumulator(dates)
+    # instrument A: a print 10 sessions ago whose low held and whose volume dried up; B: a print that was undercut; C: quiet
+    o, h, l, c, v = _flat(150)
+    for i in range(20):
+        p = c[-1]; nx = p * 0.99; o.append(p); c.append(nx); h.append(p * 1.002); l.append(nx * 0.997); v.append(1_050_000)
+    _panic_bar(o, h, l, c, v, -6.0, 4.5, close_loc=0.05)
+    plow = l[-1]
+    p = c[-1]
+    for i in range(10):
+        nx = p * 1.01; o.append(p); c.append(nx); h.append(nx * 1.003); l.append(max(p * 0.997, plow * 1.001)); v.append(600_000); p = nx
+    n = len(c)
+    acc.add("AAA", "stocks", "stock", "Held Inc", o, h, l, c, v, list(range(n)), dates)
+    o2, h2, l2, c2, v2 = _flat(150, seed=5)
+    for i in range(20):
+        p = c2[-1]; nx = p * 0.99; o2.append(p); c2.append(nx); h2.append(p * 1.002); l2.append(nx * 0.997); v2.append(1_050_000)
+    _panic_bar(o2, h2, l2, c2, v2, -6.0, 4.5, close_loc=0.05)
+    p = c2[-1]
+    pv = v2[-1]
+    for i in range(10):   # keeps falling on volume heavier than the print's: no dry-up, the low gone
+        nx = p * 0.985; o2.append(p); c2.append(nx); h2.append(p * 1.002); l2.append(nx * 0.997); v2.append(pv * 1.2); p = nx
+    acc.add("BBB", "stocks", "stock", "Broke Corp", o2, h2, l2, c2, v2, list(range(len(c2))), dates)
+    o3, h3, l3, c3, v3 = _flat(181, seed=9)
+    acc.add("CCC", "equity_etfs", "etf", "Quiet Fund", o3, h3, l3, c3, v3, list(range(len(c3))), dates)
+    # a crypto print on a Saturday counts toward the following Monday's session
+    o4, h4, l4, c4, v4 = _flat(150, seed=11)
+    for i in range(20):
+        p = c4[-1]; nx = p * 0.985; o4.append(p); c4.append(nx); h4.append(p * 1.002); l4.append(nx * 0.997); v4.append(1_050_000)
+    _panic_bar(o4, h4, l4, c4, v4, -12.0, 5.0, close_loc=0.05)
+    from datetime import date, timedelta
+    end = date(2021, 6, 19)   # a Saturday
+    cdates = [(end - timedelta(days=len(c4) - 1 - k)).isoformat() for k in range(len(c4))]
+    sat = cdates[-1]
+    assert date.fromisoformat(sat).weekday() == 5, sat
+    acc.add("XYZ", "crypto", "crypto", "XYZ", o4, h4, l4, c4, v4, list(range(len(c4))), cdates)
+    wy = {"AAA": {"sc_date": dates[n - 11], "state": "TESTING", "grade": "B", "score": 61.0, "frame": "D", "actionable": False}}
+    confirms = {"AAA": ([{"src": "13F", "read": "institutions net +$10M", "bull": True}], 1)}
+    block = cap.build(acc, wy, lambda t, cls: confirms.get(t, ([], 0)), lambda t, cls: {"f13_net_usd_m": 10.0} if t == "AAA" else {}, {})
+    rows = {r["ticker"]: r for r in block["boards"]["stocks"]}
+    a, b = rows["AAA"], rows["BBB"]
+    assert a["after"]["sessions_since"] == 10 and a["after"]["held"] is True and a["after"]["vol_after_x"] < 0.3 and a["after"]["bounce_pct"] > 5
+    assert b["after"]["held"] is False and b["after"]["undercut_pct"] < -5 and b["after"]["now_vs_print_pct"] < -10
+    assert a["wyckoff"] and a["wyckoff"]["same_bar"] is True and a["wyckoff"]["state"] == "TESTING" and b["wyckoff"] is None
+    assert a["n_confirm"] == 1 and a["f13_net_usd_m"] == 10.0
+    assert block["counts"]["stocks"]["scored"] == 2 and block["counts"]["equity_etfs"]["scored"] == 1 and block["counts"]["crypto"]["scored"] == 1
+    br = block["breadth"]
+    assert br["n_scored"] == 4 and br["window_sessions"] == 181 and len(br["sessions"]) == 120
+    assert br["sessions"][-11]["total"] == 2 and br["sessions"][-11]["by_desk"] == {"stocks": 2}, br["sessions"][-11]
+    nxt_monday = next(d for d in dates if d > sat)
+    sess = {s["date"]: s for s in br["sessions"]}
+    assert sess[nxt_monday]["by_desk"].get("crypto") == 1, (nxt_monday, sess[nxt_monday])
+    assert br["regime"] in ("QUIET", "NORMAL") and br["sum_5"] == 0
+    ft = block["follow_through"]   # the crypto print is the last bar: too young to judge
+    assert ft["n"] == 2 and ft["held_pct"] == 50.0 and ft["by_context"]["DECLINE"]["n"] == 2 and ft["volume_dried_up_pct"] == 50.0, ft
+    assert block["read"].startswith("selective panic") and block["definitions"]["not_a_call"]
+    assert len(block["boards"]["crypto"]) == 1 and block["boards"]["crypto"][0]["date"] == sat and block["boards"]["bonds"] == []
+    slim = cap.slim(block)
+    assert slim["key"] == "data/capitulation-desk.json" and slim["n_prints_60"] == 3 and "boards" not in slim
+    js = json.dumps(block, allow_nan=False)
+    assert len(js) < 200000, len(js)
+    return "follow-through (held / undercut / volume after), Wyckoff same-bar link, fleet joins, breadth on the equity calendar (crypto weekend -> next session), slim pointer %d bytes" % len(json.dumps(slim))
+
+
+def test_capitulation_breadth_regime(m):
+    cap = m.CAP
+    # 40 instruments on one calendar (300 sessions), each with one old print on its own day (the window's base rate) and
+    # 30 of them printing on the same session two bars before the end
+    N = 300
+    dates = _calendar(N)
+    acc = cap.Accumulator(dates)
+    for k in range(40):
+        o, h, l, c, v = _flat(N, seed=100 + k)
+        idx = 100 + 3 * k
+        o2, h2, l2, c2, v2 = o[:idx], h[:idx], l[:idx], c[:idx], v[:idx]
+        _panic_bar(o2, h2, l2, c2, v2, -7.0, 4.5, close_loc=0.1)
+        tail = _flat(N - idx - 1, px=c2[-1], seed=200 + k)
+        for arr, t in zip((o2, h2, l2, c2, v2), tail):
+            arr.extend(t)
+        if k < 30:
+            o2, h2, l2, c2, v2 = o2[:-2], h2[:-2], l2[:-2], c2[:-2], v2[:-2]
+            _panic_bar(o2, h2, l2, c2, v2, -7.0, 4.5, close_loc=0.1)
+            tail = _flat(1, px=c2[-1], seed=300 + k)
+            for arr, t in zip((o2, h2, l2, c2, v2), tail):
+                arr.extend(t)
+        assert len(c2) == N
+        acc.add("S%02d" % k, "stocks", "stock", "S%02d" % k, o2, h2, l2, c2, v2, list(range(N)), dates)
+    block = cap.build(acc, {}, None, None, {})
+    br = block["breadth"]
+    assert br["n_scored"] == 40 and br["sum_5"] >= 25, (br["sum_5"], br["last_session"])
+    assert br["sum_5_percentile"] >= 97 and br["regime"] == "EXTREME", (br["sum_5_percentile"], br["regime"])
+    assert br["n_clusters_window"] >= 1 and br["clusters"][-1]["pct_of_scored"] >= 2.5
+    assert block["read"].startswith("panic is broad") and "cluster" in block["read"]
+    assert sum(block["counts"][d]["prints_5"] for d in cap.DESK_ORDER) == len(block["latest"]) and len(block["latest"]) >= 25
+    return "breadth regime: %d prints in 5 sessions = %s (percentile %s), %d cluster sessions" % (br["sum_5"], br["regime"], br["sum_5_percentile"], br["n_clusters_window"])
+
+
+def test_coinbase_candles_shape(m):
+    """the fallback parses Coinbase's [time, low, high, open, close, volume] into the bank's [date, o, h, l, c, v] and drops the partial day."""
+    import datetime as _dt
+    calls = []
+
+    def fake_get(url, timeout=40):
+        calls.append(url)
+        t0 = int(_dt.datetime(2026, 11, 3, tzinfo=_dt.timezone.utc).timestamp())
+        return [[t0 + 86400, 99.0, 110.0, 105.0, 101.0, 1234.5], [t0, 90.0, 100.0, 95.0, 98.0, 2000.0]]
+    real = m.poly_get
+    m.poly_get = fake_get
+    try:
+        rows = m.cb_candles("BTC-USD", "2026-11-01", "2026-11-04")
+    finally:
+        m.poly_get = real
+    assert rows == [["2026-11-03", 95.0, 100.0, 90.0, 98.0, 2000.0]], rows
+    assert "products/BTC-USD/candles?granularity=86400&start=2026-11-01T00:00:00Z&end=2026-11-04T00:00:00Z" in calls[0]
+    return "coinbase rows -> bank shape [date,o,h,l,c,v], the in-progress UTC day dropped"
+
+
 def main():
     m = _load()
     tests = [test_textbook_sequence, test_failed_test_on_rising_volume, test_higher_low, test_no_rally, test_weekly_resample_and_row, test_classify_wrappers,
-             test_uptrend_pullback_is_not_a_climax, test_resolved_sequence_is_not_actionable]
+             test_uptrend_pullback_is_not_a_climax, test_resolved_sequence_is_not_actionable,
+             test_capitulation_print_detected, test_capitulation_shock_and_desk_floors, test_capitulation_follow_through_and_breadth, test_capitulation_breadth_regime,
+             test_coinbase_candles_shape]
     failed = 0
     for t in tests:
         try:
