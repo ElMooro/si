@@ -1,5 +1,5 @@
 """
-justhodl-polygon-bank v1.1.0 -- the Polygon/Massive REST families the fleet never banked, verbatim on S3.
+justhodl-polygon-bank v1.2.0 -- the Polygon/Massive REST families the fleet never banked, verbatim on S3.
 
 Why (Khalid, 2026-10-25: "fix it all, I want 100% of the data pulled and used by my system"): the provider audit found
 the Polygon plans (Stocks delayed, Options, Futures Basic, ETF Global) ~70% used: the grouped-daily tape, options chains
@@ -17,6 +17,18 @@ How (same discipline as justhodl-fmp-walker)
     nothing self-chains (the daily schedule + the bounded conductor fmp-backfill.yml finish the backfill).
   * entitlement recorded by http code per dataset (403 NOT_AUTHORIZED is a fact on the card, not a crash); 404 on a
     date/ticker is 'empty'.  Write-if-changed via sha256 in S3 metadata.  Manifest with count_from fields.
+
+v1.2.0 (2026-11-05, found by the leaders engine's source probe, ops 6743): the three ETF Global datasets asked for
+`ticker=<fund>`; the endpoints filter on `composite_ticker` and silently ignore an unknown parameter, so every fund's
+file held the same first pages of the WHOLE dataset in ticker order (AMLP.json.gz = 50,000 rows of AAAC, AAXJ, ACWI ...).
+  * identity gate: a per_entity dataset that names its `entity_field` banks a payload only when every row carries the
+    entity it was asked for; anything else is the verdict `mismatch` and nothing is written.
+  * `epoch`: a dataset whose spec epoch differs from the state's restarts its lap at the first entity, so the files
+    written under the wrong question are replaced in place (the bucket never deletes); an entity the provider has no
+    rows for overwrites an existing file with an empty list instead of leaving the old rows standing.
+  * `priority_universe`: the funds the desks read every day (aws/shared/industry_etf_catalog.ALL_ETFS) are pulled first
+    on every run; the rotation over the whole ETF universe follows with what is left of the dataset's share.
+  * universes may come from a bundled module ({"module": ..., "attr": ...}).
 
 Key: managed_secret(("POLYGON_KEY", "POLYGON_API_KEY", "MASSIVE_KEY"), ("/justhodl/polygon/api-key", "/justhodl/massive-api-key")).
 Schedule: EventBridge Scheduler justhodl-polygon-bank-daily cron(41 22 * * ? *) UTC (after the US close + the 15-minute
@@ -41,8 +53,14 @@ import boto3
 
 from managed_secret import managed_secret
 
+try:                                   # aws/shared: the reviewed industry -> ETF map (the funds the desks read daily)
+    import industry_etf_catalog
+except Exception:  # noqa: BLE001
+    industry_etf_catalog = None
+UNIVERSE_MODULES = {"industry_etf_catalog": industry_etf_catalog}      # the only modules a spec universe may name
+
 ENGINE = "justhodl-polygon-bank"
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 HOST = os.environ.get("POLYGON_HOST", "https://api.polygon.io")
 UA = {"User-Agent": "JustHodl Research (raafouis@gmail.com) polygon-bank/" + VERSION}
@@ -262,6 +280,14 @@ class Store:
         self.bytes = 0
         self.lock = threading.Lock()
 
+    @staticmethod
+    def exists(key):
+        try:
+            s3.head_object(Bucket=BUCKET, Key=key)
+            return True
+        except Exception:  # noqa: BLE001
+            return False
+
     def put(self, key, obj, meta):
         body = json.dumps(obj, separators=(",", ":"), ensure_ascii=False, default=str).encode("utf-8")
         sha = hashlib.sha256(body).hexdigest()
@@ -312,6 +338,9 @@ def build_universes(spec, lists):
     for name, u in (spec.get("universes") or {}).items():
         if "static" in u:
             out[name] = list(u["static"])
+        elif "module" in u:                                   # a reviewed list bundled with the zip (aws/shared)
+            mod = UNIVERSE_MODULES.get(str(u["module"]))
+            out[name] = sorted({str(x) for x in (getattr(mod, str(u.get("attr") or "ALL"), None) or []) if x}) if mod is not None else []
     return out
 
 
@@ -510,11 +539,31 @@ class Walker:
         else:
             v, payload, nb, _ = self.fx.get(url, params, maxb)
         key = self.root + d["id"] + "/" + safe(ent) + ("/" + self.today_s if d.get("dated_always") else "") + ".json.gz"
+        field = d.get("entity_field")
+        if v == "ok" and field:
+            # identity gate: the provider answers an unknown filter with the unfiltered dataset - a file is banked under
+            # an entity's name only when every row says it belongs to that entity
+            rows = payload if isinstance(payload, list) else (payload.get("results") if isinstance(payload, dict) else None)
+            other = sorted({str(r.get(field)) for r in rows or [] if isinstance(r, dict) and str(r.get(field)) != str(ent)})
+            if not isinstance(rows, list) or other:
+                st = self.ds(d)
+                st["mismatch"] = st.get("mismatch", 0) + 1
+                self.record(d, "mismatch", nb, 0, {"last_mismatch": {"entity": ent, "field": field, "got": other[:5], "at": _now().isoformat()}})
+                return "mismatch"
         if v == "ok":
-            self.bank(d, key, payload, {"path": d["path"], "entity": ent, "pulled_at": self.today_s})
+            meta = {"path": d["path"], "entity": ent, "pulled_at": self.today_s}
+            if d.get("epoch"):
+                meta["epoch"] = d["epoch"]
+            self.bank(d, key, payload, meta)
         elif v == "empty":
             st = self.ds(d)
             st["empty"] = st.get("empty", 0) + 1
+            if field and d.get("epoch") and self.store.exists(key):
+                # the provider has no rows for this entity: an existing file is from before the epoch (another question's
+                # rows) - replace it with the honest answer rather than leave it standing
+                changed, _ = self.store.put(key, [], {"path": d["path"], "entity": ent, "pulled_at": self.today_s, "epoch": d["epoch"], "empty": "1"})
+                if changed:
+                    st["emptied"] = st.get("emptied", 0) + 1
             self.record(d, "empty")
         else:
             st = self.ds(d)
@@ -529,10 +578,33 @@ class Walker:
             self.record(d, "no_universe", 0, 0, {"universe": d.get("universe")})
             return
         st["universe_size"] = len(uni)
+        if d.get("epoch") and st.get("epoch") != d["epoch"]:
+            # the question this dataset asks changed: every file from the earlier epoch must be replaced, so the lap restarts
+            st.update(epoch=d["epoch"], epoch_started_at=_now().isoformat(), epoch_prior_cursor=st.get("cursor"), epoch_prior_lap=st.get("lap"), cursor=0, lap=0, entities_by_day={})
         cursor = int(st.get("cursor") or 0) % len(uni)
         t_end = min(time.time() + share_s, _t0 + BUDGET_S - 25)
         futures, n_done, start = [], 0, cursor
         stop = False
+        # the funds the desks read daily come first on every run; the rotation takes what is left of the share
+        in_uni = set(uni)
+        pri = [e for e in (self.universes.get(str(d.get("priority_universe") or "")) or []) if e in in_uni]
+        n_pri = 0
+        for ent in pri:
+            if time.time() >= t_end or stop or self.storm(d):
+                break
+            futures.append(self.pool.submit(self._entity_job, d, ent))
+            n_pri += 1
+            if len(futures) >= WORKERS * 3:
+                for f in as_completed(futures):
+                    if f.result() in ("http401", "http403", "http402"):
+                        stop = True
+                futures = []
+        for f in as_completed(futures):
+            if f.result() in ("http401", "http403", "http402"):
+                stop = True
+        futures = []
+        if pri:
+            st["priority_size"], st["priority_last_run"], st["priority_last_at"] = len(pri), n_pri, _now().isoformat()
         while time.time() < t_end and n_done < len(uni) and not stop and not self.storm(d):
             futures.append(self.pool.submit(self._entity_job, d, uni[cursor]))
             cursor = (cursor + 1) % len(uni)
@@ -552,7 +624,7 @@ class Walker:
         hist[self.today_s] = hist.get(self.today_s, 0) + n_done
         for k in sorted(hist)[:-14]:
             del hist[k]
-        self.run["datasets"][d["id"]] = {"entities": n_done, "from": start, "to": cursor}
+        self.run["datasets"][d["id"]] = {"entities": n_done, "from": start, "to": cursor, "priority": n_pri}
 
     def do_minute_bars(self, d, share_s):
         st = self.ds(d)
@@ -696,7 +768,10 @@ def write_manifest(spec, state, cat, run):
                         "cursor_month": st.get("cursor_month"), "cursor_date": st.get("cursor_date"),
                         "entities_per_day": round(per_day) if per_day else None,
                         "rotation_days": round(st["universe_size"] / per_day, 1) if per_day and st.get("universe_size") else None,
-                        "symbols_complete": st.get("symbols_complete"), "last_verdict": c.get("last_verdict"), "last_ok_at": c.get("last_ok_at"), "verdicts": c.get("verdicts")}
+                        "symbols_complete": st.get("symbols_complete"), "last_verdict": c.get("last_verdict"), "last_ok_at": c.get("last_ok_at"), "verdicts": c.get("verdicts"),
+                        "entity_field": d.get("entity_field"), "epoch": st.get("epoch"), "epoch_started_at": st.get("epoch_started_at"), "mismatch": st.get("mismatch"),
+                        "emptied": st.get("emptied"), "priority_universe": d.get("priority_universe"), "priority_size": st.get("priority_size"),
+                        "priority_last_run": st.get("priority_last_run"), "priority_last_at": st.get("priority_last_at")}
     served = sorted(k for k, v in cat.items() if v.get("last_ok_at"))
     refused = sorted((k, v.get("last_verdict")) for k, v in cat.items() if not v.get("last_ok_at") and v.get("last_verdict"))
     laps = all((dss.get(d["id"]) or {}).get("lap", 0) >= 1 for d in spec["datasets"] if d["kind"] == "per_entity" and (cat.get(d["id"]) or {}).get("last_ok_at"))

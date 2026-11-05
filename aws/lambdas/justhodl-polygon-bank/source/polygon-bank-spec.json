@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "root": "data/warm/polygon-bank/",
   "doctrine": [
     "Every Polygon/Massive REST family the fleet never banked (audit 2026-10-23) lives here, verbatim results (JSON gz) under data/warm/polygon-bank/<dataset>/...; justhodl-polygon-full keeps the grouped-daily US tape, justhodl-polygon-futures-curves the futures catalog, the options/ETF Global desks their own windows.",
@@ -10,6 +10,7 @@
   "universes": {
     "us_tickers": {"from": "tickers-stocks-active", "field": "ticker"},
     "us_etfs": {"from": "tickers-stocks-active", "field": "ticker", "filter": "etf"},
+    "desk_etfs": {"module": "industry_etf_catalog", "attr": "ALL_ETFS"},
     "chart": {"from": "chart-universe"},
     "asset_classes": {"static": ["stocks", "options", "crypto", "fx", "indices"]},
     "snapshot_indices": {"static": ["I:SPX", "I:NDX", "I:DJI", "I:RUT", "I:VIX", "I:VIX9D", "I:VIX3M", "I:VXN", "I:RVX", "I:OVX", "I:GVZ", "I:SKEW", "I:XSP", "I:MOVE"]}
@@ -43,9 +44,9 @@
     {"id": "options-contracts", "kind": "per_entity", "path": "/v3/reference/options/contracts", "universe": "chart", "entity_param": "underlying_ticker", "params": {"limit": 1000}, "paged": true, "max_pages": 40, "priority": 2},
     {"id": "options-contracts-expired", "kind": "per_entity", "path": "/v3/reference/options/contracts", "universe": "chart", "entity_param": "underlying_ticker", "params": {"limit": 1000, "expired": "true"}, "paged": true, "max_pages": 200, "priority": 3, "max_bytes": 120000000},
     {"id": "minute-bars", "kind": "minute_bars", "path": "/v2/aggs/ticker/{entity}/range/1/minute/{date}/{date}", "universe": "chart", "params": {"adjusted": "true", "sort": "asc", "limit": 50000}, "backfill_days": 730, "priority": 1},
-    {"id": "etf-global-fund-flows", "kind": "per_entity", "path": "/etf-global/v1/fund-flows", "universe": "us_etfs", "entity_param": "ticker", "params": {"limit": 5000, "date.gte": "2010-01-01"}, "paged": true, "max_pages": 10, "priority": 1},
-    {"id": "etf-global-constituents", "kind": "per_entity", "path": "/etf-global/v1/constituents", "universe": "us_etfs", "entity_param": "ticker", "params": {"limit": 5000}, "paged": true, "max_pages": 5, "priority": 2},
-    {"id": "etf-global-profiles", "kind": "per_entity", "path": "/etf-global/v1/profiles", "universe": "us_etfs", "entity_param": "ticker", "params": {"limit": 100}, "priority": 2}
+    {"id": "etf-global-fund-flows", "kind": "per_entity", "path": "/etf-global/v1/fund-flows", "universe": "us_etfs", "entity_param": "composite_ticker", "entity_field": "composite_ticker", "epoch": "2026-11-05", "priority_universe": "desk_etfs", "params": {"limit": 5000, "sort": "processed_date.desc"}, "paged": true, "max_pages": 10, "priority": 1},
+    {"id": "etf-global-constituents", "kind": "per_entity", "path": "/etf-global/v1/constituents", "universe": "us_etfs", "entity_param": "composite_ticker", "entity_field": "composite_ticker", "epoch": "2026-11-05", "params": {"limit": 5000, "sort": "processed_date.desc"}, "paged": true, "max_pages": 5, "priority": 2},
+    {"id": "etf-global-profiles", "kind": "per_entity", "path": "/etf-global/v1/profiles", "universe": "us_etfs", "entity_param": "composite_ticker", "entity_field": "composite_ticker", "epoch": "2026-11-05", "params": {"limit": 100, "sort": "processed_date.desc"}, "priority": 2}
   ],
   "skipped": [
     {"path": "/v2/last/trade, /v3/trades, /v3/quotes, /v2/last/nbbo", "why": "NOT_AUTHORIZED on this key (ops 6641 probe) - trades/quotes need Stocks Developer/Advanced"},

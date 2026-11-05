@@ -15045,6 +15045,21 @@
      "path": null
     }
    ]
+  },
+  {
+   "expr": "cron(50 3 * * ? *)",
+   "group": "default",
+   "kind": "scheduler",
+   "name": "justhodl-leaders-daily",
+   "state": "ENABLED",
+   "timezone": "UTC",
+   "targets": [
+    {
+     "arn": "arn:aws:lambda:us-east-1:857687956942:function:justhodl-leaders",
+     "input": "{}",
+     "path": null
+    }
+   ]
   }
  ]
 }

@@ -234,6 +234,10 @@ def test_split_adjustment_recorded_and_inferred():
     assert len(got) == 1 and got[0]["factor"] == 3.0 and got[0]["evidence"] == "ratio"
     wrongway = [{"date": DATES[i].isoformat(), "c": 20.0 if i < 40 else 60.0, "v": 1000.0 if i < 40 else 1500.0} for i in range(60)]   # exactly x3 but volume rose: a squeeze, not a split
     assert lf.infer_splits(wrongway) == []
+    halved = [{"date": DATES[i].isoformat(), "c": 20.0 if i < 40 else 10.0, "v": 1000.0 if i < 40 else 8000.0} for i in range(60)]   # 1.0.6: exactly -50% on 8x the volume is a crash, not a 2-for-1
+    assert lf.infer_splits(halved) == []
+    two_for_one = [{"date": DATES[i].isoformat(), "c": 20.0 if i < 40 else 10.0, "v": 1000.0 if i < 40 else 3000.0} for i in range(60)]   # a 2-for-1 with volume x3: still a split (ratio evidence)
+    assert lf.infer_splits(two_for_one)[0]["factor"] == 0.5
 
 
 def test_posture_and_pattern():
@@ -310,7 +314,7 @@ def test_universe_assembly_and_ranks():
 
 def test_build_rows_boards_flows_and_13f():
     s3, out = built()
-    assert out["contract"] == "strength.v1" and out["version"] == "1.0.5" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
+    assert out["contract"] == "strength.v1" and out["version"] == "1.0.6" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
     assert out["benchmark"]["sessions"] == 300 and out["benchmark"]["h"]["q"] is not None and out["universe"]["n"] == 59
     by = {r["ticker"]: r for r in out["rows"]}
     # unbanked desk names carry no row; the bank manifest's last session is the as-of

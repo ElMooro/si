@@ -4,6 +4,7 @@
 // 2026-10-14: peel the Auction tab (engine button, rail meta, chart.html cache) before that census.
 // 2026-10-14: peel the heatmap cache-bust so the auction census still sees the prior bytes.
 // 2026-10-21: peel the auto-hide cache-bust (session pin, position-based hiding) before the CDS census.
+// 2026-11-05: peel the Leaders tab (engine button + click beside 13F, rail meta, chart.html cache) before every older peel.
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto');
 const R=path.resolve(__dirname,'../..'),transition=require('../fixtures/chart-macro-line/transition.json'),hash=s=>crypto.createHash('sha256').update(s).digest('hex');
 const EVR_TAG='<script src="/jh-chart-evr.js?v=20261012evr"></script>\n';
@@ -264,7 +265,40 @@ function peelUs10yRouteObsTest(raw,file){
  assert.equal(hash(raw),BEFORE,'tests/warehouse-observations.test.js');
  return raw;
 }
-function normalize(raw,file){raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
+// 2026-11-05: peel the Leaders workspace tab (engine button beside 13F + its click, rail meta, chart.html cache-bust) before every older peel.
+function peelLeadersHtml(raw,file){
+ const AFTER='a7f076b4c5b328fd2d6832daf4b0e3be74f7f945e1aaa03d76532b5a6ea1a1d6';
+ const BEFORE='543cc410c98d1b75f252c3f18b8d359d744c57b408fcdc86e16aec8a27016b05';
+ if(file!=='chart.html'||hash(raw)!==AFTER)return raw;
+ const from='&ldr=20261105';
+ assert.equal(raw.split(from).length,3,'chart.html leaders cache');
+ raw=raw.split(from).join('');
+ assert.equal(hash(raw),BEFORE,'chart.html');
+ return raw;
+}
+function peelLeadersEngine(raw,file){
+ const AFTER='7fe719832a34061e375cf0868455049d1c8c2565a8fa6b28bb6e262dd9d08028';
+ const BEFORE='c689e7bb0cf37fe011e6812170c0a5c8ca85b8749f38d148978c3f30f5b81b23';
+ const BTN='      "<button class=\'wsico wsdesk\' id=btn-ldr title=\'Leaders · industry leaders vs S&P 500\'><span class=g>👑</span><span class=l>Leaders</span></button>"+\n';
+ const CLICK='    var bldr=document.getElementById("btn-ldr"); if(bldr) bldr.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("leaders"); };\n';
+ if(file!=='jh-chart-engine.js'||hash(raw)!==AFTER)return raw;
+ assert.equal(raw.split(BTN).length,2,'jh-chart-engine.js leaders button');
+ assert.equal(raw.split(CLICK).length,2,'jh-chart-engine.js leaders click');
+ raw=raw.replace(BTN,'').replace(CLICK,'');
+ assert.equal(hash(raw),BEFORE,'jh-chart-engine.js');
+ return raw;
+}
+function peelLeadersRail(raw,file){
+ const AFTER='cde2a7d704a24a5682119d4331e852306c01fdd28c9f2c3e647d7f9157ac3c40';
+ const BEFORE='34a1101d55ae2e2eeb91b5f06c801aaf1ca85c34040ac4dce680a48b120d062b';
+ const LINE='      leaders: ["Leaders · industry leaders vs S&P 500", "/leaders.html"],\n';
+ if(file!=='jh-chart-tvrail.js'||hash(raw)!==AFTER)return raw;
+ assert.equal(raw.split(LINE).length,2,'jh-chart-tvrail.js leaders meta');
+ raw=raw.replace(LINE,'');
+ assert.equal(hash(raw),BEFORE,'jh-chart-tvrail.js');
+ return raw;
+}
+function normalize(raw,file){raw=peelLeadersHtml(raw,file);raw=peelLeadersEngine(raw,file);raw=peelLeadersRail(raw,file);raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
  if(digest===row.before_sha256||digest!==row.after_sha256)return raw;
  for(const e of [...row.replacements].reverse()){assert.equal(raw.split(e.after).length,2,file+': '+e.after.slice(0,60));raw=raw.replace(e.after,e.before);}
  assert.equal(hash(raw),row.before_sha256,file);assert.equal(raw,fs.readFileSync(path.join(R,row.before_path),'utf8'));return raw;

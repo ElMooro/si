@@ -49,6 +49,7 @@ class FakePolygon:
         self.calls, self.by_path = [], {}
         self.serve_403, self.unauth_paths = False, {"/stocks/v1/short-volume", "/vX/reference/ipos"}
         self.rate_limit_once = set()
+        self.empty_funds = set()                          # ETF Global: funds the provider has no rows for
 
     def __call__(self, req, timeout=0):
         url = req.full_url if hasattr(req, "full_url") else req
@@ -69,7 +70,7 @@ class FakePolygon:
         if path == "/v3/reference/tickers":
             if q.get("market") == "stocks" and q.get("active") == "true":
                 if not cursor:
-                    body = J({"status": "OK", "results": [{"ticker": "AAPL", "type": "CS"}, {"ticker": "SPY", "type": "ETF"}], "next_url": "https://api.polygon.io/v3/reference/tickers?cursor=p2"})
+                    body = J({"status": "OK", "results": [{"ticker": "AAPL", "type": "CS"}, {"ticker": "SPY", "type": "ETF"}, {"ticker": "SMH", "type": "ETF"}], "next_url": "https://api.polygon.io/v3/reference/tickers?cursor=p2"})
                 else:
                     body = J({"status": "OK", "results": [{"ticker": "MSFT", "type": "CS"}]})
             else:
@@ -95,7 +96,15 @@ class FakePolygon:
         elif path == "/v3/reference/options/contracts":
             body = J({"status": "OK", "results": [{"ticker": "O:%s261120C00100000" % q.get("underlying_ticker")}]})
         elif path.startswith("/etf-global/"):
-            body = J({"status": "OK", "results": [{"ticker": q.get("ticker"), "v": 1}]})
+            # the real endpoints filter on composite_ticker ONLY; any other parameter (the v1.1.0 spec sent `ticker`) is
+            # ignored and the unfiltered dataset comes back in ticker order - which is what polluted the bank
+            fund = q.get("composite_ticker")
+            if not fund:
+                body = J({"status": "OK", "results": [{"composite_ticker": "AAAC", "effective_date": "2026-10-23", "fund_flow": 0.0}, {"composite_ticker": "AAXJ", "effective_date": "2026-10-23", "fund_flow": 1.0}]})
+            elif fund in self.empty_funds:
+                body = J({"status": "OK", "results": []})
+            else:
+                body = J({"status": "OK", "results": [{"composite_ticker": fund, "effective_date": "2026-11-03", "processed_date": "2026-11-03", "fund_flow": 5.0, "nav": 10.0, "shares_outstanding": 100.0}]})
         else:
             body = J({"status": "OK", "results": [{"k": path, "page": 0}]})
         return self._resp(body)
@@ -138,6 +147,14 @@ def test_spec_is_sound():
             assert d.get("universe") in set(spec["universes"]), d
         if d["kind"] == "daily_dated" or d["kind"] == "minute_bars":
             assert "{date}" in d["path"], d
+        if d["path"].startswith("/etf-global/"):
+            # ETF Global filters on composite_ticker; `ticker` is silently ignored (ops 6743: every fund's file held the same rows)
+            assert d.get("entity_param") == "composite_ticker" and d.get("entity_field") == "composite_ticker" and d.get("epoch"), d
+            assert "date.gte" not in (d.get("params") or {}) and (d.get("params") or {}).get("sort") == "processed_date.desc", d
+        if d.get("priority_universe"):
+            assert d["priority_universe"] in set(spec["universes"]) and d["kind"] == "per_entity", d
+    for name, u in spec["universes"].items():
+        assert sum(k in u for k in ("from", "static", "module")) == 1 or name == "chart", (name, u)
 
 
 def test_first_run():
@@ -146,10 +163,10 @@ def test_first_run():
     root = lf._spec()["root"]
     assert out["key_status"] == "ok", out
     uc = out["universe_counts"]
-    assert uc["us_tickers"] == 3 and uc["us_etfs"] == 1 and uc["chart"] >= 50, uc
+    assert uc["us_tickers"] == 4 and uc["us_etfs"] == 2 and uc["chart"] >= 50 and uc["desk_etfs"] >= 100, uc
     assert fake.by_path["/v3/reference/tickers"] >= 2, "next_url pagination not followed"
     latest = gz(s3, root + "tickers-stocks-active/latest.json.gz")
-    assert len(latest) == 3, latest
+    assert len(latest) == 4, latest
     assert any(k.startswith(root + "market-status-now/daily/") for k in s3.store)
     assert gz(s3, root + "market-holidays/latest.json.gz")["results"][0]["name"] == "Thanksgiving"   # bare-list response banked
     assert root + "snapshot-stocks-all/latest.json.gz" in s3.store
@@ -177,6 +194,18 @@ def test_first_run():
     # options contracts for the chart universe, ETF Global for the ETF universe only
     assert root + "options-contracts/SPY.json.gz" in s3.store
     assert root + "etf-global-fund-flows/SPY.json.gz" in s3.store and root + "etf-global-fund-flows/AAPL.json.gz" not in s3.store
+    for ds in ("etf-global-fund-flows", "etf-global-constituents", "etf-global-profiles"):
+        for fund in ("SPY", "SMH"):
+            rows = gz(s3, root + "%s/%s.json.gz" % (ds, fund))
+            rows = rows if isinstance(rows, list) else rows["results"]
+            assert rows and {r["composite_ticker"] for r in rows} == {fund}, (ds, fund, rows)        # a fund's file holds that fund
+        asked = [dict(urllib.parse.parse_qsl(urllib.parse.urlparse(u).query)) for u in fake.calls if "/etf-global/v1/" + ds.replace("etf-global-", "") in u]
+        assert asked and all(q.get("composite_ticker") in ("SPY", "SMH") and "ticker" not in q for q in asked), (ds, asked[:2])
+    assert s3.meta[root + "etf-global-fund-flows/SPY.json.gz"].get("epoch") == "2026-11-05"
+    # the desks' funds first: SMH is in aws/shared/industry_etf_catalog, SPY is not
+    flows = [dict(urllib.parse.parse_qsl(urllib.parse.urlparse(u).query)).get("composite_ticker") for u in fake.calls if "/etf-global/v1/fund-flows" in u]
+    assert flows[0] == "SMH", flows
+    assert st["datasets"]["etf-global-fund-flows"]["priority_last_run"] == 1 and st["datasets"]["etf-global-fund-flows"]["epoch"] == "2026-11-05"
     man = json.loads(s3.store[root + "manifest.json"])
     assert man["objects"] == len([k for k in s3.store if k.endswith(".json.gz") and "/_state/" not in k])
     assert man["pages"] == man["objects"] and man["pages_bytes"] == man["bytes"] > 0
@@ -230,6 +259,60 @@ def test_429_storm_stops_a_dataset_without_moving_its_cursor():
     st = json.loads(s3.store[root + "_state/state.json"])
     assert st["datasets"]["grouped-crypto"].get("cursor_date", "2018-01-01") <= "2018-01-02", st["datasets"]["grouped-crypto"]
     assert out["calls"] < 200, out["calls"]           # the storm guard stopped the dataset instead of burning the budget
+
+
+def test_identity_gate_refuses_another_funds_rows():
+    """The v1.1.0 question (`ticker=<fund>`) is answered with the unfiltered dataset: nothing may be banked under the
+    fund's name, the verdict is `mismatch`, and the catalog names what came back."""
+    lf, s3, fake = boot()
+    spec = lf._spec()
+    root = spec["root"]
+    state, cat = {"datasets": {}}, {}
+    w = lf.Walker(spec, "test-key-not-real", state, cat, {})
+    old = {"id": "etf-global-fund-flows", "kind": "per_entity", "path": "/etf-global/v1/fund-flows", "universe": "us_etfs", "entity_param": "ticker",
+           "entity_field": "composite_ticker", "epoch": "2026-11-05", "params": {"limit": 5000}, "paged": True, "max_pages": 2}
+    assert w._entity_job(old, "SPY") == "mismatch"
+    assert root + "etf-global-fund-flows/SPY.json.gz" not in s3.store
+    assert cat["etf-global-fund-flows"]["last_verdict"] == "mismatch" and cat["etf-global-fund-flows"]["last_mismatch"]["got"] == ["AAAC", "AAXJ"]
+    assert state["datasets"]["etf-global-fund-flows"]["mismatch"] == 1
+    good = dict(old, entity_param="composite_ticker")
+    assert w._entity_job(good, "SPY") == "ok" and gz(s3, root + "etf-global-fund-flows/SPY.json.gz")[0]["composite_ticker"] == "SPY"
+    w.pool.shutdown(wait=True)
+
+
+def test_epoch_restarts_the_lap_and_replaces_files_from_the_old_question():
+    lf, s3, fake = boot()
+    root = lf._spec()["root"]
+    junk = gzip.compress(J([{"composite_ticker": "AAAC", "fund_flow": 0.0}, {"composite_ticker": "AAXJ", "fund_flow": 1.0}]))
+    for fund in ("SPY", "SMH"):
+        s3.store[root + "etf-global-fund-flows/%s.json.gz" % fund] = junk
+        s3.meta[root + "etf-global-fund-flows/%s.json.gz" % fund] = {"sha256": "old", "pulled_at": "2026-10-26"}
+    s3.store[root + "_state/state.json"] = J({"version": "1.1.0", "runs": 9, "key_status": "ok", "phase": "BACKFILL",
+                                              "datasets": {"etf-global-fund-flows": {"objects": 1624, "bytes": 980853057, "cursor": 1, "lap": 0, "ok": 1624, "empty": 0, "fail": 0,
+                                                                                    "entities_by_day": {"2026-11-04": 163}}}})
+    s3.store[root + "tickers-stocks-active/latest.json.gz"] = gzip.compress(J([{"ticker": "AAPL", "type": "CS"}, {"ticker": "SPY", "type": "ETF"}, {"ticker": "SMH", "type": "ETF"}]))
+    fake.empty_funds.add("SPY")                             # the provider has nothing for SPY: its old file must not stand
+    lf.lambda_handler({"only": ["etf-global-fund-flows"]}, None)
+    st = json.loads(s3.store[root + "_state/state.json"])["datasets"]["etf-global-fund-flows"]
+    assert st["epoch"] == "2026-11-05" and st["epoch_prior_cursor"] == 1 and st["lap"] >= 1, st
+    assert gz(s3, root + "etf-global-fund-flows/SMH.json.gz")[0]["composite_ticker"] == "SMH"
+    assert gz(s3, root + "etf-global-fund-flows/SPY.json.gz") == [] and s3.meta[root + "etf-global-fund-flows/SPY.json.gz"].get("empty") == "1"
+    assert st["emptied"] == 1
+    man = json.loads(s3.store[root + "manifest.json"])["per_dataset"]["etf-global-fund-flows"]
+    assert man["epoch"] == "2026-11-05" and man["entity_field"] == "composite_ticker" and man["priority_universe"] == "desk_etfs" and man["priority_last_run"] == 1, man
+    # a second run does not restart the lap again
+    before = st["lap"]
+    lf.lambda_handler({"only": ["etf-global-fund-flows"]}, None)
+    st2 = json.loads(s3.store[root + "_state/state.json"])["datasets"]["etf-global-fund-flows"]
+    assert st2["lap"] >= before and st2["epoch_started_at"] == st["epoch_started_at"]
+
+
+def test_module_universe_is_the_reviewed_catalog():
+    lf, s3, fake = boot()
+    import industry_etf_catalog as cat
+    u = lf.build_universes(lf._spec(), {"tickers-stocks-active": []})
+    assert u["desk_etfs"] == sorted(cat.ALL_ETFS) and "SMH" in u["desk_etfs"] and "XLK" in u["desk_etfs"]
+    assert lf.build_universes({"universes": {"x": {"module": "no_such_module_here", "attr": "ALL"}}}, {})["x"] == []
 
 
 if __name__ == "__main__":

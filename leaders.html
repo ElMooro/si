@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Leaders vs S&amp;P 500 · JustHodl.AI</title>
+<meta name="description" content="The five largest companies of every industry against the S&amp;P 500: relative strength, the close against its 20 / 50 / 100 / 200 / 250-session averages, golden and death crosses, double tops and bottoms, climaxes, tight bases, accumulation or distribution, smart money, and the reported flows of each industry's funds.">
+<link rel="stylesheet" href="/jh-theme.css">
+<link rel="stylesheet" href="/jh-desk.css">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* the desk stylesheet's palette re-pointed at the site theme, so this page follows the theme in both modes */
+  :root{--bg:var(--jh-bg);--bg-1:var(--jh-panel);--bg-2:var(--jh-panel-2);--bg-3:var(--jh-panel-2);--line:var(--jh-line);--line-2:var(--jh-amber-dim);
+    --fg0:var(--jh-ink);--fg1:var(--jh-ink);--fg2:var(--jh-ink);--fg3:var(--jh-dim);--fg4:var(--jh-dim);--cyan:var(--jh-amber);--green:var(--jh-green);--red:var(--jh-red);--amber:var(--jh-amber)}
+  .jh-tbl th{background:var(--jh-panel-2)}
+  .jh-tbl td{border-bottom-color:var(--jh-line)}
+  .jh-tbl tr:hover td{background:var(--jh-panel-2)}
+  .jh-chip.on{color:var(--jh-bg)}
+  .jh-hero p{max-width:92ch;font-size:13px}
+  .jh-hero p.ld-verdict{color:var(--jh-ink);font-size:14.5px;line-height:1.55;margin-top:10px}
+
+  .ld-sec{margin:0 0 24px;scroll-margin-top:56px}
+  .ld-sec h2{font:600 12.5px/1.3 var(--jh-mono);letter-spacing:.07em;text-transform:uppercase;margin:0 0 6px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .ld-sec h2 .m{font-weight:400;color:var(--jh-dim);text-transform:none;letter-spacing:0}
+  .ld-sub{font-size:12.5px;line-height:1.55;color:var(--jh-dim);margin:0 0 10px;max-width:108ch}
+  .ld-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 8px}
+  .ld-row .jh-chips{margin:0}
+  .ld-row label{font:11px var(--jh-mono);color:var(--jh-dim);display:inline-flex;gap:6px;align-items:center}
+  .ld-in{background:var(--jh-panel);border:1px solid var(--jh-line);color:var(--jh-ink);font:12px var(--jh-mono);padding:5px 8px;border-radius:4px;min-width:0;max-width:100%}
+  input.ld-in{width:190px}
+  select.ld-in{max-width:240px}
+  .ld-btn{background:transparent;border:1px solid var(--jh-line);color:var(--jh-dim);font:11px var(--jh-mono);padding:5px 9px;border-radius:4px;cursor:pointer}
+  .ld-btn:hover{color:var(--jh-ink);border-color:var(--jh-amber-dim)}
+  .ld-more{display:block;width:100%;margin-top:6px;padding:8px;text-align:center}
+  .jh-chip.t-up,.jh-chip.t-s-up{color:var(--jh-green)} .jh-chip.t-dn,.jh-chip.t-s-dn{color:var(--jh-red)} .jh-chip.t-amber{color:var(--jh-amber)}
+  .jh-chip.jh-chip.on{color:var(--jh-bg)}
+
+  .jh-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .jh-kpi .v{font-size:18px;line-height:1.25}
+  .jh-kpi .v small{font:400 11px var(--jh-mono);color:var(--jh-dim)}
+  .jh-kpi .s{line-height:1.6;margin-top:4px}
+  .ld-jump{background:none;border:0;padding:0;font:inherit;color:inherit;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+  .ld-jump.up{color:var(--jh-green)} .ld-jump.dn{color:var(--jh-red)} .ld-jump.amber{color:var(--jh-amber)}
+  .ld-jump:hover{text-decoration-style:solid}
+  .ld-changes{font:12px/1.9 var(--jh-mono);color:var(--jh-dim);margin:2px 0 0}
+  .ld-changes b{color:var(--jh-ink);font-weight:500}
+
+  /* tables: every header sorts; the ticker column stays put while the rest scrolls sideways */
+  .ld-tbl th{cursor:pointer;user-select:none;white-space:nowrap}
+  .ld-tbl th.txt,.ld-tbl td.l{text-align:left}
+  .ld-tbl th:not(.txt),.ld-tbl td:not(.l){text-align:right}
+  .ld-tbl th[aria-sort="descending"]::after{content:" \25BE";color:var(--jh-amber)}
+  .ld-tbl th[aria-sort="ascending"]::after{content:" \25B4";color:var(--jh-amber)}
+  .ld-tbl th[aria-sort]{color:var(--jh-ink)}
+  .ld-tbl th:first-child,.ld-tbl td:first-child{position:sticky;left:0;background:var(--jh-panel);z-index:1}
+  .ld-tbl th:first-child{z-index:3;background:var(--jh-panel-2)}
+  .ld-tbl tr:hover td:first-child{background:var(--jh-panel-2)}
+  .ld-tbl td.amber{color:var(--jh-amber)}
+  .ld-tbl td.na{color:var(--jh-dim)}
+  .ld-tbl .dim,.jh-kpi .dim,.ld-changes .dim{color:var(--jh-dim)}
+  .ld-tbl .nm{display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;color:var(--jh-dim);margin-right:6px}
+  .ld-tbl .nm.wide{max-width:300px}
+  .ld-tbl td.wrap{white-space:normal;min-width:260px;max-width:460px;line-height:1.45;color:var(--jh-dim)}
+  .ld-tbl td.ld-indc a,.ld-tbl td.ld-tks a{font-weight:500}
+  .ld-tbl td.ld-indc a{display:inline-block;max-width:230px;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom;color:var(--jh-ink);border-bottom:1px dotted var(--jh-dim);line-height:1.25}
+  /* the industries table pins its rank and its name */
+  .ld-pin2 th:first-child,.ld-pin2 td:first-child{width:40px;min-width:40px;max-width:40px}
+  .ld-pin2 th:nth-child(2),.ld-pin2 td:nth-child(2){position:sticky;left:40px;background:var(--jh-panel);z-index:1}
+  .ld-pin2 th:nth-child(2){z-index:3;background:var(--jh-panel-2)}
+  .ld-pin2 tr:hover td:nth-child(2){background:var(--jh-panel-2)}
+  .ld-tbl td.ld-indc a:hover{color:var(--jh-amber)}
+  .ld-tbl td.ld-tks a{margin-right:6px}
+  .ld-src td{font-size:11px}
+  .ld-chip{display:inline-block;padding:0 5px;border-radius:3px;font:500 10px/1.75 var(--jh-mono);border:1px solid var(--jh-line);margin-right:4px;white-space:nowrap;color:var(--jh-ink)}
+  .ld-chip.up{color:var(--jh-green);border-color:color-mix(in srgb,var(--jh-green) 45%,transparent)}
+  .ld-chip.dn{color:var(--jh-red);border-color:color-mix(in srgb,var(--jh-red) 45%,transparent)}
+  .ld-chip.s-up{color:var(--jh-green);border-color:var(--jh-green);background:color-mix(in srgb,var(--jh-green) 16%,transparent)}
+  .ld-chip.s-dn{color:var(--jh-red);border-color:var(--jh-red);background:color-mix(in srgb,var(--jh-red) 16%,transparent)}
+  .ld-chip.amber{color:var(--jh-amber);border-color:color-mix(in srgb,var(--jh-amber) 50%,transparent)}
+  .ld-chip.mute{color:var(--jh-dim)}
+  .ld-bar{display:inline-block;width:54px;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--jh-red),var(--jh-amber) 50%,var(--jh-green));vertical-align:middle;position:relative;margin-right:7px;opacity:.9}
+  .ld-bar i{position:absolute;top:-3px;width:2px;height:12px;background:var(--jh-ink);margin-left:-1px}
+  .ld-lad{display:inline-flex;gap:2px;vertical-align:middle;margin-right:7px}
+  .ld-lad i{display:block;width:7px;height:13px;border-radius:1px}
+  .ld-lad i.up{background:var(--jh-green)} .ld-lad i.dn{background:var(--jh-red)} .ld-lad i.na{background:var(--jh-line)}
+  .ld-spark{width:72px;height:20px;display:block;margin-left:auto}
+  .ld-spark path{fill:none;stroke-width:1.4;stroke:var(--jh-dim)}
+  .ld-spark.up path{stroke:var(--jh-green)} .ld-spark.dn path{stroke:var(--jh-red)}
+
+  .ld-rules dl{display:grid;grid-template-columns:minmax(120px,170px) minmax(0,1fr);gap:6px 16px;margin:0;font-size:12px;line-height:1.55}
+  .ld-rules dt{font:500 11.5px/1.7 var(--jh-mono);color:var(--jh-amber)}
+  .ld-rules dd{margin:0;color:var(--jh-dim)}
+  .ld-rules ul{margin:0;padding-left:18px;font-size:12px;line-height:1.6;color:var(--jh-dim)}
+  .ld-rules h3{margin-top:14px}
+  .ld-ops p{font-size:12px;line-height:1.6;color:var(--jh-dim);margin:0 0 6px;max-width:150ch;overflow-wrap:anywhere}
+  .ld-ops b{color:var(--jh-ink);font-weight:500}
+  .ld-grid2{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:12px;margin-bottom:12px}
+  .ld-grid2>div{min-width:0}
+  .ld-grid2 h3{font:11px var(--jh-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--jh-dim);margin:0 0 6px}
+  @media (min-width:1401px){.jh-ws-header{padding-right:40px}}   /* the site's desk-info tab is docked on the last 26px of this row */
+  @media (max-width:1100px){.ld-grid2{grid-template-columns:minmax(0,1fr)}.jh-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media (max-width:640px){
+    .jh-ws-header{flex-wrap:wrap;height:auto;padding:8px 14px;row-gap:4px}.jh-ws-crumb{display:none}.jh-ws-links{flex-wrap:wrap;gap:4px 12px;max-width:100%}
+    .jh-desk{padding:14px 12px 40px}
+    .ld-rules dl{grid-template-columns:minmax(0,1fr);gap:2px 0}.ld-rules dd{margin-bottom:8px}
+    input.ld-in{width:150px}.ld-tbl .nm{max-width:120px}.ld-tbl td.ld-indc a{max-width:170px}
+    .jh-kpis{grid-template-columns:minmax(0,1fr)}
+    .ld-pin2 th:nth-child(2),.ld-pin2 td:nth-child(2){position:static}
+    /* the long chip rows scroll sideways on a phone instead of stacking nine lines above the table */
+    #board-chips,#lead-sig{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
+    #board-chips .jh-chip,#lead-sig .jh-chip{flex:0 0 auto}
+  }
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body data-research-context="data/leaders.json">
+<header class="jh-ws-header">
+  <a class="jh-ws-brand" href="/">JUSTHODL<span>.AI</span></a>
+  <span class="jh-ws-crumb">LEADERS DESK · the largest companies of each industry against the S&amp;P 500</span>
+  <nav class="jh-ws-links" aria-label="Desks">
+    <a href="/etf.html">ETF</a>
+    <a href="/strong.html">Strong</a>
+    <a href="/leaders.html" class="on" aria-current="page">Leaders</a>
+    <a href="/13f.html">13F</a>
+    <a href="/bonds.html">Bonds</a>
+    <a href="/universe-heatmap.html">Heatmap</a>
+    <a href="/chart.html">Chart</a>
+  </nav>
+</header>
+<main class="jh-desk" id="app">
+  <div class="jh-hero">
+    <div>
+      <h1>LEADERS vs S&amp;P 500</h1>
+      <p>The five largest companies of every industry, measured against SPY each morning from the Polygon EOD bank: who leads, who is being accumulated or distributed, what the 13F cohort and insiders did, where the money goes, where each close sits against its 20, 50, 100, 200 and 250-session averages, and which names are printing a cross, a double top or bottom, a climax or a tight base. Every column of every table sorts both ways.</p>
+      <p class="ld-verdict" id="verdict-line" role="status">Reading the leaders artifact…</p>
+    </div>
+    <div class="jh-stamp" id="stamp">loading…</div>
+  </div>
+
+  <section class="ld-sec" id="verdict" data-jh-key="verdict" data-jh-title="Verdict" aria-label="Verdict: breadth against the S&amp;P 500, the tape, smart money and what is printing">
+    <h2>Verdict <span class="m" id="verdict-meta"></span></h2>
+    <div class="jh-kpis" id="kpis"></div>
+    <p class="ld-changes" id="changes"></p>
+  </section>
+
+  <section class="ld-sec" id="printing" data-jh-key="printing-now" data-jh-title="What is printing now" aria-label="What is printing now">
+    <h2>What is printing now <span class="m" id="board-meta"></span></h2>
+    <p class="ld-sub">Pick a signal to see every name that prints it today. Crosses are the 50 over the 200-session average inside the last 20 sessions; double tops and bottoms are forming until a close breaks the neckline; a climax is climactic volume at a new 120-session extreme with stopping action; tight price is a long base inside 6 to 10% of the last close.</p>
+    <div class="ld-row"><div class="jh-chips" id="board-scope" role="group" aria-label="Scope"></div><button type="button" class="ld-btn" data-csv="board">Download CSV</button></div>
+    <div class="jh-chips" id="board-chips" role="group" aria-label="Signal"></div>
+    <div class="jh-tblwrap" style="max-height:520px" id="board"></div>
+  </section>
+
+  <section class="ld-sec" id="industries" data-jh-key="industries" data-jh-title="Industries" aria-label="Industries against the S&amp;P 500">
+    <h2>Industries <span class="m" id="ind-meta"></span></h2>
+    <p class="ld-sub">Each industry is its five largest companies: cap-weighted excess return against SPY, how many sit above their 50 and 200-session averages, the average tape score, the leaders' signed dollar volume, the 13F cohort's dollars, and the reported creations and redemptions of the industry's own funds. Click an industry to see its leaders.</p>
+    <div class="ld-row">
+      <label>Sector <select class="ld-in" id="ind-sector"></select></label>
+      <div class="jh-chips" id="ind-min" role="group" aria-label="Leaders per industry"></div>
+      <label>Find <input class="ld-in" id="ind-q" type="search" placeholder="industry or ticker" autocomplete="off"></label>
+      <button type="button" class="ld-btn" data-csv="ind">Download CSV</button>
+    </div>
+    <div class="jh-tblwrap" id="ind"></div>
+  </section>
+
+  <section class="ld-sec" id="leaders" data-jh-key="leaders" data-jh-title="Leaders" aria-label="Leaders: every industry's largest companies">
+    <h2>Leaders <span class="m" id="lead-meta"></span></h2>
+    <div class="ld-row"><div class="jh-chips" id="lead-view" role="group" aria-label="Columns"></div></div>
+    <div class="ld-row">
+      <label>Sector <select class="ld-in" id="lead-sector"></select></label>
+      <label>Industry <select class="ld-in" id="lead-industry"></select></label>
+      <label>Find <input class="ld-in" id="lead-q" type="search" placeholder="ticker, name or industry" autocomplete="off"></label>
+      <div class="jh-chips" id="lead-rank" role="group" aria-label="Rank inside the industry"></div>
+      <button type="button" class="ld-btn" id="lead-reset">Clear filters</button>
+      <button type="button" class="ld-btn" data-csv="lead">Download CSV</button>
+    </div>
+    <div class="jh-chips" id="lead-sig" role="group" aria-label="Printing now"></div>
+    <div class="jh-tblwrap" id="lead"><p class="jh-load">Reading the leaders artifact…</p></div>
+    <button type="button" class="ld-btn ld-more" id="lead-more" hidden></button>
+  </section>
+
+  <section class="ld-sec" id="funds" data-jh-key="industry-funds" data-jh-title="Industry funds" aria-label="Industry funds: reported creations and redemptions, and the same averages">
+    <h2>Industry funds <span class="m" id="etf-meta"></span></h2>
+    <p class="ld-sub">The funds of each industry with their reported creations and redemptions on the fund's own last 1, 5, 21 and 63 observations (dollars and share of assets), and the same averages, crosses, patterns and tape score as the leaders. A flow older than a week is shown as not current, never carried forward.</p>
+    <div class="ld-row">
+      <div class="jh-chips" id="etf-view" role="group" aria-label="Columns"></div>
+      <div class="jh-chips" id="etf-role" role="group" aria-label="Kind of fund"></div>
+      <label><input type="checkbox" id="etf-current"> current flow only</label>
+      <label>Find <input class="ld-in" id="etf-q" type="search" placeholder="ticker or industry" autocomplete="off"></label>
+      <button type="button" class="ld-btn" data-csv="etf">Download CSV</button>
+    </div>
+    <div class="jh-tblwrap" id="etf"></div>
+  </section>
+
+  <section class="ld-sec ld-rules" id="rules-sec" data-jh-key="reading-rules" data-jh-title="Reading rules" aria-label="Reading rules and limitations">
+    <h2>Reading rules</h2>
+    <div class="jh-card">
+      <div id="rules"></div>
+      <h3>What this desk cannot see</h3>
+      <ul id="limits"></ul>
+      <p class="jh-note" id="note"></p>
+    </div>
+  </section>
+
+  <section class="ld-sec ld-ops" id="sources-sec" data-jh-key="sources" data-jh-title="Sources and engine observability" aria-label="Sources and engine observability">
+    <h2>Sources and engine observability</h2>
+    <div class="ld-grid2">
+      <div><h3>Where every figure comes from</h3><div class="jh-tblwrap" id="sources"></div></div>
+      <div><h3>Series cut or joined to a previous symbol</h3><div class="jh-tblwrap" style="max-height:340px" id="history"></div></div>
+    </div>
+    <div id="ops"></div>
+  </section>
+</main>
+<script src="/private-artifacts.js?v=20260909"></script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-desk-core.js"></script>
+<script src="/jh-leaders.js?v=20261105-leaders-v1"></script>
+</body>
+</html>

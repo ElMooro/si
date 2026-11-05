@@ -21,15 +21,23 @@ test('chart toolbar places ETF / Strong / Bonds / 13F between correlation and al
   const iStr = src.indexOf('id=btn-str');
   const iBnd = src.indexOf('id=btn-bnd');
   const i13f = src.indexOf('id=btn-13f');
+  const iLdr = src.indexOf('id=btn-ldr');
   const iAlrt = src.indexOf('id=btn-alrt');
   assert.ok(iMacro > 0 && iHeat > iMacro && iAuc > iHeat && iCorr > iAuc);
   assert.ok(iEtf > iCorr && iStr > iEtf && iBnd > iStr && i13f > iBnd && iAlrt > i13f);
+  // Leaders sits immediately after 13F (Khalid 2026-11-04: "put an icon for it next to 13f"): nothing but the 13F button's own tail between them
+  assert.ok(iLdr > i13f && iAlrt > iLdr);
+  assert.equal(src.slice(i13f, iLdr).split('<button').length, 2);
+  assert.match(src, /getElementById\("btn-ldr"\); if\(bldr\) bldr\.onclick=function\(\)\{ if\(window\.jhOpenWorkspace\) window\.jhOpenWorkspace\("leaders"\); \};/);
   const rail = fs.readFileSync(path.join(__dirname, '../jh-chart-tvrail.js'), 'utf8');
   assert.match(rail, /etf: \["ETF Desk"/);
   assert.match(rail, /strong: \["Strength vs S&P 500"/);
   assert.ok(rail.includes('/auctions.html'));
   assert.match(rail, /bonds: \["Bonds & Yields"/);
   assert.match(rail, /"13f": \["13F/);
+  assert.match(rail, /leaders: \["Leaders · industry leaders vs S&P 500", "\/leaders\.html"\]/);
+  const chart = fs.readFileSync(path.join(__dirname, '../chart.html'), 'utf8');
+  assert.equal(chart.split('&ldr=20261105"').length, 3);       // both the rail and the engine script tags carry the cache-bust
 });
 
 test('etf.html and strong.html are real desks, not stubs', () => {

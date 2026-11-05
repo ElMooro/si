@@ -55,7 +55,7 @@ try:
 except Exception:  # noqa: BLE001
     etf_desk_catalog = None
 
-VERSION = "1.0.5"
+VERSION = "1.0.6"
 CONTRACT = "strength.v1"
 ENGINE = "justhodl-strength"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -693,8 +693,10 @@ def infer_splits(bars):
     """Unrecorded splits in unadjusted bars: a close-to-close ratio >= 1.8 or <= 0.56 is a split when the shares traded
     (5 sessions each side) moved inversely by about the same amount (within x1.6) - a reverse split prints a 3x price
     with ~1/3 the shares - OR when the ratio lands within 2% of a common split ratio and volume at least moved in the
-    split's direction (ETHA 2026-10-06: x2.98 on volume 0.64x - a 1-for-3 reverse split). A crash or a squeeze moves
-    volume the other way. The ratio snaps to the nearest common split ratio within 4%, else it is kept as measured.
+    split's direction (ETHA 2026-10-06: x2.98 on volume 0.64x - a 1-for-3 reverse split) by no more than x2.5 away
+    from the split's own ratio (1.0.6: a 2-for-1 doubles the shares traded; a 50% crash on ten times the volume also
+    "moves in the split's direction" and must stay a crash). A squeeze moves volume the other way. The ratio snaps to
+    the nearest common split ratio within 4%, else it is kept as measured.
     Returns [{date, factor, ratio, source: 'inferred', evidence}] oldest first. Pure."""
     found = []
     n = len(bars)
@@ -714,7 +716,8 @@ def infer_splits(bars):
         exact = abs(math.log(snap) - math.log(r)) <= math.log(1.02)            # within 2% of a common split ratio
         volume_matches = abs(math.log(vr) - math.log(r)) <= math.log(1.6)       # shares traded moved inversely by about the same amount
         volume_direction = (vr > 1.0) if r > 1 else (vr < 1.0)                # ... or at least in the split's direction (a reverse split thins volume, a split thickens it)
-        if not (volume_matches or (exact and volume_direction)):
+        volume_bounded = abs(math.log(vr) - math.log(r)) <= math.log(2.5)      # ... and not many times past it: a crash on 8x the volume is a crash
+        if not (volume_matches or (exact and volume_direction and volume_bounded)):
             continue                                                            # a crash or a squeeze: volume explodes the other way
         ratio = snap if abs(math.log(snap) - math.log(r)) <= math.log(1.04) else r
         found.append({"date": bars[i]["date"], "factor": f(ratio, 6), "ratio": f(r, 4), "source": "inferred", "evidence": "volume" if volume_matches else "ratio"})

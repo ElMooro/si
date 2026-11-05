@@ -1,0 +1,25 @@
+{
+  "runtime": "python3.12",
+  "memory": 2048,
+  "timeout": 300,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Leaders of each industry vs the S&P 500: relative strength, 20/50/100/200/250 averages and crosses, double tops and bottoms, climaxes, tight bases, accumulation, 13F and insiders, fund flows - into data/leaders.json; reads S3 only.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "OUT_KEY": "data/leaders.json",
+    "TOP_N": "5",
+    "MIN_CAP_USD": "2000000000",
+    "MIN_DOLLAR_VOL": "5000000",
+    "LOOKBACK_SESSIONS": "600",
+    "INSIDER_DAYS": "90",
+    "MIN_LEADERS": "100"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-leaders-daily",
+    "cron": "cron(50 3 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Leaders desk, daily 03:50 UTC (after the factor book 02:50, the Polygon EOD bank's fold 03:10 and the bottom desk 03:45; the 13F book 16:37, the fund-flow packets 22:00 / 23:05 and the Polygon bank 22:41 of the previous day are current)"
+  }
+}
