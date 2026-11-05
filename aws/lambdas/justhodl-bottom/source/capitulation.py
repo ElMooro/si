@@ -34,7 +34,7 @@ from collections import deque
 import bisect
 import math
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 CONTRACT = "capitulation.v1"
 
 P = {
@@ -42,7 +42,7 @@ P = {
     "vol_x_min": 2.5, "vol_x_alone": 4.0, "range_x_min": 1.5, "loc_max": 0.30, "near_low_pct": 0.5,
     "keep_sessions": 60,          # prints carried on the boards
     "breadth_sessions": 120,      # breadth series carried in the artifact (the regime percentile uses the whole window)
-    "board_rows": 80,             # per desk
+    "board_rows": 500,            # per desk, newest first then score (the first light kept 454 stock prints in 60 sessions; 80 cut the board short)
     "latest_rows": 120,
     "latest_sessions": 5,
     "cluster_share_pct": 2.5,     # a single session where this share of the scored universe printed
@@ -294,15 +294,21 @@ class Accumulator:
         self.scored[desk] = self.scored.get(desk, 0) + 1
         try:
             found = scan(o, h, l, c, v, desk)
-        except Exception:  # noqa: BLE001
+            keep_from = len(c) - 1 - P["keep_sessions"]
+            rows = []
+            for p in found:
+                date = dates[d_idx[p["i"]]]
+                if p["i"] >= keep_from:
+                    rows.append((p, _print_row(p, c, l, v, sym, desk, asset_class, name, date)))
+                else:
+                    rows.append((p, None))
+        except Exception:  # noqa: BLE001 - a scan error is counted, never allowed to abort the bottom run
             self.errors += 1
             return 0
-        keep_from = len(c) - 1 - P["keep_sessions"]
-        for p in found:
-            date = dates[d_idx[p["i"]]]
-            self._bump(self._to_session(date), desk)
-            if p["i"] >= keep_from:
-                self.prints.append(_print_row(p, c, l, v, sym, desk, asset_class, name, date))
+        for p, row in rows:
+            self._bump(self._to_session(dates[d_idx[p["i"]]]), desk)
+            if row is not None:
+                self.prints.append(row)
         return len(found)
 
     def breadth(self):
@@ -431,7 +437,7 @@ def build(acc, wyckoff_by_ticker=None, confirm_fn=None, extra_fn=None, benchmark
         counts[d] = {"scored": scored, "prints_60": bd["counts_60"].get(d, 0), "prints_5": n5, "prints_last_session": last,
                      "prints_5_pct_of_desk": rnd(100.0 * n5 / scored, 1) if scored else None}
     block = {"contract": CONTRACT, "version": VERSION, "desk_order": DESK_ORDER, "thresholds_by_desk": DESK,
-             "params": {k: P[k] for k in ("vol_x_min", "vol_x_alone", "range_x_min", "loc_max", "near_low_pct", "keep_sessions", "latest_sessions", "cluster_share_pct", "after_n")},
+             "params": {k: P[k] for k in ("vol_x_min", "vol_x_alone", "range_x_min", "loc_max", "near_low_pct", "keep_sessions", "latest_sessions", "cluster_share_pct", "after_n", "board_rows", "latest_rows", "bench_sessions")},
              "breadth": br, "counts": counts, "latest": bd["latest"], "latest_cut": bd["latest_cut"], "boards": bd["by_desk"],
              "n_prints_60": bd["n_prints_60"], "follow_through": follow_stats(bd["rows"]), "benchmarks": benchmarks or {},
              "scan_errors": acc.errors, "definitions": DEFINITIONS}

@@ -153,6 +153,7 @@ def main():
         n_latest, n60 = len(art.get("latest") or []), art.get("n_prints_60") or 0
         counts = art.get("counts") or {}
         desks = art.get("desk_order") or []
+        cap_rows = (art.get("params") or {}).get("board_rows") or 500
 
         sync_playwright = ensure_playwright(r.log)
         facts = {}
@@ -175,7 +176,7 @@ def main():
                       desks: q('#desks tbody tr'), chips: q('#chips .jh-chip'), chipText: [...document.querySelectorAll('#chips .jh-chip')].map(e => e.innerText.trim()),
                       rows: q('#tbl tbody tr'), rowsWithTicker: q('#tbl tbody tr a.tk'), hold: q('#hold tbody tr'), bench: q('#bench tbody tr'), defs: q('#defs dt'), sources: q('#sources tbody tr'),
                       stamp: document.getElementById('stamp').innerText.replace(/\\n/g, ' | '), meta: ['breadth-meta', 'prints-meta', 'ft-meta', 'bench-meta', 'hold-meta'].map(i => document.getElementById(i).innerText),
-                      bad: (text.match(/\\[object Object\\]|undefined|NaN/g) || []).length, overflow: de.scrollWidth - de.clientWidth, ownSort: q('th[data-sort]'), foreignSort: q('table[data-jh-sortable]'),
+                      bad: (text.match(/\\[object Object\\]|undefined|NaN/g) || []).length, overflow: de.scrollWidth - de.clientWidth, ownSort: q('th[data-sort]'), foreignSort: q('table[data-jh-sortable]'), boundOwn: q('th[data-sort] .jh-sort-arrow'),
                       kpiText: [...document.querySelectorAll('#kpis .jh-kpi')].map(e => e.innerText.replace(/\\s+/g, ' ').trim().slice(0, 160)),
                       firstRows: [...document.querySelectorAll('#tbl tbody tr')].slice(0, 6).map(tr => [...tr.children].map(td => td.innerText.trim()).join(' | ').slice(0, 260))};
             }""")
@@ -190,7 +191,7 @@ def main():
                       out["rows"], n_latest, out["bars"], out["redBars"], out["desks"], out["chips"], out["hold"], out["bench"], out["defs"], out["sources"]))
             check("cluster bars match the artifact", lambda: (_ for _ in ()).throw(AssertionError((out["redBars"], len([s for s in (br.get("sessions") or []) if (s.get("pct_of_scored") or 0) >= (art.get("params") or {}).get("cluster_share_pct", 2.5)])))) if out["redBars"] != len([s for s in (br.get("sessions") or []) if (s.get("pct_of_scored") or 0) >= (art.get("params") or {}).get("cluster_share_pct", 2.5)]) else "%d red bars" % out["redBars"])
             check("no undefined / NaN / [object Object]", lambda: (_ for _ in ()).throw(AssertionError(out["bad"])) if out["bad"] else "0 in the rendered text")
-            check("own sortable headers only", lambda: (_ for _ in ()).throw(AssertionError((out["ownSort"], out["foreignSort"]))) if out["ownSort"] < 40 or out["foreignSort"] else "%d own data-sort headers, 0 foreign" % out["ownSort"])
+            check("own sortable headers are left alone by /jh-sortable.js", lambda: (_ for _ in ()).throw(AssertionError((out["ownSort"], out["boundOwn"]))) if out["ownSort"] < 40 or out["boundOwn"] else "%d own data-sort headers, none bound by jh-sortable (it attached to %d plain tables)" % (out["ownSort"], out["foreignSort"]))
 
             r.section("2. sorting, chips, windows")
             if n_latest >= 2:
@@ -218,7 +219,8 @@ def main():
                 page.click('#window .jh-chip[data-win="ALL"]')
                 page.wait_for_timeout(200)
                 n = page.evaluate("() => document.querySelectorAll('#tbl tbody tr a.tk').length")
-                assert n == n60, "60-session window shows %d, artifact %d" % (n, n60)
+                want_all = sum(min(cap_rows, (counts.get(d) or {}).get("prints_60") or 0) for d in desks)
+                assert n == want_all, "60-session window shows %d, artifact boards %d (%d prints, %d per desk at most)" % (n, want_all, n60, cap_rows)
                 res = {}
                 if n60 >= 2:
                     res["sort_score"] = sort_both(page, "tbl", "score")
@@ -229,7 +231,7 @@ def main():
                     page.click('#chips .jh-chip[data-desk="%s"]' % d)
                     page.wait_for_timeout(120)
                     m = page.evaluate("() => document.querySelectorAll('#tbl tbody tr a.tk').length")
-                    want = min(80, (counts.get(d) or {}).get("prints_60") or 0)
+                    want = min(cap_rows, (counts.get(d) or {}).get("prints_60") or 0)
                     assert m == want, "%s/60 shows %d, artifact %d" % (d, m, want)
                     res[d] = m
                 page.click('#chips .jh-chip[data-desk="ALL"]')

@@ -56,6 +56,7 @@ import os
 import re
 import time
 import traceback
+import urllib.error
 import urllib.parse
 import urllib.request
 from collections import deque
@@ -387,10 +388,18 @@ def repair_splits(dates, bars):
 
 
 # ---- crypto lane: the shared Polygon daily bank in OUR warehouse (same format katlin writes) ------------------------
-def poly_get(url, timeout=40):
+def poly_get(url, timeout=40, retries=3):
+    """GET -> JSON; HTTP 429 / 5xx are retried with a growing pause (1.5 s, 3 s, 6 s) -- the first light (ops 6753) lost 18
+    of 64 crypto symbols to 429s from Polygon and Coinbase under six parallel threads. Any other error raises at once."""
     req = urllib.request.Request(url, headers={"User-Agent": "justhodl-bottom/%s" % VERSION})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return json.loads(r.read().decode())
+    for attempt in range(retries + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return json.loads(r.read().decode())
+        except urllib.error.HTTPError as e:
+            if e.code not in (429, 500, 502, 503, 504) or attempt == retries:
+                raise
+            time.sleep(1.5 * (2 ** attempt))
 
 
 def poly_aggs(ticker, mult, span, frm, to):
@@ -481,7 +490,7 @@ def bank_crypto_symbol(sym, today):
 
 def load_crypto(today, symbols):
     docs, status = {}, {}
-    with ThreadPoolExecutor(max_workers=6) as ex:
+    with ThreadPoolExecutor(max_workers=3) as ex:   # three lanes: Coinbase's public limit is 10 req/s and Polygon's free tier 5/min
         for sym, (doc, st) in zip(symbols, ex.map(lambda s: bank_crypto_symbol(s, today), symbols)):
             docs[sym] = doc; status[sym] = st
     alld = set()
