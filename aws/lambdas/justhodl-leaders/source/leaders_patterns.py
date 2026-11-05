@@ -7,11 +7,16 @@ semiconductor are read by the same rule.
 DOUBLE TOP     two swing highs within tol of each other, 10-150 sessions apart, with a swing low between them at
                least max(5%, the swing threshold) below the lower high; the first high was a 90-session high (a top of
                an advance, not a wiggle inside a range). FORMING while the closes hold the swing low between them (the
-               neckline); CONFIRMED on a close 0.5% under it; void once a close clears the higher high by 0.5%.
+               neckline) and the second high is at most 40 sessions old - after that it is a range, not a top;
+               CONFIRMED on a close 0.5% under the neckline, kept for 20 sessions, with target_hit once a close
+               reaches the measured target (the neckline minus the pattern's height); FAILED when, after the break,
+               the last close is back over the neckline by more than max(3%, half the swing threshold) without the
+               target having been reached; void once a close clears the higher high by 0.5%.
 DOUBLE BOTTOM  the mirror: two swing lows within tol, a swing high between them at least max(5%, threshold) above the
-               higher low; the first low was a 90-session low. CONFIRMED on a close 0.5% over the neckline; void on a
-               close 0.5% under the lower low. vol_ratio = volume around the second pivot over volume around the first -
-               a second low on lighter volume is the secondary test of Khalid's bottom paper.
+               higher low; the first low was a 90-session low. CONFIRMED on a close 0.5% over the neckline; FAILED
+               when the close falls back under it by the same margin; void on a close 0.5% under the lower low.
+               vol_ratio = volume around the second pivot over volume around the first - a second low on lighter
+               volume is the secondary test of Khalid's bottom paper.
 CLIMAX         the bottom desk's selling climax (justhodl-bottom 1.2.0) and its mirror, on the last 30 sessions:
                SELLING  a new 120-session low, the close under the 50-session average and in the bottom 35% of the
                         252-session range, a decline of at least 6 ATR and 12% (funds 10%) off the 120-session high
@@ -22,6 +27,8 @@ CLIMAX         the bottom desk's selling climax (justhodl-bottom 1.2.0) and its 
                         an advance of at least 6 ATR and 20% (funds 12%) off the 120-session low that printed at least
                         15 sessions earlier, the same volume and range gates - and supply: the close off the high
                         (lower 60% of the bar) or a lower close inside three sessions.
+               day_pct / gap_pct carry the climax session's own move and its opening gap, so a bar that is one piece
+               of news (a bid, a report) reads as that; held says whether the climax extreme has stood since.
 """
 from __future__ import annotations
 
@@ -33,8 +40,10 @@ SEP_MIN, SEP_MAX = 10, 150
 DEPTH_MIN = 5.0
 PRIOR_EXTREME = 90                                        # the first pivot must be a 90-session high / low
 PATTERN_MAX_AGE = 60                                      # the second pivot at most this many sessions ago
+FORMING_MAX_AGE = 40                                      # ... and at most this many while the neckline is unbroken: a longer stand-off is a range
 BREAK_FRESH = 20                                          # a neckline break at most this many sessions ago
 BREAK_PCT = 0.5
+FAIL_PCT_MIN = 3.0                                        # after a break, a close back through the neckline by max(3%, theta / 2) is a failed pattern
 PROVISIONAL_PULLBACK_MIN, PROVISIONAL_PULLBACK_ATR = 2.0, 1.0
 CLIMAX_WINDOW = 30
 SC_DECLINE = {"stock": 12.0, "fund": 10.0}
@@ -133,16 +142,27 @@ def _double(bars, p1, mid, p2, top, atr_m):
             brk = j
     if brk is not None and n - 1 - brk > BREAK_FRESH:
         return None                                           # the break is old news
+    if brk is None and n - 1 - p2["i"] > FORMING_MAX_AGE:
+        return None                                           # neither broken nor cleared for two months: a range
     height = abs(outer - neck)
     target = neck - height if top else neck + height
+    state, target_hit, reclaim = "FORMING", None, None
+    if brk is not None:
+        state = "CONFIRMED"
+        if target > 0:
+            target_hit = any((c[j] <= target) if top else (c[j] >= target) for j in range(brk, n))
+        reclaim = (last / neck - 1) * 100.0 if top else (1 - last / neck) * 100.0     # how far the close is back on the wrong side of the neckline
+        if not target_hit and reclaim > max(FAIL_PCT_MIN, max(THETA_MIN, min(THETA_MAX, THETA_ATR * atr_m)) / 2.0):
+            state = "FAILED"
     v1, v2 = _around(bars, p1["i"]), _around(bars, p2["i"])
     return {
-        "kind": "DOUBLE TOP" if top else "DOUBLE BOTTOM", "state": "CONFIRMED" if brk is not None else "FORMING",
+        "kind": "DOUBLE TOP" if top else "DOUBLE BOTTOM", "state": state,
         "p1": {"date": p1["date"], "px": f(p1["px"])}, "p2": {"date": p2["date"], "px": f(p2["px"]), "provisional": bool(p2.get("provisional"))},
         "neck": {"date": mid["date"], "px": f(neck)}, "diff_pct": f(diff), "depth_pct": f(depth), "sep": sep, "ago": n - 1 - p2["i"],
         "break": {"date": bars[brk]["date"], "ago": n - 1 - brk} if brk is not None else None,
         "to_neck_pct": f((neck / last - 1) * 100.0) if last else None,
         "target": f(target) if target > 0 else None, "target_pct": f((target / last - 1) * 100.0) if last and target > 0 else None,
+        "target_hit": target_hit, "reclaim_pct": f(reclaim) if reclaim is not None else None,
         "vol_ratio": f(v2 / v1) if v1 and v2 else None,
     }
 
@@ -158,14 +178,20 @@ def double_patterns(bars):
         return out
     out["theta_pct"] = f(theta)
     piv = pivots(bars, theta)
+    failed = {"double_top": None, "double_bottom": None}
     for k in range(len(piv) - 1, 1, -1):
         p1, mid, p2 = piv[k - 2], piv[k - 1], piv[k]
-        if p2["kind"] == "H" and mid["kind"] == "L" and p1["kind"] == "H" and out["double_top"] is None:
-            out["double_top"] = _double(bars, p1, mid, p2, True, atr_m)
-        elif p2["kind"] == "L" and mid["kind"] == "H" and p1["kind"] == "L" and out["double_bottom"] is None:
-            out["double_bottom"] = _double(bars, p1, mid, p2, False, atr_m)
+        key = "double_top" if (p2["kind"] == "H" and mid["kind"] == "L" and p1["kind"] == "H") else "double_bottom" if (p2["kind"] == "L" and mid["kind"] == "H" and p1["kind"] == "L") else None
+        if key and out[key] is None:
+            pat = _double(bars, p1, mid, p2, key == "double_top", atr_m)
+            if pat and pat["state"] == "FAILED":
+                failed[key] = failed[key] or pat                # kept only when no live pattern is found further back
+            elif pat:
+                out[key] = pat
         if len(bars) - 1 - p2["i"] > PATTERN_MAX_AGE + SEP_MAX:
             break
+    for key in failed:
+        out[key] = out[key] or failed[key]
     return out
 
 
@@ -194,8 +220,10 @@ def climax(bars, kind="stock", window=CLIMAX_WINDOW):
         close_pos = (c[i] - lo(bars[i])) / rng if rng > 0 else None
         prior = bars[i - 120:i]
         nxt = c[i + 1:i + 4]
+        opened = bars[i].get("o")
         base = {"date": bars[i]["date"], "ago": n - 1 - i, "vol_x": f(v / vavg250), "range_atr": f(rng / atr), "close_pos": f(100.0 * close_pos, 0) if close_pos is not None else None,
-                "px": f(c[i]), "since_pct": f(pct_change(c[i], c[-1]))}
+                "px": f(c[i]), "since_pct": f(pct_change(c[i], c[-1])), "day_pct": f(pct_change(c[i - 1], c[i])),
+                "gap_pct": f(pct_change(c[i - 1], float(opened))) if opened is not None else None}
         # selling climax
         hi120 = max(hi(b) for b in prior)
         hi_i = max(range(i - 120, i), key=lambda k: hi(bars[k]))

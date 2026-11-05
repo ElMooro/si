@@ -10,7 +10,7 @@ identical on purpose - tests/deployment/test_leaders_engine.py runs both engines
 from __future__ import annotations
 
 import math
-from datetime import datetime
+from datetime import date, datetime, timedelta
 
 HORIZONS = (("d", 1), ("w", 5), ("m", 21), ("q", 63), ("h", 126), ("y", 252))
 WEIGHTS = (("d", 0.10), ("w", 0.20), ("m", 0.30), ("q", 0.25), ("h", 0.15))      # the strength desk's composite
@@ -25,8 +25,17 @@ CONTRACTION_MAX = 0.6
 DEAL_ATR_PCT, DEAL_RANGE_PCT = 0.6, 3.5
 COMMON_RATIOS = (2.0, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0, 15.0, 20.0, 25.0, 50.0, 1.5, 0.5, 1 / 3, 0.25, 0.2, 0.125, 0.1, 2 / 3, 0.05, 0.04, 0.02)
 AD_WEIGHTS = (("cmf21", 0.25), ("cmf63", 0.20), ("ud50", 0.25), ("obv63", 0.15), ("days", 0.15))
-AD_STRONG, AD_LEAN = 35.0, 12.0
+AD_STRONG, AD_LEAN = 60.0, 20.0                              # calibrated on the live universe (ops 6744, 2026-11-04, 672 leaders): +-60 holds the
+                                                            # strongest tenth on the accumulation side, +-20 leaves about a third NEUTRAL
 AD_DAY_MOVE, AD_DAY_VOLX, AD_DAY_WINDOW = 0.2, 1.2, 25      # a session up / down at least 0.2% on volume at least 1.2x its 50-session average, last 25 sessions
+GAP_DAYS = 10                    # consecutive bars further apart than this are two histories (no US closure has reached a week)
+IPO_SLACK_DAYS = 5               # bars older than the listing date by more than this belong to the ticker's previous holder
+EVENT_NEAR_DAYS = 7              # how close a recorded ticker change must sit to the break it explains
+HANDOVER_MIN, HANDOVER_MAX = 0.7, 1.4      # first close under the new ticker over the last close under the old one
+JUMP_UP, JUMP_DOWN = 1.8, 0.56             # the band infer_splits scans: a close-to-close move outside it is an event
+SEPARATION_DAYS = 3                        # a new listing this close to a collapse is weighed as what was handed out
+SEPARATION_VALUE = (0.5, 2.0)              # ... when its market value is this multiple of the value that vanished
+STITCH_DEPTH = 3
 
 
 # ----------------------------------------------------------------------------------------------------------------- basics
@@ -623,6 +632,159 @@ def pin_flag(cl, is_fund):
         cl["flag"] = "PINNED"
         cl["flag_note"] = "deal-like: ATR %.2f%% <= %.1f%% and base range %.2f%% <= %.1f%%; kept off the tight board" % (cl["atr14_pct"], DEAL_ATR_PCT, cl["base_range_pct"], DEAL_RANGE_PCT)
     return cl
+
+
+# ---------------------------------------------------------------------------------------------------------- continuity
+# The bank keys bars by ticker, and a ticker is not a security: it changes hands (BNY was a municipal fund until Bank
+# of New York Mellon took it), a company trades under another symbol for a while (Fiserv: FISV, FI, FISV), a listing
+# starts. A horizon measured across such a break is not this instrument's return (ops 6745: +1,524% "one year" on BNY).
+# own_history cuts a series down to its last continuous stretch; predecessor + stitch put the earlier symbol's bars
+# back in front of it when the record of the change and the tape agree; separation_cut removes the history of a
+# company that handed most of itself to a newly listed one. Nothing is guessed: without the record the cut stands.
+def _days(a, b):
+    try:
+        return (date.fromisoformat(str(b)[:10]) - date.fromisoformat(str(a)[:10])).days
+    except ValueError:
+        return None
+
+
+def _near(a, b, n):
+    d = _days(a, b)
+    return d is not None and abs(d) <= n
+
+
+def own_history(bars, ipo_date=None):
+    """The part of a banked series that is one instrument's continuous history: everything after the last calendar gap
+    of more than GAP_DAYS, and nothing older than the listing date. A listing date can sit a session or two after the
+    first real print (a when-issued bar, a provider's date), so bars up to IPO_SLACK_DAYS before it are kept while
+    each one hands over to the next within x0.7..x1.4 - the previous holder of a ticker does not. An ipo_date later
+    than every bar contradicts the tape and is ignored. Returns (bars, cut) - cut is None or {reason: 'gap' |
+    'listing', date, dropped, ...}. Pure."""
+    start, cut = 0, None
+    for i in range(1, len(bars)):
+        g = _days(bars[i - 1]["date"], bars[i]["date"])
+        if g is not None and g > GAP_DAYS:
+            start, cut = i, {"reason": "gap", "date": bars[i]["date"], "prev": bars[i - 1]["date"], "gap_days": g, "dropped": i}
+    if ipo_date and len(str(ipo_date)) >= 10:
+        try:
+            listed = date.fromisoformat(str(ipo_date)[:10])
+        except ValueError:
+            listed = None
+        if listed:
+            floor = (listed - timedelta(days=IPO_SLACK_DAYS)).isoformat()
+            j = next((k for k in range(start, len(bars)) if bars[k]["date"] >= listed.isoformat()), None)
+            if j is not None and j > start:
+                while j > start and bars[j - 1]["date"] >= floor:
+                    pc, c = float(bars[j - 1]["c"]), float(bars[j]["c"])
+                    if not (pc > 0 and HANDOVER_MIN <= c / pc <= HANDOVER_MAX):
+                        break
+                    j -= 1
+                if j > start:
+                    start, cut = j, {"reason": "listing", "date": bars[j]["date"], "ipo_date": listed.isoformat(), "dropped": j}
+    return (bars[start:] if start else bars), cut
+
+
+def ticker_events(doc):
+    """[(date, TICKER)] oldest first from a Polygon ticker-events document ({results: {events: [{type: 'ticker_change',
+    date, ticker_change: {ticker}}]}}); the ticker is '' while the security had none. Pure."""
+    res = doc.get("results") if isinstance(doc, dict) else None
+    events = res.get("events") if isinstance(res, dict) else None
+    out = []
+    for e in events if isinstance(events, list) else []:
+        if isinstance(e, dict) and e.get("type") == "ticker_change" and len(str(e.get("date") or "")) >= 10:
+            out.append((str(e["date"])[:10], str((e.get("ticker_change") or {}).get("ticker") or "").upper().strip().replace("-", ".")))
+    return sorted(out)
+
+
+def predecessor(ticker, start, cut, events, changes):
+    """The symbol this security traded under right before `start` (the first bar of its own history), from the
+    records only: (old ticker, source) or None.
+
+    Polygon's ticker events for the security name the symbol it carried before - accepted when the record also
+    places the change at the break: either the event that gave it `ticker` sits within EVENT_NEAR_DAYS of `start`,
+    or (a company returning to a symbol it used before, where the record stops at the departure) the earlier
+    symbol's own event sits within EVENT_NEAR_DAYS of the bar the gap began on. A stretch with no symbol at all is
+    not a predecessor. FMP's symbol-change list answers the same question for the last hundred changes. Pure."""
+    t = str(ticker).upper()
+    ev = [(d, x) for d, x in (events or []) if d < str(start) or x == t]
+    took = [d for d, x in ev if x == t and _near(d, start, EVENT_NEAR_DAYS)]
+    prior = [(d, x) for d, x in ev if x != t and d < str(start)]
+    if prior:
+        d_old, old = prior[-1]
+        if old:
+            left = bool(cut) and cut.get("reason") == "gap" and _near(cut.get("prev"), d_old, EVENT_NEAR_DAYS)
+            if took or left:
+                return old, "polygon-ticker-events"
+    for row in changes or []:
+        if not isinstance(row, dict):
+            continue
+        new = str(row.get("newSymbol") or "").upper().strip().replace("-", ".")
+        old = str(row.get("oldSymbol") or "").upper().strip().replace("-", ".")
+        if new == t and old and old != t and _near(row.get("date"), start, EVENT_NEAR_DAYS):
+            return old, "fmp-symbol-change"
+    return None
+
+
+def stitch(own, old_bars, old_ticker, source):
+    """The predecessor's bars in front of the instrument's own - only when the tape agrees with the record: the old
+    symbol's last bar is within GAP_DAYS before the first new one, it prints nothing in the GAP_DAYS after (it went
+    quiet, it did not carry on as another security), and the first close under the new symbol is within x0.7..x1.4 of
+    the last close under the old one. Returns (bars, info, refusal): info is None when refused and refusal says why.
+    Pure."""
+    if not own or not old_bars:
+        return own, None, "no predecessor bars"
+    start = own[0]["date"]
+    limit = (date.fromisoformat(start) + timedelta(days=GAP_DAYS)).isoformat()
+    if any(start <= b["date"] <= limit for b in old_bars):
+        return own, None, "the old symbol kept trading"
+    before, _ = own_history([b for b in old_bars if b["date"] < start])
+    if not before:
+        return own, None, "no predecessor bars before the change"
+    gap = _days(before[-1]["date"], start)
+    last, first = float(before[-1]["c"]), float(own[0]["c"])
+    if gap is None or gap > GAP_DAYS or last <= 0 or first <= 0:
+        return own, None, "the old symbol stopped %s days earlier" % gap
+    x = first / last
+    if not (HANDOVER_MIN <= x <= HANDOVER_MAX):
+        return own, None, "hand-over x%.3f is not one security continuing" % x
+    return before + own, {"from": old_ticker, "on": start, "source": source, "sessions": len(before), "handover_x": f(x, 4), "first": before[0]["date"]}, None
+
+
+def separation_cut(bars, applied, ticker, mcap, sector, listings):
+    """A company that hands most of itself to a newly listed one prints an overnight collapse that no holder lost
+    (Corteva 2026-10-01: x0.16 the day Vylor listed). The collapse is read as a separation - and the history before it
+    as another company's - only on evidence: a close-to-close move of x0.56 or less that is not a split, and a common
+    stock of the same sector whose listing date is within SEPARATION_DAYS of it and whose market value is 0.5x-2x the
+    value that vanished. listings = [(date, ticker, mcap, sector)]. Returns (bars, cut). Pure."""
+    if not bars or not mcap or not listings:
+        return bars, None
+    last = float(bars[-1]["c"])
+    if last <= 0:
+        return bars, None
+    shares = float(mcap) / last
+    done = {e.get("date") for e in applied or []}
+    for i in range(len(bars) - 1, 0, -1):
+        pc, c = float(bars[i - 1]["c"]), float(bars[i]["c"])
+        if pc <= 0 or c <= 0 or c / pc > JUMP_DOWN or bars[i]["date"] in done:
+            continue
+        vanished = (pc - c) * shares
+        for d, t, m, sec in listings:
+            near = _days(d, bars[i]["date"])
+            if t != ticker and m and sec == sector and near is not None and abs(near) <= SEPARATION_DAYS and SEPARATION_VALUE[0] <= m / vanished <= SEPARATION_VALUE[1]:
+                return bars[i:], {"reason": "separation", "date": bars[i]["date"], "ratio": f(c / pc, 4), "listing": t, "listing_date": d, "listing_mcap_usd": f(m, 0), "vanished_usd": f(vanished, 0), "dropped": i}
+    return bars, None
+
+
+def jumps_of(bars, applied=None):
+    """The close-to-close moves beyond x1.8 / x0.56 still inside a series after rebasing - a crash, a bid, a result:
+    [{date, ratio, ago}]. They are real prints; a horizon that spans one says so. Pure."""
+    done = {e.get("date") for e in applied or []}
+    out = []
+    for i in range(1, len(bars)):
+        pc, c = float(bars[i - 1]["c"]), float(bars[i]["c"])
+        if pc > 0 and c > 0 and not (JUMP_DOWN < c / pc < JUMP_UP) and bars[i]["date"] not in done:
+            out.append({"date": bars[i]["date"], "ratio": f(c / pc, 4), "ago": len(bars) - 1 - i})
+    return out
 
 
 # -------------------------------------------------------------------------------------------------------------- splits

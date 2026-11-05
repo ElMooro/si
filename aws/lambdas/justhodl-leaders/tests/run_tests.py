@@ -261,17 +261,18 @@ def acc_bars(up_vol, dn_vol, up_close_high=True, seed=3, n=320):
 
 def test_accumulation_and_distribution():
     a = T.ad_block(acc_bars(1.6e6, 0.8e6))
-    assert a["label"] == "STRONG ACCUMULATION" and a["grade"] == "A" and a["score"] >= 35 and a["cmf21"] > 0.1 and a["ud50"] > 1.5 and a["obv63"] > 0 and a["acc_days"] > a["dist_days"]
+    assert a["label"] == "STRONG ACCUMULATION" and a["grade"] == "A" and a["score"] >= T.AD_STRONG and a["cmf21"] > 0.1 and a["ud50"] > 1.5 and a["obv63"] > 0 and a["acc_days"] > a["dist_days"]
     d = T.ad_block(acc_bars(0.8e6, 1.7e6, up_close_high=False))
-    assert d["label"] == "STRONG DISTRIBUTION" and d["grade"] == "E" and d["score"] <= -35 and d["cmf21"] < -0.1 and d["ud50"] < 1 and d["dist_days"] > d["acc_days"]
+    assert d["label"] == "STRONG DISTRIBUTION" and d["grade"] == "E" and d["score"] <= -T.AD_STRONG and d["cmf21"] < -0.1 and d["ud50"] < 1 and d["dist_days"] > d["acc_days"]
     flat = bars_of([100.0 + (0.1 if i % 2 else -0.1) for i in range(300)])
     n = T.ad_block(flat)
-    assert n["label"] == "NEUTRAL" and n["grade"] == "C" and abs(n["score"]) < 12 and n["acc_days"] == 0 and n["dist_days"] == 0
+    assert n["label"] == "NEUTRAL" and n["grade"] == "C" and abs(n["score"]) < T.AD_LEAN and n["acc_days"] == 0 and n["dist_days"] == 0
     assert a["delta_21"] is not None and a["score_21"] is not None
     assert T.ad_block(bars_of([100.0] * 20))["score"] is None                     # not enough sessions
     part = T.ad_block(bars_of([100.0 + 0.2 * i for i in range(40)]))               # 40 sessions: the 21-session read only
     assert part["cmf21"] is not None and part["cmf63"] is None and part["ud50"] is None and part["acc_days"] is None
-    assert [T.ad_label(x) for x in (50, 20, 0, -20, -50, None)] == ["STRONG ACCUMULATION", "ACCUMULATION", "NEUTRAL", "DISTRIBUTION", "STRONG DISTRIBUTION", None]
+    assert [T.ad_label(x) for x in (60, 59.9, 20, 19.9, 0, -19.9, -20, -59.9, -60, None)] == ["STRONG ACCUMULATION", "ACCUMULATION", "ACCUMULATION", "NEUTRAL", "NEUTRAL", "NEUTRAL", "DISTRIBUTION", "DISTRIBUTION", "STRONG DISTRIBUTION", None]
+    assert [T.ad_grade(x) for x in (75, 30, 0, -30, -75, None)] == ["A", "B", "C", "D", "E", None]
     assert T.footprint_days(bars_of([100.0] * 30)) == (None, None)
 
 
@@ -315,6 +316,19 @@ def test_double_top():
         vols[i] = 0.5e6
     lite = P.double_patterns(bars_of(ADVANCE + seg(100, 91, 15) + seg(91, 99.6, 15) + seg(99.6, 95.5, 6), vols))["double_top"]
     assert lite["vol_ratio"] == 0.5
+    # after the break: the measured target printing, the neckline reclaimed, a stand-off going stale
+    top = ADVANCE + seg(100, 91, 15) + seg(91, 99.6, 15) + seg(99.6, 89.5, 10)
+    assert conf["target_hit"] is False and conf["reclaim_pct"] < 0 and t["target_hit"] is None and t["reclaim_pct"] is None
+    hit = P.double_patterns(bars_of(top + seg(89.5, 79.0, 6)))["double_top"]
+    assert hit["state"] == "CONFIRMED" and hit["target_hit"] is True and hit["break"]["ago"] == 6 and hit["target"] > 79.0
+    done = P.double_patterns(bars_of(top + seg(89.5, 79.0, 6) + seg(79.0, 96.0, 8)))["double_top"]
+    assert done["state"] == "CONFIRMED" and done["target_hit"] is True and done["reclaim_pct"] > 3                       # it worked before it bounced
+    failed = P.double_patterns(bars_of(top + seg(89.5, 96.0, 8)))["double_top"]
+    assert failed["state"] == "FAILED" and failed["target_hit"] is False and failed["reclaim_pct"] > 3 and failed["break"]["ago"] == 8
+    throwback = P.double_patterns(bars_of(top + seg(89.5, 92.0, 4)))["double_top"]
+    assert throwback["state"] == "CONFIRMED" and 0 < throwback["reclaim_pct"] < 3                                        # back at the neckline is a throwback, not a failure
+    assert P.double_patterns(bars_of(ADVANCE + seg(100, 91, 15) + seg(91, 99.6, 15) + seg(99.6, 95.5, 6) + [95.5] * 30))["double_top"]["state"] == "FORMING"
+    assert P.double_patterns(bars_of(ADVANCE + seg(100, 91, 15) + seg(91, 99.6, 15) + seg(99.6, 95.5, 6) + [95.5] * 40))["double_top"] is None and P.FORMING_MAX_AGE == 40
 
 
 def test_double_bottom():
@@ -324,6 +338,10 @@ def test_double_bottom():
     conf = P.double_patterns(bars_of(DECLINE + seg(90, 99, 15) + seg(99, 90.5, 15) + seg(90.5, 101, 10)))["double_bottom"]
     assert conf["state"] == "CONFIRMED" and conf["break"]["ago"] == 0 and conf["target_pct"] > 0
     assert P.double_patterns(bars_of(DECLINE + seg(90, 99, 15) + seg(99, 90.5, 15) + seg(90.5, 87, 6)))["double_bottom"] is None      # undercut: void
+    bot = DECLINE + seg(90, 99, 15) + seg(99, 90.5, 15) + seg(90.5, 101, 10)
+    assert conf["target_hit"] is False and P.double_patterns(bars_of(bot + seg(101, 110.5, 6)))["double_bottom"]["target_hit"] is True
+    fell = P.double_patterns(bars_of(bot + seg(101, 94.0, 8)))["double_bottom"]
+    assert fell["state"] == "FAILED" and fell["reclaim_pct"] > 3 and fell["kind"] == "DOUBLE BOTTOM"                     # back under the neckline it broke
     assert P.double_patterns(bars_of([100.0] * 100))["theta_pct"] is None                                                           # too short
 
 
@@ -346,6 +364,7 @@ def test_climax():
     s = P.climax(sc)
     assert s["type"] == "SELLING" and s["ago"] == 0 and s["vol_x"] == 6.0 and s["range_atr"] >= 1.5 and s["close_pos"] == 60.0 and s["move_pct"] < -12 and s["held"] is True
     assert s["absorption"] == "close off the low" and s["extreme"] == 74.0
+    assert s["day_pct"] == round((78.5 / 82.0 - 1) * 100, 2) and s["gap_pct"] == round((81.0 / 82.0 - 1) * 100, 2)      # the session's own move and its opening gap
     # the same bar closing on its low with no rally after it: capitulation is not yet absorbed
     assert P.climax(climax_base(100, 99, 82) + [{"date": nxt, "o": 81.0, "h": 81.5, "l": 74.0, "c": 74.2, "v": 6e6}]) is None
     # ... absorbed once a later session closes above it
@@ -391,6 +410,188 @@ def test_split_rebasing():
     s32 = bars_of([90.0] * 250 + [60.0] * 50)
     assert T.rebase(s32, [{"date": s32[250]["date"], "split_from": 2, "split_to": 3}])[1][0]["factor"] == round(2 / 3, 6)
     assert T.rebase([], rec) == ([], [])
+
+
+# ----------------------------------------------------------------------------------------------------------- continuity
+def bars_on(dates, closes, vols=None, spread=0.012):
+    return [{"date": d.isoformat(), "o": c, "h": c * (1 + spread / 2), "l": c * (1 - spread / 2), "c": c, "v": (vols[i] if vols else 1_000_000.0)} for i, (d, c) in enumerate(zip(dates, closes))]
+
+
+def test_own_history_cuts_at_a_gap_and_at_the_listing():
+    whole = bars_of([100.0] * 300)
+    assert T.own_history(whole) == (whole, None) and T.own_history([]) == ([], None)
+    # a ticker that printed nothing for months: the bars before belong to another security (BNY, B, CNR, JAN ...)
+    old, new = bars_on(DATES[100:400], [10.0] * 300), bars_on(DATES[-116:], [140.0] * 116)
+    own, cut = T.own_history(old + new)
+    assert own == new and cut["reason"] == "gap" and cut["date"] == DATES[-116].isoformat() and cut["prev"] == DATES[399].isoformat() and cut["dropped"] == 300 and cut["gap_days"] > 100
+    # two gaps: only the last continuous stretch is this instrument
+    older = bars_on(DATES[0:50], [3.0] * 50)
+    assert T.own_history(older + old + new)[0] == new
+    # a long weekend is not a gap
+    hol = bars_on([date(2026, 6, 26), date(2026, 7, 6), date(2026, 7, 7)], [10.0, 10.1, 10.2])
+    assert T.own_history(hol) == (hol, None) and T.GAP_DAYS == 10
+    # no gap, but bars older than the listing: the previous holder of the ticker, traded right up to the hand-over
+    seam = bars_of([2.0] * 300 + [23.6] * 159)
+    own, cut = T.own_history(seam, seam[300]["date"])
+    assert len(own) == 159 and cut == {"reason": "listing", "date": seam[300]["date"], "ipo_date": seam[300]["date"], "dropped": 300}
+    # a listing date a session or two after the first real print (a when-issued bar): the continuous bars before it stay,
+    # the previous holder's - a x11.8 seam away - do not
+    own, cut = T.own_history(seam, seam[302]["date"])
+    assert len(own) == 159 and cut["date"] == seam[300]["date"] and cut["ipo_date"] == seam[302]["date"] and cut["dropped"] == 300
+    wi = bars_of([99.59] + [96.0] * 176)                                                   # Covista: one bar the day before the provider's date
+    assert T.own_history(wi, wi[1]["date"]) == (wi, None)
+    # ... but not beyond the slack: a continuous series older than its listing date by weeks is cut at the date
+    assert T.own_history(whole, whole[200]["date"])[1] == {"reason": "listing", "date": whole[200 - sum(1 for b in whole[:200] if T._days(b["date"], whole[200]["date"]) <= T.IPO_SLACK_DAYS)]["date"], "ipo_date": whole[200]["date"], "dropped": 200 - sum(1 for b in whole[:200] if T._days(b["date"], whole[200]["date"]) <= T.IPO_SLACK_DAYS)}
+    assert T.own_history(whole, "2030-01-01") == (whole, None) and T.own_history(whole, "not a date") == (whole, None) and T.own_history(whole, whole[0]["date"]) == (whole, None)
+
+
+def test_predecessor_needs_the_record_at_the_break():
+    start = "2026-05-21"
+    gap = {"reason": "gap", "prev": "2026-02-06"}
+    ev = T.ticker_events({"results": {"events": [{"ticker_change": {"ticker": "BNY"}, "type": "ticker_change", "date": "2026-05-21"}, {"ticker_change": {"ticker": "BK"}, "type": "ticker_change", "date": "2007-07-02"}]}})
+    assert ev == [("2007-07-02", "BK"), ("2026-05-21", "BNY")]
+    assert T.predecessor("BNY", start, gap, ev, []) == ("BK", "polygon-ticker-events")
+    assert T.predecessor("BNY", "2026-05-26", gap, ev, []) == ("BK", "polygon-ticker-events")            # the event a few days off the first bar
+    assert T.predecessor("BNY", "2026-08-21", gap, ev, []) is None                                         # the record does not place the change at this break
+    # the record names no earlier symbol (Barrick: only the B event) -> the cut stands
+    assert T.predecessor("B", "2025-05-09", {"reason": "gap", "prev": "2025-01-24"}, [("2025-05-09", "B")], []) is None
+    # a company back on a symbol it used before, the record stopping at its departure (Fiserv: FISV, FI, FISV)
+    fisv = [("2003-09-10", "FISV"), ("2023-06-07", "FI")]
+    assert T.predecessor("FISV", "2025-11-11", {"reason": "gap", "prev": "2023-06-06"}, fisv, []) == ("FI", "polygon-ticker-events")
+    assert T.predecessor("FISV", "2025-11-11", None, fisv, []) is None and T.predecessor("FISV", "2025-11-11", {"reason": "gap", "prev": "2024-06-06"}, fisv, []) is None
+    # a stretch with no symbol at all is not a predecessor (an OTC interlude)
+    assert T.predecessor("AYA", "2026-05-04", None, [("2022-04-05", "AYAS"), ("2023-11-18", ""), ("2026-05-04", "AYA")], []) is None
+    # an old rename is no licence to bridge a later break
+    assert T.predecessor("X", "2024-03-01", {"reason": "gap", "prev": "2023-01-05"}, [("2010-01-01", "A"), ("2015-01-01", "X")], []) is None
+    # FMP's list: the new symbol, on the day; share-class spelling folded
+    fmp = [{"date": "2026-08-18", "companyName": "Vivmark", "oldSymbol": "EQR", "newSymbol": "VMRK"}, {"date": "2026-08-18", "oldSymbol": "BF-A", "newSymbol": "BF-B"}, "junk", {"date": None, "oldSymbol": "Q", "newSymbol": "VMRK"}]
+    assert T.predecessor("VMRK", "2026-08-18", None, [], fmp) == ("EQR", "fmp-symbol-change") and T.predecessor("BF.B", "2026-08-19", None, [], fmp) == ("BF.A", "fmp-symbol-change")
+    assert T.predecessor("VMRK", "2026-09-18", None, [], fmp) is None and T.predecessor("EQR", "2026-08-18", None, [], fmp) is None
+    assert T.ticker_events(None) == [] and T.ticker_events({"results": [1]}) == [] and T.ticker_events({"results": {"events": [{"type": "other", "date": "2026-01-01"}, {"type": "ticker_change"}]}}) == []
+
+
+def test_stitch_only_when_the_tape_hands_over():
+    own = bars_on(DATES[-116:], [140.0 + 0.1 * i for i in range(116)])
+    old = bars_on(DATES[:-116], [100.0 + 0.08 * i for i in range(N - 116)])                 # ends at 140.24 the session before
+    bars, info, why = T.stitch(own, old, "BK", "polygon-ticker-events")
+    assert why is None and len(bars) == N and bars[:len(old)] == old and bars[-116:] == own
+    assert info == {"from": "BK", "on": DATES[-116].isoformat(), "source": "polygon-ticker-events", "sessions": N - 116, "handover_x": round(140.0 / old[-1]["c"], 4), "first": DATES[0].isoformat()}
+    # the old symbol went on trading: it is another security (a spin-off, a second class), not this one's past
+    assert T.stitch(own, old + bars_on(DATES[-116:-110], [141.0] * 6), "BK", "x")[1:] == (None, "the old symbol kept trading")
+    # ... unless the symbol was taken up again much later by someone else
+    later = old + bars_on(DATES[-40:], [7.0] * 40)
+    assert T.stitch(own, later, "BK", "x")[1]["sessions"] == N - 116
+    # the price does not hand over: a merger exchange, not a rename
+    assert T.stitch(own, bars_on(DATES[:-116], [60.0] * (N - 116)), "BK", "x")[2].startswith("hand-over x2.333")
+    # the old symbol stopped long before
+    assert "stopped" in T.stitch(own, bars_on(DATES[:-160], [139.0] * (N - 160)), "BK", "x")[2]
+    # the predecessor's own older stretch (behind a gap of its own) is not carried
+    two = bars_on(DATES[0:100], [5.0] * 100) + bars_on(DATES[200:-116], [139.0] * (N - 316))
+    assert T.stitch(own, two, "BK", "x")[1]["sessions"] == N - 316
+    assert T.stitch(own, [], "BK", "x")[1:] == (None, "no predecessor bars") and T.stitch([], old, "BK", "x")[1] is None
+
+
+def test_separation_cut_needs_a_matching_listing():
+    day = DATES[-25].isoformat()
+    bars = bars_of([77.0] * 575 + [12.5] * 25, [3.7e6] * 575 + [8e7] * 5 + [1.2e7] * 20)
+    mcap = 7.9e9                                                                          # 632M shares at 12.5: (77 - 12.5) x 632M = $40.8B vanished
+    lists = [(day, "VYLR", 4.8e10, "Basic Materials"), ("2026-03-02", "SUNB", 3.4e10, "Industrials")]
+    assert T.rebase(bars, None)[1] == []                                                  # not a split: the shares traded exploded
+    cut_bars, cut = T.separation_cut(bars, [], "CTVA", mcap, "Basic Materials", lists)
+    assert len(cut_bars) == 25 and cut["reason"] == "separation" and cut["date"] == day and cut["listing"] == "VYLR" and cut["ratio"] == round(12.5 / 77.0, 4) and cut["dropped"] == 575
+    assert 0.5 <= cut["listing_mcap_usd"] / cut["vanished_usd"] <= 2.0
+    # a crash is a crash: another sector, another size, another week, or the listing is the ticker itself
+    assert T.separation_cut(bars, [], "CTVA", mcap, "Healthcare", lists) == (bars, None)
+    assert T.separation_cut(bars, [], "CTVA", mcap, "Basic Materials", [(day, "VYLR", 3.0e9, "Basic Materials")]) == (bars, None)
+    assert T.separation_cut(bars, [], "CTVA", mcap, "Basic Materials", [(DATES[-35].isoformat(), "VYLR", 4.8e10, "Basic Materials")]) == (bars, None)
+    assert T.separation_cut(bars, [], "VYLR", mcap, "Basic Materials", lists) == (bars, None)
+    assert T.separation_cut(bars, [], "CTVA", None, "Basic Materials", lists) == (bars, None) and T.separation_cut(bars, [], "CTVA", mcap, "Basic Materials", []) == (bars, None)
+    # a collapse already rebased as a split is not weighed again
+    assert T.separation_cut(bars, [{"date": day}], "CTVA", mcap, "Basic Materials", lists) == (bars, None)
+    # what is left as printed is listed, with how long ago
+    assert T.jumps_of(bars) == [{"date": day, "ratio": round(12.5 / 77.0, 4), "ago": 24}] and T.jumps_of(bars, [{"date": day}]) == [] and T.jumps_of(bars_of([100.0, 150.0, 90.0])) == []
+    assert T.jumps_of(bars_of([100.0, 190.0, 100.0])) == [{"date": DATES[-2].isoformat(), "ratio": 1.9, "ago": 1}, {"date": DATES[-1].isoformat(), "ratio": 0.5263, "ago": 0}]
+
+
+CONT_BOOK = [
+    brow("BNY", "Bank of New York Mellon", "Financial Services", "Banks - Diversified", 1.1e11, cik="0001390777", ipo_date="2007-07-01"),
+    brow("VMRK", "Vivmark Residential", "Real Estate", "REIT - Residential", 2.3e10, cik="0000906107", ipo_date="1993-08-12"),
+    brow("SPCX", "Space Exploration", "Industrials", "Aerospace & Defense", 1.9e12, cik="0001181412", ipo_date=DATES[-101].isoformat()),
+    brow("JAN", "Janus Living", "Real Estate", "REIT - Healthcare Facilities", 6.9e9, cik="0002100805", ipo_date=DATES[-159].isoformat()),
+    brow("CTVA", "Corteva", "Basic Materials", "Agricultural Inputs", 7.9e9, cik="0001755672", ipo_date="2019-05-24"),
+    brow("VYLR", "Vylor", "Basic Materials", "Agricultural Inputs", 4.8e10, cik="0002012866", ipo_date=DATES[-25].isoformat()),
+    brow("LQDA", "Liquidia", "Healthcare", "Biotechnology", 3.8e9, cik="0001819576", ipo_date="2018-07-26"),
+    brow("MERG", "Merged Co", "Technology", "Software - Application", 9.0e9, cik="0003333333", ipo_date="2001-01-01"),
+]
+
+
+def seed_continuity():
+    s3 = seed()
+    put = lambda t, b: s3.put(lf.bank_key(t), {"ticker": t, "rows": bank_rows(b)})          # noqa: E731
+    # BNY: a municipal fund's bars, three months of silence, then the bank - whose history sits under BK, with a 2-for-1 the bank left raw
+    put("BNY", bars_on(DATES[20:504 - 84], [10.2] * (484 - 84), [9e4] * (484 - 84)) + bars_on(DATES[-116:], [139.0 + 0.1 * i for i in range(116)], [3.5e6] * 116))
+    bk = [276.0] * (N - 116 - 150) + [138.0 + 0.004 * i for i in range(150)]
+    put("BK", bars_on(DATES[:-116], bk, [1.75e6] * (N - 116 - 150) + [3.5e6] * 150))
+    s3.put(lf.BANK_EVENTS_ROOT + "BNY.json.gz", {"status": "OK", "results": {"name": "Bank of New York Mellon", "events": [
+        {"ticker_change": {"ticker": "BNY"}, "type": "ticker_change", "date": DATES[-116].isoformat()}, {"ticker_change": {"ticker": "BK"}, "type": "ticker_change", "date": "2007-07-02"}]}})
+    split_day = DATES[N - 116 - 150].isoformat()
+    key = lf.BANK_SPLITS_ROOT + split_day[:7] + ".json.gz"
+    s3.put(key, (json.loads(gzip.decompress(s3.store[key])) if key in s3.store else []) + [{"ticker": "BK", "execution_date": split_day, "split_from": 1, "split_to": 2}])
+    # VMRK: a rename FMP's list records; no Polygon events file yet
+    put("VMRK", bars_on(DATES[-56:], [64.0 + 0.02 * i for i in range(56)]))
+    put("EQR", bars_on(DATES[:-56], [60.0 + 0.0065 * i for i in range(N - 56)]))
+    s3.put(lf.SYMBOL_CHANGE_KEY, [{"date": DATES[-56].isoformat(), "companyName": "Vivmark Residential", "oldSymbol": "EQR", "newSymbol": "VMRK"}])
+    # SPCX: a dead ETF's bars, two months of silence, then the listing - nobody to stitch
+    put("SPCX", bars_on(DATES[100:480], [22.0] * 380, [3e3] * 380) + bars_on(DATES[-101:], [160.0 + 0.2 * i for i in range(101)], [3e8] * 101))
+    # JAN: the previous holder traded right up to the listing - no gap, the listing date is the only witness
+    put("JAN", bars_of([2.2] * 300 + [23.6 + 0.04 * i for i in range(159)], [2e5] * 300 + [5e6] * 159))
+    # CTVA hands most of itself to VYLR, which lists that day; LQDA crashes the day before - nothing was handed out
+    put("CTVA", bars_of([77.0 + 0.001 * i for i in range(575)] + [12.5 + 0.01 * i for i in range(25)], [3.7e6] * 575 + [8e7] * 5 + [1.2e7] * 20))
+    put("VYLR", bars_on(DATES[-25:], [68.0 + 0.05 * i for i in range(25)], [2e7] * 25))
+    put("LQDA", bars_of([70.0] * 574 + [30.0] * 26, [1.1e6] * 574 + [1.3e7] * 5 + [2e6] * 21))
+    # MERG: the record names the old symbol but the price does not hand over (a merger exchange): refused, the cut stands
+    put("MERG", bars_on(DATES[-200:], [50.0] * 200))
+    put("OLDM", bars_on(DATES[:-200], [20.0] * (N - 200)))
+    s3.put(lf.BANK_EVENTS_ROOT + "MERG.json.gz", {"results": {"events": [{"ticker_change": {"ticker": "MERG"}, "type": "ticker_change", "date": DATES[-200].isoformat()}, {"ticker_change": {"ticker": "OLDM"}, "type": "ticker_change", "date": "2012-01-01"}]}})
+    return s3
+
+
+def test_build_reads_each_instrument_as_itself():
+    s3 = seed_continuity()
+    BOOK[:] = FAKE_BOOK + CONT_BOOK
+    lf.MIN_LEADERS = 5
+    out = lf.build(s3, NOW, log=lambda *a: None, remaining_s=300.0)
+    rows = {r["ticker"]: r for r in out["rows"]}
+    h = out["history"]
+    assert out["n_errors"] == 0, out["errors"]
+    # BNY: cut at the gap, BK put back in front, BK's raw 2-for-1 rebased - a year of the bank, not +1,260% of a fund
+    bny = rows["BNY"]
+    assert bny["history"]["sessions"] == 600 and bny["history"]["cut"]["reason"] == "gap" and bny["history"]["cut"]["dropped"] == 400
+    assert bny["history"]["stitched"] == [{"from": "BK", "on": DATES[-116].isoformat(), "source": "polygon-ticker-events", "sessions": N - 116, "handover_x": round(139.0 / (138.0 + 0.004 * 149), 4), "first": DATES[0].isoformat()}]
+    assert bny["splits"][0]["source"] == "polygon-splits" and bny["splits"][0]["factor"] == 0.5 and bny["history"]["jumps"] is None
+    assert -5 < bny["h"]["y"] < 15 and bny["ma"]["s250"] is not None and 130 < bny["ma"]["s250"] < 150 and bny["cross"] is not None
+    # VMRK: FMP's list names EQR
+    assert rows["VMRK"]["history"]["sessions"] == 600 and rows["VMRK"]["history"]["cut"] is None and rows["VMRK"]["history"]["stitched"][0]["from"] == "EQR" and rows["VMRK"]["history"]["stitched"][0]["source"] == "fmp-symbol-change"
+    assert rows["VMRK"]["h"]["y"] is not None and abs(rows["VMRK"]["h"]["y"]) < 10
+    # SPCX / JAN: no record - the history starts at the listing and longer horizons are null, never a guess
+    sp = rows["SPCX"]
+    assert sp["history"]["sessions"] == 101 and sp["history"]["cut"]["reason"] == "gap" and sp["history"]["stitched"] is None and sp["h"]["q"] is not None and sp["h"]["h"] is None and sp["h"]["y"] is None
+    assert sp["ma"]["s100"] is not None and sp["ma"]["s200"] is None and sp["cross"] is None and sp["vs"]["q"] is not None and sp["strength"] is not None
+    jan = rows["JAN"]
+    assert jan["history"]["sessions"] == 159 and jan["history"]["cut"]["reason"] == "listing" and jan["history"]["cut"]["ipo_date"] == DATES[-159].isoformat() and jan["h"]["y"] is None and jan["history"]["jumps"] is None
+    # CTVA: the collapse is a separation (VYLR listed that day, same sector, matching value): 25 sessions of the remaining company
+    ct = rows["CTVA"]
+    assert ct["history"]["sessions"] == 25 and ct["history"]["cut"]["reason"] == "separation" and ct["history"]["cut"]["listing"] == "VYLR" and ct["vs"] is None and ct["strength"] is None and ct["h"]["m"] is not None and abs(ct["h"]["m"]) < 5
+    assert rows["VYLR"]["history"]["sessions"] == 25 and rows["VYLR"]["history"]["cut"] is None
+    # LQDA: a crash stays a crash, and says so
+    lq = rows["LQDA"]
+    assert lq["history"]["cut"] is None and lq["history"]["sessions"] == 600 and lq["history"]["jumps"] == [{"date": DATES[-26].isoformat(), "ratio": round(30.0 / 70.0, 4), "ago": 25}] and lq["h"]["q"] < -50
+    # MERG: named by the record, refused by the tape
+    assert rows["MERG"]["history"]["sessions"] == 200 and rows["MERG"]["history"]["stitched"] is None and h["refused"] == {"MERG": "OLDM: hand-over x2.500 is not one security continuing"}
+    assert h["n_cut"] == 4 and sorted(h["cut"]) == ["BNY", "CTVA", "JAN", "SPCX"] and h["n_stitched"] == 2 and sorted(h["stitched"]) == ["BNY", "VMRK"] and h["n_with_jumps"] == 1
+    assert {"CTVA", "VYLR", "SPCX", "JAN", "MERG", "ACCO"} <= set(h["short"]) and "BNY" not in h["short"] and h["symbol_changes"]["rows"] == 1
+    # the rest of the universe is untouched by all this
+    assert rows["NVDA"]["history"]["cut"] is None and rows["META"]["splits"][0]["source"] == "polygon-splits"
 
 
 # ---------------------------------------------------------------------------------------------------------------- joins
@@ -463,9 +664,11 @@ def test_smart_verdict():
     dist = {"stance": "DISTRIBUTING", "net_usd": -5e8, "value_usd": 1e10}
     assert lf.smart_verdict(acc, None) == {"verdict": "BUYING", "score": 2, "legs": {"f13": 2}}
     assert lf.smart_verdict(dist, None)["verdict"] == "SELLING"
-    assert lf.smart_verdict({"stance": "CONTESTED", "net_usd": 2e8, "value_usd": 1e10}, None)["verdict"] == "LEANING BUY"
-    assert lf.smart_verdict({"stance": "CONTESTED", "net_usd": -2e8, "value_usd": 1e10}, None)["verdict"] == "LEANING SELL"
-    assert lf.smart_verdict({"stance": "CONTESTED", "net_usd": 5e7, "value_usd": 1e10}, None)["verdict"] == "QUIET"       # under 1% of the value
+    assert lf.smart_verdict({"stance": "CONTESTED", "net_usd": 1.2e9, "value_usd": 1e10}, None)["verdict"] == "LEANING BUY"
+    assert lf.smart_verdict({"stance": "CONTESTED", "net_usd": -1.2e9, "value_usd": 1e10}, None)["verdict"] == "LEANING SELL"
+    assert lf.smart_verdict({"stance": "CONTESTED", "net_usd": 9e8, "value_usd": 1e10}, None)["verdict"] == "QUIET"       # under 10% of the reported value
+    assert lf.smart_verdict({"stance": "CONTESTED", "net_usd": 1.2e9, "value_usd": 1e10, "value_prior_usd": 1.5e10}, None)["verdict"] == "QUIET"   # ... measured on the larger of the two disclosures
+    assert lf.smart_verdict({"stance": "CONTESTED", "net_usd": -4e8, "value_usd": 0, "value_prior_usd": 3e9}, None)["verdict"] == "LEANING SELL"   # a position closed out
     buy = {"buys": 2, "buy_usd": 5e5, "sell_usd": 0, "sellers": 0}
     sell = {"buys": 0, "buy_usd": 0, "sell_usd": 4e7, "sellers": 3}
     assert lf.smart_verdict(None, buy) == {"verdict": "LEANING BUY", "score": 1, "legs": {"insider": 1}}
@@ -490,6 +693,15 @@ def test_signals_vocabulary():
     assert lf.signals_of(row) == ["GOLDEN CROSS", "DOUBLE BOTTOM CONFIRMED", "SELLING CLIMAX", "VERY TIGHT", "STRONG ACCUMULATION", "BULL STACK", "RS HIGH", "SMART BUYING"]
     quiet = {"cross": {"type": "DEATH", "fresh": False, "near": "GOLDEN NEAR"}, "tight": {"tier": "TIGHT", "flag": "PINNED"}, "ad": {"label": "NEUTRAL"}, "ma": {"stack": "MIXED"}, "smart": {"verdict": "QUIET"}}
     assert lf.signals_of(quiet) == ["GOLDEN NEAR"] and lf.signals_of({}) == []
+    # a failed pattern stays on the row and off the signals and the boards
+    failed = {"ticker": "X", "dtop": {"kind": "DOUBLE TOP", "state": "FAILED", "ago": 30}, "dbot": {"kind": "DOUBLE BOTTOM", "state": "FORMING", "ago": 3}}
+    assert lf.signals_of(failed) == ["DOUBLE BOTTOM FORMING"]
+    live = [failed, {"ticker": "A", "dtop": {"kind": "DOUBLE TOP", "state": "FORMING", "ago": 2}}, {"ticker": "B", "dtop": {"kind": "DOUBLE TOP", "state": "CONFIRMED", "ago": 30, "break": {"ago": 4}, "target_hit": False}},
+            {"ticker": "C", "dtop": {"kind": "DOUBLE TOP", "state": "CONFIRMED", "ago": 12, "break": {"ago": 1}, "target_hit": True}}, {"ticker": "D", "dtop": {"kind": "DOUBLE TOP", "state": "CONFIRMED", "ago": 9, "break": {"ago": 2}, "target_hit": False}}]
+    b = lf.boards_of(live)
+    assert b["double_top"] == ["D", "B", "A", "C"] and b["double_bottom"] == ["X"]      # fresh confirmations, then forming, then the ones whose target already printed
+    many = [{"ticker": "T%03d" % i, "cross": {"type": "DEATH", "fresh": True, "ago": i % 20}} for i in range(150)]
+    assert len(lf.boards_of(many)["death_cross"]) == 150                                  # a board is never truncated: its length is the count
 
 
 # ---------------------------------------------------------------------------------------------------------- full build
@@ -546,6 +758,7 @@ def seed():
     s3.put("%s2026/2026-11-03.json.gz" % lf.INSIDER_ROOT, [form4("NVDA", "S-Sale", 100000, 200.0, "a"), form4("NVDA", "S-Sale", 50000, 200.0, "b"), form4("NVDA", "S-Sale", 50000, 200.0, "c"),
                                                           form4("AMD", "P-Purchase", 2500, 200.0, "z"), form4("TSM", "A-Award", 5, 0, "t")])
     s3.put("%s2026/2026-10-30.json.gz" % lf.INSIDER_ROOT, [form4("NVDA", "S-Sale", 100000, 200.0, "a")])
+    s3.put(lf.SYMBOL_CHANGE_KEY, [{"date": "2026-10-28", "companyName": "Somebody Else", "oldSymbol": "OLDX", "newSymbol": "NEWX"}])
     return s3
 
 
@@ -622,7 +835,11 @@ def test_build():
     s = out["summary"]
     assert s["n"] == 15 and s["smart_buying"] == 1 and s["smart_selling"] == 1 and s["accumulation"] >= 1 and 0 <= s["pct_beating_m"] <= 100 and s["pct_above_200"] is not None
     assert out["changes"]["prev_as_of"] is None and out["changes"]["new"] == []
-    assert out["n_errors"] == 0 and set(out["definitions"]) >= {"leaders", "ma", "cross", "double_top", "climax", "tight", "ad", "mf", "f13", "smart", "etf_flow"} and len(out["limitations"]) >= 5
+    # history: nothing to cut or stitch here; ACCO is simply short
+    h = out["history"]
+    assert h["n_cut"] == 0 and h["n_stitched"] == 0 and h["cut"] == {} and h["refused"] == {} and h["short"] == ["ACCO"] and h["symbol_changes"] == {"rows": 1, "newest": "2026-10-28", "last_modified": "2026-11-05T03:13:00+00:00"}
+    assert nv["history"] == {"sessions": 600, "from": DATES[-600].isoformat(), "cut": None, "stitched": None, "jumps": None} and rows["ACCO"]["history"]["sessions"] == 50
+    assert out["n_errors"] == 0 and set(out["definitions"]) >= {"leaders", "ma", "cross", "double_top", "climax", "tight", "ad", "mf", "f13", "smart", "etf_flow", "history"} and len(out["limitations"]) >= 5
     assert [x["engine"] for x in out["sources"]][:2] == ["justhodl-bank-factors", "justhodl-polygon-eod"] and len(json.dumps(out)) < 2_500_000
     return s3, out
 

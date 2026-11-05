@@ -69,6 +69,8 @@ PHASE_KEY = "data/phase-detector.json"
 BOTTOM_KEY = "data/bottom.json"
 BANK_FLOW_ROOT = "data/warm/polygon-bank/etf-global-fund-flows/"
 BANK_SPLITS_ROOT = "data/warm/polygon-bank/splits/"
+BANK_EVENTS_ROOT = "data/warm/polygon-bank/ticker-events/"     # Polygon's ticker-change record, one file per ticker
+SYMBOL_CHANGE_KEY = fmp_bank.WALKER_ROOT + "symbol-change/latest.json.gz"   # FMP's last hundred symbol changes
 INSIDER_ROOT = fmp_bank.WALKER_ROOT + "insider-trading-latest/"
 BENCH = "SPY"
 TOP_N = int(os.environ.get("TOP_N", "5"))
@@ -83,7 +85,7 @@ SPARK = 60
 THREADS = 12
 RESERVE_S = 60.0
 FLOW_STALE_DAYS = 7                                        # a Polygon-bank fund history older than this against the last session is not current
-BOOK_FIELDS = ["mcap", "dollar_vol_20d", "country", "cik", "short_pct_float", "days_to_cover", "short_volume_ratio", "beta"]
+BOOK_FIELDS = ["mcap", "dollar_vol_20d", "country", "cik", "short_pct_float", "days_to_cover", "short_volume_ratio", "beta", "ipo_date"]
 NOT_COMMON_SUFFIX = re.compile(r"-(R|RI|RT|RW|WS|WT|W|U|UN|CVR)$")      # rights, warrants, units, contingent value rights carried under the issuer's market cap
 F13_KEEP = ("n_holders", "n_prior_holders", "holder_delta", "value_usd", "value_prior_usd", "inflow_usd", "outflow_usd", "net_usd", "bull", "bear", "stance", "conc_n_holders", "conc_holder_delta")
 F13_IND_KEEP = ("value_usd", "value_prior_usd", "value_change_pct", "n_identities", "n_managers", "tilt_pct", "stance", "inflow_usd", "outflow_usd", "net_usd", "net_pct_of_prior", "money_stance")
@@ -94,8 +96,8 @@ SOURCES = [
     {"engine": "justhodl-13f-book", "key": BOOK_KEY, "role": "13F cohort money by industry", "schedule": "daily 16:37 UTC + hand-off", "expected_h": 24},
     {"engine": "justhodl-etf-global-desk", "key": DESK_KEY, "role": "native ETF desk: reported fund flows (116 funds)", "schedule": "daily 23:05 UTC", "expected_h": 24},
     {"engine": "justhodl-etf-fund-flows", "key": CANON_KEY, "role": "canonical 300-fund flow packet (ETF Global via Massive/Polygon)", "schedule": "daily 22:00 UTC", "expected_h": 24},
-    {"engine": "justhodl-polygon-bank", "key": "data/warm/polygon-bank/manifest.json", "role": "per-fund ETF Global flow histories + the split reference file", "schedule": "daily 22:41 UTC", "expected_h": 24},
-    {"engine": "justhodl-fmp-walker", "key": "data/warm/fmp/manifest.json", "role": "insider (Form 4) feed, one file per filing day", "schedule": "daily 23:27 UTC", "expected_h": 24},
+    {"engine": "justhodl-polygon-bank", "key": "data/warm/polygon-bank/manifest.json", "role": "per-fund ETF Global flow histories, the split reference file, ticker-change events", "schedule": "daily 22:41 UTC", "expected_h": 24},
+    {"engine": "justhodl-fmp-walker", "key": "data/warm/fmp/manifest.json", "role": "insider (Form 4) feed, one file per filing day; the symbol-change list", "schedule": "daily 23:27 UTC", "expected_h": 24},
     {"engine": "justhodl-phase-detector", "key": PHASE_KEY, "role": "Wyckoff phase per ticker (corroboration)", "schedule": "daily 23:42 UTC", "expected_h": 24},
     {"engine": "justhodl-bottom", "key": BOTTOM_KEY, "role": "Wyckoff bottom desk states (corroboration)", "schedule": "TUE-SAT 03:45 UTC", "expected_h": 72},
 ]
@@ -160,7 +162,8 @@ def select_leaders(book_rows, top_n=TOP_N, min_cap=MIN_CAP, min_dv=MIN_DV):
             continue
         cand.append({"symbol": sym, "ticker": canon(sym), "name": r.get("name"), "sector": r.get("sector") or None, "industry": ind, "country": r.get("country") or None,
                      "adr": bool(r.get("is_adr")), "mcap": mcap, "dv20": dv, "cik": (str(r.get("cik")).lstrip("0") or None) if r.get("cik") not in (None, "") else None,
-                     "short_pct_float": _num(r.get("short_pct_float")), "days_to_cover": _num(r.get("days_to_cover")), "short_volume_ratio": _num(r.get("short_volume_ratio")), "beta": _num(r.get("beta"))})
+                     "short_pct_float": _num(r.get("short_pct_float")), "days_to_cover": _num(r.get("days_to_cover")), "short_volume_ratio": _num(r.get("short_volume_ratio")), "beta": _num(r.get("beta")),
+                     "ipo_date": str(r["ipo_date"])[:10] if r.get("ipo_date") else None})
     # one company, one line: the share class that trades the most dollars
     by_cik = {}
     for x in cand:
@@ -308,6 +311,51 @@ def recorded_splits(s3, first_iso, last_iso, want):
                 if t in want and first_iso <= d <= last_iso and r.get("split_from") and r.get("split_to"):
                     out.setdefault(t, []).append({"date": d, "split_from": r["split_from"], "split_to": r["split_to"]})
     return out, n
+
+
+# -------------------------------------------------------------------------------------------------------- continuity
+def listings_of(book_rows):
+    """[(listing date, ticker, market cap, sector)] of the common stocks in the factor book - what a separation is
+    weighed against. Pure."""
+    out = []
+    for r in book_rows:
+        d, m = r.get("ipo_date"), _num(r.get("mcap"))
+        if d and m and m > 0 and len(str(d)) >= 10 and is_common(r):
+            out.append((str(d)[:10], canon(r.get("symbol")), m, r.get("sector") or None))
+    return out
+
+
+def continuous(s3, ticker, bars, ipo_date, changes, deadline=None):
+    """One ticker's banked bars cut down to its own continuous history, with the previous symbol's bars put back in
+    front when the record of the change and the tape agree (leaders_tape: own_history / predecessor / stitch).
+    Returns (bars, cut, stitched, refused, old tickers)."""
+    own, cut = T.own_history(bars, ipo_date)
+    stitched, refused, olds = [], None, []
+    if not own or len(own) >= LOOKBACK:
+        return own, cut, stitched, refused, olds
+    events, _, _ = optional(s3, BANK_EVENTS_ROOT + bank_key(ticker).rsplit("/", 1)[-1])
+    events = T.ticker_events(events)
+    cur, cur_cut = ticker, cut
+    for _ in range(T.STITCH_DEPTH):
+        if len(own) >= LOOKBACK or (deadline and time.time() > deadline):
+            break
+        pred = T.predecessor(cur, own[0]["date"], cur_cut, events, changes)
+        if not pred:
+            break
+        old, source = pred
+        try:
+            old_bars = read_bars(s3, old, 10 ** 6)
+        except Exception as exc:  # noqa: BLE001
+            refused = "%s: %s" % (old, type(exc).__name__)
+            break
+        own, info, why = T.stitch(own, old_bars, old, source)
+        if not info:
+            refused = "%s: %s" % (old, why)
+            break
+        stitched.append(info)
+        olds.append(old)
+        cur, cur_cut = old, None
+    return own[-LOOKBACK:], cut, stitched, refused, olds
 
 
 # --------------------------------------------------------------------------------------------------------- fund flows
@@ -504,7 +552,7 @@ def signals_of(row):
         out.append(cr["near"])
     for k in ("dtop", "dbot"):
         p = row.get(k)
-        if p:
+        if p and p["state"] in ("FORMING", "CONFIRMED"):         # a FAILED pattern stays on the row and off the signals
             out.append("%s %s" % (p["kind"], p["state"]))
     cl = row.get("climax")
     if cl:
@@ -528,18 +576,22 @@ def signals_of(row):
     return out
 
 
+SMART_LEAN_SHARE = 0.10        # a contested 13F read leans only when the cohort's net dollars are at least 10% of the larger reported value
+                               # (ops 6744: the median contested name moves 15% - a 1% bar leaned on 95% of them)
+
+
 def smart_verdict(f13, insider):
     """Is smart money buying or selling: the 13F cohort's stance (two dated disclosures) and insiders' open-market
     trades over the feed window. score = 13F leg (+2 ACCUMULATING, -2 DISTRIBUTING, +-1 when contested but net dollars
-    are at least 1% of the reported value) + insider leg (+1 on purchases of at least $100K that exceed sales; -1 on
-    sales of at least $10M by three or more insiders with no purchase). BUYING >= 2, SELLING <= -2, LEANING at +-1,
-    QUIET at 0 with a leg present, NO READ with none. Pure."""
+    are at least 10% of the larger of the two reported values) + insider leg (+1 on purchases of at least $100K that
+    exceed sales; -1 on sales of at least $10M by three or more insiders with no purchase). BUYING >= 2, SELLING <= -2,
+    LEANING at +-1, QUIET at 0 with a leg present, NO READ with none. Pure."""
     legs, score, have = {}, 0, False
     if f13:
         have = True
-        st, net, val = f13.get("stance"), f13.get("net_usd"), f13.get("value_usd") or f13.get("value_prior_usd")
+        st, net, val = f13.get("stance"), f13.get("net_usd"), max(f13.get("value_usd") or 0, f13.get("value_prior_usd") or 0)
         leg = 2 if st == "ACCUMULATING" else -2 if st == "DISTRIBUTING" else 0
-        if leg == 0 and net is not None and val and abs(net) >= 0.01 * val:
+        if leg == 0 and net is not None and val and abs(net) >= SMART_LEAN_SHARE * val:
             leg = 1 if net > 0 else -1
         legs["f13"] = leg
         score += leg
@@ -648,10 +700,21 @@ def industry_rows(leaders, industries, book_ind, etf_by):
     return out
 
 
-def board(rows, pred, key, n=60):
+def board(rows, pred, key):
+    """Every ticker that prints the signal, in board order - never truncated, so a count is the length of the list."""
     xs = [r for r in rows if pred(r)]
     xs.sort(key=key)
-    return [r["ticker"] for r in xs[:n]]
+    return [r["ticker"] for r in xs]
+
+
+def _live(p):
+    return bool(p) and p.get("state") in ("FORMING", "CONFIRMED")
+
+
+def _pattern_order(p):
+    """Fresh confirmations first, then patterns still forming, then confirmations whose target has already printed."""
+    done = bool(p.get("target_hit"))
+    return (0 if (p["state"] == "CONFIRMED" and not done) else 1 if p["state"] == "FORMING" else 2, (p.get("break") or {}).get("ago", p["ago"]) if p["state"] == "CONFIRMED" else p["ago"])
 
 
 def boards_of(rows):
@@ -664,8 +727,8 @@ def boards_of(rows):
         "death_cross": board(live, lambda r: cr(r).get("fresh") and cr(r)["type"] == "DEATH", lambda r: cr(r)["ago"]),
         "golden_near": board(live, lambda r: cr(r).get("near") == "GOLDEN NEAR", lambda r: cr(r).get("eta") or 99),
         "death_near": board(live, lambda r: cr(r).get("near") == "DEATH NEAR", lambda r: cr(r).get("eta") or 99),
-        "double_top": board(live, lambda r: r.get("dtop"), lambda r: (r["dtop"]["state"] != "CONFIRMED", r["dtop"]["ago"])),
-        "double_bottom": board(live, lambda r: r.get("dbot"), lambda r: (r["dbot"]["state"] != "CONFIRMED", r["dbot"]["ago"])),
+        "double_top": board(live, lambda r: _live(r.get("dtop")), lambda r: _pattern_order(r["dtop"])),
+        "double_bottom": board(live, lambda r: _live(r.get("dbot")), lambda r: _pattern_order(r["dbot"])),
         "buying_climax": board(live, lambda r: (r.get("climax") or {}).get("type") == "BUYING", lambda r: r["climax"]["ago"]),
         "selling_climax": board(live, lambda r: (r.get("climax") or {}).get("type") == "SELLING", lambda r: r["climax"]["ago"]),
         "tight": board(live, lambda r: (r.get("tight") or {}).get("tier") in ("VERY TIGHT", "TIGHT") and not r["tight"].get("flag"), lambda r: -(r["tight"].get("score") or 0)),
@@ -673,8 +736,8 @@ def boards_of(rows):
         "distribution": board(live, lambda r: ad(r) is not None and ad(r) <= -T.AD_STRONG, lambda r: ad(r)),
         "smart_buying": board(live, lambda r: (r.get("smart") or {}).get("verdict") == "BUYING", lambda r: -(((r.get("f13") or {}).get("net_usd")) or 0)),
         "smart_selling": board(live, lambda r: (r.get("smart") or {}).get("verdict") == "SELLING", lambda r: (((r.get("f13") or {}).get("net_usd")) or 0)),
-        "bull_stack": board(live, lambda r: (r.get("ma") or {}).get("stack") == "BULL", lambda r: -(r.get("strength") or 0), 200),
-        "bear_stack": board(live, lambda r: (r.get("ma") or {}).get("stack") == "BEAR", lambda r: (r.get("strength") or 0), 200),
+        "bull_stack": board(live, lambda r: (r.get("ma") or {}).get("stack") == "BULL", lambda r: -(r.get("strength") or 0)),
+        "bear_stack": board(live, lambda r: (r.get("ma") or {}).get("stack") == "BEAR", lambda r: (r.get("strength") or 0)),
         "rs_new_highs": board(live, lambda r: r.get("rs_new_high"), lambda r: -(r.get("strength") or 0)),
         "rs_new_lows": board(live, lambda r: r.get("rs_new_low"), lambda r: (r.get("strength") or 0)),
     }
@@ -734,25 +797,28 @@ DEFINITIONS = {
     "strength": "percentile (0-100) within the leaders of the weighted cross-sectional z-score of excess return on 1d / 5d / 21d / 63d / 126d (10 / 20 / 30 / 25 / 15) - the strength desk's construction",
     "ma": "the last close against its 20 / 50 / 100 / 200 / 250-session simple averages: d<N> = distance in %, above = how many it is over, stack = BULL when close > 20 > 50 > 100 > 200 > 250, BEAR when the reverse, else MIXED",
     "cross": "50 / 200-session average cross: GOLDEN when the 50 crosses above the 200, DEATH below; fresh = within 20 sessions; near = the gap is at most 1.5% and closing at a pace that meets within 15 sessions; n_120 counts the crosses of the last 120 sessions (2 or more is a whipsaw)",
-    "double_top": "two swing highs within 3-5% of each other, 10-150 sessions apart, a swing low between them at least 5% lower, the first high a 90-session high; FORMING while closes hold that low (the neckline), CONFIRMED on a close 0.5% under it, void on a close 0.5% over the higher high; target = the neckline minus the pattern's height",
+    "double_top": "two swing highs within 3-5% of each other, 10-150 sessions apart, a swing low between them at least 5% lower, the first high a 90-session high; FORMING while closes hold that low (the neckline) and the second high is at most 40 sessions old; CONFIRMED on a close 0.5% under the neckline (kept 20 sessions; target_hit once a close reaches the neckline minus the pattern's height); FAILED when the close is back over the neckline by more than max(3%, half the swing threshold) before the target printed - a failed pattern stays on the row and off the boards; void on a close 0.5% over the higher high. to_neck_pct is the neckline against the last close",
     "double_bottom": "the mirror of the double top; vol_ratio under 1 means the second low printed on lighter volume than the first (the secondary test of the bottom paper)",
-    "climax": "SELLING: a new 120-session low after a decline of at least 6 ATR and 12% (funds 10%), close under the 50-session average and in the bottom 35% of the yearly range, the heaviest volume of 60 sessions and at least 2x the 250-session average, a range of at least 1.5 ATR, and absorption (the close off the low or a higher close within three sessions). BUYING: the mirror at a new 120-session high after an advance of at least 20% (funds 12%). The last 30 sessions are read. A climax locates stopping action; it is not a trade",
+    "climax": "SELLING: a new 120-session low after a decline of at least 6 ATR and 12% (funds 10%), close under the 50-session average and in the bottom 35% of the yearly range, the heaviest volume of 60 sessions and at least 2x the 250-session average, a range of at least 1.5 ATR, and absorption (the close off the low or a higher close within three sessions). BUYING: the mirror at a new 120-session high after an advance of at least 20% (funds 12%). The last 30 sessions are read; day_pct and gap_pct are the climax session's own move and opening gap (a bar that is one piece of news reads as that), held says whether its extreme has stood since. A climax locates stopping action; it is not a trade",
     "tight": "the strength desk's coil: the longest trailing run of closes inside 6% (VERY TIGHT, 40+ sessions), 10% (TIGHT, 40+), 15% (LONG BASE, 120+) or 10% (FORMING, 20+) of the last close, counted only when the base is at most 60% of the yearly close range; score 0-100 = length + tightness + Bollinger squeeze + volume dry-up + accumulation inside the base + RS holding; PINNED = a stock almost motionless inside a sliver of a base (deal-like), kept off the board",
-    "ad": "tape accumulation / distribution, -100..+100: Chaikin money flow on 21 and 63 sessions, up-volume over down-volume on 50, net on-balance volume on 63, accumulation minus distribution sessions (a move of 0.2% on volume 1.2x the 50-session average) in the last 25; weights 25 / 20 / 25 / 15 / 15; +35 STRONG ACCUMULATION (A), +12 ACCUMULATION (B), -12 DISTRIBUTION (D), -35 STRONG DISTRIBUTION (E)",
+    "ad": "tape accumulation / distribution, -100..+100: Chaikin money flow on 21 and 63 sessions, up-volume over down-volume on 50, net on-balance volume on 63, accumulation minus distribution sessions (a move of 0.2% on volume 1.2x the 50-session average) in the last 25; weights 25 / 20 / 25 / 15 / 15; +60 STRONG ACCUMULATION (A), +20 ACCUMULATION (B), -20 DISTRIBUTION (D), -60 STRONG DISTRIBUTION (E); the benchmark's own score is published beside the leaders'",
     "mf": "signed dollar volume: a session's typical price x shares counts as money in when the typical price rose from the prior session and money out when it fell; in / out / net on 5 / 21 / 63 sessions. A tape estimate of pressure, not a reported flow",
     "f13": "the 13F cohort's read of the ticker across two dated quarterly disclosures: holders now / prior, bull / bear manager votes, dollars in / out / net at reported prices, stance. Newly disclosed is not bought, absent is not sold, and the filings are 45+ days old when they arrive",
     "insider": "open-market purchases (P) and sales (S) on Form 4 over the last 90 days from the banked feed: transactions, distinct insiders, dollars. Awards, option exercises, tax withholding and gifts are not counted. Sales are mostly scheduled plans; purchases are the informative side. Foreign private issuers (most ADRs) do not file Form 4",
-    "smart": "13F leg (+2 ACCUMULATING, -2 DISTRIBUTING, +-1 when contested but net dollars are at least 1% of the reported value) + insider leg (+1 on purchases of at least $100K exceeding sales, -1 on $10M+ of sales by three or more insiders with no purchase): BUYING at +2 or more, SELLING at -2 or less, LEANING at +-1, QUIET at 0, NO READ without either leg",
+    "smart": "13F leg (+2 ACCUMULATING, -2 DISTRIBUTING, +-1 when contested but net dollars are at least 10% of the larger of the two reported values) + insider leg (+1 on purchases of at least $100K exceeding sales, -1 on $10M+ of sales by three or more insiders with no purchase): BUYING at +2 or more, SELLING at -2 or less, LEANING at +-1, QUIET at 0, NO READ without either leg",
     "etf_flow": "reported creations / redemptions of the industry's funds on the fund's own last 1 / 5 / 21 reporting observations, USD and % of reported assets: the native ETF desk, else the canonical 300-fund packet, else the Polygon bank's per-fund ETF Global history (used only when every row names the fund and its last observation is within 7 days). An industry with no fund of its own shows its sector fund, labelled a sector proxy",
     "industry": "an industry's row is its five largest leaders: cap-weighted (vs) and equal-weighted (ew_vs) excess return, share above the 50 / 200-session averages, average A/D score, the leaders' summed signed dollar volume and 13F dollars, and the 13F book's own industry layer (all the cohort's holdings in the industry, not only the leaders)",
+    "history": "the bars a row is computed from: sessions and the first date; cut = where the series was shortened (gap: the ticker printed nothing for more than 10 days, so the bars before belong to another security or another stretch; listing: bars older than the listing date; separation: an overnight collapse on the day a same-sector company worth 0.5x-2x the vanished value listed); stitched = the previous symbol's bars put back in front (named by Polygon's ticker events or FMP's symbol-change list, and only when the tape hands over within x0.7-x1.4); jumps = one-session moves beyond x1.8 / x0.56 that are real prints (a horizon spanning one says so). A horizon longer than the history is null",
     "changes": "signals that appeared or went away against the previous session's publication",
 }
 LIMITATIONS = [
     "13F is quarterly and arrives up to 45 days after the quarter: the cohort read is the last two disclosures, not this week's trading.",
-    "FMP's all-institution ownership summaries are not banked (the provider's bandwidth hold), so the institutional read is the 18-manager 13F cohort only.",
+    "FMP's all-institution ownership summaries are not banked (the provider's bandwidth hold), so the institutional read is the 13F desk's manager cohort only (f13.n_cohort managers).",
     "Signed dollar volume and the A/D score are tape estimates from daily bars; every share bought was also sold.",
     "Insider data covers Form 4 filers; foreign private issuers (most ADRs) are exempt and carry no insider leg.",
     "Fund flows for funds outside the ETF desk and the canonical 300 come from the Polygon bank's rotation and can be several days behind; a history older than 7 days is shown as not current.",
+    "The bars adjust for splits only. A spin-off worth less than 44% of its parent prints as a one-session drop in the parent that no holder lost; dividends are not added back.",
+    "A ticker change is bridged only when a record names the previous symbol; without one the history starts at the change (history.cut) and longer horizons are null.",
     "Double tops / bottoms and climaxes are mechanical readings of daily bars with no out-of-sample validation; nothing here is a call or grants sizing authority.",
 ]
 
@@ -806,18 +872,56 @@ def build(s3, now, log=print, remaining_s=300.0):
             bars_by[t] = b
     unbanked = sorted(t for t, b in bars_by.items() if b is not None and not b)
     skipped = sorted(t for t, b in bars_by.items() if b is None)
-    # 2b. splits: recorded ones the bars still print, then inferred ones
+    # 2a. continuity: a ticker is not a security. Each series is cut to its own continuous history, and the symbol
+    #     it traded under before is put back in front where the record and the tape agree
+    ipo_by = {canon(r.get("symbol")): str(r["ipo_date"])[:10] for r in book if r.get("ipo_date")}
+    changes, changes_mod, changes_err = optional(s3, SYMBOL_CHANGE_KEY)
+    changes = changes if isinstance(changes, list) else []
+    if changes_err:
+        errors.append({"input": "fmp-symbol-change", "error": changes_err})
+    cuts, stitched_by, refused_by, alias = {}, {}, {}, {}
+    bench, _ = T.own_history(bench)
+    for t, b in list(bars_by.items()):
+        if not b:
+            continue
+        try:
+            bars_by[t], cut, st, why, olds = continuous(s3, t, b, ipo_by.get(t), changes, deadline)
+        except Exception as exc:  # noqa: BLE001
+            errors.append({"ticker": t, "error": "continuity %s: %s" % (type(exc).__name__, str(exc)[:80])})
+            bars_by[t], cut = T.own_history(b, ipo_by.get(t))
+            st, why, olds = [], None, []
+        if cut:
+            cuts[t] = cut
+        if st:
+            stitched_by[t], alias[t] = st, olds
+        if why:
+            refused_by[t] = why
+    # 2b. splits: recorded ones the bars still print (the predecessor symbol's included), then inferred ones
     first_day = min([b[0]["date"] for b in bars_by.values() if b] + [bench[0]["date"]])
-    rec, n_windows = recorded_splits(s3, first_day, (bank_last or bench[-1]["date"]), set(bars_by) | {BENCH})
-    splits_by = {}
+    rec, n_windows = recorded_splits(s3, first_day, (bank_last or bench[-1]["date"]), set(bars_by) | {BENCH} | {o for olds in alias.values() for o in olds})
+    splits_by, jumps_by = {}, {}
     bench, ev = T.rebase(bench, rec.get(BENCH))
     if ev:
         splits_by[BENCH] = ev
+    listings = listings_of(book)
     for t, b in list(bars_by.items()):
         if b:
-            bars_by[t], ev = T.rebase(b, rec.get(t))
+            b, ev = T.rebase(b, (rec.get(t) or []) + [e for o in alias.get(t, []) for e in rec.get(o) or []])
             if ev:
                 splits_by[t] = ev
+            # 2c. a collapse on the day a same-sector company of matching value lists is a separation, not a loss
+            m = meta_by.get(t)
+            if m:
+                b, sep = T.separation_cut(b, ev, t, m["mcap"], m["sector"], listings)
+                if sep:
+                    cuts[t] = sep
+            jumps = T.jumps_of(b, ev)
+            if jumps:
+                jumps_by[t] = jumps
+            bars_by[t] = b
+
+    def history_of(t, b):
+        return {"sessions": len(b), "from": b[0]["date"], "cut": cuts.get(t), "stitched": stitched_by.get(t), "jumps": jumps_by.get(t)}
     # 3. the joins
     tbl, tbl_mod, tbl_err = optional(s3, TICKERS_KEY)
     tbl_rows, tbl_cols = (tbl or {}).get("by_ticker") or {}, (tbl or {}).get("columns") or []
@@ -885,6 +989,7 @@ def build(s3, now, log=print, remaining_s=300.0):
              "mcap": f(m["mcap"], 0), "mcap_share_pct": m.get("mcap_share_pct"), "dv20": f(m["dv20"], 0), "classes": m.get("classes") or [], "small": bool(m.get("small")),
              "short_pct_float": f(m.get("short_pct_float")), "days_to_cover": f(m.get("days_to_cover")), "short_volume_ratio": f(m.get("short_volume_ratio"), 3), "beta": f(m.get("beta"))}
         r.update(tape_row(b, bench, bank_last, "stock"))
+        r["history"] = history_of(t, b)
         r["splits"] = splits_by.get(t)
         r["f13"] = f13_of(tbl_rows, tbl_cols, t)
         r["insider"] = insiders.get(t)
@@ -906,6 +1011,7 @@ def build(s3, now, log=print, remaining_s=300.0):
         r = {"ticker": t, "kind": "fund", "industries": m["industries"], "roles": m["roles"], "role": "industry" if "industry" in m["roles"].values() else "theme" if "theme" in m["roles"].values() else "sector",
              "thin": m["thin"], "n_industries": len(m["industries"])}
         r.update(tape_row(b, bench, bank_last, "fund"))
+        r["history"] = history_of(t, b)
         r["splits"] = splits_by.get(t)
         r["flow"] = flows.get(t)
         r["f13"] = f13_of(tbl_rows, tbl_cols, t)
@@ -943,6 +1049,11 @@ def build(s3, now, log=print, remaining_s=300.0):
         "splits": {"windows_read": n_windows, "n_rebased": len(splits_by), "recorded": sum(1 for ev in splits_by.values() for e in ev if e.get("source") == "polygon-splits"),
                    "inferred": sum(1 for ev in splits_by.values() for e in ev if e.get("source") == "inferred"), "tickers": {t: ev for t, ev in sorted(splits_by.items())},
                    "note": "the bank's history was pulled adjusted; sessions appended since are raw. A recorded split is applied only when the bars still print it; an unrecorded jump is rebased when volume confirms it"},
+        "history": {"gap_days": T.GAP_DAYS, "n_cut": len(cuts), "n_stitched": len(stitched_by), "n_with_jumps": len(jumps_by),
+                    "cut": {t: c for t, c in sorted(cuts.items())}, "stitched": {t: x for t, x in sorted(stitched_by.items())}, "refused": {t: x for t, x in sorted(refused_by.items())},
+                    "short": sorted(r["ticker"] for r in rows + etfs if r["sessions"] < 253),
+                    "symbol_changes": {"rows": len(changes), "newest": max([str(x.get("date") or "") for x in changes if isinstance(x, dict)] or [None]), "last_modified": changes_mod},
+                    "note": "the bank keys bars by ticker and a ticker can change hands: a series is cut at a calendar gap of more than %d days, at its listing date and at a separation, and the previous symbol's bars are put back in front only when Polygon's ticker events or FMP's symbol-change list name it and the tape hands over within x%.1f..x%.1f" % (T.GAP_DAYS, T.HANDOVER_MIN, T.HANDOVER_MAX)},
         "f13": {"period": (tbl or {}).get("period"), "generated_at": (tbl or {}).get("generated_at"), "n_cohort": (tbl or {}).get("n_cohort"), "last_modified": tbl_mod,
                 "n_leaders_held": sum(1 for r in rows if r.get("f13")), "n_industries": len(book_ind), "book_last_modified": book_mod},
         "flows": {"desk_generated_at": (desk or {}).get("generated_at"), "desk_last_modified": desk_mod, "canonical_generated_at": (canon_doc or {}).get("generated_at"), "canonical_last_modified": canon_mod,
