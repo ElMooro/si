@@ -186,13 +186,14 @@ def main():
 
             def chips():
                 got = {}
+                members = {k: {x["ticker"] for x in v} for k, v in (art.get("sleeves") or {}).items()}
                 for c in ("BOND", "HIGH YIELD", "METAL", "CRYPTO", "COUNTRY"):
                     page.click('#chips [data-s="%s"]' % c)
                     page.wait_for_timeout(200)
-                    sl = page.evaluate("() => [...new Set([...document.querySelectorAll('#tbl tbody tr')].map(tr => tr.children[2].innerText.trim()))]")
-                    n = page.evaluate("() => document.querySelectorAll('#tbl tbody tr a.tk').length")
-                    assert sl == [c] and n >= 2, (c, sl, n)
-                    got[c] = n
+                    shown = page.evaluate("() => [...document.querySelectorAll('#tbl tbody tr a.tk')].map(a => a.innerText.trim())")
+                    # a name that sits in two sleeves (GLD: ETF and METAL) shows under both with its first sleeve's label - membership is the test
+                    assert shown and all(t in members.get(c, set()) for t in shown) and len(shown) >= 2, (c, shown[:8], sorted(members.get(c, set()))[:8])
+                    got[c] = len(shown)
                 page.click('#chips [data-s="ALL"]')
                 page.wait_for_timeout(200)
                 got["ALL"] = page.evaluate("() => document.querySelectorAll('#tbl tbody tr a.tk').length")
