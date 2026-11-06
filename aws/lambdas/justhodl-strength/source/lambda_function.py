@@ -74,7 +74,7 @@ try:
 except Exception:  # noqa: BLE001
     etf_desk_catalog = None
 
-VERSION = "1.0.7"
+VERSION = "1.0.8"
 CONTRACT = "strength.v1"
 ENGINE = "justhodl-strength"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -103,6 +103,13 @@ THESIS_DAYS = int(os.environ.get("THESIS_DAYS", "252"))      # sessions walked f
 DUMP_PCT = float(os.environ.get("DUMP_PCT", "-1.0"))         # an S&P 500 session at or under this is a dump day
 FLAT_PCT = 0.25                                              # |move| inside this = flat
 THESIS_MIN_ROWS = int(os.environ.get("THESIS_MIN_ROWS", "20"))  # a session needs this many ranked names to count
+RALLY_PCT = float(os.environ.get("RALLY_PCT", "1.0"))        # an S&P 500 session at or above this is a rally day
+THESIS_WINDOWS = (21, 63, 252)                               # 1.0.8 (Khalid: "a year back might give you stale data ... a month or a quarter back")
+ASYM_N = 63                                                  # the asymmetry read: trailing sessions for down-day / up-day excess
+ASYM_SHORT = 21
+IND_MIN = 3                                                  # an industry read needs this many ranked stocks in the universe
+IND_CONFIRM_PCT = 70.0                                       # an industry at or above this percentile confirms its members
+LEADERS_KEY = os.environ.get("LEADERS_KEY", "data/leaders.json")   # the leaders desk's industry table (every FMP industry's five largest)
 
 SLEEVES = {
     "ETF": [("QQQ", "Nasdaq 100"), ("IWM", "Russell 2000"), ("DIA", "Dow 30"), ("XLK", "Technology"), ("SMH", "Semis"), ("XLF", "Financials"),
@@ -224,6 +231,7 @@ SOURCES = [
     {"engine": "justhodl-etf-global-desk", "key": DESK_KEY, "role": "native ETF desk: reported fund flows, profiles, holdings", "schedule": "daily 23:05 UTC", "expected_h": 24},
     {"engine": "justhodl-etf-fund-flows", "key": CANON_KEY, "role": "canonical 300-fund flow packet (ETF Global via Massive/Polygon)", "schedule": "daily 22:00 UTC", "expected_h": 24},
     {"engine": "justhodl-13f-book", "key": TICKERS_KEY, "role": "13F cohort read per ticker", "schedule": "daily 16:37 UTC + hand-off", "expected_h": 24},
+    {"engine": "justhodl-leaders", "key": LEADERS_KEY, "role": "industry table: every FMP industry's five largest vs the S&P 500 (industry confirmation)", "schedule": "daily 03:50 UTC", "expected_h": 30},
 ]
 
 
@@ -327,6 +335,46 @@ def rs_metrics(c, s):
         out["rs_vs_52w"] = f((rs[-1] / mean - 1) * 100) if mean else None
         out["rs_52w_pos"] = f(100.0 * (rs[-1] - lo) / (hi - lo), 1) if hi > lo else None
         out["rs_new_high"] = bool(rs[-1] >= hi * 0.995)
+    return out
+
+
+def capture(c, s_, n):
+    """1.0.8 - the asymmetry read on the last n aligned sessions: how the name moved on SPY's down days and on SPY's up
+    days. down_excess_pp / up_excess_pp = mean (name - SPY) on those days; down_capture / up_capture = the name's mean
+    move over SPY's; dump / rally = SPY sessions at or beyond DUMP_PCT / RALLY_PCT with the share the name held up on
+    (flat, up, or down less than SPY) / beat SPY on; asym_pp = down_excess + up_excess: positive on both sides is
+    Khalid's "dumps less than SPY, rallies more than SPY". Pure."""
+    m = len(c)
+    if m < n + 1:
+        return None
+    dn, up, dump_h, dump_n, rally_b, rally_n = [], [], 0, 0, 0, 0
+    for i in range(m - n, m):
+        if c[i - 1] <= 0 or s_[i - 1] <= 0:
+            continue
+        r = (c[i] / c[i - 1] - 1.0) * 100.0
+        sp = (s_[i] / s_[i - 1] - 1.0) * 100.0
+        if sp < 0:
+            dn.append((r, sp))
+        elif sp > 0:
+            up.append((r, sp))
+        if sp <= DUMP_PCT:
+            dump_n += 1
+            dump_h += 1 if (r >= -FLAT_PCT or r > sp) else 0
+        if sp >= RALLY_PCT:
+            rally_n += 1
+            rally_b += 1 if r > sp else 0
+    out = {"n": n, "n_down": len(dn), "n_up": len(up), "down_excess_pp": None, "up_excess_pp": None, "down_capture": None, "up_capture": None, "asym_pp": None,
+           "dump_days": dump_n, "dump_held_pct": f(100.0 * dump_h / dump_n, 0) if dump_n else None, "rally_days": rally_n, "rally_beat_pct": f(100.0 * rally_b / rally_n, 0) if rally_n else None}
+    if dn:
+        md, ms = sum(r for r, _ in dn) / len(dn), sum(sp for _, sp in dn) / len(dn)
+        out["down_excess_pp"] = f(md - ms)
+        out["down_capture"] = f(md / ms, 2) if ms else None
+    if up:
+        mu, ms = sum(r for r, _ in up) / len(up), sum(sp for _, sp in up) / len(up)
+        out["up_excess_pp"] = f(mu - ms)
+        out["up_capture"] = f(mu / ms, 2) if ms else None
+    if dn and up:
+        out["asym_pp"] = f(out["down_excess_pp"] + out["up_excess_pp"])
     return out
 
 
@@ -634,7 +682,57 @@ def rank_rows(rows):
     for r in rows:
         zc = by_class.get(r.get("asset_class")) or []
         r["strength_in_class"] = f(percentile_of(r["z"], zc), 1) if r.get("z") is not None and len(zc) >= 5 else None
+    # 1.0.8: the asymmetry rank - universe percentile of asym_pp (down-day excess + up-day excess over the last 63 sessions)
+    asyms = [r["asym_pp"] for r in rows if r.get("asym_pp") is not None and not r.get("excluded")]
+    for r in rows:
+        r["asym_rank"] = f(percentile_of(r["asym_pp"], asyms), 1) if r.get("asym_pp") is not None and not r.get("excluded") else None
     return {k: {"mean": f(v[0]), "sd": f(v[1])} if v else None for k, v in stats.items()}
+
+
+def industry_reads(rows, leaders_doc):
+    """1.0.8 - industry confirmation ("entire industry seeing strength is even better"): for every stock, its industry's
+    read from this universe (members ranked here, median strength / asymmetry, share ahead of SPY on the month) and from
+    the leaders desk's industry table (every FMP industry's five largest vs the S&P 500: strength percentile, excess
+    1M / 3M, accumulation word). confirmed = the industry sits at or above IND_CONFIRM_PCT by either read. Mutates rows;
+    returns the industry table. Pure given the inputs."""
+    by = {}
+    for r in rows:
+        if r.get("asset_class") == "stock" and r.get("strength") is not None and r.get("industry"):
+            by.setdefault(r["industry"], []).append(r)
+    lead = {}
+    for x in ((leaders_doc or {}).get("industries") or []):
+        if x.get("industry"):
+            lead[x["industry"]] = x
+    table = {}
+    meds = {}
+    for ind, members in by.items():
+        if len(members) < IND_MIN:
+            continue
+        st = sorted(r["strength"] for r in members)
+        asy = sorted(r["asym_pp"] for r in members if r.get("asym_pp") is not None)
+        vm = [r["vs"]["m"] for r in members if r.get("vs") and r["vs"].get("m") is not None]
+        meds[ind] = st[len(st) // 2]
+        table[ind] = {"industry": ind, "sector": members[0].get("sector"), "n": len(members), "median_strength": f(st[len(st) // 2], 1),
+                      "median_asym_pp": f(asy[len(asy) // 2]) if asy else None, "pct_above_spy_m": f(100.0 * sum(1 for v in vm if v > 0) / len(vm), 0) if vm else None,
+                      "members": [r["ticker"] for r in sorted(members, key=lambda r: -r["strength"])][:12]}
+    pop = list(meds.values())
+    for ind, t in table.items():
+        t["rank"] = f(percentile_of(meds[ind], pop), 1) if len(pop) >= 5 else None
+        lx = lead.get(ind) or {}
+        t["leaders"] = {"strength": lx.get("strength"), "vs_m": ((lx.get("vs") or {}).get("m")), "vs_q": ((lx.get("vs") or {}).get("q")), "ew_vs_m": ((lx.get("ew_vs") or {}).get("m")),
+                        "pct_above_200": ((lx.get("breadth") or {}).get("pct_above_200")), "label": ((lx.get("ad") or {}).get("label")), "n_leaders": lx.get("n_leaders")} if lx else None
+        t["confirmed"] = bool((t["rank"] is not None and t["rank"] >= IND_CONFIRM_PCT) or (lx.get("strength") is not None and lx["strength"] >= IND_CONFIRM_PCT))
+    for r in rows:
+        ind = r.get("industry")
+        t = table.get(ind) if ind else None
+        lx = lead.get(ind) if ind else None
+        if r.get("asset_class") != "stock" or not ind or (not t and not lx):
+            continue
+        r["industry_read"] = {"industry": ind, "n_universe": len(by.get(ind) or []), "rank": t["rank"] if t else None, "median_strength": t["median_strength"] if t else None,
+                              "median_asym_pp": t["median_asym_pp"] if t else None, "pct_above_spy_m": t["pct_above_spy_m"] if t else None,
+                              "leaders_strength": (lx or {}).get("strength"), "leaders_vs_m": (((lx or {}).get("vs") or {}).get("m")), "leaders_vs_q": (((lx or {}).get("vs") or {}).get("q")),
+                              "confirmed": bool(t["confirmed"] if t else ((lx or {}).get("strength") is not None and lx["strength"] >= IND_CONFIRM_PCT))}
+    return table
 
 
 # -------------------------------------------------------------------------------------------------------------- flows
@@ -882,7 +980,7 @@ def row_for(t, meta, bars, bench, bank_last):
            "asset_class": meta.get("asset_class"), "class_sub": meta.get("class_sub"),
            "sector": meta.get("sector"), "industry": meta.get("industry"), "px": f(c[-1]) if c else None, "as_of": bars[-1]["date"] if bars else None,
            "sessions": len(bars), "stale": bool(bars and bank_last and bars[-1]["date"] < bank_last), "h": h, "vs": None, "composite_pp": None, "z": None,
-           "strength": None, "posture": None, "pattern": pattern(bars), "coil": None, "flow": None, "f13": None}
+           "strength": None, "posture": None, "pattern": pattern(bars), "coil": None, "flow": None, "f13": None, "capture": None, "asym_pp": None, "asym_rank": None, "industry_read": None}
     row.update({k: None for k in ("rs_trend_63", "rs_consistency_63", "rs_vs_52w", "rs_52w_pos", "rs_new_high", "ir_63", "vol_63", "excess_vol_63")})
     row.update(context_52w(bars))
     if len(bars) < MIN_SESSIONS or not bench:
@@ -895,6 +993,8 @@ def row_for(t, meta, bars, bench, bank_last):
     row["vs"] = {k: f(hh[k] - sh[k]) if (hh.get(k) is not None and sh.get(k) is not None) else None for k, _ in HORIZONS}
     row["composite_pp"] = composite(row["vs"])
     row.update(rs_metrics(c_al, s_al))
+    row["capture"] = {str(ASYM_SHORT): capture(c_al, s_al, ASYM_SHORT), str(ASYM_N): capture(c_al, s_al, ASYM_N)}
+    row["asym_pp"] = (row["capture"][str(ASYM_N)] or {}).get("asym_pp")
     row["posture"] = posture(hh["d"], sh["d"])
     row["coil"] = coil(bars, c_al, s_al, row["rs_trend_63"])
     cl = row["coil"]
@@ -941,9 +1041,9 @@ def day_tables(entries, spy, with_names=False):
     out["top_minus_bottom_pp"] = f((out["top"].get("mean_ret_pct") or 0) - (out["bottom"].get("mean_ret_pct") or 0)) if out["top"].get("n") and out["bottom"].get("n") else None
     if with_names:
         top = sorted([e for e in entries if e[1] == 9], key=lambda e: -e[2])
-        out["top_names"] = [{"ticker": t, "ret_pct": f(r), "strength": f(st, 1), "asset_class": cls} for t, d, r, cls, st in top]
+        out["top_names"] = [{"ticker": t, "ret_pct": f(r), "strength": f(st, 1), "asset_class": cls} for t, d, r, cls, st in top][:120]
         bot = sorted([e for e in entries if e[1] == 0], key=lambda e: -e[2])
-        out["bottom_names"] = [{"ticker": t, "ret_pct": f(r), "strength": f(st, 1), "asset_class": cls} for t, d, r, cls, st in bot]
+        out["bottom_names"] = [{"ticker": t, "ret_pct": f(r), "strength": f(st, 1), "asset_class": cls} for t, d, r, cls, st in bot][:60]
     return out
 
 
@@ -963,15 +1063,30 @@ def class_tables(entries, spy, with_names=False):
     return out
 
 
+def _deciles(scored):
+    """scored: [(key, score, payload)] -> {key: (decile 0-9, percentile)} by ascending score. Pure."""
+    srt = sorted(scored, key=lambda x: x[1])
+    m = len(srt)
+    return {k: (min(9, int(10 * idx / m)), 100.0 * idx / m) for idx, (k, _, _) in enumerate(srt)}
+
+
 def thesis_block(rows, bench, bars_by, log=print):
-    """Walk-forward test of the desk's own thesis (see the module docstring, 1.0.7). Pure given the bars."""
+    """Walk-forward test of the desk's thesis - 1.0.8: two definitions of "strong" compared on the same sessions, over
+    the last 21 / 63 / 252 sessions (the year is the reference; "a year back might give you stale data"):
+      strength  - the live momentum rank (excess return vs SPY on 1d/5d/21d/63d/126d, cross-sectional z, percentile);
+      asymmetry - the trailing-63-session asym_pp: mean excess on SPY's down days + mean excess on SPY's up days
+                  ("dump less than the S&P 500 dump, rally more than the S&P 500 rally");
+    both ranked from the closes through the SESSION BEFORE, both measured on the session itself, on every dump day
+    (SPY <= DUMP_PCT), every rally day (SPY >= RALLY_PCT) and every session; plus industry confirmation: the top decile
+    whose industry (its ranked members in this universe) also sits in the top 30% that session ("entire industry seeing
+    strength is even better"). Pure given the bars."""
     t0 = time.time()
     bdates = [b["date"] for b in bench]
     bidx = {d: i for i, d in enumerate(bdates)}
     sp = [float(b["c"]) for b in bench]
     n = len(bdates)
     lags = [(k, lag) for k, lag in HORIZONS if k in dict(WEIGHTS)]
-    max_lag = max(lag for _, lag in lags)
+    max_lag = max(max(lag for _, lag in lags), ASYM_N)
     pop = []
     for r in rows:
         if r.get("strength") is None or r.get("excluded"):
@@ -983,19 +1098,29 @@ def thesis_block(rows, bench, bars_by, log=print):
                 c = float(b["c"])
                 if c > 0:
                     cb[j] = c
-        pop.append((r["ticker"], r.get("asset_class"), cb))
+        # prefix sums of the daily excess on SPY's down days and up days (asymmetry as of any session in O(1))
+        dn_s, up_s, dn_n, up_n = [0.0] * n, [0.0] * n, [0] * n, [0] * n
+        for i in range(1, n):
+            dn_s[i], up_s[i], dn_n[i], up_n[i] = dn_s[i - 1], up_s[i - 1], dn_n[i - 1], up_n[i - 1]
+            if cb[i] and cb[i - 1] and sp[i - 1] > 0:
+                ex = (cb[i] / cb[i - 1] - 1.0) * 100.0 - (sp[i] / sp[i - 1] - 1.0) * 100.0
+                spd = sp[i] - sp[i - 1]
+                if spd < 0:
+                    dn_s[i] += ex; dn_n[i] += 1
+                elif spd > 0:
+                    up_s[i] += ex; up_n[i] += 1
+        pop.append((r["ticker"], r.get("asset_class"), r.get("industry") if r.get("asset_class") == "stock" else None, cb, dn_s, up_s, dn_n, up_n))
     first = max(max_lag + 2, n - THESIS_DAYS)
     if n < max_lag + 3 or not pop:
         return {"error": "not enough sessions or no ranked rows", "sessions": n, "n_rows": len(pop)}
-    days, dump_days, last = [], [], None
-    wsum = sum(w for _, w in WEIGHTS)
+    days, deep_days, last = [], [], None
     for j in range(first, n):
         i = j - 1
         if sp[i] <= 0 or sp[j] <= 0:
             continue
         spy_ret = (sp[j] / sp[i] - 1.0) * 100.0
-        ex = {}            # ticker -> {k: excess}
-        for t, cls, cb in pop:
+        ex, asym, rets = {}, {}, {}
+        for t, cls, ind, cb, dn_s, up_s, dn_n, up_n in pop:
             ci, cj = cb[i], cb[j]
             if not ci or not cj:
                 continue
@@ -1005,16 +1130,20 @@ def thesis_block(rows, bench, bars_by, log=print):
                 if a and sp[i - lag] > 0:
                     vs[k] = (ci / a - 1.0) * 100.0 - (sp[i] / sp[i - lag] - 1.0) * 100.0
             if vs:
-                ex[t] = (vs, (cj / ci - 1.0) * 100.0, cls)
+                ex[t] = vs
+                rets[t] = ((cj / ci - 1.0) * 100.0, cls, ind)
+            nd, nu = dn_n[i] - dn_n[i - ASYM_N], up_n[i] - up_n[i - ASYM_N]
+            if nd >= 5 and nu >= 5:
+                asym[t] = (dn_s[i] - dn_s[i - ASYM_N]) / nd + (up_s[i] - up_s[i - ASYM_N]) / nu
         if len(ex) < THESIS_MIN_ROWS:
             continue
         stats = {}
         for k, _ in WEIGHTS:
-            xs = [v[0][k] for v in ex.values() if k in v[0]]
+            xs = [v[k] for v in ex.values() if k in v]
             sd = stdev(xs)
             stats[k] = (sum(xs) / len(xs), sd) if xs and sd else None
         zrows = []
-        for t, (vs, ret, cls) in ex.items():
+        for t, vs in ex.items():
             z = w = 0.0
             for k, wt in WEIGHTS:
                 st = stats.get(k)
@@ -1022,45 +1151,77 @@ def thesis_block(rows, bench, bars_by, log=print):
                     z += max(-3.0, min(3.0, (vs[k] - st[0]) / st[1])) * wt
                     w += wt
             if w:
-                zrows.append((t, z / w, ret, cls))
-        zrows.sort(key=lambda x: x[1])
-        m = len(zrows)
-        entries = [(t, min(9, int(10 * idx / m)), ret, cls, 100.0 * idx / m) for idx, (t, z, ret, cls) in enumerate(zrows)]
-        stocks = [e for e in entries if e[3] == "stock"]
-        if stocks:
-            stocks.sort(key=lambda e: e[4])
-            ms = len(stocks)
-            stocks = [(t, min(9, int(10 * idx / ms)), ret, cls, 100.0 * idx / ms) for idx, (t, d, ret, cls, st) in enumerate(stocks)]
-        is_dump = spy_ret <= DUMP_PCT
-        is_last = j == n - 1
-        rec = {"date": bdates[j], "ranked_as_of": bdates[i], "spy_ret_pct": f(spy_ret), "dump": is_dump, "n": len(entries),
-               "all": day_tables(entries, spy_ret, with_names=is_dump or is_last), "stocks": day_tables(stocks, spy_ret, with_names=is_dump or is_last) if stocks else None,
-               "by_class": class_tables(entries, spy_ret, with_names=is_dump or is_last)}
-        days.append({"date": bdates[j], "spy_ret_pct": rec["spy_ret_pct"], "dump": is_dump, "top_excess_pp": rec["all"]["top"].get("mean_excess_pp"), "top_held_up_pct": rec["all"]["top"].get("held_up_pct"),
-                     "bottom_excess_pp": rec["all"]["bottom"].get("mean_excess_pp"), "stocks_top_excess_pp": (rec["stocks"] or {}).get("top", {}).get("mean_excess_pp"),
-                     "decile_excess_pp": [d.get("mean_excess_pp") for d in rec["all"]["deciles"]]})
-        if is_dump:
-            dump_days.append(rec)
+                zrows.append((t, z / w, None))
+        zmap = {t: z for t, z, _ in zrows}
+        d_str = _deciles(zrows)
+        d_asy = _deciles([(t, a, None) for t, a in asym.items() if t in rets])
+        # industry percentile that session: median momentum z of the industry's ranked stocks here
+        ind_z = {}
+        for t, (ret, cls, ind) in rets.items():
+            if ind and t in zmap:
+                ind_z.setdefault(ind, []).append(zmap[t])
+        ind_med = {ind: sorted(v)[len(v) // 2] for ind, v in ind_z.items() if len(v) >= IND_MIN}
+        ind_pct = {}
+        if len(ind_med) >= 5:
+            vals = list(ind_med.values())
+            ind_pct = {ind: percentile_of(m, vals) for ind, m in ind_med.items()}
+        preds = {}
+        for name, dmap in (("strength", d_str), ("asymmetry", d_asy)):
+            entries = [(t, dmap[t][0], rets[t][0], rets[t][1], dmap[t][1]) for t in dmap if t in rets]
+            stocks = [e for e in entries if e[3] == "stock"]
+            if stocks:
+                stocks.sort(key=lambda e: e[4])
+                ms = len(stocks)
+                stocks = [(t, min(9, int(10 * idx / ms)), ret, cls, 100.0 * idx / ms) for idx, (t, d, ret, cls, st) in enumerate(stocks)]
+            preds[name] = {"entries": entries, "stocks": stocks}
+        is_dump, is_rally, is_last = spy_ret <= DUMP_PCT, spy_ret >= RALLY_PCT, j == n - 1
+        names = is_last or (is_dump or is_rally) and j >= n - 63
+        rec = {"date": bdates[j], "ranked_as_of": bdates[i], "spy_ret_pct": f(spy_ret), "dump": is_dump, "rally": is_rally, "n": len(rets), "by_class": class_tables(preds["strength"]["entries"], spy_ret, with_names=is_last)}
+        for name, pr in preds.items():
+            rec[name] = {"all": day_tables(pr["entries"], spy_ret, with_names=names), "stocks": day_tables(pr["stocks"], spy_ret, with_names=names) if pr["stocks"] else None}
+        # industry-confirmed: the strength top decile whose industry sits in the top 30% that session, against the rest of the top decile
+        top = [e for e in preds["strength"]["stocks"] if e[1] == 9]
+        conf = [e for e in top if ind_pct.get(rets[e[0]][2]) is not None and ind_pct[rets[e[0]][2]] >= IND_CONFIRM_PCT]
+        unconf = [e for e in top if e not in conf]
+        rec["confirmed"] = {"n_industries_ranked": len(ind_pct), "top": bucket_stats([(e[2], e[3]) for e in top], spy_ret), "confirmed": bucket_stats([(e[2], e[3]) for e in conf], spy_ret),
+                            "unconfirmed": bucket_stats([(e[2], e[3]) for e in unconf], spy_ret)}
+        if names:
+            rec["confirmed"]["confirmed_names"] = [{"ticker": e[0], "ret_pct": f(e[2]), "industry": rets[e[0]][2], "industry_pct": f(ind_pct.get(rets[e[0]][2]), 0)} for e in sorted(conf, key=lambda e: -e[2])]
+        deep_days.append(rec)
+        days.append({"date": bdates[j], "spy_ret_pct": rec["spy_ret_pct"], "dump": is_dump, "rally": is_rally,
+                     "strength_top_excess_pp": rec["strength"]["all"]["top"].get("mean_excess_pp"), "strength_top_held_up_pct": rec["strength"]["all"]["top"].get("held_up_pct"),
+                     "asymmetry_top_excess_pp": rec["asymmetry"]["all"]["top"].get("mean_excess_pp"), "asymmetry_top_held_up_pct": rec["asymmetry"]["all"]["top"].get("held_up_pct"),
+                     "confirmed_excess_pp": rec["confirmed"]["confirmed"].get("mean_excess_pp"), "strength_bottom_excess_pp": rec["strength"]["all"]["bottom"].get("mean_excess_pp"),
+                     "strength_decile_excess_pp": [d.get("mean_excess_pp") for d in rec["strength"]["all"]["deciles"]], "asymmetry_decile_excess_pp": [d.get("mean_excess_pp") for d in rec["asymmetry"]["all"]["deciles"]]})
         if is_last:
             last = rec
 
-    def agg(recs, group):
-        tops = [r[group]["top"] for r in recs if r.get(group) and r[group]["top"].get("n")]
-        bots = [r[group]["bottom"] for r in recs if r.get(group) and r[group]["bottom"].get("n")]
+    def agg(recs, pred, group):
+        tops = [r[pred][group]["top"] for r in recs if r.get(pred) and r[pred].get(group) and r[pred][group]["top"].get("n")]
+        bots = [r[pred][group]["bottom"] for r in recs if r.get(pred) and r[pred].get(group) and r[pred][group]["bottom"].get("n")]
         if not tops:
             return {"n_days": 0}
         dec = []
         for d in range(10):
-            xs = [r[group]["deciles"][d].get("mean_excess_pp") for r in recs if r.get(group) and r[group]["deciles"][d].get("n")]
+            xs = [r[pred][group]["deciles"][d].get("mean_excess_pp") for r in recs if r.get(pred) and r[pred].get(group) and r[pred][group]["deciles"][d].get("n")]
             dec.append(f(_mean([x for x in xs if x is not None])))
+        beat = sum(1 for x in tops if (x["mean_excess_pp"] or 0) > 0)
         return {"n_days": len(tops),
-                "top_decile": {"mean_excess_pp": f(_mean([x["mean_excess_pp"] for x in tops])), "mean_ret_pct": f(_mean([x["mean_ret_pct"] for x in tops])),
-                               "hit_pct": f(_mean([x["hit_pct"] for x in tops]), 1), "held_up_pct": f(_mean([x["held_up_pct"] for x in tops]), 1),
-                               "days_beat_spy": sum(1 for x in tops if (x["mean_excess_pp"] or 0) > 0), "days_beat_spy_pct": f(100.0 * sum(1 for x in tops if (x["mean_excess_pp"] or 0) > 0) / len(tops), 1)},
-                "bottom_decile": {"mean_excess_pp": f(_mean([x["mean_excess_pp"] for x in bots])), "mean_ret_pct": f(_mean([x["mean_ret_pct"] for x in bots])),
-                                  "hit_pct": f(_mean([x["hit_pct"] for x in bots]), 1), "held_up_pct": f(_mean([x["held_up_pct"] for x in bots]), 1)} if bots else None,
+                "top_decile": {"mean_excess_pp": f(_mean([x["mean_excess_pp"] for x in tops])), "mean_ret_pct": f(_mean([x["mean_ret_pct"] for x in tops])), "hit_pct": f(_mean([x["hit_pct"] for x in tops]), 1),
+                               "held_up_pct": f(_mean([x["held_up_pct"] for x in tops]), 1), "days_beat_spy": beat, "days_beat_spy_pct": f(100.0 * beat / len(tops), 1)},
+                "bottom_decile": {"mean_excess_pp": f(_mean([x["mean_excess_pp"] for x in bots])), "mean_ret_pct": f(_mean([x["mean_ret_pct"] for x in bots])), "hit_pct": f(_mean([x["hit_pct"] for x in bots]), 1),
+                                  "held_up_pct": f(_mean([x["held_up_pct"] for x in bots]), 1)} if bots else None,
                 "by_decile_mean_excess_pp": dec, "top_minus_bottom_pp": f((dec[9] or 0) - (dec[0] or 0)) if dec[9] is not None and dec[0] is not None else None,
                 "monotonic": all(dec[d] is not None and dec[d + 1] is not None and dec[d + 1] >= dec[d] for d in range(9))}
+
+    def agg_conf(recs):
+        c = [r["confirmed"]["confirmed"] for r in recs if r.get("confirmed") and r["confirmed"]["confirmed"].get("n")]
+        u = [r["confirmed"]["unconfirmed"] for r in recs if r.get("confirmed") and r["confirmed"]["unconfirmed"].get("n")]
+        t = [r["confirmed"]["top"] for r in recs if r.get("confirmed") and r["confirmed"]["top"].get("n")]
+        def one(xs):
+            return {"n_days": len(xs), "avg_n": f(_mean([x["n"] for x in xs]), 0), "mean_excess_pp": f(_mean([x["mean_excess_pp"] for x in xs])), "held_up_pct": f(_mean([x["held_up_pct"] for x in xs]), 1),
+                    "hit_pct": f(_mean([x["hit_pct"] for x in xs]), 1), "days_beat_spy_pct": f(100.0 * sum(1 for x in xs if (x["mean_excess_pp"] or 0) > 0) / len(xs), 1)} if xs else {"n_days": 0}
+        return {"top_decile_stocks": one(t), "industry_confirmed": one(c), "not_confirmed": one(u)}
 
     def agg_class(recs):
         out = {}
@@ -1070,35 +1231,89 @@ def thesis_block(rows, bench, bars_by, log=print):
                 out[cls] = {"n_days": len(xs), "mean_ret_pct": f(_mean([x["mean_ret_pct"] for x in xs])), "mean_excess_pp": f(_mean([x["mean_excess_pp"] for x in xs])),
                             "held_up_pct": f(_mean([x["held_up_pct"] for x in xs]), 1), "hit_pct": f(_mean([x["hit_pct"] for x in xs]), 1), "avg_n": f(_mean([x["n"] for x in xs]), 0)}
         return out
-    all_recs = []   # the per-day compact series is `days`; aggregates over ALL days use the dump + non-dump mix from `days`
-    deep = [d for d in dump_days if d["spy_ret_pct"] is not None and d["spy_ret_pct"] <= 2.0 * DUMP_PCT]
-    summary = {"n_sessions": len(days), "n_dump_days": len(dump_days), "n_deep_dump_days": len(deep), "dump_threshold_pct": DUMP_PCT, "flat_pct": FLAT_PCT,
-               "dump": {"all": agg(dump_days, "all"), "stocks": agg(dump_days, "stocks"), "by_class": agg_class(dump_days)},
-               "deep_dump": {"all": agg(deep, "all"), "stocks": agg(deep, "stocks")} if deep else None,
-               "all_days": {"top_excess_pp": f(_mean([d["top_excess_pp"] for d in days if d["top_excess_pp"] is not None])),
-                            "top_beat_spy_pct": f(100.0 * sum(1 for d in days if (d["top_excess_pp"] or 0) > 0) / len(days), 1) if days else None,
-                            "bottom_excess_pp": f(_mean([d["bottom_excess_pp"] for d in days if d["bottom_excess_pp"] is not None])),
-                            "by_decile_mean_excess_pp": [f(_mean([d["decile_excess_pp"][k] for d in days if d["decile_excess_pp"][k] is not None])) for k in range(10)]}}
-    sd = summary["dump"]["all"]
-    st = summary["dump"]["stocks"]
-    if sd.get("n_days"):
-        td = sd["top_decile"]
-        verdict = ("On the %d sessions of the last %d when SPY fell %.1f%% or more, the names ranked in the top strength decile the session before beat SPY on %d (%s%%): "
-                   "their average move was %+.2f%% against SPY's, an excess of %+.2f pp; %s%% of them held up (flat, up, or down less than SPY) against %s%% of the bottom decile. "
-                   "Stocks alone: top decile excess %+.2f pp, held up %s%%, beat SPY on %s%% of those days." % (
-                       sd["n_days"], summary["n_sessions"], abs(DUMP_PCT), td["days_beat_spy"], td["days_beat_spy_pct"], td["mean_ret_pct"], td["mean_excess_pp"], td["held_up_pct"],
-                       (sd.get("bottom_decile") or {}).get("held_up_pct"), (st.get("top_decile") or {}).get("mean_excess_pp") or 0.0, (st.get("top_decile") or {}).get("held_up_pct"),
-                       (st.get("top_decile") or {}).get("days_beat_spy_pct")))
-    else:
-        verdict = "no session of the last %d had SPY down %.1f%% or more" % (summary["n_sessions"], abs(DUMP_PCT))
+
+    def window_summary(k):
+        recs = deep_days[-k:]
+        dumps = [r for r in recs if r["dump"]]
+        rallies = [r for r in recs if r["rally"]]
+        dd = [r for r in dumps if r["spy_ret_pct"] is not None and r["spy_ret_pct"] <= 2.0 * DUMP_PCT]
+        ws = {"sessions": len(recs), "from": recs[0]["date"] if recs else None, "to": recs[-1]["date"] if recs else None, "n_dump_days": len(dumps), "n_deep_dump_days": len(dd), "n_rally_days": len(rallies),
+              "dump": {pred: {"all": agg(dumps, pred, "all"), "stocks": agg(dumps, pred, "stocks")} for pred in ("strength", "asymmetry")},
+              "rally": {pred: {"all": agg(rallies, pred, "all"), "stocks": agg(rallies, pred, "stocks")} for pred in ("strength", "asymmetry")},
+              "all_days": {pred: {"all": agg(recs, pred, "all"), "stocks": agg(recs, pred, "stocks")} for pred in ("strength", "asymmetry")},
+              "industry": {"dump": agg_conf(dumps), "rally": agg_conf(rallies), "all_days": agg_conf(recs)},
+              "by_class_on_dumps": agg_class(dumps), "by_class_on_rallies": agg_class(rallies)}
+        # both sides: for each predictor the top decile's excess on dump days and on rally days, and whether both are positive
+        both = {}
+        for pred in ("strength", "asymmetry"):
+            dn = ws["dump"][pred]["stocks"].get("top_decile") or {}
+            up = ws["rally"][pred]["stocks"].get("top_decile") or {}
+            both[pred] = {"dump_excess_pp": dn.get("mean_excess_pp"), "dump_held_up_pct": dn.get("held_up_pct"), "rally_excess_pp": up.get("mean_excess_pp"), "rally_hit_pct": up.get("hit_pct"),
+                          "both_sides": bool((dn.get("mean_excess_pp") or 0) > 0 and (up.get("mean_excess_pp") or 0) > 0) if dn.get("n_days") is None or up else None}
+        ws["both_sides"] = both
+        return ws
+    windows = {str(k): window_summary(k) for k in THESIS_WINDOWS}
+
+    def words(k):
+        w = windows[str(k)]
+        out = []
+        for pred, label in (("strength", "momentum rank"), ("asymmetry", "asymmetry rank")):
+            d = w["dump"][pred]["stocks"]
+            r_ = w["rally"][pred]["stocks"]
+            td, tr = d.get("top_decile") or {}, r_.get("top_decile") or {}
+            out.append("%s: on %d dump days the top tenth of stocks ran %+.2f pp vs SPY (held up %s%%, beat SPY on %s of %d days); on %d rally days %+.2f pp (beat SPY %s%% of names)" % (
+                label, d.get("n_days", 0), td.get("mean_excess_pp") or 0.0, td.get("held_up_pct"), td.get("days_beat_spy"), d.get("n_days", 0), r_.get("n_days", 0), tr.get("mean_excess_pp") or 0.0, tr.get("hit_pct")))
+        ic = w["industry"]["dump"]
+        if ic["industry_confirmed"].get("n_days"):
+            out.append("industry-confirmed leaders on dump days: %+.2f pp, held up %s%% (the rest of the top tenth %+.2f pp, %s%%)" % (
+                ic["industry_confirmed"]["mean_excess_pp"] or 0.0, ic["industry_confirmed"]["held_up_pct"], ic["not_confirmed"].get("mean_excess_pp") or 0.0, ic["not_confirmed"].get("held_up_pct")))
+        return "Last %d sessions (%s -> %s): " % (w["sessions"], w["from"], w["to"]) + "; ".join(out) + "."
+    verdict = " ".join(words(k) for k in (21, 63)) + (" Year (reference): " + words(252).split(": ", 1)[1] if "252" in windows else "")
     if last:
-        lt = last["all"]["top"]
-        verdict += " Last session %s (SPY %+.2f%%%s): top decile %+.2f%% (excess %+.2f pp), held up %s%%, beat SPY %s%%." % (
-            last["date"], last["spy_ret_pct"], ", a dump day" if last["dump"] else "", lt.get("mean_ret_pct") or 0.0, lt.get("mean_excess_pp") or 0.0, lt.get("held_up_pct"), lt.get("hit_pct"))
-    log("strength: thesis %d sessions, %d dump days, %.1fs" % (len(days), len(dump_days), time.time() - t0))
+        lt = (last["strength"]["stocks"] or last["strength"]["all"])["top"]
+        la = (last["asymmetry"]["stocks"] or last["asymmetry"]["all"])["top"]
+        lc = last["confirmed"]["confirmed"]
+        verdict += " Last session %s (SPY %+.2f%%%s): momentum top tenth of stocks %+.2f%% (excess %+.2f pp, held up %s%%), asymmetry top tenth %+.2f%% (excess %+.2f pp, held up %s%%)%s." % (
+            last["date"], last["spy_ret_pct"], ", a dump day" if last["dump"] else ", a rally day" if last["rally"] else "", lt.get("mean_ret_pct") or 0.0, lt.get("mean_excess_pp") or 0.0, lt.get("held_up_pct"),
+            la.get("mean_ret_pct") or 0.0, la.get("mean_excess_pp") or 0.0, la.get("held_up_pct"),
+            (", industry-confirmed leaders %+.2f%% (excess %+.2f pp, held up %s%%, %d names)" % (lc.get("mean_ret_pct") or 0.0, lc.get("mean_excess_pp") or 0.0, lc.get("held_up_pct"), lc.get("n"))) if lc.get("n") else "")
+    def compact(rec):
+        """The per-day records carried in the artifact keep the decile strips short (the summaries hold the full tables)."""
+        out = dict(rec)
+        for pred in ("strength", "asymmetry"):
+            g = {}
+            for grp in ("all", "stocks"):
+                x = rec[pred].get(grp)
+                if x:
+                    g[grp] = dict(x)
+                    g[grp]["deciles"] = [{"n": d.get("n"), "mean_excess_pp": d.get("mean_excess_pp"), "held_up_pct": d.get("held_up_pct")} for d in x["deciles"]]
+                else:
+                    g[grp] = None
+            out[pred] = g
+        out["by_class"] = {c: {k: v for k, v in x.items() if k in ("n", "mean_ret_pct", "mean_excess_pp", "held_up_pct", "hit_pct", "best", "worst")} for c, x in rec["by_class"].items()}
+        return out
+    dump_days = [compact(r) for r in deep_days if r["dump"]]
+    rally_days = [compact(r) for r in deep_days if r["rally"]]
+    log("strength: thesis %d sessions, %d dump days, %d rally days, %.1fs" % (len(days), len(dump_days), len(rally_days), time.time() - t0))
     return {"window": {"sessions": len(days), "from": days[0]["date"] if days else None, "to": days[-1]["date"] if days else None, "n_rows": len(pop)},
-            "dump_threshold_pct": DUMP_PCT, "flat_pct": FLAT_PCT, "last_session": last, "dump_days": list(reversed(dump_days))[:30], "days": days,
-            "summary": summary, "verdict": verdict, "seconds": round(time.time() - t0, 1)}
+            "dump_threshold_pct": DUMP_PCT, "rally_threshold_pct": RALLY_PCT, "flat_pct": FLAT_PCT, "asym_sessions": ASYM_N, "industry_confirm_pct": IND_CONFIRM_PCT,
+            "predictors": {"strength": "the live momentum rank: excess return vs SPY on 1d/5d/21d/63d/126d, cross-sectional z, percentile",
+                           "asymmetry": "trailing %d-session asym_pp = mean excess on SPY's down days + mean excess on SPY's up days (dumps less, rallies more)" % ASYM_N},
+            "last_session": last, "dump_days": list(reversed(dump_days))[:30], "rally_days": list(reversed(rally_days))[:30], "days": days,
+            "windows": windows, "summary": windows.get("252") or {}, "verdict": verdict, "seconds": round(time.time() - t0, 1)}
+
+
+def slim_row(r):
+    cap = (r.get("capture") or {}).get(str(ASYM_N)) or {}
+    ir = r.get("industry_read") or {}
+    return {"ticker": r["ticker"], "name": r["name"], "sleeve": r["sleeve"], "scopes": r["scopes"], "asset_class": r.get("asset_class"), "class_sub": r.get("class_sub"),
+            "strength": r["strength"], "strength_in_class": r.get("strength_in_class"), "composite_pp": r["composite_pp"],
+            "vs": r["vs"], "rs_trend_63": r["rs_trend_63"], "rs_consistency_63": r["rs_consistency_63"], "ir_63": r["ir_63"], "pos_52w": r["pos_52w"],
+            "coil": {k: (r["coil"] or {}).get(k) for k in ("tier", "base_len", "base_range_pct", "score", "flag")} if r.get("coil") else None,
+            "f13_stance": (r.get("f13") or {}).get("stance"), "flow_w21_pct": ((r.get("flow") or {}).get("w21") or {}).get("pct_aum"),
+            "asym_pp": r.get("asym_pp"), "asym_rank": r.get("asym_rank"), "down_excess_pp": cap.get("down_excess_pp"), "up_excess_pp": cap.get("up_excess_pp"),
+            "dump_held_pct": cap.get("dump_held_pct"), "rally_beat_pct": cap.get("rally_beat_pct"), "industry": r.get("industry"),
+            "industry_rank": ir.get("rank"), "industry_leaders_strength": ir.get("leaders_strength"), "industry_confirmed": ir.get("confirmed")}
 
 
 def boards_from(rows):
@@ -1106,13 +1321,7 @@ def boards_from(rows):
     by_strength = sorted(live, key=lambda r: -r["strength"])
     coiled = sorted([r for r in live if (r.get("coil") or {}).get("tier") and not (r["coil"] or {}).get("flag")], key=lambda r: (-(r["coil"]["score"] or 0), -(r["coil"]["base_len"] or 0)))
     desk = [r for r in live if "desk" in r["scopes"]]
-
-    def slim(r):
-        return {"ticker": r["ticker"], "name": r["name"], "sleeve": r["sleeve"], "scopes": r["scopes"], "asset_class": r.get("asset_class"), "class_sub": r.get("class_sub"),
-                "strength": r["strength"], "strength_in_class": r.get("strength_in_class"), "composite_pp": r["composite_pp"],
-                "vs": r["vs"], "rs_trend_63": r["rs_trend_63"], "rs_consistency_63": r["rs_consistency_63"], "ir_63": r["ir_63"], "pos_52w": r["pos_52w"],
-                "coil": {k: (r["coil"] or {}).get(k) for k in ("tier", "base_len", "base_range_pct", "score", "flag")} if r.get("coil") else None,
-                "f13_stance": (r.get("f13") or {}).get("stance"), "flow_w21_pct": ((r.get("flow") or {}).get("w21") or {}).get("pct_aum")}
+    slim = slim_row
 
     def breadth(group):
         out = {"n": len(group)}
@@ -1162,6 +1371,9 @@ def build(s3, now, log=print, remaining_s=300.0):
             flows.setdefault(t, v)
     tbl, tbl_mod, tbl_err = optional(s3, TICKERS_KEY)
     f13 = f13_rows(tbl) if tbl else {}
+    leaders_doc, leaders_mod, leaders_err = optional(s3, LEADERS_KEY)
+    if leaders_err:
+        errors.append({"input": "leaders", "error": leaders_err})
     for k, e in (("polygon-eod-manifest", man_err), ("etf-desk", desk_err), ("canonical-flows", canon_err), ("13f-tickers", tbl_err)):
         if e:
             errors.append({"input": k, "error": e})
@@ -1242,8 +1454,15 @@ def build(s3, now, log=print, remaining_s=300.0):
         r["f13"] = f13.get(t)
         rows.append(r)
     stats = rank_rows(rows)
+    industries = industry_reads(rows, leaders_doc)
     rows.sort(key=lambda r: (-(r["strength"] if r["strength"] is not None else -1), r["ticker"]))
     boards = boards_from(rows)
+    inds = sorted(industries.values(), key=lambda t: -(t["median_strength"] or 0))
+    boards["industries"] = {"strongest": inds[:20], "weakest": inds[-20:][::-1], "n": len(inds), "n_confirmed": sum(1 for t in inds if t["confirmed"]),
+                            "leaders_generated_at": (leaders_doc or {}).get("generated_at"), "leaders_industries": len((leaders_doc or {}).get("industries") or [])}
+    boards["asymmetry"] = {"leaders": [slim_row(r) for r in sorted([r for r in rows if r.get("asym_rank") is not None and not r.get("stale")], key=lambda r: -r["asym_rank"])[:BOARD]],
+                           "laggards": [slim_row(r) for r in sorted([r for r in rows if r.get("asym_rank") is not None and not r.get("stale")], key=lambda r: r["asym_rank"])[:BOARD]],
+                           "confirmed_leaders": [slim_row(r) for r in rows if r.get("strength") is not None and r["strength"] >= 90 and (r.get("industry_read") or {}).get("confirmed") and not r.get("stale")][:BOARD]}
     on_board = {x["ticker"] for key in ("leaders", "laggards", "coil", "rs_new_highs") for x in boards[key]}
     for r in rows:
         if "desk" in r["scopes"] or r["ticker"] in on_board:
@@ -1295,7 +1514,9 @@ def build(s3, now, log=print, remaining_s=300.0):
             "splits": "bank bars are unadjusted; bars before a recorded split (corporate-actions) or an inferred one (close ratio >= 1.8 or <= 0.56 with volume moving the opposite way, 5 sessions each side) are rebased by the split factor",
             "asset_class": "stock; equity_etf (broad / sector / factor); country; bond (treasury / aggregate / IG corporate / mortgage / TIPS / international / EM debt / muni); high_yield (corporate / fallen angels / loans / muni / EM); cash (T-bills); gold; silver; metals (platinum / palladium / copper / base metals / miners); commodity (energy / broad / agriculture); currency; crypto; volatility; leveraged (labelled, outside the ranks)",
             "strength_in_class": "the row's percentile inside its own asset class (classes with at least 5 ranked members)",
-            "thesis": "walk-forward: for each of the last %d sessions the universe is re-ranked from the closes through the session BEFORE (the live desk's horizons, weights, z-scores, percentile -> decile), and every name's move on the session itself is measured against SPY. dump day = SPY at or under %.1f%%; held up = flat (within %.2f%%), up, or down less than SPY; hit = beat SPY. The top decile of the ranks is the desk's 'strongest'. The block is the engine testing its own thesis on real sessions; it is not a forecast." % (THESIS_DAYS, DUMP_PCT, FLAT_PCT),
+            "capture": "over the trailing 21 and 63 sessions: mean excess vs SPY on SPY's down days (down_excess_pp) and on its up days (up_excess_pp), the capture ratios, how often the name held up on dump days (SPY <= -1%) and beat SPY on rally days (SPY >= +1%); asym_pp = down_excess + up_excess - positive on both sides is 'dumps less than the S&P 500, rallies more than it'; asym_rank = its universe percentile over 63 sessions",
+            "industry_read": "the stock's industry (FMP) seen two ways: its ranked members in this universe (n, percentile of the median strength among industries with >= 3 members, median asym_pp, share ahead of SPY on the month) and the leaders desk's industry table (every FMP industry's five largest vs the S&P 500: strength percentile, excess 1M / 3M); confirmed = the industry sits at or above the 70th percentile by either read - 'entire industry seeing strength is even better'",
+            "thesis": "walk-forward over the last 21 / 63 / 252 sessions (the year is the reference): for each session the universe is re-ranked from the closes through the session BEFORE by two definitions of strong - the momentum rank (the live desk's horizons, weights, z-scores, percentile -> decile) and the asymmetry rank (trailing-%d-session down-day excess + up-day excess) - and every name's move on the session itself is measured against SPY. dump day = SPY at or under %.1f%%, rally day = SPY at or above %+.1f%%; held up = flat (within %.2f%%), up, or down less than SPY; hit = beat SPY; both_sides = the top tenth ran ahead of SPY on the window's dump days AND its rally days; industry-confirmed = the momentum top tenth whose industry (its ranked members here) sat in the top 30%% that session. The block is the engine testing its own thesis on real sessions; it is not a forecast." % (ASYM_N, DUMP_PCT, RALLY_PCT, FLAT_PCT),
         },
         "note": "Relative strength is a price fact, not a forecast. Fund flows are reported creation / redemption observations; 13F stances count managers. No trade, call or sizing is implied.",
         "run_seconds": round(time.time() - started, 1),
@@ -1332,9 +1553,10 @@ def lambda_handler(event, context):
     b = out["boards"]
     th = out.get("thesis") or {}
     ls = th.get("last_session") or {}
-    print("strength: %d rows (%d ranked), as of %s, leaders %s, coil %s, flows current %d/%d, 13f %d, classes %s, thesis last %s spy %s top-decile held %s%% hit %s%% (dump days %s), %d bytes, %.1fs, errors %d" % (
+    lt = (((ls.get("strength") or {}).get("stocks") or {}).get("top")) or {}
+    w63 = (th.get("windows") or {}).get("63") or {}
+    print("strength: %d rows (%d ranked), as of %s, leaders %s, coil %s, flows current %d/%d, 13f %d, classes %s, industries %s, thesis last %s spy %s momentum-top-tenth held %s%% excess %s pp (63-session dump days %s, rally days %s), %d bytes, %.1fs, errors %d" % (
         len(out["rows"]), b["n_ranked"], out["as_of"], [x["ticker"] for x in b["leaders"][:5]], [x["ticker"] for x in b["coil"][:5]],
-        out["flows"]["n_universe_current"], out["flows"]["n_in_universe"], out["f13"]["n_in_universe"], json.dumps((out.get("classes") or {}).get("ranked")),
-        ls.get("date"), ls.get("spy_ret_pct"), ((ls.get("all") or {}).get("top") or {}).get("held_up_pct"), ((ls.get("all") or {}).get("top") or {}).get("hit_pct"),
-        (th.get("summary") or {}).get("n_dump_days"), n, out["run_seconds"], out["n_errors"]))
+        out["flows"]["n_universe_current"], out["flows"]["n_in_universe"], out["f13"]["n_in_universe"], json.dumps((out.get("classes") or {}).get("ranked")), (b.get("industries") or {}).get("n"),
+        ls.get("date"), ls.get("spy_ret_pct"), lt.get("held_up_pct"), lt.get("mean_excess_pp"), w63.get("n_dump_days"), w63.get("n_rally_days"), n, out["run_seconds"], out["n_errors"]))
     return {"statusCode": 200, "key": OUT_KEY, "bytes": n, "rows": len(out["rows"]), "ranked": b["n_ranked"], "as_of": out["as_of"], "run_seconds": out["run_seconds"], "errors": out["n_errors"]}

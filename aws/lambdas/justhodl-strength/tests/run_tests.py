@@ -173,6 +173,9 @@ def seed():
                                    "XLE": desk_fund("XLE", 0, 0, 0, valid="2026-11-03T00:00:00+00:00")}})
     s3.put(lf.CANON_KEY, {"contract": "provider-fund-flow-research.v1", "generated_at": "2026-11-03T22:01:03+00:00", "reference": {"end_date": "2026-11-02"},
                           "funds": {"SIVR": desk_fund("SIVR", 1e6, 5e6, 2e7)["flows"], "IBIT": desk_fund("IBIT", 1e8, 4e8, 9e8)["flows"]}})
+    s3.put(lf.LEADERS_KEY, {"engine": "justhodl-leaders", "generated_at": "2026-11-04T03:51:00+00:00", "industries": [
+        {"industry": "Semiconductors", "sector": "Technology", "strength": 88.0, "vs": {"m": 4.2, "q": 9.1}, "ew_vs": {"m": 3.0}, "breadth": {"pct_above_200": 80}, "ad": {"label": "ACCUMULATION"}, "n_leaders": 5},
+        {"industry": "Apparel Retail", "sector": "Consumer Cyclical", "strength": 12.0, "vs": {"m": -3.1, "q": -6.0}, "ew_vs": {"m": -2.0}, "breadth": {"pct_above_200": 20}, "ad": {"label": "DISTRIBUTION"}, "n_leaders": 5}]})
     s3.put(lf.TICKERS_KEY, {"contract": "13f-tickers.v1", "period": "2026-06-30", "generated_at": "2026-11-04T16:37:00+00:00", "n_tickers": 4, "columns": lf.F13_COLUMNS,
                             "by_ticker": {"NVDA": [40, 36, 4, 1.2e11, 1.0e11, 9e9, 2e9, 7e9, 22, 6, "ACCUMULATING", "stock", "equities", "Technology", "Semiconductors", 1, 20, 2],
                                           "AAPL": [38, 39, -1, 9e10, 9.5e10, 1e9, 4e9, -3e9, 8, 17, "DISTRIBUTING", "stock", "equities", "Technology", "Consumer Electronics", 1, 18, -1],
@@ -317,7 +320,7 @@ def test_universe_assembly_and_ranks():
 
 def test_build_rows_boards_flows_and_13f():
     s3, out = built()
-    assert out["contract"] == "strength.v1" and out["version"] == "1.0.7" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
+    assert out["contract"] == "strength.v1" and out["version"] == "1.0.8" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
     assert out["benchmark"]["sessions"] == 300 and out["benchmark"]["h"]["q"] is not None and out["universe"]["n"] == len({t for items in lf.SLEEVES.values() for t, _ in items}) + 8
     by = {r["ticker"]: r for r in out["rows"]}
     # unbanked desk names carry no row; the bank manifest's last session is the as-of
@@ -360,8 +363,8 @@ def test_build_rows_boards_flows_and_13f():
     assert by["COIL"]["coil"]["contraction"] < 0.1 and by["GLD"]["coil"]["contraction"] <= 0.6
     assert all("spark" in by[t] for t in ("NVDA", "AAPL", "QQQ", "GLD", "LAGG")) and "spark" in by["COIL"] and len(by["NVDA"]["spark"]) == 60
     # sources and observability
-    assert [s["engine"] for s in out["sources"]] == ["justhodl-polygon-eod", "justhodl-etf-global-desk", "justhodl-etf-fund-flows", "justhodl-13f-book"]
-    assert all(s["tier"] == "fresh" for s in out["sources"]) and out["n_errors"] == 0 and out["sleeves"]["METAL"][0] == {"ticker": "GLD", "name": "Gold"}
+    assert [s["engine"] for s in out["sources"]] == ["justhodl-polygon-eod", "justhodl-etf-global-desk", "justhodl-etf-fund-flows", "justhodl-13f-book", "justhodl-leaders"]
+    assert all(s["tier"] == "fresh" for s in out["sources"] if s["engine"] != "justhodl-leaders") and out["n_errors"] == 0 and out["sleeves"]["METAL"][0] == {"ticker": "GLD", "name": "Gold"}
     assert out["universe"]["scopes"]["etf-desk"] == 5 and out["universe"]["scopes"]["sp500"] == 9 and out["universe"]["scopes"]["13f"] == 3 and out["universe"]["scopes"]["desk"] >= 160
     # 1.0.7: asset classes on every row, in-class percentiles, the class board, the thesis block
     assert by["QQQ"]["asset_class"] == "equity_etf" and by["QQQ"]["class_sub"] == "broad" and by["GLD"]["asset_class"] == "gold" and by["NVDA"]["asset_class"] == "stock"
@@ -370,7 +373,18 @@ def test_build_rows_boards_flows_and_13f():
     assert out["classes"]["ranked"]["stock"] == 8 and out["classes"]["ranked"]["gold"] == 1 and out["classes"]["counts"]["leveraged"] == 0
     bc = b["by_class"]
     assert bc["stock"]["n"] == 8 and bc["stock"]["best"][0]["ticker"] == "NVDA" and bc["stock"]["worst"][0]["ticker"] == "LAGG" and bc["gold"]["n"] == 1 and b["class_order"][0] == "stock"
-    assert out["thesis"]["window"]["sessions"] > 100 and out["thesis"]["summary"]["n_sessions"] == out["thesis"]["window"]["sessions"] and "thesis" in out["definitions"]
+    assert out["thesis"]["window"]["sessions"] > 100 and out["thesis"]["windows"]["252"]["sessions"] == out["thesis"]["window"]["sessions"] and "thesis" in out["definitions"]
+    assert set(out["thesis"]["windows"]) == {"21", "63", "252"} and out["thesis"]["windows"]["21"]["sessions"] == 21 and out["thesis"]["windows"]["63"]["sessions"] == 63
+    # 1.0.8: capture / asymmetry on every ranked row, the asymmetry rank, the industry read (universe + leaders table), the boards
+    cap = by["NVDA"]["capture"]["63"]
+    assert cap["n"] == 63 and cap["n_down"] + cap["n_up"] <= 63 and cap["down_excess_pp"] is not None and cap["up_excess_pp"] is not None and cap["asym_pp"] == by["NVDA"]["asym_pp"]
+    assert by["NVDA"]["asym_pp"] > by["LAGG"]["asym_pp"] and by["NVDA"]["asym_rank"] > by["LAGG"]["asym_rank"] and by["NEWB"]["capture"] is None and by["NEWB"]["asym_rank"] is None
+    ir = by["NVDA"]["industry_read"]
+    assert ir["industry"] == "Semiconductors" and ir["leaders_strength"] == 88.0 and ir["leaders_vs_m"] == 4.2 and ir["confirmed"] is True and ir["n_universe"] == 1 and ir["rank"] is None
+    assert by["LAGG"]["industry_read"]["leaders_strength"] == 12.0 and by["LAGG"]["industry_read"]["confirmed"] is False and by["QQQ"]["industry_read"] is None
+    assert b["industries"]["leaders_industries"] == 2 and b["industries"]["n"] == 0   # one stock per industry here: no in-universe industry row (IND_MIN 3)
+    assert b["asymmetry"]["leaders"][0]["asym_rank"] >= b["asymmetry"]["leaders"][-1]["asym_rank"] and "asym_pp" in b["leaders"][0] and "industry_confirmed" in b["leaders"][0]
+    assert isinstance(b["asymmetry"]["confirmed_leaders"], list)
 
 
 def test_build_without_the_optional_inputs():
@@ -434,16 +448,20 @@ def test_asset_classes_and_leveraged_exclusion():
 
 
 def test_thesis_walk_forward_on_a_known_universe():
-    """A bench with real dump days; 'strong' names fall less than half as much on them (and drift up), 'weak' names fall
-    twice as much: the top decile ranked the session before must hold up and beat SPY on every dump day, the bottom must not."""
+    """A bench with real dump days AND rally days; 'strong' names fall 40% as much on dump days, rise 1.6x on rally days and
+    drift up; 'weak' names the opposite; bonds barely move; two industries, one strong and one weak: both predictors must
+    put the strong names in the top tenth, the top tenth must hold up on every dump day and beat SPY on every rally day,
+    the industry-confirmed leaders must be the strong industry's names, and the windows must nest (21 < 63 < 252)."""
     rnd = random.Random(21)
     n = 300
     bench_r = []
     for i in range(n):
         if i in (200, 231, 262, 280):
             bench_r.append(-0.025)
-        elif i in (215, 250):
+        elif i in (215, 250, 292):
             bench_r.append(-0.012)
+        elif i in (205, 240, 270, 296):
+            bench_r.append(0.015)
         else:
             bench_r.append(0.0005 + rnd.gauss(0, 0.004))
 
@@ -456,41 +474,64 @@ def test_thesis_walk_forward_on_a_known_universe():
     bench = [{"date": d.isoformat(), "c": c} for d, c in zip(DATES[-n:], closes(bench_r))]
     rows, bars_by = [], {}
 
-    def add(t, cls, beta_up, beta_dump, drift):
+    def add(t, cls, ind, beta_up, beta_dump, beta_rally, drift):
         rets = []
         for br in bench_r:
-            rets.append(br * beta_dump + rnd.gauss(0, 0.001) if br <= -0.01 else br * beta_up + drift + rnd.gauss(0, 0.002))
+            if br <= -0.01:
+                rets.append(br * beta_dump + rnd.gauss(0, 0.001))
+            elif br >= 0.01:
+                rets.append(br * beta_rally + rnd.gauss(0, 0.001))
+            else:
+                rets.append(br * beta_up + drift + rnd.gauss(0, 0.002))
         bars_by[t] = [{"date": d.isoformat(), "c": c} for d, c in zip(DATES[-n:], closes(rets))]
-        rows.append({"ticker": t, "asset_class": cls, "strength": 50.0, "excluded": None})
+        rows.append({"ticker": t, "asset_class": cls, "industry": ind, "strength": 50.0, "excluded": None})
     for k in range(10):
-        add("STR%02d" % k, "stock", 1.0, 0.4, 0.003)      # strong: up-drift, falls 40% as much on dump days
+        add("STR%02d" % k, "stock", "Semiconductors", 1.0, 0.4, 1.6, 0.003)      # strong: up-drift, dumps less, rallies more
     for k in range(10):
-        add("WEAK%02d" % k, "stock", 1.0, 2.0, -0.002)    # weak: down-drift, falls twice as much
+        add("WEAK%02d" % k, "stock", "Apparel Retail", 1.0, 2.0, 0.5, -0.002)    # weak: down-drift, dumps more, rallies less
     for k in range(20):
-        add("MID%02d" % k, "stock", 1.0, 1.0, 0.0)
+        add("MID%02d" % k, "stock", "Banks - Regional" if k < 7 else "Software - Application" if k < 14 else "Insurance - Property & Casualty", 1.0, 1.0, 1.0, 0.0)
     for k in range(6):
-        add("BND%02d" % k, "bond", 0.1, -0.2, 0.0002)     # bonds: barely move, rise a little on dump days
+        add("BND%02d" % k, "bond", None, 0.1, -0.2, 0.1, 0.0002)                 # bonds: barely move, rise a little on dump days
     old_min = lf.THESIS_MIN_ROWS
     lf.THESIS_MIN_ROWS = 10
     try:
         th = lf.thesis_block(rows, bench, bars_by, log=lambda *a: None)
     finally:
         lf.THESIS_MIN_ROWS = old_min
-    assert th["window"]["sessions"] > 100 and th["summary"]["n_dump_days"] == 6 and th["summary"]["n_deep_dump_days"] == 4, th["summary"]
-    sd = th["summary"]["dump"]["all"]
-    assert sd["n_days"] == 6 and sd["top_decile"]["days_beat_spy"] == 6 and sd["top_decile"]["held_up_pct"] >= 95 and sd["top_decile"]["mean_excess_pp"] > 1.0, sd
-    assert sd["bottom_decile"]["mean_excess_pp"] < -1.0 and sd["bottom_decile"]["held_up_pct"] <= 5 and sd["top_minus_bottom_pp"] > 2.0, sd
-    assert sd["by_decile_mean_excess_pp"][9] > sd["by_decile_mean_excess_pp"][0]
-    st = th["summary"]["dump"]["stocks"]
-    assert st["n_days"] == 6 and st["top_decile"]["days_beat_spy"] == 6
-    bc = th["summary"]["dump"]["by_class"]
-    assert bc["bond"]["held_up_pct"] >= 95 and bc["bond"]["mean_excess_pp"] > 1.0 and bc["stock"]["n_days"] == 6, bc
+    assert th["window"]["sessions"] > 100 and set(th["windows"]) == {"21", "63", "252"} and th["predictors"]["asymmetry"].startswith("trailing 63-session")
+    y = th["windows"]["252"]
+    first = len(bench) - th["window"]["sessions"]
+    spy_pct = [(bench[i]["c"] / bench[i - 1]["c"] - 1) * 100 for i in range(first, len(bench))]
+    n_dump, n_deep, n_rally = sum(1 for x in spy_pct if x <= -1.0), sum(1 for x in spy_pct if x <= -2.0), sum(1 for x in spy_pct if x >= 1.0)
+    assert n_dump >= 7 and n_deep == 4 and n_rally >= 4
+    assert y["n_dump_days"] == n_dump and y["n_deep_dump_days"] == n_deep and y["n_rally_days"] == n_rally, (y["n_dump_days"], y["n_deep_dump_days"], y["n_rally_days"], n_dump, n_deep, n_rally)
+    assert th["windows"]["63"]["n_dump_days"] == sum(1 for x in spy_pct[-63:] if x <= -1.0) and th["windows"]["21"]["n_dump_days"] == sum(1 for x in spy_pct[-21:] if x <= -1.0)
+    assert th["windows"]["21"]["n_rally_days"] == sum(1 for x in spy_pct[-21:] if x >= 1.0) and th["windows"]["21"]["sessions"] == 21 and th["windows"]["63"]["sessions"] == 63
+    for pred in ("strength", "asymmetry"):
+        d = y["dump"][pred]["all"]
+        assert d["n_days"] == n_dump and d["top_decile"]["days_beat_spy"] == n_dump and d["top_decile"]["held_up_pct"] >= 95 and d["top_decile"]["mean_excess_pp"] > 1.0, (pred, d)
+        assert d["bottom_decile"]["mean_excess_pp"] < -1.0 and d["bottom_decile"]["held_up_pct"] <= 5, (pred, d["bottom_decile"])
+        r_ = y["rally"][pred]["all"]
+        assert r_["n_days"] == n_rally and r_["top_decile"]["days_beat_spy"] == n_rally and r_["top_decile"]["hit_pct"] >= 95 and r_["top_decile"]["mean_excess_pp"] > 0.5, (pred, r_)
+        assert y["both_sides"][pred]["both_sides"] is True
+        st = y["dump"][pred]["stocks"]
+        assert st["n_days"] == n_dump and st["top_decile"]["days_beat_spy"] == n_dump
+    ic = y["industry"]["dump"]
+    assert ic["industry_confirmed"]["n_days"] == n_dump and ic["industry_confirmed"]["held_up_pct"] >= 95 and ic["industry_confirmed"]["avg_n"] >= 3, ic
     day = th["dump_days"][0]
-    assert day["dump"] is True and day["spy_ret_pct"] <= -1.0 and day["all"]["top"]["n"] >= 4 and all(x["ticker"].startswith("STR") for x in day["all"]["top_names"]), day["all"]["top_names"]
-    assert all(x["ticker"].startswith("WEAK") for x in day["all"]["bottom_names"]) and day["by_class"]["bond"]["best"]
+    assert day["dump"] is True and day["spy_ret_pct"] <= -1.0 and all(x["ticker"].startswith("STR") for x in day["strength"]["all"]["top_names"])
+    assert all(x["ticker"].startswith("STR") for x in day["asymmetry"]["all"]["top_names"]) and all(x["ticker"].startswith("WEAK") for x in day["strength"]["all"]["bottom_names"])
+    assert all(x["industry"] == "Semiconductors" for x in day["confirmed"]["confirmed_names"]) and day["confirmed"]["confirmed"]["n"] >= 3
+    rally = th["rally_days"][0]
+    assert rally["rally"] is True and rally["spy_ret_pct"] >= 1.0 and all(x["ticker"].startswith("STR") for x in rally["strength"]["all"]["top_names"])
+    bc = y["by_class_on_dumps"]
+    assert bc["bond"]["held_up_pct"] >= 95 and bc["bond"]["mean_excess_pp"] > 1.0 and bc["stock"]["n_days"] == 7
     assert th["last_session"]["date"] == bench[-1]["date"] and th["last_session"]["ranked_as_of"] == bench[-2]["date"] and th["days"][-1]["date"] == bench[-1]["date"]
-    assert th["summary"]["all_days"]["by_decile_mean_excess_pp"][9] > th["summary"]["all_days"]["by_decile_mean_excess_pp"][0]
-    assert "beat SPY on 6 (100.0%)" in th["verdict"], th["verdict"]
+    assert y["all_days"]["strength"]["all"]["by_decile_mean_excess_pp"][9] > y["all_days"]["strength"]["all"]["by_decile_mean_excess_pp"][0]
+    assert "industry-confirmed leaders on dump days" in th["verdict"] and "asymmetry rank" in th["verdict"], th["verdict"]
+    assert len(json.dumps(th)) < 900000, len(json.dumps(th))
+
 
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):

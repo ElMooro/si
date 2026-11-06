@@ -115,8 +115,8 @@ def main():
         r.log("data/strength.json: version %s as_of %s generated %s rows %s ranked %s run %ss errors %s | SPY %s h %s" % (
             doc.get("version"), doc.get("as_of"), doc.get("generated_at"), len(doc.get("rows") or []), (doc.get("boards") or {}).get("n_ranked"), doc.get("run_seconds"), doc.get("n_errors"),
             (doc.get("benchmark") or {}).get("px"), json.dumps((doc.get("benchmark") or {}).get("h"))))
-        if doc.get("version") != "1.0.7" or doc.get("as_of") != SESSION:
-            r.fail("the artifact is not 1.0.7 as of %s: %s %s" % (SESSION, doc.get("version"), doc.get("as_of")))
+        if (doc.get("version") or "0") < "1.0.8" or doc.get("as_of") != SESSION:
+            r.fail("the artifact is not >= 1.0.8 as of %s: %s %s" % (SESSION, doc.get("version"), doc.get("as_of")))
             raise SystemExit(1)
         cls = doc.get("classes") or {}
         r.log("classes counted %s" % json.dumps(cls.get("counts")))
@@ -137,44 +137,65 @@ def main():
                 x.get("pct_above_spy_m"), x.get("pct_above_spy_q"), x.get("rs_new_highs"), x.get("coiled")))
             r.log("      best %s | worst %s" % (", ".join("%s %s" % (b["ticker"], b["strength"]) for b in x.get("best") or []), ", ".join("%s %s" % (b["ticker"], b["strength"]) for b in x.get("worst") or [])))
 
-        r.section("4. the engine's own test of today (thesis.last_session: ranked as of %s, moved on %s)" % (PRIOR, SESSION))
+        r.section("4. the engine's own test of today (thesis.last_session: ranked as of %s, moved on %s) - two definitions of strong" % (PRIOR, SESSION))
         th = doc.get("thesis") or {}
         ls = th.get("last_session") or {}
         r.log("VERDICT: %s" % th.get("verdict"))
-        r.log("last session %s ranked_as_of %s SPY %s dump %s n %s" % (ls.get("date"), ls.get("ranked_as_of"), pct(ls.get("spy_ret_pct")), ls.get("dump"), ls.get("n")))
+        r.log("last session %s ranked_as_of %s SPY %s dump %s rally %s n %s" % (ls.get("date"), ls.get("ranked_as_of"), pct(ls.get("spy_ret_pct")), ls.get("dump"), ls.get("rally"), ls.get("n")))
         if ls.get("date") != SESSION or ls.get("ranked_as_of") != PRIOR:
             r.fail("the thesis block's last session is not %s ranked as of %s" % (SESSION, PRIOR))
             raise SystemExit(1)
-        for grp in ("all", "stocks"):
-            g = ls.get(grp) or {}
-            r.log("%s universe (%s names): TOP decile  %s" % (grp.upper(), g.get("n"), fmt_bucket(g.get("top"))))
-            r.log("%s universe: BOTTOM decile %s" % (grp.upper(), fmt_bucket(g.get("bottom"))))
-            r.log("%s deciles (0 = weakest .. 9 = strongest) mean excess pp: %s | held up %%: %s" % (grp, [d.get("mean_excess_pp") for d in g.get("deciles") or []], [d.get("held_up_pct") for d in g.get("deciles") or []]))
-            names = g.get("top_names") or []
-            r.log("%s TOP-DECILE names (%d), best to worst: %s" % (grp, len(names), ", ".join("%s %s (%s)" % (x["ticker"], pct(x["ret_pct"]), x.get("asset_class", "")[:6]) for x in names[:120])))
-            names = g.get("bottom_names") or []
-            r.log("%s BOTTOM-DECILE names (%d), best to worst: %s" % (grp, len(names), ", ".join("%s %s" % (x["ticker"], pct(x["ret_pct"])) for x in names[:60])))
+        for pred in ("strength", "asymmetry"):
+            r.log("== %s (%s)" % (pred.upper(), (th.get("predictors") or {}).get(pred)))
+            for grp in ("all", "stocks"):
+                g = (ls.get(pred) or {}).get(grp) or {}
+                if not g:
+                    continue
+                r.log("%s/%s (%s names): TOP decile  %s" % (pred, grp, g.get("n"), fmt_bucket(g.get("top"))))
+                r.log("%s/%s: BOTTOM decile %s" % (pred, grp, fmt_bucket(g.get("bottom"))))
+                r.log("%s/%s deciles (0 = weakest .. 9 = strongest) mean excess pp: %s | held up %%: %s" % (pred, grp, [d.get("mean_excess_pp") for d in g.get("deciles") or []], [d.get("held_up_pct") for d in g.get("deciles") or []]))
+                names = g.get("top_names") or []
+                r.log("%s/%s TOP-DECILE names (%d), best to worst: %s" % (pred, grp, len(names), ", ".join("%s %s (%s)" % (x["ticker"], pct(x["ret_pct"]), (x.get("asset_class") or "")[:6]) for x in names[:120])))
+                names = g.get("bottom_names") or []
+                r.log("%s/%s BOTTOM-DECILE names (%d), best to worst: %s" % (pred, grp, len(names), ", ".join("%s %s" % (x["ticker"], pct(x["ret_pct"])) for x in names[:60])))
+        ic = ls.get("confirmed") or {}
+        r.log("industry confirmation (industries ranked %s): top tenth of stocks %s | CONFIRMED %s | not confirmed %s" % (ic.get("n_industries_ranked"), fmt_bucket(ic.get("top")), fmt_bucket(ic.get("confirmed")), fmt_bucket(ic.get("unconfirmed"))))
+        r.log("industry-confirmed names: %s" % ", ".join("%s %s (%s p%s)" % (x["ticker"], pct(x["ret_pct"]), x.get("industry"), x.get("industry_pct")) for x in ic.get("confirmed_names") or []))
         r.log("by asset class today:")
         for c, x in sorted((ls.get("by_class") or {}).items(), key=lambda kv: -(kv[1].get("mean_ret_pct") or -99)):
             r.log("  %-12s %s | best %s | worst %s" % (c, fmt_bucket(x), ", ".join("%s %s" % (b["ticker"], pct(b["ret_pct"])) for b in x.get("best") or []), ", ".join("%s %s" % (b["ticker"], pct(b["ret_pct"])) for b in x.get("worst") or [])))
 
-        r.section("5. the base rate (the year's dump days)")
-        sm = th.get("summary") or {}
-        r.log("window %s | dump days %s (deep <= %s%%: %s) | threshold %s flat %s" % (json.dumps(th.get("window")), sm.get("n_dump_days"), 2 * (sm.get("dump_threshold_pct") or -1), sm.get("n_deep_dump_days"), sm.get("dump_threshold_pct"), sm.get("flat_pct")))
-        for grp in ("all", "stocks"):
-            a = (sm.get("dump") or {}).get(grp) or {}
-            r.log("dump days, %s: %s" % (grp, json.dumps(a)[:900]))
-            d = (sm.get("deep_dump") or {}).get(grp) if sm.get("deep_dump") else None
-            if d:
-                r.log("deep dump days, %s: top %s | bottom %s | monotonic %s" % (grp, json.dumps(d.get("top_decile")), json.dumps(d.get("bottom_decile")), d.get("monotonic")))
-        r.log("dump days by class: %s" % json.dumps((sm.get("dump") or {}).get("by_class"))[:1200])
-        r.log("all days: %s" % json.dumps(sm.get("all_days")))
-        for d in (th.get("dump_days") or [])[:30]:
-            a = d["all"]["top"]
-            s_ = (d.get("stocks") or {}).get("top") or {}
-            r.log("  %s SPY %s | all top: excess %+.2f pp held %s%% beat %s%% | stocks top: excess %s held %s%% | bottom: excess %s held %s%%" % (
-                d["date"], pct(d["spy_ret_pct"]), a.get("mean_excess_pp") or 0.0, a.get("held_up_pct"), a.get("hit_pct"), s_.get("mean_excess_pp"), s_.get("held_up_pct"),
-                d["all"]["bottom"].get("mean_excess_pp"), d["all"]["bottom"].get("held_up_pct")))
+        r.section("5. the base rate by window (21 / 63 / 252 sessions): dump days, rally days, both sides, industry confirmation")
+        for k in ("21", "63", "252"):
+            w = (th.get("windows") or {}).get(k) or {}
+            r.log("WINDOW %s: %s -> %s | dump days %s (deep %s) | rally days %s" % (k, w.get("from"), w.get("to"), w.get("n_dump_days"), w.get("n_deep_dump_days"), w.get("n_rally_days")))
+            for pred in ("strength", "asymmetry"):
+                for kind in ("dump", "rally", "all_days"):
+                    a = ((w.get(kind) or {}).get(pred) or {}).get("stocks") or {}
+                    td, bd = a.get("top_decile") or {}, a.get("bottom_decile") or {}
+                    r.log("  %-9s %-8s stocks: days %s | top tenth excess %s pp held %s%% beat-SPY-names %s%% days-beat %s/%s | bottom tenth excess %s held %s%% | deciles %s | monotonic %s" % (
+                        pred, kind, a.get("n_days"), td.get("mean_excess_pp"), td.get("held_up_pct"), td.get("hit_pct"), td.get("days_beat_spy"), a.get("n_days"), bd.get("mean_excess_pp"), bd.get("held_up_pct"), a.get("by_decile_mean_excess_pp"), a.get("monotonic")))
+                bs = (w.get("both_sides") or {}).get(pred) or {}
+                r.log("  %-9s BOTH SIDES: dump excess %s pp (held %s%%) | rally excess %s pp (beat %s%%) | both positive: %s" % (pred, bs.get("dump_excess_pp"), bs.get("dump_held_up_pct"), bs.get("rally_excess_pp"), bs.get("rally_hit_pct"), bs.get("both_sides")))
+            for kind in ("dump", "rally", "all_days"):
+                ic = (w.get("industry") or {}).get(kind) or {}
+                r.log("  industry %-8s top tenth %s | CONFIRMED %s | not confirmed %s" % (kind, json.dumps(ic.get("top_decile_stocks")), json.dumps(ic.get("industry_confirmed")), json.dumps(ic.get("not_confirmed"))))
+            r.log("  by class on dump days: %s" % json.dumps(w.get("by_class_on_dumps"))[:1000])
+        for d in (th.get("dump_days") or [])[:15]:
+            a, b_ = (d["strength"].get("stocks") or d["strength"]["all"])["top"], (d["asymmetry"].get("stocks") or d["asymmetry"]["all"])["top"]
+            c_ = (d.get("confirmed") or {}).get("confirmed") or {}
+            r.log("  dump %s SPY %s | momentum top: excess %s pp held %s%% | asymmetry top: excess %s held %s%% | confirmed: excess %s held %s%% n %s" % (
+                d["date"], pct(d["spy_ret_pct"]), a.get("mean_excess_pp"), a.get("held_up_pct"), b_.get("mean_excess_pp"), b_.get("held_up_pct"), c_.get("mean_excess_pp"), c_.get("held_up_pct"), c_.get("n")))
+        for d in (th.get("rally_days") or [])[:10]:
+            a, b_ = (d["strength"].get("stocks") or d["strength"]["all"])["top"], (d["asymmetry"].get("stocks") or d["asymmetry"]["all"])["top"]
+            r.log("  rally %s SPY %s | momentum top: excess %s pp beat %s%% | asymmetry top: excess %s beat %s%%" % (d["date"], pct(d["spy_ret_pct"]), a.get("mean_excess_pp"), a.get("hit_pct"), b_.get("mean_excess_pp"), b_.get("hit_pct")))
+        bi = (doc.get("boards") or {}).get("industries") or {}
+        r.log("industries in this universe: %s ranked (>= 3 members), %s confirmed; strongest: %s | weakest: %s" % (bi.get("n"), bi.get("n_confirmed"),
+              ", ".join("%s %s (n%s, leaders %s)" % (x["industry"], x["median_strength"], x["n"], (x.get("leaders") or {}).get("strength")) for x in (bi.get("strongest") or [])[:12]),
+              ", ".join("%s %s" % (x["industry"], x["median_strength"]) for x in (bi.get("weakest") or [])[:8])))
+        ab = (doc.get("boards") or {}).get("asymmetry") or {}
+        r.log("asymmetry leaders (63-session down-day + up-day excess): %s" % ", ".join("%s %s (dn %s up %s)" % (x["ticker"], x.get("asym_pp"), x.get("down_excess_pp"), x.get("up_excess_pp")) for x in (ab.get("leaders") or [])[:20]))
+        r.log("industry-confirmed momentum leaders (strength >= 90 & industry confirmed): %s" % ", ".join("%s %s (%s p%s)" % (x["ticker"], x["strength"], x.get("industry"), x.get("industry_rank")) for x in (ab.get("confirmed_leaders") or [])[:30]))
 
         r.section("6. independent cross-check: the ranks kept before the session (ops 6756, live 1.0.5) x the bank's own %s closes" % SESSION)
         snap = json.loads(gzip.decompress(s3.get_object(Bucket=LIVE, Key=SNAP)["Body"].read()))
@@ -243,7 +264,7 @@ def main():
         held = sum(v for k, v in words.items() if k in ("UP", "FLAT", "down less than SPY"))
         tot = sum(v for k, v in words.items() if k != "no bar")
         r.log("leaders board held up: %d of %d (%.0f%%)" % (held, tot, 100.0 * held / tot if tot else 0))
-        eng_top = ((ls.get("all") or {}).get("top") or {})
+        eng_top = (((ls.get("strength") or {}).get("stocks") or {}).get("top") or {})
         r.kv(session=SESSION, spy=str(pct(spy)), engine_top_excess=str(eng_top.get("mean_excess_pp")), engine_top_held=str(eng_top.get("held_up_pct")), engine_top_hit=str(eng_top.get("hit_pct")),
              leaders_held=("%d/%d" % (held, tot)), dump_days=str(sm.get("n_dump_days")), version=str(doc.get("version")))
         r.ok("ops 6757 complete: %s" % (th.get("verdict") or "")[:400])
