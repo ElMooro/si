@@ -29,6 +29,8 @@
   .st-bar{display:inline-block;height:6px;border-radius:3px;background:linear-gradient(90deg,#ff5577,#ffd166 50%,#26ffaf);vertical-align:middle;position:relative;width:60px;opacity:.9}
   .st-bar i{position:absolute;top:-3px;width:2px;height:12px;background:#fff;margin-left:-1px}
   .st-small{font-size:11px;opacity:.75}
+  .st-verdict{font:600 14px/1.5 "IBM Plex Sans",system-ui,sans-serif;margin:0 0 10px;color:var(--fg1)}
+  .st-chipret{display:inline-block;padding:1px 6px;border-radius:3px;font:10px/1.6 "IBM Plex Mono",monospace;border:1px solid var(--line);margin:0 4px 4px 0}
   .st-src td{font-size:11px}
   .st-grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
   .st-grid2 .jh-card{min-width:0}
@@ -63,6 +65,24 @@
 
   <section class="st-sec" aria-label="Verdict: index regime, breadth and bases">
     <div class="jh-kpis" id="kpis"></div>
+  </section>
+
+  <section class="st-sec" aria-label="Thesis: how the strongest held up on S&P 500 dump days">
+    <h2>Thesis · the strongest when the S&P 500 dumps <span class="m" id="thesis-meta"></span></h2>
+    <p class="st-sub">The engine tests its own thesis every run, walk-forward: for each of the last 252 sessions the universe is re-ranked from the closes through the <b>session before</b> (the same horizons, weights, z-scores and percentiles the desk shows), then every name's move on the session itself is measured against SPY. A dump day is SPY down 1% or more; "held up" = flat (within 0.25%), up, or down less than SPY. The strongest tenth of the ranks should hold up — that is the thesis, and this is its record, not a forecast.</p>
+    <p class="st-verdict" id="thesis-verdict"></p>
+    <div class="jh-kpis" id="thesis-kpis"></div>
+    <div class="st-grid2" style="margin-top:10px">
+      <div class="jh-card"><h3>Every dump day of the last year <span class="st-small" id="dump-meta"></span></h3><div class="jh-tblwrap" style="max-height:380px" id="dumps"></div></div>
+      <div class="jh-card"><h3>Last session, the strongest tenth one by one <span class="st-small" id="last-meta"></span></h3><div class="st-small" id="last-deciles" style="margin:0 0 8px"></div><div class="jh-tblwrap" style="max-height:380px" id="lastnames"></div></div>
+    </div>
+  </section>
+
+  <section class="st-sec" aria-label="Asset classes: stocks, equity ETFs, countries, bonds, high yield, cash, gold, silver, metals, commodities, currencies, crypto, volatility">
+    <h2>Asset classes <span class="m" id="class-meta"></span></h2>
+    <p class="st-sub">Every class the desk ranks — stocks, equity ETFs (broad, sector, factor), countries, bonds, high yield, cash, gold, silver, metals and miners, commodities, currencies, crypto, volatility — with its breadth against SPY, its median move today and over the week, month and quarter, how much of it held up on the last session, and its strongest and weakest names. Leveraged and inverse funds are labelled and kept out of every rank.</p>
+    <div class="jh-tblwrap" style="max-height:520px" id="classes"></div>
+    <p class="st-small" id="excluded" style="margin-top:6px"></p>
   </section>
 
   <section class="st-sec" aria-label="Long accumulation with a tight price spread">
@@ -113,7 +133,7 @@
 <script>
 (function(){
   var D=JHDesk, DATA=null, sleeve="ALL", coilScope="ALL", leadScope="DESK";
-  var SORT={tbl:{k:"strength",dir:-1},coil:{k:"score",dir:-1},leaders:{k:"strength",dir:-1},laggards:{k:"strength",dir:1},focus:{k:"strength",dir:-1}};
+  var SORT={tbl:{k:"strength",dir:-1},coil:{k:"score",dir:-1},leaders:{k:"strength",dir:-1},laggards:{k:"strength",dir:1},focus:{k:"strength",dir:-1},dumps:{k:"date",dir:-1},lastnames:{k:"ret_pct",dir:-1},classes:{k:"median_vs_d",dir:-1}};
   var TIER_CLS={"VERY TIGHT":"VT","TIGHT":"T","LONG BASE":"LB","FORMING":"F"};
   function esc(s){return D.esc(s);}
   function pct(v,d){return v==null?"—":D.fmtPct(v,d==null?2:d);}
@@ -230,10 +250,55 @@
       ["Holding up now", d.focus.length+" names", d.dump?"bid / flat / dumping less than SPX":"SPX is not dumping; posture is live"]
     ].map(function(x){ return '<div class="jh-kpi"><div class="l">'+x[0]+'</div><div class="v">'+x[1]+'</div><div class="s">'+x[2]+"</div></div>"; }).join("");
   }
+  var CLASS_LABEL={stock:"Stocks",equity_etf:"Equity ETFs",country:"Countries",bond:"Bonds",high_yield:"High yield",cash:"Cash / T-bills",gold:"Gold",silver:"Silver",metals:"Metals & miners",commodity:"Commodities",currency:"Currencies",crypto:"Crypto",volatility:"Volatility",leveraged:"Leveraged / inverse"};
+  function held(v){ return v==null?"—":'<span class="'+(v>=60?"up":v<40?"dn":"flat")+'">'+num(v,0)+"%</span>"; }
+  var DUMP_COLS=[["date","Date"],["spy_ret_pct","SPY"],["top_excess","Top excess","the strongest tenth's average move minus SPY's, pp"],["top_held","Top held up","share of the strongest tenth flat, up, or down less than SPY"],["top_hit","Top beat SPY"],
+    ["stocks_excess","Stocks top excess","stocks ranked among stocks only"],["stocks_held","Stocks top held"],["bottom_excess","Bottom excess","the weakest tenth"],["bottom_held","Bottom held up"],["spread","Top − bottom","average move of the strongest tenth minus the weakest, pp"]];
+  var LAST_COLS=[["ticker","Ticker"],["asset_class","Class"],["strength","Rank","percentile as of the session before"],["ret_pct","Move"],["word","Verdict"]];
+  var CLASS_COLS=[["label","Class"],["n","Ranked"],["median_strength","Median rank"],["median_vs_d","vs SPY today","median excess return today"],["median_vs_w","vs SPY 1W"],["median_vs_m","vs SPY 1M"],["median_vs_q","vs SPY 3M"],
+    ["pct_above_spy_m","Beat SPY 1M","share of the class ahead of SPY over 21 sessions"],["pct_above_spy_q","Beat SPY 3M"],["held_last","Held up last session","share of the class flat, up, or down less than SPY on the last session (thesis block)"],
+    ["rs_new_highs","RS highs"],["coiled","Coiled"],["best","Strongest"],["worst","Weakest"]];
+  function thesis(){
+    var doc=DATA.doc, th=doc.thesis||{}, sm=th.summary||{}, ls=th.last_session||{}, d=(sm.dump||{}).all||{}, ds=(sm.dump||{}).stocks||{}, ad=sm.all_days||{};
+    document.getElementById("thesis-meta").textContent=th.window?th.window.sessions+" sessions · "+th.window.from+" → "+th.window.to+" · "+(sm.n_dump_days||0)+" dump days ("+(sm.n_deep_dump_days||0)+" of 2%+)":"";
+    document.getElementById("thesis-verdict").textContent=th.verdict||th.error||"the thesis block is not in this artifact yet (engine 1.0.7)";
+    var lt=(ls.all||{}).top||{}, lb=(ls.all||{}).bottom||{}, lst=(ls.stocks||{}).top||{}, td=d.top_decile||{}, bd=d.bottom_decile||{}, tds=ds.top_decile||{};
+    document.getElementById("thesis-kpis").innerHTML=[
+      ["Last session · "+(ls.date||"—"), ls.spy_ret_pct==null?"—":"SPY "+pct(ls.spy_ret_pct), ls.dump?"a dump day":"not a dump day"],
+      ["Strongest tenth last session", lt.n?pct(lt.mean_ret_pct)+" avg":"—", lt.n?"excess "+pct(lt.mean_excess_pp)+" pp · held up "+num(lt.held_up_pct,0)+"% · beat SPY "+num(lt.hit_pct,0)+"% · "+lt.n+" names":"no ranked names"],
+      ["Stocks only, strongest tenth", lst.n?pct(lst.mean_ret_pct)+" avg":"—", lst.n?"excess "+pct(lst.mean_excess_pp)+" pp · held up "+num(lst.held_up_pct,0)+"% · up "+num(lst.up_pct,0)+"% flat "+num(lst.flat_pct,0)+"% down-less "+num(lst.down_less_pct,0)+"% down-more "+num(lst.down_more_pct,0)+"%":"—"],
+      ["Weakest tenth last session", lb.n?pct(lb.mean_ret_pct)+" avg":"—", lb.n?"excess "+pct(lb.mean_excess_pp)+" pp · held up "+num(lb.held_up_pct,0)+"%":"—"],
+      ["Base rate · "+(d.n_days||0)+" dump days", td.n_days===undefined&&!d.n_days?"—":(td.days_beat_spy==null?"—":td.days_beat_spy+" of "+d.n_days+" beat SPY"), d.n_days?"strongest tenth: excess "+pct(td.mean_excess_pp)+" pp · held up "+num(td.held_up_pct,0)+"% · weakest tenth excess "+pct(bd.mean_excess_pp)+" pp · stocks only "+pct(tds.mean_excess_pp)+" pp, held "+num(tds.held_up_pct,0)+"%":"no dump day in the window"],
+      ["All "+(sm.n_sessions||0)+" sessions", ad.top_excess_pp==null?"—":pct(ad.top_excess_pp)+" pp / day", "strongest tenth's average next-session excess · beat SPY "+num(ad.top_beat_spy_pct,0)+"% of sessions · weakest tenth "+pct(ad.bottom_excess_pp)+" pp · deciles "+(ad.by_decile_mean_excess_pp||[]).map(function(x){return x==null?"—":(x>0?"+":"")+x.toFixed(2);}).join(" ")]
+    ].map(function(x){ return '<div class="jh-kpi"><div class="l">'+esc(x[0])+'</div><div class="v">'+esc(x[1])+'</div><div class="s">'+esc(x[2])+"</div></div>"; }).join("");
+    var dumps=(th.dump_days||[]).map(function(x){ var a=x.all||{}, st=x.stocks||{}; return {date:x.date, spy_ret_pct:x.spy_ret_pct, top_excess:(a.top||{}).mean_excess_pp, top_held:(a.top||{}).held_up_pct, top_hit:(a.top||{}).hit_pct,
+      stocks_excess:(st.top||{}).mean_excess_pp, stocks_held:(st.top||{}).held_up_pct, bottom_excess:(a.bottom||{}).mean_excess_pp, bottom_held:(a.bottom||{}).held_up_pct, spread:a.top_minus_bottom_pp}; }).sort(sorter("dumps"));
+    document.getElementById("dump-meta").textContent=dumps.length?dumps.length+" sessions with SPY ≤ "+(th.dump_threshold_pct||-1)+"%":"none in the window";
+    table("dumps",DUMP_COLS,dumps,"No session in the window had SPY down "+Math.abs(th.dump_threshold_pct||1)+"% or more.",function(r){
+      return "<tr><td>"+esc(r.date)+"</td>"+cellPct(r.spy_ret_pct)+cellPct(r.top_excess)+"<td>"+held(r.top_held)+"</td><td>"+(r.top_hit==null?"—":num(r.top_hit,0)+"%")+"</td>"+cellPct(r.stocks_excess)+"<td>"+held(r.stocks_held)+"</td>"+cellPct(r.bottom_excess)+"<td>"+held(r.bottom_held)+"</td>"+cellPct(r.spread)+"</tr>"; });
+    var spy=ls.spy_ret_pct, names=((ls.all||{}).top_names||[]).map(function(x){ var v=x.ret_pct, w=v==null?"—":v>0.25?"UP":v>=-0.25?"FLAT":(spy!=null&&v>spy)?"down less than SPY":"down MORE than SPY"; return {ticker:x.ticker, asset_class:x.asset_class, strength:x.strength, ret_pct:v, word:w}; }).sort(sorter("lastnames"));
+    document.getElementById("last-meta").textContent=ls.date?names.length+" names ranked in the top tenth as of "+(ls.ranked_as_of||"")+" · moved on "+ls.date:"";
+    var dec=(ls.all||{}).deciles||[];
+    document.getElementById("last-deciles").innerHTML=dec.length?"<b>Deciles, weakest → strongest</b> · excess vs SPY (pp): "+dec.map(function(x){return '<span class="'+D.cls(x.mean_excess_pp)+'">'+pct(x.mean_excess_pp)+"</span>";}).join(" · ")+"<br><b>held up:</b> "+dec.map(function(x){return held(x.held_up_pct);}).join(" · "):"";
+    table("lastnames",LAST_COLS,names,"The thesis block carries no names for the last session.",function(r){ return "<tr><td>"+tk(r.ticker)+"</td><td>"+esc(CLASS_LABEL[r.asset_class]||r.asset_class||"—")+"</td><td>"+num(r.strength,0)+"</td>"+cellPct(r.ret_pct)+"<td class='"+(r.word==="UP"||r.word==="FLAT"||r.word==="down less than SPY"?"up":"dn")+"'>"+esc(r.word)+"</td></tr>"; });
+  }
+  function classes(){
+    var doc=DATA.doc, b=doc.boards||{}, bc=b.by_class||{}, ls=((doc.thesis||{}).last_session||{}).by_class||{};
+    var rows=(b.class_order||Object.keys(bc)).map(function(c){ var x=bc[c]||{}; var l=ls[c]||{}; return {cls:c, label:x.label||CLASS_LABEL[c]||c, n:x.n, median_strength:x.median_strength, median_vs_d:x.median_vs_d, median_vs_w:x.median_vs_w, median_vs_m:x.median_vs_m, median_vs_q:x.median_vs_q,
+      pct_above_spy_m:x.pct_above_spy_m, pct_above_spy_q:x.pct_above_spy_q, held_last:l.held_up_pct, rs_new_highs:x.rs_new_highs, coiled:x.coiled, best:(x.best||[]).map(function(y){return y.ticker;}).join(" "), worst:(x.worst||[]).map(function(y){return y.ticker;}).join(" "), bestRows:x.best||[], worstRows:x.worst||[]}; }).sort(sorter("classes"));
+    var cls=doc.classes||{};
+    document.getElementById("class-meta").textContent=rows.length+" classes · "+(b.n_ranked||0)+" names ranked · "+((cls.counts||{}).leveraged||0)+" leveraged / inverse funds labelled and excluded";
+    table("classes",CLASS_COLS,rows,"No class rows in this artifact (engine 1.0.7).",function(r){
+      return "<tr><td><b>"+esc(r.label)+"</b></td><td>"+esc(r.n)+"</td><td>"+bar(r.median_strength)+"</td>"+cellPct(r.median_vs_d)+cellPct(r.median_vs_w)+cellPct(r.median_vs_m)+cellPct(r.median_vs_q)+"<td>"+(r.pct_above_spy_m==null?"—":num(r.pct_above_spy_m,0)+"%")+"</td><td>"+(r.pct_above_spy_q==null?"—":num(r.pct_above_spy_q,0)+"%")+"</td><td>"+held(r.held_last)+"</td><td>"+esc(r.rs_new_highs==null?"—":r.rs_new_highs)+"</td><td>"+esc(r.coiled==null?"—":r.coiled)+"</td>"+
+        "<td>"+r.bestRows.map(function(y){return tk(y.ticker)+" <span class=st-small>"+num(y.strength,0)+"</span>";}).join(", ")+"</td><td>"+r.worstRows.map(function(y){return tk(y.ticker)+" <span class=st-small>"+num(y.strength,0)+"</span>";}).join(", ")+"</td></tr>"; });
+    var ex=((b.excluded||{}).leveraged||[]);
+    document.getElementById("excluded").innerHTML=ex.length?"<b>Kept out of every rank (leveraged / inverse, today's move):</b> "+ex.map(function(x){return '<span class="st-chipret '+D.cls(x.h_d)+'">'+esc(x.ticker)+" "+pct(x.h_d)+"</span>";}).join(""):"";
+  }
   function draw(){
     if(!DATA) return;
     var doc=DATA.doc, rows=DATA.rows;
     kpis(DATA);
+    thesis(); classes();
     // 1. the coil board
     var scopes=["ALL","DESK","S&P 500","ETF DESK","13F"];
     chips("coil-scope",scopes,coilScope,function(v){coilScope=v;});
@@ -273,7 +338,7 @@
     document.getElementById("note").innerHTML="<b>Universe.</b> "+esc(u.n_rows)+" names with bars ("+esc(u.scopes&&u.scopes.desk)+" desk · "+esc(u.scopes&&u.scopes["etf-desk"])+" ETF desk · "+esc(u.scopes&&u.scopes.sp500)+" S&P 500 · "+esc(u.scopes&&u.scopes["13f"])+" 13F most-held)"+(u.unbanked&&u.unbanked.length?"; unbanked: "+esc(u.unbanked.join(", ")):"")+". "+
       "<b>Flows.</b> "+esc(fl.n_universe_current)+" of "+esc(fl.n_in_universe)+" desk funds in the universe have a current flow source (ETF desk generated "+esc((fl.desk_generated_at||"").slice(0,16))+", reference end "+esc(fl.reference_end)+"). "+
       "<b>13F.</b> period "+esc(f13.period)+", "+esc(f13.n_in_universe)+" universe names with a cohort holder. "+
-      "The strength ranking is a price fact with no out-of-sample validation; it grants no sizing authority.";
+      "The strength ranking is a price fact; its walk-forward record is the thesis section above. It grants no sizing authority.";
     document.getElementById("stamp").innerHTML="bars "+esc(doc.as_of||"")+" · engine "+esc((doc.generated_at||"").slice(0,16).replace("T"," "))+" UTC<br>SPY "+D.fmtPx(DATA.spy.px)+" "+pct(DATA.spy.d)+(DATA.spy.live?" live":" close");
   }
   function load(){
