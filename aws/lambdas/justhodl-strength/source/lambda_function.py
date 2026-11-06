@@ -74,7 +74,7 @@ try:
 except Exception:  # noqa: BLE001
     etf_desk_catalog = None
 
-VERSION = "1.0.10"
+VERSION = "1.0.11"
 CONTRACT = "strength.v1"
 ENGINE = "justhodl-strength"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -110,6 +110,9 @@ BIG_N = 126                                                  # the big-days read
 BIG_MIN = 3
 PREDICTORS = ("strength", "asymmetry", "bigdays")                 # the thesis test's definitions of "strong" (1.0.9)
 FUND_SPLIT_TOL = 1.15                                        # 1.0.9: a fund's fresh split snaps to a common ratio within 15% (its sector moves on the split day too)
+BANK_SPLITS_ROOT = "data/warm/polygon-bank/splits/"          # 1.0.11: Polygon's split reference (execution_date, split_from, split_to) in monthly windows, written by justhodl-polygon-bank
+RECORDED_MIN_LN = math.log(1.25)                             # a recorded split smaller than 5-for-4 is left alone: its print is inside ordinary daily moves
+RECORDED_TOL_LN = math.log(1.15)                             # a recorded split is applied when the bars print it within 15% on the execution session or the next two
 ASYM_SHORT = 21
 IND_MIN = 3                                                  # an industry read needs this many ranked stocks in the universe
 IND_CONFIRM_PCT = 70.0                                       # an industry at or above this percentile confirms its members
@@ -236,6 +239,7 @@ SOURCES = [
     {"engine": "justhodl-etf-fund-flows", "key": CANON_KEY, "role": "canonical 300-fund flow packet (ETF Global via Massive/Polygon)", "schedule": "daily 22:00 UTC", "expected_h": 24},
     {"engine": "justhodl-13f-book", "key": TICKERS_KEY, "role": "13F cohort read per ticker", "schedule": "daily 16:37 UTC + hand-off", "expected_h": 24},
     {"engine": "justhodl-leaders", "key": LEADERS_KEY, "role": "industry table: every FMP industry's five largest vs the S&P 500 (industry confirmation)", "schedule": "daily 03:50 UTC", "expected_h": 30},
+    {"engine": "justhodl-polygon-bank", "key": "data/warm/polygon-bank/manifest.json", "role": "Polygon's split reference file (monthly windows: execution date, split_from / split_to)", "schedule": "daily 22:41 UTC", "expected_h": 30},
 ]
 
 
@@ -887,7 +891,10 @@ def read_bars(s3, ticker, sessions=LOOKBACK):
 
 def get_json(s3, key):
     obj = s3.get_object(Bucket=S3_BUCKET, Key=key)
-    return json.loads(obj["Body"].read()), obj["LastModified"]
+    raw = obj["Body"].read()
+    if key.endswith(".gz") or raw[:2] == b"\x1f\x8b":
+        raw = gzip.decompress(raw)
+    return json.loads(raw), obj["LastModified"]
 
 
 def optional(s3, key):
@@ -995,6 +1002,74 @@ def infer_splits(bars, fund=False):
         ratio = snap if abs(math.log(snap) - math.log(r)) <= math.log(1.04) else r
         found.append({"date": bars[i]["date"], "factor": f(ratio, 6), "ratio": f(r, 4), "source": "inferred", "evidence": "volume" if volume_matches else "ratio"})
     return found
+
+
+def months_between(first_iso, last_iso):
+    y, m = int(first_iso[:4]), int(first_iso[5:7])
+    ly, lm = int(last_iso[:4]), int(last_iso[5:7])
+    out = []
+    while (y, m) <= (ly, lm):
+        out.append("%04d-%02d" % (y, m))
+        y, m = (y + 1, 1) if m == 12 else (y, m + 1)
+    return out
+
+
+def polygon_splits(s3, first_iso, last_iso, want):
+    """1.0.11 - Polygon's split reference rows (the bank's monthly windows under BANK_SPLITS_ROOT) for the tickers in
+    `want` between two dates: {ticker: [{date, split_from, split_to}]}, plus how many windows were read. The leaders
+    desk reads the same file; the corporate-actions index (200 names a day, stocks only) misses fund splits."""
+    out, n = {}, 0
+
+    def one(month):
+        try:
+            doc, _ = get_json(s3, BANK_SPLITS_ROOT + month + ".json.gz")
+        except Exception:  # noqa: BLE001
+            return None
+        return doc if isinstance(doc, list) else (doc.get("results") if isinstance(doc, dict) else None)
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        for rows in pool.map(one, months_between(first_iso, last_iso)):
+            if rows is None:
+                continue
+            n += 1
+            for r in rows:
+                t = str((r.get("ticker") if isinstance(r, dict) else "") or "").upper().strip().replace("-", ".")
+                d = str(r.get("execution_date") or "") if isinstance(r, dict) else ""
+                if t in want and first_iso <= d <= last_iso and r.get("split_from") and r.get("split_to"):
+                    out.setdefault(t, []).append({"date": d, "split_from": r["split_from"], "split_to": r["split_to"]})
+    return out, n
+
+
+def confirm_recorded(bars, recorded):
+    """1.0.11 (the leaders desk's rule) - recorded splits the bank's bars still carry UNADJUSTED: the bank's history was
+    pulled adjusted, so a split that executed before the pull is already inside the bars and must not be applied twice;
+    only sessions appended after the pull are raw. A recorded split is applied when the bars print it: the close-to-close
+    ratio on the execution session (or the next two) lands within 15% of the split's price factor (split_from /
+    split_to). Returns the events to apply ({date, factor, ratio, source: 'polygon-splits', split_from, split_to}). Pure."""
+    out = []
+    if not bars or not recorded:
+        return out
+    idx = {b["date"]: i for i, b in enumerate(bars)}
+    dates = [b["date"] for b in bars]
+    for e in recorded:
+        try:
+            factor = float(e["split_from"]) / float(e["split_to"])
+            day = str(e["date"])
+        except (KeyError, TypeError, ValueError, ZeroDivisionError):
+            continue
+        if factor <= 0 or abs(math.log(factor)) < RECORDED_MIN_LN:
+            continue
+        i = idx.get(day)
+        if i is None:
+            later = [k for k, d in enumerate(dates) if d > day]
+            i = later[0] if later else None
+        if i is None or i < 1:
+            continue
+        for j in range(i, min(i + 3, len(bars))):
+            pc, c = float(bars[j - 1]["c"]), float(bars[j]["c"])
+            if pc > 0 and c > 0 and abs(math.log(c / pc) - math.log(factor)) <= RECORDED_TOL_LN:
+                out.append({"date": bars[j]["date"], "factor": f(factor, 6), "ratio": f(c / pc, 4), "source": "polygon-splits", "split_from": e.get("split_from"), "split_to": e.get("split_to")})
+                break
+    return out
 
 
 def recorded_splits(s3, index, tickers):
@@ -1496,12 +1571,16 @@ def build(s3, now, log=print, remaining_s=300.0):
     if actions_err:
         errors.append({"input": "corporate-actions-index", "error": actions_err})
     recorded = recorded_splits(s3, actions_index, [t for t, b in bars_by.items() if b] + [BENCH])
+    banked = {t for t, b in bars_by.items() if b} | {BENCH}
+    first_day = min([b[0]["date"] for b in bars_by.values() if b] + [bench[0]["date"] if bench else bank_last or "2026-01-01"])
+    poly, n_windows = polygon_splits(s3, first_day, bank_last or (bench[-1]["date"] if bench else first_day), banked)
     splits_by = {}
     for t in list(bars_by.keys()) + [BENCH]:
         b = bench if t == BENCH else bars_by.get(t)
         if not b:
             continue
-        ev = list(recorded.get(t) or [])
+        ev = confirm_recorded(b, poly.get(t))                                   # Polygon's reference first, only where the bars print the split
+        ev += [x for x in (recorded.get(t) or []) if not any(abs((datetime.fromisoformat(x["date"]) - datetime.fromisoformat(r["date"])).days) <= 3 for r in ev)]
         adjusted = apply_splits(b, ev) if ev else b
         m_ = u.get(t) or {}
         is_fund = t == BENCH or (m_.get("kind") == "fund" and m_.get("asset_class") != "leveraged")
@@ -1561,9 +1640,11 @@ def build(s3, now, log=print, remaining_s=300.0):
                                      "lookback_sessions": LOOKBACK},
         "benchmark": {"ticker": BENCH, "px": f(float(bench[-1]["c"])), "as_of": bench[-1]["date"], "h": bench_h, "sessions": len(bench), **bench_ctx},
         "splits": {"index_generated_at": (actions_index or {}).get("generated_at"), "index_covered": (actions_index or {}).get("covered"), "index_last_modified": actions_mod,
+                   "polygon_windows_read": n_windows, "polygon_reference_rows": sum(len(v) for v in poly.values()),
                    "n_rows_adjusted": sum(1 for r in rows if r.get("splits")), "recorded": sum(1 for r in rows for e in (r.get("splits") or []) if e.get("source") == "corporate-actions"),
+                   "polygon": sum(1 for r in rows for e in (r.get("splits") or []) if e.get("source") == "polygon-splits"),
                    "inferred": sum(1 for r in rows for e in (r.get("splits") or []) if e.get("source") == "inferred"),
-                   "note": "bank bars are unadjusted grouped-daily rows; bars before a split are rebased by the split factor (recorded by justhodl-corporate-actions, or inferred from a volume-confirmed price jump)"},
+                   "note": "bank bars are unadjusted grouped-daily rows; bars before a split are rebased by the split factor (Polygon's split reference where the bars print it, the justhodl-corporate-actions record, or inferred from a volume-confirmed price jump - a fund's fresh split from the split day alone)"},
         "universe": {"n": len(u), "n_rows": len(rows), "n_ranked": boards["n_ranked"], "scopes": {s: sum(1 for v in u.values() if s in v["scopes"]) for s in ("desk", "etf-desk", "sp500", "13f")},
                      "unbanked": unbanked, "skipped_for_time": skipped, "sp500_rows": len(sp500), "etf_desk_rows": len(etf_desk), "f13_rows": len(f13), "max": MAX_UNIVERSE},
         "sleeves": {sl: [{"ticker": t, "name": n} for t, n in items] for sl, items in SLEEVES.items()},

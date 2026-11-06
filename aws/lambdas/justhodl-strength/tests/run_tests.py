@@ -164,6 +164,11 @@ def seed():
             r[2], r[3] = r[4] * 1.001, r[4] * 0.999
     s3.put(lf.bank_key("DEAL"), {"rows": rows})
     s3.put(lf.ACTIONS_INDEX_KEY, {"generated_at": "2026-11-04T06:40:00+00:00", "covered": 2, "tickers": {"RCRD": {"n_splits": 1, "n_events": 3}, "AAPL": {"n_splits": 0, "n_events": 4}}})
+    # 1.0.11: Polygon's split reference (monthly windows) - SPLT's 1-for-3 at session 280 is recorded AND printed by the bars (applied, source polygon-splits);
+    # AAPL's "2-for-1" at session 100 is recorded but the bars never print it (already adjusted when the bank was pulled -> left alone)
+    s3.put(lf.BANK_SPLITS_ROOT + DATES[280].isoformat()[:7] + ".json.gz", {"results": [{"ticker": "SPLT", "execution_date": DATES[280].isoformat(), "split_from": 3, "split_to": 1}]})
+    s3.put(lf.BANK_SPLITS_ROOT + DATES[100].isoformat()[:7] + ".json.gz", [{"ticker": "AAPL", "execution_date": DATES[100].isoformat(), "split_from": 1, "split_to": 2}])
+    s3.put("data/warm/polygon-bank/manifest.json", {"engine": "justhodl-polygon-bank", "generated_at": "2026-11-03T22:45:00+00:00", "splits": {"windows": 2}})
     s3.put(lf.ACTIONS_PREFIX + "RCRD.json", {"ticker": "RCRD", "events": [{"date": DATES[250].isoformat(), "type": "split", "ratio_from": 1, "ratio_to": 2, "factor": 0.5, "source": "polygon"},
                                                                           {"date": DATES[100].isoformat(), "type": "dividend_cash", "factor": 0.995}]})
     # TLT, XLE: configured desk funds with no bank file (unbanked) ; SIVR unbanked too
@@ -340,7 +345,7 @@ def test_universe_assembly_and_ranks():
 
 def test_build_rows_boards_flows_and_13f():
     s3, out = built()
-    assert out["contract"] == "strength.v1" and out["version"] == "1.0.10" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
+    assert out["contract"] == "strength.v1" and out["version"] == "1.0.11" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
     assert out["benchmark"]["sessions"] == 300 and out["benchmark"]["h"]["q"] is not None and out["universe"]["n"] == len({t for items in lf.SLEEVES.values() for t, _ in items}) + 8
     by = {r["ticker"]: r for r in out["rows"]}
     # unbanked desk names carry no row; the bank manifest's last session is the as-of
@@ -368,10 +373,10 @@ def test_build_rows_boards_flows_and_13f():
     assert out["f13"] == {"period": "2026-06-30", "generated_at": "2026-11-04T16:37:00+00:00", "n_tickers": 4, "last_modified": "2026-11-04T03:13:00+00:00", "n_in_universe": 3}
     # splits: the unrecorded 1-for-3 reverse split is inferred from the volume-confirmed jump, the recorded 2-for-1 comes from corporate-actions; both series read continuous
     sp, rc = by["SPLT"], by["RCRD"]
-    assert sp["splits"] == [{"date": DATES[280].isoformat(), "factor": 3.0, "ratio": sp["splits"][0]["ratio"], "source": "inferred", "evidence": "volume"}] and 2.9 <= sp["splits"][0]["ratio"] <= 3.1
+    assert sp["splits"][0]["date"] == DATES[280].isoformat() and sp["splits"][0]["factor"] == 3.0 and sp["splits"][0]["source"] == "polygon-splits" and 2.9 <= sp["splits"][0]["ratio"] <= 3.1 and len(sp["splits"]) == 1   # 1.0.11: recorded by Polygon's reference (the inferred rule would have found the same)
     assert rc["splits"][0]["source"] == "corporate-actions" and rc["splits"][0]["factor"] == 0.5 and len(rc["splits"]) == 1
     assert abs(sp["h"]["y"] - by["BRK.B"]["h"]["y"]) < 40 and abs(sp["vs"]["q"]) < 30 and abs(rc["vs"]["q"]) < 30 and abs(rc["h"]["y"]) < 60   # no 200% artefacts
-    assert out["splits"]["n_rows_adjusted"] == 2 and out["splits"]["recorded"] == 1 and out["splits"]["inferred"] == 1 and out["splits"]["index_covered"] == 2
+    assert out["splits"]["n_rows_adjusted"] == 2 and out["splits"]["recorded"] == 1 and out["splits"]["polygon"] == 1 and out["splits"]["inferred"] == 0 and out["splits"]["index_covered"] == 2
     assert by["NVDA"].get("splits") is None
     # boards and breadth
     b = out["boards"]
@@ -383,7 +388,7 @@ def test_build_rows_boards_flows_and_13f():
     assert by["COIL"]["coil"]["contraction"] < 0.1 and by["GLD"]["coil"]["contraction"] <= 0.6
     assert all("spark" in by[t] for t in ("NVDA", "AAPL", "QQQ", "GLD", "LAGG")) and "spark" in by["COIL"] and len(by["NVDA"]["spark"]) == 60
     # sources and observability
-    assert [s["engine"] for s in out["sources"]] == ["justhodl-polygon-eod", "justhodl-etf-global-desk", "justhodl-etf-fund-flows", "justhodl-13f-book", "justhodl-leaders"]
+    assert [s["engine"] for s in out["sources"]] == ["justhodl-polygon-eod", "justhodl-etf-global-desk", "justhodl-etf-fund-flows", "justhodl-13f-book", "justhodl-leaders", "justhodl-polygon-bank"]
     assert all(s["tier"] == "fresh" for s in out["sources"] if s["engine"] != "justhodl-leaders") and out["n_errors"] == 0 and out["sleeves"]["METAL"][0] == {"ticker": "GLD", "name": "Gold"}
     assert out["universe"]["scopes"]["etf-desk"] == 5 and out["universe"]["scopes"]["sp500"] == 9 and out["universe"]["scopes"]["13f"] == 3 and out["universe"]["scopes"]["desk"] >= 160
     # 1.0.7: asset classes on every row, in-class percentiles, the class board, the thesis block
@@ -395,6 +400,12 @@ def test_build_rows_boards_flows_and_13f():
     assert bc["stock"]["n"] == 8 and bc["stock"]["best"][0]["ticker"] == "NVDA" and bc["stock"]["worst"][0]["ticker"] == "LAGG" and bc["gold"]["n"] == 1 and b["class_order"][0] == "stock"
     assert out["thesis"]["window"]["sessions"] > 100 and out["thesis"]["windows"]["252"]["sessions"] == out["thesis"]["window"]["sessions"] and "thesis" in out["definitions"]
     assert set(out["thesis"]["windows"]) == {"21", "63", "252"} and out["thesis"]["windows"]["21"]["sessions"] == 21 and out["thesis"]["windows"]["63"]["sessions"] == 63
+    # 1.0.11: the Polygon reference is the first recorded source - SPLT's reverse split is polygon-splits now (the inferred rule stays for what the reference lacks)
+    sp_ev = by["SPLT"]["splits"]
+    assert sp_ev and sp_ev[0]["source"] == "polygon-splits" and sp_ev[0]["factor"] == 3.0 and sp_ev[0]["date"] == DATES[280].isoformat() and len(sp_ev) == 1, sp_ev
+    assert not by["AAPL"].get("splits"), by["AAPL"].get("splits")
+    assert out["splits"]["polygon"] == 1 and out["splits"]["polygon_windows_read"] >= 2 and out["splits"]["polygon_reference_rows"] == 2
+    assert any(s_["engine"] == "justhodl-polygon-bank" for s_ in out["sources"])
     # 1.0.8: capture / asymmetry on every ranked row, the asymmetry rank, the industry read (universe + leaders table), the boards
     cap = by["NVDA"]["capture"]["63"]
     assert cap["n"] == 63 and cap["n_down"] + cap["n_up"] <= 63 and cap["down_excess_pp"] is not None and cap["up_excess_pp"] is not None and cap["asym_pp"] == by["NVDA"]["asym_pp"]
