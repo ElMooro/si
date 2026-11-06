@@ -153,7 +153,8 @@ def main():
         if ls.get("date") != SESSION or ls.get("ranked_as_of") != PRIOR:
             r.fail("the thesis block's last session is not %s ranked as of %s" % (SESSION, PRIOR))
             raise SystemExit(1)
-        for pred in ("strength", "asymmetry"):
+        preds = list(th.get("predictor_order") or ["strength", "asymmetry"])
+        for pred in preds:
             r.log("== %s (%s)" % (pred.upper(), (th.get("predictors") or {}).get(pred)))
             for grp in ("all", "stocks"):
                 g = (ls.get(pred) or {}).get(grp) or {}
@@ -177,7 +178,7 @@ def main():
         for k in ("21", "63", "252"):
             w = (th.get("windows") or {}).get(k) or {}
             r.log("WINDOW %s: %s -> %s | dump days %s (deep %s) | rally days %s" % (k, w.get("from"), w.get("to"), w.get("n_dump_days"), w.get("n_deep_dump_days"), w.get("n_rally_days")))
-            for pred in ("strength", "asymmetry"):
+            for pred in preds:
                 for kind in ("dump", "rally", "all_days"):
                     a = ((w.get(kind) or {}).get(pred) or {}).get("stocks") or {}
                     td, bd = a.get("top_decile") or {}, a.get("bottom_decile") or {}
@@ -189,14 +190,15 @@ def main():
                 ic = (w.get("industry") or {}).get(kind) or {}
                 r.log("  industry %-8s top tenth %s | CONFIRMED %s | not confirmed %s" % (kind, json.dumps(ic.get("top_decile_stocks")), json.dumps(ic.get("industry_confirmed")), json.dumps(ic.get("not_confirmed"))))
             r.log("  by class on dump days: %s" % json.dumps(w.get("by_class_on_dumps"))[:1000])
+        def top_tbl(d, pred):
+            g = d.get(pred) or {}
+            return ((g.get("stocks") or g.get("all")) or {}).get("top") or {}
         for d in (th.get("dump_days") or [])[:15]:
-            a, b_ = (d["strength"].get("stocks") or d["strength"]["all"])["top"], (d["asymmetry"].get("stocks") or d["asymmetry"]["all"])["top"]
             c_ = (d.get("confirmed") or {}).get("confirmed") or {}
-            r.log("  dump %s SPY %s | momentum top: excess %s pp held %s%% | asymmetry top: excess %s held %s%% | confirmed: excess %s held %s%% n %s" % (
-                d["date"], pct(d["spy_ret_pct"]), a.get("mean_excess_pp"), a.get("held_up_pct"), b_.get("mean_excess_pp"), b_.get("held_up_pct"), c_.get("mean_excess_pp"), c_.get("held_up_pct"), c_.get("n")))
+            r.log("  dump %s SPY %s | %s | confirmed: excess %s held %s%% n %s" % (
+                d["date"], pct(d["spy_ret_pct"]), " | ".join("%s top: excess %s pp held %s%%" % (pred, top_tbl(d, pred).get("mean_excess_pp"), top_tbl(d, pred).get("held_up_pct")) for pred in preds), c_.get("mean_excess_pp"), c_.get("held_up_pct"), c_.get("n")))
         for d in (th.get("rally_days") or [])[:10]:
-            a, b_ = (d["strength"].get("stocks") or d["strength"]["all"])["top"], (d["asymmetry"].get("stocks") or d["asymmetry"]["all"])["top"]
-            r.log("  rally %s SPY %s | momentum top: excess %s pp beat %s%% | asymmetry top: excess %s beat %s%%" % (d["date"], pct(d["spy_ret_pct"]), a.get("mean_excess_pp"), a.get("hit_pct"), b_.get("mean_excess_pp"), b_.get("hit_pct")))
+            r.log("  rally %s SPY %s | %s" % (d["date"], pct(d["spy_ret_pct"]), " | ".join("%s top: excess %s pp beat %s%%" % (pred, top_tbl(d, pred).get("mean_excess_pp"), top_tbl(d, pred).get("hit_pct")) for pred in preds)))
         bi = (doc.get("boards") or {}).get("industries") or {}
         r.log("industries in this universe: %s ranked (>= 3 members), %s confirmed; strongest: %s | weakest: %s" % (bi.get("n"), bi.get("n_confirmed"),
               ", ".join("%s %s (n%s, leaders %s)" % (x["industry"], x["median_strength"], x["n"], (x.get("leaders") or {}).get("strength")) for x in (bi.get("strongest") or [])[:12]),
