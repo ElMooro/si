@@ -69,13 +69,15 @@
 
   <section class="st-sec" aria-label="Thesis: how the strongest held up on S&P 500 dump days">
     <h2>Thesis · the strongest when the S&P 500 dumps <span class="m" id="thesis-meta"></span></h2>
-    <p class="st-sub">The engine tests its own thesis every run, walk-forward: for each of the last 252 sessions the universe is re-ranked from the closes through the <b>session before</b> (the same horizons, weights, z-scores and percentiles the desk shows), then every name's move on the session itself is measured against SPY. A dump day is SPY down 1% or more; "held up" = flat (within 0.25%), up, or down less than SPY. The strongest tenth of the ranks should hold up — that is the thesis, and this is its record, not a forecast.</p>
+    <p class="st-sub">The engine tests its own thesis every run, walk-forward: for each session the universe is re-ranked from the closes through the <b>session before</b> by two definitions of strong — the <b>momentum rank</b> the desk shows (excess return vs SPY over 1d to 6M) and the <b>asymmetry rank</b> (over the trailing 63 sessions: how the name moved on SPY's down days plus how it moved on SPY's up days — <i>dumps less than the S&amp;P 500, rallies more than it</i>) — then every name's move on the session itself is measured against SPY. Read over the last month, the last quarter, or the year as a reference. Dump day = SPY down 1% or more, rally day = SPY up 1% or more; "held up" = flat (within 0.25%), up, or down less than SPY; <b>industry-confirmed</b> = a top-tenth stock whose whole industry (its members ranked here) sat in the top 30% that session. This is the record, not a forecast.</p>
+    <div class="st-row" id="thesis-win"></div>
     <p class="st-verdict" id="thesis-verdict"></p>
     <div class="jh-kpis" id="thesis-kpis"></div>
     <div class="st-grid2" style="margin-top:10px">
-      <div class="jh-card"><h3>Every dump day of the last year <span class="st-small" id="dump-meta"></span></h3><div class="jh-tblwrap" style="max-height:380px" id="dumps"></div></div>
-      <div class="jh-card"><h3>Last session, the strongest tenth one by one <span class="st-small" id="last-meta"></span></h3><div class="st-small" id="last-deciles" style="margin:0 0 8px"></div><div class="jh-tblwrap" style="max-height:380px" id="lastnames"></div></div>
+      <div class="jh-card"><h3>Dump days in the window <span class="st-small" id="dump-meta"></span></h3><div class="jh-tblwrap" style="max-height:380px" id="dumps"></div></div>
+      <div class="jh-card"><h3>Rally days in the window <span class="st-small" id="rally-meta"></span></h3><div class="jh-tblwrap" style="max-height:380px" id="rallies"></div></div>
     </div>
+    <div class="jh-card" style="margin-top:12px"><h3>Last session, the strongest tenth one by one <span class="st-small" id="last-meta"></span></h3><div class="st-row" id="thesis-pred"></div><div class="st-small" id="last-deciles" style="margin:0 0 8px"></div><div class="jh-tblwrap" style="max-height:420px" id="lastnames"></div></div>
   </section>
 
   <section class="st-sec" aria-label="Asset classes: stocks, equity ETFs, countries, bonds, high yield, cash, gold, silver, metals, commodities, currencies, crypto, volatility">
@@ -132,13 +134,15 @@
 <script src="/jh-strong-engine.js?v=20261104-strength-v1"></script>
 <script>
 (function(){
-  var D=JHDesk, DATA=null, sleeve="ALL", coilScope="ALL", leadScope="DESK";
-  var SORT={tbl:{k:"strength",dir:-1},coil:{k:"score",dir:-1},leaders:{k:"strength",dir:-1},laggards:{k:"strength",dir:1},focus:{k:"strength",dir:-1},dumps:{k:"date",dir:-1},lastnames:{k:"ret_pct",dir:-1},classes:{k:"median_vs_d",dir:-1}};
+  var D=JHDesk, DATA=null, sleeve="ALL", coilScope="ALL", leadScope="DESK", thWin="63", thPred="strength";
+  var SORT={tbl:{k:"strength",dir:-1},coil:{k:"score",dir:-1},leaders:{k:"strength",dir:-1},laggards:{k:"strength",dir:1},focus:{k:"strength",dir:-1},dumps:{k:"date",dir:-1},rallies:{k:"date",dir:-1},lastnames:{k:"ret_pct",dir:-1},classes:{k:"median_vs_d",dir:-1}};
   var TIER_CLS={"VERY TIGHT":"VT","TIGHT":"T","LONG BASE":"LB","FORMING":"F"};
   function esc(s){return D.esc(s);}
   function pct(v,d){return v==null?"—":D.fmtPct(v,d==null?2:d);}
   function num(v,d){return v==null||!isFinite(v)?"—":Number(v).toFixed(d==null?1:d);}
   function cellPct(v,d){return '<td class="'+D.cls(v)+'">'+pct(v,d)+"</td>";}
+  function pp(v,bare){return v==null||!isFinite(v)?"—":(v>0?"+":"")+Number(v).toFixed(2)+(bare?"":" pp");}
+  function cellPp(v){return '<td class="'+D.cls(v)+'" title="percentage points vs SPY">'+pp(v,true)+"</td>";}
   function money(v){ if(v==null||!isFinite(v)) return "—"; var a=Math.abs(v), s=v<0?"−":v>0?"+":""; return s+"$"+(a>=1e9?(a/1e9).toFixed(2)+"B":a>=1e6?(a/1e6).toFixed(0)+"M":a>=1e3?(a/1e3).toFixed(0)+"K":a.toFixed(0)); }
   function tk(t){return "<a class=tk href='/chart.html?s="+encodeURIComponent(t)+"'>"+esc(t)+"</a>";}
   function tier(c){ if(!c||!c.tier) return "—"; if(c.flag) return '<span class="st-tier F" title="'+esc(c.flag_note||"")+'">'+esc(c.flag)+" · "+esc(c.base_len)+"</span>"; return '<span class="st-tier '+(TIER_CLS[c.tier]||"")+'" title="closes inside '+esc(c.base_range_pct)+'% for '+esc(c.base_len)+' sessions">'+esc(c.tier)+" · "+esc(c.base_len)+"</span>"; }
@@ -181,6 +185,8 @@
       case "atr14_pct": return c.atr14_pct; case "bb": return c.bb_width_pctile_252; case "vol_dry": return c.vol_dry; case "cmf": return c.cmf_base; case "ud": return c.updown_vol;
       case "rs_hold": return c.rs_hold_base; case "pos_in_base": return c.pos_in_base;
       case "f13": return f.net_usd!=null?f.net_usd:null; case "flow": return fl.w5?fl.w5.pct_aum:fl.w1?fl.w1.pct_aum:null;
+      case "asym": return r.asym_pp; case "dnx": return ((r.capture||{})["63"]||{}).down_excess_pp!=null?r.capture["63"].down_excess_pp:r.down_excess_pp; case "upx": return ((r.capture||{})["63"]||{}).up_excess_pp!=null?r.capture["63"].up_excess_pp:r.up_excess_pp;
+      case "ind": var ir=r.industry_read||{rank:r.industry_rank,leaders_strength:r.industry_leaders_strength}; return ir.rank!=null?ir.rank:ir.leaders_strength;
       case "scope": return scopeOf(r);
       default: return r[k];
     }
@@ -223,9 +229,16 @@
       "<td>"+num(c.atr14_pct,2)+"%</td><td>"+num(c.bb_width_pctile_252,0)+"</td><td class='"+(c.vol_dry!=null&&c.vol_dry<0.85?"up":"")+"'>"+num(c.vol_dry,2)+"×</td><td class='"+D.cls(c.cmf_base)+"'>"+num(c.cmf_base,3)+"</td><td class='"+(c.updown_vol!=null?(c.updown_vol>=1.05?"up":c.updown_vol<=0.95?"dn":""):"")+"'>"+num(c.updown_vol,2)+"</td>"+
       cellPct(c.rs_hold_base,1)+"<td>"+num(c.pos_in_base,0)+"%</td><td>"+bar(r.strength)+"</td><td><b>"+num(c.score,1)+"</b></td><td>"+smart(r)+"</td><td>"+D.fmtPx(get(r,"px"))+"</td></tr>";
   }
-  var LEAD_COLS=[["ticker","Ticker"],["name","Name"],["scope","Scope"],["strength","Strength"],["composite_pp","Composite","weighted excess return, pp"],["vw","RS 1W"],["vm","RS 1M"],["vq","RS 3M"],["vh","RS 6M"],["rs_trend_63","RS trend"],["rs_consistency_63","Consistency"],["ir_63","IR"],["pos_52w","52w pos"],["tier","Base"],["flows","Smart money"]];
+  var LEAD_COLS=[["ticker","Ticker"],["name","Name"],["scope","Scope"],["strength","Strength"],["asym","Asym 63 pp","down-day excess + up-day excess vs SPY over 63 sessions, percentage points: positive on both sides = dumps less, rallies more"],["dnx","Dump days pp","mean excess vs SPY on SPY's down days, 63 sessions, percentage points"],["upx","Rally days pp","mean excess vs SPY on SPY's up days, 63 sessions, percentage points"],
+    ["ind","Industry","the industry's rank among industries ranked here (median of its members) · ✓ = confirmed (top 30% here or in the leaders desk)"],["composite_pp","Composite","weighted excess return, pp"],["vw","RS 1W"],["vm","RS 1M"],["vq","RS 3M"],["vh","RS 6M"],["rs_trend_63","RS trend"],["rs_consistency_63","Consistency"],["ir_63","IR"],["pos_52w","52w pos"],["tier","Base"],["flows","Smart money"]];
+  function indCell(r){
+    var ir=r.industry_read||{rank:r.industry_rank,leaders_strength:r.industry_leaders_strength,confirmed:r.industry_confirmed}; if(!r.industry) return "<td>—</td>";
+    var rk=ir.rank!=null?ir.rank:ir.leaders_strength;
+    return "<td class=nm title='"+esc(r.industry)+" · here: "+esc(ir.n_universe||0)+" ranked, median strength "+esc(ir.median_strength==null?"—":ir.median_strength)+" · leaders desk: strength "+esc(ir.leaders_strength==null?"—":ir.leaders_strength)+", 1M "+esc(pct(ir.leaders_vs_m))+"'>"+(ir.confirmed?"<span class=up>✓</span> ":"")+esc(r.industry)+(rk!=null?" <span class=st-small>"+num(rk,0)+"</span>":"")+"</td>";
+  }
   function leadRow(r){
-    return "<tr><td>"+tk(r.ticker)+"</td><td class=nm title='"+esc(r.name)+"'>"+esc(r.name)+"</td><td class=nm>"+esc(scopeOf(r))+"</td><td>"+bar(r.strength)+"</td>"+cellPct(r.composite_pp)+cellPct(r.vs&&r.vs.w)+cellPct(r.vs&&r.vs.m)+cellPct(r.vs&&r.vs.q)+cellPct(r.vs&&r.vs.h)+
+    var c=(r.capture||{})["63"]||{down_excess_pp:r.down_excess_pp,up_excess_pp:r.up_excess_pp};
+    return "<tr><td>"+tk(r.ticker)+"</td><td class=nm title='"+esc(r.name)+"'>"+esc(r.name)+"</td><td class=nm>"+esc(scopeOf(r))+"</td><td>"+bar(r.strength)+"</td>"+cellPp(r.asym_pp)+cellPp(c.down_excess_pp)+cellPp(c.up_excess_pp)+indCell(r)+cellPct(r.composite_pp)+cellPct(r.vs&&r.vs.w)+cellPct(r.vs&&r.vs.m)+cellPct(r.vs&&r.vs.q)+cellPct(r.vs&&r.vs.h)+
       cellPct(r.rs_trend_63,1)+"<td>"+num(r.rs_consistency_63,0)+"%</td><td class='"+D.cls(r.ir_63)+"'>"+num(r.ir_63,2)+"</td><td>"+num(r.pos_52w,0)+"%</td><td>"+tier(r.coil)+"</td><td>"+smart(r)+"</td></tr>";
   }
   function table(id,cols,rows,empty,rowFn){
@@ -258,29 +271,55 @@
   var CLASS_COLS=[["label","Class"],["n","Ranked"],["median_strength","Median rank"],["median_vs_d","vs SPY today","median excess return today"],["median_vs_w","vs SPY 1W"],["median_vs_m","vs SPY 1M"],["median_vs_q","vs SPY 3M"],
     ["pct_above_spy_m","Beat SPY 1M","share of the class ahead of SPY over 21 sessions"],["pct_above_spy_q","Beat SPY 3M"],["held_last","Held up last session","share of the class flat, up, or down less than SPY on the last session (thesis block)"],
     ["rs_new_highs","RS highs"],["coiled","Coiled"],["best","Strongest"],["worst","Weakest"]];
+  var DUMP_COLS=[["date","Date"],["spy_ret_pct","SPY"],["m_excess","Momentum top pp","the momentum rank's top tenth of stocks: average move minus SPY's, percentage points"],["m_held","held up"],["a_excess","Asymmetry top pp","the asymmetry rank's top tenth of stocks: excess vs SPY, percentage points"],["a_held","held up"],
+    ["c_excess","Confirmed pp","the momentum top tenth whose industry sat in the top 30% that session: excess vs SPY, percentage points"],["c_held","held up"],["c_n","n"],["m_bottom","Weakest tenth pp","the momentum rank's bottom tenth: excess vs SPY, percentage points"]];
+  var RALLY_COLS=[["date","Date"],["spy_ret_pct","SPY"],["m_excess","Momentum top pp","the momentum rank's top tenth of stocks: excess vs SPY, percentage points"],["m_hit","beat SPY","share of the top tenth ahead of SPY"],["a_excess","Asymmetry top pp"],["a_hit","beat SPY"],["c_excess","Confirmed pp","industry-confirmed leaders: excess vs SPY, percentage points"],["c_hit","beat SPY"],["m_bottom","Weakest tenth pp"]];
+  var LAST_COLS=[["ticker","Ticker"],["asset_class","Class"],["industry","Industry"],["strength","Rank","percentile as of the session before, by the selected definition"],["ret_pct","Move"],["word","Verdict"]];
+  function dayRow(x,kind){
+    var m=(x.strength||{}).stocks||(x.strength||{}).all||x.stocks||x.all||{}, a=(x.asymmetry||{}).stocks||(x.asymmetry||{}).all||{}, c=(x.confirmed||{}).confirmed||{};
+    var o={date:x.date, spy_ret_pct:x.spy_ret_pct, m_excess:(m.top||{}).mean_excess_pp, m_held:(m.top||{}).held_up_pct, m_hit:(m.top||{}).hit_pct, a_excess:(a.top||{}).mean_excess_pp, a_held:(a.top||{}).held_up_pct, a_hit:(a.top||{}).hit_pct,
+      c_excess:c.mean_excess_pp, c_held:c.held_up_pct, c_hit:c.hit_pct, c_n:c.n, m_bottom:(m.bottom||{}).mean_excess_pp};
+    return o;
+  }
   function thesis(){
-    var doc=DATA.doc, th=doc.thesis||{}, sm=th.summary||{}, ls=th.last_session||{}, d=(sm.dump||{}).all||{}, ds=(sm.dump||{}).stocks||{}, ad=sm.all_days||{};
-    document.getElementById("thesis-meta").textContent=th.window?th.window.sessions+" sessions · "+th.window.from+" → "+th.window.to+" · "+(sm.n_dump_days||0)+" dump days ("+(sm.n_deep_dump_days||0)+" of 2%+)":"";
-    document.getElementById("thesis-verdict").textContent=th.verdict||th.error||"the thesis block is not in this artifact yet (engine 1.0.7)";
-    var lt=(ls.all||{}).top||{}, lb=(ls.all||{}).bottom||{}, lst=(ls.stocks||{}).top||{}, td=d.top_decile||{}, bd=d.bottom_decile||{}, tds=ds.top_decile||{};
+    var doc=DATA.doc, th=doc.thesis||{}, W=(th.windows||{})[thWin]||{}, ls=th.last_session||{};
+    var wins=[["21","last month · 21 sessions"],["63","last quarter · 63 sessions"],["252","last year · 252 sessions (reference)"]];
+    document.getElementById("thesis-win").innerHTML=wins.map(function(c){return '<button type="button" class="jh-chip'+(thWin===c[0]?" on":"")+'" data-w="'+c[0]+'">'+esc(c[1])+"</button>";}).join("")+'<span class="st-small" style="margin-left:8px">'+esc(W.from?W.from+" → "+W.to+" · "+W.n_dump_days+" dump days · "+W.n_rally_days+" rally days":"")+"</span>";
+    document.querySelectorAll("#thesis-win .jh-chip").forEach(function(b){ b.onclick=function(){ thWin=b.getAttribute("data-w"); draw(); }; });
+    document.getElementById("thesis-meta").textContent=th.window?th.window.sessions+" sessions walked forward · "+(th.window.from||"")+" → "+(th.window.to||"")+" · two definitions of strong: the momentum rank and the asymmetry rank":"";
+    document.getElementById("thesis-verdict").textContent=th.verdict||th.error||"the thesis block is not in this artifact yet (engine 1.0.8)";
+    var md=((W.dump||{}).strength||{}).stocks||{}, ad=((W.dump||{}).asymmetry||{}).stocks||{}, mr=((W.rally||{}).strength||{}).stocks||{}, ar=((W.rally||{}).asymmetry||{}).stocks||{};
+    var bs=W.both_sides||{}, ic=((W.industry||{}).dump)||{}, icr=((W.industry||{}).rally)||{};
+    var lt=(((ls.strength||{}).stocks)||((ls.strength||{}).all)||ls.stocks||ls.all||{}).top||{}, la=(((ls.asymmetry||{}).stocks)||((ls.asymmetry||{}).all)||{}).top||{}, lc=((ls.confirmed||{}).confirmed)||{};
+    function tile(l,v,s_){ return '<div class="jh-kpi"><div class="l">'+esc(l)+'</div><div class="v">'+esc(v)+'</div><div class="s">'+esc(s_)+"</div></div>"; }
+    function td(x){ return x&&x.top_decile?x.top_decile:{}; }
     document.getElementById("thesis-kpis").innerHTML=[
-      ["Last session · "+(ls.date||"—"), ls.spy_ret_pct==null?"—":"SPY "+pct(ls.spy_ret_pct), ls.dump?"a dump day":"not a dump day"],
-      ["Strongest tenth last session", lt.n?pct(lt.mean_ret_pct)+" avg":"—", lt.n?"excess "+pct(lt.mean_excess_pp)+" pp · held up "+num(lt.held_up_pct,0)+"% · beat SPY "+num(lt.hit_pct,0)+"% · "+lt.n+" names":"no ranked names"],
-      ["Stocks only, strongest tenth", lst.n?pct(lst.mean_ret_pct)+" avg":"—", lst.n?"excess "+pct(lst.mean_excess_pp)+" pp · held up "+num(lst.held_up_pct,0)+"% · up "+num(lst.up_pct,0)+"% flat "+num(lst.flat_pct,0)+"% down-less "+num(lst.down_less_pct,0)+"% down-more "+num(lst.down_more_pct,0)+"%":"—"],
-      ["Weakest tenth last session", lb.n?pct(lb.mean_ret_pct)+" avg":"—", lb.n?"excess "+pct(lb.mean_excess_pp)+" pp · held up "+num(lb.held_up_pct,0)+"%":"—"],
-      ["Base rate · "+(d.n_days||0)+" dump days", td.n_days===undefined&&!d.n_days?"—":(td.days_beat_spy==null?"—":td.days_beat_spy+" of "+d.n_days+" beat SPY"), d.n_days?"strongest tenth: excess "+pct(td.mean_excess_pp)+" pp · held up "+num(td.held_up_pct,0)+"% · weakest tenth excess "+pct(bd.mean_excess_pp)+" pp · stocks only "+pct(tds.mean_excess_pp)+" pp, held "+num(tds.held_up_pct,0)+"%":"no dump day in the window"],
-      ["All "+(sm.n_sessions||0)+" sessions", ad.top_excess_pp==null?"—":pct(ad.top_excess_pp)+" pp / day", "strongest tenth's average next-session excess · beat SPY "+num(ad.top_beat_spy_pct,0)+"% of sessions · weakest tenth "+pct(ad.bottom_excess_pp)+" pp · deciles "+(ad.by_decile_mean_excess_pp||[]).map(function(x){return x==null?"—":(x>0?"+":"")+x.toFixed(2);}).join(" ")]
-    ].map(function(x){ return '<div class="jh-kpi"><div class="l">'+esc(x[0])+'</div><div class="v">'+esc(x[1])+'</div><div class="s">'+esc(x[2])+"</div></div>"; }).join("");
-    var dumps=(th.dump_days||[]).map(function(x){ var a=x.all||{}, st=x.stocks||{}; return {date:x.date, spy_ret_pct:x.spy_ret_pct, top_excess:(a.top||{}).mean_excess_pp, top_held:(a.top||{}).held_up_pct, top_hit:(a.top||{}).hit_pct,
-      stocks_excess:(st.top||{}).mean_excess_pp, stocks_held:(st.top||{}).held_up_pct, bottom_excess:(a.bottom||{}).mean_excess_pp, bottom_held:(a.bottom||{}).held_up_pct, spread:a.top_minus_bottom_pp}; }).sort(sorter("dumps"));
-    document.getElementById("dump-meta").textContent=dumps.length?dumps.length+" sessions with SPY ≤ "+(th.dump_threshold_pct||-1)+"%":"none in the window";
+      tile("Last session · "+(ls.date||"—"), ls.spy_ret_pct==null?"—":"SPY "+pct(ls.spy_ret_pct), ls.dump?"a dump day":ls.rally?"a rally day":"neither a dump nor a rally day"),
+      tile("Momentum top tenth, last session", lt.n?pct(lt.mean_ret_pct)+" avg":"—", lt.n?"excess "+pp(lt.mean_excess_pp)+" · held up "+num(lt.held_up_pct,0)+"% · beat SPY "+num(lt.hit_pct,0)+"% · up "+num(lt.up_pct,0)+"% flat "+num(lt.flat_pct,0)+"% down-less "+num(lt.down_less_pct,0)+"% down-more "+num(lt.down_more_pct,0)+"%":"—"),
+      tile("Asymmetry top tenth, last session", la.n?pct(la.mean_ret_pct)+" avg":"—", la.n?"excess "+pp(la.mean_excess_pp)+" · held up "+num(la.held_up_pct,0)+"% · beat SPY "+num(la.hit_pct,0)+"%"+(lc.n?" · industry-confirmed leaders "+pp(lc.mean_excess_pp)+", held "+num(lc.held_up_pct,0)+"% ("+lc.n+")":""):"—"),
+      tile("Dump days · "+(W.n_dump_days||0)+" in the window", md.n_days?pp(td(md).mean_excess_pp):"—", md.n_days?"momentum top tenth of stocks · held up "+num(td(md).held_up_pct,0)+"% · beat SPY on "+td(md).days_beat_spy+" of "+md.n_days+" days · asymmetry top tenth "+pp(td(ad).mean_excess_pp)+", held "+num(td(ad).held_up_pct,0)+"% · weakest tenth "+pp((md.bottom_decile||{}).mean_excess_pp):"no dump day in the window"),
+      tile("Rally days · "+(W.n_rally_days||0)+" in the window", mr.n_days?pp(td(mr).mean_excess_pp):"—", mr.n_days?"momentum top tenth of stocks · beat SPY "+num(td(mr).hit_pct,0)+"% of names, on "+td(mr).days_beat_spy+" of "+mr.n_days+" days · asymmetry top tenth "+pp(td(ar).mean_excess_pp)+", beat "+num(td(ar).hit_pct,0)+"%":"no rally day in the window"),
+      tile("Both sides · industry confirmation", (bs.strength||{}).both_sides==null?"—":((bs.strength||{}).both_sides?"momentum ✓":"momentum ✗")+" · "+((bs.asymmetry||{}).both_sides?"asymmetry ✓":"asymmetry ✗"), (ic.industry_confirmed&&ic.industry_confirmed.n_days?"dump days: industry-confirmed leaders "+pp(ic.industry_confirmed.mean_excess_pp)+" held "+num(ic.industry_confirmed.held_up_pct,0)+"%"+((ic.not_confirmed||{}).n_days?" vs the rest of the top tenth "+pp(ic.not_confirmed.mean_excess_pp)+" held "+num(ic.not_confirmed.held_up_pct,0)+"%":" (every top-tenth name was confirmed)"):"no industry-confirmed leader on a dump day in the window")+(icr.industry_confirmed&&icr.industry_confirmed.n_days?" · rally days: confirmed "+pp(icr.industry_confirmed.mean_excess_pp)+((icr.not_confirmed||{}).n_days?" vs "+pp(icr.not_confirmed.mean_excess_pp):""):""))
+    ].join("");
+    var inWin=function(x){ return W.from?x.date>=W.from:true; };
+    var dumps=(th.dump_days||[]).filter(inWin).map(function(x){return dayRow(x,"dump");}).sort(sorter("dumps"));
+    document.getElementById("dump-meta").textContent=dumps.length?dumps.length+" sessions with SPY ≤ "+(th.dump_threshold_pct||-1)+"% (up to 30 kept)":"none in the window";
     table("dumps",DUMP_COLS,dumps,"No session in the window had SPY down "+Math.abs(th.dump_threshold_pct||1)+"% or more.",function(r){
-      return "<tr><td>"+esc(r.date)+"</td>"+cellPct(r.spy_ret_pct)+cellPct(r.top_excess)+"<td>"+held(r.top_held)+"</td><td>"+(r.top_hit==null?"—":num(r.top_hit,0)+"%")+"</td>"+cellPct(r.stocks_excess)+"<td>"+held(r.stocks_held)+"</td>"+cellPct(r.bottom_excess)+"<td>"+held(r.bottom_held)+"</td>"+cellPct(r.spread)+"</tr>"; });
-    var spy=ls.spy_ret_pct, names=((ls.all||{}).top_names||[]).map(function(x){ var v=x.ret_pct, w=v==null?"—":v>0.25?"UP":v>=-0.25?"FLAT":(spy!=null&&v>spy)?"down less than SPY":"down MORE than SPY"; return {ticker:x.ticker, asset_class:x.asset_class, strength:x.strength, ret_pct:v, word:w}; }).sort(sorter("lastnames"));
-    document.getElementById("last-meta").textContent=ls.date?names.length+" names ranked in the top tenth as of "+(ls.ranked_as_of||"")+" · moved on "+ls.date:"";
-    var dec=(ls.all||{}).deciles||[];
-    document.getElementById("last-deciles").innerHTML=dec.length?"<b>Deciles, weakest → strongest</b> · excess vs SPY (pp): "+dec.map(function(x){return '<span class="'+D.cls(x.mean_excess_pp)+'">'+pct(x.mean_excess_pp)+"</span>";}).join(" · ")+"<br><b>held up:</b> "+dec.map(function(x){return held(x.held_up_pct);}).join(" · "):"";
-    table("lastnames",LAST_COLS,names,"The thesis block carries no names for the last session.",function(r){ return "<tr><td>"+tk(r.ticker)+"</td><td>"+esc(CLASS_LABEL[r.asset_class]||r.asset_class||"—")+"</td><td>"+num(r.strength,0)+"</td>"+cellPct(r.ret_pct)+"<td class='"+(r.word==="UP"||r.word==="FLAT"||r.word==="down less than SPY"?"up":"dn")+"'>"+esc(r.word)+"</td></tr>"; });
+      return "<tr><td>"+esc(r.date)+"</td>"+cellPct(r.spy_ret_pct)+cellPp(r.m_excess)+"<td>"+held(r.m_held)+"</td>"+cellPp(r.a_excess)+"<td>"+held(r.a_held)+"</td>"+cellPp(r.c_excess)+"<td>"+held(r.c_held)+"</td><td>"+esc(r.c_n==null?"—":r.c_n)+"</td>"+cellPp(r.m_bottom)+"</tr>"; });
+    var rallies=(th.rally_days||[]).filter(inWin).map(function(x){return dayRow(x,"rally");}).sort(sorter("rallies"));
+    document.getElementById("rally-meta").textContent=rallies.length?rallies.length+" sessions with SPY ≥ +"+(th.rally_threshold_pct||1)+"% (up to 30 kept)":"none in the window";
+    table("rallies",RALLY_COLS,rallies,"No session in the window had SPY up "+(th.rally_threshold_pct||1)+"% or more.",function(r){
+      return "<tr><td>"+esc(r.date)+"</td>"+cellPct(r.spy_ret_pct)+cellPp(r.m_excess)+"<td>"+held(r.m_hit)+"</td>"+cellPp(r.a_excess)+"<td>"+held(r.a_hit)+"</td>"+cellPp(r.c_excess)+"<td>"+held(r.c_hit)+"</td>"+cellPp(r.m_bottom)+"</tr>"; });
+    document.getElementById("thesis-pred").innerHTML=[["strength","MOMENTUM RANK"],["asymmetry","ASYMMETRY RANK"]].map(function(c){return '<button type="button" class="jh-chip'+(thPred===c[0]?" on":"")+'" data-p="'+c[0]+'">'+esc(c[1])+"</button>";}).join("")+'<span class="st-small" style="margin-left:8px">'+esc(th.predictors?th.predictors[thPred]:"")+"</span>";
+    document.querySelectorAll("#thesis-pred .jh-chip").forEach(function(b){ b.onclick=function(){ thPred=b.getAttribute("data-p"); draw(); }; });
+    var spy=ls.spy_ret_pct, G=((ls[thPred]||{}).stocks)||((ls[thPred]||{}).all)||(thPred==="strength"?(ls.stocks||ls.all):null)||{}, confTk={};
+    (((ls.confirmed||{}).confirmed_names)||[]).forEach(function(x){ confTk[x.ticker]=x; });
+    var byT={}; (DATA.rows||[]).forEach(function(r){ byT[r.ticker]=r; });
+    var names=(G.top_names||[]).map(function(x){ var v=x.ret_pct, w=v==null?"—":v>0.25?"UP":v>=-0.25?"FLAT":(spy!=null&&v>spy)?"down less than SPY":"down MORE than SPY"; var rr=byT[x.ticker]||{}; return {ticker:x.ticker, asset_class:x.asset_class, industry:rr.industry||(confTk[x.ticker]||{}).industry||"", industry_read:rr.industry_read, strength:x.strength, ret_pct:v, word:w, confirmed:!!confTk[x.ticker]}; }).sort(sorter("lastnames"));
+    document.getElementById("last-meta").textContent=ls.date?names.length+" stocks in the top tenth by the "+(thPred==="strength"?"momentum":"asymmetry")+" rank as of "+(ls.ranked_as_of||"")+" · moved on "+ls.date+(thPred==="strength"&&lc.n?" · "+lc.n+" industry-confirmed (✓)":""):"";
+    var dec=G.deciles||[];
+    document.getElementById("last-deciles").innerHTML=dec.length?"<b>Deciles, weakest → strongest</b> · excess vs SPY, pp: "+dec.map(function(x){return '<span class="'+D.cls(x.mean_excess_pp)+'">'+pp(x.mean_excess_pp,true)+"</span>";}).join(" · ")+"<br><b>held up:</b> "+dec.map(function(x){return held(x.held_up_pct);}).join(" · "):"";
+    table("lastnames",LAST_COLS,names,"The thesis block carries no names for the last session.",function(r){ return "<tr><td>"+tk(r.ticker)+(r.confirmed?" <span class=up title='industry-confirmed'>✓</span>":"")+"</td><td>"+esc(CLASS_LABEL[r.asset_class]||r.asset_class||"—")+"</td>"+indCell(r)+"<td>"+num(r.strength,0)+"</td>"+cellPct(r.ret_pct)+"<td class='"+(r.word==="UP"||r.word==="FLAT"||r.word==="down less than SPY"?"up":"dn")+"'>"+esc(r.word)+"</td></tr>"; });
   }
   function classes(){
     var doc=DATA.doc, b=doc.boards||{}, bc=b.by_class||{}, ls=((doc.thesis||{}).last_session||{}).by_class||{};

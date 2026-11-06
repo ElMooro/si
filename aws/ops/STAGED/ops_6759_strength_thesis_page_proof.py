@@ -1,14 +1,19 @@
-"""ops 6759 - READ-ONLY browser proof of strong.html v3: the thesis record and the asset-class breakdown (Khalid 2026-11-05:
-"test strong stocks engine and thesis ... make sure it covers all asset classes"; CLAUDE.md rule 5: click it yourself).
+"""ops 6759 - READ-ONLY browser proof of strong.html v4: the thesis record over a month / a quarter / the year, two definitions of
+strong (the momentum rank and the asymmetry rank), dump days AND rally days, industry confirmation, and the asset-class
+breakdown (Khalid 2026-11-05: "test strong stocks engine and thesis ... make sure it covers all asset classes"; 19:59 CT:
+"look back a month or a quarter back ... dump less than sp500 dump, rally more than sp500 rally, entire industry seeing
+strength is even better"; CLAUDE.md rule 5: click it yourself).
 
-Against https://justhodl.ai in headless Chrome, with data/strength.json at 1.0.7 (ops 6757 / 6758):
+Against https://justhodl.ai in headless Chrome, with data/strength.json at >= 1.0.8 (ops 6757):
   1. the served page carries the thesis and asset-class sections in order (verdict -> thesis -> asset classes -> long
-     accumulation -> leaders / laggards -> focus -> desk -> reading rules -> sources), the artifact is 1.0.7 and its
-     thesis block is the one the page shows (verdict text, the session, the dump-day count, the tile figures);
-  2. the dump-day table lists every dump day of the block and sorts both ways by real clicks (top excess, date); the
-     last-session table lists the strongest tenth one by one with a verdict and sorts; the asset-class table lists
-     every class the block carries with the figures the artifact holds and sorts; the eleven sleeve chips filter the
-     desk; the leveraged funds are listed as excluded and none appears in the leaders board or the desk ranks;
+     accumulation -> leaders / laggards -> focus -> desk -> reading rules -> sources), the artifact is >= 1.0.8 and its
+     thesis block is the one the page shows (verdict text, the session, the dump / rally-day counts of the selected
+     window, the tile figures);
+  2. the window chips (1M / 3M / 1Y) re-cut the dump-day and rally-day tables to the artifact's own counts; the predictor
+     chips (momentum / asymmetry) swap the last-session names to the artifact's own top tenth; the tables sort both ways
+     by real clicks; the leaders board carries the asymmetry and industry columns; the asset-class table lists every
+     class the block carries and sorts; the eleven sleeve chips filter the desk; the leveraged funds are listed as
+     excluded and none appears in the leaders board or the desk ranks;
   3. no 'undefined' / 'NaN', 0 page errors, 0 horizontal overflow at 390 px. A 0.5x JPEG is embedded.
 Nothing on the site changes. Re-runnable.
 """
@@ -99,7 +104,7 @@ def sort_both(page, host, col, text=False):
 
 def main():
     with report("ops_6759_strength_thesis_page_proof") as r:
-        r.heading("ops 6759 - strong.html v3 (thesis + asset classes): live proof (read-only) on %s" % BASE)
+        r.heading("ops 6759 - strong.html v4 (thesis over a month / a quarter / the year, two definitions, rally days, industry confirmation + asset classes): live proof (read-only) on %s" % BASE)
         stamp = int(time.time())
         fails = []
 
@@ -115,19 +120,34 @@ def main():
 
         r.section("0. served HTML + artifact")
         html = fetch("%s/strong.html?nocache=%d" % (BASE, stamp))
-        r.log("strong.html: %d bytes | thesis section %s | classes section %s | thesis() %s" % (len(html), 'aria-label="Thesis: how the strongest held up on S&P 500 dump days"' in html, 'aria-label="Asset classes:' in html, "function thesis()" in html))
+        r.log("strong.html: %d bytes | thesis section %s | classes section %s | thesis() %s | window chips %s | predictor chips %s | rallies table %s" % (
+            len(html), 'aria-label="Thesis: how the strongest held up on S&P 500 dump days"' in html, 'aria-label="Asset classes:' in html, "function thesis()" in html, 'id="thesis-win"' in html, 'id="thesis-pred"' in html, 'id="rallies"' in html))
         art = json.loads(fetch("%s/data/strength.json?nocache=%d" % (BASE, stamp)))
         th = art.get("thesis") or {}
-        sm = th.get("summary") or {}
+        wins = th.get("windows") or {}
         ls = th.get("last_session") or {}
-        r.log("data/strength.json: version %s as_of %s generated %s | thesis window %s | dump days %s | last session %s SPY %s dump %s | classes %s" % (
-            art.get("version"), art.get("as_of"), art.get("generated_at"), json.dumps(th.get("window")), sm.get("n_dump_days"), ls.get("date"), ls.get("spy_ret_pct"), ls.get("dump"),
-            json.dumps((art.get("classes") or {}).get("ranked"))))
-        if 'aria-label="Thesis:' not in html or art.get("version") != "1.0.7" or not th.get("summary"):
-            r.fail("the served page / artifact are not v3 / 1.0.7 yet (Pages deploy or the engine run pending)")
+        r.log("data/strength.json: version %s as_of %s generated %s | thesis window %s | windows %s | last session %s SPY %s dump %s rally %s | classes %s" % (
+            art.get("version"), art.get("as_of"), art.get("generated_at"), json.dumps(th.get("window")), json.dumps({k: (v.get("n_dump_days"), v.get("n_rally_days")) for k, v in wins.items()}),
+            ls.get("date"), ls.get("spy_ret_pct"), ls.get("dump"), ls.get("rally"), json.dumps((art.get("classes") or {}).get("ranked"))))
+        if 'id="thesis-win"' not in html or str(art.get("version") or "0") < "1.0.8" or not wins.get("63"):
+            r.fail("the served page / artifact are not v4 / 1.0.8 yet (Pages deploy or the engine run pending)")
             raise SystemExit(1)
-        n_dumps = len(th.get("dump_days") or [])
-        n_top = len((ls.get("all") or {}).get("top_names") or [])
+
+        def in_window(k, days):
+            frm = (wins.get(k) or {}).get("from") or ""
+            return [d for d in days if (d.get("date") or "") >= frm]
+        n_dumps = len(in_window("63", th.get("dump_days") or []))
+        n_rallies = len(in_window("63", th.get("rally_days") or []))
+        expect_win = {k: (len(in_window(k, th.get("dump_days") or [])), len(in_window(k, th.get("rally_days") or []))) for k in ("21", "63", "252")}
+
+        def top_names(pred):
+            g = ls.get(pred) or {}
+            return ((g.get("stocks") or g.get("all") or {}).get("top_names")) or []
+        n_top = len(top_names("strength"))
+        n_top_asym = len(top_names("asymmetry"))
+        n_conf = len(((ls.get("confirmed") or {}).get("confirmed_names")) or [])
+        r.log("expected: default window 63 -> %d dump days, %d rally days (of %d / %d kept); per window %s | last session top tenth: momentum %d names, asymmetry %d names, industry-confirmed %d" % (
+            n_dumps, n_rallies, len(th.get("dump_days") or []), len(th.get("rally_days") or []), json.dumps(expect_win), n_top, n_top_asym, n_conf))
         classes = ((art.get("boards") or {}).get("class_order")) or []
         lev = [x["ticker"] for x in (((art.get("boards") or {}).get("excluded") or {}).get("leveraged") or [])]
 
@@ -149,7 +169,11 @@ def main():
             out = page.evaluate("""() => {
               const q = s => document.querySelectorAll(s).length, text = document.body.innerText, de = document.documentElement;
               return {order: [...document.querySelectorAll('main > section')].map(e => e.getAttribute('aria-label')), tkpis: q('#thesis-kpis .jh-kpi'), verdict: document.getElementById('thesis-verdict').innerText.slice(0, 400),
-                      dumps: q('#dumps tbody tr'), lastnames: q('#lastnames tbody tr'), classes: q('#classes tbody tr'), chips: [...document.querySelectorAll('#chips .jh-chip')].map(e => e.innerText.trim()),
+                      dumps: q('#dumps tbody tr'), rallies: q('#rallies tbody tr'), lastnames: q('#lastnames tbody tr'), classes: q('#classes tbody tr'), chips: [...document.querySelectorAll('#chips .jh-chip')].map(e => e.innerText.trim()),
+                      winChips: [...document.querySelectorAll('#thesis-win .jh-chip')].map(e => e.innerText.trim() + (e.classList.contains('on') ? ' *' : '')), predChips: [...document.querySelectorAll('#thesis-pred .jh-chip')].map(e => e.innerText.trim() + (e.classList.contains('on') ? ' *' : '')),
+                      winMeta: document.querySelector('#thesis-win .st-small').innerText, rallyMeta: document.getElementById('rally-meta').innerText, leadHead: [...document.querySelectorAll('#leaders thead th')].map(e => e.innerText.trim()),
+                      confirmedTicks: q('#lastnames tbody tr .up[title="industry-confirmed"]'), dumpRow: document.querySelector('#dumps tbody tr') ? document.querySelector('#dumps tbody tr').innerText.replace(/\t/g, ' | ') : null,
+                      rallyRow: document.querySelector('#rallies tbody tr') ? document.querySelector('#rallies tbody tr').innerText.replace(/\t/g, ' | ') : null, lastRows: [...document.querySelectorAll('#lastnames tbody tr')].slice(0, 12).map(tr => tr.innerText.replace(/\t/g, ' | ')),
                       classLabels: [...document.querySelectorAll('#classes tbody tr')].map(tr => tr.children[0].innerText.trim()), excluded: document.getElementById('excluded').innerText.slice(0, 600),
                       leaders: [...document.querySelectorAll('#leaders tbody tr')].map(tr => tr.children[0].innerText.trim()), deskTickers: [...document.querySelectorAll('#tbl tbody tr')].map(tr => tr.children[0].innerText.trim()),
                       bad: (text.match(/\\[object Object\\]|undefined|NaN/g) || []).length, overflow: de.scrollWidth - de.clientWidth, kpiText: [...document.querySelectorAll('#thesis-kpis .jh-kpi')].map(e => e.innerText.replace(/\\s+/g, ' ').slice(0, 200)),
@@ -164,22 +188,60 @@ def main():
                 idx.append(hit)
             check("section order", lambda: (_ for _ in ()).throw(AssertionError(out["order"])) if None in idx or idx != sorted(idx) else " -> ".join(out["order"]))
             check("the verdict is the artifact's", lambda: (_ for _ in ()).throw(AssertionError((out["verdict"][:120], (th.get("verdict") or "")[:120]))) if (th.get("verdict") or "")[:80] != out["verdict"][:80] else out["verdict"][:200])
-            check("tiles and tables match the artifact", lambda: (_ for _ in ()).throw(AssertionError("tiles %s dumps %s/%s names %s/%s classes %s/%s" % (out["tkpis"], out["dumps"], n_dumps, out["lastnames"], n_top, out["classes"], len(classes))))
-                  if not (out["tkpis"] == 6 and out["dumps"] == n_dumps and out["lastnames"] == n_top and out["classes"] == len(classes)) else "6 tiles, %d dump days, %d top-tenth names, %d classes" % (out["dumps"], out["lastnames"], out["classes"]))
+            check("tiles and tables match the artifact (default window: the quarter; default predictor: momentum)", lambda: (_ for _ in ()).throw(AssertionError("tiles %s dumps %s/%s rallies %s/%s names %s/%s confirmed ticks %s/%s classes %s/%s" % (
+                out["tkpis"], out["dumps"], n_dumps, out["rallies"], n_rallies, out["lastnames"], n_top, out["confirmedTicks"], n_conf, out["classes"], len(classes))))
+                  if not (out["tkpis"] == 6 and out["dumps"] == n_dumps and out["rallies"] == n_rallies and out["lastnames"] == n_top and out["confirmedTicks"] == n_conf and out["classes"] == len(classes))
+                  else "6 tiles, %d dump days, %d rally days, %d top-tenth names (%d industry-confirmed ticks), %d classes" % (out["dumps"], out["rallies"], out["lastnames"], out["confirmedTicks"], out["classes"]))
+            check("the quarter is the default window and momentum the default predictor", lambda: (_ for _ in ()).throw(AssertionError((out["winChips"], out["predChips"])))
+                  if not (any(c.endswith("63 SESSIONS *") for c in out["winChips"]) and len(out["winChips"]) == 3 and out["predChips"][0].endswith("*") and len(out["predChips"]) == 2) else "%s | %s" % (out["winChips"], out["predChips"]))
+            check("the leaders board carries the asymmetry and industry columns", lambda: (_ for _ in ()).throw(AssertionError(out["leadHead"]))
+                  if not all(h in out["leadHead"] for h in ("ASYM 63 PP", "DUMP DAYS PP", "RALLY DAYS PP", "INDUSTRY")) else " · ".join(out["leadHead"][:9]))
             check("every asset class is on the page", lambda: (_ for _ in ()).throw(AssertionError(out["classLabels"])) if not all(any(lbl.lower().startswith(w) for lbl in out["classLabels"]) for w in ("stocks", "equity etfs", "countries", "bonds", "high yield", "gold", "silver", "metals", "commodities", "currencies", "crypto")) else ", ".join(out["classLabels"]))
             check("eleven sleeve chips", lambda: (_ for _ in ()).throw(AssertionError(out["chips"])) if out["chips"] != ["ALL", "ETF", "STOCK", "SECTOR", "COUNTRY", "BOND", "HIGH YIELD", "METAL", "COMMODITY", "CURRENCY", "CRYPTO", "VOLATILITY"] else " ".join(out["chips"]))
             check("leveraged funds listed as excluded and absent from the ranks", lambda: (_ for _ in ()).throw(AssertionError((lev[:5], out["leaders"][:5], [t for t in out["deskTickers"] if t in lev][:5], out["excluded"][:100])))
                   if not lev or not all(t in out["excluded"] for t in lev[:5]) or any(t in lev for t in out["leaders"]) else "%d excluded listed (%s...); none in the leaders board" % (len(lev), ", ".join(lev[:5])))
             check("no undefined / NaN", lambda: (_ for _ in ()).throw(AssertionError(out["bad"])) if out["bad"] else "0")
 
-            r.section("2. sorting and chips (real clicks)")
+            r.section("2. window and predictor chips, sorting (real clicks)")
+
+            def windows_click():
+                got = {}
+                for k in ("21", "252", "63"):
+                    page.click('#thesis-win .jh-chip[data-w="%s"]' % k)
+                    page.wait_for_timeout(300)
+                    got[k] = page.evaluate("() => [document.querySelectorAll('#dumps tbody tr').length, document.querySelectorAll('#rallies tbody tr').length, document.querySelector('#thesis-win .st-small').innerText, document.querySelectorAll('#thesis-kpis .jh-kpi')[3].innerText.replace(/\\s+/g, ' ').slice(0, 160)]")
+                    assert (got[k][0], got[k][1]) == expect_win[k], (k, got[k][:2], expect_win[k])
+                    w = wins.get(k) or {}
+                    assert (w.get("from") or "") in got[k][2] and ("%s dump days" % w.get("n_dump_days")) in got[k][2], (k, got[k][2], w.get("from"), w.get("n_dump_days"))
+                return got
+            facts["windows"] = check("window chips re-cut the dump / rally tables to the artifact's own counts (1M / 1Y / back to 3M)", windows_click)
+
+            def predictors_click():
+                page.click('#thesis-pred .jh-chip[data-p="asymmetry"]')
+                page.wait_for_timeout(300)
+                a = page.evaluate("() => [document.querySelectorAll('#lastnames tbody tr').length, document.getElementById('last-meta').innerText, [...document.querySelectorAll('#lastnames tbody tr')].slice(0, 5).map(tr => tr.children[0].innerText.trim())]")
+                assert a[0] == n_top_asym and "ASYMMETRY" in a[1].upper(), (a[:2], n_top_asym)
+                want = [x["ticker"] for x in top_names("asymmetry")]
+                assert all(t.replace(" ✓", "").strip() in want for t in a[2]), (a[2], want[:8])
+                page.click('#thesis-pred .jh-chip[data-p="strength"]')
+                page.wait_for_timeout(300)
+                b = page.evaluate("() => [document.querySelectorAll('#lastnames tbody tr').length, document.getElementById('last-meta').innerText]")
+                assert b[0] == n_top and "MOMENTUM" in b[1].upper(), (b, n_top)
+                return {"asymmetry": a[0], "momentum": b[0], "asym_meta": a[1][:120]}
+            facts["predictors"] = check("predictor chips swap the last-session names (asymmetry rank, then back to momentum)", predictors_click)
             if n_dumps >= 2:
-                check("sort dumps.top_excess", lambda: sort_both(page, "dumps", "top_excess"))
+                check("sort dumps.m_excess", lambda: sort_both(page, "dumps", "m_excess"))
                 check("sort dumps.date (text)", lambda: sort_both(page, "dumps", "date", text=True))
-                check("sort dumps.spread", lambda: sort_both(page, "dumps", "spread"))
+                check("sort dumps.a_excess", lambda: sort_both(page, "dumps", "a_excess"))
+                check("sort dumps.m_bottom", lambda: sort_both(page, "dumps", "m_bottom"))
+            if n_rallies >= 2:
+                check("sort rallies.m_excess", lambda: sort_both(page, "rallies", "m_excess"))
+                check("sort rallies.date (text)", lambda: sort_both(page, "rallies", "date", text=True))
             if n_top >= 2:
                 check("sort lastnames.ret_pct", lambda: sort_both(page, "lastnames", "ret_pct"))
                 check("sort lastnames.strength", lambda: sort_both(page, "lastnames", "strength"))
+            check("sort leaders.asym", lambda: sort_both(page, "leaders", "asym"))
+            check("sort leaders.dnx", lambda: sort_both(page, "leaders", "dnx"))
             check("sort classes.median_vs_d", lambda: sort_both(page, "classes", "median_vs_d"))
             check("sort classes.n", lambda: sort_both(page, "classes", "n"))
             check("sort classes.held_last", lambda: sort_both(page, "classes", "held_last"))
@@ -227,12 +289,13 @@ def main():
             r.lines.append("<!-- /SHOT_JPEG_BASE64 -->")
             r.lines.append("")
             browser.close()
-        r.kv(version=str(art.get("version")), as_of=str(art.get("as_of")), dump_days=str(n_dumps), last=str(ls.get("date")), classes=str(len(classes)), failed=str(len(fails)), overflow=str(facts.get("overflow")), errors=str(len(facts.get("errors") or [])))
+        r.kv(version=str(art.get("version")), as_of=str(art.get("as_of")), dump_days_q=str(n_dumps), rally_days_q=str(n_rallies), last=str(ls.get("date")), top_names=str(n_top), confirmed=str(n_conf), classes=str(len(classes)), failed=str(len(fails)), overflow=str(facts.get("overflow")), errors=str(len(facts.get("errors") or [])))
         if fails:
             r.fail("NOT PROVEN: %d checks failed: %s" % (len(fails), fails))
             raise SystemExit(1)
-        r.ok("STRONG.HTML V3 PROVEN LIVE: thesis record (%d dump days, last session %s) and %d asset classes render from the 1.0.7 artifact in order; every new table sorts both ways; eleven sleeve chips filter; "
-             "leveraged funds excluded; 390 px and 0 errors pass" % (n_dumps, ls.get("date"), len(classes)))
+        r.ok("STRONG.HTML V4 PROVEN LIVE: the thesis record (quarter: %d dump days, %d rally days; last session %s: %d momentum / %d asymmetry top-tenth names, %d industry-confirmed) and %d asset classes render from the %s artifact in order; "
+             "the window and predictor chips re-cut the tables to the artifact's own counts; every new table sorts both ways; eleven sleeve chips filter; leveraged funds excluded; 390 px and 0 errors pass" % (
+                 n_dumps, n_rallies, ls.get("date"), n_top, n_top_asym, n_conf, len(classes), art.get("version")))
 
 
 if __name__ == "__main__":
