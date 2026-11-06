@@ -187,7 +187,7 @@ def test_one_definition_of_the_coil_and_of_split_inference():
         assert [(e["date"], e["factor"]) for e in a] == [(e["date"], e["factor"]) for e in b], name
         assert S.apply_splits(bars, a) == T.apply_splits(bars, b), name
     assert len(T.infer_splits(_bars(*cases["2-for-1 the bank left raw"]))) == 1 and T.infer_splits(_bars(*cases["a 50% crash on eight times the volume"])) == [] and T.infer_splits(_bars(*cases["a x2.8 pop on news"])) == []
-    assert S.VERSION >= "1.0.6", "the strength desk carries the volume bound on ratio-matched splits"
+    assert tuple(int(x) for x in S.VERSION.split(".")) >= (1, 0, 6), "the strength desk carries the volume bound on ratio-matched splits"
 
 
 def test_industry_fund_catalog_and_the_bank_that_feeds_it():

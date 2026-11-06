@@ -103,6 +103,14 @@ def sort_both(page, host, col, text=False):
     return "%s.%s %s then %s (%d values; first %s / %s)" % (host, col, a["aria"], b["aria"], n1, a["vals"][0] if a["vals"] else None, b["vals"][0] if b["vals"] else None)
 
 
+def semver(v):
+    """Version strings compare as tuples (1.0.10 > 1.0.9)."""
+    try:
+        return tuple(int(x) for x in str(v or "0").split("."))
+    except ValueError:
+        return (0,)
+
+
 def main():
     with report("ops_6759_strength_thesis_page_proof") as r:
         r.heading("ops 6759 - strong.html v4 (thesis over a month / a quarter / the year, two definitions, rally days, industry confirmation + asset classes): live proof (read-only) on %s" % BASE)
@@ -130,7 +138,7 @@ def main():
         r.log("data/strength.json: version %s as_of %s generated %s | thesis window %s | windows %s | last session %s SPY %s dump %s rally %s | classes %s" % (
             art.get("version"), art.get("as_of"), art.get("generated_at"), json.dumps(th.get("window")), json.dumps({k: (v.get("n_dump_days"), v.get("n_rally_days")) for k, v in wins.items()}),
             ls.get("date"), ls.get("spy_ret_pct"), ls.get("dump"), ls.get("rally"), json.dumps((art.get("classes") or {}).get("ranked"))))
-        if 'id="thesis-win"' not in html or str(art.get("version") or "0") < "1.0.9" or not wins.get("63"):
+        if 'id="thesis-win"' not in html or semver(art.get("version")) < (1, 0, 9) or not wins.get("63"):
             r.fail("the served page / artifact are not v4 / 1.0.9 yet (Pages deploy or the engine run pending)")
             raise SystemExit(1)
 

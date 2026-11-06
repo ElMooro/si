@@ -74,6 +74,14 @@ def fmt_bucket(b):
         b.get("hit_pct"), b.get("up_pct"), b.get("flat_pct"), b.get("down_less_pct"), b.get("down_more_pct"), b.get("held_up_pct"))
 
 
+def semver(v):
+    """Version strings compare as tuples (1.0.10 > 1.0.9)."""
+    try:
+        return tuple(int(x) for x in str(v or "0").split("."))
+    except ValueError:
+        return (0,)
+
+
 def main():
     s3 = boto3.client("s3", region_name=REGION, config=CFG)
     lam = boto3.client("lambda", region_name=REGION, config=CFG)
@@ -115,7 +123,7 @@ def main():
         r.log("data/strength.json: version %s as_of %s generated %s rows %s ranked %s run %ss errors %s | SPY %s h %s" % (
             doc.get("version"), doc.get("as_of"), doc.get("generated_at"), len(doc.get("rows") or []), (doc.get("boards") or {}).get("n_ranked"), doc.get("run_seconds"), doc.get("n_errors"),
             (doc.get("benchmark") or {}).get("px"), json.dumps((doc.get("benchmark") or {}).get("h"))))
-        if (doc.get("version") or "0") < "1.0.8" or doc.get("as_of") != SESSION:
+        if semver(doc.get("version")) < (1, 0, 8) or doc.get("as_of") != SESSION:
             r.fail("the artifact is not >= 1.0.8 as of %s: %s %s" % (SESSION, doc.get("version"), doc.get("as_of")))
             raise SystemExit(1)
         cls = doc.get("classes") or {}
