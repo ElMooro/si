@@ -33,12 +33,31 @@ corroboration; they never enter the price score.
 FLOWS  for a configured fund: the fund's OWN latest 1 / 5 / 21 reporting-observation windows (USD and % of reported
 assets) and whether the SPY-aligned windows matched; for a stock: the 13F cohort's holders now / prior, bull / bear
 manager votes, net dollars at reported prices and the stance. A reported position is not a trade.
+
+1.0.7 (Khalid 2026-11-05: "Today would be a good day to test strong stocks engine and thesis. The strongest stocks should
+have held up and either stayed flat went a little bit up or went down less than sp500 dump today. Test that engine. Also
+make sure it covers all asset classes: stocks, etfs, bonds, high yields bonds, gold, silver, metal everything"):
+ASSET CLASSES  every row carries asset_class / class_sub (stock; equity_etf broad / sector / factor; country; bond;
+high_yield; cash; gold; silver; metals; commodity; currency; crypto; volatility; leveraged) from an explicit map over
+the sleeves and the ETF desk, then the fund's name; the sleeves grew to cover every class (SECTOR, COUNTRY, BOND, HIGH
+YIELD, METAL, COMMODITY, CURRENCY, CRYPTO, VOLATILITY); leveraged / inverse funds are labelled and kept OUT of the
+ranks and boards (a 3x inverse fund would top every dump day); strength_in_class = the percentile inside the row's
+class; boards.by_class = each class's breadth, best and worst.
+THESIS  the engine tests its own thesis every run, walk-forward: for each of the last 252 sessions the universe is
+re-ranked exactly as the live desk does it from the closes through the SESSION BEFORE (same horizons, weights,
+cross-sectional z, percentile -> decile), then every name's return on the session itself is measured against SPY. On
+every session SPY fell at least 1% ("dump day") the block records, for the whole ranked universe and for stocks alone,
+the top decile's mean return / excess / hit rate (beat SPY) / held-up share (flat, up, or down less than SPY), the
+bottom decile's, every decile's mean excess, and each asset class's behaviour; the summary over all dump days and over
+all days (does the rank order persist the next session) is the base rate; `last_session` is today's test. Written to
+data/strength.json and, every run, to data/strength/history/<as_of>.json.gz.
 """
 from __future__ import annotations
 
 import json
 import math
 import os
+import re
 import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
@@ -55,11 +74,12 @@ try:
 except Exception:  # noqa: BLE001
     etf_desk_catalog = None
 
-VERSION = "1.0.6"
+VERSION = "1.0.7"
 CONTRACT = "strength.v1"
 ENGINE = "justhodl-strength"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = os.environ.get("OUT_KEY", "data/strength.json")
+HISTORY_PREFIX = os.environ.get("HISTORY_PREFIX", "data/strength/history/")   # 1.0.7: every run keeps the artifact as of its session
 DESK_KEY = os.environ.get("ETF_DESK_KEY", "data/etf-desk-research.json")
 CANON_KEY = os.environ.get("FLOW_CANON_KEY", "data/provider-fund-flow-research.json")
 TICKERS_KEY = os.environ.get("TICKERS_13F_KEY", "data/13f-tickers.json")
@@ -68,7 +88,7 @@ ACTIONS_PREFIX = "data/corporate-actions/"
 COMMON_RATIOS = (2.0, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0, 15.0, 20.0, 25.0, 50.0, 1.5, 0.5, 1 / 3, 0.25, 0.2, 0.125, 0.1, 2 / 3, 0.05, 0.04, 0.02)
 BENCH = "SPY"
 LOOKBACK = int(os.environ.get("LOOKBACK_SESSIONS", "520"))
-MAX_UNIVERSE = int(os.environ.get("MAX_UNIVERSE", "900"))
+MAX_UNIVERSE = int(os.environ.get("MAX_UNIVERSE", "1200"))
 F13_TOP = int(os.environ.get("F13_TOP", "300"))            # most widely held 13F stocks admitted to the universe
 BOARD = int(os.environ.get("BOARD_ROWS", "40"))
 SPARK = 60
@@ -79,6 +99,10 @@ WEIGHTS = (("d", 0.10), ("w", 0.20), ("m", 0.30), ("q", 0.25), ("h", 0.15))
 HORIZONS = (("d", 1), ("w", 5), ("m", 21), ("q", 63), ("h", 126), ("y", 252))
 BASE_TIERS = ((6.0, 40), (10.0, 40), (15.0, 120))       # (close range %, sessions) -> VERY TIGHT / TIGHT / LONG BASE; FORMING = 10% over 20
 BASE_MAX = 260
+THESIS_DAYS = int(os.environ.get("THESIS_DAYS", "252"))      # sessions walked forward by the thesis test
+DUMP_PCT = float(os.environ.get("DUMP_PCT", "-1.0"))         # an S&P 500 session at or under this is a dump day
+FLAT_PCT = 0.25                                              # |move| inside this = flat
+THESIS_MIN_ROWS = int(os.environ.get("THESIS_MIN_ROWS", "20"))  # a session needs this many ranked names to count
 
 SLEEVES = {
     "ETF": [("QQQ", "Nasdaq 100"), ("IWM", "Russell 2000"), ("DIA", "Dow 30"), ("XLK", "Technology"), ("SMH", "Semis"), ("XLF", "Financials"),
@@ -89,10 +113,110 @@ SLEEVES = {
               ("TSLA", "Tesla"), ("AVGO", "Broadcom"), ("JPM", "JPMorgan"), ("LLY", "Eli Lilly"), ("XOM", "Exxon"), ("UNH", "UnitedHealth"),
               ("V", "Visa"), ("MA", "Mastercard"), ("HD", "Home Depot"), ("COST", "Costco"), ("NFLX", "Netflix"), ("AMD", "AMD"),
               ("ORCL", "Oracle"), ("JNJ", "J&J")],
-    "METAL": [("GLD", "Gold"), ("SLV", "Silver"), ("GDX", "Gold Miners"), ("GDXJ", "Jr Gold Miners"), ("PPLT", "Platinum"), ("CPER", "Copper"),
-              ("IAU", "Gold (IAU)"), ("SIVR", "Silver (SIVR)")],
-    "CRYPTO": [("IBIT", "Bitcoin ETF"), ("ETHA", "Ether ETF"), ("FBTC", "Bitcoin (Fidel.)"), ("BITO", "BTC Futures")],
+    "SECTOR": [("XLK", "Technology"), ("SMH", "Semis"), ("SOXX", "Semis (SOXX)"), ("XLF", "Financials"), ("KRE", "Regional Banks"), ("XLE", "Energy"),
+               ("XOP", "Oil & Gas E&P"), ("OIH", "Oil Services"), ("XLU", "Utilities"), ("XLP", "Staples"), ("XLV", "Health Care"), ("XBI", "Biotech"),
+               ("IBB", "Biotech (IBB)"), ("XLI", "Industrials"), ("ITA", "Aerospace & Defense"), ("PAVE", "Infrastructure"), ("XLY", "Discretionary"),
+               ("XRT", "Retail"), ("XHB", "Homebuilders"), ("ITB", "Home Construction"), ("XLB", "Materials"), ("XLRE", "Real Estate"), ("XLC", "Communication"),
+               ("IGV", "Software"), ("HACK", "Cyber"), ("ARKK", "ARK Innovation"), ("KWEB", "China Internet"), ("JETS", "Airlines"), ("TAN", "Solar"), ("URA", "Uranium")],
+    "COUNTRY": [("EFA", "EAFE"), ("IEFA", "EAFE (IEFA)"), ("VEA", "Developed ex-US"), ("EEM", "Emerging Mkts"), ("VWO", "Emerging (VWO)"), ("FXI", "China"),
+                ("MCHI", "China (MCHI)"), ("ASHR", "China A-shares"), ("EWJ", "Japan"), ("EWY", "Korea"), ("EWT", "Taiwan"), ("INDA", "India"), ("EWZ", "Brazil"),
+                ("EWW", "Mexico"), ("ARGT", "Argentina"), ("ECH", "Chile"), ("EPU", "Peru"), ("ILF", "Latin America"), ("EWG", "Germany"), ("EWU", "United Kingdom"),
+                ("EWQ", "France"), ("EWI", "Italy"), ("EWP", "Spain"), ("EWL", "Switzerland"), ("EWC", "Canada"), ("EWA", "Australia"), ("EWH", "Hong Kong"),
+                ("EWS", "Singapore"), ("EZA", "South Africa"), ("TUR", "Turkey"), ("KSA", "Saudi Arabia"), ("EIS", "Israel"), ("VNM", "Vietnam"), ("THD", "Thailand"),
+                ("EIDO", "Indonesia"), ("EPOL", "Poland"), ("EFNL", "Finland")],
+    "BOND": [("TLT", "20+ yr Treasury"), ("IEF", "7-10 yr Treasury"), ("SHY", "1-3 yr Treasury"), ("GOVT", "US Treasuries"), ("TIP", "TIPS"), ("AGG", "US Aggregate"),
+             ("BND", "Total Bond"), ("LQD", "IG Corporate"), ("VCIT", "IG Intermediate"), ("VCSH", "IG Short"), ("MBB", "Mortgages"), ("BNDX", "Intl Bonds (hedged)"),
+             ("EMB", "EM USD Sovereign"), ("MUB", "Munis"), ("BIL", "T-bills 1-3m"), ("SGOV", "T-bills 0-3m")],
+    "HIGH YIELD": [("HYG", "High Yield"), ("JNK", "High Yield (JNK)"), ("USHY", "Broad High Yield"), ("SJNK", "Short High Yield"), ("HYLB", "High Yield (HYLB)"),
+                   ("ANGL", "Fallen Angels"), ("FALN", "Fallen Angels (FALN)"), ("BKLN", "Senior Loans"), ("SRLN", "Senior Loans (SRLN)"), ("HYD", "HY Munis"), ("EMHY", "EM High Yield")],
+    "METAL": [("GLD", "Gold"), ("IAU", "Gold (IAU)"), ("SLV", "Silver"), ("SIVR", "Silver (SIVR)"), ("PPLT", "Platinum"), ("PALL", "Palladium"), ("CPER", "Copper"),
+              ("DBB", "Base Metals"), ("GLTR", "Precious Basket"), ("GDX", "Gold Miners"), ("GDXJ", "Jr Gold Miners"), ("SIL", "Silver Miners"), ("SILJ", "Jr Silver Miners"),
+              ("XME", "Metals & Mining"), ("PICK", "Global Miners"), ("REMX", "Rare Earths"), ("LIT", "Lithium")],
+    "COMMODITY": [("USO", "Crude Oil"), ("BNO", "Brent"), ("UNG", "Natural Gas"), ("DBC", "Broad Commodities"), ("PDBC", "Broad (PDBC)"), ("GSG", "GSCI"),
+                  ("DBA", "Agriculture"), ("CORN", "Corn"), ("WEAT", "Wheat"), ("SOYB", "Soybeans")],
+    "CURRENCY": [("UUP", "US Dollar"), ("UDN", "Dollar Short"), ("FXE", "Euro"), ("FXY", "Yen"), ("FXB", "Pound"), ("FXF", "Swiss Franc"), ("FXA", "Aussie"),
+                 ("FXC", "Loonie"), ("CEW", "EM Currencies")],
+    "CRYPTO": [("IBIT", "Bitcoin ETF"), ("ETHA", "Ether ETF"), ("FBTC", "Bitcoin (Fidel.)"), ("BITO", "BTC Futures"), ("GBTC", "Grayscale BTC"), ("ETHE", "Grayscale ETH"),
+               ("BITB", "Bitwise BTC"), ("ARKB", "ARK 21Shares BTC")],
+    "VOLATILITY": [("VXX", "VIX Short-term"), ("VIXY", "VIX (VIXY)")],
 }
+# 1.0.7: explicit asset class (class, sub) per wrapper - the sleeves first, then the ETF desk's other funds; a fund outside
+# this map is classed by its name (CLASS_RX), a stock is a stock. Leveraged / inverse funds are labelled and kept out of
+# the ranks: a 3x inverse fund would top every dump day and say nothing about strength.
+CLASS_ORDER = ["stock", "equity_etf", "country", "bond", "high_yield", "cash", "gold", "silver", "metals", "commodity", "currency", "crypto", "volatility", "leveraged"]
+CLASS_LABEL = {"stock": "Stocks", "equity_etf": "Equity ETFs", "country": "Countries", "bond": "Bonds", "high_yield": "High yield", "cash": "Cash / T-bills",
+               "gold": "Gold", "silver": "Silver", "metals": "Metals & miners", "commodity": "Commodities", "currency": "Currencies", "crypto": "Crypto",
+               "volatility": "Volatility", "leveraged": "Leveraged / inverse"}
+ASSET_CLASS = {}
+for _t in ("SPY", "VOO", "IVV", "QQQ", "QQQM", "IWM", "DIA", "VTI", "RSP", "MDY", "IJH", "IJR"):
+    ASSET_CLASS[_t] = ("equity_etf", "broad")
+for _t, _n in SLEEVES["SECTOR"]:
+    ASSET_CLASS[_t] = ("equity_etf", "sector")
+for _t in ("XLB", "XLRE", "XLC", "SOXX", "ARKK", "XHB", "ITA", "PAVE", "BOTZ", "HACK", "KWEB", "IGV", "JETS", "TAN", "URA"):
+    ASSET_CLASS[_t] = ("equity_etf", "sector")
+for _t in ("MTUM", "QUAL", "USMV", "MOAT", "VLUE", "IWF", "IWD", "VUG", "VTV"):
+    ASSET_CLASS[_t] = ("equity_etf", "factor")
+for _t, _n in SLEEVES["COUNTRY"]:
+    ASSET_CLASS[_t] = ("country", None)
+for _t, _sub in (("TLT", "treasury"), ("IEF", "treasury"), ("SHY", "treasury"), ("GOVT", "treasury"), ("TIP", "tips"), ("AGG", "aggregate"), ("BND", "aggregate"),
+                 ("LQD", "ig_corporate"), ("VCIT", "ig_corporate"), ("VCSH", "ig_corporate"), ("MBB", "mortgage"), ("BNDX", "international"), ("EMB", "em_debt"), ("MUB", "muni")):
+    ASSET_CLASS[_t] = ("bond", _sub)
+for _t in ("BIL", "SGOV", "SHV", "USFR", "TFLO"):
+    ASSET_CLASS[_t] = ("cash", "t_bill")
+for _t, _sub in (("HYG", "corporate"), ("JNK", "corporate"), ("USHY", "corporate"), ("SJNK", "corporate"), ("HYLB", "corporate"), ("ANGL", "fallen_angels"), ("FALN", "fallen_angels"),
+                 ("BKLN", "loans"), ("SRLN", "loans"), ("HYD", "muni"), ("EMHY", "em")):
+    ASSET_CLASS[_t] = ("high_yield", _sub)
+for _t in ("GLD", "IAU", "GLDM", "SGOL", "OUNZ", "AAAU", "BAR"):
+    ASSET_CLASS[_t] = ("gold", "bullion")
+for _t in ("SLV", "SIVR"):
+    ASSET_CLASS[_t] = ("silver", "bullion")
+for _t, _sub in (("PPLT", "pgm"), ("PALL", "pgm"), ("CPER", "copper"), ("DBB", "base_metals"), ("GLTR", "precious_basket"), ("GDX", "gold_miners"), ("GDXJ", "gold_miners"),
+                 ("SIL", "silver_miners"), ("SILJ", "silver_miners"), ("XME", "miners"), ("PICK", "miners"), ("REMX", "miners"), ("LIT", "miners")):
+    ASSET_CLASS[_t] = ("metals", _sub)
+for _t, _sub in (("USO", "energy"), ("BNO", "energy"), ("UNG", "energy"), ("DBC", "broad"), ("PDBC", "broad"), ("GSG", "broad"), ("DBA", "agriculture"), ("CORN", "agriculture"),
+                 ("WEAT", "agriculture"), ("SOYB", "agriculture")):
+    ASSET_CLASS[_t] = ("commodity", _sub)
+for _t, _n in SLEEVES["CURRENCY"]:
+    ASSET_CLASS[_t] = ("currency", None)
+for _t, _n in SLEEVES["CRYPTO"]:
+    ASSET_CLASS[_t] = ("crypto", None)
+for _t in ("VXX", "VIXY", "VIXM"):
+    ASSET_CLASS[_t] = ("volatility", None)
+for _t in ("TQQQ", "UPRO", "SOXL", "TNA", "UDOW", "SPXL", "QLD", "SSO", "TECL", "FAS", "SQQQ", "SPXU", "SOXS", "TZA", "SDOW", "SPXS", "QID", "SDS", "TECS", "FAZ", "SH", "PSQ",
+           "UVXY", "SVXY", "TBT", "TMF", "TMV", "NUGT", "DUST", "JNUG", "JDST", "LABU", "LABD", "BOIL", "KOLD", "UCO", "SCO", "GUSH", "DRIP", "TSLL", "NVDL", "CONL", "BITX", "BITI"):
+    ASSET_CLASS[_t] = ("leveraged", None)
+CLASS_RX = (
+    (re.compile(r"\b(2x|3x|ultra|ultrapro|ultrashort|leveraged|inverse|bull\b|bear\b|daily short|short s&p|short qqq|proshares short)", re.I), ("leveraged", None)),
+    (re.compile(r"\b(bitcoin|ether(eum)?|crypto|solana|digital assets?)\b", re.I), ("crypto", None)),
+    (re.compile(r"\b(vix|volatility)\b", re.I), ("volatility", None)),
+    (re.compile(r"\b(miners?|mining)\b", re.I), ("metals", "miners")),
+    (re.compile(r"\bgold\b", re.I), ("gold", "bullion")),
+    (re.compile(r"\bsilver\b", re.I), ("silver", "bullion")),
+    (re.compile(r"\b(platinum|palladium|copper|base metals?|industrial metals?|precious metals?|lithium|rare earth|uranium)\b", re.I), ("metals", None)),
+    (re.compile(r"\b(high yield|high-yield|junk|fallen angel|senior loan|leveraged loan|bank loan)\b", re.I), ("high_yield", None)),
+    (re.compile(r"\b(t-bill|treasury bill|ultra short|ultra-short|0-3 month|1-3 month|floating rate|money market)\b", re.I), ("cash", "t_bill")),
+    (re.compile(r"\b(treasur\w*|bonds?|fixed income|aggregate|municipal|muni|tips|inflation-protected|credit|corporate debt|mortgage-backed|mbs)\b", re.I), ("bond", None)),
+    (re.compile(r"\b(crude|oil fund|brent|natural gas|gasoline|commodit\w*|agricultur\w*|corn|wheat|soybeans?|sugar|coffee|cocoa|livestock)\b", re.I), ("commodity", None)),
+    (re.compile(r"\b(currency|dollar index|dollar bullish|dollar bearish|yen|euro trust|pound sterling|swiss franc|renminbi|yuan)\b", re.I), ("currency", None)),
+    (re.compile(r"\b(msci|emerging|eafe|international|all country|all-world|ex-us|ex us|developed markets|frontier|china|japan|brazil|india|korea|taiwan|germany|mexico|hong kong|"
+                r"singapore|australia|canada|united kingdom|europe|pacific|latin america|africa|israel|turkey|saudi|vietnam|thailand|indonesia|poland|argentina|chile|peru|spain|italy|france|switzerland)\b", re.I), ("country", None)),
+)
+
+
+def asset_class_of(t, kind, name):
+    """(asset_class, sub) for a ticker: the explicit map, then the fund's name, then stock / fund. Pure."""
+    t = str(t or "").upper()
+    if t in ASSET_CLASS:
+        return ASSET_CLASS[t]
+    if kind == "fund":
+        n = str(name or "")
+        for rx, cls in CLASS_RX:
+            if rx.search(n):
+                return cls
+        return ("equity_etf", None)
+    return ("stock", None) if kind == "stock" else (None, None)
+
+
 F13_COLUMNS = ["n_holders", "n_prior_holders", "holder_delta", "value_usd", "value_prior_usd", "inflow_usd", "outflow_usd", "net_usd",
                "bull", "bear", "stance", "kind", "bucket", "sector", "industry", "n_identities", "conc_n_holders", "conc_holder_delta"]
 SOURCES = [
@@ -475,15 +599,19 @@ def composite(vs):
 
 
 def rank_rows(rows):
-    """Cross-sectional z-scores per horizon (winsorized at +-3) -> weighted z composite -> universe percentile 0-100. Pure."""
+    """Cross-sectional z-scores per horizon (winsorized at +-3) -> weighted z composite -> universe percentile 0-100.
+    1.0.7: leveraged / inverse funds are outside the population (strength None, excluded "leveraged"); every ranked row
+    also gets strength_in_class, its percentile inside its own asset class (classes with >= 5 ranked members). Pure."""
     stats = {}
+    pop = [r for r in rows if r.get("asset_class") != "leveraged"]
     for k, _ in WEIGHTS:
-        xs = [r["vs"][k] for r in rows if r.get("vs") and r["vs"].get(k) is not None]
+        xs = [r["vs"][k] for r in pop if r.get("vs") and r["vs"].get(k) is not None]
         sd = stdev(xs)
         stats[k] = (sum(xs) / len(xs), sd) if xs and sd else None
     zs = []
     for r in rows:
-        if not r.get("vs"):
+        r["excluded"] = "leveraged" if r.get("asset_class") == "leveraged" else None
+        if not r.get("vs") or r["excluded"]:
             r["z"] = None
             continue
         s = w = 0.0
@@ -499,6 +627,13 @@ def rank_rows(rows):
             zs.append(r["z"])
     for r in rows:
         r["strength"] = f(percentile_of(r["z"], zs), 1) if r.get("z") is not None else None
+    by_class = {}
+    for r in rows:
+        if r.get("z") is not None:
+            by_class.setdefault(r.get("asset_class"), []).append(r["z"])
+    for r in rows:
+        zc = by_class.get(r.get("asset_class")) or []
+        r["strength_in_class"] = f(percentile_of(r["z"], zc), 1) if r.get("z") is not None and len(zc) >= 5 else None
     return {k: {"mean": f(v[0]), "sd": f(v[1])} if v else None for k, v in stats.items()}
 
 
@@ -744,6 +879,7 @@ def row_for(t, meta, bars, bench, bank_last):
     c = [float(b["c"]) for b in bars]
     h = horizons(c) if len(c) >= 2 else {k: None for k, _ in HORIZONS}
     row = {"ticker": t, "name": meta.get("name"), "sleeve": meta.get("sleeve"), "scopes": meta.get("scopes") or [], "kind": meta.get("kind"),
+           "asset_class": meta.get("asset_class"), "class_sub": meta.get("class_sub"),
            "sector": meta.get("sector"), "industry": meta.get("industry"), "px": f(c[-1]) if c else None, "as_of": bars[-1]["date"] if bars else None,
            "sessions": len(bars), "stale": bool(bars and bank_last and bars[-1]["date"] < bank_last), "h": h, "vs": None, "composite_pp": None, "z": None,
            "strength": None, "posture": None, "pattern": pattern(bars), "coil": None, "flow": None, "f13": None}
@@ -768,6 +904,203 @@ def row_for(t, meta, bars, bench, bank_last):
     return row
 
 
+# ------------------------------------------------------------------------------------------------------------- thesis
+def _mean(xs):
+    return sum(xs) / len(xs) if xs else None
+
+
+def _median(xs):
+    xs = sorted(xs)
+    n = len(xs)
+    return None if not n else (xs[n // 2] if n % 2 else 0.5 * (xs[n // 2 - 1] + xs[n // 2]))
+
+
+def bucket_stats(items, spy):
+    """items: [(ret_pct, cls)] for one group on one session; spy: SPY's return that session. Pure."""
+    n = len(items)
+    if not n:
+        return {"n": 0}
+    rets = [x[0] for x in items]
+    up = sum(1 for r in rets if r > FLAT_PCT)
+    flat = sum(1 for r in rets if -FLAT_PCT <= r <= FLAT_PCT)
+    down_less = sum(1 for r in rets if r < -FLAT_PCT and r > spy)
+    down_more = sum(1 for r in rets if r < -FLAT_PCT and r <= spy)
+    hit = sum(1 for r in rets if r > spy)
+    held = sum(1 for r in rets if r >= -FLAT_PCT or r > spy)
+    return {"n": n, "mean_ret_pct": f(_mean(rets)), "median_ret_pct": f(_median(rets)), "mean_excess_pp": f(_mean(rets) - spy), "hit_pct": f(100.0 * hit / n, 1),
+            "up_pct": f(100.0 * up / n, 1), "flat_pct": f(100.0 * flat / n, 1), "down_less_pct": f(100.0 * down_less / n, 1), "down_more_pct": f(100.0 * down_more / n, 1),
+            "held_up_pct": f(100.0 * held / n, 1)}
+
+
+def day_tables(entries, spy, with_names=False):
+    """entries: [(ticker, decile, ret_pct, cls, strength_pct)]. Decile 9 = the strongest tenth. Pure."""
+    dec = {d: [] for d in range(10)}
+    for t, d, r, cls, st in entries:
+        dec[d].append((r, cls))
+    out = {"n": len(entries), "deciles": [bucket_stats(dec[d], spy) for d in range(10)], "top": bucket_stats(dec[9], spy), "bottom": bucket_stats(dec[0], spy)}
+    out["top_minus_bottom_pp"] = f((out["top"].get("mean_ret_pct") or 0) - (out["bottom"].get("mean_ret_pct") or 0)) if out["top"].get("n") and out["bottom"].get("n") else None
+    if with_names:
+        top = sorted([e for e in entries if e[1] == 9], key=lambda e: -e[2])
+        out["top_names"] = [{"ticker": t, "ret_pct": f(r), "strength": f(st, 1), "asset_class": cls} for t, d, r, cls, st in top]
+        bot = sorted([e for e in entries if e[1] == 0], key=lambda e: -e[2])
+        out["bottom_names"] = [{"ticker": t, "ret_pct": f(r), "strength": f(st, 1), "asset_class": cls} for t, d, r, cls, st in bot]
+    return out
+
+
+def class_tables(entries, spy, with_names=False):
+    by = {}
+    for t, d, r, cls, st in entries:
+        by.setdefault(cls or "unknown", []).append((t, d, r, cls, st))
+    out = {}
+    for cls, items in by.items():
+        st = bucket_stats([(x[2], cls) for x in items], spy)
+        if with_names:
+            srt = sorted(items, key=lambda e: -e[2])
+            st["best"] = [{"ticker": x[0], "ret_pct": f(x[2]), "strength": f(x[4], 1)} for x in srt[:5]]
+            st["worst"] = [{"ticker": x[0], "ret_pct": f(x[2]), "strength": f(x[4], 1)} for x in srt[-5:][::-1]]
+            st["median_strength"] = f(_median([x[4] for x in items]), 1)
+        out[cls] = st
+    return out
+
+
+def thesis_block(rows, bench, bars_by, log=print):
+    """Walk-forward test of the desk's own thesis (see the module docstring, 1.0.7). Pure given the bars."""
+    t0 = time.time()
+    bdates = [b["date"] for b in bench]
+    bidx = {d: i for i, d in enumerate(bdates)}
+    sp = [float(b["c"]) for b in bench]
+    n = len(bdates)
+    lags = [(k, lag) for k, lag in HORIZONS if k in dict(WEIGHTS)]
+    max_lag = max(lag for _, lag in lags)
+    pop = []
+    for r in rows:
+        if r.get("strength") is None or r.get("excluded"):
+            continue
+        cb = [None] * n
+        for b in bars_by.get(r["ticker"]) or []:
+            j = bidx.get(b["date"])
+            if j is not None:
+                c = float(b["c"])
+                if c > 0:
+                    cb[j] = c
+        pop.append((r["ticker"], r.get("asset_class"), cb))
+    first = max(max_lag + 2, n - THESIS_DAYS)
+    if n < max_lag + 3 or not pop:
+        return {"error": "not enough sessions or no ranked rows", "sessions": n, "n_rows": len(pop)}
+    days, dump_days, last = [], [], None
+    wsum = sum(w for _, w in WEIGHTS)
+    for j in range(first, n):
+        i = j - 1
+        if sp[i] <= 0 or sp[j] <= 0:
+            continue
+        spy_ret = (sp[j] / sp[i] - 1.0) * 100.0
+        ex = {}            # ticker -> {k: excess}
+        for t, cls, cb in pop:
+            ci, cj = cb[i], cb[j]
+            if not ci or not cj:
+                continue
+            vs = {}
+            for k, lag in lags:
+                a = cb[i - lag]
+                if a and sp[i - lag] > 0:
+                    vs[k] = (ci / a - 1.0) * 100.0 - (sp[i] / sp[i - lag] - 1.0) * 100.0
+            if vs:
+                ex[t] = (vs, (cj / ci - 1.0) * 100.0, cls)
+        if len(ex) < THESIS_MIN_ROWS:
+            continue
+        stats = {}
+        for k, _ in WEIGHTS:
+            xs = [v[0][k] for v in ex.values() if k in v[0]]
+            sd = stdev(xs)
+            stats[k] = (sum(xs) / len(xs), sd) if xs and sd else None
+        zrows = []
+        for t, (vs, ret, cls) in ex.items():
+            z = w = 0.0
+            for k, wt in WEIGHTS:
+                st = stats.get(k)
+                if st and k in vs:
+                    z += max(-3.0, min(3.0, (vs[k] - st[0]) / st[1])) * wt
+                    w += wt
+            if w:
+                zrows.append((t, z / w, ret, cls))
+        zrows.sort(key=lambda x: x[1])
+        m = len(zrows)
+        entries = [(t, min(9, int(10 * idx / m)), ret, cls, 100.0 * idx / m) for idx, (t, z, ret, cls) in enumerate(zrows)]
+        stocks = [e for e in entries if e[3] == "stock"]
+        if stocks:
+            stocks.sort(key=lambda e: e[4])
+            ms = len(stocks)
+            stocks = [(t, min(9, int(10 * idx / ms)), ret, cls, 100.0 * idx / ms) for idx, (t, d, ret, cls, st) in enumerate(stocks)]
+        is_dump = spy_ret <= DUMP_PCT
+        is_last = j == n - 1
+        rec = {"date": bdates[j], "ranked_as_of": bdates[i], "spy_ret_pct": f(spy_ret), "dump": is_dump, "n": len(entries),
+               "all": day_tables(entries, spy_ret, with_names=is_dump or is_last), "stocks": day_tables(stocks, spy_ret, with_names=is_dump or is_last) if stocks else None,
+               "by_class": class_tables(entries, spy_ret, with_names=is_dump or is_last)}
+        days.append({"date": bdates[j], "spy_ret_pct": rec["spy_ret_pct"], "dump": is_dump, "top_excess_pp": rec["all"]["top"].get("mean_excess_pp"), "top_held_up_pct": rec["all"]["top"].get("held_up_pct"),
+                     "bottom_excess_pp": rec["all"]["bottom"].get("mean_excess_pp"), "stocks_top_excess_pp": (rec["stocks"] or {}).get("top", {}).get("mean_excess_pp"),
+                     "decile_excess_pp": [d.get("mean_excess_pp") for d in rec["all"]["deciles"]]})
+        if is_dump:
+            dump_days.append(rec)
+        if is_last:
+            last = rec
+
+    def agg(recs, group):
+        tops = [r[group]["top"] for r in recs if r.get(group) and r[group]["top"].get("n")]
+        bots = [r[group]["bottom"] for r in recs if r.get(group) and r[group]["bottom"].get("n")]
+        if not tops:
+            return {"n_days": 0}
+        dec = []
+        for d in range(10):
+            xs = [r[group]["deciles"][d].get("mean_excess_pp") for r in recs if r.get(group) and r[group]["deciles"][d].get("n")]
+            dec.append(f(_mean([x for x in xs if x is not None])))
+        return {"n_days": len(tops),
+                "top_decile": {"mean_excess_pp": f(_mean([x["mean_excess_pp"] for x in tops])), "mean_ret_pct": f(_mean([x["mean_ret_pct"] for x in tops])),
+                               "hit_pct": f(_mean([x["hit_pct"] for x in tops]), 1), "held_up_pct": f(_mean([x["held_up_pct"] for x in tops]), 1),
+                               "days_beat_spy": sum(1 for x in tops if (x["mean_excess_pp"] or 0) > 0), "days_beat_spy_pct": f(100.0 * sum(1 for x in tops if (x["mean_excess_pp"] or 0) > 0) / len(tops), 1)},
+                "bottom_decile": {"mean_excess_pp": f(_mean([x["mean_excess_pp"] for x in bots])), "mean_ret_pct": f(_mean([x["mean_ret_pct"] for x in bots])),
+                                  "hit_pct": f(_mean([x["hit_pct"] for x in bots]), 1), "held_up_pct": f(_mean([x["held_up_pct"] for x in bots]), 1)} if bots else None,
+                "by_decile_mean_excess_pp": dec, "top_minus_bottom_pp": f((dec[9] or 0) - (dec[0] or 0)) if dec[9] is not None and dec[0] is not None else None,
+                "monotonic": all(dec[d] is not None and dec[d + 1] is not None and dec[d + 1] >= dec[d] for d in range(9))}
+
+    def agg_class(recs):
+        out = {}
+        for cls in CLASS_ORDER:
+            xs = [r["by_class"][cls] for r in recs if cls in r.get("by_class", {}) and r["by_class"][cls].get("n")]
+            if xs:
+                out[cls] = {"n_days": len(xs), "mean_ret_pct": f(_mean([x["mean_ret_pct"] for x in xs])), "mean_excess_pp": f(_mean([x["mean_excess_pp"] for x in xs])),
+                            "held_up_pct": f(_mean([x["held_up_pct"] for x in xs]), 1), "hit_pct": f(_mean([x["hit_pct"] for x in xs]), 1), "avg_n": f(_mean([x["n"] for x in xs]), 0)}
+        return out
+    all_recs = []   # the per-day compact series is `days`; aggregates over ALL days use the dump + non-dump mix from `days`
+    deep = [d for d in dump_days if d["spy_ret_pct"] is not None and d["spy_ret_pct"] <= 2.0 * DUMP_PCT]
+    summary = {"n_sessions": len(days), "n_dump_days": len(dump_days), "n_deep_dump_days": len(deep), "dump_threshold_pct": DUMP_PCT, "flat_pct": FLAT_PCT,
+               "dump": {"all": agg(dump_days, "all"), "stocks": agg(dump_days, "stocks"), "by_class": agg_class(dump_days)},
+               "deep_dump": {"all": agg(deep, "all"), "stocks": agg(deep, "stocks")} if deep else None,
+               "all_days": {"top_excess_pp": f(_mean([d["top_excess_pp"] for d in days if d["top_excess_pp"] is not None])),
+                            "top_beat_spy_pct": f(100.0 * sum(1 for d in days if (d["top_excess_pp"] or 0) > 0) / len(days), 1) if days else None,
+                            "bottom_excess_pp": f(_mean([d["bottom_excess_pp"] for d in days if d["bottom_excess_pp"] is not None])),
+                            "by_decile_mean_excess_pp": [f(_mean([d["decile_excess_pp"][k] for d in days if d["decile_excess_pp"][k] is not None])) for k in range(10)]}}
+    sd = summary["dump"]["all"]
+    st = summary["dump"]["stocks"]
+    if sd.get("n_days"):
+        td = sd["top_decile"]
+        verdict = ("On the %d sessions of the last %d when SPY fell %.1f%% or more, the names ranked in the top strength decile the session before beat SPY on %d (%s%%): "
+                   "their average move was %+.2f%% against SPY's, an excess of %+.2f pp; %s%% of them held up (flat, up, or down less than SPY) against %s%% of the bottom decile. "
+                   "Stocks alone: top decile excess %+.2f pp, held up %s%%, beat SPY on %s%% of those days." % (
+                       sd["n_days"], summary["n_sessions"], abs(DUMP_PCT), td["days_beat_spy"], td["days_beat_spy_pct"], td["mean_ret_pct"], td["mean_excess_pp"], td["held_up_pct"],
+                       (sd.get("bottom_decile") or {}).get("held_up_pct"), (st.get("top_decile") or {}).get("mean_excess_pp") or 0.0, (st.get("top_decile") or {}).get("held_up_pct"),
+                       (st.get("top_decile") or {}).get("days_beat_spy_pct")))
+    else:
+        verdict = "no session of the last %d had SPY down %.1f%% or more" % (summary["n_sessions"], abs(DUMP_PCT))
+    if last:
+        lt = last["all"]["top"]
+        verdict += " Last session %s (SPY %+.2f%%%s): top decile %+.2f%% (excess %+.2f pp), held up %s%%, beat SPY %s%%." % (
+            last["date"], last["spy_ret_pct"], ", a dump day" if last["dump"] else "", lt.get("mean_ret_pct") or 0.0, lt.get("mean_excess_pp") or 0.0, lt.get("held_up_pct"), lt.get("hit_pct"))
+    log("strength: thesis %d sessions, %d dump days, %.1fs" % (len(days), len(dump_days), time.time() - t0))
+    return {"window": {"sessions": len(days), "from": days[0]["date"] if days else None, "to": days[-1]["date"] if days else None, "n_rows": len(pop)},
+            "dump_threshold_pct": DUMP_PCT, "flat_pct": FLAT_PCT, "last_session": last, "dump_days": list(reversed(dump_days))[:30], "days": days,
+            "summary": summary, "verdict": verdict, "seconds": round(time.time() - t0, 1)}
+
+
 def boards_from(rows):
     live = [r for r in rows if r.get("strength") is not None and not r.get("stale")]
     by_strength = sorted(live, key=lambda r: -r["strength"])
@@ -775,7 +1108,8 @@ def boards_from(rows):
     desk = [r for r in live if "desk" in r["scopes"]]
 
     def slim(r):
-        return {"ticker": r["ticker"], "name": r["name"], "sleeve": r["sleeve"], "scopes": r["scopes"], "strength": r["strength"], "composite_pp": r["composite_pp"],
+        return {"ticker": r["ticker"], "name": r["name"], "sleeve": r["sleeve"], "scopes": r["scopes"], "asset_class": r.get("asset_class"), "class_sub": r.get("class_sub"),
+                "strength": r["strength"], "strength_in_class": r.get("strength_in_class"), "composite_pp": r["composite_pp"],
                 "vs": r["vs"], "rs_trend_63": r["rs_trend_63"], "rs_consistency_63": r["rs_consistency_63"], "ir_63": r["ir_63"], "pos_52w": r["pos_52w"],
                 "coil": {k: (r["coil"] or {}).get(k) for k in ("tier", "base_len", "base_range_pct", "score", "flag")} if r.get("coil") else None,
                 "f13_stance": (r.get("f13") or {}).get("stance"), "flow_w21_pct": ((r.get("flow") or {}).get("w21") or {}).get("pct_aum")}
@@ -791,9 +1125,25 @@ def boards_from(rows):
         out["coiled"] = sum(1 for r in group if (r.get("coil") or {}).get("tier") and not (r.get("coil") or {}).get("flag"))
         out["pinned"] = sum(1 for r in group if (r.get("coil") or {}).get("flag"))
         return out
+    # 1.0.7: every asset class - breadth, the median rank, today's and the month's median move vs SPY, best and worst
+    by_class = {}
+    for cls in CLASS_ORDER:
+        grp = sorted([r for r in live if r.get("asset_class") == cls], key=lambda r: -r["strength"])
+        if not grp:
+            continue
+        def med(key):
+            xs = sorted(r["vs"][key] for r in grp if r.get("vs") and r["vs"].get(key) is not None)
+            return f(xs[len(xs) // 2], 2) if xs else None
+        by_class[cls] = {"label": CLASS_LABEL.get(cls, cls), "n": len(grp), "median_strength": f(sorted(r["strength"] for r in grp)[len(grp) // 2], 1),
+                         "median_vs_d": med("d"), "median_vs_w": med("w"), "median_vs_m": med("m"), "median_vs_q": med("q"),
+                         "pct_above_spy_m": breadth(grp)["pct_m"], "pct_above_spy_q": breadth(grp)["pct_q"], "rs_new_highs": breadth(grp)["rs_new_highs"], "coiled": breadth(grp)["coiled"],
+                         "best": [slim(r) for r in grp[:5]], "worst": [slim(r) for r in grp[-5:][::-1]]}
+    excluded = sorted([r for r in rows if r.get("excluded")], key=lambda r: -((r.get("vs") or {}).get("d") or -999))
     return {"leaders": [slim(r) for r in by_strength[:BOARD]], "laggards": [slim(r) for r in by_strength[-BOARD:][::-1]],
             "coil": [slim(r) for r in coiled[:BOARD * 2]], "rs_new_highs": [slim(r) for r in by_strength if r.get("rs_new_high")][:BOARD],
-            "breadth": {"universe": breadth(live), "desk": breadth(desk)}, "n_ranked": len(live)}
+            "breadth": {"universe": breadth(live), "desk": breadth(desk)}, "by_class": by_class, "class_order": [c for c in CLASS_ORDER if c in by_class],
+            "excluded": {"leveraged": [{"ticker": r["ticker"], "name": r["name"], "vs_d": (r.get("vs") or {}).get("d"), "h_d": (r.get("h") or {}).get("d")} for r in excluded]},
+            "n_ranked": len(live)}
 
 
 def build(s3, now, log=print, remaining_s=300.0):
@@ -833,7 +1183,10 @@ def build(s3, now, log=print, remaining_s=300.0):
         meta["name"] = meta.get("name") or p.get("name") or t
         meta["sector"] = p.get("sector") or f13r.get("sector")
         meta["industry"] = p.get("industry") or f13r.get("industry")
-        meta["kind"] = "fund" if (t in flows or p.get("is_etf") or f13r.get("kind") == "fund") else "stock" if (p or f13r) else None
+        scopes = meta.get("scopes") or []
+        meta["kind"] = ("fund" if (t in flows or p.get("is_etf") or f13r.get("kind") == "fund" or t in ASSET_CLASS or "etf-desk" in scopes)
+                        else "stock" if (p or f13r or "sp500" in scopes or "13f" in scopes or meta.get("sleeve") == "STOCK") else None)
+        meta["asset_class"], meta["class_sub"] = asset_class_of(t, meta["kind"], meta["name"])
     # 2. bars (bank only)
     bench = read_bars(s3, BENCH)
     if not bench:
@@ -897,6 +1250,11 @@ def build(s3, now, log=print, remaining_s=300.0):
             r["spark"] = [f(float(b["c"]), 4) for b in bars_by[r["ticker"]][-SPARK:]]
     bench_h = horizons([float(b["c"]) for b in bench])
     bench_ctx = context_52w(bench)
+    try:
+        thesis = thesis_block(rows, bench, bars_by, log=log)
+    except Exception as exc:  # noqa: BLE001
+        thesis = {"error": "%s: %s" % (type(exc).__name__, str(exc)[:200])}
+        errors.append({"input": "thesis", "error": thesis["error"]})
     flows_summary = {"desk_generated_at": (desk or {}).get("generated_at"), "desk_last_modified": desk_mod, "reference_end": ((desk or {}).get("reference") or {}).get("end_date"),
                      "n_configured": len(((desk or {}).get("funds") or {})), "n_current_now": sum(1 for v in flows.values() if v["current"]),
                      "n_in_universe": sum(1 for r in rows if r["flow"]), "n_universe_current": sum(1 for r in rows if r["flow"] and r["flow"]["current"]),
@@ -917,7 +1275,9 @@ def build(s3, now, log=print, remaining_s=300.0):
         "universe": {"n": len(u), "n_rows": len(rows), "n_ranked": boards["n_ranked"], "scopes": {s: sum(1 for v in u.values() if s in v["scopes"]) for s in ("desk", "etf-desk", "sp500", "13f")},
                      "unbanked": unbanked, "skipped_for_time": skipped, "sp500_rows": len(sp500), "etf_desk_rows": len(etf_desk), "f13_rows": len(f13), "max": MAX_UNIVERSE},
         "sleeves": {sl: [{"ticker": t, "name": n} for t, n in items] for sl, items in SLEEVES.items()},
-        "weights": dict(WEIGHTS), "z_stats": stats,
+        "classes": {"order": CLASS_ORDER, "labels": CLASS_LABEL, "counts": {c: sum(1 for r in rows if r.get("asset_class") == c) for c in CLASS_ORDER},
+                    "ranked": {c: sum(1 for r in rows if r.get("asset_class") == c and r.get("strength") is not None) for c in CLASS_ORDER}},
+        "weights": dict(WEIGHTS), "z_stats": stats, "thesis": thesis,
         "rows": rows, "boards": boards, "flows": flows_summary, "f13": f13_summary, "sources": sources, "errors": errors[:50], "n_errors": len(errors),
         "definitions": {
             "strength": "universe percentile (0-100) of the weighted cross-sectional z-score of excess return vs SPY on 1d / 5d / 21d / 63d / 126d (10 / 20 / 30 / 25 / 15)",
@@ -933,6 +1293,9 @@ def build(s3, now, log=print, remaining_s=300.0):
             "posture": "day posture from close-to-close moves; the page overlays the live quote",
             "pinned": "a stock whose 14-session ATR is <= 0.6% of price inside a base of <= 3.5% trades like a pending deal (merger arbitrage), not an accumulation: flagged PINNED and kept off the coil board",
             "splits": "bank bars are unadjusted; bars before a recorded split (corporate-actions) or an inferred one (close ratio >= 1.8 or <= 0.56 with volume moving the opposite way, 5 sessions each side) are rebased by the split factor",
+            "asset_class": "stock; equity_etf (broad / sector / factor); country; bond (treasury / aggregate / IG corporate / mortgage / TIPS / international / EM debt / muni); high_yield (corporate / fallen angels / loans / muni / EM); cash (T-bills); gold; silver; metals (platinum / palladium / copper / base metals / miners); commodity (energy / broad / agriculture); currency; crypto; volatility; leveraged (labelled, outside the ranks)",
+            "strength_in_class": "the row's percentile inside its own asset class (classes with at least 5 ranked members)",
+            "thesis": "walk-forward: for each of the last %d sessions the universe is re-ranked from the closes through the session BEFORE (the live desk's horizons, weights, z-scores, percentile -> decile), and every name's move on the session itself is measured against SPY. dump day = SPY at or under %.1f%%; held up = flat (within %.2f%%), up, or down less than SPY; hit = beat SPY. The top decile of the ranks is the desk's 'strongest'. The block is the engine testing its own thesis on real sessions; it is not a forecast." % (THESIS_DAYS, DUMP_PCT, FLAT_PCT),
         },
         "note": "Relative strength is a price fact, not a forecast. Fund flows are reported creation / redemption observations; 13F stances count managers. No trade, call or sizing is implied.",
         "run_seconds": round(time.time() - started, 1),
@@ -958,8 +1321,20 @@ def lambda_handler(event, context):
     trig = event.get("trigger") if isinstance(event, dict) else None
     out["trigger"] = {"kind": trig or "scheduled"}
     n = put_json(s3, OUT_KEY, out)
+    try:
+        if out.get("as_of"):
+            hk = HISTORY_PREFIX + str(out["as_of"]) + ".json.gz"
+            body = gzip.compress(json.dumps(out, separators=(",", ":"), default=str).encode("utf-8"))
+            s3.put_object(Bucket=S3_BUCKET, Key=hk, Body=body, ContentType="application/json", ContentEncoding="gzip", CacheControl="max-age=31536000")
+            print("strength: history %s (%d bytes gz)" % (hk, len(body)))
+    except Exception as exc:  # noqa: BLE001
+        print("strength: history snapshot failed: %s: %s" % (type(exc).__name__, str(exc)[:120]))
     b = out["boards"]
-    print("strength: %d rows (%d ranked), as of %s, leaders %s, coil %s, flows current %d/%d, 13f %d, %d bytes, %.1fs, errors %d" % (
+    th = out.get("thesis") or {}
+    ls = th.get("last_session") or {}
+    print("strength: %d rows (%d ranked), as of %s, leaders %s, coil %s, flows current %d/%d, 13f %d, classes %s, thesis last %s spy %s top-decile held %s%% hit %s%% (dump days %s), %d bytes, %.1fs, errors %d" % (
         len(out["rows"]), b["n_ranked"], out["as_of"], [x["ticker"] for x in b["leaders"][:5]], [x["ticker"] for x in b["coil"][:5]],
-        out["flows"]["n_universe_current"], out["flows"]["n_in_universe"], out["f13"]["n_in_universe"], n, out["run_seconds"], out["n_errors"]))
+        out["flows"]["n_universe_current"], out["flows"]["n_in_universe"], out["f13"]["n_in_universe"], json.dumps((out.get("classes") or {}).get("ranked")),
+        ls.get("date"), ls.get("spy_ret_pct"), ((ls.get("all") or {}).get("top") or {}).get("held_up_pct"), ((ls.get("all") or {}).get("top") or {}).get("hit_pct"),
+        (th.get("summary") or {}).get("n_dump_days"), n, out["run_seconds"], out["n_errors"]))
     return {"statusCode": 200, "key": OUT_KEY, "bytes": n, "rows": len(out["rows"]), "ranked": b["n_ranked"], "as_of": out["as_of"], "run_seconds": out["run_seconds"], "errors": out["n_errors"]}

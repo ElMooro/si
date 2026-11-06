@@ -49,6 +49,7 @@ sys.modules["fmp_bank"] = SimpleNamespace(walker=lambda dataset, entity=None, **
                                           snapshot=lambda path, symbol=None: [dict(r) for r in PROFILES] if path == "profile" and symbol is None else None)
 
 import lambda_function as lf  # noqa: E402
+lf.THESIS_MIN_ROWS = 5   # the synthetic bank ranks ten names; production needs 20 per session
 
 NOW = datetime(2026, 11, 4, 3, 40, tzinfo=timezone.utc)
 START = date(2024, 10, 1)
@@ -305,7 +306,9 @@ def test_universe_assembly_and_ranks():
     assert u["GLD"]["sleeve"] == "ETF" and set(u["GLD"]["scopes"]) == {"desk", "etf-desk"}
     assert u["COIL"]["scopes"] == ["sp500", "13f"] and u["COIL"]["sleeve"] == "STOCK" and u["BRK.B"]["scopes"] == ["sp500"] and "BRK-B" not in u   # FMP's dash becomes the bank's dot
     assert u["NVDA"]["scopes"] == ["desk", "sp500", "13f"] and "SPY" in u and u["SPY"]["scopes"] == ["etf-desk"]
-    assert u["AAPL"]["name"] == "Apple" and len(u) == 51 + 8   # 51 distinct desk names (GLD sits in ETF and METAL) + SPY, COIL, LAGG, BRK.B, NEWB, SPLT, RCRD, DEAL
+    n_desk = len({t for items in lf.SLEEVES.values() for t, _ in items})
+    assert u["AAPL"]["name"] == "Apple" and len(u) == n_desk + 8 and n_desk >= 160   # every distinct desk name (sleeves overlap) + SPY, COIL, LAGG, BRK.B, NEWB, SPLT, RCRD, DEAL
+    assert u["HYG"]["sleeve"] == "ETF" and u["JNK"]["sleeve"] == "HIGH YIELD" and u["SIVR"]["sleeve"] == "METAL" and u["USO"]["sleeve"] == "COMMODITY" and u["VXX"]["sleeve"] == "VOLATILITY"
     rows = [{"ticker": t, "vs": ({"d": d, "w": d * 2, "m": d * 3, "q": d * 4, "h": d * 5} if d is not None else None)} for t, d in (("A", 1.0), ("B", 2.0), ("C", 3.0), ("D", -1.0), ("E", None))]
     stats = lf.rank_rows(rows)
     by = {r["ticker"]: r for r in rows}
@@ -314,8 +317,8 @@ def test_universe_assembly_and_ranks():
 
 def test_build_rows_boards_flows_and_13f():
     s3, out = built()
-    assert out["contract"] == "strength.v1" and out["version"] == "1.0.6" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
-    assert out["benchmark"]["sessions"] == 300 and out["benchmark"]["h"]["q"] is not None and out["universe"]["n"] == 59
+    assert out["contract"] == "strength.v1" and out["version"] == "1.0.7" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
+    assert out["benchmark"]["sessions"] == 300 and out["benchmark"]["h"]["q"] is not None and out["universe"]["n"] == len({t for items in lf.SLEEVES.values() for t, _ in items}) + 8
     by = {r["ticker"]: r for r in out["rows"]}
     # unbanked desk names carry no row; the bank manifest's last session is the as-of
     assert "TLT" in out["universe"]["unbanked"] and "XLE" in out["universe"]["unbanked"] and "SIVR" in out["universe"]["unbanked"] and "TLT" not in by
@@ -359,7 +362,15 @@ def test_build_rows_boards_flows_and_13f():
     # sources and observability
     assert [s["engine"] for s in out["sources"]] == ["justhodl-polygon-eod", "justhodl-etf-global-desk", "justhodl-etf-fund-flows", "justhodl-13f-book"]
     assert all(s["tier"] == "fresh" for s in out["sources"]) and out["n_errors"] == 0 and out["sleeves"]["METAL"][0] == {"ticker": "GLD", "name": "Gold"}
-    assert out["universe"]["scopes"] == {"desk": 51, "etf-desk": 5, "sp500": 9, "13f": 3}
+    assert out["universe"]["scopes"]["etf-desk"] == 5 and out["universe"]["scopes"]["sp500"] == 9 and out["universe"]["scopes"]["13f"] == 3 and out["universe"]["scopes"]["desk"] >= 160
+    # 1.0.7: asset classes on every row, in-class percentiles, the class board, the thesis block
+    assert by["QQQ"]["asset_class"] == "equity_etf" and by["QQQ"]["class_sub"] == "broad" and by["GLD"]["asset_class"] == "gold" and by["NVDA"]["asset_class"] == "stock"
+    assert by["BRK.B"]["asset_class"] == "stock" and by["SPLT"]["asset_class"] == "stock" and by["NEWB"]["asset_class"] == "stock"
+    assert by["NVDA"]["strength_in_class"] > by["LAGG"]["strength_in_class"] and by["GLD"]["strength_in_class"] is None   # one gold row: no in-class percentile
+    assert out["classes"]["ranked"]["stock"] == 8 and out["classes"]["ranked"]["gold"] == 1 and out["classes"]["counts"]["leveraged"] == 0
+    bc = b["by_class"]
+    assert bc["stock"]["n"] == 8 and bc["stock"]["best"][0]["ticker"] == "NVDA" and bc["stock"]["worst"][0]["ticker"] == "LAGG" and bc["gold"]["n"] == 1 and b["class_order"][0] == "stock"
+    assert out["thesis"]["window"]["sessions"] > 100 and out["thesis"]["summary"]["n_sessions"] == out["thesis"]["window"]["sessions"] and "thesis" in out["definitions"]
 
 
 def test_build_without_the_optional_inputs():
@@ -387,12 +398,99 @@ def test_handler():
     lf._s3 = lambda: s3
     res = lf.lambda_handler({}, SimpleNamespace(get_remaining_time_in_millis=lambda: 299000))
     assert res["statusCode"] == 200 and res["key"] == "data/strength.json" and res["rows"] == 11 and res["ranked"] == 10 and res["errors"] == 0
-    put = s3.puts[-1]
-    assert put["Key"] == "data/strength.json" and put["CacheControl"] == "max-age=300" and BEGUN and BEGUN[-1] == {}
+    put = [x for x in s3.puts if x["Key"] == "data/strength.json"][-1]
+    assert put["CacheControl"] == "max-age=300" and BEGUN and BEGUN[-1] == {}
     doc = json.loads(put["Body"])
     assert doc["trigger"] == {"kind": "scheduled"} and doc["contract"] == "strength.v1" and len(doc["rows"]) == 11 and doc["boards"]["coil"][0]["ticker"] == "COIL"
     assert "api.polygon.io" not in json.dumps(doc)
+    # 1.0.7: every run keeps the artifact as of its session
+    hist = [x for x in s3.puts if x["Key"].startswith(lf.HISTORY_PREFIX)]
+    assert len(hist) == 1 and hist[0]["Key"] == lf.HISTORY_PREFIX + DATES[-1].isoformat() + ".json.gz" and hist[0]["ContentEncoding"] == "gzip"
+    assert json.loads(gzip.decompress(hist[0]["Body"]))["as_of"] == doc["as_of"]
 
+
+
+def test_asset_classes_and_leveraged_exclusion():
+    """1.0.7: the explicit map, the name fallback, stocks; a leveraged fund is labelled and kept out of the ranks and boards."""
+    cases = {("HYG", "fund", ""): ("high_yield", "corporate"), ("JNK", "fund", ""): ("high_yield", "corporate"), ("TLT", "fund", ""): ("bond", "treasury"),
+             ("BIL", "fund", ""): ("cash", "t_bill"), ("GLD", "fund", ""): ("gold", "bullion"), ("SLV", "fund", ""): ("silver", "bullion"), ("PPLT", "fund", ""): ("metals", "pgm"),
+             ("GDX", "fund", ""): ("metals", "gold_miners"), ("USO", "fund", ""): ("commodity", "energy"), ("UUP", "fund", ""): ("currency", None), ("IBIT", "fund", ""): ("crypto", None),
+             ("VXX", "fund", ""): ("volatility", None), ("TQQQ", "fund", ""): ("leveraged", None), ("XLK", "fund", ""): ("equity_etf", "sector"), ("EWJ", "fund", ""): ("country", None),
+             ("ZZZ1", "fund", "iShares 20+ Year Treasury Bond ETF"): ("bond", None), ("ZZZ2", "fund", "SPDR Bloomberg High Yield Bond ETF"): ("high_yield", None),
+             ("ZZZ3", "fund", "VanEck Gold Miners ETF"): ("metals", "miners"), ("ZZZ4", "fund", "abrdn Physical Silver Shares"): ("silver", "bullion"),
+             ("ZZZ5", "fund", "ProShares UltraPro Short QQQ"): ("leveraged", None), ("ZZZ6", "fund", "iShares MSCI Brazil ETF"): ("country", None),
+             ("ZZZ7", "fund", "Invesco DB Agriculture Fund"): ("commodity", None), ("ZZZ8", "fund", "Vanguard Growth ETF"): ("equity_etf", None),
+             ("AAPL", "stock", "Apple"): ("stock", None), ("ZZZ9", None, None): (None, None)}
+    for (t, k, n), want in cases.items():
+        assert lf.asset_class_of(t, k, n) == want, (t, lf.asset_class_of(t, k, n), want)
+    assert set(lf.ASSET_CLASS[t][0] for t in ("SQQQ", "SPXU", "SOXS", "UVXY", "SVXY", "TBT")) == {"leveraged"}
+    # a leveraged fund in the ranks: strength None, excluded, absent from the boards, present in boards.excluded with its day move
+    rows = [{"ticker": t, "asset_class": cls, "vs": {"d": d, "w": d * 2, "m": d * 3, "q": d * 4, "h": d * 5}} for t, cls, d in
+            (("A", "stock", 1.0), ("B", "stock", 2.0), ("C", "stock", 3.0), ("D", "stock", -1.0), ("E", "stock", 0.5), ("SQQQ", "leveraged", 9.0), ("G", "gold", 0.0))]
+    lf.rank_rows(rows)
+    by = {r["ticker"]: r for r in rows}
+    assert by["SQQQ"]["strength"] is None and by["SQQQ"]["excluded"] == "leveraged" and by["C"]["strength"] == max(r["strength"] for r in rows if r["strength"] is not None)
+    assert by["C"]["strength_in_class"] == 90.0 and by["D"]["strength_in_class"] == 10.0 and by["G"]["strength_in_class"] is None
+
+
+def test_thesis_walk_forward_on_a_known_universe():
+    """A bench with real dump days; 'strong' names fall less than half as much on them (and drift up), 'weak' names fall
+    twice as much: the top decile ranked the session before must hold up and beat SPY on every dump day, the bottom must not."""
+    rnd = random.Random(21)
+    n = 300
+    bench_r = []
+    for i in range(n):
+        if i in (200, 231, 262, 280):
+            bench_r.append(-0.025)
+        elif i in (215, 250):
+            bench_r.append(-0.012)
+        else:
+            bench_r.append(0.0005 + rnd.gauss(0, 0.004))
+
+    def closes(rets):
+        px, out = 100.0, []
+        for r in rets:
+            px *= (1 + r)
+            out.append(px)
+        return out
+    bench = [{"date": d.isoformat(), "c": c} for d, c in zip(DATES[-n:], closes(bench_r))]
+    rows, bars_by = [], {}
+
+    def add(t, cls, beta_up, beta_dump, drift):
+        rets = []
+        for br in bench_r:
+            rets.append(br * beta_dump + rnd.gauss(0, 0.001) if br <= -0.01 else br * beta_up + drift + rnd.gauss(0, 0.002))
+        bars_by[t] = [{"date": d.isoformat(), "c": c} for d, c in zip(DATES[-n:], closes(rets))]
+        rows.append({"ticker": t, "asset_class": cls, "strength": 50.0, "excluded": None})
+    for k in range(10):
+        add("STR%02d" % k, "stock", 1.0, 0.4, 0.003)      # strong: up-drift, falls 40% as much on dump days
+    for k in range(10):
+        add("WEAK%02d" % k, "stock", 1.0, 2.0, -0.002)    # weak: down-drift, falls twice as much
+    for k in range(20):
+        add("MID%02d" % k, "stock", 1.0, 1.0, 0.0)
+    for k in range(6):
+        add("BND%02d" % k, "bond", 0.1, -0.2, 0.0002)     # bonds: barely move, rise a little on dump days
+    old_min = lf.THESIS_MIN_ROWS
+    lf.THESIS_MIN_ROWS = 10
+    try:
+        th = lf.thesis_block(rows, bench, bars_by, log=lambda *a: None)
+    finally:
+        lf.THESIS_MIN_ROWS = old_min
+    assert th["window"]["sessions"] > 100 and th["summary"]["n_dump_days"] == 6 and th["summary"]["n_deep_dump_days"] == 4, th["summary"]
+    sd = th["summary"]["dump"]["all"]
+    assert sd["n_days"] == 6 and sd["top_decile"]["days_beat_spy"] == 6 and sd["top_decile"]["held_up_pct"] >= 95 and sd["top_decile"]["mean_excess_pp"] > 1.0, sd
+    assert sd["bottom_decile"]["mean_excess_pp"] < -1.0 and sd["bottom_decile"]["held_up_pct"] <= 5 and sd["top_minus_bottom_pp"] > 2.0, sd
+    assert sd["by_decile_mean_excess_pp"][9] > sd["by_decile_mean_excess_pp"][0]
+    st = th["summary"]["dump"]["stocks"]
+    assert st["n_days"] == 6 and st["top_decile"]["days_beat_spy"] == 6
+    bc = th["summary"]["dump"]["by_class"]
+    assert bc["bond"]["held_up_pct"] >= 95 and bc["bond"]["mean_excess_pp"] > 1.0 and bc["stock"]["n_days"] == 6, bc
+    day = th["dump_days"][0]
+    assert day["dump"] is True and day["spy_ret_pct"] <= -1.0 and day["all"]["top"]["n"] >= 4 and all(x["ticker"].startswith("STR") for x in day["all"]["top_names"]), day["all"]["top_names"]
+    assert all(x["ticker"].startswith("WEAK") for x in day["all"]["bottom_names"]) and day["by_class"]["bond"]["best"]
+    assert th["last_session"]["date"] == bench[-1]["date"] and th["last_session"]["ranked_as_of"] == bench[-2]["date"] and th["days"][-1]["date"] == bench[-1]["date"]
+    assert th["summary"]["all_days"]["by_decile_mean_excess_pp"][9] > th["summary"]["all_days"]["by_decile_mean_excess_pp"][0]
+    assert "beat SPY on 6 (100.0%)" in th["verdict"], th["verdict"]
 
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):

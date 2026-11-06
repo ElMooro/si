@@ -73,4 +73,13 @@ def test_desk_sleeves_match_the_page_universe():
     tickers = {t for items in mod.SLEEVES.values() for t, _ in items}
     for t in ("QQQ", "IWM", "XLK", "SMH", "GLD", "TLT", "AAPL", "NVDA", "SLV", "GDX", "IBIT", "ETHA"):
         assert t in tickers
-    assert set(mod.SLEEVES) == {"ETF", "STOCK", "METAL", "CRYPTO"}
+    # 1.0.7 (Khalid 2026-11-05: "make sure it covers all asset classes: stocks, etfs, bonds, high yields bonds, gold, silver, metal everything")
+    assert set(mod.SLEEVES) == {"ETF", "STOCK", "SECTOR", "COUNTRY", "BOND", "HIGH YIELD", "METAL", "COMMODITY", "CURRENCY", "CRYPTO", "VOLATILITY"}
+    for t in ("HYG", "JNK", "USHY", "BKLN", "ANGL", "TLT", "IEF", "LQD", "AGG", "TIP", "EMB", "GLD", "IAU", "SLV", "SIVR", "PPLT", "PALL", "CPER", "DBB", "GDX", "SIL", "XME",
+              "USO", "UNG", "DBC", "DBA", "UUP", "FXY", "IBIT", "ETHA", "VXX", "EFA", "EEM", "EWJ", "XLE", "XLV", "KRE"):
+        assert t in tickers, t
+    assert mod.CLASS_ORDER == ["stock", "equity_etf", "country", "bond", "high_yield", "cash", "gold", "silver", "metals", "commodity", "currency", "crypto", "volatility", "leveraged"]
+    assert mod.asset_class_of("HYG", "fund", "") == ("high_yield", "corporate") and mod.asset_class_of("SLV", "fund", "") == ("silver", "bullion")
+    assert mod.asset_class_of("TQQQ", "fund", "")[0] == "leveraged" and mod.asset_class_of("SQQQ", "fund", "")[0] == "leveraged", "leveraged / inverse funds are labelled and kept out of the ranks"
+    assert mod.THESIS_DAYS == 252 and mod.DUMP_PCT == -1.0 and mod.FLAT_PCT == 0.25
+    assert "thesis_block" in dir(mod) and mod.HISTORY_PREFIX == "data/strength/history/"
