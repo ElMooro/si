@@ -39,7 +39,9 @@ def main():
             except Exception as e:  # noqa: BLE001
                 r.warn("%s: no bank file (%s)" % (t, type(e).__name__))
                 continue
-            rows = [x for x in json.loads(gzip.decompress(raw)) if isinstance(x, list) and x and x[0] is not None]
+            doc = json.loads(gzip.decompress(raw))
+            rows = doc.get("rows") if isinstance(doc, dict) else doc
+            rows = [x for x in (rows or []) if isinstance(x, list) and x and x[0] is not None]
             tail = rows[-8:]
             r.section("%s - bank last %d rows" % (t, len(tail)))
             for x in tail:
