@@ -250,8 +250,12 @@ def test_split_adjustment_recorded_and_inferred():
     soxx = [{"date": DATES[i].isoformat(), "c": 300.0 if i < 59 else 87.9, "v": 2_000_000.0 if i < 59 else 7_000_000.0} for i in range(60)]   # SOXX 3:1 with semis -11% (x0.293), shares x3.5
     got = lf.infer_splits(soxx, fund=True)
     assert len(got) == 1 and got[0]["factor"] == round(1 / 3, 6) and got[0]["evidence"].startswith("fresh")
-    fresh_crash = [{"date": DATES[i].isoformat(), "c": 20.0 if i < 59 else 8.0, "v": 1000.0 if i < 59 else 9000.0} for i in range(60)]        # a -60% last day on 9x the shares: a crash, fund or not
+    fresh_crash = [{"date": DATES[i].isoformat(), "c": 20.0 if i < 59 else 8.0, "v": 1000.0 if i < 59 else 9000.0} for i in range(60)]        # a -60% last day on 9x the shares: a crash, fund or not (x0.40 is near no common ratio)
     assert lf.infer_splits(fresh_crash, fund=True) == [] and lf.infer_splits(fresh_crash) == []
+    qual = [{"date": DATES[i].isoformat(), "c": 222.0 + (i % 7) if i < 59 else 54.79, "v": 834_000.0 if i < 59 else 18_842_909.0} for i in range(60)]   # QUAL 4:1 2026-11-05: x0.2413 on 22.6x the shares (1.0.10: a fund is not volume-bounded)
+    got = lf.infer_splits(qual, fund=True)
+    assert len(got) == 1 and got[0]["factor"] == 0.25, got
+    assert lf.infer_splits(qual, fund=False) == []                                                   # a stock on 22x the shares stays a crash (bounded x2.5 past the ratio)
     fresh_flat = [{"date": DATES[i].isoformat(), "c": 20.0 if i < 59 else 5.0, "v": 1000.0 if i < 59 else 1000.0} for i in range(60)]          # x0.25 on unchanged shares: not a split (shares must multiply)
     assert lf.infer_splits(fresh_flat, fund=True) == []
     fresh_stock = [{"date": DATES[i].isoformat(), "c": 20.0 if i < 59 else 10.0, "v": 1000.0 if i < 59 else 2100.0} for i in range(60)]       # a stock's clean 2-for-1 on the last bar, shares x2.1: inferred
@@ -336,7 +340,7 @@ def test_universe_assembly_and_ranks():
 
 def test_build_rows_boards_flows_and_13f():
     s3, out = built()
-    assert out["contract"] == "strength.v1" and out["version"] == "1.0.9" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
+    assert out["contract"] == "strength.v1" and out["version"] == "1.0.10" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
     assert out["benchmark"]["sessions"] == 300 and out["benchmark"]["h"]["q"] is not None and out["universe"]["n"] == len({t for items in lf.SLEEVES.values() for t, _ in items}) + 8
     by = {r["ticker"]: r for r in out["rows"]}
     # unbanked desk names carry no row; the bank manifest's last session is the as-of

@@ -74,7 +74,7 @@ try:
 except Exception:  # noqa: BLE001
     etf_desk_catalog = None
 
-VERSION = "1.0.9"
+VERSION = "1.0.10"
 CONTRACT = "strength.v1"
 ENGINE = "justhodl-strength"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -982,9 +982,11 @@ def infer_splits(bars, fund=False):
         volume_bounded = abs(math.log(vr) - math.log(r)) <= math.log(2.5)      # ... and not many times past it: a crash on 8x the volume is a crash
         if fresh:
             # one session of evidence only: the ratio must sit near a common split ratio (a fund 15%, a stock 6% - its own move
-            # on the split day) AND the day's shares must move the split's way, by no more than x2.5 past the split's own ratio
+            # on the split day) AND the day's shares must move the split's way; a stock's shares by no more than x2.5 past the
+            # split's own ratio (a crash on 9x the shares is a crash) - a fund is not bounded (1.0.10: QUAL 4:1 printed 22.6x
+            # the shares on its split day; a fund that is not leveraged cannot lose 76% in a session)
             near = abs(math.log(snap) - math.log(r)) <= math.log(tol if fund else 1.06)
-            if not (near and volume_direction and volume_bounded):
+            if not (near and volume_direction and (fund or volume_bounded)):
                 continue
             found.append({"date": bars[i]["date"], "factor": f(snap, 6), "ratio": f(r, 4), "source": "inferred", "evidence": "fresh-volume" if volume_matches else "fresh-ratio"})
             continue
