@@ -266,7 +266,7 @@ def main():
         r.log("leaders board held up: %d of %d (%.0f%%)" % (held, tot, 100.0 * held / tot if tot else 0))
         eng_top = (((ls.get("strength") or {}).get("stocks") or {}).get("top") or {})
         r.kv(session=SESSION, spy=str(pct(spy)), engine_top_excess=str(eng_top.get("mean_excess_pp")), engine_top_held=str(eng_top.get("held_up_pct")), engine_top_hit=str(eng_top.get("hit_pct")),
-             leaders_held=("%d/%d" % (held, tot)), dump_days=str(sm.get("n_dump_days")), version=str(doc.get("version")))
+             leaders_held=("%d/%d" % (held, tot)), dump_days_q=str(((th.get("windows") or {}).get("63") or {}).get("n_dump_days")), version=str(doc.get("version")))
         r.ok("ops 6757 complete: %s" % (th.get("verdict") or "")[:400])
 
 

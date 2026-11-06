@@ -242,6 +242,22 @@ def test_split_adjustment_recorded_and_inferred():
     assert lf.infer_splits(halved) == []
     two_for_one = [{"date": DATES[i].isoformat(), "c": 20.0 if i < 40 else 10.0, "v": 1000.0 if i < 40 else 3000.0} for i in range(60)]   # a 2-for-1 with volume x3: still a split (ratio evidence)
     assert lf.infer_splits(two_for_one)[0]["factor"] == 0.5
+    # 1.0.9: a FRESH split on the last bar (no 5-session window after it) - the iShares splits of 2026-11-05
+    mtum = [{"date": DATES[i].isoformat(), "c": 240.0 + (i % 5) if i < 59 else 55.06, "v": 1_000_000.0 if i < 59 else 4_600_000.0} for i in range(60)]   # MTUM 4:1 on a -8% day (x0.229), shares x4.6
+    got = lf.infer_splits(mtum, fund=True)
+    assert len(got) == 1 and got[0]["date"] == DATES[59].isoformat() and got[0]["factor"] == 0.25 and got[0]["evidence"].startswith("fresh"), got
+    assert lf.infer_splits(mtum, fund=False) == []                                                   # a stock at x0.229 is a crash: a stock's fresh snap reaches only 6% around 1/4
+    soxx = [{"date": DATES[i].isoformat(), "c": 300.0 if i < 59 else 87.9, "v": 2_000_000.0 if i < 59 else 7_000_000.0} for i in range(60)]   # SOXX 3:1 with semis -11% (x0.293), shares x3.5
+    got = lf.infer_splits(soxx, fund=True)
+    assert len(got) == 1 and got[0]["factor"] == round(1 / 3, 6) and got[0]["evidence"].startswith("fresh")
+    fresh_crash = [{"date": DATES[i].isoformat(), "c": 20.0 if i < 59 else 8.0, "v": 1000.0 if i < 59 else 9000.0} for i in range(60)]        # a -60% last day on 9x the shares: a crash, fund or not
+    assert lf.infer_splits(fresh_crash, fund=True) == [] and lf.infer_splits(fresh_crash) == []
+    fresh_flat = [{"date": DATES[i].isoformat(), "c": 20.0 if i < 59 else 5.0, "v": 1000.0 if i < 59 else 1000.0} for i in range(60)]          # x0.25 on unchanged shares: not a split (shares must multiply)
+    assert lf.infer_splits(fresh_flat, fund=True) == []
+    fresh_stock = [{"date": DATES[i].isoformat(), "c": 20.0 if i < 59 else 10.0, "v": 1000.0 if i < 59 else 2100.0} for i in range(60)]       # a stock's clean 2-for-1 on the last bar, shares x2.1: inferred
+    assert lf.infer_splits(fresh_stock)[0]["factor"] == 0.5 and lf.infer_splits(fresh_stock)[0]["evidence"] == "fresh-volume"
+    fresh_rev = [{"date": DATES[i].isoformat(), "c": 2.0 if i < 59 else 20.0, "v": 10_000.0 if i < 59 else 1_100.0} for i in range(60)]        # a 1-for-10 reverse split on the last bar, shares /9
+    assert lf.infer_splits(fresh_rev)[0]["factor"] == 10.0
 
 
 def test_posture_and_pattern():
@@ -320,7 +336,7 @@ def test_universe_assembly_and_ranks():
 
 def test_build_rows_boards_flows_and_13f():
     s3, out = built()
-    assert out["contract"] == "strength.v1" and out["version"] == "1.0.8" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
+    assert out["contract"] == "strength.v1" and out["version"] == "1.0.9" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
     assert out["benchmark"]["sessions"] == 300 and out["benchmark"]["h"]["q"] is not None and out["universe"]["n"] == len({t for items in lf.SLEEVES.values() for t, _ in items}) + 8
     by = {r["ticker"]: r for r in out["rows"]}
     # unbanked desk names carry no row; the bank manifest's last session is the as-of
@@ -378,7 +394,9 @@ def test_build_rows_boards_flows_and_13f():
     # 1.0.8: capture / asymmetry on every ranked row, the asymmetry rank, the industry read (universe + leaders table), the boards
     cap = by["NVDA"]["capture"]["63"]
     assert cap["n"] == 63 and cap["n_down"] + cap["n_up"] <= 63 and cap["down_excess_pp"] is not None and cap["up_excess_pp"] is not None and cap["asym_pp"] == by["NVDA"]["asym_pp"]
-    assert by["NVDA"]["asym_pp"] > by["LAGG"]["asym_pp"] and by["NVDA"]["asym_rank"] > by["LAGG"]["asym_rank"] and by["NEWB"]["capture"] is None and by["NEWB"]["asym_rank"] is None
+    assert cap["both_pp"] == min(cap["down_excess_pp"], cap["up_excess_pp"]) == by["NVDA"]["both_pp"] and "126" in by["NVDA"]["capture"] and "bigday_pp" in by["NVDA"]["capture"]["126"]
+    assert by["NVDA"]["asym_pp"] > by["LAGG"]["asym_pp"] and by["NVDA"]["both_pp"] > by["LAGG"]["both_pp"] and by["NVDA"]["asym_rank"] > by["LAGG"]["asym_rank"] and by["NEWB"]["capture"] is None and by["NEWB"]["asym_rank"] is None
+    assert "both_pp" in b["leaders"][0] and "bigday_pp" in b["leaders"][0]
     ir = by["NVDA"]["industry_read"]
     assert ir["industry"] == "Semiconductors" and ir["leaders_strength"] == 88.0 and ir["leaders_vs_m"] == 4.2 and ir["confirmed"] is True and ir["n_universe"] == 1 and ir["rank"] is None
     assert by["LAGG"]["industry_read"]["leaders_strength"] == 12.0 and by["LAGG"]["industry_read"]["confirmed"] is False and by["QQQ"]["industry_read"] is None
@@ -499,7 +517,7 @@ def test_thesis_walk_forward_on_a_known_universe():
         th = lf.thesis_block(rows, bench, bars_by, log=lambda *a: None)
     finally:
         lf.THESIS_MIN_ROWS = old_min
-    assert th["window"]["sessions"] > 100 and set(th["windows"]) == {"21", "63", "252"} and th["predictors"]["asymmetry"].startswith("trailing 63-session")
+    assert th["window"]["sessions"] > 100 and set(th["windows"]) == {"21", "63", "252"} and th["predictors"]["asymmetry"].startswith("both sides") and th["predictor_order"] == ["strength", "asymmetry", "bigdays"]
     y = th["windows"]["252"]
     first = len(bench) - th["window"]["sessions"]
     spy_pct = [(bench[i]["c"] / bench[i - 1]["c"] - 1) * 100 for i in range(first, len(bench))]
@@ -511,12 +529,20 @@ def test_thesis_walk_forward_on_a_known_universe():
     for pred in ("strength", "asymmetry"):
         d = y["dump"][pred]["all"]
         assert d["n_days"] == n_dump and d["top_decile"]["days_beat_spy"] == n_dump and d["top_decile"]["held_up_pct"] >= 95 and d["top_decile"]["mean_excess_pp"] > 1.0, (pred, d)
-        assert d["bottom_decile"]["mean_excess_pp"] < -1.0 and d["bottom_decile"]["held_up_pct"] <= 5, (pred, d["bottom_decile"])
+        bot = y["dump"][pred]["stocks"]["bottom_decile"]      # among stocks: the WEAK names (the both-sides rank's bottom tenth of ALL names also holds bonds, whose up-day side is the weaker one)
+        assert bot["mean_excess_pp"] < -1.0 and bot["held_up_pct"] <= 5, (pred, bot)
         r_ = y["rally"][pred]["all"]
         assert r_["n_days"] == n_rally and r_["top_decile"]["days_beat_spy"] == n_rally and r_["top_decile"]["hit_pct"] >= 95 and r_["top_decile"]["mean_excess_pp"] > 0.5, (pred, r_)
         assert y["both_sides"][pred]["both_sides"] is True
         st = y["dump"][pred]["stocks"]
         assert st["n_days"] == n_dump and st["top_decile"]["days_beat_spy"] == n_dump
+    # the big-days rank exists once the trailing 126 sessions hold >= 3 dump days and >= 3 rally days; on its sessions the STR names are the top tenth
+    bd = y["dump"]["bigdays"]["all"]
+    assert 1 <= bd["n_days"] < n_dump and bd["top_decile"]["days_beat_spy"] == bd["n_days"] and bd["top_decile"]["mean_excess_pp"] > 1.0, bd
+    br = y["rally"]["bigdays"]["all"]
+    assert br["n_days"] >= 1 and br["top_decile"]["days_beat_spy"] == br["n_days"], br
+    assert y["both_sides"]["bigdays"]["both_sides"] is True and th["last_session"]["bigdays"] is not None
+    assert all(x["ticker"].startswith("STR") for x in th["last_session"]["bigdays"]["all"]["top_names"])
     ic = y["industry"]["dump"]
     assert ic["industry_confirmed"]["n_days"] == n_dump and ic["industry_confirmed"]["held_up_pct"] >= 95 and ic["industry_confirmed"]["avg_n"] >= 3, ic
     day = th["dump_days"][0]
@@ -529,7 +555,7 @@ def test_thesis_walk_forward_on_a_known_universe():
     assert bc["bond"]["held_up_pct"] >= 95 and bc["bond"]["mean_excess_pp"] > 1.0 and bc["stock"]["n_days"] == 7
     assert th["last_session"]["date"] == bench[-1]["date"] and th["last_session"]["ranked_as_of"] == bench[-2]["date"] and th["days"][-1]["date"] == bench[-1]["date"]
     assert y["all_days"]["strength"]["all"]["by_decile_mean_excess_pp"][9] > y["all_days"]["strength"]["all"]["by_decile_mean_excess_pp"][0]
-    assert "industry-confirmed leaders on dump days" in th["verdict"] and "asymmetry rank" in th["verdict"], th["verdict"]
+    assert "industry-confirmed leaders on dump days" in th["verdict"] and "both-sides rank" in th["verdict"] and "big-days rank" in th["verdict"] and "None" not in th["verdict"], th["verdict"]
     assert len(json.dumps(th)) < 900000, len(json.dumps(th))
 
 

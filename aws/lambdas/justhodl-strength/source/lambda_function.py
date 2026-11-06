@@ -74,7 +74,7 @@ try:
 except Exception:  # noqa: BLE001
     etf_desk_catalog = None
 
-VERSION = "1.0.8"
+VERSION = "1.0.9"
 CONTRACT = "strength.v1"
 ENGINE = "justhodl-strength"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -106,6 +106,10 @@ THESIS_MIN_ROWS = int(os.environ.get("THESIS_MIN_ROWS", "20"))  # a session need
 RALLY_PCT = float(os.environ.get("RALLY_PCT", "1.0"))        # an S&P 500 session at or above this is a rally day
 THESIS_WINDOWS = (21, 63, 252)                               # 1.0.8 (Khalid: "a year back might give you stale data ... a month or a quarter back")
 ASYM_N = 63                                                  # the asymmetry read: trailing sessions for down-day / up-day excess
+BIG_N = 126                                                  # the big-days read: trailing sessions for the dump-day / rally-day excess (>= BIG_MIN of each)
+BIG_MIN = 3
+PREDICTORS = ("strength", "asymmetry", "bigdays")                 # the thesis test's definitions of "strong" (1.0.9)
+FUND_SPLIT_TOL = 1.15                                        # 1.0.9: a fund's fresh split snaps to a common ratio within 15% (its sector moves on the split day too)
 ASYM_SHORT = 21
 IND_MIN = 3                                                  # an industry read needs this many ranked stocks in the universe
 IND_CONFIRM_PCT = 70.0                                       # an industry at or above this percentile confirms its members
@@ -342,12 +346,15 @@ def capture(c, s_, n):
     """1.0.8 - the asymmetry read on the last n aligned sessions: how the name moved on SPY's down days and on SPY's up
     days. down_excess_pp / up_excess_pp = mean (name - SPY) on those days; down_capture / up_capture = the name's mean
     move over SPY's; dump / rally = SPY sessions at or beyond DUMP_PCT / RALLY_PCT with the share the name held up on
-    (flat, up, or down less than SPY) / beat SPY on; asym_pp = down_excess + up_excess: positive on both sides is
-    Khalid's "dumps less than SPY, rallies more than SPY". Pure."""
+    (flat, up, or down less than SPY) / beat SPY on; asym_pp = down_excess + up_excess; both_pp (1.0.9) = the WEAKER side,
+    min(down_excess, up_excess): a name must dump less AND rally more - the sum let one-sided beta in (the 1.0.8 asymmetry
+    top tenth ran -0.88 pp on the quarter's dump days); bigday_pp = min(mean excess on SPY's dump days, on its rally days)
+    when the window holds >= BIG_MIN of each - Khalid's "dumps less than the S&P 500 dump, rallies more than its rally",
+    measured on the big days themselves. Pure."""
     m = len(c)
     if m < n + 1:
         return None
-    dn, up, dump_h, dump_n, rally_b, rally_n = [], [], 0, 0, 0, 0
+    dn, up, dump_h, dump_n, rally_b, rally_n, dump_x, rally_x = [], [], 0, 0, 0, 0, [], []
     for i in range(m - n, m):
         if c[i - 1] <= 0 or s_[i - 1] <= 0:
             continue
@@ -360,11 +367,15 @@ def capture(c, s_, n):
         if sp <= DUMP_PCT:
             dump_n += 1
             dump_h += 1 if (r >= -FLAT_PCT or r > sp) else 0
+            dump_x.append(r - sp)
         if sp >= RALLY_PCT:
             rally_n += 1
             rally_b += 1 if r > sp else 0
-    out = {"n": n, "n_down": len(dn), "n_up": len(up), "down_excess_pp": None, "up_excess_pp": None, "down_capture": None, "up_capture": None, "asym_pp": None,
-           "dump_days": dump_n, "dump_held_pct": f(100.0 * dump_h / dump_n, 0) if dump_n else None, "rally_days": rally_n, "rally_beat_pct": f(100.0 * rally_b / rally_n, 0) if rally_n else None}
+            rally_x.append(r - sp)
+    out = {"n": n, "n_down": len(dn), "n_up": len(up), "down_excess_pp": None, "up_excess_pp": None, "down_capture": None, "up_capture": None, "asym_pp": None, "both_pp": None,
+           "dump_days": dump_n, "dump_held_pct": f(100.0 * dump_h / dump_n, 0) if dump_n else None, "rally_days": rally_n, "rally_beat_pct": f(100.0 * rally_b / rally_n, 0) if rally_n else None,
+           "dump_excess_pp": f(_mean(dump_x)) if dump_x else None, "rally_excess_pp": f(_mean(rally_x)) if rally_x else None,
+           "bigday_pp": f(min(_mean(dump_x), _mean(rally_x))) if len(dump_x) >= BIG_MIN and len(rally_x) >= BIG_MIN else None}
     if dn:
         md, ms = sum(r for r, _ in dn) / len(dn), sum(sp for _, sp in dn) / len(dn)
         out["down_excess_pp"] = f(md - ms)
@@ -375,6 +386,7 @@ def capture(c, s_, n):
         out["up_capture"] = f(mu / ms, 2) if ms else None
     if dn and up:
         out["asym_pp"] = f(out["down_excess_pp"] + out["up_excess_pp"])
+        out["both_pp"] = f(min(out["down_excess_pp"], out["up_excess_pp"]))
     return out
 
 
@@ -682,10 +694,10 @@ def rank_rows(rows):
     for r in rows:
         zc = by_class.get(r.get("asset_class")) or []
         r["strength_in_class"] = f(percentile_of(r["z"], zc), 1) if r.get("z") is not None and len(zc) >= 5 else None
-    # 1.0.8: the asymmetry rank - universe percentile of asym_pp (down-day excess + up-day excess over the last 63 sessions)
-    asyms = [r["asym_pp"] for r in rows if r.get("asym_pp") is not None and not r.get("excluded")]
+    # 1.0.9: the asymmetry rank - universe percentile of both_pp (the weaker of down-day excess / up-day excess over the last 63 sessions)
+    asyms = [r["both_pp"] for r in rows if r.get("both_pp") is not None and not r.get("excluded")]
     for r in rows:
-        r["asym_rank"] = f(percentile_of(r["asym_pp"], asyms), 1) if r.get("asym_pp") is not None and not r.get("excluded") else None
+        r["asym_rank"] = f(percentile_of(r["both_pp"], asyms), 1) if r.get("both_pp") is not None and not r.get("excluded") else None
     return {k: {"mean": f(v[0]), "sd": f(v[1])} if v else None for k, v in stats.items()}
 
 
@@ -922,7 +934,7 @@ def apply_splits(bars, events):
     return out
 
 
-def infer_splits(bars):
+def infer_splits(bars, fund=False):
     """Unrecorded splits in unadjusted bars: a close-to-close ratio >= 1.8 or <= 0.56 is a split when the shares traded
     (5 sessions each side) moved inversely by about the same amount (within x1.6) - a reverse split prints a 3x price
     with ~1/3 the shares - OR when the ratio lands within 2% of a common split ratio and volume at least moved in the
@@ -930,9 +942,16 @@ def infer_splits(bars):
     from the split's own ratio (1.0.6: a 2-for-1 doubles the shares traded; a 50% crash on ten times the volume also
     "moves in the split's direction" and must stay a crash). A squeeze moves volume the other way. The ratio snaps to
     the nearest common split ratio within 4%, else it is kept as measured.
+    1.0.9 - a FRESH split (the jump sits in the last two sessions, so there is no 5-session window after it; the five
+    iShares splits of 2026-11-05 - MTUM / QUAL 4:1, ITA / SOXX / EFG 3:1 - printed as -68% to -77% days and ranked those
+    funds at the bottom of the desk): the same three tests run on the split day's own shares traded against the median
+    of the 20 sessions before it; for a fund (not leveraged) the ratio snaps to a common split ratio within 15% because
+    its sector moves on the split day too (SOXX printed x0.293 against 1/3 with semis -11% that day); a stock keeps the
+    2% snap, so a crash stays a crash. Evidence 'fresh-volume' / 'fresh-ratio'.
     Returns [{date, factor, ratio, source: 'inferred', evidence}] oldest first. Pure."""
     found = []
     n = len(bars)
+    tol = FUND_SPLIT_TOL
     for i in range(1, n):
         pc, c = float(bars[i - 1]["c"]), float(bars[i]["c"])
         if pc <= 0 or c <= 0:
@@ -942,14 +961,33 @@ def infer_splits(bars):
             continue
         before = [float(b.get("v") or 0) for b in bars[max(0, i - 5):i]]
         after = [float(b.get("v") or 0) for b in bars[i:i + 5]]
-        if len(before) < 3 or len(after) < 3 or not sum(before) or not sum(after):
+        fresh = len(after) < 3
+        if len(before) < 3 or not sum(before):
             continue
-        vr = (sum(before) / len(before)) / (sum(after) / len(after))
+        if fresh:
+            med = [float(b.get("v") or 0) for b in bars[max(0, i - 20):i]]
+            med = sorted(med)[len(med) // 2] if med else 0.0
+            v_day = float(bars[i].get("v") or 0)
+            if not med or not v_day:
+                continue
+            vr = med / v_day                                                    # the split day's own shares traded against the sessions before it
+        else:
+            if not sum(after):
+                continue
+            vr = (sum(before) / len(before)) / (sum(after) / len(after))
         snap = min(COMMON_RATIOS, key=lambda x: abs(math.log(x) - math.log(r)))
         exact = abs(math.log(snap) - math.log(r)) <= math.log(1.02)            # within 2% of a common split ratio
         volume_matches = abs(math.log(vr) - math.log(r)) <= math.log(1.6)       # shares traded moved inversely by about the same amount
         volume_direction = (vr > 1.0) if r > 1 else (vr < 1.0)                # ... or at least in the split's direction (a reverse split thins volume, a split thickens it)
         volume_bounded = abs(math.log(vr) - math.log(r)) <= math.log(2.5)      # ... and not many times past it: a crash on 8x the volume is a crash
+        if fresh:
+            # one session of evidence only: the ratio must sit near a common split ratio (a fund 15%, a stock 6% - its own move
+            # on the split day) AND the day's shares must move the split's way, by no more than x2.5 past the split's own ratio
+            near = abs(math.log(snap) - math.log(r)) <= math.log(tol if fund else 1.06)
+            if not (near and volume_direction and volume_bounded):
+                continue
+            found.append({"date": bars[i]["date"], "factor": f(snap, 6), "ratio": f(r, 4), "source": "inferred", "evidence": "fresh-volume" if volume_matches else "fresh-ratio"})
+            continue
         if not (volume_matches or (exact and volume_direction and volume_bounded)):
             continue                                                            # a crash or a squeeze: volume explodes the other way
         ratio = snap if abs(math.log(snap) - math.log(r)) <= math.log(1.04) else r
@@ -980,7 +1018,7 @@ def row_for(t, meta, bars, bench, bank_last):
            "asset_class": meta.get("asset_class"), "class_sub": meta.get("class_sub"),
            "sector": meta.get("sector"), "industry": meta.get("industry"), "px": f(c[-1]) if c else None, "as_of": bars[-1]["date"] if bars else None,
            "sessions": len(bars), "stale": bool(bars and bank_last and bars[-1]["date"] < bank_last), "h": h, "vs": None, "composite_pp": None, "z": None,
-           "strength": None, "posture": None, "pattern": pattern(bars), "coil": None, "flow": None, "f13": None, "capture": None, "asym_pp": None, "asym_rank": None, "industry_read": None}
+           "strength": None, "posture": None, "pattern": pattern(bars), "coil": None, "flow": None, "f13": None, "capture": None, "asym_pp": None, "both_pp": None, "bigday_pp": None, "asym_rank": None, "industry_read": None}
     row.update({k: None for k in ("rs_trend_63", "rs_consistency_63", "rs_vs_52w", "rs_52w_pos", "rs_new_high", "ir_63", "vol_63", "excess_vol_63")})
     row.update(context_52w(bars))
     if len(bars) < MIN_SESSIONS or not bench:
@@ -993,8 +1031,10 @@ def row_for(t, meta, bars, bench, bank_last):
     row["vs"] = {k: f(hh[k] - sh[k]) if (hh.get(k) is not None and sh.get(k) is not None) else None for k, _ in HORIZONS}
     row["composite_pp"] = composite(row["vs"])
     row.update(rs_metrics(c_al, s_al))
-    row["capture"] = {str(ASYM_SHORT): capture(c_al, s_al, ASYM_SHORT), str(ASYM_N): capture(c_al, s_al, ASYM_N)}
+    row["capture"] = {str(ASYM_SHORT): capture(c_al, s_al, ASYM_SHORT), str(ASYM_N): capture(c_al, s_al, ASYM_N), str(BIG_N): capture(c_al, s_al, BIG_N)}
     row["asym_pp"] = (row["capture"][str(ASYM_N)] or {}).get("asym_pp")
+    row["both_pp"] = (row["capture"][str(ASYM_N)] or {}).get("both_pp")
+    row["bigday_pp"] = (row["capture"][str(BIG_N)] or {}).get("bigday_pp")
     row["posture"] = posture(hh["d"], sh["d"])
     row["coil"] = coil(bars, c_al, s_al, row["rs_trend_63"])
     cl = row["coil"]
@@ -1071,12 +1111,15 @@ def _deciles(scored):
 
 
 def thesis_block(rows, bench, bars_by, log=print):
-    """Walk-forward test of the desk's thesis - 1.0.8: two definitions of "strong" compared on the same sessions, over
+    """Walk-forward test of the desk's thesis - 1.0.9: three definitions of "strong" compared on the same sessions, over
     the last 21 / 63 / 252 sessions (the year is the reference; "a year back might give you stale data"):
       strength  - the live momentum rank (excess return vs SPY on 1d/5d/21d/63d/126d, cross-sectional z, percentile);
-      asymmetry - the trailing-63-session asym_pp: mean excess on SPY's down days + mean excess on SPY's up days
-                  ("dump less than the S&P 500 dump, rally more than the S&P 500 rally");
-    both ranked from the closes through the SESSION BEFORE, both measured on the session itself, on every dump day
+      asymmetry - the trailing-63-session both_pp: the WEAKER of mean excess on SPY's down days / on its up days
+                  ("dump less than the S&P 500 dump, rally more than the S&P 500 rally" - a name needs both; the 1.0.8
+                  sum let one-sided beta in and ran -0.88 pp on the quarter's dump days);
+      bigdays   - the trailing-126-session min(mean excess on SPY's dump days, on its rally days), >= 3 of each
+                  (the same words measured on the big days themselves);
+    all ranked from the closes through the SESSION BEFORE, all measured on the session itself, on every dump day
     (SPY <= DUMP_PCT), every rally day (SPY >= RALLY_PCT) and every session; plus industry confirmation: the top decile
     whose industry (its ranked members in this universe) also sits in the top 30% that session ("entire industry seeing
     strength is even better"). Pure given the bars."""
@@ -1086,7 +1129,7 @@ def thesis_block(rows, bench, bars_by, log=print):
     sp = [float(b["c"]) for b in bench]
     n = len(bdates)
     lags = [(k, lag) for k, lag in HORIZONS if k in dict(WEIGHTS)]
-    max_lag = max(max(lag for _, lag in lags), ASYM_N)
+    max_lag = max(max(lag for _, lag in lags), ASYM_N, BIG_N)
     pop = []
     for r in rows:
         if r.get("strength") is None or r.get("excluded"):
@@ -1098,18 +1141,24 @@ def thesis_block(rows, bench, bars_by, log=print):
                 c = float(b["c"])
                 if c > 0:
                     cb[j] = c
-        # prefix sums of the daily excess on SPY's down days and up days (asymmetry as of any session in O(1))
+        # prefix sums of the daily excess on SPY's down days / up days and on its dump days / rally days (any session in O(1))
         dn_s, up_s, dn_n, up_n = [0.0] * n, [0.0] * n, [0] * n, [0] * n
+        bd_s, br_s, bd_n, br_n = [0.0] * n, [0.0] * n, [0] * n, [0] * n
         for i in range(1, n):
             dn_s[i], up_s[i], dn_n[i], up_n[i] = dn_s[i - 1], up_s[i - 1], dn_n[i - 1], up_n[i - 1]
+            bd_s[i], br_s[i], bd_n[i], br_n[i] = bd_s[i - 1], br_s[i - 1], bd_n[i - 1], br_n[i - 1]
             if cb[i] and cb[i - 1] and sp[i - 1] > 0:
-                ex = (cb[i] / cb[i - 1] - 1.0) * 100.0 - (sp[i] / sp[i - 1] - 1.0) * 100.0
-                spd = sp[i] - sp[i - 1]
-                if spd < 0:
+                spr = (sp[i] / sp[i - 1] - 1.0) * 100.0
+                ex = (cb[i] / cb[i - 1] - 1.0) * 100.0 - spr
+                if spr < 0:
                     dn_s[i] += ex; dn_n[i] += 1
-                elif spd > 0:
+                elif spr > 0:
                     up_s[i] += ex; up_n[i] += 1
-        pop.append((r["ticker"], r.get("asset_class"), r.get("industry") if r.get("asset_class") == "stock" else None, cb, dn_s, up_s, dn_n, up_n))
+                if spr <= DUMP_PCT:
+                    bd_s[i] += ex; bd_n[i] += 1
+                elif spr >= RALLY_PCT:
+                    br_s[i] += ex; br_n[i] += 1
+        pop.append((r["ticker"], r.get("asset_class"), r.get("industry") if r.get("asset_class") == "stock" else None, cb, dn_s, up_s, dn_n, up_n, bd_s, br_s, bd_n, br_n))
     first = max(max_lag + 2, n - THESIS_DAYS)
     if n < max_lag + 3 or not pop:
         return {"error": "not enough sessions or no ranked rows", "sessions": n, "n_rows": len(pop)}
@@ -1119,8 +1168,8 @@ def thesis_block(rows, bench, bars_by, log=print):
         if sp[i] <= 0 or sp[j] <= 0:
             continue
         spy_ret = (sp[j] / sp[i] - 1.0) * 100.0
-        ex, asym, rets = {}, {}, {}
-        for t, cls, ind, cb, dn_s, up_s, dn_n, up_n in pop:
+        ex, asym, big, rets = {}, {}, {}, {}
+        for t, cls, ind, cb, dn_s, up_s, dn_n, up_n, bd_s, br_s, bd_n, br_n in pop:
             ci, cj = cb[i], cb[j]
             if not ci or not cj:
                 continue
@@ -1134,7 +1183,10 @@ def thesis_block(rows, bench, bars_by, log=print):
                 rets[t] = ((cj / ci - 1.0) * 100.0, cls, ind)
             nd, nu = dn_n[i] - dn_n[i - ASYM_N], up_n[i] - up_n[i - ASYM_N]
             if nd >= 5 and nu >= 5:
-                asym[t] = (dn_s[i] - dn_s[i - ASYM_N]) / nd + (up_s[i] - up_s[i - ASYM_N]) / nu
+                asym[t] = min((dn_s[i] - dn_s[i - ASYM_N]) / nd, (up_s[i] - up_s[i - ASYM_N]) / nu)
+            kd, kr = bd_n[i] - bd_n[i - BIG_N], br_n[i] - br_n[i - BIG_N]
+            if kd >= BIG_MIN and kr >= BIG_MIN:
+                big[t] = min((bd_s[i] - bd_s[i - BIG_N]) / kd, (br_s[i] - br_s[i - BIG_N]) / kr)
         if len(ex) < THESIS_MIN_ROWS:
             continue
         stats = {}
@@ -1155,6 +1207,7 @@ def thesis_block(rows, bench, bars_by, log=print):
         zmap = {t: z for t, z, _ in zrows}
         d_str = _deciles(zrows)
         d_asy = _deciles([(t, a, None) for t, a in asym.items() if t in rets])
+        d_big = _deciles([(t, a, None) for t, a in big.items() if t in rets]) if len([t for t in big if t in rets]) >= THESIS_MIN_ROWS else {}
         # industry percentile that session: median momentum z of the industry's ranked stocks here
         ind_z = {}
         for t, (ret, cls, ind) in rets.items():
@@ -1166,7 +1219,7 @@ def thesis_block(rows, bench, bars_by, log=print):
             vals = list(ind_med.values())
             ind_pct = {ind: percentile_of(m, vals) for ind, m in ind_med.items()}
         preds = {}
-        for name, dmap in (("strength", d_str), ("asymmetry", d_asy)):
+        for name, dmap in (("strength", d_str), ("asymmetry", d_asy), ("bigdays", d_big)):
             entries = [(t, dmap[t][0], rets[t][0], rets[t][1], dmap[t][1]) for t in dmap if t in rets]
             stocks = [e for e in entries if e[3] == "stock"]
             if stocks:
@@ -1178,7 +1231,7 @@ def thesis_block(rows, bench, bars_by, log=print):
         names = is_last or (is_dump or is_rally) and j >= n - 63
         rec = {"date": bdates[j], "ranked_as_of": bdates[i], "spy_ret_pct": f(spy_ret), "dump": is_dump, "rally": is_rally, "n": len(rets), "by_class": class_tables(preds["strength"]["entries"], spy_ret, with_names=is_last)}
         for name, pr in preds.items():
-            rec[name] = {"all": day_tables(pr["entries"], spy_ret, with_names=names), "stocks": day_tables(pr["stocks"], spy_ret, with_names=names) if pr["stocks"] else None}
+            rec[name] = {"all": day_tables(pr["entries"], spy_ret, with_names=names), "stocks": day_tables(pr["stocks"], spy_ret, with_names=names) if pr["stocks"] else None} if pr["entries"] else None
         # industry-confirmed: the strength top decile whose industry sits in the top 30% that session, against the rest of the top decile
         top = [e for e in preds["strength"]["stocks"] if e[1] == 9]
         conf = [e for e in top if ind_pct.get(rets[e[0]][2]) is not None and ind_pct[rets[e[0]][2]] >= IND_CONFIRM_PCT]
@@ -1188,11 +1241,15 @@ def thesis_block(rows, bench, bars_by, log=print):
         if names:
             rec["confirmed"]["confirmed_names"] = [{"ticker": e[0], "ret_pct": f(e[2]), "industry": rets[e[0]][2], "industry_pct": f(ind_pct.get(rets[e[0]][2]), 0)} for e in sorted(conf, key=lambda e: -e[2])]
         deep_days.append(rec)
+        def _tbl(pred, which="top"):
+            return ((rec.get(pred) or {}).get("all") or {}).get(which) or {}
         days.append({"date": bdates[j], "spy_ret_pct": rec["spy_ret_pct"], "dump": is_dump, "rally": is_rally,
-                     "strength_top_excess_pp": rec["strength"]["all"]["top"].get("mean_excess_pp"), "strength_top_held_up_pct": rec["strength"]["all"]["top"].get("held_up_pct"),
-                     "asymmetry_top_excess_pp": rec["asymmetry"]["all"]["top"].get("mean_excess_pp"), "asymmetry_top_held_up_pct": rec["asymmetry"]["all"]["top"].get("held_up_pct"),
-                     "confirmed_excess_pp": rec["confirmed"]["confirmed"].get("mean_excess_pp"), "strength_bottom_excess_pp": rec["strength"]["all"]["bottom"].get("mean_excess_pp"),
-                     "strength_decile_excess_pp": [d.get("mean_excess_pp") for d in rec["strength"]["all"]["deciles"]], "asymmetry_decile_excess_pp": [d.get("mean_excess_pp") for d in rec["asymmetry"]["all"]["deciles"]]})
+                     "strength_top_excess_pp": _tbl("strength").get("mean_excess_pp"), "strength_top_held_up_pct": _tbl("strength").get("held_up_pct"),
+                     "asymmetry_top_excess_pp": _tbl("asymmetry").get("mean_excess_pp"), "asymmetry_top_held_up_pct": _tbl("asymmetry").get("held_up_pct"),
+                     "bigdays_top_excess_pp": _tbl("bigdays").get("mean_excess_pp"), "bigdays_top_held_up_pct": _tbl("bigdays").get("held_up_pct"),
+                     "confirmed_excess_pp": rec["confirmed"]["confirmed"].get("mean_excess_pp"), "strength_bottom_excess_pp": _tbl("strength", "bottom").get("mean_excess_pp"),
+                     "strength_decile_excess_pp": [d.get("mean_excess_pp") for d in _tbl("strength", "deciles")] if _tbl("strength", "deciles") else [],
+                     "asymmetry_decile_excess_pp": [d.get("mean_excess_pp") for d in _tbl("asymmetry", "deciles")] if _tbl("asymmetry", "deciles") else []})
         if is_last:
             last = rec
 
@@ -1238,14 +1295,14 @@ def thesis_block(rows, bench, bars_by, log=print):
         rallies = [r for r in recs if r["rally"]]
         dd = [r for r in dumps if r["spy_ret_pct"] is not None and r["spy_ret_pct"] <= 2.0 * DUMP_PCT]
         ws = {"sessions": len(recs), "from": recs[0]["date"] if recs else None, "to": recs[-1]["date"] if recs else None, "n_dump_days": len(dumps), "n_deep_dump_days": len(dd), "n_rally_days": len(rallies),
-              "dump": {pred: {"all": agg(dumps, pred, "all"), "stocks": agg(dumps, pred, "stocks")} for pred in ("strength", "asymmetry")},
-              "rally": {pred: {"all": agg(rallies, pred, "all"), "stocks": agg(rallies, pred, "stocks")} for pred in ("strength", "asymmetry")},
-              "all_days": {pred: {"all": agg(recs, pred, "all"), "stocks": agg(recs, pred, "stocks")} for pred in ("strength", "asymmetry")},
+              "dump": {pred: {"all": agg(dumps, pred, "all"), "stocks": agg(dumps, pred, "stocks")} for pred in PREDICTORS},
+              "rally": {pred: {"all": agg(rallies, pred, "all"), "stocks": agg(rallies, pred, "stocks")} for pred in PREDICTORS},
+              "all_days": {pred: {"all": agg(recs, pred, "all"), "stocks": agg(recs, pred, "stocks")} for pred in PREDICTORS},
               "industry": {"dump": agg_conf(dumps), "rally": agg_conf(rallies), "all_days": agg_conf(recs)},
               "by_class_on_dumps": agg_class(dumps), "by_class_on_rallies": agg_class(rallies)}
         # both sides: for each predictor the top decile's excess on dump days and on rally days, and whether both are positive
         both = {}
-        for pred in ("strength", "asymmetry"):
+        for pred in PREDICTORS:
             dn = ws["dump"][pred]["stocks"].get("top_decile") or {}
             up = ws["rally"][pred]["stocks"].get("top_decile") or {}
             both[pred] = {"dump_excess_pp": dn.get("mean_excess_pp"), "dump_held_up_pct": dn.get("held_up_pct"), "rally_excess_pp": up.get("mean_excess_pp"), "rally_hit_pct": up.get("hit_pct"),
@@ -1257,30 +1314,40 @@ def thesis_block(rows, bench, bars_by, log=print):
     def words(k):
         w = windows[str(k)]
         out = []
-        for pred, label in (("strength", "momentum rank"), ("asymmetry", "asymmetry rank")):
+        for pred, label in (("strength", "momentum rank"), ("asymmetry", "both-sides rank"), ("bigdays", "big-days rank")):
             d = w["dump"][pred]["stocks"]
+            if not d.get("n_days") and not w["rally"][pred]["stocks"].get("n_days"):
+                out.append("%s: no ranked session in the window" % label)
+                continue
             r_ = w["rally"][pred]["stocks"]
             td, tr = d.get("top_decile") or {}, r_.get("top_decile") or {}
             out.append("%s: on %d dump days the top tenth of stocks ran %+.2f pp vs SPY (held up %s%%, beat SPY on %s of %d days); on %d rally days %+.2f pp (beat SPY %s%% of names)" % (
                 label, d.get("n_days", 0), td.get("mean_excess_pp") or 0.0, td.get("held_up_pct"), td.get("days_beat_spy"), d.get("n_days", 0), r_.get("n_days", 0), tr.get("mean_excess_pp") or 0.0, tr.get("hit_pct")))
         ic = w["industry"]["dump"]
         if ic["industry_confirmed"].get("n_days"):
-            out.append("industry-confirmed leaders on dump days: %+.2f pp, held up %s%% (the rest of the top tenth %+.2f pp, %s%%)" % (
-                ic["industry_confirmed"]["mean_excess_pp"] or 0.0, ic["industry_confirmed"]["held_up_pct"], ic["not_confirmed"].get("mean_excess_pp") or 0.0, ic["not_confirmed"].get("held_up_pct")))
+            out.append("industry-confirmed leaders on dump days: %+.2f pp, held up %s%%%s" % (
+                ic["industry_confirmed"]["mean_excess_pp"] or 0.0, ic["industry_confirmed"]["held_up_pct"],
+                (" (the rest of the top tenth %+.2f pp, %s%%)" % (ic["not_confirmed"].get("mean_excess_pp") or 0.0, ic["not_confirmed"].get("held_up_pct"))) if ic["not_confirmed"].get("n_days") else " (every top-tenth name was confirmed)"))
         return "Last %d sessions (%s -> %s): " % (w["sessions"], w["from"], w["to"]) + "; ".join(out) + "."
     verdict = " ".join(words(k) for k in (21, 63)) + (" Year (reference): " + words(252).split(": ", 1)[1] if "252" in windows else "")
     if last:
-        lt = (last["strength"]["stocks"] or last["strength"]["all"])["top"]
-        la = (last["asymmetry"]["stocks"] or last["asymmetry"]["all"])["top"]
+        def top_of(pred):
+            g = last.get(pred) or {}
+            return ((g.get("stocks") or g.get("all")) or {}).get("top") or {}
+        lt, la, lb = top_of("strength"), top_of("asymmetry"), top_of("bigdays")
         lc = last["confirmed"]["confirmed"]
-        verdict += " Last session %s (SPY %+.2f%%%s): momentum top tenth of stocks %+.2f%% (excess %+.2f pp, held up %s%%), asymmetry top tenth %+.2f%% (excess %+.2f pp, held up %s%%)%s." % (
+        verdict += " Last session %s (SPY %+.2f%%%s): momentum top tenth of stocks %+.2f%% (excess %+.2f pp, held up %s%%), both-sides top tenth %+.2f%% (excess %+.2f pp, held up %s%%)%s%s." % (
             last["date"], last["spy_ret_pct"], ", a dump day" if last["dump"] else ", a rally day" if last["rally"] else "", lt.get("mean_ret_pct") or 0.0, lt.get("mean_excess_pp") or 0.0, lt.get("held_up_pct"),
             la.get("mean_ret_pct") or 0.0, la.get("mean_excess_pp") or 0.0, la.get("held_up_pct"),
+            (", big-days top tenth %+.2f%% (excess %+.2f pp, held up %s%%)" % (lb.get("mean_ret_pct") or 0.0, lb.get("mean_excess_pp") or 0.0, lb.get("held_up_pct"))) if lb.get("n") else "",
             (", industry-confirmed leaders %+.2f%% (excess %+.2f pp, held up %s%%, %d names)" % (lc.get("mean_ret_pct") or 0.0, lc.get("mean_excess_pp") or 0.0, lc.get("held_up_pct"), lc.get("n"))) if lc.get("n") else "")
     def compact(rec):
         """The per-day records carried in the artifact keep the decile strips short (the summaries hold the full tables)."""
         out = dict(rec)
-        for pred in ("strength", "asymmetry"):
+        for pred in PREDICTORS:
+            if not rec.get(pred):
+                out[pred] = None
+                continue
             g = {}
             for grp in ("all", "stocks"):
                 x = rec[pred].get(grp)
@@ -1298,7 +1365,9 @@ def thesis_block(rows, bench, bars_by, log=print):
     return {"window": {"sessions": len(days), "from": days[0]["date"] if days else None, "to": days[-1]["date"] if days else None, "n_rows": len(pop)},
             "dump_threshold_pct": DUMP_PCT, "rally_threshold_pct": RALLY_PCT, "flat_pct": FLAT_PCT, "asym_sessions": ASYM_N, "industry_confirm_pct": IND_CONFIRM_PCT,
             "predictors": {"strength": "the live momentum rank: excess return vs SPY on 1d/5d/21d/63d/126d, cross-sectional z, percentile",
-                           "asymmetry": "trailing %d-session asym_pp = mean excess on SPY's down days + mean excess on SPY's up days (dumps less, rallies more)" % ASYM_N},
+                           "asymmetry": "both sides: trailing %d-session both_pp = the weaker of mean excess on SPY's down days / on its up days (dumps less AND rallies more)" % ASYM_N,
+                           "bigdays": "big days: trailing %d-session min(mean excess on SPY's dump days <= %.0f%%, on its rally days >= +%.0f%%), at least %d of each" % (BIG_N, DUMP_PCT, RALLY_PCT, BIG_MIN)},
+            "predictor_order": list(PREDICTORS),
             "last_session": last, "dump_days": list(reversed(dump_days))[:30], "rally_days": list(reversed(rally_days))[:30], "days": days,
             "windows": windows, "summary": windows.get("252") or {}, "verdict": verdict, "seconds": round(time.time() - t0, 1)}
 
@@ -1311,7 +1380,7 @@ def slim_row(r):
             "vs": r["vs"], "rs_trend_63": r["rs_trend_63"], "rs_consistency_63": r["rs_consistency_63"], "ir_63": r["ir_63"], "pos_52w": r["pos_52w"],
             "coil": {k: (r["coil"] or {}).get(k) for k in ("tier", "base_len", "base_range_pct", "score", "flag")} if r.get("coil") else None,
             "f13_stance": (r.get("f13") or {}).get("stance"), "flow_w21_pct": ((r.get("flow") or {}).get("w21") or {}).get("pct_aum"),
-            "asym_pp": r.get("asym_pp"), "asym_rank": r.get("asym_rank"), "down_excess_pp": cap.get("down_excess_pp"), "up_excess_pp": cap.get("up_excess_pp"),
+            "asym_pp": r.get("asym_pp"), "both_pp": r.get("both_pp"), "bigday_pp": r.get("bigday_pp"), "asym_rank": r.get("asym_rank"), "down_excess_pp": cap.get("down_excess_pp"), "up_excess_pp": cap.get("up_excess_pp"),
             "dump_held_pct": cap.get("dump_held_pct"), "rally_beat_pct": cap.get("rally_beat_pct"), "industry": r.get("industry"),
             "industry_rank": ir.get("rank"), "industry_leaders_strength": ir.get("leaders_strength"), "industry_confirmed": ir.get("confirmed")}
 
@@ -1432,7 +1501,9 @@ def build(s3, now, log=print, remaining_s=300.0):
             continue
         ev = list(recorded.get(t) or [])
         adjusted = apply_splits(b, ev) if ev else b
-        inferred = [x for x in infer_splits(adjusted) if not any(abs((datetime.fromisoformat(x["date"]) - datetime.fromisoformat(r["date"])).days) <= 3 for r in ev)]
+        m_ = u.get(t) or {}
+        is_fund = t == BENCH or (m_.get("kind") == "fund" and m_.get("asset_class") != "leveraged")
+        inferred = [x for x in infer_splits(adjusted, fund=is_fund) if not any(abs((datetime.fromisoformat(x["date"]) - datetime.fromisoformat(r["date"])).days) <= 3 for r in ev)]
         if inferred:
             adjusted = apply_splits(adjusted, inferred)
             ev = ev + inferred
@@ -1514,9 +1585,9 @@ def build(s3, now, log=print, remaining_s=300.0):
             "splits": "bank bars are unadjusted; bars before a recorded split (corporate-actions) or an inferred one (close ratio >= 1.8 or <= 0.56 with volume moving the opposite way, 5 sessions each side) are rebased by the split factor",
             "asset_class": "stock; equity_etf (broad / sector / factor); country; bond (treasury / aggregate / IG corporate / mortgage / TIPS / international / EM debt / muni); high_yield (corporate / fallen angels / loans / muni / EM); cash (T-bills); gold; silver; metals (platinum / palladium / copper / base metals / miners); commodity (energy / broad / agriculture); currency; crypto; volatility; leveraged (labelled, outside the ranks)",
             "strength_in_class": "the row's percentile inside its own asset class (classes with at least 5 ranked members)",
-            "capture": "over the trailing 21 and 63 sessions: mean excess vs SPY on SPY's down days (down_excess_pp) and on its up days (up_excess_pp), the capture ratios, how often the name held up on dump days (SPY <= -1%) and beat SPY on rally days (SPY >= +1%); asym_pp = down_excess + up_excess - positive on both sides is 'dumps less than the S&P 500, rallies more than it'; asym_rank = its universe percentile over 63 sessions",
+            "capture": "over the trailing 21, 63 and 126 sessions: mean excess vs SPY on SPY's down days (down_excess_pp) and on its up days (up_excess_pp), the capture ratios, how often the name held up on dump days (SPY <= -1%) and beat SPY on rally days (SPY >= +1%), the mean excess on those dump days / rally days; asym_pp = down_excess + up_excess; both_pp = the weaker side, min(down_excess, up_excess) - 'dumps less than the S&P 500 AND rallies more than it'; bigday_pp (126 sessions) = min(dump-day excess, rally-day excess) with at least 3 of each; asym_rank = the universe percentile of both_pp over 63 sessions",
             "industry_read": "the stock's industry (FMP) seen two ways: its ranked members in this universe (n, percentile of the median strength among industries with >= 3 members, median asym_pp, share ahead of SPY on the month) and the leaders desk's industry table (every FMP industry's five largest vs the S&P 500: strength percentile, excess 1M / 3M); confirmed = the industry sits at or above the 70th percentile by either read - 'entire industry seeing strength is even better'",
-            "thesis": "walk-forward over the last 21 / 63 / 252 sessions (the year is the reference): for each session the universe is re-ranked from the closes through the session BEFORE by two definitions of strong - the momentum rank (the live desk's horizons, weights, z-scores, percentile -> decile) and the asymmetry rank (trailing-%d-session down-day excess + up-day excess) - and every name's move on the session itself is measured against SPY. dump day = SPY at or under %.1f%%, rally day = SPY at or above %+.1f%%; held up = flat (within %.2f%%), up, or down less than SPY; hit = beat SPY; both_sides = the top tenth ran ahead of SPY on the window's dump days AND its rally days; industry-confirmed = the momentum top tenth whose industry (its ranked members here) sat in the top 30%% that session. The block is the engine testing its own thesis on real sessions; it is not a forecast." % (ASYM_N, DUMP_PCT, RALLY_PCT, FLAT_PCT),
+            "thesis": "walk-forward over the last 21 / 63 / 252 sessions (the year is the reference): for each session the universe is re-ranked from the closes through the session BEFORE by three definitions of strong - the momentum rank (the live desk's horizons, weights, z-scores, percentile -> decile), the both-sides rank (trailing-%d-session weaker side of down-day excess / up-day excess) and the big-days rank (trailing-126-session weaker side of dump-day excess / rally-day excess) - and every name's move on the session itself is measured against SPY. dump day = SPY at or under %.1f%%, rally day = SPY at or above %+.1f%%; held up = flat (within %.2f%%), up, or down less than SPY; hit = beat SPY; both_sides = the top tenth ran ahead of SPY on the window's dump days AND its rally days; industry-confirmed = the momentum top tenth whose industry (its ranked members here) sat in the top 30%% that session. The block is the engine testing its own thesis on real sessions; it is not a forecast." % (ASYM_N, DUMP_PCT, RALLY_PCT, FLAT_PCT),
         },
         "note": "Relative strength is a price fact, not a forecast. Fund flows are reported creation / redemption observations; 13F stances count managers. No trade, call or sizing is implied.",
         "run_seconds": round(time.time() - started, 1),

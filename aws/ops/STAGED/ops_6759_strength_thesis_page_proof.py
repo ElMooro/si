@@ -4,7 +4,8 @@ breakdown (Khalid 2026-11-05: "test strong stocks engine and thesis ... make sur
 "look back a month or a quarter back ... dump less than sp500 dump, rally more than sp500 rally, entire industry seeing
 strength is even better"; CLAUDE.md rule 5: click it yourself).
 
-Against https://justhodl.ai in headless Chrome, with data/strength.json at >= 1.0.8 (ops 6757):
+Against https://justhodl.ai in headless Chrome, with data/strength.json at >= 1.0.9 (ops 6757; 1.0.9 = three definitions of strong:
+momentum / both-sides / big-days, the iShares 2026-11-05 splits inferred fresh):
   1. the served page carries the thesis and asset-class sections in order (verdict -> thesis -> asset classes -> long
      accumulation -> leaders / laggards -> focus -> desk -> reading rules -> sources), the artifact is >= 1.0.8 and its
      thesis block is the one the page shows (verdict text, the session, the dump / rally-day counts of the selected
@@ -129,8 +130,8 @@ def main():
         r.log("data/strength.json: version %s as_of %s generated %s | thesis window %s | windows %s | last session %s SPY %s dump %s rally %s | classes %s" % (
             art.get("version"), art.get("as_of"), art.get("generated_at"), json.dumps(th.get("window")), json.dumps({k: (v.get("n_dump_days"), v.get("n_rally_days")) for k, v in wins.items()}),
             ls.get("date"), ls.get("spy_ret_pct"), ls.get("dump"), ls.get("rally"), json.dumps((art.get("classes") or {}).get("ranked"))))
-        if 'id="thesis-win"' not in html or str(art.get("version") or "0") < "1.0.8" or not wins.get("63"):
-            r.fail("the served page / artifact are not v4 / 1.0.8 yet (Pages deploy or the engine run pending)")
+        if 'id="thesis-win"' not in html or str(art.get("version") or "0") < "1.0.9" or not wins.get("63"):
+            r.fail("the served page / artifact are not v4 / 1.0.9 yet (Pages deploy or the engine run pending)")
             raise SystemExit(1)
 
         def in_window(k, days):
@@ -145,9 +146,11 @@ def main():
             return ((g.get("stocks") or g.get("all") or {}).get("top_names")) or []
         n_top = len(top_names("strength"))
         n_top_asym = len(top_names("asymmetry"))
+        n_top_big = len(top_names("bigdays"))
+        n_preds = len([k for k in (th.get("predictor_order") or ["strength", "asymmetry"]) if ls.get(k) or k == "strength"])
         n_conf = len(((ls.get("confirmed") or {}).get("confirmed_names")) or [])
-        r.log("expected: default window 63 -> %d dump days, %d rally days (of %d / %d kept); per window %s | last session top tenth: momentum %d names, asymmetry %d names, industry-confirmed %d" % (
-            n_dumps, n_rallies, len(th.get("dump_days") or []), len(th.get("rally_days") or []), json.dumps(expect_win), n_top, n_top_asym, n_conf))
+        r.log("expected: default window 63 -> %d dump days, %d rally days (of %d / %d kept); per window %s | last session top tenth: momentum %d names, both-sides %d names, big-days %d names, industry-confirmed %d | predictor chips %d" % (
+            n_dumps, n_rallies, len(th.get("dump_days") or []), len(th.get("rally_days") or []), json.dumps(expect_win), n_top, n_top_asym, n_top_big, n_conf, n_preds))
         classes = ((art.get("boards") or {}).get("class_order")) or []
         lev = [x["ticker"] for x in (((art.get("boards") or {}).get("excluded") or {}).get("leveraged") or [])]
 
@@ -193,9 +196,9 @@ def main():
                   if not (out["tkpis"] == 6 and out["dumps"] == n_dumps and out["rallies"] == n_rallies and out["lastnames"] == n_top and out["confirmedTicks"] == n_conf and out["classes"] == len(classes))
                   else "6 tiles, %d dump days, %d rally days, %d top-tenth names (%d industry-confirmed ticks), %d classes" % (out["dumps"], out["rallies"], out["lastnames"], out["confirmedTicks"], out["classes"]))
             check("the quarter is the default window and momentum the default predictor", lambda: (_ for _ in ()).throw(AssertionError((out["winChips"], out["predChips"])))
-                  if not (any(c.endswith("63 SESSIONS *") for c in out["winChips"]) and len(out["winChips"]) == 3 and out["predChips"][0].endswith("*") and len(out["predChips"]) == 2) else "%s | %s" % (out["winChips"], out["predChips"]))
+                  if not (any(c.endswith("63 SESSIONS *") for c in out["winChips"]) and len(out["winChips"]) == 3 and out["predChips"][0].endswith("*") and len(out["predChips"]) == n_preds) else "%s | %s" % (out["winChips"], out["predChips"]))
             check("the leaders board carries the asymmetry and industry columns", lambda: (_ for _ in ()).throw(AssertionError(out["leadHead"]))
-                  if not all(h in out["leadHead"] for h in ("ASYM 63 PP", "DUMP DAYS PP", "RALLY DAYS PP", "INDUSTRY")) else " · ".join(out["leadHead"][:9]))
+                  if not all(h in out["leadHead"] for h in ("BOTH SIDES PP", "BIG DAYS PP", "DOWN DAYS PP", "UP DAYS PP", "INDUSTRY")) else " · ".join(out["leadHead"][:9]))
             check("every asset class is on the page", lambda: (_ for _ in ()).throw(AssertionError(out["classLabels"])) if not all(any(lbl.lower().startswith(w) for lbl in out["classLabels"]) for w in ("stocks", "equity etfs", "countries", "bonds", "high yield", "gold", "silver", "metals", "commodities", "currencies", "crypto")) else ", ".join(out["classLabels"]))
             check("eleven sleeve chips", lambda: (_ for _ in ()).throw(AssertionError(out["chips"])) if out["chips"] != ["ALL", "ETF", "STOCK", "SECTOR", "COUNTRY", "BOND", "HIGH YIELD", "METAL", "COMMODITY", "CURRENCY", "CRYPTO", "VOLATILITY"] else " ".join(out["chips"]))
             check("leveraged funds listed as excluded and absent from the ranks", lambda: (_ for _ in ()).throw(AssertionError((lev[:5], out["leaders"][:5], [t for t in out["deskTickers"] if t in lev][:5], out["excluded"][:100])))
@@ -217,22 +220,30 @@ def main():
             facts["windows"] = check("window chips re-cut the dump / rally tables to the artifact's own counts (1M / 1Y / back to 3M)", windows_click)
 
             def predictors_click():
-                page.click('#thesis-pred .jh-chip[data-p="asymmetry"]')
-                page.wait_for_timeout(300)
-                a = page.evaluate("() => [document.querySelectorAll('#lastnames tbody tr').length, document.getElementById('last-meta').innerText, [...document.querySelectorAll('#lastnames tbody tr')].slice(0, 5).map(tr => tr.children[0].innerText.trim())]")
-                assert a[0] == n_top_asym and "ASYMMETRY" in a[1].upper(), (a[:2], n_top_asym)
-                want = [x["ticker"] for x in top_names("asymmetry")]
-                assert all(t.replace(" ✓", "").strip() in want for t in a[2]), (a[2], want[:8])
+                got = {}
+                for pred, word, n_want in (("asymmetry", "BOTH-SIDES", n_top_asym), ("bigdays", "BIG-DAYS", n_top_big)):
+                    if not ls.get(pred):
+                        got[pred] = "not in the last session"
+                        continue
+                    page.click('#thesis-pred .jh-chip[data-p="%s"]' % pred)
+                    page.wait_for_timeout(300)
+                    a = page.evaluate("() => [document.querySelectorAll('#lastnames tbody tr').length, document.getElementById('last-meta').innerText, [...document.querySelectorAll('#lastnames tbody tr')].slice(0, 5).map(tr => tr.children[0].innerText.trim())]")
+                    assert a[0] == n_want and word in a[1].upper(), (pred, a[:2], n_want)
+                    want = [x["ticker"] for x in top_names(pred)]
+                    assert all(t.replace(" ✓", "").strip() in want for t in a[2]), (pred, a[2], want[:8])
+                    got[pred] = {"rows": a[0], "meta": a[1][:100], "first": a[2][:3]}
                 page.click('#thesis-pred .jh-chip[data-p="strength"]')
                 page.wait_for_timeout(300)
                 b = page.evaluate("() => [document.querySelectorAll('#lastnames tbody tr').length, document.getElementById('last-meta').innerText]")
                 assert b[0] == n_top and "MOMENTUM" in b[1].upper(), (b, n_top)
-                return {"asymmetry": a[0], "momentum": b[0], "asym_meta": a[1][:120]}
-            facts["predictors"] = check("predictor chips swap the last-session names (asymmetry rank, then back to momentum)", predictors_click)
+                got["strength"] = b[0]
+                return got
+            facts["predictors"] = check("predictor chips swap the last-session names (both-sides rank, big-days rank, then back to momentum)", predictors_click)
             if n_dumps >= 2:
                 check("sort dumps.m_excess", lambda: sort_both(page, "dumps", "m_excess"))
                 check("sort dumps.date (text)", lambda: sort_both(page, "dumps", "date", text=True))
                 check("sort dumps.a_excess", lambda: sort_both(page, "dumps", "a_excess"))
+                check("sort dumps.b_excess", lambda: sort_both(page, "dumps", "b_excess"))
                 check("sort dumps.m_bottom", lambda: sort_both(page, "dumps", "m_bottom"))
             if n_rallies >= 2:
                 check("sort rallies.m_excess", lambda: sort_both(page, "rallies", "m_excess"))
@@ -242,6 +253,7 @@ def main():
                 check("sort lastnames.strength", lambda: sort_both(page, "lastnames", "strength"))
             check("sort leaders.asym", lambda: sort_both(page, "leaders", "asym"))
             check("sort leaders.dnx", lambda: sort_both(page, "leaders", "dnx"))
+            check("sort leaders.bigd", lambda: sort_both(page, "leaders", "bigd"))
             check("sort classes.median_vs_d", lambda: sort_both(page, "classes", "median_vs_d"))
             check("sort classes.n", lambda: sort_both(page, "classes", "n"))
             check("sort classes.held_last", lambda: sort_both(page, "classes", "held_last"))
@@ -293,7 +305,7 @@ def main():
         if fails:
             r.fail("NOT PROVEN: %d checks failed: %s" % (len(fails), fails))
             raise SystemExit(1)
-        r.ok("STRONG.HTML V4 PROVEN LIVE: the thesis record (quarter: %d dump days, %d rally days; last session %s: %d momentum / %d asymmetry top-tenth names, %d industry-confirmed) and %d asset classes render from the %s artifact in order; "
+        r.ok("STRONG.HTML V4 PROVEN LIVE: the thesis record (quarter: %d dump days, %d rally days; last session %s: %d momentum / %d both-sides top-tenth names, %d industry-confirmed) and %d asset classes render from the %s artifact in order; "
              "the window and predictor chips re-cut the tables to the artifact's own counts; every new table sorts both ways; eleven sleeve chips filter; leveraged funds excluded; 390 px and 0 errors pass" % (
                  n_dumps, n_rallies, ls.get("date"), n_top, n_top_asym, n_conf, len(classes), art.get("version")))
 

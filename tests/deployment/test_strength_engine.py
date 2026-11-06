@@ -83,3 +83,14 @@ def test_desk_sleeves_match_the_page_universe():
     assert mod.asset_class_of("TQQQ", "fund", "")[0] == "leveraged" and mod.asset_class_of("SQQQ", "fund", "")[0] == "leveraged", "leveraged / inverse funds are labelled and kept out of the ranks"
     assert mod.THESIS_DAYS == 252 and mod.DUMP_PCT == -1.0 and mod.FLAT_PCT == 0.25
     assert "thesis_block" in dir(mod) and mod.HISTORY_PREFIX == "data/strength/history/"
+    # 1.0.9 (Khalid 2026-11-05 19:59 CT: "look back a month or a quarter back ... dump less than sp500 dump, rally more than sp500 rally, entire industry seeing
+    # strength is even better"): three definitions of strong walked forward over 21 / 63 / 252 sessions; the asymmetry rank is the WEAKER side (both must hold)
+    assert mod.PREDICTORS == ("strength", "asymmetry", "bigdays") and mod.THESIS_WINDOWS == (21, 63, 252) and mod.ASYM_N == 63 and mod.BIG_N == 126 and mod.BIG_MIN == 3 and mod.RALLY_PCT == 1.0
+    cap = mod.capture([100.0, 99.0, 101.0, 98.0, 100.5, 99.8, 102.0, 100.0], [100.0, 98.5, 100.0, 97.0, 99.0, 98.0, 100.0, 99.5], 7)
+    assert cap["both_pp"] == min(cap["down_excess_pp"], cap["up_excess_pp"]) and "bigday_pp" in cap and "dump_excess_pp" in cap
+    # 1.0.9: a fund's fresh split (the iShares 2026-11-05 splits printed as -68% to -77% days with no sessions after them) is inferred from the split day alone
+    bars = [{"date": "2026-%02d-%02d" % (1 + i // 28, 1 + i % 28), "c": 240.0 if i < 59 else 55.0, "v": 1e6 if i < 59 else 4.5e6} for i in range(60)]
+    got = mod.infer_splits(bars, fund=True)
+    assert len(got) == 1 and got[0]["factor"] == 0.25 and got[0]["evidence"].startswith("fresh"), got
+    assert mod.infer_splits(bars, fund=False) == [], "a stock's fresh jump must sit within 6% of a common ratio"
+    assert mod.FUND_SPLIT_TOL == 1.15
