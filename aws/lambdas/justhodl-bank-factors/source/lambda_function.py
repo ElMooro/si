@@ -24,6 +24,12 @@ v1.0.1 (2026-10-26): the first join ran out of 3 GB in 19 s decoding whole-marke
 now STREAMED once (gunzip -> text -> csv.reader) into a SQLite staging file on /tmp keyed (block, symbol), and the
 documents are assembled from indexed lookups - memory stays flat whatever the files weigh (ephemeral storage 2 GB).
 
+v1.0.8 (2026-11-08, ops 6764): a thin grouped file is not a session. The Polygon tape folded a Saturday file
+(grouped/2026-11-07.json.gz, 271 symbols) and the returns pass took it as session 0, so close/returns/dollar_vol_20d
+existed for 271 symbols instead of ~12,500, every common stock lost dollar_vol_20d, and justhodl-leaders refused its
+Sunday publication ('only 58 leaders from 27109 rows'). Now a grouped file with fewer rows than THIN_SESSION_FRACTION of
+the median row count of the newest five files is skipped (named in coverage.returns.thin_skipped) and offsets count
+accepted sessions only.
 v1.0.7 (2026-10-27): a Polygon common-stock type outweighs the symbol/name heuristics unless the NAME names the
 instrument (apply_security_type); "spac" is matched as a word.  W.W. Grainger, News Corp, every "American Depositary
 Shares" ADR (ARM ...), Preferred Bank, AST SpaceMobile, Extra Space Storage were is_common False (ops 6694/6695).
@@ -55,7 +61,7 @@ from botocore.config import Config
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import fmp_bank  # noqa: E402  (aws/shared, bundled)
 
-VERSION = "1.0.7"
+VERSION = "1.0.8"
 SCHEMA = "factor-book/1.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 ROOT = "data/warm/factor-book/"
@@ -69,6 +75,8 @@ BUDGET_S = float(os.environ.get("FACTOR_BOOK_BUDGET_S", "840"))
 WORKERS = int(os.environ.get("FACTOR_BOOK_WORKERS", "24"))
 RETURNS_SESSIONS = int(os.environ.get("FACTOR_BOOK_RETURNS_SESSIONS", "253"))
 RETURNS_BUDGET_S = float(os.environ.get("FACTOR_BOOK_RETURNS_BUDGET_S", "300"))
+THIN_SESSION_FRACTION = float(os.environ.get("FACTOR_BOOK_THIN_SESSION_FRACTION", "0.25"))   # v1.0.8: a grouped file this far below the newest sessions' median row count is not a session
+THIN_SESSION_PEEK = 5
 MAX_SYMBOLS = int(os.environ.get("FACTOR_BOOK_MAX_SYMBOLS", "40000"))
 DB_PATH = os.environ.get("FACTOR_BOOK_DB", "/tmp/factor-book.sqlite")
 
@@ -686,11 +694,29 @@ def load_calendar_month(src: Sources, dataset, months=2):
 
 
 # ------------------------------------------------------------------------------------------------- returns pass ---
+def _grouped_rows(doc):
+    rows = (doc or {}).get("results") if isinstance(doc, dict) else doc
+    return rows if isinstance(rows, list) else None
+
+
+def thin_floor(counts, fraction=None):
+    """Row count below which a grouped file is not a session: `fraction` of the median of the newest files' counts
+    (None when nothing is known). Pure. A Saturday file of 271 symbols against a ~11,000-row median is skipped; a test
+    fixture of six symbols a day keeps every day."""
+    counts = [c for c in counts if isinstance(c, int) and c > 0]
+    if not counts:
+        return None
+    counts.sort()
+    med = counts[len(counts) // 2]
+    return med * (THIN_SESSION_FRACTION if fraction is None else fraction)
+
+
 def returns_from_tape(uni, deadline, budget_s=None):
     """One pass over the newest RETURNS_SESSIONS grouped sessions of the Polygon tape (polygon-full, complete days):
-    close at 0/1/5/21/63/126/252 sessions back, 52-week high/low, 20-session dollar volume and realised volatility."""
+    close at 0/1/5/21/63/126/252 sessions back, 52-week high/low, 20-session dollar volume and realised volatility.
+    v1.0.8: a grouped file with far fewer rows than its neighbours (a Saturday's stragglers) is not a session - it is
+    skipped and named, and the offsets count accepted sessions only."""
     keys = sorted(k for k in _list_keys(GROUPED_ROOT, max_keys=20000) if k.endswith(".json.gz") and re.search(r"/\d{4}-\d{2}-\d{2}\.json\.gz$", k))
-    keys = keys[-RETURNS_SESSIONS:]
     if not keys:
         return {}, {"sessions": 0}
     want = {0, 1, 5, 21, 63, 126, 252}
@@ -699,14 +725,28 @@ def returns_from_tape(uni, deadline, budget_s=None):
     recent = {}                       # sym -> list of (close, dollar volume) for the 21 newest sessions
     t_start = time.time()
     read = 0
-    for i, key in enumerate(reversed(keys)):             # newest first
+    docs = {}
+    newest = list(reversed(keys))[:THIN_SESSION_PEEK]
+    for key in newest:
+        docs[key] = _grouped_rows(_get_json(key))
+    floor = thin_floor([len(r) for r in docs.values() if r is not None])
+    thin_skipped, last_date = [], None
+    for key in reversed(keys):                            # newest first
+        if read >= RETURNS_SESSIONS:
+            break
         if time.time() > deadline or time.time() - t_start > (budget_s or RETURNS_BUDGET_S):
             break
-        doc = _get_json(key)
-        rows = (doc or {}).get("results") if isinstance(doc, dict) else doc
-        if not isinstance(rows, list):
+        rows = docs.pop(key) if key in docs else _grouped_rows(_get_json(key))
+        if rows is None:
             continue
+        day = key.rsplit("/", 1)[-1][:10]
+        if floor is not None and len(rows) < floor:
+            thin_skipped.append({"day": day, "rows": len(rows)})
+            continue
+        i = read                                           # the offset counts accepted sessions only
         read += 1
+        if last_date is None:
+            last_date = day
         for r in rows:
             sym = r.get("T")
             if not sym:
@@ -726,7 +766,8 @@ def returns_from_tape(uni, deadline, budget_s=None):
             if i <= 20 and c is not None:
                 recent.setdefault(sym, []).append((c, (v or 0) * (vw if vw else c)))
     out = {}
-    last_date = keys[-1].rsplit("/", 1)[-1][:10]
+    if last_date is None:
+        return {}, {"sessions": 0, "thin_skipped": thin_skipped[:10], "thin_floor": floor}
     for sym, cs in closes.items():
         c0 = cs.get(0)
         if c0 is None:
@@ -750,7 +791,10 @@ def returns_from_tape(uni, deadline, budget_s=None):
                 var = sum((x - m) ** 2 for x in lr) / (len(lr) - 1)
                 d["volatility_20d"] = round(math.sqrt(var) * math.sqrt(252) * 100.0, 4)
         out[sym] = d
-    return out, {"sessions": read, "last_session": last_date, "symbols": len(out), "seconds": round(time.time() - t_start, 1)}
+    info = {"sessions": read, "last_session": last_date, "symbols": len(out), "seconds": round(time.time() - t_start, 1), "thin_floor": floor}
+    if thin_skipped:
+        info["thin_skipped"] = thin_skipped[:10]
+    return out, info
 
 
 # -------------------------------------------------------------------------------------------- per-symbol assembly --

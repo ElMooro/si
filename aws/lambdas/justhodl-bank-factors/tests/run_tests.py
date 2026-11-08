@@ -77,6 +77,12 @@ def boot():
     import lambda_function as lf
     lf.s3 = s3
     lf._tls.c = s3
+
+    class _Clock(datetime):          # the fixtures are dated around 2026-10-26; the engine's "today" must be too (the calendar join compares to now)
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2026, 10, 26, 12, 0, tzinfo=tz or timezone.utc)
+    lf.datetime = _Clock
     return lf, s3
 
 
@@ -393,6 +399,27 @@ def test_a_polygon_common_type_outweighs_symbol_and_name_heuristics_unless_the_n
         got = lf.apply_security_type(ident, types)
         assert got["is_common"] is expected, (sym, got)
     assert lf.is_shell("AST SpaceMobile, Inc.", "Telecommunications Services") is False and lf.is_shell("Some SPAC Holdings", "") is True
+
+
+def test_a_thin_grouped_file_is_not_a_session():
+    """v1.0.8 (ops 6764): the tape folded grouped/2026-11-07.json.gz (a Saturday) with 271 symbols; the returns pass took it
+    as session 0 and every other symbol lost close / returns / dollar_vol_20d (leaders refused on 2026-11-08)."""
+    lf, s3 = boot()
+    today = date(2026, 10, 26)
+    stocks, sessions = seed(lf, s3, today)
+    sat = sessions[-1] + timedelta(days=1)                       # 2026-10-24 is a Saturday
+    assert sat.weekday() == 5
+    s3.store[lf.GROUPED_ROOT + "%d/%s.json.gz" % (sat.year, sat.isoformat())] = jgz({"resultsCount": 1, "results": [
+        {"T": "STRAGGLER", "o": 1, "h": 1, "l": 1, "c": 1, "v": 10, "vw": 1, "t": ms(sat), "n": 1}]})
+    assert lf.thin_floor([11000, 10900, 271, 11050, 10980]) == 10980 * 0.25 and lf.thin_floor([]) is None and lf.thin_floor([6, 6, 6, 6, 1]) == 1.5
+    out = lf.lambda_handler({}, None)
+    assert out["ok"], out
+    man = json.loads(s3.store[lf.MANIFEST_KEY])
+    assert man["as_of"]["polygon-tape"] == sessions[-1].isoformat(), man["as_of"]                  # the Friday, not the Saturday file
+    assert man["coverage"]["returns"] == 6, man["coverage"]                                          # every seeded symbol, the straggler alone is out
+    r = json.loads(gzip.decompress(s3.store[lf.ROOT + "symbols/AAPL.json.gz"]))["returns"]
+    assert r["as_of"] == sessions[-1].isoformat() and r["ret_1d"] is not None and r["dollar_vol_20d"] > 0, r
+    assert out["returns"]["thin_skipped"] == [{"day": sat.isoformat(), "rows": 1}] and out["returns"]["sessions"] == 30, out["returns"]
 
 
 if __name__ == "__main__":
