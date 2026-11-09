@@ -5,6 +5,8 @@ name: ops-retention
 # under aws/ops/_archive/ and removed as loose files. History is preserved (as the
 # tarball + git history); the loose-file count drops sharply. Touches only aws/ops,
 # so it never triggers deploy-lambdas or run-ops.
+# An artifact whose file name a test names (tests/**, aws/lambdas/*/tests) is never
+# swept: the deploy gate loads those by path.
 
 on:
   schedule:
@@ -51,6 +53,17 @@ jobs:
 
           # Old = candidates not in recent
           comm -23 /tmp/candidates.txt /tmp/recent.txt > /tmp/old.txt || true
+          # Named by a test = keep (2026-11-09). tests/** and each engine's tests/ load some ops sources and
+          # reports by path; the 2026-11-08 sweep archived six of them (ops_5233 / 5235 / 5236 / 5237 / 5239 /
+          # 5240) and tests/deployment/run_tests.py - the preflight of every engine deploy - could no longer
+          # import. Any artifact whose file name a test names stays loose, whatever its age.
+          { git grep -hoE 'ops_[0-9]+_[A-Za-z0-9_]+\.(py|json|md)' -- tests 'aws/lambdas/*/tests/*' 2>/dev/null || true; } \
+            | sort -u > /tmp/named.txt
+          awk -F/ -v named=/tmp/named.txt 'BEGIN { while ((getline line < named) > 0) keep[line] = 1 } !($NF in keep)' \
+            /tmp/old.txt > /tmp/old.unnamed.txt
+          echo "Named by a test (kept): $(( $(wc -l < /tmp/old.txt) - $(wc -l < /tmp/old.unnamed.txt) ))"
+          mv /tmp/old.unnamed.txt /tmp/old.txt
+
           COUNT=$(wc -l < /tmp/old.txt | tr -d ' ')
           echo "Artifacts to archive: ${COUNT}"
 

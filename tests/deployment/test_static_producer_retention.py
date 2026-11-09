@@ -120,6 +120,39 @@ def test_real_retention_sweep_preserves_static_contract_and_archives_eligible_op
                                   'ownership_evidence': [{'file': SOURCE, 'basis': 'bound write argument'}]}]
 
 
+GATE_SOURCES = ('ops_5233_retry_audit_core_release.py', 'ops_5235_retry_alias_protected_release.py', 'ops_5236_retry_pinned_core_release.py',
+                'ops_5237_retry_pinned_core_release.py', 'ops_5239_retry_pinned_core_release.py', 'ops_5240_page_api_identity.py')
+
+
+def test_real_retention_sweep_keeps_what_a_test_names():
+    """2026-11-08: the weekly sweep archived six ops sources that test_release_recovery / test_page_api_identity load by
+    path, and this runner - the preflight of every engine deploy - could no longer import. An artifact a test names
+    stays loose, however old; everything else that is old is still archived."""
+    for name in GATE_SOURCES:
+        assert (ROOT / 'aws/ops/ran' / name).is_file() or (ROOT / 'aws/ops/pending' / name).is_file(), name
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        named, report, engine_named = 'aws/ops/ran/ops_5240_page_api_identity.py', 'aws/ops/reports/latest/ops_6084_share structure part 2.md', 'aws/ops/ran/ops_5271_audit_page_api_probe.py'
+        named_report = 'aws/ops/reports/latest/ops_6370_snapshot_storage_configuration.md'
+        write(root, named, b'# synthetic gate source\n')
+        write(root, engine_named, b'# synthetic gate source named by an engine test\n')
+        write(root, named_report, b'# synthetic report a test reads\n')
+        write(root, report, b'# synthetic old report with spaces in its name\n')
+        write(root, 'tests/deployment/test_page_api_identity.py', b"OPERATION = ROOT / 'aws/ops/pending/ops_5240_page_api_identity.py'\nREPORT = 'ops_6370_snapshot_storage_configuration.md'\n")
+        write(root, 'aws/lambdas/justhodl-x/tests/run_tests.py', b"SRC = 'aws/ops/ran/ops_5271_audit_page_api_probe.py'\n")
+        write(root, 'docs/notes.md', b'ops_4281_alpha_atlas.py is named here, outside any test\n')
+        retained_repo(root)
+        sweep(root)
+        for kept in (named, engine_named, named_report, 'aws/ops/ran/ops_9999_recent.py', 'aws/ops/reports/_lastrun.log'):
+            assert (root / kept).is_file(), kept
+        for swept in (OLD_SOURCE, report, 'aws/ops/reports/old.json'):
+            assert not (root / swept).exists(), swept
+        archives = list((root / 'aws/ops/_archive').glob('*.tar.gz'))
+        assert len(archives) == 1
+        with tarfile.open(archives[0]) as archive:
+            assert set(archive.getnames()) == {OLD_SOURCE, report, 'aws/ops/reports/old.json'}
+
+
 def test_former_ops_path_contract_reproduces_the_failure_after_retention():
     with tempfile.TemporaryDirectory() as td:
         root = Path(td)
