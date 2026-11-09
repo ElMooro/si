@@ -51,6 +51,15 @@ the top decile's mean return / excess / hit rate (beat SPY) / held-up share (fla
 bottom decile's, every decile's mean excess, and each asset class's behaviour; the summary over all dump days and over
 all days (does the rank order persist the next session) is the base rate; `last_session` is today's test. Written to
 data/strength.json and, every run, to data/strength/history/<as_of>.json.gz.
+
+1.0.12 (daily health run 2026-11-09, ops 6765): A THIN DAY IS NOT A SESSION. The Polygon EOD bank folded Saturday
+2026-11-07's grouped file (271 straggler symbols market-wide - Polygon answers a non-session with late prints) and its
+manifest named that Saturday the last session. The desk took the manifest's word: 834 of 852 rows became "stale" (their
+last bar was Friday's), the Sunday and Monday runs ranked 18 names - the stragglers, on a bar that is not a close - and
+labelled the desk as of a Saturday. Now the session the desk stands on is read from the bars themselves
+(`effective_session`): the newest day that the benchmark AND at least a quarter of the banked universe carry. Bars dated
+after it are left out of every series (never deleted from the bank), the desk is as of that session, and the days set
+aside are named in `bank.thin_days` next to `bank.manifest_last_session`. On an ordinary day nothing changes.
 """
 from __future__ import annotations
 
@@ -74,7 +83,7 @@ try:
 except Exception:  # noqa: BLE001
     etf_desk_catalog = None
 
-VERSION = "1.0.11"
+VERSION = "1.0.12"
 CONTRACT = "strength.v1"
 ENGINE = "justhodl-strength"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -94,6 +103,7 @@ BOARD = int(os.environ.get("BOARD_ROWS", "40"))
 SPARK = 60
 MIN_SESSIONS = 70                                          # below this a row carries bars but no strength
 THREADS = 12
+THIN_SHARE = 0.25                                          # 1.0.12: a day fewer than a quarter of the banked universe carries is not a session
 RESERVE_S = 45.0                                           # seconds kept for the rows, the boards and the put
 WEIGHTS = (("d", 0.10), ("w", 0.20), ("m", 0.30), ("q", 0.25), ("h", 0.15))
 HORIZONS = (("d", 1), ("w", 5), ("m", 21), ("q", 63), ("h", 126), ("y", 252))
@@ -1088,6 +1098,35 @@ def recorded_splits(s3, index, tickers):
     return out
 
 
+def effective_session(manifest_last, bench, bars_by, share=THIN_SHARE):
+    """1.0.12 - (session, thin_days): the newest day carried by the benchmark and by at least `share` of the banked
+    universe's series. `thin_days` names every newer day that was set aside: [{"day", "tickers", "of", "benchmark"}].
+    The manifest's last session is only a candidate - a grouped file of weekend stragglers moves it without a session
+    behind it - and the desk never runs ahead of it (a fold in progress is not a session either). With no banked
+    series at all (the time budget ran out before the bars) the manifest's word stands."""
+    last = {t: b[-1]["date"] for t, b in bars_by.items() if b}
+    n = len(last)
+    if not n:
+        return manifest_last, []
+    bench_last = bench[-1]["date"] if bench else None
+    days = sorted({d for d in list(last.values()) + [bench_last, manifest_last] if d and (not manifest_last or d <= manifest_last)}, reverse=True)
+    thin = []
+    for d in days:
+        have = sum(1 for x in last.values() if x >= d)
+        bench_has = bool(bench_last) and bench_last >= d
+        if bench_has and have >= share * n:
+            return d, thin
+        thin.append({"day": d, "tickers": have, "of": n, "benchmark": bench_has})
+    return manifest_last, []            # no day qualifies (a bank in pieces): say nothing new, the stale flags speak
+
+
+def through(bars, session):
+    """The series up to and including `session` (bars after it are left out of the run, never out of the bank)."""
+    if not bars or not session or bars[-1]["date"] <= session:
+        return bars
+    return [b for b in bars if b["date"] <= session]
+
+
 def row_for(t, meta, bars, bench, bank_last):
     c = [float(b["c"]) for b in bars]
     h = horizons(c) if len(c) >= 2 else {k: None for k, _ in HORIZONS}
@@ -1566,6 +1605,14 @@ def build(s3, now, log=print, remaining_s=300.0):
             bars_by[t] = b
     unbanked = sorted(t for t, b in bars_by.items() if b is not None and not b)
     skipped = sorted(t for t, b in bars_by.items() if b is None)
+    # 2a. 1.0.12: the session is read from the bars - a thin day (weekend stragglers) is set aside, not ranked on
+    manifest_last = bank_last
+    bank_last, thin_days = effective_session(manifest_last, bench, bars_by)
+    if thin_days:
+        bench = through(bench, bank_last)
+        bars_by = {t: (through(b, bank_last) if b else b) for t, b in bars_by.items()}
+        log("strength: the bank's manifest says last session %s; the bars say %s - set aside as thin: %s" % (
+            manifest_last, bank_last, json.dumps(thin_days)))
     # 2b. splits: the bank's grouped-daily rows are unadjusted; recorded splits first, then volume-confirmed inferred ones
     actions_index, actions_mod, actions_err = optional(s3, ACTIONS_INDEX_KEY)
     if actions_err:
@@ -1637,7 +1684,7 @@ def build(s3, now, log=print, remaining_s=300.0):
     out = {
         "engine": ENGINE, "version": VERSION, "contract": CONTRACT, "generated_at": now.isoformat(timespec="seconds"),
         "as_of": bank_last, "bank": {"last_session": bank_last, "updated_at": man.get("updated_at"), "tickers": man.get("tickers"), "first_session": man.get("first_session"),
-                                     "lookback_sessions": LOOKBACK},
+                                     "lookback_sessions": LOOKBACK, "manifest_last_session": manifest_last, "thin_days": thin_days},
         "benchmark": {"ticker": BENCH, "px": f(float(bench[-1]["c"])), "as_of": bench[-1]["date"], "h": bench_h, "sessions": len(bench), **bench_ctx},
         "splits": {"index_generated_at": (actions_index or {}).get("generated_at"), "index_covered": (actions_index or {}).get("covered"), "index_last_modified": actions_mod,
                    "polygon_windows_read": n_windows, "polygon_reference_rows": sum(len(v) for v in poly.values()),

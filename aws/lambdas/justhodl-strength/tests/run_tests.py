@@ -345,7 +345,7 @@ def test_universe_assembly_and_ranks():
 
 def test_build_rows_boards_flows_and_13f():
     s3, out = built()
-    assert out["contract"] == "strength.v1" and out["version"] == "1.0.11" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
+    assert out["contract"] == "strength.v1" and out["version"] == "1.0.12" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
     assert out["benchmark"]["sessions"] == 300 and out["benchmark"]["h"]["q"] is not None and out["universe"]["n"] == len({t for items in lf.SLEEVES.values() for t, _ in items}) + 8
     by = {r["ticker"]: r for r in out["rows"]}
     # unbanked desk names carry no row; the bank manifest's last session is the as-of
@@ -438,6 +438,56 @@ def test_bank_read_and_time_budget():
     assert lf.read_bars(s3, "NOPE") == [] and lf.bank_key("BRK.B").endswith("/BRK.B.json.gz") and lf.bank_key("x y") .endswith("/X_Y.json.gz")
     out = lf.build(s3, NOW, log=lambda *a: None, remaining_s=0.0)      # budget exhausted: the benchmark is read, the universe is skipped, nothing is guessed
     assert out["universe"]["n_rows"] == 0 and len(out["universe"]["skipped_for_time"]) >= 50 and out["boards"]["n_ranked"] == 0
+
+
+def test_a_thin_day_is_not_a_session():
+    """1.0.12 - Saturday 2026-11-07: the bank folded a grouped file of stragglers and its manifest named the Saturday the
+    last session; the desk ranked 18 of 852 names on a bar that is not a close. The session is read from the bars."""
+    sat = DATES[-1] + timedelta(days=1)
+    while sat.weekday() != 5:
+        sat += timedelta(days=1)
+    sat_ms = int(datetime(sat.year, sat.month, sat.day, 5, tzinfo=timezone.utc).timestamp() * 1000)
+    # pure: 2 of 10 series carry the straggler day, the benchmark does not
+    fri, s_iso = DATES[-1].isoformat(), sat.isoformat()
+    mk = lambda last: [{"date": DATES[-2].isoformat(), "c": 1.0}, {"date": fri, "c": 1.0}] + ([{"date": s_iso, "c": 9.0}] if last == s_iso else [])   # noqa: E731
+    bars_by = {"T%d" % i: mk(s_iso if i < 2 else fri) for i in range(10)}
+    bars_by["UNBANKED"], bars_by["SKIPPED"] = [], None
+    session, thin = lf.effective_session(s_iso, mk(fri), bars_by)
+    assert session == fri and thin == [{"day": s_iso, "tickers": 2, "of": 10, "benchmark": False}], (session, thin)
+    # a broad day the benchmark does not carry is not a session either; an ordinary day sets nothing aside
+    session, thin = lf.effective_session(s_iso, mk(fri), {"T%d" % i: mk(s_iso) for i in range(10)})
+    assert session == fri and thin[0]["tickers"] == 10 and thin[0]["benchmark"] is False
+    assert lf.effective_session(fri, mk(fri), bars_by) == (fri, []) and lf.effective_session(s_iso, mk(s_iso), {"A": mk(s_iso), "B": mk(s_iso), "C": mk(fri)}) == (s_iso, [])
+    # never ahead of the manifest (a fold in progress), and with no banked series the manifest's word stands
+    assert lf.effective_session(fri, mk(s_iso), {"A": mk(s_iso), "B": mk(s_iso)}) == (fri, [])
+    assert lf.effective_session(s_iso, mk(fri), {"A": None, "B": []}) == (s_iso, [])
+    assert lf.through(mk(s_iso), fri)[-1]["date"] == fri and len(lf.through(mk(s_iso), fri)) == 2 and lf.through(mk(fri), fri) == mk(fri) and lf.through([], fri) == []
+    # the whole build: NVDA and LAGG print a Saturday straggler bar (a wild one), the manifest says Saturday
+    s3, base = built()
+    s3 = seed()
+    s3.put(pb.MANIFEST, {"last_session": s_iso, "updated_at": "2026-11-08T03:10:35+00:00", "tickers": 21104, "first_session": "2021-08-26"})
+    for tk, kind, sd in (("NVDA", "leader", 2), ("LAGG", "laggard", 4)):
+        rows = bank_rows(series(kind, seed=sd))
+        c = rows[-1][4] * 3.0
+        s3.put(lf.bank_key(tk), {"rows": rows + [[sat_ms, c, c, c, c, 100.0, c, 1]]})
+    logs = []
+    out = lf.build(s3, NOW, log=logs.append)
+    assert out["version"] == "1.0.12" and out["as_of"] == fri and out["bank"]["last_session"] == fri and out["bank"]["manifest_last_session"] == s_iso
+    assert out["bank"]["thin_days"] == [{"day": s_iso, "tickers": 2, "of": 11, "benchmark": False}] and out["benchmark"]["as_of"] == fri
+    assert any("set aside as thin" in str(m) for m in logs)
+    by, by0 = {r["ticker"]: r for r in out["rows"]}, {r["ticker"]: r for r in base["rows"]}
+    assert out["boards"]["n_ranked"] == base["boards"]["n_ranked"] == 10 and not any(r["stale"] for r in out["rows"])
+    # the straggler bar is out of the run: the desk reads exactly what it read on the Friday
+    for tk in ("NVDA", "LAGG", "AAPL", "COIL"):
+        assert by[tk]["as_of"] == fri and by[tk]["px"] == by0[tk]["px"] and by[tk]["strength"] == by0[tk]["strength"] and by[tk]["sessions"] == by0[tk]["sessions"], tk
+    # and before 1.0.12 it did not: the manifest's Saturday left two names ranked
+    old = lf.effective_session
+    lf.effective_session = lambda manifest_last, bench, bars_by, share=0.25: (manifest_last, [])
+    try:
+        was = lf.build(s3, NOW, log=lambda *a: None)
+    finally:
+        lf.effective_session = old
+    assert was["as_of"] == s_iso and was["boards"]["n_ranked"] == 2 and sum(1 for r in was["rows"] if r["stale"]) == 9
 
 
 def test_handler():
