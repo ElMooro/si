@@ -9,8 +9,8 @@ search + watchlist surface (`jh-uni-search.js` = the dialog, `jh-tv-watchlist.js
 
 | point | what it is | git | files here |
 |---|---|---|---|
-| `before-148` | the search as Khalid loved it on the morning of 2026-11-10 (Codex lane, 2026-10-05/06) | commit `81d10e20` (tag `chart-search-before-20261110`) | `before-148/jh-uni-search.js.txt` |
-| `current` | after PR #148 "Search: add all loaded results and enlarge dialog" (Codex lane, 10:47 ET) | commit `86200289` (tag `chart-search-148`) | `current/*.txt` |
+| `before-148` | the search as Khalid loved it on the morning of 2026-11-10 (Codex lane, 2026-10-05/06) | commit `81d10e20` | `before-148/jh-uni-search.js.txt` |
+| `current` | after PR #148 "Search: add all loaded results and enlarge dialog" (Codex lane, 10:47 ET) | commit `86200289` | `current/*.txt` |
 
 Later changes (the "add all" + bigger-dialog enhancement Claude ships after this snapshot) sit on top of `current`.
 
@@ -19,17 +19,17 @@ Later changes (the "add all" + bigger-dialog enhancement Claude ships after this
 Back to the search exactly as it was before PR #148:
 
     git pull
-    git checkout chart-search-before-20261110 -- jh-uni-search.js
+    git checkout 81d10e20 -- jh-uni-search.js
     git commit -m "revert chart search to the 2026-11-10 morning state [skip-ops]"
     git push
 
 Back to the PR #148 state:
 
     git pull
-    git checkout chart-search-148 -- jh-uni-search.js
+    git checkout 86200289 -- jh-uni-search.js
     git commit -m "revert chart search to PR #148 [skip-ops]"
     git push
 
 Either push triggers the Pages build (~10 min); the build content-hash-stamps the script tag, so no cache-bust edit
-is needed. The `.txt` copies in this folder are the same bytes (sha256 in `SHA256SUMS`) in case the tags are ever lost:
+is needed. The `.txt` copies in this folder are the same bytes (sha256 in `SHA256SUMS`) in case the commits are ever rewritten:
 `cp docs/snapshots/chart-search-2026-11-10/before-148/jh-uni-search.js.txt jh-uni-search.js`.
