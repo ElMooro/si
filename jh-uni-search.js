@@ -690,6 +690,8 @@
     crumbEl.innerHTML = ""; box.querySelector(".us-dims").innerHTML = "";
     renderSugg(q);
     var html = "", grp = "";
+    var loadedCount = ROWS.filter(addable).length;
+    if (loadedCount) html += '<div class="us-loaded-all"><span>Current loaded results <small>Datasets are added separately</small></span><button type="button" class="us-ga" data-act="addloaded" title="Add eligible loaded results to the active watchlist">+ Add all ' + loadedCount + '</button></div>';
     ROWS.forEach(function (r, i) {
       if (r.grp !== grp && S.tab === "all") {
         grp = r.grp;
@@ -924,6 +926,7 @@
     if (act === "moreB") { loadBrowse(false); return; }
     if (act === "moreP") { loadProvider(false); return; }
     if (act === "cover") { renderCoverage(); return; }
+    if (act === "addloaded") { e.stopPropagation(); var seen = Object.create(null); addAll(ROWS.filter(addable).map(function (x) { return x.id; }).filter(function (id) { if (seen[id]) return false; seen[id] = true; return true; }), "current loaded results", a); return; }
     if (act === "addgrp") { e.stopPropagation(); var gname = a.getAttribute("data-grp"); addAll(ROWS.filter(function (x) { return x.grp === gname && addable(x); }).map(function (x) { return x.id; }), gname, a); return; }
     if (act === "addbrowse") { e.stopPropagation(); addDataset(S.ds, S.dsName || S.ds, [S.q.trim(), S.dsChip].filter(Boolean).join(" "), a); return; }
     var row = a.classList.contains("us-row") ? a : a.closest(".us-row");
@@ -1040,3 +1043,6 @@
   root.jhOpenSearch = function (q, dest) { open({ q: q || "", dest: dest || "chart" }); };
   if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", boot); else boot();
 })(window);
+
+/* Scoped search-dialog presentation; no data or chart changes. */
+(function(){"use strict";if(document.getElementById("jh-search-ui-20261110"))return;var s=document.createElement("style");s.id="jh-search-ui-20261110";s.textContent="#jhus .us-dlg{width:min(1000px,calc(100vw - 32px));height:min(82vh,860px);margin-top:6vh;border-radius:14px;box-shadow:0 24px 80px rgba(0,0,0,.55)}\n#jhus .us-hd{padding:20px 24px 12px;gap:16px}\n#jhus .us-dlg input[type=text],#jhus .us-dlg input[type=search],#jhus .us-dlg input:not([type]){font-size:20px;min-height:48px}\n#jhus .us-row{min-height:60px;padding:12px 24px;gap:14px}\n#jhus .us-loaded-all{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 24px;border-bottom:1px solid var(--bd);background:var(--bg)}\n#jhus .us-loaded-all small{display:block;font-size:11px;color:var(--mut);margin-top:3px}\n#jhus .us-loaded-all .us-ga{flex:none;min-height:36px;padding:6px 16px;border-radius:18px;border-color:var(--blue);color:var(--blue)}\n#jhus .us-loaded-all .us-ga:hover{color:#fff;background:var(--blue)}\n#jhus .us-loaded-all .us-ga:focus-visible{outline:2px solid var(--blue);outline-offset:3px}\n@media(max-width:640px){#jhus .us-dlg{width:calc(100vw - 16px);height:90dvh;margin-top:4dvh;border-radius:10px}#jhus .us-hd{padding:14px 16px 10px}#jhus .us-row{padding:10px 16px;gap:8px}#jhus .us-loaded-all{padding:10px 16px;gap:8px;flex-wrap:wrap}#jhus .us-dlg input{font-size:17px}}";document.head.appendChild(s);})();
