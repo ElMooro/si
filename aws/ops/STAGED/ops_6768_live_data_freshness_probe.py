@@ -28,7 +28,7 @@ sys.path.insert(0, str(ROOT / "aws" / "ops"))
 sys.path.insert(0, str(ROOT / "aws" / "shared"))
 from ops_report import report  # noqa: E402
 
-REGION, LIVE, SITE = "us-east-1", "justhodl-dashboard-live", "https://justhodl.ai"
+REGION, LIVE, SITE = "us-east-1", "justhodl-dashboard-live", "https://justhodl-data-proxy.raafouis.workers.dev"   # PROXY in jh-desk-core.js / jh-chart-engine.js (justhodl.ai routes only /data/*, /factory/*, /api/v1/*)
 CFG = Config(retries={"max_attempts": 3, "mode": "standard"}, connect_timeout=10, read_timeout=120)
 TICKERS = ["SPY", "QQQ", "AAPL", "TLT", "GLD"]
 UA = {"User-Agent": "justhodl-ops-6768"}
