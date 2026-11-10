@@ -58,7 +58,7 @@
   <div class="jh-hero">
     <div>
       <h1>STRENGTH vs S&P 500</h1>
-      <p>Every figure is excess return against SPY computed from the Polygon EOD bank (520 sessions of daily bars) by the strength engine each morning at 03:40 UTC; the day column and the day posture are overlaid live from the quote. Strength is the universe percentile of the 1D / 1W / 1M / 3M / 6M excess-return z-score (10 / 20 / 30 / 25 / 15). The base board lists the names whose closes have stayed inside a 6% / 10% / 15% band the longest — long accumulation with a tight price spread — with the volume and relative-strength evidence inside the base. Fund flows are the ETF desk's reported creation / redemption observations; the 13F read counts managers. Nothing here is a call.</p>
+      <p>Every figure is excess return against SPY computed from the Polygon EOD bank (520 sessions of daily bars) by the strength engine each morning at 03:40 UTC; the day column and the day posture are overlaid from the Polygon quote, which is 15 minutes delayed on the Stocks Starter plan (the chart's daily candle for today comes from the same snapshot through the bank). Strength is the universe percentile of the 1D / 1W / 1M / 3M / 6M excess-return z-score (10 / 20 / 30 / 25 / 15). The base board lists the names whose closes have stayed inside a 6% / 10% / 15% band the longest — long accumulation with a tight price spread — with the volume and relative-strength evidence inside the base. Fund flows are the ETF desk's reported creation / redemption observations; the 13F read counts managers. Nothing here is a call.</p>
     </div>
     <div class="jh-stamp" id="stamp">loading the strength artifact…</div>
   </div>
@@ -209,16 +209,16 @@
       th.onclick=function(){ var k=th.getAttribute("data-sort"), s=SORT[id]; if(s.k===k) s.dir*=-1; else { s.k=k; s.dir=-1; } draw(); };
     });
   }
-  var DESK_COLS=[["ticker","Ticker"],["name","Name"],["sleeve","Sleeve"],["px","Last","live quote when available, else the last close"],["d","D live","today's move, live quote"],["vd","RS D","today's move minus SPY's, live"],
+  var DESK_COLS=[["ticker","Ticker"],["name","Name"],["sleeve","Sleeve"],["px","Last","the Polygon quote (15-minute delayed on the Stocks Starter plan) when available, else the last close"],["d","D (15-min)","today's move from the 15-minute-delayed quote"],["vd","RS D","today's move minus SPY's, live"],
     ["vw","RS 1W","excess return vs SPY, 5 sessions"],["vm","RS 1M","21 sessions"],["vq","RS 3M","63 sessions"],["vh","RS 6M","126 sessions"],["vy","RS 1Y","252 sessions"],
     ["strength","Strength","universe percentile of the weighted excess-return z-score"],["rs_trend_63","RS trend","annualized slope of the log RS line, 63 sessions, % per year"],["rs_consistency_63","Consistency","share of the last 63 sessions whose 21-session excess return was positive"],
-    ["ir_63","IR","63-session excess return over its tracking volatility"],["pos_52w","52w pos","where the last close sits in its 52-week range"],["post","Read","day posture vs SPX, live"],["pattern","Pattern"],["tier","Base","the coil tier and base length in sessions"],["flows","Flows · smart money","reported fund flow (ETF) or the 13F cohort read (stock)"],["as_of","As of"]];
+    ["ir_63","IR","63-session excess return over its tracking volatility"],["pos_52w","52w pos","where the last close sits in its 52-week range"],["post","Read","day posture vs SPX from the 15-minute-delayed quotes"],["pattern","Pattern"],["tier","Base","the coil tier and base length in sessions"],["flows","Flows · smart money","reported fund flow (ETF) or the 13F cohort read (stock)"],["as_of","As of"]];
   function deskRow(r){
     var L=r.live||{}, p=L.posture||r.posture;
     return "<tr><td>"+tk(r.ticker)+"</td><td class=nm title='"+esc(r.name)+"'>"+esc(r.name)+"</td><td class=nm>"+esc(r.sleeve||"")+"</td><td>"+D.fmtPx(get(r,"px"))+"</td>"+
       cellPct(get(r,"d"))+cellPct(get(r,"vd"))+cellPct(r.vs&&r.vs.w)+cellPct(r.vs&&r.vs.m)+cellPct(r.vs&&r.vs.q)+cellPct(r.vs&&r.vs.h)+cellPct(r.vs&&r.vs.y)+
       "<td>"+bar(r.strength)+"</td>"+cellPct(r.rs_trend_63,1)+"<td>"+num(r.rs_consistency_63,0)+"%</td><td class='"+D.cls(r.ir_63)+"'>"+num(r.ir_63,2)+"</td><td>"+num(r.pos_52w,0)+"%</td>"+
-      "<td>"+tag(p)+"</td><td class=nm>"+esc(r.pattern||"—")+"</td><td>"+tier(r.coil)+"</td><td>"+flowCell(r)+"</td><td class=st-small>"+esc(r.as_of||"")+(L.px!=null?" · live":"")+"</td></tr>";
+      "<td>"+tag(p)+"</td><td class=nm>"+esc(r.pattern||"—")+"</td><td>"+tier(r.coil)+"</td><td>"+flowCell(r)+"</td><td class=st-small>"+esc(r.as_of||"")+(L.px!=null?" · 15-min delayed":"")+"</td></tr>";
   }
   var COIL_COLS=[["ticker","Ticker"],["name","Name"],["scope","Scope"],["tier","Tier","VERY TIGHT / TIGHT / LONG BASE / FORMING"],["base_len","Base","sessions inside the band"],["base_range_pct","Range","close range over the base, % of the last close"],["wick_range_pct","Wick range","high-low range over the base"],
     ["atr14_pct","ATR %","14-session average true range, % of price"],["bb","BB pctile","Bollinger bandwidth percentile over 252 sessions (low = squeezed)"],["vol_dry","Vol dry-up","last 20 sessions' average volume over the prior 120 (below 1 = drying up)"],["cmf","CMF","Chaikin money flow inside the base"],["ud","Up/Dn vol","volume on up-closes over volume on down-closes inside the base"],
@@ -255,12 +255,12 @@
     var coiled=(doc.rows||[]).filter(function(r){return r.coil&&r.coil.tier&&!r.coil.flag;});
     var vt=coiled.filter(function(r){return r.coil.tier==="VERY TIGHT";}).length;
     document.getElementById("kpis").innerHTML=[
-      ["SPX live · 1W / 1M / 3M", pct(d.spy.d), "<span class='"+D.cls(s.w)+"'>"+pct(s.w)+"</span> · <span class='"+D.cls(s.m)+"'>"+pct(s.m)+"</span> · <span class='"+D.cls(s.q)+"'>"+pct(s.q)+"</span>"+(d.spy.px?" · SPY "+D.fmtPx(d.spy.px):"")],
-      ["Regime", d.dump?"SPX HEAVY":regime, d.dump?"focus board is live · "+regime.toLowerCase():"6M "+pct(s.h)+" · 1Y "+pct(s.y)+" · "+num(bench.pos_52w,0)+"% of 52w range"],
+      ["SPX today (15-min delayed) · 1W / 1M / 3M", pct(d.spy.d), "<span class='"+D.cls(s.w)+"'>"+pct(s.w)+"</span> · <span class='"+D.cls(s.m)+"'>"+pct(s.m)+"</span> · <span class='"+D.cls(s.q)+"'>"+pct(s.q)+"</span>"+(d.spy.px?" · SPY "+D.fmtPx(d.spy.px):"")],
+      ["Regime", d.dump?"SPX HEAVY":regime, d.dump?"focus board is on · "+regime.toLowerCase():"6M "+pct(s.h)+" · 1Y "+pct(s.y)+" · "+num(bench.pos_52w,0)+"% of 52w range"],
       ["Desk breadth vs SPY", (bd.pct_m==null?"—":num(bd.pct_m,0)+"%")+" beat on 1M", (bd.above_spy_w||0)+" / "+(bd.n||0)+" on 1W · "+(bd.above_spy_q||0)+" / "+(bd.n||0)+" on 3M"],
       ["Universe breadth", (bu.pct_m==null?"—":num(bu.pct_m,0)+"%")+" beat on 1M", (bu.n||0)+" names ranked · "+(bu.rs_new_highs||0)+" RS lines at 52-week highs"],
       ["Tight bases", coiled.length+" coiled", vt+" very tight · "+(bd.coiled||0)+" on the desk"],
-      ["Holding up now", d.focus.length+" names", d.dump?"bid / flat / dumping less than SPX":"SPX is not dumping; posture is live"]
+      ["Holding up now", d.focus.length+" names", d.dump?"bid / flat / dumping less than SPX":"SPX is not dumping; posture from the 15-minute-delayed quotes"]
     ].map(function(x){ return '<div class="jh-kpi"><div class="l">'+x[0]+'</div><div class="v">'+x[1]+'</div><div class="s">'+x[2]+"</div></div>"; }).join("");
   }
   var CLASS_LABEL={stock:"Stocks",equity_etf:"Equity ETFs",country:"Countries",bond:"Bonds",high_yield:"High yield",cash:"Cash / T-bills",gold:"Gold",silver:"Silver",metals:"Metals & miners",commodity:"Commodities",currency:"Currencies",crypto:"Crypto",volatility:"Volatility",leveraged:"Leveraged / inverse"};
@@ -358,7 +358,7 @@
     document.getElementById("newhighs").innerHTML=nh.length?"<b>RS line at a 52-week high ("+nh.length+"):</b> "+nh.slice(0,40).map(function(r){return tk(r.ticker);}).join(", ")+(nh.length>40?" …":""):"<b>RS line at a 52-week high:</b> none in this scope.";
     // 3. focus (live posture)
     var focus=DATA.focus.slice().sort(sorter("focus")).slice(0,14);
-    document.getElementById("focus-meta").textContent=DATA.dump?"SPX "+pct(DATA.spy.d)+" live":"SPX "+pct(DATA.spy.d)+" live — not a dump session";
+    document.getElementById("focus-meta").textContent=DATA.dump?"SPX "+pct(DATA.spy.d)+" (15-min delayed)":"SPX "+pct(DATA.spy.d)+" (15-min delayed) — not a dump session";
     table("focus",DESK_COLS,focus,"No desk name is holding up against SPX this session — SPX may not be dumping, or everything is in line.",deskRow);
     // 4. the desk
     chips("chips",["ALL"].concat(DATA.sleeves),sleeve,function(v){sleeve=v;});
