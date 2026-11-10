@@ -20,7 +20,8 @@
   "justhodl-tail-risk",
   "justhodl-implied-prob",
   "justhodl-polygon-fx-regime",
-  "justhodl-edge-engine"
+  "justhodl-edge-engine",
+  "justhodl-polygon-today"
  ],
  "not_in_the_lane": {
   "justhodl-dealer-gex": "129 s x 2 GB per run: $7/month at 5 min, $35 at 1 min - needs an incremental rebuild first",
@@ -33,5 +34,8 @@
   "justhodl-portfolio-snapshot": "previous-day closes: end-of-day",
   "justhodl-vol-regime": "FRED VIX family: daily",
   "justhodl-polygon-futures-curves": "removed 2026-10-22: Massive allows ~5 futures requests a minute, so the run is paced to ~9 minutes and cannot repeat every 5 minutes (every lane tick of 2026-10-21 failed, ops 6609); its daily 13:00 UTC run stays"
+ },
+ "added_2026_11_10": {
+  "justhodl-polygon-today": "Khalid 2026-11-10: SPY delayed almost 24 hours - every bank is end-of-day; this member writes today's forming day bar for every US stock / ETF from ONE Polygon all-tickers snapshot (0.7 s, 15-minute delayed) into data/warm/polygon-full/today.json.gz; readers append it as the last bar"
  }
 }

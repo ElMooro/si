@@ -1,0 +1,14 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 60,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Today's forming daily bar for every US stock and ETF from ONE Polygon all-tickers snapshot (15-min delayed) into data/warm/polygon-full/today.json.gz; a member of the jhk-tick-session-5min fan-out (09:00-16:55 ET Mon-Fri).",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "OUT_KEY": "data/warm/polygon-full/today.json.gz",
+    "MANIFEST_KEY": "data/warm/polygon-full/today-manifest.json",
+    "DELAY_MINUTES": "15"
+  }
+}

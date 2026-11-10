@@ -4595,6 +4595,7 @@
    "justhodl-options-analytics",
    "justhodl-options-gamma",
    "justhodl-polygon-fx-regime",
+   "justhodl-polygon-today",
    "justhodl-risk-regime",
    "justhodl-tail-risk",
    "justhodl-trade-ticket-monitor"
@@ -4622,6 +4623,9 @@
   "why": "Khalid, 2026-10-21: Polygon should keep refreshing my data so I get fresh data during market hours Monday through Friday. The light Polygon feeds (live snapshot / quote endpoints, 0.2-12 s runs) are fanned out every five minutes 09:00-16:55 New York time, Monday-Friday, by one EventBridge Scheduler schedule (the clock change follows the America/New_York timezone). Their daily triggers stay as they are (the post-close / pre-market consolidation run). About $1-2 of Lambda a month for the whole lane; the $50/engine cap and the anomaly sentinel (200 invocations or $1 per hourly window) stay in force. The stocks tape is 15-minute delayed on the current Massive/Polygon plan; real-time needs the Advanced tier.",
   "removed": {
    "justhodl-polygon-futures-curves": "2026-10-22: removed 2026-10-22: Massive allows ~5 futures requests a minute, so the run is paced to ~9 minutes and cannot repeat every 5 minutes (every lane tick of 2026-10-21 failed, ops 6609); its daily 13:00 UTC run stays"
+  },
+  "members_added_later": {
+   "justhodl-polygon-today": "2026-11-10: today's forming day bar for every US stock / ETF from one Polygon all-tickers snapshot (Khalid: SPY delayed almost 24 hours); recorded here so the applied-plan check sees the live lane"
   }
  },
  "kept_in_place": {},

@@ -80,6 +80,56 @@ class WarehouseTests(unittest.TestCase):
             result=warehouse_routing.banked_ohlc(s3,"bucket",symbol)
             self.assertEqual(result["bars"][0][4],105)
             self.assertEqual(result["vendor_requests"],0)
+    def test_forming_day_bar_is_appended_from_the_today_overlay(self):
+        """2026-11-10 (Khalid: SPY delayed 24 h): a daily read of a US name carries today's forming bar from
+        data/warm/polygon-full/today.json.gz when the bank's last session is older; never twice, never on intraday spans,
+        never for crypto / FX, and the bank is served as banked when the overlay is missing."""
+        import gzip as _gz
+        class Missing(Exception):
+            response={"Error":{"Code":"NoSuchKey"}}
+        bank_key="data/warm/tv-bars/universe/US__SPY.json.gz"
+        overlay={"session":"2026-11-10","t":1794321000,"as_of":"2026-11-10T14:37:00+00:00","delay_minutes":15,
+                 "rows":{"SPY":[747.94,749.16,747.05,749.115,3594789,748.4,1794321420000],"AAPL":[351.35,353.87,350,350.67,2670219,351.1,1794321420000]}}
+        def make(bank_last, with_overlay=True):
+            s3=Mock()
+            def read(**kw):
+                if kw["Key"]==bank_key:
+                    return {"Body":io.BytesIO(json.dumps({"bars":[[1794234600,750,753,749,752.69,60000000]] if bank_last=="2026-11-09" else [[1794321000,748,749,747,749.0,1000000]],"span":"day"}).encode()),"LastModified":datetime.now(timezone.utc)}
+                if kw["Key"]==warehouse_routing.TODAY_KEY and with_overlay:
+                    return {"Body":io.BytesIO(_gz.compress(json.dumps(overlay).encode())),"LastModified":datetime.now(timezone.utc)}
+                raise Missing()
+            s3.get_object.side_effect=read
+            return s3
+        warehouse_routing._TODAY.update({"at":0.0,"doc":None})
+        doc=warehouse_routing.banked_ohlc(make("2026-11-09"),"bucket","SPY")
+        self.assertEqual(len(doc["bars"]),2)
+        self.assertEqual(doc["bars"][-1],[1794321000,747.94,749.16,747.05,749.115,3594789.0])
+        self.assertEqual(doc["bar_sources"][-1],"polygon-snapshot:forming-day (15-minute delayed)")
+        self.assertEqual(doc["forming_bar"]["session"],"2026-11-10")
+        self.assertEqual(doc["forming_bar"]["updated_ms"],1794321420000)
+        self.assertEqual(doc["vendor_requests"],0)
+        # the overlay is read once a minute, not per request
+        s3=make("2026-11-09"); warehouse_routing.banked_ohlc(s3,"bucket","SPY"); warehouse_routing.banked_ohlc(s3,"bucket","SPY")
+        self.assertEqual(sum(1 for c in s3.get_object.call_args_list if c.kwargs["Key"]==warehouse_routing.TODAY_KEY),0)
+        # the bank already holds the session (after the nightly append): nothing appended
+        warehouse_routing._TODAY.update({"at":0.0,"doc":None})
+        doc=warehouse_routing.banked_ohlc(make("2026-11-10"),"bucket","SPY")
+        self.assertEqual(len(doc["bars"]),1); self.assertNotIn("forming_bar",doc)
+        # a weekly read still gets the daily source (the Worker folds it); an intraday read stays empty
+        warehouse_routing._TODAY.update({"at":0.0,"doc":None})
+        self.assertEqual(len(warehouse_routing.banked_ohlc(make("2026-11-09"),"bucket","SPY","week")["bars"]),1)
+        self.assertTrue(warehouse_routing.banked_ohlc(make("2026-11-09"),"bucket","SPY","minute")["warehouse_empty"])
+        # no overlay object: served as banked
+        warehouse_routing._TODAY.update({"at":0.0,"doc":None})
+        doc=warehouse_routing.banked_ohlc(make("2026-11-09",with_overlay=False),"bucket","SPY")
+        self.assertEqual(len(doc["bars"]),1); self.assertNotIn("forming_bar",doc)
+        # pure helper: crypto / FX / index symbols never take a US overlay row
+        self.assertIsNone(warehouse_routing.us_ticker("BTC-USD",["X:BTCUSD"]))
+        self.assertIsNone(warehouse_routing.us_ticker("EURUSD=X",["C:EURUSD"]))
+        self.assertIsNone(warehouse_routing.us_ticker("^VIX",["I:VIX","TVC:VIX"]))
+        self.assertEqual(warehouse_routing.us_ticker("NASDAQ:AAPL",["NASDAQ:AAPL"]),"AAPL")
+        self.assertEqual(warehouse_routing.us_ticker("SPY",warehouse_routing._banks_for("SPY")),"SPY")
+        warehouse_routing._TODAY.update({"at":0.0,"doc":None})
 
 
 if __name__ == "__main__":

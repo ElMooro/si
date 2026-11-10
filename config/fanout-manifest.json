@@ -93,6 +93,7 @@
    "justhodl-options-analytics",
    "justhodl-options-gamma",
    "justhodl-polygon-fx-regime",
+   "justhodl-polygon-today",
    "justhodl-risk-regime",
    "justhodl-tail-risk",
    "justhodl-trade-ticket-monitor"
@@ -712,6 +713,13 @@
    "ticks": [
     "session-5min"
    ]
+  },
+  "justhodl-polygon-today": {
+   "fired_hours": [],
+   "per_day": 0.0,
+   "ticks": [
+    "session-5min"
+   ]
   }
  },
  "doctrine": "This is the fan-out router's manifest. config/schedule-manifest.json is the declarative rules/schedules snapshot and must never be written here.",
@@ -816,12 +824,16 @@
    "justhodl-options-analytics",
    "justhodl-options-gamma",
    "justhodl-polygon-fx-regime",
+   "justhodl-polygon-today",
    "justhodl-risk-regime",
    "justhodl-tail-risk",
    "justhodl-trade-ticket-monitor"
   ],
   "removed_2026_10_22": {
    "justhodl-polygon-futures-curves": "removed 2026-10-22: Massive allows ~5 futures requests a minute, so the run is paced to ~9 minutes and cannot repeat every 5 minutes (every lane tick of 2026-10-21 failed, ops 6609); its daily 13:00 UTC run stays"
+  },
+  "added_2026_11_10": {
+   "justhodl-polygon-today": "Khalid 2026-11-10: SPY delayed almost 24 hours - every bank is end-of-day; this member writes today's forming day bar for every US stock / ETF from ONE Polygon all-tickers snapshot (0.7 s, 15-minute delayed) into data/warm/polygon-full/today.json.gz; readers append it as the last bar"
   }
  },
  "retired_2026_10_26": {
