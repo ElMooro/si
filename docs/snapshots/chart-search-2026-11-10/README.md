@@ -1,0 +1,35 @@
+# chart.html universal search — restore points (2026-11-10)
+
+Khalid, 2026-11-10 11:34 ET: "on justhodl.ai/chart.html on macro tab you made me a search bar and its great i love it ...
+before you change anything save the current settings somewhere so that we can revert to if you ever mess it up."
+
+Two restore points. Nothing else on the page is touched by the search work; the three files below are the whole
+search + watchlist surface (`jh-uni-search.js` = the dialog, `jh-tv-watchlist.js` = the watchlist it adds to,
+`chart.html` = the script tags that load them).
+
+| point | what it is | git | files here |
+|---|---|---|---|
+| `before-148` | the search as Khalid loved it on the morning of 2026-11-10 (Codex lane, 2026-10-05/06) | commit `81d10e20` (tag `chart-search-before-20261110`) | `before-148/jh-uni-search.js.txt` |
+| `current` | after PR #148 "Search: add all loaded results and enlarge dialog" (Codex lane, 10:47 ET) | commit `86200289` (tag `chart-search-148`) | `current/*.txt` |
+
+Later changes (the "add all" + bigger-dialog enhancement Claude ships after this snapshot) sit on top of `current`.
+
+## Revert (Git Bash on Khalid's Windows machine, inside the si clone)
+
+Back to the search exactly as it was before PR #148:
+
+    git pull
+    git checkout chart-search-before-20261110 -- jh-uni-search.js
+    git commit -m "revert chart search to the 2026-11-10 morning state [skip-ops]"
+    git push
+
+Back to the PR #148 state:
+
+    git pull
+    git checkout chart-search-148 -- jh-uni-search.js
+    git commit -m "revert chart search to PR #148 [skip-ops]"
+    git push
+
+Either push triggers the Pages build (~10 min); the build content-hash-stamps the script tag, so no cache-bust edit
+is needed. The `.txt` copies in this folder are the same bytes (sha256 in `SHA256SUMS`) in case the tags are ever lost:
+`cp docs/snapshots/chart-search-2026-11-10/before-148/jh-uni-search.js.txt jh-uni-search.js`.
