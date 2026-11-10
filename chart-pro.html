@@ -1218,17 +1218,40 @@ body.macro-pointer-dragging { user-select:none; cursor:grabbing; }
 }
 .macro-save-btn:disabled { opacity:.35; cursor:not-allowed; }
 .macro-picker-empty { padding:15px; text-align:center; color:var(--fg-4); font:9.5px/1.4 var(--font-mono); }
-.macro-search-results { display: flex; flex-direction: column; gap: 5px; }
+.macro-search-results { display: flex; flex-direction: column; gap: 6px; }
 .macro-sr {
-  display: grid; grid-template-columns: 110px 1fr auto auto; align-items: center; gap: 12px;
-  padding: 9px 12px; cursor: pointer; border-radius: 6px;
+  display: grid; grid-template-columns: 34px minmax(150px, 210px) 1fr auto auto; align-items: center; gap: 14px;
+  padding: 11px 14px; min-height: 58px; box-sizing: border-box; cursor: pointer; border-radius: 8px;
   background: var(--bg-1); border: 1px solid var(--border);
   font-family: var(--font-mono);
 }
-.macro-sr:hover { border-color: var(--cyan); background: var(--bg-2); }
-.macro-sr .sr-id { color: var(--violet); font-weight: 700; font-size: 11.5px; }
-.macro-sr .sr-title { color: var(--fg-1); font-size: 11.5px; font-family: var(--font-sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.macro-sr .sr-meta { color: var(--fg-3); font-size: 9.5px; text-align: right; }
+.macro-sr:hover, .macro-sr:focus-visible { border-color: var(--cyan); background: var(--bg-2); outline: none; }
+.macro-sr .sr-logo { width: 32px; height: 32px; border-radius: 50%; background: var(--bg-2); border: 1px solid var(--border); color: var(--fg-2); display: inline-flex; align-items: center; justify-content: center; font: 700 11px/1 var(--font-mono); }
+.macro-sr .sr-id { color: var(--violet); font-weight: 700; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.macro-sr .sr-title { color: var(--fg-1); font-size: 14px; font-family: var(--font-sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.macro-sr .sr-title small { display: block; color: var(--fg-4); font: 10.5px/1.3 var(--font-mono); margin-top: 2px; }
+.macro-sr .sr-meta { color: var(--fg-3); font-size: 10px; text-align: right; text-transform: uppercase; letter-spacing: .4px; border: 1px solid var(--border); border-radius: 4px; padding: 3px 7px; white-space: nowrap; }
+.macro-sr .sr-add { font-size: 10.5px; padding: 8px 12px; border-radius: 16px; }
+.macro-sr .sr-add.ok { border-color: var(--green); color: var(--green); }
+.macro-sr-head { display: grid; gap: 10px; margin-bottom: 12px; }
+.macro-sr-sum { font: 600 15px/1.3 var(--font-sans); color: var(--fg-0); }
+.macro-sr-sum small { display: block; color: var(--fg-3); font: 11px/1.4 var(--font-mono); margin-top: 3px; }
+.macro-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.macro-chip { border: 1px solid var(--border); background: var(--bg-2); color: var(--fg-2); border-radius: 16px; padding: 6px 12px; font: 600 11.5px/1 var(--font-sans); cursor: pointer; }
+.macro-chip b { color: var(--fg-4); font-weight: 600; margin-left: 4px; }
+.macro-chip:hover, .macro-chip:focus-visible { border-color: var(--cyan); color: var(--cyan); outline: none; }
+.macro-chip.on { background: var(--fg-0); color: var(--bg); border-color: var(--fg-0); }
+.macro-chip.on b { color: var(--bg); opacity: .7; }
+.macro-add-all { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 14px; border: 1px solid var(--cyan); border-radius: 10px; background: var(--bg-1); }
+.macro-add-all-btn { border: 1px solid var(--cyan); background: var(--cyan); color: #06111c; border-radius: 20px; padding: 10px 18px; font: 700 13px/1 var(--font-sans); cursor: pointer; white-space: nowrap; }
+.macro-add-all-btn:hover { filter: brightness(1.08); }
+.macro-add-all-btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+.macro-add-all-btn:disabled { opacity: .5; cursor: progress; }
+.macro-add-all-to { color: var(--fg-3); font: 12px var(--font-mono); }
+.macro-add-all select { border: 1px solid var(--border); border-radius: 8px; background: var(--bg-2); color: var(--fg-1); padding: 9px 10px; font: 600 12.5px/1.2 var(--font-sans); max-width: 380px; min-width: 0; }
+.macro-add-all small { flex-basis: 100%; color: var(--fg-4); font: 10.5px/1.4 var(--font-mono); }
+.macro-cat-flash { animation: macroCatFlash 2.6s ease-out; border-radius: 8px; }
+@keyframes macroCatFlash { 0% { box-shadow: 0 0 0 3px var(--cyan); } 100% { box-shadow: 0 0 0 0 transparent; } }
 @media (max-width:700px) {
   #macro-modal .heatmap-content { width:100vw !important; max-width:none !important; height:100dvh; border-radius:0; }
   #macro-modal .heatmap-header { align-items:flex-start; flex-wrap:wrap; height:auto; padding:10px; }
@@ -1243,6 +1266,9 @@ body.macro-pointer-dragging { user-select:none; cursor:grabbing; }
   .macro-form-row { grid-template-columns:1fr; }
   .macro-picker-row { grid-template-columns:95px 1fr; }
   .macro-picker-provider { display:none; }
+  .macro-sr { grid-template-columns:minmax(90px,130px) 1fr auto; gap:8px; padding:9px 10px; min-height:48px; }
+  .macro-sr .sr-logo, .macro-sr .sr-meta { display:none; }
+  .macro-add-all select { max-width:100%; flex:1; }
 }
 
 .chart-toolbar {
@@ -2504,7 +2530,7 @@ html, body { max-width: 100vw; overflow-x: hidden; }
     <div class="heatmap-header">
       <div class="heatmap-title" id="macro-modal-title">📈 Macro &amp; Economic Data</div>
       <div style="flex:1;display:flex;align-items:center;gap:8px;margin:0 16px">
-        <input type="text" id="macro-search-input" placeholder="Search all public macro — FRED + ECB, IMF, World Bank, OECD, BIS, Eurostat (millions of series)" style="flex:1;background:var(--bg-2);border:1px solid var(--border);border-radius:5px;padding:8px 12px;font-family:var(--font-mono);font-size:12px;color:var(--fg-1);outline:none">
+        <input type="text" id="macro-search-input" placeholder="Search every macro series — ICE BofA, CPI, unemployment, yields… (FRED, ECB, IMF, World Bank, OECD, BIS, Eurostat)" aria-label="Search every indexed macro series" autocomplete="off" style="flex:1;min-width:0;box-sizing:border-box;min-height:44px;background:var(--bg-2);border:1px solid var(--border);border-radius:9px;padding:9px 14px;font-family:var(--font-sans);font-size:15px;color:var(--fg-1);outline:none">
         <div class="macro-head-actions">
           <span class="macro-reorder-hint">⠿ DRAG TO REORDER · ARROWS ON HANDLE</span>
           <button class="macro-manage-btn" id="macro-add-series" type="button">+ SERIES</button>
@@ -6020,6 +6046,7 @@ class MacroData {
   static dragState = null;
   static pointerDrag = null;
   static inline = false;   // standalone page (macro-data.html): the workspace IS the page, close() must not blank it
+  static lastSearch = null;  // {text, rows, total, sources, provider, added} of the open "Universal series search" (2026-11-10 add-all)
 
   static init() {
     this.load();
@@ -6718,52 +6745,166 @@ class MacroData {
   static async search(text) {
     const body = document.getElementById('macro-body');
     const seq = ++this.searchSeq;
-    if (!text || text.length < 2) { this.renderCatalog(); return; }
+    if (!text || text.length < 2) { this.lastSearch = null; this.renderCatalog(); return; }
     this.renderToken++;
     body.innerHTML = '<div class="wl-loading">Searching every indexed provider…</div>';
     try {
-      const rows = await this.searchRows(text);
+      const found = await this.searchPayload(text);
       if (seq !== this.searchSeq) return;
-      if (!rows.length) {
+      if (!found.rows.length) {
+        this.lastSearch = null;
         body.innerHTML = '<div class="wl-empty">No chartable series found for "' + UI.esc(text) + '"</div>';
         return;
       }
-      body.innerHTML = '<div class="macro-cat-name" style="margin-bottom:8px"><span class="macro-cat-label">Universal series search</span><span class="macro-cat-count">' + rows.length + '</span></div>'
-        + '<div class="macro-search-results">' + rows.map((row, index) => `
-          <div class="macro-sr" data-result-index="${index}" data-symbol="${UI.esc(row.id)}" tabindex="0" role="button" aria-label="Chart ${UI.esc(row.title || row.name || row.id)}">
-            <span class="sr-id">${UI.esc(row.id)}</span>
-            <span class="sr-title">${UI.esc(row.title || row.name || row.id)}</span>
-            <span class="sr-meta">${UI.esc(row.provider_name || row.provider || row.unit || '')}</span>
-            <button class="macro-manage-btn" type="button" data-add-result="${index}">+ ADD</button>
-          </div>`).join('') + '</div>';
-      body.querySelectorAll('.macro-sr').forEach(el => {
-        el.addEventListener('click', e => {
-          if (e.target.closest('button')) return;
-          this.chartSeries(el.dataset.symbol);
-          this.close();
-        });
-        el.addEventListener('keydown', e => {
-          if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('button')) {
-            e.preventDefault();
-            this.chartSeries(el.dataset.symbol);
-            this.close();
-          }
-        });
-      });
-      body.querySelectorAll('[data-add-result]').forEach(button => {
-        button.addEventListener('click', e => {
-          e.stopPropagation();
-          const row = rows[Number(button.dataset.addResult)];
-          this.openSeriesEditor(null, null, row, button);
-        });
-      });
+      this.lastSearch = { text, rows: found.rows, total: found.total, sources: found.sources, provider: '', added: {} };
+      this.renderSearch();
     } catch (e) {
       if (seq !== this.searchSeq) return;
+      this.lastSearch = null;
       body.innerHTML = '<div class="wl-empty">Search failed. Try again.</div>';
     }
   }
 
-  static async searchRows(text) {
+  /* 2026-11-10 (Khalid: "add the option to add all the series from that drop down menu all at once ... big and
+     beautiful like TradingView"): the Universal series search renders through here — a summary line, provider chips,
+     the "+ Add all N to <category>" bar, and TradingView-sized rows. The per-row "+ ADD" (editor with a danger rule)
+     is unchanged; the catalog view is untouched. */
+  static providerLabel(row) {
+    return String(row.provider_name || row.provider || String(row.id || '').split(':')[0] || 'data');
+  }
+
+  static suggestedCategoryName(rows, text) {
+    // the longest common leading words of the titles ("ICE BofA US High Yield…" + "ICE BofA BBB…" → "ICE BofA"),
+    // otherwise the query itself, title-cased
+    const titles = rows.map(r => String(r.title || r.name || '').trim()).filter(Boolean);
+    if (titles.length > 1) {
+      let words = titles[0].split(/\s+/);
+      for (const t of titles.slice(1)) {
+        const w = t.split(/\s+/);
+        let n = 0;
+        while (n < words.length && n < w.length && words[n].toLowerCase() === w[n].toLowerCase()) n++;
+        words = words.slice(0, n);
+        if (!words.length) break;
+      }
+      const prefix = words.join(' ').replace(/[\s:,;(\-–—]+$/, '');
+      if (prefix.length >= 3) return prefix.slice(0, 60);
+    }
+    return String(text || '').trim().replace(/\s+/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).slice(0, 60) || 'Search results';
+  }
+
+  static renderSearch() {
+    const S = this.lastSearch;
+    const body = document.getElementById('macro-body');
+    if (!S || !body) return;
+    const counts = new Map();
+    S.rows.forEach(r => { const p = this.providerLabel(r); counts.set(p, (counts.get(p) || 0) + 1); });
+    const rows = S.provider ? S.rows.filter(r => this.providerLabel(r) === S.provider) : S.rows;
+    const n = rows.length;
+    const suggested = this.suggestedCategoryName(rows, S.text);
+    const chips = '<button type="button" class="macro-chip' + (S.provider ? '' : ' on') + '" data-macro-prov="">All <b>' + S.rows.length + '</b></button>'
+      + [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([p, c]) =>
+        '<button type="button" class="macro-chip' + (S.provider === p ? ' on' : '') + '" data-macro-prov="' + UI.esc(p) + '">' + UI.esc(p) + ' <b>' + c + '</b></button>').join('');
+    const options = '<option value="__new__">New category “' + UI.esc(suggested) + '”</option>'
+      + this.state.categories.map(cat => '<option value="' + UI.esc(cat.id) + '">' + UI.esc(cat.flag) + ' ' + UI.esc(cat.cat) + ' (' + cat.items.length + ')</option>').join('');
+    const more = S.total && S.total > S.rows.length
+      ? ' <small>' + Number(S.total).toLocaleString() + ' indexed matches' + (S.sources ? ' across ' + S.sources + ' sources' : '') + ' · showing the ' + S.rows.length + ' best — add a word to narrow</small>' : '';
+    body.innerHTML = '<div class="macro-sr-head">'
+      + '<div class="macro-sr-sum"><span class="macro-sr-n">' + n + ' series</span> for “' + UI.esc(S.text) + '”' + (S.provider ? ' · ' + UI.esc(S.provider) : '') + more + '</div>'
+      + '<div class="macro-chips" role="group" aria-label="Filter by provider">' + chips + '</div>'
+      + '<div class="macro-add-all" id="macro-add-all">'
+      + '<button type="button" class="macro-add-all-btn" id="macro-add-all-btn" data-macro-add-all="1" title="Add every series listed below to the category on the right">+ Add all ' + n + '</button>'
+      + '<span class="macro-add-all-to">to</span><select id="macro-add-all-dest" aria-label="Destination category">' + options + '</select>'
+      + '<small>Every series in this dropdown goes into that category in one click · the row + still adds one at a time with a danger rule</small>'
+      + '</div></div>'
+      + '<div class="macro-search-results">' + rows.map(row => {
+        const idx = S.rows.indexOf(row);
+        const prov = this.providerLabel(row);
+        const added = !!S.added[row.id];
+        const unit = row.unit || row.units ? '<small>' + UI.esc(String(row.unit || row.units).slice(0, 40)) + '</small>' : '';
+        return `
+          <div class="macro-sr" data-result-index="${idx}" data-symbol="${UI.esc(row.id)}" tabindex="0" role="button" aria-label="Chart ${UI.esc(row.title || row.name || row.id)}">
+            <span class="sr-logo" aria-hidden="true">${UI.esc(prov.replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || '·')}</span>
+            <span class="sr-id">${UI.esc(row.id)}</span>
+            <span class="sr-title">${UI.esc(row.title || row.name || row.id)}${unit}</span>
+            <span class="sr-meta">${UI.esc(prov)}</span>
+            <button class="macro-manage-btn sr-add${added ? ' ok' : ''}" type="button" data-add-result="${idx}" aria-label="Add ${UI.esc(row.title || row.name || row.id)} with a danger rule">${added ? '✓ ADDED' : '+ ADD'}</button>
+          </div>`;
+      }).join('') + '</div>';
+    body.querySelectorAll('[data-macro-prov]').forEach(chip => chip.addEventListener('click', e => {
+      e.stopPropagation();
+      S.provider = chip.dataset.macroProv || '';
+      this.renderSearch();
+    }));
+    const addAll = document.getElementById('macro-add-all-btn');
+    if (addAll) addAll.addEventListener('click', e => {
+      e.stopPropagation();
+      this.addAllResults(rows, document.getElementById('macro-add-all-dest').value, addAll);
+    });
+    body.querySelectorAll('.macro-sr').forEach(el => {
+      el.addEventListener('click', e => {
+        if (e.target.closest('button')) return;
+        this.chartSeries(el.dataset.symbol);
+        this.close();
+      });
+      el.addEventListener('keydown', e => {
+        if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('button')) {
+          e.preventDefault();
+          this.chartSeries(el.dataset.symbol);
+          this.close();
+        }
+      });
+    });
+    body.querySelectorAll('[data-add-result]').forEach(button => {
+      button.addEventListener('click', e => {
+        e.stopPropagation();
+        const row = S.rows[Number(button.dataset.addResult)];
+        if (row) this.openSeriesEditor(null, null, row, button);
+      });
+    });
+  }
+
+  static addAllResults(rows, destValue, button) {
+    if (!rows || !rows.length) return;
+    if (button) button.disabled = true;
+    let destination = destValue === '__new__' ? null : this.state.categories.find(cat => cat.id === destValue);
+    if (!destination) {
+      destination = { id: `category-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, cat: this.suggestedCategoryName(rows, this.lastSearch ? this.lastSearch.text : ''), flag: '🔎', items: [] };
+      this.state.categories.push(destination);
+    }
+    const have = new Set(destination.items.map(it => String(it.symbol)));
+    let added = 0, dup = 0;
+    rows.forEach(row => {
+      const symbol = String(row.id || '');
+      if (!symbol) return;
+      if (have.has(symbol)) { dup++; return; }
+      have.add(symbol);
+      added++;
+      destination.items.push({
+        uid: `series-${Date.now()}-${Math.random().toString(36).slice(2, 7)}-${added}`,
+        symbol,
+        title: String(row.title || row.name || symbol),
+        units: String(row.unit || row.units || ''),
+        kind: row.kind || 'series',
+        provider: row.provider_name || row.provider || symbol.split(':')[0],
+        danger: { type: 'none', threshold: null, horizon: 'D' },
+      });
+    });
+    this.save();
+    jhToast(`Added ${added} series to ${destination.cat}` + (dup ? ` · ${dup} already there` : ''));
+    const input = document.getElementById('macro-search-input');
+    if (input) input.value = '';
+    this.lastSearch = null;
+    this.renderCatalog();
+    const card = document.querySelector('.macro-cat[data-category-id="' + destination.id.replace(/"/g, '\\"') + '"]');
+    if (card) {
+      card.classList.add('macro-cat-flash');
+      setTimeout(() => card.classList.remove('macro-cat-flash'), 2600);
+      try { card.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) { card.scrollIntoView(); }
+    }
+    return { added, dup, category: destination.cat };
+  }
+
+  static async searchPayload(text) {
     const response = await fetch(`${PROXY}/symsearch?q=${encodeURIComponent(text)}&limit=60`);
     if (!response.ok) throw new Error(`Search ${response.status}`);
     const payload = await response.json();
@@ -6772,12 +6913,18 @@ class MacroData {
       ...((payload.series_hits && payload.series_hits.rows) || []),
       ...(payload.rows || []).filter(row => row.kind === 'series'),
     ];
-    return candidates.filter(row => {
+    const rows = candidates.filter(row => {
       const id = String(row.id || '');
       if (!id || seen.has(id) || row.raw || row.chartable === false || row.kind !== 'series') return false;
       seen.add(id);
       return true;
     });
+    const total = Number(payload.total);
+    return { rows, total: Number.isFinite(total) ? total : null, sources: Array.isArray(payload.facets) ? payload.facets.length : 0 };
+  }
+
+  static async searchRows(text) {
+    return (await this.searchPayload(text)).rows;
   }
 
   static openCategoryEditor(categoryId = null, trigger = null) {

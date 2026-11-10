@@ -176,82 +176,119 @@ window.JH_WS = JH_WS;
 
 class MacroData {
   static STORAGE_KEY = 'jh_macro_workspace_v2';
+  static CATALOG_REV = 3;
   static CATALOG = [
-    { cat: "US Rates & Yields", flag: "🇺🇸", items: [
-      ["DGS10","10Y Treasury Yield","%"], ["DGS2","2Y Treasury Yield","%"],
-      ["DGS30","30Y Treasury Yield","%"], ["DGS3MO","3M Treasury Yield","%"],
-      ["T10Y2Y","10Y-2Y Spread","%"], ["T10Y3M","10Y-3M Spread","%"],
-      ["FEDFUNDS","Fed Funds Rate","%"], ["SOFR","SOFR","%"],
-      ["DFEDTARU","Fed Funds Target Upper","%"], ["DPRIME","Bank Prime Rate","%"],
+    { cat: "US Yield Curve", flag: "🇺🇸", items: [
+      ["DGS1MO","1M Treasury","%"], ["DGS3MO","3M Treasury","%"], ["DGS6MO","6M Treasury","%"],
+      ["DGS1","1Y Treasury","%"], ["DGS2","2Y Treasury","%"], ["DGS5","5Y Treasury","%"],
+      ["DGS7","7Y Treasury","%"], ["DGS10","10Y Treasury","%"], ["DGS20","20Y Treasury","%"],
+      ["DGS30","30Y Treasury","%"], ["T10Y2Y","10Y-2Y Spread","%"], ["T10Y3M","10Y-3M Spread","%"],
+      ["T10YFF","10Y minus Fed Funds","%"],
     ]},
-    { cat: "Inflation", flag: "🔥", items: [
-      ["CPIAUCSL","CPI (All Items)","Index"], ["CPILFESL","Core CPI","Index"],
+    { cat: "Policy Rates", flag: "🏦", items: [
+      ["DFEDTARU","Fed Funds Target Upper","%"], ["DFF","Fed Funds (daily)","%"],
+      ["EFFR","Effective Fed Funds","%"], ["SOFR","SOFR","%"],
+      ["SOFR30DAYAVG","SOFR 30-day Avg","%"], ["SOFR90DAYAVG","SOFR 90-day Avg","%"],
+      ["IORB","Interest on Reserve Balances","%"], ["OBFR","Overnight Bank Funding","%"],
+      ["DPRIME","Bank Prime Rate","%"], ["FEDFUNDS","Fed Funds (monthly)","%"],
+    ]},
+    { cat: "Real Yields & Inflation Expectations", flag: "🔥", items: [
+      ["DFII5","5Y TIPS Real Yield","%"], ["DFII10","10Y TIPS Real Yield","%"], ["DFII30","30Y TIPS Real Yield","%"],
+      ["T5YIE","5Y Breakeven","%"], ["T10YIE","10Y Breakeven","%"], ["T5YIFR","5Y5Y Forward Inflation","%"],
+      ["THREEFYTP10","10Y Term Premium (ACM)","%"], ["MICH","Michigan Inflation Expectation","%"],
+    ]},
+    { cat: "Fed Balance Sheet & Liquidity", flag: "💧", items: [
+      ["WALCL","Fed Total Assets","$M"], ["TREAST","Fed Treasuries","$M"],
+      ["WSHOMCB","Fed MBS","$M"], ["WSHOSHO","Fed Securities Held Outright","$M"],
+      ["WCURCIR","Currency in Circulation","$M"], ["WRESBAL","Reserve Balances","$M"],
+      ["WTREGEN","Treasury General Account","$M"], ["RRPONTSYD","Overnight Reverse Repo","$B"],
+      ["TOTRESNS","Total Reserves","$B"], ["BOGMBASE","Monetary Base","$B"],
+      ["M2SL","M2 Money Supply","$B"], ["M1SL","M1 Money Supply","$B"], ["WM2NS","M2 (weekly)","$B"],
+    ]},
+    { cat: "Credit, Banks & Stress", flag: "⚠️", items: [
+      ["BAMLH0A0HYM2","High-Yield OAS","%"], ["BAMLH0A1HYBB","BB High-Yield OAS","%"],
+      ["BAMLH0A3HYC","CCC High-Yield OAS","%"], ["BAMLH0A0HYM2EY","HY Effective Yield","%"],
+      ["BAMLC0A0CM","Investment-Grade OAS","%"], ["BAMLC0A4CBBB","BBB Corporate OAS","%"],
+      ["AAA","AAA Corporate Yield","%"], ["BAA","BAA Corporate Yield","%"], ["BAA10Y","BAA minus 10Y","%"],
+      ["STLFSI4","St. Louis Fed Financial Stress","Index"], ["NFCI","Chicago Fed NFCI","Index"],
+      ["ANFCI","Adjusted NFCI","Index"], ["NFCIRISK","NFCI Risk","Index"],
+      ["NFCILEVERAGE","NFCI Leverage","Index"], ["NFCICREDIT","NFCI Credit","Index"],
+      ["DRTSCILM","Bank Lending Standards","%"], ["DRCCLACBS","Credit-Card Delinquency","%"],
+      ["TOTLL","Bank Loans","$B"], ["DPSACBW027SBOG","Bank Deposits","$B"], ["TOTALSL","Consumer Credit","$M"],
+    ]},
+    { cat: "Inflation", flag: "📈", items: [
+      ["CPIAUCSL","CPI","Index"], ["CPILFESL","Core CPI","Index"],
       ["PCEPI","PCE Price Index","Index"], ["PCEPILFE","Core PCE","Index"],
-      ["T5YIE","5Y Breakeven Inflation","%"], ["T10YIE","10Y Breakeven","%"],
-      ["T5YIFR","5Y-5Y Forward Inflation","%"], ["PPIACO","Producer Price Index","Index"],
+      ["PPIACO","Producer Price Index","Index"], ["GASREGW","US Regular Gasoline","$/gal"],
     ]},
-    { cat: "Growth & Activity", flag: "📈", items: [
-      ["GDPC1","Real GDP","$B"], ["A191RL1Q225SBEA","Real GDP Growth (QoQ)","%"],
-      ["INDPRO","Industrial Production","Index"], ["TCU","Capacity Utilization","%"],
+    { cat: "Labor", flag: "👷", items: [
+      ["UNRATE","Unemployment Rate","%"], ["U6RATE","U-6 Underemployment","%"],
+      ["PAYEMS","Nonfarm Payrolls","Thousands"], ["MANEMP","Manufacturing Payrolls","Thousands"],
+      ["ICSA","Initial Claims","Number"], ["IC4WSA","Claims, 4-week Avg","Number"],
+      ["CCSA","Continued Claims","Number"], ["CIVPART","Participation Rate","%"],
+      ["EMRATIO","Employment-Population","%"], ["JTSJOL","Job Openings","Thousands"],
+      ["JTSQUR","Quits Rate","%"], ["AHETPI","Avg Hourly Earnings, Prod.","$/hr"],
+      ["CES0500000003","Avg Hourly Earnings, Total","$/hr"],
+    ]},
+    { cat: "Growth & Activity", flag: "🏭", items: [
+      ["GDPC1","Real GDP","$B"], ["A191RL1Q225SBEA","Real GDP Growth","%"],
+      ["INDPRO","Industrial Production","Index"], ["IPMAN","Manufacturing Output","Index"],
+      ["TCU","Capacity Utilization","%"], ["CFNAI","Chicago Fed National Activity","Index"],
       ["RSAFS","Retail Sales","$M"], ["UMCSENT","Consumer Sentiment","Index"],
-      ["NAPM","ISM Manufacturing PMI","Index"], ["DGORDER","Durable Goods Orders","$M"],
-    ]},
-    { cat: "Employment", flag: "👷", items: [
-      ["UNRATE","Unemployment Rate","%"], ["PAYEMS","Nonfarm Payrolls","Thousands"],
-      ["ICSA","Initial Jobless Claims","Number"], ["CIVPART","Labor Force Participation","%"],
-      ["JTSJOL","Job Openings (JOLTS)","Thousands"], ["AHETPI","Avg Hourly Earnings","$"],
-      ["CES0500000003","Avg Hourly Earnings (Total)","$"],
-    ]},
-    { cat: "Money & Liquidity", flag: "💵", items: [
-      ["M2SL","M2 Money Supply","$B"], ["WALCL","Fed Balance Sheet","$M"],
-      ["WRESBAL","Bank Reserves","$B"], ["RRPONTSYD","Reverse Repo (ON RRP)","$B"],
-      ["WTREGEN","Treasury General Account","$B"], ["BOGMBASE","Monetary Base","$M"],
-      ["WM2NS","M2 (Weekly)","$B"],
-    ]},
-    { cat: "Credit & Stress", flag: "⚠️", items: [
-      ["BAMLH0A0HYM2","High-Yield OAS","%"], ["BAMLC0A0CM","IG Corporate OAS","%"],
-      ["STLFSI4","St. Louis Fed Financial Stress","Index"], ["NFCI","Chicago Fed Conditions","Index"],
-      ["BAMLH0A0HYM2EY","HY Effective Yield","%"], ["DRTSCILM","Bank Lending Standards","%"],
+      ["DGORDER","Durable Goods Orders","$M"], ["NEWORDER","Core Capital Goods Orders","$M"],
+      ["BUSINV","Business Inventories","$M"], ["USEPUINDXD","Economic Policy Uncertainty","Index"],
     ]},
     { cat: "Housing", flag: "🏠", items: [
-      ["HOUST","Housing Starts","Thousands"], ["CSUSHPINSA","Case-Shiller Home Price","Index"],
-      ["MORTGAGE30US","30Y Mortgage Rate","%"], ["MSPUS","Median Home Sale Price","$"],
-      ["PERMIT","Building Permits","Thousands"], ["EXHOSLUSM495S","Existing Home Sales","Number"],
+      ["HOUST","Housing Starts","Thousands"], ["PERMIT","Building Permits","Thousands"],
+      ["HSN1F","New Home Sales","Thousands"], ["EXHOSLUSM495S","Existing Home Sales","Number"],
+      ["MSACSR","Months' Supply of New Homes","Months"], ["MSPUS","Median New Home Price","$"],
+      ["MORTGAGE30US","30Y Mortgage Rate","%"], ["MORTGAGE15US","15Y Mortgage Rate","%"],
+      ["CSUSHPISA","Case-Shiller Home Price","Index"], ["CSUSHPINSA","Case-Shiller (NSA)","Index"],
     ]},
     { cat: "Dollar & FX", flag: "💱", items: [
-      ["DTWEXBGS","Broad Dollar Index","Index"], ["DTWEXAFEGS","Advanced FX Dollar","Index"],
-      ["DEXUSEU","USD/EUR","Rate"], ["DEXJPUS","JPY/USD","Rate"],
-      ["DEXCHUS","CNY/USD","Rate"], ["DEXUSUK","USD/GBP","Rate"],
-      ["DEXKOUS","KRW/USD","Rate"], ["DEXBZUS","BRL/USD","Rate"],
+      ["DTWEXBGS","Broad Dollar","Index"], ["DTWEXAFEGS","Advanced-Economy Dollar","Index"],
+      ["DTWEXEMEGS","EM Dollar","Index"], ["DEXUSEU","USD per Euro","Rate"],
+      ["DEXUSUK","USD per Pound","Rate"], ["DEXJPUS","Yen per USD","Rate"],
+      ["DEXCHUS","Yuan per USD","Rate"], ["DEXCAUS","CAD per USD","Rate"],
+      ["DEXMXUS","Peso per USD","Rate"], ["DEXBZUS","Real per USD","Rate"],
+      ["DEXKOUS","Won per USD","Rate"], ["DEXSZUS","Franc per USD","Rate"],
     ]},
-    { cat: "Europe", flag: "🇪🇺", items: [
-      ["IRLTLT01DEM156N","German 10Y Bund","%"], ["IRLTLT01FRM156N","France 10Y OAT","%"],
-      ["IRLTLT01ITM156N","Italy 10Y BTP","%"], ["IRLTLT01ESM156N","Spain 10Y","%"],
-      ["ECBDFR","ECB Deposit Facility Rate","%"], ["ECBMRRFR","ECB Main Refi Rate","%"],
-      ["CP0000EZ19M086NEST","Euro Area HICP (Inflation)","Index"], ["LRHUTTTTEZM156S","Euro Area Unemployment","%"],
-      ["CLVMNACSCAB1GQEA19","Euro Area Real GDP","€M"], ["IRLTLT01GBM156N","UK 10Y Gilt","%"],
+    { cat: "Europe & Japan", flag: "🇪🇺", items: [
+      ["ECBDFR","ECB Deposit Rate","%"], ["ECBMRRFR","ECB Main Refi Rate","%"],
+      ["IRLTLT01DEM156N","Germany 10Y","%"], ["IRLTLT01FRM156N","France 10Y","%"],
+      ["IRLTLT01ITM156N","Italy 10Y","%"], ["IRLTLT01ESM156N","Spain 10Y","%"],
+      ["IRLTLT01GBM156N","UK 10Y","%"], ["IRLTLT01JPM156N","Japan 10Y","%"],
+      ["CP0000EZ19M086NEST","Euro Area HICP","Index"], ["LRHUTTTTJPM156S","Japan Unemployment","%"],
+      ["CLVMNACSCAB1GQEA19","Euro Area Real GDP","€M"],
     ]},
-    { cat: "Emerging Markets", flag: "🌍", items: [
-      ["INTDSRJPM193N","Japan Discount Rate","%"], ["INTDSRCNM193N","China Rate","%"],
-      ["IRLTLT01CNM156N","China 10Y","%"], ["INDCPIALLMINMEI","India CPI","Index"],
-      ["BRACPIALLMINMEI","Brazil CPI","Index"], ["MEXCPIALLMINMEI","Mexico CPI","Index"],
-      ["KORCPIALLMINMEI","Korea CPI","Index"], ["ZAFCPIALLMINMEI","South Africa CPI","Index"],
-      ["IDNCPIALLMINMEI","Indonesia CPI","Index"], ["TURCPIALLMINMEI","Turkey CPI","Index"],
+    { cat: "US Fiscal", flag: "🏛", items: [
+      ["GFDEBTN","Federal Debt","$M"], ["GFDEGDQ188S","Debt / GDP","%"],
+      ["MTSDS133FMS","Monthly Federal Deficit","$M"], ["FGRECPT","Federal Receipts","$B"],
+      ["FGEXPND","Federal Expenditures","$B"],
     ]},
-    { cat: "EM/Frontier ETFs (live price)", flag: "🏗️", etf: true, items: [
-      ["EEM","iShares MSCI Emerging Markets"], ["VWO","Vanguard FTSE Emerging Markets"],
-      ["FM","iShares Frontier & Select EM"], ["FXI","China Large-Cap"],
+    { cat: "Commodities & Crypto", flag: "🛢️", items: [
+      ["DCOILWTICO","WTI Crude","$/bbl"], ["DCOILBRENTEU","Brent Crude","$/bbl"],
+      ["DHHNGSP","Henry Hub Gas","$/mmBtu"], ["PCOPPUSDM","Copper","$/mt"],
+      ["PWHEAMTUSDM","Wheat","$/mt"], ["PMAIZMTUSDM","Corn","$/mt"],
+      ["WPU0911","Lumber PPI","Index"], ["CBBTCUSD","Bitcoin","$"], ["CBETHUSD","Ether","$"],
+    ]},
+    { cat: "Markets", flag: "📊", items: [
+      ["SP500","S&P 500","Index"], ["NASDAQCOM","Nasdaq Composite","Index"], ["VIXCLS","VIX","Index"],
+    ]},
+    { cat: "Metals & Energy Tape", flag: "🪙", etf: true, items: [
+      ["GLD","Gold"], ["SLV","Silver"], ["PPLT","Platinum"], ["CPER","Copper"],
+      ["USO","WTI Oil"], ["UNG","Natural Gas"],
+    ]},
+    { cat: "Global Equity Tape", flag: "🌍", etf: true, items: [
+      ["EEM","Emerging Markets"], ["VWO","Emerging Markets Vanguard"], ["FM","Frontier"],
+      ["FXI","China Large Cap"], ["MCHI","China"], ["ASHR","China A-shares"],
       ["EWZ","Brazil"], ["INDA","India"], ["EWW","Mexico"], ["EZA","South Africa"],
-      ["TUR","Turkey"], ["EWY","South Korea"], ["EIDO","Indonesia"], ["VNM","Vietnam"],
-      ["NGE","Nigeria"], ["FRN","Frontier Markets"], ["EWT","Taiwan"], ["EPHE","Philippines"],
-    ]},
-    { cat: "Commodities", flag: "🛢️", items: [
-      ["DCOILWTICO","WTI Crude Oil","$/bbl"], ["DCOILBRENTEU","Brent Crude","$/bbl"],
-      ["GOLDAMGBD228NLBM","Gold (London Fix)","$/oz"], ["DHHNGSP","Natural Gas (Henry Hub)","$/MMBtu"],
-      ["PCOPPUSDM","Copper","$/mt"], ["WPU0911","Lumber PPI","Index"],
+      ["TUR","Turkey"], ["EWY","Korea"], ["EWT","Taiwan"], ["EIDO","Indonesia"],
+      ["VNM","Vietnam"], ["EPHE","Philippines"], ["EWJ","Japan"], ["EWG","Germany"],
+      ["EWU","United Kingdom"], ["EWQ","France"], ["EWL","Switzerland"], ["EWI","Italy"],
+      ["EWP","Spain"], ["EWC","Canada"], ["EWA","Australia"], ["ILF","Latin America"],
     ]},
   ];
-
   static state = null;
   static editMode = null;
   static editId = null;
@@ -267,6 +304,7 @@ class MacroData {
   static dragState = null;
   static pointerDrag = null;
   static inline = false;   // standalone page (macro-data.html): the workspace IS the page, close() must not blank it
+  static lastSearch = null;  // {text, rows, total, sources, provider, added} of the open "Universal series search" (2026-11-10 add-all)
 
   static init() {
     this.load();
@@ -317,15 +355,22 @@ class MacroData {
       const saved = JSON.parse(localStorage.getItem(this.STORAGE_KEY) || 'null');
       if (saved && Array.isArray(saved.categories)) this.state = saved;
     } catch (e) {}
-    if (!this.state) this.state = { version: 2, categories: this.defaults() };
+    if (!this.state || this.state.catalogRev !== this.CATALOG_REV) {
+      this.state = { version: 2, catalogRev: this.CATALOG_REV, categories: this.defaults() };
+      this.normalize();
+      this.save();
+      return this.state;
+    }
     this.normalize();
     return this.state;
   }
 
   static normalize() {
     const cats = Array.isArray(this.state && this.state.categories) ? this.state.categories : [];
+    const rev = this.state && this.state.catalogRev;
     this.state = {
       version: 2,
+      catalogRev: rev === this.CATALOG_REV ? this.CATALOG_REV : undefined,
       categories: cats.map((cat, ci) => ({
         id: String(cat.id || `category-${Date.now()}-${ci}`),
         cat: String(cat.cat || 'Untitled category'),
@@ -724,7 +769,66 @@ class MacroData {
     if (target) this.moveSeries(seriesId, categoryId, categoryId, target.uid, !backward);
   }
 
+  static async fetchMarket(symbol) {
+    const cached = this.metricCache.get(symbol);
+    if (cached && Date.now() - cached.cachedAt < 10 * 60 * 1000) return cached;
+    if (this.metricInflight.has(symbol)) return this.metricInflight.get(symbol);
+    const request = (async () => {
+      const id = encodeURIComponent(symbol);
+      let last = null;
+      let day = null;
+      let asof = '';
+      try {
+        const quote = await fetch(PROXY + '/quotes?tickers=' + id);
+        if (quote.ok) {
+          const payload = await quote.json();
+          const row = payload.tickers && payload.tickers[symbol];
+          if (row && Number.isFinite(Number(row.price))) {
+            last = Number(row.price);
+            day = Number(row.changePct);
+            asof = new Date().toISOString().slice(0, 10);
+          }
+        }
+      } catch (e) {}
+      const pct = (bars, back, current) => {
+        const i = bars.length - 1 - back;
+        if (i < 0 || current == null) return null;
+        const prev = Number(bars[i].close);
+        if (!Number.isFinite(prev) || prev === 0) return null;
+        return ((current - prev) / Math.abs(prev)) * 100;
+      };
+      let changes = { D: Number.isFinite(day) ? day : null, W: null, M: null, Q: null, Y: null };
+      try {
+        const hist = await fetch(PROXY + '/yf-ohlc?symbol=' + id + '&range=1y&interval=1d&nowarehouse=1');
+        if (hist.ok) {
+          const payload = await hist.json();
+          const bars = (payload.bars || []).filter(bar => Number.isFinite(Number(bar.close)));
+          if (bars.length) {
+            const end = bars[bars.length - 1];
+            if (last == null) last = Number(end.close);
+            if (!asof && end.time) asof = new Date(Number(end.time) * 1000).toISOString().slice(0, 10);
+            changes = {
+              D: Number.isFinite(day) ? day : pct(bars, 1, last),
+              W: pct(bars, 5, last),
+              M: pct(bars, 21, last),
+              Q: pct(bars, 63, last),
+              Y: pct(bars, Math.min(252, bars.length - 1), last),
+            };
+          }
+        }
+      } catch (e) {}
+      if (last == null) throw new Error('No market print');
+      const metric = { last: last, asof: asof, changes: changes, spacingDays: 1, cachedAt: Date.now() };
+      this.metricCache.set(symbol, metric);
+      return metric;
+    })();
+    this.metricInflight.set(symbol, request);
+    request.finally(() => this.metricInflight.delete(symbol));
+    return request;
+  }
+
   static async fetchMetric(symbol) {
+    if (String(symbol).indexOf(':') < 0) return this.fetchMarket(symbol);
     const cached = this.metricCache.get(symbol);
     if (cached && Date.now() - cached.cachedAt < 10 * 60 * 1000) return cached;
     if (this.metricInflight.has(symbol)) return this.metricInflight.get(symbol);
@@ -782,35 +886,62 @@ class MacroData {
 
   static hydrateMetrics() {
     const token = ++this.renderToken;
+    this.macroQueue = [];
+    this.macroRunning = 0;
     const cards = [...document.querySelectorAll('#macro-body .macro-item[data-symbol]')];
-    const hydrate = async card => {
-      if (card.dataset.metricState) return;
-      card.dataset.metricState = 'loading';
-      try {
-        const metric = await this.fetchMetric(card.dataset.symbol);
-        if (token !== this.renderToken || !card.isConnected) return;
-        this.paintMetric(card, metric);
-        card.dataset.metricState = 'ready';
-      } catch (e) {
-        if (!card.isConnected || token !== this.renderToken) return;
-        card.classList.remove('loading');
-        card.dataset.metricState = 'error';
-        card.querySelector('.macro-latest-value').textContent = 'Unavailable';
-        card.querySelector('.macro-latest-value').title = String(e && e.message || e);
-      }
+    const enqueue = card => {
+      if (!card || card.dataset.metricState) return;
+      card.dataset.metricState = 'queued';
+      this.macroQueue.push(card);
+      this.pumpMetrics(token);
     };
     if (!('IntersectionObserver' in window)) {
-      cards.slice(0, 24).forEach(hydrate);
+      cards.slice(0, 36).forEach(enqueue);
       return;
     }
+    if (this.metricObserver) this.metricObserver.disconnect();
     this.metricObserver = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (!entry.isIntersecting) return;
         this.metricObserver.unobserve(entry.target);
-        hydrate(entry.target);
+        enqueue(entry.target);
       });
-    }, { root: document.getElementById('macro-body'), rootMargin: '320px 0px', threshold: 0.01 });
+    }, { root: document.getElementById('macro-body'), rootMargin: '280px 0px', threshold: 0.01 });
     cards.forEach(card => this.metricObserver.observe(card));
+  }
+
+  static pumpMetrics(token) {
+    if (token !== this.renderToken) return;
+    while (this.macroRunning < 3 && this.macroQueue && this.macroQueue.length) {
+      const card = this.macroQueue.shift();
+      this.macroRunning++;
+      this.loadCard(card, token, 0).finally(() => {
+        this.macroRunning--;
+        this.pumpMetrics(token);
+      });
+    }
+  }
+
+  static async loadCard(card, token, attempt) {
+    card.dataset.metricState = 'loading';
+    try {
+      const metric = await this.fetchMetric(card.dataset.symbol);
+      if (token !== this.renderToken || !card.isConnected) return;
+      this.paintMetric(card, metric);
+      card.dataset.metricState = 'ready';
+    } catch (e) {
+      const msg = String(e && e.message || e);
+      if (attempt < 2 && token === this.renderToken && (msg.indexOf('429') >= 0 || msg.indexOf('503') >= 0)) {
+        await new Promise(resolve => setTimeout(resolve, 800 * (attempt + 1)));
+        if (token !== this.renderToken || !card.isConnected) return;
+        return this.loadCard(card, token, attempt + 1);
+      }
+      if (!card.isConnected || token !== this.renderToken) return;
+      card.classList.remove('loading');
+      card.dataset.metricState = 'error';
+      card.querySelector('.macro-latest-value').textContent = 'Unavailable';
+      card.querySelector('.macro-latest-value').title = msg;
+    }
   }
 
   static paintMetric(card, metric) {
@@ -818,7 +949,10 @@ class MacroData {
     if (!found) return;
     const item = found.item;
     card.classList.remove('loading');
-    card.querySelector('.macro-latest-value').textContent = this.formatValue(metric.last);
+    const shown = this.formatValue(metric.last, item.units);
+    card.querySelector('.macro-latest-value').textContent = shown;
+    const unitNode = card.querySelector('.macro-latest-unit');
+    if (unitNode && /T$/.test(shown) && (item.units === '$M' || item.units === '$B')) unitNode.textContent = 'USD';
     card.querySelector('.macro-asof').textContent = metric.asof;
     Object.entries(metric.changes).forEach(([horizon, value]) => {
       const node = card.querySelector(`[data-horizon="${horizon}"]`);
@@ -835,14 +969,14 @@ class MacroData {
     }
   }
 
-  static formatValue(value) {
+  static formatValue(value, units) {
     if (!Number.isFinite(value)) return '—';
+    const u = String(units || '');
+    if (u === '$M' && Math.abs(value) >= 1e6) return (value / 1e6).toFixed(2) + 'T';
+    if (u === '$B' && Math.abs(value) >= 1000) return (value / 1e3).toFixed(2) + 'T';
     const abs = Math.abs(value);
-    if (abs >= 1e12) return `${(value / 1e12).toFixed(2)}T`;
-    if (abs >= 1e9) return `${(value / 1e9).toFixed(2)}B`;
-    if (abs >= 1e6) return `${(value / 1e6).toFixed(2)}M`;
-    if (abs >= 1000) return value.toLocaleString(undefined, { maximumFractionDigits: 1 });
-    return value.toLocaleString(undefined, { maximumFractionDigits: abs < 10 ? 3 : 2 });
+    if (abs >= 1000) return value.toLocaleString('en-US', { maximumFractionDigits: abs >= 100000 ? 0 : 1 });
+    return value.toLocaleString('en-US', { maximumFractionDigits: abs < 10 ? 3 : 2 });
   }
 
   static isDanger(rule, metric) {
@@ -869,52 +1003,166 @@ class MacroData {
   static async search(text) {
     const body = document.getElementById('macro-body');
     const seq = ++this.searchSeq;
-    if (!text || text.length < 2) { this.renderCatalog(); return; }
+    if (!text || text.length < 2) { this.lastSearch = null; this.renderCatalog(); return; }
     this.renderToken++;
     body.innerHTML = '<div class="wl-loading">Searching every indexed provider…</div>';
     try {
-      const rows = await this.searchRows(text);
+      const found = await this.searchPayload(text);
       if (seq !== this.searchSeq) return;
-      if (!rows.length) {
+      if (!found.rows.length) {
+        this.lastSearch = null;
         body.innerHTML = '<div class="wl-empty">No chartable series found for "' + UI.esc(text) + '"</div>';
         return;
       }
-      body.innerHTML = '<div class="macro-cat-name" style="margin-bottom:8px"><span class="macro-cat-label">Universal series search</span><span class="macro-cat-count">' + rows.length + '</span></div>'
-        + '<div class="macro-search-results">' + rows.map((row, index) => `
-          <div class="macro-sr" data-result-index="${index}" data-symbol="${UI.esc(row.id)}" tabindex="0" role="button" aria-label="Chart ${UI.esc(row.title || row.name || row.id)}">
-            <span class="sr-id">${UI.esc(row.id)}</span>
-            <span class="sr-title">${UI.esc(row.title || row.name || row.id)}</span>
-            <span class="sr-meta">${UI.esc(row.provider_name || row.provider || row.unit || '')}</span>
-            <button class="macro-manage-btn" type="button" data-add-result="${index}">+ ADD</button>
-          </div>`).join('') + '</div>';
-      body.querySelectorAll('.macro-sr').forEach(el => {
-        el.addEventListener('click', e => {
-          if (e.target.closest('button')) return;
-          this.chartSeries(el.dataset.symbol);
-          this.close();
-        });
-        el.addEventListener('keydown', e => {
-          if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('button')) {
-            e.preventDefault();
-            this.chartSeries(el.dataset.symbol);
-            this.close();
-          }
-        });
-      });
-      body.querySelectorAll('[data-add-result]').forEach(button => {
-        button.addEventListener('click', e => {
-          e.stopPropagation();
-          const row = rows[Number(button.dataset.addResult)];
-          this.openSeriesEditor(null, null, row, button);
-        });
-      });
+      this.lastSearch = { text, rows: found.rows, total: found.total, sources: found.sources, provider: '', added: {} };
+      this.renderSearch();
     } catch (e) {
       if (seq !== this.searchSeq) return;
+      this.lastSearch = null;
       body.innerHTML = '<div class="wl-empty">Search failed. Try again.</div>';
     }
   }
 
-  static async searchRows(text) {
+  /* 2026-11-10 (Khalid: "add the option to add all the series from that drop down menu all at once ... big and
+     beautiful like TradingView"): the Universal series search renders through here — a summary line, provider chips,
+     the "+ Add all N to <category>" bar, and TradingView-sized rows. The per-row "+ ADD" (editor with a danger rule)
+     is unchanged; the catalog view is untouched. */
+  static providerLabel(row) {
+    return String(row.provider_name || row.provider || String(row.id || '').split(':')[0] || 'data');
+  }
+
+  static suggestedCategoryName(rows, text) {
+    // the longest common leading words of the titles ("ICE BofA US High Yield…" + "ICE BofA BBB…" → "ICE BofA"),
+    // otherwise the query itself, title-cased
+    const titles = rows.map(r => String(r.title || r.name || '').trim()).filter(Boolean);
+    if (titles.length > 1) {
+      let words = titles[0].split(/\s+/);
+      for (const t of titles.slice(1)) {
+        const w = t.split(/\s+/);
+        let n = 0;
+        while (n < words.length && n < w.length && words[n].toLowerCase() === w[n].toLowerCase()) n++;
+        words = words.slice(0, n);
+        if (!words.length) break;
+      }
+      const prefix = words.join(' ').replace(/[\s:,;(\-–—]+$/, '');
+      if (prefix.length >= 3) return prefix.slice(0, 60);
+    }
+    return String(text || '').trim().replace(/\s+/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).slice(0, 60) || 'Search results';
+  }
+
+  static renderSearch() {
+    const S = this.lastSearch;
+    const body = document.getElementById('macro-body');
+    if (!S || !body) return;
+    const counts = new Map();
+    S.rows.forEach(r => { const p = this.providerLabel(r); counts.set(p, (counts.get(p) || 0) + 1); });
+    const rows = S.provider ? S.rows.filter(r => this.providerLabel(r) === S.provider) : S.rows;
+    const n = rows.length;
+    const suggested = this.suggestedCategoryName(rows, S.text);
+    const chips = '<button type="button" class="macro-chip' + (S.provider ? '' : ' on') + '" data-macro-prov="">All <b>' + S.rows.length + '</b></button>'
+      + [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([p, c]) =>
+        '<button type="button" class="macro-chip' + (S.provider === p ? ' on' : '') + '" data-macro-prov="' + UI.esc(p) + '">' + UI.esc(p) + ' <b>' + c + '</b></button>').join('');
+    const options = '<option value="__new__">New category “' + UI.esc(suggested) + '”</option>'
+      + this.state.categories.map(cat => '<option value="' + UI.esc(cat.id) + '">' + UI.esc(cat.flag) + ' ' + UI.esc(cat.cat) + ' (' + cat.items.length + ')</option>').join('');
+    const more = S.total && S.total > S.rows.length
+      ? ' <small>' + Number(S.total).toLocaleString() + ' indexed matches' + (S.sources ? ' across ' + S.sources + ' sources' : '') + ' · showing the ' + S.rows.length + ' best — add a word to narrow</small>' : '';
+    body.innerHTML = '<div class="macro-sr-head">'
+      + '<div class="macro-sr-sum"><span class="macro-sr-n">' + n + ' series</span> for “' + UI.esc(S.text) + '”' + (S.provider ? ' · ' + UI.esc(S.provider) : '') + more + '</div>'
+      + '<div class="macro-chips" role="group" aria-label="Filter by provider">' + chips + '</div>'
+      + '<div class="macro-add-all" id="macro-add-all">'
+      + '<button type="button" class="macro-add-all-btn" id="macro-add-all-btn" data-macro-add-all="1" title="Add every series listed below to the category on the right">+ Add all ' + n + '</button>'
+      + '<span class="macro-add-all-to">to</span><select id="macro-add-all-dest" aria-label="Destination category">' + options + '</select>'
+      + '<small>Every series in this dropdown goes into that category in one click · the row + still adds one at a time with a danger rule</small>'
+      + '</div></div>'
+      + '<div class="macro-search-results">' + rows.map(row => {
+        const idx = S.rows.indexOf(row);
+        const prov = this.providerLabel(row);
+        const added = !!S.added[row.id];
+        const unit = row.unit || row.units ? '<small>' + UI.esc(String(row.unit || row.units).slice(0, 40)) + '</small>' : '';
+        return `
+          <div class="macro-sr" data-result-index="${idx}" data-symbol="${UI.esc(row.id)}" tabindex="0" role="button" aria-label="Chart ${UI.esc(row.title || row.name || row.id)}">
+            <span class="sr-logo" aria-hidden="true">${UI.esc(prov.replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || '·')}</span>
+            <span class="sr-id">${UI.esc(row.id)}</span>
+            <span class="sr-title">${UI.esc(row.title || row.name || row.id)}${unit}</span>
+            <span class="sr-meta">${UI.esc(prov)}</span>
+            <button class="macro-manage-btn sr-add${added ? ' ok' : ''}" type="button" data-add-result="${idx}" aria-label="Add ${UI.esc(row.title || row.name || row.id)} with a danger rule">${added ? '✓ ADDED' : '+ ADD'}</button>
+          </div>`;
+      }).join('') + '</div>';
+    body.querySelectorAll('[data-macro-prov]').forEach(chip => chip.addEventListener('click', e => {
+      e.stopPropagation();
+      S.provider = chip.dataset.macroProv || '';
+      this.renderSearch();
+    }));
+    const addAll = document.getElementById('macro-add-all-btn');
+    if (addAll) addAll.addEventListener('click', e => {
+      e.stopPropagation();
+      this.addAllResults(rows, document.getElementById('macro-add-all-dest').value, addAll);
+    });
+    body.querySelectorAll('.macro-sr').forEach(el => {
+      el.addEventListener('click', e => {
+        if (e.target.closest('button')) return;
+        this.chartSeries(el.dataset.symbol);
+        this.close();
+      });
+      el.addEventListener('keydown', e => {
+        if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('button')) {
+          e.preventDefault();
+          this.chartSeries(el.dataset.symbol);
+          this.close();
+        }
+      });
+    });
+    body.querySelectorAll('[data-add-result]').forEach(button => {
+      button.addEventListener('click', e => {
+        e.stopPropagation();
+        const row = S.rows[Number(button.dataset.addResult)];
+        if (row) this.openSeriesEditor(null, null, row, button);
+      });
+    });
+  }
+
+  static addAllResults(rows, destValue, button) {
+    if (!rows || !rows.length) return;
+    if (button) button.disabled = true;
+    let destination = destValue === '__new__' ? null : this.state.categories.find(cat => cat.id === destValue);
+    if (!destination) {
+      destination = { id: `category-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, cat: this.suggestedCategoryName(rows, this.lastSearch ? this.lastSearch.text : ''), flag: '🔎', items: [] };
+      this.state.categories.push(destination);
+    }
+    const have = new Set(destination.items.map(it => String(it.symbol)));
+    let added = 0, dup = 0;
+    rows.forEach(row => {
+      const symbol = String(row.id || '');
+      if (!symbol) return;
+      if (have.has(symbol)) { dup++; return; }
+      have.add(symbol);
+      added++;
+      destination.items.push({
+        uid: `series-${Date.now()}-${Math.random().toString(36).slice(2, 7)}-${added}`,
+        symbol,
+        title: String(row.title || row.name || symbol),
+        units: String(row.unit || row.units || ''),
+        kind: row.kind || 'series',
+        provider: row.provider_name || row.provider || symbol.split(':')[0],
+        danger: { type: 'none', threshold: null, horizon: 'D' },
+      });
+    });
+    this.save();
+    jhToast(`Added ${added} series to ${destination.cat}` + (dup ? ` · ${dup} already there` : ''));
+    const input = document.getElementById('macro-search-input');
+    if (input) input.value = '';
+    this.lastSearch = null;
+    this.renderCatalog();
+    const card = document.querySelector('.macro-cat[data-category-id="' + destination.id.replace(/"/g, '\\"') + '"]');
+    if (card) {
+      card.classList.add('macro-cat-flash');
+      setTimeout(() => card.classList.remove('macro-cat-flash'), 2600);
+      try { card.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) { card.scrollIntoView(); }
+    }
+    return { added, dup, category: destination.cat };
+  }
+
+  static async searchPayload(text) {
     const response = await fetch(`${PROXY}/symsearch?q=${encodeURIComponent(text)}&limit=60`);
     if (!response.ok) throw new Error(`Search ${response.status}`);
     const payload = await response.json();
@@ -923,12 +1171,18 @@ class MacroData {
       ...((payload.series_hits && payload.series_hits.rows) || []),
       ...(payload.rows || []).filter(row => row.kind === 'series'),
     ];
-    return candidates.filter(row => {
+    const rows = candidates.filter(row => {
       const id = String(row.id || '');
       if (!id || seen.has(id) || row.raw || row.chartable === false || row.kind !== 'series') return false;
       seen.add(id);
       return true;
     });
+    const total = Number(payload.total);
+    return { rows, total: Number.isFinite(total) ? total : null, sources: Array.isArray(payload.facets) ? payload.facets.length : 0 };
+  }
+
+  static async searchRows(text) {
+    return (await this.searchPayload(text)).rows;
   }
 
   static openCategoryEditor(categoryId = null, trigger = null) {
@@ -1176,7 +1430,7 @@ class MacroData {
 
   static reset() {
     if (!confirm('Restore the original curated macro catalog? Your custom categories, series, and danger rules will be removed.')) return;
-    this.state = { version: 2, categories: this.defaults() };
+    this.state = { version: 2, catalogRev: this.CATALOG_REV, categories: this.defaults() };
     this.metricCache.clear();
     this.save();
     this.renderCatalog();
@@ -1470,7 +1724,7 @@ class Heatmap {
       legend.innerHTML = st.mode === 'perf'
         ? `<span class="hm-lg down">−${scale}%</span><span class="hm-lg-bar perf"></span><span class="hm-lg up">+${scale}%</span><span class="hm-lg-note">${st.horizon} change · ⏱ stale</span>`
         : st.mode === 'cascade'
-          ? `<span class="hm-lg">0</span><span class="hm-lg-bar cascade"></span><span class="hm-lg">200</span><span class="hm-lg-note">cascade combined score</span>`
+          ? `<span class="hm-lg">0</span><span class="hm-lg-bar cascade"></span><span class="hm-lg">200</span><span class="hm-lg-note">cascade score, or ${st.horizon} change when today's book is empty</span>`
           : `<span class="hm-lg">0</span><span class="hm-lg-bar signals"></span><span class="hm-lg">5+</span><span class="hm-lg-note">live signal sources</span>`;
     }
   }
@@ -1590,9 +1844,10 @@ class Heatmap {
     const st = this.load();
     const cats = st.categories.map(cat => cat.auto === 'cascade' ? { ...cat, items: this.cascadeItems() } : cat);
     const html = cats.map(cat => {
+      if (cat.auto && !(cat.items && cat.items.length)) return '';
       const items = cat.items.map(it => this.cellHtml(cat, it)).join('')
         || (cat.auto
-          ? '<div class="macro-empty-cat">Cascade feed not loaded yet. It fills in automatically when the engine data arrives.</div>'
+          ? ''
           : '<div class="macro-empty-cat">No instruments yet. Use + to add any stock, ETF, index, FX pair, crypto or data series.</div>');
       const tools = cat.auto
         ? `<button class="macro-icon-btn remove" type="button" data-hm-action="hide-auto" data-category-id="${UI.esc(cat.id)}" aria-label="Hide the live cascade category" title="Hide (RESET restores it)">×</button>`
@@ -1836,9 +2091,7 @@ class Heatmap {
     other.forEach(symbol => this.queueHistory(symbol, token));
     this.paintQuotes(market, token).then(() => {
       if (token !== this.renderToken) return;
-      const missing = symbols.filter(symbol => !this.metricsBySymbol.get(symbol));
-      if (market.length && missing.length > market.length * 0.8) return;
-      missing.forEach(symbol => this.queueHistory(symbol, token));
+      symbols.forEach(symbol => this.queueHistory(symbol, token));
     });
     if (!("IntersectionObserver" in window)) {
       cells.slice(0, 36).forEach(cell => this.queueHistory(cell.dataset.symbol, token));
@@ -1873,15 +2126,19 @@ class Heatmap {
     const perf = this.perfValue(metric);
     const score = this.cascadeScore(symbol);
     const sources = this.signalSources(symbol);
-    const value = st.mode === 'perf' ? perf : st.mode === 'cascade' ? score : sources.length;
+    const useCascade = st.mode === 'cascade' && Number.isFinite(score);
+    const useSignals = st.mode === 'signals' && sources.length > 0;
+    const value = useCascade ? score : useSignals ? sources.length : perf;
+    const paintMode = useCascade ? 'cascade' : useSignals ? 'signals' : 'perf';
     cell.classList.remove('loading');
-    cell.style.background = this.colorFor(st.mode, value, st.horizon);
+    cell.style.background = this.colorFor(paintMode, value, st.horizon);
     cell.dataset.value = Number.isFinite(value) ? String(value) : '';
+    cell.dataset.paintMode = paintMode;
     const ch = cell.querySelector('.hm-ch');
-    if (st.mode === 'perf') ch.textContent = this.formatChange(perf);
-    else if (st.mode === 'cascade') ch.textContent = Number.isFinite(score) ? score.toFixed(0) : '—';
-    else ch.textContent = `${sources.length} signal${sources.length === 1 ? '' : 's'}`;
-    ch.className = 'hm-ch ' + (st.mode === 'perf' ? (perf > 0 ? 'up' : perf < 0 ? 'down' : 'na') : 'neutral');
+    if (useCascade) ch.textContent = score.toFixed(0);
+    else if (useSignals) ch.textContent = `${sources.length} signal${sources.length === 1 ? '' : 's'}`;
+    else ch.textContent = this.formatChange(perf);
+    ch.className = 'hm-ch ' + (paintMode === 'perf' ? (perf > 0 ? 'up' : perf < 0 ? 'down' : 'na') : 'neutral');
     if (metric) {
       cell.querySelector('.hm-last-value').textContent = this.formatValue(metric.last);
       cell.querySelector('.hm-asof').textContent = metric.asof ? metric.asof.slice(5) : '';
@@ -1914,13 +2171,19 @@ class Heatmap {
   static paintAverages() {
     const st = this.state;
     document.querySelectorAll('#heatmap-body .hm-grid').forEach(grid => {
-      const values = [...grid.querySelectorAll('.hm-cell')].map(c => Number(c.dataset.value)).filter(v => Number.isFinite(v));
+      const cells = [...grid.querySelectorAll('.hm-cell')];
+      const values = cells.map(c => {
+        const raw = c.dataset.value;
+        if (raw == null || raw === '') return NaN;
+        return Number(raw);
+      }).filter(v => Number.isFinite(v));
+      const paintMode = (cells.find(c => c.dataset.paintMode) || {}).dataset?.paintMode || st.mode;
       const node = document.querySelector(`[data-category-avg="${CSS.escape(grid.dataset.categoryId)}"]`);
       if (!node) return;
       if (!values.length) { node.textContent = ''; return; }
       const avg = values.reduce((a, b) => a + b, 0) / values.length;
-      node.textContent = st.mode === 'perf' ? `avg ${this.formatChange(avg)}` : st.mode === 'cascade' ? `avg ${avg.toFixed(0)}` : `avg ${avg.toFixed(1)} signals`;
-      node.className = 'hm-sector-avg ' + (st.mode === 'perf' ? (avg > 0 ? 'up' : avg < 0 ? 'down' : '') : '');
+      node.textContent = paintMode === 'perf' ? `avg ${this.formatChange(avg)}` : paintMode === 'cascade' ? `avg ${avg.toFixed(0)}` : `avg ${avg.toFixed(1)} signals`;
+      node.className = 'hm-sector-avg ' + (paintMode === 'perf' ? (avg > 0 ? 'up' : avg < 0 ? 'down' : '') : '');
     });
   }
 
