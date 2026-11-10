@@ -93,7 +93,7 @@ def main():
                 page.wait_for_timeout(2500)
                 r.section("%dx%d" % (W, H))
                 if W == 1440:
-                    check("the page serves the enhanced search module (not a cached copy)", lambda: page.evaluate("""async () => { const s = [...document.scripts].map(x => x.src).find(u => /jh-uni-search\.js/.test(u)); if (!s) throw new Error('no jh-uni-search.js script tag');
+                    check("the page serves the enhanced search module (not a cached copy)", lambda: page.evaluate("""async () => { const s = [...document.scripts].map(x => x.src).find(u => /jh-uni-search[.]js/.test(u)); if (!s) throw new Error('no jh-uni-search.js script tag');
                         const t = await (await fetch(s, {cache: 'no-store'})).text(); const has = /data-act="openlist"/.test(t) && /us-badge/.test(t) && /Every chartable row below/.test(t);
                         if (!has) throw new Error('served module lacks the 2026-11-10 markers: ' + s); return s.replace(location.origin, '') + ' (' + t.length + ' bytes, markers present)'; }"""))
                 for qi, query in enumerate(QUERIES):
