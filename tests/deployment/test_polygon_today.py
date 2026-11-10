@@ -71,3 +71,4 @@ def test_only_this_sessions_prints_become_forming_bars():
     assert rt.with_forming_bar(held, "SPY", rt._banks_for("SPY"), overlay, "day", 1) is held
     assert rt.with_forming_bar(bank, "BTC-USD", rt._banks_for("BTC-USD"), overlay, "day", 1) is bank
     assert rt.with_forming_bar(bank, "SPY", rt._banks_for("SPY"), overlay, "minute", 1) is bank
+    assert len(rt.with_forming_bar(bank, "SPY", rt._banks_for("SPY"), overlay, "week", 1)["bars"]) == 2, "a week folds from the daily source: the forming bar belongs to the current week"

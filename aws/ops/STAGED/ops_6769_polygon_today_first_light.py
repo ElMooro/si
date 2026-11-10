@@ -55,6 +55,11 @@ def day_of(ts):
     return datetime.fromtimestamp(float(ts), tz=NY).date().isoformat()
 
 
+def utc_day_of(ts):
+    """chart.html re-stamps daily bars at UTC midnight (asDaily); the Worker's week buckets start Monday 00:00 UTC."""
+    return datetime.fromtimestamp(float(ts), tz=timezone.utc).date().isoformat()
+
+
 def ensure_playwright(log):
     try:
         import playwright  # noqa: F401
@@ -164,8 +169,10 @@ def main():
                 fails.append("%s /ohlc does not end on today's forming bar" % t)
         st, body = get(PROXY + "/ohlc?ticker=SPY&span=week&mult=1&days=120&nocache=%d" % int(time.time() * 1000))
         wb = ((body or {}).get("bars") or [])
-        r.log("SPY weekly: HTTP %s count %s | last week bar %s close %s (folds today's bar: %s)" % (st, len(wb), day_of(wb[-1]["time"]) if wb else None, wb[-1].get("close") if wb else None,
-              bool(wb) and overlay_rows.get("SPY") and abs(float(wb[-1]["close"]) - float(overlay_rows["SPY"][3])) < 1e-6))
+        week_ok = bool(wb) and overlay_rows.get("SPY") and abs(float(wb[-1]["close"]) - float(overlay_rows["SPY"][3])) < 1e-6
+        r.log("SPY weekly: HTTP %s count %s | last week bar (Monday 00:00 UTC) %s close %s (folds today's bar: %s)" % (st, len(wb), utc_day_of(wb[-1]["time"]) if wb else None, wb[-1].get("close") if wb else None, week_ok))
+        if not week_ok:
+            fails.append("the SPY weekly read does not fold today's forming bar")
 
         r.section("5. chart.html in headless Chrome: the last candle is today's")
         sync_playwright = ensure_playwright(r.log)
@@ -188,10 +195,10 @@ def main():
                     return {n: b.length, active: window.jhActive, source: window.lastSource, last: {time: l.time, close: l.close, open: l.open, volume: l.volume}, prev: {time: p.time, close: p.close},
                             header: (document.querySelector('#hdr-px, .px, #lastpx') || {}).innerText || null}; }""")
                 lt = st5.get("last") or {}
-                ok = lt.get("time") and day_of(lt["time"]) == today and overlay_rows.get(sym) and abs(float(lt.get("close") or 0) - float(overlay_rows[sym][3])) < 1e-6
-                r.log("%s: %d bars | source %s | last candle %s ET close %s open %s vol %s | prev %s close %s | overlay close %s | %s" % (
-                    sym, st5.get("n") or 0, st5.get("source"), datetime.fromtimestamp(float(lt["time"]), tz=NY).strftime("%Y-%m-%d %H:%M") if lt.get("time") else None, lt.get("close"), lt.get("open"), lt.get("volume"),
-                    day_of((st5.get("prev") or {}).get("time")) if (st5.get("prev") or {}).get("time") else None, (st5.get("prev") or {}).get("close"), (overlay_rows.get(sym) or [None] * 4)[3], "OK today's candle" if ok else "NOT today"))
+                ok = lt.get("time") and utc_day_of(lt["time"]) == today and overlay_rows.get(sym) and abs(float(lt.get("close") or 0) - float(overlay_rows[sym][3])) < 1e-6
+                r.log("%s: %d bars | source %s | last candle %s (UTC-midnight stamp) close %s open %s vol %s | prev %s close %s | overlay close %s | %s" % (
+                    sym, st5.get("n") or 0, st5.get("source"), utc_day_of(lt["time"]) if lt.get("time") else None, lt.get("close"), lt.get("open"), lt.get("volume"),
+                    utc_day_of((st5.get("prev") or {}).get("time")) if (st5.get("prev") or {}).get("time") else None, (st5.get("prev") or {}).get("close"), (overlay_rows.get(sym) or [None] * 4)[3], "OK today's candle" if ok else "NOT today"))
                 if not ok:
                     fails.append("chart.html %s: the last candle is not today's forming bar" % sym)
                 if sym == "SPY":

@@ -52,8 +52,10 @@ def us_ticker(symbol, banks):
 
 
 def with_forming_bar(result, symbol, banks, overlay, span, mult):
-    """Append the overlay's forming day bar to a daily bank result when the bank's last session is older. Pure."""
-    if not overlay or span != "day" or mult != 1 or not result or result.get("warehouse_empty") or result.get("source_span") != "day" or int(result.get("source_mult") or 1) != 1:
+    """Append the overlay's forming day bar to a DAILY-SOURCED bank result when the bank's last session is older - for a
+    day, week or month read (the Worker folds weeks / months from the daily bars, so the forming bar lands in the current
+    week / month too). Pure."""
+    if not overlay or span not in ("day", "week", "month") or not result or result.get("warehouse_empty") or result.get("source_span") != "day" or int(result.get("source_mult") or 1) != 1:
         return result
     t = us_ticker(symbol, banks)
     row = (overlay.get("rows") or {}).get(t) if t else None
@@ -80,7 +82,7 @@ def with_forming_bar(result, symbol, banks, overlay, span, mult):
 def banked_ohlc(s3, bucket, symbol, span="day", mult=1):
     """A daily read of a US stock / ETF carries today's forming bar from the snapshot overlay (see with_forming_bar)."""
     result = _banked_ohlc(s3, bucket, symbol, span, mult)
-    if span == "day" and mult == 1 and not result.get("warehouse_empty"):
+    if span in ("day", "week", "month") and not result.get("warehouse_empty") and result.get("source_span") == "day" and int(result.get("source_mult") or 1) == 1:
         banks = _banks_for(str(symbol).upper())
         overlay = today_overlay(s3, bucket)
         return with_forming_bar(result, symbol, banks, overlay, span, mult)

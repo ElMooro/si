@@ -115,9 +115,10 @@ class WarehouseTests(unittest.TestCase):
         warehouse_routing._TODAY.update({"at":0.0,"doc":None})
         doc=warehouse_routing.banked_ohlc(make("2026-11-10"),"bucket","SPY")
         self.assertEqual(len(doc["bars"]),1); self.assertNotIn("forming_bar",doc)
-        # a weekly read still gets the daily source (the Worker folds it); an intraday read stays empty
+        # a weekly / monthly read gets the daily source WITH the forming bar (the Worker folds it into the current week); an intraday read stays empty
         warehouse_routing._TODAY.update({"at":0.0,"doc":None})
-        self.assertEqual(len(warehouse_routing.banked_ohlc(make("2026-11-09"),"bucket","SPY","week")["bars"]),1)
+        self.assertEqual(len(warehouse_routing.banked_ohlc(make("2026-11-09"),"bucket","SPY","week")["bars"]),2)
+        self.assertEqual(len(warehouse_routing.banked_ohlc(make("2026-11-09"),"bucket","SPY","month")["bars"]),2)
         self.assertTrue(warehouse_routing.banked_ohlc(make("2026-11-09"),"bucket","SPY","minute")["warehouse_empty"])
         # no overlay object: served as banked
         warehouse_routing._TODAY.update({"at":0.0,"doc":None})
