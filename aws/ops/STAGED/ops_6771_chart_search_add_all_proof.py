@@ -108,6 +108,11 @@ def main():
                         shots.append(page.screenshot(type="jpeg", quality=50))
                     loaded = [a for a in st["adds"] if a["act"] == "addloaded"]
                     check("'%s' has the dropdown-wide add-all control" % query, lambda: loaded[0]["text"] if loaded and loaded[0]["visible"] else (_ for _ in ()).throw(AssertionError("no visible addloaded control: %s" % st["adds"])))
+                    if loaded and W == 1440:
+                        check("'%s' add-all names the destination list and the rows carry type badges + provider marks" % query, lambda: page.evaluate("""() => { const b = document.querySelector('#jhus [data-act=addloaded]'), t = b ? b.innerText : '';
+                            const badges = document.querySelectorAll('#jhus .us-row .us-badge').length, marks = document.querySelectorAll('#jhus .us-row .us-mark').length, logo = document.querySelector('#jhus .us-row .us-logo'), lw = logo ? Math.round(logo.getBoundingClientRect().width) : 0;
+                            if (!/ to /.test(t)) throw new Error('add-all text lacks the list name: ' + t); if (!badges) throw new Error('no type badges'); if (!marks) throw new Error('no provider marks'); if (lw < 30) throw new Error('logo ' + lw + 'px');
+                            return t + ' | badges ' + badges + ' | marks ' + marks + ' | logo ' + lw + 'px'; }"""))
                     if loaded:
                         import re
                         promised = int((re.search(r"(\d[\d,]*)", loaded[0]["text"]) or [None, "0"])[1].replace(",", ""))
@@ -145,6 +150,24 @@ def main():
                         check("'%s' Economy chip filters the rows and keeps the add-all control" % query, economy_tab)
                     page.evaluate("() => { const x = document.querySelector('#jhus [data-act=close]'); if (x) x.click(); }")
                     page.wait_for_timeout(300)
+                if W == 1440:
+                    def home_view():
+                        page.evaluate("() => window.jhOpenSearch('', 'chart')")
+                        page.wait_for_timeout(1200)
+                        st4 = page.evaluate("""() => ({groups: [...document.querySelectorAll('#jhus .us-grp')].map(e => e.innerText.trim()), lists: [...document.querySelectorAll('#jhus [data-act=openlist]')].map(e => e.innerText.replace(/\\n/g, ' | ').slice(0, 80)),
+                            nLists: window.JHTvWatchlist ? window.JHTvWatchlist.lists().length : 0, dlg: (r => ({w: Math.round(r.width), h: Math.round(r.height)}))(document.querySelector('#jhus .us-dlg').getBoundingClientRect())})""")
+                        assert st4["dlg"]["w"] >= 1000, "dialog not TradingView-sized: %s" % st4["dlg"]
+                        if st4["nLists"]:
+                            assert st4["lists"] and len(st4["lists"]) == min(12, st4["nLists"]), (st4["lists"], st4["nLists"])
+                            page.click('#jhus [data-act=openlist]')
+                            page.wait_for_timeout(600)
+                            closed = page.evaluate("() => !document.getElementById('jhus').classList.contains('on')")
+                            shown = page.evaluate("() => { const w = document.getElementById('watch'); return !!w && !w.classList.contains('is-collapsed'); }")
+                            assert closed, "dialog did not close after opening a list"
+                            return "dialog %s, groups %s, %d watchlists listed (%s...), click -> dialog closed, watchlist pane open: %s" % (json.dumps(st4["dlg"]), st4["groups"], len(st4["lists"]), st4["lists"][0], shown)
+                        return "dialog %s, groups %s, no watchlists in this browser" % (json.dumps(st4["dlg"]), st4["groups"])
+                    check("home view: TradingView-sized dialog and one-click access to your watchlists", home_view)
+                    page.evaluate("() => { const x = document.querySelector('#jhus [data-act=close]'); if (x) x.click(); }")
                 if W == 390:
                     page.evaluate("q => window.jhOpenSearch(q, 'chart')", "cpi")
                     page.wait_for_timeout(4000)

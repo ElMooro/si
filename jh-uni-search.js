@@ -21,6 +21,13 @@
  * Every chartable row is loaded with window.jhGoSymbol(id, dest) which calls /series?id= (full stored history,
  * e.g. BLS CPI from 1913, StatCan CPI from 1914). Stored raw files open the file itself.
  * Coverage numbers in the footer are read live from provider-shards.json + symdir/manifest.json — never hardcoded.
+ *
+ * 2026-11-10 (Khalid: "add the option to add all the series from that drop down menu all at once ... design like
+ * TradingView's, big and beautiful, easy access to all sorts of things; change nothing else"): the dropdown-wide
+ * "+ Add all N" bar (PR #148) now names the list it adds to; the dialog is TradingView-sized (1040 px, 86 vh, 58 px rows,
+ * 32 px logos, type badges, provider marks) from this file's own stylesheet (the #148 style block was appended before
+ * this stylesheet and lost the cascade); the empty-query home view lists your watchlists for one-click access.
+ * Restore points: docs/snapshots/chart-search-2026-11-10/ (commits 81d10e20 before #148, 86200289 after).
  */
 (function (root) {
   "use strict";
@@ -419,17 +426,17 @@
       "#symsearch{display:none!important}",
       "#jhus{position:fixed;inset:0;z-index:10050;display:none;align-items:flex-start;justify-content:center;background:rgba(0,0,0,.45);font:13px/1.4 -apple-system,BlinkMacSystemFont,'Trebuchet MS',Roboto,Ubuntu,sans-serif}",
       "#jhus.on{display:flex}",
-      "#jhus .us-dlg{--bg:#1e222d;--bg2:#2a2e39;--bd:#363a45;--fg:#d1d4dc;--mut:#787b86;--blue:#2962ff;--hov:#2a2e39;--sel:#142e61;margin-top:7vh;width:min(820px,calc(100vw - 16px));height:min(78vh,760px);background:var(--bg);color:var(--fg);border:1px solid var(--bd);border-radius:6px;box-shadow:0 12px 48px rgba(0,0,0,.55);display:flex;flex-direction:column;overflow:hidden}",
+      "#jhus .us-dlg{--bg:#1e222d;--bg2:#2a2e39;--bd:#363a45;--fg:#d1d4dc;--mut:#787b86;--blue:#2962ff;--hov:#2a2e39;--sel:#142e61;margin-top:4vh;width:min(1040px,calc(100vw - 32px));height:min(86vh,900px);background:var(--bg);color:var(--fg);border:1px solid var(--bd);border-radius:12px;box-shadow:0 24px 80px rgba(0,0,0,.55);display:flex;flex-direction:column;overflow:hidden}",
       "html[data-theme=light] #jhus .us-dlg{--bg:#fff;--bg2:#f0f3fa;--bd:#e0e3eb;--fg:#131722;--mut:#6a6d78;--hov:#f0f3fa;--sel:#e3effd}",
-      "#jhus .us-hd{display:flex;align-items:center;padding:14px 20px 8px;gap:12px}",
-      "#jhus .us-hd h2{margin:0;font-size:20px;font-weight:600;flex:1}",
+      "#jhus .us-hd{display:flex;align-items:center;padding:18px 24px 8px;gap:14px}",
+      "#jhus .us-hd h2{margin:0;font-size:22px;font-weight:600;flex:1}",
       "#jhus .us-x{background:none;border:0;color:var(--mut);font-size:22px;cursor:pointer;line-height:1;padding:4px 6px;border-radius:4px}",
       "#jhus .us-x:hover{background:var(--hov);color:var(--fg)}",
-      "#jhus .us-in{display:flex;align-items:center;gap:10px;margin:0 20px;border-bottom:1px solid var(--bd);padding:6px 0 10px}",
-      "#jhus .us-in svg{flex:0 0 18px;color:var(--mut)}",
-      "#jhus .us-in input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:var(--fg);font-size:17px;text-transform:none;padding:4px 0}",
+      "#jhus .us-in{display:flex;align-items:center;gap:12px;margin:0 24px;border-bottom:1px solid var(--bd);padding:6px 0 12px}",
+      "#jhus .us-in svg{flex:0 0 20px;color:var(--mut)}",
+      "#jhus .us-in input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:var(--fg);font-size:20px;min-height:44px;text-transform:none;padding:4px 0}",
       "#jhus .us-clear{background:none;border:0;color:var(--mut);cursor:pointer;font-size:16px}",
-      "#jhus .us-chips{display:flex;gap:6px;padding:10px 20px 6px;overflow-x:auto;scrollbar-width:none;flex:0 0 auto}",
+      "#jhus .us-chips{display:flex;gap:8px;padding:12px 24px 8px;overflow-x:auto;scrollbar-width:none;flex:0 0 auto}",
       "#jhus .us-chips::-webkit-scrollbar{display:none}",
       "#jhus .us-sugg{display:flex;gap:6px;align-items:center;padding:8px 20px 0;overflow-x:auto;scrollbar-width:none;flex:0 0 auto;font-size:12px;color:#787b86;white-space:nowrap}",
       "#jhus .us-sugg::-webkit-scrollbar{display:none}",
@@ -437,7 +444,7 @@
       "#jhus .us-sg{flex:0 0 auto;background:none;border:1px solid #434651;color:#b2b5be;border-radius:14px;padding:3px 10px;cursor:pointer;font:inherit}",
       "#jhus .us-sg:hover{border-color:#2962ff;color:#fff}#jhus .us-sg.dym{border-color:#2962ff;color:#90bfff}#jhus .us-sg mark{background:none;color:#2962ff;font-weight:600}",
       "html[data-theme=light] #jhus .us-sg{color:#131722;border-color:#d1d4dc}html[data-theme=light] #jhus .us-sl b{color:#131722}",
-      "#jhus .us-chip{flex:0 0 auto;border:1px solid var(--bd);background:transparent;color:var(--fg);border-radius:18px;padding:5px 12px;cursor:pointer;font-size:13px;white-space:nowrap}",
+      "#jhus .us-chip{flex:0 0 auto;border:1px solid var(--bd);background:transparent;color:var(--fg);border-radius:20px;padding:7px 15px;cursor:pointer;font-size:14px;white-space:nowrap}",
       "#jhus .us-chip:hover{background:var(--hov)}",
       "#jhus .us-chip.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}",
       "#jhus .us-fac{display:flex;gap:6px;padding:2px 20px 8px;overflow-x:auto;scrollbar-width:thin;flex:0 0 auto}",
@@ -451,24 +458,31 @@
       "#jhus .us-crumb b{color:var(--fg);font-weight:600}",
       "#jhus .us-status{padding:0 20px 6px;color:var(--mut);font-size:12px;min-height:16px}",
       "#jhus .us-list{flex:1;overflow-y:auto;overscroll-behavior:contain;border-top:1px solid var(--bd)}",
-      "#jhus .us-grp{padding:10px 20px 4px;color:var(--mut);font-size:11px;letter-spacing:.06em;text-transform:uppercase}",
+      "#jhus .us-grp{padding:12px 24px 4px;color:var(--mut);font-size:11px;letter-spacing:.06em;text-transform:uppercase}",
+      "#jhus .us-loaded-all{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 24px;border-bottom:1px solid var(--bd);background:var(--bg)}",
+      "#jhus .us-loaded-all span{font-size:14px}#jhus .us-loaded-all small{display:block;font-size:11px;color:var(--mut);margin-top:3px}",
+      "#jhus .us-loaded-all .us-ga{flex:none;min-height:36px;padding:6px 18px;border-radius:18px;border-color:var(--blue);color:var(--blue);font-size:13px;line-height:22px}",
+      "#jhus .us-loaded-all .us-ga:hover{color:#fff;background:var(--blue)}#jhus .us-loaded-all .us-ga.ok{border-color:#089981;color:#22ab94;background:none}",
+      "#jhus .us-loaded-all .us-ga:focus-visible{outline:2px solid var(--blue);outline-offset:3px}",
       "#jhus .us-grp{display:flex;align-items:center;gap:8px}#jhus .us-ga{margin-left:auto;background:none;border:1px solid var(--bd,#363a45);border-radius:12px;color:var(--fg,#d1d4dc);font:600 11px/20px inherit;padding:0 10px;cursor:pointer;letter-spacing:0;text-transform:none}",
       "#jhus .us-ga:hover{border-color:#2962ff;color:#fff;background:#2962ff}#jhus .us-ga.ok{border-color:#089981;color:#22ab94;background:none}",
-      "#jhus .us-row{display:grid;grid-template-columns:28px minmax(120px,190px) 1fr auto auto;align-items:center;gap:12px;padding:7px 20px;cursor:pointer;border-bottom:1px solid transparent;min-height:40px}",
+      "#jhus .us-row{display:grid;grid-template-columns:36px minmax(140px,220px) 1fr auto auto;align-items:center;gap:14px;padding:10px 24px;cursor:pointer;border-bottom:1px solid transparent;min-height:58px}",
       "#jhus .us-row:hover{background:var(--hov)}",
       "#jhus .us-row.sel{background:var(--sel)}",
-      "#jhus .us-logo{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-style:normal;font-weight:700;font-size:12px}",
-      "#jhus .us-sym{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      "#jhus .us-logo{width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-style:normal;font-weight:700;font-size:13px}",
+      "#jhus .us-sym{font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
       "#jhus .us-desc{min-width:0;overflow:hidden}",
-      "#jhus .us-desc .n{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
-      "#jhus .us-desc small{display:block;color:var(--mut);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      "#jhus .us-desc .n{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      "#jhus .us-desc small{display:block;color:var(--mut);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      "#jhus .us-badge{display:inline-block;vertical-align:1px;margin-left:8px;padding:1px 6px;border-radius:4px;background:var(--bg2);color:var(--mut);font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}",
       "#jhus mark{background:transparent;color:var(--blue);font-weight:700}",
-      "#jhus .us-meta{text-align:right;color:var(--mut);font-size:12px;white-space:nowrap}",
+      "#jhus .us-meta{display:flex;align-items:center;justify-content:flex-end;gap:8px;color:var(--mut);font-size:13px;white-space:nowrap}",
       "#jhus .us-meta .t{display:block;color:var(--fg)}",
+      "#jhus .us-mark{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--bg2);color:var(--fg);font-size:10px;font-weight:700;letter-spacing:0;font-style:normal;flex:0 0 24px}",
       "#jhus .us-act{display:flex;gap:4px;opacity:.0}",
       "#jhus .us-row:hover .us-act,#jhus .us-row.sel .us-act{opacity:1}",
       "#jhus .us-act:has([data-act=addds]){opacity:1}#jhus [data-act=addds]{border-color:#2962ff!important;color:#5b8cff!important}",
-      "#jhus .us-act button{width:26px;height:26px;border-radius:4px;border:1px solid var(--bd);background:var(--bg);color:var(--fg);cursor:pointer;font-size:14px;line-height:1}",
+      "#jhus .us-act button{width:30px;height:30px;border-radius:6px;border:1px solid var(--bd);background:var(--bg);color:var(--fg);cursor:pointer;font-size:15px;line-height:1}",
       "#jhus .us-act button:hover{background:var(--blue);color:#fff;border-color:var(--blue)}",
       "#jhus .us-act button.ok{background:#089981;color:#fff;border-color:#089981}",
       "#jhus .us-more{display:block;margin:10px auto 16px;background:var(--bg2);border:0;color:var(--fg);border-radius:4px;padding:7px 16px;cursor:pointer}",
@@ -480,7 +494,7 @@
       "#jhus .us-dims{padding:0 20px 8px;display:flex;flex-wrap:wrap;gap:6px}",
       "#jhus .us-dims:empty{display:none}",
       "#jhus .us-dims .d{font-size:11px;color:var(--mut);margin-right:2px}",
-      "@media(max-width:640px){#jhus .us-dlg{margin-top:0;height:100dvh;width:100vw;border-radius:0}#jhus .us-row{grid-template-columns:26px minmax(80px,110px) 1fr auto;padding:7px 12px}#jhus .us-meta{display:none}#jhus .us-act{opacity:1}#jhus .us-hd,#jhus .us-chips,#jhus .us-fac,#jhus .us-status,#jhus .us-crumb{padding-left:12px;padding-right:12px}#jhus .us-in{margin:0 12px}}"
+      "@media(max-width:640px){#jhus .us-dlg{margin-top:0;height:100dvh;width:100vw;border-radius:0}#jhus .us-row{grid-template-columns:28px minmax(80px,110px) 1fr auto;padding:8px 12px;min-height:48px}#jhus .us-logo{width:28px;height:28px;font-size:12px}#jhus .us-meta{display:none}#jhus .us-badge{display:none}#jhus .us-act{opacity:1}#jhus .us-hd,#jhus .us-chips,#jhus .us-fac,#jhus .us-status,#jhus .us-crumb,#jhus .us-loaded-all{padding-left:12px;padding-right:12px}#jhus .us-in{margin:0 12px}#jhus .us-in input{font-size:17px}#jhus .us-loaded-all{gap:8px;flex-wrap:wrap}}"
     ].join("\n");
     doc.head.appendChild(st);
   }
@@ -667,11 +681,13 @@
     } else if (r.kind === "dataset" && r.browse) {
       acts = '<span class="us-act"><button type="button" data-act="addds" title="Add every series in this dataset' + (r.n ? " (" + fmtN(r.n) + ")" : "") + ' to your watchlist" aria-label="Add every series in ' + esc(r.name || r.sym) + '">+</button></span>';
     } else acts = '<span class="us-act"></span>';
+    var badge = (r.kind === "dataset" || r.kind === "file") ? "" : '<span class="us-badge">' + esc(t) + "</span>";
+    var src = String(r.src || ""), mark = src ? '<i class="us-mark" title="' + esc(src) + '">' + esc(src.replace(/[^A-Za-z0-9]/g, "").slice(0, 2).toUpperCase() || "·") + "</i>" : "";
     return '<div class="us-row' + (i === S.sel ? " sel" : "") + '" role="option" data-i="' + i + '" aria-selected="' + (i === S.sel) + '" title="' + esc(r.id) + '">' +
       logo(r.sym, r.provider || r.src) +
       '<span class="us-sym">' + hl(r.sym, S.q) + "</span>" +
-      '<span class="us-desc"><span class="n">' + hl(r.name, S.q) + "</span>" + (sub.length ? "<small>" + esc(sub.join(" · ")) + "</small>" : "") + "</span>" +
-      '<span class="us-meta"><span class="t">' + esc(action) + "</span>" + esc(r.src || "") + "</span>" + acts + "</div>";
+      '<span class="us-desc"><span class="n">' + hl(r.name, S.q) + badge + "</span>" + (sub.length ? "<small>" + esc(sub.join(" · ")) + "</small>" : "") + "</span>" +
+      '<span class="us-meta"><span class="t">' + esc(action === t ? src : action) + "</span>" + (action === t ? mark : (src ? esc(src) : "")) + "</span>" + acts + "</div>";
   }
 
   var ROWS = [];
@@ -691,7 +707,11 @@
     renderSugg(q);
     var html = "", grp = "";
     var loadedCount = ROWS.filter(addable).length;
-    if (loadedCount) html += '<div class="us-loaded-all"><span>Current loaded results <small>Datasets are added separately</small></span><button type="button" class="us-ga" data-act="addloaded" title="Add eligible loaded results to the active watchlist">+ Add all ' + loadedCount + '</button></div>';
+    if (loadedCount) {
+      var dest = root.JHTvWatchlist && typeof root.JHTvWatchlist.activeName === "function" ? root.JHTvWatchlist.activeName() : "your watchlist";
+      html += '<div class="us-loaded-all"><span>' + fmtN(loadedCount) + ' result' + (loadedCount === 1 ? "" : "s") + ' in this dropdown <small>Every chartable row below, in one go · datasets and stored files are added from their own + button</small></span>' +
+        '<button type="button" class="us-ga" data-act="addloaded" title="Add every chartable result shown below to ' + esc(dest) + '">+ Add all ' + fmtN(loadedCount) + ' to ' + esc(String(dest).length > 28 ? String(dest).slice(0, 26) + "…" : dest) + '</button></div>';
+    }
     ROWS.forEach(function (r, i) {
       if (r.grp !== grp && S.tab === "all") {
         grp = r.grp;
@@ -729,6 +749,13 @@
     facEl.innerHTML = ""; crumbEl.innerHTML = ""; box.querySelector(".us-dims").innerHTML = "";
     var html = '<div class="us-grp">Browse the whole warehouse</div>' +
       '<div class="us-row" data-act="providers" style="grid-template-columns:28px 1fr auto"><i class="us-logo" style="background:#2962ff">▦</i><span class="us-desc"><span class="n"><b>All data providers</b> — every dataset on the Data page</span><small id="jhus-cov-mini">Loading coverage…</small></span><span class="us-meta"><span class="t">browse ›</span></span></div>';
+    var lists = [];
+    try { lists = (root.JHTvWatchlist && typeof root.JHTvWatchlist.lists === "function") ? root.JHTvWatchlist.lists() : []; } catch (e) { lists = []; }
+    if (lists.length) {
+      html += '<div class="us-grp">Your watchlists</div>' + lists.slice(0, 12).map(function (L) {
+        return '<div class="us-row" data-act="openlist" data-list="' + esc(L.id) + '" style="grid-template-columns:36px 1fr auto"><i class="us-logo" style="background:#089981">☰</i><span class="us-desc"><span class="n">' + esc(L.name) + '</span><small>' + fmtN(L.n) + ' symbol' + (L.n === 1 ? "" : "s") + '</small></span><span class="us-meta"><span class="t">open ›</span></span></div>';
+      }).join("");
+    }
     if (ROWS.length) {
       html += '<div class="us-grp">Recent</div>';
       ROWS.forEach(function (r, i) { html += rowHtml(r, i); });
@@ -926,6 +953,7 @@
     if (act === "moreB") { loadBrowse(false); return; }
     if (act === "moreP") { loadProvider(false); return; }
     if (act === "cover") { renderCoverage(); return; }
+    if (act === "openlist") { e.stopPropagation(); var lid = a.getAttribute("data-list"); if (root.JHTvWatchlist) { try { root.JHTvWatchlist.open(lid); root.JHTvWatchlist.show(); } catch (e2) {} } close(); return; }
     if (act === "addloaded") { e.stopPropagation(); var seen = Object.create(null); addAll(ROWS.filter(addable).map(function (x) { return x.id; }).filter(function (id) { if (seen[id]) return false; seen[id] = true; return true; }), "current loaded results", a); return; }
     if (act === "addgrp") { e.stopPropagation(); var gname = a.getAttribute("data-grp"); addAll(ROWS.filter(function (x) { return x.grp === gname && addable(x); }).map(function (x) { return x.id; }), gname, a); return; }
     if (act === "addbrowse") { e.stopPropagation(); addDataset(S.ds, S.dsName || S.ds, [S.q.trim(), S.dsChip].filter(Boolean).join(" "), a); return; }
@@ -1043,6 +1071,3 @@
   root.jhOpenSearch = function (q, dest) { open({ q: q || "", dest: dest || "chart" }); };
   if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", boot); else boot();
 })(window);
-
-/* Scoped search-dialog presentation; no data or chart changes. */
-(function(){"use strict";if(document.getElementById("jh-search-ui-20261110"))return;var s=document.createElement("style");s.id="jh-search-ui-20261110";s.textContent="#jhus .us-dlg{width:min(1000px,calc(100vw - 32px));height:min(82vh,860px);margin-top:6vh;border-radius:14px;box-shadow:0 24px 80px rgba(0,0,0,.55)}\n#jhus .us-hd{padding:20px 24px 12px;gap:16px}\n#jhus .us-dlg input[type=text],#jhus .us-dlg input[type=search],#jhus .us-dlg input:not([type]){font-size:20px;min-height:48px}\n#jhus .us-row{min-height:60px;padding:12px 24px;gap:14px}\n#jhus .us-loaded-all{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 24px;border-bottom:1px solid var(--bd);background:var(--bg)}\n#jhus .us-loaded-all small{display:block;font-size:11px;color:var(--mut);margin-top:3px}\n#jhus .us-loaded-all .us-ga{flex:none;min-height:36px;padding:6px 16px;border-radius:18px;border-color:var(--blue);color:var(--blue)}\n#jhus .us-loaded-all .us-ga:hover{color:#fff;background:var(--blue)}\n#jhus .us-loaded-all .us-ga:focus-visible{outline:2px solid var(--blue);outline-offset:3px}\n@media(max-width:640px){#jhus .us-dlg{width:calc(100vw - 16px);height:90dvh;margin-top:4dvh;border-radius:10px}#jhus .us-hd{padding:14px 16px 10px}#jhus .us-row{padding:10px 16px;gap:8px}#jhus .us-loaded-all{padding:10px 16px;gap:8px;flex-wrap:wrap}#jhus .us-dlg input{font-size:17px}}";document.head.appendChild(s);})();
