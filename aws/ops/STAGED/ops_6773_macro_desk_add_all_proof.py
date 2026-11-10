@@ -100,7 +100,9 @@ def main():
             errors = []
             page.on("pageerror", lambda e: errors.append(str(e)[:160]))
             r.section("1. /macro-economic-data.html 1440x900")
-            page.goto("%s/macro-economic-data.html?nocache=%d" % (SITE, int(time.time())), wait_until="domcontentloaded")
+            page.goto("%s/macro-economic-data.html?nocache=%d" % (SITE, int(time.time())), wait_until="load")
+            page.wait_for_selector("#macro-search-input", timeout=45000)
+            page.wait_for_timeout(1500)  # auth.js may re-route once after load; the evaluate below must not race it
             check("the page serves the enhanced bundle (not a cached copy)", lambda: page.evaluate("""async () => { const s = [...document.scripts].map(x => x.src).find(u => /jh-workspaces[.]js/.test(u)); if (!s) throw new Error('no jh-workspaces.js tag');
                 const t = await (await fetch(s, {cache: 'no-store'})).text(); if (!/addAllResults/.test(t) || !/macro-add-all-btn/.test(t)) throw new Error('bundle lacks the add-all: ' + s); return s.replace(location.origin, '') + ' (' + t.length + ' bytes)'; }"""))
             st = type_query(page, r.log)
@@ -199,8 +201,13 @@ def main():
             page3 = ctx3.new_page()
             page3.set_default_timeout(45000)
             page3.goto("%s/macro-economic-data.html?nocache=%d" % (SITE, int(time.time())), wait_until="domcontentloaded")
+            page3.wait_for_selector("#macro-search-input", timeout=45000)
+            page3.wait_for_timeout(1200)
+            base_overflow = page3.evaluate("() => document.documentElement.scrollWidth - document.documentElement.clientWidth")
             st5 = type_query(page3, r.log)
-            check("390px: the add-all bar is visible and there is no horizontal overflow", lambda: "bar '%s', overflow %s, rows %d, row %spx" % (st5["btn"], st5["overflow"], st5["rows"], st5["rowH"]) if st5["btnVisible"] and st5["overflow"] <= 0 else (_ for _ in ()).throw(AssertionError(str({k: st5[k] for k in ("btn", "btnVisible", "overflow")}))))
+            # the standalone page's own header (.ws-links: Universe Heatmap / Chart Pro / Sign In) overflows a 390 px phone
+            # by ~90 px with or without the search (restore-point copy measured the same) -- the search must add none of its own
+            check("390px: the add-all bar is visible and the search view adds no horizontal overflow", lambda: "bar '%s', page overflow %s (catalog view %s, pre-existing header links), rows %d, row %spx" % (st5["btn"], st5["overflow"], base_overflow, st5["rows"], st5["rowH"]) if st5["btnVisible"] and st5["overflow"] <= max(0, base_overflow) else (_ for _ in ()).throw(AssertionError(str({k: st5[k] for k in ("btn", "btnVisible", "overflow")}) + " base %s" % base_overflow)))
             shots.append(("phone", page3.screenshot(type="jpeg", quality=45)))
             browser.close()
         for name, data in shots:
