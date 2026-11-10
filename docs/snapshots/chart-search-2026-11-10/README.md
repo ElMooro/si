@@ -33,3 +33,22 @@ Back to the PR #148 state:
 Either push triggers the Pages build (~10 min); the build content-hash-stamps the script tag, so no cache-bust edit
 is needed. The `.txt` copies in this folder are the same bytes (sha256 in `SHA256SUMS`) in case the commits are ever rewritten:
 `cp docs/snapshots/chart-search-2026-11-10/before-148/jh-uni-search.js.txt jh-uni-search.js`.
+
+## The Macro desk search (added 2026-11-10 14:31 ET — "im trying to add all ice boa but i dont see the add all")
+
+The search bar Khalid meant is the one on the **Macro** desk of chart.html (the `📈 Macro` button in the chart's top bar
+opens `/macro-economic-data.html` in an overlay). Its search ("Universal series search", every indexed provider, a
+`+ ADD` per row) had no add-all. Source of truth: the `MacroData` class and its CSS inside `chart-pro.html`;
+`assets/jh-workspaces.js`, `assets/jh-workspaces.css` and `macro-economic-data.html` are GENERATED from it by
+`scripts/build_workspaces.py` (also re-run by every Pages build).
+
+| point | what it is | git | files here |
+|---|---|---|---|
+| `macro-desk` | the Macro desk search before the add-all (per-row `+ ADD` only) | commit `91cb77d9` | `macro-desk/*.txt` (generated outputs) |
+
+Revert the Macro desk search (Git Bash):
+
+    git pull
+    git checkout 91cb77d9 -- chart-pro.html assets/jh-workspaces.js assets/jh-workspaces.css macro-economic-data.html universe-heatmap.html
+    git commit -m "revert the Macro desk search to its 2026-11-10 14:30 state [skip-ops]"
+    git push
