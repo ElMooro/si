@@ -127,7 +127,10 @@ def main():
             for row in fs["rowsText"]:
                 r.log("    " + row)
             check("clicking a card opens the full-screen view filling the viewport", lambda: "%dx%d of %dx%d" % (fs["w"], fs["h"], fs["vw"], fs["vh"]) if fs["open"] and fs["w"] == fs["vw"] and fs["h"] == fs["vh"] else (_ for _ in ()).throw(AssertionError(str(fs))))
-            check("full-screen view: big chart, the 4 bears labelled, 8 dots, a 4-row table, the latest value, close button focused", lambda: "%s | %s" % (fs["labels"], fs["latest"]) if fs["big"] and len(fs["labels"]) == 4 and fs["rows"] == 4 and fs["dots"] == 8 and "as of" in fs["latest"] and fs["focused"] == "macro-focus-close" and fs["overflow"] <= 0 and fs["note"] else (_ for _ in ()).throw(AssertionError(str(fs))))
+            # a series that starts after a turn (1M Treasury begins 2001-07) has no dot and a "—" cell for it: dots = 8 minus those
+            missing = sum(row.count("—") for row in fs["rowsText"])
+            check("full-screen view: big chart, the 4 bears labelled, a dot for every turn the series existed at, a 4-row table, the latest value, close button focused",
+                  lambda: "%s | %d dots (%d turn value(s) before the series starts) | %s" % (fs["labels"], fs["dots"], missing, fs["latest"]) if fs["big"] and len(fs["labels"]) == 4 and fs["rows"] == 4 and fs["dots"] == 8 - min(missing, 8) and "as of" in fs["latest"] and fs["focused"] == "macro-focus-close" and fs["overflow"] <= 0 and fs["note"] else (_ for _ in ()).throw(AssertionError(str(fs))))
             shots.append(("fullscreen", page.screenshot(type="jpeg", quality=45)))
             page.keyboard.press("Escape")
             page.wait_for_timeout(400)
