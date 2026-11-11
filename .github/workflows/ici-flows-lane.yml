@@ -1,0 +1,45 @@
+name: ICI weekly releases through Chrome
+# ici.org refuses every datacenter HTTP client (Akamai 403), so the justhodl-ici-flows Lambda could never acquire a
+# release and its trigger stays DISABLED. This lane acquires the three weekly release pages with headless Chrome on
+# the runner (ops 6781), feeds the native engine unchanged (data/ici-flows.json) and extends the desk feed
+# (data/ici-fund-flows.json). ICI publishes long-term fund flows on Wednesdays and money-market assets on Thursdays;
+# the Friday and Saturday runs catch a late release. Every run is idempotent: weeks merge in place, the native
+# publication is CAS-guarded against regression.
+on:
+  schedule:
+    - cron: '40 20 * * 3'
+    - cron: '40 20 * * 4'
+    - cron: '40 15 * * 5'
+    - cron: '40 15 * * 6'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ici-flows-lane
+  cancel-in-progress: false
+jobs:
+  acquire:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -m pip install -q boto3 playwright
+      - name: Browser
+        run: google-chrome --version || python3 -m playwright install chromium --with-deps
+      - name: Lane boundary tests (no network, no AWS)
+        env:
+          AWS_EC2_METADATA_DISABLED: 'true'
+        run: |
+          python3 tests/test_ici_flows_lane.py
+          python3 tests/test_ici_research_candidate.py
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Acquire the releases, publish the native packet, extend the desk feed
+        run: python3 aws/ops/checks/run_ici_flows_lane.py

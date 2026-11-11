@@ -296,7 +296,7 @@ class MacroData {
      Same engine, its own catalog + storage key (MacroData.configure('flows')). Every item is a real series the
      warehouse serves: FRED / OFR ids through /series (money funds, deposits, bank credit, Fed liquidity, the Z.1
      flow of funds since 1946, TIC foreign holdings and net purchases) and the fleet's own flow engines through the
-     flows: adapter (ICI weekly fund flows, spot BTC/ETH ETF flows, crypto exchange netflows, Taiwan foreign buying).
+     flows: adapter (ICI weekly: mutual fund flows, combined funds + ETFs, ETF net issuance, money market assets - fed by the Chrome lane since 2026-11-11; spot BTC/ETH ETF flows; crypto exchange netflows; Taiwan foreign buying).
      An id with ':' is used as is; a bare id is a FRED series. */
   static FLOWS_CATALOG = [
     { cat: "Fund flows · ICI weekly", flag: "📊", items: [
@@ -304,8 +304,13 @@ class MacroData {
       ["flows:ici/equity_domestic","Domestic equity funds","$M"], ["flows:ici/equity_world","World equity funds","$M"],
       ["flows:ici/bond","Bond funds · weekly net flow","$M"], ["flows:ici/bond_taxable","Taxable bond funds","$M"],
       ["flows:ici/bond_municipal","Municipal bond funds","$M"], ["flows:ici/hybrid","Hybrid funds","$M"],
+      ["flows:ici-combined/total","Mutual funds + ETFs · combined weekly net flow","$M"], ["flows:ici-combined/equity","Mutual funds + ETFs · equity","$M"],
+      ["flows:ici-combined/bond","Mutual funds + ETFs · bond","$M"], ["flows:ici-combined/commodity","Mutual funds + ETFs · commodity","$M"],
+      ["flows:ici-etf/total","ETF net issuance · weekly (combined minus mutual funds)","$M"], ["flows:ici-etf/equity","ETF net issuance · equity","$M"],
     ]},
     { cat: "Money market funds", flag: "💵", items: [
+      ["flows:ici-mmf/total","All money market funds · assets (ICI weekly)","$B"], ["flows:ici-mmf/government","Government money market funds (ICI)","$B"],
+      ["flows:ici-mmf/prime","Prime money market funds (ICI)","$B"], ["flows:ici-mmf/institutional","Institutional money market funds (ICI)","$B"],
       ["WRMFNS","Retail money market funds · assets (weekly)","$B"], ["RMFSL","Retail money market funds · assets (monthly)","$B"],
       ["MMMFFAQ027S","All money market funds · total assets (Z.1)","$M"], ["MMMFTAQ027S","All money market funds · net flow (Z.1)","$M"],
       ["ofr:MMF-MMF_RP_OA_TOT-M","MMF investments in repo (OFR)","$"], ["ofr:MMF-MMF_BRA_TOT-M","MMF investments in bank assets (OFR)","$"],
@@ -348,6 +353,9 @@ class MacroData {
      kept, so tw_sector_flows.Electronics/Hardware works). Each feed is fetched once and cached for 10 minutes. */
   static FLOW_FEEDS = {
     "ici": { url: "/data/ici-fund-flows.json", rows: p => p.history, date: "week_ending", label: "ICI weekly" },
+    "ici-combined": { url: "/data/ici-fund-flows.json", rows: p => p.combined_history || [], date: "week_ending", label: "ICI weekly · combined" },
+    "ici-etf": { url: "/data/ici-fund-flows.json", rows: p => p.etf_net_issuance_history || [], date: "week_ending", label: "ICI weekly · ETF net issuance" },
+    "ici-mmf": { url: "/data/ici-fund-flows.json", rows: p => p.money_market_history || [], date: "week_ending", label: "ICI weekly · money market" },
     "crypto-etf": { url: "/data/crypto-etf-flows-history.json", rows: p => p.series, date: "date", label: "Polygon fund flows" },
     "crypto-exchange": { url: "/data/crypto-exchange-flows-history.json", rows: p => p.series, date: "date", label: "CoinMetrics / CryptoQuant" },
     "apac": { url: "/data/history/apac-flows.json", rows: p => Object.keys(p.days || {}).sort().map(d => Object.assign({ date: d }, p.days[d])), date: "date", label: "TWSE / Naver" },
@@ -934,15 +942,15 @@ class MacroData {
     const feedName = slash < 0 ? rest : rest.slice(0, slash), field = slash < 0 ? '' : rest.slice(slash + 1);
     const feed = this.FLOW_FEEDS[feedName];
     if (!feed || !field) throw new Error('Unknown flow series ' + symbol);
-    this.flowFeedCache = this.flowFeedCache || new Map();
-    let rowsPromise = this.flowFeedCache.get(feedName);
-    if (!rowsPromise || (rowsPromise.at && Date.now() - rowsPromise.at > 10 * 60 * 1000)) {
-      rowsPromise = fetch(PROXY + feed.url + '?t=' + Math.floor(Date.now() / 3e5)).then(r => { if (!r.ok) throw new Error('Feed ' + r.status); return r.json(); }).then(p => feed.rows(p) || []);
-      rowsPromise.at = Date.now();
-      this.flowFeedCache.set(feedName, rowsPromise);
-      rowsPromise.catch(() => this.flowFeedCache.delete(feedName));
+    this.flowFeedCache = this.flowFeedCache || new Map();   // one fetch per feed URL per 10 min, however many series read it
+    let payloadPromise = this.flowFeedCache.get(feed.url);
+    if (!payloadPromise || (payloadPromise.at && Date.now() - payloadPromise.at > 10 * 60 * 1000)) {
+      payloadPromise = fetch(PROXY + feed.url + '?t=' + Math.floor(Date.now() / 3e5)).then(r => { if (!r.ok) throw new Error('Feed ' + r.status); return r.json(); });
+      payloadPromise.at = Date.now();
+      this.flowFeedCache.set(feed.url, payloadPromise);
+      payloadPromise.catch(() => this.flowFeedCache.delete(feed.url));
     }
-    const rows = await rowsPromise;
+    const rows = feed.rows(await payloadPromise) || [];
     const path = field.split('.');
     const observations = rows.map(row => {
       let v = row;
