@@ -52,3 +52,16 @@ Revert the Macro desk search (Git Bash):
     git checkout 91cb77d9 -- chart-pro.html assets/jh-workspaces.js assets/jh-workspaces.css macro-economic-data.html universe-heatmap.html
     git commit -m "revert the Macro desk search to its 2026-11-10 14:30 state [skip-ops]"
     git push
+
+## The Macro desk with the add-all, before the history strips / full-screen view / notes (2026-11-10 20:05 CT)
+
+| point | what it is | git |
+|---|---|---|
+| `macro-desk-addall` | the Macro desk with the "+ Add all N" search (cde0447a) and nothing else changed | commit `56c0f1b5` |
+
+Revert the desk to that state (Git Bash):
+
+    git pull
+    git checkout 56c0f1b5 -- chart-pro.html assets/jh-workspaces.js assets/jh-workspaces.css macro-economic-data.html universe-heatmap.html
+    git commit -m "revert the Macro desk to the add-all-only state [skip-ops]"
+    git push
