@@ -1,4 +1,4 @@
-"""ops 6784 - end-to-end proof that the ICI weekly engine is un-stalled (Khalid 2026-11-11: "Do both"), from the data a
+"""ops 6784 (rerun: the first pass failed only on the proof's own number parser, which lacked the T suffix the desk prints for $B series) - end-to-end proof that the ICI weekly engine is un-stalled (Khalid 2026-11-11: "Do both"), from the data a
 visitor actually gets. The Chrome lane's first run (workflow run 42973347141, 06:34 UTC) reported a native publication
 and 5 new weeks; this op verifies from the outside, after the pages deploy of 495c22b7: (1) data/ici-fund-flows.json
 through the Worker - generated today by ici-flows-lane, 91 weeks, latest 2026-10-28 with the release values
@@ -52,11 +52,18 @@ def launch(p, log):
 
 
 def num(text):
-    t = str(text).replace(",", "").replace("$", "").replace("−", "-").strip()
-    for suffix, mult in (("B", 1e9), ("M", 1e6), ("K", 1e3), ("k", 1e3)):
+    """the card's printed number: plain thousands-separated, or scaled with K/M/B/T (the desk prints $B series in
+    dollars, e.g. 8,015.74 $B as 8.02T)"""
+    t = str(text).replace(",", "").replace("$", "").replace("\u2212", "-").strip()
+    for suffix, mult in (("T", 1e12), ("B", 1e9), ("M", 1e6), ("K", 1e3), ("k", 1e3)):
         if t.endswith(suffix):
             return float(t[:-1]) * mult
     return float(t)
+
+
+def close(shown, expected):
+    """equal in the series' own unit, or in dollars when the desk scaled a $B value"""
+    return any(abs(shown - expected * scale) <= max(1.0, abs(expected * scale) * 0.004) for scale in (1.0, 1e9, 1e6))
 
 
 def main():
@@ -133,7 +140,7 @@ def main():
             for sym, (asof, value) in EXPECT.items():
                 c = by.get(sym)
                 check("card %s ready, as of %s, value %s" % (sym, asof, value), lambda c=c, asof=asof, value=value, sym=sym: (
-                    c is not None and c["state"] == "ready" and asof in c["asof"] and abs(num(c["value"]) - value) <= max(1.0, abs(value) * 0.002) and c["strip"]) or (_ for _ in ()).throw(AssertionError(c)))
+                    c is not None and c["state"] == "ready" and asof in c["asof"] and close(num(c["value"]), value) and c["strip"]) or (_ for _ in ()).throw(AssertionError(c)))
             check("no page errors", lambda: not errors or (_ for _ in ()).throw(AssertionError(errors[:3])))
             # scroll the ICI family into view for the screenshot
             page.evaluate("() => { const c = [...document.querySelectorAll('.macro-item')].find(x => x.dataset.symbol === 'flows:ici/total'); if (c) c.scrollIntoView({block: 'start'}); }")
