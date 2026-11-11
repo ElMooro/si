@@ -147,7 +147,8 @@ def main():
             check("0 page errors", lambda: "none" if not real_errors else (_ for _ in ()).throw(AssertionError(str(real_errors[:4]))))
 
             r.section("2. chart.html: the Flows button beside Macro")
-            page2 = ctx.new_page()
+            ctx2 = browser.new_context(viewport={"width": 1440, "height": 900}, user_agent="Mozilla/5.0 (X11; Linux x86_64) justhodl-ops/6778")  # fresh storage: section 1 added a 9th family to this origin's localStorage
+            page2 = ctx2.new_page()
             page2.set_default_timeout(45000)
             try:
                 page2.goto("%s/chart.html?s=SPY&nocache=%d" % (SITE, int(time.time())), wait_until="domcontentloaded")
