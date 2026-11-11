@@ -76,7 +76,7 @@ def acquire(client,bucket,url,key=None,deadline=None):
     stamp=now();ref={'url':url,'acquired_at':stamp,'evidence':evidence_store.capture(client,bucket,'etf_original',url,raw,native.clock(stamp))}
     return ref
 
-VENDOR_BUDGET_S=150   # the vendor context is unreviewed context, never a flow input: it may not eat the issuer budget
+VENDOR_BUDGET_S=210   # 384 keyed calls at the 2/s pace take ~192 s when FMP is healthy; unreviewed context never eats the issuer budget
 VENDOR_TRIP=6         # consecutive rate-limit refusals that stop the remaining vendor requests for this run
 
 class RateLimitedSkip(Exception):
