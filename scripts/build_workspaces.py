@@ -189,9 +189,10 @@ const JH_WS = {{
     document.body.classList.add('jh-ws-page');
     const cls = which === 'heatmap' ? Heatmap : MacroData;
     cls.inline = true;
+    if (cls === MacroData && typeof MacroData.configure === 'function') MacroData.configure(which === 'flows' ? 'flows' : 'macro');
     cls.init();
     cls.open();
-    if (which === 'macro') {{
+    if (which === 'macro' || which === 'flows') {{
       let timer = null;
       const input = document.getElementById('macro-search-input');
       if (input) input.addEventListener('input', e => {{ clearTimeout(timer); const v = e.target.value; timer = setTimeout(() => MacroData.search(v), 300); }});
@@ -235,7 +236,8 @@ body.jh-ws-page .new-wl-modal { position: fixed; }
     def page(which, title, crumb, markup, open_class):
         markup = markup.replace('class="heatmap-modal" id="heatmap-modal"', 'class="heatmap-modal open" id="heatmap-modal"') if which == "heatmap" else \
             markup.replace('class="heatmap-modal" id="macro-modal"', 'class="heatmap-modal open" id="macro-modal"')
-        other = ("/macro-economic-data.html", "Macro &amp; Economic Data") if which == "heatmap" else ("/universe-heatmap.html", "Universe Heatmap")
+        other = {"heatmap": ("/macro-economic-data.html", "Macro &amp; Economic Data"), "macro": ("/universe-heatmap.html", "Universe Heatmap"), "flows": ("/macro-economic-data.html", "Macro &amp; Economic Data")}[which]
+        third = {"heatmap": ("/inflows-outflows.html", "Inflows &amp; outflows"), "macro": ("/inflows-outflows.html", "Inflows &amp; outflows"), "flows": ("/universe-heatmap.html", "Universe Heatmap")}[which]
         return f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -252,6 +254,7 @@ body.jh-ws-page .new-wl-modal { position: fixed; }
   <span class="ws-crumb">{crumb}</span>
   <div class="ws-links">
     <a href="{other[0]}">{other[1]}</a>
+    <a href="{third[0]}">{third[1]}</a>
     <a href="/chart-pro.html" title="Open the full terminal">Chart Pro ↗</a>
     <span data-auth-slot></span>
   </div>
@@ -279,7 +282,12 @@ body.jh-ws-page .new-wl-modal { position: fixed; }
     (SITE / "assets" / "jh-workspaces.css").write_text(css, encoding="utf-8", newline="\n")
     (SITE / "universe-heatmap.html").write_text(page("heatmap", "Universe Heatmap", "Universe Heatmap · configurable performance / cascade / signal heatmap", heat_markup, "open"), encoding="utf-8", newline="\n")
     (SITE / "macro-economic-data.html").write_text(page("macro", "Macro & Economic Data", "Macro &amp; Economic Data · every indexed series, your categories, danger rules", macro_markup, "open"), encoding="utf-8", newline="\n")
-    print("built: assets/jh-workspaces.js (%d bytes), assets/jh-workspaces.css (%d bytes), universe-heatmap.html, macro-economic-data.html"
+    # 2026-11-10: the Inflows & outflows desk -- the same engine and markup as the Macro desk, its own catalog and storage key (MacroData.configure('flows'))
+    flows_markup = macro_markup.replace("📈 Macro &amp; Economic Data", "⇄ Inflows &amp; outflows").replace(
+        'placeholder="Search every macro series — ICE BofA, CPI, unemployment, yields… (FRED, ECB, IMF, World Bank, OECD, BIS, Eurostat)"',
+        'placeholder="Search every flow series — fund flows, money funds, deposits, TIC, exchange netflows… or any series at all"')
+    (SITE / "inflows-outflows.html").write_text(page("flows", "Inflows & outflows", "Inflows &amp; outflows · fund flows, money funds, deposits, Fed liquidity, the Z.1 flow of funds, TIC, crypto and Asia — every one with its history and the famous bears", flows_markup, "open"), encoding="utf-8", newline="\n")
+    print("built: assets/jh-workspaces.js (%d bytes), assets/jh-workspaces.css (%d bytes), universe-heatmap.html, macro-economic-data.html, inflows-outflows.html"
           % (len(bundle), len(css)))
 
 

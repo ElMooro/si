@@ -161,9 +161,10 @@ const JH_WS = {
     document.body.classList.add('jh-ws-page');
     const cls = which === 'heatmap' ? Heatmap : MacroData;
     cls.inline = true;
+    if (cls === MacroData && typeof MacroData.configure === 'function') MacroData.configure(which === 'flows' ? 'flows' : 'macro');
     cls.init();
     cls.open();
-    if (which === 'macro') {
+    if (which === 'macro' || which === 'flows') {
       let timer = null;
       const input = document.getElementById('macro-search-input');
       if (input) input.addEventListener('input', e => { clearTimeout(timer); const v = e.target.value; timer = setTimeout(() => MacroData.search(v), 300); });
@@ -289,6 +290,83 @@ class MacroData {
       ["EWP","Spain"], ["EWC","Canada"], ["EWA","Australia"], ["ILF","Latin America"],
     ]},
   ];
+
+  /* ───── the "Inflows & outflows" desk (2026-11-10, Khalid: "next to Macro put all the inflows and outflows in the same
+     heatmap format, cover as many as possible, with the historical chart and the monumental events like Macro").
+     Same engine, its own catalog + storage key (MacroData.configure('flows')). Every item is a real series the
+     warehouse serves: FRED / OFR ids through /series (money funds, deposits, bank credit, Fed liquidity, the Z.1
+     flow of funds since 1946, TIC foreign holdings and net purchases) and the fleet's own flow engines through the
+     flows: adapter (ICI weekly fund flows, spot BTC/ETH ETF flows, crypto exchange netflows, Taiwan foreign buying).
+     An id with ':' is used as is; a bare id is a FRED series. */
+  static FLOWS_CATALOG = [
+    { cat: "Fund flows · ICI weekly", flag: "📊", items: [
+      ["flows:ici/total","All long-term funds · weekly net flow","$M"], ["flows:ici/equity","Equity funds · weekly net flow","$M"],
+      ["flows:ici/equity_domestic","Domestic equity funds","$M"], ["flows:ici/equity_world","World equity funds","$M"],
+      ["flows:ici/bond","Bond funds · weekly net flow","$M"], ["flows:ici/bond_taxable","Taxable bond funds","$M"],
+      ["flows:ici/bond_municipal","Municipal bond funds","$M"], ["flows:ici/hybrid","Hybrid funds","$M"],
+    ]},
+    { cat: "Money market funds", flag: "💵", items: [
+      ["WRMFNS","Retail money market funds · assets (weekly)","$B"], ["RMFSL","Retail money market funds · assets (monthly)","$B"],
+      ["MMMFFAQ027S","All money market funds · total assets (Z.1)","$M"], ["MMMFTAQ027S","All money market funds · net flow (Z.1)","$M"],
+      ["ofr:MMF-MMF_RP_OA_TOT-M","MMF investments in repo (OFR)","$"], ["ofr:MMF-MMF_BRA_TOT-M","MMF investments in bank assets (OFR)","$"],
+    ]},
+    { cat: "Bank deposits & credit", flag: "🏦", items: [
+      ["DPSACBW027SBOG","Deposits, all commercial banks","$B"], ["TOTBKCR","Bank credit, all commercial banks","$B"],
+      ["TOTLL","Loans and leases in bank credit","$B"], ["CCLACBW027SBOG","Credit-card loans, all commercial banks","$B"],
+      ["TOTALSL","Consumer credit outstanding","$M"], ["M2SL","M2 money supply","$B"],
+    ]},
+    { cat: "Fed liquidity in & out", flag: "🏛", items: [
+      ["WALCL","Fed balance sheet","$M"], ["WTREGEN","Treasury General Account (drains liquidity)","$M"],
+      ["RRPONTSYD","Reverse repo (parks liquidity)","$B"], ["WRESBAL","Bank reserves at the Fed","$B"], ["BOGMBASE","Monetary base","$B"],
+    ]},
+    { cat: "Who is buying US equities · Z.1 quarterly flows", flag: "👪", items: [
+      ["HNOCESQ027S","Households · net purchases of equities","$M"], ["HNOMFTQ027S","Households · net purchases of mutual fund shares","$M"],
+      ["BOGZ1FA653064100Q","Mutual funds · net purchases of equities","$M"], ["BOGZ1FA563064100Q","ETFs · net purchases of equities","$M"],
+      ["BOGZ1FA564090005Q","ETFs · total net inflow (all assets)","$M"], ["ROWCEAQ027S","Rest of the world · net purchases of US equities","$M"],
+      ["NCBCEBQ027S","Companies · net equity issuance (negative = buybacks)","$M"], ["BOGZ1FA224090045Q","State & local pension funds · net inflow","$M"],
+    ]},
+    { cat: "Foreign money into US bonds · TIC", flag: "🌍", items: [
+      ["FORTREASPOS69995","Foreign holdings of US Treasuries · all countries","$M"], ["FORTREASPOS42609","Foreign holdings of US Treasuries · Japan","$M"],
+      ["FORTREASPOS41408","Foreign holdings of US Treasuries · China","$M"], ["FORTREASPOS13005","Foreign holdings of US Treasuries · United Kingdom","$M"],
+      ["FORLTTREASNET42609","Japan · net purchases of long-term Treasuries (monthly)","$M"], ["FORLTTREASNET42005","Hong Kong · net purchases of long-term Treasuries","$M"],
+      ["ROWTSAQ027S","Rest of the world · net purchases of Treasuries (Z.1)","$M"], ["FDHBFIN","Federal debt held by foreign investors","$B"],
+    ]},
+    { cat: "Crypto flows · spot ETFs and exchanges", flag: "₿", items: [
+      ["flows:crypto-etf/btc_today","Spot BTC ETFs · daily net flow","$"], ["flows:crypto-etf/btc_30d","Spot BTC ETFs · 30-day net flow","$"],
+      ["flows:crypto-etf/eth_today","Spot ETH ETFs · daily net flow","$"], ["flows:crypto-etf/eth_30d","Spot ETH ETFs · 30-day net flow","$"],
+      ["flows:crypto-exchange/btc_netflow_30d","BTC · 30-day exchange netflow (negative = leaving exchanges)","BTC"], ["flows:crypto-exchange/eth_netflow_30d","ETH · 30-day exchange netflow","ETH"],
+      ["flows:crypto-exchange/btc_pctile","BTC exchange netflow · percentile","pctile"],
+    ]},
+    { cat: "Asia foreign investor flows", flag: "🌏", items: [
+      ["flows:apac/tw_foreign_net_twd","Taiwan · foreign net buying (TWD, daily)","TWD"],
+      ["flows:apac/tw_sector_flows.Semiconductors","Taiwan foreigners · semiconductors (shares)","shares"], ["flows:apac/tw_sector_flows.Electronics/Hardware","Taiwan foreigners · electronics / hardware","shares"],
+      ["flows:apac/tw_sector_flows.Financials","Taiwan foreigners · financials","shares"], ["flows:apac/tw_sector_flows.Materials","Taiwan foreigners · materials","shares"],
+      ["flows:apac/tw_tracked.2330","Taiwan foreigners · TSMC (2330) net shares","shares"],
+    ]},
+  ];
+  /* the fleet's flow feeds the flows: adapter reads: flows:<feed>/<field> (nested fields with dots; "/" inside a key is
+     kept, so tw_sector_flows.Electronics/Hardware works). Each feed is fetched once and cached for 10 minutes. */
+  static FLOW_FEEDS = {
+    "ici": { url: "/data/ici-fund-flows.json", rows: p => p.history, date: "week_ending", label: "ICI weekly" },
+    "crypto-etf": { url: "/data/crypto-etf-flows-history.json", rows: p => p.series, date: "date", label: "Polygon fund flows" },
+    "crypto-exchange": { url: "/data/crypto-exchange-flows-history.json", rows: p => p.series, date: "date", label: "CoinMetrics / CryptoQuant" },
+    "apac": { url: "/data/history/apac-flows.json", rows: p => Object.keys(p.days || {}).sort().map(d => Object.assign({ date: d }, p.days[d])), date: "date", label: "TWSE / Naver" },
+  };
+  static DESKS = {
+    macro: { key: "jh_macro_workspace_v2", catalog: "CATALOG", title: "📈 Macro & Economic Data", reset: "Restore the original curated macro catalog?" },
+    flows: { key: "jh_flows_workspace_v1", catalog: "FLOWS_CATALOG", title: "⇄ Inflows & outflows", reset: "Restore the original inflows & outflows catalog?" },
+  };
+  static desk = "macro";
+  static configure(which) {
+    const d = this.DESKS[which] || this.DESKS.macro;
+    this.desk = this.DESKS[which] ? which : "macro";
+    this.STORAGE_KEY = d.key;
+    this.state = null;
+    const title = document.getElementById("macro-modal-title");
+    if (title) title.textContent = d.title;
+    return d;
+  }
+  static catalogItems() { return this[this.DESKS[this.desk].catalog]; }
   static state = null;
   static editMode = null;
   static editId = null;
@@ -343,19 +421,26 @@ class MacroData {
   }
 
   static defaults() {
-    return this.CATALOG.map((cat, ci) => ({
+    const catalog = (this.DESKS && this.desk && this.DESKS[this.desk]) ? this[this.DESKS[this.desk].catalog] : this.CATALOG;
+    return catalog.map((cat, ci) => ({
       id: `default-${ci}`,
       cat: cat.cat,
       flag: cat.flag || '▦',
-      items: cat.items.map((item, ii) => ({
-        uid: `default-${ci}-${ii}`,
-        symbol: cat.etf ? item[0] : `FRED:${item[0]}`,
-        title: item[1],
-        units: item[2] || (cat.etf ? 'ETF · live' : ''),
-        kind: cat.etf ? 'etf' : 'series',
-        provider: cat.etf ? 'market' : 'fred',
-        danger: { type: 'none', threshold: null, horizon: 'D' },
-      })),
+      items: cat.items.map((item, ii) => {
+        const raw = String(item[0]);
+        const symbol = cat.etf ? raw : (raw.indexOf(':') >= 0 ? raw : `FRED:${raw}`);
+        const scheme = symbol.indexOf(':') >= 0 ? symbol.split(':')[0].toLowerCase() : '';
+        const provider = cat.etf ? 'market' : (scheme === 'flows' ? ((this.FLOW_FEEDS[symbol.slice(6).split('/')[0]] || {}).label || 'JustHodl engine') : (scheme || 'fred'));
+        return {
+          uid: `default-${ci}-${ii}`,
+          symbol,
+          title: item[1],
+          units: item[2] || (cat.etf ? 'ETF · live' : ''),
+          kind: cat.etf ? 'etf' : 'series',
+          provider,
+          danger: { type: 'none', threshold: null, horizon: 'D' },
+        };
+      }),
     }));
   }
 
@@ -842,8 +927,75 @@ class MacroData {
     return request;
   }
 
+  static async fetchFlow(symbol) {
+    // flows:<feed>/<field>  -> observations from one of the fleet's flow feeds (FLOW_FEEDS)
+    const rest = String(symbol).slice(6);
+    const slash = rest.indexOf('/');
+    const feedName = slash < 0 ? rest : rest.slice(0, slash), field = slash < 0 ? '' : rest.slice(slash + 1);
+    const feed = this.FLOW_FEEDS[feedName];
+    if (!feed || !field) throw new Error('Unknown flow series ' + symbol);
+    this.flowFeedCache = this.flowFeedCache || new Map();
+    let rowsPromise = this.flowFeedCache.get(feedName);
+    if (!rowsPromise || (rowsPromise.at && Date.now() - rowsPromise.at > 10 * 60 * 1000)) {
+      rowsPromise = fetch(PROXY + feed.url + '?t=' + Math.floor(Date.now() / 3e5)).then(r => { if (!r.ok) throw new Error('Feed ' + r.status); return r.json(); }).then(p => feed.rows(p) || []);
+      rowsPromise.at = Date.now();
+      this.flowFeedCache.set(feedName, rowsPromise);
+      rowsPromise.catch(() => this.flowFeedCache.delete(feedName));
+    }
+    const rows = await rowsPromise;
+    const path = field.split('.');
+    const observations = rows.map(row => {
+      let v = row;
+      for (const k of path) { v = v == null ? undefined : v[k]; }
+      const value = Number(v);
+      const date = String(row[feed.date] || '').slice(0, 10);
+      return date.length === 10 && v != null && v !== '' && Number.isFinite(value) ? { date, value } : null;
+    }).filter(Boolean).sort((a, b) => a.date.localeCompare(b.date));
+    if (!observations.length) throw new Error('No observations for ' + symbol);
+    return this.metricFromObservations(observations);
+  }
+
+  static metricFromObservations(observations) {
+    const last = observations[observations.length - 1];
+    const changes = {};
+    const lastTime = Date.parse(last.date.length === 10 ? `${last.date}T00:00:00Z` : last.date);
+    const gaps = observations.slice(-9).map(o => Date.parse(o.date.length === 10 ? `${o.date}T00:00:00Z` : o.date))
+      .filter(Number.isFinite).map((t, i, arr) => i ? (t - arr[i - 1]) / 86400000 : null).filter(g => Number.isFinite(g) && g > 0).sort((a, b) => a - b);
+    const spacingDays = gaps.length ? gaps[Math.floor(gaps.length / 2)] : null;
+    const targetTime = horizon => {
+      const date = new Date(lastTime);
+      if (horizon === 'D') date.setUTCDate(date.getUTCDate() - 1);
+      if (horizon === 'W') date.setUTCDate(date.getUTCDate() - 7);
+      if (horizon === 'M') date.setUTCMonth(date.getUTCMonth() - 1);
+      if (horizon === 'Q') date.setUTCMonth(date.getUTCMonth() - 3);
+      if (horizon === 'Y') date.setUTCFullYear(date.getUTCFullYear() - 1);
+      return date.getTime();
+    };
+    const tolerances = { D: 3, W: 5, M: 16, Q: 45, Y: 95 };
+    Object.keys(tolerances).forEach(horizon => {
+      const cutoff = targetTime(horizon);
+      let prior = null, priorTime = null;
+      for (let i = observations.length - 1; i >= 0; i--) {
+        const time = Date.parse(observations[i].date.length === 10 ? `${observations[i].date}T00:00:00Z` : observations[i].date);
+        if (time <= cutoff) { prior = observations[i]; priorTime = time; break; }
+      }
+      const withinTolerance = prior && Number.isFinite(priorTime) && (cutoff - priorTime) <= tolerances[horizon] * 86400000;
+      changes[horizon] = withinTolerance && prior.value !== 0 ? ((last.value - prior.value) / Math.abs(prior.value)) * 100 : null;
+    });
+    return { last: last.value, asof: last.date.slice(0, 10), changes, spacingDays, cachedAt: Date.now(), hist: this.packHistory(observations) };
+  }
+
   static async fetchMetric(symbol) {
     if (String(symbol).indexOf(':') < 0) return this.fetchMarket(symbol);
+    if (/^flows:/i.test(String(symbol))) {
+      const cachedFlow = this.metricCache.get(symbol);
+      if (cachedFlow && Date.now() - cachedFlow.cachedAt < 10 * 60 * 1000) return cachedFlow;
+      if (this.metricInflight.has(symbol)) return this.metricInflight.get(symbol);
+      const flowRequest = this.fetchFlow(symbol).then(metric => { this.metricCache.set(symbol, metric); return metric; });
+      this.metricInflight.set(symbol, flowRequest);
+      try { return await flowRequest; }
+      finally { if (this.metricInflight.get(symbol) === flowRequest) this.metricInflight.delete(symbol); }
+    }
     const cached = this.metricCache.get(symbol);
     if (cached && Date.now() - cached.cachedAt < 10 * 60 * 1000) return cached;
     if (this.metricInflight.has(symbol)) return this.metricInflight.get(symbol);
@@ -1849,7 +2001,7 @@ class MacroData {
   }
 
   static reset() {
-    if (!confirm('Restore the original curated macro catalog? Your custom categories, series, and danger rules will be removed.')) return;
+    if (!confirm((this.DESKS[this.desk] || this.DESKS.macro).reset + ' Your custom categories, series, and danger rules will be removed.')) return;
     this.state = { version: 2, catalogRev: this.CATALOG_REV, categories: this.defaults() };
     this.metricCache.clear();
     this.save();

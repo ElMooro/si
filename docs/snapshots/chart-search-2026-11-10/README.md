@@ -65,3 +65,17 @@ Revert the desk to that state (Git Bash):
     git checkout 56c0f1b5 -- chart-pro.html assets/jh-workspaces.js assets/jh-workspaces.css macro-economic-data.html universe-heatmap.html
     git commit -m "revert the Macro desk to the add-all-only state [skip-ops]"
     git push
+
+## The Inflows & outflows desk (added 2026-11-10 21:00 CT)
+
+New desk beside Macro: `/inflows-outflows.html` (same engine, its own catalog + storage key `jh_flows_workspace_v1`),
+the `⇄ Flows` button next to `📈 Macro` on chart.html (jh-chart-engine.js + jh-chart-tvrail.js, peels registered in
+tests/helpers/chart-macro-line-preservation.cjs). The state before it: commit `c5ec5497`.
+
+Remove the desk again (Git Bash):
+
+    git pull
+    git checkout c5ec5497 -- chart-pro.html assets/jh-workspaces.js assets/jh-workspaces.css macro-economic-data.html universe-heatmap.html jh-chart-engine.js jh-chart-tvrail.js scripts/build_workspaces.py tests/helpers/chart-macro-line-preservation.cjs config/page-data-contracts.json
+    git rm -q inflows-outflows.html
+    git commit -m "remove the Inflows & outflows desk [skip-ops]"
+    git push

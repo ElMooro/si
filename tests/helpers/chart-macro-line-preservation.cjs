@@ -5,6 +5,7 @@
 // 2026-10-14: peel the heatmap cache-bust so the auction census still sees the prior bytes.
 // 2026-10-21: peel the auto-hide cache-bust (session pin, position-based hiding) before the CDS census.
 // 2026-11-05: peel the Leaders tab (engine button + click beside 13F, rail meta, chart.html cache) before every older peel.
+// 2026-11-10: peel the Inflows & outflows desk button (engine button + click beside Macro, rail meta) before every older peel.
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto');
 const R=path.resolve(__dirname,'../..'),transition=require('../fixtures/chart-macro-line/transition.json'),hash=s=>crypto.createHash('sha256').update(s).digest('hex');
 const EVR_TAG='<script src="/jh-chart-evr.js?v=20261012evr"></script>\n';
@@ -329,7 +330,30 @@ function peelCapitRail(raw,file){
  assert.equal(hash(raw),BEFORE,'jh-chart-tvrail.js');
  return raw;
 }
-function normalize(raw,file){raw=peelFormingBar(raw,file);raw=peelCapitHtml(raw,file);raw=peelCapitRail(raw,file);raw=peelLeadersHtml(raw,file);raw=peelLeadersEngine(raw,file);raw=peelLeadersRail(raw,file);raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
+// 2026-11-10 (c): peel the Inflows & outflows desk button (engine button + click beside Macro, rail meta) before every older peel.
+function peelFlowsEngine(raw,file){
+ const AFTER='a31450e192466e529396caff40e57ef177cdb8ab42420e81dc89856c894b0a3e';
+ const BEFORE='7fe719832a34061e375cf0868455049d1c8c2565a8fa6b28bb6e262dd9d08028';
+ const BTN="      \"<button class='wsico wsdesk' id=btn-flows title='Inflows & outflows'><span class=g>⇄</span><span class=l>Flows</span></button>\"+\n";
+ const CLICK="    var bflw=document.getElementById(\"btn-flows\"); if(bflw) bflw.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace(\"flows\"); };\n";
+ if(file!=='jh-chart-engine.js'||hash(raw)!==AFTER)return raw;
+ assert.equal(raw.split(BTN).length,2,'jh-chart-engine.js flows button');
+ assert.equal(raw.split(CLICK).length,2,'jh-chart-engine.js flows click');
+ raw=raw.replace(BTN,'').replace(CLICK,'');
+ assert.equal(hash(raw),BEFORE,'jh-chart-engine.js');
+ return raw;
+}
+function peelFlowsRail(raw,file){
+ const AFTER='d0587c69cc2eaa07b5b321af2c8ee48ad2dad0054a496e02695d87d416b2cc92';
+ const BEFORE='2455f7e859dfa18f50d75f669fcd95538eb32944ba9f1e1b5e10dbee38393a79';
+ const LINE="      flows: [\"Inflows & outflows\", \"/inflows-outflows.html\"],\n";
+ if(file!=='jh-chart-tvrail.js'||hash(raw)!==AFTER)return raw;
+ assert.equal(raw.split(LINE).length,2,'jh-chart-tvrail.js flows meta');
+ raw=raw.replace(LINE,'');
+ assert.equal(hash(raw),BEFORE,'jh-chart-tvrail.js');
+ return raw;
+}
+function normalize(raw,file){raw=peelFlowsEngine(raw,file);raw=peelFlowsRail(raw,file);raw=peelFormingBar(raw,file);raw=peelCapitHtml(raw,file);raw=peelCapitRail(raw,file);raw=peelLeadersHtml(raw,file);raw=peelLeadersEngine(raw,file);raw=peelLeadersRail(raw,file);raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
  if(digest===row.before_sha256||digest!==row.after_sha256)return raw;
  for(const e of [...row.replacements].reverse()){assert.equal(raw.split(e.after).length,2,file+': '+e.after.slice(0,60));raw=raw.replace(e.after,e.before);}
  assert.equal(hash(raw),row.before_sha256,file);assert.equal(raw,fs.readFileSync(path.join(R,row.before_path),'utf8'));return raw;
