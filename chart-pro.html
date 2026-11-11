@@ -1160,6 +1160,9 @@ body.macro-pointer-dragging { user-select:none; cursor:grabbing; }
 }
 .macro-item.danger-flash .macro-danger-badge { display:block; }
 /* history strips, the full-screen view and personal notes (2026-11-10) */
+/* the turn colours are their own tokens: the site reskin turns the light theme's teal --green into amber, and Khalid asked for green tops / red bottoms (these hexes are the reskin's own calm green / red, so they survive the deploy unchanged) */
+.macro-hist-lg, .macro-hist-chart, .macro-turn-dot { --mh-top:#6fce8a; --mh-bottom:#E07A6A; }
+body[data-chart-theme="light"] .macro-hist-lg, body[data-chart-theme="light"] .macro-hist-chart, body[data-chart-theme="light"] .macro-turn-dot { --mh-top:#3f7d55; --mh-bottom:#B85C4E; }
 .macro-note { margin-top:3px; font:italic 10.5px/1.4 var(--font-sans); color:var(--fg-2); border-radius:4px; padding:2px 4px; cursor:text; min-width:0; overflow-wrap:anywhere; }
 .macro-note.empty { color:var(--fg-4); font-style:normal; opacity:0; transition:opacity .12s; }
 .macro-item:hover .macro-note.empty, .macro-item:focus-within .macro-note.empty, .macro-note.empty:focus { opacity:1; }
@@ -1174,8 +1177,8 @@ body.macro-pointer-dragging { user-select:none; cursor:grabbing; }
 .macro-hist-head { display:flex; justify-content:space-between; gap:8px; font:500 9px/1 var(--font-mono); color:var(--fg-4); margin-bottom:4px; }
 .macro-hist-lg { white-space:nowrap; }
 .macro-hist-lg i { display:inline-block; width:8px; height:8px; border-radius:2px; margin:0 3px 0 7px; vertical-align:-1px; }
-.macro-hist-lg i.t { background:var(--green); }
-.macro-hist-lg i.b { background:var(--red); }
+.macro-hist-lg i.t { background:var(--mh-top); }
+.macro-hist-lg i.b { background:var(--mh-bottom); }
 .macro-hist-svg { min-height:132px; background:var(--bg); border:1px solid var(--border); border-radius:5px; display:grid; place-items:center; }
 .macro-hist-svg svg { display:block; width:100%; height:132px; }
 .macro-hist-wait { font:9.5px var(--font-mono); color:var(--fg-4); }
@@ -1184,9 +1187,9 @@ body.macro-pointer-dragging { user-select:none; cursor:grabbing; }
 .macro-hist-grid { stroke:var(--border); stroke-width:1; }
 .macro-hist-axis, .macro-hist-year { font:10px var(--font-mono); fill:var(--fg-4); }
 .macro-hist-spx { fill:none; stroke:var(--fg-4); stroke-width:1; stroke-dasharray:3 3; opacity:.6; }
-.macro-hist-bear { fill:var(--red); opacity:.07; }
-.macro-hist-top { stroke:var(--green); stroke-width:2.5; }
-.macro-hist-bottom { stroke:var(--red); stroke-width:2.5; }
+.macro-hist-bear { fill:var(--mh-bottom); opacity:.09; }
+.macro-hist-top { stroke:var(--mh-top); stroke-width:2.5; }
+.macro-hist-bottom { stroke:var(--mh-bottom); stroke-width:2.5; }
 .macro-hist-bottom.provisional { stroke-dasharray:4 3; }
 .macro-hist-chart.big .macro-hist-top, .macro-hist-chart.big .macro-hist-bottom { stroke-width:3; }
 .macro-hist-area { fill:var(--fg-1); opacity:.07; }
@@ -1194,8 +1197,8 @@ body.macro-pointer-dragging { user-select:none; cursor:grabbing; }
 .macro-hist-now { fill:var(--amber); }
 .macro-hist-nowlabel { font:700 11px var(--font-mono); fill:var(--amber); }
 .macro-hist-dot { stroke:var(--bg); stroke-width:1.5; }
-.macro-hist-dot.top { fill:var(--green); }
-.macro-hist-dot.bottom { fill:var(--red); }
+.macro-hist-dot.top { fill:var(--mh-top); }
+.macro-hist-dot.bottom { fill:var(--mh-bottom); }
 .macro-hist-label { font:700 12px var(--font-sans); fill:var(--fg-0); }
 .macro-hist-sub { font:9.5px var(--font-mono); fill:var(--fg-3); }
 .macro-hist-legend { font:10px var(--font-mono); fill:var(--fg-4); }
@@ -1223,7 +1226,7 @@ body.macro-pointer-dragging { user-select:none; cursor:grabbing; }
 .macro-focus-table td small { color:var(--fg-4); margin-left:4px; }
 .macro-focus-table td.up { color:var(--green); }
 .macro-focus-table td.down { color:var(--red); }
-.macro-turn-dot { display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:7px; vertical-align:-1px; background:var(--green); }
+.macro-turn-dot { display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:7px; vertical-align:-1px; background:var(--mh-top); }
 .macro-focus-note-text { font:10px/1.6 var(--font-mono); color:var(--fg-4); }
 body.macro-focus-open { overflow:hidden; }
 @keyframes macro-danger-pulse {
