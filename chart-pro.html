@@ -1073,7 +1073,7 @@ body.tv-shell .tv-iconrail { display: flex; }
   display: flex; align-items: center; gap: 8px;
 }
 .macro-cat-name .mc-flag { font-size: 13px; }
-.macro-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px; }
+.macro-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 8px; }
 .macro-item {
   display: flex; flex-direction: column; gap: 2px;
   padding: 9px 11px; border-radius: 6px; cursor: pointer;
@@ -1159,6 +1159,73 @@ body.macro-pointer-dragging { user-select:none; cursor:grabbing; }
   background:var(--red); color:#fff; font:800 7.5px/1 var(--font-mono); letter-spacing:.7px;
 }
 .macro-item.danger-flash .macro-danger-badge { display:block; }
+/* history strips, the full-screen view and personal notes (2026-11-10) */
+.macro-note { margin-top:3px; font:italic 10.5px/1.4 var(--font-sans); color:var(--fg-2); border-radius:4px; padding:2px 4px; cursor:text; min-width:0; overflow-wrap:anywhere; }
+.macro-note.empty { color:var(--fg-4); font-style:normal; opacity:0; transition:opacity .12s; }
+.macro-item:hover .macro-note.empty, .macro-item:focus-within .macro-note.empty, .macro-note.empty:focus { opacity:1; }
+.macro-note:hover, .macro-note:focus-visible { background:var(--bg-2); outline:none; }
+.macro-note.editing { cursor:auto; background:var(--bg-2); padding:6px; }
+.macro-note-input { width:100%; box-sizing:border-box; border:1px solid var(--cyan); border-radius:5px; background:var(--bg); color:var(--fg-1); padding:7px 8px; font:11px/1.4 var(--font-sans); resize:vertical; min-height:48px; outline:none; }
+.macro-note-tools { display:flex; align-items:center; gap:6px; margin-top:6px; flex-wrap:wrap; }
+.macro-note-count { margin-left:auto; font:9px var(--font-mono); color:var(--fg-4); }
+.macro-note.focus { font-size:13px; margin:6px 0 0; max-width:720px; }
+.macro-note.focus.empty { opacity:1; }
+.macro-hist { margin-top:8px; border-top:1px solid var(--border); padding-top:6px; min-width:0; }
+.macro-hist-head { display:flex; justify-content:space-between; gap:8px; font:500 9px/1 var(--font-mono); color:var(--fg-4); margin-bottom:4px; }
+.macro-hist-lg { white-space:nowrap; }
+.macro-hist-lg i { display:inline-block; width:8px; height:8px; border-radius:2px; margin:0 3px 0 7px; vertical-align:-1px; }
+.macro-hist-lg i.t { background:var(--green); }
+.macro-hist-lg i.b { background:var(--red); }
+.macro-hist-svg { min-height:132px; background:var(--bg); border:1px solid var(--border); border-radius:5px; display:grid; place-items:center; }
+.macro-hist-svg svg { display:block; width:100%; height:132px; }
+.macro-hist-wait { font:9.5px var(--font-mono); color:var(--fg-4); }
+.macro-hist-cap { margin-top:5px; font:9.5px/1.5 var(--font-mono); color:var(--fg-3); min-width:0; }
+.macro-hist-empty { font:11px var(--font-mono); fill:var(--fg-4); }
+.macro-hist-grid { stroke:var(--border); stroke-width:1; }
+.macro-hist-axis, .macro-hist-year { font:10px var(--font-mono); fill:var(--fg-4); }
+.macro-hist-spx { fill:none; stroke:var(--fg-4); stroke-width:1; stroke-dasharray:3 3; opacity:.6; }
+.macro-hist-bear { fill:var(--red); opacity:.07; }
+.macro-hist-top { stroke:var(--green); stroke-width:2.5; }
+.macro-hist-bottom { stroke:var(--red); stroke-width:2.5; }
+.macro-hist-bottom.provisional { stroke-dasharray:4 3; }
+.macro-hist-chart.big .macro-hist-top, .macro-hist-chart.big .macro-hist-bottom { stroke-width:3; }
+.macro-hist-area { fill:var(--fg-1); opacity:.07; }
+.macro-hist-line { fill:none; stroke:var(--fg-1); stroke-width:1.6; vector-effect:non-scaling-stroke; }
+.macro-hist-now { fill:var(--amber); }
+.macro-hist-nowlabel { font:700 11px var(--font-mono); fill:var(--amber); }
+.macro-hist-dot { stroke:var(--bg); stroke-width:1.5; }
+.macro-hist-dot.top { fill:var(--green); }
+.macro-hist-dot.bottom { fill:var(--red); }
+.macro-hist-label { font:700 12px var(--font-sans); fill:var(--fg-0); }
+.macro-hist-sub { font:9.5px var(--font-mono); fill:var(--fg-3); }
+.macro-hist-legend { font:10px var(--font-mono); fill:var(--fg-4); }
+.macro-focus { position:fixed; inset:0; z-index:10070; display:none; flex-direction:column; background:var(--bg); color:var(--fg-1); }
+.macro-focus.open { display:flex; }
+.macro-focus-head { display:flex; align-items:flex-start; gap:14px; padding:14px 20px 10px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.macro-focus-titles { min-width:0; flex:1 1 320px; }
+.macro-focus-title { display:block; font:700 17px/1.25 var(--font-sans); color:var(--fg-0); }
+.macro-focus-meta { display:block; margin-top:3px; font:10.5px var(--font-mono); color:var(--violet); }
+.macro-focus-latest { display:flex; align-items:baseline; gap:8px; }
+.macro-focus-latest .v { font:700 24px/1 var(--font-mono); color:var(--fg-0); }
+.macro-focus-latest .u, .macro-focus-latest .d { font:10px var(--font-mono); color:var(--fg-4); }
+.macro-focus-actions { display:flex; align-items:center; gap:8px; }
+.macro-focus-body { flex:1; overflow:auto; padding:14px 20px 24px; }
+.macro-focus-chart svg { display:block; width:100%; height:min(58vh, 560px); min-height:300px; background:var(--bg-1); border:1px solid var(--border); border-radius:8px; }
+.macro-focus-grid { display:grid; gap:14px; margin-top:14px; }
+.macro-focus-changes { display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:6px; max-width:520px; }
+.macro-focus-changes .macro-change { font-size:11px; }
+.macro-focus-changes .macro-change b { font-size:9px; }
+.macro-focus-table { overflow-x:auto; }
+.macro-focus-table table { border-collapse:collapse; width:100%; font:11px var(--font-mono); font-variant-numeric:tabular-nums; }
+.macro-focus-table th, .macro-focus-table td { padding:7px 10px; border-bottom:1px solid var(--border); text-align:left; white-space:nowrap; }
+.macro-focus-table th { color:var(--fg-3); font-weight:600; font-size:9.5px; text-transform:uppercase; letter-spacing:.4px; }
+.macro-focus-table td.n { text-align:right; }
+.macro-focus-table td small { color:var(--fg-4); margin-left:4px; }
+.macro-focus-table td.up { color:var(--green); }
+.macro-focus-table td.down { color:var(--red); }
+.macro-turn-dot { display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:7px; vertical-align:-1px; background:var(--green); }
+.macro-focus-note-text { font:10px/1.6 var(--font-mono); color:var(--fg-4); }
+body.macro-focus-open { overflow:hidden; }
 @keyframes macro-danger-pulse {
   0%,100% { box-shadow:0 0 0 0 rgba(255,65,90,.1); }
   50% { box-shadow:0 0 0 3px rgba(255,65,90,.28), inset 0 0 18px rgba(255,65,90,.08); }
@@ -1267,6 +1334,10 @@ body.macro-pointer-dragging { user-select:none; cursor:grabbing; }
   .macro-picker-row { grid-template-columns:95px 1fr; }
   .macro-picker-provider { display:none; }
   .macro-sr { grid-template-columns:minmax(90px,130px) 1fr auto; gap:8px; padding:9px 10px; min-height:48px; }
+  .macro-focus-head { padding:10px 12px; }
+  .macro-focus-body { padding:10px 12px 20px; }
+  .macro-focus-chart svg { height:46vh; min-height:240px; }
+  .macro-focus-latest .v { font-size:18px; }
   .macro-sr .sr-logo, .macro-sr .sr-meta { display:none; }
   .macro-add-all select { max-width:100%; flex:1; }
 }
@@ -2622,6 +2693,18 @@ html, body { max-width: 100vw; overflow-x: hidden; }
       <button class="macro-save-btn" id="macro-editor-save" type="button">SAVE</button>
     </div>
   </div>
+</div>
+<div class="macro-focus" id="macro-focus" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="macro-focus-title">
+  <div class="macro-focus-head">
+    <div class="macro-focus-titles"><span class="macro-focus-title" id="macro-focus-title"></span><span class="macro-focus-meta" id="macro-focus-meta"></span><div id="macro-focus-notehost"></div></div>
+    <div class="macro-focus-latest" id="macro-focus-latest"></div>
+    <div class="macro-focus-actions">
+      <button class="macro-manage-btn" id="macro-focus-chart" type="button" title="Chart this series on the chart">OPEN ON THE CHART ↗</button>
+      <button class="macro-manage-btn" id="macro-focus-compare" type="button" title="Add this series to the chart comparison">⇄ COMPARE</button>
+      <button class="modal-close" id="macro-focus-close" type="button" aria-label="Close the full-screen view">×</button>
+    </div>
+  </div>
+  <div class="macro-focus-body" id="macro-focus-body"></div>
 </div>
 
 <!-- New Watchlist Modal -->
@@ -6047,6 +6130,11 @@ class MacroData {
   static pointerDrag = null;
   static inline = false;   // standalone page (macro-data.html): the workspace IS the page, close() must not blank it
   static lastSearch = null;  // {text, rows, total, sources, provider, added} of the open "Universal series search" (2026-11-10 add-all)
+  static focusToken = 0;
+  static focusCategory = null;
+  static turnsAsOf = null;
+  static spx = null;
+  static spxPromise = null;
 
   static init() {
     this.load();
@@ -6067,6 +6155,11 @@ class MacroData {
     document.getElementById('macro-editor-modal').addEventListener('keydown', e => this.trapEditorFocus(e));
     document.getElementById('macro-modal').addEventListener('keydown', e => this.trapModalFocus(e));
     document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && document.getElementById('macro-focus') && document.getElementById('macro-focus').classList.contains('open') && !(e.target && e.target.closest && e.target.closest('textarea'))) {
+        e.stopImmediatePropagation();
+        this.closeFocus();
+        return;
+      }
       if (e.key === 'Escape' && document.getElementById('macro-editor-modal').classList.contains('open')) {
         e.stopImmediatePropagation();
         this.closeEditor();
@@ -6124,6 +6217,7 @@ class MacroData {
           units: String(item.units || item.unit || ''),
           kind: String(item.kind || 'series'),
           provider: String(item.provider || String(item.symbol || '').split(':')[0] || 'data'),
+          note: String(item.note || '').slice(0, 400),
           danger: {
             type: String((item.danger || {}).type || 'none'),
             threshold: Number.isFinite(Number((item.danger || {}).threshold)) ? Number(item.danger.threshold) : null,
@@ -6152,6 +6246,7 @@ class MacroData {
   static close() {
     const modal = document.getElementById('macro-modal');
     const wasOpen = modal.classList.contains('open');
+    this.closeFocus();
     if (this.inline) { this.clearDrag(); return; }
     this.clearDrag();
     this.renderToken++;
@@ -6183,11 +6278,13 @@ class MacroData {
             aria-label="Chart ${UI.esc(it.title)}. Drag to the chart to compare.">
           <span class="mi-title">${UI.esc(it.title)}</span>
           <span class="mi-meta"><span class="mi-id">${UI.esc(it.symbol)}</span><span>${UI.esc(it.provider || '')}</span></span>
+          ${this.noteHtml(it)}
           <div class="macro-latest"><span class="macro-latest-value">…</span><span class="macro-latest-unit">${UI.esc(it.units || '')}</span><span class="macro-asof"></span></div>
           <div class="macro-danger-badge">DANGER</div>
           <div class="macro-changes">
             ${['D','W','M','Q','Y'].map(h => `<span class="macro-change na" data-horizon="${h}"><b>${h}</b>—</span>`).join('')}
           </div>
+          <div class="macro-hist" title="Click for the full-screen history"><div class="macro-hist-head"><span>1996 → today</span><span class="macro-hist-lg"><i class="t"></i>top<i class="b"></i>bottom</span></div><div class="macro-hist-svg"><span class="macro-hist-wait">history…</span></div><div class="macro-hist-cap"></div></div>
           <span class="macro-item-tools">
             <button class="macro-icon-btn" type="button" data-macro-action="compare-series" aria-label="Compare ${UI.esc(it.title)} on chart" title="Add to chart comparison">⇄</button>
             <button class="macro-drag-handle" type="button" draggable="true"
@@ -6220,15 +6317,14 @@ class MacroData {
     body.innerHTML = html;
     body.querySelectorAll('.macro-item').forEach(el => {
       el.addEventListener('click', e => {
-        if (e.target.closest('button')) return;
-        this.chartSeries(el.dataset.symbol);
-        this.close();
+        if (e.target.closest('button, .macro-note, textarea')) return;
+        this.openFocus(el.dataset.seriesId, el.dataset.categoryId, el);
       });
       el.addEventListener('keydown', e => {
-        if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('button')) {
+        if (e.target.closest('textarea, input')) return;
+        if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('button, .macro-note')) {
           e.preventDefault();
-          this.chartSeries(el.dataset.symbol);
-          this.close();
+          this.openFocus(el.dataset.seriesId, el.dataset.categoryId, el);
         }
       });
     });
@@ -6246,6 +6342,8 @@ class MacroData {
       if (action === 'edit-category') this.openCategoryEditor(categoryId, btn);
       if (action === 'remove-category') this.removeCategory(categoryId);
     }));
+    this.wireNotes(body);
+    this.wireFocus();
     this.wireReordering(body);
     this.hydrateMetrics();
   }
@@ -6617,7 +6715,7 @@ class MacroData {
           ? ((last.value - prior.value) / Math.abs(prior.value)) * 100
           : null;
       });
-      const metric = { last: last.value, asof: last.date.slice(0, 10), changes, spacingDays, cachedAt: Date.now() };
+      const metric = { last: last.value, asof: last.date.slice(0, 10), changes, spacingDays, cachedAt: Date.now(), hist: this.packHistory(observations) };
       this.metricCache.set(symbol, metric);
       return metric;
     })();
@@ -6683,6 +6781,8 @@ class MacroData {
       card.dataset.metricState = 'error';
       card.querySelector('.macro-latest-value').textContent = 'Unavailable';
       card.querySelector('.macro-latest-value').title = msg;
+      const strip = card.querySelector('.macro-hist-svg');
+      if (strip) { strip.innerHTML = '<span class="macro-hist-wait">history unavailable</span>'; strip.title = msg; }
     }
   }
 
@@ -6709,6 +6809,7 @@ class MacroData {
       const value = rule.type.startsWith('value_') ? metric.last : metric.changes[rule.horizon];
       card.querySelector('.macro-danger-badge').title = `${rule.type.replaceAll('_', ' ')} ${rule.threshold}; current ${this.formatValue(value)}`;
     }
+    this.paintStrip(card, metric);
   }
 
   static formatValue(value, units) {
@@ -6927,6 +7028,408 @@ class MacroData {
     return (await this.searchPayload(text)).rows;
   }
 
+  /* ───────────────────────── history strips · market turns · full-screen view · notes (2026-11-10) ─────────────────────────
+     Khalid: "add a historical chart under every single data point starting from 1996 highlighting the famous historic
+     turns (dotcom, the 2008 financial crisis, COVID and such), tops in green, bottoms in red"; "when I click on that data
+     set it should make it full screen"; "a subtitle or a sentence that's mine, editable, under each metric if I choose to".
+     The strip reuses the /series history each card already loads for its D/W/M/Q/Y numbers (kept as typed arrays since
+     1996). The turns come from the S&P 500's own closes (one /ohlc read per page): a top counts once the market then falls
+     BEAR_SWING (25%) from its running high; the bottom is the low of that decline, confirmed by a BEAR_RALLY (30%) rally or a
+     recovery of the top -- so bear-market rallies never count, and the next bear appears on its own when the market makes
+     one. Notes live on the item (state.categories[].items[].note) in the same localStorage key as everything else. */
+  static HISTORY_FROM = '1996-01-01';
+  static BEAR_SWING = 0.25;
+  static BEAR_RALLY = 0.30;
+  static TURN_NAMES = { '2000-03': 'Dotcom', '2007-10': '2008 financial crisis', '2020-02': 'COVID', '2022-01': '2022 bear' };
+  static NOTE_MAX = 400;
+  static turns = null;
+  static turnsPromise = null;
+  static focusItem = null;
+  static focusTrigger = null;
+
+  static dayOf(date) { return Math.floor(Date.parse(String(date).slice(0, 10) + 'T00:00:00Z') / 86400000); }
+  static isoOf(day) { return new Date(day * 86400000).toISOString().slice(0, 10); }
+
+  static packHistory(observations) {
+    const rows = observations.filter(o => o.date >= this.HISTORY_FROM && Number.isFinite(o.value));
+    const t = new Int32Array(rows.length), v = new Float64Array(rows.length);
+    rows.forEach((o, i) => { t[i] = this.dayOf(o.date); v[i] = o.value; });
+    return { t, v };
+  }
+
+  static packBars(bars) {
+    const rows = (bars || []).map(b => {
+      const time = Number(b.time);
+      const date = Number.isFinite(time) ? new Date(time * 1000).toISOString().slice(0, 10) : String(b.date || '').slice(0, 10);
+      return { date, value: Number(b.close) };
+    }).filter(o => o.date.length === 10 && Number.isFinite(o.value)).sort((a, b) => a.date.localeCompare(b.date));
+    return this.packHistory(rows);
+  }
+
+  static historyAt(hist, day) {
+    // the last observation on or before `day`, or null
+    if (!hist || !hist.t.length || hist.t[0] > day) return null;
+    let lo = 0, hi = hist.t.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1;
+      if (hist.t[mid] <= day) lo = mid; else hi = mid - 1;
+    }
+    return { day: hist.t[lo], value: hist.v[lo] };
+  }
+
+  static marketTurns(closes) {
+    // closes: sorted [[isoDate, close]] -> [{name, top:{date,value,move,until}, bottom:{date,value,move,until,provisional}}]
+    const pivots = [];
+    if (!closes.length) return [];
+    let state = 'up', ext = 0, topValue = null;
+    for (let i = 1; i < closes.length; i++) {
+      const v = closes[i][1], ev = closes[ext][1];
+      if (state === 'up') {
+        if (v > ev) ext = i;
+        else if (v <= ev * (1 - this.BEAR_SWING)) { pivots.push({ kind: 'top', date: closes[ext][0], value: ev }); topValue = ev; state = 'down'; ext = i; }
+      } else {
+        if (v < ev) ext = i;
+        else if (v >= ev * (1 + this.BEAR_RALLY) || v >= topValue) { pivots.push({ kind: 'bottom', date: closes[ext][0], value: ev }); state = 'up'; ext = i; }
+      }
+    }
+    if (state === 'down') pivots.push({ kind: 'bottom', date: closes[ext][0], value: closes[ext][1], provisional: true });
+    pivots.forEach((p, k) => {
+      const ref = pivots[k + 1] || { value: closes[closes.length - 1][1], date: closes[closes.length - 1][0] };
+      p.move = (ref.value - p.value) / p.value;
+      p.until = ref.date;
+    });
+    const out = [];
+    for (let k = 0; k < pivots.length; k++) {
+      const p = pivots[k];
+      if (p.kind !== 'top' || p.date < this.HISTORY_FROM) continue;
+      const q = pivots[k + 1] && pivots[k + 1].kind === 'bottom' ? pivots[k + 1] : null;
+      out.push({ name: this.TURN_NAMES[p.date.slice(0, 7)] || (p.date.slice(0, 4) + ' bear'), top: p, bottom: q });
+    }
+    return out;
+  }
+
+  static loadTurns() {
+    if (this.turns) return Promise.resolve(this.turns);
+    if (this.turnsPromise) return this.turnsPromise;
+    this.turnsPromise = fetch(PROXY + '/ohlc?ticker=SPY&span=day&mult=1&days=12000')
+      .then(r => r.ok ? r.json() : null)
+      .then(payload => {
+        const closes = ((payload && payload.bars) || []).map(b => {
+          const time = Number(b.time);
+          return [Number.isFinite(time) ? new Date(time * 1000).toISOString().slice(0, 10) : String(b.date || '').slice(0, 10), Number(b.close)];
+        }).filter(r => r[0].length === 10 && Number.isFinite(r[1])).sort((a, b) => a[0].localeCompare(b[0]));
+        if (closes.length < 500) throw new Error('S&P history short: ' + closes.length);
+        this.turns = this.marketTurns(closes);
+        this.turnsAsOf = closes[closes.length - 1][0];
+        return this.turns;
+      })
+      .catch(e => { console.warn('[macro] market turns unavailable', e); this.turnsPromise = null; return []; });
+    return this.turnsPromise;
+  }
+
+  static async fetchHistory(symbol, metric) {
+    if (metric && metric.hist) return metric.hist;
+    if (String(symbol).indexOf(':') >= 0) return null;
+    const cached = this.metricCache.get(symbol);
+    if (cached && cached.hist) return cached.hist;
+    const response = await fetch(PROXY + '/ohlc?ticker=' + encodeURIComponent(symbol) + '&span=day&mult=1&days=12000');
+    if (!response.ok) throw new Error('History ' + response.status);
+    const payload = await response.json();
+    const hist = this.packBars(payload.bars);
+    if (cached) cached.hist = hist;
+    return hist;
+  }
+
+  static fmtHist(value, units) {
+    if (!Number.isFinite(value)) return '—';
+    const u = String(units || '');
+    const abs = Math.abs(value);
+    const s = abs < 100 ? value.toFixed(2) : abs < 10000 ? value.toFixed(1) : Math.round(value).toLocaleString();
+    return (u === '%' || /^percent/i.test(u)) ? s + '%' : s;
+  }
+
+  static historySvg(hist, turns, opts) {
+    // opts: {w, h, units, big, spx}
+    const w = opts.w, h = opts.h, big = !!opts.big;
+    const x0 = big ? 58 : 8, x1 = w - (big ? 16 : 8), y0 = big ? 64 : 10, y1 = h - (big ? 46 : 20);
+    const t0 = this.dayOf(this.HISTORY_FROM);
+    const today = Math.floor(Date.now() / 86400000);
+    const t1 = Math.max(hist && hist.t.length ? hist.t[hist.t.length - 1] : today, today - 30);
+    const X = day => x0 + (day - t0) / (t1 - t0) * (x1 - x0);
+    const parts = ['<svg class="macro-hist-chart' + (big ? ' big' : '') + '" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" role="img" aria-label="history since 1996">'];
+    if (!hist || hist.t.length < 2) {
+      parts.push('<text x="' + (w / 2) + '" y="' + (h / 2) + '" class="macro-hist-empty" text-anchor="middle">no history before today</text></svg>');
+      return parts.join('');
+    }
+    let vmin = Infinity, vmax = -Infinity;
+    for (let i = 0; i < hist.v.length; i++) { if (hist.v[i] < vmin) vmin = hist.v[i]; if (hist.v[i] > vmax) vmax = hist.v[i]; }
+    if (vmax === vmin) vmax = vmin + 1;
+    const pad = (vmax - vmin) * 0.06;
+    vmin -= pad; vmax += pad;
+    const Y = value => y1 - (value - vmin) / (vmax - vmin) * (y1 - y0);
+    // grid + axis (big view only)
+    if (big) {
+      for (let k = 0; k < 5; k++) {
+        const value = vmin + (vmax - vmin) * k / 4, yy = Y(value).toFixed(1);
+        parts.push('<line x1="' + x0 + '" x2="' + x1 + '" y1="' + yy + '" y2="' + yy + '" class="macro-hist-grid"/>');
+        parts.push('<text x="' + (x0 - 8) + '" y="' + (Number(yy) + 3.5).toFixed(1) + '" class="macro-hist-axis" text-anchor="end">' + this.fmtHist(value, opts.units) + '</text>');
+      }
+      if (opts.spx && opts.spx.t.length > 1) {
+        let smin = Infinity, smax = -Infinity;
+        for (let i = 0; i < opts.spx.v.length; i++) { if (opts.spx.t[i] < t0) continue; const lv = Math.log(opts.spx.v[i]); if (lv < smin) smin = lv; if (lv > smax) smax = lv; }
+        const sy0 = y0 + 24;
+        const stride = Math.max(1, Math.floor(opts.spx.t.length / 2400));
+        const pts = [];
+        for (let i = 0; i < opts.spx.t.length; i += stride) {
+          if (opts.spx.t[i] < t0) continue;
+          pts.push(X(opts.spx.t[i]).toFixed(1) + ',' + (y1 - (Math.log(opts.spx.v[i]) - smin) / (smax - smin) * (y1 - sy0)).toFixed(1));
+        }
+        parts.push('<polyline points="' + pts.join(' ') + '" class="macro-hist-spx"/>');
+      }
+    }
+    // the famous bears: tint from the top to the bottom, a green line at the top, a red line at the bottom
+    (turns || []).forEach((ep, n) => {
+      const xt = X(this.dayOf(ep.top.date)), xb = ep.bottom ? X(this.dayOf(ep.bottom.date)) : x1;
+      const topTitle = UI.esc(ep.name + ' top · ' + ep.top.date + ' · S&P ' + (ep.top.move * 100).toFixed(0) + '% to ' + String(ep.top.until).slice(0, 7));
+      parts.push('<rect x="' + xt.toFixed(1) + '" y="' + (y0 + (big ? 2 : -6)) + '" width="' + Math.max(2, xb - xt).toFixed(1) + '" height="' + (y1 - y0 + (big ? 0 : 8)) + '" class="macro-hist-bear"/>');
+      parts.push('<line x1="' + xt.toFixed(1) + '" x2="' + xt.toFixed(1) + '" y1="' + (y0 + (big ? 2 : -6)) + '" y2="' + (y1 + 2) + '" class="macro-hist-top"><title>' + topTitle + '</title></line>');
+      if (ep.bottom) {
+        const botTitle = UI.esc(ep.name + ' bottom · ' + ep.bottom.date + (ep.bottom.provisional ? ' (low so far)' : ' · S&P +' + (ep.bottom.move * 100).toFixed(0) + '% to ' + String(ep.bottom.until).slice(0, 7)));
+        parts.push('<line x1="' + xb.toFixed(1) + '" x2="' + xb.toFixed(1) + '" y1="' + (y0 + (big ? 2 : -6)) + '" y2="' + (y1 + 2) + '" class="macro-hist-bottom' + (ep.bottom.provisional ? ' provisional' : '') + '"><title>' + botTitle + '</title></line>');
+      }
+      if (big) {
+        const vt = this.historyAt(hist, this.dayOf(ep.top.date)), vb = ep.bottom ? this.historyAt(hist, this.dayOf(ep.bottom.date)) : null;
+        if (vt) parts.push('<circle cx="' + xt.toFixed(1) + '" cy="' + Y(vt.value).toFixed(1) + '" r="5" class="macro-hist-dot top"><title>' + UI.esc('at the ' + ep.name + ' top (' + ep.top.date + '): ' + this.fmtHist(vt.value, opts.units)) + '</title></circle>');
+        if (vb) parts.push('<circle cx="' + xb.toFixed(1) + '" cy="' + Y(vb.value).toFixed(1) + '" r="5" class="macro-hist-dot bottom"><title>' + UI.esc('at the ' + ep.name + ' bottom (' + ep.bottom.date + '): ' + this.fmtHist(vb.value, opts.units)) + '</title></circle>');
+        const cx = (xt + xb) / 2, ly = n % 2 === 0 ? y0 - 42 : y0 - 16;
+        const anchor = cx < 90 ? 'start' : cx > x1 - 90 ? 'end' : 'middle';
+        parts.push('<text x="' + cx.toFixed(1) + '" y="' + ly + '" class="macro-hist-label" text-anchor="' + anchor + '">' + UI.esc(ep.name) + '</text>');
+        parts.push('<text x="' + cx.toFixed(1) + '" y="' + (ly + 12) + '" class="macro-hist-sub" text-anchor="' + anchor + '">' + UI.esc('top ' + ep.top.date.slice(0, 7) + ' ' + (vt ? this.fmtHist(vt.value, opts.units) : '') + ' → bottom ' + (ep.bottom ? ep.bottom.date.slice(0, 7) + ' ' + (vb ? this.fmtHist(vb.value, opts.units) : '') : '…') + ' · S&P ' + (ep.top.move * 100).toFixed(0) + '%') + '</text>');
+      }
+    });
+    // the series
+    const stride = Math.max(1, Math.floor(hist.t.length / (big ? 2400 : 720)));
+    const pts = [];
+    for (let i = 0; i < hist.t.length; i += stride) pts.push(X(hist.t[i]).toFixed(1) + ',' + Y(hist.v[i]).toFixed(1));
+    const lastX = X(hist.t[hist.t.length - 1]).toFixed(1), lastY = Y(hist.v[hist.v.length - 1]).toFixed(1);
+    if (pts[pts.length - 1] !== lastX + ',' + lastY) pts.push(lastX + ',' + lastY);
+    parts.push('<polygon points="' + pts.join(' ') + ' ' + lastX + ',' + y1 + ' ' + pts[0].split(',')[0] + ',' + y1 + '" class="macro-hist-area"/>');
+    parts.push('<polyline points="' + pts.join(' ') + '" class="macro-hist-line"/>');
+    parts.push('<circle cx="' + lastX + '" cy="' + lastY + '" r="' + (big ? 4.5 : 3.4) + '" class="macro-hist-now"/>');
+    if (big) parts.push('<text x="' + (Number(lastX) - 9).toFixed(1) + '" y="' + (Number(lastY) - 9).toFixed(1) + '" class="macro-hist-nowlabel" text-anchor="end">now ' + this.fmtHist(hist.v[hist.v.length - 1], opts.units) + '</text>');
+    // year ticks
+    const firstYear = 1996, lastYear = new Date(t1 * 86400000).getUTCFullYear();
+    for (let yr = firstYear; yr <= lastYear; yr += big ? 2 : 4) {
+      const day = this.dayOf(yr + '-01-01');
+      if (day < t0 || day > t1) continue;
+      parts.push('<text x="' + X(day).toFixed(1) + '" y="' + (h - (big ? 26 : 6)) + '" class="macro-hist-year" text-anchor="' + (yr === firstYear ? 'start' : 'middle') + '">' + yr + '</text>');
+    }
+    if (big) parts.push('<text x="' + x0 + '" y="' + (h - 8) + '" class="macro-hist-legend">dotted grey = S&amp;P 500 (log, reference) · green = market top · red = market bottom · tint = the bear market · dots = this series on those days</text>');
+    parts.push('</svg>');
+    return parts.join('');
+  }
+
+  static turnsCaption(hist, turns, units) {
+    if (!hist || !turns || !turns.length) return '';
+    return turns.map(ep => {
+      const vt = this.historyAt(hist, this.dayOf(ep.top.date)), vb = ep.bottom ? this.historyAt(hist, this.dayOf(ep.bottom.date)) : null;
+      const short = { 'Dotcom': 'Dotcom', '2008 financial crisis': '2008', 'COVID': 'COVID', '2022 bear': '2022' }[ep.name] || ep.name;
+      return short + ' ▲' + (vt ? this.fmtHist(vt.value, units) : '—') + (vb ? ' ▼' + this.fmtHist(vb.value, units) : '');
+    }).join(' · ');
+  }
+
+  static async paintStrip(card, metric) {
+    const host = card.querySelector('.macro-hist-svg');
+    if (!host) return;
+    const found = this.findSeries(card.dataset.seriesId, card.dataset.categoryId);
+    const units = found ? found.item.units : '';
+    try {
+      const [hist, turns] = await Promise.all([this.fetchHistory(card.dataset.symbol, metric), this.loadTurns()]);
+      if (!card.isConnected) return;
+      host.innerHTML = this.historySvg(hist, turns, { w: 360, h: 132, units });
+      const cap = card.querySelector('.macro-hist-cap');
+      if (cap) cap.textContent = this.turnsCaption(hist, turns, units);
+      card.classList.add('has-hist');
+    } catch (e) {
+      if (!card.isConnected) return;
+      host.innerHTML = '<span class="macro-hist-wait">history unavailable</span>';
+      host.title = String(e && e.message || e);
+    }
+  }
+
+  /* ── the personal note under a metric ── */
+  static noteHtml(item) {
+    const note = String(item.note || '');
+    return '<div class="macro-note' + (note ? '' : ' empty') + '" role="button" tabindex="0" title="' + (note ? 'Edit your note' : 'Add a note of your own under this metric') + '">' +
+      (note ? '<span class="macro-note-text">' + UI.esc(note) + '</span>' : '<span class="macro-note-add">+ add your note</span>') + '</div>';
+  }
+
+  static paintNote(uid, categoryId) {
+    const found = this.findSeries(uid, categoryId);
+    if (!found) return;
+    document.querySelectorAll('.macro-item[data-series-id="' + uid + '"] .macro-note').forEach(el => { el.outerHTML = this.noteHtml(found.item); });
+    const focusNote = document.getElementById('macro-focus-note');
+    if (focusNote && this.focusItem && this.focusItem.uid === uid) focusNote.outerHTML = this.noteHtml(found.item).replace('class="macro-note', 'id="macro-focus-note" class="macro-note focus');
+  }
+
+  static wireNotes(body) {
+    // one delegated listener: the note element is re-painted after every save, so per-element listeners would be lost
+    if (!body || body.__notesWired) return;
+    body.__notesWired = true;
+    body.addEventListener('click', e => {
+      const note = e.target.closest('.macro-note');
+      if (!note || note.classList.contains('editing') || e.target.closest('textarea, button')) return;
+      e.stopPropagation();
+      const card = note.closest('.macro-item');
+      if (card) this.editNote(note, card.dataset.seriesId, card.dataset.categoryId);
+    }, true);
+    body.addEventListener('keydown', e => {
+      const note = e.target.closest('.macro-note');
+      if (!note || e.target.closest('textarea') || (e.key !== 'Enter' && e.key !== ' ')) return;
+      if (note.classList.contains('editing')) return;
+      e.preventDefault(); e.stopPropagation();
+      const card = note.closest('.macro-item');
+      if (card) this.editNote(note, card.dataset.seriesId, card.dataset.categoryId);
+    }, true);
+  }
+
+  static editNote(noteEl, uid, categoryId) {
+    const found = this.findSeries(uid, categoryId);
+    if (!found || noteEl.classList.contains('editing')) return;
+    const item = found.item;
+    const card = noteEl.closest('.macro-item');
+    const wasDraggable = card ? card.getAttribute('draggable') : null;
+    if (card) card.setAttribute('draggable', 'false');     // a textarea inside a draggable card cannot select text otherwise
+    noteEl.classList.add('editing');
+    noteEl.innerHTML = '<textarea class="macro-note-input" maxlength="' + this.NOTE_MAX + '" rows="2" placeholder="Your sentence under this metric — Enter saves, Shift+Enter for a new line, Esc cancels" aria-label="Your note">' + UI.esc(item.note || '') + '</textarea>' +
+      '<div class="macro-note-tools"><button type="button" class="macro-manage-btn" data-note="save">SAVE</button><button type="button" class="macro-manage-btn" data-note="cancel">CANCEL</button>' + (item.note ? '<button type="button" class="macro-manage-btn danger" data-note="clear">REMOVE</button>' : '') + '<span class="macro-note-count"></span></div>';
+    const input = noteEl.querySelector('textarea'), count = noteEl.querySelector('.macro-note-count');
+    const paintCount = () => { count.textContent = input.value.length + '/' + this.NOTE_MAX; };
+    paintCount();
+    let done = false;
+    const finish = (save, clear) => {
+      if (done) return;
+      done = true;
+      if (card && wasDraggable !== null) card.setAttribute('draggable', wasDraggable);
+      if (save || clear) {
+        item.note = clear ? '' : input.value.replace(/\s+$/g, '').replace(/^\s+/g, '').slice(0, this.NOTE_MAX);
+        this.save();
+        jhToast(clear ? 'Note removed' : (item.note ? 'Note saved' : 'Note cleared'));
+      }
+      this.paintNote(uid, categoryId);
+      const again = document.querySelector('.macro-item[data-series-id="' + uid + '"] .macro-note') || document.getElementById('macro-focus-note');
+      if (again && (save || clear)) again.focus({ preventScroll: true });
+    };
+    input.addEventListener('keydown', e => {
+      e.stopPropagation();
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); finish(true, false); }
+      if (e.key === 'Escape') { e.preventDefault(); finish(false, false); }
+    });
+    input.addEventListener('input', paintCount);
+    input.addEventListener('click', e => e.stopPropagation());
+    input.addEventListener('mousedown', e => e.stopPropagation());
+    noteEl.querySelectorAll('[data-note]').forEach(btn => btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const what = btn.dataset.note;
+      finish(what === 'save', what === 'clear');
+    }));
+    setTimeout(() => { input.focus(); input.setSelectionRange(input.value.length, input.value.length); }, 0);
+  }
+
+  /* ── the full-screen view of one metric ── */
+  static async openFocus(uid, categoryId, trigger) {
+    const found = this.findSeries(uid, categoryId);
+    if (!found) return;
+    const item = found.item;
+    this.focusItem = item;
+    this.focusCategory = found.category;
+    this.focusTrigger = trigger instanceof HTMLElement ? trigger : (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+    const root = document.getElementById('macro-focus');
+    document.getElementById('macro-focus-title').textContent = item.title;
+    document.getElementById('macro-focus-meta').textContent = item.symbol + ' · ' + (item.provider || '') + (found.category ? ' · ' + found.category.cat : '');
+    document.getElementById('macro-focus-latest').innerHTML = '<span class="v">…</span>';
+    const noteHost = document.getElementById('macro-focus-notehost');
+    noteHost.innerHTML = this.noteHtml(item).replace('class="macro-note', 'id="macro-focus-note" class="macro-note focus');
+    document.getElementById('macro-focus-body').innerHTML = '<div class="wl-loading">Loading the full history…</div>';
+    root.classList.add('open');
+    root.setAttribute('aria-hidden', 'false');
+    document.getElementById('macro-modal').setAttribute('aria-hidden', 'true');
+    document.body.classList.add('macro-focus-open');
+    setTimeout(() => document.getElementById('macro-focus-close').focus(), 30);
+    const token = ++this.focusToken;
+    try {
+      const metric = await this.fetchMetric(item.symbol);
+      const [hist, turns] = await Promise.all([this.fetchHistory(item.symbol, metric), this.loadTurns()]);
+      if (token !== this.focusToken) return;
+      const spx = this.turns ? await this.spxHistory() : null;
+      if (token !== this.focusToken) return;
+      document.getElementById('macro-focus-latest').innerHTML = '<span class="v">' + UI.esc(this.formatValue(metric.last, item.units)) + '</span><span class="u">' + UI.esc(item.units || '') + '</span><span class="d">as of ' + UI.esc(metric.asof || '') + '</span>';
+      const changes = ['D', 'W', 'M', 'Q', 'Y'].map(hz => {
+        const value = metric.changes ? metric.changes[hz] : null;
+        const cls = !Number.isFinite(value) ? 'na' : value > 0 ? 'up' : value < 0 ? 'down' : 'na';
+        return '<span class="macro-change ' + cls + '"><b>' + hz + '</b>' + (Number.isFinite(value) ? (value > 0 ? '+' : '') + value.toFixed(Math.abs(value) >= 100 ? 0 : 2) + '%' : '—') + '</span>';
+      }).join('');
+      const rows = (turns || []).map(ep => {
+        const vt = this.historyAt(hist, this.dayOf(ep.top.date)), vb = ep.bottom ? this.historyAt(hist, this.dayOf(ep.bottom.date)) : null;
+        const delta = vt && vb && vt.value !== 0 ? ((vb.value - vt.value) / Math.abs(vt.value) * 100) : null;
+        return '<tr><td><span class="macro-turn-dot top"></span>' + UI.esc(ep.name) + '</td><td>' + ep.top.date + ' <small>S&amp;P ' + (ep.top.move * 100).toFixed(0) + '%</small></td><td class="n">' + (vt ? this.fmtHist(vt.value, item.units) : '—') + '</td>' +
+          '<td>' + (ep.bottom ? ep.bottom.date + (ep.bottom.provisional ? ' <small>low so far</small>' : ' <small>S&amp;P +' + (ep.bottom.move * 100).toFixed(0) + '% after</small>') : '—') + '</td><td class="n">' + (vb ? this.fmtHist(vb.value, item.units) : '—') + '</td>' +
+          '<td class="n ' + (delta == null ? '' : delta >= 0 ? 'up' : 'down') + '">' + (delta == null ? '—' : (delta >= 0 ? '+' : '') + delta.toFixed(0) + '%') + '</td></tr>';
+      }).join('');
+      document.getElementById('macro-focus-body').innerHTML =
+        '<div class="macro-focus-chart">' + this.historySvg(hist, turns, { w: 1200, h: 520, units: item.units, big: true, spx }) + '</div>' +
+        '<div class="macro-focus-grid"><div class="macro-focus-changes">' + changes + '</div>' +
+        '<div class="macro-focus-table"><table><thead><tr><th>event</th><th>market top</th><th>this series</th><th>market bottom</th><th>this series</th><th>top → bottom</th></tr></thead><tbody>' +
+        (rows || '<tr><td colspan="6">market turns unavailable right now</td></tr>') + '</tbody></table>' +
+        '<div class="macro-focus-note-text">Turns = the S&amp;P 500\'s own, from its closes' + (this.turnsAsOf ? ' through ' + UI.esc(this.turnsAsOf) : '') + ': a top counts once the market then fell 25% or more; the bottom is the low of that fall. Green = top, red = bottom, tint = the bear market. The next one appears on its own.</div></div></div>';
+    } catch (e) {
+      if (token !== this.focusToken) return;
+      document.getElementById('macro-focus-body').innerHTML = '<div class="wl-empty">History unavailable: ' + UI.esc(String(e && e.message || e)) + '</div>';
+    }
+  }
+
+  static spxHistory() {
+    if (this.spx) return Promise.resolve(this.spx);
+    if (!this.spxPromise) this.spxPromise = fetch(PROXY + '/ohlc?ticker=SPY&span=day&mult=1&days=12000').then(r => r.ok ? r.json() : null).then(p => { this.spx = this.packBars(p && p.bars); return this.spx; }).catch(() => null);
+    return this.spxPromise;
+  }
+
+  static closeFocus() {
+    const root = document.getElementById('macro-focus');
+    if (!root || !root.classList.contains('open')) return;
+    this.focusToken++;
+    root.classList.remove('open');
+    root.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('macro-focus-open');
+    if (document.getElementById('macro-modal').classList.contains('open')) document.getElementById('macro-modal').setAttribute('aria-hidden', 'false');
+    const back = this.focusTrigger;
+    this.focusItem = null; this.focusTrigger = null;
+    if (back && back.isConnected) setTimeout(() => back.focus({ preventScroll: true }), 0);
+  }
+
+  static wireFocus() {
+    const root = document.getElementById('macro-focus');
+    if (!root || root.__wired) return;
+    root.__wired = true;
+    document.getElementById('macro-focus-close').addEventListener('click', () => this.closeFocus());
+    document.getElementById('macro-focus-chart').addEventListener('click', () => { const item = this.focusItem; if (!item) return; this.closeFocus(); this.chartSeries(item.symbol); this.close(); });
+    document.getElementById('macro-focus-compare').addEventListener('click', () => { const item = this.focusItem; if (!item) return; CompareController.add(item.symbol); jhToast('Added to the chart comparison'); });
+    root.addEventListener('click', e => {
+      const note = e.target.closest('.macro-note');
+      if (note && this.focusItem && !note.classList.contains('editing')) { e.stopPropagation(); this.editNote(note, this.focusItem.uid, this.focusCategory && this.focusCategory.id); }
+    });
+    root.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && !e.target.closest('textarea')) { e.stopPropagation(); this.closeFocus(); return; }
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('.macro-note') && !e.target.closest('textarea')) { e.preventDefault(); const note = e.target.closest('.macro-note'); this.editNote(note, this.focusItem.uid, this.focusCategory && this.focusCategory.id); return; }
+      if (e.key !== 'Tab') return;
+      const controls = [...root.querySelectorAll('button:not([disabled]), textarea, [tabindex]:not([tabindex="-1"])')].filter(el => !el.hidden && el.offsetParent !== null);
+      if (!controls.length) return;
+      const first = controls[0], last = controls[controls.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    });
+  }
+
   static openCategoryEditor(categoryId = null, trigger = null) {
     const category = categoryId && this.state.categories.find(cat => cat.id === categoryId);
     this.editMode = category ? 'edit-category' : 'add-category';
@@ -7018,7 +7521,7 @@ class MacroData {
   }
 
   static trapModalFocus(e) {
-    if (e.key !== 'Tab' || document.getElementById('macro-editor-modal').classList.contains('open')) return;
+    if (e.key !== 'Tab' || document.getElementById('macro-editor-modal').classList.contains('open') || document.getElementById('macro-focus').classList.contains('open')) return;
     const modal = document.getElementById('macro-modal');
     const controls = [...modal.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])')]
       .filter(el => !el.hidden && el.offsetParent !== null);
