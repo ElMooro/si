@@ -61,7 +61,8 @@ CATALOG_JS = """() => { const cards = [...document.querySelectorAll('.macro-item
 FOCUS_JS = """() => { const f = document.getElementById('macro-focus'), r = f.getBoundingClientRect(); const svg = f.querySelector('.macro-focus-chart svg');
   return {open: f.classList.contains('open'), w: Math.round(r.width), h: Math.round(r.height), vw: innerWidth, vh: innerHeight, big: !!f.querySelector('.macro-hist-chart.big'), labels: [...f.querySelectorAll('.macro-hist-label')].map(e => e.textContent),
           rows: f.querySelectorAll('tbody tr').length, rowsText: [...f.querySelectorAll('tbody tr')].map(tr => tr.innerText.replace(/\\s+/g, ' ').slice(0, 90)), title: f.querySelector('#macro-focus-title').textContent, latest: f.querySelector('#macro-focus-latest').innerText.replace(/\\n/g, ' '),
-          dots: f.querySelectorAll('.macro-hist-dot').length, chartH: svg ? Math.round(svg.getBoundingClientRect().height) : 0, overflow: f.scrollWidth - f.clientWidth, focused: document.activeElement && document.activeElement.id, note: !!document.getElementById('macro-focus-note')}; }"""
+          dots: f.querySelectorAll('.macro-hist-dot').length, valuesPresent: [...f.querySelectorAll('tbody tr')].reduce((n, tr) => n + [tr.children[2], tr.children[4]].filter(td => td && td.textContent.trim() !== '—').length, 0),
+          chartH: svg ? Math.round(svg.getBoundingClientRect().height) : 0, overflow: f.scrollWidth - f.clientWidth, focused: document.activeElement && document.activeElement.id, note: !!document.getElementById('macro-focus-note')}; }"""
 
 
 def main():
@@ -127,10 +128,9 @@ def main():
             for row in fs["rowsText"]:
                 r.log("    " + row)
             check("clicking a card opens the full-screen view filling the viewport", lambda: "%dx%d of %dx%d" % (fs["w"], fs["h"], fs["vw"], fs["vh"]) if fs["open"] and fs["w"] == fs["vw"] and fs["h"] == fs["vh"] else (_ for _ in ()).throw(AssertionError(str(fs))))
-            # a series that starts after a turn (1M Treasury begins 2001-07) has no dot and a "—" cell for it: dots = 8 minus those
-            missing = sum(row.count("—") for row in fs["rowsText"])
+            # a series that starts after a turn (1M Treasury begins 2001-07) has no dot and a "—" value cell for it: one dot per value present
             check("full-screen view: big chart, the 4 bears labelled, a dot for every turn the series existed at, a 4-row table, the latest value, close button focused",
-                  lambda: "%s | %d dots (%d turn value(s) before the series starts) | %s" % (fs["labels"], fs["dots"], missing, fs["latest"]) if fs["big"] and len(fs["labels"]) == 4 and fs["rows"] == 4 and fs["dots"] == 8 - min(missing, 8) and "as of" in fs["latest"] and fs["focused"] == "macro-focus-close" and fs["overflow"] <= 0 and fs["note"] else (_ for _ in ()).throw(AssertionError(str(fs))))
+                  lambda: "%s | %d dots for %d values | %s" % (fs["labels"], fs["dots"], fs["valuesPresent"], fs["latest"]) if fs["big"] and len(fs["labels"]) == 4 and fs["rows"] == 4 and fs["dots"] == fs["valuesPresent"] and "as of" in fs["latest"] and fs["focused"] == "macro-focus-close" and fs["overflow"] <= 0 and fs["note"] else (_ for _ in ()).throw(AssertionError(str(fs))))
             shots.append(("fullscreen", page.screenshot(type="jpeg", quality=45)))
             page.keyboard.press("Escape")
             page.wait_for_timeout(400)
