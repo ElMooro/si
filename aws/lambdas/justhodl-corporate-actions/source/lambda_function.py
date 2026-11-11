@@ -74,6 +74,7 @@ STATE_KEY = "data/corporate-actions/_state.json"
 BATCH = 200
 PACE_S = 0.3
 SOFT_BUDGET_S = 250.0
+_STOP_AT = None   # epoch seconds; set per invocation so the per-dividend close fetches also honour the soft budget
 STALE_DAYS = 30
 SCHEMA_VERSION = "1.0"
 UA = "justhodl.ai/1.0 (corporate-actions; contact: ops@justhodl.ai)"
@@ -104,7 +105,9 @@ def _http_get_json(url, timeout=25):
             return json.loads(resp.read().decode("utf-8"))
     except (urllib.error.URLError, urllib.error.HTTPError,
             ValueError, UnicodeDecodeError, TimeoutError, OSError) as e:
-        print("[corpact] http failed %s: %s" % (url.split("?")[0], type(e).__name__))
+        # 2026-11-11 (ops 6786): the status code is the diagnosis - "HTTPError" alone hid a keyless 401 for a week
+        code = getattr(e, "code", None)
+        print("[corpact] http failed %s: %s%s" % (url.split("?")[0], type(e).__name__, " %s" % code if code else ""))
         return None
 
 
@@ -249,7 +252,10 @@ def fetch_pre_ex_close(ticker, ex_date, api_key):
         return None
     for back in (1, 2, 3):
         d = (base - timedelta(days=back)).isoformat()
-        data = _http_get_json(POLYGON_AGGS_URL.format(t=ticker, d=d))
+        # 2026-11-11 (ops 6786/6787): this call went out WITHOUT the key (splits and dividends carried it), so every
+        # pre-ex close was a 401 - three failed calls and three sleeps per dividend, factor_pending on every cash
+        # dividend, and the run overran its 300 s wall on the first dividend-rich ticker (timeouts Nov 8, 10, 11).
+        data = _http_get_json(POLYGON_AGGS_URL.format(t=ticker, d=d) + "&apiKey=" + api_key)
         try:
             results = (data or {}).get("results") or []
             close = _num(results[0].get("c")) if results else None
@@ -277,6 +283,12 @@ def resolve_dividend_factors(events, prior_cached, ticker, api_key):
             continue
         key = (e.get("date"), e.get("cash_amount"))
         close = cache.get(key)
+        if close is None and _STOP_AT and time.time() > _STOP_AT:
+            # out of budget mid-ticker: leave this dividend pending (it is refetched next run) rather than lose the
+            # whole run's state and index to the 300 s wall
+            e["factor_pending"] = True
+            e["note"] = "factor deferred (time budget)"
+            continue
         if close is None:
             time.sleep(PACE_S)
             close = fetch_pre_ex_close(ticker, e["date"], api_key)
@@ -471,6 +483,8 @@ def lambda_handler(event, context):
     Stops early (saving state + index) when the deadline approaches.
     """
     started = time.time()
+    global _STOP_AT
+    _STOP_AT = started + SOFT_BUDGET_S
     bucket = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
     # 2026-11-04 (ops 6742): every artifact in the index carried 0 events because this engine read the key from env only
     # and its config never had one - the SSM parameter is the source (managed_secret: env first, then SSM).
