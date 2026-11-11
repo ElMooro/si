@@ -76,35 +76,62 @@ def acquire(client,bucket,url,key=None,deadline=None):
     stamp=now();ref={'url':url,'acquired_at':stamp,'evidence':evidence_store.capture(client,bucket,'etf_original',url,raw,native.clock(stamp))}
     return ref
 
+VENDOR_BUDGET_S=150   # the vendor context is unreviewed context, never a flow input: it may not eat the issuer budget
+VENDOR_TRIP=6         # consecutive rate-limit refusals that stop the remaining vendor requests for this run
+
+class RateLimitedSkip(Exception):
+    """a vendor request not sent because the run's breaker tripped"""
+
+def _failure(exc):
+    return 'HTTP_'+str(exc.code) if isinstance(exc,urllib.error.HTTPError) else type(exc).__name__
+
 def collect(client,bucket,key,read,deadline):
     originals={};errors={};universe=sorted({t for members in etf_universe.ETFS.values() for t in members})
     for label,url in (('ishares_catalog',native.ISHARES_URL),('ssga_catalog',native.SSGA_URL),('proshares_splits',native.SPLIT_URL)):
         try:originals[label]=acquire(client,bucket,url,deadline=deadline)
-        except Exception as exc:errors[label]='HTTP_'+str(exc.code) if isinstance(exc,urllib.error.HTTPError) else type(exc).__name__
+        except Exception as exc:errors[label]=_failure(exc)
     jobs=[]
     for label,parser in (('ishares_catalog',native.ishares_catalog),('ssga_catalog',native.ssga_catalog)):
         try:
-            catalog=parser(read(originals[label]['evidence']['key']),universe)
+            defects={}
+            catalog=parser(read(originals[label]['evidence']['key']),universe,defects)
+            for ticker in sorted(defects):errors[label+'_identity_'+ticker]=defects[ticker]['failure_class']
             for ticker,identity in catalog.items():
                 name=('ishares_' if label=='ishares_catalog' else 'ssga_')+ticker
                 url=native.DOWNLOAD.format(pid=identity['portfolio_id']) if label=='ishares_catalog' else identity['history_url']
                 jobs.append((name,url,None))
         except Exception as exc:errors[label+'_identity']=type(exc).__name__
     jobs.extend(('proshares_'+ticker,native.PRO_URL.format(ticker=ticker),None) for ticker in etf_universe.PROSHARES)
+    def gather(batch,until,breaker=None):
+        def fetch(job):
+            label,url,secret=job
+            if breaker is not None and breaker['tripped']:raise RateLimitedSkip('vendor request skipped after consecutive 429s')
+            try:ref=acquire(client,bucket,url,secret,until)
+            except urllib.error.HTTPError as exc:
+                if breaker is not None and exc.code==429:
+                    with _lock:
+                        breaker['consecutive']+=1
+                        if breaker['consecutive']>=VENDOR_TRIP:breaker['tripped']=True
+                raise
+            if breaker is not None:
+                with _lock:breaker['consecutive']=0
+            return label,ref
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            futures={pool.submit(fetch,job):job[0] for job in batch}
+            for future in as_completed(futures):
+                label=futures[future]
+                try:_,ref=future.result();originals[label]=ref
+                except Exception as exc:errors[label]=_failure(exc)
+    gather(jobs,deadline)   # the issuer histories first, on the whole budget
     if key:
-        for ticker in universe:
-            for label,endpoint in (('info','etf/info'),('shares','shares-float'),('quote','quote')):
-                jobs.append(('vendor_'+ticker+'_'+label,'https://financialmodelingprep.com/stable/'+endpoint+'?symbol='+ticker,key))
+        # the FMP context last, on its own bounded budget, behind a breaker: 2026-10-16..11-10 the key was refused
+        # (429) on up to 374 of 384 calls per run and the retries alone consumed the 575 s acquisition budget
+        vendor=[('vendor_'+ticker+'_'+label,'https://financialmodelingprep.com/stable/'+endpoint+'?symbol='+ticker,key)
+                for ticker in universe for label,endpoint in (('info','etf/info'),('shares','shares-float'),('quote','quote'))]
+        breaker={'consecutive':0,'tripped':False}
+        gather(vendor,min(deadline,time.monotonic()+VENDOR_BUDGET_S),breaker)
+        if breaker['tripped']:errors['vendor_context']='rate_limited_after_'+str(VENDOR_TRIP)+'_consecutive_429'
     else:errors['vendor_context']='configured_vendor_credential_unavailable'
-    def fetch(job):
-        label,url,secret=job
-        return label,acquire(client,bucket,url,secret,deadline)
-    with ThreadPoolExecutor(max_workers=6) as pool:
-        futures={pool.submit(fetch,job):job[0] for job in jobs}
-        for future in as_completed(futures):
-            label=futures[future]
-            try:_,ref=future.result();originals[label]=ref
-            except Exception as exc:errors[label]='HTTP_'+str(exc.code) if isinstance(exc,urllib.error.HTTPError) else type(exc).__name__
     return originals,errors
 
 def publish(client,bucket,packet):

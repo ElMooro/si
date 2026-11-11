@@ -49,38 +49,65 @@ def original(ref,read,at,expected_url):
 
 def json_original(raw):return json.loads(raw,parse_float=Decimal)
 
-def ishares_catalog(raw,universe):
+# The issuer's page slug may carry percent-escapes: on 2026-10-12 iShares began listing TLT's page as
+# /us/products/239454/ishares-20%20-year-treasury-bond-etf, and a slug-only regex then rejected the whole catalog for
+# 41 runs. The identity binding is the portfolio id in the path, not the slug's spelling.
+ISHARES_PAGE=r'/us/products/{pid}/[A-Za-z0-9%._~-]+'
+SSGA_PAGE=r'/us/en/intermediary/etfs/[A-Za-z0-9%._~-]+'
+
+def _defect(exc):
+    if isinstance(exc,KeyError):return {'failure_class':'KeyError','reason':'source field missing: '+str(exc.args[0] if exc.args else '')[:60]}
+    return {'failure_class':type(exc).__name__,'reason':str(exc)[:120]}
+
+def ishares_catalog(raw,universe,defects=None):
+    """Identity rows for the configured iShares funds. One fund's defective record is that fund's defect, recorded in
+    `defects` when a dict is passed (and then excluded from the catalogue), never a reason to discard every other
+    fund's identity; without a `defects` dict the first defect raises as before. A ticker listed twice still fails the
+    whole catalogue, because identity would be ambiguous."""
     doc=json_original(raw)
     if not isinstance(doc,dict) or not 1<=len(doc)<=2000:raise ValueError('iShares catalog structure changed')
-    out={}
+    out={};seen=set()
     for pid,v in doc.items():
-        ticker=v.get('localExchangeTicker')
+        ticker=v.get('localExchangeTicker') if isinstance(v,dict) else None
         if ticker not in universe:continue
-        if ticker in out or str(v.get('portfolioId'))!=pid:raise ValueError('duplicate or ambiguous issuer identity')
-        if not re.fullmatch(r'/us/products/'+pid+r'/[a-z0-9-]+',v.get('productPageUrl','')):raise ValueError('product identity URL differs')
-        if not re.fullmatch(r'US[A-Z0-9]{10}',v.get('isin','')):raise ValueError('US fund identity missing')
-        out[ticker]={'issuer':'iShares','ticker':ticker,'portfolio_id':int(pid),'fund_name':v['fundName'],
-            'isin':v['isin'],'cusip':v.get('cusip'),'product_url':'https://www.ishares.com'+v['productPageUrl'],
-            'nav_decimal':ds(dec(v['navAmount']['r'],True)),
-            'nav_date':observation_date(str(v['navAmountAsOf']['r']),'%Y%m%d'),
-            'net_assets_decimal':ds(dec(v['totalNetAssets']['r'],True)),
-            'net_assets_date':observation_date(str(v['totalNetAssetsFundAsOf']['r']),'%Y%m%d')}
+        if ticker in seen:raise ValueError('duplicate or ambiguous issuer identity')
+        seen.add(ticker)
+        try:
+            if str(v.get('portfolioId'))!=pid:raise ValueError('portfolio identity differs')
+            if not re.fullmatch(ISHARES_PAGE.format(pid=re.escape(pid)),v.get('productPageUrl','') or ''):raise ValueError('product identity URL differs')
+            if not re.fullmatch(r'US[A-Z0-9]{10}',v.get('isin','') or ''):raise ValueError('US fund identity missing')
+            out[ticker]={'issuer':'iShares','ticker':ticker,'portfolio_id':int(pid),'fund_name':v['fundName'],
+                'isin':v['isin'],'cusip':v.get('cusip'),'product_url':'https://www.ishares.com'+v['productPageUrl'],
+                'nav_decimal':ds(dec(v['navAmount']['r'],True)),
+                'nav_date':observation_date(str(v['navAmountAsOf']['r']),'%Y%m%d'),
+                'net_assets_decimal':ds(dec(v['totalNetAssets']['r'],True)),
+                'net_assets_date':observation_date(str(v['totalNetAssetsFundAsOf']['r']),'%Y%m%d')}
+        except (ValueError,KeyError,TypeError,InvalidOperation) as exc:
+            if defects is None:raise
+            defects[ticker]={'issuer':'iShares',**_defect(exc)}
     return out
 
-def ssga_catalog(raw,universe):
-    doc=json_original(raw);records=doc['data']['funds']['etfs']['datas'];out={}
+def ssga_catalog(raw,universe,defects=None):
+    """State Street identities with the same per-fund defect policy as ishares_catalog."""
+    doc=json_original(raw);records=doc['data']['funds']['etfs']['datas'];out={};seen=set()
     if not isinstance(records,list) or not 1<=len(records)<=1000:raise ValueError('State Street catalogue differs')
     for v in records:
-        ticker=v.get('fundTicker')
+        ticker=v.get('fundTicker') if isinstance(v,dict) else None
         if ticker not in universe:continue
-        if ticker in out or v.get('domicile')!='US' or not re.fullmatch(r'/us/en/intermediary/etfs/[a-z0-9-]+',v.get('fundUri','')):raise ValueError('ambiguous State Street fund identity')
-        urls=[d['path'] for group in v['documentPdf'] if group.get('docType')=='Navhist' for d in group.get('docs',[])]
-        if len(urls)!=1 or not re.fullmatch(r'/library-content/products/fund-data/etfs/us/navhist-us-en-'+ticker.lower()+r'\.xlsx',urls[0]):raise ValueError('native NAV workbook identity differs')
-        if not isinstance(v['nav'],list) or len(v['nav'])!=2 or not str(v['nav'][0]).startswith('$') or not isinstance(v['aum'],list) or not str(v['aum'][0]).startswith('$') or not str(v['aum'][0]).endswith(' M'):raise ValueError('USD/million catalogue units differ')
-        out[ticker]={'issuer':'State Street','ticker':ticker,'fund_name':v['fundName'],'currency':'USD',
-          'history_url':'https://www.ssga.com'+urls[0],'product_url':'https://www.ssga.com'+v['fundUri'],
-          'nav_decimal':ds(dec(v['nav'][1])),'nav_date':observation_date(v['asOfDate'][1],'%Y-%m-%d'),
-          'net_assets_decimal':ds(dec(v['aum'][1])*1000000),'net_assets_date':observation_date(v['asOfDate'][1],'%Y-%m-%d')}
+        if ticker in seen:raise ValueError('ambiguous State Street fund identity')
+        seen.add(ticker)
+        try:
+            if v.get('domicile')!='US' or not re.fullmatch(SSGA_PAGE,v.get('fundUri','') or ''):raise ValueError('ambiguous State Street fund identity')
+            urls=[d['path'] for group in v['documentPdf'] if group.get('docType')=='Navhist' for d in group.get('docs',[])]
+            if len(urls)!=1 or not re.fullmatch(r'/library-content/products/fund-data/etfs/us/navhist-us-en-'+ticker.lower()+r'\.xlsx',urls[0]):raise ValueError('native NAV workbook identity differs')
+            if not isinstance(v['nav'],list) or len(v['nav'])!=2 or not str(v['nav'][0]).startswith('$') or not isinstance(v['aum'],list) or not str(v['aum'][0]).startswith('$') or not str(v['aum'][0]).endswith(' M'):raise ValueError('USD/million catalogue units differ')
+            out[ticker]={'issuer':'State Street','ticker':ticker,'fund_name':v['fundName'],'currency':'USD',
+              'history_url':'https://www.ssga.com'+urls[0],'product_url':'https://www.ssga.com'+v['fundUri'],
+              'nav_decimal':ds(dec(v['nav'][1])),'nav_date':observation_date(v['asOfDate'][1],'%Y-%m-%d'),
+              'net_assets_decimal':ds(dec(v['aum'][1])*1000000),'net_assets_date':observation_date(v['asOfDate'][1],'%Y-%m-%d')}
+        except (ValueError,KeyError,TypeError,InvalidOperation) as exc:
+            if defects is None:raise
+            defects[ticker]={'issuer':'State Street',**_defect(exc)}
     return out
 
 def ssga_history(raw,identity,at):

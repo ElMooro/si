@@ -2,7 +2,7 @@ from datetime import datetime,timedelta
 from decimal import Decimal
 from pathlib import Path
 from unittest.mock import patch
-import csv,gzip,hashlib,io,json,unittest
+import csv,gzip,hashlib,io,json,time,unittest,urllib.error
 import etf_native as n,etf_research as m,etf_store as s
 
 AT='2026-09-19T12:00:00+00:00'
@@ -164,6 +164,48 @@ class Tests(unittest.TestCase):
         with patch.object(s,'collect',return_value=({}, {'ishares_catalog':'HTTP_503'})),patch.object(s,'now',return_value=AT):
             with self.assertRaises(KeyError):s.run(client,'bucket',None)
         self.assertEqual(client.data[m.CURRENT],before);self.assertTrue(any('/attempts/' in k for k in client.data))
+
+    def test_percent_escaped_issuer_page_slug_keeps_the_fund(self):
+        # 2026-10-12: iShares listed TLT's page as /us/products/239454/ishares-20%20-year-treasury-bond-etf and 41 runs failed
+        v={'localExchangeTicker':'TLT','portfolioId':239454,'productPageUrl':'/us/products/239454/ishares-20%20-year-treasury-bond-etf','isin':'US4642874329',
+           'fundName':'iShares 20+ Year Treasury Bond ETF','navAmount':{'r':'90.12'},'navAmountAsOf':{'r':20261110},'totalNetAssets':{'r':'1'},'totalNetAssetsFundAsOf':{'r':20261110}}
+        parsed=n.ishares_catalog(m.encoded({'239454':v}),{'TLT'})
+        self.assertEqual(parsed['TLT']['portfolio_id'],239454);self.assertTrue(parsed['TLT']['product_url'].endswith('/239454/ishares-20%20-year-treasury-bond-etf'))
+        wrong=dict(v,productPageUrl='/us/products/239455/ishares-20-year-treasury-bond-etf')
+        with self.assertRaises(ValueError):n.ishares_catalog(m.encoded({'239454':wrong}),{'TLT'})
+
+    def test_one_defective_issuer_record_is_that_funds_defect_only(self):
+        good={'localExchangeTicker':'IVV','portfolioId':239726,'productPageUrl':'/us/products/239726/test-fund','isin':'US4642872000','fundName':'Test Fund',
+              'navAmount':{'r':'100'},'navAmountAsOf':{'r':20260918},'totalNetAssets':{'r':'1'},'totalNetAssetsFundAsOf':{'r':20260918}}
+        bad=dict(good,localExchangeTicker='IEF',portfolioId=239456,productPageUrl='/us/products/239456/x',isin='XX');raw=m.encoded({'239726':good,'239456':bad})
+        with self.assertRaises(ValueError):n.ishares_catalog(raw,{'IVV','IEF'})
+        defects={};parsed=n.ishares_catalog(raw,{'IVV','IEF'},defects)
+        self.assertEqual(set(parsed),{'IVV'});self.assertEqual(defects['IEF']['failure_class'],'ValueError');self.assertIn('identity',defects['IEF']['reason'])
+        twice=m.encoded({'239726':good,'239457':dict(good,portfolioId=239457,productPageUrl='/us/products/239457/dup')})
+        with self.assertRaises(ValueError):n.ishares_catalog(twice,{'IVV'},{})
+
+    def test_build_reports_identity_defect_and_still_publishes_the_others(self):
+        raw,inputs,rows=fixture();ref=inputs['originals']['ishares_catalog'];catalog=json.loads(raw[ref['evidence']['key']])
+        catalog['239456']=dict(catalog['239726'],localExchangeTicker='IEF',portfolioId=239456,productPageUrl='/us/products/239456/bad fund',isin='US4642874402')
+        body=m.encoded(catalog);sha=hashlib.sha256(body).hexdigest();key=ref['evidence']['key'].rsplit('/',1)[0]+'/'+sha+'.bin.gz';raw[key]=body
+        ref['evidence'].update(key=key,sha256=sha,bytes=len(body))
+        output,histories=m.build(inputs,raw.__getitem__,AT)
+        self.assertEqual(output['by_etf']['IEF']['source_error']['status'],'issuer_identity_unreviewed');self.assertEqual(output['source_status_codes']['IEF'],'ValueError')
+        self.assertIsNone(output['by_etf']['IEF']['net_flow_5d_usd']);self.assertIsNotNone(output['by_etf']['IVV']['history']);self.assertEqual(output['quality']['status'],'partial')
+
+    def test_vendor_breaker_stops_the_rate_limited_context_and_keeps_issuer_originals(self):
+        raw,inputs,_=fixture();refs=inputs['originals'];by_url={v['url']:v for v in refs.values()};calls={'vendor':0,'issuer':0}
+        def acquire(client,bucket,url,key=None,deadline=None):
+            if key:
+                calls['vendor']+=1;raise urllib.error.HTTPError(url,429,'Too Many Requests',{},None)
+            calls['issuer']+=1
+            if url in by_url:return by_url[url]
+            raise urllib.error.HTTPError(url,404,'Not Found',{},None)
+        with patch.object(s,'acquire',side_effect=acquire):
+            originals,errors=s.collect(Storage(),'bucket','fixture-key',raw.__getitem__,time.monotonic()+60)
+        self.assertIn('ishares_IVV',originals);self.assertEqual(errors['vendor_context'],'rate_limited_after_6_consecutive_429')
+        self.assertLess(calls['vendor'],40);self.assertIn('RateLimitedSkip',errors.values());self.assertIn('HTTP_429',errors.values())
+        self.assertFalse(any(k.startswith('ishares_catalog_identity') for k in errors))
 
     def test_ssga_catalog_million_unit_is_explicit(self):
         v={'fundTicker':'SPY','domicile':'US','fundUri':'/us/en/intermediary/etfs/test-spy','fundName':'Test',

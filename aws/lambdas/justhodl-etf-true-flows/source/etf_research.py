@@ -50,11 +50,15 @@ def build(inputs,read,at):
     n.clock(at);originals=inputs['originals'];universe=sorted({t for members in ETFS.values() for t in members});cat_of={}
     for category,members in ETFS.items():
         for t in members:cat_of.setdefault(t,category)
-    ic=n.ishares_catalog(n.original(originals['ishares_catalog'],read,at,n.ISHARES_URL),universe)
-    sc=n.ssga_catalog(n.original(originals['ssga_catalog'],read,at,n.SSGA_URL),universe)
+    identity_defects={}
+    ic=n.ishares_catalog(n.original(originals['ishares_catalog'],read,at,n.ISHARES_URL),universe,identity_defects)
+    sc=n.ssga_catalog(n.original(originals['ssga_catalog'],read,at,n.SSGA_URL),universe,identity_defects)
     if set(ic)&set(sc) or (set(ic)|set(sc))&set(PROSHARES):raise ValueError('issuer identity overlap')
     splits=n.proshares_splits(n.original(originals['proshares_splits'],read,at,n.SPLIT_URL),at)
-    parsed={};source_errors={};identities={};source_refs={};checks={}
+    parsed={};identities={};source_refs={};checks={}
+    # a fund whose issuer record is defective is reported as its own unreviewed identity (2026-11-11, after TLT's
+    # percent-escaped page slug had failed every run since 2026-10-12); the other funds keep their histories
+    source_errors={t:{'status':'issuer_identity_unreviewed',**d} for t,d in sorted(identity_defects.items()) if t not in ic and t not in sc and t not in PROSHARES}
     for ticker in universe:
         if ticker in ic:
             identity={**ic[ticker],'currency':'USD'};label='ishares_'+ticker;url=n.DOWNLOAD.format(pid=identity['portfolio_id']);parser=lambda raw:n.ishares_history(raw,identity,at)
