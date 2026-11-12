@@ -136,7 +136,7 @@ def build(inputs,read,at):
           'read':'Partial configured wrapper subtotal; opposite signs do not identify investor migration or share-class rotation.'} for name,members in WRAPPER_COMPLEX.items()]
     candidates=[v for v in by_etf.values() if v['net_flow_5d_usd'] is not None];ranked=sorted(candidates,key=lambda v:(-v['net_flow_5d_usd'],v['ticker']))
     errors={**inputs.get('acquisition_errors',{}),**{k:v['failure_class'] for k,v in source_errors.items()}}
-    output={'engine':'etf-true-flows','version':'3.0.0','contract':CONTRACT,'generated_at':at,'n_etfs':len(universe),'maturity':'RESEARCH_ONLY',
+    output={'engine':'etf-true-flows','version':'3.0.1','contract':CONTRACT,'generated_at':at,'n_etfs':len(universe),'maturity':'RESEARCH_ONLY',
       'engine_class':'issuer_observation_research','method':METHOD,'evidence_tier':'dated_issuer_estimates_with_coverage',
       'quality':{'status':'partial' if len(candidates)<len(universe) or errors else 'fresh','configured_funds':len(universe),'native_histories':parsed_count,
          'aligned_five_observation_estimates':len(candidates),'native_observations':native_count,'all_funds_covered':len(candidates)==len(universe),**QUALIFICATION},
