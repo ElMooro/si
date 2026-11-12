@@ -349,7 +349,7 @@ class MacroData {
       ["flows:cq/btc_exchange_netflow","BTC · daily exchange netflow (CryptoQuant)","BTC"], ["flows:cq/btc_exchange_inflow","BTC · daily exchange inflow","BTC"],
       ["flows:cq/btc_exchange_outflow","BTC · daily exchange outflow","BTC"], ["flows:cq/btc_exchange_reserve","BTC · exchange reserve","BTC"],
       ["flows:cq/eth_exchange_netflow","ETH · daily exchange netflow (CryptoQuant)","ETH"], ["flows:cq/eth_exchange_reserve","ETH · exchange reserve","ETH"],
-      ["flows:cq/btc_whale_ratio","BTC · exchange whale ratio (top-10 inflows / total)","ratio"], ["flows:cq/btc_stablecoins_ratio","BTC · stablecoin supply ratio on exchanges","ratio"],
+      ["flows:cq/btc_whale_ratio","BTC · exchange whale ratio (top-10 inflows / total)","ratio"], ["flows:cq/btc_exchange_supply_ratio","BTC · share of supply held on exchanges","ratio"],
       ["flows:cq/btc_miner_netflow","BTC · miner netflow","BTC"], ["flows:cq/btc_fund_flow_ratio","BTC · fund flow ratio (exchange share of on-chain volume)","ratio"],
       ["flows:stablecoins/total","Stablecoin supply · all USD-pegged coins (DefiLlama)","$"], ["flows:stablecoins/usdt","USDT circulating supply","$"],
       ["flows:stablecoins/usdc","USDC circulating supply","$"],
@@ -359,7 +359,12 @@ class MacroData {
       ["flows:apac/tw_sector_flows.Semiconductors","Taiwan foreigners · semiconductors (shares)","shares"], ["flows:apac/tw_sector_flows.Electronics/Hardware","Taiwan foreigners · electronics / hardware","shares"],
       ["flows:apac/tw_sector_flows.Financials","Taiwan foreigners · financials","shares"], ["flows:apac/tw_sector_flows.Materials","Taiwan foreigners · materials","shares"],
       ["flows:apac/tw_tracked.2330","Taiwan foreigners · TSMC (2330) net shares","shares"],
-    ]},
+          ["flows:apac/kr_foreign_net_krw_bn","Korea · foreign net buying (KOSPI + KOSDAQ, daily)","₩B"], ["flows:apac/kr_kospi_foreign_net_krw_bn","KOSPI · foreign investors net","₩B"],
+      ["flows:apac/kr_kospi_institution_net_krw_bn","KOSPI · institutions net","₩B"], ["flows:apac/kr_kospi_individual_net_krw_bn","KOSPI · individuals net","₩B"],
+      ["flows:apac-jp/foreigners","Japan · foreign investors net (TSE Prime, weekly)","¥B"], ["flows:apac-jp/individuals","Japan · individuals net (TSE Prime)","¥B"],
+      ["flows:apac-jp/investment_trusts","Japan · investment trusts net","¥B"], ["flows:apac-jp/trust_banks","Japan · trust banks (pension money) net","¥B"],
+      ["flows:apac-jp/proprietary","Japan · securities firms' proprietary net","¥B"],
+]},
   ];
   /* the fleet's flow feeds the flows: adapter reads: flows:<feed>/<field> (nested fields with dots; "/" inside a key is
      kept, so tw_sector_flows.Electronics/Hardware works). Each feed is fetched once and cached for 10 minutes. */
@@ -369,6 +374,7 @@ class MacroData {
     "ici-etf": { url: "/data/ici-fund-flows.json", rows: p => p.etf_net_issuance_history || [], date: "week_ending", label: "ICI weekly · ETF net issuance" },
     "ici-mmf": { url: "/data/ici-fund-flows.json", rows: p => p.money_market_history || [], date: "week_ending", label: "ICI weekly · money market" },
     "stablecoins": { url: "/data/stablecoin-supply-history.json", rows: p => p.series || [], date: "date", label: "DefiLlama daily" },
+    "apac-jp": { url: "/data/history/apac-flows.json", rows: p => Object.keys(p.jp_weeks || {}).sort().map(w => Object.assign({ week_ending: w }, ((p.jp_weeks[w] || {}).markets || {}).prime || {})), date: "week_ending", label: "JPX weekly" },
     "cq": { url: "/data/cryptoquant-series.json", rows: () => [], obs: (p, field) => { const s = (p.series || {})[field]; return s && s.d && s.v ? s.d.map((d, i) => [d, s.v[i]]) : []; }, date: "d", label: "CryptoQuant daily" },
     "crypto-etf": { url: "/data/crypto-etf-flows-history.json", rows: p => p.series, date: "date", label: "Polygon fund flows" },
     "crypto-exchange": { url: "/data/crypto-exchange-flows-history.json", rows: p => p.series, date: "date", label: "CoinMetrics / CryptoQuant" },
@@ -1170,6 +1176,7 @@ class MacroData {
     if (u === '$M' && Math.abs(value) >= 1e6) return (value / 1e6).toFixed(2) + 'T';
     if (u === '$B' && Math.abs(value) >= 1000) return (value / 1e3).toFixed(2) + 'T';
     const abs = Math.abs(value);
+    if (abs > 0 && abs < 0.01) return Number(value.toPrecision(2)).toString();   // a tiny ratio never prints as 0
     if (u === '$' && abs >= 1e12) return (value / 1e12).toFixed(2) + 'T';   // whole-dollar series (stablecoin supply, ETF flows) read as B/M
     if (u === '$' && abs >= 1e9) return (value / 1e9).toFixed(2) + 'B';
     if (u === '$' && abs >= 1e6) return (value / 1e6).toFixed(1) + 'M';
