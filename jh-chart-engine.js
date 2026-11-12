@@ -1,4 +1,4 @@
-/* JustHodl Chart engine v12.42 — fullscreen chart, synced verticals, pane S/R. */
+/* JustHodl Chart engine v12.41 — fullscreen chart, synced verticals, pane S/R. */
 (function () {
   if (window.__jhChartEngineV1239) return;
   window.__jhChartEngineV1239 = true;
@@ -3047,7 +3047,7 @@
     try{ window.compare=compare; window.jhActive=active; window.tf=tf; }catch(e){}
     var st=document.getElementById("stat");
     var stVol=d.length?reportedVolume(d[d.length-1].volume):null;
-    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.42"; if(st) st.textContent="v12.42 · "+d.length+" bars · Vol "+fmtVol(stVol)+" · "+tape.prints.length+" prints · "+lastSource;
+    var cd=document.getElementById("cd"); if(cd) cd.textContent="v12.41"; if(st) st.textContent="v12.41 · "+d.length+" bars · Vol "+fmtVol(stVol)+" · "+tape.prints.length+" prints · "+lastSource;
   }
   function closeLocationVolume(bar){
     if(!bar||reportedVolume(bar.volume)===null)return null;
