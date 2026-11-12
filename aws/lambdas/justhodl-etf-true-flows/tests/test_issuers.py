@@ -195,3 +195,29 @@ class Store(unittest.TestCase):
             self.assertEqual(opener.request.get_header('Authorization'),'Bearer '+key)
 
 if __name__=='__main__':unittest.main()
+
+class Feeds(unittest.TestCase):
+    def test_feed_is_a_float_view_of_the_retained_history(self):
+        import etf_feeds as feeds
+        raw,inputs,rows,_=registry_fixture();output,histories=m.build(inputs,raw.__getitem__,AT)
+        built=feeds.build(output,histories);ivv=json.loads(built[feeds.PREFIX+'IVV.json']);history=json.loads(histories[output['by_etf']['IVV']['history']['key']])
+        self.assertEqual((ivv['contract'],ivv['ticker'],ivv['issuer'],ivv['source']['history']['sha256']),(feeds.CONTRACT,'IVV','iShares',output['by_etf']['IVV']['history']['sha256']))
+        self.assertEqual(ivv['d'],[v['date'] for v in history['rows']]);self.assertIsNone(ivv['series']['flow'][0])   # the first observation has no preceding reference day
+        self.assertEqual(ivv['series']['flow'][1],float(history['rows'][1]['nav_valued_share_change_decimal']))
+        self.assertEqual(ivv['series']['flow_5d'][5],sum(ivv['series']['flow'][1:6]));self.assertIsNone(ivv['series']['flow_5d'][4])
+        self.assertEqual(ivv['latest']['flow_20d'],output['by_etf']['IVV']['net_flow_20d_usd']);self.assertEqual(ivv['latest']['shares'],output['by_etf']['IVV']['shares_outstanding'])
+        botz=json.loads(built[feeds.PREFIX+'BOTZ.json']);self.assertEqual((len(botz['d']),botz['latest']['flow_5d']),(6,output['by_etf']['BOTZ']['net_flow_5d_usd']))
+        index=json.loads(built[feeds.PREFIX+'index.json']);self.assertEqual({f['ticker'] for f in index['funds']},{'IVV','BOTZ'});self.assertEqual(index['n_funds'],2)
+        self.assertNotIn(feeds.PREFIX+'LIT.json',built)
+        self.assertEqual(feeds.rolling([1,None,2,3,4,5,6],3),[None,None,None,None,9.0,12.0,15.0])
+
+    def test_feeds_are_written_only_after_a_publication(self):
+        import etf_feeds as feeds,gzip
+        raw,inputs,rows,_=registry_fixture();client=Storage();client.data[m.CURRENT]=m.encoded({'legacy':True})
+        for k,v in raw.items():client.data[k]=v if k.endswith('.json') else gzip.compress(v,mtime=0)
+        with patch.object(s,'collect',return_value=(inputs['originals'],{})),patch.object(s,'now',return_value=AT):result=s.run(client,'bucket',None)
+        self.assertEqual(result['desk_feeds'],3);self.assertIn(feeds.PREFIX+'IVV.json',client.data);self.assertIn(feeds.PREFIX+'index.json',client.data)
+        before=dict(client.data)
+        with patch.object(s,'collect',return_value=(inputs['originals'],{})),patch.object(s,'now',return_value='2026-09-19T13:00:00+00:00'),patch.object(s,'publish',return_value=False):
+            result=s.run(client,'bucket',None)
+        self.assertEqual((result['published'],result['desk_feeds']),(False,0));self.assertEqual(client.data[feeds.PREFIX+'IVV.json'],before[feeds.PREFIX+'IVV.json'])

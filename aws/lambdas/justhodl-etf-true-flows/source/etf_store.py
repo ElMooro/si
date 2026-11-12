@@ -4,7 +4,7 @@ from datetime import datetime,timezone
 from pathlib import Path
 from urllib.parse import urlencode
 import gzip,hashlib,io,json,re,threading,time,urllib.request,urllib.error
-import etf_native as native,etf_research as model,etf_universe,etf_issuers as issuers,evidence_store
+import etf_native as native,etf_research as model,etf_universe,etf_issuers as issuers,etf_feeds as feeds,evidence_store
 
 PRIVATE='audit-private/20260909-originals/etf-research/'
 COMPILERS=(native,model,etf_universe,evidence_store,issuers)
@@ -253,11 +253,13 @@ def run(client,bucket,key,context=None):
     with ThreadPoolExecutor(max_workers=8) as pool:
         futures=[pool.submit(immutable,client,bucket,key,body) for key,body in histories.items()]
         for future in as_completed(futures):future.result()
+    desk_feeds=feeds.build(output,histories)   # derived desk views of the retained histories; written only after publication
     count=len(histories);del histories
     body=model.encoded(output);sha=model.digest(output);key=model.PREFIX+'outputs/'+sha+'.json';immutable(client,bucket,key,body);refs['output']={'key':key,'sha256':sha,'bytes':len(body)}
     manifest={'contract':'etf-original-replay.v1','generated_at':stamp,'compilers':compilers,**refs,'output_sha256':sha};key=model.PREFIX+'runs/'+model.digest(manifest)+'.json';immutable(client,bucket,key,model.encoded(manifest))
     if replay(manifest,read)!=output:raise ValueError('ETF pre-publication replay differs')
     ref={'manifest_key':key,'output_sha256':sha};published=publish(client,bucket,{**output,'replay':ref})
     ledgers_moved=advance_pointers(client,bucket,output.get('snapshot_ledgers',{}),stamp)
+    feeds_written=feeds.write(client,bucket,desk_feeds) if published else 0
     return {'published':published,'generated_at':stamp,'replay':ref,'quality':output['quality'],'source_status_codes':output['source_status_codes'],
-        'history_shards':count,'ledgers_moved':ledgers_moved,'coverage':output.get('coverage'),'signals_emitted':0,'paid_ai_calls':0,'notifications_sent':0,'private_account_reads':0,'portfolio_writes':0}
+        'history_shards':count,'ledgers_moved':ledgers_moved,'desk_feeds':feeds_written,'coverage':output.get('coverage'),'signals_emitted':0,'paid_ai_calls':0,'notifications_sent':0,'private_account_reads':0,'portfolio_writes':0}

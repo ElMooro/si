@@ -6123,7 +6123,7 @@ class MacroData {
      Same engine, its own catalog + storage key (MacroData.configure('flows')). Every item is a real series the
      warehouse serves: FRED / OFR ids through /series (money funds, deposits, bank credit, Fed liquidity, the Z.1
      flow of funds since 1946, TIC foreign holdings and net purchases) and the fleet's own flow engines through the
-     flows: adapter (ICI weekly: mutual fund flows, combined funds + ETFs, ETF net issuance, money market assets - fed by the Chrome lane since 2026-11-11; spot BTC/ETH ETF flows; crypto exchange netflows; Taiwan foreign buying).
+     flows: adapter (ICI weekly: mutual fund flows, combined funds + ETFs, ETF net issuance, money market assets - fed by the Chrome lane since 2026-11-11; the ETF creations engine's per-fund issuer tape since 2026-11-12; spot BTC/ETH ETF flows; crypto exchange netflows; Taiwan foreign buying).
      An id with ':' is used as is; a bare id is a FRED series. */
   static FLOWS_CATALOG = [
     { cat: "Fund flows · ICI weekly", flag: "📊", items: [
@@ -6134,6 +6134,54 @@ class MacroData {
       ["flows:ici-combined/total","Mutual funds + ETFs · combined weekly net flow","$M"], ["flows:ici-combined/equity","Mutual funds + ETFs · equity","$M"],
       ["flows:ici-combined/bond","Mutual funds + ETFs · bond","$M"], ["flows:ici-combined/commodity","Mutual funds + ETFs · commodity","$M"],
       ["flows:ici-etf/total","ETF net issuance · weekly (combined minus mutual funds)","$M"], ["flows:ici-etf/equity","ETF net issuance · equity","$M"],
+    ]},
+    { cat: "ETF creations · US broad market (issuer tape, 5-day net at NAV)", flag: "🇺🇸", items: [
+      ["flows:etfc/SPY.flow_5d","SPY · SPDR S&P 500 · 5-day net creations at NAV","$"], ["flows:etfc/IVV.flow_5d","IVV · iShares Core S&P 500","$"],
+      ["flows:etfc/IWM.flow_5d","IWM · iShares Russell 2000","$"], ["flows:etfc/DIA.flow_5d","DIA · SPDR Dow Jones Industrial Average","$"],
+      ["flows:etfc/IWF.flow_5d","IWF · iShares Russell 1000 Growth","$"], ["flows:etfc/DVY.flow_5d","DVY · iShares Select Dividend","$"],
+      ["flows:etfc/IGV.flow_5d","IGV · iShares Expanded Tech-Software","$"], ["flows:etfc/ICLN.flow_5d","ICLN · iShares Global Clean Energy","$"],
+      ["flows:etfc/HACK.flow_5d","HACK · Amplify Cybersecurity","$"], ["flows:etfc/TQQQ.flow_5d","TQQQ · ProShares UltraPro QQQ (3x)","$"],
+      ["flows:etfc/SQQQ.flow_5d","SQQQ · ProShares UltraPro Short QQQ (−3x)","$"], ["flows:etfc/SSO.flow_5d","SSO · ProShares Ultra S&P 500 (2x)","$"],
+      ["flows:etfc/SDS.flow_5d","SDS · ProShares UltraShort S&P 500 (−2x)","$"], ["flows:etfc/UPRO.flow_5d","UPRO · ProShares UltraPro S&P 500 (3x)","$"],
+      ["flows:etfc/SPXU.flow_5d","SPXU · ProShares UltraPro Short S&P 500 (−3x)","$"], ["flows:etfc/UVXY.flow_5d","UVXY · ProShares Ultra VIX Short-Term Futures","$"],
+      ["flows:etfc/SVXY.flow_5d","SVXY · ProShares Short VIX Short-Term Futures","$"],
+    ]},
+    { cat: "ETF creations · US sectors (issuer tape, 5-day net at NAV)", flag: "🏭", items: [
+      ["flows:etfc/XLK.flow_5d","XLK · Technology Select Sector SPDR","$"], ["flows:etfc/XLF.flow_5d","XLF · Financial Select Sector SPDR","$"],
+      ["flows:etfc/XLE.flow_5d","XLE · Energy Select Sector SPDR","$"], ["flows:etfc/XLV.flow_5d","XLV · Health Care Select Sector SPDR","$"],
+      ["flows:etfc/XLI.flow_5d","XLI · Industrial Select Sector SPDR","$"], ["flows:etfc/XLY.flow_5d","XLY · Consumer Discretionary Select Sector SPDR","$"],
+      ["flows:etfc/XLP.flow_5d","XLP · Consumer Staples Select Sector SPDR","$"], ["flows:etfc/XLU.flow_5d","XLU · Utilities Select Sector SPDR","$"],
+      ["flows:etfc/XLB.flow_5d","XLB · Materials Select Sector SPDR","$"], ["flows:etfc/XLRE.flow_5d","XLRE · Real Estate Select Sector SPDR","$"],
+      ["flows:etfc/XLC.flow_5d","XLC · Communication Services Select Sector SPDR","$"], ["flows:etfc/XBI.flow_5d","XBI · SPDR S&P Biotech","$"],
+      ["flows:etfc/KRE.flow_5d","KRE · SPDR S&P Regional Banking","$"], ["flows:etfc/ITB.flow_5d","ITB · iShares U.S. Home Construction","$"],
+      ["flows:etfc/XOP.flow_5d","XOP · SPDR S&P Oil & Gas Exploration & Production","$"],
+    ]},
+    { cat: "ETF creations · bonds & rates (issuer tape, 5-day net at NAV)", flag: "🏛", items: [
+      ["flows:etfc/TLT.flow_5d","TLT · iShares 20+ Year Treasury Bond","$"], ["flows:etfc/IEF.flow_5d","IEF · iShares 7-10 Year Treasury Bond","$"],
+      ["flows:etfc/IEI.flow_5d","IEI · iShares 3-7 Year Treasury Bond","$"], ["flows:etfc/SHY.flow_5d","SHY · iShares 1-3 Year Treasury Bond","$"],
+      ["flows:etfc/GOVT.flow_5d","GOVT · iShares U.S. Treasury Bond","$"], ["flows:etfc/BIL.flow_5d","BIL · SPDR Bloomberg 1-3 Month T-Bill","$"],
+      ["flows:etfc/SGOV.flow_5d","SGOV · iShares 0-3 Month Treasury Bond","$"], ["flows:etfc/SHV.flow_5d","SHV · iShares Short Treasury Bond","$"],
+      ["flows:etfc/TBT.flow_5d","TBT · ProShares UltraShort 20+ Year Treasury","$"], ["flows:etfc/TIP.flow_5d","TIP · iShares TIPS Bond","$"],
+      ["flows:etfc/STIP.flow_5d","STIP · iShares 0-5 Year TIPS Bond","$"], ["flows:etfc/LQD.flow_5d","LQD · iShares iBoxx $ Investment Grade Corporate Bond","$"],
+      ["flows:etfc/HYG.flow_5d","HYG · iShares iBoxx $ High Yield Corporate Bond","$"], ["flows:etfc/JNK.flow_5d","JNK · SPDR Bloomberg High Yield Bond","$"],
+      ["flows:etfc/USHY.flow_5d","USHY · iShares Broad USD High Yield Corporate Bond","$"], ["flows:etfc/SJNK.flow_5d","SJNK · SPDR Bloomberg Short Term High Yield Bond","$"],
+      ["flows:etfc/SRLN.flow_5d","SRLN · SPDR Blackstone Senior Loan","$"], ["flows:etfc/AGG.flow_5d","AGG · iShares Core U.S. Aggregate Bond","$"],
+      ["flows:etfc/EMB.flow_5d","EMB · iShares J.P. Morgan USD Emerging Markets Bond","$"], ["flows:etfc/MUB.flow_5d","MUB · iShares National Muni Bond","$"],
+    ]},
+    { cat: "ETF creations · international (issuer tape, 5-day net at NAV)", flag: "🗺", items: [
+      ["flows:etfc/EFA.flow_5d","EFA · iShares MSCI EAFE","$"], ["flows:etfc/EEM.flow_5d","EEM · iShares MSCI Emerging Markets","$"],
+      ["flows:etfc/FXI.flow_5d","FXI · iShares China Large-Cap","$"], ["flows:etfc/MCHI.flow_5d","MCHI · iShares MSCI China","$"],
+      ["flows:etfc/ASHR.flow_5d","ASHR · Xtrackers Harvest CSI 300 China A-Shares","$"], ["flows:etfc/EWJ.flow_5d","EWJ · iShares MSCI Japan","$"],
+      ["flows:etfc/INDA.flow_5d","INDA · iShares MSCI India","$"], ["flows:etfc/EWZ.flow_5d","EWZ · iShares MSCI Brazil","$"],
+      ["flows:etfc/EWY.flow_5d","EWY · iShares MSCI South Korea","$"], ["flows:etfc/EWT.flow_5d","EWT · iShares MSCI Taiwan","$"],
+      ["flows:etfc/EWG.flow_5d","EWG · iShares MSCI Germany","$"], ["flows:etfc/EWU.flow_5d","EWU · iShares MSCI United Kingdom","$"],
+      ["flows:etfc/EWC.flow_5d","EWC · iShares MSCI Canada","$"], ["flows:etfc/EWW.flow_5d","EWW · iShares MSCI Mexico","$"],
+      ["flows:etfc/TUR.flow_5d","TUR · iShares MSCI Turkey","$"], ["flows:etfc/EIDO.flow_5d","EIDO · iShares MSCI Indonesia","$"],
+    ]},
+    { cat: "ETF creations · commodities & crypto (issuer tape, 5-day net at NAV)", flag: "🥇", items: [
+      ["flows:etfc/GLD.flow_5d","GLD · SPDR Gold Shares (trust archive since 2004)","$"], ["flows:etfc/SLV.flow_5d","SLV · iShares Silver Trust","$"],
+      ["flows:etfc/IBIT.flow_5d","IBIT · iShares Bitcoin Trust","$"], ["flows:etfc/ETHA.flow_5d","ETHA · iShares Ethereum Trust","$"],
+      ["flows:etfc/BITO.flow_5d","BITO · ProShares Bitcoin ETF","$"],
     ]},
     { cat: "Money market funds", flag: "💵", items: [
       ["flows:ici-mmf/total","All money market funds · assets (ICI weekly)","$B"], ["flows:ici-mmf/government","Government money market funds (ICI)","$B"],
@@ -6203,6 +6251,10 @@ class MacroData {
     "stablecoins": { url: "/data/stablecoin-supply-history.json", rows: p => p.series || [], date: "date", label: "DefiLlama daily" },
     "apac-jp": { url: "/data/history/apac-flows.json", rows: p => Object.keys(p.jp_weeks || {}).sort().map(w => Object.assign({ week_ending: w }, ((p.jp_weeks[w] || {}).markets || {}).prime || {})), date: "week_ending", label: "JPX weekly" },
     "cq": { url: "/data/cryptoquant-series.json", rows: () => [], obs: (p, field) => { const s = (p.series || {})[field]; return s && s.d && s.v ? s.d.map((d, i) => [d, s.v[i]]) : []; }, date: "d", label: "CryptoQuant daily" },
+    // flows:etfc/<TICKER>.<metric>: the ETF creations engine's retained issuer histories, one feed per fund
+    // (data/etf-creations/<TICKER>.json; metrics flow, flow_5d, flow_20d, shares, nav, net_assets; default flow_5d)
+    "etfc": { url: field => "/data/etf-creations/" + String(field).split(".")[0].replace(/[^A-Z0-9]/g, "") + ".json", rows: () => [],
+      obs: (p, field) => { const metric = String(field).split(".")[1] || "flow_5d"; const s = (p.series || {})[metric]; return s && Array.isArray(p.d) ? p.d.map((d, i) => [d, s[i]]) : []; }, date: "d", label: "issuer tape · etf-true-flows" },
     "crypto-etf": { url: "/data/crypto-etf-flows-history.json", rows: p => p.series, date: "date", label: "Polygon fund flows" },
     "crypto-exchange": { url: "/data/crypto-exchange-flows-history.json", rows: p => p.series, date: "date", label: "CoinMetrics / CryptoQuant" },
     "apac": { url: "/data/history/apac-flows.json", rows: p => Object.keys(p.days || {}).sort().map(d => Object.assign({ date: d }, p.days[d])), date: "date", label: "TWSE / Naver" },
@@ -6789,13 +6841,14 @@ class MacroData {
     const feedName = slash < 0 ? rest : rest.slice(0, slash), field = slash < 0 ? '' : rest.slice(slash + 1);
     const feed = this.FLOW_FEEDS[feedName];
     if (!feed || !field) throw new Error('Unknown flow series ' + symbol);
+    const url = typeof feed.url === 'function' ? feed.url(field) : feed.url;   // per-fund feeds resolve their URL from the field
     this.flowFeedCache = this.flowFeedCache || new Map();   // one fetch per feed URL per 10 min, however many series read it
-    let payloadPromise = this.flowFeedCache.get(feed.url);
+    let payloadPromise = this.flowFeedCache.get(url);
     if (!payloadPromise || (payloadPromise.at && Date.now() - payloadPromise.at > 10 * 60 * 1000)) {
-      payloadPromise = fetch(PROXY + feed.url + '?t=' + Math.floor(Date.now() / 3e5)).then(r => { if (!r.ok) throw new Error('Feed ' + r.status); return r.json(); });
+      payloadPromise = fetch(PROXY + url + '?t=' + Math.floor(Date.now() / 3e5)).then(r => { if (!r.ok) throw new Error('Feed ' + r.status); return r.json(); });
       payloadPromise.at = Date.now();
-      this.flowFeedCache.set(feed.url, payloadPromise);
-      payloadPromise.catch(() => this.flowFeedCache.delete(feed.url));
+      this.flowFeedCache.set(url, payloadPromise);
+      payloadPromise.catch(() => this.flowFeedCache.delete(url));
     }
     const payload = await payloadPromise;
     const columnar = feed.obs ? (feed.obs(payload, field) || []) : null;   // {d:[...], v:[...]} feeds (CryptoQuant series)
