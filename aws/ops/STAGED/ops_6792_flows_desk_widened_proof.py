@@ -75,6 +75,12 @@ def main():
         cq = requests.get("%s/data/cryptoquant-series.json?t=%d" % (PROXY, int(time.time())), timeout=90)
         cqd = cq.json() if cq.ok else {}
         r.log("cryptoquant-series: HTTP %s, %d KB, generated %s, %d series" % (cq.status_code, len(cq.content) // 1024, cqd.get("generated_at"), len(cqd.get("series") or {})))
+        for name in ("btc_stablecoins_ratio", "btc_whale_ratio", "btc_fund_flow_ratio", "btc_exchange_netflow"):
+            ser = (cqd.get("series") or {}).get(name) or {}
+            vals = ser.get("v") or []
+            zeros = sum(1 for v in vals if v == 0)
+            r.log("  %s: n=%d, zeros=%d, tail %s" % (name, len(vals), zeros, list(zip((ser.get("d") or [])[-5:], vals[-5:]))))
+            facts["cq_" + name] = "n %d zeros %d last %s" % (len(vals), zeros, vals[-1] if vals else None)
         facts["feeds"] = "stablecoins %s days to %s; cq %d series" % (doc.get("count"), latest.get("date"), len(cqd.get("series") or {}))
 
         r.section("2. the live desk in a fresh headless Chrome")
@@ -104,15 +110,15 @@ def main():
             bad = [c for c in cards if c["state"] != "ready"]
             r.log("%d cards, %d ready, %d not: %s" % (len(cards), len(ready), len(bad), "; ".join("%s [%s] %s" % (c["sym"], c["state"], c["err"][:60]) for c in bad)[:800]))
             check("every card on the desk resolves (87 expected)", lambda: len(cards) == 87 and not bad or (_ for _ in ()).throw(AssertionError((len(cards), [c["sym"] for c in bad]))))
-            for group, syms, rule in (("TIC", TIC, lambda c: c["asof"] >= "2026-08-01" and c["provider"].startswith("FRED")), ("CryptoQuant", CQ, lambda c: c["asof"] >= (now - timedelta(days=4)).date().isoformat() and c["provider"] == "CryptoQuant daily"),
+            for group, syms, rule in (("TIC", TIC, lambda c: c["asof"] >= "2026-08-01" and c["provider"].lower().startswith("fred")), ("CryptoQuant", CQ, lambda c: c["asof"] >= (now - timedelta(days=4)).date().isoformat() and c["provider"] == "CryptoQuant daily"),
                                       ("stablecoins", STABLE, lambda c: c["asof"] >= (now - timedelta(days=2)).date().isoformat() and c["value"].endswith("B") and c["provider"] == "DefiLlama daily")):
                 rows = [by.get(s) for s in syms]
                 r.log("%s: %s" % (group, "; ".join("%s=%s @%s" % (s.split("/")[-1] if "/" in s else s.split(":")[-1], c["value"], c["asof"]) if c else s + "=MISSING" for s, c in zip(syms, rows))[:900]))
                 check("%s: all %d cards ready, fresh, with strips" % (group, len(syms)), lambda rows=rows, rule=rule: all(c and c["state"] == "ready" and c["strip"] and rule(c) for c in rows) or (_ for _ in ()).throw(AssertionError([(c["sym"], c["asof"], c["value"], c["provider"]) for c in rows if not (c and c["state"] == "ready" and c["strip"] and rule(c))])))
             feeds = sorted({u.split("?")[0].split("/data/")[-1] for u in requests_seen if "/data/" in u and ("cryptoquant-series" in u or "stablecoin-supply" in u or "ici-fund-flows" in u)})
             counts = {f: sum(1 for u in requests_seen if f in u) for f in feeds}
-            r.log("feed fetches: %s" % counts)
-            check("each flow feed fetched once", lambda: all(n == 1 for n in counts.values()) or (_ for _ in ()).throw(AssertionError(counts)))
+            r.log("feed fetches: %s | ici requests: %s" % (counts, [u[-70:] for u in requests_seen if "ici-fund-flows" in u]))
+            check("the two new feeds are fetched once each (the ICI feed's second request is the page's pre-existing inspector)", lambda: counts.get("cryptoquant-series.json") == 1 and counts.get("stablecoin-supply-history.json") == 1 or (_ for _ in ()).throw(AssertionError(counts)))
             check("no page errors", lambda: not errors or (_ for _ in ()).throw(AssertionError(errors[:3])))
             page.evaluate("() => { const c = [...document.querySelectorAll('.macro-item')].find(x => x.dataset.symbol === 'flows:cq/btc_exchange_netflow'); if (c) c.scrollIntoView({block: 'start'}); }")
             page.wait_for_timeout(600)
@@ -135,7 +141,11 @@ def main():
             page2.goto("%s/chart.html?nocache=%d" % (SITE, int(time.time())), wait_until="load")
             page2.wait_for_selector("#btn-flows", timeout=45000)
             page2.evaluate("() => document.getElementById('btn-flows').click()")
-            page2.wait_for_timeout(2500)
+            try:
+                page2.wait_for_function("() => [...document.querySelectorAll('iframe')].some(f => /inflows-outflows/.test(f.src || ''))", timeout=30000)
+            except Exception:  # noqa: BLE001
+                r.log("overlay iframe did not appear within 30 s; frames %s" % [f.url[:60] for f in page2.frames])
+            page2.wait_for_timeout(1500)
             frame = next((f for f in page2.frames if "inflows-outflows" in f.url), None)
             check("overlay frame is /inflows-outflows.html", lambda: frame is not None or (_ for _ in ()).throw(AssertionError([f.url for f in page2.frames])))
             if frame is not None:
