@@ -1,7 +1,8 @@
 """ops 6789 - justhodl-corporate-actions 403 carry-forward proof (daily health run 2026-11-12; verify-only, the deploy is
 deploy-lambdas.yml's).
 
-Commit 06b7b410: a 403 on the pre-ex-close aggs call (the session is older than the Polygon plan's history) stops the
+Commit 06b7b410 (+ the force/cursor commit after the first attempt of this op found the three tickers "not due" since
+yesterday's proof regenerated them): a 403 on the pre-ex-close aggs call (the session is older than the Polygon plan's history) stops the
 3-session walk at the first call, and the dividend is recorded with pending_reason plan_history_403 + checked_at and
 carried forward from the prior artifact for 30 days instead of being asked for again (3 calls + 3 sleeps) every run.
 This op climbs the three-rung ladder (repo has it, artifact has it, function is READY), then invokes the engine
@@ -29,7 +30,7 @@ REGION = "us-east-1"
 FN = "justhodl-corporate-actions"
 LIVE = "justhodl-dashboard-live"
 ART_PREFIX = "data/corporate-actions/"
-MARKER = 'PLAN_HISTORY_403 = "plan_history_403"'
+MARKER = 'stats["cursor"] = state["cursor"] if state else "untouched"'   # 8a-series commit: force flag + cursor fixes + 403 carry-forward
 TICKERS = ["AAPL", "MSFT", "KO"]
 SECRET_KV = re.compile(r"(?i)(apiKey|api[_-]?key|token|secret)(\s*[=:]\s*)[^\s&\"',}]+")
 
@@ -86,7 +87,7 @@ def main():
             r.log("  attempt %d: marker %s, State %s / %s - waiting 15 s" % (attempt + 1, has_marker, conf.get("State"), conf.get("LastUpdateStatus")))
             time.sleep(15)
         if not ready:
-            r.fail("the deployed artifact never carried the marker (or never settled) within 10 min - deploy-lambdas.yml for 06b7b410 did not land")
+            r.fail("the deployed artifact never carried the marker (or never settled) within 10 min - deploy-lambdas.yml for the force/cursor commit did not land")
             sys.exit(1)
         time.sleep(5)
         facts["deployed_last_modified"] = conf.get("LastModified")
@@ -102,7 +103,7 @@ def main():
                     before[t] = None
             t0 = time.time()
             resp = lam.invoke(FunctionName=FN, InvocationType="RequestResponse", LogType="Tail",
-                              Payload=json.dumps({"tickers": TICKERS, "max_tickers": len(TICKERS)}).encode())
+                              Payload=json.dumps({"tickers": TICKERS, "max_tickers": len(TICKERS), "force": True}).encode())
             took = time.time() - t0
             payload = json.loads(resp["Payload"].read() or b"{}")
             if resp.get("FunctionError"):
@@ -153,6 +154,12 @@ def main():
                     arts[t] = None
             return took, stats, nfail, n401, n403, arts
 
+        try:
+            cursor_before = json.loads(s3.get_object(Bucket=LIVE, Key="data/corporate-actions/_state.json")["Body"].read() or b"{}")
+        except Exception:  # noqa: BLE001
+            cursor_before = {}
+        r.log("sweep state before: %s" % json.dumps(cursor_before, default=str)[:200])
+        facts["cursor_before"] = cursor_before.get("cursor")
         r.section("2. run 1 - the 403 dividends are recorded once (one call each)")
         took1, stats1, nfail1, n401_1, n403_1, arts1 = invoke("run1")
         facts.update(run1_s=round(took1), run1_http_failures=nfail1, run1_401=n401_1, run1_403=n403_1,
@@ -186,6 +193,24 @@ def main():
             r.warn("run 2 still made %d failing http calls (%d x 403) - the carry-forward did not take" % (nfail2, n403_2))
         if took2 > 60:
             r.warn("run 2 took %.0f s for three tickers with everything cached - more than the 60 s expected" % took2)
+        try:
+            cursor_after = json.loads(s3.get_object(Bucket=LIVE, Key="data/corporate-actions/_state.json")["Body"].read() or b"{}")
+        except Exception:  # noqa: BLE001
+            cursor_after = {}
+        facts["cursor_after"] = cursor_after.get("cursor")
+        r.log("sweep state after: %s" % json.dumps(cursor_after, default=str)[:200])
+        if cursor_after.get("cursor") != cursor_before.get("cursor"):
+            all_ok = False
+            r.warn("the two manual runs moved the daily sweep's cursor %s -> %s - the manual-run guard did not take" % (cursor_before.get("cursor"), cursor_after.get("cursor")))
+        try:
+            idx = json.loads(s3.get_object(Bucket=LIVE, Key="data/corporate-actions-index.json")["Body"].read() or b"{}")
+            r.log("index: universe %s covered %s" % (idx.get("universe"), idx.get("covered")))
+            facts["index_universe"] = idx.get("universe")
+            if isinstance(idx.get("universe"), int) and idx["universe"] < 1000:
+                all_ok = False
+                r.warn("the index's universe is %s after a manual run - it must stay the whole market" % idx.get("universe"))
+        except Exception as exc:  # noqa: BLE001
+            r.warn("index read: %s" % type(exc).__name__)
         try:
             h = s3.head_object(Bucket=LIVE, Key="data/corporate-actions-index.json")
             r.log("index data/corporate-actions-index.json: %.1f h old (%d B)" % ((datetime.now(timezone.utc) - h["LastModified"]).total_seconds() / 3600, h["ContentLength"]))
