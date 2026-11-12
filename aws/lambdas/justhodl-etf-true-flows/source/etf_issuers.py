@@ -5,6 +5,7 @@ downloadable share history. The engine therefore accrues each day's reviewed sna
 ledger (etf-snapshot-ledger.v1) and computes flows from the ledger exactly as it does from an issuer workbook. Every
 ledger row names the retained original it was parsed from; nothing is inferred from vendors, and no date is invented:
 a snapshot whose own as-of dates disagree is rejected for that day rather than dated by the acquisition clock.
+Dry-run proof against the live sources before the first deploy: ops 6801 (2026-11-12), 20 snapshots + 3 histories.
 """
 from datetime import date,datetime,timedelta
 from decimal import Decimal,InvalidOperation,localcontext
