@@ -62,6 +62,11 @@ TG_CHAT = os.environ.get("TG_CHAT", "8678089260")
 SSM_STATE = "/justhodl/stablecoin-flow/state"
 
 DEFILLAMA_STABLECOINS = "https://stablecoins.llama.fi/stablecoins?includePrices=true"
+# Daily supply history (2026-11-12, for the Inflows & outflows desk): DefiLlama's chart endpoints carry the
+# USD-pegged circulating supply per day since 2017-11-29 (all coins) and per coin (USDT id 1, USDC id 2).
+DEFILLAMA_CHART_ALL = "https://stablecoins.llama.fi/stablecoincharts/all"
+HISTORY_KEY = "data/stablecoin-supply-history.json"
+HISTORY_COINS = (("usdt", "1"), ("usdc", "2"))
 
 # Tracked stablecoins (USD-pegged, top by mcap)
 TRACKED = {
@@ -85,6 +90,53 @@ def http_json(url, timeout=20):
             import gzip
             raw = gzip.decompress(raw)
         return json.loads(raw.decode("utf-8", errors="ignore"))
+
+
+def supply_history():
+    """Daily USD-pegged stablecoin supply (USD) from DefiLlama's chart endpoints: total circulating, minted and
+    bridged across every coin, plus USDT and USDC on their own; one row per UTC day, null where a coin has no
+    observation. Every number is DefiLlama's own daily aggregate; nothing is interpolated."""
+    def rows(payload):
+        out = {}
+        for row in payload:
+            if not isinstance(row, dict) or row.get("date") is None:
+                continue
+            day = dt.datetime.fromtimestamp(int(row["date"]), dt.timezone.utc).date().isoformat()
+            circ = (row.get("totalCirculating") or {}).get("peggedUSD")
+            out[day] = {"circulating": circ,
+                        "minted": (row.get("totalMintedUSD") or {}).get("peggedUSD"),
+                        "bridged": (row.get("totalBridgedToUSD") or {}).get("peggedUSD")}
+        return out
+    total = rows(http_json(DEFILLAMA_CHART_ALL, timeout=40))
+    if len(total) < 1000:
+        raise ValueError("DefiLlama daily history incomplete: %d days" % len(total))
+    coins = {}
+    for field, coin_id in HISTORY_COINS:
+        coins[field] = rows(http_json(DEFILLAMA_CHART_ALL + "?stablecoin=" + coin_id, timeout=40))
+    series = []
+    for day in sorted(total):
+        row = {"date": day, "total": total[day]["circulating"], "minted": total[day]["minted"], "bridged": total[day]["bridged"]}
+        for field in coins:
+            row[field] = (coins[field].get(day) or {}).get("circulating")
+        series.append(row)
+    latest = series[-1]
+    return {"engine": "stablecoin-flow", "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+            "source": "DefiLlama stablecoincharts (USD-pegged circulating supply, daily)", "units": "USD",
+            "definitions": {"total": "circulating supply of every USD-pegged stablecoin, USD", "minted": "total minted, USD", "bridged": "total bridged, USD",
+                            "usdt": "Tether USDT circulating, USD", "usdc": "Circle USDC circulating, USD"},
+            "count": len(series), "first_date": series[0]["date"], "latest": latest, "series": series}
+
+
+def publish_supply_history():
+    """fail-soft: the regime output never depends on the history feed"""
+    try:
+        doc = supply_history()
+        s3.put_object(Bucket=S3_BUCKET, Key=HISTORY_KEY, Body=json.dumps(doc, separators=(",", ":"), default=str).encode(),
+                      ContentType="application/json", CacheControl="public, max-age=300")
+        return {"ok": True, "days": doc["count"], "latest": doc["latest"]["date"], "total": doc["latest"]["total"]}
+    except Exception as exc:  # noqa: BLE001
+        print(json.dumps({"supply_history": "failed", "error_type": type(exc).__name__}))
+        return {"ok": False, "error_type": type(exc).__name__}
 
 
 def fetch_stablecoins():
@@ -432,7 +484,7 @@ def lambda_handler(event, context):
 
     output = {
         "engine": "stablecoin-flow",
-        "version": "1.0",
+        "version": "1.1",
         "as_of": dt.datetime.utcnow().isoformat() + "Z",
         "state": state,
         "previous_state": prev_state,
@@ -479,8 +531,10 @@ def lambda_handler(event, context):
 
     save_state(state, agg)
     telegram_alert(state, prev_state, agg)
+    history = publish_supply_history()
 
     return {"statusCode": 200, "body": json.dumps({
         "state": state, "prev": prev_state,
         "delta_30d": agg["delta_30d_usd"], "signal": signal_strength,
+        "supply_history": history,
     })}
