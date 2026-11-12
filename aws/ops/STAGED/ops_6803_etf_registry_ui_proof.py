@@ -93,8 +93,9 @@ def main():
                         fails.append("%s observation count on page (%r) differs from the packet (%s)" % (t, count, want))
                     if e.get("net_flow_5d_usd") is not None:
                         flat = detail.replace("−", "-").replace(",", "").replace("+", "")
-                        want = "%.1f" % (e["net_flow_5d_usd"] / 1e6)
-                        if want.replace("-", "") not in flat and ("%.2f" % (e["net_flow_5d_usd"] / 1e6)).replace("-", "") not in flat:
+                        want = "%.3f" % (e["net_flow_5d_usd"] / 1e6)   # the page prints USD millions to three decimals
+                        forms = {want, want.rstrip("0").rstrip("."), "%.1f" % (e["net_flow_5d_usd"] / 1e6), "0" if abs(e["net_flow_5d_usd"]) < 5e-4 else want}
+                        if not any(("| " + f.replace("-", "") + " |") in flat.replace("−", "-") or (" " + f.replace("-", "") + " ") in flat for f in forms):
                             fails.append("%s: the page does not show the packet's 5d estimate %s USD m" % (t, want))
                 else:
                     # the ledger started today: one observation, honestly stated; no window can be complete yet
