@@ -73,10 +73,15 @@ def main():
                 state = pg.text_content("#state") or ""
                 title = pg.text_content("#history-title") or ""
                 detail = re.sub(r"\s+", " ", pg.inner_text("#detail") or "")
+                aligned = pg.evaluate("() => [...document.querySelectorAll('#detail table')].map(t => [...t.querySelectorAll('tr')].map(tr => [...tr.children].map(c => c.textContent.trim()).join(' | ')))")
                 count = pg.text_content("#page-count") or ""
                 chart = (pg.text_content("#chart") or "")[:120]
                 r.log("  %s (%.1fs): state %r | %r | %s | chart: %r" % (t, time.time() - t0, state[:90], title, count, chart.strip()[:80]))
                 r.log("     detail: %s" % detail[:420])
+                for tbl in aligned:
+                    if any("Issuer observations" in row for row in tbl):
+                        for row in tbl:
+                            r.log("     aligned: %s" % row[:200])
                 e = by[t]
                 if t in ("GLD", "ASHR", "HACK"):
                     if "complete issuer history" not in title:
@@ -86,11 +91,15 @@ def main():
                     want = str(int(e["history_observations"]))
                     if want not in count.replace(",", ""):
                         fails.append("%s observation count on page (%r) differs from the packet (%s)" % (t, count, want))
-                    if e.get("net_flow_5d_usd") is not None and ("%.1f" % (e["net_flow_5d_usd"] / 1e6)).replace("-", "") not in detail.replace("−", "").replace("+", "").replace(",", ""):
-                        r.warn("  %s: 5d figure %.1f USD m not found verbatim in the detail (formatting)" % (t, e["net_flow_5d_usd"] / 1e6))
+                    if e.get("net_flow_5d_usd") is not None:
+                        flat = detail.replace("−", "-").replace(",", "").replace("+", "")
+                        want = "%.1f" % (e["net_flow_5d_usd"] / 1e6)
+                        if want.replace("-", "") not in flat and ("%.2f" % (e["net_flow_5d_usd"] / 1e6)).replace("-", "") not in flat:
+                            fails.append("%s: the page does not show the packet's 5d estimate %s USD m" % (t, want))
                 else:
-                    if "coverage gap" not in title or "retained_native_snapshot_ledger" not in detail:
-                        fails.append("QQQ page should state the accruing ledger as a coverage gap for now (%r)" % title)
+                    # the ledger started today: one observation, honestly stated; no window can be complete yet
+                    if "retained_native_snapshot_ledger" not in detail or "1 issuer observations" not in count or "2026-11-11 → 2026-11-11" not in detail:
+                        fails.append("QQQ page should state the one-row accruing ledger (%r / %r)" % (title, count))
                 if "unverified" in state.lower() or "differs" in state.lower():
                     fails.append("%s research page verification failed: %s" % (t, state))
                 shot = "research_%s.png" % t
@@ -117,19 +126,22 @@ def main():
                 pass
             meta = pg.text_content("#etf-meta") or ""
             r.log("  meta: %s" % meta[:200])
+            # the table's "creation tape" rows come from the desk's own ETF tape; the issuer figures of the packet feed the
+            # ETF INFLOWS / OUTFLOWS maps above it (packet.inflows / outflows, filtered by the ticker box)
             for t in ("GLD", "ASHR", "HACK"):
                 pg.fill("#etf-q", t)
                 pg.keyboard.press("Enter")
                 pg.wait_for_timeout(1500)
                 rows = pg.evaluate("t => [...document.querySelectorAll('#etf-desk-host table tr')].map(tr => [...tr.querySelectorAll('td')].map(td => td.textContent.trim())).filter(c => c.length && c[0] === t)", t)
+                maps = pg.evaluate("() => ({inn: (document.querySelector('#map-in') || {}).innerText || '', out: (document.querySelector('#map-out') || {}).innerText || '', lead: (document.querySelector('#flow-lead .sech span:last-child') || {}).textContent || ''})")
                 e = by[t]
-                r.log("  %s rows: %s | packet 5d %s (%s)" % (t, json.dumps(rows)[:400], e.get("net_flow_5d_usd"), money(e["net_flow_5d_usd"]) if e.get("net_flow_5d_usd") is not None else "none"))
+                r.log("  %s table row: %s | packet 5d %s (%s)" % (t, json.dumps(rows)[:300], e.get("net_flow_5d_usd"), money(e["net_flow_5d_usd"]) if e.get("net_flow_5d_usd") is not None else "none"))
+                r.log("  %s issuer maps: lead %r | inflows %r | outflows %r" % (t, maps["lead"][:80], re.sub(r"\s+", " ", maps["inn"])[:160], re.sub(r"\s+", " ", maps["out"])[:160]))
+                in_packet_lists = any(v["ticker"] == t for v in packet.get("inflows", []) + packet.get("outflows", []))
+                if in_packet_lists and t not in maps["inn"] + maps["out"]:
+                    fails.append("%s is in the packet's inflow/outflow lists but not on the desk's issuer maps" % t)
                 if not rows:
                     fails.append("%s has no row in the desk's 5D table" % t)
-                elif e.get("net_flow_5d_usd") is not None:
-                    cells = " ".join(rows[0])
-                    if money(e["net_flow_5d_usd"]).lstrip("-") not in cells.replace("−", "-").replace("$", "").replace("+", ""):
-                        r.warn("  %s: the desk's 5D cell does not print the packet figure verbatim: %s" % (t, cells[:200]))
             pg.fill("#etf-q", "")
             pg.keyboard.press("Enter")
             pg.wait_for_timeout(800)
