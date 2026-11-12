@@ -109,9 +109,12 @@ def build(inputs,read,at):
             snapshot_ledgers[ticker]={'issuer':issuer,'rows':0,'latest_date':None,'observed_today':None,'status':'awaiting_first_reviewed_snapshot'};continue
         lref,lraw=ref_doc(ledger,'ledgers');histories[lref['key']]=lraw
         snapshot_ledgers[ticker]={**lref,'issuer':issuer,'latest_date':ledger['rows'][-1]['date'],'observed_today':snapshot['date'] if snapshot else None,
-            'restatements':len(ledger['restatements']),'previous':ledger_refs.get(ticker),'status':'accruing'}
+            'restatements':len(ledger['restatements']),'previous':ledger_refs.get(ticker),'status':'accruing' if snapshot else 'retained_without_todays_observation'}
+        # like a workbook fund whose download failed today, a ledger fund without today's reviewed snapshot publishes
+        # no history this run (its ledger is retained and resumes); the research page's freshness check stays honest
+        if snapshot is None:continue
         ledger_funds.add(ticker);identities[ticker]={'issuer':issuer,'ticker':ticker,'currency':'USD'};last=ledger['rows'][-1]
-        source_refs[ticker]={**last['source'][0],'ledger':lref,'observed_at':last.get('observed_at')}
+        source_refs[ticker]={**snapshot['source'][0],'ledger':lref,'observed_at':at}
         parsed[ticker]={'rows':ledger['rows'],'scope':'Issuer-published daily snapshots (NAV, shares outstanding, net assets where exact) accrued into a retained ledger on the day each was observed; no history before the first observation.','ledger':lref,'snapshot':snapshot}
         checks[ticker]={'status':'native_snapshot_ledger_without_independent_check','independent_confirmation':False}
     if 'IVV' not in parsed:raise ValueError('reference issuer valuation dates unavailable')

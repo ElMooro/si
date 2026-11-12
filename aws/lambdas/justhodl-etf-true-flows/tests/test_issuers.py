@@ -4,7 +4,7 @@ from datetime import datetime,timedelta
 from decimal import Decimal
 from pathlib import Path
 from unittest.mock import patch
-import hashlib,io,json,time,unittest,urllib.error
+import hashlib,io,json,re,time,unittest,urllib.error
 import etf_issuers as iss,etf_native as n,etf_research as m,etf_store as s
 from test_research import AT,Storage,fixture
 
@@ -54,13 +54,18 @@ class Parsers(unittest.TestCase):
         self.assertTrue(row['aum_within_display_precision'])
 
     def test_amplify_daily_documents(self):
-        doc=iss.amplify_history([fx('amplify_hack_daily_list.json')],'HACK',[ref(iss.AMPLIFY_LIST.format(project='amplify-etfs-data-feed',ticker='HACK'))],NOW)
+        listing=json.loads(fx('amplify_hack_daily_list.json'));docs=[m.encoded(d) for d in listing['documents']]
+        urls=[iss.AMPLIFY_DOC.format(project='amplify-etfs-data-feed',ticker='HACK',day=d) for d in ('2026-11-10','2026-11-11')]
+        doc=iss.amplify_history(docs,'HACK',[ref(u) for u in urls],NOW)
         rows=doc['rows'];self.assertEqual([v['date'] for v in rows],['2026-11-10','2026-11-11'])
+        self.assertEqual(iss.amplify_history([fx('amplify_hack_daily_list.json')],'HACK',[ref('l')],NOW)['rows'],[dict(v,source=[{**v['source'][0],'url':'l'}]) for v in rows])
         self.assertEqual((rows[-1]['nav_decimal'],rows[-1]['shares_decimal'],rows[-1]['net_assets_decimal']),('117.4096','28750000','3375526798.46'))
         flows=n.flow_history(rows,['2026-11-10','2026-11-11'],[])
         self.assertEqual(flows[-1]['net_share_change_decimal'],'100000');self.assertEqual(n.dec(flows[-1]['nav_valued_share_change_decimal']),Decimal('11740960.0000'))
-        twice=fx('amplify_hack_daily_list.json')
-        with self.assertRaises(ValueError):iss.amplify_history([twice,twice],'HACK',[ref('a'),ref('a')],NOW)
+        with self.assertRaises(ValueError):iss.amplify_history([docs[0],docs[0]],'HACK',[ref('a'),ref('a')],NOW)
+        days=iss.weekdays_back(datetime(2026,11,12).date(),iss.AMPLIFY_DAYS);self.assertEqual((len(days),days[-1],days[0]),(40,'2026-11-12','2026-09-18'))
+        self.assertEqual(len(iss.requests_for('HACK',datetime(2026,11,12).date())),40)
+        with self.assertRaises(ValueError):iss.requests_for('HACK')
 
     def test_dws_nav_history_workbook(self):
         doc=iss.dws_history(fx('dws_ashr_nav_history.xlsx'),'ASHR',ref('d'),NOW)
@@ -153,23 +158,23 @@ class Store(unittest.TestCase):
         self.assertEqual(json.loads(client.data[pointer])['sha256'],moved['sha256'])
         manifest=json.loads(s.raw_reader(client,'bucket')(result['replay']['manifest_key']));self.assertEqual(s.replay(manifest,s.raw_reader(client,'bucket'))['version'],'3.1.0')
 
-    def test_collect_follows_amplify_pages_with_a_transient_key_kept_out_of_references(self):
-        raw,inputs,_=fixture();seen=[]
-        first=m.encoded({'documents':[],'nextPageToken':'t0k'});second=m.encoded({'documents':[]})
+    def test_collect_requests_amplify_days_with_a_transient_key_kept_out_of_references(self):
+        raw,inputs,_=fixture();seen=[];holiday=iss.weekdays_back(datetime.now().date(),iss.AMPLIFY_DAYS)[0]
         def acquire(client,bucket,url,key=None,deadline=None,key_param='apikey',headers=None,key_header=None,key_prefix=''):
             seen.append((url,key,key_param,key_header,(headers or {}).get('Authorization')))
             if 'firestore' in url:
-                body=second if 'pageToken' in url else first;sha=hashlib.sha256(body).hexdigest();key_=('data/evidence/etf_original/x/'+sha+'.bin.gz');raw[key_]=body
+                if url.endswith(holiday):raise urllib.error.HTTPError(url,404,'Not Found',{},None)   # an exchange holiday has no document
+                body=m.encoded({'name':'x','fields':{}});sha=hashlib.sha256(body).hexdigest();key_=('data/evidence/etf_original/x/'+sha+'.bin.gz');raw[key_]=body
                 return {'url':url,'acquired_at':AT,'evidence':{'key':key_,'sha256':sha}}
             if url in {v['url'] for v in inputs['originals'].values()}:return next(v for v in inputs['originals'].values() if v['url']==url)
             raise urllib.error.HTTPError(url,404,'Not Found',{},None)
         with patch.object(s,'acquire',side_effect=acquire),patch.object(s,'transient_web_key',side_effect=lambda url,pattern,deadline=None:'K'*40 if 'amplify' in url else 'T'*64):
             originals,errors=s.collect(Storage(),'bucket',None,raw.__getitem__,time.monotonic()+60)
-        self.assertIn('amplify_HACK',originals);self.assertIn('amplify_HACK_page2',originals);self.assertNotIn('amplify_HACK_page3',originals)
-        self.assertTrue(originals['amplify_HACK_page2']['url'].endswith('&pageToken=t0k'));self.assertFalse(any('K'*40 in v['url'] for v in originals.values()))
-        firestore=[v for v in seen if 'firestore' in v[0]];self.assertEqual({(v[1],v[2],v[3]) for v in firestore},{('K'*40,'key',None)})
+        days=[k for k in originals if k.startswith('amplify_HACK_')];self.assertEqual(len(days),39);self.assertTrue(all(re.fullmatch(r'amplify_HACK_\d{4}-\d{2}-\d{2}',k) for k in days))
+        self.assertFalse(any('K'*40 in v['url'] for v in originals.values()));self.assertEqual(errors['amplify_HACK_'+holiday],'HTTP_404')
+        firestore=[v for v in seen if 'firestore' in v[0]];self.assertEqual(len(firestore),40);self.assertEqual({(v[1],v[2],v[3]) for v in firestore},{('K'*40,'key',None)})
         uscf=[v for v in seen if 'alpsinc' in v[0]];self.assertEqual({(v[1],v[3]) for v in uscf},{('T'*64,'Authorization')})
-        invesco=[v for v in seen if 'dng-api' in v[0]];self.assertEqual(len(invesco),5);self.assertEqual(errors['vendor_context'],'configured_vendor_credential_unavailable')
+        invesco=[v for v in seen if 'dng-api' in v[0]];self.assertEqual(len(invesco),6);self.assertEqual(errors['vendor_context'],'configured_vendor_credential_unavailable')
 
     def test_web_key_echoed_in_a_response_is_never_retained(self):
         class Opener:

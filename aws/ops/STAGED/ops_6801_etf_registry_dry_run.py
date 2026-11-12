@@ -63,7 +63,10 @@ def main():
         registry = [t for t in iss.snapshot_funds() + iss.history_funds()]
         r.section("1. registry acquisitions")
         for t in registry:
-            labels = [lbl for lbl, _, _, _ in iss.requests_for(t)]
+            labels = [lbl for lbl, _, _, _ in iss.requests_for(t, now.date())]
+            if len(labels) > 3:
+                r.log("  %-5s %d day documents requested; retained %d, missing %s" % (t, len(labels), sum(1 for lbl in labels if lbl in originals), [lbl[-10:] + ":" + str(errors.get(lbl)) for lbl in labels if lbl not in originals][:12]))
+                continue
             for lbl in labels:
                 if lbl in originals:
                     ev = originals[lbl]["evidence"]

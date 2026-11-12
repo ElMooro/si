@@ -15,12 +15,12 @@ LEDGER_CONTRACT='etf-snapshot-ledger.v1'
 LEDGER_MAX_ROWS=6000
 
 # ---- registry ----------------------------------------------------------------------------------------------------
-GLOBALX={'ARGT':'argt','BOTZ':'botz','DRIV':'driv','FINX':'finx','LIT':'lit','TAN':'tan','URA':'ura'}
+GLOBALX={'ARGT':'argt','BOTZ':'botz','DRIV':'driv','FINX':'finx','LIT':'lit','URA':'ura'}
 VANECK={'GDX':('gold-miners-etf-gdx','351321','233083'),'SMH':('semiconductor-etf-smh','351342','233107'),
         'NLR':('uranium-nuclear-energy-etf-nlr','351334','233098'),'VNM':('vietnam-etf-vnm','351345','233110')}
 FIRST_TRUST=('CIBR',)
 ROBO=('ROBO',)
-INVESCO=('BKLN','DBA','DBC','QQQ','RSP')
+INVESCO=('BKLN','DBA','DBC','QQQ','RSP','TAN')
 USCF=('UNG','USO')
 AMPLIFY={'HACK':'amplify-etfs-data-feed'}
 DWS={'ASHR':'ASHR-harvest-csi-300-china-a-shares-etf'}
@@ -35,7 +35,8 @@ INVESCO_HEADERS={'Accept':'application/json','Origin':'https://www.invesco.com',
 USCF_KEY_JS='https://www.uscfinvestments.com/site-template/assets/javascript/api_key.php'
 USCF_DAILY='https://secure.alpsinc.com/MarketingAPI/api/v1/dailyprice/{ticker}'
 AMPLIFY_KEY_JS='https://amplifyetfs.com/wp-content/plugins/amplify-data/js/amplify-firestore.js'
-AMPLIFY_LIST='https://firestore.googleapis.com/v1/projects/{project}/databases/(default)/documents/funds/{ticker}/daily?pageSize=1000'
+AMPLIFY_DOC='https://firestore.googleapis.com/v1/projects/{project}/databases/(default)/documents/funds/{ticker}/daily/{day}'
+AMPLIFY_DAYS=40   # weekdays requested per run (the collection itself cannot be listed: the issuer's rules allow get, not list)
 DWS_EXPORT='https://etf.deutsche-am.com/api/pdp/en-us/Export/etf/{ticker}/Performance'
 GLD_ARCHIVE='https://api.spdrgoldshares.com/api/v1/historical-archive?product=gld&exchange=NYSE&lang=en'
 # transient public web keys: where the issuer's own site publishes them and how each is sent (never retained or logged)
@@ -56,9 +57,18 @@ def history_funds():
     """Tickers whose issuer publishes a complete daily share history the engine re-reads whole on every run."""
     return sorted(set(AMPLIFY)|set(DWS)|set(SPDR_GOLD))
 
-def requests_for(ticker):
+def weekdays_back(today,count):
+    """The last `count` weekdays ending today (ISO dates, oldest first); exchange holidays simply answer 404."""
+    out=[];day=today
+    while len(out)<count:
+        if day.weekday()<5:out.append(day.isoformat())
+        day-=timedelta(days=1)
+    return list(reversed(out))
+
+def requests_for(ticker,today=None):
     """(label, url, auth, headers) acquisitions for one fund. auth is None or a WEB_KEYS name: a transient public web key
-    the store reads at run time from the issuer's own site (never retained, logged or committed)."""
+    the store reads at run time from the issuer's own site (never retained, logged or committed). `today` (a date)
+    is needed only for issuers whose documents are addressed by day."""
     if ticker in GLOBALX:return [('globalx_'+ticker,GLOBALX_URL.format(slug=GLOBALX[ticker]),None,None)]
     if ticker in VANECK:
         slug,block,page=VANECK[ticker]
@@ -67,7 +77,9 @@ def requests_for(ticker):
     if ticker in ROBO:return [('robo_'+ticker,ROBO_URL.format(slug=ticker.lower()),None,None)]
     if ticker in INVESCO:return [('invesco_'+ticker,INVESCO_PRICES.format(ticker=ticker),None,INVESCO_HEADERS)]
     if ticker in USCF:return [('uscf_'+ticker,USCF_DAILY.format(ticker=ticker),'uscf_alps',{'Accept':'application/json','Origin':'https://www.uscfinvestments.com'})]
-    if ticker in AMPLIFY:return [('amplify_'+ticker,AMPLIFY_LIST.format(project=AMPLIFY[ticker],ticker=ticker),'amplify_firestore',None)]
+    if ticker in AMPLIFY:
+        if today is None:raise ValueError('Amplify documents are addressed by day')
+        return [('amplify_'+ticker+'_'+day,AMPLIFY_DOC.format(project=AMPLIFY[ticker],ticker=ticker,day=day),'amplify_firestore',None) for day in weekdays_back(today,AMPLIFY_DAYS)]
     if ticker in DWS:return [('dws_'+ticker,DWS_EXPORT.format(ticker=ticker),None,None)]
     if ticker in SPDR_GOLD:return [('spdrgold_'+ticker,GLD_ARCHIVE,None,None)]
     raise KeyError(ticker)
@@ -210,11 +222,12 @@ def _firestore_number(field):
     return n.dec(value)
 
 def amplify_history(pages,ticker,refs,at):
-    """Rows from one or more retained listing pages of funds/<ticker>/daily. Documents are keyed by their ISO date."""
+    """Rows from retained Firestore documents of funds/<ticker>/daily (single documents, or listing pages holding
+    several). Documents are keyed by their ISO date."""
     rows={};seen=set()
     for raw,ref in zip(pages,refs):
         doc=n.json_original(raw)
-        for d in doc.get('documents',[]):
+        for d in (doc.get('documents',[]) if 'documents' in doc else [doc]):
             name=d['name'].rsplit('/',1)[-1]
             if not re.fullmatch(r'\d{4}-\d{2}-\d{2}',name) or '/funds/'+ticker+'/daily/' not in d['name']:raise ValueError('Amplify document identity differs')
             if name in seen:raise ValueError('Amplify duplicate daily document')
@@ -225,7 +238,7 @@ def amplify_history(pages,ticker,refs,at):
     if not rows:raise ValueError('Amplify daily documents missing')
     ordered=[rows[k] for k in sorted(rows,reverse=True)]
     for i,row in enumerate(ordered,1):row['source_row']=i
-    return {'rows':n.validate_dates(ordered,at),'scope':'Issuer Firestore daily documents (NAV, shares outstanding, net assets); whole collection as listed in this run.'}
+    return {'rows':n.validate_dates(ordered,at),'scope':'Issuer Firestore daily documents (NAV, shares outstanding, net assets) for the weekdays requested in this run; a day the issuer holds no document for is absent, never filled.'}
 
 # ---- Invesco (dng-api price listing) -----------------------------------------------------------------------------------
 def invesco_snapshot(raw,ticker,ref):
@@ -379,14 +392,15 @@ def parse_snapshot(ticker,originals,read,at):
     raise KeyError(ticker)
 
 def parse_history(ticker,originals,read,at):
-    issuer=issuer_of(ticker);label,url,_,_=requests_for(ticker)[0]
+    issuer=issuer_of(ticker)
     if ticker in AMPLIFY:
-        refs=[originals[k] for k in sorted(originals) if k==label or k.startswith(label+'_page')]
-        if not refs:raise KeyError(label)
+        prefix='amplify_'+ticker+'_';base=AMPLIFY_DOC.format(project=AMPLIFY[ticker],ticker=ticker,day='')
+        refs=[originals[k] for k in sorted(originals) if k.startswith(prefix) and re.fullmatch(r'\d{4}-\d{2}-\d{2}',k[len(prefix):])]
+        if not refs:raise KeyError(prefix)
         for ref in refs:
-            if not ref['url'].startswith(url):raise ValueError('Amplify listing identity differs')
+            if not re.fullmatch(re.escape(base)+r'\d{4}-\d{2}-\d{2}',ref['url']):raise ValueError('Amplify document identity differs')
         return issuer,amplify_history([n.original(ref,read,at,ref['url']) for ref in refs],ticker,refs,at)
-    raw=n.original(originals[label],read,at,url);ref=originals[label]
+    label,url,_,_=requests_for(ticker)[0];raw=n.original(originals[label],read,at,url);ref=originals[label]
     if ticker in DWS:return issuer,dws_history(raw,ticker,ref,at)
     if ticker in SPDR_GOLD:return issuer,gld_history(raw,ticker,ref,at)
     raise KeyError(ticker)

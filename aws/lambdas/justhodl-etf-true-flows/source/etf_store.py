@@ -72,7 +72,8 @@ def acquire(client,bucket,url,key=None,deadline=None,key_param='apikey',headers=
             with _lock:
                 time.sleep(max(0,.5-(time.monotonic()-_last)));_last=time.monotonic()
         try:
-            with urllib.request.build_opener().open(request,timeout=30) as response:raw=response.read(MAX_BYTES+1)
+            # a fresh cookie jar per acquisition: VanEck answers a cookieless client with a redirect loop (2026-11-12)
+            with urllib.request.build_opener(urllib.request.HTTPCookieProcessor()).open(request,timeout=30) as response:raw=response.read(MAX_BYTES+1)
             break
         except urllib.error.HTTPError as exc:
             if attempt==2 or exc.code not in (429,500,502,503,504):raise
@@ -124,10 +125,10 @@ def collect(client,bucket,key,read,deadline):
         except Exception as exc:errors[label+'_identity']=type(exc).__name__
     jobs.extend(('proshares_'+ticker,native.PRO_URL.format(ticker=ticker),None) for ticker in etf_universe.PROSHARES)
     # issuers outside the workbook families (2026-11-12): registry pages and data APIs, plus Amplify's Firestore listing
-    web_keys={}
+    web_keys={};today=datetime.now(timezone.utc).date()
     for ticker in issuers.snapshot_funds()+issuers.history_funds():
         if ticker not in universe:continue
-        for label,url,auth,headers in issuers.requests_for(ticker):
+        for label,url,auth,headers in issuers.requests_for(ticker,today):
             if auth is None:jobs.append((label,url,None,headers));continue
             if auth not in web_keys:
                 try:web_keys[auth]=transient_web_key(issuers.WEB_KEYS[auth]['url'],issuers.WEB_KEYS[auth]['pattern'],deadline)
@@ -155,17 +156,6 @@ def collect(client,bucket,key,read,deadline):
                 try:_,ref=future.result();originals[label]=ref
                 except Exception as exc:errors[label]=_failure(exc)
     gather(jobs,deadline)   # the issuer histories first, on the whole budget
-    for ticker in sorted(issuers.AMPLIFY):   # Firestore listings page at 1000 documents; follow the issuer's page tokens
-        label,url,auth,headers=issuers.requests_for(ticker)[0] if ticker in universe else (None,None,None,None)
-        page=1
-        while label in originals and page<8:
-            try:token=json.loads(read(originals[label]['evidence']['key'])).get('nextPageToken')
-            except Exception as exc:errors[label+'_pagination']=_failure(exc);break
-            if not token:break
-            page+=1;label=issuers.requests_for(ticker)[0][0]+'_page'+str(page)
-            try:
-                web_key,param,header,prefix=keyed(web_keys,auth);originals[label]=acquire(client,bucket,url+'&pageToken='+token,web_key,deadline,param,headers,header,prefix)
-            except Exception as exc:errors[label]=_failure(exc);break
     if key:
         # the FMP context last, on its own bounded budget, behind a breaker: 2026-10-16..11-10 the key was refused
         # (429) on up to 374 of 384 calls per run and the retries alone consumed the 575 s acquisition budget
