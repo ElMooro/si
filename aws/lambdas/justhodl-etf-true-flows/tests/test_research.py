@@ -195,13 +195,13 @@ class Tests(unittest.TestCase):
 
     def test_vendor_breaker_stops_the_rate_limited_context_and_keeps_issuer_originals(self):
         raw,inputs,_=fixture();refs=inputs['originals'];by_url={v['url']:v for v in refs.values()};calls={'vendor':0,'issuer':0}
-        def acquire(client,bucket,url,key=None,deadline=None):
-            if key:
+        def acquire(client,bucket,url,key=None,deadline=None,key_param='apikey',headers=None,key_header=None,key_prefix=''):
+            if key and key_param=='apikey' and not key_header:
                 calls['vendor']+=1;raise urllib.error.HTTPError(url,429,'Too Many Requests',{},None)
             calls['issuer']+=1
             if url in by_url:return by_url[url]
             raise urllib.error.HTTPError(url,404,'Not Found',{},None)
-        with patch.object(s,'acquire',side_effect=acquire):
+        with patch.object(s,'acquire',side_effect=acquire),patch.object(s,'transient_web_key',side_effect=ValueError('offline')):
             originals,errors=s.collect(Storage(),'bucket','fixture-key',raw.__getitem__,time.monotonic()+60)
         self.assertIn('ishares_IVV',originals);self.assertEqual(errors['vendor_context'],'rate_limited_after_6_consecutive_429')
         self.assertLess(calls['vendor'],40);self.assertIn('RateLimitedSkip',errors.values());self.assertIn('HTTP_429',errors.values())

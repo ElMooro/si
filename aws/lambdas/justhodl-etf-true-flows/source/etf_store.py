@@ -4,10 +4,11 @@ from datetime import datetime,timezone
 from pathlib import Path
 from urllib.parse import urlencode
 import gzip,hashlib,io,json,re,threading,time,urllib.request,urllib.error
-import etf_native as native,etf_research as model,etf_universe,evidence_store
+import etf_native as native,etf_research as model,etf_universe,etf_issuers as issuers,evidence_store
 
 PRIVATE='audit-private/20260909-originals/etf-research/'
-COMPILERS=(native,model,etf_universe,evidence_store)
+COMPILERS=(native,model,etf_universe,evidence_store,issuers)
+POINTER_CONTRACT='etf-snapshot-ledger-pointer.v1'
 MAX_BYTES=64*1024*1024
 _lock=threading.Lock();_last=0.0
 
@@ -56,10 +57,15 @@ def preserve(client,bucket,read):
     if marker.get('contract')!='etf-legacy-preservation.v1' or not any(v.get('source')==model.CURRENT and v.get('protected_backup') is True for v in marker.get('objects',[])):raise ValueError('ETF legacy marker differs')
     return marker
 
-def acquire(client,bucket,url,key=None,deadline=None):
+UA='JustHodl original ETF research (ops@justhodl.ai)'
+
+def acquire(client,bucket,url,key=None,deadline=None,key_param='apikey',headers=None,key_header=None,key_prefix=''):
+    """Fetch one original and retain its exact bytes. `key` is a credential or a transient public web key: it is sent
+    with the request (as the named query parameter, or as `key_header` when given) and never written into the
+    retained reference or the evidence."""
     global _last
-    actual=url+('&'+urlencode({'apikey':key}) if key else '')
-    request=urllib.request.Request(actual,headers={'User-Agent':'JustHodl original ETF research (ops@justhodl.ai)'})
+    actual=url+(('&' if '?' in url else '?')+urlencode({key_param:key}) if key and not key_header else '')
+    request=urllib.request.Request(actual,headers={'User-Agent':UA,**(headers or {}),**({key_header:key_prefix+key} if key and key_header else {})})
     for attempt in range(3):
         if deadline is not None and time.monotonic()>=deadline:raise TimeoutError('ETF source acquisition budget')
         if key:
@@ -85,6 +91,21 @@ class RateLimitedSkip(Exception):
 def _failure(exc):
     return 'HTTP_'+str(exc.code) if isinstance(exc,urllib.error.HTTPError) else type(exc).__name__
 
+def transient_web_key(url,pattern,deadline=None):
+    """A public web key an issuer's own site ships to every browser (Amplify's Firestore key, USCF's ALPS bearer token).
+    Read at run time from the site, held in memory for this run's requests only: never retained, logged, committed or
+    copied into a reference."""
+    if deadline is not None and time.monotonic()>=deadline:raise TimeoutError('ETF source acquisition budget')
+    request=urllib.request.Request(url,headers={'User-Agent':UA})
+    with urllib.request.build_opener().open(request,timeout=30) as response:raw=response.read(MAX_BYTES+1)
+    found=re.search(pattern,raw.decode('utf-8','ignore'))
+    if not found or not 16<=len(found.group(1))<=2048:raise ValueError('issuer web key unavailable')
+    return found.group(1)
+
+def keyed(web_keys,auth):
+    """How a registry request carries its transient key: (key, query parameter name, header name, header prefix)."""
+    spec=issuers.WEB_KEYS[auth];return (web_keys[auth],spec.get('param','apikey'),spec.get('header'),spec.get('prefix',''))
+
 def collect(client,bucket,key,read,deadline):
     originals={};errors={};universe=sorted({t for members in etf_universe.ETFS.values() for t in members})
     for label,url in (('ishares_catalog',native.ISHARES_URL),('ssga_catalog',native.SSGA_URL),('proshares_splits',native.SPLIT_URL)):
@@ -102,11 +123,22 @@ def collect(client,bucket,key,read,deadline):
                 jobs.append((name,url,None))
         except Exception as exc:errors[label+'_identity']=type(exc).__name__
     jobs.extend(('proshares_'+ticker,native.PRO_URL.format(ticker=ticker),None) for ticker in etf_universe.PROSHARES)
+    # issuers outside the workbook families (2026-11-12): registry pages and data APIs, plus Amplify's Firestore listing
+    web_keys={}
+    for ticker in issuers.snapshot_funds()+issuers.history_funds():
+        if ticker not in universe:continue
+        for label,url,auth,headers in issuers.requests_for(ticker):
+            if auth is None:jobs.append((label,url,None,headers));continue
+            if auth not in web_keys:
+                try:web_keys[auth]=transient_web_key(issuers.WEB_KEYS[auth]['url'],issuers.WEB_KEYS[auth]['pattern'],deadline)
+                except Exception as exc:web_keys[auth]=None;errors[auth+'_key']=_failure(exc)
+            if web_keys[auth]:jobs.append((label,url,keyed(web_keys,auth),headers))
+            else:errors[label]='issuer_web_key_unavailable'
     def gather(batch,until,breaker=None):
         def fetch(job):
-            label,url,secret=job
+            label,url,secret,headers=(job+(None,))[:4]
             if breaker is not None and breaker['tripped']:raise RateLimitedSkip('vendor request skipped after consecutive 429s')
-            try:ref=acquire(client,bucket,url,secret,until)
+            try:ref=acquire(client,bucket,url,secret[0],until,secret[1],headers,secret[2],secret[3]) if isinstance(secret,tuple) else acquire(client,bucket,url,secret,until,headers=headers)
             except urllib.error.HTTPError as exc:
                 if breaker is not None and exc.code==429:
                     with _lock:
@@ -123,6 +155,17 @@ def collect(client,bucket,key,read,deadline):
                 try:_,ref=future.result();originals[label]=ref
                 except Exception as exc:errors[label]=_failure(exc)
     gather(jobs,deadline)   # the issuer histories first, on the whole budget
+    for ticker in sorted(issuers.AMPLIFY):   # Firestore listings page at 1000 documents; follow the issuer's page tokens
+        label,url,auth,headers=issuers.requests_for(ticker)[0] if ticker in universe else (None,None,None,None)
+        page=1
+        while label in originals and page<8:
+            try:token=json.loads(read(originals[label]['evidence']['key'])).get('nextPageToken')
+            except Exception as exc:errors[label+'_pagination']=_failure(exc);break
+            if not token:break
+            page+=1;label=issuers.requests_for(ticker)[0][0]+'_page'+str(page)
+            try:
+                web_key,param,header,prefix=keyed(web_keys,auth);originals[label]=acquire(client,bucket,url+'&pageToken='+token,web_key,deadline,param,headers,header,prefix)
+            except Exception as exc:errors[label]=_failure(exc);break
     if key:
         # the FMP context last, on its own bounded budget, behind a breaker: 2026-10-16..11-10 the key was refused
         # (429) on up to 374 of 384 calls per run and the retries alone consumed the 575 s acquisition budget
@@ -169,11 +212,44 @@ def replay(manifest,read):
         if read(key)!=body:raise ValueError('ETF source history differs')
     return output
 
+def pointer_key(ticker):return model.PREFIX+'ledgers/'+ticker+'/current.json'
+
+def read_pointers(read):
+    """Current ledger references, one per registry fund; a missing pointer means the ledger starts today."""
+    out={}
+    for ticker in issuers.snapshot_funds():
+        try:pointer=json.loads(read(pointer_key(ticker)))
+        except Exception as exc:
+            if missing(exc):continue
+            raise
+        if pointer.get('contract')!=POINTER_CONTRACT or pointer.get('ticker')!=ticker:raise ValueError('ledger pointer differs')
+        out[ticker]={k:pointer[k] for k in ('key','sha256','bytes','rows')}
+    return out
+
+def advance_pointers(client,bucket,ledgers,stamp):
+    """Move each fund's pointer to the ledger this run retained, never behind a longer ledger another run retained."""
+    moved=0
+    for ticker,ref in sorted(ledgers.items()):
+        if not ref.get('key'):continue
+        body=model.encoded({'contract':POINTER_CONTRACT,'ticker':ticker,**{k:ref[k] for k in ('key','sha256','bytes','rows')},'latest_date':ref.get('latest_date'),'updated_at':stamp})
+        for _ in range(4):
+            try:
+                obj=client.get_object(Bucket=bucket,Key=pointer_key(ticker));current=json.loads(bounded(obj['Body']));condition={'IfMatch':obj['ETag']}
+                if current.get('sha256')==ref['sha256']:break
+                if int(current.get('rows',0))>int(ref['rows']):break
+            except Exception as exc:
+                if not missing(exc):raise
+                condition={'IfNoneMatch':'*'}
+            try:client.put_object(Bucket=bucket,Key=pointer_key(ticker),Body=body,ContentType='application/json',CacheControl='no-store',**condition);moved+=1;break
+            except Exception as exc:
+                if not conflict(exc):raise
+    return moved
+
 def run(client,bucket,key,context=None):
     remaining=context.get_remaining_time_in_millis()/1000 if context and hasattr(context,'get_remaining_time_in_millis') else 900
     deadline=time.monotonic()+max(10,min(570,remaining-260));read=raw_reader(client,bucket);legacy=preserve(client,bucket,read)
-    originals,errors=collect(client,bucket,key,read,deadline);stamp=now()
-    inputs={'contract':'etf-original-inputs.v1','originals':originals,'acquisition_errors':errors,'legacy':legacy}
+    ledgers=read_pointers(read);originals,errors=collect(client,bucket,key,read,deadline);stamp=now()
+    inputs={'contract':'etf-original-inputs.v1','originals':originals,'acquisition_errors':errors,'legacy':legacy,'ledgers':ledgers}
     body=model.encoded(inputs);sha=model.digest(inputs);key=model.PREFIX+'inputs/'+sha+'.json';immutable(client,bucket,key,body)
     refs={'input':{'key':key,'sha256':sha,'bytes':len(body)}};compilers={}
     for module in COMPILERS:
@@ -192,5 +268,6 @@ def run(client,bucket,key,context=None):
     manifest={'contract':'etf-original-replay.v1','generated_at':stamp,'compilers':compilers,**refs,'output_sha256':sha};key=model.PREFIX+'runs/'+model.digest(manifest)+'.json';immutable(client,bucket,key,model.encoded(manifest))
     if replay(manifest,read)!=output:raise ValueError('ETF pre-publication replay differs')
     ref={'manifest_key':key,'output_sha256':sha};published=publish(client,bucket,{**output,'replay':ref})
+    ledgers_moved=advance_pointers(client,bucket,output.get('snapshot_ledgers',{}),stamp)
     return {'published':published,'generated_at':stamp,'replay':ref,'quality':output['quality'],'source_status_codes':output['source_status_codes'],
-        'history_shards':count,'signals_emitted':0,'paid_ai_calls':0,'notifications_sent':0,'private_account_reads':0,'portfolio_writes':0}
+        'history_shards':count,'ledgers_moved':ledgers_moved,'coverage':output.get('coverage'),'signals_emitted':0,'paid_ai_calls':0,'notifications_sent':0,'private_account_reads':0,'portfolio_writes':0}
