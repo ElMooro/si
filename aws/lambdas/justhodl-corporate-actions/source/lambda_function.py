@@ -88,6 +88,7 @@ METHODOLOGY = {
     "dividend_factor": "(pre_ex_close - cash_amount) / pre_ex_close; pre_ex_close from Polygon unadjusted daily agg, up to 3 sessions before ex-date",
     "stock_dividend_factor": "1 / (1 + ratio) when ratio known, else factor_pending",
     "spinoff": "recorded only, excluded from factors (unverifiable_factor: true)",
+    "dividend_pending": "factor_pending: true excludes the dividend from factors; pending_reason plan_history_403 = the pre-ex session is older than the Polygon plan's history (403), re-probed every 30 days",
     "sources": ["polygon.io v3 splits/dividends + v2 aggs", "yahoo finance chart events (cross-check only)"],
 }
 
@@ -97,8 +98,13 @@ def _now_iso():
     return datetime.now(timezone.utc).isoformat()
 
 
+_LAST_HTTP_CODE = None   # HTTP status of the last failed _http_get_json call (None after a success); Lambda is single-threaded
+
+
 def _http_get_json(url, timeout=25):
     """GET JSON with a declared User-Agent. Returns dict or None (fail-soft)."""
+    global _LAST_HTTP_CODE
+    _LAST_HTTP_CODE = None
     req = urllib.request.Request(url, headers={"User-Agent": UA})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
@@ -107,6 +113,7 @@ def _http_get_json(url, timeout=25):
             ValueError, UnicodeDecodeError, TimeoutError, OSError) as e:
         # 2026-11-11 (ops 6786): the status code is the diagnosis - "HTTPError" alone hid a keyless 401 for a week
         code = getattr(e, "code", None)
+        _LAST_HTTP_CODE = code
         print("[corpact] http failed %s: %s%s" % (url.split("?")[0], type(e).__name__, " %s" % code if code else ""))
         return None
 
@@ -242,60 +249,109 @@ def fetch_polygon_dividends(ticker, api_key):
     return events
 
 
-def fetch_pre_ex_close(ticker, ex_date, api_key):
-    """Unadjusted close up to 3 sessions before ex_date. None on failure."""
+def fetch_pre_ex_close_status(ticker, ex_date, api_key):
+    """(unadjusted close up to 3 sessions before ex_date, status). status: 'ok', 'http_403' (the plan does not carry
+    that session - Polygon answers 403 for sessions older than the plan's history, and an earlier session is older
+    still, so the walk stops at the first 403), or 'unavailable' (anything else: no bar, other HTTP failure)."""
     if not api_key:
-        return None
+        return None, "unavailable"
     try:
         base = datetime.strptime(ex_date, "%Y-%m-%d").date()
     except (ValueError, TypeError):
-        return None
+        return None, "unavailable"
     for back in (1, 2, 3):
         d = (base - timedelta(days=back)).isoformat()
         # 2026-11-11 (ops 6786/6787): this call went out WITHOUT the key (splits and dividends carried it), so every
         # pre-ex close was a 401 - three failed calls and three sleeps per dividend, factor_pending on every cash
         # dividend, and the run overran its 300 s wall on the first dividend-rich ticker (timeouts Nov 8, 10, 11).
         data = _http_get_json(POLYGON_AGGS_URL.format(t=ticker, d=d) + "&apiKey=" + api_key)
+        if data is None and _LAST_HTTP_CODE == 403:
+            # 2026-11-12 (ops 6788): one 403 per dividend, not three calls and three sleeps - the 06:30 run after the
+            # b81da0e1 fix spent its whole 250 s budget on 20 tickers' pre-2021 dividends (199 due, 20 processed)
+            return None, "http_403"
         try:
             results = (data or {}).get("results") or []
             close = _num(results[0].get("c")) if results else None
         except (TypeError, IndexError, AttributeError):
             close = None
         if close and close > 0:
-            return close
+            return close, "ok"
         time.sleep(PACE_S)
-    return None
+    return None, "unavailable"
 
 
-def resolve_dividend_factors(events, prior_cached, ticker, api_key):
+def fetch_pre_ex_close(ticker, ex_date, api_key):
+    """Unadjusted close up to 3 sessions before ex_date. None on failure."""
+    return fetch_pre_ex_close_status(ticker, ex_date, api_key)[0]
+
+
+PLAN_HISTORY_403 = "plan_history_403"   # pending_reason: Polygon answered 403 for the pre-ex session (outside the plan's history)
+RECHECK_403_DAYS = 30                   # a 403 dividend is carried forward from the prior artifact and re-probed this often
+
+
+def _carry_forward_403(prior_event, now_iso):
+    """True when the prior artifact already recorded this dividend as a plan-history 403 less than RECHECK_403_DAYS
+    ago: carry it forward instead of asking Polygon again. Pure (ISO-8601 UTC strings compare lexically)."""
+    if not isinstance(prior_event, dict) or prior_event.get("pending_reason") != PLAN_HISTORY_403:
+        return False
+    checked = str(prior_event.get("checked_at") or "")
+    if not checked:
+        return False
+    try:
+        cutoff = (datetime.fromisoformat(now_iso) - timedelta(days=RECHECK_403_DAYS)).isoformat()
+    except (ValueError, TypeError):
+        return False
+    return checked > cutoff
+
+
+def resolve_dividend_factors(events, prior_cached, ticker, api_key, now_iso=None):
     """Attach pre_ex_close + factor to cash dividends (fail-soft).
 
     Reuses cached closes from the prior artifact keyed by (date, cash).
     Dividends whose factor can't be computed keep factor_pending: True
-    and are excluded from the cumulative product.
+    and are excluded from the cumulative product. A dividend whose pre-ex
+    session the plan does not carry (Polygon 403) is recorded with
+    pending_reason plan_history_403 + checked_at and carried forward from
+    the prior artifact for RECHECK_403_DAYS before it is asked for again.
     """
-    cache = {}
+    now_iso = now_iso or _now_iso()
+    cache, prior_by_key = {}, {}
     for e in (prior_cached.get("events") or []):
         if isinstance(e, dict) and e.get("type") == "dividend_cash":
             cache[(e.get("date"), e.get("cash_amount"))] = e.get("pre_ex_close")
+            prior_by_key[(e.get("date"), e.get("cash_amount"))] = e
     for e in events:
         if e.get("type") != "dividend_cash":
             continue
         key = (e.get("date"), e.get("cash_amount"))
         close = cache.get(key)
+        if close is None and _carry_forward_403(prior_by_key.get(key), now_iso):
+            prev = prior_by_key[key]
+            e["pre_ex_close"] = None
+            e["factor_pending"] = True
+            e["pending_reason"] = PLAN_HISTORY_403
+            e["checked_at"] = prev.get("checked_at")
+            e["note"] = prev.get("note") or "pre-ex session outside the Polygon plan's history (403); carried forward"
+            continue
         if close is None and _STOP_AT and time.time() > _STOP_AT:
             # out of budget mid-ticker: leave this dividend pending (it is refetched next run) rather than lose the
             # whole run's state and index to the 300 s wall
             e["factor_pending"] = True
             e["note"] = "factor deferred (time budget)"
             continue
+        status = "ok"
         if close is None:
             time.sleep(PACE_S)
-            close = fetch_pre_ex_close(ticker, e["date"], api_key)
+            close, status = fetch_pre_ex_close_status(ticker, e["date"], api_key)
         e["pre_ex_close"] = close
         cash = e["cash_amount"]
         if close and close > 0 and 0 < cash < close:
             e["factor"] = (close - cash) / close
+        elif status == "http_403":
+            e["factor_pending"] = True
+            e["pending_reason"] = PLAN_HISTORY_403
+            e["checked_at"] = now_iso
+            e["note"] = "pre-ex session outside the Polygon plan's history (403); re-probed every %d days" % RECHECK_403_DAYS
         else:
             e["factor_pending"] = True
             e["note"] = "factor unavailable (pre_ex_close=%r)" % (close,)
