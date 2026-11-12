@@ -1,0 +1,403 @@
+# ops 6790 - flows desk coverage follow-ups audit 2026-11-12T15:26+00:00 (read-only)
+
+**Status:** success  
+**Duration:** 17.9s  
+**Finished:** 2026-11-12T15:27:10+00:00  
+
+## Data
+
+| cq_series | defillama_stablecoincharts | krx_post | tic_resolved |
+|---|---|---|---|
+| 344 series, 92 flow-like: btc_addresses_count_inflow btc_addresses_count_outflow btc_exchange_addr_in btc_exchange_inflow btc_exchange_netflow btc_exchange_outflow btc_exchange_reserve btc_exchange_supply_ratio btc_flow_mean btc_flow_total btc_fund_flow_ratio btc_inflow_cdd btc_inflow_mean btc_inflow_top10 btc_inflow_total b | 2985 days 2018-09-11 -> 2026-11-12 | HTTP 200 987295 bytes | 12/12 |
+
+## Log
+## 1. TIC net purchases by asset class through /series
+
+- `15:26:54` FRED:FORLTTREASNET99996      HTTP 200 |   500 obs | 1985-01-01 -> 2026-08-01 | Mil. of $ | Foreign Net Transactions of U.S. Long-Term Treasury Securities: Grand  | last 108908.0
+- `15:26:54` FRED:FORLTAGCYNET99996       HTTP 200 |   500 obs | 1985-01-01 -> 2026-08-01 | Mil. of $ | Foreign Net Transactions of U.S. Long-Term Agency Bonds: Grand Total | last -3746.0
+- `15:26:55` FRED:FORLTCORPNET99996       HTTP 200 |   500 obs | 1985-01-01 -> 2026-08-01 | Mil. of $ | Foreign Net Transactions of U.S. Long-Term Corporate Bonds: Grand Tota | last 41620.0
+- `15:26:56` FRED:FORLTEQTYNET99996       HTTP 200 |   500 obs | 1985-01-01 -> 2026-08-01 | Mil. of $ | Foreign Net Transactions of U.S. Equity Securities: Grand Total | last 153942.0
+- `15:26:57` FRED:FORLTTOTALNET99996      HTTP 200 |   500 obs | 1985-01-01 -> 2026-08-01 | Mil. of $ | Foreign Net Transactions of All U.S. Long-Term Securities: Grand Total | last 300724.0
+- `15:26:58` FRED:FORLTTOTALNET99990      HTTP 200 |   500 obs | 1985-01-01 -> 2026-08-01 | Mil. of $ | Foreign Net Transactions of All U.S. Long-Term Securities: Foreign Off | last 42877.0
+- `15:26:59` FRED:FORLTTOTALNET99991      HTTP 200 |   500 obs | 1985-01-01 -> 2026-08-01 | Mil. of $ | Foreign Net Transactions of All U.S. Long-Term Securities: Foreign Non | last 257847.0
+- `15:26:59` FRED:FORLTTREASNET42609      HTTP 200 |   500 obs | 1985-01-01 -> 2026-08-01 | Mil. of $ | Foreign Net Transactions of U.S. Long-Term Treasury Securities: Japan | last 11858.0
+- `15:27:00` FRED:FORLTEQTYNET42609       HTTP 200 |   500 obs | 1985-01-01 -> 2026-08-01 | Mil. of $ | Foreign Net Transactions of U.S. Equity Securities: Japan | last 5424.0
+- `15:27:01` FRED:FORLTTREASNET41408      HTTP 200 |   500 obs | 1985-01-01 -> 2026-08-01 | Mil. of $ | Foreign Net Transactions of U.S. Long-Term Treasury Securities: China, | last -4828.0
+- `15:27:02` FRED:FORLTEQTYNET41408       HTTP 200 |   500 obs | 1985-01-01 -> 2026-08-01 | Mil. of $ | Foreign Net Transactions of U.S. Equity Securities: China, Mainland | last 883.0
+- `15:27:03` FRED:FORLTTREASNET13005      HTTP 200 |   500 obs | 1985-01-01 -> 2026-08-01 | Mil. of $ | Foreign Net Transactions of U.S. Long-Term Treasury Securities: United | last 7369.0
+## 2. data/cryptoquant-series.json
+
+- `15:27:04` HTTP 200, 3892 KB, generated 2026-11-11T21:05:07+00:00, top keys ['generated_at', 'series', 'twins', 'btc'], 344 series, 11 twins
+- `15:27:04`   btc_a_sopr                               n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_addresses_active                     n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_addresses_count_inflow               n=415   2025-09-23 -> 2026-11-11 FLOW
+- `15:27:04`   btc_addresses_count_outflow              n=415   2025-09-23 -> 2026-11-11 FLOW
+- `15:27:04`   btc_addresses_count_receiver             n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_addresses_count_sender               n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_average_cap                          n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_average_dormancy                     n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_average_sa_cdd                       n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_binary_cdd                           n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_block_bytes                          n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_block_count                          n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_block_interval                       n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_blockreward                          n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_blockreward_usd                      n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_cdd                                  n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_coinbase_premium                     n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_coinbase_premium_index               n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   btc_delta_cap                            n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_difficulty                           n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_estimated_leverage_ratio             n=416   2025-09-22 -> 2026-11-11 
+- `15:27:04`   btc_exchange_addr_in                     n=498   2025-07-02 -> 2026-11-11 FLOW
+- `15:27:04`   btc_exchange_inflow                      n=498   2025-07-02 -> 2026-11-11 FLOW
+- `15:27:04`   btc_exchange_netflow                     n=498   2025-07-02 -> 2026-11-11 FLOW
+- `15:27:04`   btc_exchange_outflow                     n=498   2025-07-02 -> 2026-11-11 FLOW
+- `15:27:04`   btc_exchange_reserve                     n=498   2025-07-02 -> 2026-11-11 FLOW
+- `15:27:04`   btc_exchange_supply_ratio                n=498   2025-07-02 -> 2026-11-11 FLOW
+- `15:27:04`   btc_fees_block_mean_usd                  n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_fees_reward_percent                  n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_fees_total                           n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_fees_total_usd                       n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_fees_transaction_mean_usd            n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_fees_transaction_median              n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_fees_transaction_median_usd          n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_fees_tx_mean                         n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_flow_mean                            n=415   2025-09-23 -> 2026-11-11 FLOW
+- `15:27:04`   btc_flow_total                           n=415   2025-09-23 -> 2026-11-11 FLOW
+- `15:27:04`   btc_fund_flow_ratio                      n=497   2025-07-02 -> 2026-11-10 FLOW
+- `15:27:04`   btc_funding_rates                        n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_hashrate                             n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_inflow_cdd                           n=414   2025-09-23 -> 2026-11-10 FLOW
+- `15:27:04`   btc_inflow_mean                          n=415   2025-09-23 -> 2026-11-11 FLOW
+- `15:27:04`   btc_inflow_top10                         n=415   2025-09-23 -> 2026-11-11 FLOW
+- `15:27:04`   btc_inflow_total                         n=415   2025-09-23 -> 2026-11-11 FLOW
+- `15:27:04`   btc_is_shutdown                          n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_liquidations                         n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_long_liquidations_usd                n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   btc_loss_amount                          n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_loss_percent                         n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_lth_sopr                             n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_market_cap                           n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_mca                                  n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_mcda                                 n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_miner_flows_addresses_count_addresses_count_outflow n=415   2025-09-23 -> 2026-11-11 FLOW
+- `15:27:04`   btc_miner_flows_in_house_flow_flow_mean  n=415   2025-09-23 -> 2026-11-11 FLOW
+- `15:27:04`   btc_miner_flows_in_house_flow_flow_total n=415   2025-09-23 -> 2026-11-11 FLOW
+- `15:27:04`   btc_miner_flows_in_house_flow_transactions_count_flow n=415   2025-09-23 -> 2026-11-11 FLOW
+- `15:27:04`   btc_miner_flows_inflow_inflow_mean       n=415   2025-09-23 -> 2026-11-11 FLOW
+- `15:27:04`   btc_miner_flows_inflow_inflow_top10      n=415   2025-09-23 -> 2026-11-11 FLOW
+- `15:27:04`   btc_miner_flows_outflow_outflow_mean     n=415   2025-09-23 -> 2026-11-11 FLOW
+- `15:27:04`   btc_miner_flows_outflow_outflow_top10    n=415   2025-09-23 -> 2026-11-11 FLOW
+- `15:27:04`   btc_miner_flows_reserve_reserve_usd      n=416   2025-09-22 -> 2026-11-11 FLOW
+- `15:27:04`   btc_miner_flows_transactions_count_transactions_count_inflow n=415   2025-09-23 -> 2026-11-11 FLOW
+- `15:27:04`   btc_miner_flows_transactions_count_transactions_count_outflow n=415   2025-09-23 -> 2026-11-11 FLOW
+- `15:27:04`   btc_miner_netflow                        n=498   2025-07-02 -> 2026-11-11 FLOW
+- `15:27:04`   btc_miner_outflow                        n=498   2025-07-02 -> 2026-11-11 FLOW
+- `15:27:04`   btc_miner_reserve                        n=498   2025-07-02 -> 2026-11-11 FLOW
+- `15:27:04`   btc_mpi                                  n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_mvrv                                 n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_network_data_fees_fees_total         n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_network_data_supply_supply_total     n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_network_indicator_pnl_supply_loss_amount n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_network_indicator_pnl_supply_loss_percent n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_network_indicator_pnl_supply_profit_amount n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_network_indicator_pnl_supply_profit_percent n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_nrpl                                 n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_nul                                  n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_nup                                  n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_nupl                                 n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_nvm                                  n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_nvt                                  n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_nvt_golden                           n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_open_interest                        n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_outflow_mean                         n=415   2025-09-23 -> 2026-11-11 FLOW
+- `15:27:04`   btc_outflow_top10                        n=415   2025-09-23 -> 2026-11-11 FLOW
+- `15:27:04`   btc_profit_amount                        n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_profit_percent                       n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_puell                                n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_realized_cap                         n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_realized_price                       n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_reserve_usd                          n=416   2025-09-22 -> 2026-11-11 FLOW
+- `15:27:04`   btc_sa_average_dormancy                  n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_sa_cdd                               n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_sca                                  n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_scda                                 n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_short_liquidations                   n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   btc_short_liquidations_usd               n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   btc_sopr                                 n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_sopr_ratio                           n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_ssr                                  n=426   2025-09-11 -> 2026-11-10 
+- `15:27:04`   btc_stablecoins_ratio                    n=498   2025-07-02 -> 2026-11-11 FLOW
+- `15:27:04`   btc_stablecoins_ratio_usd                n=416   2025-09-22 -> 2026-11-11 FLOW
+- `15:27:04`   btc_sth_sopr                             n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_stock_to_flow                        n=497   2025-07-02 -> 2026-11-10 FLOW
+- `15:27:04`   btc_stock_to_flow_reversion              n=414   2025-09-23 -> 2026-11-10 FLOW
+- `15:27:04`   btc_supply_total                         n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_taker_buy_ratio                      n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   btc_taker_buy_sell_ratio                 n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   btc_taker_ratio                          n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_taker_sell_ratio                     n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   btc_taker_sell_volume                    n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   btc_thermo_cap                           n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_tokens_transferred                   n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_tokens_transferred_mean              n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_tokens_transferred_median            n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_transactions_count_flow              n=415   2025-09-23 -> 2026-11-11 FLOW
+- `15:27:04`   btc_transactions_count_inflow            n=415   2025-09-23 -> 2026-11-11 FLOW
+- `15:27:04`   btc_transactions_count_mean              n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_transactions_count_outflow           n=415   2025-09-23 -> 2026-11-11 FLOW
+- `15:27:04`   btc_tx_count                             n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_utxo_count                           n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_v2_active_addresses                  n=413   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_active_addresses_squared_04_price_365ma n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_active_addresses_squared_10_price_365ma n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_active_addresses_squared_25_price_365ma n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_active_addresses_squared_2x_price_365ma n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_active_addresses_squared_3x_price_365ma n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_active_addresses_squared_50_price_365ma n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_active_addresses_squared_price_365ma n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_amount_null_data                  n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_apparent_demand                   n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_apparent_demand_1y                n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_bull_bear_indicator               n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_buy                               n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_etf_demand_1y                     n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_etf_demand_30d                    n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_monthly_realized_net_profit_btc   n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_monthly_realized_net_profit_usd   n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_mvrv_ratio_zscore                 n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_negative_monthly_realized_net_profit_btc n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_negative_net_realized_profit      n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_negative_net_realized_profit_btc  n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_netflow                           n=413   2025-09-23 -> 2026-11-10 FLOW
+- `15:27:04`   btc_v2_netflow_usd                       n=413   2025-09-23 -> 2026-11-10 FLOW
+- `15:27:04`   btc_v2_neutral                           n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_nupl_1m_3m                        n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_pnl_index                         n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_pnl_index_365day_ma               n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_positive_monthly_realized_net_profit_btc n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_positive_net_realized_profit      n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_positive_net_realized_profit_btc  n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_realized_price_1m_3m              n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_realized_price_lower_band         n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_realized_price_max_band           n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_realized_price_min_band           n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_realized_price_upper_band         n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_total_balance                     n=413   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_total_balance_usd                 n=413   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_yearly_realized_net_profit_btc    n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_v2_yearly_realized_net_profit_usd    n=414   2025-09-23 -> 2026-11-10 
+- `15:27:04`   btc_velocity                             n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   btc_whale_ratio                          n=497   2025-07-02 -> 2026-11-10 FLOW
+- `15:27:04`   eth_addresses_active                     n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   eth_addresses_count_inflow               n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   eth_addresses_count_outflow              n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   eth_addresses_count_receiver             n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_addresses_count_sender               n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_base_fee_mean                        n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_block_bytes                          n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_block_count                          n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_block_interval                       n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_blockreward                          n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_blockreward_except_uncle             n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_blockreward_except_uncle_usd         n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_blockreward_usd                      n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_coinbase_premium_gap                 n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_coinbase_premium_index               n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_contract_calls_count_mean            n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_contract_calls_count_total           n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_contracts_count_total                n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_contracts_created_new                n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_contracts_destroyed_new              n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_depositor_count_new                  n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   eth_depositor_count_total                n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   eth_difficulty                           n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_estimated_leverage_ratio             n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_exchange_inflow                      n=497   2025-07-02 -> 2026-11-10 FLOW
+- `15:27:04`   eth_exchange_netflow                     n=497   2025-07-02 -> 2026-11-10 FLOW
+- `15:27:04`   eth_exchange_outflow                     n=497   2025-07-02 -> 2026-11-10 FLOW
+- `15:27:04`   eth_exchange_reserve                     n=497   2025-07-02 -> 2026-11-10 FLOW
+- `15:27:04`   eth_fees_block_mean                      n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_fees_block_mean_usd                  n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_fees_burnt_total                     n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_fees_burnt_total_usd                 n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_fees_burnt_transaction_mean          n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_fees_burnt_transaction_mean_usd      n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_fees_burnt_transaction_median        n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_fees_burnt_transaction_median_usd    n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_fees_reward_percent                  n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_fees_tips_total                      n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_fees_tips_total_usd                  n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_fees_tips_transaction_mean           n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_fees_tips_transaction_mean_usd       n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_fees_tips_transaction_median         n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_fees_tips_transaction_median_usd     n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_fees_total                           n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_fees_total_usd                       n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_fees_transaction_mean                n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_fees_transaction_mean_usd            n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_fees_transaction_median              n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_fees_transaction_median_usd          n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_funding_rates                        n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   eth_gas_limit_mean                       n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_gas_price_mean                       n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_gas_used_mean                        n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_gas_used_total                       n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_hashrate                             n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_inflow_mean                          n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   eth_inflow_top10                         n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   eth_long_liquidations                    n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_long_liquidations_usd                n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_market_cap                           n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_max_fee_mean                         n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_max_priority_fee_mean                n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_network_data_tokens_transferred_count_between_eoa_tokens_transferred_count_mean n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_network_data_tokens_transferred_count_between_eoa_tokens_transferred_count_total n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_open_interest                        n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   eth_outflow_mean                         n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   eth_outflow_top10                        n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   eth_phase0_success_rate                  n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_reserve_usd                          n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   eth_short_liquidations                   n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_short_liquidations_usd               n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_staking_inflow_total                 n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   eth_staking_rate                         n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_staking_transaction_count            n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_staking_validator_total              n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_supply_new                           n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_supply_total                         n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_taker_buy_ratio                      n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_taker_buy_sell_ratio                 n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_taker_buy_volume                     n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_taker_sell_ratio                     n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_taker_sell_volume                    n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_tokens_transferred_count_mean        n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_tokens_transferred_count_total       n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_tokens_transferred_mean              n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_tokens_transferred_mean_usd          n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_tokens_transferred_median            n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_tokens_transferred_median_usd        n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_tokens_transferred_total             n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_tokens_transferred_total_usd         n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_total_value_staked                   n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_transactions_count_inflow            n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   eth_transactions_count_mean              n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_transactions_count_outflow           n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   eth_tx_count                             n=497   2025-07-02 -> 2026-11-10 
+- `15:27:04`   eth_uncle_block_count                    n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_uncle_blockreward                    n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_uncle_blockreward_usd                n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   eth_velocity_supply_total                n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   stablecoin_addresses_active_count        n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_addresses_active_receiver_count n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_addresses_active_receiver_percent n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_addresses_active_sender_count n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_addresses_active_sender_percent n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_addresses_count_inflow        n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_addresses_count_outflow       n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_events_burn_count             n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_events_issue_count            n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_events_mint_count             n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_events_redeem_count           n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_events_transfer_count         n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_exchange_inflow               n=503   2025-06-26 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_exchange_netflow              n=497   2025-07-02 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_exchange_outflow              n=503   2025-06-26 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_exchange_reserve              n=497   2025-07-02 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_inflow_mean                   n=421   2025-09-16 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_inflow_top10                  n=421   2025-09-16 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_outflow_mean                  n=421   2025-09-16 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_outflow_top10                 n=421   2025-09-16 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_supply_burned                 n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_supply_circulating            n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_supply_issued                 n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_supply_minted                 n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_supply_redeemed               n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_supply_total                  n=497   2025-07-02 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_tokens_transferred_mean       n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_tokens_transferred_total      n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_transactions_count_inflow     n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   stablecoin_transactions_count_outflow    n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   trx_addresses_count_active               n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   trx_addresses_count_receiver             n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   trx_addresses_count_sender               n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   trx_block_count                          n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   trx_fees_block_mean                      n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   trx_fees_block_mean_usd                  n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   trx_fees_total                           n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   trx_fees_total_usd                       n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   trx_market_cap                           n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   trx_staking_rate                         n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   trx_supply_burned                        n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   trx_supply_circulating                   n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   trx_supply_minted                        n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   trx_supply_staked                        n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   trx_supply_total                         n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   trx_tokens_transferred_mean              n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   trx_tokens_transferred_median            n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   trx_tokens_transferred_total             n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   trx_tps                                  n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   trx_transactions_count_mean              n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   trx_transactions_count_total             n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   trx_v1_staking_amount                    n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   trx_v2_staking_amount                    n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   usdc_exchange_reserve                    n=496   2025-07-03 -> 2026-11-10 FLOW
+- `15:27:04`   xrp_active_account                       n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   xrp_average_block_interval               n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   xrp_estimated_leverage_ratio             n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   xrp_exchange_supply_ratio                n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   xrp_funding_rates                        n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   xrp_long_liquidations                    n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   xrp_long_liquidations_usd                n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   xrp_market_cap                           n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   xrp_nvt                                  n=406   2025-09-22 -> 2026-11-10 
+- `15:27:04`   xrp_open_interest                        n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   xrp_reserve                              n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   xrp_reserve_usd                          n=415   2025-09-22 -> 2026-11-10 FLOW
+- `15:27:04`   xrp_sending_account                      n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   xrp_share                                n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   xrp_short_liquidations                   n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   xrp_short_liquidations_usd               n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   xrp_supply_total                         n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   xrp_taker_buy_ratio                      n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   xrp_taker_buy_sell_ratio                 n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   xrp_taker_buy_volume                     n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   xrp_taker_sell_ratio                     n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   xrp_taker_sell_volume                    n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   xrp_tokens_transferred_total             n=406   2025-09-22 -> 2026-11-10 
+- `15:27:04`   xrp_total_account                        n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   xrp_total_fees                           n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   xrp_total_ledgers                        n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   xrp_total_transactions_count             n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   xrp_velocity                             n=406   2025-09-22 -> 2026-11-10 
+- `15:27:04`   xrp_xrp_burnt                            n=415   2025-09-22 -> 2026-11-10 
+- `15:27:04`   twin btc_addresses_active                n=1495  2010-07-01 -> 2026-11-10
+- `15:27:04`   twin btc_blockreward                     n=1495  2010-07-01 -> 2026-11-10
+- `15:27:04`   twin btc_fees_total                      n=1495  2010-07-01 -> 2026-11-10
+- `15:27:04`   twin btc_hashrate                        n=1495  2010-07-01 -> 2026-11-10
+- `15:27:04`   twin btc_mvrv                            n=1490  2010-07-18 -> 2026-11-07
+- `15:27:04`   twin btc_nupl                            n=1490  2010-07-18 -> 2026-11-07
+- `15:27:04`   twin btc_realized_price                  n=1490  2010-07-18 -> 2026-11-07
+- `15:27:04`   twin btc_supply_total                    n=1495  2010-07-01 -> 2026-11-10
+- `15:27:04`   twin btc_tx_count                        n=1495  2010-07-01 -> 2026-11-10
+- `15:27:04`   twin eth_addresses_active                n=1374  2015-07-30 -> 2026-11-08
+- `15:27:04`   twin eth_tx_count                        n=1374  2015-07-30 -> 2026-11-08
+- `15:27:04` cryptoquant-onchain.json: HTTP 200, 344 metrics; flow-like: btc_addresses_count_inflow (BTC Addresses Count, , as_of 2026-11-11); btc_addresses_count_outflow (BTC addresses count outflow, , as_of 2026-11-11); btc_exchange_addr_in (BTC Depositing Addresses, addr/d, as_of 2026-11-11); btc_exchange_inflow (BTC Exchange Inflow, BTC/d, as_of 2026-11-11); btc_exchange_netflow (BTC Exchange Netflow, BTC/d, as_of 2026-11-11); btc_exchange_outflow (BTC Exchange Outflow, BTC/d, as_of 2026-11-11); btc_exchange_reserve (BTC Exchange Reserve, BTC, as_of 2026-11-11); btc_exchange_supply_ratio (Exchange Supply Ratio, ratio, as_of 2026-11-11); btc_flow_mean (BTC In-House Flow · flow mean, , as_of 2026-11-11); btc_flow_total (BTC In-House Flow, , as_of 2026-11-11); btc_fund_flow_ratio (Fund Flow Ratio, ratio, as_of 2026-11-10); btc_inflow_cdd (BTC Exchange Inflow CDD (Coin Days Destroyed), , as_of 2026-11-10); btc_inflow_mean (BTC inflow mean, , as_of 2026-11-11); btc_inflow_top10 (BTC inflow top10, , as_of 2026-11-11); btc_inflow_total (BTC Inflow, , as_of 2026-11-11); btc_miner_flows_addresses_count_addresses_count_outflow (BTC Addresses Count · addresses count outflow, , as_of 2026-11-11); btc_miner_flows_in_house_flow_flow_mean (BTC In-House Flow · flow
+## 3. DefiLlama stablecoin history from the runner
+
+- `15:27:04` stablecoincharts/all: HTTP 200 0.2s 1317 KB | 3271 days 2017-11-29 -> 2026-11-12 | latest totalCirculating peggedUSD 289503379559.82 | keys ['date', 'totalCirculating', 'totalUnreleased', 'totalCirculatingUSD', 'totalMintedUSD', 'totalBridgedToUSD']
+- `15:27:04` stablecoincharts/all?stablecoin=1 (USDT): HTTP 200 0.1s 463 KB | 3271 days 2017-11-29 -> 2026-11-12 | latest totalCirculating peggedUSD 175848249954.02 | keys ['date', 'totalCirculating', 'totalUnreleased', 'totalCirculatingUSD', 'totalMintedUSD', 'totalBridgedToUSD']
+- `15:27:04` stablecoincharts/all?stablecoin=2 (USDC): HTTP 200 0.1s 390 KB | 2985 days 2018-09-11 -> 2026-11-12 | latest totalCirculating peggedUSD 69902618129.26 | keys ['date', 'totalCirculating', 'totalUnreleased', 'totalCirculatingUSD', 'totalMintedUSD', 'totalBridgedToUSD']
+- `15:27:05` stablecoins list: HTTP 200 0.1s 557 KB | 452 assets | top: [('USDT', '1', 175649541431.3674), ('USDC', '2', 69741306668.8834), ('USDS', '209', 5365746608.476194), ('USDe', '146', 4892572959.120505), ('DAI', '5', 4646621700.849197), ('USD1', '262', 3219076801.288141)]
+## 4. Korea / Japan from the runner
+
+- `15:27:05` KRX data portal (GET): HTTP 403 0.7s 2613 bytes text/html;charset=EUC-KR |  <html> <head> <title> - ѱŷ | ͽý</title> <meta charset="utf-8"> <meta http-equiv="Content-Type" content="text/html; ch
+- `15:27:06` KRX data portal https: HTTP 403 0.3s 2613 bytes text/html;charset=EUC-KR |  <html> <head> <title> - ѱŷ | ͽý</title> <meta charset="utf-8"> <meta http-equiv="Content-Type" content="text/html; ch
+- `15:27:06` JPX investor-type listing: HTTP 200 0.4s 34043 bytes text/html | xls links 0: [] | <!DOCTYPE html> <html lang="en"> <head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# article: http://ogp.me/ns/article#"> <meta charset="UTF-8"> 
+- `15:27:07` Naver KOSPI index trend: HTTP 200 1.3s 101 bytes application/json;charset=UTF-8 | {"bizdate":"20261112","personalValue":"-2,689","foreignValue":"+4,123","institutionalValue":"-6,624"}
+- `15:27:08` Naver domestic investor (foreign net) KOSPI: HTTP 200 0.8s 2 bytes application/json;charset=UTF-8 | []
+- `15:27:10` KRX investor-type daily (POST MDCSTAT02203): HTTP 200, 987295 bytes, keys -, sample <!DOCTYPE HTML> <html> <head> <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> <title>íêµ­ê±°ëì</title> <style> *{font-family:"Malgun Gothic"; font-size:1em} html, body, div, img, p, span {margin:0;padding:0} html {height:100%} body {display:table; width:100%; height:100%; o
+- `15:27:10` history/apac-flows.json: HTTP 200, 125 days 2026-07-03 -> 2026-11-12; latest day keys ['tw_foreign_net_twd', 'tw_sector_flows', 'tw_tracked', 'kr_status']; korea-ish {'kr_status': 'LIVE'}; japan-ish {}
+- `15:27:10` apac-flows.json: generated 2026-11-12T09:30:47+00:00 | korea {"status": "LIVE", "source": "Naver Finance", "as_of": "2026-11-11", "n_names": 16, "foreign_net_total_shares": 2963326, "top_buy": [{"code": "005930", "name": "Samsung Electronics", "sector": "Memory/Semis", "foreign_net_shares": 2648292.0, "inst_net_shares": -629449.0, "indiv_net_shares": -2057578.0, "foreign_hold_pct": null, "as_of": "20261111"}, {"code": "105560", "name": "KB Financial", "sect | japan {"status": "PENDING", "note": "no stock_val xls link"}
+- `15:27:10` ✅ read-only audit complete
