@@ -533,8 +533,9 @@ def lambda_handler(event, context):
     """Daily corporate-action factor build (resume-across-runs).
 
     event overrides (all optional):
-      tickers: [..]     — process only these tickers (manual backfill)
+      tickers: [..]     — process only these tickers (manual backfill); the resume cursor is left alone
       max_tickers: N    — cap the run (manual / testing)
+      force: true       — with tickers: process them even when their index entry is younger than STALE_DAYS
     Returns {"statusCode": 200, "body": {"ok": True, "stats": {...}}}.
     Stops early (saving state + index) when the deadline approaches.
     """
@@ -548,9 +549,11 @@ def lambda_handler(event, context):
     event = event if isinstance(event, dict) else {}
     only = {str(t).upper().strip() for t in (event.get("tickers") or []) if str(t).strip()}
     max_tickers = event.get("max_tickers")
+    force = bool(only) and bool(event.get("force"))
 
     s3 = boto3.client("s3")
     universe = load_universe(s3, bucket)
+    full_n = len(universe)   # the index's `universe` is the whole market even on a manual `tickers` run
     if only:
         universe = [t for t in universe if t in only]
     if isinstance(max_tickers, int) and max_tickers > 0:
@@ -562,7 +565,9 @@ def lambda_handler(event, context):
     cutoff_iso = (datetime.now(timezone.utc) - timedelta(days=STALE_DAYS)).isoformat()
 
     def is_due(t):
-        """Never-seen or stale tickers are due."""
+        """Never-seen or stale tickers are due (every named ticker when force)."""
+        if force:
+            return True
         entry = manifest.get(t)
         return not isinstance(entry, dict) or (entry.get("generated_at") or "") < cutoff_iso
 
@@ -592,9 +597,13 @@ def lambda_handler(event, context):
         except (AttributeError, TypeError):
             return False
 
+    advanced = len(window)   # how far the cursor moves: the whole window, or only past the last ticker processed
     for ticker in work:
         if out_of_time():
             stats["stopped_early"] = True
+            # 2026-11-12 (ops 6788): the cursor used to jump the whole 200-ticker window even when the budget stopped the
+            # run after 20 - the other 180 waited a full lap (~59 days) for their turn; resume right after the last one
+            advanced = window.index(ticker)
             break
         payload, res = process_ticker(s3, bucket, ticker, poly_key)
         stats["processed"] += 1
@@ -617,11 +626,18 @@ def lambda_handler(event, context):
         else:
             stats["failed"] += 1
 
-    state = {"cursor": (start + len(window)) % n if n else 0, "updated_at": _now_iso()}
-    save_resume_state(s3, bucket, state)
+    if only:
+        # 2026-11-12 (ops 6788): a manual `tickers` run used to overwrite the sweep's cursor with (start + 3) % 3 = 0 and
+        # send the next daily run back to the top of the universe; the cursor belongs to the daily sweep alone
+        state = None
+    else:
+        state = {"cursor": (start + advanced) % n if n else 0, "updated_at": _now_iso()}
+        save_resume_state(s3, bucket, state)
     manifest.update(manifest_updates)
-    write_index(s3, bucket, manifest, _now_iso(), n)
-    save_resume_state(s3, bucket, state)
+    write_index(s3, bucket, manifest, _now_iso(), full_n)
+    if state:
+        save_resume_state(s3, bucket, state)
+    stats["cursor"] = state["cursor"] if state else "untouched"
 
     stats["duration_s"] = round(time.time() - started, 1)
     print("[corpact] done: %s" % json.dumps(stats))
