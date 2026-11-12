@@ -1,7 +1,7 @@
 """ops 6792 - live proof of the widened Inflows & outflows desk (commit 953795ff; stablecoin history first light ops
 6791): in a fresh headless Chrome against justhodl.ai, every card of the desk resolves - in particular the 24 new ones:
 10 TIC net-purchase series (FRED monthly, latest 2026-08), 10 CryptoQuant daily exchange-flow / reserve / ratio series
-(columnar feed, latest within 3 days), 4 DefiLlama stablecoin-supply series (latest today or yesterday, printed as
+(columnar feed, latest within 3 days), 3 DefiLlama stablecoin-supply series (latest today or yesterday, printed as
 B) - each with a history strip; then the same inside chart.html's ⇄ Flows overlay (fresh context). Also counts the
 network cost of the new feeds (one fetch per feed URL). Screenshots embedded. Read-only."""
 from datetime import datetime, timedelta, timezone
@@ -27,7 +27,7 @@ CARDS_JS = """() => [...document.querySelectorAll('.macro-item')].map(c => ({sym
 SCROLL_ALL = """async () => { const body = document.getElementById('macro-body'); for (let y = 0; y <= body.scrollHeight; y += 450) { body.scrollTop = y; await new Promise(r => setTimeout(r, 90)); } body.scrollTop = 0; }"""
 TIC = ["FRED:FORLTTOTALNET99996", "FRED:FORLTTREASNET99996", "FRED:FORLTEQTYNET99996", "FRED:FORLTCORPNET99996", "FRED:FORLTAGCYNET99996", "FRED:FORLTTOTALNET99990", "FRED:FORLTTOTALNET99991", "FRED:FORLTTREASNET41408", "FRED:FORLTEQTYNET42609", "FRED:FORLTEQTYNET41408"]
 CQ = ["flows:cq/btc_exchange_netflow", "flows:cq/btc_exchange_inflow", "flows:cq/btc_exchange_outflow", "flows:cq/btc_exchange_reserve", "flows:cq/eth_exchange_netflow", "flows:cq/eth_exchange_reserve", "flows:cq/btc_whale_ratio", "flows:cq/btc_stablecoins_ratio", "flows:cq/btc_miner_netflow", "flows:cq/btc_fund_flow_ratio"]
-STABLE = ["flows:stablecoins/total", "flows:stablecoins/usdt", "flows:stablecoins/usdc", "flows:stablecoins/minted"]
+STABLE = ["flows:stablecoins/total", "flows:stablecoins/usdt", "flows:stablecoins/usdc"]
 
 
 def ensure_playwright(log):
@@ -103,7 +103,7 @@ def main():
             ready = [c for c in cards if c["state"] == "ready"]
             bad = [c for c in cards if c["state"] != "ready"]
             r.log("%d cards, %d ready, %d not: %s" % (len(cards), len(ready), len(bad), "; ".join("%s [%s] %s" % (c["sym"], c["state"], c["err"][:60]) for c in bad)[:800]))
-            check("every card on the desk resolves (88 expected)", lambda: len(cards) == 88 and not bad or (_ for _ in ()).throw(AssertionError((len(cards), [c["sym"] for c in bad]))))
+            check("every card on the desk resolves (87 expected)", lambda: len(cards) == 87 and not bad or (_ for _ in ()).throw(AssertionError((len(cards), [c["sym"] for c in bad]))))
             for group, syms, rule in (("TIC", TIC, lambda c: c["asof"] >= "2026-08-01" and c["provider"].startswith("FRED")), ("CryptoQuant", CQ, lambda c: c["asof"] >= (now - timedelta(days=4)).date().isoformat() and c["provider"] == "CryptoQuant daily"),
                                       ("stablecoins", STABLE, lambda c: c["asof"] >= (now - timedelta(days=2)).date().isoformat() and c["value"].endswith("B") and c["provider"] == "DefiLlama daily")):
                 rows = [by.get(s) for s in syms]
@@ -161,7 +161,7 @@ def main():
         if fails:
             r.fail("%d check(s) failed: %s" % (len(fails), fails))
         else:
-            r.ok("widened desk live: 88 cards resolve on the desk and in the chart overlay")
+            r.ok("widened desk live: 87 cards resolve on the desk and in the chart overlay")
     sys.exit(1 if fails else 0)
 
 

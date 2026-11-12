@@ -352,7 +352,7 @@ class MacroData {
       ["flows:cq/btc_whale_ratio","BTC · exchange whale ratio (top-10 inflows / total)","ratio"], ["flows:cq/btc_stablecoins_ratio","BTC · stablecoin supply ratio on exchanges","ratio"],
       ["flows:cq/btc_miner_netflow","BTC · miner netflow","BTC"], ["flows:cq/btc_fund_flow_ratio","BTC · fund flow ratio (exchange share of on-chain volume)","ratio"],
       ["flows:stablecoins/total","Stablecoin supply · all USD-pegged coins (DefiLlama)","$"], ["flows:stablecoins/usdt","USDT circulating supply","$"],
-      ["flows:stablecoins/usdc","USDC circulating supply","$"], ["flows:stablecoins/minted","Stablecoins · total minted","$"],
+      ["flows:stablecoins/usdc","USDC circulating supply","$"],
     ]},
     { cat: "Asia foreign investor flows", flag: "🌏", items: [
       ["flows:apac/tw_foreign_net_twd","Taiwan · foreign net buying (TWD, daily)","TWD"],
