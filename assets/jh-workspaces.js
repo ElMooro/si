@@ -335,12 +335,24 @@ class MacroData {
       ["FORTREASPOS41408","Foreign holdings of US Treasuries · China","$M"], ["FORTREASPOS13005","Foreign holdings of US Treasuries · United Kingdom","$M"],
       ["FORLTTREASNET42609","Japan · net purchases of long-term Treasuries (monthly)","$M"], ["FORLTTREASNET42005","Hong Kong · net purchases of long-term Treasuries","$M"],
       ["ROWTSAQ027S","Rest of the world · net purchases of Treasuries (Z.1)","$M"], ["FDHBFIN","Federal debt held by foreign investors","$B"],
+      ["FORLTTOTALNET99996","Foreign net purchases of all US long-term securities (monthly)","$M"], ["FORLTTREASNET99996","Foreign net purchases of long-term Treasuries · all countries","$M"],
+      ["FORLTEQTYNET99996","Foreign net purchases of US equities · all countries","$M"], ["FORLTCORPNET99996","Foreign net purchases of US corporate bonds","$M"],
+      ["FORLTAGCYNET99996","Foreign net purchases of US agency bonds","$M"], ["FORLTTOTALNET99990","Foreign official institutions · net purchases of US long-term securities","$M"],
+      ["FORLTTOTALNET99991","Foreign private investors · net purchases of US long-term securities","$M"], ["FORLTTREASNET41408","China · net purchases of long-term Treasuries","$M"],
+      ["FORLTEQTYNET42609","Japan · net purchases of US equities","$M"], ["FORLTEQTYNET41408","China · net purchases of US equities","$M"],
     ]},
     { cat: "Crypto flows · spot ETFs and exchanges", flag: "₿", items: [
       ["flows:crypto-etf/btc_today","Spot BTC ETFs · daily net flow","$"], ["flows:crypto-etf/btc_30d","Spot BTC ETFs · 30-day net flow","$"],
       ["flows:crypto-etf/eth_today","Spot ETH ETFs · daily net flow","$"], ["flows:crypto-etf/eth_30d","Spot ETH ETFs · 30-day net flow","$"],
       ["flows:crypto-exchange/btc_netflow_30d","BTC · 30-day exchange netflow (negative = leaving exchanges)","BTC"], ["flows:crypto-exchange/eth_netflow_30d","ETH · 30-day exchange netflow","ETH"],
       ["flows:crypto-exchange/btc_pctile","BTC exchange netflow · percentile","pctile"],
+      ["flows:cq/btc_exchange_netflow","BTC · daily exchange netflow (CryptoQuant)","BTC"], ["flows:cq/btc_exchange_inflow","BTC · daily exchange inflow","BTC"],
+      ["flows:cq/btc_exchange_outflow","BTC · daily exchange outflow","BTC"], ["flows:cq/btc_exchange_reserve","BTC · exchange reserve","BTC"],
+      ["flows:cq/eth_exchange_netflow","ETH · daily exchange netflow (CryptoQuant)","ETH"], ["flows:cq/eth_exchange_reserve","ETH · exchange reserve","ETH"],
+      ["flows:cq/btc_whale_ratio","BTC · exchange whale ratio (top-10 inflows / total)","ratio"], ["flows:cq/btc_stablecoins_ratio","BTC · stablecoin supply ratio on exchanges","ratio"],
+      ["flows:cq/btc_miner_netflow","BTC · miner netflow","BTC"], ["flows:cq/btc_fund_flow_ratio","BTC · fund flow ratio (exchange share of on-chain volume)","ratio"],
+      ["flows:stablecoins/total","Stablecoin supply · all USD-pegged coins (DefiLlama)","$"], ["flows:stablecoins/usdt","USDT circulating supply","$"],
+      ["flows:stablecoins/usdc","USDC circulating supply","$"], ["flows:stablecoins/minted","Stablecoins · total minted","$"],
     ]},
     { cat: "Asia foreign investor flows", flag: "🌏", items: [
       ["flows:apac/tw_foreign_net_twd","Taiwan · foreign net buying (TWD, daily)","TWD"],
@@ -356,6 +368,8 @@ class MacroData {
     "ici-combined": { url: "/data/ici-fund-flows.json", rows: p => p.combined_history || [], date: "week_ending", label: "ICI weekly · combined" },
     "ici-etf": { url: "/data/ici-fund-flows.json", rows: p => p.etf_net_issuance_history || [], date: "week_ending", label: "ICI weekly · ETF net issuance" },
     "ici-mmf": { url: "/data/ici-fund-flows.json", rows: p => p.money_market_history || [], date: "week_ending", label: "ICI weekly · money market" },
+    "stablecoins": { url: "/data/stablecoin-supply-history.json", rows: p => p.series || [], date: "date", label: "DefiLlama daily" },
+    "cq": { url: "/data/cryptoquant-series.json", rows: () => [], obs: (p, field) => { const s = (p.series || {})[field]; return s && s.d && s.v ? s.d.map((d, i) => [d, s.v[i]]) : []; }, date: "d", label: "CryptoQuant daily" },
     "crypto-etf": { url: "/data/crypto-etf-flows-history.json", rows: p => p.series, date: "date", label: "Polygon fund flows" },
     "crypto-exchange": { url: "/data/crypto-exchange-flows-history.json", rows: p => p.series, date: "date", label: "CoinMetrics / CryptoQuant" },
     "apac": { url: "/data/history/apac-flows.json", rows: p => Object.keys(p.days || {}).sort().map(d => Object.assign({ date: d }, p.days[d])), date: "date", label: "TWSE / Naver" },
@@ -950,15 +964,18 @@ class MacroData {
       this.flowFeedCache.set(feed.url, payloadPromise);
       payloadPromise.catch(() => this.flowFeedCache.delete(feed.url));
     }
-    const rows = feed.rows(await payloadPromise) || [];
+    const payload = await payloadPromise;
+    const columnar = feed.obs ? (feed.obs(payload, field) || []) : null;   // {d:[...], v:[...]} feeds (CryptoQuant series)
+    const rows = columnar ? [] : (feed.rows(payload) || []);
     const path = field.split('.');
-    const observations = rows.map(row => {
+    const observations = (columnar ? columnar.filter(([, value]) => value != null && value !== '').map(([date, value]) => ({ date: String(date || '').slice(0, 10), value: Number(value) }))
+      .filter(o => o.date.length === 10 && Number.isFinite(o.value)) : rows.map(row => {
       let v = row;
       for (const k of path) { v = v == null ? undefined : v[k]; }
       const value = Number(v);
       const date = String(row[feed.date] || '').slice(0, 10);
       return date.length === 10 && v != null && v !== '' && Number.isFinite(value) ? { date, value } : null;
-    }).filter(Boolean).sort((a, b) => a.date.localeCompare(b.date));
+    }).filter(Boolean)).sort((a, b) => a.date.localeCompare(b.date));
     if (!observations.length) throw new Error('No observations for ' + symbol);
     return this.metricFromObservations(observations);
   }
@@ -1153,6 +1170,9 @@ class MacroData {
     if (u === '$M' && Math.abs(value) >= 1e6) return (value / 1e6).toFixed(2) + 'T';
     if (u === '$B' && Math.abs(value) >= 1000) return (value / 1e3).toFixed(2) + 'T';
     const abs = Math.abs(value);
+    if (u === '$' && abs >= 1e12) return (value / 1e12).toFixed(2) + 'T';   // whole-dollar series (stablecoin supply, ETF flows) read as B/M
+    if (u === '$' && abs >= 1e9) return (value / 1e9).toFixed(2) + 'B';
+    if (u === '$' && abs >= 1e6) return (value / 1e6).toFixed(1) + 'M';
     if (abs >= 1000) return value.toLocaleString('en-US', { maximumFractionDigits: abs >= 100000 ? 0 : 1 });
     return value.toLocaleString('en-US', { maximumFractionDigits: abs < 10 ? 3 : 2 });
   }
