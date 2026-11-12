@@ -46,10 +46,11 @@ def launch(p, log):
 
 
 def compact(v):
+    """The desk's own compaction: billions to two decimals, millions to one (-5.37B, 799.1M)."""
     a = abs(v)
-    for unit, d in (("T", 1e12), ("B", 1e9), ("M", 1e6)):
+    for unit, d, places in (("T", 1e12, 2), ("B", 1e9, 2), ("M", 1e6, 1)):
         if a >= d:
-            return ("-" if v < 0 else "") + ("%.2f" % (a / d)) + unit
+            return ("-" if v < 0 else "") + ("%.*f" % (places, a / d)) + unit
     return "%.2f" % v
 
 
