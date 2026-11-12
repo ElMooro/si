@@ -11,7 +11,8 @@ REAL OFFICIAL FREE SOURCES (probe-not-guess; language-agnostic key detection):
       BFI82U = market-wide institutional buy/sell AMOUNTS (foreign net NT$)
   - KOREA  — KRX data portal (data.krx.co.kr getJsonData, no auth): best-effort
       market investor net (individual/foreign/institution). Graceful on failure.
-  - JAPAN  — JPX weekly investor-type flows: v1.1 (weekly Excel parse).
+  - JAPAN  — JPX weekly Trading by Type of Investors (stock_1_w_<start>_<end>.xlsx since 2026, read with the
+    shared stdlib reader; every group's net, JPY billions; weeks accumulate in the history as jp_weeks).
   - US catch-up — reads existing fleet feed data/etf-flows/daily.json to show
       whether the US bridge ETFs have moved yet (rigorous lead-lag = v1.1 once
       apac history accrues).
@@ -390,49 +391,82 @@ def hongkong_southbound():
     return {"status": "PENDING", "note": last_err or "no data"}
 
 
-def japan_jpx():
-    """JPX weekly Trading-by-Type-of-Investors (TSE Prime). Foreign net = latest
-    week's Balance for Foreigners (JPY thousands)."""
+JPX_LISTING = "https://www.jpx.co.jp/english/markets/statistics-equities/investor-type/index.html"
+JPX_WEEKLY = re.compile(r'href="([^"]*?/stock_1_w_(\d{8})_(\d{8})\.xlsx)"')
+# the 14 investor groups of the weekly workbook, in column order: 4 columns each (Sales, Purchases, Balance, Total)
+# from column 3; group k's Balance is column 5 + 4k (layout read from the 2026-11-06 workbook, ops 6793)
+JPX_GROUPS = ["proprietary_cash", "proprietary_margin", "individuals_cash", "individuals_margin", "foreigners_institutions",
+              "foreigners_individuals", "securities_cos", "investment_trusts", "business_cos", "other_cos",
+              "life_nonlife_insurance", "city_regional_banks", "trust_banks", "other_financials"]
+JPX_MARKETS = {"TSE Prime": "prime", "TSE Standard": "standard", "TSE Growth": "growth", "Tokyo & Nagoya": "tokyo_nagoya"}
+
+
+def jpx_weekly_rows(blob, week_end):
+    """One weekly 'Trading by Type of Investors' workbook (JPX, stock_1_w_<start>_<end>.xlsx) -> per market the
+    net balance of every investor group, in JPY billions (the sheet carries thousand yen), plus the combined
+    foreigners and individuals nets. Read with the shared standard-library reader (no xlrd / openpyxl in Lambda)."""
+    from risk_sources import Xlsx
     try:
-        listing = _http_bytes("https://www.jpx.co.jp/english/markets/statistics-equities/investor-type/index.html").decode("utf-8", "ignore")
-        vals = re.findall(r"[\w./_-]*stock_val[\w./_-]*\.xls", listing, re.I)
-        if not vals:
-            return {"status": "PENDING", "note": "no stock_val xls link"}
-        url = vals[0]
-        if url.startswith("/"): url = "https://www.jpx.co.jp" + url
-        xls = _http_bytes(url, timeout=45)
-        import xlrd
-        book = xlrd.open_workbook(file_contents=xls)
-        by_mkt = {}
-        for si in range(min(book.nsheets, 3)):
-            sh = book.sheet_by_index(si)
-            bal_cols, weeks = [], []
-            for i in range(min(sh.nrows, 14)):
-                rv = [str(sh.cell_value(i, j)) for j in range(sh.ncols)]
-                if not bal_cols and any(("Balance" in v or "差引き" in v) for v in rv):
-                    bal_cols = [j for j, v in enumerate(rv) if ("Balance" in v or "差引き" in v)]
-                if not weeks and any(("/" in v and ("~" in v or "～" in v)) for v in rv):
-                    weeks = [v for v in rv if "/" in v]
-            def net_for(label):
-                for i in range(sh.nrows):
-                    c0 = str(sh.cell_value(i, 0)).strip()
-                    if c0 == label:
-                        vb = [_num(sh.cell_value(i, c)) for c in bal_cols if c < sh.ncols]
-                        vb = [v for v in vb if v is not None]
-                        return vb[-1] if vb else None
-                return None
-            by_mkt[sh.name] = {"foreign_net": net_for("Foreigners"),
-                               "individual_net": net_for("Individuals"),
-                               "institution_net": net_for("Institutions")}
-            if si == 0 and weeks:
-                latest_week = weeks[-1]
-        prime = by_mkt.get("TSE Prime") or next(iter(by_mkt.values()), {})
-        return {"status": "LIVE", "source": "JPX weekly", "file": url.split("/")[-1],
-                "unit": "JPY thousands", "week": (latest_week if "latest_week" in dir() else None),
-                "foreign_net": prime.get("foreign_net"), "individual_net": prime.get("individual_net"),
-                "institution_net": prime.get("institution_net"), "by_market": by_mkt}
+        rows = Xlsx(blob).rows(0)
+    except Exception as e:  # a bot page or a truncated download is not a workbook
+        raise ValueError("JPX weekly workbook unreadable: %s" % type(e).__name__)
+    header = next((i for i, r in enumerate(rows) if r and any(isinstance(v, str) and "Balance" in v for v in r)), None)
+    if header is None:
+        raise ValueError("JPX weekly workbook: balance header missing")
+    balance_cols = [j for j, v in enumerate(rows[header]) if isinstance(v, str) and "Balance" in v]
+    if len(balance_cols) != len(JPX_GROUPS) or balance_cols[0] != 5 or any(b - a != 4 for a, b in zip(balance_cols, balance_cols[1:])):
+        raise ValueError("JPX weekly workbook: investor groups differ from the reviewed layout")
+    out = {}
+    market = None
+    for r in rows[header + 1:]:
+        if len(r) > 2 and isinstance(r[1], str):
+            market = next((slug for name, slug in JPX_MARKETS.items() if name in r[1]), None)
+        if market and len(r) > 2 and isinstance(r[2], str) and "Value" in r[2]:
+            nets = {}
+            for group, col in zip(JPX_GROUPS, balance_cols):
+                v = r[col] if col < len(r) else None
+                nets[group] = round(float(v) / 1e6, 3) if isinstance(v, (int, float)) else None
+            def total(*keys):
+                vals = [nets[k] for k in keys if nets.get(k) is not None]
+                return round(sum(vals), 3) if len(vals) == len(keys) else None
+            nets["foreigners"] = total("foreigners_institutions", "foreigners_individuals")
+            nets["individuals"] = total("individuals_cash", "individuals_margin")
+            nets["proprietary"] = total("proprietary_cash", "proprietary_margin")
+            nets["financial_institutions"] = total("life_nonlife_insurance", "city_regional_banks", "trust_banks", "other_financials")
+            out[market] = nets
+    if "prime" not in out:
+        raise ValueError("JPX weekly workbook: TSE Prime value row missing")
+    return {"week_ending": "%s-%s-%s" % (week_end[:4], week_end[4:6], week_end[6:]), "unit": "JPY billions (net purchases, Value basis)", "markets": out}
+
+
+def japan_jpx(previous=None):
+    """JPX weekly Trading by Type of Investors: every weekly workbook on the listing (JPX keeps the newest ~5 weeks
+    there), parsed with jpx_weekly_rows; `previous` (the stored weeks) carries older weeks forward. Foreign net etc.
+    quoted for TSE Prime, JPY billions."""
+    try:
+        listing = _http_bytes(JPX_LISTING, timeout=30).decode("utf-8", "ignore")
+        links = sorted({(path, end) for path, _start, end in JPX_WEEKLY.findall(listing)}, key=lambda t: t[1])
+        if not links:
+            return {"status": "PENDING", "note": "no stock_1_w weekly workbook link on the listing", "weeks": dict(previous or {})}
+        weeks = dict(previous or {})
+        files = []
+        for path, end in links:
+            week_key = "%s-%s-%s" % (end[:4], end[4:6], end[6:])
+            if week_key in weeks and weeks[week_key].get("markets"):
+                continue
+            url = path if path.startswith("http") else "https://www.jpx.co.jp" + path
+            parsed = jpx_weekly_rows(_http_bytes(url, timeout=45), end)
+            weeks[parsed["week_ending"]] = {"markets": parsed["markets"], "file": url.split("/")[-1]}
+            files.append(url.split("/")[-1])
+        latest_key = max(weeks)
+        prime = weeks[latest_key]["markets"]["prime"]
+        return {"status": "LIVE", "source": "JPX weekly Trading by Type of Investors", "unit": "JPY billions (net purchases, Value basis, TSE Prime)",
+                "week_ending": latest_key, "foreign_net": prime.get("foreigners"), "individual_net": prime.get("individuals"),
+                "investment_trusts_net": prime.get("investment_trusts"), "trust_banks_net": prime.get("trust_banks"),
+                "proprietary_net": prime.get("proprietary"), "by_group": prime, "by_market": weeks[latest_key]["markets"],
+                "weeks": dict(sorted(weeks.items())[-260:]), "new_files": files}
     except Exception as e:
-        return {"status": "PENDING", "err": str(e)[:140]}
+        return {"status": "PENDING", "err": str(e)[:140], "weeks": dict(previous or {})}
 
 
 def us_returns(symbols):
@@ -525,7 +559,7 @@ def eastmoney_southbound():
 
 def lambda_handler(event=None, context=None):
     now = datetime.now(timezone.utc)
-    doc = {"engine": "justhodl-apac-flows", "version": "1.0.0",
+    doc = {"engine": "justhodl-apac-flows", "version": "1.1.0",
            "generated_at": now.isoformat(timespec="seconds"), "status": "LIVE",
            "thesis": "Taiwan/Korea foreign-flow leadership as an early read on US sectors",
            "sources": {}}
@@ -568,8 +602,9 @@ def lambda_handler(event=None, context=None):
     doc["korea"] = kr
     doc["sources"]["korea_naver"] = kr.get("status") == "LIVE"
     doc["sources"]["korea_marketwide"] = (kr.get("market_wide") or {}).get("total_foreign_value") is not None
-    # Japan (JPX weekly Trading-by-Type-of-Investors)
-    doc["japan"] = japan_jpx()
+    # Japan (JPX weekly Trading-by-Type-of-Investors); the stored weeks carry forward (JPX lists ~5 weeks)
+    prior_hist = _j(HIST, {"days": {}}) or {"days": {}}
+    doc["japan"] = japan_jpx(previous=prior_hist.get("jp_weeks") or {})
     doc["sources"]["japan_jpx"] = doc["japan"].get("status") == "LIVE"
     # Hong Kong (Stock Connect Southbound). HKEX is Akamai-blocked from AWS -> Eastmoney.
     hkd = hongkong_southbound()
@@ -629,14 +664,27 @@ def lambda_handler(event=None, context=None):
     doc["us_feed_available"] = bool(usf)
     doc["us_feed_available"] = bool(usf)
 
-    # history
-    hist = _j(HIST, {"days": {}}) or {"days": {}}
+    # history: Taiwan per day, Korea market-wide per day (Naver, 100M KRW units -> KRW billions), Japan per week
+    hist = prior_hist
     day = now.strftime("%Y-%m-%d")
+    krm = (doc["korea"].get("market_wide") or {}) if isinstance(doc.get("korea"), dict) else {}
+    def krw_bn(v):
+        return round(v / 10.0, 3) if isinstance(v, (int, float)) else None
+    kr_day = {"kr_status": doc["korea"].get("status")}
+    for mkt in ("KOSPI", "KOSDAQ"):
+        m = krm.get(mkt) or {}
+        kr_day["kr_%s_foreign_net_krw_bn" % mkt.lower()] = krw_bn(m.get("foreign_value"))
+        kr_day["kr_%s_institution_net_krw_bn" % mkt.lower()] = krw_bn(m.get("institution_value"))
+        kr_day["kr_%s_individual_net_krw_bn" % mkt.lower()] = krw_bn(m.get("individual_value"))
+        kr_day["kr_%s_as_of" % mkt.lower()] = m.get("as_of")
+    kr_day["kr_foreign_net_krw_bn"] = krw_bn(krm.get("total_foreign_value"))
     hist["days"][day] = {"tw_foreign_net_twd": doc.get("taiwan", {}).get("foreign_net_twd"),
                          "tw_sector_flows": doc.get("taiwan", {}).get("sector_flows_shares"),
-                         "tw_tracked": doc.get("taiwan", {}).get("tracked"),
-                         "kr_status": doc["korea"].get("status")}
+                         "tw_tracked": doc.get("taiwan", {}).get("tracked"), **kr_day}
     hist["days"] = dict(sorted(hist["days"].items())[-400:])
+    if doc["japan"].get("weeks"):
+        hist["jp_weeks"] = doc["japan"]["weeks"]
+        hist["jp_unit"] = "JPY billions, net purchases by investor type (Value basis), JPX weekly"
     _put(HIST, hist)
 
     tw = doc.get("taiwan", {})
