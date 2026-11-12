@@ -1,0 +1,27 @@
+{
+ "schema": "apply-lane-receipt.v2",
+ "status": "dispatched_unverified",
+ "run_id": "43274700254",
+ "run_url": "https://github.com/ElMooro/si/actions/runs/43274700254",
+ "base_sha": "f97a4edb34b259016b923ed444045847be217bc2",
+ "result_sha": "f7876a18a31cb0a289ce61158dd6b233edfc18b7",
+ "patchers": [
+  "chart_candle_clarity_20261112.py"
+ ],
+ "targets": [],
+ "shared": [],
+ "workers": [],
+ "pages": [
+  "chart.html",
+  "jh-chart-engine.js"
+ ],
+ "ops_scripts": [],
+ "deploy_dispatched": true,
+ "deployment_verified": false,
+ "lambda_dispatch_outcome": "skipped",
+ "site_dispatch_outcome": "success",
+ "ops_dispatch_outcome": "skipped",
+ "deploy_run_id": null,
+ "verification": "Compare data/ops/releases/<function>.json commit to result_sha; site/worker dispatches require their own workflow verification.",
+ "at": "2026-11-12T17:57:21Z"
+}
