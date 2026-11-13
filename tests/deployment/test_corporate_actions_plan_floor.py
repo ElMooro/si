@@ -102,3 +102,21 @@ def test_resolver_makes_one_call_per_run_for_pre_floor_dividends():
     m.resolve_dividend_factors([{"type": "dividend_cash", "date": "2026-11-02", "cash_amount": 1.0}], {}, "DDD", "key",
                                now_iso="2026-11-13T06:30:00+00:00")
     assert m._PLAN_FLOOR_403 == "2019-03-01"
+
+
+def test_soft_budget_follows_the_function_timeout():
+    m = _load()
+
+    class Ctx:
+        def __init__(self, ms):
+            self.ms = ms
+
+        def get_remaining_time_in_millis(self):
+            return self.ms
+    assert m.soft_budget_s(Ctx(900000)) == 840.0            # 900 s timeout: the full budget
+    assert m.soft_budget_s(Ctx(300000)) == 240.0            # an older 300 s timeout: 60 s headroom, never the 840 s constant
+    assert m.soft_budget_s(Ctx(50000)) == 30.0              # floor
+    assert m.soft_budget_s(None) == 840.0                   # no context (offline)
+    import json
+    cfg = json.loads((ROOT / "aws/lambdas/justhodl-corporate-actions/config.json").read_text(encoding="utf-8"))
+    assert cfg["timeout"] == 900 and cfg["timeout"] - m.SOFT_BUDGET_S >= 60

@@ -73,7 +73,8 @@ STATE_KEY = "data/corporate-actions/_state.json"
 
 BATCH = 200
 PACE_S = 0.3
-SOFT_BUDGET_S = 250.0
+SOFT_BUDGET_S = 840.0   # 2026-11-13 (ops 6807): 65 tickers fit in 250 s once the 403s were floored - a 200-ticker window needs
+                        # ~12 min at ~3.7 s/ticker (splits + dividends + post-2021 closes + Yahoo); config timeout 900 s, 60 s headroom
 _STOP_AT = None   # epoch seconds; set per invocation so the per-dividend close fetches also honour the soft budget
 STALE_DAYS = 30
 SCHEMA_VERSION = "1.0"
@@ -577,6 +578,16 @@ def write_index(s3, bucket, manifest, generated_at, universe_n):
         return False
 
 
+def soft_budget_s(context, floor_s=SOFT_BUDGET_S, headroom_s=60.0):
+    """Seconds this invocation may spend before it stops and persists: the function's actual remaining time less
+    headroom, never more than SOFT_BUDGET_S (so a 300 s timeout still gets 240 s, a 900 s one 840 s). Pure given the context."""
+    try:
+        remaining = float(context.get_remaining_time_in_millis()) / 1000.0
+    except (AttributeError, TypeError, ValueError):
+        return floor_s
+    return max(30.0, min(floor_s, remaining - headroom_s))
+
+
 def lambda_handler(event, context):
     """Daily corporate-action factor build (resume-across-runs).
 
@@ -589,7 +600,7 @@ def lambda_handler(event, context):
     """
     started = time.time()
     global _STOP_AT, _PLAN_FLOOR_403, _FLOORED_N
-    _STOP_AT = started + SOFT_BUDGET_S
+    _STOP_AT = started + soft_budget_s(context)
     _PLAN_FLOOR_403, _FLOORED_N = None, 0   # learned afresh each invocation (the plan can change)
     bucket = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
     # 2026-11-04 (ops 6742): every artifact in the index carried 0 events because this engine read the key from env only
@@ -636,9 +647,11 @@ def lambda_handler(event, context):
     }
     manifest_updates = {}
 
+    budget_s = soft_budget_s(context)
+
     def out_of_time():
         """True when we should stop and persist (soft budget or context)."""
-        if time.time() - started > SOFT_BUDGET_S:
+        if time.time() - started > budget_s:
             return True
         try:
             remaining = context.get_remaining_time_in_millis()
