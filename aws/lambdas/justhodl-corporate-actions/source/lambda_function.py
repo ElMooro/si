@@ -259,8 +259,15 @@ def fetch_pre_ex_close_status(ticker, ex_date, api_key):
         base = datetime.strptime(ex_date, "%Y-%m-%d").date()
     except (ValueError, TypeError):
         return None, "unavailable"
+    global _PLAN_FLOOR_403, _FLOORED_N
     for back in (1, 2, 3):
         d = (base - timedelta(days=back)).isoformat()
+        if older_than_floor(d, _PLAN_FLOOR_403):
+            _FLOORED_N += 1
+            # 2026-11-13 (ops 6806): the plan's history is one trailing window for the whole account - a session this
+            # invocation already saw a 403 for, or any older one, is answered without a call (the second 06:30 sweep after
+            # the one-403-per-dividend fix still spent its 250 s on 184 identical 403s for 24 tickers; 179 were due)
+            return None, "http_403"
         # 2026-11-11 (ops 6786/6787): this call went out WITHOUT the key (splits and dividends carried it), so every
         # pre-ex close was a 401 - three failed calls and three sleeps per dividend, factor_pending on every cash
         # dividend, and the run overran its 300 s wall on the first dividend-rich ticker (timeouts Nov 8, 10, 11).
@@ -268,6 +275,9 @@ def fetch_pre_ex_close_status(ticker, ex_date, api_key):
         if data is None and _LAST_HTTP_CODE == 403:
             # 2026-11-12 (ops 6788): one 403 per dividend, not three calls and three sleeps - the 06:30 run after the
             # b81da0e1 fix spent its whole 250 s budget on 20 tickers' pre-2021 dividends (199 due, 20 processed)
+            if floor_candidate(d, _PLAN_FLOOR_403, datetime.now(timezone.utc).date().isoformat()):
+                _PLAN_FLOOR_403 = d
+                print("[corpact] plan history floor learned: 403 for %s (%s %s)" % (d, ticker, ex_date))
             return None, "http_403"
         try:
             results = (data or {}).get("results") or []
@@ -287,6 +297,36 @@ def fetch_pre_ex_close(ticker, ex_date, api_key):
 
 PLAN_HISTORY_403 = "plan_history_403"   # pending_reason: Polygon answered 403 for the pre-ex session (outside the plan's history)
 RECHECK_403_DAYS = 30                   # a 403 dividend is carried forward from the prior artifact and re-probed this often
+_PLAN_FLOOR_403 = None                  # per invocation (reset in lambda_handler): the newest session date Polygon answered 403 for
+_FLOORED_N = 0                          # per invocation: dividends answered from the floor without a call
+
+
+FLOOR_MIN_AGE_DAYS = 365   # a 403 for a session younger than this is not the plan's history floor (never generalised)
+
+
+def floor_candidate(session_date, floor, today):
+    """True when a 403 for session_date (ISO) should become the invocation's history floor: newer than the current floor
+    and at least FLOOR_MIN_AGE_DAYS old - a 403 on a recent session is something else (entitlement, a bad symbol) and
+    must not floor every other ticker's dividends for the run. Pure."""
+    try:
+        age = (datetime.strptime(str(today), "%Y-%m-%d") - datetime.strptime(str(session_date), "%Y-%m-%d")).days
+    except (ValueError, TypeError):
+        return False
+    if age < FLOOR_MIN_AGE_DAYS:
+        return False
+    return floor is None or str(session_date) > str(floor)
+
+
+def older_than_floor(session_date, floor):
+    """True when session_date (ISO) is at or before the learned 403 floor (ISO) - the plan's history is a trailing window,
+    so every session at or older than one it refused is refused too. Pure (ISO-8601 dates compare lexically)."""
+    return bool(floor) and bool(session_date) and str(session_date) <= str(floor)
+
+
+def _dividends_newest_first(events):
+    """Cash dividends ordered newest ex-date first, so a ticker's first 403 covers every older dividend without a call. Pure."""
+    return sorted((e for e in events if isinstance(e, dict) and e.get("type") == "dividend_cash"),
+                  key=lambda e: str(e.get("date") or ""), reverse=True)
 
 
 def _carry_forward_403(prior_event, now_iso):
@@ -302,6 +342,15 @@ def _carry_forward_403(prior_event, now_iso):
     except (ValueError, TypeError):
         return False
     return checked > cutoff
+
+
+def _floored(ex_date):
+    """True when the session before ex_date is at or older than the learned 403 floor (no call will be made)."""
+    try:
+        d = (datetime.strptime(str(ex_date), "%Y-%m-%d").date() - timedelta(days=1)).isoformat()
+    except (ValueError, TypeError):
+        return False
+    return older_than_floor(d, _PLAN_FLOOR_403)
 
 
 def resolve_dividend_factors(events, prior_cached, ticker, api_key, now_iso=None):
@@ -320,9 +369,7 @@ def resolve_dividend_factors(events, prior_cached, ticker, api_key, now_iso=None
         if isinstance(e, dict) and e.get("type") == "dividend_cash":
             cache[(e.get("date"), e.get("cash_amount"))] = e.get("pre_ex_close")
             prior_by_key[(e.get("date"), e.get("cash_amount"))] = e
-    for e in events:
-        if e.get("type") != "dividend_cash":
-            continue
+    for e in _dividends_newest_first(events):   # ops 6806: newest first - the first 403 floors the rest of this ticker
         key = (e.get("date"), e.get("cash_amount"))
         close = cache.get(key)
         if close is None and _carry_forward_403(prior_by_key.get(key), now_iso):
@@ -341,7 +388,8 @@ def resolve_dividend_factors(events, prior_cached, ticker, api_key, now_iso=None
             continue
         status = "ok"
         if close is None:
-            time.sleep(PACE_S)
+            if not _floored(e.get("date")):   # a floored dividend costs no call and no pace sleep
+                time.sleep(PACE_S)
             close, status = fetch_pre_ex_close_status(ticker, e["date"], api_key)
         e["pre_ex_close"] = close
         cash = e["cash_amount"]
@@ -540,8 +588,9 @@ def lambda_handler(event, context):
     Stops early (saving state + index) when the deadline approaches.
     """
     started = time.time()
-    global _STOP_AT
+    global _STOP_AT, _PLAN_FLOOR_403, _FLOORED_N
     _STOP_AT = started + SOFT_BUDGET_S
+    _PLAN_FLOOR_403, _FLOORED_N = None, 0   # learned afresh each invocation (the plan can change)
     bucket = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
     # 2026-11-04 (ops 6742): every artifact in the index carried 0 events because this engine read the key from env only
     # and its config never had one - the SSM parameter is the source (managed_secret: env first, then SSM).
@@ -638,6 +687,8 @@ def lambda_handler(event, context):
     if state:
         save_resume_state(s3, bucket, state)
     stats["cursor"] = state["cursor"] if state else "untouched"
+    stats["plan_floor_403"] = _PLAN_FLOOR_403      # ops 6806: the learned history floor (None = no 403 seen this run)
+    stats["floored_403"] = _FLOORED_N              # dividends answered from the floor without a Polygon call
 
     stats["duration_s"] = round(time.time() - started, 1)
     print("[corpact] done: %s" % json.dumps(stats))
