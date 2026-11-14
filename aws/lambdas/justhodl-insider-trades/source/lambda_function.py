@@ -71,7 +71,7 @@ import boto3
 import urllib.request
 import urllib.error
 import xml.etree.ElementTree as ET
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as FuturesTimeout
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 from html.parser import HTMLParser
@@ -567,19 +567,38 @@ def load_universe_map(s3):
                                              "industry": r.get("industry")}
     return mp
 
-def backfill_from_daily_index(s3):
+def soft_deadline(started: float, context, reserve_s: float = 75.0, cap_s: float = 840.0) -> float:
+    """Epoch second by which BOTH fetch phases must stop so that merge, aggregate, the v3 surface and the two S3
+    writes still fit inside the function's real remaining time (2026-11-14: every run since Nov 12 died
+    `Status: timeout` at 300 s because the backfill loop fetched up to 350 EDGAR submissions sequentially with a
+    15 s socket timeout each and no wall clock - the AUTONOMY.md 'slow-drip livelock' class; the output stopped
+    writing). Pure given `remaining_ms`: the same shape as corporate-actions' soft_budget_s (e5ac1318)."""
+    try:
+        remaining = float(context.get_remaining_time_in_millis()) / 1000.0
+    except Exception:  # noqa: BLE001 - no Lambda context (local run / test harness): assume the 300 s default
+        remaining = 300.0
+    return started + max(30.0, min(cap_s, remaining - reserve_s))
+
+
+def backfill_from_daily_index(s3, deadline: float | None = None):
     """Heal the window: EDGAR daily form.idx lists EVERY Form 4 for a day
     (getcurrent atom caps at ~200 and has zero lookback, so outages lose days
     forever). Newest-first, budgeted per run, cursor-persisted; the full
     submission .txt embeds the ownershipDocument XML -> existing parse_form4.
-    Self-heals complete WINDOW_DAYS coverage over a few runs, stays complete."""
+    Self-heals complete WINDOW_DAYS coverage over a few runs, stays complete.
+    `deadline` (epoch s): stop fetching once passed - the cursor keeps the
+    day's progress, so the next run resumes where this one stopped."""
     cursor, _ = _s3_json_v2(s3, CURSOR_KEY)
     cursor = cursor if isinstance(cursor, dict) else {}
     done = cursor.get("done") or {}
     txns, scanned, budget = [], 0, BACKFILL_BUDGET
+    stopped_at_deadline = False
     now = datetime.now(timezone.utc)
     for back in range(0, WINDOW_DAYS + 1):
-        if budget <= 0:
+        if budget <= 0 or stopped_at_deadline:
+            break
+        if deadline and time.time() > deadline:
+            stopped_at_deadline = True
             break
         day = now - timedelta(days=back)
         if day.weekday() >= 5:
@@ -606,7 +625,12 @@ def backfill_from_daily_index(s3):
                     paths.append(pth)
         start = int(st.get("next", 0))
         todo = paths[start:start + budget]
+        n_done = 0
         for pth in todo:
+            if deadline and time.time() > deadline:
+                stopped_at_deadline = True
+                break
+            n_done += 1
             scanned += 1
             try:
                 body = _fetch("https://www.sec.gov/Archives/" + pth,
@@ -624,8 +648,8 @@ def backfill_from_daily_index(s3):
             except Exception:
                 continue
             time.sleep(0.04)
-        budget -= len(todo)
-        nxt = start + len(todo)
+        budget -= n_done
+        nxt = start + n_done
         done[ymd] = {"complete": nxt >= len(paths), "next": nxt, "total": len(paths)}
     try:
         s3.put_object(Bucket=S3_BUCKET, Key=CURSOR_KEY,
@@ -637,7 +661,8 @@ def backfill_from_daily_index(s3):
     complete_days = sum(1 for v in done.values() if v.get("complete"))
     return txns, {"filings_scanned_this_run": scanned,
                   "backfill_days_complete": complete_days,
-                  "backfill_days_target": WINDOW_DAYS}
+                  "backfill_days_target": WINDOW_DAYS,
+                  "stopped_at_deadline": stopped_at_deadline}
 
 FLEET_JOINS = [("radar", "data/insider-radar.json", 26),
                ("industry_cluster", "data/insider-industry-cluster.json", 26),
@@ -800,6 +825,8 @@ def stats_summary(transactions: list) -> dict:
 def lambda_handler(event, context):
     s3 = boto3.client("s3")
     started = time.time()
+    deadline = soft_deadline(started, context)
+    print(f"fetch deadline in {deadline - started:.0f} s (function remaining minus the merge/write reserve)")
 
     # 1. List recent Form 4 filings
     try:
@@ -951,22 +978,31 @@ def lambda_handler(event, context):
             print(f"parse error {filing['accession']}: {e}")
             return None
 
-    with ThreadPoolExecutor(max_workers=MAX_FETCH_PARALLEL) as pool:
-        futures = [pool.submit(process, f) for f in filings]
-        for fut in as_completed(futures):
+    # The atom phase gets at most 60% of the fetch budget; the rest is the backfill's. Filings still queued at
+    # that point are cancelled (the <=8 in flight finish within their own socket timeouts) and counted in diag.
+    atom_deadline = started + 0.6 * (deadline - started)
+    pool = ThreadPoolExecutor(max_workers=MAX_FETCH_PARALLEL)
+    futures = [pool.submit(process, f) for f in filings]
+    try:
+        for fut in as_completed(futures, timeout=max(5.0, atom_deadline - time.time())):
             r = fut.result()
             if r is None:
                 fetch_errors += 1
             else:
                 fresh_txns.extend(r)
             time.sleep(0.05)
+    except FuturesTimeout:
+        diag["atom_phase_cut"] = sum(1 for f in futures if not f.done())
+        print(f"atom phase cut at the deadline: {diag['atom_phase_cut']} filings left unfetched (the daily-index backfill covers them)")
+    finally:
+        pool.shutdown(wait=False, cancel_futures=True)
 
     print(f"DIAG: {json.dumps(diag)}")
-    print(f"Parsed {len(fresh_txns)} kept transactions; fetch_errors={fetch_errors}")
+    print(f"Parsed {len(fresh_txns)} kept transactions; fetch_errors={fetch_errors}; errlog={json.dumps(errlog)}")
 
     # 3a. v2 backfill from EDGAR daily index (heals outage gaps + storms)
     try:
-        back_txns, coverage = backfill_from_daily_index(s3)
+        back_txns, coverage = backfill_from_daily_index(s3, deadline=deadline)
         fresh_txns.extend(back_txns)
         print(f"backfill: +{len(back_txns)} txns, {coverage}")
     except Exception as e:
