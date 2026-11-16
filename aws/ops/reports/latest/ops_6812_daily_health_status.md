@@ -1,0 +1,469 @@
+# ops 6812 - daily health status 2026-11-16 (governor status + caps, event records since ops 6811 on Nov 15, relay lag, output freshness, FMP bandwidth hold after the day-17 expiry, follow-up probe of the silent engines, source-refresh control, desks + corporate-actions; Monday - the weekly slots and the weekday engines back from the weekend; read-only)
+
+**Status:** success  
+**Duration:** 51.2s  
+**Finished:** 2026-11-16T11:18:58+00:00  
+
+## Data
+
+| 13f-book_age_h | _health/cadence-manifest.json | _health/fleet.json | anomaly_held | baseline_usd_day | book_returns | book_tape | book_thin_skipped | book_version | bottom_age_h | budget_actual | budget_actual_now | budget_forecast | budget_last_updated | budget_limit | cap | cap_source | capital_structure_control | capped | corpact_corporate-actions-index_age_h | corpact_cursor | corpact_due | corpact_duration_s | corpact_failed | corpact_processed | corpact_state_age_h | corpact_stopped_early | corpact_sweep_at | data/_freshness-monitor.json | engines_fresh | engines_missed_two_slots | engines_not_back_since_restore | eod_last_session | etf-true-flows_age_h | etf_true_flows_age_h | etf_true_flows_as_of | events_since_6811 | fmp_hold_fmp | fmp_hold_fmp-bank | held_total | ici-flows_age_h | ici_flows_age_h | ici_flows_as_of | leaders_age_h | leaders_as_of | leaders_generated | leaders_rows | meter_top | mode | mtd | newly_dead | out_dead | out_fresh | out_missing | out_stale | outputs | polygon_today_age_h | polygon_today_as_of | probe_FAILING | probe_NO_TRIGGER | probe_ON_TIME | probe_PARTLY_FAILING | probe_RAN | probe_RAN_NO_WRITE | probe_broken_count | projected_eom | recovered_since_nov15 | relay_alert_records_unrelayed | stage | stage_since | storage_day | storage_last_gb | storage_last_level | strength_age_h | strength_as_of | strength_generated | strength_ranked | strength_rows | strength_thin_days | version | versioning | warm/polygon-full/today-manifest_age_h |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 18.7 | 71.6 | 8.8 | 0 | 7.62 | 12054 | 2026-11-13 | [{"day": "2026-11-07", "rows": 271}] | 1.0.8 | 55.5 | 141.807 | 141.807 | 286.524 | 2026-11-16 11:12:15.546000+00:00 | 600.0 | 600.0 | budget | failed since 2026-10-08T22:00:40.571580+00:00 (phase part-2) | 3 | 4.6 | 745 | 200 | 835.1 | 0 | 176 | 4.6 | True | 2026-11-16T06:44+00:00 | 3.3 | 600 | 89 | 80 | 2026-11-13 | 19.5 | 19.5 | 2026-11-15T15:46:22.865155+00:00 | {} | held until 2026-11-17T06:16+00:00 | held until 2026-11-17T06:08+00:00 | 3 | 39.2 | 39.2 | 2026-11-14T20:04:44.191865+00:00 | 7.5 | 2026-11-13 | 2026-11-16T03:50:07+00:00 | 672 | polygon-bank $2.88; symdir $2.64; eia-bank $1.97; research-backtest $1.11; bank-histories $1.06 | enforce | 141.81 | 2 | 189 | 937 | 24 | 193 | 1343 | 61.4 | 2026-11-13T21:40:29+00:00 | auction-crisis-detector, chart-patterns, earnings-blackout, eps-revision-velocity, fmp-ratios, forensic-screen, momentum-breakout, predictability, revenue-acceleration, volatility-squeeze-hunter | ici-flows | analyst-consensus, auction-desk, auction-grader, auction-tail, bank-stress, bond-warroom, buyback-scanner, chart-vision, china-liquidity, coffee-can, convexity-scorer, corp-bonds, dealer-gex, digest-trends-ai, earnings-nlp, equity-ftd, esi, failure-library, fundamentals-engine, global-liquidity, imf-full, index-inclusion, inventory-drawdown, methodology-scout, naaim, nyfed-dealer-survey, pm-decision, political-trades, polygon-options-flow, powell-pivot, premortem-engine, price-redundancy, repo-lending, sector-flow-state, self-improvement, sellside-views, short-pressure, strategist, streaming-fanout, term-premium, trade-tickets, whales | fundamental-graphs | corporate-actions, crypto-emergence, fundamental-census, insider-trades | cross-asset-regime, earnings-iv-crush, earnings-quality, etf-true-flows, fmp-fundamentals-agent, forward-orders, gf-value, gold-equity-rotation, leading-markets, portwatch, russell-recon-frontrun, theme-rotation-engine, vol-target-unwind | 24 | 260.12 | corporate-actions, crypto-emergence, fundamental-census, insider-trades | 0 | NORMAL | 2026-11-02T15:44:47.324976+00:00 | 2026-11-15 | 1230.372 | None | 7.6 | 2026-11-13 | 2026-11-16T03:40:10+00:00 | 858 | 894 | [] | 1.6.1 | None | 61.4 |
+
+## Log
+## A. governor status
+
+- `11:18:08` version 1.6.1 mode enforce stage NORMAL since 2026-11-02T15:44:47.324976+00:00
+- `11:18:08` cap $600.0 (budget) | budget limit $600.0 actual $141.807 forecast $286.524
+- `11:18:08` thresholds: {"baseline_usd_day": 7.62, "brake_at": 535.57, "cap": 600.0, "cap_at_risk_even_frozen": false, "days_left": 14.53, "freeze_at": 575.57, "freeze_line_floored": false, "frozen_eom": 156.23, "lag_buffer": 7.62, "mtd": 141.81, "projected_eom": 260.12, "reserve": 24.43, "residual_usd_day": 0.47, "sources": {"budget_actual": 141.807, "ce_mtd": 139.8083}}
+- `11:18:08` held (stage/lever -> count): {"CAP/lambda": 3}
+- `11:18:08` capped (CAP, manual release only): ['justhodl-event-coordinator', 'justhodl-miss-calibrator', 'ofrapi']
+- `11:18:08` anomaly held (ANOM): none
+- `11:18:08` fuse: {"checked_at": "2026-11-16T11:07:38.232569+00:00", "diffuse": false, "firing": [], "fleet_usd_day": 2.79, "monitor_notified": {"day": "2026-10-16", "fns": ["justhodl-event-coordinator", "justhodl-miss-calibrator"]}, "suspects": {}, "top": [["justhodl-polygon-bank", 0.91], ["justhodl-stock-screener", 0.9], ["justhodl-fmp-walker", 0.37], ["justhodl-eia-bank", 0.32], ["justhodl-apac-leadlag", 0.1], ["justhodl-cycle-features", 0.05], ["justhodl-cq-feed", 0.05], ["justhodl-signal-scorecard", 0.02]]}
+- `11:18:08` suppress_until: None | last tick: {"decision": "NORMAL", "logs": ["meter: 1.0 h window, 26 functions ran, fleet $2.79/day; month-to-date top: justhodl-polygon-bank $2.88, justhodl-symdir $2.64, justhodl-eia-bank $1.97"], "mode": "enforce", "mtd": 139.81, "reason": "steady", "thresholds": {"baseline_source": "median14", "baseline_usd_day": 7.62, "brake_at": 535.57, "budget_forecast": 286.524, "budget_limit": 600.0, "cap": 600.0, "cap_at_risk_even_frozen": false, "cap_source": "budget", "days_left": 14.54, "freeze_at": 575.57, "freeze_line_floored": false, "frozen_eom": 154.24, "lag_buffer": 7.62, "mtd": 139.81, "projected_eom": 258.18, "reserve": 24.43, "residual_source": "min7", "residual_usd_day": 0.47, "sources": {"budget_
+- `11:18:08` cadence sentinel: {"checked": 842, "checked_at": "2026-11-16T00:07:37.742269+00:00", "day": "2026-11-16", "errors": [], "violators": []} | fixed entries: 0
+- `11:18:08` anomalies: {"errors_notified": {"day": "2026-11-15", "fns": ["justhodl-fundamental-graphs"]}, "holds": {}, "month": "2026-11", "suspects": {}}
+- `11:18:08` meter: {"active": 26, "daily": {"2026-11-02": {"alphavantage-market-agent": [2.0, 2e-05], "alphavantage-technical-analysis": [1.0, 1e-06], "bea-economic-agent": [3.0, 1.3e-05], "benzinga-news-agent": [4.0, 3.4e-05], "bls-employment-api-v2": [1.0, 3.7e-05], "bls-labor-agent": [1.0, 5.3e-05], "bond-indices-agent": [2.0, 6.1e-05], "census-economic-agent": [1.0, 2.6e-05], "cftc-futures-positioning-agent": [4.0, 0.001412], "chatgpt-agent-api": [1.0, 0.0], "coinmarketcap-agent": [1.0, 7e-06], "dollar-strength-agent": [3.0, 0.000141], "enhanced-repo-agent": [2.0, 9e-06], "fedliquidityapi": [6.0, 0.000112], "fmp-fundamentals-agent": [6.0, 4.9e-05], "fmp-stock-picks-agent": [1.0, 0.000285], "fred-ice-bofa-a
+- `11:18:08` storage: day 2026-11-15 | versioning None | warn_days None | trip_days None
+- `11:18:08` storage last assessment: {"day": "2026-11-14", "delta_gb": 4.24, "delta_objects": 23159, "delta_pct": 0.35, "gb": 1230.372, "level": null, "objects": 9818330, "prev": "2026-11-13", "prev_gb": 1226.134, "reason": "growth +4.2 GB (+0.3%), +23159 objects over 2026-11-14"}
+- `11:18:08` S3 $/day (storage.s3_usd): {"2026-11-01": 1.6878, "2026-11-02": 2.3964, "2026-11-03": 7.0606, "2026-11-04": 4.5035, "2026-11-05": 7.1751, "2026-11-06": 4.3117, "2026-11-07": 6.9638, "2026-11-08": 4.0928, "2026-11-09": 7.2844, "2026-11-10": 4.6142, "2026-11-11": 7.4233, "2026-11-12": 4.4004, "2026-11-13": 7.3488, "2026-11-14": 3.9307}
+- `11:18:08` service spend 2026-11-11: total $10.22 | Amazon Simple Storage Service $7.42, AWS Lambda $2.04, AmazonCloudWatch $0.31, AWS Secrets Manager $0.12, Amazon EC2 Container Registry  $0.09, AWS Cost Explorer $0.08
+- `11:18:08` service spend 2026-11-12: total $7.09 | Amazon Simple Storage Service $4.40, AWS Lambda $1.86, AmazonCloudWatch $0.39, AWS Secrets Manager $0.12, Amazon EC2 Container Registry  $0.09, AWS Cost Explorer $0.08
+- `11:18:08` service spend 2026-11-13: total $10.11 | Amazon Simple Storage Service $7.35, AWS Lambda $1.93, AmazonCloudWatch $0.40, AWS Secrets Manager $0.12, Amazon EC2 Container Registry  $0.09, Amazon DynamoDB $0.08
+- `11:18:08` service spend 2026-11-14: total $6.41 | Amazon Simple Storage Service $3.93, AWS Lambda $1.64, AmazonCloudWatch $0.40, AWS Secrets Manager $0.12, Amazon EC2 Container Registry  $0.09, AWS Cost Explorer $0.08
+## B. meter: month-to-date top engines
+
+- `11:18:09` engine cap $50.0/month | overrides {} | held [['justhodl-event-coordinator', 431.7289, '2026-10-20T19:42:48.856487+00:00'], ['justhodl-miss-calibrator', 1551.2815, '2026-10-20T19:42:48.856487+00:00'], ['ofrapi', None, '2026-10-20T20:55:54.358869+00:00']]
+- `11:18:09` released: {"justhodl-spend-governor-canary": {"at": "2026-11-03T06:33:34.823234+00:00", "mtd_at_release": 0.0, "reason": "ops 6718: trigger-cap live proof complete"}, "macro-financial-intelligence": {"at": "2026-11-02T16:14:44.475751+00:00", "mtd_at_release": 0.0, "reason": "ops 6712: Khalid 2026-11-02 'turn these on' (Oct 20 retire-plan hold lifted)"}, "treasury-api": {"at": "2026-11-02T16:14:45.773612+00:00", "mtd_at_release": 0.0, "reason": "ops 6712: Khalid 2026-11-02 'turn these on' (Oct 20 retire-plan hold lifted)"}}
+- `11:18:09` month-to-date top 25: polygon-bank $2.88, symdir $2.64, eia-bank $1.97, research-backtest $1.11, bank-histories $1.06, causality-scanner $0.78, worldbank-full $0.54, data-census $0.50, fmp-walker $0.49, feed-catalog $0.49, signal-genealogy $0.42, predictability $0.40, chart-patterns $0.39, thesis-engine $0.38, katlin $0.37, fmp-bank $0.37, tradingview $0.35, wl-engines $0.33, bottom $0.33, polygon-options-flow $0.31
+## C. governor event records since ops 6811 (2026-11-15 11:24 UTC), the raw budget read, the relay's marker
+
+- `11:18:09` 1 event records on Nov 15-16; 0 since ops 6811 (newest 20261115T080737.868478Z-error-storm.json)
+- `11:18:09` no alert-class event records since the Nov 15 run (only bookkeeping kinds, if any)
+- `11:18:09` relay marker: {"last_key": "spend-governor/events/20261115T080737.868478Z-error-storm.json", "updated": "2026-11-15T08:24:57.422562Z", "issues_opened": 1}
+- `11:18:09` relay is behind the newest record by 0 records (0 alert-class): 
+- `11:18:09` describe_budget now: limit $600.0 actual $141.807 forecast $286.524 | LastUpdatedTime 2026-11-16 11:12:15.546000+00:00
+- `11:18:09` MTD sources: {"budget_actual": 141.807, "ce_mtd": 139.8083}
+- `11:18:09` #138 - 'AWS Business Support+' by day in the governor's 14-day service record: {"2026-11-01": 29.0}
+## D. freshness of declared outputs (HEAD, bucket justhodl-dashboard-live) - 332 h after the Nov 2 15:44 UTC restore
+
+- `11:18:10` _health/fleet.json: 8.8 h old (12107 B) -> fresh
+- `11:18:10` _health/cadence-manifest.json: 71.6 h old (111275 B) -> stale
+- `11:18:10` data/_freshness-monitor.json: 3.3 h old (1199150 B) -> fresh
+- `11:18:10` manifest 2026-11-10T15:01:38.913351+00:00: 782 engines, 1343 declared data/ keys
+- `11:18:13` outputs by tier: {'fresh': 937, 'dead': 189, 'stale': 193, 'missing': 24} (Sunday Nov 15, ops 6811: fresh 932, stale 196, dead 191, missing 24; Saturday Nov 14: fresh 1059, stale 66, dead 194, missing 24)
+- `11:18:13` cadence manifest: 1 schedule entries readable
+- `11:18:13` SILENT engines - ALL outputs >= 54 h and < 7 d old (two daily slots missed, not dead; Sunday Nov 15: 27, 24 on weekly/monthly slots; Saturday Nov 14: 38): 89
+- `11:18:13`   imf-full: 2 output(s) 167-167 h | schedule ?
+- `11:18:13`   buyback-scanner: 1 output(s) 167-167 h | schedule ?
+- `11:18:13`   index-inclusion: 1 output(s) 166-166 h | schedule ?
+- `11:18:13`   whales: 1 output(s) 166-166 h | schedule ?
+- `11:18:13`   methodology-scout: 3 output(s) 153-153 h | schedule ?
+- `11:18:13`   nyfed-dealer-survey: 1 output(s) 139-139 h | schedule ?
+- `11:18:13`   sector-flow-state: 1 output(s) 134-134 h | schedule ?
+- `11:18:13`   inventory-drawdown: 1 output(s) 132-132 h | schedule ?
+- `11:18:13`   fmp-fundamentals-agent: 1 output(s) 125-125 h | schedule ?
+- `11:18:13`   china-liquidity: 2 output(s) 93-93 h | schedule ?
+- `11:18:13`   equity-ftd: 1 output(s) 92-92 h | schedule ?
+- `11:18:13`   portwatch: 2 output(s) 72-72 h | schedule ?
+- `11:18:13`   analyst-consensus: 1 output(s) 72-72 h | schedule ?
+- `11:18:13`   self-improvement: 1 output(s) 71-71 h | schedule ?
+- `11:18:13`   short-pressure: 1 output(s) 71-71 h | schedule ?
+- `11:18:13`   esi: 2 output(s) 71-71 h | schedule ?
+- `11:18:13`   coffee-can: 2 output(s) 70-70 h | schedule ?
+- `11:18:13`   digest-trends-ai: 2 output(s) 70-70 h | schedule ?
+- `11:18:13`   price-redundancy: 2 output(s) 70-70 h | schedule ?
+- `11:18:13`   fundamentals-engine: 1 output(s) 70-70 h | schedule ?
+- `11:18:13`   political-trades: 1 output(s) 70-70 h | schedule ?
+- `11:18:13`   term-premium: 1 output(s) 70-70 h | schedule ?
+- `11:18:13`   pm-decision: 2 output(s) 69-69 h | schedule ?
+- `11:18:13`   global-liquidity: 2 output(s) 69-69 h | schedule ?
+- `11:18:13`   strategist: 1 output(s) 69-69 h | schedule ?
+- `11:18:13`   sellside-views: 1 output(s) 69-69 h | schedule ?
+- `11:18:13`   earnings-nlp: 1 output(s) 69-69 h | schedule ?
+- `11:18:13`   premortem-engine: 2 output(s) 68-68 h | schedule ?
+- `11:18:13`   convexity-scorer: 1 output(s) 68-68 h | schedule ?
+- `11:18:13`   failure-library: 1 output(s) 68-68 h | schedule ?
+- `11:18:13`   bank-stress: 2 output(s) 68-68 h | schedule ?
+- `11:18:13`   repo-lending: 1 output(s) 67-67 h | schedule ?
+- `11:18:13`   chart-vision: 1 output(s) 67-67 h | schedule ?
+- `11:18:13`   auction-grader: 1 output(s) 67-67 h | schedule ?
+- `11:18:13`   auction-tail: 1 output(s) 67-67 h | schedule ?
+- `11:18:13`   naaim: 1 output(s) 66-66 h | schedule ?
+- `11:18:13`   polygon-options-flow: 2 output(s) 64-64 h | schedule ?
+- `11:18:13`   trade-tickets: 1 output(s) 64-64 h | schedule ?
+- `11:18:13`   auction-desk: 7 output(s) 64-64 h | schedule ?
+- `11:18:13`   bond-warroom: 3 output(s) 64-64 h | schedule ?
+- `11:18:13`   auction-crisis-detector: 1 output(s) 63-63 h | schedule ?
+- `11:18:13`   powell-pivot: 1 output(s) 63-63 h | schedule ?
+- `11:18:13`   corp-bonds: 1 output(s) 63-63 h | schedule ?
+- `11:18:13`   streaming-fanout: 9 output(s) 63-63 h | schedule ?
+- `11:18:13`   dealer-gex: 2 output(s) 63-63 h | schedule ?
+- `11:18:13`   capex-pulse: 2 output(s) 63-63 h | schedule ?
+- `11:18:13`   tiingo-news: 1 output(s) 63-63 h | schedule ?
+- `11:18:13`   crypto-etf-arb: 1 output(s) 62-62 h | schedule ?
+- `11:18:13`   prediction-snapshotter: 1 output(s) 62-62 h | schedule ?
+- `11:18:13`   compound-aggregator: 5 output(s) 62-62 h | schedule ?
+- `11:18:13`   13f-price-divergence: 1 output(s) 62-62 h | schedule ?
+- `11:18:13`   consensus-bottom: 1 output(s) 62-62 h | schedule ?
+- `11:18:13`   live-pulse: 2 output(s) 62-62 h | schedule ?
+- `11:18:13`   pnl-tracker: 2 output(s) 62-62 h | schedule ?
+- `11:18:13`   shadow-lab: 1 output(s) 62-62 h | schedule ?
+- `11:18:13`   ma200-reclaim: 2 output(s) 62-62 h | schedule ?
+- `11:18:13`   master-ranker: 1 output(s) 62-62 h | schedule ?
+- `11:18:13`   squeeze-fuel: 1 output(s) 62-62 h | schedule ?
+- `11:18:13`   cds-proxy: 1 output(s) 62-62 h | schedule ?
+- `11:18:13`   commodity-curves: 1 output(s) 61-61 h | schedule ?
+- `11:18:13`   factor-returns: 2 output(s) 61-61 h | schedule ?
+- `11:18:13`   accumulation-radar: 2 output(s) 61-61 h | schedule ?
+- `11:18:13`   options-gamma: 1 output(s) 61-61 h | schedule ?
+- `11:18:13`   polygon-today: 2 output(s) 61-61 h | schedule ?
+- `11:18:13`   fifx-vol-migration: 2 output(s) 61-61 h | schedule ?
+- `11:18:13`   spx-ma: 1 output(s) 61-61 h | schedule ?
+- `11:18:13`   dix: 2 output(s) 61-61 h | schedule ?
+- `11:18:13`   liquidity-profile: 1 output(s) 61-61 h | schedule ?
+- `11:18:13`   sp500: 2 output(s) 61-61 h | schedule ?
+- `11:18:13`   global-macro: 1 output(s) 61-61 h | schedule ?
+- `11:18:13`   usd-funding: 1 output(s) 61-61 h | schedule ?
+- `11:18:13`   implied-prob: 1 output(s) 61-61 h | schedule ?
+- `11:18:13`   earnings-confluence: 1 output(s) 61-61 h | schedule ?
+- `11:18:13`   event-study: 1 output(s) 61-61 h | schedule ?
+- `11:18:13`   historical-analogs: 1 output(s) 61-61 h | schedule ?
+- `11:18:13`   cross-asset-rv: 2 output(s) 61-61 h | schedule ?
+- `11:18:13`   scarcity-radar: 1 output(s) 61-61 h | schedule ?
+- `11:18:13`   vix-curve: 2 output(s) 60-60 h | schedule ?
+- `11:18:13`   crisis-knowledge-base: 1 output(s) 60-60 h | schedule ?
+- `11:18:13`   institutional-footprint: 2 output(s) 60-60 h | schedule ?
+- `11:18:13`   desk-returns: 1 output(s) 60-60 h | schedule ?
+- `11:18:13`   bond-trace: 3 output(s) 60-60 h | schedule ?
+- `11:18:13`   treasury-rehypo: 3 output(s) 60-60 h | schedule ?
+- `11:18:13`   resilience: 1 output(s) 60-60 h | schedule ?
+- `11:18:13`   sector-capital-fusion: 1 output(s) 60-60 h | schedule ?
+- `11:18:13`   forced-selling-bounce: 1 output(s) 59-59 h | schedule ?
+- `11:18:13`   finra-short: 1 output(s) 58-58 h | schedule ?
+- `11:18:13`   bottom: 2 output(s) 55-55 h | schedule ?
+- `11:18:13`   cds-desk: 5 output(s) 55-55 h | schedule ?
+- `11:18:13` ⚠ 89 engines have every declared output 54 h - 7 d old (held engines marked; nothing re-invoked; section F probes them)
+- `11:18:13` engines with ALL outputs 60 h - 7 d old (Nov 15: 26, Nov 14: 38): 80
+- `11:18:13` engines with at least one output < 30 h: 600 of 782 (Sunday Nov 15: 595 of 782; Saturday Nov 14: 665 of 782)
+- `11:18:13` STALE 30h-7d (193), youngest 40: symbol-dictionary.json 30h, _state/ishares-product-map.json 31h, forward-returns.json 32h, thesis-engine.json 36h, thesis-state-v2.json.gz 36h, wl-engines.json 37h, wl-predictions.json 37h, cftc-deep-view.json 38h, cot-extremes.json 38h, ici-flows.json 39h, ici-fund-flows.json 39h, beaters-learned-weights.json 44h, spx-beaters.json 45h, base-rates.json 45h, cftc-all-cache.json 46h, treasury-noise-history.json 46h, treasury-noise.json 46h, options-analytics-iv-history.json 46h, options-analytics.json 46h, market-internals.json 47h, momentum-leaders.json 49h, earnings-pead.json 51h, warm/katlin/splits.json 55h, cds-desk.json 55h, warm/cds/bank.json.gz 55h, cds-desk-history.json 55h, warm/ecb-sup/_last-check.json 55h, warm/ecb-sup/state.json 55h, bottom.json 55h, capitulation-desk.json 55h, 13f-security-master.json 56h, fortress.json 56h, finra-short.json 58h, forced-selling-bounce.json 59h, global-flow-desk.json 60h, sector-capital-fusion.json 60h, resilience.json 60h, warm/treasury-par/curve.json.gz 60h, treasury-rehypo-history.json 60h, treasury-rehypo-long.json 60h
+- `11:18:13` DEAD >=7d (189); crossed the line since the Nov 15 run (2): fundgraph/symdir2.json 170h<-justhodl-fundamental-graphs, sec-cik-ticker-map.json 191h<-justhodl-sec-8k-enrich
+- `11:18:13` DEAD oldest: feedback-summary.json 196d, user-watchlist.json 193d, user-trades-stats.json 193d, user-trades.json 193d, carry-surface/alert-history.json 165d, quiver-lobbying-cache.json 158d, _alerts/convergence-radar-alerted.json 158d, quiver-congress-cache.json 144d, _cache/chokepoint-irreplaceability.json 137d, ka-config.json 125d, khalid-config.json 125d, _state/fleet-integrity-baseline.json 107d, ecb-confidence.json 106d, audit/inventory.json 104d, calibration-snapshot.json 104d
+- `11:18:13` MISSING objects (24): _state/signal-alpha-map.json<-justhodl-signal-scorecard, _telegram-chat.json<-justhodl-alpha-compass, _tmp/trend-reversal-partial.json<-justhodl-trend-reversal, activist-radar.json<-justhodl-activist-radar, biotech-catalysts.json<-justhodl-biotech-catalysts, earnings-transcripts.json<-justhodl-earnings-transcripts, engine-robustness.json<-justhodl-engine-robustness, ipo-calendar.json<-justhodl-ipo-calendar, kill-switch-state.json<-justhodl-kill-switch, prediction-markets.json<-justhodl-prediction-markets, regsho-threshold.json<-justhodl-regsho, retail-attention.json<-justhodl-retail-attention, sentiment-surveys.json<-justhodl-sentiment-surveys, signal-genealogy-research/cache/current.json<-justhodl-signal-genealogy, symbology/bond-cusips.json<-justhodl-symbology-master, symdir/wb-indicators.json.gz<-justhodl-symdir, transcripts-index.json<-justhodl-transcript-indexer, tv-descriptions.json<-justhodl-tv-notes-ingest, usaspending-contracts.json<-justhodl-usaspending, uspto-patents.json<-justhodl-uspto-patents, warm/asia-trade/kr/403Y001__exports-imports.json.gz<-justhodl-asia-trade-full, warm/asia-trade/kr/901Y009__industrial-production.json.gz<-justhodl-asia-trade-full, warm/asia-trade/kr/901Y011__manufacturing-shipments.json.gz<-justhodl-asia-trade-full, warm/blackswan/vn_VNINDEX.json<-justhodl-blackswan-watch,justhodl-bottom
+- `11:18:13` FRESH (<30 h): 937 of 1343
+- `11:18:13` engines born last fortnight + un-stalled Nov 10-11 (13f-book Nov 3, strength Nov 4, leaders Nov 5, bottom 1.3.0 Nov 5; etf-true-flows 3.0.1 + ici-flows lane + polygon-today Nov 10-11):
+- `11:18:13`   data/13f-book.json: 18.7 h old (1369084 B) -> fresh
+- `11:18:13`   data/strength.json: 7.6 h old (4184813 B) -> fresh
+- `11:18:13`   data/leaders.json: 7.5 h old (3102657 B) -> fresh
+- `11:18:13`   data/bottom.json: 55.5 h old (2241498 B) -> stale
+- `11:18:13`   data/etf-true-flows.json: 19.5 h old (711471 B) -> fresh
+- `11:18:13`   data/ici-flows.json: 39.2 h old (32209 B) -> stale
+- `11:18:13`   data/warm/polygon-full/today-manifest.json: 61.4 h old (749 B) -> stale
+## E. FMP bandwidth hold (walker + bank manifests; yesterday self-held until Nov 16 05:52 / 06:00 UTC - day 17)
+
+- `11:18:14` data/warm/fmp/manifest.json (1.0 h old): version 1.3.0 phase BACKFILL key_status ok | hold HELD until 2026-11-17T06:16+00:00 | FMP 429 'Bandwidth Limit Reach' at 2026-11-16T10:16:33+00:00: the plan's 30-day bandwidth is spent; holding 20 h (schedules probe once a day)
+- `11:18:14` data/warm/fmp-bank/manifest.json (1.2 h old): version 1.3.0 phase BACKFILL key_status ok | hold HELD until 2026-11-17T06:08+00:00 | FMP 429 'Bandwidth Limit Reach' at 2026-11-16T10:08:25+00:00: the plan's 30-day bandwidth is spent; holding 20 h
+## F. silent engines: triggers, invocations, errors, newest log tail (follow-up to ops 6811)
+
+- `11:18:14` ⚠ 115 engines to probe - only the Nov 15 set and the 45 silent ones with the oldest output are probed
+- `11:18:14` 454 Scheduler schedules listed, 408 distinct target functions
+- `11:18:17` fmp-fundamentals-agent -> RAN_NO_WRITE (Nov 15 RAN_NO_WRITE) | reserved None | outputs 125 h | triggers (0 enabled, daily-or-faster False): NONE
+- `11:18:17`     metrics: 11-12 n42 e0 t0, 11-13 n8 e0 t0, 11-14 n7 e0 t0, 11-15 n4 e0 t0
+- `11:18:18`     log 11-15 14:24: REPORT RequestId: f86d0d3c-a05b-49b4-8ba1-61e900a9851d Duration: 9904.43 ms Billed Duration: 10058 ms Memory Size: 512 MB Max Memory Used: 124 MB Init Duration: 152.76 ms XRAY TraceId: 1-6af9c0a9-6f641e3b4c025abb4373f627 SegmentId: 1dccdc6e1a1749bb Sampled: tr
+- `11:18:18` analyst-consensus -> ON_TIME (Nov 15 -) | reserved None | outputs 72 h | triggers (1 enabled, daily-or-faster False): rule analyst-consensus-daily ENABLED cron(45 11 ? * MON-FRI *)
+- `11:18:18`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:19` auction-crisis-detector -> FAILING (Nov 15 -) | reserved None | outputs 63 h | triggers (1 enabled, daily-or-faster True): rule justhodl-auction-crisis-active ENABLED cron(50 19 * * ? *); rule justhodl-auction-crisis-backstop DISABLED cron(5 13 * * ? *)
+- `11:18:19`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0, 11-14 n3 e3 t0, 11-15 n3 e3 t0
+- `11:18:20` auction-desk -> ON_TIME (Nov 15 -) | reserved None | outputs 64/64/64/64/64/64/64 h | triggers (1 enabled, daily-or-faster False): sched justhodl-auction-desk-results DISABLED cron(40 13 ? * MON-FRI *); sched justhodl-auction-desk-late DISABLED cron(35 16 ? * MON-FRI *); sched justhodl-auction-desk-buyback ENABLED cron(30 14 ? * MON-FRI *); sched justhodl-auction-desk-morning DISABLED cron(15 9 ? * MON-FRI *)
+- `11:18:20`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:20` auction-grader -> ON_TIME (Nov 15 -) | reserved None | outputs 67 h | triggers (1 enabled, daily-or-faster False): sched auction-grader-sched ENABLED cron(15 16 ? * MON-FRI *)
+- `11:18:20`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:20` auction-tail -> ON_TIME (Nov 15 -) | reserved None | outputs 67 h | triggers (1 enabled, daily-or-faster False): sched justhodl-auction-tail-daily ENABLED cron(20 16 ? * MON-FRI *)
+- `11:18:20`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:21` bank-stress -> ON_TIME (Nov 15 -) | reserved None | outputs 68/68 h | triggers (1 enabled, daily-or-faster False): rule bank-stress-daily ENABLED cron(0 15 ? * MON-FRI *)
+- `11:18:21`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:21` bond-warroom -> ON_TIME (Nov 15 -) | reserved None | outputs 64/64/64 h | triggers (1 enabled, daily-or-faster False): sched justhodl-bond-warroom-evening DISABLED cron(15 19 ? * MON-FRI *); sched justhodl-bond-warroom-mid DISABLED cron(0 10 ? * MON-FRI *); sched justhodl-bond-warroom-close DISABLED cron(45 16 ? * MON-FRI *); sched justhodl-bond-warroom-early DISABLED cron(30 7 ? * MON-FRI *); sched justhodl-bond-warroom-after-auction ENABLED cron(35 14 ? * MON-FRI *)
+- `11:18:21`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:21` buyback-scanner -> ON_TIME (Nov 15 -) | reserved None | outputs 167 h | triggers (1 enabled, daily-or-faster False): rule justhodl-buyback-scanner-sched ENABLED cron(0 12 ? * MON *); rule justhodl-buyback-scanner-weekly DISABLED cron(0 12 ? * MON *)
+- `11:18:21`     metrics: no datapoints in 4 days
+- `11:18:22` chart-patterns -> FAILING (Nov 15 FAILING) | reserved None | outputs 324 h | triggers (1 enabled, daily-or-faster True): sched justhodl-chart-patterns-daily ENABLED cron(30 23 * * ? *)
+- `11:18:22`     metrics: 11-12 n3 e3 t0, 11-13 n3 e3 t0, 11-14 n3 e3 t0, 11-15 n3 e3 t0
+- `11:18:23`     log 11-15 23:58: [fmp-bankfirst] hits=1 stale=549 misses=0 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=44.9s
+- `11:18:23`     log 11-15 23:59: [fmp-bankfirst] hits=1 stale=599 misses=0 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=47.4s
+- `11:18:23`     log 11-15 23:59: [fmp-bankfirst] hits=1 stale=649 misses=0 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=50.2s
+- `11:18:23`     log 11-16 00:00: [fmp-bankfirst] hits=1 stale=749 misses=0 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=56.4s
+- `11:18:23`     log 11-16 00:01: [fmp-bankfirst] hits=1 stale=799 misses=0 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=59.1s
+- `11:18:23`     log 11-16 00:01: [fmp-bankfirst] hits=1 stale=849 misses=0 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=61.7s
+- `11:18:23`     log 11-16 00:02: [fmp-bankfirst] hits=1 stale=899 misses=0 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=64.3s
+- `11:18:23`     log 11-16 00:02: [fmp-bankfirst] hits=1 stale=949 misses=0 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=66.9s
+- `11:18:23`     log 11-16 00:03: [fmp-bankfirst] hits=1 stale=999 misses=0 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=69.6s
+- `11:18:23`     log 11-16 00:03: REPORT RequestId: 2e6afa40-78fd-4b05-bf38-cfac64d76fe7 Duration: 600000.00 ms Billed Duration: 600000 ms Memory Size: 1024 MB Max Memory Used: 174 MB Status: timeout XRAY TraceId: 1-6afa408f-54b272bf2147b44117fac090 SegmentId: 244e946067fd29c6 Sampled: true
+- `11:18:23` chart-vision -> ON_TIME (Nov 15 -) | reserved None | outputs 67 h | triggers (1 enabled, daily-or-faster False): rule chart-vision-daily ENABLED cron(0 16 ? * MON-FRI *)
+- `11:18:23`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:23` china-liquidity -> ON_TIME (Nov 15 RAN_NO_WRITE) | reserved None | outputs 93/93 h | triggers (1 enabled, daily-or-faster False): rule china-liquidity-daily ENABLED cron(30 14 ? * MON-FRI *)
+- `11:18:23`     metrics: 11-12 n2 e0 t0, 11-13 n1 e0 t0
+- `11:18:24` coffee-can -> ON_TIME (Nov 15 -) | reserved None | outputs 70/70 h | triggers (1 enabled, daily-or-faster False): rule coffee-can-daily ENABLED cron(0 13 ? * MON-FRI *)
+- `11:18:24`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:24` convexity-scorer -> ON_TIME (Nov 15 -) | reserved None | outputs 68 h | triggers (1 enabled, daily-or-faster False): rule convexity-scorer-daily ENABLED cron(50 14 ? * MON-FRI *); sched convexity-scorer-sched DISABLED cron(0 14 ? * MON-FRI *)
+- `11:18:24`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:24` corp-bonds -> ON_TIME (Nov 15 -) | reserved None | outputs 63 h | triggers (1 enabled, daily-or-faster False): sched justhodl-corp-bonds-daily ENABLED cron(15 20 ? * MON-FRI *)
+- `11:18:24`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:25` corporate-actions -> RAN (Nov 15 RAN) | reserved None | outputs 5/5 h | triggers (1 enabled, daily-or-faster True): rule justhodl-corporate-actions-schedule DISABLED cron(30 6 ? * * *); sched justhodl-corporate-actions-schedule ENABLED cron(30 6 ? * * *)
+- `11:18:25`     metrics: 11-12 n5 e0 t0, 11-13 n3 e0 t0, 11-14 n1 e0 t0, 11-15 n1 e0 t0
+- `11:18:25`     log: 19 x 'http failed ... HTTPError 403' lines in the last invocation (pre-2021 dividends, plan_history_403)
+- `11:18:25`     log 11-16 06:30: [corpact] plan history floor learned: 403 for 2021-09-29 (APD 2021-09-30)
+- `11:18:25`     log 11-16 06:33: [corpact] plan history floor learned: 403 for 2021-10-24 (APOG 2021-10-25)
+- `11:18:25`     log 11-16 06:34: [corpact] plan history floor learned: 403 for 2021-11-09 (ARCB 2021-11-10)
+- `11:18:25`     log 11-16 06:40: [corpact] plan history floor learned: 403 for 2021-11-11 (ARR 2021-11-12)
+- `11:18:25`     log 11-16 06:44: [corpact] done: {"universe": 11734, "window": 200, "due": 200, "processed": 176, "written": 176, "failed": 0, "with_events": 115, "disagreements": 1272, "factor_gaps": 61, "polygon_key": true, "stopped_early": true, "cursor": 745, "plan_floor_403": "2021-11-11
+- `11:18:25`     log 11-16 06:44: REPORT RequestId: 236afaa2-e8d8-40b4-8999-937a423a08e0 Duration: 835126.02 ms Billed Duration: 835466 ms Memory Size: 256 MB Max Memory Used: 164 MB Init Duration: 339.72 ms XRAY TraceId: 1-6afaa304-1203a5e2772213756850d413 SegmentId: 062c64283d84b1ca Sampled:
+- `11:18:26` cross-asset-regime -> RAN_NO_WRITE (Nov 15 RAN_NO_WRITE) | reserved None | outputs 327/327 h | triggers (1 enabled, daily-or-faster False): rule justhodl-cross-asset-regime-sched ENABLED cron(35 20 ? * MON-FRI *)
+- `11:18:26`     metrics: 11-12 n2 e0 t0, 11-13 n2 e0 t0, 11-14 n1 e0 t0, 11-15 n1 e0 t0
+- `11:18:26`     log 11-15 13:30: [regime] starting v1.0
+- `11:18:26`     log 11-15 13:30: [regime] fetched 0/8 histories
+- `11:18:26`     log 11-15 13:30: REPORT RequestId: fd4b68db-0b6c-4431-9256-1337caf408fe Duration: 1444.95 ms Billed Duration: 1972 ms Memory Size: 512 MB Max Memory Used: 122 MB Init Duration: 526.71 ms XRAY TraceId: 1-6af9b3fe-045dec6f26a5f99146756aef SegmentId: 969f229ccbfd4568 Sampled: tru
+- `11:18:27` crypto-emergence -> RAN (Nov 15 RAN) | reserved None | outputs 12 h | triggers (1 enabled, daily-or-faster True): rule justhodl-crypto-emergence-daily ENABLED cron(0 23 * * ? *)
+- `11:18:27`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0, 11-14 n2 e0 t0, 11-15 n1 e0 t0
+- `11:18:27` dealer-gex -> ON_TIME (Nov 15 -) | reserved None | outputs 63/63 h | triggers (1 enabled, daily-or-faster False): rule justhodl-dealer-gex-hourly DISABLED cron(7 21 ? * MON-FRI *); rule justhodl-dealer-gex-sched ENABLED cron(35 20 ? * MON-FRI *)
+- `11:18:27`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:27` digest-trends-ai -> ON_TIME (Nov 15 -) | reserved None | outputs 70/70 h | triggers (1 enabled, daily-or-faster False): rule justhodl-digest-trends-ai-daily ENABLED cron(0 13 ? * MON-FRI *)
+- `11:18:27`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:28` earnings-blackout -> FAILING (Nov 15 FAILING) | reserved None | outputs 408/408 h | triggers (1 enabled, daily-or-faster True): rule justhodl-blackout-daily ENABLED cron(31 11 * * ? *)
+- `11:18:28`     metrics: 11-12 n6 e6 t0, 11-13 n6 e6 t0, 11-14 n6 e6 t0, 11-15 n6 e6 t0
+- `11:18:28`     log 11-15 13:30: [ERROR] HTTPError: HTTP Error 429: Too Many Requests Traceback (most recent call last): File "/var/task/lambda_function.py", line 66, in lambda_handler j = _get("https://financialmodelingprep.com/stable/earnings-calendar?from=%s&to=%s&limit=3000&apikey=***" Fi
+- `11:18:28`     log 11-15 13:30: REPORT RequestId: ae476c99-fbbc-4873-87a7-0475a294e2bb Duration: 3380.38 ms Billed Duration: 3808 ms Memory Size: 256 MB Max Memory Used: 162 MB Init Duration: 426.97 ms XRAY TraceId: 1-6af9b3fe-045dec6f26a5f99146756aef SegmentId: 309353813a21303d Sampled: tru
+- `11:18:28`     log 11-15 13:31: [blackout] sp500 members: 503
+- `11:18:28`     log 11-15 13:31: [blackout] caps matched: 503/503 total $72.6T
+- `11:18:28`     log 11-15 13:31: [ERROR] HTTPError: HTTP Error 429: Too Many Requests Traceback (most recent call last): File "/var/task/lambda_function.py", line 66, in lambda_handler j = _get("https://financialmodelingprep.com/stable/earnings-calendar?from=%s&to=%s&limit=3000&apikey=***" Fi
+- `11:18:28`     log 11-15 13:31: REPORT RequestId: ae476c99-fbbc-4873-87a7-0475a294e2bb Duration: 2972.36 ms Billed Duration: 2973 ms Memory Size: 256 MB Max Memory Used: 221 MB XRAY TraceId: 1-6af9b3fe-045dec6f26a5f99146756aef SegmentId: 91b98bc0e49249af Sampled: true
+- `11:18:28`     log 11-15 13:33: [blackout] sp500 members: 503
+- `11:18:28`     log 11-15 13:34: [blackout] caps matched: 503/503 total $72.6T
+- `11:18:28`     log 11-15 13:34: [ERROR] HTTPError: HTTP Error 429: Too Many Requests Traceback (most recent call last): File "/var/task/lambda_function.py", line 66, in lambda_handler j = _get("https://financialmodelingprep.com/stable/earnings-calendar?from=%s&to=%s&limit=3000&apikey=***" Fi
+- `11:18:28`     log 11-15 13:34: REPORT RequestId: ae476c99-fbbc-4873-87a7-0475a294e2bb Duration: 2637.91 ms Billed Duration: 2638 ms Memory Size: 256 MB Max Memory Used: 234 MB XRAY TraceId: 1-6af9b3fe-045dec6f26a5f99146756aef SegmentId: ae16f5722b83fbff Sampled: true
+- `11:18:29` earnings-iv-crush -> RAN_NO_WRITE (Nov 15 RAN_NO_WRITE) | reserved None | outputs 325 h | triggers (1 enabled, daily-or-faster True): rule justhodl-earnings-iv-crush-daily DISABLED cron(50 21 * * ? *); sched justhodl-earnings-iv-crush-daily ENABLED cron(2 22 * * ? *)
+- `11:18:29`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0, 11-14 n1 e0 t0, 11-15 n1 e0 t0
+- `11:18:29`     log 11-15 22:02: earnings calendar error: HTTP Error 429: Too Many Requests
+- `11:18:29`     log 11-15 22:02: earnings calendar returned 0 events
+- `11:18:29`     log 11-15 22:02: REPORT RequestId: 8b6afa2b-d818-4d13-bee8-32cafe59e13f Duration: 404.33 ms Billed Duration: 755 ms Memory Size: 1024 MB Max Memory Used: 99 MB Init Duration: 349.84 ms XRAY TraceId: 1-6afa2bf6-79409a9d6f332a4f2b36a960 SegmentId: 1c34345f477b611d Sampled: true
+- `11:18:29` earnings-nlp -> ON_TIME (Nov 15 -) | reserved None | outputs 69 h | triggers (1 enabled, daily-or-faster False): sched earnings-nlp-sched ENABLED cron(5 14 ? * MON-FRI *)
+- `11:18:29`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:30` earnings-quality -> RAN_NO_WRITE (Nov 15 RAN_NO_WRITE) | reserved None | outputs 405 h | triggers (1 enabled, daily-or-faster True): rule jh-earnings-quality-daily ENABLED cron(18 14 * * ? *); sched justhodl-earnings-quality-weekly DISABLED cron(30 13 ? * WED *)
+- `11:18:30`     metrics: 11-12 n2 e0 t0, 11-13 n2 e0 t0, 11-14 n2 e0 t0, 11-15 n2 e0 t0
+- `11:18:30`     log 11-15 14:18: REPORT RequestId: d740c0d3-d820-4d89-bbd6-45bebbaf70fe Duration: 1008.56 ms Billed Duration: 1545 ms Memory Size: 1536 MB Max Memory Used: 108 MB Init Duration: 536.25 ms XRAY TraceId: 1-6af9bf3c-66e9f3e750ab6f66629de7e4 SegmentId: 762c7f98c6492003 Sampled: tr
+- `11:18:31` eps-revision-velocity -> FAILING (Nov 15 FAILING) | reserved None | outputs 264 h | triggers (0 enabled, daily-or-faster False): NONE
+- `11:18:31`     metrics: 11-12 n3 e3 t0, 11-13 n3 e3 t0, 11-14 n3 e3 t0, 11-15 n3 e3 t0
+- `11:18:31`     log 11-16 11:00: [fmp-bankfirst] first hit: hits=1 stale=0 misses=0 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=1.1s
+- `11:18:31`     log 11-16 11:00: [ERROR] ValueError: All provider populations unavailable; preserve previous publication Traceback (most recent call last): File "/var/task/lambda_function.py", line 692, in lambda_handler raise ValueError('All provider populations unavailable; preserve previou
+- `11:18:31`     log 11-16 11:00: REPORT RequestId: 7a12e54d-57b7-4239-af8e-fcf2a275cc49 Duration: 1627.61 ms Billed Duration: 2061 ms Memory Size: 1024 MB Max Memory Used: 154 MB Init Duration: 433.35 ms XRAY TraceId: 1-6afae23a-4a080a3b44a38b9471d740eb SegmentId: b0c323a7625caa95 Sampled: tr
+- `11:18:31`     log 11-16 11:01: [ERROR] ValueError: All provider populations unavailable; preserve previous publication Traceback (most recent call last): File "/var/task/lambda_function.py", line 692, in lambda_handler raise ValueError('All provider populations unavailable; preserve previou
+- `11:18:31`     log 11-16 11:01: REPORT RequestId: 7a12e54d-57b7-4239-af8e-fcf2a275cc49 Duration: 1574.72 ms Billed Duration: 1575 ms Memory Size: 1024 MB Max Memory Used: 167 MB XRAY TraceId: 1-6afae23a-4a080a3b44a38b9471d740eb SegmentId: 32b0a321a5e5025f Sampled: true
+- `11:18:31`     log 11-16 11:03: [fmp-bankfirst] hits=25 stale=6 misses=19 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=3.2s
+- `11:18:31`     log 11-16 11:03: [ERROR] ValueError: All provider populations unavailable; preserve previous publication Traceback (most recent call last): File "/var/task/lambda_function.py", line 692, in lambda_handler raise ValueError('All provider populations unavailable; preserve previou
+- `11:18:31`     log 11-16 11:03: REPORT RequestId: 7a12e54d-57b7-4239-af8e-fcf2a275cc49 Duration: 1153.88 ms Billed Duration: 1154 ms Memory Size: 1024 MB Max Memory Used: 172 MB XRAY TraceId: 1-6afae23a-4a080a3b44a38b9471d740eb SegmentId: f3c89db15813a18b Sampled: true
+- `11:18:32` equity-ftd -> ON_TIME (Nov 15 ON_TIME) | reserved None | outputs 92 h | triggers (1 enabled, daily-or-faster False): sched equity-ftd-sched ENABLED cron(10 15 ? * MON,THU *)
+- `11:18:32`     metrics: 11-12 n1 e0 t0
+- `11:18:32` esi -> ON_TIME (Nov 15 -) | reserved None | outputs 71/71 h | triggers (1 enabled, daily-or-faster False): rule esi-daily ENABLED cron(30 12 ? * MON-FRI *)
+- `11:18:32`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:32` etf-true-flows -> RAN_NO_WRITE (Nov 15 RAN_NO_WRITE) | reserved None | outputs 19/1384/1388/1388 h | triggers (1 enabled, daily-or-faster True): rule justhodl-etf-true-flows-daily ENABLED cron(45 15 * * ? *)
+- `11:18:32`     metrics: 11-12 n3 e0 t0, 11-13 n1 e0 t0, 11-14 n1 e0 t0, 11-15 n1 e0 t0
+- `11:18:33`     log 11-15 15:49: REPORT RequestId: 18ea27a7-8b04-49bd-954e-9a4f5b9dbef4 Duration: 248532.00 ms Billed Duration: 249086 ms Memory Size: 1536 MB Max Memory Used: 919 MB Init Duration: 553.47 ms XRAY TraceId: 1-6af9d38b-1d7da4ac218bbac54fc037eb SegmentId: 782ecdc3336def74 Sampled
+- `11:18:33` failure-library -> ON_TIME (Nov 15 -) | reserved None | outputs 68 h | triggers (1 enabled, daily-or-faster False): rule failure-library-daily ENABLED cron(0 15 ? * MON-FRI *)
+- `11:18:33`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:33` fmp-ratios -> FAILING (Nov 15 FAILING) | reserved None | outputs 325 h | triggers (1 enabled, daily-or-faster True): sched justhodl-fmp-ratios-daily ENABLED cron(38 22 * * ? *)
+- `11:18:33`     metrics: 11-12 n3 e3 t0, 11-13 n3 e3 t0, 11-14 n3 e3 t0, 11-15 n3 e3 t0
+- `11:18:34`     log 11-15 22:42: [ERROR] RuntimeError: FMP key status {"status": "http_429", "path": "ratios"} - previous book kept Traceback (most recent call last): File "/var/task/lambda_function.py", line 184, in lambda_handler raise RuntimeError("FMP key status %s - previous book kept" %
+- `11:18:34`     log 11-15 22:42: REPORT RequestId: c96afa34-48c0-439a-ace6-cabd135bb4a1 Duration: 252304.65 ms Billed Duration: 252732 ms Memory Size: 1024 MB Max Memory Used: 107 MB Init Duration: 426.71 ms XRAY TraceId: 1-6afa3467-2a09ef820faab34519d9b971 SegmentId: 7be4cebb21386e1d Sampled
+- `11:18:34`     log 11-15 22:43: [fmp-ratios] universe {'core': 40, 'tv_universe': 292, 'sp500': 0, 'selected': 314, 'candidates': 314} -> 314 names; previous book 2026-11-02T22:38:32+00:00 with 697 rows
+- `11:18:34`     log 11-15 22:48: [fmp-ratios] attempted 314 ok 0 errors 314 skipped(time) 0 key_status {"status": "http_429", "path": "ratios"} in 252s
+- `11:18:34`     log 11-15 22:48: [ERROR] RuntimeError: FMP key status {"status": "http_429", "path": "ratios"} - previous book kept Traceback (most recent call last): File "/var/task/lambda_function.py", line 184, in lambda_handler raise RuntimeError("FMP key status %s - previous book kept" %
+- `11:18:34`     log 11-15 22:48: REPORT RequestId: c96afa34-48c0-439a-ace6-cabd135bb4a1 Duration: 251999.34 ms Billed Duration: 252000 ms Memory Size: 1024 MB Max Memory Used: 117 MB XRAY TraceId: 1-6afa3467-2a09ef820faab34519d9b971 SegmentId: 1523e42fe0e390d4 Sampled: true
+- `11:18:34`     log 11-15 22:50: [fmp-ratios] universe {'core': 40, 'tv_universe': 292, 'sp500': 0, 'selected': 314, 'candidates': 314} -> 314 names; previous book 2026-11-02T22:38:32+00:00 with 697 rows
+- `11:18:34`     log 11-15 22:54: [fmp-ratios] attempted 314 ok 0 errors 314 skipped(time) 0 key_status {"status": "http_429", "path": "ratios"} in 252s
+- `11:18:34`     log 11-15 22:54: [ERROR] RuntimeError: FMP key status {"status": "http_429", "path": "ratios"} - previous book kept Traceback (most recent call last): File "/var/task/lambda_function.py", line 184, in lambda_handler raise RuntimeError("FMP key status %s - previous book kept" %
+- `11:18:34`     log 11-15 22:54: REPORT RequestId: c96afa34-48c0-439a-ace6-cabd135bb4a1 Duration: 251940.38 ms Billed Duration: 251941 ms Memory Size: 1024 MB Max Memory Used: 119 MB XRAY TraceId: 1-6afa3467-2a09ef820faab34519d9b971 SegmentId: 4fc852501174eb24 Sampled: true
+- `11:18:35` forensic-screen -> FAILING (Nov 15 FAILING) | reserved None | outputs 310 h | triggers (1 enabled, daily-or-faster True): rule justhodl-forensic-screen-12h ENABLED cron(26 17 * * ? *)
+- `11:18:35`     metrics: 11-12 n6 e6 t0, 11-13 n6 e6 t0, 11-14 n6 e6 t0, 11-15 n6 e6 t0
+- `11:18:35`     log 11-15 17:26: [ERROR] ValueError: Ready accounting acquisition is future-dated or older than 48 hours Traceback (most recent call last): File "/var/task/lambda_function.py", line 81, in lambda_handler result = producer.run(client, BUCKET, event.get('request_id') or event.ge
+- `11:18:35`     log 11-15 17:26: REPORT RequestId: ce197986-5591-4158-ae18-8f11e646eb05 Duration: 1194.38 ms Billed Duration: 1564 ms Memory Size: 1024 MB Max Memory Used: 102 MB Init Duration: 369.07 ms XRAY TraceId: 1-6af9eb36-796edcfe15ae252f76a4e186 SegmentId: c061af6750458a19 Sampled: tr
+- `11:18:35`     log 11-15 17:27: [ERROR] ValueError: Request already attempted; inspect its retained failure or ambiguous state Traceback (most recent call last): File "/var/task/lambda_function.py", line 81, in lambda_handler result = producer.run(client, BUCKET, event.get('request_id') or e
+- `11:18:35`     log 11-15 17:27: REPORT RequestId: ce197986-5591-4158-ae18-8f11e646eb05 Duration: 98.40 ms Billed Duration: 99 ms Memory Size: 1024 MB Max Memory Used: 103 MB XRAY TraceId: 1-6af9eb36-796edcfe15ae252f76a4e186 SegmentId: 1ba53e980808a091 Sampled: true
+- `11:18:35`     log 11-15 17:29: [ERROR] ValueError: Request already attempted; inspect its retained failure or ambiguous state Traceback (most recent call last): File "/var/task/lambda_function.py", line 81, in lambda_handler result = producer.run(client, BUCKET, event.get('request_id') or e
+- `11:18:35`     log 11-15 17:29: REPORT RequestId: ce197986-5591-4158-ae18-8f11e646eb05 Duration: 87.58 ms Billed Duration: 88 ms Memory Size: 1024 MB Max Memory Used: 103 MB XRAY TraceId: 1-6af9eb36-796edcfe15ae252f76a4e186 SegmentId: c6e3ecb117ec07ef Sampled: true
+- `11:18:36` forward-orders -> RAN_NO_WRITE (Nov 15 RAN_NO_WRITE) | reserved None | outputs 408 h | triggers (1 enabled, daily-or-faster True): rule forward-orders-daily ENABLED cron(1 11 * * ? *); sched justhodl-forward-orders-daily DISABLED cron(50 21 ? * MON-FRI *)
+- `11:18:36`     metrics: 11-12 n2 e0 t0, 11-13 n2 e0 t0, 11-14 n2 e0 t0, 11-15 n2 e0 t0
+- `11:18:36`     log 11-16 11:01: [fwd-orders] fetching universe…
+- `11:18:36`     log 11-16 11:01: [fwd-orders] universe size: 0 tickers
+- `11:18:36`     log 11-16 11:01: REPORT RequestId: 7f200e5a-ad9d-4170-807d-bad0fd85c2a8 Duration: 75.45 ms Billed Duration: 489 ms Memory Size: 1024 MB Max Memory Used: 94 MB Init Duration: 413.14 ms XRAY TraceId: 1-6afae273-45c758a6103d7df539aa47de SegmentId: 92ac0d7de9216436 Sampled: true
+- `11:18:36` fundamental-census -> RAN (Nov 15 RAN) | reserved None | outputs 28/28/28/28 h | triggers (1 enabled, daily-or-faster False): sched fundamental-census-sched ENABLED cron(0 6 1,15 * ? *)
+- `11:18:36`     metrics: 11-14 n8 e0 t0
+- `11:18:37` fundamental-graphs -> PARTLY_FAILING (Nov 15 PARTLY_FAILING) | reserved 2 | outputs 2/170 h | triggers (1 enabled, daily-or-faster True): sched fundamental-graphs-warmer-sched ENABLED cron(25 9 * * ? *)
+- `11:18:37`     metrics: 11-12 n18 e0 t0, 11-13 n7 e0 t0, 11-14 n75 e36 t0, 11-15 n8 e0 t0
+- `11:18:37`     log 11-16 09:25: [fmp-bankfirst] first hit: hits=1 stale=0 misses=0 unshaped=0 passthrough=6 bypassed=0 errors=0 bank_time=0.8s
+- `11:18:37`     log 11-16 09:26: [fx] cur=USD last_rate=None
+- `11:18:37`     log 11-16 09:26: [fx] cur=USD last_rate=None
+- `11:18:37`     log 11-16 09:26: [fmp-bankfirst] hits=23 stale=12 misses=15 unshaped=0 passthrough=6 bypassed=0 errors=0 bank_time=2.2s
+- `11:18:37`     log 11-16 09:26: [fx] cur=USD last_rate=None
+- `11:18:37`     log 11-16 09:26: REPORT RequestId: 076afacb-ecfd-4a94-81c8-5dd5cf94fc36 Duration: 72780.44 ms Billed Duration: 73371 ms Memory Size: 512 MB Max Memory Used: 148 MB Init Duration: 590.43 ms XRAY TraceId: 1-6afacc09-0baa659c20bf6dba3fe3f6d4 SegmentId: 5c4ca8f2c73f522b Sampled: t
+- `11:18:37` fundamentals-engine -> ON_TIME (Nov 15 -) | reserved None | outputs 70 h | triggers (1 enabled, daily-or-faster False): sched fundamentals-engine-sched ENABLED cron(1 13 ? * MON-FRI *)
+- `11:18:37`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:38` gf-value -> RAN_NO_WRITE (Nov 15 RAN_NO_WRITE) | reserved None | outputs 325 h | triggers (1 enabled, daily-or-faster True): sched justhodl-gf-value-daily ENABLED cron(2 22 * * ? *)
+- `11:18:38`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0, 11-14 n1 e0 t0, 11-15 n1 e0 t0
+- `11:18:38`     log 11-15 22:02: [fmp-bankfirst] hits=57 stale=38 misses=0 unshaped=0 passthrough=43 bypassed=0 errors=0 bank_time=13.4s
+- `11:18:38`     log 11-15 22:02: [fmp-bankfirst] hits=115 stale=77 misses=0 unshaped=0 passthrough=83 bypassed=0 errors=0 bank_time=26.9s
+- `11:18:38`     log 11-15 22:02: [fmp-bankfirst] hits=115 stale=77 misses=1 unshaped=0 passthrough=83 bypassed=0 errors=0 bank_time=41.7s
+- `11:18:38`     log 11-15 22:02: [fmp-bankfirst] hits=116 stale=77 misses=1 unshaped=0 passthrough=83 bypassed=0 errors=0 bank_time=41.8s
+- `11:18:38`     log 11-15 22:02: [fmp-bankfirst] bank stepped aside for the rest of this invocation: last 10 attempts averaged 1.89s with no hit (attempts=260 bank_time=83.3s)
+- `11:18:38`     log 11-15 22:05: REPORT RequestId: 706afa2b-d822-43c4-9f87-3d63d6d334e7 Duration: 176493.73 ms Billed Duration: 177067 ms Memory Size: 1536 MB Max Memory Used: 973 MB Init Duration: 573.06 ms XRAY TraceId: 1-6afa2be6-71b00b4f0787ac5363b79d36 SegmentId: f216a0daed6c1449 Sampled
+- `11:18:38` global-liquidity -> ON_TIME (Nov 15 -) | reserved 2 | outputs 69/69 h | triggers (1 enabled, daily-or-faster False): rule global-liquidity-daily ENABLED cron(0 14 ? * MON-FRI *)
+- `11:18:38`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:39` gold-equity-rotation -> RAN_NO_WRITE (Nov 15 RAN_NO_WRITE) | reserved None | outputs 325 h | triggers (1 enabled, daily-or-faster True): rule justhodl-gold-equity-rotation-sched DISABLED cron(45 20 ? * MON-FRI *); sched justhodl-gold-equity-rotation-daily ENABLED cron(45 22 * * ? *)
+- `11:18:39`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0, 11-14 n1 e0 t0, 11-15 n1 e0 t0
+- `11:18:39`     log 11-15 22:45: REPORT RequestId: 5a6afa35-ec78-4e75-9266-218f85fd0e56 Duration: 9223.60 ms Billed Duration: 9595 ms Memory Size: 512 MB Max Memory Used: 154 MB Init Duration: 371.23 ms XRAY TraceId: 1-6afa35ef-7bc0ebe31d9343630b081b36 SegmentId: bcf46eb2671a28a3 Sampled: tru
+- `11:18:40` ici-flows -> NO_TRIGGER (Nov 15 NO_TRIGGER) | reserved None | outputs 39/39 h | triggers (0 enabled, daily-or-faster False): rule justhodl-ici-flows-weekly DISABLED cron(30 16 ? * WED,THU *)
+- `11:18:40`     metrics: no datapoints in 4 days
+- `11:18:40` imf-full -> ON_TIME (Nov 15 -) | reserved None | outputs 167/167 h | triggers (1 enabled, daily-or-faster False): sched justhodl-imf-full-weekly ENABLED rate(7 days); sched justhodl-imf-full-6h DISABLED rate(24 hours)
+- `11:18:40`     metrics: no datapoints in 4 days
+- `11:18:40` index-inclusion -> ON_TIME (Nov 15 -) | reserved None | outputs 166 h | triggers (1 enabled, daily-or-faster False): rule justhodl-index-inclusion-weekly ENABLED cron(1 13 ? * MON *)
+- `11:18:40`     metrics: no datapoints in 4 days
+- `11:18:41` insider-trades -> RAN (Nov 15 PARTLY_FAILING) | reserved 2 | outputs 14/14/14 h | triggers (1 enabled, daily-or-faster True): rule justhodl-insider-trades-30min ENABLED cron(10 21 * * ? *)
+- `11:18:41`     metrics: 11-12 n3 e3 t0, 11-13 n3 e3 t0, 11-14 n2 e0 t0, 11-15 n1 e0 t0
+- `11:18:41`     log 11-15 21:10: fetch deadline in 224 s (function remaining minus the merge/write reserve)
+- `11:18:41`     log 11-15 21:10: Atom feed returned 100 Form 4 filings
+- `11:18:41`     log 11-15 21:10: DIAG: {"filings_seen": 100, "xml_fetched": 16, "xml_parse_failed": 0, "no_issuer_or_ticker": 0, "no_nonderivative_table": 0, "txn_seen": 50, "skipped_not_buy_or_sell": 12, "skipped_below_threshold": 0, "buys_kept": 0, "sells_kept": 38}
+- `11:18:41`     log 11-15 21:10: Parsed 38 kept transactions; fetch_errors=84; errlog={"http_404_index": 77, "http_404_html": 79, "http_503_index": 7, "http_503_html": 5}
+- `11:18:41`     log 11-15 21:13: backfill: +285 txns, {'filings_scanned_this_run': 290, 'backfill_days_complete': 85, 'backfill_days_target': 30, 'stopped_at_deadline': True}
+- `11:18:41`     log 11-15 21:13: After merge+window: 3267 transactions in window
+- `11:18:41`     log 11-15 21:13: Wrote 1706188 bytes to s3://justhodl-dashboard-live/data/insider-trades.json
+- `11:18:41`     log 11-15 21:13: Stats: {"total_buys": 422, "total_value_usd": 10602687834.4, "unique_companies": 184, "unique_insiders": 217, "cluster_count": 5, "big_buy_count": 50, "fetch_errors": 84, "fetch_duration_s": 225.7, "diagnostics": {"filings_seen": 100, "xml_fetched": 16, "xml_p
+- `11:18:41`     log 11-15 21:13: REPORT RequestId: 22806b9b-c26a-4a8e-b9d5-14d9166f11a0 Duration: 227078.27 ms Billed Duration: 227427 ms Memory Size: 512 MB Max Memory Used: 114 MB Init Duration: 348.43 ms XRAY TraceId: 1-6afa1fab-152c4775241981cd21a191ae SegmentId: 621fdf92e9a8194b Sampled:
+- `11:18:42` inventory-drawdown -> ON_TIME (Nov 15 -) | reserved None | outputs 132 h | triggers (1 enabled, daily-or-faster False): rule justhodl-inventory-drawdown-weekly ENABLED cron(30 23 ? * TUE *); sched inventory-drawdown-sched DISABLED cron(30 23 ? * TUE *)
+- `11:18:42`     metrics: no datapoints in 4 days
+- `11:18:42` leading-markets -> RAN_NO_WRITE (Nov 15 RAN_NO_WRITE) | reserved None | outputs 325/325 h | triggers (1 enabled, daily-or-faster False): rule leading-markets-daily ENABLED cron(30 22 ? * MON-FRI *)
+- `11:18:42`     metrics: 11-12 n2 e0 t0, 11-13 n2 e0 t0, 11-14 n1 e0 t0, 11-15 n1 e0 t0
+- `11:18:43`     log 11-15 13:32: [leading] EWP (Spain): insufficient data (0)
+- `11:18:43`     log 11-15 13:32: [leading] EWQ (France): insufficient data (0)
+- `11:18:43`     log 11-15 13:32: [leading] EFNL (Finland): insufficient data (0)
+- `11:18:43`     log 11-15 13:32: [leading] EWD (Sweden): insufficient data (0)
+- `11:18:43`     log 11-15 13:32: [leading] VGK (Europe): insufficient data (0)
+- `11:18:43`     log 11-15 13:32: REPORT RequestId: c85f0c83-2fef-4b6a-a17f-9a7dee9c0756 Duration: 81457.49 ms Billed Duration: 81891 ms Memory Size: 256 MB Max Memory Used: 115 MB Init Duration: 433.16 ms XRAY TraceId: 1-6af9b3fe-045dec6f26a5f99146756aef SegmentId: b4a0c0e78f3dcc4f Sampled: t
+- `11:18:43` methodology-scout -> ON_TIME (Nov 15 -) | reserved None | outputs 153/153/153 h | triggers (1 enabled, daily-or-faster False): rule justhodl-methodology-scout-cadence ENABLED rate(7 days)
+- `11:18:43`     metrics: no datapoints in 4 days
+- `11:18:43` momentum-breakout -> FAILING (Nov 15 FAILING) | reserved None | outputs 408 h | triggers (0 enabled, daily-or-faster False): NONE
+- `11:18:43`     metrics: 11-12 n3 e3 t0, 11-13 n3 e3 t0, 11-14 n3 e3 t0, 11-15 n3 e3 t0
+- `11:18:44`     log 11-16 11:15: [ERROR] ValueError: No received market observations; preserve current Traceback (most recent call last): File "/var/task/lambda_function.py", line 476, in lambda_handler raise ValueError('No received market observations; preserve current')
+- `11:18:44`     log 11-16 11:15: REPORT RequestId: 298fcec4-8d57-4481-bdd3-2f6b13f6bb44 Duration: 1088.45 ms Billed Duration: 1523 ms Memory Size: 1024 MB Max Memory Used: 123 MB Init Duration: 434.48 ms XRAY TraceId: 1-6afae5e1-41c11f35782d4cb66218dea8 SegmentId: 96b0ee19c83d0f13 Sampled: tr
+- `11:18:44`     log 11-16 11:16: [ERROR] ValueError: No received market observations; preserve current Traceback (most recent call last): File "/var/task/lambda_function.py", line 476, in lambda_handler raise ValueError('No received market observations; preserve current')
+- `11:18:44`     log 11-16 11:16: REPORT RequestId: 298fcec4-8d57-4481-bdd3-2f6b13f6bb44 Duration: 935.04 ms Billed Duration: 936 ms Memory Size: 1024 MB Max Memory Used: 131 MB XRAY TraceId: 1-6afae5e1-41c11f35782d4cb66218dea8 SegmentId: e5742c5fe92ed183 Sampled: true
+- `11:18:44` naaim -> ON_TIME (Nov 15 -) | reserved None | outputs 66 h | triggers (1 enabled, daily-or-faster False): rule justhodl-naaim-weekly ENABLED cron(30 17 ? * THU,FRI *)
+- `11:18:44`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:44` nyfed-dealer-survey -> ON_TIME (Nov 15 -) | reserved 1 | outputs 139 h | triggers (1 enabled, daily-or-faster False): rule justhodl-nyfed-dealer-survey-weekly ENABLED rate(7 days)
+- `11:18:44`     metrics: no datapoints in 4 days
+- `11:18:45` pm-decision -> ON_TIME (Nov 15 -) | reserved None | outputs 69/69 h | triggers (1 enabled, daily-or-faster False): rule pm-decision-daily ENABLED cron(0 14 ? * MON-FRI *)
+- `11:18:45`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:45` political-trades -> ON_TIME (Nov 15 -) | reserved None | outputs 70 h | triggers (1 enabled, daily-or-faster False): sched political-trades-sched ENABLED cron(45 13 ? * MON-FRI *)
+- `11:18:45`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:45` polygon-options-flow -> ON_TIME (Nov 15 -) | reserved None | outputs 64/64 h | triggers (1 enabled, daily-or-faster False): rule justhodl-polygon-options-flow-hourly ENABLED cron(15 19 ? * MON-FRI *)
+- `11:18:45`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:46` portwatch -> RAN_NO_WRITE (Nov 15 -) | reserved None | outputs 72/72 h | triggers (1 enabled, daily-or-faster True): sched justhodl-portwatch-daily ENABLED cron(20 11 * * ? *)
+- `11:18:46`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0, 11-14 n1 e0 t0, 11-15 n1 e0 t0
+- `11:18:46`     log 11-15 11:20: PortWatch preserved publication failed: CaptureError
+- `11:18:46`     log 11-15 11:20: REPORT RequestId: 5b6af995-60fc-455a-86ca-c35c04a820ad Duration: 5186.64 ms Billed Duration: 5680 ms Memory Size: 1024 MB Max Memory Used: 245 MB Init Duration: 493.36 ms XRAY TraceId: 1-6af99592-764995fb5357017854cb8451 SegmentId: 2461f507c799167b Sampled: tr
+- `11:18:46` powell-pivot -> ON_TIME (Nov 15 -) | reserved None | outputs 63 h | triggers (1 enabled, daily-or-faster False): sched justhodl-powell-pivot-4h ENABLED cron(0 20 ? * MON-FRI *)
+- `11:18:46`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:47` predictability -> FAILING (Nov 15 FAILING) | reserved None | outputs 323 h | triggers (1 enabled, daily-or-faster True): sched justhodl-predictability-daily ENABLED cron(50 23 * * ? *)
+- `11:18:47`     metrics: 11-12 n3 e3 t0, 11-13 n3 e3 t0, 11-14 n3 e3 t0, 11-15 n3 e3 t0
+- `11:18:47`     log 11-15 23:50: [fmp-bankfirst] first hit: hits=1 stale=0 misses=0 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=0.1s
+- `11:18:47`     log 11-16 00:00: REPORT RequestId: db6afa45-2819-4f3c-b5bf-f84f3e72e045 Duration: 600000.00 ms Billed Duration: 600349 ms Memory Size: 1024 MB Max Memory Used: 95 MB Init Duration: 348.82 ms Status: timeout XRAY TraceId: 1-6afa4535-0f149b13734392a76ece5457 SegmentId: df61d70f0
+- `11:18:47`     log 11-16 00:01: [fmp-bankfirst] first hit: hits=1 stale=0 misses=0 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=0.2s
+- `11:18:47`     log 11-16 00:11: REPORT RequestId: db6afa45-2819-4f3c-b5bf-f84f3e72e045 Duration: 600000.00 ms Billed Duration: 600000 ms Memory Size: 1024 MB Max Memory Used: 95 MB Status: timeout XRAY TraceId: 1-6afa4535-0f149b13734392a76ece5457 SegmentId: c4c8f0965e243c39 Sampled: true
+- `11:18:47`     log 11-16 00:13: [fmp-bankfirst] first hit: hits=1 stale=0 misses=0 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=0.2s
+- `11:18:47`     log 11-16 00:23: REPORT RequestId: db6afa45-2819-4f3c-b5bf-f84f3e72e045 Duration: 600000.00 ms Billed Duration: 600000 ms Memory Size: 1024 MB Max Memory Used: 95 MB Status: timeout XRAY TraceId: 1-6afa4535-0f149b13734392a76ece5457 SegmentId: 30287331abfbd7e3 Sampled: true
+- `11:18:48` premortem-engine -> ON_TIME (Nov 15 -) | reserved 2 | outputs 68/68 h | triggers (1 enabled, daily-or-faster False): rule premortem-engine-daily ENABLED cron(50 14 ? * MON-FRI *); sched premortem-engine-sched DISABLED cron(0 14 ? * MON-FRI *)
+- `11:18:48`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:48` price-redundancy -> ON_TIME (Nov 15 -) | reserved 1 | outputs 70/70 h | triggers (1 enabled, daily-or-faster False): rule justhodl-price-redundancy-15min DISABLED cron(27 8 * * ? *); rule justhodl-price-redundancy-daily ENABLED cron(0 13 ? * MON-FRI *)
+- `11:18:48`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:48` repo-lending -> ON_TIME (Nov 15 -) | reserved None | outputs 67 h | triggers (1 enabled, daily-or-faster False): rule justhodl-repo-lending-daily ENABLED cron(0 16 ? * MON-FRI *)
+- `11:18:48`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:49` revenue-acceleration -> FAILING (Nov 15 FAILING) | reserved None | outputs 408 h | triggers (0 enabled, daily-or-faster False): NONE
+- `11:18:49`     metrics: 11-12 n3 e3 t0, 11-13 n3 e3 t0, 11-14 n3 e3 t0, 11-15 n3 e3 t0
+- `11:18:49`     log 11-16 11:15: [ERROR] ValueError: All statement populations unavailable; preserve previous publication Traceback (most recent call last): File "/var/task/lambda_function.py", line 584, in lambda_handler raise ValueError('All statement populations unavailable; preserve previ
+- `11:18:49`     log 11-16 11:15: REPORT RequestId: ba49cd13-97f1-482e-ad0f-bf413bffb772 Duration: 607.71 ms Billed Duration: 1112 ms Memory Size: 1024 MB Max Memory Used: 122 MB Init Duration: 503.63 ms XRAY TraceId: 1-6afae5e1-41c11f35782d4cb66218dea8 SegmentId: 7c91b587a8ff8396 Sampled: tru
+- `11:18:49`     log 11-16 11:16: [ERROR] ValueError: All statement populations unavailable; preserve previous publication Traceback (most recent call last): File "/var/task/lambda_function.py", line 584, in lambda_handler raise ValueError('All statement populations unavailable; preserve previ
+- `11:18:49`     log 11-16 11:16: REPORT RequestId: ba49cd13-97f1-482e-ad0f-bf413bffb772 Duration: 576.77 ms Billed Duration: 577 ms Memory Size: 1024 MB Max Memory Used: 136 MB XRAY TraceId: 1-6afae5e1-41c11f35782d4cb66218dea8 SegmentId: d7b6d62402fe3011 Sampled: true
+- `11:18:50` russell-recon-frontrun -> RAN_NO_WRITE (Nov 15 RAN_NO_WRITE) | reserved None | outputs 407 h | triggers (1 enabled, daily-or-faster True): rule justhodl-russell-recon-daily ENABLED cron(30 12 * * ? *); rule justhodl-russell-recon-frontrun-sched DISABLED cron(30 12 * * ? *)
+- `11:18:50`     metrics: 11-12 n2 e0 t0, 11-13 n2 e0 t0, 11-14 n2 e0 t0, 11-15 n2 e0 t0
+- `11:18:50`     log 11-15 13:31: fmp_screener AMEX: 0 rows
+- `11:18:50`     log 11-15 13:31: fmp_screener returned 0 rows; falling back to stock-list
+- `11:18:50`     log 11-15 13:31: [fmp-bankfirst] first hit: hits=1 stale=0 misses=0 unshaped=0 passthrough=3 bypassed=0 errors=0 bank_time=0.4s
+- `11:18:50`     log 11-15 13:31: stock-list fallback: 0 US equity tickers
+- `11:18:50`     log 11-15 13:31: screener rows: 0
+- `11:18:50`     log 11-15 13:31: REPORT RequestId: eaef5c94-5250-43ea-8c3b-0f2e8950417f Duration: 967.26 ms Billed Duration: 1563 ms Memory Size: 1024 MB Max Memory Used: 150 MB Init Duration: 595.54 ms XRAY TraceId: 1-6af9b3fe-045dec6f26a5f99146756aef SegmentId: f02b9fe57d473730 Sampled: tru
+- `11:18:50` sector-flow-state -> ON_TIME (Nov 15 PARTLY_FAILING) | reserved None | outputs 134 h | triggers (1 enabled, daily-or-faster False): rule justhodl-sector-flow-state-sched ENABLED cron(15 21 ? * MON-FRI *); rule sector-flow-state-hourly DISABLED cron(20 14 * * ? *)
+- `11:18:50`     metrics: 11-12 n2 e1 t0, 11-13 n2 e1 t0
+- `11:18:51`     log 11-13 21:16: REPORT RequestId: 747441de-2784-4f5a-94a6-095d1f762825 Duration: 166.11 ms Billed Duration: 167 ms Memory Size: 2048 MB Max Memory Used: 279 MB XRAY TraceId: 1-6af77dfb-5e7f20e56d26108461d9c1ef SegmentId: f2db77ab92b6539b Sampled: true
+- `11:18:51` self-improvement -> ON_TIME (Nov 15 -) | reserved None | outputs 71 h | triggers (1 enabled, daily-or-faster False): rule justhodl-self-improvement-daily ENABLED cron(30 12 ? * MON-FRI *)
+- `11:18:51`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:52` sellside-views -> ON_TIME (Nov 15 -) | reserved None | outputs 69 h | triggers (1 enabled, daily-or-faster False): rule sellside-views-mwf ENABLED cron(4 14 ? * MON,WED,FRI *)
+- `11:18:52`     metrics: 11-13 n1 e0 t0
+- `11:18:52` short-pressure -> ON_TIME (Nov 15 -) | reserved None | outputs 71 h | triggers (1 enabled, daily-or-faster False): sched short-pressure-sched ENABLED cron(30 12 ? * MON-FRI *)
+- `11:18:52`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:52` strategist -> ON_TIME (Nov 15 -) | reserved None | outputs 69 h | triggers (1 enabled, daily-or-faster False): rule justhodl-strategist-daily ENABLED cron(0 14 ? * MON-FRI *)
+- `11:18:52`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:53` streaming-fanout -> ON_TIME (Nov 15 -) | reserved None | outputs 63/63/63/63/63/63/63/63/63 h | triggers (1 enabled, daily-or-faster False): sched justhodl-streaming-fanout-1min ENABLED cron(16 20 ? * MON-FRI *)
+- `11:18:53`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:53` term-premium -> ON_TIME (Nov 15 -) | reserved None | outputs 70 h | triggers (1 enabled, daily-or-faster False): rule justhodl-acm-daily ENABLED cron(45 13 ? * MON-FRI *)
+- `11:18:53`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:53` theme-rotation-engine -> RAN_NO_WRITE (Nov 15 RAN_NO_WRITE) | reserved 2 | outputs 312/312 h | triggers (0 enabled, daily-or-faster False): NONE
+- `11:18:53`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0, 11-14 n1 e0 t0, 11-15 n1 e0 t0
+- `11:18:53`     log 11-15 11:30: [theme-rot] starting v1.0
+- `11:18:53`     log 11-15 11:30: [theme-rot] fetching SPY benchmark...
+- `11:18:53`     log 11-15 11:30: REPORT RequestId: 118f05ae-fafa-4c8a-badf-a3f1284e33be Duration: 256.79 ms Billed Duration: 770 ms Memory Size: 1024 MB Max Memory Used: 98 MB Init Duration: 513.01 ms XRAY TraceId: 1-6af997e4-72f637270dc3e6bd120db9b8 SegmentId: 4e47865abe63850e Sampled: true
+- `11:18:54` trade-tickets -> ON_TIME (Nov 15 -) | reserved None | outputs 64 h | triggers (1 enabled, daily-or-faster False): rule justhodl-trade-tickets-hourly ENABLED cron(25 19 ? * MON-FRI *)
+- `11:18:54`     metrics: 11-12 n1 e0 t0, 11-13 n1 e0 t0
+- `11:18:54` vol-target-unwind -> RAN_NO_WRITE (Nov 15 RAN_NO_WRITE) | reserved None | outputs 310 h | triggers (1 enabled, daily-or-faster True): rule justhodl-vol-target-unwind-daily ENABLED cron(25 13 * * ? *)
+- `11:18:54`     metrics: 11-12 n2 e0 t0, 11-13 n2 e0 t0, 11-14 n2 e0 t0, 11-15 n2 e0 t0
+- `11:18:55`     log 11-15 13:25: REPORT RequestId: d59596df-568b-4a34-8a58-7e4965e2ebfa Duration: 6527.31 ms Billed Duration: 7125 ms Memory Size: 512 MB Max Memory Used: 104 MB Init Duration: 596.91 ms XRAY TraceId: 1-6af9b2cd-2c84ce0155c9cc2511a55f23 SegmentId: e9a429043f5ab198 Sampled: tru
+- `11:18:55`     log 11-15 13:31: vol-target-unwind run started fmp_key_set=True
+- `11:18:55`     log 11-15 13:31: fmp_history SPY attempt=1 error: HTTP Error 429: Too Many Requests
+- `11:18:55`     log 11-15 13:31: fmp_history SPY attempt=2 error: HTTP Error 429: Too Many Requests
+- `11:18:55`     log 11-15 13:31: fmp_history SPY attempt=3 error: HTTP Error 429: Too Many Requests
+- `11:18:55`     log 11-15 13:31: REPORT RequestId: 63843a79-8018-4759-82ff-57af9db6903b Duration: 6225.65 ms Billed Duration: 6226 ms Memory Size: 512 MB Max Memory Used: 104 MB XRAY TraceId: 1-6af9b3fe-045dec6f26a5f99146756aef SegmentId: 563275baf6c5c83a Sampled: true
+- `11:18:55` volatility-squeeze-hunter -> FAILING (Nov 15 FAILING) | reserved None | outputs 408 h | triggers (0 enabled, daily-or-faster False): NONE
+- `11:18:55`     metrics: 11-12 n3 e3 t0, 11-13 n3 e3 t0, 11-14 n3 e3 t0, 11-15 n3 e3 t0
+- `11:18:55`     log 11-15 11:30: [ERROR] ValueError: No received market observations; preserve current Traceback (most recent call last): File "/var/task/lambda_function.py", line 555, in lambda_handler raise ValueError('No received market observations; preserve current')
+- `11:18:55`     log 11-15 11:30: REPORT RequestId: 77fd32c8-f108-4165-9778-b97a209e1b92 Duration: 1151.70 ms Billed Duration: 1659 ms Memory Size: 1024 MB Max Memory Used: 131 MB Init Duration: 507.10 ms XRAY TraceId: 1-6af997e4-72f637270dc3e6bd120db9b8 SegmentId: 68ef8b64a955f536 Sampled: tr
+- `11:18:55`     log 11-15 11:31: [ERROR] ValueError: No received market observations; preserve current Traceback (most recent call last): File "/var/task/lambda_function.py", line 555, in lambda_handler raise ValueError('No received market observations; preserve current')
+- `11:18:55`     log 11-15 11:31: REPORT RequestId: 77fd32c8-f108-4165-9778-b97a209e1b92 Duration: 1023.28 ms Billed Duration: 1024 ms Memory Size: 1024 MB Max Memory Used: 133 MB XRAY TraceId: 1-6af997e4-72f637270dc3e6bd120db9b8 SegmentId: 1e513b3bee44d041 Sampled: true
+- `11:18:55`     log 11-15 11:34: [ERROR] ValueError: No received market observations; preserve current Traceback (most recent call last): File "/var/task/lambda_function.py", line 555, in lambda_handler raise ValueError('No received market observations; preserve current')
+- `11:18:55`     log 11-15 11:34: REPORT RequestId: 77fd32c8-f108-4165-9778-b97a209e1b92 Duration: 1151.97 ms Billed Duration: 1152 ms Memory Size: 1024 MB Max Memory Used: 141 MB XRAY TraceId: 1-6af997e4-72f637270dc3e6bd120db9b8 SegmentId: 23cfc66699ed28ae Sampled: true
+- `11:18:56` whales -> ON_TIME (Nov 15 -) | reserved None | outputs 166 h | triggers (1 enabled, daily-or-faster False): sched justhodl-whales-weekly ENABLED cron(10 13 ? * MON *)
+- `11:18:56`     metrics: no datapoints in 4 days
+- `11:18:56` FAILING (10): auction-crisis-detector, chart-patterns, earnings-blackout, eps-revision-velocity, fmp-ratios, forensic-screen, momentum-breakout, predictability, revenue-acceleration, volatility-squeeze-hunter
+- `11:18:56` NO_TRIGGER (1): ici-flows
+- `11:18:56` ON_TIME (42): analyst-consensus, auction-desk, auction-grader, auction-tail, bank-stress, bond-warroom, buyback-scanner, chart-vision, china-liquidity, coffee-can, convexity-scorer, corp-bonds, dealer-gex, digest-trends-ai, earnings-nlp, equity-ftd, esi, failure-library, fundamentals-engine, global-liquidity, imf-full, index-inclusion, inventory-drawdown, methodology-scout, naaim, nyfed-dealer-survey, pm-decision, political-trades, polygon-options-flow, powell-pivot, premortem-engine, price-redundancy, repo-lending, sector-flow-state, self-improvement, sellside-views, short-pressure, strategist, streaming-fanout, term-premium, trade-tickets, whales
+- `11:18:56` PARTLY_FAILING (1): fundamental-graphs
+- `11:18:56` RAN (4): corporate-actions, crypto-emergence, fundamental-census, insider-trades
+- `11:18:56` RAN_NO_WRITE (13): cross-asset-regime, earnings-iv-crush, earnings-quality, etf-true-flows, fmp-fundamentals-agent, forward-orders, gf-value, gold-equity-rotation, leading-markets, portwatch, russell-recon-frontrun, theme-rotation-engine, vol-target-unwind
+- `11:18:56` of the Nov 15 set, recovered (fresh output or on time): corporate-actions, crypto-emergence, fundamental-census, insider-trades
+- `11:18:56` ⚠ 24 probed engines are FAILING / PARTLY_FAILING / NEVER_STARTED / THROTTLED / RAN_NO_WRITE / NO_FUNCTION - nothing was changed here
+## G. source-refresh control (the two red scheduled workflows; read-only, no release, no retry)
+
+- `11:18:56` capital-structure refresh control (925 h since last write): {"contract": "capital-structure-recurring-refresh.v1", "status": "failed", "request_id": "scheduled-capital-structure:37839611323", "started_at": "2026-10-08T20:28:05.951329+00:00", "failed_at": "2026-10-08T22:00:40.571580+00:00", "error_type": "ValueError", "active_phase": "part-2", "phase_started_at": "2026-10-08T21:43:52.083415+00:00", "completed_phases": ["plan", "part-1"], "planned_sources": 11305, "parts": 1, "review": null}
+- `11:18:56` ⚠ capital-structure refresh control is 'failed': every scheduled plan stops at 'explicit review is required' until release_failed_control is run with an ops number and a review note - a human decision, not this run's
+## H. strength / leaders / factor book, the Polygon EOD manifest, the un-stalled flow engines, corporate-actions after today's 06:30 UTC sweep (read-only)
+
+- `11:18:56` factor book manifest (8.3 h old): version 1.0.8 generated 2026-11-16T02:50:45.036407+00:00 | as_of polygon-tape 2026-11-13 | returns coverage 12054 | sessions 253 last_session 2026-11-13 symbols 12564 thin_floor 3145.5 thin_skipped [{"day": "2026-11-07", "rows": 271}]
+- `11:18:56` polygon EOD manifest (8.1 h old): last_session 2026-11-13 first_session 2021-08-26 tickers 21140 updated_at 2026-11-16T03:10:35+00:00
+- `11:18:57` data/leaders.json (7.5 h old): version 1.0.0 generated 2026-11-16T03:50:07+00:00 | as_of 2026-11-13 | rows 672 | industries 144 | funds 109 | bank last_session 2026-11-13 | errors 0
+- `11:18:57` data/strength.json (7.6 h old): version 1.0.12 generated 2026-11-16T03:40:10+00:00 | as_of 2026-11-13 | rows 894 ranked 858 | industries - | funds - | bank last_session 2026-11-13 | errors 0
+- `11:18:57`   strength bank: manifest_last_session 2026-11-13 thin_days []
+- `11:18:57` the Nov 10-11 un-stalls (etf-true-flows 3.1.0, weekday 15:45 UTC slot - Monday 11 UTC is before the slot, ~67 h expected; ICI Chrome lane last ran Nov 14 20:04 UTC, run 43635481504 green; polygon-today 1.0.0, Monday before the session):
+- `11:18:57`   data/etf-true-flows.json (19.5 h old, 711471 B): {"version": "3.1.0", "generated_at": "2026-11-15T15:46:22.865155+00:00"} | containers {"source_status_codes": 401, "source_clocks": 144, "by_etf": 128, "gaps": 44, "inflows": 25, "reviewed_limits": 24, "outflows": 20, "snapshot_ledgers": 20}
+- `11:18:57`   data/ici-flows.json (39.2 h old, 32209 B): {"version": "2.0.0", "generated_at": "2026-11-14T20:04:44.191865+00:00", "source": "ICI official weekly releases: MMF assets and combined mutual-fund flows / ETF net issuance"} | containers {"mmf": 14, "original_arithmetic_checks": 7, "limitations": 5, "long_term": 4, "quality": 4, "predecessors": 3, "decision": 2, "dependency_graph": 2}
+- `11:18:57`   data/warm/polygon-full/today-manifest.json (61.4 h old, 749 B): {"version": "1.0.0", "generated_at": "2026-11-13T21:55:29+00:00", "as_of": "2026-11-13T21:40:29+00:00", "session": "2026-11-13"} | containers {"sample": 5}
+- `11:18:57` corporate-actions after today's 06:30 UTC sweep (yesterday's 06:30 sweep: 124 of 200 due in 841 s, cursor 445 -> 569):
+- `11:18:57`   data/corporate-actions/_state.json (4.6 h old, 65 B): {"updated_at": "2026-11-16T06:44:23.618171+00:00", "cursor": 745} | containers {}
+- `11:18:57`   data/corporate-actions-index.json (4.6 h old, 1099495 B): {"generated_at": "2026-11-16T06:44:23.645268+00:00"} | containers {"tickers": 5598}
+- `11:18:58`   last sweep summary 2026-11-16T06:44+00:00: {"universe": 11734, "window": 200, "due": 200, "processed": 176, "written": 176, "failed": 0, "with_events": 115, "disagreements": 1272, "factor_gaps": 61, "polygon_key": true, "stopped_early": true, "cursor": 745, "plan_floor_403": "2021-11-11", "floored_403": 1767, "duration_s": 835.1}
+- `11:18:58`   today's sweep processed 176 of 200 due tickers in 835.1 s (stopped_early True, failed 0)
+- `11:18:58` ✅ read-only; nothing changed, nothing released
