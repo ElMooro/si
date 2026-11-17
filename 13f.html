@@ -80,7 +80,9 @@ h3{font-size:13px;letter-spacing:.04em;text-transform:uppercase;font-weight:700}
 #permanent{display:inline-block;padding:6px 0}
 #state{font-weight:600}
 /* manager tearsheet (2026-11-17): the whole information table for one manager, options ranked beside stock */
-:root{--ts1:#3987e5;--ts2:#d95926;--ts3:#199e70;--ts4:#c98500;--ts5:#d55181;--ts6:#0ca30c;--ts7:#9085e9;--ts8:#e66767;--ts0:#6b6557}
+:root{--ts0:#6b6557;--tsf1:#FFDD77;--tsf:var(--amber);--tso2:1;--tso3:.78;--tso4:.6;--tso5:.46;--tso6:.36}
+.ts-s0{fill:var(--ts0)}.ts-s1{fill:var(--tsf1)}.ts-s2{fill:var(--tsf);fill-opacity:var(--tso2)}.ts-s3{fill:var(--tsf);fill-opacity:var(--tso3)}.ts-s4{fill:var(--tsf);fill-opacity:var(--tso4)}.ts-s5{fill:var(--tsf);fill-opacity:var(--tso5)}.ts-s6{fill:var(--tsf);fill-opacity:var(--tso6)}
+i.ts-s0{background:var(--ts0)}i.ts-s1{background:var(--tsf1)}i.ts-s2{background:var(--tsf);opacity:var(--tso2)}i.ts-s3{background:var(--tsf);opacity:var(--tso3)}i.ts-s4{background:var(--tsf);opacity:var(--tso4)}i.ts-s5{background:var(--tsf);opacity:var(--tso5)}i.ts-s6{background:var(--tsf);opacity:var(--tso6)}
 .ts{display:flex;flex-direction:column;gap:12px;border:1px solid rgba(240,180,41,.35);border-radius:10px;padding:14px 16px;background:var(--bg);margin-top:10px;min-width:0}
 .ts-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
 .ts-h{font:700 clamp(17px,2.2vw,24px)/1.25 var(--mono);color:var(--ink);margin:4px 0 0;max-width:920px;text-transform:none;letter-spacing:0}
@@ -120,7 +122,7 @@ h3{font-size:13px;letter-spacing:.04em;text-transform:uppercase;font-weight:700}
 .ts-donut svg.h path{opacity:.3}.ts-donut svg.h path.on{opacity:1}
 .ts-donut path:focus-visible{stroke:var(--amber)}
 .ts-donut text{font-family:var(--mono);text-anchor:middle;pointer-events:none}
-.ts-donut text.l{font-size:9.5px;font-weight:700;fill:#0C0B09}.ts-donut text.lo{fill:var(--ink)}
+.ts-donut text.l{font-size:9.5px;font-weight:700;fill:#0C0B09}.ts-donut text.l5,.ts-donut text.l6,.ts-donut text.lo{fill:var(--ink)}
 .ts-donut text.cv{font-size:21px;font-weight:700;fill:var(--ink)}.ts-donut text.cl{font-size:8.5px;font-weight:600;letter-spacing:.16em;fill:var(--dim2)}
 .ts-tip{position:absolute;z-index:3;pointer-events:none;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font:500 11.5px/1.45 var(--mono);color:var(--ink);max-width:230px;box-shadow:0 4px 14px rgba(0,0,0,.45)}
 .ts-tip[hidden]{display:none}
@@ -128,11 +130,11 @@ h3{font-size:13px;letter-spacing:.04em;text-transform:uppercase;font-weight:700}
 .ts-rc summary{cursor:pointer;min-height:36px;padding:8px 10px;font:600 11.5px/1.4 var(--mono);color:var(--dim2)}
 .ts-foot{font:400 11.5px/1.6 var(--sans);color:var(--dim);margin:0}
 @media print{
-html.print-ts{--bg:#fff;--panel:#fff;--panel2:#f4f2ec;--ink:#111;--dim:#555;--dim2:#444;--line:#cfcabd;--line2:#e4e0d6;--amber:#8a5f00;--green:#1b7a3d;--red:#b3392a;--ts1:#2a78d6;--ts2:#eb6834;--ts3:#1baf7a;--ts4:#eda100;--ts5:#e87ba4;--ts6:#008300;--ts7:#6250d6;--ts8:#e34948;--ts0:#bdb8aa}
+html.print-ts{--bg:#fff;--panel:#fff;--panel2:#f4f2ec;--ink:#111;--dim:#555;--dim2:#444;--line:#cfcabd;--line2:#e4e0d6;--amber:#8a5f00;--green:#1b7a3d;--red:#b3392a;--ts0:#d9d6cf;--tsf1:#2B2820;--tsf:#2B2820;--tso2:.84;--tso3:.68;--tso4:.54;--tso5:.43;--tso6:.34}
 html.print-ts body{background:#fff}
 html.print-ts body>*:not(main),html.print-ts main>*:not(#drill),html.print-ts #drill>*:not(#drill-body),html.print-ts #drill-body>*:not(#tearsheet),html.print-ts .ts-actions,html.print-ts .ts-tip{display:none!important}
 html.print-ts main{padding:0;max-width:none}html.print-ts #drill{border:0;padding:0;background:#fff}html.print-ts .ts{border:0;margin:0;padding:0}
-html.print-ts .ts-notes p,html.print-ts .ts-card .txt{color:#333}html.print-ts .ts-donut text.l6,html.print-ts .ts-donut text.l7{fill:#fff}html.print-ts .ts-donut text.lo{fill:#111}
+html.print-ts .ts-notes p,html.print-ts .ts-card .txt{color:#333}html.print-ts .ts-donut text.l1,html.print-ts .ts-donut text.l2,html.print-ts .ts-donut text.l3{fill:#fff}html.print-ts .ts-donut text.l4,html.print-ts .ts-donut text.l5,html.print-ts .ts-donut text.l6,html.print-ts .ts-donut text.lo{fill:#111}
 html.print-ts .ts-card,html.print-ts .kpi,html.print-ts .ts-t tr,html.print-ts .ts-notes p{break-inside:avoid}html.print-ts .ts-col>header{break-after:avoid}
 html.print-ts .c{border:1px solid #cfcabd;background:#fff;color:#333}
 }
@@ -325,13 +327,14 @@ const keys=list=>(list||[]).map(k=>'<span class="c c-k">'+esc(short(k))+'</span>
 /* ── manager tearsheet (2026-11-17): one manager's whole information table - shares, notes at principal and option rows at the
    underlying's reported value ranked together - read from managers[fk].tearsheet (book 1.4.0). Nothing here replaces the
    drill-down below it; a book without the block simply shows no tearsheet. ── */
+const TSN=6;   /* donut slices before "other": one amber ramp, light to dark by rank (six steps is what stays readable on the dark panel) */
 const NEWST='newly_present_in_public_disclosure',ABSST='not_present_in_current_public_disclosure',UPST='reported_quantity_increased',DNST='reported_quantity_decreased',FLST='reported_quantity_unchanged';
 const qLabel=p=>{const m=/^(\d{4})-(\d{2})-\d{2}$/.exec(p||'');const q=m&&{'03':'Q1','06':'Q2','09':'Q3','12':'Q4'}[m[2]];return q?q+' '+m[1]:(p||'—');};
 const qfmt=v=>{if(!fin(v))return '—';const a=Math.abs(v);if(a>=1e9)return (v/1e9).toFixed(2)+'B';if(a>=1e6)return (v/1e6).toFixed(2)+'M';if(a>=1e4)return Math.round(v/1e3)+'K';return Math.round(v).toLocaleString('en-US');};
 const mult=m=>fin(m)?(m>=10?Math.round(m).toLocaleString('en-US'):m.toFixed(1))+'x':'';
 const DASH='\u2014';
 const chgTxt=v=>fin(v)&&v>=100?mult(1+v/100):pct1(v);
-const pctOf=v=>fin(v)&&v>0&&v<0.05?'<0.1%':pctp(v);
+const pctOf=v=>fin(v)&&v<0.05?'<0.1%':pctp(v);
 const pcWord=r=>r&&r.pc?(r.pc==='PUT'?' puts':' calls'):'';
 const tsShort=r=>r?(r.ticker||String(r.name||r.issuer||'').split(/\s+/).slice(0,3).join(' '))+pcWord(r):'—';
 const tsTag=r=>{const st=r&&r.status;if(st===NEWST)return {t:'NEW',k:'am'};if(st===ABSST)return {t:'−100%',k:'dn'};if(st===UPST)return {t:fin(r.multiple)&&r.multiple>=2?mult(r.multiple):pct1(r.qty_change_pct),k:'up'};if(st===DNST)return {t:pct1(r.qty_change_pct),k:'dn'};if(st===FLST)return {t:'unchanged',k:'dim2'};return {t:'—',k:'dim'};};
@@ -361,14 +364,14 @@ function tsHero(side,r){
 function tsDonut(t){
   const total=t.value_usd||0,lines=(t.lines||[]).filter(r=>(r.value_usd||0)>0);
   if(!(total>0)||!lines.length)return '<p class="empty" style="padding:12px">no reported value</p>';
-  const parts=lines.slice(0,8).map((r,i)=>({r,i,v:r.value_usd,pct:100*r.value_usd/total}));
+  const parts=lines.slice(0,TSN).map((r,i)=>({r,i,v:r.value_usd,pct:100*r.value_usd/total}));
   const rest=Math.max(0,total-parts.reduce((s,p)=>s+p.v,0));
-  if(rest/total>0.0005)parts.push({other:true,i:8,v:rest,pct:100*rest/total,n:Math.max(0,(t.n_lines||0)-parts.length)});
+  if(rest/total>0.0005)parts.push({other:true,i:TSN,v:rest,pct:100*rest/total,n:Math.max(0,(t.n_lines||0)-parts.length)});
   const cx=110,cy=110,R=104,r0=64;let a=-Math.PI/2;const P=(rad,ang)=>(cx+rad*Math.cos(ang)).toFixed(2)+' '+(cy+rad*Math.sin(ang)).toFixed(2);
   const segs=parts.map(p=>{const da=Math.min(2*Math.PI*p.v/total,2*Math.PI-0.0005),a0=a,a1=a+da;a=a1;const big=da>Math.PI?1:0,mid=(a0+a1)/2;
     const name=p.other?'Other '+num(p.n)+' lines':tsShort(p.r),tip=name+' · '+money(p.v)+' · '+p.pct.toFixed(1)+'% of 13F value'+(p.other?'':' · '+tsTag(p.r).t);
     const lab=p.pct>=7?'<text class="l l'+(p.other?'o lo':(p.i+1))+'" x="'+(cx+84*Math.cos(mid)).toFixed(1)+'" y="'+(cy+84*Math.sin(mid)-1).toFixed(1)+'">'+esc(p.other?'OTHER':String(p.r.ticker||tsShort(p.r)).slice(0,6).toUpperCase())+'<tspan x="'+(cx+84*Math.cos(mid)).toFixed(1)+'" dy="11">'+Math.round(p.pct)+'%</tspan></text>':'';
-    return '<path data-i="'+p.i+'" data-tip="'+esc(tip)+'" tabindex="0" role="img" aria-label="'+esc(tip)+'" fill="var(--ts'+(p.other?0:p.i+1)+')" d="M'+P(R,a0)+'A'+R+' '+R+' 0 '+big+' 1 '+P(R,a1)+'L'+P(r0,a1)+'A'+r0+' '+r0+' 0 '+big+' 0 '+P(r0,a0)+'Z"></path>'+lab;}).join('');
+    return '<path data-i="'+p.i+'" data-tip="'+esc(tip)+'" tabindex="0" role="img" aria-label="'+esc(tip)+'" class="ts-s'+(p.other?0:p.i+1)+'" d="M'+P(R,a0)+'A'+R+' '+R+' 0 '+big+' 1 '+P(R,a1)+'L'+P(r0,a1)+'A'+r0+' '+r0+' 0 '+big+' 0 '+P(r0,a0)+'Z"></path>'+lab;}).join('');
   return '<div class="ts-donut"><svg viewBox="0 0 220 220" role="group" aria-label="Share of the 13F value by line: '+esc(parts.map(p=>(p.other?'other lines':tsShort(p.r))+' '+p.pct.toFixed(1)+'%').join(', '))+'">'+segs+'<text class="cv" x="110" y="112">'+money(total)+'</text><text class="cl" x="110" y="128">13F VALUE</text></svg><div class="ts-tip" hidden></div></div>';
 }
 function tsList(k,title,sub,L,head,row){
@@ -392,7 +395,7 @@ function tearsheetHTML(x){
   const indTxt=(list,sign)=>list.slice(0,2).map(a=>esc(a.industry)+' '+(sign>0?'+':'−')+money(Math.abs(a.net_usd))+' ('+(a.names||[]).slice(0,3).map(n=>esc(n.label)+' '+(n.how==='initiation'?'new':n.how==='termination'?'absent':chgTxt(n.qty_change_pct))).join(', ')+((a.n_names||0)>3?', +'+(a.n_names-3):'')+')').join('; ');
   if((ind.cut||[]).length||(ind.added||[]).length)notes.push('<b>Industries (stock lines, est. at reported prices):</b> '+((ind.cut||[]).length?'most cut — '+indTxt(ind.cut,-1)+'. ':'')+((ind.added||[]).length?'Most added — '+indTxt(ind.added,1)+'.':''));
   const top=t.lines||[],top10=top.reduce((s,r)=>s+(r.value_usd||0),0),restN=Math.max(0,(t.n_lines||0)-top.length),restV=Math.max(0,(t.value_usd||0)-top10);
-  const posRows=top.map((r,i)=>'<tr data-i="'+Math.min(i,8)+'"><td>'+tsLine(r).replace('">','"><i class="ts-sw" style="background:var(--ts'+(i<8?i+1:0)+')"></i>')+'<span class="s">'+money(r.value_usd)+' · <span class="'+tsTag(r).k+'">'+tsTag(r).t+(r.status===UPST||r.status===DNST?' qty':'')+'</span></span></td><td class="n big">'+pctOf(r.pct)+'</td></tr>').join('')+(restN?'<tr data-i="8"><td><span class="nm"><i class="ts-sw" style="background:var(--ts0)"></i><span class="dim2">'+num(restN)+' other line'+(restN===1?'':'s')+'</span></span><span class="s">'+money(restV)+'</span></td><td class="n big dim2">'+pctp(t.value_usd?100*restV/t.value_usd:null)+'</td></tr>':'');
+  const posRows=top.map((r,i)=>'<tr data-i="'+Math.min(i,TSN)+'"><td>'+tsLine(r).replace('">','"><i class="ts-sw ts-s'+(i<TSN?i+1:0)+'"></i>')+'<span class="s">'+money(r.value_usd)+' · <span class="'+tsTag(r).k+'">'+tsTag(r).t+(r.status===UPST||r.status===DNST?' qty':'')+'</span></span></td><td class="n big">'+pctOf(r.pct)+'</td></tr>').join('')+(restN?'<tr data-i="'+TSN+'"><td><span class="nm"><i class="ts-sw ts-s0"></i><span class="dim2">'+num(restN)+' other line'+(restN===1?'':'s')+'</span></span><span class="s">'+money(restV)+'</span></td><td class="n big dim2">'+pctp(t.value_usd?100*restV/t.value_usd:null)+'</td></tr>':'');
   const lists=[
     tsList('new','Initiations','newly present',t.initiations,'<th>Line</th><th class="n">Reported value</th>',r=>'<td>'+tsLine(r)+'<span class="s">'+pctOf(r.pct)+' of 13F value</span></td><td class="n big am">'+money(r.value_usd)+'</td>'),
     tsList('up','Increases','reported quantity up',t.increases,'<th>Line</th><th class="n">Qty</th><th class="n">Est.</th>',r=>'<td>'+tsLine(r)+'<span class="s">'+money(r.value_prior_usd)+' → '+money(r.value_usd)+'</span></td>'+tsTagCell(r)+'<td class="n dim2">'+money(r.est_usd)+'</td>'),

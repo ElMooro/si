@@ -55,6 +55,7 @@ READ = """() => { const t = document.getElementById('tearsheet'), de = document.
   const row = [...document.querySelectorAll('#mgr-table tbody tr')].find(r => r.querySelector('button').dataset.fund === t.dataset.fund);
   return { head: t.querySelector('.ts-h').textContent, tiles: [...t.querySelectorAll('.ts-score .kpi .v')].map(e => e.textContent.trim()),
     cards: [...t.querySelectorAll('.ts-card .big')].map(e => e.textContent.trim()), paths: t.querySelectorAll('.ts-donut path').length,
+    fills: [...t.querySelectorAll('.ts-donut path')].map(p => { const c = getComputedStyle(p); return c.fill + '/' + c.fillOpacity; }),
     pos: t.querySelectorAll('#ts-pos tbody tr').length, lists: [...t.querySelectorAll('.ts-lists .ts-col')].map(c => [c.querySelector('header span:last-child').textContent, c.querySelectorAll('tbody tr').length]),
     rc: t.querySelector('.ts-rc') ? t.querySelectorAll('.ts-rc tbody tr').length : 0, ox: de.scrollWidth - de.clientWidth, url: location.search,
     bad: (t.innerText.match(/undefined|NaN|\\[object|null/g) || []).length, foot: t.querySelector('.ts-foot').textContent.slice(0, 150),
@@ -130,14 +131,17 @@ def main():
                     exp = [["{:,}".format(t[k]["n"]), len(t[k]["rows"])] for k in LISTS]
                     ck(info["lists"] == exp, "%d %s: lists %s vs %s" % (width, fk, info["lists"], exp))
                     nl = len([z for z in t["lines"] if (z["value_usd"] or 0) > 0])
-                    ck(info["paths"] in (min(nl, 8), min(nl, 8) + 1) and info["pos"] >= nl, "%d %s: donut %s paths, %s rows for %s lines" % (width, fk, info["paths"], info["pos"], nl))
+                    ck(info["paths"] in (min(nl, 6), min(nl, 6) + 1) and info["pos"] >= nl, "%d %s: donut %s paths, %s rows for %s lines" % (width, fk, info["paths"], info["pos"], nl))
                     ck(info["rc"] == len(t["reclassified"]["rows"]), "%d %s: reclassified rows" % (width, fk))
                     ck(len(info["cards"]) == 2, "%d %s: notable cards" % (width, fk))
+                    ck(len(set(info["fills"])) == len(info["fills"]), "%d %s: two donut slices share a fill %s" % (width, fk, info["fills"]))
                     ck(not info["deskHas"] or info["desk"] == fk, "%d %s: the evidence desk did not follow (%s)" % (width, fk, info["desk"]))
                     ck(x["display_name"] in info["title"], "%d %s: drill title %s" % (width, fk, info["title"]))
                     if width == 1440:
                         r.log("%-12s %s | tiles %s | cards %s | donut %d | lists %s | reclassified %d | grid cells %s | desk %s" % (
                             fk, info["head"], info["tiles"], info["cards"], info["paths"], info["lists"], info["rc"], info["cells"], info["desk"]))
+                        if fk == "ELLIOTT":
+                            r.log("donut fills as computed in the browser (%s): %s" % (fk, info["fills"]))
                 drill = page.locator("#drill-body").inner_text().lower()
                 ck(not [x for x in DRILL if x.lower() not in drill], "%d: the drill-down lost a block after switching managers" % width)
                 ck(not errors, "%d: page errors %s" % (width, errors[:3]))
