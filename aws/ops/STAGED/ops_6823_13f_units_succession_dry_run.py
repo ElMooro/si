@@ -183,7 +183,7 @@ def main():
             for z in rows:
                 full = ids.get(z["id"]) or {}
                 r.log("%-6s %s -> %s | %s -> %s | unit price x%s %s | holders %d (prior %d) continuing %d | value %s (prior %s)%s" % (
-                    z["ticker"] or "-", z["from_cusip"], z["cusip"], z["from_issuer"][:30], z["issuer"][:30], z["unit_price_ratio"], "verified" if z["basis_verified"] else "SHARE BASIS CHANGED - no votes",
+                    z["ticker"] or "-", z["from_cusip"], z["cusip"], z["from_issuer"][:30], z["issuer"][:30], z["unit_price_ratio"], ("basis: %s" % z["basis"]) if z["basis_verified"] else "QTY NOT COMPARED - no votes",
                     z["n_holders"], z["n_prior_holders"], z["n_continuing"], money(z["value_usd"]), money(z["value_prior_usd"]),
                     (" | new %s absent %s more %s fewer %s | net est %s | %s" % (full.get("new"), full.get("absent"), full.get("inc"), full.get("dec"), money(full.get("net_usd")), full.get("stance"))) if full else ""))
                 if not z["n_holders"] or not z["n_prior_holders"]:

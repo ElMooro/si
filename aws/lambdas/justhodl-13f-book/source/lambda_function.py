@@ -23,8 +23,8 @@ ticker table this quarter." -> 1.6.0: (1) value units are verified per manager a
 reported price of the same CUSIP at the same period end - a filer whose lines price at one thousandth of everyone
 else's reports in thousands, and its values are read x1,000 (managers[fk].units says so, with the evidence); (2) a
 security that left the scope under one CUSIP and entered it under another is one identity (aggregate merges the
-pair: holders now vs holders before, and - when the reported unit price says the share basis did not change - who
-reports more and who fewer), so Exxon is one row again in the boards, the stance and the ticker table.
+pair: holders now vs holders before, and - when the share basis is shown not to have changed - who reports more and
+who fewer), so Exxon is one row again in the boards, the stance and the ticker table.
 
 What this engine is
   The page 13f.html shows the book; this engine computes it. It reads ONLY retained, published data and derives the
@@ -1001,10 +1001,13 @@ def merge_successions(agg, members):
     tearsheet's rule (same resolved ticker; or, when at most one side has a resolved ticker, the same CUSIP or the
     same name key) and each has exactly one such partner. The merged record keeps the new identity and reads:
     holders now vs holders before, reported value now vs before, managers only on the new side as new, only on the
-    old side as absent. Managers on both sides are compared by reported quantity ONLY when the reported unit price
-    moved within UNIT_BAND (a share basis that did not change); a reverse split or an exchange ratio moves the unit
-    price far outside it, and then they are counted unchanged - no vote, no flow - and the row says so. Mutates agg;
-    returns the merges. Pure given its inputs."""
+    old side as absent. Managers on both sides are compared by reported quantity ONLY when the share basis is shown
+    not to have changed: the CUSIP is the same and only the class text differs ('same_cusip' - compared as every
+    other line of that CUSIP is); or the reported unit price moved within UNIT_BAND ('unit_price'); or a holder
+    reports the very same odd-lot quantity on both sides ('same_quantity' - nobody holds 1,234,567 shares before and
+    after a split). A reverse split or an exchange ratio fails all three, and then they are counted unchanged - no
+    vote, no flow - and the row says the quantities were not compared. Mutates agg; returns the merges. Pure given
+    its inputs."""
     def share_like(a):
         return a["cls"].get("kind") in ("stock", "unmapped", "other")
 
@@ -1047,7 +1050,12 @@ def merge_successions(agg, members):
         q1 = sum((dec(x.get("reported_quantity")) for x in cur.values()), Decimal(0))
         q0 = sum((dec(x.get("reported_quantity")) for x in pri.values()), Decimal(0))
         ratio = (n["value_usd"] / q1) / (o["value_prior_usd"] / q0) if q1 > 0 and q0 > 0 and n["value_usd"] > 0 and o["value_prior_usd"] > 0 else None
-        verified = ratio is not None and Decimal(str(UNIT_BAND[0])) <= ratio <= Decimal(str(UNIT_BAND[1]))
+        same_cusip = bool(n["cusip"]) and n["cusip"] == o["cusip"]
+        in_band = ratio is not None and Decimal(str(UNIT_BAND[0])) <= ratio <= Decimal(str(UNIT_BAND[1]))
+        same_qty = any(dec(cur[fk].get("reported_quantity")) == dec(pri[fk].get("reported_quantity")) and dec(cur[fk].get("reported_quantity")) > 0
+                       and dec(cur[fk].get("reported_quantity")) % 100 != 0 for fk in set(cur) & set(pri))
+        basis = "same_cusip" if same_cusip else "unit_price" if in_band else "same_quantity" if same_qty else None
+        verified = basis is not None
         new, absent, inc, fewer, flat = [], [], [], [], []
         inflow = outflow = Decimal(0)
         for fk in sorted(set(cur) | set(pri)):
@@ -1072,7 +1080,7 @@ def merge_successions(agg, members):
         n.update({"prior_holders": list(o["prior_holders"]), "value_prior_usd": o["value_prior_usd"], "new": new, "absent": absent, "inc": inc, "dec": fewer, "flat": flat,
                   "inflow_usd": inflow, "outflow_usd": outflow,
                   "succession": {"from_id": pid_o[:12], "from_cusip": o["cusip"], "from_issuer": o["issuer"], "from_class": o["class"], "unit_price_ratio": f(round(ratio, 3)) if ratio is not None else None,
-                                 "basis_verified": verified, "n_continuing": len(set(cur) & set(pri))}})
+                                 "same_cusip": same_cusip, "basis": basis, "basis_verified": verified, "n_continuing": len(set(cur) & set(pri))}})
         del agg[pid_o]
         merges.append({"id": pid_n[:12], "ticker": n["cls"].get("ticker"), "issuer": n["issuer"], "cusip": n["cusip"], **n["succession"],
                        "n_holders": len(n["holders"]), "n_prior_holders": len(n["prior_holders"])})
@@ -2076,7 +2084,7 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
             "tearsheet.multiple": "reported quantity now / reported quantity at the prior period (shown as 10x when a line grew at least two-fold)",
             "tearsheet.reclassified": "a newly present line whose security also sits among the absent lines (same CUSIP, same resolved ticker, or the same non-fund issuer name without its corporate-form words): one security under a new CUSIP or class - listed apart, never counted as new or closed, never in the notable picks or the estimates",
             "units": "each manager's value unit per period: its reported price per share line against the other books' median reported price of the same CUSIP at the same period; 'thousands' = at least 80% of the comparable lines price at 1/1000 and every value is read x1,000 (the artifact and the evidence desk keep the table as filed); 'not_compared' = no other book at that period",
-            "succession": "one security that left the scope under one CUSIP and entered it under another, merged into one identity: holders now vs before; managers on both sides are compared by quantity only when the reported unit price moved within 0.8-1.25x (basis_verified), else counted unchanged",
+            "succession": "one security that left the scope under one CUSIP and entered it under another, merged into one identity: holders now vs before; managers on both sides are compared by quantity only when the share basis is shown unchanged (basis: same_cusip = only the class text changed; unit_price = the reported unit price moved within 0.8-1.25x; same_quantity = a holder reports the same odd-lot quantity on both sides), else counted unchanged (basis null, basis_verified false)",
             "book.tearsheet": "the same tearsheet for a scope (cohort / concentrated): every member's lines side by side; a row is one manager's line (fk), nothing is netted across managers; views all / non_option (shares + notes) / option",
             "tearsheet.source.reconciles": "the lines add up to the value the current filing's cover page reports (within one millionth)",
             "BALANCED": "a class whose net manager-identity pairs are within +/-%d%% of all its pairs" % int(TILT_PCT),
