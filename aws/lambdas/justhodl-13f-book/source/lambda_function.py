@@ -18,6 +18,14 @@ book.tearsheet[scope] (the same read for the whole current cohort and for the co
 side by side, each row naming its manager; all lines / shares and notes / option rows), the largest call and put lines
 per manager (tearsheet.options.top_calls / top_puts) and how many identities each cross-manager board ranks.
 
+Khalid, 2026-11-17 (third ask): "Fix these: Baupost shows as $5M because of its units, and Exxon has no row in the
+ticker table this quarter." -> 1.6.0: (1) value units are verified per manager and period against the other books'
+reported price of the same CUSIP at the same period end - a filer whose lines price at one thousandth of everyone
+else's reports in thousands, and its values are read x1,000 (managers[fk].units says so, with the evidence); (2) a
+security that left the scope under one CUSIP and entered it under another is one identity (aggregate merges the
+pair: holders now vs holders before, and - when the reported unit price says the share basis did not change - who
+reports more and who fewer), so Exxon is one row again in the boards, the stance and the ticker table.
+
 What this engine is
   The page 13f.html shows the book; this engine computes it. It reads ONLY retained, published data and derives the
   boards the way a careful reader of the filings would - counting managers, summing reported values, comparing two
@@ -75,7 +83,7 @@ import chain_guard  # the fleet-wide trigger cap: every engine start is admitted
 import openfigi     # aws/shared: keyed OpenFIGI v3 client (SSM /justhodl/openfigi/api-key), fail-soft
 import fmp_bank     # aws/shared: the FMP warehouse reader (banked etf/info rows carry FMP's own assetClass) - S3 only
 
-VERSION = "1.5.0"
+VERSION = "1.6.0"
 CONTRACT = "13f-book.v2"
 ENGINE = "justhodl-13f-book"
 SCHEME = "v2"   # security-master query scheme: identifier typed by shape (CUSIP / CINS), US pass, any-exchange pass, ISIN pass
@@ -112,6 +120,10 @@ TEAR_TOP = int(os.environ.get("TEAR_TOP", "10"))            # tearsheet: lines i
 TEAR_ROWS = int(os.environ.get("TEAR_ROWS", "15"))          # tearsheet: rows kept per change list (initiations / increases / reductions / terminations)
 TEAR_OTHERS = int(os.environ.get("TEAR_OTHERS", "12"))      # tearsheet: compact "the other N" entries kept after those rows
 TEAR_INDUSTRIES = 3                                         # tearsheet: industries shown on each side (most added to / most cut)
+SNAP_BASIS = 2                                              # the period snapshot's reading of the tables: 2 = value units verified + CUSIP successions merged (1.6.0); a snapshot on an older basis is re-written
+UNIT_BAND = (0.8, 1.25)                                     # two reported prices within this ratio are "the same price": same value unit, same share basis
+UNIT_MIN_LINES = int(os.environ.get("UNIT_MIN_LINES", "3"))  # comparable lines a manager needs before its value unit is judged
+UNIT_AGREE = 0.8                                            # share of those lines that must agree
 MIN_AGREEMENT = 2   # managers that must agree before a name is called a stance or a contender
 
 # Display names the desk's roster uses (the desk carries official SEC names; these are the short labels the page
@@ -509,6 +521,102 @@ def split_positions(detail):
             "comp": comp}
 
 
+def reported_prices(detail):
+    """{period: {cusip: reported value / reported quantity}} over the share lines (SH, no put / call) of one artifact's
+    current and prior period. The price a filer's own table implies; every book reports the same period-end price for
+    the same CUSIP, in the same unit - unless it files its value column in thousands. Pure."""
+    out = {}
+    periods = detail.get("periods") or {}
+    for period in (detail.get("current_holdings_period"), detail.get("prior_holdings_period")):
+        if not period or period in out:
+            continue
+        acc = {}
+        for pos in ((periods.get(period) or {}).get("positions") or {}).values():
+            ident = pos.get("identity") or {}
+            if not is_equity(ident):
+                continue
+            c = str(ident.get("cusip") or "").upper()
+            v, q = dec(pos.get("reported_value_usd")), dec(pos.get("reported_quantity"))
+            if c and v > 0 and q > 0:
+                a = acc.setdefault(c, [Decimal(0), Decimal(0)])
+                a[0] += v
+                a[1] += q
+        out[period] = {c: float(a[0] / a[1]) for c, a in acc.items()}
+    return out
+
+
+def value_units(details):
+    """The value unit of every manager's table, per period, judged against the other books: for each share line the
+    manager's reported price is divided by the median reported price of the same CUSIP at the same period in the
+    other books. Lines within UNIT_BAND of 1 are in dollars; lines within UNIT_BAND of 1/1000 are in thousands (the
+    pre-2023 form's unit, which some filers still use). A verdict needs UNIT_MIN_LINES comparable lines and
+    UNIT_AGREE of them agreeing: 'dollars' (factor 1), 'thousands' (factor 1000), 'unverified' (comparable but
+    neither - left as filed and flagged) or 'not_compared' (no other book at that period - left as filed). Two
+    passes, the second reading the other books through the first pass's verdicts. details: {fk: artifact}. Pure."""
+    prices = {fk: reported_prices(d) for fk, d in details.items()}
+    verdicts = {fk: {} for fk in details}
+    for _ in range(2):
+        factor = {(fk, per): (v.get("factor") or 1) for fk, pv in verdicts.items() for per, v in pv.items()}
+        ref = {}
+        for fk, pp in prices.items():
+            for per, by_cusip in pp.items():
+                fct = factor.get((fk, per), 1)
+                for c, px in by_cusip.items():
+                    ref.setdefault((per, c), []).append((fk, px * fct))
+        nxt = {}
+        for fk, pp in prices.items():
+            nxt[fk] = {}
+            for per, by_cusip in pp.items():
+                ratios = []
+                for c, px in by_cusip.items():
+                    others = sorted(v for k, v in ref.get((per, c), []) if k != fk)
+                    if others:
+                        mid = others[len(others) // 2] if len(others) % 2 else (others[len(others) // 2 - 1] + others[len(others) // 2]) / 2.0
+                        if mid > 0:
+                            ratios.append(px / mid)
+                n = len(ratios)
+                n_d = sum(1 for x in ratios if UNIT_BAND[0] <= x <= UNIT_BAND[1])
+                n_k = sum(1 for x in ratios if UNIT_BAND[0] <= x * 1000.0 <= UNIT_BAND[1])
+                ratios.sort()
+                med = ratios[n // 2] if n else None
+                if n < UNIT_MIN_LINES:
+                    status, fct = "not_compared", 1
+                elif n_k >= UNIT_AGREE * n:
+                    status, fct = "thousands", 1000
+                elif n_d >= UNIT_AGREE * n:
+                    status, fct = "dollars", 1
+                else:
+                    status, fct = "unverified", 1
+                nxt[fk][per] = {"period": per, "status": status, "factor": fct, "n_lines": len(by_cusip), "n_compared": n, "n_dollars": n_d, "n_thousands": n_k,
+                                "median_ratio": float("%.6g" % med) if med is not None else None}
+        verdicts = nxt
+    return verdicts
+
+
+def apply_units(detail, verdict):
+    """Read a table filed in thousands as dollars: every reported value of the period x its factor, and the value
+    changes of the comparison recomputed from the two scaled sides. In memory only - the retained artifact and the
+    evidence desk keep the table as filed. Returns whether anything was scaled. Pure on its inputs' copies."""
+    periods = detail.get("periods") or {}
+    scaled = False
+    for per, v in (verdict or {}).items():
+        fct = v.get("factor") or 1
+        if fct == 1:
+            continue
+        scaled = True
+        for pos in ((periods.get(per) or {}).get("positions") or {}).values():
+            if pos.get("reported_value_usd") is not None:
+                pos["reported_value_usd"] = str(dec(pos.get("reported_value_usd")) * fct)
+    if scaled:
+        cur = (periods.get(detail.get("current_holdings_period")) or {}).get("positions") or {}
+        pri = (periods.get(detail.get("prior_holdings_period")) or {}).get("positions") or {}
+        for row in ((detail.get("comparison") or {}).get("rows") or []):
+            pid = row.get("position_id") if isinstance(row, dict) else None
+            if pid in cur and pid in pri and row.get("reported_value_change_usd") is not None:
+                row["reported_value_change_usd"] = str(dec(cur[pid].get("reported_value_usd")) - dec(pri[pid].get("reported_value_usd")))
+    return scaled
+
+
 ST_NEW, ST_ABSENT = "newly_present_in_public_disclosure", "not_present_in_current_public_disclosure"
 ST_UP, ST_DOWN, ST_FLAT = "reported_quantity_increased", "reported_quantity_decreased", "reported_quantity_unchanged"
 
@@ -787,7 +895,7 @@ def scope_tearsheet(mems, managers):
     }
 
 
-def tearsheet_source(filings, effective, cur_p, pri_p, value_usd):
+def tearsheet_source(filings, effective, cur_p, pri_p, value_usd, scale=1):
     """The two information tables a tearsheet compares - for each period the effective table (else the latest filed
     13F-HR that is not an additional-holdings amendment) - and whether the lines add up to the current cover page. Pure."""
     def pick(period):
@@ -799,9 +907,9 @@ def tearsheet_source(filings, effective, cur_p, pri_p, value_usd):
         return {k: best.get(k) for k in ("accession", "form", "period_of_report", "filed_at", "amendment_type", "reported_rows", "reported_value_sum")}
 
     cur, pri = pick(cur_p), pick(pri_p)
-    cover = dec((cur or {}).get("reported_value_sum")) if (cur or {}).get("reported_value_sum") is not None else None
+    cover = dec((cur or {}).get("reported_value_sum")) * scale if (cur or {}).get("reported_value_sum") is not None else None   # the cover page is in the table's own unit
     gap = (dec(value_usd) - cover) if cover is not None and value_usd is not None else None
-    return {"current": cur, "prior": pri, "cover_value_sum": f(cover) if cover is not None else None,
+    return {"current": cur, "prior": pri, "cover_scale": scale, "cover_value_sum": f(cover) if cover is not None else None,
             "cover_gap_usd": f(gap) if gap is not None else None,
             "reconciles": (abs(gap) <= max(Decimal(1), abs(cover) / Decimal(1000000))) if gap is not None else None}
 
@@ -884,6 +992,93 @@ def member(fk, sp):
     return {"fk": fk, **sp}
 
 
+def merge_successions(agg, members):
+    """A security that left the scope under one CUSIP and entered it under another - a redomiciliation (EXXON MOBIL
+    CORP 30231G102 -> EXXONMOBIL HOLDINGS CORP 30233Q108), an ADS-to-ordinary switch, a holding-company
+    reorganisation - is ONE identity, not an exit by every holder and a purchase by every holder. A pair is merged
+    only when it is unambiguous: the old identity is absent with no current holder in the scope, the new one is newly
+    present with no prior holder, both are share lines (never funds, never notes), they are the same security by the
+    tearsheet's rule (same resolved ticker; or, when at most one side has a resolved ticker, the same CUSIP or the
+    same name key) and each has exactly one such partner. The merged record keeps the new identity and reads:
+    holders now vs holders before, reported value now vs before, managers only on the new side as new, only on the
+    old side as absent. Managers on both sides are compared by reported quantity ONLY when the reported unit price
+    moved within UNIT_BAND (a share basis that did not change); a reverse split or an exchange ratio moves the unit
+    price far outside it, and then they are counted unchanged - no vote, no flow - and the row says so. Mutates agg;
+    returns the merges. Pure given its inputs."""
+    def share_like(a):
+        return a["cls"].get("kind") in ("stock", "unmapped", "other")
+
+    def keys(a):
+        out = set(name_keys(a["issuer"], a["class"], a["cls"].get("kind")))
+        if a["cls"].get("ticker"):
+            out.add(("t", a["cls"]["ticker"]))
+        if a.get("cusip"):
+            out.add(("c", a["cusip"]))
+        return out
+
+    def same(o, n):
+        to, tn = o["cls"].get("ticker"), n["cls"].get("ticker")
+        if to and tn:
+            return to == tn                      # two resolved tickers: the same security only when they are the same ticker
+        return bool(keys(o) & keys(n))
+
+    gone = {p: a for p, a in agg.items() if a["absent"] and not a["holders"] and share_like(a)}
+    came = {p: a for p, a in agg.items() if a["new"] and not a["prior_holders"] and not a["absent"] and share_like(a)}
+    index = {}
+    for p, a in gone.items():
+        for k in keys(a):
+            index.setdefault(k, set()).add(p)
+    partners = {p: {o for k in keys(a) for o in index.get(k, ()) if same(gone[o], a)} for p, a in came.items()}
+    claimed = Counter(o for c in partners.values() for o in c)
+    by_fk = {m["fk"]: m for m in members}
+    merges = []
+    for pid_n in sorted(partners):
+        cands = partners[pid_n]
+        if len(cands) != 1:
+            continue
+        pid_o = next(iter(cands))
+        if claimed[pid_o] != 1:
+            continue
+        n, o = agg[pid_n], agg[pid_o]
+        cur = {fk: by_fk[fk]["eq"][pid_n] for fk in n["holders"] if pid_n in by_fk[fk]["eq"]}
+        pri = {fk: by_fk[fk]["eq_prior"][pid_o] for fk in o["prior_holders"] if pid_o in by_fk[fk]["eq_prior"]}
+        if len(cur) != len(n["holders"]) or len(pri) != len(o["prior_holders"]):
+            continue                              # not plain share lines on both sides: leave the pair flagged, as before
+        q1 = sum((dec(x.get("reported_quantity")) for x in cur.values()), Decimal(0))
+        q0 = sum((dec(x.get("reported_quantity")) for x in pri.values()), Decimal(0))
+        ratio = (n["value_usd"] / q1) / (o["value_prior_usd"] / q0) if q1 > 0 and q0 > 0 and n["value_usd"] > 0 and o["value_prior_usd"] > 0 else None
+        verified = ratio is not None and Decimal(str(UNIT_BAND[0])) <= ratio <= Decimal(str(UNIT_BAND[1]))
+        new, absent, inc, fewer, flat = [], [], [], [], []
+        inflow = outflow = Decimal(0)
+        for fk in sorted(set(cur) | set(pri)):
+            if fk not in pri:
+                new.append(fk)
+                inflow += dec(cur[fk].get("reported_value_usd"))
+            elif fk not in cur:
+                absent.append(fk)
+                outflow += dec(pri[fk].get("reported_value_usd"))
+            elif not verified:
+                flat.append(fk)
+            else:
+                qn, vn, qp = dec(cur[fk].get("reported_quantity")), dec(cur[fk].get("reported_value_usd")), dec(pri[fk].get("reported_quantity"))
+                if qn > qp and qn > 0:
+                    inc.append(fk)
+                    inflow += (qn - qp) * (vn / qn)
+                elif qn < qp and qn > 0:
+                    fewer.append(fk)
+                    outflow += (qp - qn) * (vn / qn)
+                else:
+                    flat.append(fk)
+        n.update({"prior_holders": list(o["prior_holders"]), "value_prior_usd": o["value_prior_usd"], "new": new, "absent": absent, "inc": inc, "dec": fewer, "flat": flat,
+                  "inflow_usd": inflow, "outflow_usd": outflow,
+                  "succession": {"from_id": pid_o[:12], "from_cusip": o["cusip"], "from_issuer": o["issuer"], "from_class": o["class"], "unit_price_ratio": f(round(ratio, 3)) if ratio is not None else None,
+                                 "basis_verified": verified, "n_continuing": len(set(cur) & set(pri))}})
+        del agg[pid_o]
+        merges.append({"id": pid_n[:12], "ticker": n["cls"].get("ticker"), "issuer": n["issuer"], "cusip": n["cusip"], **n["succession"],
+                       "n_holders": len(n["holders"]), "n_prior_holders": len(n["prior_holders"])})
+    return merges
+
+
 def aggregate(members, classer):
     """members: list of member dicts. One record per identity across the cohort: holders now / prior, reported values
     now / prior, the managers newly disclosing / absent / more / fewer / unchanged, and the identity's class. Pure."""
@@ -928,6 +1123,7 @@ def aggregate(members, classer):
             if (comp.get(pid) or {}).get("status") == "not_present_in_current_public_disclosure":
                 a["absent"].append(fk)
                 a["outflow_usd"] += v_prior                                # a dropped position: its last reported value
+    merge_successions(agg, members)   # 1.6.0: one security under a new CUSIP is one identity (Exxon 2026); what stays ambiguous is still flagged below
     absent_cusips = {a["cusip"] for a in agg.values() if a["absent"]}
     absent_issuers = {issuer_key(a["issuer"]) for a in agg.values() if a["absent"]}
     new_cusips = {a["cusip"] for a in agg.values() if a["new"]}
@@ -981,7 +1177,8 @@ def out_row(pid, a, skill=None):
             "votes": {"bull": bull, "bear": bear, "net": bull - bear, "weighted_net": round((sum(w_bull) - sum(w_bear)) / 100.0, 2) if (w_bull or w_bear) else None,
                       "weighted_coverage": len(w_bull) + len(w_bear)},
             "stance": stance_of(bull, bear),
-            "reclass_candidate": a["reclass_candidate"], "no_current_holder": a["no_current_holder"]}
+            "reclass_candidate": a["reclass_candidate"], "no_current_holder": a["no_current_holder"],
+            **({"succession": a["succession"]} if a.get("succession") else {})}
 
 
 def boards_from(agg, universe, skill=None):
@@ -1598,7 +1795,7 @@ def period_snapshot(required, cohort_keys, agg, now):
             continue
         by_id[p[:12]] = [a["cls"]["ticker"], a["cls"]["kind"], a["cls"]["bucket"], len(a["holders"]), f(a["value_usd"]), len(a["prior_holders"]), a["cusip"]]
     return {"contract": "13f-book-period.v1", "engine": ENGINE, "period": required, "generated_at": now.isoformat(timespec="seconds"),
-            "cohort": sorted(cohort_keys), "n_identities": len(by_id),
+            "cohort": sorted(cohort_keys), "n_identities": len(by_id), "basis": SNAP_BASIS,
             "columns": ["ticker", "kind", "bucket", "n_holders", "value_usd", "n_prior_holders", "cusip"], "by_identity": by_id}
 
 
@@ -1624,6 +1821,12 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
             errors.append({"fund": fk, "error": "%s: %s" % (type(exc).__name__, str(exc)[:120])})
             continue
         loaded[fk] = (meta, key, detail, mod, size)
+    # 1a. the value unit of every table, judged against the other books (a table filed in thousands is read x1,000 from here on)
+    units = value_units({fk: v[2] for fk, v in loaded.items()})
+    for fk, (meta, key, detail, mod, size) in loaded.items():
+        if apply_units(detail, units.get(fk)):
+            log("%s: value column filed in thousands - read x1,000 (%s)" % (fk, json.dumps({per: [v["status"], v["n_thousands"], v["n_compared"]] for per, v in units[fk].items()})))
+    for fk, (meta, key, detail, mod, size) in loaded.items():
         sp = split_positions(detail)
         for group, sh in (("eq", True), ("eq_prior", True), ("debt", False), ("debt_prior", False)):
             for pos in sp[group].values():
@@ -1694,6 +1897,12 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
     for fk, (meta, key, detail, mod, size) in loaded.items():
         boards, sp = fund_boards(detail, classer)
         status, flags = status_of(meta, boards, required)
+        uv = units.get(fk) or {}
+        u_cur, u_pri = uv.get(boards["current_period"]) or {}, uv.get(boards["prior_period"]) or {}
+        if u_cur.get("status") == "thousands" or u_pri.get("status") == "thousands":
+            flags = flags + ["UNITS_THOUSANDS"]
+        if u_cur.get("status") == "unverified" or u_pri.get("status") == "unverified":
+            flags = flags + ["UNITS_UNVERIFIED"]
         ls = meta.get("latest_submission") or {}
         mem = member(fk, sp)
         mix = rotation([mem], classer)
@@ -1704,6 +1913,7 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
             "effective_accessions": meta.get("effective_accessions"), "chain_status": meta.get("current_chain_status"),
             "cohort": bool(meta.get("current_cohort_eligible")), "observation_age_days": meta.get("observation_age_days"),
             "status": status, "flags": flags, "valuation_reviews": meta.get("valuation_reviews") or [],
+            "units": {"current": u_cur or None, "prior": u_pri or None, "basis": "this book's reported price per share line / the median reported price of the same CUSIP at the same period in the other books"},
             "artifact": {"key": key, "bytes": size, "sha256": (meta.get("detail") or {}).get("sha256"), "last_modified": mod.isoformat(timespec="seconds")},
             "mix": {"buckets": [{k: r[k] for k in ("bucket", "label", "value_usd", "value_prior_usd", "share_pct", "share_prior_pct", "share_delta_pp",
                                                    "n_identities", "pairs", "net_pairs", "stance")} for r in mix["buckets"]],
@@ -1717,7 +1927,7 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
                         for fs in (detail.get("filing_summaries") or {}).values()],
         })
         boards["tearsheet"]["source"] = tearsheet_source(boards["filings"], boards.get("effective_accessions"), boards["current_period"], boards["prior_period"],
-                                                         boards["tearsheet"]["value_usd"])
+                                                         boards["tearsheet"]["value_usd"], scale=u_cur.get("factor") or 1)
         managers[fk] = boards
         if boards["cohort"] and boards["current_period"] == required:
             members.append(mem)
@@ -1766,6 +1976,9 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
             "rotation": rotation(mems, classer),
             "sectors": sector_block(agg, skill),
             "tearsheet": scope_tearsheet(mems, managers),
+            "successions": sorted(({"id": p[:12], "ticker": a["cls"].get("ticker"), "issuer": a["issuer"], "cusip": a["cusip"], **a["succession"], "n_holders": len(a["holders"]),
+                                    "n_prior_holders": len(a["prior_holders"]), "value_usd": f(a["value_usd"]), "value_prior_usd": f(a["value_prior_usd"])}
+                                   for p, a in agg.items() if a.get("succession")), key=lambda r: -(r["value_usd"] or 0)),
         }
     # unclassified exchange-traded products and the largest unmapped identities, for review
     unclassified, unmapped, other_rows = {}, {}, []
@@ -1792,7 +2005,7 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
               "etf_table_reviewed": etf_reviewed, "etf_table_size": len(etf_classes), "class_sources": dict(class_sources),
               "learned": {"key": LEARNED_KEY, "n_rows": len(learned), "last_modified": learned_mod.isoformat(timespec="seconds") if learned_mod else None, "error": learned_err, "last_run": learn_stats}}
 
-    # 5. the period snapshot (written once per period, re-written when the cohort or its identity count changes)
+    # 5. the period snapshot (written once per period, re-written when the cohort, its identity count or the reading of the tables changes)
     snapshot = {"key": None, "written": False, "reason": None}
     if required and agg_cohort is not None and cohort_keys:
         snap_key = "%s%s.json" % (PERIODS_PREFIX, required)
@@ -1801,10 +2014,10 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
             prev, _, _ = get_json(s3, snap_key)
         except Exception:  # noqa: BLE001
             prev = None
-        if prev is None or sorted(prev.get("cohort") or []) != snap["cohort"] or prev.get("n_identities") != snap["n_identities"]:
+        if prev is None or sorted(prev.get("cohort") or []) != snap["cohort"] or prev.get("n_identities") != snap["n_identities"] or prev.get("basis") != snap["basis"]:
             try:
                 n = put_json(s3, snap_key, snap, cache="max-age=3600")
-                snapshot = {"key": snap_key, "written": True, "bytes": n, "reason": "new period" if prev is None else "cohort or identity count changed"}
+                snapshot = {"key": snap_key, "written": True, "bytes": n, "reason": "new period" if prev is None else "value basis changed" if prev.get("basis") != snap["basis"] else "cohort or identity count changed"}
             except Exception as exc:  # noqa: BLE001
                 snapshot = {"key": snap_key, "written": False, "reason": "%s" % type(exc).__name__}
         else:
@@ -1828,6 +2041,9 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
         "contenders": {s: scopes[s]["contenders"] for s in scopes}, "rotation": {s: scopes[s]["rotation"] for s in scopes},
         "sectors": {s: scopes[s]["sectors"] for s in scopes},
         "tearsheet": {s: scopes[s]["tearsheet"] for s in scopes},
+        "successions": {s: scopes[s]["successions"] for s in scopes},
+        "units": {fk: {"flags": [x for x in m["flags"] if x.startswith("UNITS_")], **{k: ({kk: v[kk] for kk in ("period", "status", "factor", "n_compared", "n_dollars", "n_thousands", "median_ratio")} if v else None)
+                                                                                    for k, v in (("current", m["units"]["current"]), ("prior", m["units"]["prior"]))}} for fk, m in managers.items()},
         "profiles": {"source": "FMP profile bulk (bank)", "n_rows": profiles.n_rows if profiles else 0, "n_cusips": len(profiles.by_cusip) if profiles else 0,
                      "as_of": getattr(profiles, "as_of", None) if profiles else None, "error": profiles_err, "cusip_bridge_resolved_this_run": bridged},
         "scopes": {s: {"members": scopes[s]["members"], "n_identities": scopes[s]["n_identities"]} for s in scopes},
@@ -1859,6 +2075,8 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
             "tearsheet.est_usd": "a new line: its reported value; units added or removed: at this filing's own reported price; an absent line: its last reported value - an estimate at reported prices, never an execution",
             "tearsheet.multiple": "reported quantity now / reported quantity at the prior period (shown as 10x when a line grew at least two-fold)",
             "tearsheet.reclassified": "a newly present line whose security also sits among the absent lines (same CUSIP, same resolved ticker, or the same non-fund issuer name without its corporate-form words): one security under a new CUSIP or class - listed apart, never counted as new or closed, never in the notable picks or the estimates",
+            "units": "each manager's value unit per period: its reported price per share line against the other books' median reported price of the same CUSIP at the same period; 'thousands' = at least 80% of the comparable lines price at 1/1000 and every value is read x1,000 (the artifact and the evidence desk keep the table as filed); 'not_compared' = no other book at that period",
+            "succession": "one security that left the scope under one CUSIP and entered it under another, merged into one identity: holders now vs before; managers on both sides are compared by quantity only when the reported unit price moved within 0.8-1.25x (basis_verified), else counted unchanged",
             "book.tearsheet": "the same tearsheet for a scope (cohort / concentrated): every member's lines side by side; a row is one manager's line (fk), nothing is netted across managers; views all / non_option (shares + notes) / option",
             "tearsheet.source.reconciles": "the lines add up to the value the current filing's cover page reports (within one millionth)",
             "BALANCED": "a class whose net manager-identity pairs are within +/-%d%% of all its pairs" % int(TILT_PCT),

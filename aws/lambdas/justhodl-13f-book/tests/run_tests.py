@@ -343,10 +343,13 @@ def test_name_key_and_a_redomiciled_issuer_is_one_security():
     # two different products of one trust are NOT one security: a new iShares fund and an absent iShares fund stay new and closed
     assert [r["issuer"] for r in t["initiations"]["rows"]] == ["ISHARES TR"] and [r["issuer"] for r in t["terminations"]["rows"]] == ["ISHARES TR"]
     assert t["notable"]["add"]["id"] == "ivv" and t["notable"]["cut"]["id"] == "iwm" and t["est"] == {"in_usd": 3000.0, "out_usd": 1000.0, "option_in_usd": 0.0, "option_out_usd": 0.0, "reclassified_usd": 20400.0}
-    # the cohort aggregate: the new identity and the absent one are reclass candidates - no votes, no flows, no "new to cohort"
+    # the cohort aggregate (1.6.0): the pair is ONE identity - the manager held it before and holds it now, with more shares
     agg = lf.aggregate([lf.member("A", lf.split_positions(artifact(cur, pri, rows)))], lf.Classer({}, {}))
-    assert agg["xn"]["reclass_candidate"] is True and agg["xo"]["reclass_candidate"] is True and agg["xo"]["no_current_holder"] is True
-    assert agg["spy"]["reclass_candidate"] is False
+    x = agg["xn"]
+    assert "xo" not in agg and x["holders"] == ["A"] and x["prior_holders"] == ["A"] and x["new"] == [] and x["absent"] == [] and x["inc"] == ["A"] and x["dec"] == []
+    assert x["value_usd"] == 14400 and x["value_prior_usd"] == 11000 and x["inflow_usd"] == 2400 and x["outflow_usd"] == 0 and x["reclass_candidate"] is False and x["no_current_holder"] is False   # 20 more shares x $120
+    assert x["succession"] == {"from_id": "xo", "from_cusip": "30231G102", "from_issuer": "EXXON MOBIL CORP", "from_class": "COM", "unit_price_ratio": 1.091, "basis_verified": True, "n_continuing": 1}
+    assert agg["spy"]["reclass_candidate"] is False and "succession" not in agg["spy"] and "ivv" in agg and "iwm" in agg and "succession" not in agg["ivv"]   # two products of one trust are never merged
 
 
 def test_a_note_is_not_its_issuers_stock_and_two_tickers_are_two_securities():
@@ -368,9 +371,77 @@ def test_a_note_is_not_its_issuers_stock_and_two_tickers_are_two_securities():
     assert {r["id"] for r in t["initiations"]["rows"]} == {"mstr", "bpf", "n2"} and {r["id"] for r in t["terminations"]["rows"]} == {"note", "bc", "n1"}
     assert t["notable"]["add"]["id"] == "mstr" and t["notable"]["cut"]["id"] == "bc"
     agg = lf.aggregate([lf.member("A", sp)], cl)
-    assert agg["xn"]["reclass_candidate"] is True and agg["xo"]["reclass_candidate"] is True
-    assert agg["bpf"]["reclass_candidate"] is True   # the cohort rule keeps its older first-two-words match (BRUKER CORP on both sides); only the name key is new, and it adds nothing here
+    assert "xo" not in agg and agg["xn"]["dec"] == ["A"] and agg["xn"]["outflow_usd"] == 1200 and agg["xn"]["succession"]["basis_verified"] is True   # Exxon: one identity, 10 fewer shares x $120
+    assert "bc" in agg and "succession" not in agg["bpf"] and agg["bpf"]["reclass_candidate"] is True   # BRKR and its convertible preferred are two tickers: never merged, still flagged by the older first-two-words rule
+    assert "mstr" in agg and "succession" not in agg["mstr"] and "note" in agg and "n1" in agg and "n2" in agg   # a note is never anyone's predecessor or successor
     assert lf.name_keys("BRUKER CORP", "COM", "stock") and not (set(lf.name_keys("STRATEGY INC", "CL A NEW", "stock")) & set(lf.name_keys("STRATEGY INC", "NOTE 0% 12/01/29", "debt")))
+
+
+def test_succession_merge_counts_holders_and_only_votes_on_an_unchanged_share_basis():
+    cl = lf.Classer({"30233Q108": {"status": "resolved", "ticker": "XOM", "name": "EXXONMOBIL HOLDINGS CORP", "security_type": "Common Stock", "market_sector": "Equity"},
+                     "30231G102": {"status": "ambiguous", "type_agreed": True, "name": "EXXON MOBIL CORP", "security_type": "Common Stock", "market_sector": "Equity"},
+                     "644393308": {"status": "resolved", "ticker": "NFE", "name": "NEW FORTRESS ENERGY INC", "security_type": "Common Stock", "market_sector": "Equity"},
+                     "644393100": {"status": "no_match"}}, {})
+    old, new = lambda q, px=110: pos("30231G102", "EXXON MOBIL CORP", q, q * px), lambda q, px=120: pos("30233Q108", "EXXONMOBIL HOLDINGS CORP", q, q * px)   # noqa: E731
+    def mem(fk, cur, pri):
+        rows = [{"position_id": k, "status": lf.ST_NEW} for k in cur] + [{"position_id": k, "status": lf.ST_ABSENT} for k in pri]
+        return lf.member(fk, lf.split_positions(artifact(cur, pri, rows)))
+    # four books around Exxon's new CUSIP: A adds, B trims, C left with the old CUSIP, D arrives with the new one;
+    # A also holds New Fortress across a 1-for-17 reverse split under a new CUSIP (unit price x17)
+    members = [mem("A", {"xn": new(120), "nf": pos("644393308", "NEW FORTRESS ENERGY INC", 10, 62.7, "CL A NEW")}, {"xo": old(100), "no": pos("644393100", "NEW FORTRESS ENERGY INC", 170, 61.2, "CL A NEW")}),
+               mem("B", {"xn": new(40)}, {"xo": old(50)}), mem("C", {}, {"xo": old(30)}), mem("D", {"xn": new(7)}, {})]
+    agg = lf.aggregate(members, cl)
+    x = agg["xn"]
+    assert "xo" not in agg and x["holders"] == ["A", "B", "D"] and x["prior_holders"] == ["A", "B", "C"] and x["new"] == ["D"] and x["absent"] == ["C"] and x["inc"] == ["A"] and x["dec"] == ["B"] and x["flat"] == []
+    assert x["inflow_usd"] == 7 * 120 + 20 * 120 and x["outflow_usd"] == 30 * 110 + 10 * 120 and x["succession"]["unit_price_ratio"] == 1.091 and x["succession"]["n_continuing"] == 2
+    row = lf.out_row("xn", x)
+    assert row["n_holders"] == 3 and row["n_prior_holders"] == 3 and row["holder_delta"] == 0 and row["votes"] == {"bull": 2, "bear": 2, "net": 0, "weighted_net": None, "weighted_coverage": 0} and row["succession"]["from_cusip"] == "30231G102"
+    # the reverse split: one identity, the same holder before and after - but no "fewer shares" vote and no flow, because the share basis changed
+    nf = agg["nf"]
+    assert "no" not in agg and nf["holders"] == ["A"] and nf["prior_holders"] == ["A"] and nf["flat"] == ["A"] and nf["dec"] == [] and nf["outflow_usd"] == 0
+    assert nf["succession"]["basis_verified"] is False and nf["succession"]["unit_price_ratio"] == 17.417 and nf["reclass_candidate"] is False
+    # the ticker table carries both again: Exxon with its holders on both sides, never as "new to the cohort"
+    tbl = lf.tickers_table(agg, agg, "2026-09-30", ["A", "B", "C", "D"], ["A", "B", "C", "D"], NOW)
+    cols = tbl["columns"]
+    xom = dict(zip(cols, tbl["by_ticker"]["XOM"]))
+    assert (xom["n_holders"], xom["n_prior_holders"], xom["holder_delta"], xom["bull"], xom["bear"], xom["stance"]) == (3, 3, 0, 2, 2, "CONTESTED") and xom["value_prior_usd"] == 180 * 110.0 and xom["inflow_usd"] == 3240.0
+    assert dict(zip(cols, tbl["by_ticker"]["NFE"]))["stance"] == "QUIET" and dict(zip(cols, tbl["by_ticker"]["NFE"]))["n_prior_holders"] == 1
+    # an ambiguous succession (two new identities could be the old one's successor) is left alone and stays flagged
+    amb = lf.aggregate([mem("A", {"n1": pos("111111118", "ACME WIDGETS INC", 10, 100), "n2": pos("222222226", "ACME WIDGETS CORP", 10, 100)}, {"o": pos("333333334", "ACME WIDGETS INC", 10, 100)})], lf.Classer({}, {}))
+    assert set(amb) == {"n1", "n2", "o"} and all("succession" not in a for a in amb.values()) and amb["n1"]["reclass_candidate"] is True and amb["o"]["reclass_candidate"] is True
+
+
+def test_value_units_a_table_filed_in_thousands_is_read_times_1000():
+    cus = ["0231351%02d" % i for i in range(6)]
+    def art(scale, qty, drop=()):
+        cur = {c: pos(c, "ISSUER %s" % c, qty, qty * (100 + i) * scale) for i, c in enumerate(cus) if c not in drop}
+        pri = {c: pos(c, "ISSUER %s" % c, qty, qty * (90 + i) * scale) for i, c in enumerate(cus) if c not in drop}
+        rows = [{"position_id": c, "status": lf.ST_FLAT, "reported_quantity_change": "0", "reported_value_change_usd": str(qty * 10 * scale)} for c in cur]
+        return artifact(cur, pri, rows)
+    details = {"DOLLARS1": art(1, 1000), "DOLLARS2": art(1, 50), "THOUSANDS": art(0.001, 4000, drop=cus[5:]), "LONELY": artifact({"z": pos("999999999", "ONLY HERE CO", 5, 500)}, {}, [], "2023-12-31", "2023-09-30")}
+    u = lf.value_units(details)
+    assert u["DOLLARS1"]["2026-06-30"]["status"] == "dollars" and u["DOLLARS1"]["2026-06-30"]["factor"] == 1 and u["DOLLARS1"]["2026-06-30"]["n_compared"] == 6 and u["DOLLARS1"]["2026-06-30"]["median_ratio"] == 1.0
+    t = u["THOUSANDS"]["2026-06-30"]
+    assert (t["status"], t["factor"], t["n_lines"], t["n_compared"], t["n_thousands"], t["n_dollars"], t["median_ratio"]) == ("thousands", 1000, 5, 5, 5, 0, 0.001) and u["THOUSANDS"]["2026-03-31"]["factor"] == 1000
+    assert u["LONELY"]["2023-12-31"] == {"period": "2023-12-31", "status": "not_compared", "factor": 1, "n_lines": 1, "n_compared": 0, "n_dollars": 0, "n_thousands": 0, "median_ratio": None}
+    # a book whose prices are neither is left as filed and flagged, and too few comparable lines is no verdict at all
+    odd = dict(details, ODD=art(0.37, 10))
+    assert lf.value_units(odd)["ODD"]["2026-06-30"]["status"] == "unverified" and lf.value_units(odd)["ODD"]["2026-06-30"]["factor"] == 1 and lf.value_units(odd)["DOLLARS1"]["2026-06-30"]["status"] == "dollars"
+    few = {"A": art(1, 10, drop=cus[2:]), "B": art(0.001, 10, drop=cus[2:])}
+    assert lf.value_units(few)["B"]["2026-06-30"]["status"] == "not_compared"
+    # applying the verdict: values x1,000 in both periods, the comparison's value change recomputed; the dollars book untouched
+    d = details["THOUSANDS"]
+    before = json.dumps(details["DOLLARS1"], sort_keys=True)
+    assert lf.apply_units(d, u["THOUSANDS"]) is True and lf.apply_units(details["DOLLARS1"], u["DOLLARS1"]) is False and json.dumps(details["DOLLARS1"], sort_keys=True) == before
+    p0 = d["periods"]["2026-06-30"]["positions"][cus[0]]
+    assert lf.dec(p0["reported_value_usd"]) == 4000 * 100 and lf.dec(d["periods"]["2026-03-31"]["positions"][cus[0]]["reported_value_usd"]) == 4000 * 90
+    assert lf.dec(d["comparison"]["rows"][0]["reported_value_change_usd"]) == 4000 * 10
+    b, sp = lf.fund_boards(d)
+    assert b["total_value_usd"] == sum(4000.0 * (100 + i) for i in range(5)) and b["tearsheet"]["value_usd"] == b["total_value_usd"] and b["top"][0]["value_change_usd"] == 40000.0
+    assert lf.value_units({"THOUSANDS": d, "DOLLARS1": details["DOLLARS1"], "DOLLARS2": details["DOLLARS2"]})["THOUSANDS"]["2026-06-30"]["status"] == "dollars"   # once read x1,000 it prices like everyone else
+    # the cover page is in the table's own unit: it reconciles against the scaled lines
+    src = lf.tearsheet_source([{"accession": "T-1", "form": "13F-HR", "period_of_report": "2026-06-30", "filed_at": "2026-08-13", "reported_rows": 5, "reported_value_sum": "2040"}], ["T-1"], "2026-06-30", "2026-03-31", 2040000.0, scale=1000)
+    assert src["reconciles"] is True and src["cover_value_sum"] == 2040000.0 and src["cover_scale"] == 1000 and src["current"]["reported_value_sum"] == "2040"
 
 
 def test_tearsheet_source_picks_the_effective_tables_and_reconciles():
@@ -387,7 +458,7 @@ def test_tearsheet_source_picks_the_effective_tables_and_reconciles():
     assert off["reconciles"] is False and off["cover_gap_usd"] == -5000000.0
     none = lf.tearsheet_source(filings[:1], None, "2026-09-30", "2026-06-30", 10.0)
     assert none["current"] is None and none["prior"]["accession"] == "A-1" and none["reconciles"] is None and none["cover_value_sum"] is None
-    assert lf.tearsheet_source(None, None, None, None, None) == {"current": None, "prior": None, "cover_value_sum": None, "cover_gap_usd": None, "reconciles": None}
+    assert lf.tearsheet_source(None, None, None, None, None) == {"current": None, "prior": None, "cover_scale": 1, "cover_value_sum": None, "cover_gap_usd": None, "reconciles": None}
 
 
 def test_security_master_statuses_and_recheck_policy():
@@ -517,7 +588,7 @@ def test_classer_and_universes():
 
 def test_build_boards_rotation_stance_contenders_snapshot():
     s3, out = built()
-    assert out["contract"] == "13f-book.v2" and out["version"] == "1.5.0" and out["book"]["required_period"] == "2026-06-30"
+    assert out["contract"] == "13f-book.v2" and out["version"] == "1.6.0" and out["book"]["required_period"] == "2026-06-30"
     b = out["book"]
     m = b["managers"]
     assert set(m) == {"ELLIOTT", "BERKSHIRE", "PERSHING"}
@@ -576,22 +647,32 @@ def test_build_boards_rotation_stance_contenders_snapshot():
     assert m["ELLIOTT"]["tearsheet"]["options"]["top_puts"][0]["ticker"] == "AAPL" and "book.tearsheet" in b["glossary"]
     # the boards say how many identities each one ranks (the page shows ten)
     cb0 = b["boards"]["cohort"]["all"]
-    assert (cb0["n_newly_present"], cb0["n_dropped"], cb0["n_increased"], cb0["n_decreased"]) == (8, 3, 1, 3) and cb0["value_prior_usd"] > 0 and b["boards"]["cohort"]["etfs"]["n_dropped"] == 1
+    assert (cb0["n_newly_present"], cb0["n_dropped"], cb0["n_increased"], cb0["n_decreased"]) == (7, 2, 1, 3) and cb0["value_prior_usd"] > 0 and b["boards"]["cohort"]["etfs"]["n_dropped"] == 1
     # boards per universe
     cb = b["boards"]["cohort"]
-    assert cb["all"]["n_identities"] == 14 and cb["stocks"]["widely_held"][0]["ticker"] in ("AAPL", "GOOGL") and all(r["kind"] == "stock" for r in cb["stocks"]["widely_held"])
+    assert cb["all"]["n_identities"] == 13 and cb["stocks"]["widely_held"][0]["ticker"] in ("AAPL", "GOOGL") and all(r["kind"] == "stock" for r in cb["stocks"]["widely_held"])
     assert [r["ticker"] for r in cb["etfs"]["widely_held"]][0] == "SPY" and cb["etfs"]["widely_held"][0]["n_holders"] == 2 and all(r["kind"] == "fund" for r in cb["etfs"]["newly_present"])
     assert cb["etfs"]["dropped"][0]["ticker"] == "GLD" and cb["etfs"]["dropped"][0]["n_absent"] == 1 and cb["etfs"]["decreased"][0]["ticker"] in ("GLD", "TLT")
     apple = next(r for r in cb["all"]["widely_held"] if r["ticker"] == "AAPL")
     assert apple["n_holders"] == 2 and apple["n_prior_holders"] == 2 and apple["holder_delta"] == 0 and apple["value_usd"] == 36000.0 and apple["value_prior_usd"] == 28500.0
     assert apple["votes"] == {"bull": 0, "bear": 1, "net": -1, "weighted_net": -0.0, "weighted_coverage": 1} and apple["stance"] == "DISTRIBUTING"
     newly = {r["issuer"]: r for r in cb["all"]["newly_present"]}
-    assert newly["HONEYWELL INTL INC"]["reclass_candidate"] is True and newly["HONEYWELL INTL INC"]["no_current_holder"] is False and newly["HONEYWELL INTL INC"]["ticker"] == "HON"
+    # 1.6.0: Honeywell under its new CUSIP is one identity - held before, held now, the same shares: neither newly present nor dropped
+    assert "HONEYWELL INTL INC" not in newly and "HON" not in {r["ticker"] for r in cb["all"]["dropped"]}
+    hon = next(r for r in cb["all"]["widely_held"] if r["ticker"] == "HON")
+    assert (hon["cusip"], hon["n_holders"], hon["n_prior_holders"], hon["holder_delta"], hon["value_usd"], hon["value_prior_usd"], hon["n_flat"], hon["net_usd"]) == ("438516205", 1, 1, 0, 500.0, 450.0, 1, 0.0)
+    assert hon["reclass_candidate"] is False and hon["stance"] == "QUIET" and hon["succession"] == {"from_id": "h1", "from_cusip": "438516106", "from_issuer": "HONEYWELL INTL INC", "from_class": "COM", "unit_price_ratio": 1.111, "basis_verified": True, "n_continuing": 1}
+    assert b["successions"]["cohort"] == [{"id": "h2", "ticker": "HON", "issuer": "HONEYWELL INTL INC", "cusip": "438516205", **hon["succession"], "n_holders": 1, "n_prior_holders": 1, "value_usd": 500.0, "value_prior_usd": 450.0}]
+    assert b["successions"]["concentrated"] == b["successions"]["cohort"] and "succession" in b["glossary"] and "units" in b["glossary"]
+    # 1.6.0: every book's value unit is on the book - both cohort members price like each other (dollars); the dated book has no peer at its period
+    assert b["units"]["ELLIOTT"]["current"] == {"period": "2026-06-30", "status": "dollars", "factor": 1, "n_compared": 3, "n_dollars": 3, "n_thousands": 0, "median_ratio": 1.0} and b["units"]["ELLIOTT"]["flags"] == []
+    assert b["units"]["PERSHING"]["current"]["status"] == "not_compared" and m["ELLIOTT"]["units"]["prior"]["status"] == "dollars" and m["ELLIOTT"]["tearsheet"]["source"]["cover_scale"] == 1
+    assert not any(x.startswith("UNITS_") for fk in m for x in m[fk]["flags"])
     dropped = {(r["issuer"], r["cusip"]): r for r in cb["all"]["dropped"]}
     ap = dropped[("APELLIS PHARMACEUTICALS INC", "03753U106")]
     assert ap["n_absent"] == 2 and ap["no_current_holder"] is True and ap["reclass_candidate"] is False and ap["ticker"] == "APLS"
-    assert dropped[("HONEYWELL INTL INC", "438516106")]["reclass_candidate"] is True
-    # stance: GOOGL (2 more) and SPY (2 new) bullish; APLS (2 absent) bearish; HON (reclass) excluded; AAPL (-1) below the agreement floor
+    assert ("HONEYWELL INTL INC", "438516106") not in dropped
+    # stance: GOOGL (2 more) and SPY (2 new) bullish; APLS (2 absent) bearish; HON (one identity, unchanged) quiet; AAPL (-1) below the agreement floor
     st = b["stance"]["cohort"]
     assert [r["ticker"] for r in st["all"]["bullish"]] == ["GOOGL", "SPY"] and st["all"]["bullish"][0]["votes"]["weighted_net"] == 0.77 and st["all"]["bullish"][0]["stance"] == "ACCUMULATING"
     assert [r["ticker"] for r in st["all"]["bearish"]] == ["GLD", "APLS"] and st["all"]["bearish"][1]["votes"] == {"bull": 0, "bear": 2, "net": -2, "weighted_net": -0.77, "weighted_coverage": 2}
@@ -606,7 +687,7 @@ def test_build_boards_rotation_stance_contenders_snapshot():
     rot = {r["bucket"]: r for r in b["rotation"]["cohort"]["buckets"]}
     assert set(rot) == {"equities", "bonds", "gold", "crypto", "unmapped"}   # XYZQ is classed through the bank (FMP assetClass Equity)
     assert rot["equities"]["value_usd"] == 20000 + 9000 + 500 + 5000 + 16000 + 3750 + 2000 + 900 + 60 + 70 + 50 and rot["equities"]["n_managers"] == 2   # + the typed-but-unticked AMBIGUOUS CO
-    assert rot["equities"]["pairs"] == {"new": 7, "absent": 3, "more": 2, "fewer": 1, "flat": 1} and rot["equities"]["net_pairs"] == 5 and rot["equities"]["tilt_pct"] == 38.5 and rot["equities"]["stance"] == "ACCUMULATING"
+    assert rot["equities"]["pairs"] == {"new": 6, "absent": 2, "more": 2, "fewer": 1, "flat": 2} and rot["equities"]["net_pairs"] == 5 and rot["equities"]["tilt_pct"] == 45.5 and rot["equities"]["stance"] == "ACCUMULATING"   # 1.6.0: HON's CUSIP change is one unchanged pair, no longer a new one and an absent one
     assert rot["gold"]["value_usd"] == 2000.0 and rot["gold"]["value_prior_usd"] == 3960.0 and rot["gold"]["pairs"] == {"new": 0, "absent": 1, "more": 0, "fewer": 1, "flat": 0} and rot["gold"]["stance"] == "DISTRIBUTING"
     assert rot["bonds"]["value_usd"] == 950000 + 450 and rot["bonds"]["value_prior_usd"] == 940000 + 880 and rot["bonds"]["top"][0]["name"] == "T 4.3 02/15/30"
     assert rot["crypto"]["pairs"]["new"] == 1 and rot["crypto"]["top"][0]["name"] == "IBIT" and rot["unmapped"]["n_identities"] == 1 and rot["gold"]["tilt_pct"] == -100.0
@@ -626,7 +707,7 @@ def test_build_boards_rotation_stance_contenders_snapshot():
     assert googl["inflow_usd"] == 2250.0 and googl["outflow_usd"] == 0.0 and googl["net_usd"] == 2250.0 and googl["sector"] == "Communication Services"
     assert apple["inflow_usd"] == 0.0 and apple["outflow_usd"] == 2000.0 and apple["net_usd"] == -2000.0 and apple["industry"] == "Consumer Electronics"
     assert ap["outflow_usd"] == 990.0 and ap["net_usd"] == -990.0
-    # the sector layer (cohort): FMP sectors and industries, flows, stances, top names; reclassified HON is value-only
+    # the sector layer (cohort): FMP sectors and industries, flows, stances, top names; HON under its new CUSIP is one unchanged holding
     sec = {r["name"]: r for r in b["sectors"]["cohort"]["sectors"]}
     assert set(sec) == {"Technology", "Communication Services", "Healthcare", "Industrials", "Energy", "Consumer Cyclical", "Unclassified (no FMP profile)"}
     assert sec["Technology"]["value_usd"] == 36000.0 and sec["Technology"]["value_prior_usd"] == 28500.0 and sec["Technology"]["net_usd"] == -2000.0 and sec["Technology"]["money_stance"] == "DISTRIBUTING" and sec["Technology"]["stance"] == "DISTRIBUTING"
@@ -646,7 +727,7 @@ def test_build_boards_rotation_stance_contenders_snapshot():
     # the period snapshot was written once and is reported in history
     assert b["history"]["snapshot"] == {"key": "data/13f-book/periods/2026-06-30.json", "written": True, "bytes": b["history"]["snapshot"]["bytes"], "reason": "new period"}
     snap = json.loads(s3.store["data/13f-book/periods/2026-06-30.json"])
-    assert snap["contract"] == "13f-book-period.v1" and snap["cohort"] == ["BERKSHIRE", "ELLIOTT"] and snap["n_identities"] == 15
+    assert snap["contract"] == "13f-book-period.v1" and snap["cohort"] == ["BERKSHIRE", "ELLIOTT"] and snap["n_identities"] == 14
     assert snap["by_identity"]["a"] == ["AAPL", "stock", "equities", 2, 36000.0, 2, "037833100"] and snap["by_identity"]["x"][3] == 0 and snap["by_identity"]["x"][5] == 2 and snap["by_identity"]["xyz"][2] == "equities"
     assert b["history"]["periods"][0]["period"] == "2026-06-30"
     # the per-ticker table: one row per resolved ticker, cohort scope, written every run
