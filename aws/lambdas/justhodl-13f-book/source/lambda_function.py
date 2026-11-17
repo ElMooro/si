@@ -6,6 +6,13 @@ Khalid, 2026-11-04: "focus on stocks and ETFs being added, stocks and ETFs being
 crypto adding and selling, most stocks and ETFs held, new contender stocks and ETFs ... getting traction through
 funds, also which are getting sold ... which stocks and ETFs they are bullish on, which they are bearish on."
 
+Khalid, 2026-11-17 (a one-manager 13F tearsheet as the reference): "this image has some features and UX that mine is
+missing - implement them. Only add the missing features, don't delete anything." -> managers[fk].tearsheet (1.4.0):
+the WHOLE information table per manager - stock, notes at principal and option rows at the underlying's reported
+value ranked together - with the 13F value and line items now vs prior, new / increased / reduced / closed /
+unchanged counts, the top lines, the four change lists with before -> after values, the most notable addition and
+cut, the largest stock line, the industries most added to and cut, and the two filings compared.
+
 What this engine is
   The page 13f.html shows the book; this engine computes it. It reads ONLY retained, published data and derives the
   boards the way a careful reader of the filings would - counting managers, summing reported values, comparing two
@@ -63,7 +70,7 @@ import chain_guard  # the fleet-wide trigger cap: every engine start is admitted
 import openfigi     # aws/shared: keyed OpenFIGI v3 client (SSM /justhodl/openfigi/api-key), fail-soft
 import fmp_bank     # aws/shared: the FMP warehouse reader (banked etf/info rows carry FMP's own assetClass) - S3 only
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 CONTRACT = "13f-book.v2"
 ENGINE = "justhodl-13f-book"
 SCHEME = "v2"   # security-master query scheme: identifier typed by shape (CUSIP / CINS), US pass, any-exchange pass, ISIN pass
@@ -96,6 +103,10 @@ TOP = 10
 BOARD = 20
 STANCE_TOP = 15
 FRESH_H, DEAD_H = 30.0, 168.0
+TEAR_TOP = int(os.environ.get("TEAR_TOP", "10"))            # tearsheet: lines in the current-positions ranking (options beside stock)
+TEAR_ROWS = int(os.environ.get("TEAR_ROWS", "15"))          # tearsheet: rows kept per change list (initiations / increases / reductions / terminations)
+TEAR_OTHERS = int(os.environ.get("TEAR_OTHERS", "12"))      # tearsheet: compact "the other N" entries kept after those rows
+TEAR_INDUSTRIES = 3                                         # tearsheet: industries shown on each side (most added to / most cut)
 MIN_AGREEMENT = 2   # managers that must agree before a name is called a stance or a contender
 
 # Display names the desk's roster uses (the desk carries official SEC names; these are the short labels the page
@@ -460,7 +471,203 @@ def split_positions(detail):
             "debt": {k: v for k, v in cur.items() if is_debt(v.get("identity"))},
             "debt_prior": {k: v for k, v in pri.items() if is_debt(v.get("identity"))},
             "opt": {k: v for k, v in cur.items() if is_option(v.get("identity"))},
+            "opt_prior": {k: v for k, v in pri.items() if is_option(v.get("identity"))},
             "comp": comp}
+
+
+ST_NEW, ST_ABSENT = "newly_present_in_public_disclosure", "not_present_in_current_public_disclosure"
+ST_UP, ST_DOWN, ST_FLAT = "reported_quantity_increased", "reported_quantity_decreased", "reported_quantity_unchanged"
+
+
+def tearsheet(sp, classer=None):
+    """One manager's whole information table as a tearsheet (Khalid 2026-11-17). Every line the filing reports - shares,
+    notes at principal and option rows at the underlying's reported value - is ranked together, the way the filing's
+    own value column adds up to its cover page. A line is one identity (CUSIP + class + SH/PRN + put/call). The
+    change lists keep the page's reading: a line newly present, a reported quantity up or down, a line absent from
+    the current table. `est_usd` is units added or removed at this filing's own reported price (a new line: its
+    reported value; an absent line: its last reported value) - the convention the sector layer uses; an estimate at
+    reported prices, never an execution. A new line whose security also sits among the absent lines (same CUSIP,
+    same resolved ticker, or the same non-fund issuer) is flagged `reclass` and kept out of the notable picks and
+    the estimates. Pure."""
+    classer = classer or Classer({}, {})
+    comp = sp["comp"]
+    cur = {**sp["eq"], **sp["debt"], **sp["opt"]}
+    pri = {**sp["eq_prior"], **sp["debt_prior"], **(sp.get("opt_prior") or {})}
+
+    def val(pos):
+        return dec(pos.get("reported_value_usd"))
+
+    total = sum((val(v) for v in cur.values()), Decimal(0))
+    total_prior = sum((val(v) for v in pri.values()), Decimal(0))
+    sector_of = {}
+
+    def base(pid, pos):
+        ident = pos.get("identity") or {}
+        c = classer.of(ident)
+        pc = str(ident.get("put_call") or "").upper() or None
+        r = {"id": pid[:12], "issuer": (pos.get("issuer_names") or [""])[0], "ticker": c["ticker"], "kind": c["kind"], "sub": c["sub"], "cusip": ident.get("cusip")}
+        if pc:
+            r["pc"] = pc
+        if not c["ticker"] and ident.get("class"):
+            r["class"] = ident.get("class")                    # without a ticker the filer's class text is what tells two lines apart
+        if c.get("name") and (c["kind"] == "fund" or (pc and is_fund_type(c.get("security_type"), ""))):
+            r["name"] = c["name"]                              # a trust's products share one issuer text: the master's name says which
+        if c.get("industry") and not pc:
+            r["industry"] = c["industry"]
+            sector_of[c["industry"]] = c.get("sector")
+        return r
+
+    groups = ("non_option", "option")
+    counts = {g: Counter() for g in groups}
+    rows, new_rows, up_rows, down_rows, closed_rows = {}, [], [], [], []
+    for pid, pos in cur.items():
+        r = base(pid, pos)
+        g = "option" if r.get("pc") else "non_option"
+        v, q = val(pos), dec(pos.get("reported_quantity"))
+        crow = comp.get(pid) or {}
+        st = crow.get("status")
+        r.update({"value_usd": f(v), "qty": f(q), "pct": share(v, total), "status": st})
+        p0 = pri.get(pid)
+        if st == ST_NEW:
+            r["est_usd"] = f(v)
+            new_rows.append(r)
+            counts[g]["new"] += 1
+        elif st in (ST_UP, ST_DOWN) and p0 is not None:
+            q0, v0 = dec(p0.get("reported_quantity")), val(p0)
+            qc = dec(crow.get("reported_quantity_change")) if crow.get("reported_quantity_change") is not None else q - q0
+            r["value_prior_usd"] = f(v0)
+            if q0:
+                r["qty_change_pct"] = f(round(100 * qc / q0, 1))
+                if q > q0:
+                    r["multiple"] = f(round(q / q0, 2))
+            r["est_usd"] = f(round(abs(qc) * (v / q), 0)) if q > 0 else f(abs(v - v0))
+            (up_rows if st == ST_UP else down_rows).append(r)
+            counts[g]["increased" if st == ST_UP else "reduced"] += 1
+        elif st == ST_FLAT:
+            if p0 is not None:
+                r["value_prior_usd"] = f(val(p0))
+            counts[g]["unchanged"] += 1
+        else:
+            counts[g]["not_compared"] += 1
+        rows[pid] = r
+    for pid, pos in pri.items():
+        if pid in cur or (comp.get(pid) or {}).get("status") != ST_ABSENT:
+            continue
+        r = base(pid, pos)
+        v0 = val(pos)
+        r.update({"value_prior_usd": f(v0), "pct_prior": share(v0, total_prior), "status": ST_ABSENT, "qty_change_pct": -100.0, "est_usd": f(v0)})
+        closed_rows.append(r)
+        counts["option" if r.get("pc") else "non_option"]["closed"] += 1
+
+    # the same security on both sides of the table (a CUSIP or class change, a spin-off, a conversion): not new money, not an exit
+    def keys(r):
+        pc = r.get("pc") or ""
+        out = [("c", pc, r.get("cusip"))] if r.get("cusip") else []
+        if r.get("ticker"):
+            out.append(("t", pc, r["ticker"]))
+        elif r["kind"] != "fund" and issuer_key(r["issuer"]):
+            out.append(("i", pc, issuer_key(r["issuer"])))
+        return out
+
+    closed_keys = {k for r in closed_rows for k in keys(r)}
+    new_keys = {k for r in new_rows for k in keys(r)}
+    for r in new_rows:
+        if any(k in closed_keys for k in keys(r)):
+            r["reclass"] = True
+    for r in closed_rows:
+        if any(k in new_keys for k in keys(r)):
+            r["reclass"] = True
+
+    def est(r):
+        return r.get("est_usd") or 0.0
+
+    new_rows.sort(key=lambda r: (-(r["value_usd"] or 0), r["id"]))
+    up_rows.sort(key=lambda r: (-est(r), r["id"]))
+    down_rows.sort(key=lambda r: (-est(r), r["id"]))
+    closed_rows.sort(key=lambda r: (-(r["value_prior_usd"] or 0), r["id"]))
+
+    def label(r):
+        return r.get("ticker") or " ".join(str(r.get("name") or r.get("issuer") or "").split()[:3])
+
+    def listing(lst):
+        rest = lst[TEAR_ROWS:]
+        return {"n": len(lst), "est_usd": round(sum(est(r) for r in lst), 0), "rows": lst[:TEAR_ROWS],
+                "others": [{k: v for k, v in (("label", label(r)), ("pc", r.get("pc")), ("usd", est(r))) if v is not None} for r in rest[:TEAR_OTHERS]],
+                "n_more": max(0, len(rest) - TEAR_OTHERS), "others_usd": round(sum(est(r) for r in rest), 0)}
+
+    ranked = sorted(cur.items(), key=lambda kv: (-val(kv[1]), kv[0]))
+    top = [rows[pid] for pid, _ in ranked[:TEAR_TOP]]
+    top_value = sum((val(pos) for _, pos in ranked[:TEAR_TOP]), Decimal(0))
+    stock_top = sorted(sp["eq"].items(), key=lambda kv: (-val(kv[1]), kv[0]))[:1]
+
+    def pick(cands):
+        cands = [r for r in cands if not r.get("reclass") and est(r) > 0]
+        return max(cands, key=lambda r: (est(r), r["id"])) if cands else None
+
+    add, cut = pick(new_rows + up_rows), pick(closed_rows + down_rows)
+    how = {ST_NEW: "initiation", ST_UP: "increase", ST_DOWN: "reduction", ST_ABSENT: "termination"}
+
+    def flow(lst, option):
+        return round(sum(est(r) for r in lst if bool(r.get("pc")) == option and not r.get("reclass")), 0)
+
+    ind = {}
+    for lst, side in ((new_rows, 1), (up_rows, 1), (closed_rows, -1), (down_rows, -1)):
+        for r in lst:
+            if r.get("pc") or not r.get("industry") or r.get("reclass"):
+                continue
+            a = ind.setdefault(r["industry"], {"industry": r["industry"], "sector": sector_of.get(r["industry"]), "in_usd": 0.0, "out_usd": 0.0, "names": []})
+            a["in_usd" if side > 0 else "out_usd"] += est(r)
+            a["names"].append({"label": label(r), "how": how.get(r["status"]), "side": side, "qty_change_pct": r.get("qty_change_pct"), "usd": est(r)})
+    for a in ind.values():
+        a["net_usd"] = round(a["in_usd"] - a["out_usd"], 0)
+        a["in_usd"], a["out_usd"] = round(a["in_usd"], 0), round(a["out_usd"], 0)
+
+    def side_rows(sign):
+        picked = sorted((a for a in ind.values() if a["net_usd"] * sign > 0), key=lambda a: (-abs(a["net_usd"]), a["industry"]))[:TEAR_INDUSTRIES]
+        return [{**a, "n_names": sum(1 for n in a["names"] if n["side"] == sign),
+                 "names": [{k: v for k, v in n.items() if k != "side" and v is not None} for n in sorted((n for n in a["names"] if n["side"] == sign), key=lambda n: (-n["usd"], n["label"]))[:6]]}
+                for a in picked]
+
+    opt = sp["opt"]
+    puts = sum((val(v) for v in opt.values() if str((v.get("identity") or {}).get("put_call") or "").upper() == "PUT"), Decimal(0))
+    calls = sum((val(v) for v in opt.values() if str((v.get("identity") or {}).get("put_call") or "").upper() == "CALL"), Decimal(0))
+    tot = {k: sum(counts[g][k] for g in groups) for k in ("new", "increased", "reduced", "closed", "unchanged", "not_compared")}
+    return {
+        "value_usd": f(total), "value_prior_usd": f(total_prior), "value_change_pct": pct(total, total_prior),
+        "n_lines": len(cur), "n_lines_prior": len(pri), "top10_pct": share(top_value, total, 1),
+        "counts": tot, "counts_by_kind": {g: {k: counts[g].get(k, 0) for k in tot} for g in groups},
+        "options": {"n_lines": len(opt), "n_puts": sum(1 for v in opt.values() if str((v.get("identity") or {}).get("put_call") or "").upper() == "PUT"),
+                    "n_calls": sum(1 for v in opt.values() if str((v.get("identity") or {}).get("put_call") or "").upper() == "CALL"),
+                    "put_value_usd": f(puts), "call_value_usd": f(calls), "share_pct": share(puts + calls, total, 1),
+                    "put_share_pct": share(puts, total, 1), "call_share_pct": share(calls, total, 1)},
+        "est": {"in_usd": flow(new_rows + up_rows, False), "out_usd": flow(closed_rows + down_rows, False),
+                "option_in_usd": flow(new_rows + up_rows, True), "option_out_usd": flow(closed_rows + down_rows, True),
+                "reclass_lines": sum(1 for r in new_rows + closed_rows if r.get("reclass"))},
+        "lines": top,
+        "largest_stock": rows[stock_top[0][0]] if stock_top else None,
+        "initiations": listing(new_rows), "increases": listing(up_rows), "reductions": listing(down_rows), "terminations": listing(closed_rows),
+        "notable": {"add": ({"how": how.get(add["status"]), **add} if add else None), "cut": ({"how": how.get(cut["status"]), **cut} if cut else None)},
+        "industries": {"added": side_rows(1), "cut": side_rows(-1)},
+    }
+
+
+def tearsheet_source(filings, effective, cur_p, pri_p, value_usd):
+    """The two information tables a tearsheet compares - for each period the effective table (else the latest filed
+    13F-HR that is not an additional-holdings amendment) - and whether the lines add up to the current cover page. Pure."""
+    def pick(period):
+        tables = [x for x in filings or [] if x.get("period_of_report") == period and str(x.get("form") or "").startswith("13F-HR")]
+        if not tables:
+            return None
+        chosen = [x for x in tables if x.get("accession") in (effective or [])] or [x for x in tables if "NEW" not in str(x.get("amendment_type") or "").upper()] or tables
+        best = sorted(chosen, key=lambda x: (str(x.get("filed_at") or ""), str(x.get("accession") or "")))[-1]
+        return {k: best.get(k) for k in ("accession", "form", "period_of_report", "filed_at", "amendment_type", "reported_rows", "reported_value_sum")}
+
+    cur, pri = pick(cur_p), pick(pri_p)
+    cover = dec((cur or {}).get("reported_value_sum")) if (cur or {}).get("reported_value_sum") is not None else None
+    gap = (dec(value_usd) - cover) if cover is not None and value_usd is not None else None
+    return {"current": cur, "prior": pri, "cover_value_sum": f(cover) if cover is not None else None,
+            "cover_gap_usd": f(gap) if gap is not None else None,
+            "reconciles": (abs(gap) <= max(Decimal(1), abs(cover) / Decimal(1000000))) if gap is not None else None}
 
 
 def fund_boards(detail, classer=None):
@@ -532,6 +739,7 @@ def fund_boards(detail, classer=None):
         "decreased": dec_rows[:TOP], "n_decreased_equity": len(dec_rows),
         "counts": counts,
         "shared_discretion_positions": sum(1 for v in eq.values() if v.get("other_managers")),
+        "tearsheet": tearsheet(sp, classer),
     }
     return boards, sp
 
@@ -1357,6 +1565,8 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
                 "confidential_omissions_declared": ((fs or {}).get("cover") or {}).get("confidential_omissions_declared")}
                         for fs in (detail.get("filing_summaries") or {}).values()],
         })
+        boards["tearsheet"]["source"] = tearsheet_source(boards["filings"], boards.get("effective_accessions"), boards["current_period"], boards["prior_period"],
+                                                         boards["tearsheet"]["value_usd"])
         managers[fk] = boards
         if boards["cohort"] and boards["current_period"] == required:
             members.append(mem)
@@ -1492,6 +1702,11 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
             "sector / industry": "FMP's own classification per symbol (profile bulk), joined on the resolved ticker or the CUSIP; stocks only",
             "inflow_usd / outflow_usd": "new positions at reported value + units added at the filing's reported price / dropped positions at last reported value + units removed at the current reported price",
             "money_stance": "net flow beyond +/-2% of the prior reported value (ACCUMULATING / DISTRIBUTING), else BALANCED",
+            "tearsheet": "one manager's whole information table: shares, notes at principal and option rows at the underlying's reported value ranked together; a line is one identity (CUSIP + class + SH/PRN + put/call)",
+            "tearsheet.est_usd": "a new line: its reported value; units added or removed: at this filing's own reported price; an absent line: its last reported value - an estimate at reported prices, never an execution",
+            "tearsheet.multiple": "reported quantity now / reported quantity at the prior period (shown as 10x when a line grew at least two-fold)",
+            "tearsheet.reclass": "a newly present line whose security also sits among the absent lines (same CUSIP, same resolved ticker, or the same non-fund issuer): kept out of the notable picks and the estimates",
+            "tearsheet.source.reconciles": "the lines add up to the value the current filing's cover page reports (within one millionth)",
             "BALANCED": "a class whose net manager-identity pairs are within +/-%d%% of all its pairs" % int(TILT_PCT),
         },
     }
