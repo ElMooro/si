@@ -6,15 +6,17 @@ charts from inflows & outflows and see what data you can add to it. Only add, do
 to extend coverage." Drives https://justhodl.ai/inflows-outflows.html at 1440 px and 390 px:
   1. the tearsheet is the first thing on the desk and finishes reading every series: scoreboard, the two notable
      cards, the dollar list and the four lists, one row per family - printed here as the page shows them;
-  2. no charts: no svg / canvas and no history strip anywhere on the desk; every card carries its history in
-     numbers instead, and the full-screen view is tables;
+  2. no history charts: no strip and no svg / canvas on any card or in the full-screen view; every card carries its
+     history in numbers instead. The one chart on the desk is the tearsheet's ring (Khalid, later the same day: "add
+     the donut"): the ETF tape's 5-day dollars fund by fund - its slices add up to 100%, its total is the page's own
+     sum of every fund's print, money in is solid and money out hatched, each slice opens its fund;
   3. nothing lost: each of the 169 series the desk had before is still a card and still reads (value, as-of,
      D / W / M / Q / Y); the catalog is now 19 families / 326 series and every one of them resolves live;
   4. a desk saved in the browser before today receives the additions without a reset - note, custom category and
      danger rule intact - and a series the user removed stays removed;
   5. the Macro desk is untouched (strips still drawn, no tearsheet); the chart's Flows button still opens the desk;
   6. no 'undefined' / 'NaN', no horizontal overflow at 390 px, no page errors; how long the tearsheet took to read.
-Three JPEGs are embedded (base64). Nothing on the site changes.
+Four JPEGs are embedded (base64). Nothing on the site changes.
 """
 from pathlib import Path
 import base64
@@ -60,10 +62,17 @@ SHEET = """() => { const s = document.getElementById('flows-tearsheet'); const q
       top: [...c.querySelectorAll('tbody tr')].slice(0, 3).map(r => r.innerText.replace(/\\s+/g, ' ').trim().slice(0, 150))})),
     fams: q('#flows-ts-families tbody tr').map(r => r.innerText.replace(/\\s+/g, ' ').trim().slice(0, 200)), charts: s.querySelectorAll('svg,canvas').length,
     bad: (s.innerText.match(/undefined|NaN|\\[object|null|Infinity/g) || []).length, took: (document.getElementById('flows-ts-took') || {dataset: {}}).dataset.ms || null,
+    ring: (() => { const c = s.querySelector('.macro-ts-ringcol'); if (!c) return null; const arcs = [...c.querySelectorAll('.macro-ts-arc')];
+      let inn = 0, out = 0, n = 0; MacroData.state.categories.forEach(k => k.items.forEach(i => { if (!/^flows:etfc\\/[A-Z0-9]+\\.flow_5d$/.test(i.symbol)) return; const m = MacroData.metricCache.get(i.symbol); if (!m || !m.hist || !m.hist.v.length) return;
+        const st = MacroData.flowStats(i, m); if (!st.fresh || !st.usd) return; n++; if (st.usd > 0) inn += st.usd; else out -= st.usd; }));
+      return { n: +c.querySelector('.macro-ts-n').textContent, gross: +c.dataset.gross, center: c.querySelector('.macro-ts-rc').textContent, subs: [...c.querySelectorAll('.macro-ts-rs')].map(t => t.textContent), want: { n, gross: inn + out, txt: MacroData.fmtFlow(inn + out, '$', false) },
+        arcs: arcs.map(a => ({ dir: a.classList.contains('down') ? 'down' : 'up', rest: a.classList.contains('rest'), share: +a.dataset.share, fill: getComputedStyle(a).fill.slice(0, 44), op: a.getAttribute('fill-opacity'), tip: a.querySelector('title').textContent, drawn: a.getBBox().width > 0 })),
+        labels: [...c.querySelectorAll('.macro-ts-rl')].map(t => t.textContent), legend: [...c.querySelectorAll('.macro-ts-legend tbody tr')].map(r => r.innerText.replace(/\\s+/g, ' ').trim()), cap: c.querySelector('.macro-ts-rest').innerText,
+        width: Math.round(c.querySelector('svg').getBoundingClientRect().width), hatch: !!document.getElementById('macro-ts-hatch') }; })(),
     first: document.getElementById('macro-body').firstElementChild.id, wide: [...s.querySelectorAll('*')].filter(e => !e.closest('.macro-ts-fam') && e.getBoundingClientRect().right > s.getBoundingClientRect().right + 1).length }; }"""
 
 BODY = """() => { const b = document.getElementById('macro-body'); return { items: b.querySelectorAll('.macro-item').length, cats: b.querySelectorAll('.macro-cat').length, strips: b.querySelectorAll('.macro-hist').length,
-  charts: b.querySelectorAll('svg,canvas').length, nums: b.querySelectorAll('.macro-nums').length, ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }; }"""
+  charts: b.querySelectorAll('.macro-cat svg, .macro-cat canvas').length, nums: b.querySelectorAll('.macro-nums').length, ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }; }"""
 
 CARDS = """(old) => { const all = [...document.querySelectorAll('#macro-body .macro-item')]; const st = {}; all.forEach(c => { st[c.dataset.metricState] = (st[c.dataset.metricState] || 0) + 1; });
   const by = {}; all.forEach(c => { by[c.dataset.symbol] = c; });
@@ -90,8 +99,8 @@ def main():
         stamp = int(time.time())
         ua = {"User-Agent": "Mozilla/5.0 jh-ops"}
         js = urllib.request.urlopen(urllib.request.Request("%s/assets/jh-workspaces.js?nocache=%d" % (BASE, stamp), headers=ua), timeout=40).read().decode("utf-8", "replace")
-        r.log("assets/jh-workspaces.js: %d bytes, tearsheet code %s, additive catalog %s" % (len(js), "flows-tearsheet" in js, "mergeCatalog" in js))
-        if "flows-tearsheet" not in js or "mergeCatalog" not in js:
+        r.log("assets/jh-workspaces.js: %d bytes, tearsheet code %s, additive catalog %s, ring %s" % (len(js), "flows-tearsheet" in js, "mergeCatalog" in js, "macro-ts-ringcol" in js))
+        if "flows-tearsheet" not in js or "mergeCatalog" not in js or "macro-ts-ringcol" not in js:
             r.fail("the served workspace bundle is not the new one yet (Pages deploy pending?)")
             raise SystemExit(1)
         sync_playwright = ensure_playwright(r.log)
@@ -141,13 +150,27 @@ def main():
                     for f in s["fams"]:
                         r.log("    family: %s" % f)
                 ck(s["state"] == "ready" and s["first"] == "flows-tearsheet", "%d: tearsheet state %s, first in the body %s" % (width, s["state"], s["first"]))
-                ck(len(s["tiles"]) == 6 and len(s["cards"]) == 2 and len(s["cols"]) == 5 and len(s["fams"]) == FAMILIES, "%d: tearsheet shape %s tiles %s cards %s lists %s families" % (width, len(s["tiles"]), len(s["cards"]), len(s["cols"]), len(s["fams"])))
-                ck(s["charts"] == 0 and s["bad"] == 0 and s["wide"] == 0, "%d: tearsheet charts %s bad literals %s overflowing elements %s" % (width, s["charts"], s["bad"], s["wide"]))
+                g = s["ring"]
+                if g:
+                    r.log("**the ring - ETF dollars, 5-day, fund by fund**: centre %s over %s funds (%s) | the page's own sum of every fund's print: %s over %s funds | drawn %s px wide, hatch pattern present %s" % (
+                        g["center"], g["n"], " / ".join(g["subs"]), g["want"]["txt"], g["want"]["n"], g["width"], g["hatch"]))
+                    for a in g["arcs"]:
+                        r.log("    slice %-4s %5.1f%% opacity %s fill %s - %s" % (a["dir"], a["share"], a["op"], a["fill"], a["tip"]))
+                    r.log("    labels on the ring: %s" % g["labels"])
+                    r.log("    %s" % g["cap"])
+                    ck(abs(sum(a["share"] for a in g["arcs"]) - 100) < 0.05 and all(a["drawn"] for a in g["arcs"]) and len(g["arcs"]) == len(g["legend"]) and len(g["arcs"]) >= 4, "%d: the ring's slices do not add up to 100%% or are not drawn" % width)
+                    ck(g["center"] == g["want"]["txt"] and g["n"] == g["want"]["n"] and abs(g["gross"] - g["want"]["gross"]) < 1 and g["n"] >= 60, "%d: the ring is not the ETF tape: %s over %s vs %s" % (width, g["center"], g["n"], g["want"]))
+                    ck(all(("url(" in a["fill"]) == (a["dir"] == "down") for a in g["arcs"]) and g["hatch"] and len({(a["dir"], a["op"]) for a in g["arcs"]}) == len(g["arcs"]), "%d: the ring's fills are not distinct, or money out is not hatched" % width)
+                    ck(any(a["dir"] == "up" for a in g["arcs"]) and any(a["dir"] == "down" for a in g["arcs"]) and g["labels"] and 150 <= g["width"] <= 242, "%d: the ring lacks a side, its labels, or a sane width (%s)" % (width, g["width"]))
+                else:
+                    ck(False, "%d: the ring is missing" % width)
+                ck(len(s["tiles"]) == 6 and len(s["cards"]) == 2 and len(s["cols"]) == 6 and len(s["fams"]) == FAMILIES, "%d: tearsheet shape %s tiles %s cards %s lists %s families" % (width, len(s["tiles"]), len(s["cards"]), len(s["cols"]), len(s["fams"])))
+                ck(s["charts"] == 1 and s["bad"] == 0 and s["wide"] == 0, "%d: tearsheet svg %s (the ring alone = 1), bad literals %s, overflowing elements %s" % (width, s["charts"], s["bad"], s["wide"]))
                 ck(s["total"] == SERIES and s["done"] == SERIES, "%d: tearsheet read %s of %s (expected %s)" % (width, s["done"], s["total"], SERIES))
                 ck("unavailable" not in (s["sub"] or ""), "%d: some series are unavailable: %s" % (width, s["sub"]))
                 ck(all(int(c["n"]) > 0 for c in s["cols"]), "%d: an empty list: %s" % (width, [(c["k"], c["n"]) for c in s["cols"]]))
                 b = page.evaluate(BODY)
-                r.log("desk: %s families, %s cards, %s history strips, %s svg / canvas, %s cards with numbers, page overflow %s px" % (b["cats"], b["items"], b["strips"], b["charts"], b["nums"], b["ox"]))
+                r.log("desk: %s families, %s cards, %s history strips, %s svg / canvas on the cards, %s cards with numbers, page overflow %s px" % (b["cats"], b["items"], b["strips"], b["charts"], b["nums"], b["ox"]))
                 ck(b["items"] == SERIES and b["cats"] == FAMILIES and b["nums"] == SERIES, "%d: desk shape %s" % (width, b))
                 ck(b["strips"] == 0 and b["charts"] == 0, "%d: a chart is still on the desk: %s strips, %s svg / canvas" % (width, b["strips"], b["charts"]))
                 ck(b["ox"] <= 0, "%d: horizontal overflow %s px" % (width, b["ox"]))
@@ -185,10 +208,17 @@ def main():
                 page.wait_for_selector("#macro-focus.open #macro-focus-facts tr", timeout=20000)
                 page.keyboard.press("Escape")
                 page.wait_for_timeout(250)
+                page.locator("#flows-tearsheet .macro-ts-arc:not(.rest)").first.click()
+                page.wait_for_selector("#macro-focus.open #macro-focus-facts tr", timeout=20000)
+                opened = page.evaluate("() => document.getElementById('macro-focus-title').textContent + ' [' + document.getElementById('macro-focus-meta').textContent.split(' ')[0] + ']'")
+                ck("flows:etfc/" in opened, "%d: a ring slice did not open its fund: %s" % (width, opened))
+                r.log("clicking the ring's largest slice opens: %s" % opened)
+                page.keyboard.press("Escape")
+                page.wait_for_timeout(250)
                 page.click('[data-ts-act="more"]')
                 page.wait_for_timeout(250)
                 more = page.evaluate("() => [...document.querySelectorAll('#flows-tearsheet .macro-ts-col')].map(c => c.querySelectorAll('tbody tr').length)")
-                ck(max(more) > 6 and max(more) <= 15, "%d: MORE ROWS %s" % (width, more))
+                ck(max(more) == 15, "%d: MORE ROWS %s" % (width, more))
                 page.click('[data-ts-act="more"]')
                 page.wait_for_timeout(250)
                 r.log("a tearsheet row opens the full-screen view; MORE ROWS shows %s rows per list" % more)
@@ -202,6 +232,8 @@ def main():
                     shots["cards_desktop"] = page.screenshot(type="jpeg", quality=58, full_page=True, clip={"x": cb["x"], "y": cb["y"] + page.evaluate("window.scrollY"), "width": cb["width"], "height": min(cb["height"], 640)})
                 else:
                     shots["tearsheet_mobile"] = page.screenshot(type="jpeg", quality=55, full_page=True, clip={"x": 0, "y": top - 4, "width": 390, "height": min(box["height"] + 8, 1900)})
+                    rb = page.locator("#flows-tearsheet .macro-ts-ringcol").bounding_box()
+                    shots["ring_mobile"] = page.screenshot(type="jpeg", quality=62, full_page=True, clip={"x": 0, "y": rb["y"] + page.evaluate("window.scrollY") - 6, "width": 390, "height": min(rb["height"] + 12, 900)})
                 ck(not errors, "%d: page errors %s" % (width, errors[:3]))
                 r.log("page errors %d" % len(errors))
                 ctx.close()
@@ -255,9 +287,10 @@ def main():
                     page.wait_for_timeout(500)
                 if frame:
                     frame.wait_for_selector("#flows-tearsheet .macro-ts-h", timeout=40000)
-                    ov = frame.evaluate("() => ({ sheet: !!document.getElementById('flows-tearsheet'), cards: document.querySelectorAll('#macro-body .macro-item').length, strips: document.querySelectorAll('.macro-hist').length })")
+                    frame.wait_for_selector("#flows-tearsheet .macro-ts-arc", timeout=120000)
+                    ov = frame.evaluate("() => ({ sheet: !!document.getElementById('flows-tearsheet'), ring: document.querySelectorAll('#flows-tearsheet .macro-ts-arc').length, cards: document.querySelectorAll('#macro-body .macro-item').length, strips: document.querySelectorAll('.macro-hist').length })")
                     r.log("chart.html -> Flows button: the desk opens in the overlay: %s" % json.dumps(ov))
-                    ck(ov["sheet"] and ov["cards"] == SERIES and ov["strips"] == 0, "the chart overlay desk: %s" % ov)
+                    ck(ov["sheet"] and ov["ring"] >= 4 and ov["cards"] == SERIES and ov["strips"] == 0, "the chart overlay desk: %s" % ov)
                 else:
                     ck(False, "chart.html's Flows button did not open the desk in a frame")
             except Exception as e:  # noqa: BLE001
@@ -277,7 +310,7 @@ def main():
             for f in fails:
                 r.fail(f)
             raise SystemExit(1)
-        r.ok("LIVE PAGE: the flows tearsheet reads all %d series in %d families; no chart left on the desk; all 169 earlier series still read; a saved desk receives the additions; the Macro desk is untouched; 0 failures" % (SERIES, FAMILIES))
+        r.ok("LIVE PAGE: the flows tearsheet reads all %d series in %d families and carries the ETF-dollars ring; no history chart on any card; all 169 earlier series still read; a saved desk receives the additions; the Macro desk is untouched; 0 failures" % (SERIES, FAMILIES))
 
 
 if __name__ == "__main__":

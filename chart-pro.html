@@ -1208,6 +1208,20 @@ body[data-chart-theme="light"] .macro-ts, body[data-chart-theme="light"] .macro-
 .macro-ts-big { display:block; font:800 13px/1.2 var(--font-mono); color:var(--fg-1); }
 .macro-ts-t .n .macro-ts-s { white-space:nowrap; }
 .macro-ts-none, .macro-ts-rest { margin:0; padding:7px 9px; font:10px/1.5 var(--font-mono); color:var(--fg-3); }
+.macro-ts-ring { display:grid; place-items:center; padding:12px 10px 4px; }
+.macro-ts-ring svg { display:block; width:100%; max-width:240px; height:auto; overflow:visible; }
+.macro-ts-arc { stroke:var(--bg); stroke-width:2; cursor:pointer; }
+.macro-ts-arc.up { fill:var(--mh-top); }
+.macro-ts-arc.rest { cursor:default; }
+.macro-ts-arc:not(.rest):hover, .macro-ts-arc:focus-visible { stroke:var(--fg-0); outline:none; }
+.macro-ts-hbg { fill:var(--mh-bottom); }
+.macro-ts-hln { stroke:var(--bg); stroke-width:2.2; }
+.macro-ts-rl { font:700 10.5px var(--font-mono); fill:var(--fg-0); stroke:var(--bg); stroke-width:3px; paint-order:stroke; text-anchor:middle; pointer-events:none; }
+.macro-ts-rc { font:800 19px var(--font-mono); fill:var(--fg-0); text-anchor:middle; }
+.macro-ts-rs { font:600 8.5px var(--font-mono); fill:var(--fg-3); text-anchor:middle; letter-spacing:.6px; }
+.macro-ts-sw { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:7px; vertical-align:-1px; background:var(--mh-top); }
+.macro-ts-sw.down { background:repeating-linear-gradient(45deg, var(--mh-bottom) 0 3px, var(--bg) 3px 5px); }
+.macro-ts-legend .macro-ts-nm { display:inline; }
 .macro-ts-rest span { cursor:pointer; text-decoration:underline dotted; }
 .macro-ts-fam { margin-top:10px; overflow-x:auto; border:1px solid var(--border); border-radius:6px; background:var(--bg); }
 .macro-ts-fam .macro-ts-t { min-width:760px; }
@@ -7871,7 +7885,8 @@ class MacroData {
        · the tearsheet (#flows-tearsheet, first thing in the body): every series at its latest print against the print
          before it - a scoreboard, the most notable inflow and outflow, the largest dollar flows, four lists (turned to
          inflow / improving / worsening / turned to outflow) and one row per family. Nothing is netted across series.
-       · no charts: where the history strip was, each card carries its history in numbers (prior print, percentile and z
+       · one ring (Khalid, later the same day: "add the donut"): the ETF tape's 5-day dollars, fund by fund - see ring() in paintSheet.
+       · no history charts: where the history strip was, each card carries its history in numbers (prior print, percentile and z
          against its own history, the run of inflows or outflows, the 52-week range, the last 4 / 13 / 52 prints and the
          values at the S&P's famous tops and bottoms); the full-screen view is tables - the latest prints and every year.
        · the catalog only grows: series added to FLOWS_CATALOG reach a desk saved in the browser without a reset
@@ -7905,7 +7920,9 @@ class MacroData {
     const s = String(item.symbol || ''), t = String(item.title || ''), u = String(item.units || '').toLowerCase();
     const tag = (this.kindTags || (this.kindTags = this.buildKindTags()))[s];
     if (tag) return tag;
-    if (u === 'ratio' || u === 'pctile' || u === '%' || /percentile|ratio|share of|\brate\b|yield|spread|index\b/i.test(t)) return 'gauge';
+    const etf = /^flows:etfc\/[^.]+(?:\.([a-z0-9_]+))?$/i.exec(s);   // the ETF tape is typed by its metric, never by the fund's name (High Yield, Exploration ... are names)
+    if (etf) return /^(shares|nav|net_assets)$/.test(etf[1] || 'flow_5d') ? 'level' : 'flow';
+    if (u === 'ratio' || u === 'pctile' || u === '%' || /\b(percentile|ratio|share of|rate|spread|index)\b/i.test(t) || (/\byield\b/i.test(t) && !/high yield/i.test(t))) return 'gauge';
     if (/exchange (inflow|outflow)\b/i.test(t)) return 'gauge';
     if (/net (flow|purchases|inflow|issuance|buying|creations|acquisition)|netflow|creations|\bnet\b/i.test(t)) return 'flow';
     if (/^flows:(ici-mmf|stablecoins)\//.test(s) || /assets|holdings|supply|reserve|balance sheet|deposits|credit|outstanding|loans|monetary base|general account|reverse repo|debt held|held outright|in circulation|investments in|volume|\bM[12]\b/i.test(t)) return 'level';
@@ -8173,6 +8190,50 @@ class MacroData {
         + (rest.length ? '<p class="macro-ts-rest">The other ' + rest.length + ': ' + rest.slice(0, 10).map(r => '<span' + attrs(r) + '>' + esc(this.tsName(r.item).split(' · ')[0]) + ' (' + esc(flow(r, r.st.f)) + ')</span>').join(', ') + (rest.length > 10 ? ' and ' + (rest.length - 10) + ' more' : '') + '</p>' : '')
         + '</div>';
     };
+    const ring = () => {
+      // Khalid 2026-11-17: "add the donut". The tearsheet picture's ring is positions by weight; the desk's one population that
+      // adds up the same way is the ETF tape - each fund once, all 5-day net creations at NAV, all dollars. Slices are shares of
+      // the gross dollars that moved; money in is solid, money out is hatched (the two tones alone are too close for a
+      // colour-blind reader: validate_palette gives 3.3 protan on the light theme), every slice is labelled with its sign.
+      const funds = ranked.filter(r => /^flows:etfc\/[A-Z0-9]+\.flow_5d$/.test(String(r.item.symbol)) && r.st.usd != null && r.st.usd !== 0);
+      const ins = funds.filter(r => r.st.usd > 0).sort((a, b) => b.st.usd - a.st.usd), outs = funds.filter(r => r.st.usd < 0).sort((a, b) => a.st.usd - b.st.usd);
+      const sum = list => list.reduce((acc, r) => acc + Math.abs(r.st.usd), 0);
+      const inTot = sum(ins), outTot = sum(outs), gross = inTot + outTot;
+      if (funds.length < 3 || !(gross > 0)) return '';
+      const steps = [1, 0.74, 0.54], slices = [];
+      const side = (list, dir) => {
+        list.slice(0, 3).forEach((r, i) => slices.push({ r, dir, usd: Math.abs(r.st.usd), op: steps[i], name: String(r.item.symbol).split('/')[1].split('.')[0] }));
+        const rest = list.slice(3);
+        if (rest.length) slices.push({ r: null, dir, usd: sum(rest), op: 0.3, name: rest.length + ' more', n: rest.length });
+      };
+      side(ins, 'up');
+      side(outs, 'down');
+      const R = 104, RI = 64, pt = (rad, ang) => [(110 + rad * Math.cos(ang)).toFixed(2), (110 + rad * Math.sin(ang)).toFixed(2)];
+      const pctTxt = (sl, share) => (sl.dir === 'up' ? '+' : '\u2212') + (share >= 9.95 ? share.toFixed(0) : share.toFixed(1)) + '%';
+      const money = (sl, signed) => this.fmtFlow(sl.dir === 'up' || !signed ? sl.usd : -sl.usd, '$', signed);
+      let ang = -Math.PI / 2;
+      const arcs = [], labels = [], legend = [];
+      slices.forEach(sl => {
+        const share = sl.usd / gross * 100, sweep = Math.min(sl.usd / gross * Math.PI * 2, Math.PI * 2 - 0.001), a0 = ang, a1 = ang + sweep, large = sweep > Math.PI ? 1 : 0;
+        ang = a1;
+        const o0 = pt(R, a0), o1 = pt(R, a1), i1 = pt(RI, a1), i0 = pt(RI, a0), mid = pt((R + RI) / 2, (a0 + a1) / 2);
+        const tip = (sl.r ? this.tsName(sl.r.item) : sl.n + ' other funds') + ': ' + money(sl, true) + (sl.dir === 'up' ? ' in' : ' out') + ' over 5 days \u00b7 ' + share.toFixed(1) + '% of the gross';
+        arcs.push('<path class="macro-ts-arc ' + sl.dir + (sl.r ? '' : ' rest') + '" d="M' + o0[0] + ' ' + o0[1] + 'A' + R + ' ' + R + ' 0 ' + large + ' 1 ' + o1[0] + ' ' + o1[1] + 'L' + i1[0] + ' ' + i1[1] + 'A' + RI + ' ' + RI + ' 0 ' + large + ' 0 ' + i0[0] + ' ' + i0[1] + 'Z"'
+          + (sl.dir === 'down' ? ' fill="url(#macro-ts-hatch)"' : '') + ' fill-opacity="' + sl.op + '" data-share="' + share.toFixed(3) + '"' + (sl.r ? attrs(sl.r) : '') + '><title>' + esc(tip) + '</title></path>');
+        if (share >= 6.5) labels.push('<text class="macro-ts-rl" x="' + mid[0] + '" y="' + mid[1] + '"><tspan x="' + mid[0] + '" dy="-1">' + esc(sl.r ? sl.name : 'other') + '</tspan><tspan x="' + mid[0] + '" dy="12">' + pctTxt(sl, share) + '</tspan></text>');
+        legend.push('<tr' + (sl.r ? attrs(sl.r) : '') + '><td><i class="macro-ts-sw ' + sl.dir + '" style="opacity:' + sl.op + '"></i><b class="macro-ts-nm">' + esc(sl.r ? this.tsName(sl.r.item) : sl.n + ' other funds ' + (sl.dir === 'up' ? 'with money in' : 'with money out')) + '</b></td>'
+          + '<td class="n"><span class="macro-ts-big ' + sl.dir + '">' + esc(money(sl, true)) + '</span><span class="macro-ts-s">' + pctTxt(sl, share) + ' of gross</span></td></tr>');
+      });
+      const inPct = inTot / gross * 100, net = inTot - outTot;
+      return '<div class="macro-ts-col macro-ts-ringcol" data-ts-list="ring" data-gross="' + gross + '" data-in="' + inTot + '" data-out="' + outTot + '"><header><span><b>ETF DOLLARS</b> <i>5-day net creations, fund by fund</i></span><span class="macro-ts-n">' + funds.length + '</span></header>'
+        + '<div class="macro-ts-ring"><svg viewBox="0 0 220 220" role="img" aria-label="' + esc('ETF creations over five days: ' + this.fmtFlow(gross, '$', false) + ' gross across ' + funds.length + ' funds, ' + inPct.toFixed(0) + '% in and ' + (100 - inPct).toFixed(0) + '% out') + '">'
+        + '<defs><pattern id="macro-ts-hatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)"><rect class="macro-ts-hbg" width="6" height="6"></rect><line class="macro-ts-hln" x1="0" y1="0" x2="0" y2="6"></line></pattern></defs>'
+        + arcs.join('') + labels.join('')
+        + '<text class="macro-ts-rc" x="110" y="106">' + esc(this.fmtFlow(gross, '$', false)) + '</text><text class="macro-ts-rs" x="110" y="121">GROSS \u00b7 5 DAYS</text><text class="macro-ts-rs" x="110" y="134">IN ' + inPct.toFixed(0) + '% \u00b7 OUT ' + (100 - inPct).toFixed(0) + '%</text></svg></div>'
+        + '<table class="macro-ts-t macro-ts-legend"><tbody>' + legend.join('') + '</tbody></table>'
+        + '<p class="macro-ts-rest">Solid = money in, hatched = money out. ' + ins.length + ' funds took in ' + esc(this.fmtFlow(inTot, '$', false)) + ', ' + outs.length + ' gave back ' + esc(this.fmtFlow(outTot, '$', false)) + ': net ' + esc(this.fmtFlow(net, '$', true))
+        + '. Each fund is counted once, so this ring adds up.</p></div>';
+    };
     const tile = (k, v, s) => '<div class="macro-ts-kpi"><div class="k">' + k + '</div><div class="v">' + v + '</div><div class="s">' + s + '</div></div>';
     const card = (r, kind) => {
       if (!r) return '<div class="macro-ts-card ' + kind + '"><div class="big">' + D + '</div><div><div class="e">MOST NOTABLE ' + (kind === 'up' ? 'INFLOW' : 'OUTFLOW') + '</div><p>' + (loading ? 'Reading the series…' : 'No series with a long enough history is printing an ' + (kind === 'up' ? 'inflow' : 'outflow') + '.') + '</p></div></div>';
@@ -8209,10 +8270,10 @@ class MacroData {
       + tile('Unchanged', String(nFlat), 'the same print as before')
       + tile('At an extreme', '<span class="up">' + hiExt + '</span> / <span class="down">' + loExt + '</span>', 'top 5% · bottom 5% of their own history')
       + '</div><div class="macro-ts-cards">' + card(bestOut, 'down') + card(bestIn, 'up') + '</div><div class="macro-ts-notes">' + notes.join('') + '</div>'
-      + '<div class="macro-ts-cols">' + col('dollars', 'LARGEST DOLLAR FLOWS', 'weekly or faster', dollars, 'pos') + col('turned_in', 'TURNED TO INFLOW', 'was at or below zero', turnedIn, 'up') + col('improving', 'IMPROVING', 'bigger inflow or smaller outflow', improving, 'up')
+      + '<div class="macro-ts-cols">' + ring() + col('dollars', 'LARGEST DOLLAR FLOWS', 'weekly or faster', dollars, 'pos') + col('turned_in', 'TURNED TO INFLOW', 'was at or below zero', turnedIn, 'up') + col('improving', 'IMPROVING', 'bigger inflow or smaller outflow', improving, 'up')
       + col('worsening', 'WORSENING', 'smaller inflow or bigger outflow', worsening, 'down') + col('turned_out', 'TURNED TO OUTFLOW', 'was at or above zero', turnedOut, 'down') + '</div>'
       + '<div class="macro-ts-fam"><table class="macro-ts-t" id="flows-ts-families"><thead><tr><th>Family</th><th class="n">Read</th><th class="n">In</th><th class="n">Out</th><th class="n">Turned in</th><th class="n">Turned out</th><th>Most unusual print</th></tr></thead><tbody>' + fams + '</tbody></table></div>'
-      + '<p class="macro-ts-foot">How to read it: each series is taken at its own latest print (daily, 5-day, weekly, monthly or quarterly — written on every row) and set against the print before it. A flow counts as an inflow when its print is above zero; a level (assets, holdings, supply, deposits, a balance sheet) when it rose since its prior print. Lists are ranked by how unusual the print is against the series’ own history since 1996 (z-score); the dollar list by size. Ratios, percentiles and gross figures are gauges: on their cards, never in these lists. The two headline cards take the most unusual print of the last 45 days (a dollar series must be moving at least $1B). A series whose latest print is older than its own rhythm allows is stale and stays out of the rankings. Rows open the full history in numbers.'
+      + '<p class="macro-ts-foot">How to read it: each series is taken at its own latest print (daily, 5-day, weekly, monthly or quarterly — written on every row) and set against the print before it. A flow counts as an inflow when its print is above zero; a level (assets, holdings, supply, deposits, a balance sheet) when it rose since its prior print. Lists are ranked by how unusual the print is against the series’ own history since 1996 (z-score); the dollar list by size. The ring is the ETF tape alone \u2014 the one population here where each dollar is counted once: every fund\u2019s 5-day net creations at NAV as a share of the gross dollars that moved (funds newly tracked on a daily tape join when their 5-day windows complete). Ratios, percentiles and gross figures are gauges: on their cards, never in these lists. The two headline cards take the most unusual print of the last 45 days (a dollar series must be moving at least $1B). A series whose latest print is older than its own rhythm allows is stale and stays out of the rankings. Rows open the full history in numbers.'
       + (this.sheetTook != null ? ' <span id="flows-ts-took" data-ms="' + this.sheetTook + '">Read in ' + (this.sheetTook / 1000).toFixed(1) + ' s.</span>' : '') + '</p>';
     sec.dataset.state = loading ? 'loading' : 'ready';
     if (!sec.__wired) {
@@ -8251,7 +8312,12 @@ class MacroData {
     if (!root) { root = document.createElement('div'); root.id = 'macro-print-root'; document.body.appendChild(root); }
     const copy = sec.cloneNode(true);
     copy.removeAttribute('id');
-    copy.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+    copy.querySelectorAll('pattern[id]').forEach(el => {
+      const old = el.id, id = old + '-print';
+      el.id = id;
+      copy.querySelectorAll('[fill="url(#' + old + ')"]').forEach(node => node.setAttribute('fill', 'url(#' + id + ')'));
+    });
+    copy.querySelectorAll('[id]:not(pattern)').forEach(el => el.removeAttribute('id'));
     root.innerHTML = '';
     root.appendChild(copy);
     document.documentElement.classList.add('macro-print-ts');

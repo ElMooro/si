@@ -202,6 +202,20 @@ body[data-chart-theme="light"] .macro-ts, body[data-chart-theme="light"] .macro-
 .macro-ts-big { display:block; font:800 13px/1.2 var(--font-mono); color:var(--fg-1); }
 .macro-ts-t .n .macro-ts-s { white-space:nowrap; }
 .macro-ts-none, .macro-ts-rest { margin:0; padding:7px 9px; font:10px/1.5 var(--font-mono); color:var(--fg-3); }
+.macro-ts-ring { display:grid; place-items:center; padding:12px 10px 4px; }
+.macro-ts-ring svg { display:block; width:100%; max-width:240px; height:auto; overflow:visible; }
+.macro-ts-arc { stroke:var(--bg); stroke-width:2; cursor:pointer; }
+.macro-ts-arc.up { fill:var(--mh-top); }
+.macro-ts-arc.rest { cursor:default; }
+.macro-ts-arc:not(.rest):hover, .macro-ts-arc:focus-visible { stroke:var(--fg-0); outline:none; }
+.macro-ts-hbg { fill:var(--mh-bottom); }
+.macro-ts-hln { stroke:var(--bg); stroke-width:2.2; }
+.macro-ts-rl { font:700 10.5px var(--font-mono); fill:var(--fg-0); stroke:var(--bg); stroke-width:3px; paint-order:stroke; text-anchor:middle; pointer-events:none; }
+.macro-ts-rc { font:800 19px var(--font-mono); fill:var(--fg-0); text-anchor:middle; }
+.macro-ts-rs { font:600 8.5px var(--font-mono); fill:var(--fg-3); text-anchor:middle; letter-spacing:.6px; }
+.macro-ts-sw { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:7px; vertical-align:-1px; background:var(--mh-top); }
+.macro-ts-sw.down { background:repeating-linear-gradient(45deg, var(--mh-bottom) 0 3px, var(--bg) 3px 5px); }
+.macro-ts-legend .macro-ts-nm { display:inline; }
 .macro-ts-rest span { cursor:pointer; text-decoration:underline dotted; }
 .macro-ts-fam { margin-top:10px; overflow-x:auto; border:1px solid var(--border); border-radius:6px; background:var(--bg); }
 .macro-ts-fam .macro-ts-t { min-width:760px; }
