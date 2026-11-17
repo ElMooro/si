@@ -74,10 +74,11 @@ MGR = """() => { const t = document.getElementById('tearsheet');
 PARTS = """() => { const q = s => document.querySelector(s), all = s => [...document.querySelectorAll(s)], de = document.documentElement;
   return { ox: de.scrollWidth - de.clientWidth, bad: (q('main').innerText.match(/undefined|NaN|\\[object/g) || []).length,
     pill: all('#h-pills .pill').map(e => e.innerText.replace(/\\n/g, ' ')).filter(t => /13F value · all lines/.test(t)),
-    tiles: all('#verdicts .sub').map(e => e.querySelector('.eyebrow').innerText), boardTitles: all('#boards h3').map(h => h.innerText),
+    tiles: all('#verdicts .sub').map(e => e.querySelector('.eyebrow').innerText), boardTitles: all('#boards h3').map(h => h.innerText.replace(/^\u00a7[\d.]+\s*/, '')),
     boardHeads: all('#boards table').map(t => [...t.querySelectorAll('th')].map(x => x.innerText).slice(-2)),
     board0: all('#boards table')[0] ? [...all('#boards table')[0].querySelector('tbody tr').cells].map(c => c.innerText.replace(/\\n/g, ' ')) : null,
-    conc: all('#conc > .sub').length, concMini: all('#conc .ts-mini').length, div: all('#diversified > .sub').length, divMini: all('#diversified .ts-mini').length,
+    conc: all('#conc > div.sub').length, concMini: all('#conc > div.sub > .ts-mini').length, div: all('#diversified > div.sub').length, divMini: all('#diversified > div.sub > .ts-mini').length,
+    badges: all('.jh-secbadge').length,
     mini0: q('#conc .ts-mini') ? q('#conc .ts-mini').innerText.replace(/\\n/g, ' | ') : null,
     optHeads: all('#options th').map(t => t.innerText), optRows: all('#options tbody tr').map(r => [r.querySelector('button').dataset.fund].concat([...r.cells].slice(-4).map(c => c.innerText))),
     grid: all('#mgr-table thead th').length, h2: all('main h2').length }; }"""
@@ -144,8 +145,8 @@ def main():
                     ck(all((z.get("ticker") or "") in row[2] for z in o["top_calls"]) and all((z.get("ticker") or "") in row[3] for z in o["top_puts"]), "%d: options row %s lacks its largest lines" % (width, row[0]))
                 ck(len(parts["pill"]) == 1 and "%.1f%%" % T["cohort"]["options"]["share_pct"] in parts["pill"][0], "%d: header pill %s" % (width, parts["pill"]))
                 ck(len(parts["tiles"]) == 5 and parts["tiles"][-1].upper().startswith("LARGEST SINGLE MOVES"), "%d: verdict tiles %s" % (width, parts["tiles"]))
-                r.log("sections %d/%d present, none empty | overflow %s px, bad literals %s, grid %s columns, %s h2 | boards: %s | board columns %s | first board row %s" % (
-                    len(SECTIONS) - len(missing), len(SECTIONS), parts["ox"], parts["bad"], parts["grid"], parts["h2"], " · ".join(parts["boardTitles"]), parts["boardHeads"][0], parts["board0"]))
+                r.log("sections %d/%d present, none empty | overflow %s px, bad literals %s, grid %s columns, %s h2, section badges on the page %s | boards: %s | board columns %s | first board row %s" % (
+                    len(SECTIONS) - len(missing), len(SECTIONS), parts["ox"], parts["bad"], parts["grid"], parts["h2"], parts["badges"], " · ".join(parts["boardTitles"]), parts["boardHeads"][0], parts["board0"]))
                 r.log("cards with tearsheet lines: %s/%s concentrated, %s/%s diversified - e.g. %s | options overlay %d columns, rows %s | header pill %s | verdict tiles %s" % (
                     parts["concMini"], parts["conc"], parts["divMini"], parts["div"], parts["mini0"], len(parts["optHeads"]), json.dumps(parts["optRows"][:2]), parts["pill"], parts["tiles"]))
                 # 2. the scope tearsheet: both scopes x three views
