@@ -1,4 +1,4 @@
-"""ops 6814 - READ-ONLY daily health status (scheduled daily health run, 2026-11-17, a Tuesday 11 UTC; yesterday's run
+"""ops 6815 (6814 died in its own selftest, stale event-stamp fixtures; not reused) - READ-ONLY daily health status (scheduled daily health run, 2026-11-17, a Tuesday 11 UTC; yesterday's run
 (ops 6812 + the log follow-up ops 6813, Monday) found: FMP bandwidth hold day 17 (both walkers self-held until Nov 17 06:08 /
 06:16 UTC), auction-crisis-detector failing its 19:50 UTC slot on Nov 14 + 15 (FiscalData auctions API TimeoutError at page 1,
 previous publication preserved), portwatch silent since Nov 13 (its 11:20 UTC run ends 'preserved publication failed:
@@ -216,9 +216,9 @@ def selftest():
     assert missed_two_slots([92.0, None]) is False          # a missing output is its own finding
     assert missed_two_slots([200.0]) is False               # dead, counted elsewhere
     assert missed_two_slots([]) is False
-    assert event_after(EVENTS_PREFIX + "20261116T080737.868478Z-error-storm.json", YESTERDAY_RUN) is True
-    assert event_after(EVENTS_PREFIX + "20261115T080737.868478Z-error-storm.json", YESTERDAY_RUN) is False
-    assert event_after(EVENTS_PREFIX + "20261115T112500.000001Z-x.json", YESTERDAY_RUN) is True
+    assert event_after(EVENTS_PREFIX + "20261117T080737.868478Z-error-storm.json", YESTERDAY_RUN) is True
+    assert event_after(EVENTS_PREFIX + "20261116T080737.868478Z-error-storm.json", YESTERDAY_RUN) is False
+    assert event_after(EVENTS_PREFIX + "20261116T111900.000001Z-x.json", YESTERDAY_RUN) is True
     red = redact("GET https://x/stable/quote?symbol=AAPL&apikey=abc123&limit=5")
     assert "abc123" not in red and "symbol=AAPL" in red and "limit=5" in red
     assert redact("token: s3cr3t rest") == "token: *** rest"
@@ -255,8 +255,8 @@ def main():
     s3 = boto3.client("s3", region_name=REGION, config=cfg)
     now = datetime.now(timezone.utc)
     facts = {}
-    with report("ops_6814_daily_health_status") as r:
-        r.heading("ops 6814 - daily health status %s (governor status + caps, event records since ops 6812 on Nov 16, relay lag, output "
+    with report("ops_6815_daily_health_status") as r:
+        r.heading("ops 6815 - daily health status %s (governor status + caps, event records since ops 6812 on Nov 16, relay lag, output "
                   "freshness, FMP bandwidth hold after the day-18 expiry, follow-up probe of the silent engines (auction-crisis, portwatch, sec-8k-enrich), source-refresh control, "
                   "desks + corporate-actions; Tuesday - the day after the Monday weeklies; read-only)" % now.date())
 
