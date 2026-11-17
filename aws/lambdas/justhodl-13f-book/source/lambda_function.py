@@ -1004,8 +1004,9 @@ def merge_successions(agg, members):
     old side as absent. Managers on both sides are compared by reported quantity ONLY when the share basis is shown
     not to have changed: the CUSIP is the same and only the class text differs ('same_cusip' - compared as every
     other line of that CUSIP is); or the reported unit price moved within UNIT_BAND ('unit_price'); or a holder
-    reports the very same odd-lot quantity on both sides ('same_quantity' - nobody holds 1,234,567 shares before and
-    after a split). A reverse split or an exchange ratio fails all three, and then they are counted unchanged - no
+    reports the very same quantity on both sides, to four or more significant digits ('same_quantity' - nobody
+    holds 260,600 shares before and after a split; a round 100,000 proves nothing). A reverse split or an exchange
+    ratio fails all three, and then they are counted unchanged - no
     vote, no flow - and the row says the quantities were not compared. Mutates agg; returns the merges. Pure given
     its inputs."""
     def share_like(a):
@@ -1018,6 +1019,9 @@ def merge_successions(agg, members):
         if a.get("cusip"):
             out.add(("c", a["cusip"]))
         return out
+
+    def specific(q):
+        return q > 0 and q == q.to_integral_value() and len(str(int(q)).rstrip("0")) >= 4   # 260,600 is a position; 100,000 is a round number anyone can rebuild
 
     def same(o, n):
         to, tn = o["cls"].get("ticker"), n["cls"].get("ticker")
@@ -1052,8 +1056,7 @@ def merge_successions(agg, members):
         ratio = (n["value_usd"] / q1) / (o["value_prior_usd"] / q0) if q1 > 0 and q0 > 0 and n["value_usd"] > 0 and o["value_prior_usd"] > 0 else None
         same_cusip = bool(n["cusip"]) and n["cusip"] == o["cusip"]
         in_band = ratio is not None and Decimal(str(UNIT_BAND[0])) <= ratio <= Decimal(str(UNIT_BAND[1]))
-        same_qty = any(dec(cur[fk].get("reported_quantity")) == dec(pri[fk].get("reported_quantity")) and dec(cur[fk].get("reported_quantity")) > 0
-                       and dec(cur[fk].get("reported_quantity")) % 100 != 0 for fk in set(cur) & set(pri))
+        same_qty = any(dec(cur[fk].get("reported_quantity")) == dec(pri[fk].get("reported_quantity")) and specific(dec(cur[fk].get("reported_quantity"))) for fk in set(cur) & set(pri))
         basis = "same_cusip" if same_cusip else "unit_price" if in_band else "same_quantity" if same_qty else None
         verified = basis is not None
         new, absent, inc, fewer, flat = [], [], [], [], []
@@ -1984,9 +1987,7 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
             "rotation": rotation(mems, classer),
             "sectors": sector_block(agg, skill),
             "tearsheet": scope_tearsheet(mems, managers),
-            "successions": sorted(({"id": p[:12], "ticker": a["cls"].get("ticker"), "issuer": a["issuer"], "cusip": a["cusip"], **a["succession"], "n_holders": len(a["holders"]),
-                                    "n_prior_holders": len(a["prior_holders"]), "value_usd": f(a["value_usd"]), "value_prior_usd": f(a["value_prior_usd"])}
-                                   for p, a in agg.items() if a.get("succession")), key=lambda r: -(r["value_usd"] or 0)),
+            "successions": sorted((out_row(p, a, skill) for p, a in agg.items() if a.get("succession")), key=lambda r: -(r["value_usd"] or 0)),   # every merged identity, as a full board row
         }
     # unclassified exchange-traded products and the largest unmapped identities, for review
     unclassified, unmapped, other_rows = {}, {}, []
@@ -2084,7 +2085,7 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
             "tearsheet.multiple": "reported quantity now / reported quantity at the prior period (shown as 10x when a line grew at least two-fold)",
             "tearsheet.reclassified": "a newly present line whose security also sits among the absent lines (same CUSIP, same resolved ticker, or the same non-fund issuer name without its corporate-form words): one security under a new CUSIP or class - listed apart, never counted as new or closed, never in the notable picks or the estimates",
             "units": "each manager's value unit per period: its reported price per share line against the other books' median reported price of the same CUSIP at the same period; 'thousands' = at least 80% of the comparable lines price at 1/1000 and every value is read x1,000 (the artifact and the evidence desk keep the table as filed); 'not_compared' = no other book at that period",
-            "succession": "one security that left the scope under one CUSIP and entered it under another, merged into one identity: holders now vs before; managers on both sides are compared by quantity only when the share basis is shown unchanged (basis: same_cusip = only the class text changed; unit_price = the reported unit price moved within 0.8-1.25x; same_quantity = a holder reports the same odd-lot quantity on both sides), else counted unchanged (basis null, basis_verified false)",
+            "succession": "one security that left the scope under one CUSIP (or class text) and entered it under another, merged into one identity (book.successions[scope] lists every one as a board row): holders now vs before; managers on both sides are compared by quantity only when the share basis is shown unchanged (basis: same_cusip = only the class text changed; unit_price = the reported unit price moved within 0.8-1.25x; same_quantity = a holder reports the same quantity on both sides, to 4+ significant digits), else counted unchanged (basis null, basis_verified false)",
             "book.tearsheet": "the same tearsheet for a scope (cohort / concentrated): every member's lines side by side; a row is one manager's line (fk), nothing is netted across managers; views all / non_option (shares + notes) / option",
             "tearsheet.source.reconciles": "the lines add up to the value the current filing's cover page reports (within one millionth)",
             "BALANCED": "a class whose net manager-identity pairs are within +/-%d%% of all its pairs" % int(TILT_PCT),

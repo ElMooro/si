@@ -410,9 +410,9 @@ def test_succession_merge_counts_holders_and_only_votes_on_an_unchanged_share_ba
     # (1) the CUSIP is the same and only the class text changed - compared as every other line of that CUSIP is
     lab = lf.aggregate([mem("A", {"n": pos("531229755", "LIBERTY MEDIA CORP DEL", 50, 50 * 60, "COM LBTY FRM C")}, {"o": pos("531229755", "LIBERTY MEDIA CORP DEL", 80, 80 * 100, "COM SER C FRMLA")})], lf.Classer({}, {}))
     assert set(lab) == {"n"} and lab["n"]["dec"] == ["A"] and lab["n"]["outflow_usd"] == 30 * 60 and lab["n"]["succession"]["same_cusip"] is True and lab["n"]["succession"]["basis"] == "same_cusip" and lab["n"]["succession"]["unit_price_ratio"] == 0.6
-    # (2) a holder reports the very same odd-lot quantity under both CUSIPs (Wave Life Sciences, -36% in the quarter): one-for-one, so the others are compared
+    # (2) a holder reports the very same quantity under both CUSIPs (Wave Life Sciences, -36% in the quarter, 260,600 shares at one book on both sides): one-for-one, so the others are compared
     wv = lambda c, nm, q, px: pos(c, nm, q, q * px)   # noqa: E731
-    w = lf.aggregate([mem("A", {"n": wv("94352A104", "WAVE LIFE SCIENCES INC", 123457, 6)}, {"o": wv("Y95308105", "WAVE LIFE SCIENCES LTD", 123457, 10)}),
+    w = lf.aggregate([mem("A", {"n": wv("94352A104", "WAVE LIFE SCIENCES INC", 260600, 6)}, {"o": wv("Y95308105", "WAVE LIFE SCIENCES LTD", 260600, 10)}),
                       mem("B", {"n": wv("94352A104", "WAVE LIFE SCIENCES INC", 900, 6)}, {"o": wv("Y95308105", "WAVE LIFE SCIENCES LTD", 500, 10)})], lf.Classer({}, {}))
     assert set(w) == {"n"} and w["n"]["succession"]["basis"] == "same_quantity" and w["n"]["succession"]["unit_price_ratio"] == 0.6 and w["n"]["flat"] == ["A"] and w["n"]["inc"] == ["B"] and w["n"]["inflow_usd"] == 400 * 6
     # ... but a round lot held on both sides proves nothing (a position trimmed back to 100,000 after a split): not compared
@@ -675,7 +675,7 @@ def test_build_boards_rotation_stance_contenders_snapshot():
     hon = next(r for r in cb["all"]["widely_held"] if r["ticker"] == "HON")
     assert (hon["cusip"], hon["n_holders"], hon["n_prior_holders"], hon["holder_delta"], hon["value_usd"], hon["value_prior_usd"], hon["n_flat"], hon["net_usd"]) == ("438516205", 1, 1, 0, 500.0, 450.0, 1, 0.0)
     assert hon["reclass_candidate"] is False and hon["stance"] == "QUIET" and hon["succession"] == {"from_id": "h1", "from_cusip": "438516106", "from_issuer": "HONEYWELL INTL INC", "from_class": "COM", "unit_price_ratio": 1.111, "same_cusip": False, "basis": "unit_price", "basis_verified": True, "n_continuing": 1}
-    assert b["successions"]["cohort"] == [{"id": "h2", "ticker": "HON", "issuer": "HONEYWELL INTL INC", "cusip": "438516205", **hon["succession"], "n_holders": 1, "n_prior_holders": 1, "value_usd": 500.0, "value_prior_usd": 450.0}]
+    assert b["successions"]["cohort"] == [hon]   # every merged identity is listed as the same full board row
     assert b["successions"]["concentrated"] == b["successions"]["cohort"] and "succession" in b["glossary"] and "units" in b["glossary"]
     # 1.6.0: every book's value unit is on the book - both cohort members price like each other (dollars); the dated book has no peer at its period
     assert b["units"]["ELLIOTT"]["current"] == {"period": "2026-06-30", "status": "dollars", "factor": 1, "n_compared": 3, "n_dollars": 3, "n_thousands": 0, "median_ratio": 1.0} and b["units"]["ELLIOTT"]["flags"] == []

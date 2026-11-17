@@ -174,26 +174,23 @@ def main():
         for scope in ("cohort", "concentrated"):
             rows = b["successions"][scope]
             r.log("**%s: %d merged**" % (scope, len(rows)))
-            ids = {}
-            for u in ("all", "stocks", "etfs"):
-                bd = b["boards"][scope][u]
-                for k in ("widely_held", "largest_value", "newly_present", "dropped", "increased", "decreased"):
-                    for z in bd.get(k) or []:
-                        ids[z["id"]] = z
             for z in rows:
-                full = ids.get(z["id"]) or {}
-                r.log("%-6s %s -> %s | %s -> %s | unit price x%s %s | holders %d (prior %d) continuing %d | value %s (prior %s)%s" % (
-                    z["ticker"] or "-", z["from_cusip"], z["cusip"], z["from_issuer"][:30], z["issuer"][:30], z["unit_price_ratio"], ("basis: %s" % z["basis"]) if z["basis_verified"] else "QTY NOT COMPARED - no votes",
-                    z["n_holders"], z["n_prior_holders"], z["n_continuing"], money(z["value_usd"]), money(z["value_prior_usd"]),
-                    (" | new %s absent %s more %s fewer %s | net est %s | %s" % (full.get("new"), full.get("absent"), full.get("inc"), full.get("dec"), money(full.get("net_usd")), full.get("stance"))) if full else ""))
+                x = z["succession"]
+                r.log("%-6s %s -> %s | %s -> %s | unit price x%s %s | holders %d (prior %d) continuing %d | value %s (prior %s) | new %s absent %s more %s fewer %s flat %d | net est %s | %s" % (
+                    z["ticker"] or "-", x["from_cusip"], z["cusip"], x["from_issuer"][:30], z["issuer"][:30], x["unit_price_ratio"], ("basis: %s" % x["basis"]) if x["basis_verified"] else "QTY NOT COMPARED - no votes",
+                    z["n_holders"], z["n_prior_holders"], x["n_continuing"], money(z["value_usd"]), money(z["value_prior_usd"]), z["new"], z["absent"], z["inc"], z["dec"], z["n_flat"], money(z["net_usd"]), z["stance"]))
                 if not z["n_holders"] or not z["n_prior_holders"]:
                     bad.append("%s/%s: a succession with no holder on one side" % (scope, z["ticker"] or z["cusip"]))
+                if z["reclass_candidate"] or (not x["basis_verified"] and (z["n_inc"] or z["n_dec"])):
+                    bad.append("%s/%s: a merged identity is still flagged, or votes without a verified share basis" % (scope, z["ticker"] or z["cusip"]))
+                if x["n_continuing"] != z["n_inc"] + z["n_dec"] + z["n_flat"] or z["n_holders"] != x["n_continuing"] + z["n_new"] or z["n_prior_holders"] != x["n_continuing"] + z["n_absent"]:
+                    bad.append("%s/%s: holders do not add up (%s)" % (scope, z["ticker"] or z["cusip"], [z["n_holders"], z["n_prior_holders"], x["n_continuing"], z["n_new"], z["n_absent"], z["n_inc"], z["n_dec"], z["n_flat"]]))
             for u in ("all", "stocks", "etfs"):
                 bd, lbd = b["boards"][scope][u], lb["boards"][scope][u]
                 r.log("boards %s/%s: identities %s (live %s) held %s (live %s) | newly present %s (live %s) dropped %s (live %s) increased %s (live %s) decreased %s (live %s) | value %s (live %s) prior %s (live %s)" % (
                     scope, u, bd["n_identities"], lbd["n_identities"], bd["n_held"], lbd["n_held"], bd["n_newly_present"], lbd.get("n_newly_present"), bd["n_dropped"], lbd.get("n_dropped"),
                     bd["n_increased"], lbd.get("n_increased"), bd["n_decreased"], lbd.get("n_decreased"), money(bd["value_usd"]), money(lbd["value_usd"]), money(bd["value_prior_usd"]), money(lbd.get("value_prior_usd"))))
-                gone = {z["from_cusip"] for z in rows}
+                gone = {z["succession"]["from_cusip"] for z in rows if not z["succession"]["same_cusip"]}
                 for k in ("newly_present", "dropped"):
                     for z in bd.get(k) or []:
                         if z.get("succession") or (k == "dropped" and z.get("cusip") in gone and not z.get("n_holders")):
