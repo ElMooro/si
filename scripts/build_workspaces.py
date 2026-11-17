@@ -224,6 +224,13 @@ body.jh-ws-page .heatmap-modal { position: static; display: block; background: t
 body.jh-ws-page .heatmap-content, body.jh-ws-page .hm-content { width: 100%; max-width: none; height: calc(100vh - 52px); border: 0; border-radius: 0; }
 body.jh-ws-page .macro-open-page, body.jh-ws-page .hm-open-page { display: none; }
 body.jh-ws-page .new-wl-modal { position: fixed; }
+/* 2026-11-17: on a phone the header's links scroll inside the header instead of widening the page */
+@media (max-width: 760px) {
+  body.jh-ws-page .ws-header { gap: 8px; padding-right: 8px; }
+  body.jh-ws-page .ws-crumb { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  body.jh-ws-page .ws-links { flex: 0 1 auto; min-width: 0; margin-left: 0; overflow-x: auto; }
+  body.jh-ws-page .ws-links a { flex: 0 0 auto; white-space: nowrap; }
+}
 """
 
     # ---- markup ---------------------------------------------------------------

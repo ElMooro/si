@@ -1159,6 +1159,94 @@ body.macro-pointer-dragging { user-select:none; cursor:grabbing; }
   background:var(--red); color:#fff; font:800 7.5px/1 var(--font-mono); letter-spacing:.7px;
 }
 .macro-item.danger-flash .macro-danger-badge { display:block; }
+/* the flows desk (2026-11-17): the tearsheet and each card's history in numbers - no charts on this desk.
+   In / out wear the strips' own tokens (--mh-top / --mh-bottom): fixed points of the deploy reskin, so green stays green. */
+.macro-ts, .macro-nums, .macro-focus-nums { --mh-top:#6fce8a; --mh-bottom:#E07A6A; }
+body[data-chart-theme="light"] .macro-ts, body[data-chart-theme="light"] .macro-nums, body[data-chart-theme="light"] .macro-focus-nums { --mh-top:#3f7d55; --mh-bottom:#B85C4E; }
+.macro-ts { border:1px solid var(--border-bright); border-radius:8px; background:var(--bg-1); padding:14px 16px 12px; margin:0 0 20px; min-width:0; }
+.macro-ts .up, .macro-nums .up, .macro-focus-nums .up { color:var(--mh-top); }
+.macro-ts .down, .macro-nums .down, .macro-focus-nums .down { color:var(--mh-bottom); }
+.macro-ts-wait { font:11px var(--font-mono); color:var(--fg-4); padding:14px 0; }
+.macro-ts-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
+.macro-ts-eyebrow { font:700 9.5px/1.3 var(--font-mono); letter-spacing:1.1px; color:var(--amber); }
+.macro-ts-h { margin:5px 0 4px; font:800 18px/1.3 var(--font-sans); color:var(--fg-0); max-width:1100px; }
+.macro-ts-sub { font:10.5px/1.5 var(--font-mono); color:var(--fg-3); }
+.macro-ts-actions { display:flex; gap:6px; flex-wrap:wrap; }
+.macro-ts-score { display:grid; grid-template-columns:repeat(auto-fit,minmax(138px,1fr)); gap:8px; margin-top:12px; }
+.macro-ts-kpi { border:1px solid var(--border); border-radius:6px; background:var(--bg); padding:9px 10px; min-width:0; }
+.macro-ts-kpi .k { font:700 8.5px/1.25 var(--font-mono); letter-spacing:.8px; color:var(--fg-3); text-transform:uppercase; }
+.macro-ts-kpi .v { font:800 19px/1.15 var(--font-mono); color:var(--fg-0); margin-top:5px; }
+.macro-ts-kpi .v small { font-size:11px; color:var(--fg-3); font-weight:600; }
+.macro-ts-kpi .s { font:9.5px/1.4 var(--font-mono); color:var(--fg-3); margin-top:4px; }
+.macro-ts-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:8px; margin-top:8px; }
+.macro-ts-card { display:flex; gap:14px; align-items:center; border:1px solid var(--border); border-left:3px solid var(--border-bright); border-radius:6px; background:var(--bg); padding:11px 13px; min-width:0; }
+.macro-ts-card[data-ts-uid] { cursor:pointer; }
+.macro-ts-card.up { border-left-color:var(--mh-top); }
+.macro-ts-card.down { border-left-color:var(--mh-bottom); }
+.macro-ts-card .big { font:800 26px/1 var(--font-mono); white-space:nowrap; color:var(--fg-2); }
+.macro-ts-card .e { font:700 9px/1.3 var(--font-mono); letter-spacing:.9px; color:var(--fg-3); }
+.macro-ts-card h4 { margin:3px 0 3px; font:700 13.5px/1.3 var(--font-sans); color:var(--fg-0); }
+.macro-ts-card p { margin:0; font:11.5px/1.5 var(--font-sans); color:var(--fg-2); }
+.macro-ts-notes { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:10px; margin-top:10px; }
+.macro-ts-notes p { margin:0; padding-left:9px; border-left:2px solid var(--amber); font:11.5px/1.5 var(--font-sans); color:var(--fg-2); }
+.macro-ts-notes b { color:var(--fg-0); }
+.macro-ts-cols { display:grid; grid-template-columns:repeat(auto-fit,minmax(270px,1fr)); gap:8px; margin-top:12px; align-items:start; }
+.macro-ts-col { border:1px solid var(--border); border-radius:6px; background:var(--bg); min-width:0; overflow:hidden; }
+.macro-ts-col header { display:flex; justify-content:space-between; gap:8px; align-items:baseline; padding:7px 9px; border-bottom:1px solid var(--border); font:700 9.5px/1.3 var(--font-mono); letter-spacing:.7px; color:var(--fg-0); background:var(--bg-2); }
+.macro-ts-col header i { font-style:normal; font-weight:500; letter-spacing:0; color:var(--fg-3); }
+.macro-ts-col.up header b { color:var(--mh-top); }
+.macro-ts-col.down header b { color:var(--mh-bottom); }
+.macro-ts-n { color:var(--fg-2); }
+.macro-ts-t { width:100%; border-collapse:collapse; font:11px var(--font-mono); font-variant-numeric:tabular-nums; }
+.macro-ts-t td, .macro-ts-t th { padding:6px 9px; border-bottom:1px solid var(--border); text-align:left; vertical-align:top; }
+.macro-ts-t th { font:600 9px/1.3 var(--font-mono); letter-spacing:.5px; text-transform:uppercase; color:var(--fg-3); white-space:nowrap; }
+.macro-ts-t .n { text-align:right; white-space:nowrap; }
+.macro-ts-t tr[data-ts-uid] { cursor:pointer; }
+.macro-ts-t tr[data-ts-uid]:hover td, .macro-ts-t tr[data-ts-uid]:focus-visible td { background:var(--bg-hover); outline:none; }
+.macro-ts-nm { display:block; font:600 11.5px/1.3 var(--font-sans); color:var(--fg-0); overflow-wrap:anywhere; }
+.macro-ts-s { display:block; font:9.5px/1.45 var(--font-mono); color:var(--fg-3); overflow-wrap:anywhere; white-space:normal; }
+.macro-ts-big { display:block; font:800 13px/1.2 var(--font-mono); color:var(--fg-1); }
+.macro-ts-t .n .macro-ts-s { white-space:nowrap; }
+.macro-ts-none, .macro-ts-rest { margin:0; padding:7px 9px; font:10px/1.5 var(--font-mono); color:var(--fg-3); }
+.macro-ts-rest span { cursor:pointer; text-decoration:underline dotted; }
+.macro-ts-fam { margin-top:10px; overflow-x:auto; border:1px solid var(--border); border-radius:6px; background:var(--bg); }
+.macro-ts-fam .macro-ts-t { min-width:760px; }
+.macro-ts-jump { border:0; background:none; padding:0; color:var(--fg-0); font:600 11.5px/1.3 var(--font-sans); text-align:left; cursor:pointer; }
+.macro-ts-jump:hover, .macro-ts-jump:focus-visible { color:var(--cyan); outline:none; }
+.macro-ts-pick { cursor:pointer; color:var(--fg-1); font-family:var(--font-sans); }
+.macro-ts-pick small { color:var(--fg-3); font-family:var(--font-mono); }
+.macro-ts-foot { margin:10px 0 0; font:10.5px/1.6 var(--font-sans); color:var(--fg-3); max-width:1180px; }
+.macro-nums { margin-top:8px; border-top:1px solid var(--border); padding-top:6px; min-width:0; display:grid; gap:3px; }
+.macro-nums-wait { font:9.5px var(--font-mono); color:var(--fg-4); }
+.macro-nums-row { display:grid; grid-template-columns:72px minmax(0,1fr); gap:6px; font:10px/1.45 var(--font-mono); color:var(--fg-2); }
+.macro-nums-k { color:var(--fg-4); font-size:8.5px; letter-spacing:.4px; text-transform:uppercase; padding-top:1px; }
+.macro-nums-v { min-width:0; overflow-wrap:anywhere; }
+.macro-nums-v b { color:var(--fg-0); }
+.macro-nums-v small { color:var(--fg-4); font-size:8.5px; }
+.macro-nums-tag { display:inline-block; margin-left:4px; padding:1px 5px; border:1px solid var(--border-bright); border-radius:3px; font:700 8px/1.4 var(--font-mono); letter-spacing:.5px; color:var(--fg-2); white-space:nowrap; }
+.macro-nums-tag.up { border-color:var(--mh-top); color:var(--mh-top); }
+.macro-nums-tag.down { border-color:var(--mh-bottom); color:var(--mh-bottom); }
+.macro-focus-h { margin:0 0 6px; font:700 10px/1.3 var(--font-mono); letter-spacing:.8px; text-transform:uppercase; color:var(--fg-3); }
+.macro-focus-nums .macro-focus-table th[scope="row"] { width:260px; text-transform:none; letter-spacing:0; font-size:11px; color:var(--fg-3); white-space:normal; }
+.macro-focus-nums .macro-focus-table td.up { color:var(--mh-top); }
+.macro-focus-nums .macro-focus-table td.down { color:var(--mh-bottom); }
+#macro-print-root { display:none; }
+@media (max-width:700px) {
+  .macro-ts-cols, .macro-ts-cards, .macro-ts-notes { grid-template-columns:minmax(0,1fr); }
+  .macro-ts-score { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .macro-ts-h { font-size:15.5px; }
+  .macro-ts-card .big { font-size:21px; }
+  .macro-ts { padding:12px; }
+  .macro-focus-nums .macro-focus-table th[scope="row"] { width:auto; }
+}
+@media print {
+  html.macro-print-ts body > *:not(#macro-print-root) { display:none !important; }
+  html.macro-print-ts #macro-print-root { display:block; }
+  html.macro-print-ts #macro-print-root .macro-ts { border:0; margin:0; padding:0; background:#fff; --bg:#fff; --bg-1:#fff; --bg-2:#f2f2f2; --bg-hover:#fff; --border:#cfcfcf; --border-bright:#9a9a9a; --fg-0:#000; --fg-1:#111; --fg-2:#222; --fg-3:#444; --fg-4:#666; }
+  html.macro-print-ts #macro-print-root .macro-ts-actions { display:none; }
+  html.macro-print-ts #macro-print-root .macro-ts-cols { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  html.macro-print-ts #macro-print-root .macro-ts-score { grid-template-columns:repeat(6,minmax(0,1fr)); }
+}
 /* history strips, the full-screen view and personal notes (2026-11-10) */
 /* the turn colours are their own tokens: the site reskin turns the light theme's teal --green into amber, and Khalid asked for green tops / red bottoms (these hexes are the reskin's own calm green / red, so they survive the deploy unchanged) */
 .macro-hist-lg, .macro-hist-chart, .macro-turn-dot { --mh-top:#6fce8a; --mh-bottom:#E07A6A; }
@@ -6134,6 +6222,12 @@ class MacroData {
       ["flows:ici-combined/total","Mutual funds + ETFs · combined weekly net flow","$M"], ["flows:ici-combined/equity","Mutual funds + ETFs · equity","$M"],
       ["flows:ici-combined/bond","Mutual funds + ETFs · bond","$M"], ["flows:ici-combined/commodity","Mutual funds + ETFs · commodity","$M"],
       ["flows:ici-etf/total","ETF net issuance · weekly (combined minus mutual funds)","$M"], ["flows:ici-etf/equity","ETF net issuance · equity","$M"],
+      ["flows:ici-combined/equity_domestic","Mutual funds + ETFs · domestic equity","$M","F"], ["flows:ici-combined/equity_world","Mutual funds + ETFs · world equity","$M","F"],
+      ["flows:ici-combined/hybrid","Mutual funds + ETFs · hybrid","$M","F"], ["flows:ici-combined/bond_taxable","Mutual funds + ETFs · taxable bond","$M","F"],
+      ["flows:ici-combined/bond_municipal","Mutual funds + ETFs · municipal bond","$M","F"], ["flows:ici-etf/equity_domestic","ETF net issuance · domestic equity","$M","F"],
+      ["flows:ici-etf/equity_world","ETF net issuance · world equity","$M","F"], ["flows:ici-etf/bond","ETF net issuance · bond","$M","F"],
+      ["flows:ici-etf/bond_taxable","ETF net issuance · taxable bond","$M","F"], ["flows:ici-etf/bond_municipal","ETF net issuance · municipal bond","$M","F"],
+      ["flows:ici-etf/hybrid","ETF net issuance · hybrid","$M","F"],
     ]},
     { cat: "ETF creations · US broad market (issuer tape, 5-day net at NAV)", flag: "🇺🇸", items: [
       ["flows:etfc/SPY.flow_5d","SPY · SPDR S&P 500 · 5-day net creations at NAV","$"], ["flows:etfc/IVV.flow_5d","IVV · iShares Core S&P 500","$"],
@@ -6145,6 +6239,7 @@ class MacroData {
       ["flows:etfc/SDS.flow_5d","SDS · ProShares UltraShort S&P 500 (−2x)","$"], ["flows:etfc/UPRO.flow_5d","UPRO · ProShares UltraPro S&P 500 (3x)","$"],
       ["flows:etfc/SPXU.flow_5d","SPXU · ProShares UltraPro Short S&P 500 (−3x)","$"], ["flows:etfc/UVXY.flow_5d","UVXY · ProShares Ultra VIX Short-Term Futures","$"],
       ["flows:etfc/SVXY.flow_5d","SVXY · ProShares Short VIX Short-Term Futures","$"],
+      ["flows:etfc/QLD.flow_5d","QLD · ProShares Ultra QQQ (2x)","$"], ["flows:etfc/QID.flow_5d","QID · ProShares UltraShort QQQ (−2x)","$"],
     ]},
     { cat: "ETF creations · US sectors (issuer tape, 5-day net at NAV)", flag: "🏭", items: [
       ["flows:etfc/XLK.flow_5d","XLK · Technology Select Sector SPDR","$"], ["flows:etfc/XLF.flow_5d","XLF · Financial Select Sector SPDR","$"],
@@ -6177,11 +6272,25 @@ class MacroData {
       ["flows:etfc/EWG.flow_5d","EWG · iShares MSCI Germany","$"], ["flows:etfc/EWU.flow_5d","EWU · iShares MSCI United Kingdom","$"],
       ["flows:etfc/EWC.flow_5d","EWC · iShares MSCI Canada","$"], ["flows:etfc/EWW.flow_5d","EWW · iShares MSCI Mexico","$"],
       ["flows:etfc/TUR.flow_5d","TUR · iShares MSCI Turkey","$"], ["flows:etfc/EIDO.flow_5d","EIDO · iShares MSCI Indonesia","$"],
+      ["flows:etfc/EWA.flow_5d","EWA · iShares MSCI Australia","$"], ["flows:etfc/EWQ.flow_5d","EWQ · iShares MSCI France","$"],
+      ["flows:etfc/EWI.flow_5d","EWI · iShares MSCI Italy","$"], ["flows:etfc/EWP.flow_5d","EWP · iShares MSCI Spain","$"],
+      ["flows:etfc/EWL.flow_5d","EWL · iShares MSCI Switzerland","$"], ["flows:etfc/EWS.flow_5d","EWS · iShares MSCI Singapore","$"],
+      ["flows:etfc/EPOL.flow_5d","EPOL · iShares MSCI Poland","$"], ["flows:etfc/EZA.flow_5d","EZA · iShares MSCI South Africa","$"],
+      ["flows:etfc/THD.flow_5d","THD · iShares MSCI Thailand","$"],
     ]},
     { cat: "ETF creations · commodities & crypto (issuer tape, 5-day net at NAV)", flag: "🥇", items: [
       ["flows:etfc/GLD.flow_5d","GLD · SPDR Gold Shares (trust archive since 2004)","$"], ["flows:etfc/SLV.flow_5d","SLV · iShares Silver Trust","$"],
       ["flows:etfc/IBIT.flow_5d","IBIT · iShares Bitcoin Trust","$"], ["flows:etfc/ETHA.flow_5d","ETHA · iShares Ethereum Trust","$"],
       ["flows:etfc/BITO.flow_5d","BITO · ProShares Bitcoin ETF","$"],
+    ]},
+    { cat: "ETF creations · newly tracked funds (issuer snapshots, daily net at NAV, history accruing since 2026-11-11)", flag: "🆕", items: [
+      ["flows:etfc/QQQ.flow","QQQ · Invesco QQQ Trust · daily net creations at NAV","$","F"], ["flows:etfc/RSP.flow","RSP · Invesco S&P 500 Equal Weight · daily net creations at NAV","$","F"],
+      ["flows:etfc/SMH.flow","SMH · VanEck Semiconductor · daily net creations at NAV","$","F"], ["flows:etfc/GDX.flow","GDX · VanEck Gold Miners · daily net creations at NAV","$","F"],
+      ["flows:etfc/NLR.flow","NLR · VanEck Uranium and Nuclear · daily net creations at NAV","$","F"], ["flows:etfc/VNM.flow","VNM · VanEck Vietnam · daily net creations at NAV","$","F"],
+      ["flows:etfc/CIBR.flow","CIBR · First Trust Nasdaq Cybersecurity · daily net creations at NAV","$","F"], ["flows:etfc/ROBO.flow","ROBO · ROBO Global Robotics & Automation · daily net creations at NAV","$","F"],
+      ["flows:etfc/BKLN.flow","BKLN · Invesco Senior Loan · daily net creations at NAV","$","F"], ["flows:etfc/TAN.flow","TAN · Invesco Solar · daily net creations at NAV","$","F"],
+      ["flows:etfc/DBC.flow","DBC · Invesco DB Commodity Index Tracking · daily net creations at NAV","$","F"], ["flows:etfc/DBA.flow","DBA · Invesco DB Agriculture · daily net creations at NAV","$","F"],
+      ["flows:etfc/USO.flow","USO · United States Oil Fund · daily net creations at NAV","$","F"], ["flows:etfc/UNG.flow","UNG · United States Natural Gas Fund · daily net creations at NAV","$","F"],
     ]},
     { cat: "Money market funds", flag: "💵", items: [
       ["flows:ici-mmf/total","All money market funds · assets (ICI weekly)","$B"], ["flows:ici-mmf/government","Government money market funds (ICI)","$B"],
@@ -6189,21 +6298,66 @@ class MacroData {
       ["WRMFNS","Retail money market funds · assets (weekly)","$B"], ["RMFSL","Retail money market funds · assets (monthly)","$B"],
       ["MMMFFAQ027S","All money market funds · total assets (Z.1)","$M"], ["MMMFTAQ027S","All money market funds · net flow (Z.1)","$M"],
       ["ofr:MMF-MMF_RP_OA_TOT-M","MMF investments in repo (OFR)","$"], ["ofr:MMF-MMF_BRA_TOT-M","MMF investments in bank assets (OFR)","$"],
+      ["flows:ici-mmf/retail","Retail money market funds · assets (ICI weekly)","$B","L"], ["flows:ici-mmf/tax_exempt","Tax-exempt money market funds · assets (ICI weekly)","$B","L"],
+      ["ofr:MMF-MMF_TOT-M","Money market funds · total investments (OFR, monthly)","$","L"], ["ofr:MMF-MMF_T_TOT-M","MMF investments in US Treasuries (OFR)","$","L"],
+      ["ofr:MMF-MMF_AG_TOT-M","MMF investments in agency and GSE securities (OFR)","$","L"], ["ofr:MMF-MMF_RP_TOT-M","MMF investments in repo · total (OFR)","$","L"],
+      ["ofr:MMF-MMF_RP_wFR-M","MMF repo with the Federal Reserve (OFR)","$","L"], ["HNOMMFQ027S","Households · net purchases of money market fund shares (Z.1)","$M","F"],
     ]},
     { cat: "Bank deposits & credit", flag: "🏦", items: [
       ["DPSACBW027SBOG","Deposits, all commercial banks","$B"], ["TOTBKCR","Bank credit, all commercial banks","$B"],
       ["TOTLL","Loans and leases in bank credit","$B"], ["CCLACBW027SBOG","Credit-card loans, all commercial banks","$B"],
       ["TOTALSL","Consumer credit outstanding","$M"], ["M2SL","M2 money supply","$B"],
+      ["DPSLCBW027SBOG","Deposits · large domestic banks","$B","L"], ["DPSSCBW027SBOG","Deposits · small domestic banks","$B","L"],
+      ["DPSFRIW027SBOG","Deposits · foreign-related institutions","$B","L"], ["LTDACBW027SBOG","Large time deposits, all commercial banks","$B","L"],
+      ["ODSACBW027SBOG","Other deposits, all commercial banks","$B","L"], ["H8B3094NCBA","Borrowings, all commercial banks","$M","L"],
+      ["CASACBW027SBOG","Cash assets, all commercial banks","$B","L"], ["TOTCI","Commercial and industrial loans (weekly)","$B","L"],
+      ["RELACBW027SBOG","Real estate loans (weekly)","$B","L"], ["CLSACBW027SBOG","Consumer loans (weekly)","$B","L"],
+      ["INVEST","Securities in bank credit","$B","L"], ["USGSEC","Treasury and agency securities held by banks","$B","L"],
+      ["OTHSEC","Other securities held by banks","$B","L"], ["REVOLSL","Revolving consumer credit (credit cards)","$M","L"],
+      ["NONREVSL","Nonrevolving consumer credit (auto, student)","$M","L"], ["M1SL","M1 money supply","$B","L"],
     ]},
     { cat: "Fed liquidity in & out", flag: "🏛", items: [
       ["WALCL","Fed balance sheet","$M"], ["WTREGEN","Treasury General Account (drains liquidity)","$M"],
       ["RRPONTSYD","Reverse repo (parks liquidity)","$B"], ["WRESBAL","Bank reserves at the Fed","$B"], ["BOGMBASE","Monetary base","$B"],
+      ["TREAST","Fed · Treasuries held outright","$M","L"], ["WSHOMCB","Fed · mortgage-backed securities held outright","$M","L"],
+      ["WLCFLPCL","Fed · discount window primary credit","$M","L"], ["SWPT","Fed · central bank liquidity swaps (dollars lent abroad)","$M","L"],
+      ["RPONTSYD","Fed · overnight repo (standing repo facility use)","$B","L"], ["WLRRAL","Fed · reverse repos, all counterparties","$M","L"],
+      ["WDTGAL","Treasury General Account · Wednesday level","$M","L"], ["WCURCIR","Currency in circulation","$M","L"],
+      ["TOTRESNS","Total reserves of depository institutions (monthly)","$B","L"],
+    ]},
+    { cat: "Other central banks · balance sheets", flag: "🌐", items: [
+      ["ECBASSETSW","ECB · total assets (euro area, weekly)","€M","L"], ["JPNASSETS","Bank of Japan · total assets (monthly)","¥100M","L"],
+    ]},
+    { cat: "Short-term funding · commercial paper, repo and money-market volumes", flag: "🔁", items: [
+      ["COMPOUT","Commercial paper outstanding · total","$B","L"], ["ABCOMP","Asset-backed commercial paper outstanding","$B","L"],
+      ["FINCP","Financial commercial paper outstanding","$B","L"], ["ofr:REPO-TRI_TV_TOT-P","Tri-party repo · daily transaction volume (OFR)","$","L"],
+      ["ofr:REPO-DVP_TV_TOT-P","DVP repo · daily transaction volume (OFR)","$","L"], ["ofr:REPO-GCF_TV_TOT-P","GCF repo · daily transaction volume (OFR)","$","L"],
+      ["ofr:FNYR-SOFR_UV-A","SOFR · underlying volume (daily)","$","L"], ["ofr:FNYR-TGCR_UV-A","Tri-party general collateral rate · underlying volume","$","L"],
+      ["ofr:FNYR-BGCR_UV-A","Broad general collateral rate · underlying volume","$","L"], ["ofr:FNYR-EFFR_UV-A","Fed funds · underlying volume","$","L"],
+      ["ofr:FNYR-OBFR_UV-A","Overnight bank funding · underlying volume","$","L"], ["ofr:NYPD-PD_AFtD_T-A","Primary dealers · fails to deliver Treasuries (weekly)","$","L"],
     ]},
     { cat: "Who is buying US equities · Z.1 quarterly flows", flag: "👪", items: [
       ["HNOCESQ027S","Households · net purchases of equities","$M"], ["HNOMFTQ027S","Households · net purchases of mutual fund shares","$M"],
       ["BOGZ1FA653064100Q","Mutual funds · net purchases of equities","$M"], ["BOGZ1FA563064100Q","ETFs · net purchases of equities","$M"],
       ["BOGZ1FA564090005Q","ETFs · total net inflow (all assets)","$M"], ["ROWCEAQ027S","Rest of the world · net purchases of US equities","$M"],
       ["NCBCEBQ027S","Companies · net equity issuance (negative = buybacks)","$M"], ["BOGZ1FA224090045Q","State & local pension funds · net inflow","$M"],
+      ["BOGZ1FA893064105Q","All sectors · net purchases of corporate equities","$M","F"], ["BOGZ1FA573064105Q","Private pension funds · net purchases of equities","$M","F"],
+      ["BOGZ1FA223064145Q","State & local pension funds · net purchases of equities","$M","F"], ["BOGZ1FA543064105Q","Life insurers · net purchases of equities","$M","F"],
+      ["BOGZ1FA513064105Q","Property-casualty insurers · net purchases of equities","$M","F"], ["BOGZ1FA663064103Q","Broker-dealers · net purchases of equities","$M","F"],
+      ["BOGZ1FL663067003Q","Margin loans at broker-dealers · outstanding","$M","L"],
+    ]},
+    { cat: "US Treasuries · the deficit, issuance and who is buying", flag: "🧾", items: [
+      ["MTSDS133FMS","Federal surplus or deficit · monthly","$M","F"], ["BOGZ1FA313161105Q","Federal government · net issuance of marketable Treasuries (Z.1)","$M","F"],
+      ["BOGZ1FA713061103Q","Federal Reserve · net purchases of Treasuries (Z.1)","$M","F"], ["BOGZ1FA763061100Q","US banks · net purchases of Treasuries (Z.1)","$M","F"],
+      ["BOGZ1FA633061105Q","Money market funds · net purchases of Treasuries (Z.1)","$M","F"], ["BOGZ1FA653061105Q","Mutual funds · net purchases of Treasuries (Z.1)","$M","F"],
+      ["HNOTSAQ027S","Households · Treasury holdings (Z.1)","$M","L"], ["GFDEBTN","Federal debt · total public debt","$M","L"],
+      ["FYGFDPUN","Federal debt held by the public","$M","L"], ["FDHBFRBN","Federal debt held by Federal Reserve banks","$B","L"],
+      ["FDHBPIN","Federal debt held by private investors","$B","L"],
+    ]},
+    { cat: "Debt outstanding · who is borrowing (Z.1 quarterly)", flag: "🧮", items: [
+      ["TODNS","All domestic nonfinancial sectors · debt outstanding","$M","L"], ["FGSDODNS","Federal government · debt outstanding","$M","L"],
+      ["CMDEBT","Households · debt outstanding","$M","L"], ["BCNSDODNS","Nonfinancial companies · debt outstanding","$M","L"],
+      ["NCBDBIQ027S","Nonfinancial companies · bonds and other debt securities","$M","L"], ["BOGZ1FA573063005Q","Private pension funds · net purchases of corporate bonds","$M","F"],
     ]},
     { cat: "Foreign money into US bonds · TIC", flag: "🌍", items: [
       ["FORTREASPOS69995","Foreign holdings of US Treasuries · all countries","$M"], ["FORTREASPOS42609","Foreign holdings of US Treasuries · Japan","$M"],
@@ -6215,6 +6369,14 @@ class MacroData {
       ["FORLTAGCYNET99996","Foreign net purchases of US agency bonds","$M"], ["FORLTTOTALNET99990","Foreign official institutions · net purchases of US long-term securities","$M"],
       ["FORLTTOTALNET99991","Foreign private investors · net purchases of US long-term securities","$M"], ["FORLTTREASNET41408","China · net purchases of long-term Treasuries","$M"],
       ["FORLTEQTYNET42609","Japan · net purchases of US equities","$M"], ["FORLTEQTYNET41408","China · net purchases of US equities","$M"],
+      ["WSEFINTL1","Fed custody · securities held for foreign official accounts (weekly)","$M","L"], ["WMTSECL1","Fed custody · Treasuries held for foreign official accounts (weekly)","$M","L"],
+      ["FORTREASPOS29998","Foreign holdings of US Treasuries · Canada","$M","L"], ["FORTREASPOS36137","Foreign holdings of US Treasuries · Cayman Islands","$M","L"],
+      ["FORTREASPOS42005","Foreign holdings of US Treasuries · Hong Kong","$M","L"], ["FORLTTREASNET13005","United Kingdom · net purchases of long-term Treasuries","$M","F"],
+      ["FORLTTREASNET29998","Canada · net purchases of long-term Treasuries","$M","F"], ["FORLTTREASNET36137","Cayman Islands · net purchases of long-term Treasuries","$M","F"],
+      ["FORLTEQTYNET13005","United Kingdom · net purchases of US equities","$M","F"], ["FORLTEQTYNET29998","Canada · net purchases of US equities","$M","F"],
+      ["FORLTEQTYNET36137","Cayman Islands · net purchases of US equities","$M","F"], ["FORLTCORPNET13005","United Kingdom · net purchases of US corporate bonds","$M","F"],
+      ["FORLTAGCYNET42609","Japan · net purchases of US agency bonds","$M","F"], ["FORLTAGCYNET41408","China · net purchases of US agency bonds","$M","F"],
+      ["FORLTTOTALNET42609","Japan · net purchases of all US long-term securities","$M","F"], ["FORLTTOTALNET41408","China · net purchases of all US long-term securities","$M","F"],
     ]},
     { cat: "Crypto flows · spot ETFs and exchanges", flag: "₿", items: [
       ["flows:crypto-etf/btc_today","Spot BTC ETFs · daily net flow","$"], ["flows:crypto-etf/btc_30d","Spot BTC ETFs · 30-day net flow","$"],
@@ -6229,6 +6391,17 @@ class MacroData {
       ["flows:stablecoins/total","Stablecoin supply · all USD-pegged coins (DefiLlama)","$"], ["flows:stablecoins/usdt","USDT circulating supply","$"],
       ["flows:stablecoins/usdc","USDC circulating supply","$"],
     ]},
+    { cat: "Crypto · stablecoins, miners and leverage (CryptoQuant daily)", flag: "🪙", items: [
+      ["flows:cq/stablecoin_exchange_netflow","Stablecoins · daily exchange netflow (tokens, about $1 each)","$","F"], ["flows:cq/stablecoin_exchange_reserve","Stablecoins · held on exchanges","$","L"],
+      ["flows:cq/usdc_exchange_reserve","USDC · held on exchanges","$","L"], ["flows:cq/stablecoin_supply_minted","Stablecoins · minted per day","$","G"],
+      ["flows:cq/stablecoin_supply_redeemed","Stablecoins · redeemed per day","$","G"], ["flows:cq/btc_v2_etf_demand_30d","BTC · ETF demand, 30-day net","BTC","F"],
+      ["flows:cq/btc_reserve_usd","BTC · exchange reserve in dollars","$","L"], ["flows:cq/eth_reserve_usd","ETH · exchange reserve in dollars","$","L"],
+      ["flows:cq/eth_exchange_inflow","ETH · daily exchange inflow","ETH","G"], ["flows:cq/eth_exchange_outflow","ETH · daily exchange outflow","ETH","G"],
+      ["flows:cq/eth_staking_inflow_total","ETH · staking deposits per day","ETH","G"], ["flows:cq/btc_miner_reserve","BTC · miner reserve","BTC","L"],
+      ["flows:cq/btc_miner_outflow","BTC · miner outflow per day","BTC","G"], ["flows:cq/xrp_reserve","XRP · exchange reserve","XRP","L"],
+      ["flows:cq/btc_open_interest","BTC futures · open interest","$","L"], ["flows:cq/eth_open_interest","ETH futures · open interest","$","L"],
+      ["flows:cq/btc_estimated_leverage_ratio","BTC · estimated leverage ratio (open interest / exchange reserve)","ratio","G"], ["flows:cq/btc_coinbase_premium_index","BTC · Coinbase premium index (US spot demand)","%","G"],
+    ]},
     { cat: "Asia foreign investor flows", flag: "🌏", items: [
       ["flows:apac/tw_foreign_net_twd","Taiwan · foreign net buying (TWD, daily)","TWD"],
       ["flows:apac/tw_sector_flows.Semiconductors","Taiwan foreigners · semiconductors (shares)","shares"], ["flows:apac/tw_sector_flows.Electronics/Hardware","Taiwan foreigners · electronics / hardware","shares"],
@@ -6239,6 +6412,14 @@ class MacroData {
       ["flows:apac-jp/foreigners","Japan · foreign investors net (TSE Prime, weekly)","¥B"], ["flows:apac-jp/individuals","Japan · individuals net (TSE Prime)","¥B"],
       ["flows:apac-jp/investment_trusts","Japan · investment trusts net","¥B"], ["flows:apac-jp/trust_banks","Japan · trust banks (pension money) net","¥B"],
       ["flows:apac-jp/proprietary","Japan · securities firms' proprietary net","¥B"],
+      ["flows:apac/tw_sector_flows.Shipping","Taiwan foreigners · shipping (shares)","shares","F"], ["flows:apac/tw_sector_flows.Telecom","Taiwan foreigners · telecom (shares)","shares","F"],
+      ["flows:apac/tw_tracked.2454","Taiwan foreigners · MediaTek (2454) net shares","shares","F"], ["flows:apac/tw_tracked.2317","Taiwan foreigners · Hon Hai (2317) net shares","shares","F"],
+      ["flows:apac/kr_kosdaq_foreign_net_krw_bn","KOSDAQ · foreign investors net","₩B","F"], ["flows:apac/kr_kosdaq_institution_net_krw_bn","KOSDAQ · institutions net","₩B","F"],
+      ["flows:apac/kr_kosdaq_individual_net_krw_bn","KOSDAQ · individuals net","₩B","F"], ["flows:apac-jp/financial_institutions","Japan · financial institutions net (TSE Prime)","¥B","F"],
+      ["flows:apac-jp/life_nonlife_insurance","Japan · life and non-life insurers net","¥B","F"], ["flows:apac-jp/city_regional_banks","Japan · city and regional banks net","¥B","F"],
+      ["flows:apac-jp/business_cos","Japan · business companies net (buybacks)","¥B","F"], ["flows:apac-jp/securities_cos","Japan · securities companies net","¥B","F"],
+      ["flows:apac-jp-standard/foreigners","Japan · foreign investors net (TSE Standard)","¥B","F"], ["flows:apac-jp-standard/individuals","Japan · individuals net (TSE Standard)","¥B","F"],
+      ["flows:apac-jp-growth/foreigners","Japan · foreign investors net (TSE Growth)","¥B","F"], ["flows:apac-jp-growth/individuals","Japan · individuals net (TSE Growth)","¥B","F"],
 ]},
   ];
   /* the fleet's flow feeds the flows: adapter reads: flows:<feed>/<field> (nested fields with dots; "/" inside a key is
@@ -6250,6 +6431,8 @@ class MacroData {
     "ici-mmf": { url: "/data/ici-fund-flows.json", rows: p => p.money_market_history || [], date: "week_ending", label: "ICI weekly · money market" },
     "stablecoins": { url: "/data/stablecoin-supply-history.json", rows: p => p.series || [], date: "date", label: "DefiLlama daily" },
     "apac-jp": { url: "/data/history/apac-flows.json", rows: p => Object.keys(p.jp_weeks || {}).sort().map(w => Object.assign({ week_ending: w }, ((p.jp_weeks[w] || {}).markets || {}).prime || {})), date: "week_ending", label: "JPX weekly" },
+    "apac-jp-standard": { url: "/data/history/apac-flows.json", rows: p => Object.keys(p.jp_weeks || {}).sort().map(w => Object.assign({ week_ending: w }, ((p.jp_weeks[w] || {}).markets || {}).standard || {})), date: "week_ending", label: "JPX weekly · Standard" },
+    "apac-jp-growth": { url: "/data/history/apac-flows.json", rows: p => Object.keys(p.jp_weeks || {}).sort().map(w => Object.assign({ week_ending: w }, ((p.jp_weeks[w] || {}).markets || {}).growth || {})), date: "week_ending", label: "JPX weekly · Growth" },
     "cq": { url: "/data/cryptoquant-series.json", rows: () => [], obs: (p, field) => { const s = (p.series || {})[field]; return s && s.d && s.v ? s.d.map((d, i) => [d, s.v[i]]) : []; }, date: "d", label: "CryptoQuant daily" },
     // flows:etfc/<TICKER>.<metric>: the ETF creations engine's retained issuer histories, one feed per fund
     // (data/etf-creations/<TICKER>.json; metrics flow, flow_5d, flow_20d, shares, nav, net_assets; default flow_5d)
@@ -6361,18 +6544,22 @@ class MacroData {
       this.state = { version: 2, catalogRev: this.CATALOG_REV, categories: this.defaults() };
       this.normalize();
       this.save();
+      this.mergeCatalog();
       return this.state;
     }
     this.normalize();
+    this.mergeCatalog();
     return this.state;
   }
 
   static normalize() {
     const cats = Array.isArray(this.state && this.state.categories) ? this.state.categories : [];
     const rev = this.state && this.state.catalogRev;
+    const offered = this.state && Array.isArray(this.state.offered) ? this.state.offered.map(String) : undefined;
     this.state = {
       version: 2,
       catalogRev: rev === this.CATALOG_REV ? this.CATALOG_REV : undefined,
+      offered,
       categories: cats.map((cat, ci) => ({
         id: String(cat.id || `category-${Date.now()}-${ci}`),
         cat: String(cat.cat || 'Untitled category'),
@@ -6451,7 +6638,7 @@ class MacroData {
           <div class="macro-changes">
             ${['D','W','M','Q','Y'].map(h => `<span class="macro-change na" data-horizon="${h}"><b>${h}</b>—</span>`).join('')}
           </div>
-          <div class="macro-hist" title="Click for the full-screen history"><div class="macro-hist-head"><span>1996 → today</span><span class="macro-hist-lg"><i class="t"></i>top<i class="b"></i>bottom</span></div><div class="macro-hist-svg"><span class="macro-hist-wait">history…</span></div><div class="macro-hist-cap"></div></div>
+          ${this.histSlot()}
           <span class="macro-item-tools">
             <button class="macro-icon-btn" type="button" data-macro-action="compare-series" aria-label="Compare ${UI.esc(it.title)} on chart" title="Add to chart comparison">⇄</button>
             <button class="macro-drag-handle" type="button" draggable="true"
@@ -6481,7 +6668,7 @@ class MacroData {
         <div class="macro-grid" data-category-id="${UI.esc(cat.id)}">${items}</div>
       </div>`;
     }).join('') || `<div class="macro-empty-cat">No categories yet. Select + CATEGORY to create your first monitoring group.</div>`;
-    body.innerHTML = html;
+    body.innerHTML = (this.desk === 'flows' ? this.sheetShell() : '') + html;
     body.querySelectorAll('.macro-item').forEach(el => {
       el.addEventListener('click', e => {
         if (e.target.closest('button, .macro-note, textarea')) return;
@@ -6513,6 +6700,7 @@ class MacroData {
     this.wireFocus();
     this.wireReordering(body);
     this.hydrateMetrics();
+    if (this.desk === 'flows') this.startSheet();
   }
 
   static wireReordering(body) {
@@ -7021,6 +7209,8 @@ class MacroData {
       card.querySelector('.macro-latest-value').title = msg;
       const strip = card.querySelector('.macro-hist-svg');
       if (strip) { strip.innerHTML = '<span class="macro-hist-wait">history unavailable</span>'; strip.title = msg; }
+      const nums = card.querySelector('.macro-nums');
+      if (nums) { nums.innerHTML = '<span class="macro-nums-wait">history unavailable</span>'; nums.title = msg; }
     }
   }
 
@@ -7047,7 +7237,8 @@ class MacroData {
       const value = rule.type.startsWith('value_') ? metric.last : metric.changes[rule.horizon];
       card.querySelector('.macro-danger-badge').title = `${rule.type.replaceAll('_', ' ')} ${rule.threshold}; current ${this.formatValue(value)}`;
     }
-    this.paintStrip(card, metric);
+    if (this.desk === 'flows') this.paintNumbers(card, metric, item);
+    else this.paintStrip(card, metric);
   }
 
   static formatValue(value, units) {
@@ -7603,7 +7794,7 @@ class MacroData {
       const metric = await this.fetchMetric(item.symbol);
       const [hist, turns] = await Promise.all([this.fetchHistory(item.symbol, metric), this.loadTurns()]);
       if (token !== this.focusToken) return;
-      const spx = this.turns ? await this.spxHistory() : null;
+      const spx = this.desk !== 'flows' && this.turns ? await this.spxHistory() : null;
       if (token !== this.focusToken) return;
       document.getElementById('macro-focus-latest').innerHTML = '<span class="v">' + UI.esc(this.formatValue(metric.last, item.units)) + '</span><span class="u">' + UI.esc(item.units || '') + '</span><span class="d">as of ' + UI.esc(metric.asof || '') + '</span>';
       const changes = ['D', 'W', 'M', 'Q', 'Y'].map(hz => {
@@ -7618,6 +7809,7 @@ class MacroData {
           '<td>' + (ep.bottom ? ep.bottom.date + (ep.bottom.provisional ? ' <small>low so far</small>' : ' <small>S&amp;P +' + (ep.bottom.move * 100).toFixed(0) + '% after</small>') : '—') + '</td><td class="n">' + (vb ? this.fmtHist(vb.value, item.units) : '—') + '</td>' +
           '<td class="n ' + (delta == null ? '' : delta >= 0 ? 'up' : 'down') + '">' + (delta == null ? '—' : (delta >= 0 ? '+' : '') + delta.toFixed(0) + '%') + '</td></tr>';
       }).join('');
+      if (this.desk === 'flows') { document.getElementById('macro-focus-body').innerHTML = this.focusNumbersHtml(item, metric, hist, changes, rows); return; }
       document.getElementById('macro-focus-body').innerHTML =
         '<div class="macro-focus-chart">' + this.historySvg(hist, turns, { w: 1200, h: 520, units: item.units, big: true, spx }) + '</div>' +
         '<div class="macro-focus-grid"><div class="macro-focus-changes">' + changes + '</div>' +
@@ -7670,6 +7862,433 @@ class MacroData {
       if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     });
+  }
+
+  /* ───────────────────────── the flows desk · tearsheet, history in numbers, additive catalog (2026-11-17) ─────────────────────────
+     Khalid: "apply the same thing we did to 13F from this picture to inflows & outflows. Also remove all the charts from
+     inflows & outflows and see what data you can add to it. Only add, don't remove any data - we are looking to extend
+     coverage." Everything here runs on the flows desk only (desk === 'flows'); the Macro desk keeps its strips.
+       · the tearsheet (#flows-tearsheet, first thing in the body): every series at its latest print against the print
+         before it - a scoreboard, the most notable inflow and outflow, the largest dollar flows, four lists (turned to
+         inflow / improving / worsening / turned to outflow) and one row per family. Nothing is netted across series.
+       · no charts: where the history strip was, each card carries its history in numbers (prior print, percentile and z
+         against its own history, the run of inflows or outflows, the 52-week range, the last 4 / 13 / 52 prints and the
+         values at the S&P's famous tops and bottoms); the full-screen view is tables - the latest prints and every year.
+       · the catalog only grows: series added to FLOWS_CATALOG reach a desk saved in the browser without a reset
+         (mergeCatalog), notes, custom categories and danger rules untouched. */
+  static TS_ROWS = 6;
+  static TS_MORE = 15;
+  static DASH = '—';
+  static USD_SCALE = { '$': 1, '$K': 1e3, '$M': 1e6, '$B': 1e9, '$T': 1e12 };
+  static sheetLong = false;
+  static sheetTimer = null;
+  static sheetToken = 0;
+  static sheetFailed = new Set();
+  static sheetDone = 0;
+  static sheetStarted = 0;
+  static sheetTook = null;
+  static kindTags = null;
+
+  static buildKindTags() {
+    const tags = {}, names = { L: 'level', F: 'flow', G: 'gauge' };
+    this.FLOWS_CATALOG.forEach(cat => cat.items.forEach(item => {
+      if (!item[3] || !names[item[3]]) return;
+      const raw = String(item[0]);
+      tags[raw.indexOf(':') >= 0 ? raw : 'FRED:' + raw] = names[item[3]];
+    }));
+    return tags;
+  }
+
+  /* flow = the print itself is money in (+) or out (-); level = a stock (assets, holdings, supply) whose change between
+     prints is the flow; gauge = a ratio, a percentile or a gross figure - shown on its card, never ranked as in / out */
+  static flowKind(item) {
+    const s = String(item.symbol || ''), t = String(item.title || ''), u = String(item.units || '').toLowerCase();
+    const tag = (this.kindTags || (this.kindTags = this.buildKindTags()))[s];
+    if (tag) return tag;
+    if (u === 'ratio' || u === 'pctile' || u === '%' || /percentile|ratio|share of|\brate\b|yield|spread|index\b/i.test(t)) return 'gauge';
+    if (/exchange (inflow|outflow)\b/i.test(t)) return 'gauge';
+    if (/net (flow|purchases|inflow|issuance|buying|creations|acquisition)|netflow|creations|\bnet\b/i.test(t)) return 'flow';
+    if (/^flows:(ici-mmf|stablecoins)\//.test(s) || /assets|holdings|supply|reserve|balance sheet|deposits|credit|outstanding|loans|monetary base|general account|reverse repo|debt held|held outright|in circulation|investments in|volume|\bM[12]\b/i.test(t)) return 'level';
+    return 'flow';
+  }
+
+  static isRolling(item) { return /_5d|_20d|_30d|5-day|20-day|30-day/i.test(String(item.symbol) + ' ' + String(item.title)); }
+
+  static flowHorizon(item, st) {
+    const id = String(item.symbol) + ' ' + String(item.title);
+    if (/_5d|5-day/i.test(id)) return '5-day';
+    if (/_20d|20-day/i.test(id)) return '20-day';
+    if (/_30d|30-day/i.test(id)) return '30-day';
+    const sp = st && st.spacing;
+    return !Number.isFinite(sp) ? 'latest' : sp <= 2 ? 'daily' : sp <= 8 ? 'weekly' : sp <= 35 ? 'monthly' : sp <= 100 ? 'quarterly' : 'annual';
+  }
+
+  static ordinal(pct) {
+    const n = Math.max(1, Math.min(99, Math.round(pct))), tens = n % 100;
+    return n + (tens >= 11 && tens <= 13 ? 'th' : ['th', 'st', 'nd', 'rd', 'th', 'th', 'th', 'th', 'th', 'th'][n % 10]);
+  }
+
+  static fmtFlow(value, units, signed) {
+    if (!Number.isFinite(value)) return this.DASH;
+    const scale = this.USD_SCALE[String(units || '')];
+    const sign = value < 0 ? '−' : (signed && value > 0 ? '+' : '');
+    const a = Math.abs(value);
+    if (scale) {
+      const usd = a * scale;
+      return sign + '$' + (usd >= 1e12 ? (usd / 1e12).toFixed(2) + 'T' : usd >= 1e9 ? (usd / 1e9).toFixed(2) + 'B' : usd >= 1e6 ? (usd / 1e6).toFixed(1) + 'M' : usd >= 1e3 ? (usd / 1e3).toFixed(0) + 'K' : usd.toFixed(0));
+    }
+    const s = a >= 1e12 ? (a / 1e12).toFixed(2) + 'T' : a >= 1e9 ? (a / 1e9).toFixed(2) + 'B' : a >= 1e6 ? (a / 1e6).toFixed(2) + 'M' : a >= 1e4 ? Math.round(a).toLocaleString('en-US') : a >= 100 ? a.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : a >= 1 ? a.toFixed(2) : a === 0 ? '0' : Number(a.toPrecision(3)).toString();
+    const u = String(units || '');
+    return sign + s + (u && !/^(ratio|pctile)$/i.test(u) ? (u === '%' ? '%' : ' ' + u) : '');
+  }
+
+  /* everything the tearsheet and the cards say about one series, from the history the card already holds (since 1996) */
+  static flowStats(item, metric) {
+    const hist = metric && metric.hist;
+    if (!hist || !hist.t || !hist.t.length) return null;
+    const kind = this.flowKind(item), n = hist.t.length, V = hist.v, T = hist.t;
+    const v = V[n - 1], p = n > 1 ? V[n - 2] : null;
+    let F = V;
+    if (kind !== 'flow') { F = new Float64Array(Math.max(n - 1, 0)); for (let i = 1; i < n; i++) F[i - 1] = V[i] - V[i - 1]; }
+    const m = F.length, f = m ? F[m - 1] : null, fp = m > 1 ? F[m - 2] : null;
+    let mean = 0, sd = 0, below = 0;
+    if (m > 1) {
+      for (let i = 0; i < m; i++) mean += F[i];
+      mean /= m;
+      for (let i = 0; i < m; i++) { sd += (F[i] - mean) * (F[i] - mean); if (F[i] <= f) below++; }
+      sd = Math.sqrt(sd / (m - 1));
+    }
+    const z = m >= 12 && sd > 0 ? (f - mean) / sd : null;
+    const pct = m >= 12 ? below / m * 100 : null;
+    let streak = 0;
+    if (m && f !== 0) { const sg = Math.sign(f); for (let i = m - 1; i >= 0 && Math.sign(F[i]) === sg; i--) streak++; }
+    let hi = -Infinity, lo = Infinity, hiDay = null, loDay = null;
+    for (let i = n - 1; i >= 0 && T[i] >= T[n - 1] - 365; i--) { if (V[i] > hi) { hi = V[i]; hiDay = T[i]; } if (V[i] < lo) { lo = V[i]; loDay = T[i]; } }
+    const win = c => {
+      if (kind !== 'flow') return n > c ? v - V[n - 1 - c] : null;
+      if (m < c) return null;
+      let sum = 0;
+      for (let i = m - c; i < m; i++) sum += F[i];
+      return sum / c;
+    };
+    const spacing = Number.isFinite(metric.spacingDays) ? metric.spacingDays : null;
+    const age = Math.floor(Date.now() / 86400000) - T[n - 1];
+    const limit = spacing == null ? 45 : spacing <= 2 ? 8 : spacing <= 8 ? 24 : spacing <= 35 ? 125 : 300;   // a monthly series prints ~11 weeks late, a quarterly one ~10
+    const scale = this.USD_SCALE[String(item.units || '')] || null;
+    let cls = 'na';
+    if (kind !== 'gauge' && Number.isFinite(f) && Number.isFinite(fp)) cls = f > 0 && fp <= 0 ? 'turned_in' : f < 0 && fp >= 0 ? 'turned_out' : f === fp ? 'unchanged' : f > fp ? 'improving' : 'worsening';
+    return { kind, n, m, v, p, day: T[n - 1], pday: n > 1 ? T[n - 2] : null, first: T[0], f, fp, z, pct, streak, hi, lo, hiDay, loDay, w4: win(4), w13: win(13), w52: win(52),
+      spacing, age, fresh: age <= limit, usd: scale && Number.isFinite(f) ? f * scale : null, cls };
+  }
+
+  static flowTag(st) {
+    if (st.kind === 'gauge') return { text: 'GAUGE · NOT RANKED', tone: '' };
+    if (!Number.isFinite(st.f)) return { text: 'ONE PRINT', tone: '' };
+    if (st.kind === 'level') return st.f > 0 ? { text: 'ROSE', tone: 'up' } : st.f < 0 ? { text: 'FELL', tone: 'down' } : { text: 'UNCHANGED', tone: '' };
+    const words = { turned_in: 'TURNED TO INFLOW', turned_out: 'TURNED TO OUTFLOW', unchanged: st.f > 0 ? 'INFLOW · UNCHANGED' : st.f < 0 ? 'OUTFLOW · UNCHANGED' : 'FLAT',
+      improving: st.f > 0 ? 'INFLOW BUILDING' : 'OUTFLOW EASING', worsening: st.f >= 0 ? 'INFLOW FADING' : 'OUTFLOW DEEPENING', na: st.f > 0 ? 'INFLOW' : st.f < 0 ? 'OUTFLOW' : 'FLAT' };
+    return { text: words[st.cls], tone: st.f > 0 ? 'up' : st.f < 0 ? 'down' : '' };
+  }
+
+  /* ── the card: history in numbers where the strip was ── */
+  static histSlot() {
+    if (this.desk === 'flows') return '<div class="macro-nums" title="Click for the full history in numbers"><span class="macro-nums-wait">history in numbers…</span></div>';
+    return '<div class="macro-hist" title="Click for the full-screen history"><div class="macro-hist-head"><span>1996 → today</span><span class="macro-hist-lg"><i class="t"></i>top<i class="b"></i>bottom</span></div><div class="macro-hist-svg"><span class="macro-hist-wait">history…</span></div><div class="macro-hist-cap"></div></div>';
+  }
+
+  static numbersHtml(item, st, caption) {
+    const esc = UI.esc, u = item.units, tag = this.flowTag(st);
+    const val = x => esc(this.fmtFlow(x, u, false)), chg = x => esc(this.fmtFlow(x, u, true));
+    const row = (k, body) => '<div class="macro-nums-row"><span class="macro-nums-k">' + k + '</span><span class="macro-nums-v">' + body + '</span></div>';
+    const what = st.kind === 'flow' ? (st.f > 0 ? 'inflows' : 'outflows') : (st.f > 0 ? 'rises' : 'falls');
+    const out = [];
+    out.push(row('prior print', (st.p == null ? this.DASH : val(st.p) + ' <small>' + this.isoOf(st.pday) + '</small>') + ' → <b>' + val(st.v) + '</b>' + (st.kind !== 'flow' && Number.isFinite(st.f) ? ' <small>(' + chg(st.f) + ')</small>' : '')
+      + ' <span class="macro-nums-tag ' + tag.tone + '">' + tag.text + '</span>'));
+    out.push(row(st.kind === 'flow' ? 'own history' : 'this change', st.pct == null ? 'too short to rank · ' + st.n + ' prints since ' + this.isoOf(st.first)
+      : this.ordinal(st.pct) + ' percentile · z ' + (st.z == null ? this.DASH : (st.z > 0 ? '+' : st.z < 0 ? '−' : '') + Math.abs(st.z).toFixed(1)) + ' · ' + st.n.toLocaleString('en-US') + ' prints since ' + this.isoOf(st.first)));
+    out.push(row('run', (st.streak > 1 ? st.streak + ' straight ' + what : st.streak === 1 ? 'first of the ' + what : 'flat') + ' · 52-week range ' + val(st.lo) + ' <small>' + (st.loDay == null ? '' : this.isoOf(st.loDay)) + '</small> to '
+      + val(st.hi) + ' <small>' + (st.hiDay == null ? '' : this.isoOf(st.hiDay)) + '</small>'));
+    const w = x => x == null ? this.DASH : chg(x);
+    out.push(row(st.kind === 'flow' ? 'average of' : 'change over', 'last 4 prints ' + w(st.w4) + ' · 13 ' + w(st.w13) + ' · 52 ' + w(st.w52)));
+    if (caption) out.push(row('S&amp;P turns', esc(caption)));
+    return out.join('');
+  }
+
+  static async paintNumbers(card, metric, item) {
+    const host = card.querySelector('.macro-nums');
+    if (!host) return;
+    const st = this.flowStats(item, metric);
+    if (!st) { host.innerHTML = '<span class="macro-nums-wait">no dated history for this series</span>'; return; }
+    host.innerHTML = this.numbersHtml(item, st, '');
+    card.classList.add('has-nums');
+    const turns = await this.loadTurns();
+    if (!card.isConnected || !turns || !turns.length) return;
+    host.innerHTML = this.numbersHtml(item, st, this.turnsText(metric.hist, turns, item.units));
+  }
+
+  static turnsText(hist, turns, units) {
+    const short = { 'Dotcom': 'Dotcom', '2008 financial crisis': '2008', 'COVID': 'COVID', '2022 bear': '2022' };
+    const parts = (turns || []).map(ep => {
+      const vt = this.historyAt(hist, this.dayOf(ep.top.date)), vb = ep.bottom ? this.historyAt(hist, this.dayOf(ep.bottom.date)) : null;
+      return vt ? (short[ep.name] || ep.name) + ' top ' + this.fmtFlow(vt.value, units, false) + (vb ? ', bottom ' + this.fmtFlow(vb.value, units, false) : '') : null;
+    }).filter(Boolean);
+    return parts.length ? parts.join(' \u00b7 ') : 'this series begins ' + this.isoOf(hist.t[0]) + ', after the last famous turn';
+  }
+
+  /* ── the full-screen view without a chart: the numbers, the famous turns, the latest prints, every year ── */
+  static focusNumbersHtml(item, metric, hist, changes, turnRows) {
+    const esc = UI.esc, u = item.units, st = this.flowStats(item, metric), D = this.DASH;
+    if (!st) return '<div class="wl-empty">No dated history for this series.</div>';
+    const val = x => esc(this.fmtFlow(x, u, false)), chg = x => x == null ? D : esc(this.fmtFlow(x, u, true));
+    const tone = x => x > 0 ? 'up' : x < 0 ? 'down' : '';
+    const n = hist.t.length, rolling = this.isRolling(item), sums = st.kind === 'flow' && !rolling;
+    const latest = [];
+    for (let i = n - 1; i >= Math.max(0, n - 24); i--) {
+      const d = i > 0 ? hist.v[i] - hist.v[i - 1] : null;
+      latest.push('<tr><td>' + this.isoOf(hist.t[i]) + '</td><td class="n ' + (st.kind === 'flow' ? tone(hist.v[i]) : '') + '">' + val(hist.v[i]) + '</td><td class="n ' + tone(d) + '">' + chg(d) + '</td></tr>');
+    }
+    const years = new Map();
+    for (let i = 0; i < n; i++) {
+      const y = this.isoOf(hist.t[i]).slice(0, 4), x = hist.v[i];
+      const a = years.get(y) || { k: 0, sum: 0, hi: -Infinity, lo: Infinity, last: null, first: null };
+      if (a.first == null) a.first = x;
+      a.k++; a.sum += x; a.hi = Math.max(a.hi, x); a.lo = Math.min(a.lo, x); a.last = x;
+      years.set(y, a);
+    }
+    let prevLast = null;
+    const yearRows = [...years.entries()].map(([y, a]) => {
+      const move = prevLast == null ? null : a.last - prevLast;
+      prevLast = a.last;
+      return '<tr><td>' + y + '</td><td class="n">' + a.k + '</td><td class="n">' + val(a.last) + '</td><td class="n ' + (st.kind === 'flow' ? '' : tone(move)) + '">' + (st.kind === 'flow' ? D : chg(move)) + '</td><td class="n ' + (st.kind === 'flow' ? tone(a.sum / a.k) : '') + '">'
+        + val(a.sum / a.k) + '</td><td class="n ' + (sums ? tone(a.sum) : '') + '">' + (sums ? val(a.sum) : D) + '</td><td class="n">' + val(a.hi) + '</td><td class="n">' + val(a.lo) + '</td></tr>';
+    }).reverse().join('');
+    const tag = this.flowTag(st);
+    const facts = [['Kind', st.kind === 'flow' ? 'flow · the print is money in (+) or out (−)' : st.kind === 'level' ? 'level · the change between prints is the flow' : 'gauge · shown, never ranked as in or out'],
+      ['Latest print', val(st.v) + ' <small>' + this.isoOf(st.day) + ' · ' + esc(this.flowHorizon(item, st)) + (st.fresh ? '' : ' · stale') + '</small>'],
+      ['Prior print', st.p == null ? D : val(st.p) + ' <small>' + this.isoOf(st.pday) + '</small>'],
+      [st.kind === 'flow' ? 'Reading' : 'Change since the prior print', (st.kind === 'flow' ? '' : chg(st.f) + ' ') + '<span class="macro-nums-tag ' + tag.tone + '">' + tag.text + '</span>'],
+      ['Against its own history', st.pct == null ? 'too short to rank (' + st.m + ')' : this.ordinal(st.pct) + ' percentile · z ' + (st.z == null ? D : (st.z > 0 ? '+' : st.z < 0 ? '−' : '') + Math.abs(st.z).toFixed(2)) + ' <small>over ' + st.m.toLocaleString('en-US') + (st.kind === 'flow' ? ' prints' : ' changes') + ' since ' + this.isoOf(st.first) + '</small>'],
+      ['Run', st.streak ? st.streak + (st.kind === 'flow' ? (st.f > 0 ? ' straight prints of inflows' : ' straight prints of outflows') : (st.f > 0 ? ' straight rises' : ' straight falls')) : 'flat'],
+      ['52-week high', val(st.hi) + ' <small>' + (st.hiDay == null ? '' : this.isoOf(st.hiDay)) + '</small>'], ['52-week low', val(st.lo) + ' <small>' + (st.loDay == null ? '' : this.isoOf(st.loDay)) + '</small>'],
+      [st.kind === 'flow' ? 'Average of the last 4 / 13 / 52 prints' : 'Change over the last 4 / 13 / 52 prints', chg(st.w4) + ' · ' + chg(st.w13) + ' · ' + chg(st.w52)]];
+    return '<div class="macro-focus-nums"><div class="macro-focus-grid" style="margin-top:0"><div class="macro-focus-changes">' + changes + '</div>'
+      + '<div class="macro-focus-table"><h4 class="macro-focus-h">The numbers</h4><table id="macro-focus-facts"><tbody>' + facts.map(r => '<tr><th scope="row">' + r[0] + '</th><td>' + r[1] + '</td></tr>').join('') + '</tbody></table></div>'
+      + '<div class="macro-focus-table"><h4 class="macro-focus-h">At the S&amp;P 500’s famous turns</h4><table><thead><tr><th>event</th><th>market top</th><th>this series</th><th>market bottom</th><th>this series</th><th>top → bottom</th></tr></thead><tbody>'
+      + (turnRows || '<tr><td colspan="6">market turns unavailable right now</td></tr>') + '</tbody></table></div>'
+      + '<div class="macro-focus-table"><h4 class="macro-focus-h">The latest ' + latest.length + ' prints</h4><table id="macro-focus-latest-prints"><thead><tr><th>date</th><th class="n">print</th><th class="n">vs the print before</th></tr></thead><tbody>' + latest.join('') + '</tbody></table></div>'
+      + '<div class="macro-focus-table"><h4 class="macro-focus-h">Every year since ' + this.isoOf(hist.t[0]).slice(0, 4) + '</h4><table id="macro-focus-years"><thead><tr><th>year</th><th class="n">prints</th><th class="n">last print</th><th class="n">change in the year</th><th class="n">average print</th><th class="n">sum of prints</th><th class="n">high</th><th class="n">low</th></tr></thead><tbody>'
+      + yearRows + '</tbody></table><div class="macro-focus-note-text">No chart on this desk: the history is here in numbers. A sum is shown for a plain flow only (a rolling 5, 20 or 30-day figure would be counted several times over; a level has a change, not a sum). Percentile and z use every print since 1996. OPEN ON THE CHART still draws the series in Chart Pro.</div></div></div></div>';
+  }
+
+  /* ── the tearsheet ── */
+  static tsName(item) {
+    const t = String(item.title || item.symbol);
+    return /^flows:etfc\//.test(String(item.symbol)) ? t.split(' · ').slice(0, 2).join(' · ') : t;
+  }
+
+  static sheetShell() {
+    return '<section class="macro-ts" id="flows-tearsheet" aria-label="Flows tearsheet"><div class="macro-ts-wait">Reading every series for the tearsheet…</div></section>';
+  }
+
+  static startSheet() {
+    const token = ++this.sheetToken, items = [], seen = new Set();
+    this.state.categories.forEach(cat => cat.items.forEach(item => { if (!seen.has(item.symbol)) { seen.add(item.symbol); items.push(item); } }));
+    this.sheetFailed = new Set();
+    this.sheetDone = 0;
+    this.sheetStarted = Date.now();
+    this.sheetTook = null;
+    let next = 0;
+    const one = async (item, attempt) => {
+      try { await this.fetchMetric(item.symbol); }
+      catch (e) {
+        const msg = String(e && e.message || e);
+        if (attempt < 2 && token === this.sheetToken && (msg.indexOf('429') >= 0 || msg.indexOf('503') >= 0)) { await new Promise(resolve => setTimeout(resolve, 900 * (attempt + 1))); return one(item, attempt + 1); }
+        this.sheetFailed.add(item.symbol);
+      }
+    };
+    const run = async () => {
+      while (next < items.length && token === this.sheetToken) {
+        await one(items[next++], 0);
+        if (token !== this.sheetToken) return;
+        this.sheetDone++;
+        if (this.sheetDone >= items.length) this.sheetTook = Date.now() - this.sheetStarted;
+        this.scheduleSheet(token, this.sheetDone >= items.length);
+      }
+    };
+    this.scheduleSheet(token, true);
+    for (let i = 0; i < 5; i++) run();
+  }
+
+  static scheduleSheet(token, now) {
+    if (token !== this.sheetToken) return;
+    if (now) { clearTimeout(this.sheetTimer); this.sheetTimer = null; this.paintSheet(); return; }
+    if (this.sheetTimer) return;
+    this.sheetTimer = setTimeout(() => { this.sheetTimer = null; if (token === this.sheetToken) this.paintSheet(); }, 350);
+  }
+
+  static sheetData() {
+    const rows = [], seen = new Set();
+    let total = 0;
+    this.state.categories.forEach(cat => cat.items.forEach(item => {
+      if (seen.has(item.symbol)) return;
+      seen.add(item.symbol);
+      total++;
+      const metric = this.metricCache.get(item.symbol);
+      const st = metric && metric.hist ? this.flowStats(item, metric) : null;
+      if (st) rows.push({ item, cat, st });
+    }));
+    return { rows, total };
+  }
+
+  static paintSheet() {
+    const sec = document.getElementById('flows-tearsheet');
+    if (!sec || this.desk !== 'flows') return;
+    const esc = UI.esc, D = this.DASH, data = this.sheetData(), rows = data.rows, total = data.total;
+    const tone = x => x > 0 ? 'up' : x < 0 ? 'down' : '';
+    const flow = (r, x) => this.fmtFlow(x, r.item.units, true);
+    const zTxt = z => z == null ? '' : 'z ' + (z > 0 ? '+' : z < 0 ? '−' : '') + Math.abs(z).toFixed(1);
+    const ranked = rows.filter(r => r.st.kind !== 'gauge' && r.st.fresh && Number.isFinite(r.st.f));
+    const gauges = rows.filter(r => r.st.kind === 'gauge').length, stale = rows.filter(r => r.st.kind !== 'gauge' && !r.st.fresh).length;
+    const by = c => ranked.filter(r => r.st.cls === c).sort((a, b) => Math.abs(b.st.z == null ? -1 : b.st.z) - Math.abs(a.st.z == null ? -1 : a.st.z));
+    const turnedIn = by('turned_in'), improving = by('improving'), worsening = by('worsening'), turnedOut = by('turned_out');
+    const nIn = ranked.filter(r => r.st.f > 0).length, nOut = ranked.filter(r => r.st.f < 0).length, nFlat = ranked.filter(r => r.st.cls === 'unchanged' || r.st.f === 0).length;
+    const hiExt = ranked.filter(r => r.st.pct != null && r.st.pct >= 95).length, loExt = ranked.filter(r => r.st.pct != null && r.st.pct <= 5).length;
+    const deep = ranked.filter(r => r.st.z != null && r.st.m >= 30);
+    const recent = deep.filter(r => r.st.age <= 45 && (r.st.usd == null || Math.abs(r.st.usd) >= 1e9));
+    const pool = recent.length >= 2 ? recent : deep;
+    const bestIn = pool.filter(r => r.st.f > 0).sort((a, b) => b.st.z - a.st.z)[0], bestOut = pool.filter(r => r.st.f < 0).sort((a, b) => a.st.z - b.st.z)[0];
+    const dollars = ranked.filter(r => r.st.usd != null && r.st.kind === 'flow' && r.st.spacing != null && r.st.spacing <= 8).sort((a, b) => Math.abs(b.st.usd) - Math.abs(a.st.usd));
+    const runs = ranked.filter(r => r.st.kind === 'flow' && r.st.streak >= 2).sort((a, b) => b.st.streak - a.st.streak);
+    const runIn = runs.find(r => r.st.f > 0), runOut = runs.find(r => r.st.f < 0);
+    const lastDay = rows.reduce((mx, r) => Math.max(mx, r.st.day), 0);
+    const loading = this.sheetDone < total, limit = this.sheetLong ? this.TS_MORE : this.TS_ROWS;
+    const attrs = r => ' tabindex="0" role="button" data-ts-uid="' + esc(r.item.uid) + '" data-ts-cat="' + esc(r.cat.id) + '" aria-label="Open ' + esc(r.item.title) + '"';
+    const sub = r => (r.st.kind === 'level' ? 'now ' + esc(this.fmtFlow(r.st.v, r.item.units, false)) + ' · change ' : '') + esc(flow(r, r.st.fp)) + ' → ' + esc(flow(r, r.st.f)) + ' · ' + esc(this.flowHorizon(r.item, r.st)) + ' · ' + this.isoOf(r.st.day);
+    const line = r => '<tr' + attrs(r) + '><td><b class="macro-ts-nm">' + esc(this.tsName(r.item)) + '</b><span class="macro-ts-s">' + sub(r) + '</span></td>'
+      + '<td class="n"><span class="macro-ts-big ' + tone(r.st.f) + '">' + esc(flow(r, r.st.f)) + '</span><span class="macro-ts-s">' + (r.st.pct == null ? 'short history' : this.ordinal(r.st.pct) + ' pct' + (r.st.z == null ? '' : ' · ' + zTxt(r.st.z))) + '</span></td></tr>';
+    const col = (key, title, hint, list, cls) => {
+      const shown = list.slice(0, limit), rest = list.slice(limit);
+      return '<div class="macro-ts-col ' + cls + '" data-ts-list="' + key + '"><header><span><b>' + title + '</b> <i>' + hint + '</i></span><span class="macro-ts-n">' + list.length + '</span></header>'
+        + (shown.length ? '<table class="macro-ts-t"><tbody>' + shown.map(line).join('') + '</tbody></table>' : '<p class="macro-ts-none">' + (loading ? 'reading…' : 'none at the latest prints') + '</p>')
+        + (rest.length ? '<p class="macro-ts-rest">The other ' + rest.length + ': ' + rest.slice(0, 10).map(r => '<span' + attrs(r) + '>' + esc(this.tsName(r.item).split(' · ')[0]) + ' (' + esc(flow(r, r.st.f)) + ')</span>').join(', ') + (rest.length > 10 ? ' and ' + (rest.length - 10) + ' more' : '') + '</p>' : '')
+        + '</div>';
+    };
+    const tile = (k, v, s) => '<div class="macro-ts-kpi"><div class="k">' + k + '</div><div class="v">' + v + '</div><div class="s">' + s + '</div></div>';
+    const card = (r, kind) => {
+      if (!r) return '<div class="macro-ts-card ' + kind + '"><div class="big">' + D + '</div><div><div class="e">MOST NOTABLE ' + (kind === 'up' ? 'INFLOW' : 'OUTFLOW') + '</div><p>' + (loading ? 'Reading the series…' : 'No series with a long enough history is printing an ' + (kind === 'up' ? 'inflow' : 'outflow') + '.') + '</p></div></div>';
+      return '<div class="macro-ts-card ' + kind + '"' + attrs(r) + '><div class="big ' + kind + '">' + esc(flow(r, r.st.f)) + '</div><div><div class="e">MOST NOTABLE ' + (kind === 'up' ? 'INFLOW' : 'OUTFLOW') + ' · ' + esc(r.cat.cat.split(' (')[0]) + '</div><h4>' + esc(this.tsName(r.item)) + '</h4><p>'
+        + (r.st.kind === 'level' ? 'Changed by ' : 'Printed ') + esc(flow(r, r.st.f)) + ' (' + esc(this.flowHorizon(r.item, r.st)) + ', ' + this.isoOf(r.st.day) + '): the ' + this.ordinal(r.st.pct) + ' percentile of its own history since ' + this.isoOf(r.st.first).slice(0, 4) + ', ' + zTxt(r.st.z)
+        + '. The print before was ' + esc(flow(r, r.st.fp)) + '.' + (r.st.streak > 1 ? ' ' + r.st.streak + ' straight ' + (r.st.kind === 'flow' ? (r.st.f > 0 ? 'inflows' : 'outflows') : (r.st.f > 0 ? 'rises' : 'falls')) + '.' : '') + '</p></div></div>';
+    };
+    const fams = this.state.categories.map(cat => {
+      const mine = ranked.filter(r => r.cat === cat), all = rows.filter(r => r.cat === cat);
+      if (!cat.items.length) return '';
+      const top = mine.filter(r => r.st.z != null).sort((a, b) => Math.abs(b.st.z) - Math.abs(a.st.z))[0];
+      return '<tr><td><button type="button" class="macro-ts-jump" data-ts-family="' + esc(cat.id) + '">' + esc(cat.flag) + ' ' + esc(cat.cat) + '</button></td><td class="n">' + all.length + ' / ' + cat.items.length + '</td><td class="n up">' + mine.filter(r => r.st.f > 0).length + '</td><td class="n down">'
+        + mine.filter(r => r.st.f < 0).length + '</td><td class="n">' + mine.filter(r => r.st.cls === 'turned_in').length + '</td><td class="n">' + mine.filter(r => r.st.cls === 'turned_out').length + '</td><td>'
+        + (top ? '<span class="macro-ts-pick"' + attrs(top) + '>' + esc(this.tsName(top.item)) + ' <b class="' + tone(top.st.f) + '">' + esc(flow(top, top.st.f)) + '</b> <small>' + this.ordinal(top.st.pct) + ' pct · ' + zTxt(top.st.z) + '</small></span>' : D) + '</td></tr>';
+    }).join('');
+    const head = rows.length ? 'Flows on one sheet: money is coming into ' + nIn + ' series and leaving ' + nOut + ' · ' + turnedIn.length + ' turned to inflow, ' + turnedOut.length + ' turned to outflow since the print before'
+      : 'Flows on one sheet';
+    const notes = [];
+    if (dollars.length) {
+      const inn = dollars.find(r => r.st.usd > 0), outt = dollars.find(r => r.st.usd < 0);
+      notes.push('<p><b>Largest dollar flows, weekly or faster:</b> ' + (inn ? esc(this.tsName(inn.item)) + ' ' + esc(flow(inn, inn.st.f)) + ' in' : 'no inflow') + '; ' + (outt ? esc(this.tsName(outt.item)) + ' ' + esc(flow(outt, outt.st.f)) + ' out' : 'no outflow') + '.</p>');
+    }
+    if (runIn || runOut) notes.push('<p><b>Longest runs:</b> ' + (runIn ? esc(this.tsName(runIn.item)) + ' — ' + runIn.st.streak + ' straight prints of inflows' : '') + (runIn && runOut ? '; ' : '') + (runOut ? esc(this.tsName(runOut.item)) + ' — ' + runOut.st.streak + ' straight prints of outflows' : '') + '.</p>');
+    notes.push('<p><b>Caveat:</b> every series is read at its own latest print, daily to quarterly, and the families overlap (the ICI totals include the ETFs listed fund by fund) — so there is no grand total here, only each series against itself.</p>');
+    sec.innerHTML = '<div class="macro-ts-head"><div style="min-width:0"><div class="macro-ts-eyebrow">FLOWS TEARSHEET · EVERY SERIES AT ITS LATEST PRINT VS THE PRINT BEFORE</div><h3 class="macro-ts-h">' + esc(head) + '</h3>'
+      + '<div class="macro-ts-sub" id="flows-ts-progress" data-done="' + this.sheetDone + '" data-total="' + total + '">' + rows.length + ' of ' + total + ' series read' + (loading ? ' — still reading ' + (total - this.sheetDone) + '…' : '') + (lastDay ? ' · newest print ' + this.isoOf(lastDay) : '')
+      + (this.sheetFailed.size ? ' · ' + this.sheetFailed.size + ' unavailable right now' : '') + (stale ? ' · ' + stale + ' stale, kept out of the rankings' : '') + (gauges ? ' · ' + gauges + ' gauges shown on their cards only' : '') + '</div></div>'
+      + '<div class="macro-ts-actions"><button type="button" class="macro-manage-btn" data-ts-act="more" aria-pressed="' + (this.sheetLong ? 'true' : 'false') + '">' + (this.sheetLong ? 'FEWER ROWS' : 'MORE ROWS') + '</button><button type="button" class="macro-manage-btn" data-ts-act="link">COPY LINK</button><button type="button" class="macro-manage-btn" data-ts-act="print">PRINT · SAVE PDF</button></div></div>'
+      + '<div class="macro-ts-score">'
+      + tile('Series', rows.length + ' <small>/ ' + total + '</small>', this.state.categories.filter(c => c.items.length).length + ' families · line items on this desk')
+      + tile('Money in / out', '<span class="up">' + nIn + '</span> / <span class="down">' + nOut + '</span>', 'a flow above zero · below zero (a level: rose · fell)')
+      + tile('Turned in / improving', '<span class="up">' + turnedIn.length + '</span> / <span class="up">' + improving.length + '</span>', 'crossed above zero · a bigger inflow or a smaller outflow')
+      + tile('Worsening / turned out', '<span class="down">' + worsening.length + '</span> / <span class="down">' + turnedOut.length + '</span>', 'a smaller inflow or a bigger outflow · crossed below zero')
+      + tile('Unchanged', String(nFlat), 'the same print as before')
+      + tile('At an extreme', '<span class="up">' + hiExt + '</span> / <span class="down">' + loExt + '</span>', 'top 5% · bottom 5% of their own history')
+      + '</div><div class="macro-ts-cards">' + card(bestOut, 'down') + card(bestIn, 'up') + '</div><div class="macro-ts-notes">' + notes.join('') + '</div>'
+      + '<div class="macro-ts-cols">' + col('dollars', 'LARGEST DOLLAR FLOWS', 'weekly or faster', dollars, 'pos') + col('turned_in', 'TURNED TO INFLOW', 'was at or below zero', turnedIn, 'up') + col('improving', 'IMPROVING', 'bigger inflow or smaller outflow', improving, 'up')
+      + col('worsening', 'WORSENING', 'smaller inflow or bigger outflow', worsening, 'down') + col('turned_out', 'TURNED TO OUTFLOW', 'was at or above zero', turnedOut, 'down') + '</div>'
+      + '<div class="macro-ts-fam"><table class="macro-ts-t" id="flows-ts-families"><thead><tr><th>Family</th><th class="n">Read</th><th class="n">In</th><th class="n">Out</th><th class="n">Turned in</th><th class="n">Turned out</th><th>Most unusual print</th></tr></thead><tbody>' + fams + '</tbody></table></div>'
+      + '<p class="macro-ts-foot">How to read it: each series is taken at its own latest print (daily, 5-day, weekly, monthly or quarterly — written on every row) and set against the print before it. A flow counts as an inflow when its print is above zero; a level (assets, holdings, supply, deposits, a balance sheet) when it rose since its prior print. Lists are ranked by how unusual the print is against the series’ own history since 1996 (z-score); the dollar list by size. Ratios, percentiles and gross figures are gauges: on their cards, never in these lists. The two headline cards take the most unusual print of the last 45 days (a dollar series must be moving at least $1B). A series whose latest print is older than its own rhythm allows is stale and stays out of the rankings. Rows open the full history in numbers.'
+      + (this.sheetTook != null ? ' <span id="flows-ts-took" data-ms="' + this.sheetTook + '">Read in ' + (this.sheetTook / 1000).toFixed(1) + ' s.</span>' : '') + '</p>';
+    sec.dataset.state = loading ? 'loading' : 'ready';
+    if (!sec.__wired) {
+      sec.__wired = true;
+      const open = el => {
+        const fam = el.closest('[data-ts-family]');
+        if (fam) { const node = document.querySelector('#macro-body .macro-cat[data-category-id="' + (window.CSS && CSS.escape ? CSS.escape(fam.dataset.tsFamily) : fam.dataset.tsFamily) + '"]'); if (node) node.scrollIntoView({ behavior: 'smooth', block: 'start' }); return true; }
+        const row = el.closest('[data-ts-uid]');
+        if (row) { this.openFocus(row.dataset.tsUid, row.dataset.tsCat, row); return true; }
+        return false;
+      };
+      sec.addEventListener('click', e => {
+        const act = e.target.closest('[data-ts-act]');
+        if (act) {
+          if (act.dataset.tsAct === 'more') { this.sheetLong = !this.sheetLong; this.paintSheet(); }
+          if (act.dataset.tsAct === 'print') this.printSheet();
+          if (act.dataset.tsAct === 'link') this.copySheetLink(act);
+          return;
+        }
+        open(e.target);
+      });
+      sec.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('[data-ts-uid]') && !e.target.closest('button')) { e.preventDefault(); open(e.target); } });
+    }
+  }
+
+  static copySheetLink(button) {
+    const url = location.origin + '/inflows-outflows.html#flows-tearsheet';
+    const done = () => { const old = button.textContent; button.textContent = 'COPIED'; setTimeout(() => { if (button.isConnected) button.textContent = old; }, 1400); };
+    try { navigator.clipboard.writeText(url).then(done, () => { window.prompt('Copy this link', url); }); } catch (e) { window.prompt('Copy this link', url); }
+  }
+
+  static printSheet() {
+    const sec = document.getElementById('flows-tearsheet');
+    if (!sec) return;
+    let root = document.getElementById('macro-print-root');
+    if (!root) { root = document.createElement('div'); root.id = 'macro-print-root'; document.body.appendChild(root); }
+    const copy = sec.cloneNode(true);
+    copy.removeAttribute('id');
+    copy.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+    root.innerHTML = '';
+    root.appendChild(copy);
+    document.documentElement.classList.add('macro-print-ts');
+    const done = () => { document.documentElement.classList.remove('macro-print-ts'); root.innerHTML = ''; window.removeEventListener('afterprint', done); };
+    window.addEventListener('afterprint', done);
+    window.print();
+  }
+
+  /* ── the catalog only grows: new FLOWS_CATALOG series reach a saved desk without a reset ── */
+  static mergeCatalog() {
+    const st = this.state;
+    if (!st || this.desk !== 'flows') return 0;
+    const have = new Set();
+    st.categories.forEach(cat => cat.items.forEach(item => have.add(item.symbol)));
+    const known = Array.isArray(st.offered);
+    const offered = new Set(known ? st.offered : have);
+    const defaults = this.defaults();
+    const slug = text => String(text).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
+    let added = 0, anchor = -1;
+    defaults.forEach(dc => {
+      let target = st.categories.find(c => c.cat === dc.cat);
+      const fresh = dc.items.filter(di => !offered.has(di.symbol) && !have.has(di.symbol));
+      if (fresh.length) {
+        if (!target) {
+          target = { id: 'default-x-' + slug(dc.cat), cat: dc.cat, flag: dc.flag, items: [] };
+          st.categories.splice(anchor + 1, 0, target);
+        }
+        fresh.forEach(di => { target.items.push(Object.assign({}, di, { uid: 'default-x-' + slug(di.symbol), note: '' })); have.add(di.symbol); added++; });
+      }
+      if (target) anchor = st.categories.indexOf(target);
+    });
+    const all = new Set(offered);
+    defaults.forEach(dc => dc.items.forEach(di => all.add(di.symbol)));
+    const grew = !known || all.size !== offered.size;
+    st.offered = [...all];
+    if (added || grew) this.save();
+    return added;
   }
 
   static openCategoryEditor(categoryId = null, trigger = null) {
@@ -7920,6 +8539,7 @@ class MacroData {
     this.state = { version: 2, catalogRev: this.CATALOG_REV, categories: this.defaults() };
     this.metricCache.clear();
     this.save();
+    this.mergeCatalog();
     this.renderCatalog();
   }
 
