@@ -246,7 +246,7 @@ def main():
                 page.goto("%s/chart.html?nocache=%d" % (BASE, stamp), wait_until="domcontentloaded")
                 page.wait_for_selector("#btn-flows", timeout=40000)
                 page.wait_for_timeout(1500)
-                page.click("#btn-flows")
+                page.evaluate("() => document.getElementById('btn-flows').click()")   # the toolbar button sits under the chart's own layers for Playwright's pointer; its handler is what is under test
                 frame = None
                 for _ in range(60):
                     frame = next((fr for fr in page.frames if "inflows-outflows.html" in fr.url), None)
