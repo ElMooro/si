@@ -79,6 +79,63 @@ h3{font-size:13px;letter-spacing:.04em;text-transform:uppercase;font-weight:700}
 #evidence-desk summary{min-height:44px;cursor:pointer;padding:10px 0}
 #permanent{display:inline-block;padding:6px 0}
 #state{font-weight:600}
+/* manager tearsheet (2026-11-17): the whole information table for one manager, options ranked beside stock */
+:root{--ts1:#3987e5;--ts2:#d95926;--ts3:#199e70;--ts4:#c98500;--ts5:#d55181;--ts6:#0ca30c;--ts7:#9085e9;--ts8:#e66767;--ts0:#6b6557}
+.ts{display:flex;flex-direction:column;gap:12px;border:1px solid rgba(240,180,41,.35);border-radius:10px;padding:14px 16px;background:var(--bg);margin-top:10px;min-width:0}
+.ts-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.ts-h{font:700 clamp(17px,2.2vw,24px)/1.25 var(--mono);color:var(--ink);margin:4px 0 0;max-width:920px;text-transform:none;letter-spacing:0}
+.ts-actions{display:flex;gap:8px;flex-wrap:wrap}
+.ts-score{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(150px,46%),1fr));gap:8px}
+.ts-score .kpi{padding:10px 12px}.ts-score .kpi .v{font-size:20px}.ts-score .kpi .v small{font-size:13px;font-weight:600;color:var(--dim2)}
+.ts-hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(360px,100%),1fr));gap:10px}
+.ts-card{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:center;padding:12px 14px;border-radius:8px;background:var(--panel2);border:1px solid var(--line);min-width:0}
+.ts-card .big{font:700 clamp(28px,5vw,42px)/1 var(--mono);letter-spacing:-.02em;white-space:nowrap}
+.ts-card .ttl{font:700 14px/1.3 var(--mono);color:var(--ink);margin:3px 0 4px}
+.ts-card .txt{font:400 12px/1.5 var(--sans);color:#c9c2b0}
+.ts-notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:10px}
+.ts-notes p{margin:0;padding:2px 0 2px 10px;border-left:3px solid var(--amber);font:400 12.5px/1.5 var(--sans);color:#c9c2b0}
+.ts-notes p b{color:var(--ink);font-weight:600}
+.ts-body{display:grid;grid-template-columns:minmax(0,350px) minmax(0,1fr);gap:14px;align-items:start}
+@media(max-width:1100px){.ts-body{grid-template-columns:1fr}}
+.ts-lists{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(250px,100%),1fr));gap:10px;align-items:start}
+.ts-col{border:1px solid var(--line);border-radius:8px;overflow:hidden;min-width:0;background:var(--panel)}
+.ts-col>header{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:8px 10px;font:700 11px/1.3 var(--mono);letter-spacing:.1em;text-transform:uppercase;border-bottom:1px solid var(--line)}
+.ts-col>header small{font:500 10px/1.3 var(--mono);letter-spacing:.04em;text-transform:none;opacity:.85}
+.ts-col.k-new>header{background:rgba(240,180,41,.14);color:var(--amber)}.ts-col.k-up>header{background:rgba(111,206,138,.14);color:var(--green)}.ts-col.k-dn>header,.ts-col.k-abs>header{background:rgba(224,122,106,.16);color:var(--red)}.ts-col.k-pos>header{background:var(--line2);color:var(--ink)}
+.ts-t{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+.ts-t th{text-align:left;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim2);font-weight:600;padding:6px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.ts-t td{padding:6px 10px;border-bottom:1px solid var(--line2);vertical-align:top}
+.ts-t tr:last-child td{border-bottom:0}
+.ts-t td:first-child{max-width:0;width:99%}
+.ts-t .nm,.ts-t .s{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ts-t .s{font:400 11px/1.4 var(--sans);color:var(--dim)}
+.ts-card .ttl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ts-card>div{min-width:0}
+.ts-t td.n,.ts-t th.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ts-t td.big{font-weight:700;font-size:14px}
+.ts-t tr.on td{background:var(--panel2)}
+.ts-more{margin:0;padding:8px 10px;font:400 11.5px/1.5 var(--sans);color:var(--dim2);border-top:1px solid var(--line2)}
+.ts-donut{position:relative;display:flex;justify-content:center;padding:12px 10px 4px}
+.ts-donut svg{width:100%;max-width:250px;height:auto;overflow:visible}
+.ts-donut path{stroke:var(--panel);stroke-width:2;transition:opacity .12s;cursor:default;outline:none}
+.ts-donut svg.h path{opacity:.3}.ts-donut svg.h path.on{opacity:1}
+.ts-donut path:focus-visible{stroke:var(--amber)}
+.ts-donut text{font-family:var(--mono);text-anchor:middle;pointer-events:none}
+.ts-donut text.l{font-size:9.5px;font-weight:700;fill:#0C0B09}.ts-donut text.lo{fill:var(--ink)}
+.ts-donut text.cv{font-size:21px;font-weight:700;fill:var(--ink)}.ts-donut text.cl{font-size:8.5px;font-weight:600;letter-spacing:.16em;fill:var(--dim2)}
+.ts-tip{position:absolute;z-index:3;pointer-events:none;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font:500 11.5px/1.45 var(--mono);color:var(--ink);max-width:230px;box-shadow:0 4px 14px rgba(0,0,0,.45)}
+.ts-tip[hidden]{display:none}
+.ts-sw{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px;margin-right:6px;flex:none}
+.ts-rc summary{cursor:pointer;min-height:36px;padding:8px 10px;font:600 11.5px/1.4 var(--mono);color:var(--dim2)}
+.ts-foot{font:400 11.5px/1.6 var(--sans);color:var(--dim);margin:0}
+@media print{
+html.print-ts{--bg:#fff;--panel:#fff;--panel2:#f4f2ec;--ink:#111;--dim:#555;--dim2:#444;--line:#cfcabd;--line2:#e4e0d6;--amber:#8a5f00;--green:#1b7a3d;--red:#b3392a;--ts1:#2a78d6;--ts2:#eb6834;--ts3:#1baf7a;--ts4:#eda100;--ts5:#e87ba4;--ts6:#008300;--ts7:#6250d6;--ts8:#e34948;--ts0:#bdb8aa}
+html.print-ts body{background:#fff}
+html.print-ts body>*:not(main),html.print-ts main>*:not(#drill),html.print-ts #drill>*:not(#drill-body),html.print-ts #drill-body>*:not(#tearsheet),html.print-ts .ts-actions,html.print-ts .ts-tip{display:none!important}
+html.print-ts main{padding:0;max-width:none}html.print-ts #drill{border:0;padding:0;background:#fff}html.print-ts .ts{border:0;margin:0;padding:0}
+html.print-ts .ts-notes p,html.print-ts .ts-card .txt{color:#333}html.print-ts .ts-donut text.l6,html.print-ts .ts-donut text.l7{fill:#fff}html.print-ts .ts-donut text.lo{fill:#111}
+html.print-ts .ts-card,html.print-ts .kpi,html.print-ts .ts-t tr,html.print-ts .ts-notes p{break-inside:avoid}html.print-ts .ts-col>header{break-after:avoid}
+html.print-ts .c{border:1px solid #cfcabd;background:#fff;color:#333}
+}
 :focus-visible{outline:1px solid var(--amber);outline-offset:2px}
 </style></head><body><main>
 
@@ -158,7 +215,7 @@ h3{font-size:13px;letter-spacing:.04em;text-transform:uppercase;font-weight:700}
 </section>
 
 <section class="pnl" aria-label="Managers" style="display:flex;flex-direction:column;gap:12px">
-  <div class="sec-head"><h2>The managers</h2><span class="meta">one row per filer · select a manager for the drill-down and the evidence desk</span><span style="flex:1"></span><span class="chips" id="mgr-chips"></span></div>
+  <div class="sec-head"><h2>The managers</h2><span class="meta">one row per filer · select a manager for its tearsheet, the drill-down and the evidence desk</span><span style="flex:1"></span><span class="chips" id="mgr-chips"></span></div>
   <div class="scroll" id="mgr-table"><p class="empty">Loading…</p></div>
   <p class="foot" id="mgr-foot">Reported value = sum of the filer's own value column for equity rows (SH, no put/call). "vs prior" compares two dated disclosures and includes the quarter's price move.</p>
 </section>
@@ -265,6 +322,114 @@ const short=fk=>(M[fk]&&M[fk].short)||fk;
 const name=fk=>(M[fk]&&M[fk].display_name)||fk;
 const keys=list=>(list||[]).map(k=>'<span class="c c-k">'+esc(short(k))+'</span>').join(' ');
 
+/* ── manager tearsheet (2026-11-17): one manager's whole information table - shares, notes at principal and option rows at the
+   underlying's reported value ranked together - read from managers[fk].tearsheet (book 1.4.0). Nothing here replaces the
+   drill-down below it; a book without the block simply shows no tearsheet. ── */
+const NEWST='newly_present_in_public_disclosure',ABSST='not_present_in_current_public_disclosure',UPST='reported_quantity_increased',DNST='reported_quantity_decreased',FLST='reported_quantity_unchanged';
+const qLabel=p=>{const m=/^(\d{4})-(\d{2})-\d{2}$/.exec(p||'');const q=m&&{'03':'Q1','06':'Q2','09':'Q3','12':'Q4'}[m[2]];return q?q+' '+m[1]:(p||'—');};
+const qfmt=v=>{if(!fin(v))return '—';const a=Math.abs(v);if(a>=1e9)return (v/1e9).toFixed(2)+'B';if(a>=1e6)return (v/1e6).toFixed(2)+'M';if(a>=1e4)return Math.round(v/1e3)+'K';return Math.round(v).toLocaleString('en-US');};
+const mult=m=>fin(m)?(m>=10?Math.round(m).toLocaleString('en-US'):m.toFixed(1))+'x':'';
+const DASH='\u2014';
+const chgTxt=v=>fin(v)&&v>=100?mult(1+v/100):pct1(v);
+const pctOf=v=>fin(v)&&v>0&&v<0.05?'<0.1%':pctp(v);
+const pcWord=r=>r&&r.pc?(r.pc==='PUT'?' puts':' calls'):'';
+const tsShort=r=>r?(r.ticker||String(r.name||r.issuer||'').split(/\s+/).slice(0,3).join(' '))+pcWord(r):'—';
+const tsTag=r=>{const st=r&&r.status;if(st===NEWST)return {t:'NEW',k:'am'};if(st===ABSST)return {t:'−100%',k:'dn'};if(st===UPST)return {t:fin(r.multiple)&&r.multiple>=2?mult(r.multiple):pct1(r.qty_change_pct),k:'up'};if(st===DNST)return {t:pct1(r.qty_change_pct),k:'dn'};if(st===FLST)return {t:'unchanged',k:'dim2'};return {t:'—',k:'dim'};};
+/* a 10x cell still sorts by its percentage: the sorter reads the hidden .v first */
+const tsTagCell=r=>{const g=tsTag(r);return '<td class="n big '+g.k+'">'+(fin(r.qty_change_pct)&&g.t.slice(-1)==='x'?'<span class="v" hidden>'+r.qty_change_pct+'%</span>':'')+g.t+'</td>';};
+const tsLine=r=>'<span class="nm" title="'+esc((r.name||r.issuer||'')+(r.class&&!r.ticker?' · '+r.class:'')+(r.cusip?' · CUSIP '+r.cusip:''))+'">'+tsLine0(r)+'</span>';
+const tsLine0=r=>(r.ticker?'<span class="tk">'+esc(r.ticker)+'</span> ':'')+(r.pc?'<span class="c c-am">'+(r.pc==='PUT'?'PUTS':'CALLS')+'</span> ':r.kind==='fund'?'<span class="c c-et">ETF</span> ':r.kind==='debt'?'<span class="c c-db">NOTE</span> ':'')+'<span class="'+(r.ticker?'dim2':'ink')+'">'+esc(r.name||r.issuer||'')+'</span>'+(!r.ticker&&r.class?' <span class="dim">'+esc(r.class)+'</span>':'');
+const tsShares=r=>r&&r.kind==='debt'?'principal':r&&r.pc?'underlying shares':'shares';
+function tsHeadline(x,t){
+  const c=t.counts||{},v=money(t.value_usd),ch=t.value_change_pct;let h;
+  if(!fin(ch))h=x.display_name+': 13F value '+v+' at '+qLabel(x.current_period)+' — no prior table to compare';
+  else if(ch<=-50)h=x.display_name+': 13F value down '+Math.round(Math.abs(ch))+'% to '+v;
+  else if(ch>=50)h=x.display_name+': 13F value up '+Math.round(ch)+'% to '+v;
+  else h=x.display_name+': 13F value '+v+', '+pct1(ch)+' vs '+qLabel(x.prior_period);
+  const bits=[];if(c.new)bits.push(num(c.new)+' new line'+(c.new===1?'':'s'));if(c.closed)bits.push(num(c.closed)+' absent');if(!bits.length&&(c.increased||c.reduced))bits.push(num(c.increased)+' increased · '+num(c.reduced)+' reduced');
+  return h+(bits.length?' · '+bits.join(' · '):'');
+}
+function tsHero(side,r){
+  const add=side==='add',k=add?'up':'dn';
+  if(!r)return '<div class="ts-card"><div class="big dim">'+DASH+'</div><div><div class="eyebrow" style="font-size:10px">Most notable '+(add?'addition':'cut')+'</div><div class="ttl">none</div><div class="txt">No line '+(add?'is newly present or reports more units':'is absent or reports fewer units')+' than at the prior period.</div></div></div>';
+  const g=tsTag(r),nm=esc(tsShort(r));let txt;
+  if(r.how==='initiation')txt=nm+' is newly present at '+money(r.value_usd)+' — '+pctp(r.pct)+' of the 13F value.';
+  else if(r.how==='termination')txt=nm+' is absent from the current table; last reported '+money(r.value_prior_usd)+(fin(r.pct_prior)?' — '+pctp(r.pct_prior)+' of the prior 13F value.':'.');
+  else txt=nm+': reported quantity '+(add?(fin(r.multiple)&&r.multiple>=2?mult(r.multiple)+' the prior period':'up '+pct1(r.qty_change_pct).replace('+','')):'down '+pct1(r.qty_change_pct).replace('−',''))+' ('+money(r.value_prior_usd)+' → '+money(r.value_usd)+' reported value) — about '+money(r.est_usd)+' at this filing\'s reported price.';
+  return '<div class="ts-card" style="border-color:'+(add?'rgba(111,206,138,.4)':'rgba(224,122,106,.4)')+'"><div class="big '+k+'">'+g.t+'</div><div><div class="eyebrow" style="font-size:10px;color:var(--'+(add?'green':'red')+')">Most notable '+(add?'addition':'cut')+' · '+esc(r.how||'')+'</div><div class="ttl" title="'+esc(r.name||r.issuer||'')+'">'+tsLine0(r)+'</div><div class="txt">'+txt+'</div></div></div>';
+}
+function tsDonut(t){
+  const total=t.value_usd||0,lines=(t.lines||[]).filter(r=>(r.value_usd||0)>0);
+  if(!(total>0)||!lines.length)return '<p class="empty" style="padding:12px">no reported value</p>';
+  const parts=lines.slice(0,8).map((r,i)=>({r,i,v:r.value_usd,pct:100*r.value_usd/total}));
+  const rest=Math.max(0,total-parts.reduce((s,p)=>s+p.v,0));
+  if(rest/total>0.0005)parts.push({other:true,i:8,v:rest,pct:100*rest/total,n:Math.max(0,(t.n_lines||0)-parts.length)});
+  const cx=110,cy=110,R=104,r0=64;let a=-Math.PI/2;const P=(rad,ang)=>(cx+rad*Math.cos(ang)).toFixed(2)+' '+(cy+rad*Math.sin(ang)).toFixed(2);
+  const segs=parts.map(p=>{const da=Math.min(2*Math.PI*p.v/total,2*Math.PI-0.0005),a0=a,a1=a+da;a=a1;const big=da>Math.PI?1:0,mid=(a0+a1)/2;
+    const name=p.other?'Other '+num(p.n)+' lines':tsShort(p.r),tip=name+' · '+money(p.v)+' · '+p.pct.toFixed(1)+'% of 13F value'+(p.other?'':' · '+tsTag(p.r).t);
+    const lab=p.pct>=7?'<text class="l l'+(p.other?'o lo':(p.i+1))+'" x="'+(cx+84*Math.cos(mid)).toFixed(1)+'" y="'+(cy+84*Math.sin(mid)-1).toFixed(1)+'">'+esc(p.other?'OTHER':String(p.r.ticker||tsShort(p.r)).slice(0,6).toUpperCase())+'<tspan x="'+(cx+84*Math.cos(mid)).toFixed(1)+'" dy="11">'+Math.round(p.pct)+'%</tspan></text>':'';
+    return '<path data-i="'+p.i+'" data-tip="'+esc(tip)+'" tabindex="0" role="img" aria-label="'+esc(tip)+'" fill="var(--ts'+(p.other?0:p.i+1)+')" d="M'+P(R,a0)+'A'+R+' '+R+' 0 '+big+' 1 '+P(R,a1)+'L'+P(r0,a1)+'A'+r0+' '+r0+' 0 '+big+' 0 '+P(r0,a0)+'Z"></path>'+lab;}).join('');
+  return '<div class="ts-donut"><svg viewBox="0 0 220 220" role="group" aria-label="Share of the 13F value by line: '+esc(parts.map(p=>(p.other?'other lines':tsShort(p.r))+' '+p.pct.toFixed(1)+'%').join(', '))+'">'+segs+'<text class="cv" x="110" y="112">'+money(total)+'</text><text class="cl" x="110" y="128">13F VALUE</text></svg><div class="ts-tip" hidden></div></div>';
+}
+function tsList(k,title,sub,L,head,row){
+  L=L||{};const rows=L.rows||[],others=L.others||[];
+  const tail=others.length?'The other '+num(L.n-rows.length)+': '+others.map(o=>esc(o.label)+(o.pc?(o.pc==='PUT'?' puts':' calls'):'')+' ('+money(o.usd)+')').join(', ')+(L.n_more?' and '+num(L.n_more)+' more':'')+' — '+money(L.others_usd)+' between them.':'';
+  return '<div class="ts-col k-'+k+'"><header><span>'+title+' <small>'+sub+'</small></span><span>'+num(L.n||0)+'</span></header>'+(rows.length?'<table class="ts-t"><thead><tr>'+head+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+row(r)+'</tr>').join('')+'</tbody></table>':'<p class="ts-more" style="border-top:0">none</p>')+(tail?'<p class="ts-more">'+tail+'</p>':'')+'</div>';
+}
+function tearsheetHTML(x){
+  const t=x&&x.tearsheet;if(!t)return '';
+  const c=t.counts||{},o=t.options||{},src=t.source||{},cur=src.current||{},pri=src.prior||{},ind=t.industries||{},big=t.largest_stock,rc=t.reclassified||{};
+  const cq=qLabel(x.current_period),pq=qLabel(x.prior_period),vr=(x.flags||[]).includes('VALUATION_REVIEW');
+  const tiles=[['13F value',money(t.value_usd),pq+': '+money(t.value_prior_usd)+(fin(t.value_change_pct)?' · <span class="'+cls(t.value_change_pct)+'">'+pct1(t.value_change_pct)+'</span>':'')],
+    ['Line items',num(t.n_lines),pq+': '+num(t.n_lines_prior)+(fin(cur.reported_rows)?' · '+num(cur.reported_rows)+' table rows':'')],
+    ['In top 10',pctp(t.top10_pct),'share of the 13F value'],
+    ['New / increased','<span class="am">'+num(c.new)+'</span> <small>/</small> <span class="up">'+num(c.increased)+'</span>','newly present · reported quantity up'],
+    ['Reduced / absent','<span class="dn">'+num(c.reduced)+'</span> <small>/</small> <span class="dn">'+num(c.closed)+'</span>','reported quantity down · no longer in the table'],
+    ['Unchanged',num(c.unchanged),(c.reclassified?num(c.reclassified)+' reclassified · ':'')+(c.not_compared?num(c.not_compared)+' not compared':'same reported quantity')]];
+  const notes=[];
+  if(big)notes.push('<b>Largest stock line:</b> '+esc(tsShort(big))+' — '+money(big.value_usd)+', '+pctp(big.pct)+' of the 13F value; '+(big.status===NEWST?'newly present with ':big.status===UPST?'reported quantity '+(fin(big.multiple)&&big.multiple>=2?mult(big.multiple):'up '+pct1(big.qty_change_pct).replace('+',''))+' to ':big.status===DNST?'reported quantity down '+pct1(big.qty_change_pct).replace('−','')+' to ':big.status===FLST?'unchanged at ':'')+qfmt(big.qty)+' shares.');
+  notes.push(o.n_lines?'<b>Options:</b> '+num(o.n_lines)+' option line'+(o.n_lines===1?'':'s')+' ('+num(o.n_calls)+' call · '+num(o.n_puts)+' put) are '+pctp(o.share_pct)+' of the reported value — calls '+pctp(o.call_share_pct)+', puts '+pctp(o.put_share_pct)+'. Ranked beside stock at the underlying\'s value: not premium, not net exposure.':'<b>Options:</b> no option rows in this table — every line is a share or note position.');
+  const indTxt=(list,sign)=>list.slice(0,2).map(a=>esc(a.industry)+' '+(sign>0?'+':'−')+money(Math.abs(a.net_usd))+' ('+(a.names||[]).slice(0,3).map(n=>esc(n.label)+' '+(n.how==='initiation'?'new':n.how==='termination'?'absent':chgTxt(n.qty_change_pct))).join(', ')+((a.n_names||0)>3?', +'+(a.n_names-3):'')+')').join('; ');
+  if((ind.cut||[]).length||(ind.added||[]).length)notes.push('<b>Industries (stock lines, est. at reported prices):</b> '+((ind.cut||[]).length?'most cut — '+indTxt(ind.cut,-1)+'. ':'')+((ind.added||[]).length?'Most added — '+indTxt(ind.added,1)+'.':''));
+  const top=t.lines||[],top10=top.reduce((s,r)=>s+(r.value_usd||0),0),restN=Math.max(0,(t.n_lines||0)-top.length),restV=Math.max(0,(t.value_usd||0)-top10);
+  const posRows=top.map((r,i)=>'<tr data-i="'+Math.min(i,8)+'"><td>'+tsLine(r).replace('">','"><i class="ts-sw" style="background:var(--ts'+(i<8?i+1:0)+')"></i>')+'<span class="s">'+money(r.value_usd)+' · <span class="'+tsTag(r).k+'">'+tsTag(r).t+(r.status===UPST||r.status===DNST?' qty':'')+'</span></span></td><td class="n big">'+pctOf(r.pct)+'</td></tr>').join('')+(restN?'<tr data-i="8"><td><span class="nm"><i class="ts-sw" style="background:var(--ts0)"></i><span class="dim2">'+num(restN)+' other line'+(restN===1?'':'s')+'</span></span><span class="s">'+money(restV)+'</span></td><td class="n big dim2">'+pctp(t.value_usd?100*restV/t.value_usd:null)+'</td></tr>':'');
+  const lists=[
+    tsList('new','Initiations','newly present',t.initiations,'<th>Line</th><th class="n">Reported value</th>',r=>'<td>'+tsLine(r)+'<span class="s">'+pctOf(r.pct)+' of 13F value</span></td><td class="n big am">'+money(r.value_usd)+'</td>'),
+    tsList('up','Increases','reported quantity up',t.increases,'<th>Line</th><th class="n">Qty</th><th class="n">Est.</th>',r=>'<td>'+tsLine(r)+'<span class="s">'+money(r.value_prior_usd)+' → '+money(r.value_usd)+'</span></td>'+tsTagCell(r)+'<td class="n dim2">'+money(r.est_usd)+'</td>'),
+    tsList('dn','Reductions','reported quantity down',t.reductions,'<th>Line</th><th class="n">Qty</th><th class="n">Est.</th>',r=>'<td>'+tsLine(r)+'<span class="s">'+money(r.value_prior_usd)+' → '+money(r.value_usd)+'</span></td>'+tsTagCell(r)+'<td class="n dim2">'+money(r.est_usd)+'</td>'),
+    tsList('abs','Terminations','absent from the table',t.terminations,'<th>Line</th><th class="n">Qty</th><th class="n">Was</th>',r=>'<td>'+tsLine(r)+'<span class="s">was '+money(r.value_prior_usd)+(fin(r.pct_prior)?' · '+pctOf(r.pct_prior)+' of prior':'')+'</span></td><td class="n big dn">−100%</td><td class="n dim2">'+money(r.value_prior_usd)+'</td>')].join('');
+  const rcl=rc.n?'<details class="ts-col ts-rc"><summary>Reclassified · '+num(rc.n)+' line'+(rc.n===1?'':'s')+' — one security under a new CUSIP or class text: neither new nor absent, kept out of the estimates</summary><div class="scroll"><table class="ts-t" style="min-width:620px"><thead><tr><th>Line</th><th>CUSIP before → now</th><th class="n">Reported qty before → now</th><th class="n">Reported value before → now</th></tr></thead><tbody>'+(rc.rows||[]).map(r=>'<tr><td>'+tsLine(r)+(r.from_issuer&&r.from_issuer!==r.issuer?'<span class="s">was '+esc(r.from_issuer)+'</span>':'')+'</td><td>'+esc(r.from_cusip||'—')+' → '+esc(r.cusip||'—')+'</td><td class="n">'+qfmt(r.qty_prior)+' → '+qfmt(r.qty)+(fin(r.qty_change_pct)?' <span class="'+cls(r.qty_change_pct)+'">'+pct1(r.qty_change_pct)+'</span>':'')+'</td><td class="n">'+money(r.value_prior_usd)+' → '+money(r.value_usd)+'</td></tr>').join('')+'</tbody></table></div>'+(rc.n>(rc.rows||[]).length?'<p class="ts-more">'+num(rc.n-(rc.rows||[]).length)+' more, smaller.</p>':'')+'</details>':'';
+  const filed=f=>f&&f.form?esc(f.form)+' filed '+esc(f.filed_at||'—')+' (holdings as of '+esc(f.period_of_report||'—')+')':'no table';
+  const recon=src.reconciles===true?' The lines add up to the cover page ('+money(src.cover_value_sum)+').':src.reconciles===false?' <span class="am">The lines differ from the cover page by '+money(src.cover_gap_usd)+'.</span>':'';
+  return '<div class="ts" id="tearsheet" data-fund="'+esc(x.fund_key)+'">'+
+    '<div class="ts-head"><div style="min-width:0"><div class="eyebrow" style="color:var(--amber)">13F tearsheet · '+esc(cq)+' vs '+esc(pq)+(x.status&&x.status!=='CURRENT'?' · '+esc(x.status):'')+'</div><h3 class="ts-h">'+esc(tsHeadline(x,t))+'</h3></div>'+
+    '<div class="ts-actions"><button class="btn sm" type="button" id="ts-link">Copy link</button><button class="btn sm" type="button" id="ts-print">Print · save PDF</button></div></div>'+
+    (vr?'<p class="warning" style="margin:0">Valuation review: this filer\'s value units are unverified — shares of the 13F value hold, dollar figures may not.</p>':'')+
+    '<div class="ts-score">'+tiles.map(([l,v,s])=>'<div class="kpi"><span class="l">'+l+'</span><span class="v">'+v+'</span><span class="s">'+s+'</span></div>').join('')+'</div>'+
+    '<div class="ts-hero">'+tsHero('cut',(t.notable||{}).cut)+tsHero('add',(t.notable||{}).add)+'</div>'+
+    '<div class="ts-notes">'+notes.map(n=>'<p>'+n+'</p>').join('')+'</div>'+
+    '<div class="ts-body"><div class="ts-col k-pos"><header><span>Current positions <small>options beside stock</small></span><span>top '+top.length+'</span></header>'+tsDonut(t)+'<table class="ts-t" id="ts-pos"><thead><tr><th>Line</th><th class="n">% of 13F value</th></tr></thead><tbody>'+posRows+'</tbody></table></div>'+
+    '<div style="display:flex;flex-direction:column;gap:10px;min-width:0"><div class="ts-lists">'+lists+'</div>'+rcl+'</div></div>'+
+    '<p class="ts-foot">Source: '+filed(cur)+' vs '+filed(pri)+'.'+recon+' A line is one identity in the information table (CUSIP + class + shares / principal + put / call). Quantity changes are changes in the reported quantity; dollar values are as reported at each period end, so a value change carries the price move. Increases and reductions are ranked by estimated size = units added or removed × this filing\'s own reported price. Option rows are reported at the value of the underlying shares. Newly present is not newly bought; absent is not sold. A 13F shows US-listed long positions at the period end only: no shorts, no cash, no non-US listings.</p></div>';
+}
+function tearsheetWire(fk){
+  const el=$('tearsheet');if(!el)return;
+  const svg=el.querySelector('.ts-donut svg'),tip=el.querySelector('.ts-tip'),pos=$('ts-pos');
+  const mark=i=>{if(!svg)return;svg.classList.toggle('h',i!=null);svg.querySelectorAll('path').forEach(p=>p.classList.toggle('on',i!=null&&p.dataset.i===String(i)));if(pos)pos.querySelectorAll('tbody tr').forEach(tr=>tr.classList.toggle('on',i!=null&&tr.dataset.i===String(i)));};
+  if(svg){
+    const show=(p,ev)=>{mark(p.dataset.i);if(!tip)return;tip.textContent=p.dataset.tip;tip.hidden=false;const box=svg.parentNode.getBoundingClientRect(),pb=p.getBoundingClientRect();const x=(ev&&ev.clientX!=null?ev.clientX:pb.left+pb.width/2)-box.left,y=(ev&&ev.clientY!=null?ev.clientY:pb.top)-box.top;tip.style.left=Math.max(4,Math.min(x+12,box.width-tip.offsetWidth-4))+'px';tip.style.top=Math.max(4,y-tip.offsetHeight-10)+'px';};
+    const hide=()=>{mark(null);if(tip)tip.hidden=true;};
+    svg.addEventListener('mousemove',e=>{const p=e.target.closest('path');if(p)show(p,e);else hide();});svg.addEventListener('mouseleave',hide);
+    svg.addEventListener('focusin',e=>{const p=e.target.closest('path');if(p)show(p,null);});svg.addEventListener('focusout',hide);
+    svg.addEventListener('click',e=>{const p=e.target.closest('path');if(p)show(p,e);});
+  }
+  if(pos){pos.addEventListener('mouseover',e=>{const tr=e.target.closest('tbody tr');if(tr)mark(tr.dataset.i);});pos.addEventListener('mouseleave',()=>mark(null));}
+  const url=()=>{const u=new URL(location.href);u.searchParams.set('fund',fk);u.hash='drill';return u.toString();};
+  const lk=$('ts-link');if(lk)lk.addEventListener('click',()=>{const done=()=>{lk.textContent='Link copied';setTimeout(()=>{lk.textContent='Copy link';},1800);};const u=url();if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(u).then(done,()=>{window.prompt('Copy this link',u);});else window.prompt('Copy this link',u);});
+  const pr=$('ts-print');if(pr)pr.addEventListener('click',()=>{const root=document.documentElement;root.classList.add('print-ts');const off=()=>{root.classList.remove('print-ts');window.removeEventListener('afterprint',off);};window.addEventListener('afterprint',off);window.print();});
+}
+/* the grid's at-a-glance cells: the largest estimated addition and cut per manager */
+const tsMove=(r,up)=>r?'<span class="'+(up?'up':'dn')+'">'+(up?'▲':'▼')+'</span> <b>'+esc(tsShort(r))+'</b> <span class="'+tsTag(r).k+'">'+tsTag(r).t+'</span> <span class="dim2">'+money(r.est_usd)+'</span>':'<span class="dim">'+DASH+'</span>';
 function header(b){
   const s=b.source||{},bk=b.book||{},se=b.season||{};
   $('h-tracked').textContent=String(Object.keys(bk.managers||{}).length);
@@ -313,10 +478,10 @@ function grid(b){
   const counts={CURRENT:0,AMENDED:0,NOTICE:0,DATED:0};order.forEach(k=>{counts[m[k].status]=(counts[m[k].status]||0)+1;});
   $('mgr-chips').innerHTML='<span class="c c-up">CURRENT · '+counts.CURRENT+'</span><span class="c c-am">AMENDED · '+counts.AMENDED+'</span><span class="c c-k">NOTICE · '+counts.NOTICE+'</span><span class="c c-dn">DATED · '+counts.DATED+'</span>';
   const rows=order.map(k=>{const x=m[k],c=x.counts||{},ls=x.latest_submission||{},eff=(x.filings||[]).find(f=>(x.effective_accessions||[]).includes(f.accession))||{};const vr=(x.flags||[]).includes('VALUATION_REVIEW');
-    return '<tr><td><button class="row" type="button" data-fund="'+esc(k)+'">'+esc(x.display_name)+'</button> <span class="dim">'+esc(x.cik||'')+'</span></td><td>'+esc(x.current_period||'—')+' · '+esc(eff.form||ls.form||'—')+(ls.form==='13F-NT'&&x.status==='NOTICE'?' <span class="dim2">13F-NT '+esc(ls.filed_at||'')+'</span>':'')+(eff.amendment_type?' <span class="dim2">'+esc(String(eff.amendment_type).toLowerCase())+(fin(eff.amendment_number)?' #'+eff.amendment_number:'')+'</span>':'')+'</td><td>'+esc(eff.filed_at||ls.filed_at||'—')+'</td><td class="n">'+num(x.n_equity_positions)+' · '+num(x.n_option_rows)+'</td><td class="n'+(vr?' dim2':'')+'">'+(vr?'cover '+esc(((x.filings||[]).slice(-1)[0]||{}).reported_value_sum||'—')+' <span class="dim">units unverified</span>':money(x.total_value_usd))+'</td><td class="n '+(vr?'dim':cls(x.value_change_pct))+'">'+(vr?'—':pct1(x.value_change_pct))+'</td><td class="n">'+pctp(x.top10_pct_of_book)+'</td><td class="n am">'+num(c.newly_present_in_public_disclosure)+'</td><td class="n dn">'+num(c.not_present_in_current_public_disclosure)+'</td><td class="n up">'+num(c.reported_quantity_increased)+'</td><td class="n dn">'+num(c.reported_quantity_decreased)+'</td><td class="n dim2">'+num(c.reported_quantity_unchanged)+'</td><td>'+(x.chain_status==='complete_selected_public_chain'?'<span class="c c-up">COMPLETE</span>':'<span class="c c-dn">'+esc(x.chain_status||'—')+'</span>')+'</td><td>'+skillChip(x.clone)+'</td><td>'+statusChip(x.status,x.flags)+(x.status==='DATED'&&fin(x.observation_age_days)?' <span class="dim2">'+num(x.observation_age_days)+' d</span>':'')+'</td></tr>';}).join('');
-  $('mgr-table').innerHTML='<table class="t" style="min-width:1240px"><thead><tr><th>Manager</th><th>Period · form</th><th>Filed</th><th class="n">Equity · option rows</th><th class="n">Reported value</th><th class="n">vs prior (incl. price)</th><th class="n">Top-10 %</th><th class="n">New</th><th class="n">Absent</th><th class="n">Up</th><th class="n">Down</th><th class="n">Flat</th><th>Chain</th><th>Clone SKILL</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody></table>';
+    return '<tr><td><button class="row" type="button" data-fund="'+esc(k)+'">'+esc(x.display_name)+'</button> <span class="dim">'+esc(x.cik||'')+'</span></td><td>'+esc(x.current_period||'—')+' · '+esc(eff.form||ls.form||'—')+(ls.form==='13F-NT'&&x.status==='NOTICE'?' <span class="dim2">13F-NT '+esc(ls.filed_at||'')+'</span>':'')+(eff.amendment_type?' <span class="dim2">'+esc(String(eff.amendment_type).toLowerCase())+(fin(eff.amendment_number)?' #'+eff.amendment_number:'')+'</span>':'')+'</td><td>'+esc(eff.filed_at||ls.filed_at||'—')+'</td><td class="n">'+num(x.n_equity_positions)+' · '+num(x.n_option_rows)+'</td><td class="n'+(vr?' dim2':'')+'">'+(vr?'cover '+esc(((x.filings||[]).slice(-1)[0]||{}).reported_value_sum||'—')+' <span class="dim">units unverified</span>':money(x.total_value_usd))+'</td><td class="n '+(vr?'dim':cls(x.value_change_pct))+'">'+(vr?'—':pct1(x.value_change_pct))+'</td><td class="n">'+pctp(x.top10_pct_of_book)+'</td><td class="n am">'+num(c.newly_present_in_public_disclosure)+'</td><td class="n dn">'+num(c.not_present_in_current_public_disclosure)+'</td><td class="n up">'+num(c.reported_quantity_increased)+'</td><td class="n dn">'+num(c.reported_quantity_decreased)+'</td><td class="n dim2">'+num(c.reported_quantity_unchanged)+'</td><td>'+(x.chain_status==='complete_selected_public_chain'?'<span class="c c-up">COMPLETE</span>':'<span class="c c-dn">'+esc(x.chain_status||'—')+'</span>')+'</td><td>'+skillChip(x.clone)+'</td><td>'+statusChip(x.status,x.flags)+(x.status==='DATED'&&fin(x.observation_age_days)?' <span class="dim2">'+num(x.observation_age_days)+' d</span>':'')+'</td>'+(x.tearsheet?'<td class="n">'+money(x.tearsheet.value_usd)+(x.tearsheet.options&&x.tearsheet.options.n_lines?' <span class="dim2">· '+pctp(x.tearsheet.options.share_pct)+' opt</span>':'')+'</td><td>'+tsMove((x.tearsheet.notable||{}).add,true)+'</td><td>'+tsMove((x.tearsheet.notable||{}).cut,false)+'</td>':'<td class="n dim">'+DASH+'</td><td class="dim">'+DASH+'</td><td class="dim">'+DASH+'</td>')+'</tr>';}).join('');
+  $('mgr-table').innerHTML='<table class="t" style="min-width:1760px"><thead><tr><th>Manager</th><th>Period · form</th><th>Filed</th><th class="n">Equity · option rows</th><th class="n">Reported value</th><th class="n">vs prior (incl. price)</th><th class="n">Top-10 %</th><th class="n">New</th><th class="n">Absent</th><th class="n">Up</th><th class="n">Down</th><th class="n">Flat</th><th>Chain</th><th>Clone SKILL</th><th>Status</th><th class="n">13F value · all lines</th><th>Top addition · est.</th><th>Top cut · est.</th></tr></thead><tbody>'+rows+'</tbody></table>';
   const notes=[];order.forEach(k=>{const x=m[k];(x.valuation_reviews||[]).forEach(v=>notes.push(esc(x.display_name)+': '+esc(v)));if(x.status==='NOTICE')notes.push(esc(x.display_name)+"'s latest submission is a 13F-NT (notice) — its holdings are reported by another manager, so "+esc(x.current_period)+' stays its last public table.');});
-  $('mgr-foot').innerHTML='Reported value = sum of the filer\'s own value column for equity rows (SH, no put/call). "vs prior" compares two dated disclosures and includes the quarter\'s price move. Option rows are counted beside equity rows and never mixed into values.'+(notes.length?' '+notes.join(' '):'');
+  $('mgr-foot').innerHTML='Reported value = sum of the filer\'s own value column for equity rows (SH, no put/call). "vs prior" compares two dated disclosures and includes the quarter\'s price move. Option rows are counted beside equity rows and never mixed into values. "13F value · all lines" is the tearsheet\'s figure: shares, notes at principal and option rows at the underlying\'s reported value (the filing\'s cover-page total). Top addition / top cut = the line with the largest estimated change at the filing\'s reported price — open the manager for the full tearsheet.'+(notes.length?' '+notes.join(' '):'');
   $('mgr-table').addEventListener('click',e=>{const btn=e.target.closest('button[data-fund]');if(btn)selectManager(btn.dataset.fund,true);});
 }
 function posRow(r,withChange){return '<tr><td class="w">'+tk(r)+' '+kindChip(r)+' <b>'+esc(r.issuer)+'</b> <span class="dim2">'+esc(r.class||'')+' · '+esc(r.cusip||'')+'</span></td><td><span class="bar" style="width:110px"><i class="'+barCls(r.status)+'" style="width:'+Math.min(100,Math.max(0,r.pct_of_book||0))+'%"></i></span> '+pctp(r.pct_of_book)+'</td><td class="n">'+money(r.value_usd)+'</td><td class="n">'+num(r.qty)+'</td>'+(withChange?'<td>'+chg(r.status)+'</td><td class="n '+cls(r.qty_change)+'">'+(fin(r.qty_change)?sgn(Math.round(r.qty_change)).replace(/\d+/,n=>Number(n).toLocaleString('en-US')):'—')+'</td><td class="n '+cls(r.qty_change_pct)+'">'+pct1(r.qty_change_pct)+'</td><td class="n '+cls(r.value_change_usd)+'">'+(fin(r.value_change_usd)?money(r.value_change_usd):'<span class="dim">no prior row</span>')+'</td>':'')+'</tr>';}
@@ -327,6 +492,7 @@ function selectManager(fk,scroll){
   $('drill-meta').textContent=(x.official_name||'')+' · CIK '+(x.cik||'—')+' · '+(x.chain_status||'');
   const kpis=[['Reported equity value',money(x.total_value_usd),'prior '+money(x.total_value_prior_usd)+' · <span class="'+cls(x.value_change_pct)+'">'+pct1(x.value_change_pct)+'</span> incl. price'],['Positions · option rows',num(x.n_equity_positions)+' · '+num(x.n_option_rows),'prior '+num(x.n_prior_equity_positions)+' equity rows'],['Top-10 share',pctp(x.top10_pct_of_book),(x.top10_pct_of_book||0)>=50?'concentrated book':'diversified book'],['Puts · calls',money(x.put_value_usd)+' · '+money(x.call_value_usd),'underlying value, not premium'],['Filed · accepted',esc(ls.filed_at||'—'),esc(ls.accepted_at?dUTC(ls.accepted_at).slice(11):'')+' · '+esc(ls.form||'—')],['Effective accession',esc((x.effective_accessions||[])[0]||ls.accession||'—'),'retained artifact · '+num(x.artifact&&x.artifact.bytes)+' bytes']];
   const html=['<div class="chips">'+statusChip(x.status,x.flags)+' '+skillChip(cl)+(x.shared_discretion_positions?' <span class="c c-k">'+num(x.shared_discretion_positions)+' SHARED-DISCRETION ROWS</span>':'')+'</div>',
+    tearsheetHTML(x),
     '<div class="gv" style="margin-top:10px">'+kpis.map(([l,v,s])=>'<div class="kpi"><span class="l">'+l+'</span><span class="v" style="font-size:'+(v.length>14?'15px':'22px')+'">'+v+'</span><span class="s">'+s+'</span></div>').join('')+'</div>',
     '<h3 style="margin-top:14px">Reported positions · top of book</h3><div class="scroll" style="margin-top:8px"><table class="t" style="min-width:1100px"><thead><tr><th>Issuer · class · CUSIP</th><th>Share of book</th><th class="n">Reported value</th><th class="n">Reported qty</th><th>Change class</th><th class="n">Qty Δ</th><th class="n">Qty Δ %</th><th class="n">Value Δ (incl. price)</th></tr></thead><tbody>'+(x.top||[]).map(r=>posRow(r,true)).join('')+'</tbody></table></div>',
     '<div class="g3" style="margin-top:12px">'+
@@ -339,6 +505,8 @@ function selectManager(fk,scroll){
       '<div class="sub"><h3>Filing chain</h3>'+(x.filings||[]).map(f=>'<div class="kv"><span>'+esc(f.accession)+' <span class="dim2">'+esc(f.form||'')+' '+esc(f.period_of_report||'')+'</span></span><b>'+esc(f.filed_at||'')+(f.amendment_type?' · '+esc(String(f.amendment_type).toLowerCase()):'')+((x.effective_accessions||[]).includes(f.accession)?' <span class="c c-up">EFFECTIVE</span>':' <span class="c c-k">RETAINED</span>')+'</b></div>').join('')+'<div class="dim2" style="font:400 11.5px/1.5 var(--sans);margin-top:6px">Artifact sha256 '+esc((x.artifact&&x.artifact.sha256||'').slice(0,16))+'… · the evidence desk below verifies it before display.</div></div>'+
     '</div>'].join('');
   $('drill-body').innerHTML=html;
+  tearsheetWire(fk);
+  if(scroll){try{const u=new URL(location.href);u.searchParams.set('fund',fk);history.replaceState(null,'',u.pathname+u.search+u.hash);}catch(e){}}
   const sel=$('selection');if(sel&&Array.from(sel.options).some(o=>o.value===fk)&&sel.value!==fk){sel.value=fk;sel.dispatchEvent(new Event('change'));}
   if(scroll){$('drill').scrollIntoView({behavior:'smooth',block:'start'});}
 }
@@ -458,6 +626,7 @@ async function load(){
     const smart=()=>{controls();stance();rotationSec();sectorsSec();contenders();boards();};
     header(BOOK);banner(BOOK);grid(BOOK);smart();master();sections(BOOK);
     const want=new URL(location.href).searchParams.get('fund');selectManager(want&&M[want]?want:(((BOOK.book||{}).cohort||[]).includes('BERKSHIRE')?'BERKSHIRE':Object.keys(M)[0]),false);
+    if(want&&M[want]&&location.hash==='#drill')setTimeout(()=>$('drill').scrollIntoView({block:'start'}),60);
     $('scope-cohort').addEventListener('click',()=>{SCOPE='cohort';smart();});$('scope-conc').addEventListener('click',()=>{SCOPE='concentrated';smart();});
     ['all','stocks','etfs'].forEach(u=>$('univ-'+u).addEventListener('click',()=>{UNIV=u;smart();}));
     ['net','value','tilt'].forEach(k=>$('ind-sort-'+k).addEventListener('click',()=>{IND_SORT=k;sectorsSec();}));
