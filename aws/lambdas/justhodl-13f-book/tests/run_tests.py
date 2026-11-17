@@ -270,7 +270,9 @@ def test_tearsheet_ranks_the_whole_table_options_beside_stock():
     assert put["pc"] == "PUT" and put["issuer"] == "APPLE INC" and put["kind"] == "option" and put["value_usd"] == 700.0 and put["status"] == lf.ST_NEW and put["pct"] == 0.07
     assert len(t["lines"]) == 10 and t["top10_pct"] == 100.0 and t["lines"][0]["pct"] == 96.17 and t["lines"][0]["kind"] == "debt"
     assert t["largest_stock"]["issuer"] == "APPLE INC" and t["largest_stock"]["value_usd"] == 20000.0 and t["largest_stock"]["qty"] == 100.0 and t["largest_stock"]["status"] == lf.ST_FLAT
-    assert t["options"] == {"n_lines": 1, "n_puts": 1, "n_calls": 0, "put_value_usd": 700.0, "call_value_usd": 0.0, "share_pct": 0.1, "put_share_pct": 0.1, "call_share_pct": 0.0}
+    assert {k: v for k, v in t["options"].items() if not k.startswith("top_")} == {"n_lines": 1, "n_puts": 1, "n_calls": 0, "put_value_usd": 700.0, "call_value_usd": 0.0, "share_pct": 0.1, "put_share_pct": 0.1, "call_share_pct": 0.0}
+    assert t["options"]["top_calls"] == [] and t["options"]["top_puts"] == [{"id": "o", "issuer": "APPLE INC", "pc": "PUT", "value_usd": 700.0, "pct": 0.07, "status": lf.ST_NEW}]   # the overlay's largest lines per side
+    assert sp["tear"]["new"] and len(sp["tear"]["rows"]) == 12 and lf.tearsheet(lf.split_positions(detail)) == t   # the untruncated rows travel with the split positions; the wrapper returns the same block
     # the four lists: new lines by reported value; more / fewer units by the estimate at this filing's reported price; absent by last reported value
     ini, inc, red, ter = t["initiations"], t["increases"], t["reductions"], t["terminations"]
     assert ini["n"] == 7 and [r["issuer"] for r in ini["rows"]][:4] == ["SPDR S&P 500 ETF TR", "APPLE INC", "ISHARES BITCOIN TR ETF", "UNKNOWN PRIVATE CO"] and ini["rows"][1]["pc"] == "PUT"
@@ -515,7 +517,7 @@ def test_classer_and_universes():
 
 def test_build_boards_rotation_stance_contenders_snapshot():
     s3, out = built()
-    assert out["contract"] == "13f-book.v2" and out["version"] == "1.4.0" and out["book"]["required_period"] == "2026-06-30"
+    assert out["contract"] == "13f-book.v2" and out["version"] == "1.5.0" and out["book"]["required_period"] == "2026-06-30"
     b = out["book"]
     m = b["managers"]
     assert set(m) == {"ELLIOTT", "BERKSHIRE", "PERSHING"}
@@ -549,6 +551,32 @@ def test_build_boards_rotation_stance_contenders_snapshot():
     assert m["PERSHING"]["tearsheet"]["counts"]["not_compared"] == 1 and m["BERKSHIRE"]["tearsheet"]["counts"] == {"new": 2, "increased": 1, "reduced": 2, "closed": 2, "unchanged": 0, "not_compared": 0, "reclassified": 0, "reclassified_prior": 0}
     assert m["BERKSHIRE"]["tearsheet"]["value_usd"] == m["BERKSHIRE"]["total_value_usd"] and m["BERKSHIRE"]["tearsheet"]["options"]["n_lines"] == 0   # no option rows, no notes: the tearsheet's value is the equity value
     assert "tearsheet" in b["glossary"] and "tearsheet.est_usd" in b["glossary"] and "tearsheet.reclassified" in b["glossary"]
+    # 1.5.0: the same tearsheet for the scope - both members' lines side by side, each row naming its manager
+    ct = b["tearsheet"]["cohort"]
+    assert ct["members"] == ["BERKSHIRE", "ELLIOTT"] and ct["value_usd"] == 1010980.0 and ct["value_prior_usd"] == 984580.0 and ct["value_change_pct"] == 2.7
+    assert ct["n_lines"] == 17 and ct["n_lines_prior"] == 11 and ct["value_usd"] == m["ELLIOTT"]["tearsheet"]["value_usd"] + m["BERKSHIRE"]["tearsheet"]["value_usd"]
+    assert ct["counts"] == {"new": 9, "increased": 2, "reduced": 3, "closed": 3, "unchanged": 2, "not_compared": 0, "reclassified": 1, "reclassified_prior": 1}
+    assert ct["counts_by_kind"]["option"]["new"] == 1 and ct["options"]["n_lines"] == 1 and ct["options"]["n_managers"] == 1 and ct["options"]["put_value_usd"] == 700.0 and ct["options"]["share_pct"] == 0.1
+    assert [(r["fk"], r["pct"], r["n_lines"], r["new"], r["closed"]) for r in ct["by_manager"]] == [("ELLIOTT", 97.72, 12, 7, 1), ("BERKSHIRE", 2.28, 5, 2, 2)]
+    va, vs, vo = ct["views"]["all"], ct["views"]["non_option"], ct["views"]["option"]
+    assert [(r["fk"], r["ticker"], r.get("pc"), r["est_usd"]) for r in va["initiations"]["rows"]][:5] == [
+        ("ELLIOTT", "SPY", None, 5000.0), ("BERKSHIRE", "SPY", None, 2000.0), ("BERKSHIRE", "TSLA", None, 900.0), ("ELLIOTT", "AAPL", "PUT", 700.0), ("ELLIOTT", "IBIT", None, 400.0)]
+    assert va["initiations"]["n"] == 9 and va["initiations"]["est_usd"] == 9280.0 and vs["initiations"]["n"] == 8 and vo["initiations"]["n"] == 1 and vo["initiations"]["rows"][0]["pc"] == "PUT"
+    assert [(r["fk"], r["ticker"], r["est_usd"], r["qty_change_pct"]) for r in va["increases"]["rows"]] == [("ELLIOTT", "GOOGL", 1500.0, 20.0), ("BERKSHIRE", "GOOGL", 750.0, 25.0)]   # two books, two rows: never netted
+    assert [(r["fk"], r["ticker"], r["est_usd"]) for r in va["reductions"]["rows"]] == [("BERKSHIRE", "AAPL", 2000.0), ("ELLIOTT", "GLD", 2000.0), ("BERKSHIRE", "TLT", 450.0)]
+    assert [(r["fk"], r["ticker"], r["est_usd"]) for r in va["terminations"]["rows"]] == [("ELLIOTT", "APLS", 900.0), ("BERKSHIRE", "GLD", 360.0), ("BERKSHIRE", "APLS", 90.0)]
+    assert "HON" not in {r["ticker"] for k in ("initiations", "terminations") for r in va[k]["rows"]}   # the reclassified line stays out of the scope lists too
+    assert va["notable"]["add"]["fk"] == "ELLIOTT" and va["notable"]["add"]["ticker"] == "SPY" and va["notable"]["add"]["how"] == "initiation"
+    assert va["notable"]["cut"]["fk"] == "BERKSHIRE" and va["notable"]["cut"]["ticker"] == "AAPL" and va["notable"]["cut"]["how"] == "reduction" and vo["notable"] == {"add": vo["initiations"]["rows"][0] | {"how": "initiation"}, "cut": None}
+    assert [(r["fk"], r["ticker"] or r["issuer"], r["value_usd"]) for r in va["lines"]][:3] == [("ELLIOTT", "T 4.3 02/15/30", 950000.0), ("ELLIOTT", "AAPL", 20000.0), ("BERKSHIRE", "AAPL", 16000.0)]
+    assert va["n_lines"] == 17 and va["value_usd"] == 1010980.0 and va["top10_pct"] == 99.8 and va["lines"][0]["pct_scope"] == 93.97 and len(va["lines"]) == 10
+    assert vs["n_lines"] == 16 and vo["n_lines"] == 1 and vo["value_usd"] == 700.0 and vo["lines"][0]["pct_scope"] == 100.0 and vs["value_usd"] + vo["value_usd"] == va["value_usd"]
+    assert b["tearsheet"]["concentrated"]["members"] == ct["members"] and b["tearsheet"]["concentrated"]["views"]["all"]["initiations"]["n"] == 9
+    assert ct["est"] == {k: m["ELLIOTT"]["tearsheet"]["est"][k] + m["BERKSHIRE"]["tearsheet"]["est"][k] for k in ("in_usd", "out_usd", "option_in_usd", "option_out_usd", "reclassified_usd")}
+    assert m["ELLIOTT"]["tearsheet"]["options"]["top_puts"][0]["ticker"] == "AAPL" and "book.tearsheet" in b["glossary"]
+    # the boards say how many identities each one ranks (the page shows ten)
+    cb0 = b["boards"]["cohort"]["all"]
+    assert (cb0["n_newly_present"], cb0["n_dropped"], cb0["n_increased"], cb0["n_decreased"]) == (8, 3, 1, 3) and cb0["value_prior_usd"] > 0 and b["boards"]["cohort"]["etfs"]["n_dropped"] == 1
     # boards per universe
     cb = b["boards"]["cohort"]
     assert cb["all"]["n_identities"] == 14 and cb["stocks"]["widely_held"][0]["ticker"] in ("AAPL", "GOOGL") and all(r["kind"] == "stock" for r in cb["stocks"]["widely_held"])

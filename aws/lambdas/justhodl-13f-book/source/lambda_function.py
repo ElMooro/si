@@ -13,6 +13,11 @@ value ranked together - with the 13F value and line items now vs prior, new / in
 unchanged counts, the top lines, the four change lists with before -> after values, the most notable addition and
 cut, the largest stock line, the industries most added to and cut, and the two filings compared.
 
+Khalid, 2026-11-17 (later the same day): "I like it - now add the same features wherever needed on my 13F." -> 1.5.0:
+book.tearsheet[scope] (the same read for the whole current cohort and for the concentrated books: every member's lines
+side by side, each row naming its manager; all lines / shares and notes / option rows), the largest call and put lines
+per manager (tearsheet.options.top_calls / top_puts) and how many identities each cross-manager board ranks.
+
 What this engine is
   The page 13f.html shows the book; this engine computes it. It reads ONLY retained, published data and derives the
   boards the way a careful reader of the filings would - counting managers, summing reported values, comparing two
@@ -70,7 +75,7 @@ import chain_guard  # the fleet-wide trigger cap: every engine start is admitted
 import openfigi     # aws/shared: keyed OpenFIGI v3 client (SSM /justhodl/openfigi/api-key), fail-soft
 import fmp_bank     # aws/shared: the FMP warehouse reader (banked etf/info rows carry FMP's own assetClass) - S3 only
 
-VERSION = "1.4.0"
+VERSION = "1.5.0"
 CONTRACT = "13f-book.v2"
 ENGINE = "justhodl-13f-book"
 SCHEME = "v2"   # security-master query scheme: identifier typed by shape (CUSIP / CINS), US pass, any-exchange pass, ISIN pass
@@ -508,8 +513,22 @@ ST_NEW, ST_ABSENT = "newly_present_in_public_disclosure", "not_present_in_curren
 ST_UP, ST_DOWN, ST_FLAT = "reported_quantity_increased", "reported_quantity_decreased", "reported_quantity_unchanged"
 
 
+TEAR_HOW = {ST_NEW: "initiation", ST_UP: "increase", ST_DOWN: "reduction", ST_ABSENT: "termination"}
+TEAR_KINDS = ("all", "non_option", "option")   # every line / shares and notes at principal / option rows
+
+
+def tear_label(r):
+    return r.get("ticker") or " ".join(str(r.get("name") or r.get("issuer") or "").split()[:3])
+
+
 def tearsheet(sp, classer=None):
-    """One manager's whole information table as a tearsheet (Khalid 2026-11-17). Every line the filing reports - shares,
+    """The published tearsheet block of one manager (see tearsheet_full). Pure."""
+    return tearsheet_full(sp, classer)[0]
+
+
+def tearsheet_full(sp, classer=None):
+    """-> (block, full): the published block and every row behind it (all current lines and the four change lists,
+    untruncated) for the scope tearsheet. One manager's whole information table as a tearsheet (Khalid 2026-11-17). Every line the filing reports - shares,
     notes at principal and option rows at the underlying's reported value - is ranked together, the way the filing's
     own value column adds up to its cover page. A line is one identity (CUSIP + class + SH/PRN + put/call). The
     change lists keep the page's reading: a line newly present, a reported quantity up or down, a line absent from
@@ -635,8 +654,7 @@ def tearsheet(sp, classer=None):
     down_rows.sort(key=lambda r: (-est(r), r["id"]))
     closed_rows.sort(key=lambda r: (-(r["value_prior_usd"] or 0), r["id"]))
 
-    def label(r):
-        return r.get("ticker") or " ".join(str(r.get("name") or r.get("issuer") or "").split()[:3])
+    label = tear_label
 
     def listing(lst):
         rest = lst[TEAR_ROWS:]
@@ -654,7 +672,7 @@ def tearsheet(sp, classer=None):
         return max(cands, key=lambda r: (est(r), r["id"])) if cands else None
 
     add, cut = pick(new_rows + up_rows), pick(closed_rows + down_rows)
-    how = {ST_NEW: "initiation", ST_UP: "increase", ST_DOWN: "reduction", ST_ABSENT: "termination"}
+    how = TEAR_HOW
 
     def flow(lst, option):
         return round(sum(est(r) for r in lst if bool(r.get("pc")) == option and not r.get("reclass")), 0)
@@ -681,6 +699,12 @@ def tearsheet(sp, classer=None):
     puts = sum((val(v) for v in opt.values() if str((v.get("identity") or {}).get("put_call") or "").upper() == "PUT"), Decimal(0))
     calls = sum((val(v) for v in opt.values() if str((v.get("identity") or {}).get("put_call") or "").upper() == "CALL"), Decimal(0))
     tot = {k: sum(counts[g][k] for g in groups) for k in ("new", "increased", "reduced", "closed", "unchanged", "not_compared", "reclassified", "reclassified_prior")}
+
+    def top_options(pc):   # the largest option lines of one side, as the options overlay shows them
+        side = sorted((r for r in rows.values() if r.get("pc") == pc), key=lambda r: (-(r["value_usd"] or 0), r["id"]))[:3]
+        return [{k: r[k] for k in ("id", "issuer", "ticker", "name", "pc", "value_usd", "pct", "status", "qty_change_pct", "multiple") if r.get(k) is not None} for r in side]
+
+    full = {"rows": list(rows.values()), "new": new_rows, "up": up_rows, "down": down_rows, "closed": closed_rows}
     return {
         "value_usd": f(total), "value_prior_usd": f(total_prior), "value_change_pct": pct(total, total_prior),
         "n_lines": len(cur), "n_lines_prior": len(pri), "top10_pct": share(top_value, total, 1),
@@ -688,7 +712,8 @@ def tearsheet(sp, classer=None):
         "options": {"n_lines": len(opt), "n_puts": sum(1 for v in opt.values() if str((v.get("identity") or {}).get("put_call") or "").upper() == "PUT"),
                     "n_calls": sum(1 for v in opt.values() if str((v.get("identity") or {}).get("put_call") or "").upper() == "CALL"),
                     "put_value_usd": f(puts), "call_value_usd": f(calls), "share_pct": share(puts + calls, total, 1),
-                    "put_share_pct": share(puts, total, 1), "call_share_pct": share(calls, total, 1)},
+                    "put_share_pct": share(puts, total, 1), "call_share_pct": share(calls, total, 1),
+                    "top_calls": top_options("CALL"), "top_puts": top_options("PUT")},
         "est": {"in_usd": flow(new_rows + up_rows, False), "out_usd": flow(closed_rows + down_rows, False),
                 "option_in_usd": flow(new_rows + up_rows, True), "option_out_usd": flow(closed_rows + down_rows, True),
                 "reclassified_usd": round(sum((r.get("value_usd") or 0.0) for r in reclassified), 0)},
@@ -698,6 +723,67 @@ def tearsheet(sp, classer=None):
         "reclassified": {"n": len(reclassified), "rows": reclassified[:TEAR_ROWS]},
         "notable": {"add": ({"how": how.get(add["status"]), **add} if add else None), "cut": ({"how": how.get(cut["status"]), **cut} if cut else None)},
         "industries": {"added": side_rows(1), "cut": side_rows(-1)},
+    }, full
+
+
+def scope_tearsheet(mems, managers):
+    """The tearsheet of a whole scope (the current cohort, the concentrated books): every member's lines side by side,
+    read the same way as one manager's. A row is ONE manager's line and says whose (`fk`); nothing is netted across
+    managers - two books moving the same security opposite ways are two rows. Three views: every line, shares and
+    notes only, option rows only (a hedge book's option rows are reported at the underlying's value and would
+    otherwise bury every share line). The members' own blocks carry the totals; the rows come untruncated from
+    tearsheet_full, so each list is the scope's true top by estimated size. Pure."""
+    keys = [m["fk"] for m in mems]
+    blocks = {fk: managers[fk]["tearsheet"] for fk in keys}
+    total = sum((dec(b["value_usd"]) for b in blocks.values()), Decimal(0))
+    total_prior = sum((dec(b["value_prior_usd"]) for b in blocks.values()), Decimal(0))
+    count_keys = ("new", "increased", "reduced", "closed", "unchanged", "not_compared", "reclassified", "reclassified_prior")
+
+    def est(r):
+        return r.get("est_usd") or 0.0
+
+    def of_kind(r, kind):
+        return kind == "all" or bool(r.get("pc")) == (kind == "option")
+
+    def listing(name, kind):
+        pool = sorted(((est(r), m["fk"], r["id"], r) for m in mems for r in m["tear"][name] if of_kind(r, kind)), key=lambda t: (-t[0], t[1], t[2]))
+        rest = pool[TEAR_ROWS:]
+        return {"n": len(pool), "est_usd": round(sum(t[0] for t in pool), 0), "rows": [{**t[3], "fk": t[1]} for t in pool[:TEAR_ROWS]],
+                "others": [{k: v for k, v in (("label", tear_label(t[3])), ("pc", t[3].get("pc")), ("fk", t[1]), ("usd", t[0])) if v is not None} for t in rest[:TEAR_OTHERS]],
+                "n_more": max(0, len(rest) - TEAR_OTHERS), "others_usd": round(sum(t[0] for t in rest), 0)}
+
+    views = {}
+    for kind in TEAR_KINDS:
+        lists = {"initiations": listing("new", kind), "increases": listing("up", kind), "reductions": listing("down", kind), "terminations": listing("closed", kind)}
+        lines = sorted(((r["value_usd"] or 0.0, m["fk"], r["id"], r) for m in mems for r in m["tear"]["rows"] if of_kind(r, kind)), key=lambda t: (-t[0], t[1], t[2]))
+        value = sum(t[0] for t in lines)
+
+        def first(*names):
+            cands = [lists[n]["rows"][0] for n in names if lists[n]["rows"] and est(lists[n]["rows"][0]) > 0]
+            best = sorted(cands, key=lambda r: (-est(r), r["fk"], r["id"]))[:1]
+            return {"how": TEAR_HOW.get(best[0]["status"]), **best[0]} if best else None
+
+        views[kind] = {**lists, "n_lines": len(lines), "value_usd": round(value, 2),
+                       "top10_pct": f(round(Decimal(str(100 * sum(t[0] for t in lines[:TEAR_TOP]) / value)), 1)) if value else None,
+                       "lines": [{**t[3], "fk": t[1], "pct_scope": share(t[0], value)} for t in lines[:TEAR_TOP]],
+                       "notable": {"add": first("initiations", "increases"), "cut": first("terminations", "reductions")}}
+    puts = sum((dec(b["options"]["put_value_usd"]) for b in blocks.values()), Decimal(0))
+    calls = sum((dec(b["options"]["call_value_usd"]) for b in blocks.values()), Decimal(0))
+    return {
+        "members": keys, "value_usd": f(total), "value_prior_usd": f(total_prior), "value_change_pct": pct(total, total_prior),
+        "n_lines": sum(b["n_lines"] for b in blocks.values()), "n_lines_prior": sum(b["n_lines_prior"] for b in blocks.values()),
+        "counts": {k: sum(b["counts"].get(k, 0) for b in blocks.values()) for k in count_keys},
+        "counts_by_kind": {g: {k: sum(b["counts_by_kind"][g].get(k, 0) for b in blocks.values()) for k in count_keys} for g in ("non_option", "option")},
+        "options": {"n_lines": sum(b["options"]["n_lines"] for b in blocks.values()), "n_calls": sum(b["options"]["n_calls"] for b in blocks.values()),
+                    "n_puts": sum(b["options"]["n_puts"] for b in blocks.values()), "put_value_usd": f(puts), "call_value_usd": f(calls),
+                    "share_pct": share(puts + calls, total, 1), "put_share_pct": share(puts, total, 1), "call_share_pct": share(calls, total, 1),
+                    "n_managers": sum(1 for b in blocks.values() if b["options"]["n_lines"])},
+        "est": {k: round(sum((b["est"].get(k) or 0.0) for b in blocks.values()), 0) for k in ("in_usd", "out_usd", "option_in_usd", "option_out_usd", "reclassified_usd")},
+        "by_manager": sorted(({"fk": fk, "value_usd": b["value_usd"], "pct": share(b["value_usd"], total), "value_prior_usd": b["value_prior_usd"],
+                               "value_change_pct": b["value_change_pct"], "n_lines": b["n_lines"], "option_share_pct": b["options"]["share_pct"],
+                               "new": b["counts"]["new"], "increased": b["counts"]["increased"], "reduced": b["counts"]["reduced"], "closed": b["counts"]["closed"]}
+                              for fk, b in blocks.items()), key=lambda r: (-(r["value_usd"] or 0), r["fk"])),
+        "views": views,
     }
 
 
@@ -789,8 +875,8 @@ def fund_boards(detail, classer=None):
         "decreased": dec_rows[:TOP], "n_decreased_equity": len(dec_rows),
         "counts": counts,
         "shared_discretion_positions": sum(1 for v in eq.values() if v.get("other_managers")),
-        "tearsheet": tearsheet(sp, classer),
     }
+    boards["tearsheet"], sp["tear"] = tearsheet_full(sp, classer)
     return boards, sp
 
 
@@ -905,7 +991,10 @@ def boards_from(agg, universe, skill=None):
     held = [p for p, a in items if a["holders"]]
     return {
         "n_identities": len(items), "n_held": len(held),
+        "n_newly_present": sum(1 for _, a in items if a["new"]), "n_dropped": sum(1 for _, a in items if a["absent"]),
+        "n_increased": sum(1 for _, a in items if a["inc"]), "n_decreased": sum(1 for _, a in items if a["dec"]),
         "value_usd": f(sum((a["value_usd"] for _, a in items), Decimal(0))),
+        "value_prior_usd": f(sum((a["value_prior_usd"] for _, a in items), Decimal(0))),
         "widely_held": [rows[p] for p in sorted(held, key=lambda p: (-len(agg[p]["holders"]), -agg[p]["value_usd"]))][:BOARD],
         "largest_value": [rows[p] for p in sorted(held, key=lambda p: -agg[p]["value_usd"])][:BOARD],
         "newly_present": [rows[p] for p in sorted((p for p, a in items if a["new"]), key=lambda p: (-len(agg[p]["new"]), -agg[p]["value_usd"]))][:BOARD],
@@ -1676,6 +1765,7 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
             "contenders": {u: contenders_from(agg, u, skill) for u in ("all", "stocks", "etfs")},
             "rotation": rotation(mems, classer),
             "sectors": sector_block(agg, skill),
+            "tearsheet": scope_tearsheet(mems, managers),
         }
     # unclassified exchange-traded products and the largest unmapped identities, for review
     unclassified, unmapped, other_rows = {}, {}, []
@@ -1737,6 +1827,7 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
         "boards": {s: scopes[s]["boards"] for s in scopes}, "stance": {s: scopes[s]["stance"] for s in scopes},
         "contenders": {s: scopes[s]["contenders"] for s in scopes}, "rotation": {s: scopes[s]["rotation"] for s in scopes},
         "sectors": {s: scopes[s]["sectors"] for s in scopes},
+        "tearsheet": {s: scopes[s]["tearsheet"] for s in scopes},
         "profiles": {"source": "FMP profile bulk (bank)", "n_rows": profiles.n_rows if profiles else 0, "n_cusips": len(profiles.by_cusip) if profiles else 0,
                      "as_of": getattr(profiles, "as_of", None) if profiles else None, "error": profiles_err, "cusip_bridge_resolved_this_run": bridged},
         "scopes": {s: {"members": scopes[s]["members"], "n_identities": scopes[s]["n_identities"]} for s in scopes},
@@ -1768,6 +1859,7 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
             "tearsheet.est_usd": "a new line: its reported value; units added or removed: at this filing's own reported price; an absent line: its last reported value - an estimate at reported prices, never an execution",
             "tearsheet.multiple": "reported quantity now / reported quantity at the prior period (shown as 10x when a line grew at least two-fold)",
             "tearsheet.reclassified": "a newly present line whose security also sits among the absent lines (same CUSIP, same resolved ticker, or the same non-fund issuer name without its corporate-form words): one security under a new CUSIP or class - listed apart, never counted as new or closed, never in the notable picks or the estimates",
+            "book.tearsheet": "the same tearsheet for a scope (cohort / concentrated): every member's lines side by side; a row is one manager's line (fk), nothing is netted across managers; views all / non_option (shares + notes) / option",
             "tearsheet.source.reconciles": "the lines add up to the value the current filing's cover page reports (within one millionth)",
             "BALANCED": "a class whose net manager-identity pairs are within +/-%d%% of all its pairs" % int(TILT_PCT),
         },
