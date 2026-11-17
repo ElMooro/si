@@ -26,10 +26,26 @@ from datetime import datetime, timedelta, timezone
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RETAIN_DAYS = 14
+# jh-sections.js truncates titles with String.prototype.slice (UTF-16 code units), so a
+# title cut through an emoji reaches Python as a lone surrogate (e.g. '\ud83c'), which
+# json.dump(ensure_ascii=False) refuses ("surrogates not allowed") -- the Nov 16 2026
+# nightly crawl died on exactly that. Lone surrogates carry no text; drop them.
+_LONE_SURROGATE = re.compile("[\ud800-\udfff]")
 
 
 def utcnow():
     return datetime.now(timezone.utc)
+
+
+def scrub(value):
+    """Return `value` with every lone UTF-16 surrogate removed, recursively (dict / list / str)."""
+    if isinstance(value, str):
+        return _LONE_SURROGATE.sub("", value)
+    if isinstance(value, list):
+        return [scrub(v) for v in value]
+    if isinstance(value, dict):
+        return {scrub(k): scrub(v) for k, v in value.items()}
+    return value
 
 
 def load_pages(base_root):
@@ -85,6 +101,7 @@ def crawl(base, pages, workers=4, settle_ms=4500, per_page_timeout=45000, log=pr
             pg.wait_for_timeout(settle_ms)
             data = pg.evaluate("""() => { try { window.JustHodlSections && window.JustHodlSections.canonical(); } catch (e) {}
                 return { title: document.title, sections: window.JH_SECTIONS || null, loaded: !!window.__jhSectionsLoaded }; }""")
+            data = scrub(data)
             rec["title"] = (data.get("title") or title).strip()[:120]
             if data.get("sections") is None:
                 rec["error"] = "jh-sections not loaded" if not data.get("loaded") else "no sections"
@@ -218,7 +235,7 @@ def main():
     crawled = crawl(a.base, pages, workers=a.workers)
     stats = merge(registry, crawled)
     os.makedirs(os.path.dirname(a.registry), exist_ok=True)
-    json.dump(registry, open(a.registry, "w", encoding="utf-8"), indent=1, ensure_ascii=False)
+    json.dump(scrub(registry), open(a.registry, "w", encoding="utf-8"), indent=1, ensure_ascii=False)
     if a.json:
         json.dump({"stats": stats, "crawled": crawled}, open(a.json, "w", encoding="utf-8"), indent=1)
     print("registry:", json.dumps(stats), "->", a.registry)
