@@ -74,7 +74,7 @@ MGR = """() => { const t = document.getElementById('tearsheet');
 PARTS = """() => { const q = s => document.querySelector(s), all = s => [...document.querySelectorAll(s)], de = document.documentElement;
   return { ox: de.scrollWidth - de.clientWidth, bad: (q('main').innerText.match(/undefined|NaN|\\[object/g) || []).length,
     pill: all('#h-pills .pill').map(e => e.innerText.replace(/\\n/g, ' ')).filter(t => /13F value · all lines/.test(t)),
-    tiles: all('#verdicts .sub').map(e => e.querySelector('.eyebrow').innerText), boardTitles: all('#boards h3').map(h => h.innerText.replace(/^\u00a7[\d.]+\s*/, '')),
+    tiles: all('#verdicts .sub').map(e => e.querySelector('.eyebrow').innerText), boardTitles: all('#boards h3').map(h => h.innerText.replace(/^\u00a7[0-9.]+ */, '')),
     boardHeads: all('#boards table').map(t => [...t.querySelectorAll('th')].map(x => x.innerText).slice(-2)),
     board0: all('#boards table')[0] ? [...all('#boards table')[0].querySelector('tbody tr').cells].map(c => c.innerText.replace(/\\n/g, ' ')) : null,
     conc: all('#conc > div.sub').length, concMini: all('#conc > div.sub > .ts-mini').length, div: all('#diversified > div.sub').length, divMini: all('#diversified > div.sub > .ts-mini').length,
