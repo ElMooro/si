@@ -223,6 +223,33 @@ def issuer_key(name):
     return " ".join(toks[:2])
 
 
+CORP_WORDS = {"INC", "INCORPORATED", "CORP", "CORPORATION", "CO", "COMPANY", "COS", "LTD", "LIMITED", "PLC", "LLC", "LP", "NEW", "THE", "DEL", "SA", "NV", "AG",
+              "SE", "AB", "ASA", "SPA", "HOLDINGS", "HOLDING", "HLDGS", "HLDG", "GROUP", "GRP"}
+
+
+def name_key(name):
+    """An issuer name with its corporate-form words dropped and the rest joined without spaces - so one company under
+    a re-registered name keeps one key (EXXON MOBIL CORP and EXXONMOBIL HOLDINGS CORP are both EXXONMOBIL, the 2026
+    redomiciliation that gave Exxon a new CUSIP) while different companies that merely start alike do not (UNITED
+    STATES STL / UNITED STATES CELLULAR). Shorter than four characters is no key. Pure."""
+    key = "".join(t for t in re.split(r"[^A-Z0-9]+", str(name or "").upper()) if t and t not in CORP_WORDS)
+    return key if len(key) >= 4 else ""
+
+
+def name_keys(issuer, cls_text, kind, fund_name=False):
+    """The name keys one line may be matched by when its security turns up under another CUSIP. A fund is never
+    matched by name (a trust's products share one issuer text). A typed non-fund security is matched by its name key;
+    any non-fund line - typed or not - by name key + the filer's class text, so an untyped line needs the same class
+    text on both sides before it is called the same security. Pure."""
+    nk = name_key(issuer)
+    if not nk or kind == "fund" or fund_name:
+        return []
+    out = [("nc", nk + "|" + " ".join(str(cls_text or "").upper().split()))]
+    if kind in ("stock", "other", "debt"):
+        out.append(("n", nk))
+    return out
+
+
 def id_type(identifier):
     """13F identifiers: a CUSIP (digit-led) or a CINS (letter-led, foreign issuers: Chubb H1467J104, Linde G54950103). Pure."""
     return "ID_CINS" if str(identifier)[:1].isalpha() else "ID_CUSIP"
@@ -487,8 +514,9 @@ def tearsheet(sp, classer=None):
     the current table. `est_usd` is units added or removed at this filing's own reported price (a new line: its
     reported value; an absent line: its last reported value) - the convention the sector layer uses; an estimate at
     reported prices, never an execution. A new line whose security also sits among the absent lines (same CUSIP,
-    same resolved ticker, or the same non-fund issuer) is flagged `reclass` and kept out of the notable picks and
-    the estimates. Pure."""
+    same resolved ticker, or the same non-fund issuer name once corporate-form words are dropped) is one security
+    under a new CUSIP or class: both lines leave the new / absent lists for `reclassified` (paired, quantities and
+    values shown as reported, no claim made) and stay out of the notable picks and the estimates. Pure."""
     classer = classer or Classer({}, {})
     comp = sp["comp"]
     cur = {**sp["eq"], **sp["debt"], **sp["opt"]}
@@ -499,13 +527,14 @@ def tearsheet(sp, classer=None):
 
     total = sum((val(v) for v in cur.values()), Decimal(0))
     total_prior = sum((val(v) for v in pri.values()), Decimal(0))
-    sector_of = {}
+    sector_of, class_of = {}, {}
 
     def base(pid, pos):
         ident = pos.get("identity") or {}
         c = classer.of(ident)
         pc = str(ident.get("put_call") or "").upper() or None
         r = {"id": pid[:12], "issuer": (pos.get("issuer_names") or [""])[0], "ticker": c["ticker"], "kind": c["kind"], "sub": c["sub"], "cusip": ident.get("cusip")}
+        class_of[r["id"]] = (ident.get("class"), "stock" if (pc and c.get("security_type") and not is_fund_type(c.get("security_type"), "")) else c["kind"])
         if pc:
             r["pc"] = pc
         if not c["ticker"] and ident.get("class"):
@@ -555,28 +584,46 @@ def tearsheet(sp, classer=None):
             continue
         r = base(pid, pos)
         v0 = val(pos)
-        r.update({"value_prior_usd": f(v0), "pct_prior": share(v0, total_prior), "status": ST_ABSENT, "qty_change_pct": -100.0, "est_usd": f(v0)})
+        r.update({"value_prior_usd": f(v0), "qty_prior": f(dec(pos.get("reported_quantity"))), "pct_prior": share(v0, total_prior), "status": ST_ABSENT,
+                  "qty_change_pct": -100.0, "est_usd": f(v0)})
         closed_rows.append(r)
         counts["option" if r.get("pc") else "non_option"]["closed"] += 1
 
-    # the same security on both sides of the table (a CUSIP or class change, a spin-off, a conversion): not new money, not an exit
+    # the same security on both sides of the table (a CUSIP or class change, a redomiciliation, a conversion): not new money, not an exit
     def keys(r):
         pc = r.get("pc") or ""
-        out = [("c", pc, r.get("cusip"))] if r.get("cusip") else []
+        out = [("c", pc, r["cusip"])] if r.get("cusip") else []
         if r.get("ticker"):
             out.append(("t", pc, r["ticker"]))
-        elif r["kind"] != "fund" and issuer_key(r["issuer"]):
-            out.append(("i", pc, issuer_key(r["issuer"])))
+        cls_text, kind = class_of.get(r["id"], (None, r["kind"]))
+        out.extend((tag, pc, key) for tag, key in name_keys(r["issuer"], cls_text, kind, bool(r.get("name"))))   # an option row is typed by its underlying
         return out
 
-    closed_keys = {k for r in closed_rows for k in keys(r)}
-    new_keys = {k for r in new_rows for k in keys(r)}
-    for r in new_rows:
-        if any(k in closed_keys for k in keys(r)):
-            r["reclass"] = True
+    waiting = {}
     for r in closed_rows:
-        if any(k in new_keys for k in keys(r)):
-            r["reclass"] = True
+        for k in keys(r):
+            waiting.setdefault(k, []).append(r)
+    reclassified, paired = [], set()
+    for r in sorted(new_rows, key=lambda r: (-(r["value_usd"] or 0), r["id"])):
+        twin = next((x for k in keys(r) for x in waiting.get(k, []) if x["id"] not in paired), None)
+        if twin is None:
+            continue
+        paired.add(twin["id"])
+        r["reclass"] = twin["reclass"] = True
+        q0 = dec(twin.get("qty_prior"))
+        row = {k: r.get(k) for k in ("id", "issuer", "ticker", "kind", "sub", "pc", "name", "cusip", "value_usd", "qty", "pct") if r.get(k) is not None}
+        row.update({"from_issuer": twin["issuer"], "from_cusip": twin.get("cusip"), "value_prior_usd": twin["value_prior_usd"], "qty_prior": twin.get("qty_prior"),
+                    "qty_change_pct": f(round(100 * (dec(r["qty"]) - q0) / q0, 1)) if q0 else None})
+        reclassified.append(row)
+    for r in new_rows + closed_rows:
+        if r.get("reclass"):
+            g = "option" if r.get("pc") else "non_option"
+            counts[g]["new" if r["status"] == ST_NEW else "closed"] -= 1
+            counts[g]["reclassified" if r["status"] == ST_NEW else "reclassified_prior"] += 1
+    new_rows = [r for r in new_rows if not r.get("reclass")]
+    closed_rows = [r for r in closed_rows if not r.get("reclass")]
+    for r in closed_rows:
+        r.pop("qty_prior", None)
 
     def est(r):
         return r.get("est_usd") or 0.0
@@ -631,7 +678,7 @@ def tearsheet(sp, classer=None):
     opt = sp["opt"]
     puts = sum((val(v) for v in opt.values() if str((v.get("identity") or {}).get("put_call") or "").upper() == "PUT"), Decimal(0))
     calls = sum((val(v) for v in opt.values() if str((v.get("identity") or {}).get("put_call") or "").upper() == "CALL"), Decimal(0))
-    tot = {k: sum(counts[g][k] for g in groups) for k in ("new", "increased", "reduced", "closed", "unchanged", "not_compared")}
+    tot = {k: sum(counts[g][k] for g in groups) for k in ("new", "increased", "reduced", "closed", "unchanged", "not_compared", "reclassified", "reclassified_prior")}
     return {
         "value_usd": f(total), "value_prior_usd": f(total_prior), "value_change_pct": pct(total, total_prior),
         "n_lines": len(cur), "n_lines_prior": len(pri), "top10_pct": share(top_value, total, 1),
@@ -642,10 +689,11 @@ def tearsheet(sp, classer=None):
                     "put_share_pct": share(puts, total, 1), "call_share_pct": share(calls, total, 1)},
         "est": {"in_usd": flow(new_rows + up_rows, False), "out_usd": flow(closed_rows + down_rows, False),
                 "option_in_usd": flow(new_rows + up_rows, True), "option_out_usd": flow(closed_rows + down_rows, True),
-                "reclass_lines": sum(1 for r in new_rows + closed_rows if r.get("reclass"))},
+                "reclassified_usd": round(sum((r.get("value_usd") or 0.0) for r in reclassified), 0)},
         "lines": top,
         "largest_stock": rows[stock_top[0][0]] if stock_top else None,
         "initiations": listing(new_rows), "increases": listing(up_rows), "reductions": listing(down_rows), "terminations": listing(closed_rows),
+        "reclassified": {"n": len(reclassified), "rows": reclassified[:TEAR_ROWS]},
         "notable": {"add": ({"how": how.get(add["status"]), **add} if add else None), "cut": ({"how": how.get(cut["status"]), **cut} if cut else None)},
         "industries": {"added": side_rows(1), "cut": side_rows(-1)},
     }
@@ -796,10 +844,16 @@ def aggregate(members, classer):
     absent_issuers = {issuer_key(a["issuer"]) for a in agg.values() if a["absent"]}
     new_cusips = {a["cusip"] for a in agg.values() if a["new"]}
     new_issuers = {issuer_key(a["issuer"]) for a in agg.values() if a["new"]}
+    # 1.4.0: a company re-registered under a new name and CUSIP (EXXON MOBIL CORP -> EXXONMOBIL HOLDINGS CORP) keeps its name key
+    def nks(a):
+        return set(name_keys(a["issuer"], a["class"], a["cls"].get("kind")))
+
+    absent_names = {k for a in agg.values() if a["absent"] and not a["holders"] for k in nks(a)}
+    new_names = {k for a in agg.values() if a["new"] and not a["prior_holders"] for k in nks(a)}
     for a in agg.values():
         ik = issuer_key(a["issuer"])
-        reclass = bool(a["new"]) and (a["cusip"] in absent_cusips or ik in absent_issuers) and not a["absent"]
-        reclass_abs = bool(a["absent"]) and not a["holders"] and (a["cusip"] in new_cusips or ik in new_issuers)
+        reclass = bool(a["new"]) and (a["cusip"] in absent_cusips or ik in absent_issuers or (not a["prior_holders"] and bool(nks(a) & absent_names))) and not a["absent"]
+        reclass_abs = bool(a["absent"]) and not a["holders"] and (a["cusip"] in new_cusips or ik in new_issuers or bool(nks(a) & new_names))
         a["reclass_candidate"] = reclass or reclass_abs
         a["no_current_holder"] = bool(a["absent"]) and not a["holders"]
     return agg
@@ -1705,7 +1759,7 @@ def build(s3, now, log=print, remaining_s=300.0, master_enabled=True):
             "tearsheet": "one manager's whole information table: shares, notes at principal and option rows at the underlying's reported value ranked together; a line is one identity (CUSIP + class + SH/PRN + put/call)",
             "tearsheet.est_usd": "a new line: its reported value; units added or removed: at this filing's own reported price; an absent line: its last reported value - an estimate at reported prices, never an execution",
             "tearsheet.multiple": "reported quantity now / reported quantity at the prior period (shown as 10x when a line grew at least two-fold)",
-            "tearsheet.reclass": "a newly present line whose security also sits among the absent lines (same CUSIP, same resolved ticker, or the same non-fund issuer): kept out of the notable picks and the estimates",
+            "tearsheet.reclassified": "a newly present line whose security also sits among the absent lines (same CUSIP, same resolved ticker, or the same non-fund issuer name without its corporate-form words): one security under a new CUSIP or class - listed apart, never counted as new or closed, never in the notable picks or the estimates",
             "tearsheet.source.reconciles": "the lines add up to the value the current filing's cover page reports (within one millionth)",
             "BALANCED": "a class whose net manager-identity pairs are within +/-%d%% of all its pairs" % int(TILT_PCT),
         },

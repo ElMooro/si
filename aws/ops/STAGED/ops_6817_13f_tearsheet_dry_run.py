@@ -34,7 +34,7 @@ class ReadOnly:
     """The engine's S3 client with every write intercepted: reads pass through, puts are counted and dropped."""
 
     def __init__(self, s3):
-        self._s3, self.puts = s3, []
+        self._s3, self.puts, self.bodies = s3, [], {}
 
     def get_object(self, **kw):
         return self._s3.get_object(**kw)
@@ -47,6 +47,7 @@ class ReadOnly:
 
     def put_object(self, **kw):
         self.puts.append((kw.get("Key"), len(kw.get("Body") or b"")))
+        self.bodies[kw.get("Key")] = kw.get("Body")
         return {}
 
 
@@ -122,12 +123,16 @@ def main():
             t = x["tearsheet"]
             c, o, src, e = t["counts"], t["options"], t.get("source") or {}, t["est"]
             cur, pri = src.get("current") or {}, src.get("prior") or {}
-            r.log("**%s** %s vs %s %s %s | 13F value %s (prior %s, %s%%) | lines %d (prior %d) | top-10 %s%% | new %d / increased %d | reduced %d / closed %d | unchanged %d | not compared %d" % (
+            r.log("**%s** %s vs %s %s %s | 13F value %s (prior %s, %s%%) | lines %d (prior %d) | top-10 %s%% | new %d / increased %d | reduced %d / closed %d | unchanged %d | not compared %d | reclassified %d (prior side %d)" % (
                 fk, x["current_period"], x["prior_period"], x["status"], ",".join(x["flags"]), money(t["value_usd"]), money(t["value_prior_usd"]), t["value_change_pct"], t["n_lines"], t["n_lines_prior"],
-                t["top10_pct"], c["new"], c["increased"], c["reduced"], c["closed"], c["unchanged"], c["not_compared"]))
+                t["top10_pct"], c["new"], c["increased"], c["reduced"], c["closed"], c["unchanged"], c["not_compared"], c["reclassified"], c["reclassified_prior"]))
+            rcl = t["reclassified"]
+            if rcl["n"]:
+                r.log("    reclassified %d (%s): %s" % (rcl["n"], money(e["reclassified_usd"]), " · ".join("%s [%s %s -> %s %s] qty %s -> %s (%s%%)" % (
+                    name(z), (z.get("from_issuer") or "")[:22], z.get("from_cusip"), (z.get("issuer") or "")[:22], z.get("cusip"), z.get("qty_prior"), z.get("qty"), z.get("qty_change_pct")) for z in rcl["rows"][:8])))
             r.log("    options %d lines (%d calls / %d puts) = %s%% of value (calls %s%% puts %s%%) | equity value %s | est in %s out %s (options in %s out %s) reclass lines %d | cover %s rows %s reconciles %s gap %s | %s filed %s vs %s filed %s" % (
                 o["n_lines"], o["n_calls"], o["n_puts"], o["share_pct"], o["call_share_pct"], o["put_share_pct"], money(x["total_value_usd"]), money(e["in_usd"]), money(e["out_usd"]), money(e["option_in_usd"]),
-                money(e["option_out_usd"]), e["reclass_lines"], money(src.get("cover_value_sum")), cur.get("reported_rows"), src.get("reconciles"), src.get("cover_gap_usd"), cur.get("form"), cur.get("filed_at"), pri.get("form"), pri.get("filed_at")))
+                money(e["option_out_usd"]), c["reclassified"], money(src.get("cover_value_sum")), cur.get("reported_rows"), src.get("reconciles"), src.get("cover_gap_usd"), cur.get("form"), cur.get("filed_at"), pri.get("form"), pri.get("filed_at")))
             add, cut, big = t["notable"]["add"], t["notable"]["cut"], t["largest_stock"]
             r.log("    notable add: %s %s %s est %s | notable cut: %s %s %s est %s | largest stock: %s %s %s%% %s" % (
                 (add or {}).get("how"), name(add), tag(add) if add else "", money((add or {}).get("est_usd")), (cut or {}).get("how"), name(cut), tag(cut) if cut else "", money((cut or {}).get("est_usd")),
@@ -142,8 +147,12 @@ def main():
                 "; ".join("%s %s (%s)" % (a["industry"], money(a["net_usd"]), ", ".join(n["label"] for n in a["names"][:4])) for a in ind["added"]) or "-",
                 "; ".join("%s %s (%s)" % (a["industry"], money(a["net_usd"]), ", ".join(n["label"] for n in a["names"][:4])) for a in ind["cut"]) or "-"))
             # invariants the page relies on
-            if c["new"] + c["increased"] + c["reduced"] + c["unchanged"] + c["not_compared"] != t["n_lines"]:
+            if c["new"] + c["increased"] + c["reduced"] + c["unchanged"] + c["not_compared"] + c["reclassified"] != t["n_lines"]:
                 bad.append("%s: change classes do not add up to the line count" % fk)
+            if c["closed"] + c["reclassified_prior"] + c["increased"] + c["reduced"] + c["unchanged"] != t["n_lines_prior"] and not c["not_compared"]:
+                bad.append("%s: change classes do not add up to the prior line count" % fk)
+            if rcl["n"] != c["reclassified"] or any(z.get("reclass") for lab in ("initiations", "terminations") for z in t[lab]["rows"]):
+                bad.append("%s: a reclassified line is still listed as new or closed" % fk)
             if [z["value_usd"] for z in t["lines"]] != sorted((z["value_usd"] for z in t["lines"]), reverse=True):
                 bad.append("%s: top lines not ranked by value" % fk)
             if not o["n_lines"] and not x["n_debt_rows"] and abs((t["value_usd"] or 0) - (x["total_value_usd"] or 0)) > 0.5:
@@ -164,7 +173,50 @@ def main():
         for z in [z for x in m.values() for lab in ("initiations", "increases", "reductions", "terminations") for z in x["tearsheet"][lab]["rows"] if not z.get("ticker")][:20]:
             r.log("    no ticker: %s | %s | %s | %s | %s" % (z.get("issuer"), z.get("class"), z.get("cusip"), z.get("kind"), z.get("pc")))
 
-        r.section("3. the dry-run book (gzip + base64, for offline page work)")
+        r.section("3. the cohort aggregate: what the name key changes (the same build with the name key switched off, compared)")
+        new_tickers = json.loads(ro.bodies.get("data/13f-tickers.json") or b"{}").get("by_ticker") or {}
+        keep = lf.name_keys
+        lf.name_keys = lambda *a, **k: []
+        ro_old = ReadOnly(s3)
+        old = lf.build(ro_old, datetime.now(timezone.utc), log=lambda *a: None, remaining_s=300.0, master_enabled=False)
+        lf.name_keys = keep
+        old_tickers = json.loads(ro_old.bodies.get("data/13f-tickers.json") or b"{}").get("by_ticker") or {}
+        cols = json.loads(ro.bodies.get("data/13f-tickers.json") or b"{}").get("columns") or []
+        gone = sorted(set(old_tickers) - set(new_tickers), key=lambda t: -(old_tickers[t][3] or 0))
+        came = sorted(set(new_tickers) - set(old_tickers))
+        changed = [t for t in new_tickers if t in old_tickers and new_tickers[t] != old_tickers[t]]
+        r.log("ticker table: %d tickers before, %d after | leave (now reclass candidates) %d | appear %d | rows changed %d | columns %s" % (len(old_tickers), len(new_tickers), len(gone), len(came), len(changed), json.dumps(cols[:9])))
+        for t in gone[:60]:
+            row = old_tickers[t]
+            r.log("    leaves: %-7s holders %s prior %s delta %s value %s prior %s inflow %s outflow %s stance %s | %s / %s" % (t, row[0], row[1], row[2], money(row[3]), money(row[4]), money(row[5]), money(row[6]), row[10], row[13], row[14]))
+        ob, nb = old["book"], out["book"]
+        for scope in ("cohort", "concentrated"):
+            os_, ns_ = {x["name"]: x for x in (ob["sectors"][scope].get("sectors") or [])}, {x["name"]: x for x in (nb["sectors"][scope].get("sectors") or [])}
+            for nm in sorted(ns_):
+                a, b2 = os_.get(nm) or {}, ns_[nm]
+                if (a.get("inflow_usd"), a.get("outflow_usd"), a.get("stance"), a.get("money_stance")) != (b2.get("inflow_usd"), b2.get("outflow_usd"), b2.get("stance"), b2.get("money_stance")):
+                    r.log("    sector %s / %s: inflow %s -> %s | outflow %s -> %s | net %s -> %s | stance %s -> %s | money %s -> %s" % (
+                        scope, nm, money(a.get("inflow_usd")), money(b2.get("inflow_usd")), money(a.get("outflow_usd")), money(b2.get("outflow_usd")), money(a.get("net_usd")), money(b2.get("net_usd")),
+                        a.get("stance"), b2.get("stance"), a.get("money_stance"), b2.get("money_stance")))
+            for univ in ("all",):
+                for lab in ("bullish", "bearish", "contested"):
+                    o_ids = {(z.get("ticker"), z.get("issuer")) for z in (ob["stance"][scope][univ].get(lab) or [])}
+                    n_ids = {(z.get("ticker"), z.get("issuer")) for z in (nb["stance"][scope][univ].get(lab) or [])}
+                    if o_ids != n_ids:
+                        r.log("    stance %s / %s / %s: leaves %s | enters %s" % (scope, univ, lab, sorted(map(str, o_ids - n_ids)), sorted(map(str, n_ids - o_ids))))
+                for lab in ("rising", "fading"):
+                    o_ids = {(z.get("ticker"), z.get("issuer")) for z in (ob["contenders"][scope][univ].get(lab) or [])}
+                    n_ids = {(z.get("ticker"), z.get("issuer")) for z in (nb["contenders"][scope][univ].get(lab) or [])}
+                    if o_ids != n_ids:
+                        r.log("    contenders %s / %s / %s: leaves %s | enters %s" % (scope, univ, lab, sorted(map(str, o_ids - n_ids)), sorted(map(str, n_ids - o_ids))))
+        try:
+            mrows = json.loads(s3.get_object(Bucket=LIVE, Key="data/13f-security-master.json")["Body"].read()).get("by_cusip") or {}
+            for cu in ("30231G102", "30233Q108"):
+                r.log("    master %s: %s" % (cu, json.dumps({k: v for k, v in (mrows.get(cu) or {}).items() if k in ("status", "ticker", "name", "source", "query", "checked_at", "security_type", "type_agreed", "reason")})))
+        except Exception as exc:  # noqa: BLE001
+            r.warn("master read failed: %s" % type(exc).__name__)
+
+        r.section("4. the dry-run book (gzip + base64, for offline page work)")
         blob = base64.b64encode(gzip.compress(body, 9)).decode("ascii")
         r.log("blob %d chars" % len(blob))
         r.lines.append("<!-- BOOK-GZ-B64-BEGIN")

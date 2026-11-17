@@ -260,9 +260,10 @@ def test_tearsheet_ranks_the_whole_table_options_beside_stock():
     assert set(sp["opt_prior"]) == set() and len(sp["opt"]) == 1
     # every line: 10 share lines + the note at principal + the Apple put = 12 now, 6 at the prior period
     assert t["n_lines"] == 12 and t["n_lines_prior"] == 6 and t["value_usd"] == 987880.0 and t["value_prior_usd"] == 966950.0 and t["value_change_pct"] == 2.2
-    assert t["counts"] == {"new": 8, "increased": 1, "reduced": 1, "closed": 2, "unchanged": 2, "not_compared": 0}
-    assert t["counts_by_kind"]["option"] == {"new": 1, "increased": 0, "reduced": 0, "closed": 0, "unchanged": 0, "not_compared": 0} and t["counts_by_kind"]["non_option"]["new"] == 7
-    assert sum(t["counts"][k] for k in ("new", "increased", "reduced", "unchanged", "not_compared")) == t["n_lines"]
+    assert t["counts"] == {"new": 7, "increased": 1, "reduced": 1, "closed": 1, "unchanged": 2, "not_compared": 0, "reclassified": 1, "reclassified_prior": 1}
+    assert t["counts_by_kind"]["option"] == {"new": 1, "increased": 0, "reduced": 0, "closed": 0, "unchanged": 0, "not_compared": 0, "reclassified": 0, "reclassified_prior": 0} and t["counts_by_kind"]["non_option"]["new"] == 6
+    assert sum(t["counts"][k] for k in ("new", "increased", "reduced", "unchanged", "not_compared", "reclassified")) == t["n_lines"]
+    assert t["counts"]["closed"] + t["counts"]["reclassified_prior"] + t["counts"]["increased"] + t["counts"]["reduced"] + t["counts"]["unchanged"] == t["n_lines_prior"]
     # the ranking mixes the note, the shares and the option row, by the filing's own value column
     assert [(r["issuer"], r.get("pc"), r["value_usd"]) for r in t["lines"]][:3] == [("AT&T INC NOTES 4.3%", None, 950000.0), ("APPLE INC", None, 20000.0), ("ALPHABET INC", None, 9000.0)]
     put = next(r for r in t["lines"] if r.get("pc"))
@@ -272,19 +273,23 @@ def test_tearsheet_ranks_the_whole_table_options_beside_stock():
     assert t["options"] == {"n_lines": 1, "n_puts": 1, "n_calls": 0, "put_value_usd": 700.0, "call_value_usd": 0.0, "share_pct": 0.1, "put_share_pct": 0.1, "call_share_pct": 0.0}
     # the four lists: new lines by reported value; more / fewer units by the estimate at this filing's reported price; absent by last reported value
     ini, inc, red, ter = t["initiations"], t["increases"], t["reductions"], t["terminations"]
-    assert ini["n"] == 8 and [r["issuer"] for r in ini["rows"]][:4] == ["SPDR S&P 500 ETF TR", "APPLE INC", "HONEYWELL INTL INC", "ISHARES BITCOIN TR ETF"] and ini["rows"][1]["pc"] == "PUT"
-    assert ini["rows"][0]["est_usd"] == 5000.0 and ini["rows"][0]["pct"] == 0.51 and ini["est_usd"] == 6880.0 and ini["others"] == [] and ini["n_more"] == 0
+    assert ini["n"] == 7 and [r["issuer"] for r in ini["rows"]][:4] == ["SPDR S&P 500 ETF TR", "APPLE INC", "ISHARES BITCOIN TR ETF", "UNKNOWN PRIVATE CO"] and ini["rows"][1]["pc"] == "PUT"
+    assert ini["rows"][0]["est_usd"] == 5000.0 and ini["rows"][0]["pct"] == 0.51 and ini["est_usd"] == 6380.0 and ini["others"] == [] and ini["n_more"] == 0
     g = inc["rows"][0]
     assert inc["n"] == 1 and g["issuer"] == "ALPHABET INC" and g["value_prior_usd"] == 7000.0 and g["value_usd"] == 9000.0 and g["qty_change_pct"] == 20.0 and g["multiple"] == 1.2 and g["est_usd"] == 1500.0   # 20 units x $75
     d = red["rows"][0]
     assert red["n"] == 1 and d["issuer"] == "SPDR GOLD TR" and d["value_prior_usd"] == 3600.0 and d["value_usd"] == 2000.0 and d["qty_change_pct"] == -50.0 and "multiple" not in d and d["est_usd"] == 2000.0   # 10 units x $200
-    assert ter["n"] == 2 and [(r["issuer"], r["value_prior_usd"], r["qty_change_pct"]) for r in ter["rows"]] == [("APELLIS PHARMACEUTICALS INC", 900.0, -100.0), ("HONEYWELL INTL INC", 450.0, -100.0)]
-    assert ter["rows"][0]["pct_prior"] == 0.09 and "value_usd" not in ter["rows"][0]
-    # Honeywell under a new CUSIP is the same issuer on both sides: flagged, never the notable pick, never in the estimates
-    assert ini["rows"][2].get("reclass") is True and ter["rows"][1].get("reclass") is True and not ter["rows"][0].get("reclass") and t["est"]["reclass_lines"] == 2
+    assert ter["n"] == 1 and [(r["issuer"], r["value_prior_usd"], r["qty_change_pct"]) for r in ter["rows"]] == [("APELLIS PHARMACEUTICALS INC", 900.0, -100.0)]
+    assert ter["rows"][0]["pct_prior"] == 0.09 and "value_usd" not in ter["rows"][0] and "qty_prior" not in ter["rows"][0]
+    # Honeywell under a new CUSIP is one security on both sides of the table: listed apart as reclassified, never new, never closed,
+    # never the notable pick, never in the estimates
+    rc = t["reclassified"]
+    assert rc["n"] == 1 and rc["rows"] == [{"id": "h2", "issuer": "HONEYWELL INTL INC", "kind": "unmapped", "sub": "pending", "cusip": "438516205", "value_usd": 500.0, "qty": 10.0, "pct": 0.05,
+                                            "from_issuer": "HONEYWELL INTL INC", "from_cusip": "438516106", "value_prior_usd": 450.0, "qty_prior": 10.0, "qty_change_pct": 0.0}]
+    assert not any(r.get("reclass") for r in ini["rows"] + ter["rows"]) and not any("HONEYWELL" in r["issuer"] for r in ini["rows"] + ter["rows"])
     assert t["notable"]["add"]["how"] == "initiation" and t["notable"]["add"]["issuer"] == "SPDR S&P 500 ETF TR" and t["notable"]["add"]["est_usd"] == 5000.0
     assert t["notable"]["cut"]["how"] == "reduction" and t["notable"]["cut"]["issuer"] == "SPDR GOLD TR" and t["notable"]["cut"]["est_usd"] == 2000.0
-    assert t["est"] == {"in_usd": 7180.0, "out_usd": 2900.0, "option_in_usd": 700.0, "option_out_usd": 0.0, "reclass_lines": 2}   # 5000+400+100+70+60+50 new + 1500 added | 900 absent + 2000 removed
+    assert t["est"] == {"in_usd": 7180.0, "out_usd": 2900.0, "option_in_usd": 700.0, "option_out_usd": 0.0, "reclassified_usd": 500.0}   # 5000+400+100+70+60+50 new + 1500 added | 900 absent + 2000 removed
     assert t["industries"] == {"added": [], "cut": []}   # no master, no profile: nothing is sectored
     assert t["lines"][0].get("class") == "NOTE 4.300%" and "source" not in t   # the class text stands in for a ticker; the filings are attached by build()
 
@@ -302,14 +307,43 @@ def test_tearsheet_lists_fold_the_tail_into_the_others():
     assert ini["others"][0] == {"label": "ISSUER %03d CORP" % (lf.TEAR_ROWS - 1), "usd": 1000.0 * (n - lf.TEAR_ROWS + 1)}
     assert ini["est_usd"] == sum(r["est_usd"] for r in ini["rows"]) + ini["others_usd"] and ter["n"] == n and ter["n_more"] == 3
     assert t["counts"]["new"] == n + 1 and t["counts"]["closed"] == n and t["counts_by_kind"]["option"]["new"] == 1 and len(t["lines"]) == lf.TEAR_TOP
-    assert not any(r.get("reclass") for r in ini["rows"] + ter["rows"])   # different issuers, different CUSIPs
+    assert t["reclassified"] == {"n": 0, "rows": []}   # different issuers, different CUSIPs: nothing is paired
     assert t["notable"]["add"]["pc"] == "CALL" and t["notable"]["cut"]["issuer"] == "GONE 000 CORP" and t["largest_stock"]["issuer"] == "ISSUER 000 CORP"
     # a dated book with no prior table: nothing is compared, nothing is invented
     t0 = lf.tearsheet(lf.split_positions(artifact({"m": pos("594918104", "MICROSOFT CORP", 10, 5000)}, {}, [{"position_id": "m", "status": "comparison_unavailable"}])))
-    assert t0["counts"] == {"new": 0, "increased": 0, "reduced": 0, "closed": 0, "unchanged": 0, "not_compared": 1} and t0["value_prior_usd"] == 0.0 and t0["value_change_pct"] is None
+    assert t0["counts"] == {"new": 0, "increased": 0, "reduced": 0, "closed": 0, "unchanged": 0, "not_compared": 1, "reclassified": 0, "reclassified_prior": 0} and t0["value_prior_usd"] == 0.0 and t0["value_change_pct"] is None
     assert t0["notable"] == {"add": None, "cut": None} and t0["initiations"]["rows"] == [] and t0["lines"][0]["pct"] == 100.0
     empty = lf.tearsheet(lf.split_positions(artifact({}, {}, [])))
     assert empty["n_lines"] == 0 and empty["lines"] == [] and empty["largest_stock"] is None and empty["top10_pct"] is None and empty["options"]["share_pct"] is None
+
+
+def test_name_key_and_a_redomiciled_issuer_is_one_security():
+    assert lf.name_key("EXXON MOBIL CORP") == lf.name_key("EXXONMOBIL HOLDINGS CORP") == "EXXONMOBIL"
+    assert lf.name_key("UNITED STATES STL CORP NEW") != lf.name_key("UNITED STATES CELLULAR CORP") and lf.name_key("ALPHABET INC") == "ALPHABET"
+    assert lf.name_key("THE CO") == "" and lf.name_key(None) == "" and lf.name_key("AT&T INC") == ""   # too short to be a key: never matched by name
+    assert lf.name_keys("EXXON MOBIL CORP", "COM", "stock") == [("nc", "EXXONMOBIL|COM"), ("n", "EXXONMOBIL")] and lf.name_keys("ISHARES TR", "CORE S&P500 ETF", "fund") == []
+    assert lf.name_keys("UNKNOWN PRIVATE CO", "com  new", "unmapped") == [("nc", "UNKNOWNPRIVATE|COM NEW")] and lf.name_keys("SELECT SECTOR SPDR TR", "X", "option", fund_name=True) == []
+    # one manager: Exxon under its old CUSIP is absent, under its new CUSIP is present with more shares; its put row moved the same way
+    cur = {"xn": pos("30233Q108", "EXXONMOBIL HOLDINGS CORP", 120, 14400), "xp": pos("30233Q108", "EXXONMOBIL HOLDINGS CORP", 50, 6000, put_call="PUT"),
+           "spy": pos("78462F103", "SPDR S&P 500 ETF TR", 10, 5000, "TR UNIT"), "ivv": pos("464287200", "ISHARES TR", 5, 3000, "CORE S&P500 ETF")}
+    pri = {"xo": pos("30231G102", "EXXON MOBIL CORP", 100, 11000), "xq": pos("30231G102", "EXXON MOBIL CORP", 50, 5500, put_call="PUT"),
+           "spy": pos("78462F103", "SPDR S&P 500 ETF TR", 10, 4800, "TR UNIT"), "iwm": pos("464287655", "ISHARES TR", 5, 1000, "RUSSELL 2000 ETF")}
+    rows = [{"position_id": "xn", "status": lf.ST_NEW}, {"position_id": "xp", "status": lf.ST_NEW}, {"position_id": "ivv", "status": lf.ST_NEW},
+            {"position_id": "xo", "status": lf.ST_ABSENT}, {"position_id": "xq", "status": lf.ST_ABSENT}, {"position_id": "iwm", "status": lf.ST_ABSENT},
+            {"position_id": "spy", "status": lf.ST_FLAT, "reported_quantity_change": "0", "reported_value_change_usd": "200"}]
+    t = lf.tearsheet(lf.split_positions(artifact(cur, pri, rows)))
+    assert t["counts"] == {"new": 1, "increased": 0, "reduced": 0, "closed": 1, "unchanged": 1, "not_compared": 0, "reclassified": 2, "reclassified_prior": 2}
+    rc = {(r["issuer"], r.get("pc")): r for r in t["reclassified"]["rows"]}
+    stock, put = rc[("EXXONMOBIL HOLDINGS CORP", None)], rc[("EXXONMOBIL HOLDINGS CORP", "PUT")]
+    assert stock["from_issuer"] == "EXXON MOBIL CORP" and stock["from_cusip"] == "30231G102" and stock["cusip"] == "30233Q108" and stock["qty_prior"] == 100.0 and stock["qty"] == 120.0 and stock["qty_change_pct"] == 20.0
+    assert put["value_prior_usd"] == 5500.0 and put["value_usd"] == 6000.0 and put["qty_change_pct"] == 0.0     # the put pairs with the put, never with the shares
+    # two different products of one trust are NOT one security: a new iShares fund and an absent iShares fund stay new and closed
+    assert [r["issuer"] for r in t["initiations"]["rows"]] == ["ISHARES TR"] and [r["issuer"] for r in t["terminations"]["rows"]] == ["ISHARES TR"]
+    assert t["notable"]["add"]["id"] == "ivv" and t["notable"]["cut"]["id"] == "iwm" and t["est"] == {"in_usd": 3000.0, "out_usd": 1000.0, "option_in_usd": 0.0, "option_out_usd": 0.0, "reclassified_usd": 20400.0}
+    # the cohort aggregate: the new identity and the absent one are reclass candidates - no votes, no flows, no "new to cohort"
+    agg = lf.aggregate([lf.member("A", lf.split_positions(artifact(cur, pri, rows)))], lf.Classer({}, {}))
+    assert agg["xn"]["reclass_candidate"] is True and agg["xo"]["reclass_candidate"] is True and agg["xo"]["no_current_holder"] is True
+    assert agg["spy"]["reclass_candidate"] is False
 
 
 def test_tearsheet_source_picks_the_effective_tables_and_reconciles():
@@ -477,9 +511,9 @@ def test_build_boards_rotation_stance_contenders_snapshot():
     put = next(r for r in te["lines"] if r.get("pc"))
     assert put["ticker"] == "AAPL" and put["kind"] == "option" and "class" not in put and "industry" not in put
     assert te["initiations"]["rows"][0]["ticker"] == "SPY" and te["initiations"]["rows"][0]["name"] == "SPDR S&P 500 ETF TRUST" and te["initiations"]["rows"][0]["sub"] == "equity"
-    hon_new = next(r for r in te["initiations"]["rows"] if r["ticker"] == "HON")
-    hon_old = next(r for r in te["terminations"]["rows"] if r["ticker"] == "HON")
-    assert hon_new["reclass"] is True and hon_old["reclass"] is True and hon_new["cusip"] != hon_old["cusip"]   # one ticker, two CUSIPs: a reclassification, not an exit and a purchase
+    hon = te["reclassified"]["rows"][0]
+    assert te["reclassified"]["n"] == 1 and hon["ticker"] == "HON" and hon["cusip"] == "438516205" and hon["from_cusip"] == "438516106" and hon["qty_change_pct"] == 0.0   # one ticker, two CUSIPs: a reclassification, not an exit and a purchase
+    assert "HON" not in {r["ticker"] for r in te["initiations"]["rows"] + te["terminations"]["rows"]} and te["counts"]["reclassified"] == 1 and te["counts"]["new"] == 7
     assert te["notable"]["add"]["ticker"] == "SPY" and te["notable"]["cut"]["ticker"] == "GLD" and te["largest_stock"]["ticker"] == "AAPL" and te["largest_stock"]["industry"] == "Consumer Electronics"
     assert [(a["industry"], a["sector"], a["net_usd"], a["n_names"], a["names"]) for a in te["industries"]["added"]] == [
         ("Internet Content & Information", "Communication Services", 1500.0, 1, [{"label": "GOOGL", "how": "increase", "qty_change_pct": 20.0, "usd": 1500.0}]),
@@ -487,9 +521,9 @@ def test_build_boards_rotation_stance_contenders_snapshot():
     assert [(a["industry"], a["net_usd"], a["names"]) for a in te["industries"]["cut"]] == [("Biotechnology", -900.0, [{"label": "APLS", "how": "termination", "qty_change_pct": -100.0, "usd": 900.0}])]
     assert te["source"]["current"] == {"accession": "0001-26-000915", "form": "13F-HR", "period_of_report": "2026-06-30", "filed_at": "2026-08-14", "amendment_type": None, "reported_rows": 12, "reported_value_sum": None}
     assert te["source"]["prior"] is None and te["source"]["reconciles"] is None   # this fixture's cover carries no value sum: nothing is claimed
-    assert m["PERSHING"]["tearsheet"]["counts"]["not_compared"] == 1 and m["BERKSHIRE"]["tearsheet"]["counts"] == {"new": 2, "increased": 1, "reduced": 2, "closed": 2, "unchanged": 0, "not_compared": 0}
+    assert m["PERSHING"]["tearsheet"]["counts"]["not_compared"] == 1 and m["BERKSHIRE"]["tearsheet"]["counts"] == {"new": 2, "increased": 1, "reduced": 2, "closed": 2, "unchanged": 0, "not_compared": 0, "reclassified": 0, "reclassified_prior": 0}
     assert m["BERKSHIRE"]["tearsheet"]["value_usd"] == m["BERKSHIRE"]["total_value_usd"] and m["BERKSHIRE"]["tearsheet"]["options"]["n_lines"] == 0   # no option rows, no notes: the tearsheet's value is the equity value
-    assert "tearsheet" in b["glossary"] and "tearsheet.est_usd" in b["glossary"]
+    assert "tearsheet" in b["glossary"] and "tearsheet.est_usd" in b["glossary"] and "tearsheet.reclassified" in b["glossary"]
     # boards per universe
     cb = b["boards"]["cohort"]
     assert cb["all"]["n_identities"] == 14 and cb["stocks"]["widely_held"][0]["ticker"] in ("AAPL", "GOOGL") and all(r["kind"] == "stock" for r in cb["stocks"]["widely_held"])
