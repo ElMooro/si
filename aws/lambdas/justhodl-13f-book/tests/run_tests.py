@@ -323,6 +323,7 @@ def test_name_key_and_a_redomiciled_issuer_is_one_security():
     assert lf.name_key("THE CO") == "" and lf.name_key(None) == "" and lf.name_key("AT&T INC") == ""   # too short to be a key: never matched by name
     assert lf.name_keys("EXXON MOBIL CORP", "COM", "stock") == [("nc", "EXXONMOBIL|COM"), ("n", "EXXONMOBIL")] and lf.name_keys("ISHARES TR", "CORE S&P500 ETF", "fund") == []
     assert lf.name_keys("UNKNOWN PRIVATE CO", "com  new", "unmapped") == [("nc", "UNKNOWNPRIVATE|COM NEW")] and lf.name_keys("SELECT SECTOR SPDR TR", "X", "option", fund_name=True) == []
+    assert lf.name_keys("STRATEGY INC", "NOTE 0% 12/01/29", "debt") == []   # a note is never matched by its issuer's name
     # one manager: Exxon under its old CUSIP is absent, under its new CUSIP is present with more shares; its put row moved the same way
     cur = {"xn": pos("30233Q108", "EXXONMOBIL HOLDINGS CORP", 120, 14400), "xp": pos("30233Q108", "EXXONMOBIL HOLDINGS CORP", 50, 6000, put_call="PUT"),
            "spy": pos("78462F103", "SPDR S&P 500 ETF TR", 10, 5000, "TR UNIT"), "ivv": pos("464287200", "ISHARES TR", 5, 3000, "CORE S&P500 ETF")}
@@ -344,6 +345,30 @@ def test_name_key_and_a_redomiciled_issuer_is_one_security():
     agg = lf.aggregate([lf.member("A", lf.split_positions(artifact(cur, pri, rows)))], lf.Classer({}, {}))
     assert agg["xn"]["reclass_candidate"] is True and agg["xo"]["reclass_candidate"] is True and agg["xo"]["no_current_holder"] is True
     assert agg["spy"]["reclass_candidate"] is False
+
+
+def test_a_note_is_not_its_issuers_stock_and_two_tickers_are_two_securities():
+    master = {"594972408": {"status": "resolved", "ticker": "MSTR", "name": "STRATEGY INC", "security_type": "Common Stock", "market_sector": "Equity"},
+              "116794108": {"status": "resolved", "ticker": "BRKR", "name": "BRUKER CORP", "security_type": "Common Stock", "market_sector": "Equity"},
+              "116794207": {"status": "resolved", "ticker": "BRKR 6.375 09/01/28", "name": "BRUKER CORP", "security_type": "Preferred", "market_sector": "Pfd"},
+              "30233Q108": {"status": "resolved", "ticker": "XOM", "name": "EXXONMOBIL HOLDINGS CORP", "security_type": "Common Stock", "market_sector": "Equity"},
+              "30231G102": {"status": "ambiguous", "type_agreed": True, "name": "EXXON MOBIL CORP", "security_type": "Common Stock", "market_sector": "Equity"}}
+    cl = lf.Classer(master, {})
+    cur = {"mstr": pos("594972408", "STRATEGY INC", 600, 90000, "CL A NEW"), "bpf": pos("116794207", "BRUKER CORP", 50, 13000, "6.375 MAN CON A"),
+           "n2": pos("19260QAH0", "COINBASE GLOBAL INC", 313, 300, "NOTE 0.250%", qt="PRN"), "xn": pos("30233Q108", "EXXONMOBIL HOLDINGS CORP", 90, 10800)}
+    pri = {"note": pos("594972AS0", "STRATEGY INC", 3000, 2900, "NOTE 0% 12/01/29", qt="PRN"), "bc": pos("116794108", "BRUKER CORP", 250, 12000),
+           "n1": pos("19260QAF4", "COINBASE GLOBAL INC", 370, 350, "NOTE 0% 10/01/29", qt="PRN"), "xo": pos("30231G102", "EXXON MOBIL CORP", 100, 11000)}
+    rows = [{"position_id": k, "status": lf.ST_NEW} for k in cur] + [{"position_id": k, "status": lf.ST_ABSENT} for k in pri]
+    sp = lf.split_positions(artifact(cur, pri, rows))
+    t = lf.tearsheet(sp, cl)
+    # only Exxon is one security under a new CUSIP (the old CUSIP has no resolved ticker, the name key is the same)
+    assert [(r["ticker"], r["from_cusip"], r["qty_change_pct"]) for r in t["reclassified"]["rows"]] == [("XOM", "30231G102", -10.0)] and t["counts"]["reclassified"] == 1
+    assert {r["id"] for r in t["initiations"]["rows"]} == {"mstr", "bpf", "n2"} and {r["id"] for r in t["terminations"]["rows"]} == {"note", "bc", "n1"}
+    assert t["notable"]["add"]["id"] == "mstr" and t["notable"]["cut"]["id"] == "bc"
+    agg = lf.aggregate([lf.member("A", sp)], cl)
+    assert agg["xn"]["reclass_candidate"] is True and agg["xo"]["reclass_candidate"] is True
+    assert agg["bpf"]["reclass_candidate"] is True   # the cohort rule keeps its older first-two-words match (BRUKER CORP on both sides); only the name key is new, and it adds nothing here
+    assert lf.name_keys("BRUKER CORP", "COM", "stock") and not (set(lf.name_keys("STRATEGY INC", "CL A NEW", "stock")) & set(lf.name_keys("STRATEGY INC", "NOTE 0% 12/01/29", "debt")))
 
 
 def test_tearsheet_source_picks_the_effective_tables_and_reconciles():

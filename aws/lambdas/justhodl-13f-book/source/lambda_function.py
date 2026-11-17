@@ -237,15 +237,17 @@ def name_key(name):
 
 
 def name_keys(issuer, cls_text, kind, fund_name=False):
-    """The name keys one line may be matched by when its security turns up under another CUSIP. A fund is never
-    matched by name (a trust's products share one issuer text). A typed non-fund security is matched by its name key;
-    any non-fund line - typed or not - by name key + the filer's class text, so an untyped line needs the same class
-    text on both sides before it is called the same security. Pure."""
+    """The name keys one share line may be matched by when its security turns up under another CUSIP. Never a fund
+    (a trust's products share one issuer text) and never a note (an issuer's notes are different securities, and a
+    note is not its issuer's stock). A typed share line is matched by its name key; any share line - typed or not -
+    by name key + the filer's class text, so an untyped line needs the same class text on both sides. A name match
+    is only ever accepted when at least one side has no resolved ticker (two different resolved tickers are two
+    securities: GOOG / GOOGL, a common share and its issuer's convertible preferred). Pure."""
     nk = name_key(issuer)
-    if not nk or kind == "fund" or fund_name:
+    if not nk or kind in ("fund", "debt") or fund_name:
         return []
     out = [("nc", nk + "|" + " ".join(str(cls_text or "").upper().split()))]
-    if kind in ("stock", "other", "debt"):
+    if kind in ("stock", "other"):
         out.append(("n", nk))
     return out
 
@@ -591,11 +593,11 @@ def tearsheet(sp, classer=None):
 
     # the same security on both sides of the table (a CUSIP or class change, a redomiciliation, a conversion): not new money, not an exit
     def keys(r):
-        pc = r.get("pc") or ""
+        cls_text, kind = class_of.get(r["id"], (None, r["kind"]))
+        pc = (r.get("pc") or "") + ("/PRN" if r["kind"] == "debt" else "")          # a put pairs with a put, shares with shares, a note with a note
         out = [("c", pc, r["cusip"])] if r.get("cusip") else []
         if r.get("ticker"):
             out.append(("t", pc, r["ticker"]))
-        cls_text, kind = class_of.get(r["id"], (None, r["kind"]))
         out.extend((tag, pc, key) for tag, key in name_keys(r["issuer"], cls_text, kind, bool(r.get("name"))))   # an option row is typed by its underlying
         return out
 
@@ -605,7 +607,7 @@ def tearsheet(sp, classer=None):
             waiting.setdefault(k, []).append(r)
     reclassified, paired = [], set()
     for r in sorted(new_rows, key=lambda r: (-(r["value_usd"] or 0), r["id"])):
-        twin = next((x for k in keys(r) for x in waiting.get(k, []) if x["id"] not in paired), None)
+        twin = next((x for k in keys(r) for x in waiting.get(k, []) if x["id"] not in paired and (k[0] in ("c", "t") or not (r.get("ticker") and x.get("ticker")))), None)
         if twin is None:
             continue
         paired.add(twin["id"])
@@ -848,12 +850,18 @@ def aggregate(members, classer):
     def nks(a):
         return set(name_keys(a["issuer"], a["class"], a["cls"].get("kind")))
 
-    absent_names = {k for a in agg.values() if a["absent"] and not a["holders"] for k in nks(a)}
-    new_names = {k for a in agg.values() if a["new"] and not a["prior_holders"] for k in nks(a)}
+    def named(side, ticked):   # name keys of the identities wholly new to / wholly gone from the scope, split by whether the master ticked them
+        return {k for a in agg.values() if (a["absent"] and not a["holders"] if side == "absent" else a["new"] and not a["prior_holders"])
+                and bool(a["cls"].get("ticker")) == ticked for k in nks(a)}
+
+    absent_unticked, absent_any = named("absent", False), named("absent", False) | named("absent", True)
+    new_unticked, new_any = named("new", False), named("new", False) | named("new", True)
     for a in agg.values():
         ik = issuer_key(a["issuer"])
-        reclass = bool(a["new"]) and (a["cusip"] in absent_cusips or ik in absent_issuers or (not a["prior_holders"] and bool(nks(a) & absent_names))) and not a["absent"]
-        reclass_abs = bool(a["absent"]) and not a["holders"] and (a["cusip"] in new_cusips or ik in new_issuers or bool(nks(a) & new_names))
+        by_name_new = not a["prior_holders"] and bool(nks(a) & (absent_unticked if a["cls"].get("ticker") else absent_any))
+        by_name_absent = bool(nks(a) & (new_unticked if a["cls"].get("ticker") else new_any))
+        reclass = bool(a["new"]) and (a["cusip"] in absent_cusips or ik in absent_issuers or by_name_new) and not a["absent"]
+        reclass_abs = bool(a["absent"]) and not a["holders"] and (a["cusip"] in new_cusips or ik in new_issuers or by_name_absent)
         a["reclass_candidate"] = reclass or reclass_abs
         a["no_current_holder"] = bool(a["absent"]) and not a["holders"]
     return agg
