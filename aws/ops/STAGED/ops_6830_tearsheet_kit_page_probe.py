@@ -13,7 +13,8 @@ pages was removed. Drives each page on https://justhodl.ai at 1440 px and 390 px
      Treasuries: all foreign holdings; cross-border: the month's gross); a two-sided ring is solid / hatched;
   3. nothing lost and nothing renumbered: the page's own blocks still render, the sheet carries no section number
      and adds no section badge (it is kept out of jh-sections so existing addresses do not move);
-  4. no 'undefined' / 'NaN', the sheet adds no horizontal overflow at 390 px, no page errors;
+  4. no 'undefined' / 'NaN', the sheet adds no horizontal overflow at 390 px, no page errors; the figures column of
+     every list is right-aligned (a later style rule had left-aligned it in the first release of the day);
   5. the controls work: MORE ROWS lengthens the lists; the ARK fund buttons narrow the sheet to one fund.
 JPEGs are embedded (base64). Nothing on the site changes.
 """
@@ -94,7 +95,8 @@ SHEET = r"""() => { const s = document.querySelector('[data-jts]'); const q = x 
     wide: q('*').filter(e => !e.closest('defs') && e.tagName !== 'title' && (e.getBoundingClientRect().right > r.right + 1 || e.getBoundingClientRect().left < r.left - 1)).length,
     sec: s.getAttribute('data-jh-sec'), chrome: s.hasAttribute('data-jh-chrome'), badges: s.querySelectorAll('.jh-secbadge').length, numbered: s.querySelectorAll('[data-jh-sec]').length,
     sections: [...document.querySelectorAll('[data-jh-sec]')].filter(e => !s.contains(e)).length, ink: getComputedStyle(s.querySelector('.jts-h')).color, bg: getComputedStyle(s.querySelector('.jts-in')).backgroundColor,
-    outside: document.body.innerText.length - s.innerText.length, version: (window.JHTearsheet || {}).version || null }; }"""
+    outside: document.body.innerText.length - s.innerText.length, version: (window.JHTearsheet || {}).version || null,
+    align: (() => { const n = s.querySelector('.jts-t td.n'); return n ? getComputedStyle(n).textAlign : null; })(), scrollMargin: getComputedStyle(s).scrollMarginTop }; }"""
 
 
 def main():
@@ -107,7 +109,7 @@ def main():
             return urllib.request.urlopen(urllib.request.Request("%s/%s%snocache=%d" % (BASE, path, "&" if "?" in path else "?", stamp), headers=ua), timeout=60).read()
 
         kit = get("jh-tearsheet.js").decode("utf-8", "replace")
-        ok_kit = "ADAPTERS.capital" in kit and "data-jh-chrome" in kit and "ADAPTERS.insiders" in kit
+        ok_kit = "ADAPTERS.capital" in kit and "data-jh-chrome" in kit and "ADAPTERS.insiders" in kit and ".jts .jts-t .n{text-align:right" in kit
         r.log("jh-tearsheet.js: %d bytes, ascii %s, eight adapters %s" % (len(kit), all(ord(c) < 128 for c in kit), ok_kit))
         if not ok_kit:
             r.fail("the served kit is not the new one yet (Pages deploy pending?)")
@@ -204,6 +206,7 @@ def main():
                     if name in ("firmbook", "capital"):
                         ck(s["up"] + s["down"] == s["arcs"], "%s: a two-sided ring has an untyped slice" % tag)
                     ck(s["bad"] == 0, "%s: %d broken values" % (tag, s["bad"]))
+                    ck(s["align"] == "right", "%s: the figures column is aligned %s, not right" % (tag, s["align"]))
                     ck(s["ox"] <= 0 and s["wide"] == 0, "%s: the sheet overflows (page +%d px, %d elements wider than it)" % (tag, s["ox"], s["wide"]))
                     ck(s["chrome"] and s["sec"] is None and s["badges"] == 0 and s["numbered"] == 0, "%s: the sheet is numbered as a section (%s, %d badges)" % (tag, s["sec"], s["badges"]))
                     ck(not errors, "%s: page errors %s" % (tag, errors[:2]))
