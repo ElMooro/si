@@ -21,6 +21,7 @@ JPEGs are embedded (base64). Nothing on the site changes.
 from pathlib import Path
 import base64
 import json
+import re
 import subprocess
 import sys
 import time
@@ -117,7 +118,7 @@ def main():
             return urllib.request.urlopen(urllib.request.Request("%s/%s%snocache=%d" % (BASE, path, "&" if "?" in path else "?", stamp), headers=ua), timeout=60).read()
 
         kit = get("jh-tearsheet.js").decode("utf-8", "replace")
-        ok_kit = "ADAPTERS.capital" in kit and "data-jh-chrome" in kit and "ADAPTERS.insiders" in kit and ".jts .jts-t .n{text-align:right" in kit and "version: '1.1.0'" in kit
+        ok_kit = "ADAPTERS.capital" in kit and "data-jh-chrome" in kit and "ADAPTERS.insiders" in kit and ".jts .jts-t .n{text-align:right" in kit and re.search(r"version: '1\.(?:[1-9]|\d\d)\.\d+'", kit) is not None   # 1.1.0 when this proof was written; 1.2.0 added the leaders adapter
         r.log("jh-tearsheet.js: %d bytes, ascii %s, eight adapters %s" % (len(kit), all(ord(c) < 128 for c in kit), ok_kit))
         if not ok_kit:
             r.fail("the served kit is not the new one yet (Pages deploy pending?)")
