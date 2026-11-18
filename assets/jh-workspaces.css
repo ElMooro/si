@@ -142,6 +142,7 @@ body.macro-pointer-dragging { user-select:none; cursor:grabbing; }
 .macro-change.up { color:var(--green); }
 .macro-change.down { color:var(--red); }
 .macro-change.na { color:var(--fg-4); }
+.macro-change.macro-change-note { grid-column:1 / -1; font-weight:500; white-space:normal; line-height:1.35; }
 .macro-item.loading .macro-latest-value, .macro-item.loading .macro-change { color:var(--fg-4); }
 .macro-item.danger-flash {
   border-color:var(--red); background:rgba(255,65,90,.11);

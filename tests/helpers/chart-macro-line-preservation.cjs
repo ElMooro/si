@@ -389,7 +389,30 @@ function peelScreenFit(raw,file){
  if(hash(back)!==row.prior)throw new Error('screen-fit peel hash '+file+' '+hash(back));
  return back;
 }
-function normalize(raw,file){raw=peelCandleClarity(raw,file);raw=peelScreenFit(raw,file);raw=peelFlowsEngine(raw,file);raw=peelFlowsRail(raw,file);raw=peelFormingBar(raw,file);raw=peelCapitHtml(raw,file);raw=peelCapitRail(raw,file);raw=peelLeadersHtml(raw,file);raw=peelLeadersEngine(raw,file);raw=peelLeadersRail(raw,file);raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
+// 2026-11-17: peel the three FRED desks (Dollar, Outright, BofA buttons + clicks beside 13F, rail meta) before every older peel.
+function peelFredDesksEngine(raw,file){
+ const AFTER='84081da5df78c806ae366a771e64533556897a6b1eb39c1fd5f1cdca99887860';
+ const BEFORE='5532845c393c4561aab72b10f095961a0c01346fdaff2ca475c47594e638ba20';
+ const BTN="      \"<button class='wsico wsdesk' id=btn-usd title='Dollar indexes · the DXY and every FRED dollar index'><span class=g>$</span><span class=l>Dollar</span></button>\"+\n      \"<button class='wsico wsdesk' id=btn-soma title='Fed securities held outright · every H.4.1 line on FRED'><span class=g>Fed</span><span class=l>Outright</span></button>\"+\n      \"<button class='wsico wsdesk' id=btn-bofa title='ICE BofA indices · spreads, yields and total return'><span class=g>ICE</span><span class=l>BofA</span></button>\"+\n";
+ const CLICK="    var busd=document.getElementById(\"btn-usd\"); if(busd) busd.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace(\"dollar\"); };\n    var bsoma=document.getElementById(\"btn-soma\"); if(bsoma) bsoma.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace(\"soma\"); };\n    var bbofa=document.getElementById(\"btn-bofa\"); if(bbofa) bbofa.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace(\"bofa\"); };\n";
+ if(file!=='jh-chart-engine.js'||hash(raw)!==AFTER)return raw;
+ assert.equal(raw.split(BTN).length,2,'jh-chart-engine.js FRED desk buttons');
+ assert.equal(raw.split(CLICK).length,2,'jh-chart-engine.js FRED desk clicks');
+ raw=raw.replace(BTN,'').replace(CLICK,'');
+ assert.equal(hash(raw),BEFORE,'jh-chart-engine.js');
+ return raw;
+}
+function peelFredDesksRail(raw,file){
+ const AFTER='5b3c7f2cfd7604e34acc56ab0917cb7af99adc4c8f55bf360dc26092f6efdefa';
+ const BEFORE='d0587c69cc2eaa07b5b321af2c8ee48ad2dad0054a496e02695d87d416b2cc92';
+ const LINE="      dollar: [\"Dollar indexes · DXY and FRED\", \"/dollar-indexes.html\"],\n      soma: [\"Fed securities held outright\", \"/securities-held-outright.html\"],\n      bofa: [\"ICE BofA indices\", \"/ice-bofa-indices.html\"],\n";
+ if(file!=='jh-chart-tvrail.js'||hash(raw)!==AFTER)return raw;
+ assert.equal(raw.split(LINE).length,2,'jh-chart-tvrail.js FRED desk meta');
+ raw=raw.replace(LINE,'');
+ assert.equal(hash(raw),BEFORE,'jh-chart-tvrail.js');
+ return raw;
+}
+function normalize(raw,file){raw=peelFredDesksEngine(raw,file);raw=peelFredDesksRail(raw,file);raw=peelCandleClarity(raw,file);raw=peelScreenFit(raw,file);raw=peelFlowsEngine(raw,file);raw=peelFlowsRail(raw,file);raw=peelFormingBar(raw,file);raw=peelCapitHtml(raw,file);raw=peelCapitRail(raw,file);raw=peelLeadersHtml(raw,file);raw=peelLeadersEngine(raw,file);raw=peelLeadersRail(raw,file);raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
  if(digest===row.before_sha256||digest!==row.after_sha256)return raw;
  for(const e of [...row.replacements].reverse()){assert.equal(raw.split(e.after).length,2,file+': '+e.after.slice(0,60));raw=raw.replace(e.after,e.before);}
  assert.equal(hash(raw),row.before_sha256,file);assert.equal(raw,fs.readFileSync(path.join(R,row.before_path),'utf8'));return raw;

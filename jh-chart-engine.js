@@ -5181,6 +5181,9 @@ else if(o.id==="rvol"){
       "<button class='wsico wsdesk' id=btn-str title='Strength vs S&P 500'><span class=g>▲</span><span class=l>Strong</span></button>"+
       "<button class='wsico wsdesk' id=btn-bnd title='Bonds & Yields'><span class=g>🏛</span><span class=l>Bonds</span></button>"+
       "<button class='wsico wsdesk' id=btn-cds title='Credit default swaps'><span class=g>CDS</span><span class=l>CDS</span></button>"+
+      "<button class='wsico wsdesk' id=btn-usd title='Dollar indexes · the DXY and every FRED dollar index'><span class=g>$</span><span class=l>Dollar</span></button>"+
+      "<button class='wsico wsdesk' id=btn-soma title='Fed securities held outright · every H.4.1 line on FRED'><span class=g>Fed</span><span class=l>Outright</span></button>"+
+      "<button class='wsico wsdesk' id=btn-bofa title='ICE BofA indices · spreads, yields and total return'><span class=g>ICE</span><span class=l>BofA</span></button>"+
       "<button class='wsico wsdesk' id=btn-13f title='13F · Institutional holdings'><span class=g>🏦</span><span class=l>13F</span></button>"+
       "<button class='wsico wsdesk' id=btn-ldr title='Leaders · industry leaders vs S&P 500'><span class=g>👑</span><span class=l>Leaders</span></button>"+
       "<button class='wsico wsdesk' id=btn-wysc title='Selling climax · Wyckoff daily'><span class=g>SC</span><span class=l>Climax</span></button>"+
@@ -5241,6 +5244,9 @@ else if(o.id==="rvol"){
     var bstr=document.getElementById("btn-str"); if(bstr) bstr.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("strong"); };
     var bbnd=document.getElementById("btn-bnd"); if(bbnd) bbnd.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("bonds"); };
     var bcds=document.getElementById("btn-cds"); if(bcds) bcds.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("cds"); };
+    var busd=document.getElementById("btn-usd"); if(busd) busd.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("dollar"); };
+    var bsoma=document.getElementById("btn-soma"); if(bsoma) bsoma.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("soma"); };
+    var bbofa=document.getElementById("btn-bofa"); if(bbofa) bbofa.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("bofa"); };
     var b13f=document.getElementById("btn-13f"); if(b13f) b13f.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("13f"); };
     var bldr=document.getElementById("btn-ldr"); if(bldr) bldr.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("leaders"); };
     var bsc=document.getElementById("btn-wysc"); if(bsc) bsc.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("sc"); };

@@ -161,10 +161,10 @@ const JH_WS = {
     document.body.classList.add('jh-ws-page');
     const cls = which === 'heatmap' ? Heatmap : MacroData;
     cls.inline = true;
-    if (cls === MacroData && typeof MacroData.configure === 'function') MacroData.configure(which === 'flows' ? 'flows' : 'macro');
+    if (cls === MacroData && typeof MacroData.configure === 'function') MacroData.configure(MacroData.DESKS && MacroData.DESKS[which] ? which : 'macro');
     cls.init();
     cls.open();
-    if (which === 'macro' || which === 'flows') {
+    if (which !== 'heatmap') {
       let timer = null;
       const input = document.getElementById('macro-search-input');
       if (input) input.addEventListener('input', e => { clearTimeout(timer); const v = e.target.value; timer = setTimeout(() => MacroData.search(v), 300); });
@@ -527,9 +527,390 @@ class MacroData {
     "crypto-exchange": { url: "/data/crypto-exchange-flows-history.json", rows: p => p.series, date: "date", label: "CoinMetrics / CryptoQuant" },
     "apac": { url: "/data/history/apac-flows.json", rows: p => Object.keys(p.days || {}).sort().map(d => Object.assign({ date: d }, p.days[d])), date: "date", label: "TWSE / Naver" },
   };
+  /* ── three FRED desks beside 13F on the chart (2026-11-17, Khalid: "all the dxy and dollar index from fred ... all the securities held
+     outright ... all ice boa indices from fred", each with its historical chart and week / month / quarter / year percentage change).
+     Same engine, cards and history strips as the Macro desk; each desk has its own catalog and storage key (MacroData.configure).
+     The catalogs were written from the warehouse's own FRED catalog (ops 6833): every series whose title names a dollar index or an
+     effective exchange rate of the dollar or its trade-weighted value (88: 36 + the G-10 index and the Dallas Fed's 50 state indexes the
+     wider wording of ops 6834 found), "held outright" (222: the 103 lines the H.4.1 prints today, then the lines that ended),
+     or ICE BofA (192) is here exactly once; ops 6834 read each one through /series.  A 4th tuple element "C" marks a line that is
+     itself a change (see isChangeSeries).  calc:dxy is worked out in the browser (see fetchCalc). ── */
+  static DOLLAR_CATALOG = [
+    { cat: "DXY · rebuilt from FRED, and its six currencies", flag: "💵", items: [
+      ["calc:dxy","DXY · U.S. Dollar Index, rebuilt from FRED's six exchange rates","index"], ["DEXUSEU","Euro · 57.6% of the DXY","USD per EUR"],
+      ["DEXJPUS","Japanese yen · 13.6% of the DXY","JPY per USD"], ["DEXUSUK","British pound · 11.9% of the DXY","USD per GBP"],
+      ["DEXCAUS","Canadian dollar · 9.1% of the DXY","CAD per USD"], ["DEXSDUS","Swedish krona · 4.2% of the DXY","SEK per USD"],
+      ["DEXSZUS","Swiss franc · 3.6% of the DXY","CHF per USD"]
+    ]},
+    { cat: "Fed dollar indexes · daily", flag: "🏦", items: [
+      ["DTWEXBGS","Broad dollar index · nominal, daily","index"], ["DTWEXAFEGS","Dollar vs advanced foreign economies · nominal, daily","index"],
+      ["DTWEXEMEGS","Dollar vs emerging market economies · nominal, daily","index"]
+    ]},
+    { cat: "Fed dollar indexes · monthly, nominal and real", flag: "📅", items: [
+      ["TWEXBGSMTH","Broad dollar index · nominal, monthly","index"], ["RTWEXBGS","Broad dollar index · real, monthly","index"],
+      ["TWEXAFEGSMTH","Dollar vs advanced foreign economies · nominal, monthly","index"], ["RTWEXAFEGS","Dollar vs advanced foreign economies · real, monthly","index"],
+      ["TWEXEMEGSMTH","Dollar vs emerging market economies · nominal, monthly","index"], ["RTWEXEMEGS","Dollar vs emerging market economies · real, monthly","index"]
+    ]},
+    { cat: "Fed dollar indexes · annual", flag: "🗓", items: [
+      ["TWEXBGSANL","Broad dollar index · nominal, annual","index"], ["TWEXAFEGSANL","Dollar vs advanced foreign economies · nominal, annual","index"],
+      ["TWEXEMEGSANL","Dollar vs emerging market economies · nominal, annual","index"]
+    ]},
+    { cat: "Effective exchange rates of the dollar · BIS and OECD", flag: "🌐", items: [
+      ["RBUSBIS","Real broad effective exchange rate · BIS, monthly","index"], ["NBUSBIS","Nominal broad effective exchange rate · BIS, monthly","index"],
+      ["RNUSBIS","Real narrow effective exchange rate · BIS, monthly since 1964","index"], ["NNUSBIS","Nominal narrow effective exchange rate · BIS, monthly since 1964","index"],
+      ["CCRETT01USM661N","Real effective exchange rate, CPI based · OECD, monthly","index"], ["CCRETT01USQ661N","Real effective exchange rate, CPI based · OECD, quarterly","index"],
+      ["CCRETT01USA661N","Real effective exchange rate, CPI based · OECD, annual","index"], ["CCRETT02USQ661N","Real effective exchange rate, unit labor costs · OECD, quarterly","index"],
+      ["CCRETT02USA661N","Real effective exchange rate, unit labor costs · OECD, annual","index"]
+    ]},
+    { cat: "Ended · the goods-only dollar indexes, 1973 to 2019", flag: "🕰", items: [
+      ["DTWEXM","Major currencies dollar index · daily, 1973 to 2019","index"], ["TWEXM","Major currencies dollar index · weekly, 1973 to 2020","index"],
+      ["TWEXMMTH","Major currencies dollar index · monthly, 1973 to 2019","index"], ["TWEXMANL","Major currencies dollar index · annual, 1973 to 2019","index"],
+      ["TWEXMPA","Major currencies dollar index · real, monthly, 1973 to 2019","index"], ["DTWEXB","Broad dollar index, goods only · daily, 1995 to 2019","index"],
+      ["TWEXB","Broad dollar index, goods only · weekly, 1995 to 2020","index"], ["TWEXBMTH","Broad dollar index, goods only · monthly, 1973 to 2019","index"],
+      ["TWEXBANL","Broad dollar index, goods only · annual, 1995 to 2019","index"], ["TWEXBPA","Broad dollar index, goods only · real, monthly, 1973 to 2019","index"],
+      ["DTWEXO","Other important trading partners · daily, 1995 to 2019","index"], ["TWEXO","Other important trading partners · weekly, 1995 to 2020","index"],
+      ["TWEXOMTH","Other important trading partners · monthly, 1973 to 2019","index"], ["TWEXOANL","Other important trading partners · annual, 1995 to 2019","index"],
+      ["TWEXOPA","Other important trading partners · real, monthly, 1973 to 2019","index"]
+    ]},
+    { cat: "Ended · the Fed's G-10 dollar index, 1971 to 1999", flag: "🕰", items: [
+      ["TWEXMTHY","Dollar vs the G-10 countries · monthly, 1971 to 1998","index"], ["TWEX","Dollar's trade-weighted exchange index · weekly, 1971 to 1999","index"]
+    ]},
+    { cat: "Ended June 2023 · real value of the dollar by state (Dallas Fed, since 1988)", flag: "🗺", items: [
+      ["RTWVDAL684NMFRBDAL","Alabama · real trade-weighted value of the dollar","index"], ["RTWVDAK684NMFRBDAL","Alaska · real trade-weighted value of the dollar","index"],
+      ["RTWVDAZ684NMFRBDAL","Arizona · real trade-weighted value of the dollar","index"], ["RTWVDAR684NMFRBDAL","Arkansas · real trade-weighted value of the dollar","index"],
+      ["RTWVDCA684NMFRBDAL","California · real trade-weighted value of the dollar","index"], ["RTWVDCO684NMFRBDAL","Colorado · real trade-weighted value of the dollar","index"],
+      ["RTWVDCT684NMFRBDAL","Connecticut · real trade-weighted value of the dollar","index"], ["RTWVDDE684NMFRBDAL","Delaware · real trade-weighted value of the dollar","index"],
+      ["RTWVDFL684NMFRBDAL","Florida · real trade-weighted value of the dollar","index"], ["RTWVDGA684NMFRBDAL","Georgia · real trade-weighted value of the dollar","index"],
+      ["RTWVDHI684NMFRBDAL","Hawaii · real trade-weighted value of the dollar","index"], ["RTWVDID684NMFRBDAL","Idaho · real trade-weighted value of the dollar","index"],
+      ["RTWVDIL684NMFRBDAL","Illinois · real trade-weighted value of the dollar","index"], ["RTWVDIN684NMFRBDAL","Indiana · real trade-weighted value of the dollar","index"],
+      ["RTWVDIA684NMFRBDAL","Iowa · real trade-weighted value of the dollar","index"], ["RTWVDKS684NMFRBDAL","Kansas · real trade-weighted value of the dollar","index"],
+      ["RTWVDKY684NMFRBDAL","Kentucky · real trade-weighted value of the dollar","index"], ["RTWVDLA684NMFRBDAL","Louisiana · real trade-weighted value of the dollar","index"],
+      ["RTWVDME684NMFRBDAL","Maine · real trade-weighted value of the dollar","index"], ["RTWVDMD684NMFRBDAL","Maryland · real trade-weighted value of the dollar","index"],
+      ["RTWVDMA684NMFRBDAL","Massachusetts · real trade-weighted value of the dollar","index"], ["RTWVDMI684NMFRBDAL","Michigan · real trade-weighted value of the dollar","index"],
+      ["RTWVDMN684NMFRBDAL","Minnesota · real trade-weighted value of the dollar","index"], ["RTWVDMS684NMFRBDAL","Mississippi · real trade-weighted value of the dollar","index"],
+      ["RTWVDMO684NMFRBDAL","Missouri · real trade-weighted value of the dollar","index"], ["RTWVDMT684NMFRBDAL","Montana · real trade-weighted value of the dollar","index"],
+      ["RTWVDNE684NMFRBDAL","Nebraska · real trade-weighted value of the dollar","index"], ["RTWVDNV684NMFRBDAL","Nevada · real trade-weighted value of the dollar","index"],
+      ["RTWVDNH684NMFRBDAL","New Hampshire · real trade-weighted value of the dollar","index"], ["RTWVDNJ684NMFRBDAL","New Jersey · real trade-weighted value of the dollar","index"],
+      ["RTWVDNM684NMFRBDAL","New Mexico · real trade-weighted value of the dollar","index"], ["RTWVDNY684NMFRBDAL","New York · real trade-weighted value of the dollar","index"],
+      ["RTWVDNC684NMFRBDAL","North Carolina · real trade-weighted value of the dollar","index"], ["RTWVDND684NMFRBDAL","North Dakota · real trade-weighted value of the dollar","index"],
+      ["RTWVDOH684NMFRBDAL","Ohio · real trade-weighted value of the dollar","index"], ["RTWVDOK684NMFRBDAL","Oklahoma · real trade-weighted value of the dollar","index"],
+      ["RTWVDOR684NMFRBDAL","Oregon · real trade-weighted value of the dollar","index"], ["RTWVDPA684NMFRBDAL","Pennsylvania · real trade-weighted value of the dollar","index"],
+      ["RTWVDRI684NMFRBDAL","Rhode Island · real trade-weighted value of the dollar","index"], ["RTWVDSC684NMFRBDAL","South Carolina · real trade-weighted value of the dollar","index"],
+      ["RTWVDSD684NMFRBDAL","South Dakota · real trade-weighted value of the dollar","index"], ["RTWVDTN684NMFRBDAL","Tennessee · real trade-weighted value of the dollar","index"],
+      ["RTWVDTX684NMFRBDAL","Texas · real trade-weighted value of the dollar","index"], ["RTWVDUT684NMFRBDAL","Utah · real trade-weighted value of the dollar","index"],
+      ["RTWVDVT684NMFRBDAL","Vermont · real trade-weighted value of the dollar","index"], ["RTWVDVA684NMFRBDAL","Virginia · real trade-weighted value of the dollar","index"],
+      ["RTWVDWA684NMFRBDAL","Washington · real trade-weighted value of the dollar","index"], ["RTWVDWV684NMFRBDAL","West Virginia · real trade-weighted value of the dollar","index"],
+      ["RTWVDWI684NMFRBDAL","Wisconsin · real trade-weighted value of the dollar","index"], ["RTWVDWY684NMFRBDAL","Wyoming · real trade-weighted value of the dollar","index"]
+    ]},
+  ];
+  static SOMA_CATALOG = [
+    { cat: "Securities held outright · the totals (Wednesday level)", flag: "🏛", items: [
+      ["WSHOSHO","Securities held outright · total","$M"], ["WSHOTSL","Treasuries","$M"],
+      ["WSHOMCB","Mortgage-backed securities","$M"], ["H41RESPPALGASMRNWW","Residential mortgage-backed securities","$M"],
+      ["H41RESPPALGASMSNWW","Commercial mortgage-backed securities","$M"], ["WSHOFADSL","Federal agency debt","$M"],
+      ["WUPSHO","Unamortized premiums on securities held outright","$M"], ["WUDSHO","Unamortized discounts on securities held outright","$M"]
+    ]},
+    { cat: "Treasuries by type (Wednesday level)", flag: "🇺🇸", items: [
+      ["WSHOBL","Treasury bills","$M"], ["RESPPALGUONNWW","Treasury notes and bonds","$M"],
+      ["WSHONBNL","Treasury nominal notes and bonds","$M"], ["WSHONBIIL","Treasury inflation-indexed notes and bonds","$M"],
+      ["WSHOICL","Treasury inflation compensation","$M"]
+    ]},
+    { cat: "Treasuries by remaining maturity (Wednesday level)", flag: "⏳", items: [
+      ["TREAST","Treasuries · all maturities","$M"], ["TREAS15","Treasuries maturing within 15 days","$M"],
+      ["TREAS1590","Treasuries maturing in 16 to 90 days","$M"], ["TREAS911Y","Treasuries maturing in 91 days to 1 year","$M"],
+      ["TREAS1T5","Treasuries maturing in 1 to 5 years","$M"], ["TREAS5T10","Treasuries maturing in 5 to 10 years","$M"],
+      ["TREAS10Y","Treasuries maturing in over 10 years","$M"]
+    ]},
+    { cat: "Mortgage-backed securities by remaining maturity (Wednesday level)", flag: "🏠", items: [
+      ["MBS15","Mortgage-backed securities maturing within 15 days","$M"], ["MBS1690","Mortgage-backed securities maturing in 16 to 90 days","$M"],
+      ["MBS911Y","Mortgage-backed securities maturing in 91 days to 1 year","$M"], ["MBS1T5","Mortgage-backed securities maturing in 1 to 5 years","$M"],
+      ["MBS5T10","Mortgage-backed securities maturing in 5 to 10 years","$M"], ["MBS10Y","Mortgage-backed securities maturing in over 10 years","$M"]
+    ]},
+    { cat: "Federal agency debt by remaining maturity (Wednesday level)", flag: "🏢", items: [
+      ["FEDDT","Federal agency debt · all maturities","$M"], ["FEDD15","Federal agency debt maturing within 15 days","$M"],
+      ["FEDD1690","Federal agency debt maturing in 16 to 90 days","$M"], ["FEDD911Y","Federal agency debt maturing in 91 days to 1 year","$M"],
+      ["FEDD1T5","Federal agency debt maturing in 1 to 5 years","$M"], ["FEDD5T10","Federal agency debt maturing in 5 to 10 years","$M"],
+      ["FEDD10Y","Federal agency debt maturing in over 10 years","$M"]
+    ]},
+    { cat: "Week averages", flag: "📊", items: [
+      ["WSECOUT","Securities held outright · total · week average","$M"], ["WSHOTSA","Treasuries · week average","$M"],
+      ["WSHOBA","Treasury bills · week average","$M"], ["WSHONBNA","Treasury nominal notes and bonds · week average","$M"],
+      ["WSHONBIIA","Treasury inflation-indexed notes and bonds · week average","$M"], ["WSHOICA","Treasury inflation compensation · week average","$M"],
+      ["WMBSEC","Mortgage-backed securities · week average","$M"], ["WFEDSEC","Federal agency debt · week average","$M"],
+      ["RESPPALSPXAWNWW","Unamortized premiums on securities held outright · week average","$M"], ["RESPPALSDXAWNWW","Unamortized discounts on securities held outright · week average","$M"]
+    ]},
+    { cat: "Weekly change · Wednesday to Wednesday", flag: "↕", items: [
+      ["RESPPALGXCH1NWW","Securities held outright · total · weekly change","$M","C"], ["RESPPALGUOXCH1NWW","Treasuries · weekly change","$M","C"],
+      ["RESPPALGUOBXCH1NWW","Treasury bills · weekly change","$M","C"], ["RESPPALGUOMNXCH1NWW","Treasury nominal notes and bonds · weekly change","$M","C"],
+      ["RESPPALGUOMIXCH1NWW","Treasury inflation-indexed notes and bonds · weekly change","$M","C"], ["RESPPALGUOMCXCH1NWW","Treasury inflation compensation · weekly change","$M","C"],
+      ["RESPPALGASMOXCH1NWW","Mortgage-backed securities · weekly change","$M","C"], ["RESPPALGAOXCH1NWW","Federal agency debt · weekly change","$M","C"],
+      ["RESPPALSPXCH1NWW","Unamortized premiums on securities held outright · weekly change","$M","C"], ["RESPPALSDXCH1NWW","Unamortized discounts on securities held outright · weekly change","$M","C"]
+    ]},
+    { cat: "Weekly change by remaining maturity", flag: "↕", items: [
+      ["RESPPALGUMXCH1NWW","Treasuries · all maturities · weekly change","$M","C"], ["RESPPALGUMD15XCH1NWW","Treasuries maturing within 15 days · weekly change","$M","C"],
+      ["RESPPALGUMD16T90XCH1NWW","Treasuries maturing in 16 to 90 days · weekly change","$M","C"], ["RESPPALGUMY01XCH1NWW","Treasuries maturing in 91 days to 1 year · weekly change","$M","C"],
+      ["RESPPALGUMY01T05XCH1NWW","Treasuries maturing in 1 to 5 years · weekly change","$M","C"], ["RESPPALGUMY05T10XCH1NWW","Treasuries maturing in 5 to 10 years · weekly change","$M","C"],
+      ["RESPPALGUMY10PXCH1NWW","Treasuries maturing in over 10 years · weekly change","$M","C"], ["RESPPALGASMOD15XCH1NWW","Mortgage-backed securities maturing within 15 days · weekly change","$M","C"],
+      ["RESPPALGASMOD16T90XCH1NWW","Mortgage-backed securities maturing in 16 to 90 days · weekly change","$M","C"], ["RESPPALGASMOY01XCH1NWW","Mortgage-backed securities maturing in 91 days to 1 year · weekly change","$M","C"],
+      ["RESPPALGASMOY01T05XCH1NWW","Mortgage-backed securities maturing in 1 to 5 years · weekly change","$M","C"], ["RESPPALGASMOY05T10XCH1NWW","Mortgage-backed securities maturing in 5 to 10 years · weekly change","$M","C"],
+      ["RESPPALGASMOY10PXCH1NWW","Mortgage-backed securities maturing in over 10 years · weekly change","$M","C"], ["RESPPALGAMXCH1NWW","Federal agency debt · all maturities · weekly change","$M","C"],
+      ["RESPPALGAMD15XCH1NWW","Federal agency debt maturing within 15 days · weekly change","$M","C"], ["RESPPALGAMD16T90XCH1NWW","Federal agency debt maturing in 16 to 90 days · weekly change","$M","C"],
+      ["RESPPALGAMY01XCH1NWW","Federal agency debt maturing in 91 days to 1 year · weekly change","$M","C"], ["RESPPALGAMY01T05XCH1NWW","Federal agency debt maturing in 1 to 5 years · weekly change","$M","C"],
+      ["RESPPALGAMY05T10XCH1NWW","Federal agency debt maturing in 5 to 10 years · weekly change","$M","C"], ["RESPPALGAMY10PXCH1NWW","Federal agency debt maturing in over 10 years · weekly change","$M","C"]
+    ]},
+    { cat: "Change from a year ago · Wednesday level", flag: "↕", items: [
+      ["RESPPALGXCH52NWW","Securities held outright · total · change from a year ago","$M","C"], ["RESPPALGUOXCH52NWW","Treasuries · change from a year ago","$M","C"],
+      ["RESPPALGUOBXCH52NWW","Treasury bills · change from a year ago","$M","C"], ["RESPPALGUOMNXCH52NWW","Treasury nominal notes and bonds · change from a year ago","$M","C"],
+      ["RESPPALGUOMIXCH52NWW","Treasury inflation-indexed notes and bonds · change from a year ago","$M","C"], ["RESPPALGUOMCXCH52NWW","Treasury inflation compensation · change from a year ago","$M","C"],
+      ["RESPPALGASMOXCH52NWW","Mortgage-backed securities · change from a year ago","$M","C"], ["RESPPALGAOXCH52NWW","Federal agency debt · change from a year ago","$M","C"],
+      ["RESPPALSPXCH52NWW","Unamortized premiums on securities held outright · change from a year ago","$M","C"], ["RESPPALSDXCH52NWW","Unamortized discounts on securities held outright · change from a year ago","$M","C"]
+    ]},
+    { cat: "Change in the week average · from the previous week", flag: "↕", items: [
+      ["RESPPALGXAWXCH1NWW","Securities held outright · total · week-average change","$M","C"], ["RESPPALGUOXAWXCH1NWW","Treasuries · week-average change","$M","C"],
+      ["RESPPALGUOBXAWXCH1NWW","Treasury bills · week-average change","$M","C"], ["RESPPALGUOMNXAWXCH1NWW","Treasury nominal notes and bonds · week-average change","$M","C"],
+      ["RESPPALGUOMIXAWXCH1NWW","Treasury inflation-indexed notes and bonds · week-average change","$M","C"], ["RESPPALGUOMCXAWXCH1NWW","Treasury inflation compensation · week-average change","$M","C"],
+      ["RESPPALGASMOXAWXCH1NWW","Mortgage-backed securities · week-average change","$M","C"], ["RESPPALGAOXAWXCH1NWW","Federal agency debt · week-average change","$M","C"],
+      ["RESPPALSPXAWXCH1NWW","Unamortized premiums on securities held outright · week-average change","$M","C"], ["RESPPALSDXAWXCH1NWW","Unamortized discounts on securities held outright · week-average change","$M","C"]
+    ]},
+    { cat: "Change in the week average · from a year ago", flag: "↕", items: [
+      ["RESPPALGXAWXCH52NWW","Securities held outright · total · week-average change from a year ago","$M","C"], ["RESPPALGUOXAWXCH52NWW","Treasuries · week-average change from a year ago","$M","C"],
+      ["RESPPALGUOBXAWXCH52NWW","Treasury bills · week-average change from a year ago","$M","C"], ["RESPPALGUOMNXAWXCH52NWW","Treasury nominal notes and bonds · week-average change from a year ago","$M","C"],
+      ["RESPPALGUOMIXAWXCH52NWW","Treasury inflation-indexed notes and bonds · week-average change from a year ago","$M","C"], ["RESPPALGUOMCXAWXCH52NWW","Treasury inflation compensation · week-average change from a year ago","$M","C"],
+      ["RESPPALGASMOXAWXCH52NWW","Mortgage-backed securities · week-average change from a year ago","$M","C"], ["RESPPALGAOXAWXCH52NWW","Federal agency debt · week-average change from a year ago","$M","C"],
+      ["RESPPALSPXAWXCH52NWW","Unamortized premiums on securities held outright · week-average change from a year ago","$M","C"], ["RESPPALSDXAWXCH52NWW","Unamortized discounts on securities held outright · week-average change from a year ago","$M","C"]
+    ]},
+    { cat: "Ended June 2018 · the earlier H.4.1 lines", flag: "🕰", items: [
+      ["WSHOL","Securities held outright · total · 2002 to 2018","$M"], ["WSHOTS","Treasuries · 2002 to 2018","$M"],
+      ["WSHOB","Treasury bills · 2002 to 2018","$M"], ["WSHOSNB","Treasury nominal notes and bonds · 2002 to 2018","$M"],
+      ["WSHOIIL","Treasury inflation-indexed notes and bonds · 2002 to 2018","$M"], ["WSHOIC","Treasury inflation compensation · 2002 to 2018","$M"],
+      ["WSHOFDSL","Federal agency debt · 2002 to 2018","$M"], ["WSHOMBSL","Mortgage-backed securities · 2009 to 2018","$M"]
+    ]},
+    { cat: "Ended · the long record since 1914 (bought or held outright)", flag: "📜", items: [
+      ["RATSHO","Total securities held outright · 2002 to 2018","$M"], ["RAGSOTBO","U.S. government securities bought outright · total, 1914 to 2018","$M"],
+      ["RAGSOUSB","Treasury bills · 1935 to 2018","$M"], ["RAGSOUSTN","Treasury notes · 1916 to 2002","$M"],
+      ["RAGSOUSTB","Treasury bonds · 1914 to 2002","$M"], ["RAGSONBN","Notes and bonds, nominal · 2002 to 2018","$M"],
+      ["RAGSONBI","Notes and bonds, inflation-indexed · 2002 to 2018","$M"], ["RAGSOUSTSIC","Treasury inflation compensation · 2002 to 2018","$M"],
+      ["RAGSOCID","Certificates of indebtedness, certificates and bills · 1917 to 1935","$M"], ["RAGSOUSCIDO","Certificates of indebtedness, all other · 1921 to 1979","$M"],
+      ["RAGSOUSCID1PA","Certificates of indebtedness, one-year Pittman Act · 1921 to 1922","$M"], ["RAGSOUSVN","Victory notes · 1919 to 1920","$M"],
+      ["RAGSOSTC","Special Treasury certificates · 1931 to 1954","$M"], ["RAUPSHO","Unamortized premiums on securities held outright · 2002 to 2018","$M"],
+      ["RAUDSHO","Unamortized discounts on securities held outright · 2002 to 2018","$M"]
+    ]},
+    { cat: "Ended March 2020 · Federal Reserve Bank of Boston (district 1)", flag: "🏦", items: [
+      ["D1WSHOL","Boston · Securities held outright · total","$M"], ["D1WSHOTSL","Boston · Treasuries","$M"],
+      ["D1WSHOBL","Boston · Treasury bills","$M"], ["D1WSHOSNB","Boston · Treasury notes and bonds","$M"],
+      ["D1WSHOMCB","Boston · Mortgage-backed securities","$M"], ["D1WSHOFDSL","Boston · Federal agency debt","$M"],
+      ["D1WUPSHO","Boston · Unamortized premiums","$M"], ["D1WUDSHO","Boston · Unamortized discounts","$M"]
+    ]},
+    { cat: "Ended March 2020 · Federal Reserve Bank of New York (district 2)", flag: "🏦", items: [
+      ["D2WSHOL","New York · Securities held outright · total","$M"], ["D2WSHOTSL","New York · Treasuries","$M"],
+      ["D2WSHOBL","New York · Treasury bills","$M"], ["D2WSHOSNB","New York · Treasury notes and bonds","$M"],
+      ["D2WSHOMCB","New York · Mortgage-backed securities","$M"], ["D2WSHOFDSL","New York · Federal agency debt","$M"],
+      ["D2WUPSHO","New York · Unamortized premiums","$M"], ["D2WUDSHO","New York · Unamortized discounts","$M"]
+    ]},
+    { cat: "Ended March 2020 · Federal Reserve Bank of Philadelphia (district 3)", flag: "🏦", items: [
+      ["D3WSHOL","Philadelphia · Securities held outright · total","$M"], ["D3WSHOTSL","Philadelphia · Treasuries","$M"],
+      ["D3WSHOBL","Philadelphia · Treasury bills","$M"], ["D3WSHOSNB","Philadelphia · Treasury notes and bonds","$M"],
+      ["D3WSHOMCB","Philadelphia · Mortgage-backed securities","$M"], ["D3WSHOFDSL","Philadelphia · Federal agency debt","$M"],
+      ["D3WUPSHO","Philadelphia · Unamortized premiums","$M"], ["D3WUDSHO","Philadelphia · Unamortized discounts","$M"]
+    ]},
+    { cat: "Ended March 2020 · Federal Reserve Bank of Cleveland (district 4)", flag: "🏦", items: [
+      ["D4WSHOL","Cleveland · Securities held outright · total","$M"], ["D4WSHOTSL","Cleveland · Treasuries","$M"],
+      ["D4WSHOBL","Cleveland · Treasury bills","$M"], ["D4WSHOSNB","Cleveland · Treasury notes and bonds","$M"],
+      ["D4WSHOMCB","Cleveland · Mortgage-backed securities","$M"], ["D4WSHOFDSL","Cleveland · Federal agency debt","$M"],
+      ["D4WUPSHO","Cleveland · Unamortized premiums","$M"], ["D4WUDSHO","Cleveland · Unamortized discounts","$M"]
+    ]},
+    { cat: "Ended March 2020 · Federal Reserve Bank of Richmond (district 5)", flag: "🏦", items: [
+      ["D5WSHOL","Richmond · Securities held outright · total","$M"], ["D5WSHOTSL","Richmond · Treasuries","$M"],
+      ["D5WSHOBL","Richmond · Treasury bills","$M"], ["D5WSHOSNB","Richmond · Treasury notes and bonds","$M"],
+      ["D5WSHOMCB","Richmond · Mortgage-backed securities","$M"], ["D5WSHOFDSL","Richmond · Federal agency debt","$M"],
+      ["D5WUPSHO","Richmond · Unamortized premiums","$M"], ["D5WUDSHO","Richmond · Unamortized discounts","$M"]
+    ]},
+    { cat: "Ended March 2020 · Federal Reserve Bank of Atlanta (district 6)", flag: "🏦", items: [
+      ["D6WSHOL","Atlanta · Securities held outright · total","$M"], ["D6WSHOTSL","Atlanta · Treasuries","$M"],
+      ["D6WSHOBL","Atlanta · Treasury bills","$M"], ["D6WSHOSNB","Atlanta · Treasury notes and bonds","$M"],
+      ["D6WSHOMCB","Atlanta · Mortgage-backed securities","$M"], ["D6WSHOFDSL","Atlanta · Federal agency debt","$M"],
+      ["D6WUPSHO","Atlanta · Unamortized premiums","$M"], ["D6WUDSHO","Atlanta · Unamortized discounts","$M"]
+    ]},
+    { cat: "Ended March 2020 · Federal Reserve Bank of Chicago (district 7)", flag: "🏦", items: [
+      ["D7WSHOL","Chicago · Securities held outright · total","$M"], ["D7WSHOTSL","Chicago · Treasuries","$M"],
+      ["D7WSHOBL","Chicago · Treasury bills","$M"], ["D7WSHOSNB","Chicago · Treasury notes and bonds","$M"],
+      ["D7WSHOMCB","Chicago · Mortgage-backed securities","$M"], ["D7WSHOFDSL","Chicago · Federal agency debt","$M"],
+      ["D7WUPSHO","Chicago · Unamortized premiums","$M"], ["D7WUDSHO","Chicago · Unamortized discounts","$M"]
+    ]},
+    { cat: "Ended March 2020 · Federal Reserve Bank of St. Louis (district 8)", flag: "🏦", items: [
+      ["D8WSHOL","St. Louis · Securities held outright · total","$M"], ["D8WSHOTSL","St. Louis · Treasuries","$M"],
+      ["D8WSHOBL","St. Louis · Treasury bills","$M"], ["D8WSHOSNB","St. Louis · Treasury notes and bonds","$M"],
+      ["D8WSHOMCB","St. Louis · Mortgage-backed securities","$M"], ["D8WSHOFDSL","St. Louis · Federal agency debt","$M"],
+      ["D8WUPSHO","St. Louis · Unamortized premiums","$M"], ["D8WUDSHO","St. Louis · Unamortized discounts","$M"]
+    ]},
+    { cat: "Ended March 2020 · Federal Reserve Bank of Minneapolis (district 9)", flag: "🏦", items: [
+      ["D9WSHOL","Minneapolis · Securities held outright · total","$M"], ["D9WSHOTSL","Minneapolis · Treasuries","$M"],
+      ["D9WSHOBL","Minneapolis · Treasury bills","$M"], ["D9WSHOSNB","Minneapolis · Treasury notes and bonds","$M"],
+      ["D9WSHOMCB","Minneapolis · Mortgage-backed securities","$M"], ["D9WSHOFDSL","Minneapolis · Federal agency debt","$M"],
+      ["D9WUPSHO","Minneapolis · Unamortized premiums","$M"], ["D9WUDSHO","Minneapolis · Unamortized discounts","$M"]
+    ]},
+    { cat: "Ended March 2020 · Federal Reserve Bank of Kansas City (district 10)", flag: "🏦", items: [
+      ["D10WSHOL","Kansas City · Securities held outright · total","$M"], ["D10WSHOTSL","Kansas City · Treasuries","$M"],
+      ["D10WSHOBL","Kansas City · Treasury bills","$M"], ["D10WSHOSNB","Kansas City · Treasury notes and bonds","$M"],
+      ["D10WSHOMCB","Kansas City · Mortgage-backed securities","$M"], ["D10WSHOFDSL","Kansas City · Federal agency debt","$M"],
+      ["D10WUPSHO","Kansas City · Unamortized premiums","$M"], ["D10WUDSHO","Kansas City · Unamortized discounts","$M"]
+    ]},
+    { cat: "Ended March 2020 · Federal Reserve Bank of Dallas (district 11)", flag: "🏦", items: [
+      ["D11WSHOL","Dallas · Securities held outright · total","$M"], ["D11WSHOTSL","Dallas · Treasuries","$M"],
+      ["D11WSHOBL","Dallas · Treasury bills","$M"], ["D11WSHOSNB","Dallas · Treasury notes and bonds","$M"],
+      ["D11WSHOMCB","Dallas · Mortgage-backed securities","$M"], ["D11WSHOFDSL","Dallas · Federal agency debt","$M"],
+      ["D11WUPSHO","Dallas · Unamortized premiums","$M"], ["D11WUDSHO","Dallas · Unamortized discounts","$M"]
+    ]},
+    { cat: "Ended March 2020 · Federal Reserve Bank of San Francisco (district 12)", flag: "🏦", items: [
+      ["D12WSHOL","San Francisco · Securities held outright · total","$M"], ["D12WSHOTSL","San Francisco · Treasuries","$M"],
+      ["D12WSHOBL","San Francisco · Treasury bills","$M"], ["D12WSHOSNB","San Francisco · Treasury notes and bonds","$M"],
+      ["D12WSHOMCB","San Francisco · Mortgage-backed securities","$M"], ["D12WSHOFDSL","San Francisco · Federal agency debt","$M"],
+      ["D12WUPSHO","San Francisco · Unamortized premiums","$M"], ["D12WUDSHO","San Francisco · Unamortized discounts","$M"]
+    ]},
+  ];
+  static BOFA_CATALOG = [
+    { cat: "US corporate and high yield, with euro high yield · option-adjusted spreads", flag: "🇺🇸", items: [
+      ["BAMLC0A0CM","US Corporate · OAS","%"], ["BAMLC0A1CAAA","AAA US Corporate · OAS","%"],
+      ["BAMLC0A2CAA","AA US Corporate · OAS","%"], ["BAMLC0A3CA","Single-A US Corporate · OAS","%"],
+      ["BAMLC0A4CBBB","BBB US Corporate · OAS","%"], ["BAMLH0A0HYM2","US High Yield · OAS","%"],
+      ["BAMLH0A1HYBB","BB US High Yield · OAS","%"], ["BAMLH0A2HYB","Single-B US High Yield · OAS","%"],
+      ["BAMLH0A3HYC","CCC & Lower US High Yield · OAS","%"], ["BAMLHE00EHYIOAS","Euro High Yield · OAS","%"]
+    ]},
+    { cat: "US corporate and high yield, with euro high yield · effective yields", flag: "🇺🇸", items: [
+      ["BAMLC0A0CMEY","US Corporate · effective yield","%"], ["BAMLC0A1CAAAEY","AAA US Corporate · effective yield","%"],
+      ["BAMLC0A2CAAEY","AA US Corporate · effective yield","%"], ["BAMLC0A3CAEY","Single-A US Corporate · effective yield","%"],
+      ["BAMLC0A4CBBBEY","BBB US Corporate · effective yield","%"], ["BAMLH0A0HYM2EY","US High Yield · effective yield","%"],
+      ["BAMLH0A1HYBBEY","BB US High Yield · effective yield","%"], ["BAMLH0A2HYBEY","Single-B US High Yield · effective yield","%"],
+      ["BAMLH0A3HYCEY","CCC & Lower US High Yield · effective yield","%"], ["BAMLHE00EHYIEY","Euro High Yield · effective yield","%"]
+    ]},
+    { cat: "US corporate and high yield, with euro high yield · yields to worst", flag: "🇺🇸", items: [
+      ["BAMLC0A0CMSYTW","US Corporate · yield to worst","%"], ["BAMLC0A1CAAASYTW","AAA US Corporate · yield to worst","%"],
+      ["BAMLC0A2CAASYTW","AA US Corporate · yield to worst","%"], ["BAMLC0A3CASYTW","Single-A US Corporate · yield to worst","%"],
+      ["BAMLC0A4CBBBSYTW","BBB US Corporate · yield to worst","%"], ["BAMLH0A0HYM2SYTW","US High Yield · yield to worst","%"],
+      ["BAMLH0A1HYBBSYTW","BB US High Yield · yield to worst","%"], ["BAMLH0A2HYBSYTW","Single-B US High Yield · yield to worst","%"],
+      ["BAMLH0A3HYCSYTW","CCC & Lower US High Yield · yield to worst","%"], ["BAMLHE00EHYISYTW","Euro High Yield · yield to worst","%"]
+    ]},
+    { cat: "US corporate and high yield, with euro high yield · total return indexes", flag: "🇺🇸", items: [
+      ["BAMLCC0A0CMTRIV","US Corporate · total return","index"], ["BAMLCC0A1AAATRIV","AAA US Corporate · total return","index"],
+      ["BAMLCC0A2AATRIV","AA US Corporate · total return","index"], ["BAMLCC0A3ATRIV","Single-A US Corporate · total return","index"],
+      ["BAMLCC0A4BBBTRIV","BBB US Corporate · total return","index"], ["BAMLHYH0A0HYM2TRIV","US High Yield · total return","index"],
+      ["BAMLHYH0A1BBTRIV","BB US High Yield · total return","index"], ["BAMLHYH0A2BTRIV","Single-B US High Yield · total return","index"],
+      ["BAMLHYH0A3CMTRIV","CCC & Lower US High Yield · total return","index"], ["BAMLHE00EHYITRIV","Euro High Yield · total return","index"]
+    ]},
+    { cat: "US corporate by maturity · option-adjusted spreads", flag: "⏳", items: [
+      ["BAMLC1A0C13Y","1-3 Year US Corporate · OAS","%"], ["BAMLC2A0C35Y","3-5 Year US Corporate · OAS","%"],
+      ["BAMLC3A0C57Y","5-7 Year US Corporate · OAS","%"], ["BAMLC4A0C710Y","7-10 Year US Corporate · OAS","%"],
+      ["BAMLC7A0C1015Y","10-15 Year US Corporate · OAS","%"], ["BAMLC8A0C15PY","15+ Year US Corporate · OAS","%"]
+    ]},
+    { cat: "US corporate by maturity · effective yields", flag: "⏳", items: [
+      ["BAMLC1A0C13YEY","1-3 Year US Corporate · effective yield","%"], ["BAMLC2A0C35YEY","3-5 Year US Corporate · effective yield","%"],
+      ["BAMLC3A0C57YEY","5-7 Year US Corporate · effective yield","%"], ["BAMLC4A0C710YEY","7-10 Year US Corporate · effective yield","%"],
+      ["BAMLC7A0C1015YEY","10-15 Year US Corporate · effective yield","%"], ["BAMLC8A0C15PYEY","15+ Year US Corporate · effective yield","%"]
+    ]},
+    { cat: "US corporate by maturity · yields to worst", flag: "⏳", items: [
+      ["BAMLC1A0C13YSYTW","1-3 Year US Corporate · yield to worst","%"], ["BAMLC2A0C35YSYTW","3-5 Year US Corporate · yield to worst","%"],
+      ["BAMLC3A0C57YSYTW","5-7 Year US Corporate · yield to worst","%"], ["BAMLC4A0C710YSYTW","7-10 Year US Corporate · yield to worst","%"],
+      ["BAMLC7A0C1015YSYTW","10-15 Year US Corporate · yield to worst","%"], ["BAMLC8A0C15PYSYTW","15+ Year US Corporate · yield to worst","%"]
+    ]},
+    { cat: "US corporate by maturity · total return indexes", flag: "⏳", items: [
+      ["BAMLCC1A013YTRIV","1-3 Year US Corporate · total return","index"], ["BAMLCC2A035YTRIV","3-5 Year US Corporate · total return","index"],
+      ["BAMLCC3A057YTRIV","5-7 Year US Corporate · total return","index"], ["BAMLCC4A0710YTRIV","7-10 Year US Corporate · total return","index"],
+      ["BAMLCC7A01015YTRIV","10-15 Year US Corporate · total return","index"], ["BAMLCC8A015PYTRIV","15+ Year US Corporate · total return","index"]
+    ]},
+    { cat: "Emerging markets corporate plus · option-adjusted spreads", flag: "🌍", items: [
+      ["BAMLEMCBPIOAS","EM Corporate Plus · OAS","%"], ["BAMLEM1BRRAAA2ACRPIOAS","AAA-A EM Corporate Plus · OAS","%"],
+      ["BAMLEM2BRRBBBCRPIOAS","BBB EM Corporate Plus · OAS","%"], ["BAMLEM3BRRBBCRPIOAS","BB EM Corporate Plus · OAS","%"],
+      ["BAMLEM4BRRBLCRPIOAS","B & Lower EM Corporate Plus · OAS","%"], ["BAMLEM5BCOCRPIOAS","Crossover EM Corporate Plus · OAS","%"],
+      ["BAMLEMIBHGCRPIOAS","High Grade EM Corporate Plus · OAS","%"], ["BAMLEMHBHYCRPIOAS","High Yield EM Corporate Plus · OAS","%"],
+      ["BAMLEMRACRPIASIAOAS","Asia EM Corporate Plus · OAS","%"], ["BAMLEMRECRPIEMEAOAS","EMEA EM Corporate Plus · OAS","%"],
+      ["BAMLEMRLCRPILAOAS","Latin America EM Corporate Plus · OAS","%"], ["BAMLEMEBCRPIEOAS","Euro EM Corporate Plus · OAS","%"],
+      ["BAMLEMUBCRPIUSOAS","US EM Corporate Plus · OAS","%"], ["BAMLEMFSFCRPIOAS","Private Sector Financial EM Corporate Plus · OAS","%"],
+      ["BAMLEMNSNFCRPIOAS","Non-Financial EM Corporate Plus · OAS","%"], ["BAMLEMPBPUBSICRPIOAS","Public Sector Issuers EM Corporate Plus · OAS","%"],
+      ["BAMLEMPTPRVICRPIOAS","Private Sector Issuers EM Corporate Plus · OAS","%"]
+    ]},
+    { cat: "Emerging markets corporate plus · effective yields", flag: "🌍", items: [
+      ["BAMLEMCBPIEY","EM Corporate Plus · effective yield","%"], ["BAMLEM1BRRAAA2ACRPIEY","AAA-A EM Corporate Plus · effective yield","%"],
+      ["BAMLEM2BRRBBBCRPIEY","BBB EM Corporate Plus · effective yield","%"], ["BAMLEM3BRRBBCRPIEY","BB EM Corporate Plus · effective yield","%"],
+      ["BAMLEM4BRRBLCRPIEY","B & Lower EM Corporate Plus · effective yield","%"], ["BAMLEM5BCOCRPIEY","Crossover EM Corporate Plus · effective yield","%"],
+      ["BAMLEMIBHGCRPIEY","High Grade EM Corporate Plus · effective yield","%"], ["BAMLEMHBHYCRPIEY","High Yield EM Corporate Plus · effective yield","%"],
+      ["BAMLEMRACRPIASIAEY","Asia EM Corporate Plus · effective yield","%"], ["BAMLEMRECRPIEMEAEY","EMEA EM Corporate Plus · effective yield","%"],
+      ["BAMLEMRLCRPILAEY","Latin America EM Corporate Plus · effective yield","%"], ["BAMLEMEBCRPIEEY","Euro EM Corporate Plus · effective yield","%"],
+      ["BAMLEMUBCRPIUSEY","US EM Corporate Plus · effective yield","%"], ["BAMLEMFSFCRPIEY","Private Sector Financial EM Corporate Plus · effective yield","%"],
+      ["BAMLEMNSNFCRPIEY","Non-Financial EM Corporate Plus · effective yield","%"], ["BAMLEMPBPUBSICRPIEY","Public Sector Issuers EM Corporate Plus · effective yield","%"],
+      ["BAMLEMPTPRVICRPIEY","Private Sector Issuers EM Corporate Plus · effective yield","%"]
+    ]},
+    { cat: "Emerging markets corporate plus · yields to worst", flag: "🌍", items: [
+      ["BAMLEMCBPISYTW","EM Corporate Plus · yield to worst","%"], ["BAMLEM1BRRAAA2ACRPISYTW","AAA-A EM Corporate Plus · yield to worst","%"],
+      ["BAMLEM2BRRBBBCRPISYTW","BBB EM Corporate Plus · yield to worst","%"], ["BAMLEM3BRRBBCRPISYTW","BB EM Corporate Plus · yield to worst","%"],
+      ["BAMLEM4BRRBLCRPISYTW","B & Lower EM Corporate Plus · yield to worst","%"], ["BAMLEM5BCOCRPISYTW","Crossover EM Corporate Plus · yield to worst","%"],
+      ["BAMLEMIBHGCRPISYTW","High Grade EM Corporate Plus · yield to worst","%"], ["BAMLEMHBHYCRPISYTW","High Yield EM Corporate Plus · yield to worst","%"],
+      ["BAMLEMRACRPIASIASYTW","Asia EM Corporate Plus · yield to worst","%"], ["BAMLEMRECRPIEMEASYTW","EMEA EM Corporate Plus · yield to worst","%"],
+      ["BAMLEMRLCRPILASYTW","Latin America EM Corporate Plus · yield to worst","%"], ["BAMLEMEBCRPIESYTW","Euro EM Corporate Plus · yield to worst","%"],
+      ["BAMLEMUBCRPIUSSYTW","US EM Corporate Plus · yield to worst","%"], ["BAMLEMFSFCRPISYTW","Private Sector Financial EM Corporate Plus · yield to worst","%"],
+      ["BAMLEMNSNFCRPISYTW","Non-Financial EM Corporate Plus · yield to worst","%"], ["BAMLEMPBPUBSICRPISYTW","Public Sector Issuers EM Corporate Plus · yield to worst","%"],
+      ["BAMLEMPTPRVICRPISYTW","Private Sector Issuers EM Corporate Plus · yield to worst","%"]
+    ]},
+    { cat: "Emerging markets corporate plus · total return indexes", flag: "🌍", items: [
+      ["BAMLEMCBPITRIV","EM Corporate Plus · total return","index"], ["BAMLEM1BRRAAA2ACRPITRIV","AAA-A EM Corporate Plus · total return","index"],
+      ["BAMLEM2BRRBBBCRPITRIV","BBB EM Corporate Plus · total return","index"], ["BAMLEM3BRRBBCRPITRIV","BB EM Corporate Plus · total return","index"],
+      ["BAMLEM4BRRBLCRPITRIV","B & Lower EM Corporate Plus · total return","index"], ["BAMLEM5BCOCRPITRIV","Crossover EM Corporate Plus · total return","index"],
+      ["BAMLEMIBHGCRPITRIV","High Grade EM Corporate Plus · total return","index"], ["BAMLEMHBHYCRPITRIV","High Yield EM Corporate Plus · total return","index"],
+      ["BAMLEMRACRPIASIATRIV","Asia EM Corporate Plus · total return","index"], ["BAMLEMRECRPIEMEATRIV","EMEA EM Corporate Plus · total return","index"],
+      ["BAMLEMRLCRPILATRIV","Latin America EM Corporate Plus · total return","index"], ["BAMLEMEBCRPIETRIV","Euro EM Corporate Plus · total return","index"],
+      ["BAMLEMUBCRPIUSTRIV","US EM Corporate Plus · total return","index"], ["BAMLEMFSFCRPITRIV","Private Sector Financial EM Corporate Plus · total return","index"],
+      ["BAMLEMNSNFCRPITRIV","Non-Financial EM Corporate Plus · total return","index"], ["BAMLEMPBPUBSICRPITRIV","Public Sector Issuers EM Corporate Plus · total return","index"],
+      ["BAMLEMPTPRVICRPITRIV","Private Sector Issuers EM Corporate Plus · total return","index"]
+    ]},
+    { cat: "US-dollar emerging markets liquid corporate plus · option-adjusted spreads", flag: "💲", items: [
+      ["BAMLEMCLLCRPIUSOAS","US EM Liquid Corporate Plus · OAS","%"], ["BAMLEM1RAAA2ALCRPIUSOAS","AAA-A US EM Liquid Corporate Plus · OAS","%"],
+      ["BAMLEM2RBBBLCRPIUSOAS","BBB US EM Liquid Corporate Plus · OAS","%"], ["BAMLEM3RBBLCRPIUSOAS","BB US EM Liquid Corporate Plus · OAS","%"],
+      ["BAMLEM4RBLLCRPIUSOAS","B & Lower US EM Liquid Corporate Plus · OAS","%"], ["BAMLEMXOCOLCRPIUSOAS","Crossover US EM Liquid Corporate Plus · OAS","%"],
+      ["BAMLEMHGHGLCRPIUSOAS","High Grade US EM Liquid Corporate Plus · OAS","%"], ["BAMLEMHYHYLCRPIUSOAS","High Yield US EM Liquid Corporate Plus · OAS","%"],
+      ["BAMLEMALLCRPIASIAUSOAS","Asia US EM Liquid Corporate Plus · OAS","%"], ["BAMLEMELLCRPIEMEAUSOAS","EMEA US EM Liquid Corporate Plus · OAS","%"],
+      ["BAMLEMLLLCRPILAUSOAS","Latin America US EM Liquid Corporate Plus · OAS","%"], ["BAMLEMFLFLCRPIUSOAS","Financial US EM Liquid Corporate Plus · OAS","%"],
+      ["BAMLEMNFNFLCRPIUSOAS","Non-Financial US EM Liquid Corporate Plus · OAS","%"], ["BAMLEMPUPUBSLCRPIUSOAS","Public Sector Issuers US EM Liquid Corporate Plus · OAS","%"],
+      ["BAMLEMPVPRIVSLCRPIUSOAS","Private Sector Issuers US EM Liquid Corporate Plus · OAS","%"]
+    ]},
+    { cat: "US-dollar emerging markets liquid corporate plus · effective yields", flag: "💲", items: [
+      ["BAMLEMCLLCRPIUSEY","US EM Liquid Corporate Plus · effective yield","%"], ["BAMLEM1RAAA2ALCRPIUSEY","AAA-A US EM Liquid Corporate Plus · effective yield","%"],
+      ["BAMLEM2RBBBLCRPIUSEY","BBB US EM Liquid Corporate Plus · effective yield","%"], ["BAMLEM3RBBLCRPIUSEY","BB US EM Liquid Corporate Plus · effective yield","%"],
+      ["BAMLEM4RBLLCRPIUSEY","B & Lower US EM Liquid Corporate Plus · effective yield","%"], ["BAMLEMXOCOLCRPIUSEY","Crossover US EM Liquid Corporate Plus · effective yield","%"],
+      ["BAMLEMHGHGLCRPIUSEY","High Grade US EM Liquid Corporate Plus · effective yield","%"], ["BAMLEMHYHYLCRPIUSEY","High Yield US EM Liquid Corporate Plus · effective yield","%"],
+      ["BAMLEMALLCRPIASIAUSEY","Asia US EM Liquid Corporate Plus · effective yield","%"], ["BAMLEMELLCRPIEMEAUSEY","EMEA US EM Liquid Corporate Plus · effective yield","%"],
+      ["BAMLEMLLLCRPILAUSEY","Latin America US EM Liquid Corporate Plus · effective yield","%"], ["BAMLEMFLFLCRPIUSEY","Financial US EM Liquid Corporate Plus · effective yield","%"],
+      ["BAMLEMNFNFLCRPIUSEY","Non-Financial US EM Liquid Corporate Plus · effective yield","%"], ["BAMLEMPUPUBSLCRPIUSEY","Public Sector Issuers US EM Liquid Corporate Plus · effective yield","%"],
+      ["BAMLEMPVPRIVSLCRPIUSEY","Private Sector Issuers US EM Liquid Corporate Plus · effective yield","%"]
+    ]},
+    { cat: "US-dollar emerging markets liquid corporate plus · yields to worst", flag: "💲", items: [
+      ["BAMLEMCLLCRPIUSSYTW","US EM Liquid Corporate Plus · yield to worst","%"], ["BAMLEM1RAAA2ALCRPIUSSYTW","AAA-A US EM Liquid Corporate Plus · yield to worst","%"],
+      ["BAMLEM2RBBBLCRPIUSSYTW","BBB US EM Liquid Corporate Plus · yield to worst","%"], ["BAMLEM3RBBLCRPIUSSYTW","BB US EM Liquid Corporate Plus · yield to worst","%"],
+      ["BAMLEM4RBLLCRPIUSSYTW","B & Lower US EM Liquid Corporate Plus · yield to worst","%"], ["BAMLEMXOCOLCRPIUSSYTW","Crossover US EM Liquid Corporate Plus · yield to worst","%"],
+      ["BAMLEMHGHGLCRPIUSSYTW","High Grade US EM Liquid Corporate Plus · yield to worst","%"], ["BAMLEMHYHYLCRPIUSSYTW","High Yield US EM Liquid Corporate Plus · yield to worst","%"],
+      ["BAMLEMALLCRPIASIAUSSYTW","Asia US EM Liquid Corporate Plus · yield to worst","%"], ["BAMLEMELLCRPIEMEAUSSYTW","EMEA US EM Liquid Corporate Plus · yield to worst","%"],
+      ["BAMLEMLLLCRPILAUSSYTW","Latin America US EM Liquid Corporate Plus · yield to worst","%"], ["BAMLEMFLFLCRPIUSSYTW","Financial US EM Liquid Corporate Plus · yield to worst","%"],
+      ["BAMLEMNFNFLCRPIUSSYTW","Non-Financial US EM Liquid Corporate Plus · yield to worst","%"], ["BAMLEMPUPUBSLCRPIUSSYTW","Public Sector Issuers US EM Liquid Corporate Plus · yield to worst","%"],
+      ["BAMLEMPVPRIVSLCRPIUSSYTW","Private Sector Issuers US EM Liquid Corporate Plus · yield to worst","%"]
+    ]},
+    { cat: "US-dollar emerging markets liquid corporate plus · total return indexes", flag: "💲", items: [
+      ["BAMLEMCLLCRPIUSTRIV","US EM Liquid Corporate Plus · total return","index"], ["BAMLEM1RAAA2ALCRPIUSTRIV","AAA-A US EM Liquid Corporate Plus · total return","index"],
+      ["BAMLEM2RBBBLCRPIUSTRIV","BBB US EM Liquid Corporate Plus · total return","index"], ["BAMLEM3RBBLCRPIUSTRIV","BB US EM Liquid Corporate Plus · total return","index"],
+      ["BAMLEM4RBLLCRPIUSTRIV","B & Lower US EM Liquid Corporate Plus · total return","index"], ["BAMLEMXOCOLCRPIUSTRIV","Crossover US EM Liquid Corporate Plus · total return","index"],
+      ["BAMLEMHGHGLCRPIUSTRIV","High Grade US EM Liquid Corporate Plus · total return","index"], ["BAMLEMHYHYLCRPIUSTRIV","High Yield US EM Liquid Corporate Plus · total return","index"],
+      ["BAMLEMALLCRPIASIAUSTRIV","Asia US EM Liquid Corporate Plus · total return","index"], ["BAMLEMELLCRPIEMEAUSTRIV","EMEA US EM Liquid Corporate Plus · total return","index"],
+      ["BAMLEMLLLCRPILAUSTRIV","Latin America US EM Liquid Corporate Plus · total return","index"], ["BAMLEMFLFLCRPIUSTRIV","Financial US EM Liquid Corporate Plus · total return","index"],
+      ["BAMLEMNFNFLCRPIUSTRIV","Non-Financial US EM Liquid Corporate Plus · total return","index"], ["BAMLEMPUPUBSLCRPIUSTRIV","Public Sector Issuers US EM Liquid Corporate Plus · total return","index"],
+      ["BAMLEMPVPRIVSLCRPIUSTRIV","Private Sector Issuers US EM Liquid Corporate Plus · total return","index"]
+    ]},
+  ];
+  static CALC = {
+    dxy: { chart: "/chart.html?s=DXY", k: 50.14348112, legs: [["FRED:DEXUSEU", -0.576], ["FRED:DEXJPUS", 0.136], ["FRED:DEXUSUK", -0.119], ["FRED:DEXCAUS", 0.091], ["FRED:DEXSDUS", 0.042], ["FRED:DEXSZUS", 0.036]] },
+  };
   static DESKS = {
     macro: { key: "jh_macro_workspace_v2", catalog: "CATALOG", title: "📈 Macro & Economic Data", reset: "Restore the original curated macro catalog?" },
     flows: { key: "jh_flows_workspace_v1", catalog: "FLOWS_CATALOG", title: "⇄ Inflows & outflows", reset: "Restore the original inflows & outflows catalog?" },
+    dollar: { key: "jh_dollar_workspace_v1", catalog: "DOLLAR_CATALOG", title: "💵 Dollar indexes", reset: "Restore the original dollar index catalog?" },
+    soma: { key: "jh_soma_workspace_v1", catalog: "SOMA_CATALOG", title: "🏛 Fed securities held outright", reset: "Restore the original securities held outright catalog?" },
+    bofa: { key: "jh_bofa_workspace_v1", catalog: "BOFA_CATALOG", title: "📉 ICE BofA indices", reset: "Restore the original ICE BofA catalog?" },
   };
   static desk = "macro";
   static configure(which) {
@@ -605,7 +986,7 @@ class MacroData {
         const raw = String(item[0]);
         const symbol = cat.etf ? raw : (raw.indexOf(':') >= 0 ? raw : `FRED:${raw}`);
         const scheme = symbol.indexOf(':') >= 0 ? symbol.split(':')[0].toLowerCase() : '';
-        const provider = cat.etf ? 'market' : (scheme === 'flows' ? ((this.FLOW_FEEDS[symbol.slice(6).split('/')[0]] || {}).label || 'JustHodl engine') : (scheme || 'fred'));
+        const provider = cat.etf ? 'market' : (scheme === 'flows' ? ((this.FLOW_FEEDS[symbol.slice(6).split('/')[0]] || {}).label || 'JustHodl engine') : scheme === 'calc' ? 'fred · worked out here' : (scheme || 'fred'));
         return {
           uid: `default-${ci}-${ii}`,
           symbol,
@@ -775,7 +1156,7 @@ class MacroData {
       const categoryId = btn.dataset.categoryId || (card && card.dataset.categoryId);
       const seriesId = card && card.dataset.seriesId;
       if (action === 'add-series') this.openSeriesEditor(null, categoryId, null, btn);
-      if (action === 'compare-series' && card) CompareController.add(card.dataset.symbol);
+      if (action === 'compare-series' && card) this.compareSeries(card.dataset.symbol);
       if (action === 'edit-series') this.openSeriesEditor(seriesId, categoryId, null, btn);
       if (action === 'remove-series') this.removeSeries(seriesId, categoryId);
       if (action === 'edit-category') this.openCategoryEditor(categoryId, btn);
@@ -1139,6 +1520,17 @@ class MacroData {
     return this.metricFromObservations(observations);
   }
 
+  /* a month, a quarter or a year before `time` on the calendar, held to the target month's last day: 31 Dec less a quarter is 30 Sep
+     and 31 Mar less a month is 28 Feb (setUTCMonth alone rolls them over to 1 Oct and 3 Mar, which made a "month" four weeks long on
+     those days; found 2026-11-17 by ops 6834's independent figures) */
+  static monthsBack(time, months) {
+    const d = new Date(time), day = d.getUTCDate();
+    d.setUTCDate(1);
+    d.setUTCMonth(d.getUTCMonth() - months);
+    d.setUTCDate(Math.min(day, new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate()));
+    return d.getTime();
+  }
+
   static metricFromObservations(observations) {
     const last = observations[observations.length - 1];
     const changes = {};
@@ -1150,9 +1542,9 @@ class MacroData {
       const date = new Date(lastTime);
       if (horizon === 'D') date.setUTCDate(date.getUTCDate() - 1);
       if (horizon === 'W') date.setUTCDate(date.getUTCDate() - 7);
-      if (horizon === 'M') date.setUTCMonth(date.getUTCMonth() - 1);
-      if (horizon === 'Q') date.setUTCMonth(date.getUTCMonth() - 3);
-      if (horizon === 'Y') date.setUTCFullYear(date.getUTCFullYear() - 1);
+      if (horizon === 'M') return this.monthsBack(lastTime, 1);
+      if (horizon === 'Q') return this.monthsBack(lastTime, 3);
+      if (horizon === 'Y') return this.monthsBack(lastTime, 12);
       return date.getTime();
     };
     const tolerances = { D: 3, W: 5, M: 16, Q: 45, Y: 95 };
@@ -1169,8 +1561,53 @@ class MacroData {
     return { last: last.value, asof: last.date.slice(0, 10), changes, spacingDays, cachedAt: Date.now(), hist: this.packHistory(observations) };
   }
 
+  /* calc:<name> -> a series worked out in the browser from other warehouse series (CALC).  calc:dxy is the ICE U.S. Dollar Index
+     formula, 50.14348112 x EURUSD^-0.576 x USDJPY^0.136 x GBPUSD^-0.119 x USDCAD^0.091 x USDSEK^0.042 x USDCHF^0.036, on FRED's daily
+     H.10 rates - one value per day on which all six printed (so from 1999-01-04, the euro's first day).  These are the Fed's noon
+     rates, not ICE's tape: it tracks the quoted DXY closely (ops 6834 measures the gap) and lags it by FRED's publication delay. */
+  static async fetchCalc(symbol) {
+    const spec = this.CALC[String(symbol).slice(5).toLowerCase()];
+    if (!spec) throw new Error('Unknown calculated series ' + symbol);
+    const legs = await Promise.all(spec.legs.map(leg => this.fetchMetric(leg[0])));
+    const maps = legs.map(metric => { const m = new Map(), h = metric.hist; for (let i = 0; i < h.t.length; i++) m.set(h.t[i], h.v[i]); return m; });
+    const base = legs[0].hist, observations = [];
+    for (let i = 0; i < base.t.length; i++) {
+      let value = spec.k, ok = true;
+      for (let j = 0; j < maps.length && ok; j++) {
+        const x = maps[j].get(base.t[i]);
+        if (x > 0) value *= Math.pow(x, spec.legs[j][1]); else ok = false;
+      }
+      if (ok && Number.isFinite(value)) observations.push({ date: this.isoOf(base.t[i]), value });
+    }
+    if (!observations.length) throw new Error('No day on which every part printed for ' + symbol);
+    return this.metricFromObservations(observations);
+  }
+
+  /* a catalog's 4th tuple element "C" marks a series whose value is already a change (the H.4.1 "change from the previous
+     Wednesday" lines): a percentage of a change means nothing, so its card says so instead of printing one */
+  static changeTags = null;
+  static CHANGE_NOTE = '<span class="macro-change na macro-change-note" title="This line is the change itself, in millions of dollars. The percentage change is on the card of the level it belongs to.">this line is itself a change · its % is on the level\'s card</span>';
+  static isChangeSeries(symbol) {
+    if (!this.changeTags) {
+      this.changeTags = new Set();
+      Object.values(this.DESKS).forEach(d => (this[d.catalog] || []).forEach(cat => cat.items.forEach(item => {
+        if (item[3] === 'C') this.changeTags.add(String(item[0]).indexOf(':') >= 0 ? String(item[0]) : 'FRED:' + item[0]);
+      })));
+    }
+    return this.changeTags.has(String(symbol));
+  }
+
   static async fetchMetric(symbol) {
     if (String(symbol).indexOf(':') < 0) return this.fetchMarket(symbol);
+    if (/^calc:/i.test(String(symbol))) {
+      const cachedCalc = this.metricCache.get(symbol);
+      if (cachedCalc && Date.now() - cachedCalc.cachedAt < 10 * 60 * 1000) return cachedCalc;
+      if (this.metricInflight.has(symbol)) return this.metricInflight.get(symbol);
+      const calcRequest = this.fetchCalc(symbol).then(metric => { this.metricCache.set(symbol, metric); return metric; });
+      this.metricInflight.set(symbol, calcRequest);
+      try { return await calcRequest; }
+      finally { if (this.metricInflight.get(symbol) === calcRequest) this.metricInflight.delete(symbol); }
+    }
     if (/^flows:/i.test(String(symbol))) {
       const cachedFlow = this.metricCache.get(symbol);
       if (cachedFlow && Date.now() - cachedFlow.cachedAt < 10 * 60 * 1000) return cachedFlow;
@@ -1208,9 +1645,9 @@ class MacroData {
         const date = new Date(lastTime);
         if (horizon === 'D') date.setUTCDate(date.getUTCDate() - 1);
         if (horizon === 'W') date.setUTCDate(date.getUTCDate() - 7);
-        if (horizon === 'M') date.setUTCMonth(date.getUTCMonth() - 1);
-        if (horizon === 'Q') date.setUTCMonth(date.getUTCMonth() - 3);
-        if (horizon === 'Y') date.setUTCFullYear(date.getUTCFullYear() - 1);
+        if (horizon === 'M') return this.monthsBack(lastTime, 1);
+        if (horizon === 'Q') return this.monthsBack(lastTime, 3);
+        if (horizon === 'Y') return this.monthsBack(lastTime, 12);
         return date.getTime();
       };
       const tolerances = { D: 3, W: 5, M: 16, Q: 45, Y: 95 };
@@ -1315,6 +1752,7 @@ class MacroData {
       node.className = 'macro-change ' + (!Number.isFinite(value) ? 'na' : value > 0 ? 'up' : value < 0 ? 'down' : 'na');
       node.innerHTML = `<b>${horizon}</b>${Number.isFinite(value) ? `${value > 0 ? '+' : ''}${value.toFixed(Math.abs(value) >= 100 ? 0 : 2)}%` : '—'}`;
     });
+    if (this.isChangeSeries(item.symbol)) card.querySelector('.macro-changes').innerHTML = this.CHANGE_NOTE;
     const danger = this.isDanger(item.danger, metric);
     card.classList.toggle('danger-flash', danger);
     if (danger) {
@@ -1676,7 +2114,7 @@ class MacroData {
     const X = day => x0 + (day - t0) / (t1 - t0) * (x1 - x0);
     const parts = ['<svg class="macro-hist-chart' + (big ? ' big' : '') + '" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" role="img" aria-label="history since 1996">'];
     if (!hist || hist.t.length < 2) {
-      parts.push('<text x="' + (w / 2) + '" y="' + (h / 2) + '" class="macro-hist-empty" text-anchor="middle">no history before today</text></svg>');
+      parts.push('<text x="' + (w / 2) + '" y="' + (h / 2) + '" class="macro-hist-empty" text-anchor="middle">' + (opts.ended ? 'ended ' + UI.esc(opts.ended) + ' · before this strip begins' : 'no history before today') + '</text></svg>');
       return parts.join('');
     }
     let vmin = Infinity, vmax = -Infinity;
@@ -1756,6 +2194,8 @@ class MacroData {
     }).join(' · ');
   }
 
+  static endedBefore(metric) { return metric && metric.asof && metric.asof < this.HISTORY_FROM ? metric.asof : ''; }
+
   static async paintStrip(card, metric) {
     const host = card.querySelector('.macro-hist-svg');
     if (!host) return;
@@ -1764,7 +2204,7 @@ class MacroData {
     try {
       const [hist, turns] = await Promise.all([this.fetchHistory(card.dataset.symbol, metric), this.loadTurns()]);
       if (!card.isConnected) return;
-      host.innerHTML = this.historySvg(hist, turns, { w: 360, h: 132, units });
+      host.innerHTML = this.historySvg(hist, turns, { w: 360, h: 132, units, ended: this.endedBefore(metric) });
       const cap = card.querySelector('.macro-hist-cap');
       if (cap) cap.textContent = this.turnsCaption(hist, turns, units);
       card.classList.add('has-hist');
@@ -1882,7 +2322,7 @@ class MacroData {
       const spx = this.desk !== 'flows' && this.turns ? await this.spxHistory() : null;
       if (token !== this.focusToken) return;
       document.getElementById('macro-focus-latest').innerHTML = '<span class="v">' + UI.esc(this.formatValue(metric.last, item.units)) + '</span><span class="u">' + UI.esc(item.units || '') + '</span><span class="d">as of ' + UI.esc(metric.asof || '') + '</span>';
-      const changes = ['D', 'W', 'M', 'Q', 'Y'].map(hz => {
+      const changes = this.isChangeSeries(item.symbol) ? this.CHANGE_NOTE : ['D', 'W', 'M', 'Q', 'Y'].map(hz => {
         const value = metric.changes ? metric.changes[hz] : null;
         const cls = !Number.isFinite(value) ? 'na' : value > 0 ? 'up' : value < 0 ? 'down' : 'na';
         return '<span class="macro-change ' + cls + '"><b>' + hz + '</b>' + (Number.isFinite(value) ? (value > 0 ? '+' : '') + value.toFixed(Math.abs(value) >= 100 ? 0 : 2) + '%' : '—') + '</span>';
@@ -1896,7 +2336,7 @@ class MacroData {
       }).join('');
       if (this.desk === 'flows') { document.getElementById('macro-focus-body').innerHTML = this.focusNumbersHtml(item, metric, hist, changes, rows); return; }
       document.getElementById('macro-focus-body').innerHTML =
-        '<div class="macro-focus-chart">' + this.historySvg(hist, turns, { w: 1200, h: 520, units: item.units, big: true, spx }) + '</div>' +
+        '<div class="macro-focus-chart">' + this.historySvg(hist, turns, { w: 1200, h: 520, units: item.units, big: true, spx, ended: this.endedBefore(metric) }) + '</div>' +
         '<div class="macro-focus-grid"><div class="macro-focus-changes">' + changes + '</div>' +
         '<div class="macro-focus-table"><table><thead><tr><th>event</th><th>market top</th><th>this series</th><th>market bottom</th><th>this series</th><th>top → bottom</th></tr></thead><tbody>' +
         (rows || '<tr><td colspan="6">market turns unavailable right now</td></tr>') + '</tbody></table>' +
@@ -1932,7 +2372,7 @@ class MacroData {
     root.__wired = true;
     document.getElementById('macro-focus-close').addEventListener('click', () => this.closeFocus());
     document.getElementById('macro-focus-chart').addEventListener('click', () => { const item = this.focusItem; if (!item) return; this.closeFocus(); this.chartSeries(item.symbol); this.close(); });
-    document.getElementById('macro-focus-compare').addEventListener('click', () => { const item = this.focusItem; if (!item) return; CompareController.add(item.symbol); jhToast('Added to the chart comparison'); });
+    document.getElementById('macro-focus-compare').addEventListener('click', () => { const item = this.focusItem; if (!item) return; this.compareSeries(item.symbol); if (!this.calcSpec(item.symbol)) jhToast('Added to the chart comparison'); });
     root.addEventListener('click', e => {
       const note = e.target.closest('.macro-note');
       if (note && this.focusItem && !note.classList.contains('editing')) { e.stopPropagation(); this.editNote(note, this.focusItem.uid, this.focusCategory && this.focusCategory.id); }
@@ -2400,7 +2840,7 @@ class MacroData {
   /* ── the catalog only grows: new FLOWS_CATALOG series reach a saved desk without a reset ── */
   static mergeCatalog() {
     const st = this.state;
-    if (!st || this.desk !== 'flows') return 0;
+    if (!st || this.desk === 'macro') return 0;
     const have = new Set();
     st.categories.forEach(cat => cat.items.forEach(item => have.add(item.symbol)));
     const known = Array.isArray(st.offered);
@@ -2680,7 +3120,18 @@ class MacroData {
     this.renderCatalog();
   }
 
+  static calcSpec(symbol) { return /^calc:/i.test(String(symbol)) ? this.CALC[String(symbol).slice(5).toLowerCase()] || null : null; }
+  static compareSeries(symbol) {
+    if (this.calcSpec(symbol)) return this.chartSeries(symbol);
+    CompareController.add(symbol);
+  }
   static chartSeries(symbol) {
+    const calc = this.calcSpec(symbol);
+    if (calc) {   // a series worked out here has no chart of its own: open the market's own print of it on the main chart
+      const opened = window.open(calc.chart, '_blank', 'noopener');
+      if (!opened) location.href = calc.chart;
+      return;
+    }
     if (symbol.includes(':')) {
       State.chartEngine = 'native';
       document.querySelectorAll('.ceng-btn[data-engine]').forEach(b => b.classList.toggle('active', b.dataset.engine === 'native'));

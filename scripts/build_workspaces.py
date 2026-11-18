@@ -189,10 +189,10 @@ const JH_WS = {{
     document.body.classList.add('jh-ws-page');
     const cls = which === 'heatmap' ? Heatmap : MacroData;
     cls.inline = true;
-    if (cls === MacroData && typeof MacroData.configure === 'function') MacroData.configure(which === 'flows' ? 'flows' : 'macro');
+    if (cls === MacroData && typeof MacroData.configure === 'function') MacroData.configure(MacroData.DESKS && MacroData.DESKS[which] ? which : 'macro');
     cls.init();
     cls.open();
-    if (which === 'macro' || which === 'flows') {{
+    if (which !== 'heatmap') {{
       let timer = null;
       const input = document.getElementById('macro-search-input');
       if (input) input.addEventListener('input', e => {{ clearTimeout(timer); const v = e.target.value; timer = setTimeout(() => MacroData.search(v), 300); }});
@@ -243,8 +243,10 @@ body.jh-ws-page .new-wl-modal { position: fixed; }
     def page(which, title, crumb, markup, open_class):
         markup = markup.replace('class="heatmap-modal" id="heatmap-modal"', 'class="heatmap-modal open" id="heatmap-modal"') if which == "heatmap" else \
             markup.replace('class="heatmap-modal" id="macro-modal"', 'class="heatmap-modal open" id="macro-modal"')
-        other = {"heatmap": ("/macro-economic-data.html", "Macro &amp; Economic Data"), "macro": ("/universe-heatmap.html", "Universe Heatmap"), "flows": ("/macro-economic-data.html", "Macro &amp; Economic Data")}[which]
-        third = {"heatmap": ("/inflows-outflows.html", "Inflows &amp; outflows"), "macro": ("/inflows-outflows.html", "Inflows &amp; outflows"), "flows": ("/universe-heatmap.html", "Universe Heatmap")}[which]
+        other = {"heatmap": ("/macro-economic-data.html", "Macro &amp; Economic Data"), "macro": ("/universe-heatmap.html", "Universe Heatmap"), "flows": ("/macro-economic-data.html", "Macro &amp; Economic Data"),
+                 "dollar": ("/securities-held-outright.html", "Held outright"), "soma": ("/dollar-indexes.html", "Dollar indexes"), "bofa": ("/dollar-indexes.html", "Dollar indexes")}[which]
+        third = {"heatmap": ("/inflows-outflows.html", "Inflows &amp; outflows"), "macro": ("/inflows-outflows.html", "Inflows &amp; outflows"), "flows": ("/universe-heatmap.html", "Universe Heatmap"),
+                 "dollar": ("/ice-bofa-indices.html", "ICE BofA"), "soma": ("/ice-bofa-indices.html", "ICE BofA"), "bofa": ("/securities-held-outright.html", "Held outright")}[which]
         return f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -294,7 +296,25 @@ body.jh-ws-page .new-wl-modal { position: fixed; }
         'placeholder="Search every macro series — ICE BofA, CPI, unemployment, yields… (FRED, ECB, IMF, World Bank, OECD, BIS, Eurostat)"',
         'placeholder="Search every flow series — fund flows, money funds, deposits, TIC, exchange netflows… or any series at all"')
     (SITE / "inflows-outflows.html").write_text(page("flows", "Inflows & outflows", "Inflows &amp; outflows · fund flows, money funds, deposits, Fed liquidity, the Z.1 flow of funds, TIC, crypto and Asia — every one with its history and the famous bears", flows_markup, "open"), encoding="utf-8", newline="\n")
-    print("built: assets/jh-workspaces.js (%d bytes), assets/jh-workspaces.css (%d bytes), universe-heatmap.html, macro-economic-data.html, inflows-outflows.html"
+    # 2026-11-17: three FRED desks beside 13F on the chart -- the Macro desk's engine, cards and history strips, each with its own catalog and storage key
+    MACRO_TITLE = "📈 Macro &amp; Economic Data"
+    MACRO_HINT = 'placeholder="Search every macro series — ICE BofA, CPI, unemployment, yields… (FRED, ECB, IMF, World Bank, OECD, BIS, Eurostat)"'
+    if MACRO_TITLE not in macro_markup or MACRO_HINT not in macro_markup:
+        raise SystemExit("the Macro desk's title or search hint changed; the FRED desks are built from them")
+    for which, fname, title, heading, hint, crumb in (
+        ("dollar", "dollar-indexes.html", "Dollar indexes", "💵 Dollar indexes",
+         "Search any series to add beside the dollar indexes — an exchange rate, a yield, anything indexed",
+         "Dollar indexes · the DXY rebuilt from FRED and every FRED dollar index · history and week, month, quarter, year change"),
+        ("soma", "securities-held-outright.html", "Fed securities held outright", "🏛 Fed securities held outright",
+         "Search any series to add beside the Fed's holdings — reserves, the TGA, reverse repo, anything indexed",
+         "Fed securities held outright · every H.4.1 line on FRED · history and week, month, quarter, year change"),
+        ("bofa", "ice-bofa-indices.html", "ICE BofA indices", "📉 ICE BofA indices",
+         "Search any series to add beside the ICE BofA indices — Treasury yields, CDS, anything indexed",
+         "ICE BofA indices · all 192 on FRED: spreads, yields, total return · history since 1996 and week, month, quarter, year change"),
+    ):
+        desk_markup = macro_markup.replace(MACRO_TITLE, heading).replace(MACRO_HINT, 'placeholder="%s"' % hint)
+        (SITE / fname).write_text(page(which, title, crumb, desk_markup, "open"), encoding="utf-8", newline="\n")
+    print("built: assets/jh-workspaces.js (%d bytes), assets/jh-workspaces.css (%d bytes), universe-heatmap.html, macro-economic-data.html, inflows-outflows.html, dollar-indexes.html, securities-held-outright.html, ice-bofa-indices.html"
           % (len(bundle), len(css)))
 
 

@@ -79,3 +79,19 @@ Remove the desk again (Git Bash):
     git rm -q inflows-outflows.html
     git commit -m "remove the Inflows & outflows desk [skip-ops]"
     git push
+
+## The three FRED desks beside 13F (2026-11-17)
+
+Dollar indexes (`/dollar-indexes.html`, 95 series), Fed securities held outright (`/securities-held-outright.html`, 222) and
+ICE BofA indices (`/ice-bofa-indices.html`, 192): the Macro desk's engine with three more catalogs (`DOLLAR_CATALOG`,
+`SOMA_CATALOG`, `BOFA_CATALOG` in `chart-pro.html`), their own storage keys, and three buttons between CDS and 13F on
+`chart.html` (`btn-usd`, `btn-soma`, `btn-bofa`). The state before them is commit `7f45dbeb`:
+
+```
+git checkout 7f45dbeb -- chart-pro.html assets/jh-workspaces.js assets/jh-workspaces.css scripts/build_workspaces.py \
+  jh-chart-engine.js jh-chart-tvrail.js tests/helpers/chart-macro-line-preservation.cjs config/page-data-contracts.json
+git rm dollar-indexes.html securities-held-outright.html ice-bofa-indices.html tests/fred-desks.test.js tests/fixtures/fred-desks.json
+```
+
+then commit with `[skip-ops]` and push. That also takes back the month-end fix in the week / month / quarter / year
+arithmetic (`MacroData.monthsBack`), which the Macro and flows desks share.
