@@ -828,12 +828,18 @@ def lambda_handler(event, context):
     deadline = soft_deadline(started, context)
     print(f"fetch deadline in {deadline - started:.0f} s (function remaining minus the merge/write reserve)")
 
-    # 1. List recent Form 4 filings
+    # 1. List recent Form 4 filings. A failed atom feed is NOT fatal (daily health run 2026-11-18, ops 6837): EDGAR's
+    # getcurrent endpoint answered 404 (Nov 13-14) and then 400 (Nov 16-17) and the run exited here with 502 - no
+    # backfill, no merge, no write - so data/insider-trades.json aged 62 h while the daily form.idx index (a different,
+    # archive endpoint) still listed every Form 4. Now the atom phase is skipped, the error kept in the diagnostics, and
+    # the daily-index backfill feeds the window on its own.
+    atom_feed_error = None
     try:
         filings = fetch_recent_form4_filings()
     except Exception as e:
-        print(f"FATAL atom feed fetch failed: {e}")
-        return {"statusCode": 502, "body": json.dumps({"error": str(e)})}
+        atom_feed_error = f"{type(e).__name__}: {str(e)[:160]}"
+        filings = []
+        print(f"atom feed fetch failed: {atom_feed_error} - continuing with the daily-index backfill alone")
     print(f"Atom feed returned {len(filings)} Form 4 filings")
 
     # 2. Fetch + parse each filing's XML in parallel (small batch to stay under SEC rate)
@@ -851,6 +857,8 @@ def lambda_handler(event, context):
         "buys_kept": 0,
         "sells_kept": 0,
     }
+    if atom_feed_error:
+        diag["atom_feed_error"] = atom_feed_error
     errlog = {}  # per-error-type counter — see fetch_form4_xml
 
     def process(filing):
