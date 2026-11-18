@@ -36,7 +36,7 @@ DESKS = [("ark.html", "ark", "data/ark-holdings.json", "#hero"), ("stablecoin-fl
          ("firm-book.html", "firmbook", "data/firm-book.json", "#root"), ("paper-book.html", "paperbook", "data/paper-book.json", "#wrap"),
          ("sp500.html", "sp500", "data/sp500.json", "#cards"), ("insider-clusters.html", "insiders", "data/insider-clusters.json", "#kpi-strip"),
          ("foreign-flows.html", "tic", "data/tic-flows.json", "#cards"), ("capital-inflows.html", "capital", "data/capital-inflows.json", "#cards")]
-SHOTS = {("ark", 1440): "ark_desktop", ("capital", 1440): "capital_desktop", ("tic", 1440): "treasury_holders_desktop", ("firmbook", 390): "firm_book_mobile", ("sp500", 390): "sp500_mobile"}
+SHOTS = {("ark", 1440): "ark_desktop", ("insiders", 1440): "insiders_desktop", ("ark", 390): "ark_mobile", ("insiders", 390): "insiders_mobile", ("firmbook", 390): "firm_book_mobile"}
 
 
 def ensure_playwright(log):
@@ -71,6 +71,14 @@ def expected(name, d):
     if name == "sp500":
         return sum(s["weight_pct"] for s in d["sectors"].values())
     if name == "insiders":
+        if (d.get("hygiene") or {}).get("applied"):          # engine 2.2.0: every company with a purchase, one row per issuer
+            seen, total = set(), 0.0
+            for b in d["all_ticker_buys"]:
+                k = b.get("cik") or b["ticker"]
+                if k not in seen:
+                    seen.add(k)
+                    total += b["total_value"]
+            return total
         best = {}
         for c in sorted(d["clusters"], key=lambda c: -(c.get("score") or 0)):
             best.setdefault(c.get("cik") or c["ticker"], c)
@@ -109,7 +117,7 @@ def main():
             return urllib.request.urlopen(urllib.request.Request("%s/%s%snocache=%d" % (BASE, path, "&" if "?" in path else "?", stamp), headers=ua), timeout=60).read()
 
         kit = get("jh-tearsheet.js").decode("utf-8", "replace")
-        ok_kit = "ADAPTERS.capital" in kit and "data-jh-chrome" in kit and "ADAPTERS.insiders" in kit and ".jts .jts-t .n{text-align:right" in kit
+        ok_kit = "ADAPTERS.capital" in kit and "data-jh-chrome" in kit and "ADAPTERS.insiders" in kit and ".jts .jts-t .n{text-align:right" in kit and "version: '1.1.0'" in kit
         r.log("jh-tearsheet.js: %d bytes, ascii %s, eight adapters %s" % (len(kit), all(ord(c) < 128 for c in kit), ok_kit))
         if not ok_kit:
             r.fail("the served kit is not the new one yet (Pages deploy pending?)")
@@ -175,6 +183,22 @@ def main():
                             net = sum(c["latest_month_b"] for c in feeds[name]["by_asset_class"].values())
                             r.log("  security types sum to %.3f, the feed's headline month %.3f" % (net, feeds[name]["headline"]["latest_month_b"]))
                             ck(abs(net - feeds[name]["headline"]["latest_month_b"]) <= 0.002, "%s: the four security types do not sum to the headline" % tag)
+                        if name == "ark" and (feeds[name]["diff_vs_prev"].get("all") is not None):
+                            dv = feeds[name]["diff_vs_prev"]
+                            heads = {c["k"]: c["head"] for c in s["cols"]}
+                            text = page.evaluate("() => document.querySelector('[data-jts]').innerText")
+                            r.log("  engine %s: complete lists - the sheet's columns say %s | %s | %s | %s" % (feeds[name].get("version"), heads.get("new"), heads.get("adds"), heads.get("trims"), heads.get("closed")))
+                            ck(heads.get("adds", "").endswith(" %d" % dv["n_position_adds"]) and heads.get("trims", "").endswith(" %d" % dv["n_position_trims"]) and heads.get("new", "").endswith(" %d" % dv["n_new_positions"]) and heads.get("closed", "").endswith(" %d" % dv["n_closed_positions"]),
+                               "%s: the four lists do not carry the feed's counts" % tag)
+                            ck("15 largest" not in text and "holdings %s vs %s" % (feeds[name].get("holdings_date"), feeds[name].get("prev_holdings_date")) in s["eye"].lower(), "%s: the sheet still speaks of the 15 largest moves, or is not dated by holdings (%s)" % (tag, s["eye"]))
+                        if name == "insiders" and (feeds[name].get("hygiene") or {}).get("applied"):
+                            aside = feeds[name]["hygiene"].get("set_aside") or []
+                            got = page.evaluate("() => { const c = document.querySelector('[data-jts] [data-jts-list=\"aside\"]'); const rest = [...document.querySelectorAll('[data-jts] .jts-col')].filter(x => x !== c).map(x => x.innerText).join(' ') + ' ' + [...document.querySelectorAll('[data-jts] .jts-kpi, [data-jts] .jts-card, [data-jts] .jts-notes')].map(x => x.innerText).join(' '); return { col: c ? c.innerText.replace(/\\s+/g, ' ').slice(0, 700) : null, rest }; }")
+                            r.log("  engine %s: %d companies in the dollars; set aside %s; the sheet's column: %s" % (feeds[name].get("version"), len(feeds[name]["all_ticker_buys"]), [a["ticker"] for a in aside], (got["col"] or "none")[:420]))
+                            ck((not aside) == (got["col"] is None), "%s: the set-aside column does not match the feed" % tag)
+                            for a in aside:
+                                ck(got["col"] and a["ticker"] in got["col"] and "not counted" in got["col"], "%s: %s is not shown as set aside" % (tag, a["ticker"]))
+                                ck(not __import__("re").search(r"\b%s\b" % a["ticker"], got["rest"]), "%s: %s appears among the counted rows" % (tag, a["ticker"]))
                         if name in ("paperbook", "sp500"):
                             ck(abs(want - 100) <= 0.6, "%s: the feed's own parts sum to %.3f, not 100" % (tag, want))
                         own_text = page.evaluate("(sel) => { const e = document.querySelector(sel); return e ? e.innerText.trim().length : -1; }", own)
