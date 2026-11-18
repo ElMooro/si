@@ -150,8 +150,10 @@
   ADAPTERS.ark = {
     feeds: ['/data/ark-holdings.json'],
     build: function (docs, st) {
+      /* Engine 2.1.0 publishes every move (diff_vs_prev.all), the holdings dates on both sides and whether the diff
+         is carried (no newer holdings since). An older feed has only its 15 largest moves; the sheet then says so. */
       var d = docs[0], by_fund = d.holdings_by_fund || {}, funds = (d.funds_tracked || Object.keys(by_fund)).filter(function (f) { return (by_fund[f] || []).length; });
-      var fund = st.fund && by_fund[st.fund] ? st.fund : 'ALL', diff = d.diff_vs_prev || {}, hi = diff.highlights || {};
+      var fund = st.fund && by_fund[st.fund] ? st.fund : 'ALL', diff = d.diff_vs_prev || {}, hi = diff.highlights || {}, all = diff.all || null, complete = !!all;
       var pos;
       if (fund === 'ALL') {
         var agg = {};
@@ -163,44 +165,59 @@
       pos.forEach(function (p) { p.w = total ? p.value / total * 100 : 0; });
       var mine = function (rows) { return (rows || []).filter(function (x) { return fund === 'ALL' || x.fund === fund; }); };
       var px = function (x) { return x.current_shares ? (x.current_value || 0) / x.current_shares : 0; };
-      var adds = mine(hi.biggest_adds).map(function (x) { return { x: x, usd: (x.shares_added || 0) * px(x) }; }).sort(by(function (r) { return r.usd; }, true));
-      var trims = mine(hi.biggest_trims).map(function (x) { return { x: x, usd: (x.shares_sold || 0) * px(x) }; }).sort(by(function (r) { return r.usd; }, true));
-      var opened = mine(hi.new_positions), closed = mine(hi.closed_positions);
-      var label = function (x) { return (x.ticker || '?') + DOT + (x.company || ''); };
-      var nAll = d.n_positions_total || sum(funds, function (f) { return by_fund[f].length; });
-      var unchanged = nAll - (diff.n_new_positions || 0) - (diff.n_position_adds || 0) - (diff.n_position_trims || 0);
+      var adds = mine(complete ? all.position_adds : hi.biggest_adds).map(function (x) { return { x: x, usd: (x.shares_added || 0) * px(x) }; }).sort(by(function (r) { return r.usd; }, true));
+      var trims = mine(complete ? all.position_trims : hi.biggest_trims).map(function (x) { return { x: x, usd: (x.shares_sold || 0) * px(x) }; }).sort(by(function (r) { return r.usd; }, true));
+      var opened = mine(complete ? all.new_positions : hi.new_positions).slice().sort(by(function (x) { return x.market_value || 0; }, true)), closed = mine(complete ? all.closed_positions : hi.closed_positions).slice().sort(by(function (x) { return x.prev_value || 0; }, true));
+      var label = function (x) { return (x.ticker || '?') + (x.company ? DOT + x.company : ''); };
+      var nAll = d.n_positions_total || sum(funds, function (f) { return by_fund[f].length; }), scoped = complete || fund === 'ALL';
+      /* counts: the whole family from the feed; one fund from the complete lists (only an engine that publishes them can say) */
+      var n = fund === 'ALL' ? { opened: diff.n_new_positions || 0, adds: diff.n_position_adds || 0, trims: diff.n_position_trims || 0, closed: diff.n_closed_positions || 0, lines: nAll }
+        : complete ? { opened: opened.length, adds: adds.length, trims: trims.length, closed: closed.length, lines: pos.length }
+          : { opened: diff.n_new_positions || 0, adds: diff.n_position_adds || 0, trims: diff.n_position_trims || 0, closed: diff.n_closed_positions || 0, lines: nAll };
+      var unchanged = n.lines - n.opened - n.adds - n.trims, where = fund === 'ALL' || !complete ? 'fund-lines, all funds' : 'lines in ' + fund;
       var top10 = sum(pos.slice(0, 10), function (p) { return p.w; }), multi = pos.filter(function (p) { return p.funds.length > 1; }).sort(by(function (p) { return p.funds.length; }, true))[0];
-      var prev = day(d.prev_snapshot_at), now = day(d.generated_at), held = day((by_fund[funds[0]][0] || {}).date), listed = adds.length + trims.length + opened.length + closed.length, who = fund === 'ALL' ? 'ARK Invest, all ' + funds.length + ' funds' : fund + (d.fund_descriptions && d.fund_descriptions[fund] ? ' (' + String(d.fund_descriptions[fund]).replace(/\s*\(.*$/, '') + ')' : '');
+      var prev = day(d.prev_snapshot_at), now = day(d.generated_at), fundDate = function (f) { return (by_fund[f] || []).reduce(function (m, h) { var x = day(h.date); return x > m ? x : m; }, ''); };
+      var held = day(d.holdings_date) || funds.reduce(function (m, f) { var x = fundDate(f); return x > m ? x : m; }, ''), base = day(d.prev_holdings_date), since = base ? 'the ' + base + ' holdings' : 'the last snapshot';
+      var stale = funds.filter(function (f) { var x = fundDate(f); return x && held && x < held; }), listed = adds.length + trims.length + opened.length + closed.length;
+      var who = fund === 'ALL' ? 'ARK Invest, all ' + funds.length + ' funds' : fund + (d.fund_descriptions && d.fund_descriptions[fund] ? ' (' + String(d.fund_descriptions[fund]).replace(/\s*\(.*$/, '') + ')' : '');
       var top6 = pos.slice(0, 6), restV = total - sum(top6, function (p) { return p.value; });
       var card = function (r, kind) {
-        if (!r) return { tone: kind, big: D, eyebrow: 'Most notable ' + (kind === 'up' ? 'buy' : 'sale'), title: 'None in the day\u2019s largest moves', text: 'No ' + (kind === 'up' ? 'addition' : 'cut') + ' is listed for ' + (fund === 'ALL' ? 'any fund' : fund) + ' against the ' + prev + ' snapshot.' };
+        if (!r) return { tone: kind, big: D, eyebrow: 'Most notable ' + (kind === 'up' ? 'buy' : 'sale'), title: complete ? 'None' : 'None in the day\u2019s largest moves', text: 'No ' + (kind === 'up' ? 'addition' : 'cut') + (complete ? ' of 1% or more' : ' is listed') + ' for ' + (fund === 'ALL' ? 'any fund' : fund) + ' against ' + since + '.' };
         var x = r.x, sh = kind === 'up' ? x.shares_added : x.shares_sold;
         return { tone: kind, big: pct(x.pct_change, Math.abs(x.pct_change) >= 100 ? 0 : 1, true), eyebrow: 'Most notable ' + (kind === 'up' ? 'buy' : 'sale') + DOT + x.fund, title: label(x),
           text: x.fund + (kind === 'up' ? ' added ' : ' sold ') + num(sh) + ' shares, about ' + money(r.usd) + ' at the reported price; it now holds ' + num(x.current_shares) + ' shares worth ' + money(x.current_value) + ', ' + pct(x.weight, 2) + ' of the fund.' };
       };
       var moveRow = function (r, kind) { var x = r.x; return { name: label(x), sub: x.fund + DOT + (kind === 'up' ? '+' : MINUS) + num(kind === 'up' ? x.shares_added : x.shares_sold) + ' sh' + DOT + 'now ' + pct(x.weight, 2) + ' of the fund', big: (kind === 'up' ? '+' : MINUS) + money(r.usd), tone: kind, small: pct(x.pct_change, 1, true) + ' shares' }; };
-      var plain = function (x, kind) { return { name: label(x), sub: (x.fund || '') + (x.weight != null ? DOT + pct(x.weight, 2) + ' of the fund' : ''), big: money(x.current_value != null ? x.current_value : x.market_value), tone: kind, small: num(x.current_shares != null ? x.current_shares : x.shares) + ' sh' }; };
+      var plain = function (x, kind) {
+        var v = x.current_value != null ? x.current_value : x.market_value != null ? x.market_value : x.prev_value, sh = x.current_shares != null ? x.current_shares : x.shares != null ? x.shares : x.prev_shares;
+        return { name: label(x), sub: (x.fund || '') + (x.weight != null ? DOT + pct(x.weight, 2) + ' of the fund' : kind === 'down' ? DOT + 'held before' : ''), big: money(v), tone: kind, small: num(sh) + ' sh' };
+      };
+      var counts = n.adds + ' added to, ' + n.trims + ' cut, ' + n.opened + ' opened, ' + n.closed + ' closed since ' + since;
       return {
-        eyebrow: 'ARK tearsheet' + DOT + 'snapshot ' + now + ' vs ' + prev, title: who + ': ' + money(total) + ' across ' + pos.length + ' positions' + DOT + (fund === 'ALL' ? (diff.n_position_adds || 0) + ' added to, ' + (diff.n_position_trims || 0) + ' cut, ' + (diff.n_new_positions || 0) + ' opened, ' + (diff.n_closed_positions || 0) + ' closed since the last snapshot' : listed + ' of the day\u2019s largest moves are in this fund'),
-        sub: 'Daily holdings as ARK publishes them' + (held ? ', dated ' + held : '') + DOT + 'positions for ' + (fund === 'ALL' ? 'all funds, one row per ticker' : fund) + DOT + 'changes counted across all ' + funds.length + ' funds',
+        eyebrow: 'ARK tearsheet' + DOT + (held && base ? 'holdings ' + held + ' vs ' + base : 'snapshot ' + now + ' vs ' + prev), title: who + ': ' + money(total) + ' across ' + pos.length + ' positions' + DOT + (scoped ? counts : listed + ' of the day\u2019s largest moves are in this fund'),
+        sub: 'Daily holdings as ARK publishes them' + (held ? ', dated ' + held : '') + DOT + 'positions for ' + (fund === 'ALL' ? 'all funds, one row per ticker' : fund) + DOT + (fund === 'ALL' || !complete ? 'changes counted across all ' + funds.length + ' funds' : 'changes in ' + fund + ' only')
+          + (d.diff_is_carried ? DOT + 'nothing newer has been published since, so these are still that day\u2019s moves' : ''),
         controls: [{ id: 'ALL', label: 'ALL FUNDS', on: fund === 'ALL' }].concat(funds.map(function (f) { return { id: f, label: f, on: fund === f }; })),
         tiles: [{ k: 'Reported value', v: money(total), s: fund === 'ALL' ? funds.length + ' funds' : fund }, { k: 'Line items', v: num(pos.length), s: fund === 'ALL' ? num(nAll) + ' fund-lines, ' + pos.length + ' tickers' : 'positions in the fund' },
-          { k: 'In top 10', v: pct(top10, 0), s: 'of the reported value' }, { k: 'New / increased', v: '<span class="up">' + (diff.n_new_positions || 0) + '</span> / <span class="up">' + (diff.n_position_adds || 0) + '</span>', s: 'fund-lines, all funds' },
-          { k: 'Reduced / closed', v: '<span class="down">' + (diff.n_position_trims || 0) + '</span> / <span class="down">' + (diff.n_closed_positions || 0) + '</span>', s: 'fund-lines, all funds' }, { k: 'Unchanged', v: num(Math.max(unchanged, 0)), s: 'share count within 1% of ' + prev }],
+          { k: 'In top 10', v: pct(top10, 0), s: 'of the reported value' }, { k: 'New / increased', v: '<span class="up">' + n.opened + '</span> / <span class="up">' + n.adds + '</span>', s: where },
+          { k: 'Reduced / closed', v: '<span class="down">' + n.trims + '</span> / <span class="down">' + n.closed + '</span>', s: where }, { k: 'Unchanged', v: num(Math.max(unchanged, 0)), s: 'share count within 1% of ' + (base || prev) }],
         cards: [card(trims[0], 'down'), card(adds[0], 'up')],
         notes: [['Largest holding:', pos[0] ? label(pos[0]) + ', ' + money(pos[0].value) + ' (' + pct(pos[0].w) + ')' + (pos[0].funds.length > 1 ? ' across ' + pos[0].funds.join(', ') : '') + '.' : D],
-          ['Held by the most funds:', multi ? label(multi) + ' sits in ' + multi.funds.length + ' funds (' + multi.funds.join(', ') + ').' : 'no ticker is held by more than one fund in this view.'],
+          stale.length ? ['Stale at the source:', stale.map(function (f) { return f + '\u2019s holdings are dated ' + fundDate(f); }).join('; ') + ', not ' + held + ': the source has not updated ' + (stale.length > 1 ? 'them' : 'it') + ', so ' + (stale.length > 1 ? 'their' : 'its') + ' lines cannot show a change.']
+            : ['Held by the most funds:', multi ? label(multi) + ' sits in ' + multi.funds.length + ' funds (' + multi.funds.join(', ') + ').' : 'no ticker is held by more than one fund in this view.'],
           ['Caveat:', 'a share count that rises on every line of a fund on the same day is usually new money entering the fund (creation units), not a fresh call on each name; the percentage beside each move is the change in shares.']],
         ring: { title: 'Current positions', hint: 'top 6 of ' + pos.length, n: pos.length, center: money(total), subs: ['REPORTED VALUE', 'TOP 10 = ' + pct(top10, 0)], whole: 'the value', aria: 'Positions by reported value: ' + top6.map(function (p) { return p.ticker + ' ' + pct(p.w, 0); }).join(', '),
           slices: top6.map(function (p) { return { name: label(p), label: p.ticker, value: p.value, tone: 'pos', big: pct(p.w), small: money(p.value) + (p.funds.length > 1 ? DOT + p.funds.length + ' funds' : '') }; })
             .concat(restV > 0 ? [{ name: (pos.length - 6) + ' other positions', label: 'other', value: restV, tone: 'oth', big: pct(restV / total * 100), small: money(restV) }] : []),
           caption: 'Slices are shares of the reported value' + (fund === 'ALL' ? ' of all funds together' : ' of ' + fund) + '.' },
-        lists: [{ key: 'new', title: 'Initiations', hint: 'new lines', tone: 'up', n: diff.n_new_positions || 0, rows: opened.map(function (x) { return plain(x, 'up'); }), none: 'no position opened since ' + prev },
-          { key: 'adds', title: 'Increases', hint: 'largest by dollars', tone: 'up', n: fund === 'ALL' ? (diff.n_position_adds || adds.length) : adds.length, rows: adds.map(function (r) { return moveRow(r, 'up'); }), none: 'none listed for ' + fund,
-            note: fund === 'ALL' && (diff.n_position_adds || 0) > adds.length ? 'The feed lists the ' + adds.length + ' largest of ' + diff.n_position_adds + ' additions (largest by percent).' : '' },
-          { key: 'trims', title: 'Reductions', hint: 'largest by dollars', tone: 'down', n: fund === 'ALL' ? (diff.n_position_trims || trims.length) : trims.length, rows: trims.map(function (r) { return moveRow(r, 'down'); }), none: 'none listed for ' + (fund === 'ALL' ? 'any fund' : fund) },
-          { key: 'closed', title: 'Terminations', hint: 'lines gone', tone: 'down', n: diff.n_closed_positions || 0, rows: closed.map(function (x) { return plain(x, 'down'); }), none: 'no position closed since ' + prev }],
-        foot: 'Source: ARK Invest daily fund holdings via arkfunds.io, snapshot ' + now + ' against ' + prev + '. Dollar size of a move = shares added or sold x the position\u2019s reported price that day. Percent changes are changes in share count; a line counts as changed when its shares move 1% or more. The feed publishes the 15 largest additions and cuts by percent. ARK ETFs are actively managed; a daily file shows holdings, not intent.'
+        lists: [{ key: 'new', title: 'Initiations', hint: 'new lines', tone: 'up', n: scoped ? n.opened : opened.length, rows: opened.map(function (x) { return plain(x, 'up'); }), none: 'no position opened since ' + since },
+          { key: 'adds', title: 'Increases', hint: 'largest by dollars', tone: 'up', n: scoped ? n.adds : adds.length, rows: adds.map(function (r) { return moveRow(r, 'up'); }), none: (complete ? 'no line added to in ' : 'none listed for ') + (fund === 'ALL' ? 'any fund' : fund),
+            note: !complete && fund === 'ALL' && (diff.n_position_adds || 0) > adds.length ? 'The feed lists the ' + adds.length + ' largest of ' + diff.n_position_adds + ' additions (largest by percent).' : '' },
+          { key: 'trims', title: 'Reductions', hint: 'largest by dollars', tone: 'down', n: scoped ? n.trims : trims.length, rows: trims.map(function (r) { return moveRow(r, 'down'); }), none: (complete ? 'no line cut in ' : 'none listed for ') + (fund === 'ALL' ? 'any fund' : fund),
+            note: !complete && fund === 'ALL' && (diff.n_position_trims || 0) > trims.length ? 'The feed lists the ' + trims.length + ' largest of ' + diff.n_position_trims + ' cuts (largest by percent).' : '' },
+          { key: 'closed', title: 'Terminations', hint: 'lines gone', tone: 'down', n: scoped ? n.closed : closed.length, rows: closed.map(function (x) { return plain(x, 'down'); }), none: 'no position closed since ' + since }],
+        foot: 'Source: ARK Invest daily fund holdings via arkfunds.io' + (held && base ? ', holdings dated ' + held + ' against ' + base : '') + ' (snapshot ' + now + ' against ' + prev + '). Dollar size of a move = shares added or sold x the position\u2019s reported price that day. Percent changes are changes in share count; a line counts as changed when its shares move 1% or more. '
+          + (complete ? 'Every such line is listed.' : 'The feed publishes the 15 largest additions and cuts by percent.') + ' ARK ETFs are actively managed; a daily file shows holdings, not intent.'
       };
     }
   };
@@ -346,40 +363,53 @@
   ADAPTERS.insiders = {
     feeds: ['/data/insider-clusters.json'],
     build: function (docs) {
-      /* The population is the engine's scored set, one row per company (SEC CIK). The raw purchase list is not used for
-         dollars: on 2026-11-17 it carried one record priced at shares / 1000 ($9.9B for one holder) and one company under
-         three tickers, and the engine itself scores neither. */
-      var d = docs[0], s = d.stats || {}, th = d.thresholds || {}, strongAt = th.score_strong_threshold || 70, seen = {}, raw = (d.clusters || []).slice().sort(by(function (c) { return c.score || 0; }, true));
+      /* Engine 2.2.0 cleans the purchase list itself (hygiene: one row per filing line, one filing kept once across an
+         issuer's tickers, an impossible price set aside), so the dollars are every company with a purchase. An older
+         feed's raw list is not safe for dollars - on 2026-11-17 it carried one record priced at shares / 1000 ($9.9B
+         for one holder) and one company under three tickers - so for it the sheet stays on the engine's scored set. */
+      var d = docs[0], s = d.stats || {}, th = d.thresholds || {}, hy = d.hygiene && d.hygiene.applied ? d.hygiene : null, strongAt = th.score_strong_threshold || 70, seen = {}, raw = (d.clusters || []).slice().sort(by(function (c) { return c.score || 0; }, true));
       var scored = raw.filter(function (c) { var k = c.cik || c.ticker; if (seen[k]) return false; seen[k] = 1; return fin(c.total_value); });
-      var KIND = { smart_money_dual: 'CEO and CFO together', ceo_conviction: 'CEO conviction', executive_cluster: 'executive cluster', exec_pair: 'executive pair', cluster_buy: 'cluster buy', lone_buy: 'single insider' };
+      var byTicker = {}, seenB = {};
+      scored.forEach(function (c) { byTicker[c.ticker] = c; });
+      var pop = hy ? (d.all_ticker_buys || []).filter(function (b) { var k = b.cik || b.ticker; if (seenB[k] || !fin(b.total_value)) return false; seenB[k] = 1; return true; }) : scored;
+      var KIND = { smart_money_dual: 'CEO and CFO together', ceo_conviction: 'CEO conviction', executive_cluster: 'executive cluster', exec_pair: 'executive pair', cluster_buy: 'cluster buy', lone_buy: 'ordinary purchase' };
       var kind = function (c) { return KIND[c.signal_type] || String(c.signal_type || '').replace(/_/g, ' '); };
-      var total = sum(scored, function (c) { return c.total_value; }), dollars = scored.slice().sort(by(function (c) { return c.total_value; }, true)), top6 = dollars.slice(0, 6), restV = total - sum(top6, function (c) { return c.total_value; });
+      var total = sum(pop, function (c) { return c.total_value; }), dollars = pop.slice().sort(by(function (c) { return c.total_value; }, true)), top6 = dollars.slice(0, 6), restV = total - sum(top6, function (c) { return c.total_value; });
       var multi = scored.filter(function (c) { return c.n_insiders >= 2; }), strong = scored.filter(function (c) { return c.score >= strongAt; }), ceo = scored.filter(function (c) { return c.has_ceo; }), crowd = scored.slice().sort(by(function (c) { return c.n_insiders || 0; }, true));
       var types = {}, days = d.lookback_days || 30, share = function (c) { return total ? c.total_value / total * 100 : 0; };
       scored.forEach(function (c) { var t = types[c.signal_type] || (types[c.signal_type] = { name: kind(c), n: 0, usd: 0, top: c }); t.n++; t.usd += c.total_value; if (c.total_value > t.top.total_value) t.top = c; });
       var typeRows = Object.keys(types).map(function (k) { return types[k]; }).sort(by(function (t) { return t.usd; }, true)), cnt = function (k) { return types[k] ? types[k].n : 0; };
-      var nm = function (c) { return c.ticker + (c.company ? DOT + c.company : ''); }, people = function (n) { return n + (n === 1 ? ' insider' : ' insiders'); };
+      var nm = function (c) { var co = c.company || (byTicker[c.ticker] || {}).company; return c.ticker + (co ? DOT + co : ''); }, people = function (n) { return n + (n === 1 ? ' insider' : ' insiders'); };
+      var role = function (c) { return c.highest_role || (c.roles || [])[0] || ''; }, scoreOf = function (c) { var x = c.score != null ? c : byTicker[c.ticker]; return x && fin(x.score) ? x.score.toFixed(0) : null; };
+      var also = function (c) { return (c.also_filed_as || []).length ? DOT + 'also filed as ' + c.also_filed_as.join(', ') : ''; }, off = function (c) { return c.n_off_tape ? DOT + c.n_off_tape + (c.n_off_tape === 1 ? ' line' : ' lines') + ' in another class of security' : ''; };
       var crow = function (c) { return { name: nm(c), sub: people(c.n_insiders) + DOT + money(c.total_value) + ' at $' + num(c.avg_price, 2) + DOT + (c.highest_role || ''), big: fin(c.score) ? c.score.toFixed(0) : D, tone: c.score >= strongAt ? 'up' : '', small: kind(c) }; };
-      var drow = function (c) { return { name: nm(c), sub: people(c.n_insiders) + DOT + c.n_transactions + (c.n_transactions === 1 ? ' buy' : ' buys') + DOT + day(c.first_buy) + (c.last_buy !== c.first_buy ? ' to ' + day(c.last_buy) : '') + DOT + (c.highest_role || ''), big: money(c.total_value), small: pct(share(c)) + ' of the dollars' + DOT + 'score ' + (fin(c.score) ? c.score.toFixed(0) : D) }; };
-      var rich = dollars[0], best = scored[0], left = Math.max((s.n_unique_tickers || 0) - scored.length, 0);
+      var drow = function (c) { var sc = scoreOf(c); return { name: nm(c), sub: people(c.n_insiders) + DOT + c.n_transactions + (c.n_transactions === 1 ? ' buy' : ' buys') + DOT + day(c.first_buy) + (c.last_buy !== c.first_buy ? ' to ' + day(c.last_buy) : '') + (role(c) ? DOT + role(c) : '') + also(c) + off(c), big: money(c.total_value), small: pct(share(c)) + ' of the dollars' + (sc ? DOT + 'score ' + sc : '') }; };
+      var rich = dollars[0], best = scored[0], nTick = s.n_unique_tickers || pop.length, left = Math.max(nTick - scored.length, 0), aside = hy ? (hy.set_aside || []) : [];
+      var whoSet = hy ? 'companies' : 'scored companies', avg = function (c) { return fin(c.avg_price) ? c.avg_price : c.total_shares ? c.total_value / c.total_shares : null; };
+      var lists = [{ key: 'clusters', title: 'Strongest scores', hint: 'by score', tone: 'up', n: scored.length, rows: scored.map(crow) }, { key: 'dollars', title: 'Largest dollars', hint: 'by company', n: pop.length, rows: dollars.map(drow) },
+        { key: 'ceo', title: 'The CEO is buying', hint: 'by score', tone: 'up', n: ceo.length, rows: ceo.map(crow), none: 'no chief executive bought in the window' }, { key: 'crowd', title: 'Most insiders', hint: 'breadth of the buying', n: multi.length, rows: crowd.filter(function (c) { return c.n_insiders >= 2; }).map(function (c) { var r = crow(c); r.big = String(c.n_insiders); r.tone = ''; r.small = 'insiders' + DOT + 'score ' + (fin(c.score) ? c.score.toFixed(0) : D); return r; }), none: 'no company has two insiders buying' },
+        { key: 'types', title: 'By kind of buying', hint: 'scored companies and dollars', rows: typeRows.map(function (t) { return { name: t.name, sub: t.n + (t.n === 1 ? ' company' : ' companies') + DOT + 'largest ' + t.top.ticker, big: money(t.usd), small: pct(total ? t.usd / total * 100 : 0) + ' of the dollars' }; }) }];
+      if (aside.length) lists.push({ key: 'aside', title: 'Set aside', hint: 'not counted', tone: 'down', n: aside.length, rows: aside.map(function (a) { return { name: a.ticker + (a.company ? DOT + a.company : ''), sub: (a.insider_name || '') + DOT + num(a.shares) + ' sh at $' + num(a.price, 2) + DOT + (a.reason || ''), big: money(a.value), tone: 'down', small: 'as filed' + DOT + 'not counted' }; }),
+        note: 'A purchase is set aside only when its price is far off the stock\u2019s tape and it is worth more than the whole company.' });
       return {
-        eyebrow: 'Insider buying tearsheet' + DOT + 'last ' + days + ' days to ' + day(d.generated_at), title: 'Insider buying: ' + money(total) + ' across ' + num(scored.length) + ' scored companies in ' + days + ' days' + DOT + multi.length + ' with two or more insiders, ' + strong.length + ' strong',
-        sub: 'Open-market purchases only' + DOT + 'one row per company' + DOT + num(s.n_buy_transactions) + ' buy transactions read, ' + num(s.n_unique_tickers) + ' tickers with a buy',
-        tiles: [{ k: 'Dollars bought', v: money(total), s: 'scored companies, ' + days + ' days' }, { k: 'Line items', v: num(scored.length), s: 'scored, of ' + num(s.n_unique_tickers) + ' tickers with a buy' },
+        eyebrow: 'Insider buying tearsheet' + DOT + 'last ' + days + ' days to ' + day(d.generated_at), title: 'Insider buying: ' + money(total) + ' across ' + num(pop.length) + ' ' + whoSet + ' in ' + days + ' days' + DOT + multi.length + ' with two or more insiders, ' + strong.length + ' strong',
+        sub: 'Open-market purchases only' + DOT + 'one row per company' + DOT + num(s.n_buy_transactions) + (hy ? ' purchase lines' : ' buy transactions read') + ', ' + num(nTick) + ' tickers with a buy' + (aside.length ? DOT + aside.length + ' impossible ' + (aside.length === 1 ? 'record' : 'records') + ' set aside' : ''),
+        tiles: [{ k: 'Dollars bought', v: money(total), s: whoSet + ', ' + days + ' days' }, { k: 'Line items', v: num(pop.length), s: hy ? 'companies with a purchase' + DOT + scored.length + ' scored' : 'scored, of ' + num(nTick) + ' tickers with a buy' },
           { k: 'In top 10', v: pct(total ? sum(dollars.slice(0, 10), function (c) { return c.total_value; }) / total * 100 : 0, 0), s: 'of the dollars' },
           { k: 'Clusters / strong', v: '<span class="up">' + multi.length + '</span> / <span class="up">' + strong.length + '</span>', s: 'two or more insiders / score ' + strongAt + ' or more' },
           { k: 'CEO and CFO together', v: num(cnt('smart_money_dual')), s: 'both top officers buying' }, { k: 'The CEO is buying', v: num(ceo.length), s: 'companies where the chief executive bought' }],
-        cards: [rich ? { tone: 'up', big: money(rich.total_value), eyebrow: 'Largest dollars' + DOT + kind(rich), title: nm(rich), text: people(rich.n_insiders) + ' (' + (rich.highest_role || 'role not given') + ') bought ' + money(rich.total_value) + ', ' + num(rich.total_shares) + ' shares at $' + num(rich.avg_price, 2) + ' on average, between ' + day(rich.first_buy) + ' and ' + day(rich.last_buy) + ': ' + pct(share(rich)) + ' of the scored dollars.' } : null,
+        cards: [rich ? { tone: 'up', big: money(rich.total_value), eyebrow: 'Largest dollars' + (byTicker[rich.ticker] ? DOT + kind(byTicker[rich.ticker]) : ''), title: nm(rich), text: people(rich.n_insiders) + ' (' + (role(rich) || 'role not given') + ') bought ' + money(rich.total_value) + ', ' + num(rich.total_shares) + ' shares' + (avg(rich) ? ' at $' + num(avg(rich), 2) + ' on average' : '') + ', between ' + day(rich.first_buy) + ' and ' + day(rich.last_buy) + ': ' + pct(share(rich)) + ' of the dollars.' } : null,
           best ? { tone: 'up', big: fin(best.score) ? best.score.toFixed(0) : D, eyebrow: 'Strongest score' + DOT + kind(best), title: nm(best), text: best.rationale || '' } : null].filter(Boolean),
-        notes: [['Who is buying:', typeRows.slice().sort(by(function (t) { return t.n; }, true)).map(function (t) { return t.name + ' ' + t.n; }).join(', ') + ' (companies).'], ['Most insiders in one name:', crowd[0] ? nm(crowd[0]) + ', ' + people(crowd[0].n_insiders) + ', ' + money(crowd[0].total_value) + '.' : D],
-          ['Caveat:', 'the largest dollar lines are usually 10% holders, who are funds and parent companies rather than management; the score, not the dollars, is what weighs who bought. Sales are not on this sheet.']],
-        ring: { title: 'Insider dollars', hint: 'top 6 of ' + num(scored.length), n: scored.length, center: money(total), subs: ['BOUGHT IN ' + days + ' DAYS', num(scored.length) + ' COMPANIES'], whole: 'the dollars', aria: 'Insider buying dollars by company',
+        notes: [['Who is buying:', typeRows.slice().sort(by(function (t) { return t.n; }, true)).map(function (t) { return t.name + ' ' + t.n; }).join(', ') + ' (scored companies).'], ['Most insiders in one name:', crowd[0] ? nm(crowd[0]) + ', ' + people(crowd[0].n_insiders) + ', ' + money(crowd[0].total_value) + '.' : D],
+          ['Caveat:', 'the largest dollar lines are usually 10% holders, who are funds and parent companies rather than management; the score, not the dollars, is what weighs who bought.' + (hy && hy.n_off_tape ? ' ' + hy.n_off_tape + ' lines are for another class of security (preferred units, class A, a local line) and are counted at the price filed.' : '') + ' Sales are not on this sheet.']],
+        ring: { title: 'Insider dollars', hint: 'top 6 of ' + num(pop.length), n: pop.length, center: money(total), subs: ['BOUGHT IN ' + days + ' DAYS', num(pop.length) + ' COMPANIES'], whole: 'the dollars', aria: 'Insider buying dollars by company',
           slices: top6.map(function (c) { return { name: nm(c), label: c.ticker, value: c.total_value, tone: 'pos', big: money(c.total_value), small: pct(share(c)) + ' of the dollars' + DOT + people(c.n_insiders) }; })
-            .concat(restV > 0 ? [{ name: (scored.length - top6.length) + ' other companies', label: 'other', value: restV, tone: 'oth', big: money(restV), small: pct(restV / total * 100) + ' of the dollars' }] : []), caption: 'Slices are shares of the purchase dollars in the scored set.' },
-        lists: [{ key: 'clusters', title: 'Strongest scores', hint: 'by score', tone: 'up', n: scored.length, rows: scored.map(crow) }, { key: 'dollars', title: 'Largest dollars', hint: 'by company', n: scored.length, rows: dollars.map(drow) },
-          { key: 'ceo', title: 'The CEO is buying', hint: 'by score', tone: 'up', n: ceo.length, rows: ceo.map(crow), none: 'no chief executive bought in the window' }, { key: 'crowd', title: 'Most insiders', hint: 'breadth of the buying', n: multi.length, rows: crowd.filter(function (c) { return c.n_insiders >= 2; }).map(function (c) { var r = crow(c); r.big = String(c.n_insiders); r.tone = ''; r.small = 'insiders' + DOT + 'score ' + (fin(c.score) ? c.score.toFixed(0) : D); return r; }), none: 'no company has two insiders buying' },
-          { key: 'types', title: 'By kind of buying', hint: 'companies and dollars', rows: typeRows.map(function (t) { return { name: t.name, sub: t.n + (t.n === 1 ? ' company' : ' companies') + DOT + 'largest ' + t.top.ticker, big: money(t.usd), small: pct(total ? t.usd / total * 100 : 0) + ' of the dollars' }; }) }],
-        foot: 'Source: SEC Form 4 open-market purchases (' + (d.source_used || 'insider bank') + '), ' + days + ' days to ' + day(d.generated_at) + '. Dollars and counts are the engine\u2019s scored set, one row per company by SEC CIK' + (left ? '; ' + num(left) + ' other tickers with a purchase record were not scored and are left out' : '') + '. Purchases under $' + num(th.min_buy_value_usd || 5000) + ' are left out. The score is the engine\u2019s own, 0 to 100.'
+            .concat(restV > 0 ? [{ name: (pop.length - top6.length) + ' other companies', label: 'other', value: restV, tone: 'oth', big: money(restV), small: pct(restV / total * 100) + ' of the dollars' }] : []), caption: 'Slices are shares of the purchase dollars' + (hy ? ' of every company with a purchase.' : ' in the scored set.') },
+        lists: lists,
+        foot: 'Source: SEC Form 4 open-market purchases (' + (d.source_used || 'insider bank') + '), ' + days + ' days to ' + day(d.generated_at) + '. '
+          + (hy ? 'Dollars are every purchase line the engine read, one row per filing line and per company (' + num(hy.n_feed_purchase_rows) + ' feed rows were ' + num(hy.n_filing_lines) + ' lines)' + (aside.length ? '; ' + aside.length + ' impossible ' + (aside.length === 1 ? 'record' : 'records') + ' (' + money(hy.usd_set_aside) + ' as filed) set aside and listed' : '') + '. Prices are checked against the factor book\u2019s tape.'
+            : 'Dollars and counts are the engine\u2019s scored set, one row per company by SEC CIK' + (left ? '; ' + num(left) + ' other tickers with a purchase record were not scored and are left out' : '') + '.')
+          + ' Purchases under $' + num(th.min_buy_value_usd || 5000) + ' are left out. The score is the engine\u2019s own, 0 to 100.'
       };
     }
   };
@@ -504,7 +534,7 @@
   }
 
   function boot() { Array.prototype.forEach.call(document.querySelectorAll('[data-jts]'), mount); }
-  var api = { version: '1.0.0', render: render, ring: ring, adapters: ADAPTERS, mount: mount, money: money, pct: pct };
+  var api = { version: '1.1.0', render: render, ring: ring, adapters: ADAPTERS, mount: mount, money: money, pct: pct };
   if (typeof module === 'object' && module.exports) module.exports = api;   /* node: the adapters and the ring are pure, tests/tearsheet-kit.test.js */
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
   window.JHTearsheet = api;

@@ -123,3 +123,64 @@ test('numbers read the same everywhere: whole dollars under a million, a true mi
   assert.equal(kit.pct(-5.633, 1, true), '−5.6%');
   assert.equal(kit.pct(undefined), '—');
 });
+
+// ---- the two engines after 2026-11-18 (ARK 2.1.0 publishes every move; the insider scanner 2.2.0 cleans its own list)
+const arkV2 = () => ({ ...structuredClone(feeds['data/ark-holdings.json']), ...structuredClone(feeds['v2/ark-overlay']) });
+
+test('ARK 2.1.0: every move is listed, a fund view counts its own lines, and a carried or stale day says so', () => {
+  const d = arkV2(), all = kit.adapters.ark.build([d], {}), one = kit.adapters.ark.build([d], { fund: 'ARKK' });
+  const adds = all.lists.find(l => l.key === 'adds');
+  assert.equal(adds.rows.length, 72);
+  assert.equal(adds.n, 72);
+  assert.equal(adds.note, '', 'nothing is left out, so nothing needs saying');
+  assert.match(all.eyebrow, /holdings 2026-11-16 vs 2026-11-13/);
+  assert.match(all.title, /72 added to, 1 cut, 0 opened, 0 closed since the 2026-11-13 holdings/);
+  assert.match(all.foot, /Every such line is listed\./);
+  assert.doesNotMatch(all.foot, /15 largest/);
+  const dollars = adds.rows.map(r => +r.big.replace(/[+$,]/g, '').replace(/M$/, 'e6').replace(/B$/, 'e9'));
+  assert.deepEqual(dollars, [...dollars].sort((a, b) => b - a), 'ranked by dollars, not by the engine\'s percent order');
+  const mine = d.diff_vs_prev.all.position_adds.filter(x => x.fund === 'ARKK').length;
+  const oneAdds = one.lists.find(l => l.key === 'adds');
+  assert.equal(oneAdds.rows.length, mine);
+  assert.equal(oneAdds.n, mine);
+  assert.match(one.title, new RegExp(`^ARKK \\(.*${mine} added to, 0 cut, 0 opened, 0 closed`));
+  assert.match(one.tiles[3].s, /lines in ARKK/);
+  assert.equal(one.tiles[5].v, String(d.holdings_by_fund.ARKK.length - mine), 'unchanged = the fund\'s lines less what moved');
+  assert.deepEqual(all.notes[1][0], 'Stale at the source:');
+  assert.match(all.notes[1][1], /ARKW’s holdings are dated 2026-10-06, not 2026-11-16/);
+  assert.doesNotMatch(all.sub, /nothing newer/);
+  const carried = kit.adapters.ark.build([{ ...d, diff_is_carried: true }], {});
+  assert.match(carried.sub, /nothing newer has been published since, so these are still that day’s moves/);
+  const closed = kit.adapters.ark.build([{ ...d, diff_vs_prev: { ...d.diff_vs_prev, n_closed_positions: 1, all: { ...d.diff_vs_prev.all, closed_positions: [{ fund: 'ARKQ', ticker: 'GONE', company: 'GONE CO', prev_shares: 1200, prev_value: 3400000 }] } } }], {});
+  const row = closed.lists.find(l => l.key === 'closed').rows[0];
+  assert.deepEqual([row.name, row.big, row.small], ['GONE · GONE CO', '$3.4M', '1,200 sh']);
+  assert.doesNotMatch(JSON.stringify([all, one, carried, closed]), /undefined|NaN|Infinity|\[object|\bnull\b/);
+});
+
+test('insider scanner 2.2.0: dollars are every company with a purchase; what was set aside is shown, never counted', () => {
+  const d = structuredClone(feeds['v2/insider-clusters.json']), m = kit.adapters.insiders.build([d], {});
+  assert.ok(d.hygiene.applied && d.version === '2.2.0');
+  const buys = d.all_ticker_buys;
+  near(sum(m.ring.slices, s => s.value), sum(buys, b => b.total_value));
+  assert.equal(m.lists.find(l => l.key === 'dollars').rows.length, buys.length);
+  assert.ok(buys.length > d.clusters.length, 'companies with a single purchase are in the dollars now');
+  assert.match(m.title, new RegExp(`across ${buys.length} companies in 30 days`));
+  const aside = m.lists.find(l => l.key === 'aside');
+  assert.deepEqual(aside.rows.map(r => r.name.split(' ')[0]).sort(), ['AASP', 'LONA']);
+  assert.ok(aside.rows.every(r => /not counted/.test(r.small) && /worth more than the whole company/.test(r.sub)));
+  const counted = JSON.stringify({ ...m, lists: m.lists.filter(l => l.key !== 'aside') });
+  assert.doesNotMatch(counted, /LONA|AASP/);
+  for (const l of m.lists) if (l.key !== 'aside') assert.ok(l.rows.every(r => !/^(MNKKQ|MNKPF)\b/.test(r.name)), `${l.key}: one row for the filing, under MNK`);
+  assert.ok(sum(buys, b => b.total_value) < 1e9, 'the $9.9B and $200B records are not in the total');
+  const mnk = m.lists.find(l => l.key === 'dollars').rows.find(r => /^MNK\b/.test(r.name));
+  assert.match(mnk.sub, /also filed as MNKKQ, MNKPF/);
+  assert.match(m.lists.find(l => l.key === 'dollars').rows.find(r => /^BH\b/.test(r.name)).sub, /2 lines in another class of security/);
+  assert.match(m.foot, /175 feed rows were 52 lines\); 2 impossible records \(\$209\.92B as filed\) set aside and listed/);
+  assert.match(m.sub, /2 impossible records set aside/);
+  assert.equal(m.tiles.length, 6);
+  assert.doesNotMatch(JSON.stringify(m), /undefined|NaN|Infinity|\[object|\bnull\b/);
+  // an engine whose hygiene did not run falls back to the scored set, as before
+  const old = kit.adapters.insiders.build([{ ...d, hygiene: { applied: false } }], {});
+  assert.equal(old.lists.find(l => l.key === 'dollars').rows.length, d.clusters.length);
+  assert.equal(old.lists.find(l => l.key === 'aside'), undefined);
+});
