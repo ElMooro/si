@@ -695,6 +695,9 @@
       doc = d;
       stamp();
       draw();
+      /* the tearsheet (jh-tearsheet.js, the "leaders" adapter) reads this same artifact: hand it the copy instead of a second 3 MB download */
+      window.JHLeadersDoc = d;
+      try { window.dispatchEvent(new CustomEvent("jh:leaders-doc", { detail: d })); } catch (e) { /* a browser without CustomEvent(): the sheet reads the feed itself */ }
     }).catch(function (e) { if (!doc) fail(String(e && e.message || e)); });
   }
   function wire() {

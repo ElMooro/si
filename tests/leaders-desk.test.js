@@ -180,7 +180,7 @@ test('leaders.html: the page order, its tables and its scripts', () => {
     assert.ok(HTML.includes(`id="${id}"`), id);
   assert.match(HTML, /<body data-research-context="data\/leaders\.json">/);
   const scripts = [...HTML.matchAll(/<script src="([^"]+)"/g)].map(m => m[1].split('?')[0]);
-  assert.deepEqual(scripts, ['/private-artifacts.js', '/jh-nav-drawer.js', '/jh-desk-core.js', '/jh-leaders.js']);
+  assert.deepEqual(scripts, ['/private-artifacts.js', '/jh-nav-drawer.js', '/jh-desk-core.js', '/jh-leaders.js', '/jh-tearsheet.js']);      // 2026-11-18: the tearsheet, after the desk whose artifact it shares
   assert.doesNotMatch(HTML, /\[object Object\]|undefined%|>—</);            // the page gate's forbidden literals and the dead-dash ratchet
   assert.doesNotMatch(HTML, /jh-wire\.js/);
   assert.match(HTML, /<a href="\/leaders\.html" class="on" aria-current="page">Leaders<\/a>/);

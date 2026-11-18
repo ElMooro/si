@@ -99,7 +99,7 @@
     function pt(rad, a) { return [(110 + rad * Math.cos(a)).toFixed(2), (110 + rad * Math.sin(a)).toFixed(2)]; }
     var arcs = [], labels = [], legend = [];
     slices.forEach(function (s) {
-      var t = steps[s.tone] ? s.tone : 'pos', list = steps[t], op = s.rest && t !== 'oth' ? 0.3 : list[Math.min(rank[t]++, list.length - 1)];
+      var t = steps[s.tone] ? s.tone : 'pos', list = steps[t], op = fin(s.op) ? s.op : s.rest && t !== 'oth' ? 0.3 : list[Math.min(rank[t]++, list.length - 1)];
       var share = s.value / total * 100, sweep = Math.min(s.value / total * Math.PI * 2, Math.PI * 2 - 0.001), a0 = ang, a1 = ang + sweep, large = sweep > Math.PI ? 1 : 0;
       ang = a1;
       var o0 = pt(R, a0), o1 = pt(R, a1), i1 = pt(RI, a1), i0 = pt(RI, a0), mid = pt((R + RI) / 2, (a0 + a1) / 2);
@@ -488,6 +488,129 @@
     }
   };
 
+  /* Leaders desk: the five largest companies of each industry against the S&P 500 (data/leaders.json, justhodl-leaders).
+     The ring is the leaders' market cap by the tape label the engine gave each one - every leader once, one unit, one date.
+     Population = the engine's own "ranked" set (a row with a read against SPY that is not stale), so every count on the sheet
+     is the count the desk's verdict tiles print. The window buttons move the horizon of the lists that have one. */
+  ADAPTERS.leaders = {
+    feeds: ['/data/leaders.json'],
+    share: { global: 'JHLeadersDoc', event: 'jh:leaders-doc', ms: 8000 },   /* the desk has already read this 3 MB feed: use its copy */
+    build: function (docs, st) {
+      var d = docs[0], S = d.summary || {}, bench = (d.benchmark || {}).h || {}, f13 = d.f13 || {}, ch = d.changes || {};
+      var WIN = { w: { label: '1 WEEK', word: 'the week', flow: 'w5', obs: 5, span: 9 }, m: { label: '1 MONTH', word: 'the month', flow: 'w21', obs: 21, span: 33 }, q: { label: '1 QUARTER', word: 'the quarter', flow: 'w63', obs: 63, span: 95 } };
+      var k = WIN[st.fund] ? st.fund : 'm', W = WIN[k];
+      var live = (d.rows || []).filter(function (r) { return r.vs && !r.stale; }), funds = (d.etfs || []).filter(function (f) { return !f.stale; });
+      var cap = function (r) { return fin(r.mcap) ? r.mcap : 0; }, lab = function (r) { return (r.ad || {}).label || 'NEUTRAL'; }, low = function (s) { return String(s || '').toLowerCase(); };
+      var sg = function (v, dp) { return fin(v) ? sign(v, true) + Math.abs(v).toFixed(dp == null ? 1 : dp) : D; }, pts = function (v) { return fin(v) ? sg(v, 1) + ' pts' : D; };
+      var nm = function (r) { return r.ticker + (r.name ? DOT + r.name : ''); }, sentence = function (s) { s = low(s); return s.charAt(0).toUpperCase() + s.slice(1); };
+      /* -- breadth against the S&P 500 on the chosen window -- */
+      var read = live.filter(function (r) { return fin(r.vs[k]); }), beat = read.filter(function (r) { return r.vs[k] > 0; }).length, beatPct = read.length ? beat / read.length * 100 : null;
+      var strong = read.slice().sort(by(function (r) { return r.vs[k]; }, true)), weak = read.slice().sort(by(function (r) { return r.vs[k]; }));
+      var vsRow = function (r) { return { name: nm(r), sub: (r.industry || '') + DOT + low(lab(r)), big: pts(r.vs[k]), tone: tone(r.vs[k]), small: 'own ' + pct((r.h || {})[k], 1, true) }; };
+      /* -- the tape: five labels, market cap and count -- */
+      var GRADES = [['STRONG ACCUMULATION', 'Strong accumulation', 'Strong acc.', 'up', 1], ['ACCUMULATION', 'Accumulation', 'Accum.', 'up', 0.6], ['NEUTRAL', 'Neutral', 'Neutral', 'oth', 0.34],
+        ['DISTRIBUTION', 'Distribution', 'Distrib.', 'down', 0.6], ['STRONG DISTRIBUTION', 'Strong distribution', 'Strong dist.', 'down', 1]];
+      var total = sum(live, cap), tier = {};
+      GRADES.forEach(function (g) { var list = live.filter(function (r) { return lab(r) === g[0]; }).sort(by(cap, true)); tier[g[0]] = { list: list, cap: sum(list, cap) }; });
+      var accN = tier['STRONG ACCUMULATION'].list.length + tier.ACCUMULATION.list.length, distN = tier['STRONG DISTRIBUTION'].list.length + tier.DISTRIBUTION.list.length;
+      var accCap = tier['STRONG ACCUMULATION'].cap + tier.ACCUMULATION.cap, distCap = tier['STRONG DISTRIBUTION'].cap + tier.DISTRIBUTION.cap;
+      var share = function (v) { return total ? v / total * 100 : 0; };
+      var mf = function (r) { return ((r.mf || {})[k] || {}).net; };
+      var mfIn = sum(live, function (r) { var v = mf(r); return v > 0 ? v : 0; }), mfOut = -sum(live, function (r) { var v = mf(r); return v < 0 ? v : 0; }), mfNet = mfIn - mfOut;
+      var scored = live.filter(function (r) { return fin((r.ad || {}).score); });
+      var accList = scored.filter(function (r) { return r.ad.score >= 20; }).sort(by(function (r) { return r.ad.score; }, true)), distList = scored.filter(function (r) { return r.ad.score <= -20; }).sort(by(function (r) { return r.ad.score; }));
+      var tapeRow = function (r) { return { name: nm(r), sub: (r.industry || '') + DOT + 'signed dollar volume ' + money(mf(r), true), big: sg(r.ad.score, 0), tone: tone(r.ad.score), small: low(r.ad.label) }; };
+      var notable = function (key, kind) {
+        var r = tier[key].list[0], when = day(d.as_of);
+        if (!r) return { tone: kind, big: D, eyebrow: 'Most notable ' + (kind === 'up' ? 'accumulation' : 'distribution') + DOT + when, title: 'None', text: 'No leader carries the label ' + low(key) + ' on ' + when + '.' };
+        var a = r.ad || {}, sm = (r.smart || {}).verdict;
+        return { tone: kind, big: sg(a.score, 0), eyebrow: 'Most notable ' + (kind === 'up' ? 'accumulation' : 'distribution') + DOT + 'the largest leader under ' + low(key), title: nm(r),
+          text: money(cap(r)) + ' of market cap, ' + (r.industry || '') + '. Tape score ' + sg(a.score, 1) + ' (' + low(a.label) + '): ' + (fin(a.acc_days) ? a.acc_days + ' accumulation and ' + a.dist_days + ' distribution sessions in the last 25, ' : '')
+            + 'signed dollar volume ' + money(mf(r), true) + ' over ' + W.word + '. ' + pts(r.vs[k]) + ' against the S&P 500 over ' + W.word + ' (own ' + pct((r.h || {})[k], 1, true) + ').' + (sm ? ' Smart money: ' + low(sm) + '.' : '') };
+      };
+      /* -- smart money: the 13F cohort and Form 4 -- */
+      var net13 = function (r) { return (r.f13 || {}).net_usd; }, verdict = function (r) { return (r.smart || {}).verdict; };
+      var in13 = sum(live, function (r) { var v = net13(r); return v > 0 ? v : 0; }), out13 = -sum(live, function (r) { var v = net13(r); return v < 0 ? v : 0; });
+      var buying = live.filter(function (r) { return verdict(r) === 'BUYING'; }).sort(by(function (r) { return fin(net13(r)) ? net13(r) : -Infinity; }, true));
+      var selling = live.filter(function (r) { return verdict(r) === 'SELLING'; }).sort(by(function (r) { return fin(net13(r)) ? net13(r) : Infinity; }));
+      var smartRow = function (r) {
+        var f = r.f13 || {}, i = r.insider || {}, bits = [r.industry || ''];
+        if (fin(f.n_holders)) bits.push(f.n_holders + ' of the cohort hold it' + (f.holder_delta ? ' (' + sg(f.holder_delta, 0) + ')' : ''));
+        if (i.buy_usd > 0) bits.push('insiders bought ' + money(i.buy_usd));
+        else if (i.sell_usd > 0 && verdict(r) === 'SELLING') bits.push('insiders sold ' + money(i.sell_usd));
+        return { name: nm(r), sub: bits.join(DOT), big: money(net13(r), true), tone: tone(net13(r)), small: '13F net' };
+      };
+      /* -- industries -- */
+      var inds = (d.industries || []).filter(function (x) { return x.vs && fin(x.vs[k]); });
+      var indRow = function (x) { return { name: x.industry, sub: (x.leaders || []).join(', ') + DOT + money(x.mcap_usd), big: pts(x.vs[k]), tone: tone(x.vs[k]), small: low((x.ad || {}).label) }; };
+      /* -- industry funds: reported creations and redemptions. A window that holds a share split is not money in or out:
+            the vendor's own flow for the split day is the jump in the share count at the old price (ops 6839: SOXX and ITA,
+            3-for-1 on 2026-11-05, reported +$89.5B and +$24.5B on that one day; their other days are ordinary). Redemptions
+            beyond a small fund's remaining assets (IYZ, IDRV) are real share-count falls at an unchanged NAV and stay. -- */
+      var flowOf = function (f) { return ((f.flow || {})[W.flow]) || {}; };
+      var aside = function (f) {
+        var fl = f.flow || {}, w = flowOf(f), end = Date.parse(w.end || fl.effective || ''), start = w.start ? Date.parse(w.start) : end - W.span * 864e5;   /* a window without its first date: the calendar span its reports cover, generously */
+        var sp = (f.splits || []).filter(function (s) { var t = Date.parse(s.date); return t >= start && t <= end + 864e5; })[0];
+        if (sp) return (sp.split_to && sp.split_from ? sp.split_to + '-for-' + sp.split_from + ' ' : '') + 'share split on ' + day(sp.date) + ' inside the window';
+        if (w.usd > 0 && w.pct_aum > 100) return 'creations larger than the fund\u2019s own assets';
+        return null;
+      };
+      var flowing = funds.filter(function (f) { return (f.flow || {}).current && fin(flowOf(f).usd); }), kept = [], out = [];
+      flowing.forEach(function (f) { var why = aside(f); if (why) out.push({ f: f, why: why }); else kept.push(f); });
+      var fin_ = kept.filter(function (f) { return flowOf(f).usd > 0; }).sort(by(function (f) { return flowOf(f).usd; }, true)), fout = kept.filter(function (f) { return flowOf(f).usd < 0; }).sort(by(function (f) { return flowOf(f).usd; }));
+      var fundIn = sum(fin_, function (f) { return flowOf(f).usd; }), fundOut = -sum(fout, function (f) { return flowOf(f).usd; });
+      var fundRow = function (f) { var w = flowOf(f), cov = f.industries || []; return { name: f.ticker, sub: (f.role || 'fund') + ' fund' + DOT + (cov.length > 2 ? cov.slice(0, 2).join(', ') + ' and ' + (cov.length - 2) + ' more' : cov.join(', ')), big: money(w.usd, true), tone: tone(w.usd), small: fin(w.pct_aum) ? sg(w.pct_aum, 2) + '% of assets' : '' }; };
+      var asideNote = out.length ? 'Set aside, not counted: ' + out.map(function (o) { return o.f.ticker + ' ' + money(flowOf(o.f).usd, true) + ' (' + o.why + ')'; }).join('; ') + '. A split multiplies the reported share count, so that window\u2019s figure is arithmetic, not money.' : '';
+      /* -- what was printed since the prior session -- */
+      var ORDER = ['GOLDEN CROSS', 'DEATH CROSS', 'GOLDEN NEAR', 'DEATH NEAR', 'DOUBLE BOTTOM CONFIRMED', 'DOUBLE TOP CONFIRMED', 'DOUBLE BOTTOM FORMING', 'DOUBLE TOP FORMING', 'BUYING CLIMAX', 'SELLING CLIMAX', 'STRONG ACCUMULATION', 'STRONG DISTRIBUTION',
+        'ACCUMULATION', 'DISTRIBUTION', 'SMART BUYING', 'SMART SELLING', 'RS HIGH', 'RS LOW', 'BULL STACK', 'BEAR STACK', 'VERY TIGHT', 'TIGHT'];
+      var UP = { 'GOLDEN CROSS': 1, 'GOLDEN NEAR': 1, 'DOUBLE BOTTOM CONFIRMED': 1, 'DOUBLE BOTTOM FORMING': 1, 'STRONG ACCUMULATION': 1, 'ACCUMULATION': 1, 'SMART BUYING': 1, 'RS HIGH': 1, 'BULL STACK': 1 };
+      var DOWN = { 'DEATH CROSS': 1, 'DEATH NEAR': 1, 'DOUBLE TOP CONFIRMED': 1, 'DOUBLE TOP FORMING': 1, 'STRONG DISTRIBUTION': 1, 'DISTRIBUTION': 1, 'SMART SELLING': 1, 'RS LOW': 1, 'BEAR STACK': 1 };
+      var group = function (list) { var g = {}; (list || []).forEach(function (x) { (g[x.signal] = g[x.signal] || []).push(x.ticker); }); return g; };
+      var gNew = group(ch['new']), gGone = group(ch.gone), nNew = fin(ch.n_new) ? ch.n_new : (ch['new'] || []).length, nGone = fin(ch.n_gone) ? ch.n_gone : (ch.gone || []).length;
+      var kinds = Object.keys(gNew).sort(function (a, b) { var ia = ORDER.indexOf(a), ib = ORDER.indexOf(b); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || gNew[b].length - gNew[a].length; });
+      var newRows = kinds.map(function (s) { var t = gNew[s]; return { name: sentence(s), sub: t.slice(0, 8).join(', ') + (t.length > 8 ? ' and ' + (t.length - 8) + ' more' : ''), big: num(t.length), tone: UP[s] ? 'up' : DOWN[s] ? 'down' : '', small: 'new' }; });
+      var goneTop = Object.keys(gGone).sort(function (a, b) { return gGone[b].length - gGone[a].length; }).slice(0, 4).map(function (s) { return gGone[s].length + ' ' + low(s); });
+      var bl = (d.boards || {}).leaders || {}, n = function (key) { return (bl[key] || []).length; };
+      var conf = function (key) { return (d.rows || []).filter(function (r) { return r[key] && r[key].state === 'CONFIRMED'; }).length; };
+      return {
+        eyebrow: 'Leaders tearsheet' + DOT + 'bars ' + day(d.as_of) + DOT + num(live.length) + ' leaders ranked in ' + num((d.industries || []).length) + ' industries',
+        title: pct(beatPct, 0) + ' of the leaders are ahead of the S&P 500 over ' + W.word + DOT + money(accCap) + ' of their market cap is under accumulation, ' + money(distCap) + ' under distribution',
+        sub: 'The five largest companies of each industry against SPY' + DOT + 'tape labels read from price and volume' + DOT + '13F cohort of ' + num(f13.n_cohort) + ' as of ' + day(f13.period) + DOT + 'fund flows through ' + day((flowing[0] && (flowing[0].flow || {}).effective) || '') + DOT + 'published ' + day(d.generated_at),
+        controls: ['w', 'm', 'q'].map(function (id) { return { id: id, label: WIN[id].label, on: id === k }; }),
+        tiles: [{ k: 'Ahead of the S&P 500', v: pct(beatPct, 0), s: num(beat) + ' of ' + num(read.length) + ' over ' + W.word + DOT + 'SPY ' + pct(bench[k], 1, true) },
+          { k: 'Market cap by tape', v: '<span class="up">' + pct(share(accCap), 0) + '</span> / <span class="down">' + pct(share(distCap), 0) + '</span>', s: 'under accumulation / distribution, of ' + money(total) },
+          { k: 'Leaders by tape', v: '<span class="up">' + num(accN) + '</span> / <span class="down">' + num(distN) + '</span>', s: num(tier['STRONG ACCUMULATION'].list.length) + ' strong' + DOT + num(tier['STRONG DISTRIBUTION'].list.length) + ' strong' + DOT + num(tier.NEUTRAL.list.length) + ' neutral' },
+          { k: 'Signed dollar volume', v: '<span class="' + tone(mfNet) + '">' + money(mfNet, true) + '</span>', s: W.word + DOT + 'in ' + money(mfIn) + DOT + 'out ' + money(mfOut) },
+          { k: 'Smart money', v: '<span class="up">' + num(buying.length) + '</span> / <span class="down">' + num(selling.length) + '</span>', s: 'buying / selling' + DOT + '13F net ' + money(in13 - out13, true) },
+          { k: 'Industry funds', v: '<span class="' + tone(fundIn - fundOut) + '">' + money(fundIn - fundOut, true) + '</span>', s: W.obs + ' reports' + DOT + fin_.length + ' in' + DOT + fout.length + ' out' + (out.length ? DOT + out.length + ' set aside' : '') }],
+        cards: [notable('STRONG DISTRIBUTION', 'down'), notable('STRONG ACCUMULATION', 'up')],
+        notes: [['Breadth:', 'ahead of the S&P 500 over a week ' + pct(S.pct_beating_w, 0) + ', a month ' + pct(S.pct_beating_m, 0) + ', a quarter ' + pct(S.pct_beating_q, 0) + ', six months ' + pct(S.pct_beating_h, 0) + ' and a year ' + pct(S.pct_beating_y, 0) + '. Closing above the 20-day average '
+            + pct(S.pct_above_20, 0) + ', the 50-day ' + pct(S.pct_above_50, 0) + ', the 200-day ' + pct(S.pct_above_200, 0) + '; ' + n('golden_cross') + ' golden and ' + n('death_cross') + ' death crosses inside 20 sessions.'],
+          ['Patterns:', n('double_top') + ' double tops (' + conf('dtop') + ' confirmed) and ' + n('double_bottom') + ' double bottoms (' + conf('dbot') + ' confirmed); ' + n('buying_climax') + ' buying and ' + n('selling_climax') + ' selling climaxes inside 30 sessions; ' + n('tight') + ' tight bases; '
+            + n('rs_new_highs') + ' new highs and ' + n('rs_new_lows') + ' new lows of relative strength.'],
+          ['Caveat:', 'the tape label and signed dollar volume are read from price and volume \u2014 an estimate of pressure, not a reported flow. The 13F cohort is ' + num(f13.n_cohort) + ' managers as of ' + day(f13.period) + ' and arrives 45 days or more after the quarter; newly disclosed is not bought. Fund flows are reported creations and redemptions.']],
+        ring: { title: 'Market cap by tape', hint: 'accumulation solid, distribution hatched', n: live.length, center: money(total), subs: [num(live.length) + ' LEADERS', 'ACC ' + pct(share(accCap), 0) + DOT + 'DIST ' + pct(share(distCap), 0)], whole: 'the leaders\u2019 market cap', aria: 'The leaders\u2019 market cap by tape label',
+          slices: GRADES.map(function (g) { var t = tier[g[0]]; return { name: g[1], label: g[2], value: t.cap, tone: g[3], op: g[4], big: money(t.cap), small: num(t.list.length) + ' leaders' + (t.list.length ? DOT + t.list.slice(0, 3).map(function (r) { return r.ticker; }).join(', ') : '') }; }),
+          caption: 'Each leader\u2019s market cap is counted once, under the label the engine read from its price and volume on ' + day(d.as_of) + ' (score at or beyond \u00b120, strong at \u00b160). Solid = accumulation, hatched = distribution, plain = neutral.' },
+        lists: [{ key: 'strongest', title: 'Strongest against the S&P 500', hint: W.word + ', percentage points', tone: 'up', n: beat, rows: strong.filter(function (r) { return r.vs[k] > 0; }).map(vsRow), none: 'no leader is ahead' },
+          { key: 'weakest', title: 'Weakest against the S&P 500', hint: W.word + ', percentage points', tone: 'down', n: read.length - beat, rows: weak.filter(function (r) { return r.vs[k] <= 0; }).map(vsRow), none: 'no leader is behind' },
+          { key: 'printed', title: 'Printed since ' + (ch.prev_as_of ? day(ch.prev_as_of) : 'the prior session'), hint: 'signals that appeared', n: nNew, rows: newRows, none: ch.note || 'nothing new was printed',
+            note: nGone ? num(nGone) + ' signals went away' + (goneTop.length ? ': ' + goneTop.join(', ') + (Object.keys(gGone).length > 4 ? ' and others' : '') : '') + '.' : '' },
+          { key: 'accumulation', title: 'Under accumulation', hint: 'highest tape scores', tone: 'up', rows: accList.map(tapeRow), none: 'no leader is under accumulation' },
+          { key: 'distribution', title: 'Under distribution', hint: 'lowest tape scores', tone: 'down', rows: distList.map(tapeRow), none: 'no leader is under distribution' },
+          { key: 'smart-buying', title: 'Smart money buying', hint: '13F cohort and insiders', tone: 'up', rows: buying.map(smartRow), none: 'no leader reads as buying' },
+          { key: 'smart-selling', title: 'Smart money selling', hint: '13F cohort and insiders', tone: 'down', rows: selling.map(smartRow), none: 'no leader reads as selling' },
+          { key: 'industries-leading', title: 'Industries leading', hint: 'cap-weighted, ' + W.word, tone: 'up', rows: inds.filter(function (x) { return x.vs[k] > 0; }).sort(by(function (x) { return x.vs[k]; }, true)).map(indRow), none: 'no industry is ahead' },
+          { key: 'industries-lagging', title: 'Industries lagging', hint: 'cap-weighted, ' + W.word, tone: 'down', rows: inds.filter(function (x) { return x.vs[k] <= 0; }).sort(by(function (x) { return x.vs[k]; })).map(indRow), none: 'no industry is behind' },
+          { key: 'fund-inflows', title: 'Fund inflows', hint: 'reported creations, ' + W.obs + ' reports', tone: 'up', rows: fin_.map(fundRow), none: 'no fund took money in', note: asideNote },
+          { key: 'fund-outflows', title: 'Fund outflows', hint: 'reported redemptions, ' + W.obs + ' reports', tone: 'down', rows: fout.map(fundRow), none: 'no fund lost money' }],
+        foot: 'Source: justhodl-leaders ' + (d.version || '') + ' (data/leaders.json), published ' + String(d.generated_at || '').slice(0, 16).replace('T', ' ') + ' UTC from the Polygon end-of-day bank, bars as of ' + day(d.as_of) + '; 13F period ' + day(f13.period) + '; Form 4 purchases and sales over '
+          + ((d.insiders || {}).window_days || 90) + ' days to ' + day((d.insiders || {}).newest_day) + '. A leader is one of the five largest companies of its industry by market cap; excess return is against SPY in percentage points.'
+      };
+    }
+  };
+
   /* -- boot -- */
   function get(url) { return fetch(url + (url.indexOf('?') < 0 ? '?' : '&') + 'v=' + Math.floor(Date.now() / 300000), { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(url + ' HTTP ' + r.status); return r.json(); }); }
 
@@ -527,14 +650,24 @@
         try { navigator.clipboard.writeText(url).then(ok, function () { window.prompt('Copy this link', url); }); } catch (err) { window.prompt('Copy this link', url); }
       }
     });
-    Promise.all(ad.feeds.map(get)).then(function (list) { docs = list; paint(); }).catch(function (e) {
-      el.dataset.state = 'error';
-      el.innerHTML = '<div class="jts-in"><div class="jts-wait">The tearsheet\u2019s feed is not available right now (' + esc(e && e.message || e) + '). The rest of the page is unaffected.</div></div>';
-    });
+    function read() {
+      Promise.all(ad.feeds.map(get)).then(function (list) { docs = list; paint(); }).catch(function (e) {
+        if (docs) return;
+        el.dataset.state = 'error';
+        el.innerHTML = '<div class="jts-in"><div class="jts-wait">The tearsheet\u2019s feed is not available right now (' + esc(e && e.message || e) + '). The rest of the page is unaffected.</div></div>';
+      });
+    }
+    if (!ad.share) { read(); return; }
+    /* The desk on this page has already read the same feed: take its copy (window[global], then every later hand-over by
+       event) instead of downloading it a second time, and read it here only when no copy arrives. */
+    var use = function (doc) { if (doc && typeof doc === 'object') { docs = [doc]; paint(); } };
+    window.addEventListener(ad.share.event, function (e) { use(e && e.detail); });
+    if (window[ad.share.global]) use(window[ad.share.global]);
+    else setTimeout(function () { if (!docs) read(); }, ad.share.ms || 8000);
   }
 
   function boot() { Array.prototype.forEach.call(document.querySelectorAll('[data-jts]'), mount); }
-  var api = { version: '1.1.0', render: render, ring: ring, adapters: ADAPTERS, mount: mount, money: money, pct: pct };
+  var api = { version: '1.2.0', render: render, ring: ring, adapters: ADAPTERS, mount: mount, money: money, pct: pct };
   if (typeof module === 'object' && module.exports) module.exports = api;   /* node: the adapters and the ring are pure, tests/tearsheet-kit.test.js */
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
   window.JHTearsheet = api;

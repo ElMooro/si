@@ -4,7 +4,9 @@ const test = require('node:test'), assert = require('node:assert/strict'), fs = 
 const kit = require('../jh-tearsheet.js');
 const root = path.join(__dirname, '..');
 const feeds = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/tearsheet-feeds.json'), 'utf8'));
-const PAGES = { 'ark.html': 'ark', 'stablecoin-flow.html': 'stablecoin', 'firm-book.html': 'firmbook', 'paper-book.html': 'paperbook', 'sp500.html': 'sp500', 'insider-clusters.html': 'insiders', 'foreign-flows.html': 'tic', 'capital-inflows.html': 'capital' };
+// the Leaders feed is 3 MB: its trimmed copy (every leader, industry and fund; only the fields the sheet reads; ops 6838) has its own file
+feeds['data/leaders.json'] = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/tearsheet-leaders.json'), 'utf8'));
+const PAGES = { 'ark.html': 'ark', 'stablecoin-flow.html': 'stablecoin', 'firm-book.html': 'firmbook', 'paper-book.html': 'paperbook', 'sp500.html': 'sp500', 'insider-clusters.html': 'insiders', 'foreign-flows.html': 'tic', 'capital-inflows.html': 'capital', 'leaders.html': 'leaders' };
 const build = (name, state) => kit.adapters[name].build(kit.adapters[name].feeds.map(f => structuredClone(feeds[f.slice(1)])), state || {});
 const sum = (list, f) => list.reduce((a, x) => a + f(x), 0);
 const near = (a, b, tol) => assert.ok(Math.abs(a - b) <= (tol == null ? 1e-6 * Math.max(1, Math.abs(b)) : tol), `${a} vs ${b}`);
@@ -184,3 +186,92 @@ test('insider scanner 2.2.0: dollars are every company with a purchase; what was
   assert.equal(old.lists.find(l => l.key === 'dollars').rows.length, d.clusters.length);
   assert.equal(old.lists.find(l => l.key === 'aside'), undefined);
 });
+
+
+test('Leaders: every count on the sheet is the desk\'s own, and the ring is each leader\'s market cap once', () => {
+  const d = feeds['data/leaders.json'], S = d.summary, m = build('leaders');
+  const ranked = d.rows.filter(r => r.vs && !r.stale);
+  assert.equal(ranked.length, S.n);                                                // the engine's own "ranked" set
+  assert.match(m.eyebrow, new RegExp(`${S.n} leaders ranked in ${d.industries.length} industries`));
+  // the ring: five labels, in order, adding up to the ranked leaders' market cap
+  assert.deepEqual(m.ring.slices.map(s => [s.name, s.tone]), [['Strong accumulation', 'up'], ['Accumulation', 'up'], ['Neutral', 'oth'], ['Distribution', 'down'], ['Strong distribution', 'down']]);
+  near(sum(m.ring.slices, s => s.value), sum(ranked, r => r.mcap));
+  assert.equal(m.ring.center, kit.money(sum(ranked, r => r.mcap)));
+  const counts = m.ring.slices.map(s => +s.small.split(' ')[0]);
+  assert.equal(counts[0] + counts[1], S.accumulation); assert.equal(counts[3] + counts[4], S.distribution);
+  assert.equal(counts[0], S.strong_accumulation); assert.equal(counts[4], S.strong_distribution);
+  assert.equal(sum(counts, c => c), S.n);
+  // tiles: the verdict tiles' figures, not a second count
+  const tile = k => m.tiles.find(t => t.k === k), text = t => t.v.replace(/<[^>]+>/g, '');
+  assert.equal(tile('Ahead of the S&P 500').s.split(' over ')[0], `${S.beating_m} of ${S.n}`);
+  assert.equal(text(tile('Ahead of the S&P 500')), `${Math.round(S.pct_beating_m)}%`);
+  assert.equal(text(tile('Leaders by tape')), `${S.accumulation} / ${S.distribution}`);
+  assert.equal(text(tile('Smart money')), `${S.smart_buying} / ${S.smart_selling}`);
+  assert.equal(text(tile('Signed dollar volume')), kit.money(S.mf21_net_usd, true));
+  // the lists are whole: nothing is cut before MORE ROWS
+  const list = k => m.lists.find(l => l.key === k);
+  assert.equal(list('strongest').rows.length + list('weakest').rows.length, S.n);
+  assert.equal(list('accumulation').rows.length, S.accumulation); assert.equal(list('distribution').rows.length, S.distribution);
+  assert.equal(list('smart-buying').rows.length, S.smart_buying); assert.equal(list('smart-selling').rows.length, S.smart_selling);
+  assert.equal(list('industries-leading').rows.length + list('industries-lagging').rows.length, d.industries.length);
+  assert.equal(sum(list('printed').rows, r => +r.big), d.changes.n_new);
+  assert.match(list('printed').title, new RegExp(d.changes.prev_as_of));
+  // most notable = the largest leader under each strong label
+  const biggest = label => ranked.filter(r => r.ad.label === label).sort((a, b) => b.mcap - a.mcap)[0];
+  assert.ok(m.cards[0].title.startsWith(biggest('STRONG DISTRIBUTION').ticker + ' ') && m.cards[0].tone === 'down');
+  assert.ok(m.cards[1].title.startsWith(biggest('STRONG ACCUMULATION').ticker + ' ') && m.cards[1].tone === 'up');
+});
+
+test('Leaders: the window buttons move every list that has a horizon, and the month is the default', () => {
+  const d = feeds['data/leaders.json'], S = d.summary;
+  assert.deepEqual(build('leaders').controls.map(c => [c.id, c.on]), [['w', false], ['m', true], ['q', false]]);
+  assert.equal(JSON.stringify(build('leaders', { fund: 'nothing' })), JSON.stringify(build('leaders', { fund: 'm' })));
+  for (const [k, word, obs] of [['w', 'the week', 5], ['m', 'the month', 21], ['q', 'the quarter', 63]]) {
+    const m = build('leaders', { fund: k }), list = key => m.lists.find(l => l.key === key);
+    assert.ok(m.title.includes(`${Math.round(S['pct_beating_' + k])}% of the leaders are ahead of the S&P 500 over ${word}`), m.title);
+    assert.equal(list('strongest').n, S['beating_' + k]);
+    const top = d.rows.filter(r => r.vs && !r.stale).sort((a, b) => b.vs[k] - a.vs[k])[0];
+    assert.ok(list('strongest').rows[0].name.startsWith(top.ticker + ' '), k);
+    assert.ok(list('fund-inflows').hint.endsWith(`${obs} reports`));
+    assert.ok(m.tiles[0].s.includes('SPY ' + kit.pct(d.benchmark.h[k], 1, true)));
+  }
+  // the ring is the tape as of the bars' date: it does not move with the window
+  assert.equal(JSON.stringify(build('leaders', { fund: 'w' }).ring), JSON.stringify(build('leaders', { fund: 'q' }).ring));
+});
+
+test('Leaders: a fund whose shares split inside the window is set aside, never ranked as money in', () => {
+  const d = feeds['data/leaders.json'], by = Object.fromEntries(d.etfs.map(f => [f.ticker, f]));
+  // the real case: SOXX and ITA split 3-for-1 on 2026-11-05, and their reported creations read +$90.7B and +$24.2B
+  for (const t of ['SOXX', 'ITA']) { assert.equal(by[t].splits[0].date, '2026-11-05'); assert.ok(by[t].flow.w21.pct_aum > 200); }
+  for (const k of ['m', 'q']) {
+    const m = build('leaders', { fund: k }), ins = m.lists.find(l => l.key === 'fund-inflows'), outs = m.lists.find(l => l.key === 'fund-outflows'), flow = k === 'm' ? 'w21' : 'w63';
+    assert.ok(![...ins.rows, ...outs.rows].some(r => r.name === 'SOXX' || r.name === 'ITA'), k);
+    assert.match(ins.note, /Set aside, not counted: ITA \+\$\d+\.\d+B \(3-for-1 share split on 2026-11-05 inside the window\); SOXX \+\$\d+\.\d+B/);
+    const kept = d.etfs.filter(f => f.ticker !== 'SOXX' && f.ticker !== 'ITA' && f.flow && f.flow.current && Number.isFinite((f.flow[flow] || {}).usd));
+    const tile = m.tiles.find(t => t.k === 'Industry funds');
+    assert.equal(tile.v.replace(/<[^>]+>/g, ''), kit.money(sum(kept, f => f.flow[flow].usd), true));
+    assert.ok(tile.s.endsWith('2 set aside'));
+    assert.equal(ins.rows.length + outs.rows.length, kept.filter(f => f.flow[flow].usd !== 0).length);
+    assert.equal(ins.rows[0].name, 'SMH');                                          // the largest creation that is money
+  }
+  // the week's window ends after the split: nothing is set aside and SOXX's redemptions are listed as reported
+  const w = build('leaders', { fund: 'w' });
+  assert.ok(!w.lists.find(l => l.key === 'fund-inflows').note);
+  assert.equal(w.lists.find(l => l.key === 'fund-outflows').rows[0].name, 'SOXX');
+  assert.ok(!w.tiles.find(t => t.k === 'Industry funds').s.includes('set aside'));
+  // a creation larger than the fund's own assets is set aside whatever its cause
+  const doc = structuredClone(d), xlk = doc.etfs.find(f => f.ticker === 'XLK');
+  xlk.flow.w21 = { usd: 3 * xlk.flow.w21.usd / (xlk.flow.w21.pct_aum / 100), pct_aum: 300, end: xlk.flow.w21.end };
+  const odd = kit.adapters.leaders.build([doc], { fund: 'm' }).lists.find(l => l.key === 'fund-inflows');
+  assert.ok(!odd.rows.some(r => r.name === 'XLK')); assert.match(odd.note, /XLK [^;]*creations larger than the fund\u2019s own assets/);
+});
+
+test('Leaders: the sheet takes the desk\'s copy of the feed, and reads it itself only when none arrives', () => {
+  const ad = kit.adapters.leaders;
+  assert.deepEqual(ad.share, { global: 'JHLeadersDoc', event: 'jh:leaders-doc', ms: 8000 });
+  const desk = fs.readFileSync(path.join(root, 'jh-leaders.js'), 'utf8');
+  assert.match(desk, /window\.JHLeadersDoc = d;/); assert.match(desk, /new CustomEvent\("jh:leaders-doc", \{ detail: d \}\)/);
+  for (const name of Object.keys(kit.adapters)) if (name !== 'leaders') assert.equal(kit.adapters[name].share, undefined, name);
+  assert.equal(kit.version, '1.2.0');
+});
+
