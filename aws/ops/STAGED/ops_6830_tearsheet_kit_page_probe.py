@@ -168,6 +168,9 @@ def main():
                             firm = feeds[name]["firm"]
                             r.log("  firm.gross_exposure_pct %.3f vs ring %.3f" % (firm["gross_exposure_pct"], s["total"] or 0))
                             ck(abs((s["total"] or 0) - firm["gross_exposure_pct"]) <= 0.2, "%s: ring gross %.3f vs the firm's stated gross %.3f" % (tag, s["total"] or 0, firm["gross_exposure_pct"]))
+                            shown = s["center"].split(" ")[0]
+                            r.log("  the ring's centre prints %s; the headline: %s" % (shown, s["head"][:60]))
+                            ck(shown and shown in s["head"], "%s: the ring's centre (%s) and the headline print different gross figures" % (tag, shown))
                         if name == "capital":
                             net = sum(c["latest_month_b"] for c in feeds[name]["by_asset_class"].values())
                             r.log("  security types sum to %.3f, the feed's headline month %.3f" % (net, feeds[name]["headline"]["latest_month_b"]))
