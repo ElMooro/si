@@ -23,8 +23,17 @@ DATA SOURCE
 OUTPUT
 ══════
   data/ark-holdings.json — current snapshot + day-over-day diff
-  data/ark-holdings-prev.json — prior snapshot for diffing
+  data/ark-holdings-prev.json — the newest snapshot the engine has stored (the previous run's holdings)
+  data/ark-holdings-base.json — the snapshot the published diff is measured against (v2.1.0)
   Emits ark.position_change event for material adds/trims/new/closed.
+
+v2.1.0 (2026-11-18, Khalid: "make the ARK engine publish every move"):
+  - diff_vs_prev.all carries EVERY new / added-to / cut / closed line (the 15-row `highlights` stay as they were);
+    closed lines carry the company name; holdings_by_fund carries every position (it stopped at 40 per fund).
+  - the baseline is the last snapshot with an EARLIER holdings date (ark_moves.choose_baseline): a second run on the
+    same holdings, a weekend or a holiday no longer empties the diff — the last trading day's moves stay, dated by
+    holdings_date / prev_holdings_date, and diff_is_carried says the source has published nothing newer.
+  - ark.position_change events are published once per holdings date (on the run that first measures it), as before.
 """
 import json
 import os
@@ -37,10 +46,14 @@ from datetime import datetime, timezone
 import boto3
 from _sentry_lite import track_errors
 
+import ark_moves
+
+VERSION = "2.1.0"
 REGION = "us-east-1"
 BUCKET = "justhodl-dashboard-live"
 OUTPUT_KEY = "data/ark-holdings.json"
 PREV_KEY   = "data/ark-holdings-prev.json"
+BASE_KEY   = "data/ark-holdings-base.json"
 
 HTTP_TIMEOUT = 30
 USER_AGENT = "JustHodl-ArkHoldings/1.0 (raafouis@gmail.com)"
@@ -139,24 +152,34 @@ def fetch_holdings_all_funds() -> dict:
     return dict(by_fund)
 
 
-def load_prev_snapshot():
-    """Load yesterday's holdings snapshot from S3 for diffing."""
+def load_snapshot(key):
+    """A stored snapshot ({generated_at, holdings_date, holdings_by_fund}) or None when the key is not there."""
     try:
-        obj = s3.get_object(Bucket=BUCKET, Key=PREV_KEY)
+        obj = s3.get_object(Bucket=BUCKET, Key=key)
         data = json.loads(obj["Body"].read().decode("utf-8"))
-        prev_map = {}
-        for fund_code, positions in (data.get("holdings_by_fund") or {}).items():
-            for p in positions:
-                prev_map[(fund_code, p["ticker"])] = {
-                    "shares":       p.get("shares", 0),
-                    "market_value": p.get("market_value", 0),
-                    "weight":       p.get("weight", 0),
-                }
-        print(f"[ark] loaded {len(prev_map)} prior positions (snapshot {data.get('generated_at','?')})")
-        return prev_map, data.get("generated_at")
+        if not isinstance(data, dict) or not data.get("holdings_by_fund"):
+            print(f"[ark] {key}: no holdings inside")
+            return None
+        n = sum(len(v or []) for v in data["holdings_by_fund"].values())
+        print(f"[ark] loaded {key}: {n} positions, holdings dated {ark_moves.snapshot_date(data) or '?'} (snapshot {data.get('generated_at','?')})")
+        return data
     except Exception as e:
-        print(f"[ark] no prior snapshot: {e}")
-        return {}, None
+        print(f"[ark] no snapshot at {key}: {e}")
+        return None
+
+
+def store_snapshot(key, doc):
+    """True when the snapshot was written."""
+    try:
+        s3.put_object(Bucket=BUCKET, Key=key,
+                       Body=json.dumps(doc, default=str,
+                                         separators=(",", ":")).encode("utf-8"),
+                       ContentType="application/json",
+                       CacheControl="public, max-age=3600")
+        return True
+    except Exception as e:
+        print(f"[ark] snapshot write to {key} failed: {e}")
+        return False
 
 
 def compute_diffs(current: dict, prev_map: dict) -> dict:
@@ -217,6 +240,7 @@ def compute_diffs(current: dict, prev_map: dict) -> dict:
             closed_positions.append({
                 "fund":        fund_code,
                 "ticker":      ticker,
+                "company":     prev_map[key].get("company") or "",
                 "prev_shares": prev_map[key]["shares"],
                 "prev_value":  prev_map[key]["market_value"],
             })
@@ -279,35 +303,49 @@ def handler(event, context):
     total_positions = sum(len(p) for p in holdings_by_fund.values())
     print(f"[ark] {len(holdings_by_fund)} funds, {total_positions} total positions")
     
-    prev_map, prev_date = load_prev_snapshot()
+    # v2.1.0: measure against the last snapshot with an EARLIER holdings date (ark_moves.choose_baseline) - the
+    # previous run's snapshot only on the first run that sees a new day; the retained baseline on every run after it.
+    holdings_date = ark_moves.holdings_date(holdings_by_fund)
+    latest_doc = load_snapshot(PREV_KEY)
+    base_doc = load_snapshot(BASE_KEY)
+    baseline_doc, new_day = ark_moves.choose_baseline(holdings_date, latest_doc, base_doc)
+    prev_map = ark_moves.snapshot_map(baseline_doc)
+    prev_date = (baseline_doc or {}).get("generated_at")
+    prev_holdings_date = ark_moves.snapshot_date(baseline_doc)
+    print(f"[ark] holdings dated {holdings_date or '?'}; measured against {prev_holdings_date or 'nothing'} "
+          f"({'new day' if new_day else 'same holdings as the last run - retained baseline'})")
     diffs = compute_diffs(holdings_by_fund, prev_map) if prev_map else {
         "new_positions": [], "position_adds": [],
         "position_trims": [], "closed_positions": [],
     }
-    
+
     cross_fund = cross_fund_aggregation(holdings_by_fund)
-    
-    prev_snapshot = {
-        "generated_at":     datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "holdings_by_fund": holdings_by_fund,
-    }
-    try:
-        s3.put_object(Bucket=BUCKET, Key=PREV_KEY,
-                       Body=json.dumps(prev_snapshot, default=str,
-                                         separators=(",", ":")).encode("utf-8"),
-                       ContentType="application/json",
-                       CacheControl="public, max-age=3600")
-    except Exception as e:
-        print(f"[ark] prev snapshot write failed: {e}")
-    
+
+    # Retain the baseline BEFORE the newest snapshot is replaced: if that write fails, the newest snapshot is left
+    # alone so the next run sees the same new day and tries again (never a diff measured against the wrong day).
+    baseline_kept = True
+    if new_day and latest_doc is not None:
+        baseline_kept = store_snapshot(BASE_KEY, latest_doc)
+    if baseline_kept:
+        store_snapshot(PREV_KEY, {
+            "generated_at":     datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "holdings_date":    holdings_date,
+            "holdings_by_fund": holdings_by_fund,
+        })
+    moves = ark_moves.moves_block(diffs)
+
     out = {
         "schema_version":   "2.0",
+        "version":          VERSION,
         "method":           "ark_holdings_v2_arkfunds_io",
         "generated_at":     datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "duration_s":       round((datetime.now(timezone.utc) - started).total_seconds(), 1),
         "data_source":      "https://arkfunds.io/api/v2/etf/holdings (community-maintained)",
         "prev_snapshot_at": prev_date,
-        
+        "holdings_date":      holdings_date or None,
+        "prev_holdings_date": prev_holdings_date or None,
+        "diff_is_carried":    bool(prev_map) and not new_day,
+
         "funds_tracked":     ARK_FUND_CODES,
         "fund_descriptions": ARK_FUND_DESC,
         "n_funds_fetched":   len(holdings_by_fund),
@@ -325,12 +363,14 @@ def handler(event, context):
                 "biggest_trims":    diffs["position_trims"][:15],
                 "closed_positions": diffs["closed_positions"][:10],
             },
+            "threshold_pct": moves["threshold_pct"],
+            "all": {k: moves[k] for k in ark_moves.KINDS},
         },
-        
+
         "cross_fund_top": cross_fund[:30],
-        
+
         "holdings_by_fund": {
-            fund: sorted(positions, key=lambda p: -p["market_value"])[:40]
+            fund: sorted(positions, key=lambda p: -p["market_value"])
             for fund, positions in holdings_by_fund.items()
         },
         
@@ -355,7 +395,8 @@ def handler(event, context):
     try:
         from system_events import publish_many
         events_pub = []
-        for p in diffs["new_positions"][:3]:
+        # once per holdings date: a later run on the same holdings carries the diff but must not announce it again
+        for p in (diffs["new_positions"][:3] if new_day else []):
             if p["market_value"] >= 5_000_000:
                 events_pub.append(("ark.position_change", {
                     "change_type": "new_position",
@@ -364,7 +405,7 @@ def handler(event, context):
                     "value":       p["market_value"],
                     "shares":      p["shares"],
                 }))
-        for p in diffs["position_adds"][:3]:
+        for p in (diffs["position_adds"][:3] if new_day else []):
             if p["pct_change"] >= 10 and p["current_value"] >= 5_000_000:
                 events_pub.append(("ark.position_change", {
                     "change_type":   "add",
@@ -389,6 +430,11 @@ def handler(event, context):
         "n_trims":          len(diffs["position_trims"]),
         "n_closed":         len(diffs["closed_positions"]),
         "duration_s":       out["duration_s"],
+        "version":          VERSION,
+        "holdings_date":      holdings_date or None,
+        "prev_holdings_date": prev_holdings_date or None,
+        "new_day":          new_day,
+        "baseline_kept":    baseline_kept,
     })}
 
 

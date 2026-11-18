@@ -24,6 +24,16 @@ SEC filings; the SEC EDGAR parse stands as the fallback when the bank has nothin
 reads the factor book's documents first (bank close, labelled `fundamentals_source`), the live FMP profile/quote pair
 stays as the fallback; every enriched cluster carries a labelled `bank_context`.  Clustering, scoring, thresholds,
 the `clusters` / `all_ticker_buys` shapes and the alerts are unchanged (additive fields only).
+
+v2.2.0 (2026-11-18, Khalid: "fix the insider record"): every purchase row passes insider_hygiene before it is counted -
+one row per filing line (the banked feed repeats a line on consecutive days: 3,584 rows were 1,203 lines), one filing
+kept once when it arrives under several tickers of the same issuer (MNK / MNKKQ / MNKPF -> MNK, `also_filed_as`), and a
+price that cannot be is set aside (LONA "$9.9B", AASP "$200B": off the tape by 5x or more AND worth more than the whole
+company; published under `hygiene.set_aside` with the reason, never counted).  A price off the tape but possible
+(another share class, preferred units, a local line) is counted and labelled `price_check: off_tape`.  Additive
+fields only: `hygiene`, `security` / `price_check` / `tape_ratio` on transactions, `also_filed_as` / `n_off_tape` on
+clusters, `cik` / `company` / `also_filed_as` / `n_off_tape` on `all_ticker_buys`.  stats.n_buy_transactions now counts
+filing lines (it counted feed rows, each line about three times); the feed-row count is stats.n_feed_purchase_rows.
 """
 from __future__ import annotations
 
@@ -67,7 +77,8 @@ try:
     import bank_enrich as _book
 except Exception:  # noqa: BLE001
     _book = None
-VERSION = "2.1.0"
+import insider_hygiene as hygiene
+VERSION = "2.2.0"
 BANK_FEED_DAYS = int(os.environ.get("INSIDER_BANK_FEED_DAYS", str(LOOKBACK_DAYS + 3)))      # window + filing lag
 BANK_CONTEXT_FIELDS = ["altman_z", "piotroski", "short_pct_float", "days_to_cover", "pt_upside_pct", "ret_21d", "ret_63d", "composite_quality", "composite_value"]
 _ACCESSION_RE = re.compile(r"(\d{10}-\d{2}-\d{6})")
@@ -370,8 +381,30 @@ def bank_feed_transactions(days=None):
                 "role_tier": role_tier(role), "shares": int(shares),
                 "price": round(price, 4), "value": round(value, 2),
                 "txn_date": txn_date, "filed_date": filed, "accession": accession,
+                "security": (r.get("securityName") or "").strip()[:80],      # v2.2.0: which security the line is for (class A, preferred units, warrants ...)
             })
     return txns, len(banked), n_rows
+
+
+def tape_reference(tickers):
+    """{ticker: the factor book's row (name, last price, 52-week range, market value)} for the tickers the book carries;
+    {} when the book is not there - the hygiene screen then labels every row no_tape and sets nothing aside."""
+    if _book is None:
+        return {}
+    try:
+        if not _book.available():
+            return {}
+    except Exception:  # noqa: BLE001
+        return {}
+    out = {}
+    for t in tickers:
+        try:
+            row = _book.lookup(t, list(hygiene.REF_FIELDS))
+        except Exception:  # noqa: BLE001
+            row = None
+        if row:
+            out[t] = row
+    return out
 
 
 def book_fundamentals(ticker):
@@ -681,15 +714,47 @@ def lambda_handler(event, context):
     print(f"[insider-cluster] parsed {n_parsed} filings, extracted {len(all_txns)} buy transactions "
           f"({n_no_purchase} had no open-market purchase [normal], {n_parse_error} parse/fetch errors)")
     
+    # 3b. HYGIENE (v2.2.0): one row per filing line, one filing kept once across an issuer's tickers, and a price that
+    # cannot be set aside - before anything is clustered, scored, alerted or published.  Never blocks the engine.
+    n_feed_rows = len(all_txns)
+    hygiene_block = {"applied": False, "n_feed_purchase_rows": n_feed_rows}
+    refs = {}
+    try:
+        lines = hygiene.unique(all_txns)
+        refs = tape_reference(sorted({t["ticker"] for t in lines}))
+        lines, merged_filings = hygiene.merge_same_filing(lines, lambda s: s in refs)
+        counted, set_aside, checks = hygiene.screen(lines, refs)
+        hygiene_block = {
+            "applied": True, "n_feed_purchase_rows": n_feed_rows, "n_filing_lines": len(lines), **checks,
+            "tickers_on_the_tape": len(refs), "merged_filings": merged_filings, "set_aside": set_aside,
+            "rule": ("A purchase is set aside only when its price is off the stock's tape by 5x or more AND it is worth more than the "
+                     "whole company (no market value on the book: 100x or more off the last price). A price outside "
+                     "0.5 x the 52-week low .. 1.5 x the 52-week high but possible is counted and labelled off_tape."),
+            "tape": "factor-book (bank close, not a live tick)", "tape_as_of": (_book.as_of() if (_book is not None and refs) else None),
+        }
+        all_txns = counted
+        print(f"[insider-cluster] hygiene: {n_feed_rows} feed rows -> {len(lines)} filing lines; "
+              f"{checks['n_off_tape']} off the tape (counted), {checks['n_no_tape']} without a tape, "
+              f"{checks['n_set_aside']} set aside (${checks['usd_set_aside']:,.0f}); merged {len(merged_filings)} multi-ticker filings")
+        for a in set_aside[:10]:
+            print(f"[insider-cluster] SET ASIDE {a['ticker']}: {a['shares']} sh at {a['price']} = ${a['value']:,.0f} - {a['reason']}")
+    except Exception as e:  # noqa: BLE001
+        print(f"[insider-cluster] hygiene failed, raw rows used: {type(e).__name__}: {e}")
+    tape_names = {t: (row.get("name") or "") for t, row in refs.items() if isinstance(row, dict)}   # the feed carries no issuer name
+
     # 4. CLUSTER
     by_ticker = build_clusters(all_txns, LOOKBACK_DAYS)
     print(f"[insider-cluster] {len(by_ticker)} unique tickers")
-    
+
     raw_clusters = []
     for ticker, txns in by_ticker.items():
         if len(txns) == 0:
             continue
         cluster = aggregate_cluster(ticker, txns)
+        cluster["also_filed_as"] = sorted({s for t in txns for s in (t.get("also_filed_as") or [])})
+        cluster["n_off_tape"] = sum(1 for t in txns if t.get("price_check") == "off_tape")
+        if not cluster.get("company") and tape_names.get(ticker):
+            cluster["company"] = tape_names[ticker]
         if cluster["n_insiders"] < CLUSTER_MIN_INSIDERS and cluster["n_transactions"] < 2:
             continue
         raw_clusters.append(cluster)
@@ -758,11 +823,13 @@ def lambda_handler(event, context):
         "feed_basis": feed_basis,
         "fundamentals_sources": fundamentals_sources,
         "book_as_of": (_book.as_of() if (_book is not None and _book.available()) else None),
+        "hygiene": hygiene_block,
         "stats": {
             "n_form4_filings_scanned": len(all_filings),
             "n_form4_parsed": n_parsed,
             "n_bank_feed_days": bank_days,
             "n_bank_feed_rows": bank_rows,
+            "n_feed_purchase_rows": n_feed_rows,
             "n_buy_transactions": len(all_txns),
             "n_unique_tickers": len(by_ticker),
             "n_clusters": len(final_clusters),
@@ -799,6 +866,11 @@ def lambda_handler(event, context):
                                  for x in txns if x.get("role")}),
                 "max_role_tier": max((int(x.get("role_tier") or 0) for x in txns),
                                      default=0),
+                # v2.2.0 (additive): who the issuer is, the other tickers the same filing arrived under, off-tape lines
+                "cik": next((str(x.get("cik")) for x in txns if x.get("cik")), ""),
+                "company": next((x.get("company") for x in txns if x.get("company")), "") or (tape_names.get(t) or ""),
+                "also_filed_as": sorted({s for x in txns for s in (x.get("also_filed_as") or [])}),
+                "n_off_tape": sum(1 for x in txns if x.get("price_check") == "off_tape"),
             }
             for t, txns in by_ticker.items() if txns
         ],

@@ -110,8 +110,10 @@ def test_bank_feed_is_the_first_rung_and_maps_to_the_form4_schema():
     rc = lf.lambda_handler({}, Ctx())
     body = json.loads(rc["body"])
     out = s3.written[lf.S3_KEY]
-    assert out["version"] == "2.1.0" and out["source_used"].startswith("fmp-walker bank insider-trading-latest (3 days, 7 feed rows, 6 purchases)"), out["source_used"]      # raw purchases; the duplicate accession and the 40-day-old row fall in build_clusters
-    assert out["stats"]["n_buy_transactions"] == 6 and out["stats"]["n_form4_filings_scanned"] == 0 and out["stats"]["n_bank_feed_days"] == 3
+    assert out["version"] == "2.2.0" and out["source_used"].startswith("fmp-walker bank insider-trading-latest (3 days, 7 feed rows, 6 purchases)"), out["source_used"]      # raw purchase rows read from the feed
+    # v2.2.0: n_buy_transactions counts filing lines (the duplicate accession is one line; the 40-day-old row still falls in build_clusters); the feed rows are n_feed_purchase_rows
+    assert out["stats"]["n_buy_transactions"] == 5 and out["stats"]["n_feed_purchase_rows"] == 6 and out["stats"]["n_form4_filings_scanned"] == 0 and out["stats"]["n_bank_feed_days"] == 3
+    assert out["hygiene"]["applied"] and out["hygiene"]["n_set_aside"] == 0 and out["hygiene"]["merged_filings"] == [] and out["hygiene"]["n_filing_lines"] == 5
     assert not sec_calls, "the SEC ladder must not run when the bank answers"
     tickers = {c["ticker"]: c for c in out["clusters"]}
     assert set(tickers) == {"DUAL", "LONE"}, tickers.keys()                       # SELL dropped, TINY below the floor, OLD outside the window
@@ -146,3 +148,7 @@ if __name__ == "__main__":
     test_sec_ladder_stands_when_the_bank_is_empty()
     print("ok test_sec_ladder_stands_when_the_bank_is_empty")
     print("2 tests passed")
+    # v2.2.0: the hygiene tests replay real feed rows with their own fakes, so they run in their own process
+    import subprocess
+    subprocess.run([sys.executable, os.path.join(HERE, "test_hygiene.py")], check=True, stdout=subprocess.DEVNULL if os.environ.get("JH_QUIET_TESTS") else None)
+    print("hygiene tests passed")
