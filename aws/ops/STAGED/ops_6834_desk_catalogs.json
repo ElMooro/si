@@ -1,0 +1,2635 @@
+{
+ "dollar": [
+  {
+   "cat": "DXY · rebuilt from FRED, and its six currencies",
+   "flag": "💵",
+   "items": [
+    [
+     "calc:dxy",
+     "DXY · U.S. Dollar Index, rebuilt from FRED's six exchange rates",
+     "index"
+    ],
+    [
+     "DEXUSEU",
+     "Euro · 57.6% of the DXY",
+     "USD per EUR"
+    ],
+    [
+     "DEXJPUS",
+     "Japanese yen · 13.6% of the DXY",
+     "JPY per USD"
+    ],
+    [
+     "DEXUSUK",
+     "British pound · 11.9% of the DXY",
+     "USD per GBP"
+    ],
+    [
+     "DEXCAUS",
+     "Canadian dollar · 9.1% of the DXY",
+     "CAD per USD"
+    ],
+    [
+     "DEXSDUS",
+     "Swedish krona · 4.2% of the DXY",
+     "SEK per USD"
+    ],
+    [
+     "DEXSZUS",
+     "Swiss franc · 3.6% of the DXY",
+     "CHF per USD"
+    ]
+   ]
+  },
+  {
+   "cat": "Fed dollar indexes · daily",
+   "flag": "🏦",
+   "items": [
+    [
+     "DTWEXBGS",
+     "Broad dollar index · nominal, daily",
+     "index"
+    ],
+    [
+     "DTWEXAFEGS",
+     "Dollar vs advanced foreign economies · nominal, daily",
+     "index"
+    ],
+    [
+     "DTWEXEMEGS",
+     "Dollar vs emerging market economies · nominal, daily",
+     "index"
+    ]
+   ]
+  },
+  {
+   "cat": "Fed dollar indexes · monthly, nominal and real",
+   "flag": "📅",
+   "items": [
+    [
+     "TWEXBGSMTH",
+     "Broad dollar index · nominal, monthly",
+     "index"
+    ],
+    [
+     "RTWEXBGS",
+     "Broad dollar index · real, monthly",
+     "index"
+    ],
+    [
+     "TWEXAFEGSMTH",
+     "Dollar vs advanced foreign economies · nominal, monthly",
+     "index"
+    ],
+    [
+     "RTWEXAFEGS",
+     "Dollar vs advanced foreign economies · real, monthly",
+     "index"
+    ],
+    [
+     "TWEXEMEGSMTH",
+     "Dollar vs emerging market economies · nominal, monthly",
+     "index"
+    ],
+    [
+     "RTWEXEMEGS",
+     "Dollar vs emerging market economies · real, monthly",
+     "index"
+    ]
+   ]
+  },
+  {
+   "cat": "Fed dollar indexes · annual",
+   "flag": "🗓",
+   "items": [
+    [
+     "TWEXBGSANL",
+     "Broad dollar index · nominal, annual",
+     "index"
+    ],
+    [
+     "TWEXAFEGSANL",
+     "Dollar vs advanced foreign economies · nominal, annual",
+     "index"
+    ],
+    [
+     "TWEXEMEGSANL",
+     "Dollar vs emerging market economies · nominal, annual",
+     "index"
+    ]
+   ]
+  },
+  {
+   "cat": "Effective exchange rates of the dollar · BIS and OECD",
+   "flag": "🌐",
+   "items": [
+    [
+     "RBUSBIS",
+     "Real broad effective exchange rate · BIS, monthly",
+     "index"
+    ],
+    [
+     "NBUSBIS",
+     "Nominal broad effective exchange rate · BIS, monthly",
+     "index"
+    ],
+    [
+     "RNUSBIS",
+     "Real narrow effective exchange rate · BIS, monthly since 1964",
+     "index"
+    ],
+    [
+     "NNUSBIS",
+     "Nominal narrow effective exchange rate · BIS, monthly since 1964",
+     "index"
+    ],
+    [
+     "CCRETT01USM661N",
+     "Real effective exchange rate, CPI based · OECD, monthly",
+     "index"
+    ],
+    [
+     "CCRETT01USQ661N",
+     "Real effective exchange rate, CPI based · OECD, quarterly",
+     "index"
+    ],
+    [
+     "CCRETT01USA661N",
+     "Real effective exchange rate, CPI based · OECD, annual",
+     "index"
+    ],
+    [
+     "CCRETT02USQ661N",
+     "Real effective exchange rate, unit labor costs · OECD, quarterly",
+     "index"
+    ],
+    [
+     "CCRETT02USA661N",
+     "Real effective exchange rate, unit labor costs · OECD, annual",
+     "index"
+    ]
+   ]
+  },
+  {
+   "cat": "Ended · the goods-only dollar indexes, 1973 to 2019",
+   "flag": "🕰",
+   "items": [
+    [
+     "DTWEXM",
+     "Major currencies dollar index · daily, 1973 to 2019",
+     "index"
+    ],
+    [
+     "TWEXM",
+     "Major currencies dollar index · weekly, 1973 to 2020",
+     "index"
+    ],
+    [
+     "TWEXMMTH",
+     "Major currencies dollar index · monthly, 1973 to 2019",
+     "index"
+    ],
+    [
+     "TWEXMANL",
+     "Major currencies dollar index · annual, 1973 to 2019",
+     "index"
+    ],
+    [
+     "TWEXMPA",
+     "Major currencies dollar index · real, monthly, 1973 to 2019",
+     "index"
+    ],
+    [
+     "DTWEXB",
+     "Broad dollar index, goods only · daily, 1995 to 2019",
+     "index"
+    ],
+    [
+     "TWEXB",
+     "Broad dollar index, goods only · weekly, 1995 to 2020",
+     "index"
+    ],
+    [
+     "TWEXBMTH",
+     "Broad dollar index, goods only · monthly, 1973 to 2019",
+     "index"
+    ],
+    [
+     "TWEXBANL",
+     "Broad dollar index, goods only · annual, 1995 to 2019",
+     "index"
+    ],
+    [
+     "TWEXBPA",
+     "Broad dollar index, goods only · real, monthly, 1973 to 2019",
+     "index"
+    ],
+    [
+     "DTWEXO",
+     "Other important trading partners · daily, 1995 to 2019",
+     "index"
+    ],
+    [
+     "TWEXO",
+     "Other important trading partners · weekly, 1995 to 2020",
+     "index"
+    ],
+    [
+     "TWEXOMTH",
+     "Other important trading partners · monthly, 1973 to 2019",
+     "index"
+    ],
+    [
+     "TWEXOANL",
+     "Other important trading partners · annual, 1995 to 2019",
+     "index"
+    ],
+    [
+     "TWEXOPA",
+     "Other important trading partners · real, monthly, 1973 to 2019",
+     "index"
+    ]
+   ]
+  }
+ ],
+ "soma": [
+  {
+   "cat": "Securities held outright · the totals (Wednesday level)",
+   "flag": "🏛",
+   "items": [
+    [
+     "WSHOSHO",
+     "Securities held outright · total",
+     "$M"
+    ],
+    [
+     "WSHOTSL",
+     "Treasuries",
+     "$M"
+    ],
+    [
+     "WSHOMCB",
+     "Mortgage-backed securities",
+     "$M"
+    ],
+    [
+     "H41RESPPALGASMRNWW",
+     "Residential mortgage-backed securities",
+     "$M"
+    ],
+    [
+     "H41RESPPALGASMSNWW",
+     "Commercial mortgage-backed securities",
+     "$M"
+    ],
+    [
+     "WSHOFADSL",
+     "Federal agency debt",
+     "$M"
+    ],
+    [
+     "WUPSHO",
+     "Unamortized premiums on securities held outright",
+     "$M"
+    ],
+    [
+     "WUDSHO",
+     "Unamortized discounts on securities held outright",
+     "$M"
+    ]
+   ]
+  },
+  {
+   "cat": "Treasuries by type (Wednesday level)",
+   "flag": "🇺🇸",
+   "items": [
+    [
+     "WSHOBL",
+     "Treasury bills",
+     "$M"
+    ],
+    [
+     "RESPPALGUONNWW",
+     "Treasury notes and bonds",
+     "$M"
+    ],
+    [
+     "WSHONBNL",
+     "Treasury nominal notes and bonds",
+     "$M"
+    ],
+    [
+     "WSHONBIIL",
+     "Treasury inflation-indexed notes and bonds",
+     "$M"
+    ],
+    [
+     "WSHOICL",
+     "Treasury inflation compensation",
+     "$M"
+    ]
+   ]
+  },
+  {
+   "cat": "Treasuries by remaining maturity (Wednesday level)",
+   "flag": "⏳",
+   "items": [
+    [
+     "TREAST",
+     "Treasuries · all maturities",
+     "$M"
+    ],
+    [
+     "TREAS15",
+     "Treasuries maturing within 15 days",
+     "$M"
+    ],
+    [
+     "TREAS1590",
+     "Treasuries maturing in 16 to 90 days",
+     "$M"
+    ],
+    [
+     "TREAS911Y",
+     "Treasuries maturing in 91 days to 1 year",
+     "$M"
+    ],
+    [
+     "TREAS1T5",
+     "Treasuries maturing in 1 to 5 years",
+     "$M"
+    ],
+    [
+     "TREAS5T10",
+     "Treasuries maturing in 5 to 10 years",
+     "$M"
+    ],
+    [
+     "TREAS10Y",
+     "Treasuries maturing in over 10 years",
+     "$M"
+    ]
+   ]
+  },
+  {
+   "cat": "Mortgage-backed securities by remaining maturity (Wednesday level)",
+   "flag": "🏠",
+   "items": [
+    [
+     "MBS15",
+     "Mortgage-backed securities maturing within 15 days",
+     "$M"
+    ],
+    [
+     "MBS1690",
+     "Mortgage-backed securities maturing in 16 to 90 days",
+     "$M"
+    ],
+    [
+     "MBS911Y",
+     "Mortgage-backed securities maturing in 91 days to 1 year",
+     "$M"
+    ],
+    [
+     "MBS1T5",
+     "Mortgage-backed securities maturing in 1 to 5 years",
+     "$M"
+    ],
+    [
+     "MBS5T10",
+     "Mortgage-backed securities maturing in 5 to 10 years",
+     "$M"
+    ],
+    [
+     "MBS10Y",
+     "Mortgage-backed securities maturing in over 10 years",
+     "$M"
+    ]
+   ]
+  },
+  {
+   "cat": "Federal agency debt by remaining maturity (Wednesday level)",
+   "flag": "🏢",
+   "items": [
+    [
+     "FEDDT",
+     "Federal agency debt · all maturities",
+     "$M"
+    ],
+    [
+     "FEDD15",
+     "Federal agency debt maturing within 15 days",
+     "$M"
+    ],
+    [
+     "FEDD1690",
+     "Federal agency debt maturing in 16 to 90 days",
+     "$M"
+    ],
+    [
+     "FEDD911Y",
+     "Federal agency debt maturing in 91 days to 1 year",
+     "$M"
+    ],
+    [
+     "FEDD1T5",
+     "Federal agency debt maturing in 1 to 5 years",
+     "$M"
+    ],
+    [
+     "FEDD5T10",
+     "Federal agency debt maturing in 5 to 10 years",
+     "$M"
+    ],
+    [
+     "FEDD10Y",
+     "Federal agency debt maturing in over 10 years",
+     "$M"
+    ]
+   ]
+  },
+  {
+   "cat": "Week averages",
+   "flag": "📊",
+   "items": [
+    [
+     "WSECOUT",
+     "Securities held outright · total · week average",
+     "$M"
+    ],
+    [
+     "WSHOTSA",
+     "Treasuries · week average",
+     "$M"
+    ],
+    [
+     "WSHOBA",
+     "Treasury bills · week average",
+     "$M"
+    ],
+    [
+     "WSHONBNA",
+     "Treasury nominal notes and bonds · week average",
+     "$M"
+    ],
+    [
+     "WSHONBIIA",
+     "Treasury inflation-indexed notes and bonds · week average",
+     "$M"
+    ],
+    [
+     "WSHOICA",
+     "Treasury inflation compensation · week average",
+     "$M"
+    ],
+    [
+     "WMBSEC",
+     "Mortgage-backed securities · week average",
+     "$M"
+    ],
+    [
+     "WFEDSEC",
+     "Federal agency debt · week average",
+     "$M"
+    ],
+    [
+     "RESPPALSPXAWNWW",
+     "Unamortized premiums on securities held outright · week average",
+     "$M"
+    ],
+    [
+     "RESPPALSDXAWNWW",
+     "Unamortized discounts on securities held outright · week average",
+     "$M"
+    ]
+   ]
+  },
+  {
+   "cat": "Weekly change · Wednesday to Wednesday",
+   "flag": "↕",
+   "items": [
+    [
+     "RESPPALGXCH1NWW",
+     "Securities held outright · total · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUOXCH1NWW",
+     "Treasuries · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUOBXCH1NWW",
+     "Treasury bills · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUOMNXCH1NWW",
+     "Treasury nominal notes and bonds · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUOMIXCH1NWW",
+     "Treasury inflation-indexed notes and bonds · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUOMCXCH1NWW",
+     "Treasury inflation compensation · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGASMOXCH1NWW",
+     "Mortgage-backed securities · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGAOXCH1NWW",
+     "Federal agency debt · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALSPXCH1NWW",
+     "Unamortized premiums on securities held outright · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALSDXCH1NWW",
+     "Unamortized discounts on securities held outright · weekly change",
+     "$M",
+     "C"
+    ]
+   ]
+  },
+  {
+   "cat": "Weekly change by remaining maturity",
+   "flag": "↕",
+   "items": [
+    [
+     "RESPPALGUMXCH1NWW",
+     "Treasuries · all maturities · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUMD15XCH1NWW",
+     "Treasuries maturing within 15 days · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUMD16T90XCH1NWW",
+     "Treasuries maturing in 16 to 90 days · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUMY01XCH1NWW",
+     "Treasuries maturing in 91 days to 1 year · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUMY01T05XCH1NWW",
+     "Treasuries maturing in 1 to 5 years · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUMY05T10XCH1NWW",
+     "Treasuries maturing in 5 to 10 years · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUMY10PXCH1NWW",
+     "Treasuries maturing in over 10 years · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGASMOD15XCH1NWW",
+     "Mortgage-backed securities maturing within 15 days · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGASMOD16T90XCH1NWW",
+     "Mortgage-backed securities maturing in 16 to 90 days · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGASMOY01XCH1NWW",
+     "Mortgage-backed securities maturing in 91 days to 1 year · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGASMOY01T05XCH1NWW",
+     "Mortgage-backed securities maturing in 1 to 5 years · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGASMOY05T10XCH1NWW",
+     "Mortgage-backed securities maturing in 5 to 10 years · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGASMOY10PXCH1NWW",
+     "Mortgage-backed securities maturing in over 10 years · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGAMXCH1NWW",
+     "Federal agency debt · all maturities · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGAMD15XCH1NWW",
+     "Federal agency debt maturing within 15 days · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGAMD16T90XCH1NWW",
+     "Federal agency debt maturing in 16 to 90 days · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGAMY01XCH1NWW",
+     "Federal agency debt maturing in 91 days to 1 year · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGAMY01T05XCH1NWW",
+     "Federal agency debt maturing in 1 to 5 years · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGAMY05T10XCH1NWW",
+     "Federal agency debt maturing in 5 to 10 years · weekly change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGAMY10PXCH1NWW",
+     "Federal agency debt maturing in over 10 years · weekly change",
+     "$M",
+     "C"
+    ]
+   ]
+  },
+  {
+   "cat": "Change from a year ago · Wednesday level",
+   "flag": "↕",
+   "items": [
+    [
+     "RESPPALGXCH52NWW",
+     "Securities held outright · total · change from a year ago",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUOXCH52NWW",
+     "Treasuries · change from a year ago",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUOBXCH52NWW",
+     "Treasury bills · change from a year ago",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUOMNXCH52NWW",
+     "Treasury nominal notes and bonds · change from a year ago",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUOMIXCH52NWW",
+     "Treasury inflation-indexed notes and bonds · change from a year ago",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUOMCXCH52NWW",
+     "Treasury inflation compensation · change from a year ago",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGASMOXCH52NWW",
+     "Mortgage-backed securities · change from a year ago",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGAOXCH52NWW",
+     "Federal agency debt · change from a year ago",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALSPXCH52NWW",
+     "Unamortized premiums on securities held outright · change from a year ago",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALSDXCH52NWW",
+     "Unamortized discounts on securities held outright · change from a year ago",
+     "$M",
+     "C"
+    ]
+   ]
+  },
+  {
+   "cat": "Change in the week average · from the previous week",
+   "flag": "↕",
+   "items": [
+    [
+     "RESPPALGXAWXCH1NWW",
+     "Securities held outright · total · week-average change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUOXAWXCH1NWW",
+     "Treasuries · week-average change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUOBXAWXCH1NWW",
+     "Treasury bills · week-average change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUOMNXAWXCH1NWW",
+     "Treasury nominal notes and bonds · week-average change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUOMIXAWXCH1NWW",
+     "Treasury inflation-indexed notes and bonds · week-average change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUOMCXAWXCH1NWW",
+     "Treasury inflation compensation · week-average change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGASMOXAWXCH1NWW",
+     "Mortgage-backed securities · week-average change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGAOXAWXCH1NWW",
+     "Federal agency debt · week-average change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALSPXAWXCH1NWW",
+     "Unamortized premiums on securities held outright · week-average change",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALSDXAWXCH1NWW",
+     "Unamortized discounts on securities held outright · week-average change",
+     "$M",
+     "C"
+    ]
+   ]
+  },
+  {
+   "cat": "Change in the week average · from a year ago",
+   "flag": "↕",
+   "items": [
+    [
+     "RESPPALGXAWXCH52NWW",
+     "Securities held outright · total · week-average change from a year ago",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUOXAWXCH52NWW",
+     "Treasuries · week-average change from a year ago",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUOBXAWXCH52NWW",
+     "Treasury bills · week-average change from a year ago",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUOMNXAWXCH52NWW",
+     "Treasury nominal notes and bonds · week-average change from a year ago",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUOMIXAWXCH52NWW",
+     "Treasury inflation-indexed notes and bonds · week-average change from a year ago",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGUOMCXAWXCH52NWW",
+     "Treasury inflation compensation · week-average change from a year ago",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGASMOXAWXCH52NWW",
+     "Mortgage-backed securities · week-average change from a year ago",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALGAOXAWXCH52NWW",
+     "Federal agency debt · week-average change from a year ago",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALSPXAWXCH52NWW",
+     "Unamortized premiums on securities held outright · week-average change from a year ago",
+     "$M",
+     "C"
+    ],
+    [
+     "RESPPALSDXAWXCH52NWW",
+     "Unamortized discounts on securities held outright · week-average change from a year ago",
+     "$M",
+     "C"
+    ]
+   ]
+  },
+  {
+   "cat": "Ended June 2018 · the earlier H.4.1 lines",
+   "flag": "🕰",
+   "items": [
+    [
+     "WSHOL",
+     "Securities held outright · total · 2002 to 2018",
+     "$M"
+    ],
+    [
+     "WSHOTS",
+     "Treasuries · 2002 to 2018",
+     "$M"
+    ],
+    [
+     "WSHOB",
+     "Treasury bills · 2002 to 2018",
+     "$M"
+    ],
+    [
+     "WSHOSNB",
+     "Treasury nominal notes and bonds · 2002 to 2018",
+     "$M"
+    ],
+    [
+     "WSHOIIL",
+     "Treasury inflation-indexed notes and bonds · 2002 to 2018",
+     "$M"
+    ],
+    [
+     "WSHOIC",
+     "Treasury inflation compensation · 2002 to 2018",
+     "$M"
+    ],
+    [
+     "WSHOFDSL",
+     "Federal agency debt · 2002 to 2018",
+     "$M"
+    ],
+    [
+     "WSHOMBSL",
+     "Mortgage-backed securities · 2009 to 2018",
+     "$M"
+    ]
+   ]
+  },
+  {
+   "cat": "Ended · the long record since 1914 (bought or held outright)",
+   "flag": "📜",
+   "items": [
+    [
+     "RATSHO",
+     "Total securities held outright · 2002 to 2018",
+     "$M"
+    ],
+    [
+     "RAGSOTBO",
+     "U.S. government securities bought outright · total, 1914 to 2018",
+     "$M"
+    ],
+    [
+     "RAGSOUSB",
+     "Treasury bills · 1935 to 2018",
+     "$M"
+    ],
+    [
+     "RAGSOUSTN",
+     "Treasury notes · 1916 to 2002",
+     "$M"
+    ],
+    [
+     "RAGSOUSTB",
+     "Treasury bonds · 1914 to 2002",
+     "$M"
+    ],
+    [
+     "RAGSONBN",
+     "Notes and bonds, nominal · 2002 to 2018",
+     "$M"
+    ],
+    [
+     "RAGSONBI",
+     "Notes and bonds, inflation-indexed · 2002 to 2018",
+     "$M"
+    ],
+    [
+     "RAGSOUSTSIC",
+     "Treasury inflation compensation · 2002 to 2018",
+     "$M"
+    ],
+    [
+     "RAGSOCID",
+     "Certificates of indebtedness, certificates and bills · 1917 to 1935",
+     "$M"
+    ],
+    [
+     "RAGSOUSCIDO",
+     "Certificates of indebtedness, all other · 1921 to 1979",
+     "$M"
+    ],
+    [
+     "RAGSOUSCID1PA",
+     "Certificates of indebtedness, one-year Pittman Act · 1921 to 1922",
+     "$M"
+    ],
+    [
+     "RAGSOUSVN",
+     "Victory notes · 1919 to 1920",
+     "$M"
+    ],
+    [
+     "RAGSOSTC",
+     "Special Treasury certificates · 1931 to 1954",
+     "$M"
+    ],
+    [
+     "RAUPSHO",
+     "Unamortized premiums on securities held outright · 2002 to 2018",
+     "$M"
+    ],
+    [
+     "RAUDSHO",
+     "Unamortized discounts on securities held outright · 2002 to 2018",
+     "$M"
+    ]
+   ]
+  },
+  {
+   "cat": "Ended March 2020 · Federal Reserve Bank of Boston (district 1)",
+   "flag": "🏦",
+   "items": [
+    [
+     "D1WSHOL",
+     "Boston · Securities held outright · total",
+     "$M"
+    ],
+    [
+     "D1WSHOTSL",
+     "Boston · Treasuries",
+     "$M"
+    ],
+    [
+     "D1WSHOBL",
+     "Boston · Treasury bills",
+     "$M"
+    ],
+    [
+     "D1WSHOSNB",
+     "Boston · Treasury notes and bonds",
+     "$M"
+    ],
+    [
+     "D1WSHOMCB",
+     "Boston · Mortgage-backed securities",
+     "$M"
+    ],
+    [
+     "D1WSHOFDSL",
+     "Boston · Federal agency debt",
+     "$M"
+    ],
+    [
+     "D1WUPSHO",
+     "Boston · Unamortized premiums",
+     "$M"
+    ],
+    [
+     "D1WUDSHO",
+     "Boston · Unamortized discounts",
+     "$M"
+    ]
+   ]
+  },
+  {
+   "cat": "Ended March 2020 · Federal Reserve Bank of New York (district 2)",
+   "flag": "🏦",
+   "items": [
+    [
+     "D2WSHOL",
+     "New York · Securities held outright · total",
+     "$M"
+    ],
+    [
+     "D2WSHOTSL",
+     "New York · Treasuries",
+     "$M"
+    ],
+    [
+     "D2WSHOBL",
+     "New York · Treasury bills",
+     "$M"
+    ],
+    [
+     "D2WSHOSNB",
+     "New York · Treasury notes and bonds",
+     "$M"
+    ],
+    [
+     "D2WSHOMCB",
+     "New York · Mortgage-backed securities",
+     "$M"
+    ],
+    [
+     "D2WSHOFDSL",
+     "New York · Federal agency debt",
+     "$M"
+    ],
+    [
+     "D2WUPSHO",
+     "New York · Unamortized premiums",
+     "$M"
+    ],
+    [
+     "D2WUDSHO",
+     "New York · Unamortized discounts",
+     "$M"
+    ]
+   ]
+  },
+  {
+   "cat": "Ended March 2020 · Federal Reserve Bank of Philadelphia (district 3)",
+   "flag": "🏦",
+   "items": [
+    [
+     "D3WSHOL",
+     "Philadelphia · Securities held outright · total",
+     "$M"
+    ],
+    [
+     "D3WSHOTSL",
+     "Philadelphia · Treasuries",
+     "$M"
+    ],
+    [
+     "D3WSHOBL",
+     "Philadelphia · Treasury bills",
+     "$M"
+    ],
+    [
+     "D3WSHOSNB",
+     "Philadelphia · Treasury notes and bonds",
+     "$M"
+    ],
+    [
+     "D3WSHOMCB",
+     "Philadelphia · Mortgage-backed securities",
+     "$M"
+    ],
+    [
+     "D3WSHOFDSL",
+     "Philadelphia · Federal agency debt",
+     "$M"
+    ],
+    [
+     "D3WUPSHO",
+     "Philadelphia · Unamortized premiums",
+     "$M"
+    ],
+    [
+     "D3WUDSHO",
+     "Philadelphia · Unamortized discounts",
+     "$M"
+    ]
+   ]
+  },
+  {
+   "cat": "Ended March 2020 · Federal Reserve Bank of Cleveland (district 4)",
+   "flag": "🏦",
+   "items": [
+    [
+     "D4WSHOL",
+     "Cleveland · Securities held outright · total",
+     "$M"
+    ],
+    [
+     "D4WSHOTSL",
+     "Cleveland · Treasuries",
+     "$M"
+    ],
+    [
+     "D4WSHOBL",
+     "Cleveland · Treasury bills",
+     "$M"
+    ],
+    [
+     "D4WSHOSNB",
+     "Cleveland · Treasury notes and bonds",
+     "$M"
+    ],
+    [
+     "D4WSHOMCB",
+     "Cleveland · Mortgage-backed securities",
+     "$M"
+    ],
+    [
+     "D4WSHOFDSL",
+     "Cleveland · Federal agency debt",
+     "$M"
+    ],
+    [
+     "D4WUPSHO",
+     "Cleveland · Unamortized premiums",
+     "$M"
+    ],
+    [
+     "D4WUDSHO",
+     "Cleveland · Unamortized discounts",
+     "$M"
+    ]
+   ]
+  },
+  {
+   "cat": "Ended March 2020 · Federal Reserve Bank of Richmond (district 5)",
+   "flag": "🏦",
+   "items": [
+    [
+     "D5WSHOL",
+     "Richmond · Securities held outright · total",
+     "$M"
+    ],
+    [
+     "D5WSHOTSL",
+     "Richmond · Treasuries",
+     "$M"
+    ],
+    [
+     "D5WSHOBL",
+     "Richmond · Treasury bills",
+     "$M"
+    ],
+    [
+     "D5WSHOSNB",
+     "Richmond · Treasury notes and bonds",
+     "$M"
+    ],
+    [
+     "D5WSHOMCB",
+     "Richmond · Mortgage-backed securities",
+     "$M"
+    ],
+    [
+     "D5WSHOFDSL",
+     "Richmond · Federal agency debt",
+     "$M"
+    ],
+    [
+     "D5WUPSHO",
+     "Richmond · Unamortized premiums",
+     "$M"
+    ],
+    [
+     "D5WUDSHO",
+     "Richmond · Unamortized discounts",
+     "$M"
+    ]
+   ]
+  },
+  {
+   "cat": "Ended March 2020 · Federal Reserve Bank of Atlanta (district 6)",
+   "flag": "🏦",
+   "items": [
+    [
+     "D6WSHOL",
+     "Atlanta · Securities held outright · total",
+     "$M"
+    ],
+    [
+     "D6WSHOTSL",
+     "Atlanta · Treasuries",
+     "$M"
+    ],
+    [
+     "D6WSHOBL",
+     "Atlanta · Treasury bills",
+     "$M"
+    ],
+    [
+     "D6WSHOSNB",
+     "Atlanta · Treasury notes and bonds",
+     "$M"
+    ],
+    [
+     "D6WSHOMCB",
+     "Atlanta · Mortgage-backed securities",
+     "$M"
+    ],
+    [
+     "D6WSHOFDSL",
+     "Atlanta · Federal agency debt",
+     "$M"
+    ],
+    [
+     "D6WUPSHO",
+     "Atlanta · Unamortized premiums",
+     "$M"
+    ],
+    [
+     "D6WUDSHO",
+     "Atlanta · Unamortized discounts",
+     "$M"
+    ]
+   ]
+  },
+  {
+   "cat": "Ended March 2020 · Federal Reserve Bank of Chicago (district 7)",
+   "flag": "🏦",
+   "items": [
+    [
+     "D7WSHOL",
+     "Chicago · Securities held outright · total",
+     "$M"
+    ],
+    [
+     "D7WSHOTSL",
+     "Chicago · Treasuries",
+     "$M"
+    ],
+    [
+     "D7WSHOBL",
+     "Chicago · Treasury bills",
+     "$M"
+    ],
+    [
+     "D7WSHOSNB",
+     "Chicago · Treasury notes and bonds",
+     "$M"
+    ],
+    [
+     "D7WSHOMCB",
+     "Chicago · Mortgage-backed securities",
+     "$M"
+    ],
+    [
+     "D7WSHOFDSL",
+     "Chicago · Federal agency debt",
+     "$M"
+    ],
+    [
+     "D7WUPSHO",
+     "Chicago · Unamortized premiums",
+     "$M"
+    ],
+    [
+     "D7WUDSHO",
+     "Chicago · Unamortized discounts",
+     "$M"
+    ]
+   ]
+  },
+  {
+   "cat": "Ended March 2020 · Federal Reserve Bank of St. Louis (district 8)",
+   "flag": "🏦",
+   "items": [
+    [
+     "D8WSHOL",
+     "St. Louis · Securities held outright · total",
+     "$M"
+    ],
+    [
+     "D8WSHOTSL",
+     "St. Louis · Treasuries",
+     "$M"
+    ],
+    [
+     "D8WSHOBL",
+     "St. Louis · Treasury bills",
+     "$M"
+    ],
+    [
+     "D8WSHOSNB",
+     "St. Louis · Treasury notes and bonds",
+     "$M"
+    ],
+    [
+     "D8WSHOMCB",
+     "St. Louis · Mortgage-backed securities",
+     "$M"
+    ],
+    [
+     "D8WSHOFDSL",
+     "St. Louis · Federal agency debt",
+     "$M"
+    ],
+    [
+     "D8WUPSHO",
+     "St. Louis · Unamortized premiums",
+     "$M"
+    ],
+    [
+     "D8WUDSHO",
+     "St. Louis · Unamortized discounts",
+     "$M"
+    ]
+   ]
+  },
+  {
+   "cat": "Ended March 2020 · Federal Reserve Bank of Minneapolis (district 9)",
+   "flag": "🏦",
+   "items": [
+    [
+     "D9WSHOL",
+     "Minneapolis · Securities held outright · total",
+     "$M"
+    ],
+    [
+     "D9WSHOTSL",
+     "Minneapolis · Treasuries",
+     "$M"
+    ],
+    [
+     "D9WSHOBL",
+     "Minneapolis · Treasury bills",
+     "$M"
+    ],
+    [
+     "D9WSHOSNB",
+     "Minneapolis · Treasury notes and bonds",
+     "$M"
+    ],
+    [
+     "D9WSHOMCB",
+     "Minneapolis · Mortgage-backed securities",
+     "$M"
+    ],
+    [
+     "D9WSHOFDSL",
+     "Minneapolis · Federal agency debt",
+     "$M"
+    ],
+    [
+     "D9WUPSHO",
+     "Minneapolis · Unamortized premiums",
+     "$M"
+    ],
+    [
+     "D9WUDSHO",
+     "Minneapolis · Unamortized discounts",
+     "$M"
+    ]
+   ]
+  },
+  {
+   "cat": "Ended March 2020 · Federal Reserve Bank of Kansas City (district 10)",
+   "flag": "🏦",
+   "items": [
+    [
+     "D10WSHOL",
+     "Kansas City · Securities held outright · total",
+     "$M"
+    ],
+    [
+     "D10WSHOTSL",
+     "Kansas City · Treasuries",
+     "$M"
+    ],
+    [
+     "D10WSHOBL",
+     "Kansas City · Treasury bills",
+     "$M"
+    ],
+    [
+     "D10WSHOSNB",
+     "Kansas City · Treasury notes and bonds",
+     "$M"
+    ],
+    [
+     "D10WSHOMCB",
+     "Kansas City · Mortgage-backed securities",
+     "$M"
+    ],
+    [
+     "D10WSHOFDSL",
+     "Kansas City · Federal agency debt",
+     "$M"
+    ],
+    [
+     "D10WUPSHO",
+     "Kansas City · Unamortized premiums",
+     "$M"
+    ],
+    [
+     "D10WUDSHO",
+     "Kansas City · Unamortized discounts",
+     "$M"
+    ]
+   ]
+  },
+  {
+   "cat": "Ended March 2020 · Federal Reserve Bank of Dallas (district 11)",
+   "flag": "🏦",
+   "items": [
+    [
+     "D11WSHOL",
+     "Dallas · Securities held outright · total",
+     "$M"
+    ],
+    [
+     "D11WSHOTSL",
+     "Dallas · Treasuries",
+     "$M"
+    ],
+    [
+     "D11WSHOBL",
+     "Dallas · Treasury bills",
+     "$M"
+    ],
+    [
+     "D11WSHOSNB",
+     "Dallas · Treasury notes and bonds",
+     "$M"
+    ],
+    [
+     "D11WSHOMCB",
+     "Dallas · Mortgage-backed securities",
+     "$M"
+    ],
+    [
+     "D11WSHOFDSL",
+     "Dallas · Federal agency debt",
+     "$M"
+    ],
+    [
+     "D11WUPSHO",
+     "Dallas · Unamortized premiums",
+     "$M"
+    ],
+    [
+     "D11WUDSHO",
+     "Dallas · Unamortized discounts",
+     "$M"
+    ]
+   ]
+  },
+  {
+   "cat": "Ended March 2020 · Federal Reserve Bank of San Francisco (district 12)",
+   "flag": "🏦",
+   "items": [
+    [
+     "D12WSHOL",
+     "San Francisco · Securities held outright · total",
+     "$M"
+    ],
+    [
+     "D12WSHOTSL",
+     "San Francisco · Treasuries",
+     "$M"
+    ],
+    [
+     "D12WSHOBL",
+     "San Francisco · Treasury bills",
+     "$M"
+    ],
+    [
+     "D12WSHOSNB",
+     "San Francisco · Treasury notes and bonds",
+     "$M"
+    ],
+    [
+     "D12WSHOMCB",
+     "San Francisco · Mortgage-backed securities",
+     "$M"
+    ],
+    [
+     "D12WSHOFDSL",
+     "San Francisco · Federal agency debt",
+     "$M"
+    ],
+    [
+     "D12WUPSHO",
+     "San Francisco · Unamortized premiums",
+     "$M"
+    ],
+    [
+     "D12WUDSHO",
+     "San Francisco · Unamortized discounts",
+     "$M"
+    ]
+   ]
+  }
+ ],
+ "bofa": [
+  {
+   "cat": "US corporate and high yield, with euro high yield · option-adjusted spreads",
+   "flag": "🇺🇸",
+   "items": [
+    [
+     "BAMLC0A0CM",
+     "US Corporate · OAS",
+     "%"
+    ],
+    [
+     "BAMLC0A1CAAA",
+     "AAA US Corporate · OAS",
+     "%"
+    ],
+    [
+     "BAMLC0A2CAA",
+     "AA US Corporate · OAS",
+     "%"
+    ],
+    [
+     "BAMLC0A3CA",
+     "Single-A US Corporate · OAS",
+     "%"
+    ],
+    [
+     "BAMLC0A4CBBB",
+     "BBB US Corporate · OAS",
+     "%"
+    ],
+    [
+     "BAMLH0A0HYM2",
+     "US High Yield · OAS",
+     "%"
+    ],
+    [
+     "BAMLH0A1HYBB",
+     "BB US High Yield · OAS",
+     "%"
+    ],
+    [
+     "BAMLH0A2HYB",
+     "Single-B US High Yield · OAS",
+     "%"
+    ],
+    [
+     "BAMLH0A3HYC",
+     "CCC & Lower US High Yield · OAS",
+     "%"
+    ],
+    [
+     "BAMLHE00EHYIOAS",
+     "Euro High Yield · OAS",
+     "%"
+    ]
+   ]
+  },
+  {
+   "cat": "US corporate and high yield, with euro high yield · effective yields",
+   "flag": "🇺🇸",
+   "items": [
+    [
+     "BAMLC0A0CMEY",
+     "US Corporate · effective yield",
+     "%"
+    ],
+    [
+     "BAMLC0A1CAAAEY",
+     "AAA US Corporate · effective yield",
+     "%"
+    ],
+    [
+     "BAMLC0A2CAAEY",
+     "AA US Corporate · effective yield",
+     "%"
+    ],
+    [
+     "BAMLC0A3CAEY",
+     "Single-A US Corporate · effective yield",
+     "%"
+    ],
+    [
+     "BAMLC0A4CBBBEY",
+     "BBB US Corporate · effective yield",
+     "%"
+    ],
+    [
+     "BAMLH0A0HYM2EY",
+     "US High Yield · effective yield",
+     "%"
+    ],
+    [
+     "BAMLH0A1HYBBEY",
+     "BB US High Yield · effective yield",
+     "%"
+    ],
+    [
+     "BAMLH0A2HYBEY",
+     "Single-B US High Yield · effective yield",
+     "%"
+    ],
+    [
+     "BAMLH0A3HYCEY",
+     "CCC & Lower US High Yield · effective yield",
+     "%"
+    ],
+    [
+     "BAMLHE00EHYIEY",
+     "Euro High Yield · effective yield",
+     "%"
+    ]
+   ]
+  },
+  {
+   "cat": "US corporate and high yield, with euro high yield · yields to worst",
+   "flag": "🇺🇸",
+   "items": [
+    [
+     "BAMLC0A0CMSYTW",
+     "US Corporate · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLC0A1CAAASYTW",
+     "AAA US Corporate · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLC0A2CAASYTW",
+     "AA US Corporate · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLC0A3CASYTW",
+     "Single-A US Corporate · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLC0A4CBBBSYTW",
+     "BBB US Corporate · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLH0A0HYM2SYTW",
+     "US High Yield · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLH0A1HYBBSYTW",
+     "BB US High Yield · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLH0A2HYBSYTW",
+     "Single-B US High Yield · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLH0A3HYCSYTW",
+     "CCC & Lower US High Yield · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLHE00EHYISYTW",
+     "Euro High Yield · yield to worst",
+     "%"
+    ]
+   ]
+  },
+  {
+   "cat": "US corporate and high yield, with euro high yield · total return indexes",
+   "flag": "🇺🇸",
+   "items": [
+    [
+     "BAMLCC0A0CMTRIV",
+     "US Corporate · total return",
+     "index"
+    ],
+    [
+     "BAMLCC0A1AAATRIV",
+     "AAA US Corporate · total return",
+     "index"
+    ],
+    [
+     "BAMLCC0A2AATRIV",
+     "AA US Corporate · total return",
+     "index"
+    ],
+    [
+     "BAMLCC0A3ATRIV",
+     "Single-A US Corporate · total return",
+     "index"
+    ],
+    [
+     "BAMLCC0A4BBBTRIV",
+     "BBB US Corporate · total return",
+     "index"
+    ],
+    [
+     "BAMLHYH0A0HYM2TRIV",
+     "US High Yield · total return",
+     "index"
+    ],
+    [
+     "BAMLHYH0A1BBTRIV",
+     "BB US High Yield · total return",
+     "index"
+    ],
+    [
+     "BAMLHYH0A2BTRIV",
+     "Single-B US High Yield · total return",
+     "index"
+    ],
+    [
+     "BAMLHYH0A3CMTRIV",
+     "CCC & Lower US High Yield · total return",
+     "index"
+    ],
+    [
+     "BAMLHE00EHYITRIV",
+     "Euro High Yield · total return",
+     "index"
+    ]
+   ]
+  },
+  {
+   "cat": "US corporate by maturity · option-adjusted spreads",
+   "flag": "⏳",
+   "items": [
+    [
+     "BAMLC1A0C13Y",
+     "1-3 Year US Corporate · OAS",
+     "%"
+    ],
+    [
+     "BAMLC2A0C35Y",
+     "3-5 Year US Corporate · OAS",
+     "%"
+    ],
+    [
+     "BAMLC3A0C57Y",
+     "5-7 Year US Corporate · OAS",
+     "%"
+    ],
+    [
+     "BAMLC4A0C710Y",
+     "7-10 Year US Corporate · OAS",
+     "%"
+    ],
+    [
+     "BAMLC7A0C1015Y",
+     "10-15 Year US Corporate · OAS",
+     "%"
+    ],
+    [
+     "BAMLC8A0C15PY",
+     "15+ Year US Corporate · OAS",
+     "%"
+    ]
+   ]
+  },
+  {
+   "cat": "US corporate by maturity · effective yields",
+   "flag": "⏳",
+   "items": [
+    [
+     "BAMLC1A0C13YEY",
+     "1-3 Year US Corporate · effective yield",
+     "%"
+    ],
+    [
+     "BAMLC2A0C35YEY",
+     "3-5 Year US Corporate · effective yield",
+     "%"
+    ],
+    [
+     "BAMLC3A0C57YEY",
+     "5-7 Year US Corporate · effective yield",
+     "%"
+    ],
+    [
+     "BAMLC4A0C710YEY",
+     "7-10 Year US Corporate · effective yield",
+     "%"
+    ],
+    [
+     "BAMLC7A0C1015YEY",
+     "10-15 Year US Corporate · effective yield",
+     "%"
+    ],
+    [
+     "BAMLC8A0C15PYEY",
+     "15+ Year US Corporate · effective yield",
+     "%"
+    ]
+   ]
+  },
+  {
+   "cat": "US corporate by maturity · yields to worst",
+   "flag": "⏳",
+   "items": [
+    [
+     "BAMLC1A0C13YSYTW",
+     "1-3 Year US Corporate · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLC2A0C35YSYTW",
+     "3-5 Year US Corporate · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLC3A0C57YSYTW",
+     "5-7 Year US Corporate · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLC4A0C710YSYTW",
+     "7-10 Year US Corporate · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLC7A0C1015YSYTW",
+     "10-15 Year US Corporate · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLC8A0C15PYSYTW",
+     "15+ Year US Corporate · yield to worst",
+     "%"
+    ]
+   ]
+  },
+  {
+   "cat": "US corporate by maturity · total return indexes",
+   "flag": "⏳",
+   "items": [
+    [
+     "BAMLCC1A013YTRIV",
+     "1-3 Year US Corporate · total return",
+     "index"
+    ],
+    [
+     "BAMLCC2A035YTRIV",
+     "3-5 Year US Corporate · total return",
+     "index"
+    ],
+    [
+     "BAMLCC3A057YTRIV",
+     "5-7 Year US Corporate · total return",
+     "index"
+    ],
+    [
+     "BAMLCC4A0710YTRIV",
+     "7-10 Year US Corporate · total return",
+     "index"
+    ],
+    [
+     "BAMLCC7A01015YTRIV",
+     "10-15 Year US Corporate · total return",
+     "index"
+    ],
+    [
+     "BAMLCC8A015PYTRIV",
+     "15+ Year US Corporate · total return",
+     "index"
+    ]
+   ]
+  },
+  {
+   "cat": "Emerging markets corporate plus · option-adjusted spreads",
+   "flag": "🌍",
+   "items": [
+    [
+     "BAMLEMCBPIOAS",
+     "EM Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEM1BRRAAA2ACRPIOAS",
+     "AAA-A EM Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEM2BRRBBBCRPIOAS",
+     "BBB EM Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEM3BRRBBCRPIOAS",
+     "BB EM Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEM4BRRBLCRPIOAS",
+     "B & Lower EM Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEM5BCOCRPIOAS",
+     "Crossover EM Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEMIBHGCRPIOAS",
+     "High Grade EM Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEMHBHYCRPIOAS",
+     "High Yield EM Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEMRACRPIASIAOAS",
+     "Asia EM Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEMRECRPIEMEAOAS",
+     "EMEA EM Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEMRLCRPILAOAS",
+     "Latin America EM Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEMEBCRPIEOAS",
+     "Euro EM Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEMUBCRPIUSOAS",
+     "US EM Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEMFSFCRPIOAS",
+     "Private Sector Financial EM Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEMNSNFCRPIOAS",
+     "Non-Financial EM Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEMPBPUBSICRPIOAS",
+     "Public Sector Issuers EM Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEMPTPRVICRPIOAS",
+     "Private Sector Issuers EM Corporate Plus · OAS",
+     "%"
+    ]
+   ]
+  },
+  {
+   "cat": "Emerging markets corporate plus · effective yields",
+   "flag": "🌍",
+   "items": [
+    [
+     "BAMLEMCBPIEY",
+     "EM Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEM1BRRAAA2ACRPIEY",
+     "AAA-A EM Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEM2BRRBBBCRPIEY",
+     "BBB EM Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEM3BRRBBCRPIEY",
+     "BB EM Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEM4BRRBLCRPIEY",
+     "B & Lower EM Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEM5BCOCRPIEY",
+     "Crossover EM Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEMIBHGCRPIEY",
+     "High Grade EM Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEMHBHYCRPIEY",
+     "High Yield EM Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEMRACRPIASIAEY",
+     "Asia EM Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEMRECRPIEMEAEY",
+     "EMEA EM Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEMRLCRPILAEY",
+     "Latin America EM Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEMEBCRPIEEY",
+     "Euro EM Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEMUBCRPIUSEY",
+     "US EM Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEMFSFCRPIEY",
+     "Private Sector Financial EM Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEMNSNFCRPIEY",
+     "Non-Financial EM Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEMPBPUBSICRPIEY",
+     "Public Sector Issuers EM Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEMPTPRVICRPIEY",
+     "Private Sector Issuers EM Corporate Plus · effective yield",
+     "%"
+    ]
+   ]
+  },
+  {
+   "cat": "Emerging markets corporate plus · yields to worst",
+   "flag": "🌍",
+   "items": [
+    [
+     "BAMLEMCBPISYTW",
+     "EM Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEM1BRRAAA2ACRPISYTW",
+     "AAA-A EM Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEM2BRRBBBCRPISYTW",
+     "BBB EM Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEM3BRRBBCRPISYTW",
+     "BB EM Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEM4BRRBLCRPISYTW",
+     "B & Lower EM Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEM5BCOCRPISYTW",
+     "Crossover EM Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEMIBHGCRPISYTW",
+     "High Grade EM Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEMHBHYCRPISYTW",
+     "High Yield EM Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEMRACRPIASIASYTW",
+     "Asia EM Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEMRECRPIEMEASYTW",
+     "EMEA EM Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEMRLCRPILASYTW",
+     "Latin America EM Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEMEBCRPIESYTW",
+     "Euro EM Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEMUBCRPIUSSYTW",
+     "US EM Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEMFSFCRPISYTW",
+     "Private Sector Financial EM Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEMNSNFCRPISYTW",
+     "Non-Financial EM Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEMPBPUBSICRPISYTW",
+     "Public Sector Issuers EM Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEMPTPRVICRPISYTW",
+     "Private Sector Issuers EM Corporate Plus · yield to worst",
+     "%"
+    ]
+   ]
+  },
+  {
+   "cat": "Emerging markets corporate plus · total return indexes",
+   "flag": "🌍",
+   "items": [
+    [
+     "BAMLEMCBPITRIV",
+     "EM Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEM1BRRAAA2ACRPITRIV",
+     "AAA-A EM Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEM2BRRBBBCRPITRIV",
+     "BBB EM Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEM3BRRBBCRPITRIV",
+     "BB EM Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEM4BRRBLCRPITRIV",
+     "B & Lower EM Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEM5BCOCRPITRIV",
+     "Crossover EM Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEMIBHGCRPITRIV",
+     "High Grade EM Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEMHBHYCRPITRIV",
+     "High Yield EM Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEMRACRPIASIATRIV",
+     "Asia EM Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEMRECRPIEMEATRIV",
+     "EMEA EM Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEMRLCRPILATRIV",
+     "Latin America EM Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEMEBCRPIETRIV",
+     "Euro EM Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEMUBCRPIUSTRIV",
+     "US EM Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEMFSFCRPITRIV",
+     "Private Sector Financial EM Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEMNSNFCRPITRIV",
+     "Non-Financial EM Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEMPBPUBSICRPITRIV",
+     "Public Sector Issuers EM Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEMPTPRVICRPITRIV",
+     "Private Sector Issuers EM Corporate Plus · total return",
+     "index"
+    ]
+   ]
+  },
+  {
+   "cat": "US-dollar emerging markets liquid corporate plus · option-adjusted spreads",
+   "flag": "💲",
+   "items": [
+    [
+     "BAMLEMCLLCRPIUSOAS",
+     "US EM Liquid Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEM1RAAA2ALCRPIUSOAS",
+     "AAA-A US EM Liquid Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEM2RBBBLCRPIUSOAS",
+     "BBB US EM Liquid Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEM3RBBLCRPIUSOAS",
+     "BB US EM Liquid Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEM4RBLLCRPIUSOAS",
+     "B & Lower US EM Liquid Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEMXOCOLCRPIUSOAS",
+     "Crossover US EM Liquid Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEMHGHGLCRPIUSOAS",
+     "High Grade US EM Liquid Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEMHYHYLCRPIUSOAS",
+     "High Yield US EM Liquid Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEMALLCRPIASIAUSOAS",
+     "Asia US EM Liquid Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEMELLCRPIEMEAUSOAS",
+     "EMEA US EM Liquid Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEMLLLCRPILAUSOAS",
+     "Latin America US EM Liquid Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEMFLFLCRPIUSOAS",
+     "Financial US EM Liquid Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEMNFNFLCRPIUSOAS",
+     "Non-Financial US EM Liquid Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEMPUPUBSLCRPIUSOAS",
+     "Public Sector Issuers US EM Liquid Corporate Plus · OAS",
+     "%"
+    ],
+    [
+     "BAMLEMPVPRIVSLCRPIUSOAS",
+     "Private Sector Issuers US EM Liquid Corporate Plus · OAS",
+     "%"
+    ]
+   ]
+  },
+  {
+   "cat": "US-dollar emerging markets liquid corporate plus · effective yields",
+   "flag": "💲",
+   "items": [
+    [
+     "BAMLEMCLLCRPIUSEY",
+     "US EM Liquid Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEM1RAAA2ALCRPIUSEY",
+     "AAA-A US EM Liquid Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEM2RBBBLCRPIUSEY",
+     "BBB US EM Liquid Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEM3RBBLCRPIUSEY",
+     "BB US EM Liquid Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEM4RBLLCRPIUSEY",
+     "B & Lower US EM Liquid Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEMXOCOLCRPIUSEY",
+     "Crossover US EM Liquid Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEMHGHGLCRPIUSEY",
+     "High Grade US EM Liquid Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEMHYHYLCRPIUSEY",
+     "High Yield US EM Liquid Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEMALLCRPIASIAUSEY",
+     "Asia US EM Liquid Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEMELLCRPIEMEAUSEY",
+     "EMEA US EM Liquid Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEMLLLCRPILAUSEY",
+     "Latin America US EM Liquid Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEMFLFLCRPIUSEY",
+     "Financial US EM Liquid Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEMNFNFLCRPIUSEY",
+     "Non-Financial US EM Liquid Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEMPUPUBSLCRPIUSEY",
+     "Public Sector Issuers US EM Liquid Corporate Plus · effective yield",
+     "%"
+    ],
+    [
+     "BAMLEMPVPRIVSLCRPIUSEY",
+     "Private Sector Issuers US EM Liquid Corporate Plus · effective yield",
+     "%"
+    ]
+   ]
+  },
+  {
+   "cat": "US-dollar emerging markets liquid corporate plus · yields to worst",
+   "flag": "💲",
+   "items": [
+    [
+     "BAMLEMCLLCRPIUSSYTW",
+     "US EM Liquid Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEM1RAAA2ALCRPIUSSYTW",
+     "AAA-A US EM Liquid Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEM2RBBBLCRPIUSSYTW",
+     "BBB US EM Liquid Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEM3RBBLCRPIUSSYTW",
+     "BB US EM Liquid Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEM4RBLLCRPIUSSYTW",
+     "B & Lower US EM Liquid Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEMXOCOLCRPIUSSYTW",
+     "Crossover US EM Liquid Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEMHGHGLCRPIUSSYTW",
+     "High Grade US EM Liquid Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEMHYHYLCRPIUSSYTW",
+     "High Yield US EM Liquid Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEMALLCRPIASIAUSSYTW",
+     "Asia US EM Liquid Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEMELLCRPIEMEAUSSYTW",
+     "EMEA US EM Liquid Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEMLLLCRPILAUSSYTW",
+     "Latin America US EM Liquid Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEMFLFLCRPIUSSYTW",
+     "Financial US EM Liquid Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEMNFNFLCRPIUSSYTW",
+     "Non-Financial US EM Liquid Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEMPUPUBSLCRPIUSSYTW",
+     "Public Sector Issuers US EM Liquid Corporate Plus · yield to worst",
+     "%"
+    ],
+    [
+     "BAMLEMPVPRIVSLCRPIUSSYTW",
+     "Private Sector Issuers US EM Liquid Corporate Plus · yield to worst",
+     "%"
+    ]
+   ]
+  },
+  {
+   "cat": "US-dollar emerging markets liquid corporate plus · total return indexes",
+   "flag": "💲",
+   "items": [
+    [
+     "BAMLEMCLLCRPIUSTRIV",
+     "US EM Liquid Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEM1RAAA2ALCRPIUSTRIV",
+     "AAA-A US EM Liquid Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEM2RBBBLCRPIUSTRIV",
+     "BBB US EM Liquid Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEM3RBBLCRPIUSTRIV",
+     "BB US EM Liquid Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEM4RBLLCRPIUSTRIV",
+     "B & Lower US EM Liquid Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEMXOCOLCRPIUSTRIV",
+     "Crossover US EM Liquid Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEMHGHGLCRPIUSTRIV",
+     "High Grade US EM Liquid Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEMHYHYLCRPIUSTRIV",
+     "High Yield US EM Liquid Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEMALLCRPIASIAUSTRIV",
+     "Asia US EM Liquid Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEMELLCRPIEMEAUSTRIV",
+     "EMEA US EM Liquid Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEMLLLCRPILAUSTRIV",
+     "Latin America US EM Liquid Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEMFLFLCRPIUSTRIV",
+     "Financial US EM Liquid Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEMNFNFLCRPIUSTRIV",
+     "Non-Financial US EM Liquid Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEMPUPUBSLCRPIUSTRIV",
+     "Public Sector Issuers US EM Liquid Corporate Plus · total return",
+     "index"
+    ],
+    [
+     "BAMLEMPVPRIVSLCRPIUSTRIV",
+     "Private Sector Issuers US EM Liquid Corporate Plus · total return",
+     "index"
+    ]
+   ]
+  }
+ ]
+}
