@@ -163,6 +163,9 @@ body{background-image:radial-gradient(ellipse at 80% -10%,rgba(0,230,118,.04),tr
     <div class="err" id="err"></div>
   </section>
 
+<!-- tearsheet (2026-11-17): the desk in one sheet, built from this page's own feed by /jh-tearsheet.js -->
+  <div id="jh-tearsheet" data-jh-chrome data-jts="insiders" data-jts-flush></div>
+
   <div class="primer fade-in">
     <h3>Why insider clusters work</h3>
     <p>Outside investors trade for hundreds of reasons — fund flows, factor rebalancing, taxes, panic selling, mechanical rebalancing. <strong>Insiders sell for many reasons; they buy for one</strong>: they think the stock is going up and want to risk personal capital to participate.</p>
@@ -347,6 +350,7 @@ async function load() {
 <script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['VIXCLS','T10Y2Y','BAMLH0A0HYM2']);});</script>
   <script src="/jh-enhance.js" data-feed="data/insider-clusters.json" data-bars="clusters:ticker:score" data-title="Insider clusters — cluster score" data-sub="coordinated insider buying" ></script>
   <script src="/jh-page-ai.js" defer></script>
+<script src="/jh-tearsheet.js?v=1.0.0" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/jh-fund-chips.js?v=capital-structure-v1" defer></script>
 <script src="/sidebar.js" defer></script>

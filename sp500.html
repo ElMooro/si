@@ -58,6 +58,9 @@ tr.grp td{background:var(--bg-1);color:var(--cyan);font-family:var(--mono);font-
 <div class="hero"><h1>S&amp;P 500 <span class="grad">— The Index As A Stock</span></h1>
 <p>Every metric a single stock carries, computed for the index itself: <b>&Sigma; market cap / &Sigma; component</b> across the members (losers included in earnings, exactly like the real index), fundamentals from the census matrix repriced by daily member closes. Type any ticker below to see whether it's cheap or rich <i>versus the index you could own instead</i> — aggregate, member median, and its percentile rank inside the S&amp;P.</p></div>
 
+<!-- tearsheet (2026-11-17): the desk in one sheet, built from this page's own feed by /jh-tearsheet.js -->
+<div id="jh-tearsheet" data-jh-chrome data-jts="sp500" data-jts-flush></div>
+
 <div class="sec"><h2>Headline</h2><div class="cards" id="cards"></div>
 <div class="note" id="asof"></div></div>
 
@@ -241,5 +244,6 @@ async function load(){let r;try{r=await fetch(`${PROXY}/data/sp500.json?t=${Date
 document.getElementById("go").onclick=compare;
 document.getElementById("tk").addEventListener("keydown",e=>{if(e.key==="Enter")compare()});
 load();
-</script><script src="/sidebar.js" defer></script>
+</script><script src="/jh-tearsheet.js?v=1.0.0" defer></script>
+<script src="/sidebar.js" defer></script>
 </body></html>

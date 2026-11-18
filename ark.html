@@ -57,7 +57,9 @@ th.r{text-align:right}td{padding:9px 6px;border-bottom:1px solid rgba(28,36,51,.
   </header>
   
   <div class="fund-key" id="fundKey">Loading fund descriptions…</div>
-  <div id="hero" class="hero"><div class="loading">LOADING ARK HOLDINGS…</div></div>
+  <!-- tearsheet (2026-11-17): the desk in one sheet, built from this page's own feed by /jh-tearsheet.js -->
+<div id="jh-tearsheet" data-jh-chrome data-jts="ark" data-jts-flush></div>
+<div id="hero" class="hero"><div class="loading">LOADING ARK HOLDINGS…</div></div>
   <h2>Day-over-Day Changes (smart-money signals)</h2>
   <div id="panels" class="panels"><div class="loading">…</div></div>
   <h2>Cross-Fund Top Holdings · Aggregate ARK Exposure</h2>
@@ -163,6 +165,7 @@ async function load(){
 }
 load();
 </script>  <script src="/jh-page-ai.js" defer></script>
+<script src="/jh-tearsheet.js?v=1.0.0" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>
 </body></html>

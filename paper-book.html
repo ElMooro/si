@@ -18,7 +18,9 @@ td{padding:6px 8px;border-bottom:1px solid var(--bg-2);font-family:var(--mono)}
 .tk{font-weight:700}.pos{color:var(--green)}.neg{color:var(--red)}
 .note{color:var(--fg-3);font-size:11px;margin-top:18px;line-height:1.6}a{color:var(--cyan)}
 .loading{padding:50px;text-align:center;color:var(--fg-2)}
-</style></head><body><div class="wrap" id="wrap"><div class="loading">Marking the book to market…</div></div>
+</style></head><body><!-- tearsheet (2026-11-17): the desk in one sheet, built from this page's own feed by /jh-tearsheet.js -->
+<div id="jh-tearsheet" data-jh-chrome data-jts="paperbook" style="max-width:1000px;padding:0 16px;margin-top:22px"></div>
+<div class="wrap" id="wrap"><div class="loading">Marking the book to market…</div></div>
 <script>
 const PROXY="https://justhodl-data-proxy.raafouis.workers.dev";
 async function gj(p){try{const r=await fetch(`https://justhodl.ai/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}try{const r=await fetch(`${PROXY}/${p}?t=${Date.now()}`);if(r.ok)return await r.json();}catch(e){}return null;}
@@ -63,6 +65,7 @@ function curve(hist){
   w.innerHTML=h;
 })();
 </script>  <script src="/jh-page-ai.js" defer></script>
+<script src="/jh-tearsheet.js?v=1.0.0" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>
 </body></html>
