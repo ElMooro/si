@@ -51,6 +51,16 @@ def directory(q, stamp):
     return [{"id": x.get("id"), "name": x.get("name"), "pinned": bool(x.get("pinned")), "kind": x.get("kind")} for x in (d.get("rows") or [])]
 
 
+def arithmetic(text):
+    """The expression with each leg replaced by its own as-of value, e.g. "(7175.83)/(3630.3)". Numbers and operators only."""
+    if not text or not re.fullmatch(r"[0-9eE+\-*/(). ]+", text):
+        return None
+    try:
+        return float(eval(text, {"__builtins__": {}}, {}))        # noqa: S307 - digits, operators and brackets only (checked above)
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def embed(r, name, doc):
     blob = base64.b64encode(gzip.compress(json.dumps(doc, separators=(",", ":"), default=str).encode("utf-8"), 9)).decode("ascii")
     r.log("%s embedded: %d chars" % (name, len(blob)))
@@ -102,7 +112,7 @@ SPREAD = r"""async (expr) => { const PROXY = 'https://justhodl-data-proxy.raafou
     out.legs.push({ id: id, target: target || null, n: obs.length, first: obs.length ? obs[0][0] : null, last: obs.length ? obs[obs.length - 1][0] : null, asof: at, value: v });
     text = text.split(id).join('(' + v + ')');
   }
-  try { out.expected = Function('return (' + text + ')')(); } catch (e) { out.expected = null; out.err = String(e); }
+  out.arithmetic = text;
   return out; }"""
 ALIAS = r"""async () => { const before = (window.jhChartEvidence || {}).symbol || null, shown = window.lastBars;
   const a = await window.jhKlines('SPX', '1d'), b = await window.jhKlines('SP500', '1d'); await window.paint(window.lastBars); await new Promise(r => setTimeout(r, 600));
@@ -199,8 +209,17 @@ def main():
             r.section("1b. the Symbol Search dialog: type sp500, take the first row")
             away()
             page.evaluate("() => window.jhOpenSearch('sp500')")
-            page.wait_for_timeout(9000)
+            t0 = time.time()
+            page.wait_for_timeout(2500)
+            early = page.evaluate(ROWS)
+            try:
+                page.wait_for_function("() => { const e = document.querySelector('#jhus .us-row[data-i]'); return !!e && e.getAttribute('title') === 'I:SPX'; }", timeout=60000)
+            except Exception:  # noqa: BLE001
+                pass
+            waited = time.time() - t0
+            page.wait_for_timeout(1200)
             rows = page.evaluate(ROWS)
+            r.log("2.5 s after typing the first rows were %s; the list settled with I:SPX first after %.1f s" % ([x["id"] for x in early[:3]], waited))
             pack["dialog"] = rows
             for i, x in enumerate(rows[:5]):
                 r.log("row %d  %-12s %s" % (i + 1, x["id"], x["text"][:100]))
@@ -263,6 +282,7 @@ def main():
                 page.wait_for_timeout(600)
                 sp = page.evaluate(SPREAD, expr_id)
                 sp["id"], sp["active"], sp["quote"] = expr_id, st["active"], st["quote"]
+                sp["expected"] = arithmetic(sp.get("arithmetic"))
                 market = [x for x in sp["legs"] if x["target"]]
                 series_legs = [x for x in sp["legs"] if not x["target"]]
                 value_ok = sp["value"] is not None and sp["expected"] is not None and abs(sp["value"] - sp["expected"]) <= 1e-9 * max(1.0, abs(sp["expected"]))
