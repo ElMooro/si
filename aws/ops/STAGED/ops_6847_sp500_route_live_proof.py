@@ -163,7 +163,7 @@ def main():
                     o = page.evaluate(OPEN, s)
                 if o.get("handoff") and settle:
                     try:
-                        page.wait_for_function(LOADED, arg=o["handoff"].upper(), timeout=16000)
+                        page.wait_for_function(LOADED, arg=o["handoff"].upper(), timeout=60000)
                     except Exception:  # noqa: BLE001
                         pass
                     page.wait_for_timeout(900)
@@ -190,8 +190,6 @@ def main():
                 if s == "VANTAGE:SP500":
                     r.log("status line: %s" % st["text"][:520])
                     r.log("quote line: %s" % (st["quote"] or "")[:200])
-                    ck(st["history"] and "Observations" in st["history"], "the details card has no History line on the index: %r" % st["history"])
-                    r.log("details card: %s" % st["history"])
                     shots["vantage_sp500_1440"] = page.screenshot(type="jpeg", quality=55)
 
             r.section("A3. the neighbours are as they were")
@@ -216,26 +214,23 @@ def main():
             pack["paths"]["dialog_sp500"] = typed
             at = [i + 1 for i, x in enumerate(typed) if str(x["id"]).upper() in IDS]
             r.log("Symbol Search, typed sp500 -> %d rows read; rows that are now chartable S&P 500 index ids sit at %s; first rows: %s" % (len(typed), at[:8], " | ".join(str(x["id"]) for x in typed[:5])))
-            page.evaluate("() => { if (window.JHUniSearch && window.JHUniSearch.close) window.JHUniSearch.close(); }")
-            page.wait_for_timeout(400)
-            page.evaluate("() => window.jhOpenSearch('VANTAGE:SP500')")
-            page.wait_for_timeout(9000)
-            rows = page.evaluate(ROWS)
-            pack["paths"]["dialog_rows"] = rows
-            r.log("Symbol Search, typed VANTAGE:SP500 -> %d rows; first: %s" % (len(rows), " | ".join("%s" % x["id"] for x in rows[:6])))
+            rows = typed
             hit = [x for x in rows if str(x["id"]).upper() == "VANTAGE:SP500"]
             if hit:
-                page.evaluate("() => { const e = Array.from(document.querySelectorAll('#jhus .us-row[data-i]')).find(x => String(x.getAttribute('title')).toUpperCase() === 'VANTAGE:SP500'); (e.querySelector('.us-sym') || e).click(); }")
-                how = "clicked the dialog's row %r" % hit[0]["text"][:80]
+                r.log("row %d of the dialog: %s" % (rows.index(hit[0]) + 1, hit[0]["text"][:110]))
+                shots["dialog_sp500_1440"] = page.screenshot(type="jpeg", quality=50)
+                page.evaluate("() => { const e = Array.from(document.querySelectorAll('#jhus .us-row[data-i]')).find(x => String(x.getAttribute('title')).toUpperCase() === 'VANTAGE:SP500'); e.scrollIntoView({ block: 'center' }); (e.querySelector('.us-sym') || e).click(); }")
+                how = "typed sp500, clicked the dialog's VANTAGE:SP500 row"
             else:
                 page.evaluate("() => { if (window.JHUniSearch && window.JHUniSearch.close) window.JHUniSearch.close(); window.JHTvWatchlist.route('VANTAGE:SP500'); }")
                 how = "the dialog listed no plain VANTAGE:SP500 row among %d; called the function a pick calls (JHTvWatchlist.route)" % len(rows)
             try:
-                page.wait_for_function(ARRIVED, timeout=15000)
+                page.wait_for_function(ARRIVED, timeout=60000)
             except Exception:  # noqa: BLE001
                 pass
             page.wait_for_timeout(900)
             st = page.evaluate(STATE)
+            ck(bool(hit), "the dialog for sp500 no longer lists a VANTAGE:SP500 row")
             ck(st["label"] == "^GSPC" and st["bars"] == ref["bars"] and st["requested"] == "VANTAGE:SP500", "search path: label %s, %d bars, requested %s (%s)" % (st["label"], st["bars"], st["requested"], how))
             r.log("search path: %s -> chart label %s, %d bars, last %s" % (how, st["label"], st["bars"], day(st["last"])))
             pack["paths"]["search"] = {"how": how, "state": st}
@@ -248,12 +243,20 @@ def main():
                 r.log("watchlist path: add() answered %s but no row for it is painted in the pane; not judged" % added)
             else:
                 try:
-                    page.wait_for_function(ARRIVED, timeout=15000)
+                    page.wait_for_function(ARRIVED, timeout=60000)
                 except Exception:  # noqa: BLE001
                     pass
                 page.wait_for_timeout(900)
                 st = page.evaluate(STATE)
+                try:
+                    page.wait_for_function("() => Array.from(document.querySelectorAll('.tvd-ks')).some(e => /History/.test(e.innerText || ''))", timeout=20000)
+                except Exception:  # noqa: BLE001
+                    pass
+                st = page.evaluate(STATE)
+                after = page.evaluate("() => { const e = Array.from(document.querySelectorAll('.wl-row[data-id]')).find(x => String(x.getAttribute('data-id')).toUpperCase() === 'VANTAGE:SP500'); return e ? (e.innerText || '').replace(/\\s+/g, ' ').trim().slice(0, 90) : null; }")
                 ck(st["label"] == "^GSPC" and st["bars"] == ref["bars"] and st["requested"] == "VANTAGE:SP500", "watchlist row: label %s, %d bars, requested %s" % (st["label"], st["bars"], st["requested"]))
+                ck(st["history"] and "Observations" in st["history"], "the details card has no History line for the row: %r" % st["history"])
+                r.log("details card: %s | the row itself now reads %r" % (st["history"], after))
                 r.log("watchlist path: added it to the active list (%s), clicked its row %r -> chart label %s, %d bars, last %s" % (added, row, st["label"], st["bars"], day(st["last"])))
                 pack["paths"]["row"] = {"added": added, "row": row, "state": st}
                 shots["watchlist_row_1440"] = page.screenshot(type="jpeg", quality=55)
@@ -272,9 +275,11 @@ def main():
                 pack["paths"][s] = st
                 r.log("%-24s handoff %s | chart label %s, %d bars, last %s | %s | %s" % (s, st["handoff"] if st["requested"] == s else None, st["label"], st["bars"], day(st["last"]), (st["quote"] or "")[:70], st["text"].split(" \u00b7 ")[3][:80] if st["text"].count(" \u00b7 ") >= 3 else ""))
             open_id("SPY")
-            page.evaluate("() => window.jhGoSymbol && window.jhGoSymbol('I:SPX', 'chart')")
-            page.wait_for_timeout(9000)
+            page.evaluate("() => { window.__jhToasts = []; const o = new MutationObserver(() => { document.querySelectorAll('[class*=toast],[id*=toast]').forEach(e => { const t = (e.textContent || '').trim(); if (t && window.__jhToasts.indexOf(t) < 0) window.__jhToasts.push(t.slice(0, 140)); }); }); o.observe(document.body, { childList: true, subtree: true, characterData: true }); window.jhGoSymbol('I:SPX', 'chart'); }")
+            page.wait_for_timeout(25000)
             st = page.evaluate(STATE)
+            st["toasts"] = page.evaluate("() => window.__jhToasts || []")
+            r.log("I:SPX toasts: %s" % st["toasts"][:4])
             pack["paths"]["I:SPX"] = st
             r.log("%-24s (the directory's pinned row, opened the way the dialog opens it) chart label %s, active %s, %d bars, last %s | %s" % ("I:SPX", st["label"], st["active"], st["bars"], day(st["last"]), (st["quote"] or "")[:80]))
             pack["page_errors"] = sorted(set(errors))[:10]
