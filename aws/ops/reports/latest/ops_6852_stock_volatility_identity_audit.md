@@ -1,0 +1,244 @@
+# ops 6852 - what the quietest stocks really are (read-only)
+
+**Status:** success  
+**Duration:** 2.9s  
+**Finished:** 2026-11-19T23:28:05+00:00  
+
+## Log
+- `23:28:03` factor book rows: 27123; columns on a row: ['dollar_vol_20d', 'exchange', 'industry', 'ipo_date', 'is_adr', 'is_common', 'is_debt_or_structured', 'is_etf', 'is_fund', 'is_otc', 'is_preferred', 'is_shell', 'is_warrant_unit', 'mcap', 'name', 'sector', 'security_type', 'symbol', 'volatility_20d']
+## 1. the named symbols as the factor book describes them
+
+- `23:28:03`   AGNCO  type CS    kind stock  common | mcap $10483M dv20 $1.4M | NASDAQ | AGNC Investment Corp.
+- `23:28:03`   AGNCL  type CS    kind stock  common | mcap $10483M dv20 $0.4M | NASDAQ | AGNC Investment Corp.
+- `23:28:03`   AGNC   type CS    kind stock  common | mcap $10483M dv20 $224.8M | NASDAQ | AGNC Investment Corp.
+- `23:28:03`   HBANL  type CS    kind stock  common | mcap $33935M dv20 $1.0M | NASDAQ | Huntington Bancshares Incorporated
+- `23:28:03`   HBANM  type CS    kind stock  common | mcap $31815M dv20 $0.4M | NASDAQ | Huntington Bancshares Incorporated
+- `23:28:03`   HBAN   type CS    kind stock  common | mcap $31883M dv20 $309.3M | NASDAQ | Huntington Bancshares Incorporated
+- `23:28:03`   MBINL  type CS    kind stock  common | mcap $2416M dv20 $0.4M | NASDAQ | Merchants Bancorp
+- `23:28:03`   ACGLN  type CS    kind stock  common | mcap $35390M dv20 $1.2M | NASDAQ | Arch Capital Group Ltd.
+- `23:28:03`   TPGXL  type CS    kind stock  common | mcap $18500M dv20 $0.6M | NASDAQ | TPG Inc.
+- `23:28:03`   WAFDP  type CS    kind stock  common | mcap $2057M dv20 $0.7M | NASDAQ | WaFd, Inc.
+- `23:28:03`   ADAMH  type CS    kind stock  common | mcap $470M dv20 $0.7M | NASDAQ | Adamas Trust, Inc.
+- `23:28:03`   ATLCL  type CS    kind stock  common | mcap $1212M dv20 $0.3M | NASDAQ | Atlanticus Holdings Corporation 6.125% Senior Notes due 2026
+- `23:28:03`   ATLCZ  type CS    kind stock  common | mcap $1218M dv20 $0.5M | NASDAQ | Atlanticus Holdings Corporation 9.25% Senior Notes due 2029
+- `23:28:03`   XELLL  type CS    kind stock  common | mcap $12507M dv20 $3.4M | NASDAQ | Xcel Energy Inc. 6.25% Junior Subordinated Notes, Series due 2085
+- `23:28:03`   EMP    type CS    kind stock  common | mcap $156M dv20 $0.3M | NYSE | Entergy Mississippi, Inc. 1M BD 66
+- `23:28:03`   JSM    type CS    kind stock  common | mcap $4207M dv20 $0.5M | NASDAQ | Navient Corporation SR NT 6% 121543
+- `23:28:03`   CGABL  type CS    kind stock  common | mcap $5094M dv20 $0.5M | NASDAQ | The Carlyle Group Inc. 4.625% Subordinated Notes due 2061
+- `23:28:03`   DHCNI  type CS    kind stock  common | mcap $1798M dv20 $1.2M | NASDAQ | Diversified Healthcare Trust, 5.625% Senior Notes due 2042
+- `23:28:03`   PFBC   type CS    kind stock  common | mcap $1230M dv20 $10.8M | NASDAQ | Preferred Bank
+- `23:28:03`   ARM    type ADRC  kind stock  common adr | mcap $202734M dv20 $1159.9M | NASDAQ | Arm Holdings plc American Depositary Shares
+- `23:28:03`   GOOGL  type CS    kind stock  common | mcap $3599487M dv20 $12330.0M | NASDAQ | Alphabet Inc.
+- `23:28:03`   GOOG   type CS    kind stock  common | mcap $3594478M dv20 $8012.8M | NASDAQ | Alphabet Inc.
+- `23:28:03`   FOXA   type CS    kind stock  common | mcap $27247M dv20 $647.2M | NASDAQ | Fox Corporation
+- `23:28:03`   FOX    type CS    kind stock  common | mcap $27238M dv20 $58.9M | NASDAQ | Fox Corporation
+- `23:28:03`   BRK.B  type CS    kind stock  common | mcap $1259712M dv20 $2960.2M | NYSE | Berkshire Hathaway Inc.
+- `23:28:03`   TXNM   type CS    kind stock  common | mcap $6483M dv20 $67.5M | NYSE | TXNM Energy, Inc.
+- `23:28:03`   BPYPM  type CS    kind stock  common | mcap $0M dv20 $0.3M | NASDAQ | Brookfield Property Preferred L.P.
+- `23:28:03`   PROV   type CS    kind stock  common | mcap $113M dv20 $0.4M | NASDAQ | Provident Financial Holdings, Inc.
+- `23:28:03`   TECH   type CS    kind stock  common | mcap $11436M dv20 $227.2M | NASDAQ | Bio-Techne Corporation
+- `23:28:03`   MKTX   type CS    kind stock  common | mcap $5817M dv20 $125.5M | NASDAQ | MarketAxess Holdings Inc.
+- `23:28:03`   UTZ    type CS    kind stock  common | mcap $1265M dv20 $33.0M | NYSE | Utz Brands, Inc.
+- `23:28:03`   DV     type CS    kind stock  common | mcap $2118M dv20 $33.6M | NYSE | DoubleVerify Holdings, Inc.
+- `23:28:03`   PTC    type CS    kind stock  common | mcap $21292M dv20 $334.3M | NASDAQ | PTC Inc.
+- `23:28:03`   BRZE   type CS    kind stock  common | mcap $5298M dv20 $275.0M | NASDAQ | Braze, Inc.
+- `23:28:03`   AES    type CS    kind stock  common | mcap $10639M dv20 $198.1M | NYSE | The AES Corporation
+- `23:28:03`   SLAB   type CS    kind stock  common | mcap $7392M dv20 $99.3M | NASDAQ | Silicon Laboratories Inc.
+## 2. the stock universe by Polygon security type
+
+- `23:28:03` stocks in the universe: 4316; by security_type: {"CS": 4041, "ADRC": 275}
+- `23:28:03` stocks whose type is not a common-equity type: 0
+## 3. names that read as debt or preferred
+
+- `23:28:03` debt by name: 15; preferred by name: 2
+- `23:28:03`   debt ADAMG   type CS    $471M  Adamas Trust, Inc. - 9.125% Senior Notes Due 2030
+- `23:28:03`   debt ADAMK   type CS    $0M  Adamas Trust, Inc. 9.600% Senior Notes due 2031
+- `23:28:03`   debt ADAMO   type CS    $688M  Adamas Trust, Inc. 9.250% Senior Notes Due 2031
+- `23:28:03`   debt ATLCL   type CS    $1212M  Atlanticus Holdings Corporation 6.125% Senior Notes due 2026
+- `23:28:03`   debt ATLCZ   type CS    $1218M  Atlanticus Holdings Corporation 9.25% Senior Notes due 2029
+- `23:28:03`   debt CGABL   type CS    $5094M  The Carlyle Group Inc. 4.625% Subordinated Notes due 2061
+- `23:28:03`   debt CTGG    type CS    $243M  Qwest Corporation 6.500% Senior Notes due 2051
+- `23:28:03`   debt CTHH    type CS    $188M  Qwest Corporation 6.750% Senior Notes due 2052
+- `23:28:03`   debt DHCNI   type CS    $1798M  Diversified Healthcare Trust, 5.625% Senior Notes due 2042
+- `23:28:03`   debt EMP     type CS    $156M  Entergy Mississippi, Inc. 1M BD 66
+- `23:28:03`   debt JSM     type CS    $4207M  Navient Corporation SR NT 6% 121543
+- `23:28:03`   debt RILYG   type CS    $138M  BRC Group Holdings Inc. 5% Sr. Notes due 2026
+- `23:28:03`   debt RILYT   type CS    $138M  B. Riley Financial, Inc. 6.00% Senior Notes Due 2028
+- `23:28:03`   debt RILYZ   type CS    $138M  BRC Group Holdings Inc. 5.25% Sr. Notes due 2028
+- `23:28:03`   debt XELLL   type CS    $12507M  Xcel Energy Inc. 6.25% Junior Subordinated Notes, Series due 2085
+- `23:28:03`   pref BPYPM   type CS    $0M  Brookfield Property Preferred L.P.
+- `23:28:03`   pref PTRN    type CS    $3173M  Pattern Group Inc. Series A Common Stock
+## 4. stocks that share their name with a shorter ticker they extend
+
+- `23:28:03` 33 such lines
+- `23:28:03`   ACGLN   extends ACGL  type CS    vol20 15.5688  $35390M dv20 $1.2M  Arch Capital Group Ltd.
+- `23:28:03`   ADAMH   extends ADAM  type CS    vol20 7.8391  $470M dv20 $0.7M  Adamas Trust, Inc.
+- `23:28:03`   AGNCL   extends AGNC  type CS    vol20 11.554  $10483M dv20 $0.4M  AGNC Investment Corp.
+- `23:28:03`   AGNCO   extends AGNC  type CS    vol20 6.9492  $10483M dv20 $1.4M  AGNC Investment Corp.
+- `23:28:03`   BBDO    extends BBD   type ADRC  vol20 105.7389  $26239M dv20 $0.7M  Banco Bradesco S.A.
+- `23:28:03`   BH-A    extends BH    type CS    vol20 78.7765  $1174M dv20 $40.6M  Biglari Holdings Inc.
+- `23:28:03`   BHFAL   extends BHF   type CS    vol20 22.8047  $2524M dv20 $0.5M  Brighthouse Financial, Inc.
+- `23:28:03`   BHFAM   extends BHF   type CS    vol20 23.8825  $2524M dv20 $0.6M  Brighthouse Financial, Inc.
+- `23:28:03`   BHFAN   extends BHF   type CS    vol20 16.5534  $2524M dv20 $0.7M  Brighthouse Financial, Inc.
+- `23:28:03`   BHFAO   extends BHF   type CS    vol20 20.1124  $2524M dv20 $0.8M  Brighthouse Financial, Inc.
+- `23:28:03`   CENTA   extends CENT  type CS    vol20 29.9712  $2606M dv20 $14.9M  Central Garden & Pet Company
+- `23:28:03`   FOXA    extends FOX   type CS    vol20 43.4714  $27247M dv20 $647.2M  Fox Corporation
+- `23:28:03`   FULTP   extends FULT  type CS    vol20 17.758  $4523M dv20 $0.4M  Fulton Financial Corporation
+- `23:28:03`   GEF-B   extends GEF   type CS    vol20 30.3241  $3275M dv20 $11.2M  Greif, Inc.
+- `23:28:03`   GOOGL   extends GOOG  type CS    vol20 55.3915  $3599487M dv20 $12330.0M  Alphabet Inc.
+- `23:28:03`   HBANL   extends HBAN  type CS    vol20 7.627  $33935M dv20 $1.0M  Huntington Bancshares Incorporated
+- `23:28:03`   HBANM   extends HBAN  type CS    vol20 15.9564  $31815M dv20 $0.4M  Huntington Bancshares Incorporated
+- `23:28:03`   HBANZ   extends HBAN  type CS    vol20 15.5192  $31284M dv20 $0.3M  Huntington Bancshares Incorporated
+- `23:28:03`   HEI-A   extends HEI   type CS    vol20 35.3629  $47127M dv20 $70.1M  HEICO Corporation
+- `23:28:03`   LANDO   extends LAND  type CS    vol20 21.1198  $297M dv20 $0.3M  Gladstone Land Corporation
+- `23:28:03`   LEN-B   extends LEN   type CS    vol20 55.7475  $19903M dv20 $8.5M  Lennar Corporation
+- `23:28:03`   LILAK   extends LILA  type CS    vol20 41.763  $2894M dv20 $17.3M  Liberty Latin America Ltd.
+- `23:28:03`   MBINL   extends MBIN  type CS    vol20 20.2311  $2416M dv20 $0.4M  Merchants Bancorp
+- `23:28:03`   MCHPP   extends MCHP  type CS    vol20 68.277  $29589M dv20 $19.2M  Microchip Technology Incorporated
+- `23:28:03`   METCB   extends METC  type CS    vol20 82.7767  $320M dv20 $0.3M  Ramaco Resources, Inc.
+- `23:28:03`   MKC-V   extends MKC   type CS    vol20 41.9794  $12659M dv20 $0.3M  McCormick & Company, Incorporated
+- `23:28:03`   NWSA    extends NWS   type CS    vol20 56.909  $15136M dv20 $125.4M  News Corporation
+- `23:28:03`   PBR-A   extends PBR   type ADRC  vol20 64.8125  $108774M dv20 $234.7M  Petróleo Brasileiro S.A. - Petrobras
+- `23:28:03`   PSNYW   extends PSNY  type ADRC  vol20 103.7238  $192M dv20 $0.7M  Polestar Automotive Holding UK PLC
+- `23:28:03`   TPGXL   extends TPG   type CS    vol20 14.198  $18500M dv20 $0.6M  TPG Inc.
+- `23:28:03`   UAA     extends UA    type CS    vol20 62.5462  $2075M dv20 $48.1M  Under Armour, Inc.
+- `23:28:03`   UHAL-B  extends UHAL  type CS    vol20 31.2998  $9567M dv20 $18.3M  U-Haul Holding Company
+- `23:28:03`   WAFDP   extends WAFD  type CS    vol20 15.3168  $2057M dv20 $0.7M  WaFd, Inc.
+## 5. the flat names: last banked bars with volume
+
+- `23:28:04` TECH: 1314 bars; last 12:
+- `23:28:04`     2026-11-03 o 72.72 h 72.72 l 72.63 c 72.66 v 3518366.356856
+- `23:28:04`     2026-11-04 o 72.73 h 72.83 l 72.71 c 72.73 v 4212154.5489
+- `23:28:04`     2026-11-05 o 72.8 h 72.8 l 72.66 c 72.66 v 4516617.141099
+- `23:28:04`     2026-11-06 o 72.68 h 72.8 l 72.63 c 72.78 v 2307628.488383
+- `23:28:04`     2026-11-09 o 72.83 h 72.88 l 72.76 c 72.83 v 2668052.15395
+- `23:28:04`     2026-11-10 o 72.79 h 72.86 l 72.78 c 72.82 v 3239571.036084
+- `23:28:04`     2026-11-11 o 72.83 h 72.83 l 72.73 c 72.8 v 2602372.641284
+- `23:28:04`     2026-11-12 o 72.82 h 72.86 l 72.8 c 72.84 v 2184862.808805
+- `23:28:04`     2026-11-13 o 72.83 h 72.84 l 72.73 c 72.8 v 2491009.538209
+- `23:28:04`     2026-11-16 o 72.76 h 72.85 l 72.71 c 72.79 v 4930408.048414
+- `23:28:04`     2026-11-17 o 72.8 h 72.86 l 72.59 c 72.63 v 5694155.883273
+- `23:28:04`     2026-11-18 o 72.67 h 72.81 l 72.67 c 72.75 v 2628450.078913
+- `23:28:04`     largest move of the series: 2026-06-25 +20.1% (58.875 -> 70.7), 102 sessions ago
+- `23:28:04` MKTX: 1314 bars; last 12:
+- `23:28:04`     2026-11-03 o 165.41 h 165.725 l 165.29 c 165.68 v 859745.79204
+- `23:28:04`     2026-11-04 o 165.64 h 165.65 l 165.42 c 165.61 v 722038.595543
+- `23:28:04`     2026-11-05 o 165.8 h 165.8 l 165.505 c 165.54 v 1024646.275891
+- `23:28:04`     2026-11-06 o 165.54 h 165.68 l 165.43 c 165.59 v 776269.939419
+- `23:28:04`     2026-11-09 o 165.53 h 165.68 l 165.51 c 165.67 v 651882.662311
+- `23:28:04`     2026-11-10 o 164.8 h 165.15 l 164.78 c 165.08 v 677308.525756
+- `23:28:04`     2026-11-11 o 165 h 165.45 l 164.95 c 165.31 v 627844.53366
+- `23:28:04`     2026-11-12 o 165.49 h 165.49 l 165.11 c 165.16 v 433648.539859
+- `23:28:04`     2026-11-13 o 165.2 h 165.41 l 165.15 c 165.22 v 400974.817905
+- `23:28:04`     2026-11-16 o 165.3 h 165.5 l 165.3 c 165.44 v 436295.942374
+- `23:28:04`     2026-11-17 o 165.36 h 165.45 l 164.725 c 165.3 v 495072.679268
+- `23:28:04`     2026-11-18 o 165.3 h 165.45 l 165.3 c 165.4 v 577747.297435
+- `23:28:04`     largest move of the series: 2026-07-30 +29.5% (125.73 -> 162.76), 78 sessions ago
+- `23:28:04` UTZ: 1314 bars; last 12:
+- `23:28:04`     2026-11-03 o 14.28 h 14.3 l 14.28 c 14.29 v 1071572.804316
+- `23:28:04`     2026-11-04 o 14.32 h 14.32 l 14.28 c 14.28 v 1845870.092919
+- `23:28:04`     2026-11-05 o 14.28 h 14.3 l 14.23 c 14.27 v 2189979.099462
+- `23:28:04`     2026-11-06 o 14.24 h 14.25 l 14.24 c 14.24 v 2503954.78041
+- `23:28:04`     2026-11-09 o 14.23 h 14.27 l 14.23 c 14.24 v 1932824.761499
+- `23:28:04`     2026-11-10 o 14.24 h 14.26 l 14.24 c 14.25 v 989639.407367
+- `23:28:04`     2026-11-11 o 14.25 h 14.26 l 14.242 c 14.25 v 1845708.80212
+- `23:28:04`     2026-11-12 o 14.26 h 14.27 l 14.245 c 14.25 v 1562512.844446
+- `23:28:04`     2026-11-13 o 14.26 h 14.33 l 14.26 c 14.28 v 4089425.763873
+- `23:28:04`     2026-11-16 o 14.27 h 14.3 l 14.27 c 14.28 v 4140848.389953
+- `23:28:04`     2026-11-17 o 14.28 h 14.29 l 14.27 c 14.28 v 1465454.740902
+- `23:28:04`     2026-11-18 o 14.27 h 14.3 l 14.26 c 14.26 v 3451287.572562
+- `23:28:04`     largest move of the series: 2026-07-21 +88.7% (7.45 -> 14.06), 85 sessions ago
+- `23:28:04` DV: 1314 bars; last 12:
+- `23:28:04`     2026-11-03 o 13.56 h 13.57 l 13.54 c 13.54 v 2948914.190015
+- `23:28:04`     2026-11-04 o 13.56 h 13.58 l 13.55 c 13.55 v 2230838.325598
+- `23:28:04`     2026-11-05 o 13.58 h 13.58 l 13.54 c 13.54 v 3215333.330981
+- `23:28:04`     2026-11-06 o 13.54 h 13.57 l 13.54 c 13.56 v 1299385.317208
+- `23:28:04`     2026-11-09 o 13.56 h 13.57 l 13.54 c 13.56 v 1847287.06476
+- `23:28:04`     2026-11-10 o 13.55 h 13.57 l 13.54 c 13.57 v 3486545.718626
+- `23:28:04`     2026-11-11 o 13.57 h 13.58 l 13.56 c 13.57 v 2742198.470417
+- `23:28:04`     2026-11-12 o 13.57 h 13.57 l 13.55 c 13.57 v 3241687.656599
+- `23:28:04`     2026-11-13 o 13.57 h 13.58 l 13.545 c 13.56 v 6958583.763524
+- `23:28:04`     2026-11-16 o 13.56 h 13.57 l 13.56 c 13.57 v 3224890.055343
+- `23:28:04`     2026-11-17 o 13.56 h 13.57 l 13.56 c 13.57 v 1943956.001407
+- `23:28:04`     2026-11-18 o 13.56 h 13.57 l 13.56 c 13.56 v 1544206.148998
+- `23:28:04` PTC: 1314 bars; last 12:
+- `23:28:04`     2026-11-03 o 194.39 h 194.81 l 193.935 c 194.06 v 2097215.216494
+- `23:28:04`     2026-11-04 o 194.84 h 195.42 l 194.65 c 195.18 v 2117571.759393
+- `23:28:04`     2026-11-05 o 195.13 h 195.6 l 194.07 c 194.6 v 3428833.173831
+- `23:28:04`     2026-11-06 o 194.53 h 195.25 l 194.4 c 195.07 v 1354415.719589
+- `23:28:04`     2026-11-09 o 195.12 h 196.05 l 195.02 c 195.87 v 1274646.637888
+- `23:28:04`     2026-11-10 o 196 h 196.79 l 195.735 c 196.55 v 1899742.385573
+- `23:28:04`     2026-11-11 o 196.5 h 196.5 l 195.33 c 196.14 v 1297506.538709
+- `23:28:04`     2026-11-12 o 196 h 196.505 l 195.91 c 196.25 v 1817876.770163
+- `23:28:04`     2026-11-13 o 196.6 h 196.6 l 195.52 c 196 v 826999.261307
+- `23:28:04`     2026-11-16 o 196.05 h 196.5 l 195.95 c 196.38 v 1554318.001942
+- `23:28:04`     2026-11-17 o 196.16 h 196.37 l 195.6 c 195.64 v 1963088.155245
+- `23:28:04`     2026-11-18 o 195.75 h 196.21 l 195.72 c 195.85 v 1044264.387704
+- `23:28:04`     largest move of the series: 2026-10-05 +33.5% (144.03 -> 192.26), 32 sessions ago
+- `23:28:04` BRZE: 1256 bars; last 12:
+- `23:28:04`     2026-11-03 o 45.72 h 45.84 l 45.68 c 45.79 v 4128867.07669
+- `23:28:04`     2026-11-04 o 45.78 h 46.15 l 45.76 c 46.1 v 8155630.268846
+- `23:28:04`     2026-11-05 o 46.07 h 46.2 l 45.75 c 45.81 v 9152265.4026
+- `23:28:04`     2026-11-06 o 45.82 h 45.885 l 45.735 c 45.79 v 9207994.891071
+- `23:28:04`     2026-11-09 o 45.845 h 46.34 l 45.84 c 46.08 v 4687345.303576
+- `23:28:04`     2026-11-10 o 46.01 h 46.25 l 45.97 c 46.24 v 3227396.110384
+- `23:28:04`     2026-11-11 o 46.24 h 46.5 l 46.18 c 46.48 v 2918577.35347
+- `23:28:04`     2026-11-12 o 46.45 h 46.81 l 46.38 c 46.61 v 4070333.581176
+- `23:28:04`     2026-11-13 o 46.78 h 46.78 l 46.54 c 46.64 v 2929213.402088
+- `23:28:04`     2026-11-16 o 46.65 h 46.72 l 46.55 c 46.57 v 2099177.337482
+- `23:28:04`     2026-11-17 o 46.55 h 46.63 l 46.245 c 46.48 v 5376533.673968
+- `23:28:04`     2026-11-18 o 46.41 h 46.655 l 46.38 c 46.52 v 3464099.165951
+- `23:28:04`     largest move of the series: 2026-10-20 +51.7% (30.04 -> 45.57), 21 sessions ago
+- `23:28:04` AES: 1314 bars; last 12:
+- `23:28:04`     2026-11-03 o 14.91 h 14.92 l 14.885 c 14.92 v 8661197.107634
+- `23:28:04`     2026-11-04 o 14.92 h 14.94 l 14.89 c 14.9 v 14200655.55356
+- `23:28:04`     2026-11-05 o 14.92 h 14.93 l 14.86 c 14.89 v 12967514.70235
+- `23:28:04`     2026-11-06 o 14.89 h 14.925 l 14.87 c 14.87 v 5079385.304091
+- `23:28:04`     2026-11-09 o 14.89 h 14.93 l 14.88 c 14.9 v 6105157.455812
+- `23:28:04`     2026-11-10 o 14.9 h 14.94 l 14.88 c 14.92 v 4941029.690493
+- `23:28:04`     2026-11-11 o 14.94 h 14.94 l 14.92 c 14.92 v 3299106.073319
+- `23:28:04`     2026-11-12 o 14.93 h 14.94 l 14.9 c 14.91 v 5076566.347219
+- `23:28:04`     2026-11-13 o 14.95 h 14.95 l 14.91 c 14.91 v 3540911.004848
+- `23:28:04`     2026-11-16 o 14.91 h 14.94 l 14.91 c 14.94 v 8859183.532814
+- `23:28:04`     2026-11-17 o 14.93 h 14.985 l 14.91 c 14.97 v 17830045.359667
+- `23:28:04`     2026-11-18 o 15.02 h 15.03 l 15.01 c 15.02 v 97619626.08639
+- `23:28:04` ATLCL: 1247 bars; last 12:
+- `23:28:04`     2026-11-03 o 24.99 h 25.0099 l 24.981 c 24.995 v 11767.538
+- `23:28:04`     2026-11-04 o 25.01 h 25.035 l 24.98 c 25.02 v 12655
+- `23:28:04`     2026-11-05 o 24.99 h 25 l 24.98 c 24.98 v 15469
+- `23:28:04`     2026-11-06 o 24.97 h 25.01 l 24.97 c 24.99 v 9462
+- `23:28:04`     2026-11-09 o 25.03 h 25.0301 l 25 c 25.01 v 12532
+- `23:28:04`     2026-11-10 o 25.01 h 25.05 l 24.97 c 25.015 v 21687
+- `23:28:04`     2026-11-11 o 25.02 h 25.05 l 25.01 c 25.02 v 6609.0826
+- `23:28:04`     2026-11-12 o 25.05 h 25.05 l 24.99 c 25.02 v 51942.0826
+- `23:28:04`     2026-11-13 o 24.93 h 24.93 l 24.92 c 24.92 v 3189.0826
+- `23:28:04`     2026-11-16 o 24.94 h 25.01 l 24.92 c 24.93 v 37231
+- `23:28:04`     2026-11-17 o 24.93 h 24.9549 l 24.93 c 24.95 v 5777.0826
+- `23:28:04`     2026-11-18 o 24.95 h 24.955 l 24.94 c 24.95 v 17779.0826
+- `23:28:05` AGNCO: 1314 bars; last 12:
+- `23:28:05`     2026-11-03 o 24.81 h 24.97 l 24.81 c 24.85 v 35558.4612
+- `23:28:05`     2026-11-04 o 25 h 25.1 l 24.905 c 25.07 v 34172
+- `23:28:05`     2026-11-05 o 25.035 h 25.1099 l 25.002 c 25.06 v 39416.3293
+- `23:28:05`     2026-11-06 o 25.065 h 25.11 l 24.9922 c 25.0101 v 29807.883
+- `23:28:05`     2026-11-09 o 25.02 h 25.2523 l 25.01 c 25.2101 v 61295.384
+- `23:28:05`     2026-11-10 o 25.18 h 25.2 l 25.105 c 25.13 v 19032.675
+- `23:28:05`     2026-11-11 o 25.12 h 25.23 l 25.11 c 25.16 v 44557.9075
+- `23:28:05`     2026-11-12 o 25.12 h 25.19 l 24.82 c 24.84 v 55171.7075
+- `23:28:05`     2026-11-13 o 24.84 h 24.9 l 24.71 c 24.79 v 55965.846
+- `23:28:05`     2026-11-16 o 24.91 h 24.91 l 24.8 c 24.84 v 26804.332
+- `23:28:05`     2026-11-17 o 24.88 h 24.88 l 24.69 c 24.79 v 55066.1632
+- `23:28:05`     2026-11-18 o 24.8 h 24.86 l 24.63 c 24.76 v 33820.7164
+- `23:28:05` KO: 1314 bars; last 12:
+- `23:28:05`     2026-11-03 o 94.88 h 95.485 l 94.18 c 94.8 v 16107085.828845
+- `23:28:05`     2026-11-04 o 96.3 h 96.56 l 94.35 c 95.8 v 27088302.270806
+- `23:28:05`     2026-11-05 o 96.94 h 97.39 l 95.47 c 95.73 v 31243538.953519
+- `23:28:05`     2026-11-06 o 93.21 h 96.31 l 93 c 95.67 v 18425683.850596
+- `23:28:05`     2026-11-09 o 95.89 h 96.06 l 94.72 c 96.03 v 16648222.22322
+- `23:28:05`     2026-11-10 o 96.65 h 96.99 l 95.86 c 96.91 v 18029402.933011
+- `23:28:05`     2026-11-11 o 96.25 h 97.825 l 95.65 c 97.57 v 15058403.682703
+- `23:28:05`     2026-11-12 o 98.25 h 98.38 l 97.38 c 97.44 v 13869193.049701
+- `23:28:05`     2026-11-13 o 98.18 h 99.3 l 97.96 c 99.25 v 18037685.759968
+- `23:28:05`     2026-11-16 o 100.01 h 100.56 l 99.08 c 99.48 v 19161449.686022
+- `23:28:05`     2026-11-17 o 98.79 h 99.605 l 98.53 c 98.79 v 19066174.83653
+- `23:28:05`     2026-11-18 o 97.965 h 98.87 l 97.16 c 98.09 v 16554005.731197
+- `23:28:05` ✅ audit read: 4316 stocks, 0 with a non-equity type, 15 debt names, 2 preferred names, 33 extended tickers
