@@ -1756,6 +1756,17 @@ def search(q, limit=40, prov=None, kind=None):
         for k, i in rows_ds:
             if k == (m.group(1) + ":" + m.group(2)).upper() and i not in hits:
                 hits[i] = (120, 0)
+    # 3b. a policy pin answers the word itself: "sp500" means the S&P 500 index and SPY whether or not the letters of
+    #     the query appear in their names ("Standard & Poor's 500", "SPDR S&P 500 ETF Trust"). Until 2026-11-19 a pin
+    #     only re-ranked a document the tokens had already matched, so "sp500" led with the FRED copy and never listed
+    #     the index. Provider and kind filters still apply below; a pin the directory does not hold adds nothing.
+    try:
+        for pinned_id in SEARCH_POLICY.get(q.lower(), []):
+            for k, i in _prefix_range(ix["ids"], pinned_id.upper(), cap=3)[0]:
+                if k == pinned_id.upper() and i not in hits:
+                    hits[i] = (1, 0)
+    except Exception:  # noqa: BLE001
+        pass
     warehouse = {"rows": [], "more": False, "facets": [],
                  "integrity": warehouse_cache_evidence(_WIDX, "not_requested")}
     if not kind or kind == "dataset":
