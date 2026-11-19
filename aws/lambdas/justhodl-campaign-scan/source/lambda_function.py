@@ -367,7 +367,8 @@ def rows_of(meta, bars, harvest=None):
         if s_ac and s_ac[0] == ac_i or (ac_src == "both" and s_ac):
             low_i = s_ac[1]["from"]
         else:
-            low_i = h_st if h_st is not None and h_st < ac_i else (h_sc if h_sc is not None and h_sc < ac_i else None)
+            under = [k for k in (h_sc, h_st) if k is not None and k < ac_i]          # the bottom desk's base stands on the lower of its climax and its test
+            low_i = min(under, key=lambda k: L[k]) if under else None
         if low_i is not None:
             low = L[low_i]
             row.update({"low": _r(low, 4), "low_date": dates[low_i], "base_sessions": ac_i - low_i, "gain_from_low_pct": _r((C[ac_i] / low - 1) * 100, 1),
