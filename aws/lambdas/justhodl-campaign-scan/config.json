@@ -1,0 +1,26 @@
+{
+  "runtime": "python3.12",
+  "memory": 2048,
+  "timeout": 900,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Every listed stock and plain ETF the chart's Accumulation, Bottom and Distribution icons would mark: the chart's own climax, cycle-low, end-of-accumulation and distribution scans over the Polygon EOD bank, into data/campaign-scan.json; reads S3 only.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "OUT_KEY": "data/campaign-scan.json",
+    "MIN_DOLLAR_VOL": "250000",
+    "MIN_SESSIONS": "280",
+    "MIN_SCANNED": "2500",
+    "BOTTOM_SESSIONS": "126",
+    "ACCUM_SESSIONS": "63",
+    "DIST_SESSIONS": "63",
+    "THREADS": "16"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-campaign-scan-daily",
+    "cron": "cron(2 4 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Campaign scan, daily 04:02 UTC (after the factor book 02:50, the Polygon EOD bank's fold 03:10 and the bottom desk 03:45, whose board it reads)"
+  }
+}
