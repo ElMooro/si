@@ -250,6 +250,19 @@
   }
   function expandQuery(q) { return tickerVariants(q).concat(aliasVariants(q)).slice(0, 4); }
 
+  // The directory pins a benchmark word to its index ("sp500" -> I:SPX, then SPY, then FRED's copy). Its own answer takes
+  // 20+ seconds whenever the request lands on a directory process that has not loaded the index yet (ops 6849, 2026-11-19:
+  // 22-26 s on three of six words typed), and until it arrived the list led with whatever was already in the browser:
+  // FRED's copy of the S&P 500, then an ETF. The first pin of each index word is therefore known here and leads at once.
+  // It steps aside as soon as the directory has answered, so the directory's own rows and order are what stays on screen.
+  // tests/chart-search-bench-pins.test.js holds these two tables to the directory's SEARCH_POLICY: they cannot drift.
+  var BENCH = { "I:SPX": "Standard & Poor's 500", "I:NDX": "NASDAQ-100", "I:DJI": "Dow Jones Industrial Average", "I:RUT": "Russell 2000" };
+  var BENCH_WORDS = { "sp500": "I:SPX", "spx": "I:SPX", "s&p 500": "I:SPX", "s&p": "I:SPX", "nasdaq": "I:NDX", "ndx": "I:NDX", "dow": "I:DJI", "dow jones": "I:DJI", "russell": "I:RUT" };
+  function benchRows(q) {
+    var id = BENCH_WORDS[String(q || "").trim().toLowerCase()];
+    return id ? [{ id: id, sym: id, name: BENCH[id], kind: "instrument", type: "index", asset_class: "index", provider: "instrument", src: "INDICES", pinned: true, chartable: true, bench: true }] : [];
+  }
+
   // Watchlist index — every symbol in every list (TradingView imports + lists created here), with its name and the lists it sits in.
   var WLX = null, wlxLoading = null, wlxVer = -1;
   function loadNames() {
@@ -582,6 +595,7 @@
       if (!S.prov) { S.facets = d.facets || []; S.total = d.total; }
       else { S.provTotalQ = d.total; }
       G.failed = !!d.failed; G.ambiguous = !!d.ambiguous;
+      if (!d.failed) G.answered = true;          // the directory has spoken for this word: its rows replace the benchmark pin known here
       render();
     });
     var b = (S.prov || kind) ? Promise.resolve() : tvsearch(q, sig).then(function (arr) {
@@ -634,7 +648,9 @@
     var inline = server.length < 8 || G.fixed;
     if (inline) server = server.concat(alt);
     var tickAlt = (G.alt || []).filter(function (r) { return r.viaTicker; });
-    server.concat(G.local || [], G.wl || [], inline ? [] : tickAlt).forEach(function (r) {
+    // a benchmark word leads with its index before the directory has answered (benchRows); never inside one provider's scope
+    var bench = S.prov || G.answered ? [] : benchRows(G.q);
+    bench.concat(server, G.local || [], G.wl || [], inline ? [] : tickAlt).forEach(function (r) {
       var s = String(r.sym || "").toUpperCase(), id = key(r), V = r.viaTicker ? String(r.via).toUpperCase() : Q;
       if (r.pinned || s === Q || id === Q || id.split(":").pop() === Q || r.viaTicker && (s === V || id === V || id.split(":").pop() === V)) exact.push(r);
     });
@@ -1067,7 +1083,8 @@
     setTimeout(loadCoverage, 2500);
   }
   root.JHUniSearch = { open: open, close: close, search: function (q) { open({ q: q }); }, classify: classify, _state: S, loadCoverage: loadCoverage,
-    expandQuery: expandQuery, correct: correct, completions: completions, localWatch: localWatch, loadWLX: loadWLX, _G: function () { return G; }, merged: function () { return merged(); } };
+    expandQuery: expandQuery, correct: correct, completions: completions, localWatch: localWatch, loadWLX: loadWLX, _G: function () { return G; }, merged: function () { return merged(); },
+    benchRows: benchRows, _setG: function (g) { G = g; } };
   root.jhOpenSearch = function (q, dest) { open({ q: q || "", dest: dest || "chart" }); };
   if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", boot); else boot();
 })(window);

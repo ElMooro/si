@@ -151,3 +151,24 @@ git rm -r tests/chart-index-routes.test.js tests/fixtures/chart-index-routes tes
 ```
 
 then commit, push and redeploy the directory (`gh workflow run deploy-lambdas.yml -f function=justhodl-symdir`).
+
+## 2026-11-19, later the same day: a benchmark word leads with its index at once
+
+ops 6849 timed the Symbol Search dialog on the live page. A warm directory process answers a search in about 30 ms, but
+a process that has not loaded the index yet spends 22-26 s loading it inside that request, and three of six words typed
+landed on such a process. Until the directory answered, the list for `sp500` led with what was already in the browser:
+FRED's copy, then an ETF.
+
+`jh-uni-search.js` now knows the first pin of each index word the directory pins (`sp500`, `spx`, `s&p 500`, `s&p` →
+`I:SPX`; `nasdaq`, `ndx` → `I:NDX`; `dow`, `dow jones` → `I:DJI`; `russell` → `I:RUT`) and shows it first until the
+directory has answered; then the directory's own rows and order stand. `tests/chart-search-bench-pins.test.js` holds the
+table to the directory's `SEARCH_POLICY`. Nothing else in the dialog changed.
+
+The state before is commit `0a17bfcc`:
+
+```
+git checkout 0a17bfcc -- jh-uni-search.js
+git rm tests/chart-search-bench-pins.test.js
+```
+
+then commit `[skip-ops]` and push.
