@@ -42,7 +42,7 @@ import polygon_bankfirst    # aws/shared: the Polygon EOD bank's layout (ROOT, M
 import chart_scans as S     # the chart's own scans, ported; parity is a test
 import leaders_tape as T    # the leaders engine's pure tape module, byte-identical copy: own_history, rebase, separation_cut
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 CONTRACT = "campaign-scan.v1"
 ENGINE = "justhodl-campaign-scan"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -65,7 +65,10 @@ RESERVE_S = 45.0
 MAX_ERROR_SHARE = 0.05
 BOOK_FIELDS = ["mcap", "dollar_vol_20d", "ipo_date"]
 NOT_COMMON_SUFFIX = re.compile(r"-(R|RI|RT|RW|WS|WT|W|U|UN|CVR)$")
-GEARED_RX = re.compile(r"\b(\d(\.\d+)?x|ultra|ultrapro|ultrashort|inverse|leveraged|bull|bear)\b", re.I)   # a geared or inverse fund's tape is a derivative of another tape
+# A geared or inverse fund's tape is a derivative of another tape. "Short" names an inverse fund (Short S&P500, Short VIX) unless it
+# names a maturity (Short-Term, Short Duration, Ultra-Short Income) or one leg of a long/short book.
+GEARED_RX = re.compile(r"\b(\d(\.\d+)?x|ultrapro|ultrashort|inverse|leveraged|bull|bear)\b|\bultra\b(?![\s-]*short)"
+                       r"|(?<!long/)(?<!long-)(?<!long )\bshort\b(?![\s-]*(term|duration|maturity|dated|income|bond|treasury|treasuries|muni|municipal|high yield|corporate|credit))", re.I)
 BOARDS = ("accumulation", "bottom", "distribution")
 CFG = Config(retries={"max_attempts": 4, "mode": "standard"}, connect_timeout=5, read_timeout=30, max_pool_connections=THREADS * 2)
 

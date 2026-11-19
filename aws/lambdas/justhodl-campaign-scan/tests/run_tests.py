@@ -140,6 +140,13 @@ def test_universe_rule():
     ok("reasons add up", sum(stats["left_out"].values()) + len(uni) == len(rows) and stats["left_out"]["geared or inverse fund"] == 2 and stats["left_out"]["otc"] == 1
        and stats["left_out"]["thin (under the dollar-volume floor)"] == 2 and stats["left_out"]["not a common stock"] == 3, json.dumps(stats))
     ok("a plain fund name is not read as geared", LF.kind_of(book_row("X", is_common=False, is_etf=True, name="Vanguard Total Bond Market ETF"))[0] == "etf")
+    fund = lambda name: LF.kind_of(book_row("X", is_common=False, is_etf=True, name=name))[0]
+    for name in ("ProShares - Short VIX Short-Term Futures ETF", "ProShares - Short Ether ETF", "YieldMax Short COIN Option Income Strategy ETF", "ProShares Short S&P500", "ProShares Ultra QQQ", "ProShares UltraShort 20+ Year Treasury",
+                 "Direxion Daily Semiconductor Bear 3X Shares", "GraniteShares 2x Long NVDA Daily ETF", "AdvisorShares Ranger Equity Bear ETF", "T-Rex 1.5x Long Bitcoin Daily Target ETF"):
+        ok("geared or inverse: " + name, fund(name) is None)
+    for name in ("JPMorgan Ultra-Short Income ETF", "Vanguard Short-Term Bond ETF", "iShares Short Treasury Bond ETF", "PIMCO Enhanced Short Maturity Active ETF", "SPDR Bloomberg Short Term High Yield Bond ETF",
+                 "First Trust Long/Short Equity ETF", "iShares Short Duration Bond Active ETF", "Invesco QQQ Trust, Series 1", "iShares Ultra Short-Term Bond Active ETF", "Convergence Long/Short Equity ETF"):
+        ok("a plain fund: " + name, fund(name) == "etf")
 
 
 # ------------------------------------------------------------------------------------------------------------- the rows
