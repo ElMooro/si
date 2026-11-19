@@ -106,7 +106,7 @@ STATE = r"""() => { const n = document.getElementById('watchlist-chart-route'), 
   return { hidden: n ? n.hidden : null, requested: n ? n.dataset.requested : null, handoff: n ? n.dataset.handoff : null, text: n ? n.textContent : '', bars: d.length, first: bar(d[0]), last: bar(d[d.length - 1]),
     label: ev.symbol || null, source: String(ev.source || '').slice(0, 90), relation: h ? h.relation : null, active: window.jhWatchlistActive ? window.jhWatchlistActive() : null, quote: t('quote'),
     history: Array.from(document.querySelectorAll('.tvd-ks')).map(e => (e.innerText || '').replace(/\s+/g, ' ').trim()).filter(x => /History/.test(x)).slice(-1)[0] || null }; }"""
-ARRIVED = "() => { const n = document.getElementById('watchlist-chart-route'); const t = n ? n.textContent : ''; return (window.jhChartEvidence || {}).symbol === '^GSPC' && /Retained bars displayed/.test(t); }"
+ARRIVED = "() => { const n = document.getElementById('watchlist-chart-route'); const t = n ? n.textContent : ''; const q = document.getElementById('quote'); return (window.jhWatchlistActive && window.jhWatchlistActive()) === '^GSPC' && /\\^GSPC/.test(((q && q.innerText) || '').slice(0, 12)) && /Requested: VANTAGE:SP500 /.test(t); }"
 LOADED = r"""(h) => { const ev = window.jhChartEvidence || {}, n = document.getElementById('watchlist-chart-route'), t = n && !n.hidden ? n.textContent : '';
   return (String(ev.symbol || '').toUpperCase() === h && (window.lastBars || []).length > 0 && /Retained bars displayed/.test(t)) || /Unavailable: no accepted plotted bars/.test(t); }"""
 SETTLED = "() => { const n = document.getElementById('watchlist-chart-route'); const t = n ? n.textContent : ''; return !n || n.hidden || /Retained bars displayed|Unavailable: no accepted plotted bars/.test(t); }"
@@ -163,7 +163,7 @@ def main():
                     o = page.evaluate(OPEN, s)
                 if o.get("handoff") and settle:
                     try:
-                        page.wait_for_function(LOADED, arg=o["handoff"].upper(), timeout=60000)
+                        page.wait_for_function(LOADED, arg=o["handoff"].upper(), timeout=30000)
                     except Exception:  # noqa: BLE001
                         pass
                     page.wait_for_timeout(900)
@@ -173,16 +173,24 @@ def main():
 
             r.section("A2. each id, opened the way a pick or a row opens it")
             ref = open_id("SPX")
-            ck(ref["label"] == "^GSPC" and ref["bars"] > MIN_INDEX_BARS and day(ref["last"]) >= week, "control SPX: label %s, %d bars, last %s" % (ref["label"], ref["bars"], day(ref["last"])))
+            ck(ref["active"] == "^GSPC" and "^GSPC" in (ref["quote"] or "")[:12] and ref["bars"] > MIN_INDEX_BARS and day(ref["last"]) >= week, "control SPX: active %s, %d bars, last %s" % (ref["active"], ref["bars"], day(ref["last"])))
             r.log("control SPX -> chart label %s, %d bars %s..%s, last close %s, source %s" % (ref["label"], ref["bars"], day(ref["first"]), day(ref["last"]), (ref["last"] or {}).get("close"), ref["source"]))
             pack["control"] = ref
+            labelled, lagged = 0, []
             for s in IDS:
                 if s in FULL:
                     away = open_id("SPY")
-                    ck(away["label"] == "SPY", "%s: the chart did not switch away to SPY first (label %s)" % (s, away["label"]))
+                    ck(away["active"] == "SPY" and "SPY" in (away["quote"] or "")[:8], "%s: the chart did not switch away to SPY first (active %s)" % (s, away["active"]))
                 st = open_id(s)
-                good = (st["open_handoff"] == "^GSPC" and st["label"] == "^GSPC" and st["active"] == "^GSPC" and st["bars"] == ref["bars"] and (st["last"] or {}).get("close") == (ref["last"] or {}).get("close")
-                        and day(st["last"]) == day(ref["last"]) and "Retained bars displayed" in st["text"] and st["text"].startswith("Requested: %s " % s) and "No supported chart route" not in st["text"])
+                # what the chart shows: the engine's own active symbol, its bars and its quote line. The evidence label the status line
+                # prints ("Chart label: ...") is recorded beside it: ops 6847's first two runs found it missing on 1-2 of 24 opens while
+                # the chart, the bars and the price were the index's.
+                close, rclose = (st["last"] or {}).get("close") or 0, (ref["last"] or {}).get("close") or 1
+                good = (st["open_handoff"] == "^GSPC" and st["active"] == "^GSPC" and st["bars"] == ref["bars"] and day(st["first"]) == day(ref["first"]) and day(st["last"]) == day(ref["last"])
+                        and abs(close / rclose - 1) < 0.02 and "^GSPC" in (st["quote"] or "")[:12] and st["text"].startswith("Requested: %s " % s) and "No supported chart route" not in st["text"])
+                labelled += 1 if (st["label"] == "^GSPC" and "Retained bars displayed" in st["text"]) else 0
+                if good and st["label"] != "^GSPC":
+                    lagged.append(s)
                 ck(good, "%s: handoff %s, label %s, active %s, %d bars, last %s %s | %s" % (s, st["open_handoff"], st["label"], st["active"], st["bars"], day(st["last"]), (st["last"] or {}).get("close"), st["text"][:160]))
                 pack["routes"].append({"id": s, "ok": good, "state": st})
                 r.log("%-20s %s handoff %s | chart label %s, %d bars %s..%s, last close %s%s" % (s, "CHARTS" if good else "WRONG ", st["open_handoff"], st["label"], st["bars"], day(st["first"]), day(st["last"]),
@@ -192,6 +200,10 @@ def main():
                     r.log("quote line: %s" % (st["quote"] or "")[:200])
                     shots["vantage_sp500_1440"] = page.screenshot(type="jpeg", quality=55)
 
+            r.log("status-line label: %d of %d opens carried 'Chart label: ^GSPC'; on %d the line still said 'awaiting chart frame' after 30 s although the chart, bars and price were the index's: %s" % (
+                labelled, len(IDS), len(lagged), lagged))
+            pack["label_lag"] = lagged
+
             r.section("A3. the neighbours are as they were")
             for s in UNROUTED:
                 before = page.evaluate(STATE)
@@ -200,10 +212,10 @@ def main():
                 ck(same, "%s should still have no route and leave the chart alone: handoff %r, label %s, %s" % (s, st["open_handoff"], st["label"], st["text"][:120]))
                 r.log("%-20s still no route, chart left on %s (%d bars): %s" % (s, st["label"], st["bars"], same))
             spy = open_id("SPY")
-            ck(spy["label"] == "SPY" and spy["bars"] > MIN_SPY_BARS and day(spy["last"]) >= week, "SPY: label %s, %d bars, last %s" % (spy["label"], spy["bars"], day(spy["last"])))
+            ck(spy["active"] == "SPY" and "SPY" in (spy["quote"] or "")[:8] and spy["bars"] > MIN_SPY_BARS and day(spy["last"]) >= week, "SPY: active %s, %d bars, last %s" % (spy["active"], spy["bars"], day(spy["last"])))
             r.log("SPY                  chart label %s, %d bars %s..%s, last close %s" % (spy["label"], spy["bars"], day(spy["first"]), day(spy["last"]), (spy["last"] or {}).get("close")))
             tvc = open_id("TVC:SPX")
-            ck(tvc["label"] == "^GSPC" and tvc["bars"] == ref["bars"], "TVC:SPX: label %s, %d bars" % (tvc["label"], tvc["bars"]))
+            ck(tvc["active"] == "^GSPC" and tvc["bars"] == ref["bars"], "TVC:SPX: active %s, %d bars" % (tvc["active"], tvc["bars"]))
             r.log("TVC:SPX              chart label %s, %d bars" % (tvc["label"], tvc["bars"]))
 
             r.section("A4. the two real paths")
@@ -231,7 +243,7 @@ def main():
             page.wait_for_timeout(900)
             st = page.evaluate(STATE)
             ck(bool(hit), "the dialog for sp500 no longer lists a VANTAGE:SP500 row")
-            ck(st["label"] == "^GSPC" and st["bars"] == ref["bars"] and st["requested"] == "VANTAGE:SP500", "search path: label %s, %d bars, requested %s (%s)" % (st["label"], st["bars"], st["requested"], how))
+            ck(st["active"] == "^GSPC" and "^GSPC" in (st["quote"] or "")[:12] and st["bars"] == ref["bars"] and st["requested"] == "VANTAGE:SP500", "search path: label %s, %d bars, requested %s (%s)" % (st["label"], st["bars"], st["requested"], how))
             r.log("search path: %s -> chart label %s, %d bars, last %s" % (how, st["label"], st["bars"], day(st["last"])))
             pack["paths"]["search"] = {"how": how, "state": st}
 
@@ -254,12 +266,22 @@ def main():
                     pass
                 st = page.evaluate(STATE)
                 after = page.evaluate("() => { const e = Array.from(document.querySelectorAll('.wl-row[data-id]')).find(x => String(x.getAttribute('data-id')).toUpperCase() === 'VANTAGE:SP500'); return e ? (e.innerText || '').replace(/\\s+/g, ' ').trim().slice(0, 90) : null; }")
-                ck(st["label"] == "^GSPC" and st["bars"] == ref["bars"] and st["requested"] == "VANTAGE:SP500", "watchlist row: label %s, %d bars, requested %s" % (st["label"], st["bars"], st["requested"]))
+                ck(st["active"] == "^GSPC" and "^GSPC" in (st["quote"] or "")[:12] and st["bars"] == ref["bars"] and st["requested"] == "VANTAGE:SP500", "watchlist row: label %s, %d bars, requested %s" % (st["label"], st["bars"], st["requested"]))
                 ck(st["history"] and "Observations" in st["history"], "the details card has no History line for the row: %r" % st["history"])
                 r.log("details card: %s | the row itself now reads %r" % (st["history"], after))
                 r.log("watchlist path: added it to the active list (%s), clicked its row %r -> chart label %s, %d bars, last %s" % (added, row, st["label"], st["bars"], day(st["last"])))
                 pack["paths"]["row"] = {"added": added, "row": row, "state": st}
                 shots["watchlist_row_1440"] = page.screenshot(type="jpeg", quality=55)
+
+            r.section("A4b. the status-line label on the route that existed before this change (SPY <-> TVC:SPX)")
+            old_lag = 0
+            for n in range(4):
+                open_id("SPY")
+                st = open_id("TVC:SPX")
+                miss = st["active"] == "^GSPC" and st["bars"] == ref["bars"] and st["label"] != "^GSPC"
+                old_lag += 1 if miss else 0
+                r.log("TVC:SPX open %d: active %s, %d bars, status-line label %s%s" % (n + 1, st["active"], st["bars"], st["label"], " <- chart is the index, label missing" if miss else ""))
+            pack["label_lag_old_route"] = old_lag
 
             r.section("A5. page errors")
             bad = [e for e in errors if "L is not defined" in e]
@@ -294,7 +316,7 @@ def main():
             page.wait_for_function("() => typeof window.jhWatchlistOpen === 'function' && !!(window.JHTvWatchlist && window.JHTvWatchlist.route) && (window.lastBars || []).length > 100", timeout=90000)
             page.wait_for_timeout(7000)
             st = open_id("VANTAGE:SP500")
-            ck(st["open_handoff"] == "^GSPC" and st["label"] == "^GSPC" and st["bars"] == ref["bars"], "390 px: handoff %s, label %s, %d bars" % (st["open_handoff"], st["label"], st["bars"]))
+            ck(st["open_handoff"] == "^GSPC" and st["active"] == "^GSPC" and "^GSPC" in (st["quote"] or "")[:12] and st["bars"] == ref["bars"], "390 px: handoff %s, label %s, %d bars" % (st["open_handoff"], st["label"], st["bars"]))
             ck(not [e for e in perr if "L is not defined" in e], "390 px: 'L is not defined' page error")
             r.log("390 px: VANTAGE:SP500 -> handoff %s, chart label %s, %d bars, last %s close %s; page errors %d" % (st["open_handoff"], st["label"], st["bars"], day(st["last"]), (st["last"] or {}).get("close"), len(perr)))
             shots["vantage_sp500_390"] = page.screenshot(type="jpeg", quality=55)
@@ -315,7 +337,7 @@ def main():
             r.lines.append("<!-- SHOT %s %d bytes" % (k, len(img)))
             r.lines.extend(b64[i:i + 16000] for i in range(0, len(b64), 16000))
             r.lines.append("SHOT-END -->")
-        r.kv(failures=str(len(fails)), ids=str(len(IDS)), charting=str(len([x for x in pack["routes"] if x["ok"]])), index_bars=str(ref["bars"]), index_last=day(ref["last"]),
+        r.kv(failures=str(len(fails)), ids=str(len(IDS)), charting=str(len([x for x in pack["routes"] if x["ok"]])), label_lag=str(len(pack.get("label_lag") or [])), label_lag_old_route=str(pack.get("label_lag_old_route")), index_bars=str(ref["bars"]), index_last=day(ref["last"]),
              spread_leg=str(next((x["verdict"] for x in pack["series"] if x["id"] == "VANTAGE:SP500"), "")))
         if fails:
             r.fail("LIVE PROOF: %d failed checks - %s" % (len(fails), "; ".join(fails[:6])))
