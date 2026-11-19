@@ -1,0 +1,1887 @@
+{
+ "note": "Evidence for the reviewed index routes in jh-chart-tvwatch.js chartSymbol. search_rows: TradingView symbol search as read through the data proxy (/tv-search) by ops 6846 on 2026-11-19, first 30 rows of each query. from_lists: ids in his copied TradingView lists with the name stored beside them (jh-watchlist-names.js). directory_pins: the Polygon index ids the search directory pins (SEARCH_POLICY in justhodl-symdir). engine_alias: an id the chart engine already resolves to the index through its own TVC rule.",
+ "read_at": "2026-11-19T19:08:03.189201+00:00",
+ "queries": [
+  "sp500",
+  "spx",
+  "s&p 500",
+  "us500",
+  "nasdaq 100",
+  "ndx",
+  "dow jones",
+  "dji",
+  "vix"
+ ],
+ "routes": {
+  "^GSPC": [
+   "I:SPX",
+   "SP:SPX",
+   "SPCFD:SPX",
+   "SPREADEX:SPX",
+   "VANTAGE:SP500",
+   "BLUEBERRY:SP500",
+   "DARWINEX:SP500",
+   "CAPITALCOM:SPX500",
+   "FOREXCOM:SPX500",
+   "BLACKBULL:SPX500",
+   "FX:SPX500",
+   "OANDA:SPX500USD",
+   "IC:US500",
+   "CFI:US500",
+   "PEPPERSTONE:US500",
+   "BLACKBULL:US500",
+   "FPMARKETS:US500",
+   "TICKMILL:US500",
+   "FUSIONMARKETS:US500",
+   "GBEBROKERS:US500",
+   "TRADENATION:US500",
+   "PURPLETRADING:US500",
+   "ERRANTE:US500",
+   "GOMARKETS:US500",
+   "EQUITI:US500"
+  ],
+  "^NDX": [
+   "I:NDX",
+   "TVC:NDX",
+   "SPREADEX:NDX",
+   "CFI:US100",
+   "PURPLETRADING:US100",
+   "THINKMARKETS:NAS100",
+   "CXM:NAS100",
+   "FX:NAS100",
+   "FXPRO:NDAQ100",
+   "DARWINEX:NDQ",
+   "EASYMARKETS:NQCUSD"
+  ],
+  "^DJI": [
+   "I:DJI",
+   "DJ:DJI",
+   "SPREADEX:DJI",
+   "OPO:DJIUSD",
+   "FX:US30",
+   "CAPITALCOM:US30",
+   "VANTAGE:DJ30"
+  ],
+  "^RUT": [
+   "I:RUT"
+  ],
+  "^IXIC": [
+   "I:COMP"
+  ],
+  "^VIX": [
+   "I:VIX",
+   "TVC:VIX"
+  ],
+  "^TNX": [
+   "TVC:TNX"
+  ]
+ },
+ "describes": {
+  "^GSPC": "S&P|SPX|SP 500|US ?500",
+  "^NDX": "nasdaq[ -]?100|tech 100",
+  "^DJI": "dow jones|wall street",
+  "^VIX": "volatility",
+  "^TNX": "10 YR TREASURY NOTE YIELD",
+  "^RUT": "russell 2000",
+  "^IXIC": "nasdaq composite"
+ },
+ "from_lists": {
+  "SPCFD:SPX": {
+   "name": "SPX (SPCFD)",
+   "type": "stock"
+  },
+  "FX:NAS100": {
+   "name": "US 100 Index",
+   "type": "index"
+  },
+  "CAPITALCOM:US30": {
+   "name": "US 30",
+   "type": "index"
+  },
+  "TVC:TNX": {
+   "name": "CBOE 10 YR TREASURY NOTE YIELD",
+   "type": "index"
+  },
+  "TVC:VIX": {
+   "name": "VOLATILITY S&P 500",
+   "type": "index"
+  }
+ },
+ "directory_pins": [
+  "I:SPX",
+  "I:NDX",
+  "I:DJI",
+  "I:RUT",
+  "I:COMP",
+  "I:VIX"
+ ],
+ "engine_alias": [
+  "TVC:NDX"
+ ],
+ "search_rows": [
+  {
+   "id": "VANTAGE:SP500",
+   "description": "S&P Index Cash CFD (USD)",
+   "exchange": "Vantage",
+   "type": "index",
+   "query": "sp500"
+  },
+  {
+   "id": "BLUEBERRY:SP500",
+   "description": "US SPX 500 Cash",
+   "exchange": "Blueberry",
+   "type": "index",
+   "query": "sp500"
+  },
+  {
+   "id": "DARWINEX:SP500",
+   "description": "US S&P 500 Index",
+   "exchange": "Darwinex",
+   "type": "index",
+   "query": "sp500"
+  },
+  {
+   "id": "VANTAGE:SP500FT",
+   "description": "SP500 Future",
+   "exchange": "Vantage",
+   "type": "index",
+   "query": "sp500"
+  },
+  {
+   "id": "HIP3XYZ:SP500USDC.P",
+   "description": "SP500 Perpetual Contract",
+   "exchange": "Trade[XYZ] HIP-3 Hyperliquid",
+   "type": "swap",
+   "query": "sp500"
+  },
+  {
+   "id": "MEXC:SP500USDT.P",
+   "description": "SP500 / Tether PERPETUAL FUTURES",
+   "exchange": "MEXC",
+   "type": "swap",
+   "query": "sp500"
+  },
+  {
+   "id": "DELTAIN:SPYXUSD.P",
+   "description": "SP500 xStock Token perpetual future quoted in USD",
+   "exchange": "Delta Exchange India",
+   "type": "swap",
+   "query": "sp500"
+  },
+  {
+   "id": "CRYPTO:SPYXUSD",
+   "description": "SP500 tokenized ETF (xStock)",
+   "exchange": "CRYPTO",
+   "type": "spot",
+   "query": "sp500"
+  },
+  {
+   "id": "EUROTLX:CI4432",
+   "description": "SP500 EP1130C",
+   "exchange": "EUROTLX",
+   "type": "structured",
+   "query": "sp500"
+  },
+  {
+   "id": "EUROTLX:I06299",
+   "description": "Intesa Sanpaolo SpA Protection Participation 2020-07.10.27 (Exp.05.10.27) on SP500 NTR10DRRCTL2D",
+   "exchange": "EUROTLX",
+   "type": "warrant",
+   "query": "sp500"
+  },
+  {
+   "id": "XETR:0USE",
+   "description": "OSSIAM SP500 UCITS ETF 1C/A (USD)- Capitalisation",
+   "exchange": "XETR",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "GETTEX:0USE",
+   "description": "OSSIAM SP500 UCITS ETF 1C/A (USD)- Capitalisation",
+   "exchange": "GETTEX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "LSX:A411U8",
+   "description": "OSSIAM SP500 UCITS ETF 1C/A (USD)- Capitalisation",
+   "exchange": "LSX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "LS:A411U8",
+   "description": "OSSIAM SP500 UCITS ETF 1C/A (USD)- Capitalisation",
+   "exchange": "LS",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:0026S0",
+   "description": "Hana 1Q U.S. SP500 ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:433330",
+   "description": "Shinhan SOL SP500 ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:483570",
+   "description": "KCGI KCGI US SP500 TOP10 ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:499150",
+   "description": "Shinhan SOL US SP500 JPY ETF(H) Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:494410",
+   "description": "Hanwha PLUS SP500 Growth ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:0041E0",
+   "description": "SAMSUNG KODEX US SP500 Active ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:453640",
+   "description": "SAMSUNG KODEX SP500 Health Care ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:453650",
+   "description": "SAMSUNG KODEX SP500 Financial ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:463680",
+   "description": "SAMSUNG KODEX SP500 Technology ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:0052S0",
+   "description": "Hana 1Q U.S. SP500 Blend 50 Active ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:0005C0",
+   "description": "KB RISE US SP500 Yen Hedged ETF(SYNTH H) Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:463640",
+   "description": "SAMSUNG KODEX SP500 Utilities ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:453630",
+   "description": "SAMSUNG KODEX SP500 Consumer Staples ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:0026E0",
+   "description": "SAMSUNG KODEX US SP500 Buffer March Active ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:0068M0",
+   "description": "SAMSUNG KODEX US SP500 Buffer June Active ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:0138T0",
+   "description": "KB RISE US SP500 10% Daily Fixed Covered Call ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "SP:SPX",
+   "description": "S&P 500",
+   "exchange": "SP",
+   "type": "index",
+   "query": "spx"
+  },
+  {
+   "id": "TVC:SPX",
+   "description": "S&P 500 Index",
+   "exchange": "TVC",
+   "type": "index",
+   "query": "spx"
+  },
+  {
+   "id": "SPREADEX:SPX",
+   "description": "SPX 500, Daily",
+   "exchange": "Spreadex",
+   "type": "index",
+   "query": "spx"
+  },
+  {
+   "id": "LSE:SPX",
+   "description": "Spirax Group plc.",
+   "exchange": "LSE",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "GETTEX:SPX",
+   "description": "Space Exploration Technologies Corp. Class A",
+   "exchange": "GETTEX",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "TRADEGATE:SPX",
+   "description": "Space Exploration Technologies Corp. Class A",
+   "exchange": "TRADEGATE",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "XETR:SPX",
+   "description": "Space Exploration Technologies Corp. Class A",
+   "exchange": "XETR",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "EURONEXT:SPX",
+   "description": "Amundi Core S&P 500 Swap UCITS ETF EUR Dist",
+   "exchange": "Euronext Paris",
+   "type": "fund",
+   "query": "spx"
+  },
+  {
+   "id": "FWB:SPX",
+   "description": "Space Exploration Technologies Corp. Class A",
+   "exchange": "FWB",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "ASX:SPX",
+   "description": "Spenda Limited",
+   "exchange": "ASX",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "HAM:SPX",
+   "description": "Space Exploration Technologies Corp. Class A",
+   "exchange": "HAM",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "HAN:SPX",
+   "description": "Space Exploration Technologies Corp. Class A",
+   "exchange": "HAN",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "DUS:SPX",
+   "description": "Space Exploration Technologies Corp. Class A",
+   "exchange": "DUS",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "MUN:SPX",
+   "description": "Space Exploration Technologies Corp. Class A",
+   "exchange": "MUN",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "TSXV:SPX",
+   "description": "Stellar AfricaGold, Inc.",
+   "exchange": "TSXV",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "NEO:SPX",
+   "description": "Stellar AfricaGold, Inc.",
+   "exchange": "NEO",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "BSESOF:SPX",
+   "description": "Space Exploration Technologies Corp. Class A",
+   "exchange": "BSESOF",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "SWB:SPX",
+   "description": "Space Exploration Technologies Corp. Class A",
+   "exchange": "SWB",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "BVB:SPX",
+   "description": "SIPEX Company",
+   "exchange": "BVB",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "EUREX:SPXF",
+   "description": "Spirax Group plc Futures",
+   "exchange": "EUREX",
+   "type": "futures",
+   "query": "spx"
+  },
+  {
+   "id": "SHFE:SP",
+   "description": "Bleached Softwood Kraft Pulp Futures",
+   "exchange": "SHFE",
+   "type": "futures",
+   "query": "spx"
+  },
+  {
+   "id": "CAPITALCOM:SPX500",
+   "description": "US 500",
+   "exchange": "Capital.com",
+   "type": "index",
+   "query": "spx"
+  },
+  {
+   "id": "CMC Markets:SPX500",
+   "description": "US SPX 500",
+   "exchange": "CMC Markets",
+   "type": "futures",
+   "query": "spx"
+  },
+  {
+   "id": "AMEX:SPXL",
+   "description": "Direxion Daily S&P 500 Bull 3X ETF",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "spx"
+  },
+  {
+   "id": "OANDA:SPX500USD",
+   "description": "US SPX 500",
+   "exchange": "OANDA",
+   "type": "index",
+   "query": "spx"
+  },
+  {
+   "id": "FOREXCOM:SPX500",
+   "description": "US SP 500 CFD",
+   "exchange": "FOREXCOM",
+   "type": "index",
+   "query": "spx"
+  },
+  {
+   "id": "BLACKBULL:SPX500",
+   "description": "US500 Index (Cash)",
+   "exchange": "BlackBull Markets",
+   "type": "index",
+   "query": "spx"
+  },
+  {
+   "id": "AMEX:SPXS",
+   "description": "Direxion Daily S&P 500 Bear 3X ETF",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "spx"
+  },
+  {
+   "id": "FX:SPX500",
+   "description": "S&P 500 Index Cash",
+   "exchange": "FXCM",
+   "type": "index",
+   "query": "spx"
+  },
+  {
+   "id": "BLACKBULL:US500.F",
+   "description": "SPX500 Index (Futures)",
+   "exchange": "BlackBull Markets",
+   "type": "index",
+   "query": "spx"
+  },
+  {
+   "id": "CME:ES",
+   "description": "E-mini S&P 500 Futures",
+   "exchange": "CME",
+   "type": "futures",
+   "query": "s&p 500"
+  },
+  {
+   "id": "AMEX:SPY",
+   "description": "SPDR S&P 500 ETF TRUST",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "s&p 500"
+  },
+  {
+   "id": "CME:MES",
+   "description": "Micro E-mini S&P 500 Index Futures",
+   "exchange": "CME",
+   "type": "futures",
+   "query": "s&p 500"
+  },
+  {
+   "id": "TVC:VIX",
+   "description": "VOLATILITY S&P 500",
+   "exchange": "TVC",
+   "type": "index",
+   "query": "s&p 500"
+  },
+  {
+   "id": "AMEX:VOO",
+   "description": "Vanguard S&P 500 ETF",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "s&p 500"
+  },
+  {
+   "id": "INDEX:S5FI",
+   "description": "S&P 500 Stocks Above 50-Day Average",
+   "exchange": "INDEX",
+   "type": "index",
+   "query": "s&p 500"
+  },
+  {
+   "id": "IC:US500",
+   "description": "USA S&P 500 Index",
+   "exchange": "IC",
+   "type": "index",
+   "query": "s&p 500"
+  },
+  {
+   "id": "AMEX:RSP",
+   "description": "Invesco S&P 500 Equal Weight ETF",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "s&p 500"
+  },
+  {
+   "id": "INDEX:S5TH",
+   "description": "S&P 500 Stocks Above 200-Day Average",
+   "exchange": "INDEX",
+   "type": "index",
+   "query": "s&p 500"
+  },
+  {
+   "id": "CBOE:XSP",
+   "description": "S&P 500 MINI SPX OPTIONS INDEX",
+   "exchange": "CBOE",
+   "type": "index",
+   "query": "s&p 500"
+  },
+  {
+   "id": "INDEX:S5TW",
+   "description": "S&P 500 Stocks Above 20-Day Average",
+   "exchange": "INDEX",
+   "type": "index",
+   "query": "s&p 500"
+  },
+  {
+   "id": "CBOE:VIX3M",
+   "description": "CBOE S&P 500 3-Month Volatility Index",
+   "exchange": "CBOE",
+   "type": "index",
+   "query": "s&p 500"
+  },
+  {
+   "id": "CBOE:VXX",
+   "description": "iPath Series B S&P 500 VIX Short-Term Futures ETN",
+   "exchange": "CBOE",
+   "type": "fund",
+   "query": "s&p 500"
+  },
+  {
+   "id": "AMEX:SPMO",
+   "description": "Invesco S&P 500 Momentum ETF",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "s&p 500"
+  },
+  {
+   "id": "CBOE:VIX9D",
+   "description": "CBOE S&P 500 9-Day Volatility Index",
+   "exchange": "CBOE",
+   "type": "index",
+   "query": "s&p 500"
+  },
+  {
+   "id": "AMEX:SPYM",
+   "description": "State Street SPDR Portfolio S&P 500 ETF",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "s&p 500"
+  },
+  {
+   "id": "AMEX:IVV",
+   "description": "iShares Core S&P 500 ETF",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "s&p 500"
+  },
+  {
+   "id": "CFI:US500",
+   "description": "S&P 500 SPOT",
+   "exchange": "CFI",
+   "type": "index",
+   "query": "s&p 500"
+  },
+  {
+   "id": "CME:NES",
+   "description": "E-nano S&P 500 Futures",
+   "exchange": "CME",
+   "type": "futures",
+   "query": "s&p 500"
+  },
+  {
+   "id": "BCBA:SPY",
+   "description": "SPDR S&P 500 ETF Trust Cert Deposito Arg Repr 0.05 Sh",
+   "exchange": "BYMA",
+   "type": "dr",
+   "query": "s&p 500"
+  },
+  {
+   "id": "INDEX:S5FD",
+   "description": "S&P 500 Stocks Above 5-Day Average",
+   "exchange": "INDEX",
+   "type": "index",
+   "query": "s&p 500"
+  },
+  {
+   "id": "TSX:VFV",
+   "description": "Vanguard S&P 500 Index ETF",
+   "exchange": "TSX",
+   "type": "fund",
+   "query": "s&p 500"
+  },
+  {
+   "id": "PEPPERSTONE:US500",
+   "description": "US 500 Index",
+   "exchange": "Pepperstone",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "BLACKBULL:US500",
+   "description": "US500 Index (Cash)",
+   "exchange": "BlackBull Markets",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "FPMARKETS:US500",
+   "description": "US 500 Index Cash",
+   "exchange": "FP Markets",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "TICKMILL:US500",
+   "description": "US SPX 500 Index",
+   "exchange": "Tickmill",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "FUSIONMARKETS:US500",
+   "description": "US 500 Index",
+   "exchange": "Fusion Markets",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "GBEBROKERS:US500",
+   "description": "SPX500",
+   "exchange": "GBE brokers",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "TRADENATION:US500",
+   "description": "US 500 (per 1.0)",
+   "exchange": "Trade Nation",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "PURPLETRADING:US500",
+   "description": "S&P 500 Index",
+   "exchange": "Purple Trading",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "EURONEXT:US500",
+   "description": "Franklin S&P 500 Screened UCITS ETF Accum Shs USD",
+   "exchange": "Euronext Paris",
+   "type": "fund",
+   "query": "us500"
+  },
+  {
+   "id": "ERRANTE:US500",
+   "description": "US 500 CASH",
+   "exchange": "Errante",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "GOMARKETS:US500",
+   "description": "US 500 Cash",
+   "exchange": "GO Markets",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "EQUITI:US500",
+   "description": "US SPX 500 Cash Index",
+   "exchange": "Equiti",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "PRIMEXBT:US500",
+   "description": "US large-cap index",
+   "exchange": "PrimeXBT",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "COINBASE Derivatives:US5",
+   "description": "US500 Index Perp Style Futures",
+   "exchange": "COINBASE Derivatives",
+   "type": "futures",
+   "query": "us500"
+  },
+  {
+   "id": "BX:LS9KXA",
+   "description": "Lang & Schwarz Aktiengesellschaft Underlying Tracker 2017-open end on TradeInvest US500",
+   "exchange": "BX",
+   "type": "structured",
+   "query": "us500"
+  },
+  {
+   "id": "OKX:US500USDT.P",
+   "description": "US500USDT Perpetual Swap Contract",
+   "exchange": "OKX",
+   "type": "swap",
+   "query": "us500"
+  },
+  {
+   "id": "KCEX:US500USDT.P",
+   "description": "US500 Index / USDT PERPETUAL SWAP CONTRACT",
+   "exchange": "KCEX",
+   "type": "swap",
+   "query": "us500"
+  },
+  {
+   "id": "MILSEDEX:DY0974",
+   "description": "DYN EXP SOL US500/EU50/JAP225/ 70 070929",
+   "exchange": "MILSEDEX",
+   "type": "structured",
+   "query": "us500"
+  },
+  {
+   "id": "MILSEDEX:DY8789",
+   "description": "DYN EXP SOL US500/EU50/JAP/FBK 70 120630",
+   "exchange": "MILSEDEX",
+   "type": "structured",
+   "query": "us500"
+  },
+  {
+   "id": "OKX:US500USD.UM",
+   "description": "US500USD UM X-Perp Contract",
+   "exchange": "OKX",
+   "type": "futures",
+   "query": "us500"
+  },
+  {
+   "id": "PEPPERSTONE:US500F",
+   "description": "US SPX 500 - Forward (17 Sep - 16 Dec)",
+   "exchange": "Pepperstone",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "TRADENATION:US500FU",
+   "description": "US 500 - Rolling Future (Per 1.0)",
+   "exchange": "Trade Nation",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "EURONEXT:US500-ETFP",
+   "description": "Franklin S&P 500 Screened UCITS ETF Accum Shs USD",
+   "exchange": "Euronext Paris",
+   "type": "fund",
+   "query": "us500"
+  },
+  {
+   "id": "PEPPERSTONE:US500.P",
+   "description": "US 500 Index Perpetual",
+   "exchange": "Pepperstone",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "FWB:US500472AC9",
+   "description": "Koninklijke Philips N.V. 6.875% 11-MAR-2038",
+   "exchange": "FWB",
+   "type": "bond",
+   "query": "us500"
+  },
+  {
+   "id": "FWB:US500631AH9",
+   "description": "Korea Electric Power Corporation 7.0% 01-FEB-2027",
+   "exchange": "FWB",
+   "type": "bond",
+   "query": "us500"
+  },
+  {
+   "id": "CFI:US100",
+   "description": "Nasdaq 100 SPOT",
+   "exchange": "CFI",
+   "type": "index",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "THINKMARKETS:NAS100",
+   "description": "Nasdaq 100 Index",
+   "exchange": "ThinkMarkets",
+   "type": "index",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "NASDAQ:QQQM",
+   "description": "Invesco NASDAQ 100 ETF",
+   "exchange": "NASDAQ",
+   "type": "fund",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "PURPLETRADING:US100",
+   "description": "Nasdaq 100 Index",
+   "exchange": "Purple Trading",
+   "type": "index",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "CBOE:VXN",
+   "description": "CBOE NASDAQ 100 Volatility",
+   "exchange": "CBOE",
+   "type": "index",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "NASDAQ:QQQI",
+   "description": "NEOS Nasdaq 100 High Income ETF",
+   "exchange": "NASDAQ",
+   "type": "fund",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "INDEX:NDFI",
+   "description": "Nasdaq 100 Stocks Above 50-Day Average",
+   "exchange": "INDEX",
+   "type": "index",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "FXPRO:NDAQ100",
+   "description": "US Nasdaq 100 Spot Index",
+   "exchange": "FxPro",
+   "type": "index",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "INDEX:NDTH",
+   "description": "Nasdaq 100 Stocks Above 200-Day Average",
+   "exchange": "INDEX",
+   "type": "index",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "DARWINEX:NDQ",
+   "description": "US NASDAQ 100 Index",
+   "exchange": "Darwinex",
+   "type": "index",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "INDEX:NDTW",
+   "description": "Nasdaq 100 Stocks Above 20-Day Average",
+   "exchange": "INDEX",
+   "type": "index",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "CXM:NAS100",
+   "description": "Nasdaq 100",
+   "exchange": "CXM",
+   "type": "index",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "NASDAQ:QQQE",
+   "description": "Direxion NASDAQ-100 Equal Weighted Index ETF",
+   "exchange": "NASDAQ",
+   "type": "fund",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "LSE:CNDX",
+   "description": "iShares NASDAQ 100 UCITS ETF USD",
+   "exchange": "LSE",
+   "type": "fund",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "XETR:SXRV",
+   "description": "iShares NASDAQ 100 UCITS ETF USD",
+   "exchange": "XETR",
+   "type": "fund",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "NSE:MON100",
+   "description": "Motilal Oswal NASDAQ 100 ETF Exchange Traded Fund Units",
+   "exchange": "NSE",
+   "type": "fund",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "EASYMARKETS:NQCUSD",
+   "description": "Nasdaq 100 Cash Index / US Dollar",
+   "exchange": "easyMarkets",
+   "type": "index",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "ASX:NDQ",
+   "description": "BetaShares NASDAQ 100 ETF",
+   "exchange": "ASX",
+   "type": "fund",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "BTCC:TECH100USDT.P",
+   "description": "Nasdaq 100 Index vs Tether USD PERPETUAL CONTRACT",
+   "exchange": "BTCC",
+   "type": "swap",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "NASDAQ:GPIQ",
+   "description": "Goldman Sachs Nasdaq-100 Premium Income ETF",
+   "exchange": "NASDAQ",
+   "type": "fund",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "NASDAQ:QYLD",
+   "description": "Global X NASDAQ 100 Covered Call ETF",
+   "exchange": "NASDAQ",
+   "type": "fund",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "INDEX:NDFD",
+   "description": "Nasdaq 100 Stocks Above 5-Day Average",
+   "exchange": "INDEX",
+   "type": "index",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "LSE:QQQ3",
+   "description": "WisdomTree NASDAQ 100 3x Daily Leveraged",
+   "exchange": "LSE",
+   "type": "fund",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "TSX:QQC",
+   "description": "CI Invesco NASDAQ 100 Index ETF Trust Units",
+   "exchange": "TSX",
+   "type": "fund",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "INDEX:NDOH",
+   "description": "Nasdaq 100 Stocks Above 100-Day Average",
+   "exchange": "INDEX",
+   "type": "index",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "NASDAQ:NDXESG06",
+   "description": "Nasdaq 100 ESG HKD Index",
+   "exchange": "NASDAQ",
+   "type": "index",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "CBOE:BXN",
+   "description": "NASDAQ 100 BUY WRITE INDEX",
+   "exchange": "CBOE",
+   "type": "index",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "NASDAQ:XNDX2D",
+   "description": "Nasdaq 100 Total Return 2% Decrement Index",
+   "exchange": "NASDAQ",
+   "type": "index",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "XETR:XNAS",
+   "description": "Xtrackers NASDAQ 100 UCITS ETF Accum-1C- USD",
+   "exchange": "XETR",
+   "type": "fund",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "NASDAQ:IQQ",
+   "description": "iShares Nasdaq 100 ETF",
+   "exchange": "NASDAQ",
+   "type": "fund",
+   "query": "nasdaq 100"
+  },
+  {
+   "id": "NASDAQ:NDX",
+   "description": "NASDAQ-100 Index",
+   "exchange": "NASDAQ",
+   "type": "index",
+   "query": "ndx"
+  },
+  {
+   "id": "SPREADEX:NDX",
+   "description": "US Tech 100, Daily",
+   "exchange": "Spreadex",
+   "type": "index",
+   "query": "ndx"
+  },
+  {
+   "id": "FWB:NDX",
+   "description": "Nordex SE Unsponsored ADR",
+   "exchange": "FWB",
+   "type": "dr",
+   "query": "ndx"
+  },
+  {
+   "id": "HNX:NDX",
+   "description": "Da Nang Housing Development JSC",
+   "exchange": "HNX",
+   "type": "stock",
+   "query": "ndx"
+  },
+  {
+   "id": "EUREX:NDXF",
+   "description": "Nordex Futures",
+   "exchange": "EUREX",
+   "type": "futures",
+   "query": "ndx"
+  },
+  {
+   "id": "XETR:NDX1",
+   "description": "Nordex SE",
+   "exchange": "XETR",
+   "type": "stock",
+   "query": "ndx"
+  },
+  {
+   "id": "NASDAQ:NDXE",
+   "description": "NASDAQ-100 Equal Weighted",
+   "exchange": "NASDAQ",
+   "type": "index",
+   "query": "ndx"
+  },
+  {
+   "id": "NASDAQ:NDXT",
+   "description": "NASDAQ-100 Technology Sector",
+   "exchange": "NASDAQ",
+   "type": "index",
+   "query": "ndx"
+  },
+  {
+   "id": "NASDAQ:NDXL",
+   "description": "NASDAQ-100 Leveraged Index",
+   "exchange": "NASDAQ",
+   "type": "index",
+   "query": "ndx"
+  },
+  {
+   "id": "NASDAQ:NDXX",
+   "description": "NASDAQ-100 Ex-Tech Sector",
+   "exchange": "NASDAQ",
+   "type": "index",
+   "query": "ndx"
+  },
+  {
+   "id": "NASDAQ:NDXB",
+   "description": "Nasdaq-100 Binary Options Reference Index",
+   "exchange": "NASDAQ",
+   "type": "index",
+   "query": "ndx"
+  },
+  {
+   "id": "GETTEX:NDX1",
+   "description": "Nordex SE",
+   "exchange": "GETTEX",
+   "type": "stock",
+   "query": "ndx"
+  },
+  {
+   "id": "EURONEXT:NDXH",
+   "description": "Amundi Index Solutions - NASDAQ-100 Swap UCITS ETF UCITS ETF Daily Hedged EUR C- Capitalisation",
+   "exchange": "Euronext Paris",
+   "type": "fund",
+   "query": "ndx"
+  },
+  {
+   "id": "FWB:NDX1",
+   "description": "Nordex SE",
+   "exchange": "FWB",
+   "type": "stock",
+   "query": "ndx"
+  },
+  {
+   "id": "SIX:NDX1",
+   "description": "Nordex SE",
+   "exchange": "SIX",
+   "type": "stock",
+   "query": "ndx"
+  },
+  {
+   "id": "TRADEGATE:NDX1",
+   "description": "Nordex SE",
+   "exchange": "TRADEGATE",
+   "type": "stock",
+   "query": "ndx"
+  },
+  {
+   "id": "MUN:NDX1",
+   "description": "Nordex SE",
+   "exchange": "MUN",
+   "type": "stock",
+   "query": "ndx"
+  },
+  {
+   "id": "HAM:NDX1",
+   "description": "Nordex SE",
+   "exchange": "HAM",
+   "type": "stock",
+   "query": "ndx"
+  },
+  {
+   "id": "DUS:NDX1",
+   "description": "Nordex SE",
+   "exchange": "DUS",
+   "type": "stock",
+   "query": "ndx"
+  },
+  {
+   "id": "HAN:NDX1",
+   "description": "Nordex SE",
+   "exchange": "HAN",
+   "type": "stock",
+   "query": "ndx"
+  },
+  {
+   "id": "BX:NDX1",
+   "description": "Nordex SE",
+   "exchange": "BX",
+   "type": "stock",
+   "query": "ndx"
+  },
+  {
+   "id": "BSESOF:NDX1",
+   "description": "Nordex SE",
+   "exchange": "BSESOF",
+   "type": "stock",
+   "query": "ndx"
+  },
+  {
+   "id": "SWB:NDX1",
+   "description": "Nordex SE",
+   "exchange": "SWB",
+   "type": "stock",
+   "query": "ndx"
+  },
+  {
+   "id": "VIE:NDX1",
+   "description": "Nordex SE",
+   "exchange": "VIE",
+   "type": "stock",
+   "query": "ndx"
+  },
+  {
+   "id": "NASDAQ:NDXL3",
+   "description": "NASDAQ-100 3x Leveraged Index",
+   "exchange": "NASDAQ",
+   "type": "index",
+   "query": "ndx"
+  },
+  {
+   "id": "NASDAQ:NDXS1",
+   "description": "NASDAQ-100 1x Short Index",
+   "exchange": "NASDAQ",
+   "type": "index",
+   "query": "ndx"
+  },
+  {
+   "id": "NASDAQ:NDXHB",
+   "description": "Nasdaq-100 High Beta Index",
+   "exchange": "NASDAQ",
+   "type": "index",
+   "query": "ndx"
+  },
+  {
+   "id": "NASDAQ:NDX30",
+   "description": "Nasdaq-100 Top 30 Index",
+   "exchange": "NASDAQ",
+   "type": "index",
+   "query": "ndx"
+  },
+  {
+   "id": "NASDAQ:NDXS3",
+   "description": "NASDAQ-100 3x Inverse Index",
+   "exchange": "NASDAQ",
+   "type": "index",
+   "query": "ndx"
+  },
+  {
+   "id": "NASDAQ:NDX70",
+   "description": "Nasdaq-100 ex Top 30 Index",
+   "exchange": "NASDAQ",
+   "type": "index",
+   "query": "ndx"
+  },
+  {
+   "id": "AMEX:DIA",
+   "description": "State Street SPDR Dow Jones Industrial Average ETF Trust",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "dow jones"
+  },
+  {
+   "id": "TVC:DJI",
+   "description": "Dow Jones Industrial Average Index",
+   "exchange": "TVC",
+   "type": "index",
+   "query": "dow jones"
+  },
+  {
+   "id": "CBOT:YM",
+   "description": "E-mini Dow Jones Industrial Average Index Futures",
+   "exchange": "CBOT",
+   "type": "futures",
+   "query": "dow jones"
+  },
+  {
+   "id": "AMEX:IYW",
+   "description": "iShares Dow Jones U.S. Technology Sector Index Fund",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "dow jones"
+  },
+  {
+   "id": "CBOT:MYM",
+   "description": "Micro E-mini Dow Jones Industrial Average Index Futures",
+   "exchange": "CBOT",
+   "type": "futures",
+   "query": "dow jones"
+  },
+  {
+   "id": "DJ:DJI",
+   "description": "Dow Jones Industrial Average",
+   "exchange": "DJ",
+   "type": "index",
+   "query": "dow jones"
+  },
+  {
+   "id": "FX:US30",
+   "description": "Dow Jones Industrial Average Cash",
+   "exchange": "FXCM",
+   "type": "index",
+   "query": "dow jones"
+  },
+  {
+   "id": "VANTAGE:DJ30",
+   "description": "Dow Jones Index Cash CFD (USD)",
+   "exchange": "Vantage",
+   "type": "index",
+   "query": "dow jones"
+  },
+  {
+   "id": "NASDAQ:UMMA",
+   "description": "Wahed Dow Jones Islamic World ETF",
+   "exchange": "NASDAQ",
+   "type": "fund",
+   "query": "dow jones"
+  },
+  {
+   "id": "NASDAQ:FDNI",
+   "description": "First Trust Dow Jones International Internet ETF",
+   "exchange": "NASDAQ",
+   "type": "fund",
+   "query": "dow jones"
+  },
+  {
+   "id": "CBOE:FDND",
+   "description": "FT Vest Dow Jones Internet & Target Income ETF",
+   "exchange": "CBOE",
+   "type": "fund",
+   "query": "dow jones"
+  },
+  {
+   "id": "AMEX:RWR",
+   "description": "State Street SPDR Dow Jones REIT ETF",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "dow jones"
+  },
+  {
+   "id": "AMEX:SPSK",
+   "description": "SP Funds Dow Jones Global Sukuk ETF",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "dow jones"
+  },
+  {
+   "id": "AMEX:DJD",
+   "description": "Invesco Dow Jones Industrial Average Dividend ETF",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "dow jones"
+  },
+  {
+   "id": "AMEX:IYY",
+   "description": "iShares Dow Jones U.S. ETF",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "dow jones"
+  },
+  {
+   "id": "AMEX:WEBL",
+   "description": "Direxion Daily Dow Jones Internet Bull 3X ETF",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "dow jones"
+  },
+  {
+   "id": "AMEX:WEBS",
+   "description": "Direxion Daily Dow Jones Internet Bear 3X ETF",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "dow jones"
+  },
+  {
+   "id": "AMEX:RWO",
+   "description": "State Street SPDR Dow Jones Global Real Estate ETF",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "dow jones"
+  },
+  {
+   "id": "AMEX:RWX",
+   "description": "State Street SPDR Dow Jones International Real Estate ETF",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "dow jones"
+  },
+  {
+   "id": "NYSE:GYLD",
+   "description": "Arrow Dow Jones Global Yield ETF",
+   "exchange": "NYSE",
+   "type": "fund",
+   "query": "dow jones"
+  },
+  {
+   "id": "NASDAQ:IMANX",
+   "description": "Dow Jones Islamic Fund Class K",
+   "exchange": "NASDAQ",
+   "type": "fund",
+   "query": "dow jones"
+  },
+  {
+   "id": "NASDAQ:RYDKX",
+   "description": "Dow Jones Industrial Average Fund C Class",
+   "exchange": "NASDAQ",
+   "type": "fund",
+   "query": "dow jones"
+  },
+  {
+   "id": "NASDAQ:RYDAX",
+   "description": "Dow Jones Industrial Average Fund A Class",
+   "exchange": "NASDAQ",
+   "type": "fund",
+   "query": "dow jones"
+  },
+  {
+   "id": "NASDAQ:RYDHX",
+   "description": "Dow Jones Industrial Average Fund H Class",
+   "exchange": "NASDAQ",
+   "type": "fund",
+   "query": "dow jones"
+  },
+  {
+   "id": "TRADEGATE:SXRU",
+   "description": "iShares Dow Jones Industrial Average UCITS ETF",
+   "exchange": "TRADEGATE",
+   "type": "fund",
+   "query": "dow jones"
+  },
+  {
+   "id": "TRADEGATE:IRUC",
+   "description": "iShares Dow Jones U.S. ETF",
+   "exchange": "TRADEGATE",
+   "type": "fund",
+   "query": "dow jones"
+  },
+  {
+   "id": "TRADEGATE:NLTA",
+   "description": "Arrow Dow Jones Global Yield ETF",
+   "exchange": "TRADEGATE",
+   "type": "fund",
+   "query": "dow jones"
+  },
+  {
+   "id": "TRADEGATE:02FE",
+   "description": "First Trust Dow Jones Internet Index Fund",
+   "exchange": "TRADEGATE",
+   "type": "fund",
+   "query": "dow jones"
+  },
+  {
+   "id": "TRADEGATE:4JZG",
+   "description": "State Street SPDR Dow Jones REIT ETF",
+   "exchange": "TRADEGATE",
+   "type": "fund",
+   "query": "dow jones"
+  },
+  {
+   "id": "TRADEGATE:EXI2",
+   "description": "iShares Dow Jones Global Titans 50 UCITS ETF (DE)",
+   "exchange": "TRADEGATE",
+   "type": "fund",
+   "query": "dow jones"
+  },
+  {
+   "id": "SPREADEX:DJI",
+   "description": "Wall Street, Daily",
+   "exchange": "Spreadex",
+   "type": "index",
+   "query": "dji"
+  },
+  {
+   "id": "DJ:DJIM",
+   "description": "Dow Jones Islamic Market World Index",
+   "exchange": "DJ",
+   "type": "index",
+   "query": "dji"
+  },
+  {
+   "id": "OPO:DJIUSD",
+   "description": "Dow Jones Industrial Average 30 Index",
+   "exchange": "OPO",
+   "type": "index",
+   "query": "dji"
+  },
+  {
+   "id": "AMEX:DJIA",
+   "description": "Global X Dow 30 Covered Call ETF",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "dji"
+  },
+  {
+   "id": "LSE:DJIW",
+   "description": "Waystone ETF ICAV - Wahed Dow Jones Islamic World UCITS ETF Accum- USD",
+   "exchange": "LSE",
+   "type": "fund",
+   "query": "dji"
+  },
+  {
+   "id": "BMV:DJIA",
+   "description": "Global X Dow 30 Covered Call ETF",
+   "exchange": "BMV",
+   "type": "fund",
+   "query": "dji"
+  },
+  {
+   "id": "BIVA:DJIA",
+   "description": "Global X Dow 30 Covered Call ETF",
+   "exchange": "BIVA",
+   "type": "fund",
+   "query": "dji"
+  },
+  {
+   "id": "TOCOM:DJIA",
+   "description": "DJIA TRADE INDEX",
+   "exchange": "TOCOM",
+   "type": "index",
+   "query": "dji"
+  },
+  {
+   "id": "BOATS:DJIA",
+   "description": "Global X Dow 30 Covered Call ETF",
+   "exchange": "BOATS",
+   "type": "fund",
+   "query": "dji"
+  },
+  {
+   "id": "DJ:DJIEW",
+   "description": "Dow Jones Industrial Average Equal Weight Index (USD)",
+   "exchange": "DJ",
+   "type": "index",
+   "query": "dji"
+  },
+  {
+   "id": "DJ:DJIYW",
+   "description": "Dow Jones Industrial Average Yield Weighted Index (USD)",
+   "exchange": "DJ",
+   "type": "index",
+   "query": "dji"
+  },
+  {
+   "id": "DJ:DJIAP",
+   "description": "Dow Jones Islamic Market Asia/Pacific Index",
+   "exchange": "DJ",
+   "type": "index",
+   "query": "dji"
+  },
+  {
+   "id": "DJ:DJIEZ",
+   "description": "Dow Jones Islamic Market Euro Index",
+   "exchange": "DJ",
+   "type": "index",
+   "query": "dji"
+  },
+  {
+   "id": "DJ:DJIP2",
+   "description": "Dow Jones Islamic Market Asia/Pacific ex-Japan Index",
+   "exchange": "DJ",
+   "type": "index",
+   "query": "dji"
+  },
+  {
+   "id": "DJ:DJICA",
+   "description": "Dow Jones Islamic Market Canada Index",
+   "exchange": "DJ",
+   "type": "index",
+   "query": "dji"
+  },
+  {
+   "id": "DJ:DJIUK",
+   "description": "Dow Jones Islamic Market U.K. Index",
+   "exchange": "DJ",
+   "type": "index",
+   "query": "dji"
+  },
+  {
+   "id": "DJ:DJIEU",
+   "description": "Dow Jones Islamic Market Europe Index",
+   "exchange": "DJ",
+   "type": "index",
+   "query": "dji"
+  },
+  {
+   "id": "DJ:DJIJP",
+   "description": "Dow Jones Islamic Market Japan Index",
+   "exchange": "DJ",
+   "type": "index",
+   "query": "dji"
+  },
+  {
+   "id": "DJ:DJITR",
+   "description": "Dow Jones Industrial Average Total Return",
+   "exchange": "DJ",
+   "type": "index",
+   "query": "dji"
+  },
+  {
+   "id": "DJ:DJINR",
+   "description": "Dow Jones Industrial Average Net Total Return",
+   "exchange": "DJ",
+   "type": "index",
+   "query": "dji"
+  },
+  {
+   "id": "CBOE:VXD",
+   "description": "DJIA VOLATILITY",
+   "exchange": "CBOE",
+   "type": "index",
+   "query": "dji"
+  },
+  {
+   "id": "ICE:DJIEW",
+   "description": "Dow Jones Industrial Average Equal Weight Index (USD)",
+   "exchange": "ICE",
+   "type": "index",
+   "query": "dji"
+  },
+  {
+   "id": "OTC:DJINY",
+   "description": "Dajin Heavy Industry Co., Ltd",
+   "exchange": "OTC",
+   "type": "dr",
+   "query": "dji"
+  },
+  {
+   "id": "DJ:DJIAFP",
+   "description": "Dow Jones Industrial Average Futures Index (USD) ER",
+   "exchange": "DJ",
+   "type": "index",
+   "query": "dji"
+  },
+  {
+   "id": "DJ:DJILRG",
+   "description": "Dow Jones Islamic Market World Large-Cap Index",
+   "exchange": "DJ",
+   "type": "index",
+   "query": "dji"
+  },
+  {
+   "id": "DJ:DJIBSC",
+   "description": "Dow Jones Islamic Market Basic Materials Index",
+   "exchange": "DJ",
+   "type": "index",
+   "query": "dji"
+  },
+  {
+   "id": "DJ:DJICYC",
+   "description": "Dow Jones Islamic Market Consumer Services Index",
+   "exchange": "DJ",
+   "type": "index",
+   "query": "dji"
+  },
+  {
+   "id": "CBOE:VIX",
+   "description": "CBOE Volatility Index",
+   "exchange": "CBOE",
+   "type": "index",
+   "query": "vix"
+  },
+  {
+   "id": "PEPPERSTONE:VIX",
+   "description": "US Volatility Index",
+   "exchange": "Pepperstone",
+   "type": "index",
+   "query": "vix"
+  },
+  {
+   "id": "CAPITALCOM:VIX",
+   "description": "Volatility Index",
+   "exchange": "Capital.com",
+   "type": "index",
+   "query": "vix"
+  },
+  {
+   "id": "HOSE:VIX",
+   "description": "VIX Securities Joint Stock Company",
+   "exchange": "HOSE",
+   "type": "stock",
+   "query": "vix"
+  },
+  {
+   "id": "VANTAGE:VIX",
+   "description": "Volatility Index",
+   "exchange": "Vantage",
+   "type": "index",
+   "query": "vix"
+  },
+  {
+   "id": "TICKMILL:VIX",
+   "description": "Volatility Index",
+   "exchange": "Tickmill",
+   "type": "index",
+   "query": "vix"
+  },
+  {
+   "id": "EIGHTCAP:VIX",
+   "description": "CBOE Volatility Index",
+   "exchange": "Eightcap",
+   "type": "index",
+   "query": "vix"
+  },
+  {
+   "id": "BMFBOVESPA:VIX",
+   "description": "FUTURO DE INDICE VIX",
+   "exchange": "BMFBOVESPA",
+   "type": "futures",
+   "query": "vix"
+  },
+  {
+   "id": "FPMARKETS:VIX",
+   "description": "Volatility Index VXX6 Exp 16/11/2026 23:59",
+   "exchange": "FP Markets",
+   "type": "index",
+   "query": "vix"
+  },
+  {
+   "id": "THINKMARKETS:VIX",
+   "description": "Volatility Index spot",
+   "exchange": "ThinkMarkets",
+   "type": "index",
+   "query": "vix"
+  },
+  {
+   "id": "BLACKBULL:VIX",
+   "description": "VIX Volitility Index (Cash)",
+   "exchange": "BlackBull Markets",
+   "type": "index",
+   "query": "vix"
+  },
+  {
+   "id": "CXM:VIX",
+   "description": "Volatility Index",
+   "exchange": "CXM",
+   "type": "index",
+   "query": "vix"
+  },
+  {
+   "id": "GOMARKETS:VIX",
+   "description": "US Volatility Index Cash",
+   "exchange": "GO Markets",
+   "type": "index",
+   "query": "vix"
+  },
+  {
+   "id": "PURPLETRADING:VIX",
+   "description": "Volatility Index",
+   "exchange": "Purple Trading",
+   "type": "index",
+   "query": "vix"
+  },
+  {
+   "id": "EQUITI:VIX",
+   "description": "Volatility Cash Index",
+   "exchange": "Equiti",
+   "type": "index",
+   "query": "vix"
+  },
+  {
+   "id": "CBOE:VIX1D",
+   "description": "Cboe 1-Day Volatility Index",
+   "exchange": "CBOE",
+   "type": "index",
+   "query": "vix"
+  },
+  {
+   "id": "CBOE:VIXY",
+   "description": "VIX Short-Term Futures ETF",
+   "exchange": "CBOE",
+   "type": "fund",
+   "query": "vix"
+  },
+  {
+   "id": "NSE:INDIAVIX",
+   "description": "India VIX Index",
+   "exchange": "NSE",
+   "type": "index",
+   "query": "vix"
+  },
+  {
+   "id": "CBOE:VX",
+   "description": "Cboe Volatility Index (VIX) Futures",
+   "exchange": "CBOE",
+   "type": "futures",
+   "query": "vix"
+  },
+  {
+   "id": "CBOE:VIX6M",
+   "description": "CBOE S&P 500 6-Month Volatility Index",
+   "exchange": "CBOE",
+   "type": "index",
+   "query": "vix"
+  },
+  {
+   "id": "CBOE:VIXEQ",
+   "description": "Cboe S&P 500 Constituent Volatility Index",
+   "exchange": "CBOE",
+   "type": "index",
+   "query": "vix"
+  },
+  {
+   "id": "CBOE:VIXM",
+   "description": "VIX Mid-Term Futures ETF",
+   "exchange": "CBOE",
+   "type": "fund",
+   "query": "vix"
+  },
+  {
+   "id": "CBOE:VVIX",
+   "description": "CBOE VIX VOLATILITY INDEX",
+   "exchange": "CBOE",
+   "type": "index",
+   "query": "vix"
+  },
+  {
+   "id": "CBOE:UVXY",
+   "description": "ProShares Ultra VIX Short Term Futures ETF",
+   "exchange": "CBOE",
+   "type": "fund",
+   "query": "vix"
+  },
+  {
+   "id": "CBOE:VIXMO",
+   "description": "The CBOE St and ard Monthly Only Volatility",
+   "exchange": "CBOE",
+   "type": "index",
+   "query": "vix"
+  },
+  {
+   "id": "CBOE:VIX1Y",
+   "description": "Cboe S&P 500 One-Year Volatility Index",
+   "exchange": "CBOE",
+   "type": "index",
+   "query": "vix"
+  },
+  {
+   "id": "LSE:VIXL",
+   "description": "WisdomTree S&P 500 VIX ShortTerm Futures 2.25x Daily Leveraged",
+   "exchange": "LSE",
+   "type": "fund",
+   "query": "vix"
+  }
+ ]
+}

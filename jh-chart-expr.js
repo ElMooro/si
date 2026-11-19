@@ -2,9 +2,14 @@
 /* jh-chart-expr — TradingView-style spread / ratio symbols on chart.html.
  * Charts expressions such as "AMEX:XLY/AMEX:XLP", "1-FRED:NFCI", "(TVC:US10Y-TVC:US02Y)*100",
  * "FRED:WALCL-FRED:WTREGEN-FRED:RRPONTSYD" exactly as they appear in the user's TradingView watchlists.
- * Each leg is read in full from PROXY /series (entire stored history). Legs are aligned as-of: every date of the
- * densest leg, each other leg carries its most recent observation, starting when all legs have data.
- * Nothing is substituted: a leg that the warehouse cannot serve fails the whole expression with its reason.
+ * A market leg (a stock, a fund, an index, a future, a currency) is read from the chart's own daily bars for that symbol,
+ * through the same reviewed route a click on that symbol takes: VANTAGE:SP500 is the S&P 500 index the chart draws, TVC:GOLD
+ * the gold future, NASDAQ:TLT the fund. Until 2026-11-19 every leg came from PROXY /series, where the S&P leg was FRED's copy
+ * (2016 onward, two days behind), the gold leg had no stored history and the VIX leg stopped in September. A data-series leg
+ * (FRED:..., ECONOMICS:...) is still read in full from PROXY /series, and so is any market leg the chart cannot draw.
+ * Legs are aligned as-of: every date of the densest leg, each other leg carries its most recent observation, starting when
+ * all legs have data. The source line names where each leg came from. A leg nothing can serve fails the whole expression
+ * with its reason.
  */
 (function (root) {
   "use strict";
@@ -72,7 +77,7 @@
     return NaN;
   }
   var cache = {};
-  function loadLeg(id) {
+  function seriesLeg(id) {
     if (cache[id]) return cache[id];
     cache[id] = root.fetch(PROXY + "/series?id=" + encodeURIComponent(id)).then(function (r) { return r.json(); }).then(function (d) {
       var obs = (d && d.obs || []).filter(function (o) { return o && o[1] != null && isFinite(o[1]); });
@@ -82,10 +87,42 @@
     cache[id].catch(function () { delete cache[id]; });
     return cache[id];
   }
+  // Where the chart itself draws one symbol from. Plain US listings drop their exchange prefix, exactly as a watchlist row does;
+  // everything else asks the reviewed watchlist router. Only a market symbol (no provider prefix left) comes back.
+  function chartTarget(id) {
+    var m = /^(NASDAQ|NYSE|AMEX|ARCA|BATS|NYSEARCA|NYSEMKT):([A-Z][A-Z0-9.]{0,6})$/i.exec(id), t = "";
+    if (m) return m[2].toUpperCase();
+    if (typeof root.jhWatchlistRoute === "function") { try { t = String(root.jhWatchlistRoute(id) || ""); } catch (e) { t = ""; } }
+    return t && t.indexOf(":") < 0 ? t : "";
+  }
+  function isoDay(t) {
+    if (t && typeof t === "object") return t.year + "-" + ("0" + t.month).slice(-2) + "-" + ("0" + t.day).slice(-2);
+    if (typeof t === "string") return t.slice(0, 10);
+    return new Date(t * 1000).toISOString().slice(0, 10);
+  }
+  // The router arrives a moment after the engine (the rail loads it); a spread opened from the address bar waits for it briefly
+  // rather than drawing its market legs from /series once and for the rest of the page.
+  function routerReady() {
+    if (typeof root.jhKlines !== "function" || typeof root.jhWatchlistRoute === "function") return Promise.resolve();
+    return new Promise(function (done) {
+      var n = 0, t = setInterval(function () { if (typeof root.jhWatchlistRoute === "function" || ++n > 26) { clearInterval(t); done(); } }, 150);
+    });
+  }
+  function loadLeg(id) {
+    var target = typeof root.jhKlines === "function" ? chartTarget(id) : "";
+    if (!target) return seriesLeg(id);
+    // not kept in the leg cache: the chart's bar resolver holds its own short one, so a reopened spread sees today's bar
+    return Promise.resolve().then(function () { return root.jhKlines(target, "1d"); }).then(function (bars) {
+      var obs = [];
+      (bars || []).forEach(function (b) { if (b && b.time != null && b.close != null && isFinite(b.close)) obs.push([isoDay(b.time), +b.close]); });
+      if (obs.length < 2) return seriesLeg(id);
+      return { id: id, name: id, freq: "D", obs: obs, via: target };
+    }, function () { return seriesLeg(id); });
+  }
   function evaluate(sym) {
     var tree = parse(tokenize(sym)), L = legs(tree);
     if (!L.length) return Promise.reject(new Error("Expression has no data legs"));
-    return Promise.all(L.map(loadLeg)).then(function (packs) {
+    return routerReady().then(function () { return Promise.all(L.map(loadLeg)); }).then(function (packs) {
       var dense = packs.slice().sort(function (a, b) { return b.obs.length - a.obs.length; })[0];
       var start = packs.reduce(function (m, p) { return p.obs[0][0] > m ? p.obs[0][0] : m; }, "");
       var idx = {}; packs.forEach(function (p) { idx[p.id] = 0; });
@@ -103,8 +140,10 @@
         var v = evalAt(tree, vals);
         if (isFinite(v)) { var t = Math.floor(Date.parse(dt.slice(0, 10) + "T00:00:00Z") / 1000); out.push({ time: t, open: v, high: v, low: v, close: v, volume: 0 }); }
       });
-      var src = "Spread " + L.length + " leg" + (L.length > 1 ? "s" : "") + " · /series full history · as-of aligned on " + dense.id + " · " + packs.map(function (p) { return p.id + " " + p.obs[0][0].slice(0, 4) + "→"; }).join(", ");
-      var legInfo = packs.map(function (p) { return { id: p.id, name: p.name, first: p.obs[0][0], last: p.obs[p.obs.length - 1][0], n: p.obs.length }; });
+      var charted = packs.filter(function (p) { return p.via; }).length;
+      var how = !charted ? "/series full history" : charted === packs.length ? "the chart's own daily bars" : "the chart's own daily bars and /series history";
+      var src = "Spread " + L.length + " leg" + (L.length > 1 ? "s" : "") + " · " + how + " · as-of aligned on " + dense.id + " · " + packs.map(function (p) { return p.id + (p.via ? " as " + p.via : "") + " " + p.obs[0][0].slice(0, 4) + "→"; }).join(", ");
+      var legInfo = packs.map(function (p) { return { id: p.id, name: p.name, first: p.obs[0][0], last: p.obs[p.obs.length - 1][0], n: p.obs.length, via: p.via || null }; });
       var H = root.JHObservationSeries;
       if (H && typeof H.warehouse === "function" && out.length) {
         // Same observation contract the chart uses for warehouse series, so scalar (FRED/macro) spreads plot on any interval.
@@ -115,11 +154,7 @@
           if (r && r.d && r.d.length) { r.src = src + " · " + r.src; r.legs = legInfo; if (r.evidence) r.evidence.expression_legs = legInfo; return r; }
         } catch (e) {}
       }
-      return {
-        d: out,
-        src: "Spread " + L.length + " leg" + (L.length > 1 ? "s" : "") + " · /series full history · as-of aligned on " + dense.id + " · " + packs.map(function (p) { return p.id + " " + p.obs[0][0].slice(0, 4) + "→"; }).join(", "),
-        legs: packs.map(function (p) { return { id: p.id, name: p.name, first: p.obs[0][0], last: p.obs[p.obs.length - 1][0], n: p.obs.length }; })
-      };
+      return { d: out, src: src, legs: legInfo };
     });
   }
   function hook() {

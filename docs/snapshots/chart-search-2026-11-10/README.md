@@ -125,3 +125,29 @@ git checkout 97f51c22 -- jh-chart-tvwatch.js jh-tv-details.js tests/helpers/char
 ```
 
 and remove `tests/chart-spx-cash-route.test.js` and `tests/fixtures/chart-spx-cash/`.
+
+## Index ids, ratio legs, the sp500 search order and the status label (2026-11-19, "Fix all of them")
+
+Five things, one change:
+
+1. `justhodl-symdir` search lists its policy pins whether or not the query words matched them: `sp500` now leads with
+   `I:SPX`, `SPY`, then `fred:SP500` (one block inside `search()`).
+2. `jh-chart-engine.js` sends the directory's Polygon index ids (`I:SPX`, `I:NDX`, `I:DJI`, `I:RUT`, `I:COMP`, `I:VIX`),
+   `NASDAQ:NDX`, `DJ:DJI` and bare `DJI` to the live index route; before, `I:SPX` answered "No bars".
+3. `jh-chart-expr.js` reads every market leg of a spread from the chart's own daily bars for that symbol (through
+   `window.jhWatchlistRoute`, exported by the router); a data-series leg still comes from `/series`.
+4. `jh-chart-tvwatch.js` has one reviewed index table at the top of `chartSymbol` (48 ids: S&P 500, Nasdaq-100, Dow, the
+   Polygon ids, `TVC:VIX`, `TVC:TNX`); it decides before the symbol map.
+5. `jh-chart-engine.js` no longer re-stamps a cached bar array under another name, which is what left a drawn chart with
+   "awaiting chart frame" in its status line.
+
+The state before is commit `888de51a`:
+
+```
+git checkout 888de51a -- jh-chart-engine.js jh-chart-tvwatch.js jh-chart-expr.js aws/lambdas/justhodl-symdir/source/lambda_function.py \
+  tests/helpers/chart-macro-line-preservation.cjs tests/watchlist-identity.test.js tests/trigger_cap_preservation.py tests/chart-spx-cash-route.test.js \
+  tests/fixtures/chart-spx-cash
+git rm -r tests/chart-index-routes.test.js tests/fixtures/chart-index-routes tests/index_routes_preservation.py tests/deployment/test_symdir_policy_pins.py
+```
+
+then commit, push and redeploy the directory (`gh workflow run deploy-lambdas.yml -f function=justhodl-symdir`).

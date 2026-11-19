@@ -1,0 +1,6 @@
+[
+ {
+  "before": "  window.jhWatchlistOpen = openSym;\n",
+  "after": "  window.jhWatchlistOpen = openSym;\n  // The same reviewed route, without opening anything: a spread asks it where each of its legs is charted from (jh-chart-expr.js).\n  window.jhWatchlistRoute = function (s) { try { return chartRoute(s).handoff || \"\"; } catch (e) { return \"\"; } };\n"
+ }
+]

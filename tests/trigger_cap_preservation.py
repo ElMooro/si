@@ -9,6 +9,8 @@ R = Path(__file__).resolve().parents[1]
 
 
 def normalize(file, raw):
+    from index_routes_preservation import normalize as newer
+    raw = newer(file, raw)
     manifest = json.loads((R / 'tests/fixtures/trigger-cap/transition.json').read_bytes()); t = manifest['changes'].get(file)
     if not t: return raw
     digest = lambda s: hashlib.sha256(s).hexdigest()

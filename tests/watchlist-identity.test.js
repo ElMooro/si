@@ -37,6 +37,9 @@ const yieldRoutes=JSON.parse(read('tests/fixtures/chart-macro-line/tvwatch-us10y
 // 2026-11-19: chartSymbol gained the S&P 500 cash-index ids TradingView's search returns (VANTAGE:SP500, SP:SPX ... -> ^GSPC, the index SPX and TVC:SPX already chart),
 // ledgered in tests/fixtures/chart-spx-cash/tvwatch-spx-cash.edits.json and re-applied to the predecessor the same way.
 const spxCashRoutes=JSON.parse(read('tests/fixtures/chart-spx-cash/tvwatch-spx-cash.edits.json'));for(const e of spxCashRoutes){assert.equal(previousRouted.split(e.before).length,2,'S&P 500 cash route predecessor: '+e.before.slice(0,40));previousRouted=previousRouted.replace(e.before,e.after);}
+// 2026-11-19 (same day, "Fix all of them"): the S&P 500 ids became one reviewed index table at the top of chartSymbol (S&P 500, Nasdaq-100, Dow, the directory's Polygon ids,
+// TVC:VIX and TVC:TNX), ledgered in tests/fixtures/chart-index-routes/tvwatch.edits.json and re-applied here.
+const indexRoutes=JSON.parse(read('tests/fixtures/chart-index-routes/tvwatch.edits.json'));for(const e of indexRoutes){assert.equal(previousRouted.split(e.before).length,2,'index route predecessor: '+e.before.slice(0,40));previousRouted=previousRouted.replace(e.before,e.after);}
 test('all current-main routing helpers remain byte identical',()=>{for(const id of ['extraChart','fredId','chartSymbol'])assert.equal(fn(watch,id),fn(previousRouted,id));});
 
 test("native market supplemental histories are explicit, including successful primary lookups",()=>{const c=harness(),r=c.chartRoute("BINANCE:BTCUSDT");r.frame=r.handoff;const text=c.chartRouteText(r,{symbol:r.frame,source:"invented+yahoo"},[{}]);assert.match(text,/fallback\/supplemental lookup: BTC-USD/);assert.match(text,/supplementary Yahoo data, including after a successful primary lookup/);assert.match(text,/BTC\/USDT/);assert.match(text,/BTC\/USD/);});

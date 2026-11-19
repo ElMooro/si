@@ -1,0 +1,10 @@
+{
+ "purpose": "2026-11-19: justhodl-symdir search lists its policy pins whether or not the query words matched the pinned document (sp500 -> I:SPX, SPY). One block inside search(); nothing else in the module changed.",
+ "changes": {
+  "aws/lambdas/justhodl-symdir/source/lambda_function.py": {
+   "before_sha256": "1c10a8a7e0f794f109bdc70f1c543bdca12e998f0421c3b12a0adce7709b4c22",
+   "after_sha256": "75b2e476db1634b4a410e47931d300cc386967f9c12771f69fa1d4018b0d4a53",
+   "replacements_path": "tests/fixtures/chart-index-routes/symdir.edits.json"
+  }
+ }
+}

@@ -415,6 +415,21 @@ function peelFredDesksRail(raw,file){
 // 2026-11-19: peel the mark-desk wiring (rail meta dist -> /wyckoff-desk.html?tab=dist; the Acc / Bot / Dist marking functions wrapped so a click that
 // turns the marks on also opens the all-stock desk, jhEnsureMarks and ?marks=) before the FRED-desk peels. Khalid: "accumulation, bottom,
 // distribution engines should be built for the icons there it should show all the corresponding stocks".
+// 2026-11-19 "Fix all of them": index ids (I:SPX, NASDAQ:NDX, DJ:DJI ...) take the live index route, a cached frame keeps its own label (engine); one reviewed index table in the
+// watchlist router and the route exported for spread legs; the identity test re-applies the router edits. Every edit is a before/after pair under tests/fixtures/chart-index-routes.
+function peelIndexRoutes(raw,file){
+ const plans={
+  'jh-chart-engine.js':{after:'bf37672d6bdd75d04ae60faa1b38e546c9df7831535644cfdbdc8e1b0d6d7989',before:'84081da5df78c806ae366a771e64533556897a6b1eb39c1fd5f1cdca99887860',edits:['engine.edits.json']},
+  'jh-chart-tvwatch.js':{after:'73960757ad566281eb496e729cca8e2c1b4aff32f4f42e75b7f6ff05a3dd4a95',before:'15476552696562d0e9c9d0e7f62b49bdc8314fadc5141591b0cab799bb16a9af',edits:['tvwatch.edits.json','tvwatch-export.edits.json']},
+  'tests/watchlist-identity.test.js':{after:'9bb2fdc7e091b7673446496d03e577a8495a8a2341300b39bbb6f0dc45a55fa2',before:'869b3cb8b924d7e9d18097a717198ab8de614419b5a5adedde4c0c230fffca89',edits:['identity-test.edits.json']},
+  'aws/lambdas/justhodl-symdir/source/lambda_function.py':{after:'75b2e476db1634b4a410e47931d300cc386967f9c12771f69fa1d4018b0d4a53',before:'1c10a8a7e0f794f109bdc70f1c543bdca12e998f0421c3b12a0adce7709b4c22',edits:['symdir.edits.json']}
+ },plan=plans[file];
+ if(!plan||hash(raw)!==plan.after)return raw;
+ const edits=[].concat(...plan.edits.map(f=>JSON.parse(fs.readFileSync(path.join(R,'tests/fixtures/chart-index-routes',f),'utf8'))));
+ for(const e of [...edits].reverse()){assert.equal(raw.split(e.after).length,2,file+' index routes: '+e.after.slice(0,50));raw=raw.replace(e.after,e.before);}
+ assert.equal(hash(raw),plan.before,file);
+ return raw;
+}
 function peelSpxCashWatch(raw,file){
  const AFTER='15476552696562d0e9c9d0e7f62b49bdc8314fadc5141591b0cab799bb16a9af';
  const BEFORE='d7dd68f586c33aca02605eec9ed8bd4ef8ecdc067fcb699005e854e67609a55a';
@@ -458,7 +473,7 @@ function peelMarkDesksHtml(raw,file){
  assert.equal(hash(raw),BEFORE,'chart.html');
  return raw;
 }
-function normalize(raw,file){raw=peelSpxCashWatch(raw,file);raw=peelSpxCashIdentityTest(raw,file);raw=peelMarkDesksHtml(raw,file);raw=peelMarkDesksRail(raw,file);raw=peelFredDesksEngine(raw,file);raw=peelFredDesksRail(raw,file);raw=peelCandleClarity(raw,file);raw=peelScreenFit(raw,file);raw=peelFlowsEngine(raw,file);raw=peelFlowsRail(raw,file);raw=peelFormingBar(raw,file);raw=peelCapitHtml(raw,file);raw=peelCapitRail(raw,file);raw=peelLeadersHtml(raw,file);raw=peelLeadersEngine(raw,file);raw=peelLeadersRail(raw,file);raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
+function normalize(raw,file){raw=peelIndexRoutes(raw,file);raw=peelSpxCashWatch(raw,file);raw=peelSpxCashIdentityTest(raw,file);raw=peelMarkDesksHtml(raw,file);raw=peelMarkDesksRail(raw,file);raw=peelFredDesksEngine(raw,file);raw=peelFredDesksRail(raw,file);raw=peelCandleClarity(raw,file);raw=peelScreenFit(raw,file);raw=peelFlowsEngine(raw,file);raw=peelFlowsRail(raw,file);raw=peelFormingBar(raw,file);raw=peelCapitHtml(raw,file);raw=peelCapitRail(raw,file);raw=peelLeadersHtml(raw,file);raw=peelLeadersEngine(raw,file);raw=peelLeadersRail(raw,file);raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
  if(digest===row.before_sha256||digest!==row.after_sha256)return raw;
  for(const e of [...row.replacements].reverse()){assert.equal(raw.split(e.after).length,2,file+': '+e.after.slice(0,60));raw=raw.replace(e.after,e.before);}
  assert.equal(hash(raw),row.before_sha256,file);assert.equal(raw,fs.readFileSync(path.join(R,row.before_path),'utf8'));return raw;

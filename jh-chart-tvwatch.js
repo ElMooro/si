@@ -472,6 +472,21 @@
     s = String(s || "").trim();
     if (!s || s.indexOf("###") === 0) return "";
     var u = s.toUpperCase(), hit = symMap && symMap[u];
+    /* Reviewed index routes. 2026-11-19 (Khalid: "im trying to pull sp500 and i cant", then "Fix all of them"): TradingView's search answers "sp500", "ndx" or "dow jones" with
+       broker and index-vendor ids of the cash index (VANTAGE:SP500 is its first row for "sp500"), the search directory pins the Polygon ids (I:SPX, I:NDX, I:DJI ...), and his
+       own lists carry SPCFD:SPX, FX:NAS100, CAPITALCOM:US30, TVC:TNX and TVC:VIX. Each id below was read from that search, the directory or his lists
+       (tests/fixtures/chart-index-routes) and routes to the index the chart already serves live. Futures, forwards, perpetuals, total-return and sector variants and same-named
+       foreign stocks (LSE:SPX is Spirax) are deliberately not listed. Reviewed here, so these decide before the symbol map: the map sends TVC:VIX to FRED's next-day copy. */
+    var indexRoutes = {
+      "^GSPC": "I:SPX SP:SPX SPCFD:SPX SPREADEX:SPX VANTAGE:SP500 BLUEBERRY:SP500 DARWINEX:SP500 CAPITALCOM:SPX500 FOREXCOM:SPX500 BLACKBULL:SPX500 FX:SPX500 OANDA:SPX500USD IC:US500 CFI:US500 PEPPERSTONE:US500 BLACKBULL:US500 FPMARKETS:US500 TICKMILL:US500 FUSIONMARKETS:US500 GBEBROKERS:US500 TRADENATION:US500 PURPLETRADING:US500 ERRANTE:US500 GOMARKETS:US500 EQUITI:US500",
+      "^NDX": "I:NDX TVC:NDX SPREADEX:NDX CFI:US100 PURPLETRADING:US100 THINKMARKETS:NAS100 CXM:NAS100 FX:NAS100 FXPRO:NDAQ100 DARWINEX:NDQ EASYMARKETS:NQCUSD",
+      "^DJI": "I:DJI DJ:DJI SPREADEX:DJI OPO:DJIUSD FX:US30 CAPITALCOM:US30 VANTAGE:DJ30",
+      "^RUT": "I:RUT",
+      "^IXIC": "I:COMP",
+      "^VIX": "I:VIX TVC:VIX",
+      "^TNX": "TVC:TNX"
+    }, indexTarget;
+    if (u.indexOf(" ") < 0) for (indexTarget in indexRoutes) if ((" " + indexRoutes[indexTarget] + " ").indexOf(" " + u + " ") >= 0) return indexTarget;
     if (hit && hit.source === "MARKET" && hit.id && /^[A-Z0-9.^=-]{1,24}$/.test(String(hit.id).toUpperCase())) return String(hit.id).toUpperCase();
     if (hit && hit.source === "FRED" && /^[A-Z0-9]+$/.test(hit.id || "")) return "FRED:" + fredId(hit.id);
     if (hit && hit.source === "COINGECKO" && /^[a-z]{2,6}$/.test(hit.id || "")) return String(hit.id).toUpperCase() + "-USD";
@@ -488,11 +503,6 @@
     if (extra) return extra;
     var venue = "", bare = u, cut = u.indexOf(":");
     if (cut > 0) { venue = u.slice(0, cut); bare = u.slice(cut + 1); }
-    /* 2026-11-19 (Khalid: "im trying to pull sp500 and i cant"): TradingView's search answers "sp500", "spx" and "us500" with broker and index-vendor ids of the S&P 500 cash index
-       (VANTAGE:SP500 is its first row). Each id here was read from that search or from his lists and routes to the index the chart already serves for SPX and TVC:SPX.
-       Futures, forwards, perpetuals and same-named foreign stocks (LSE:SPX is Spirax) are deliberately not listed. */
-    var spxCash = { "SP:SPX": 1, "SPCFD:SPX": 1, "SPREADEX:SPX": 1, "VANTAGE:SP500": 1, "BLUEBERRY:SP500": 1, "DARWINEX:SP500": 1, "CAPITALCOM:SPX500": 1, "FOREXCOM:SPX500": 1, "BLACKBULL:SPX500": 1, "FX:SPX500": 1, "OANDA:SPX500USD": 1, "IC:US500": 1, "CFI:US500": 1, "PEPPERSTONE:US500": 1, "BLACKBULL:US500": 1, "FPMARKETS:US500": 1, "TICKMILL:US500": 1, "FUSIONMARKETS:US500": 1, "GBEBROKERS:US500": 1, "TRADENATION:US500": 1, "PURPLETRADING:US500": 1, "ERRANTE:US500": 1, "GOMARKETS:US500": 1, "EQUITI:US500": 1 };
-    if (spxCash[u] === 1) return "^GSPC";
     var us = { NASDAQ: 1, NYSE: 1, AMEX: 1, ARCA: 1, BATS: 1, IEX: 1, OTC: 1 };
     if (us[venue] && /^[A-Z][A-Z0-9.-]{0,11}$/.test(bare)) return bare;
     if (venue === "CBOE" && bare === "VIX") return "^VIX";
@@ -798,6 +808,8 @@ function chartRouteText(route, evidence, bars) {
   }
   // Shared row/search navigation retains requested identity and source qualification.
   window.jhWatchlistOpen = openSym;
+  // The same reviewed route, without opening anything: a spread asks it where each of its legs is charted from (jh-chart-expr.js).
+  window.jhWatchlistRoute = function (s) { try { return chartRoute(s).handoff || ""; } catch (e) { return ""; } };
   function paintCard(s) {
     if(actionDraft)return;
     var host = document.getElementById("tvcard");

@@ -1,0 +1,14 @@
+[
+ {
+  "before": "      \"SPX\":\"^GSPC\",\"SP500\":\"^GSPC\",\"NDX\":\"^NDX\",\"RUT\":\"^RUT\"\n    };\n",
+  "after": "      \"SPX\":\"^GSPC\",\"SP500\":\"^GSPC\",\"NDX\":\"^NDX\",\"RUT\":\"^RUT\",\n      /* 2026-11-19 (Khalid: \"Fix all of them\"): the search directory pins the Polygon index ids (I:SPX for \"spx\" and \"s&p 500\", I:NDX, I:DJI ...) and TradingView's first answer for\n         \"ndx\" is NASDAQ:NDX; their banked copies stop weeks back or fail the candle check (\"No bars for I:SPX\"). They are the same indices this table already serves live. */\n      \"I:SPX\":\"^GSPC\",\"I:NDX\":\"^NDX\",\"I:DJI\":\"^DJI\",\"I:RUT\":\"^RUT\",\"I:VIX\":\"^VIX\",\"I:COMP\":\"^IXIC\",\"NASDAQ:NDX\":\"^NDX\",\"DJ:DJI\":\"^DJI\",\"DJI\":\"^DJI\"\n    };\n"
+ },
+ {
+  "before": "!(/^TVC:/i.test(String(sym)) && /^\\^/.test(String(rs.raw||\"\")))){ /* 2026-10-21: a TVC yield/index alias (^TNX, ^VIX, ^GSPC...) takes the live route, not a banked TradingView copy that stopped on Oct 2 */",
+  "after": "!(/^\\^/.test(String(rs.raw||\"\")))){ /* 2026-10-21: a TVC yield/index alias (^TNX, ^VIX, ^GSPC...) takes the live route, not a banked TradingView copy that stopped on Oct 2; 2026-11-19: so does every other id the alias table turns into an index (I:SPX, NASDAQ:NDX, DJ:DJI, CBOE:VIX) */"
+ },
+ {
+  "before": "      if(!quiet) lastSource=barCache[key].src||lastSource; return identifyBars(barCache[key].d,sym,tfId,barCache[key].src,barCache[key].observations);\n",
+  "after": "      /* 2026-11-19: SPX, SP500 and ^GSPC share one cached array. The quote line's own \"vs SPX\" lookup (or a watchlist quote) asking for it under another name used to re-stamp\n         the array on screen, and the next repaint then found a frame that no longer named the active symbol: the chart stayed drawn while the status line said \"awaiting chart frame\".\n         A request under a different name or interval now gets its own copy; the frame on screen keeps its label. */\n      var cachedBars=barCache[key].d,cachedFrame=barEvidence.get(cachedBars);\n      if(cachedFrame&&(cachedFrame.symbol!==sym||cachedFrame.interval!==tfId))cachedBars=cachedBars.slice();\n      if(!quiet) lastSource=barCache[key].src||lastSource; return identifyBars(cachedBars,sym,tfId,barCache[key].src,barCache[key].observations);\n"
+ }
+]

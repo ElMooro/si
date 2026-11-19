@@ -361,7 +361,10 @@
       "DXY":"DX-Y.NYB","TVC:DXY":"DX-Y.NYB",
       "GOLD":"GC=F","TVC:GOLD":"GC=F","XAU":"GC=F",
       "USOIL":"CL=F","TVC:USOIL":"CL=F","WTI":"CL=F","CRUDE":"CL=F",
-      "SPX":"^GSPC","SP500":"^GSPC","NDX":"^NDX","RUT":"^RUT"
+      "SPX":"^GSPC","SP500":"^GSPC","NDX":"^NDX","RUT":"^RUT",
+      /* 2026-11-19 (Khalid: "Fix all of them"): the search directory pins the Polygon index ids (I:SPX for "spx" and "s&p 500", I:NDX, I:DJI ...) and TradingView's first answer for
+         "ndx" is NASDAQ:NDX; their banked copies stop weeks back or fail the candle check ("No bars for I:SPX"). They are the same indices this table already serves live. */
+      "I:SPX":"^GSPC","I:NDX":"^NDX","I:DJI":"^DJI","I:RUT":"^RUT","I:VIX":"^VIX","I:COMP":"^IXIC","NASDAQ:NDX":"^NDX","DJ:DJI":"^DJI","DJI":"^DJI"
     };
     if(ALIAS[s]) s=ALIAS[s];
     if(/^ustpar:/i.test(s)) return {raw:s, venue:"ustpar", ticker:s, yahoo:s.split(":").pop(), engine:"series"}; /* Treasury par tenors are warehouse scalars (2026-10-21) */
@@ -2024,7 +2027,12 @@
     var rs=resolveSym(sym), t=rs.ticker, sp=spec(tfId), ys=rs.yahoo;
     var scalar=observationId(sym), key=(scalar||String(sym).indexOf(":")>=0?String(sym):t)+"|"+tfId, now=Date.now(), minimum=scalar?1:8;
     if(!scalar && barCache[key] && barCache[key].at && now-barCache[key].at<60000 && barCache[key].d && barCache[key].d.length>=minimum){
-      if(!quiet) lastSource=barCache[key].src||lastSource; return identifyBars(barCache[key].d,sym,tfId,barCache[key].src,barCache[key].observations);
+      /* 2026-11-19: SPX, SP500 and ^GSPC share one cached array. The quote line's own "vs SPX" lookup (or a watchlist quote) asking for it under another name used to re-stamp
+         the array on screen, and the next repaint then found a frame that no longer named the active symbol: the chart stayed drawn while the status line said "awaiting chart frame".
+         A request under a different name or interval now gets its own copy; the frame on screen keeps its label. */
+      var cachedBars=barCache[key].d,cachedFrame=barEvidence.get(cachedBars);
+      if(cachedFrame&&(cachedFrame.symbol!==sym||cachedFrame.interval!==tfId))cachedBars=cachedBars.slice();
+      if(!quiet) lastSource=barCache[key].src||lastSource; return identifyBars(cachedBars,sym,tfId,barCache[key].src,barCache[key].observations);
     }
     if(window.JHChartCatalog && typeof window.JHChartCatalog.klines==="function"){
       try{
@@ -2057,7 +2065,7 @@
     }
     // Preserve the complete exchange id. This endpoint reports daily OHLC;
     // observations without OHLC cannot be manufactured into market candles.
-    if(String(sym).indexOf(":")>=0 && !/^(DATA|provider|DESK|CQSNAP|CQARM|CQDOC):/i.test(String(sym)) && !(/^TVC:/i.test(String(sym)) && /^\^/.test(String(rs.raw||"")))){ /* 2026-10-21: a TVC yield/index alias (^TNX, ^VIX, ^GSPC...) takes the live route, not a banked TradingView copy that stopped on Oct 2 */
+    if(String(sym).indexOf(":")>=0 && !/^(DATA|provider|DESK|CQSNAP|CQARM|CQDOC):/i.test(String(sym)) && !(/^\^/.test(String(rs.raw||"")))){ /* 2026-10-21: a TVC yield/index alias (^TNX, ^VIX, ^GSPC...) takes the live route, not a banked TradingView copy that stopped on Oct 2; 2026-11-19: so does every other id the alias table turns into an index (I:SPX, NASDAQ:NDX, DJ:DJI, CBOE:VIX) */
       var seriesUrl=PROXY+"/series?id="+encodeURIComponent(sym),tvRaw=null;
       try{
         if(!/^(1d|2d|3d|5d|1w|2w|1M|3M)$/.test(sp[0]))return [];

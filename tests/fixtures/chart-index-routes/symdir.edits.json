@@ -1,0 +1,6 @@
+[
+ {
+  "before": "    warehouse = {\"rows\": [], \"more\": False, \"facets\": [],\n                 \"integrity\": warehouse_cache_evidence(_WIDX, \"not_requested\")}\n    if not kind or kind == \"dataset\":\n",
+  "after": "    # 3b. a policy pin answers the word itself: \"sp500\" means the S&P 500 index and SPY whether or not the letters of\n    #     the query appear in their names (\"Standard & Poor's 500\", \"SPDR S&P 500 ETF Trust\"). Until 2026-11-19 a pin\n    #     only re-ranked a document the tokens had already matched, so \"sp500\" led with the FRED copy and never listed\n    #     the index. Provider and kind filters still apply below; a pin the directory does not hold adds nothing.\n    try:\n        for pinned_id in SEARCH_POLICY.get(q.lower(), []):\n            for k, i in _prefix_range(ix[\"ids\"], pinned_id.upper(), cap=3)[0]:\n                if k == pinned_id.upper() and i not in hits:\n                    hits[i] = (1, 0)\n    except Exception:  # noqa: BLE001\n        pass\n    warehouse = {\"rows\": [], \"more\": False, \"facets\": [],\n                 \"integrity\": warehouse_cache_evidence(_WIDX, \"not_requested\")}\n    if not kind or kind == \"dataset\":\n"
+ }
+]

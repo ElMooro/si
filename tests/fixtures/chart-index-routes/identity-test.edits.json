@@ -1,0 +1,6 @@
+[
+ {
+  "before": "test('all current-main routing helpers remain byte identical',()=>{for(const id of ['extraChart','fredId','chartSymbol'])assert.equal(fn(watch,id),fn(previousRouted,id));});",
+  "after": "// 2026-11-19 (same day, \"Fix all of them\"): the S&P 500 ids became one reviewed index table at the top of chartSymbol (S&P 500, Nasdaq-100, Dow, the directory's Polygon ids,\n// TVC:VIX and TVC:TNX), ledgered in tests/fixtures/chart-index-routes/tvwatch.edits.json and re-applied here.\nconst indexRoutes=JSON.parse(read('tests/fixtures/chart-index-routes/tvwatch.edits.json'));for(const e of indexRoutes){assert.equal(previousRouted.split(e.before).length,2,'index route predecessor: '+e.before.slice(0,40));previousRouted=previousRouted.replace(e.before,e.after);}\ntest('all current-main routing helpers remain byte identical',()=>{for(const id of ['extraChart','fredId','chartSymbol'])assert.equal(fn(watch,id),fn(previousRouted,id));});"
+ }
+]
