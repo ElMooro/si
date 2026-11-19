@@ -90,4 +90,4 @@ def test_config_is_one_run_a_day_and_matches_the_source():
     sched = cfg["eventbridge_scheduler"]
     assert sched["schedule_name"] == "justhodl-stock-volatility-daily" and sched["cron"] == "cron(6 4 * * ? *)" and sched["timezone"] == "UTC"
     assert cfg["timeout"] == 900 and cfg["memory"] == 2048 and "invoke" not in (LAMBDAS / "justhodl-stock-volatility" / "source" / "lambda_function.py").read_text(encoding="utf-8").split('"""', 2)[2].lower().replace("no invoke", "")
-    assert len(vol.COLS) == len(set(vol.COLS)) == 51 and set(vol.RANK_COL.values()) <= set(vol.COLS) and vol.CONTRACT == "stock-volatility.v1"
+    assert len(vol.COLS) == len(set(vol.COLS)) == 54 and set(vol.RANK_COL.values()) <= set(vol.COLS) and vol.CONTRACT == "stock-volatility.v1"

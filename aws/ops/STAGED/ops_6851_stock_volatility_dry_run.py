@@ -110,7 +110,12 @@ def main():
             sub = sorted([x for x in st if x[key] is not None], key=lambda x: x[key], reverse=rev)[:10]
             r.log("%-15s %s" % (label, ", ".join("%s hv21 %s day %s mcap $%.0fM" % (x["t"], x["hv21"], x["sp_d"], (x["mcap"] or 0) / 1e6) for x in sub)))
         aside = [x for x in rows if x["aside"]]
-        r.log("set aside %d rows: %s; flagged jump on %d rows; examples %s" % (len(aside), json.dumps({w: len([x for x in aside if x["why"] == w]) for w in ("jump", "thin", "pinned")}), len([x for x in rows if x["ja"] is not None]),
+        prints = sorted([x for x in rows if x["pa"] is not None], key=lambda x: x["pa"])
+        r.log("flagged print on %d rows (%d inside the last 63 sessions): %s" % (len(prints), len([x for x in prints if x["pa"] <= LF.JUMP_ASIDE]),
+                                                                                "; ".join("%s %s x%s %d ago ($%.0fM, quarter %s%%)" % (x["t"], x["pd"], x["pr"], x["pa"], (x["mcap"] or 0) / 1e6, x["sp_q"]) for x in prints[:40])))
+        sr = out["universe"]["splits_refused"]
+        r.log("inferred splits refused (the session did not open at the new price): %d - %s" % (sr["n"], "; ".join("%s %s x%s" % (x["t"], x["date"], x["ratio"]) for x in sr["sample"])))
+        r.log("set aside %d rows: %s; flagged jump on %d rows; examples %s" % (len(aside), json.dumps({w: len([x for x in aside if x["why"] == w]) for w in ("jump", "print", "thin", "pinned")}), len([x for x in rows if x["ja"] is not None]),
                                                                     json.dumps([{k: x[k] for k in ("t", "kind", "mcap", "hv21", "jd", "jr", "ja", "miss", "aside", "why")} for x in sorted([x for x in aside if x["why"] != "pinned"], key=lambda x: -(x["mcap"] or 0))[:10]])))
         blank = {c: sum(1 for x in st if x[c] is None) for c in ("hv21", "hv63", "hv252", "yz21", "atr", "hvp", "hv21p", "sp_d", "sp_w", "sp_m", "sp_q", "own_d", "own_q", "mcap", "sector", "name")}
         r.log("blank readings among %d stocks: %s" % (len(st), json.dumps(blank)))

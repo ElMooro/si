@@ -49,12 +49,12 @@ class ReadOnly:
 def wicks(bars, window=WINDOW):
     """Per bar of the last `window`: (date, ago, up, dn, gap_hi, gap_lo). up = high / max(open, close), dn = min(open,
     close) / low: how far the bar's extreme stands from its own body.  gap_hi / gap_lo: the same extreme against the
-    whole neighbourhood - the highest / lowest of the closes one session before and after and the bar's own body."""
+    closes around it - the session before, its own, the session after (the engine's prints_of)."""
     out, n = [], len(bars)
     for i in range(max(1, n - window), n):
         b = bars[i]
         body_hi, body_lo = max(b["o"], b["c"]), min(b["o"], b["c"])
-        near = [bars[i - 1]["c"], b["o"], b["c"]] + ([bars[i + 1]["c"]] if i + 1 < n else [])
+        near = [bars[i - 1]["c"], b["c"]] + ([bars[i + 1]["c"]] if i + 1 < n else [])     # the engine's prints_of: closes only - the open can be the bad print
         out.append((b["date"], n - 1 - i, b["h"] / body_hi, body_lo / b["l"], b["h"] / max(near), min(near) / b["l"]))
     return out
 
@@ -149,7 +149,7 @@ def main():
             r.log("the farthest %s: %s" % (label, " | ".join("%s x%.1f %s (%d ago, x%.1f off its body, %s, $%.0fM, quarter %.0f%% vs %.0f%% on bodies, %d such bars)" % (
                 x["t"], x[key], x[date], x[ago], x[body], x["kind"], x["mcap"] / 1e6, x["sp"], x["body"], x["n_up2"] if key == "up" else x["n_dn2"]) for x in top)))
         # how much of the quarter spread is wick: spread on highs and lows against spread on opens and closes
-        ratio = sorted(((x["sp"] + 100) / (x["body"] + 100), x) for x in rows if x["kind"] == "stock")
+        ratio = sorted((((x["sp"] + 100) / (x["body"] + 100), x) for x in rows if x["kind"] == "stock"), key=lambda p: p[0])
         n = len(ratio)
         r.log("stocks: quarter (high / low) over (body high / body low): median x%.3f, 90th x%.3f, 99th x%.3f, 99.9th x%.3f, max x%.1f (%s)" % (
             ratio[n // 2][0], ratio[int(n * .9)][0], ratio[int(n * .99)][0], ratio[int(n * .999)][0], ratio[-1][0], ratio[-1][1]["t"]))

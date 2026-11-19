@@ -427,6 +427,95 @@ def test_an_unexplained_jump_is_flagged_and_set_aside():
         LF.MIN_SCANNED = old
 
 
+def test_a_print_no_close_supports_is_flagged_and_set_aside():
+    """ops 6855: MYND's banked bar of 2026-10-19 opens and bottoms at 0.0001 between closes of 0.26 and 0.22. XOM's real
+    bars with the same damage on one session 20 back: the closes are untouched, the quarter's low is not a price."""
+    b = LF.clean(dict_bars(BARS["XOM"]))
+    ok("real bars carry no print", LF.prints_of(b) == [] and LF.flagged_print([]) is None)
+    i = len(b) - 20
+    low = [dict(x) for x in b]
+    low[i].update({"o": 0.0001, "l": 0.0001})
+    got = LF.prints_of(low)
+    ok("a low 3-to-1 under every close around it is a print", len(got) == 1 and got[0]["date"] == b[i]["date"] and got[0]["ago"] == 19 and near(got[0]["ratio"], 0.0001 / min(b[i - 1]["c"], b[i]["c"], b[i + 1]["c"]), 1e-3), json.dumps(got))
+    high = [dict(x) for x in b]
+    high[-1]["h"] = b[-1]["c"] * 3.2
+    got = LF.prints_of(high)
+    ok("a high 3-to-1 over them is one too, on the last bar with no close after it", len(got) == 1 and got[0]["ago"] == 0 and near(got[0]["ratio"], 3.2 * b[-1]["c"] / max(b[-2]["c"], b[-1]["c"]), 1e-3), json.dumps(got))
+    high[-1]["h"] = b[-1]["c"] * 2.9
+    ok("under 3-to-1 it is a wide bar, not a print", LF.prints_of(high) == [])
+    move = [dict(x) for x in b]
+    for x in move[i:]:
+        x.update({k: x[k] * 4 for k in ("o", "h", "l", "c")})
+    ok("a session that closes where it traded is a move, not a print", LF.prints_of(move) == [])
+    every = ["hv21", "hv63", "sp_d", "sp_w", "sp_m", "sp_q"]
+    ok("a print inside the last 63 sessions sets the row aside; an older one does not; a jump is said first",
+       LF.aside_of(None, 0, False, {"date": "x", "ratio": 0.001, "ago": 62}) == (every, "print") and LF.aside_of(None, 0, False, {"date": "x", "ratio": 0.001, "ago": 63}) == ([], None)
+       and LF.aside_of({"date": "y", "ratio": 5.0, "ago": 3}, 0, False, {"date": "x", "ratio": 0.001, "ago": 1})[1] == "jump")
+    old = LF.MIN_SCANNED
+    LF.MIN_SCANNED = 5
+    try:
+        cut = len(BARS["XOM"]) - 20
+
+        def edit(t, rows):
+            if t != "XOM":
+                return rows
+            return [[r[0], 0.0001, r[2], 0.0001, r[4], r[5]] if k == cut else r for k, r in enumerate(rows)]
+        out = LF.build(fresh(edit=edit), datetime(2026, 11, 19, tzinfo=timezone.utc), log=lambda *_: None)
+        x = row_of(out, "XOM")
+        _, _, _, _, C, _ = cols("XOM")
+        ok("the print is on the row", x["pd"] == iso(BARS["XOM"][cut][0]) and x["pa"] == 19 and x["pr"] < 0.001 and x["jd"] is None, json.dumps({k: x[k] for k in ("pd", "pr", "pa", "jd", "why")}))
+        ok("the row is set aside on every measure; its figures still print", x["why"] == "print" and x["aside"] == ",".join(every) and all(x[c] is None for c in LF.RANK_COL.values())
+           and near(x["hv21"], round(M.hv(C, 21), 2), 1e-3) and x["sp_q"] > 1e6 and x["sp_w"] < 100)
+        ok("it is counted, and kept out of boards, medians and history", out["universe"]["flagged_print"] == {"stock": 1, "etf": 0} and out["universe"]["set_aside"]["stock"] == 1
+           and not any("XOM" in v for v in out["boards"].values()) and out["history"][-1]["n"] == 4 and out["market"]["stock"]["med"]["sp_q"] < 1000)
+        ok("the feed says what the flags are", out["windows"]["print_flag"] == 3.0 and out["windows"]["jump_flag"] == 3.0 and out["windows"]["aside_sessions"] == 63 and "pd / pr / pa" in out["definitions"])
+    finally:
+        LF.MIN_SCANNED = old
+
+
+def test_a_fall_inside_the_session_is_not_a_split():
+    """ops 6855: JDZG opened 2026-10-28 at 6.30 and closed it at 1.50 on four times the shares - the tape of a 4-for-1
+    split by its closes and volume, and the tape rule read it as one. A split is in force from the first trade. TSLA's
+    real bars, quartered from a session 30 back with four times the volume: once opening at the new price (a split the
+    record does not carry), once opening at the old one (a fall)."""
+    old = LF.MIN_SCANNED
+    LF.MIN_SCANNED = 5
+    try:
+        cut = len(BARS["TSLA"]) - 30
+        day = iso(BARS["TSLA"][cut][0])
+        _, _, H, L, C, _ = cols("TSLA")
+
+        def split(t, rows):
+            if t != "TSLA":
+                return rows
+            return [[r[0], r[1] / 4, r[2] / 4, r[3] / 4, r[4] / 4, r[5] * 4] if k >= cut else r for k, r in enumerate(rows)]
+
+        def fall(t, rows):
+            if t != "TSLA":
+                return rows
+            out = split(t, rows)
+            out[cut] = [out[cut][0], rows[cut][1], rows[cut][2], out[cut][3], out[cut][4], out[cut][5]]     # opens and tops at the old price
+            return out
+        a = LF.build(fresh(edit=split), datetime(2026, 11, 19, tzinfo=timezone.utc), log=lambda *_: None)
+        ta = row_of(a, "TSLA")
+        ok("a split the session opened on is rebased: the row measures as the real bars do", ta["jd"] is None and ta["why"] is None and near(ta["hv63"], round(M.hv(C, 63), 2), 1e-3)
+           and near(ta["sp_q"], round((max(H[-63:]) / min(L[-63:]) - 1) * 100, 2), 1e-3) and a["universe"]["splits_refused"] == {"n": 0, "sample": []}, json.dumps({k: ta[k] for k in ("jd", "why", "hv63", "sp_q")}))
+        b = LF.build(fresh(edit=fall), datetime(2026, 11, 19, tzinfo=timezone.utc), log=lambda *_: None)
+        tb = row_of(b, "TSLA")
+        ok("a fall that built inside the session is refused as a split", b["universe"]["splits_refused"]["n"] == 1 and b["universe"]["splits_refused"]["sample"][0]["t"] == "TSLA" and b["universe"]["splits_refused"]["sample"][0]["date"] == day,
+           json.dumps(b["universe"]["splits_refused"]))
+        ok("... so it stays a fall: flagged as a jump, set aside, the quarter's high still the old price", tb["jd"] == day and tb["ja"] == 29 and tb["jr"] < 1 / 3 and tb["why"] == "jump" and tb["hi_q"] > 3 * tb["px"]
+           and tb["hv63"] > 2 * ta["hv63"], json.dumps({k: tb[k] for k in ("jd", "jr", "ja", "why", "hi_q", "px", "hv63")}))
+        own = LF.clean(dict_bars(BARS["TSLA"]))
+        e = {"date": own[cut]["date"], "ratio": 0.25}
+        gap = lambda o: [dict(x, o=o) if k == cut else x for k, x in enumerate(own)]   # noqa: E731
+        pc = own[cut - 1]["c"]
+        ok("at the open: the gap carries at least half the move, on the move's side", LF.at_open(gap(pc * 0.25), e) and LF.at_open(gap(pc * 0.49), e) and not LF.at_open(gap(pc * 0.51), e) and not LF.at_open(gap(pc * 1.03), e)
+           and not LF.at_open(gap(pc * 4), e) and not LF.at_open(own, {"date": "1999-01-01", "ratio": 0.25}) and not LF.at_open(own, {"date": own[0]["date"], "ratio": 0.25}))
+    finally:
+        LF.MIN_SCANNED = old
+
+
 def test_a_thin_symbol_is_set_aside():
     old = LF.MIN_SCANNED
     LF.MIN_SCANNED = 5

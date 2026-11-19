@@ -17,9 +17,12 @@ One row for every listed common stock and every plain ETF in the warehouse, read
     ranks          rk_hv21, rk_hv63, rk_d, rk_w, rk_m, rk_q - 1 is the most volatile / the widest, counted inside
                    the row's own kind (stocks against stocks, ETFs against ETFs)
 
-Three kinds of row are measured but set aside from the rankings (`aside` names the measures, `why` the reason), so a
+Four kinds of row are measured but set aside from the rankings (`aside` names the measures, `why` the reason), so a
 ranking is of stocks that trade freely and nothing is hidden:
     jump     an unexplained one-session move beyond 3-to-1 inside the last 63 sessions (the longest ranked window)
+    print    a high or a low more than 3-to-1 away from every close around it inside the last 63 sessions: one print
+             no trade beside it supports (ops 6855: MYND's banked bar of 2026-10-19 opens at 0.0001 between closes of
+             0.26 and 0.22, which alone made its quarter spread 649,900%)
     thin     a symbol that missed more than three of the last 63 sessions
     pinned   a stock whose last 21 sessions fit inside 3.5% from low to high - the tape of a company waiting for a
              takeover to close, not of a calm business (ops 6851: the 25 "least volatile" $1B+ stocks were all such)
@@ -40,6 +43,7 @@ from __future__ import annotations
 
 import gzip
 import json
+import math
 import os
 import re
 import time
@@ -75,6 +79,8 @@ PRIOR = 21                     # the volatility reading this many sessions ago, 
 PIN_SPREAD_M = 3.5             # a stock whose last 21 sessions fit inside this percent, low to high, trades like a pending deal
 JUMP_FLAG = 3.0                # a close-to-close move beyond 3-to-1 either way that no split explains is flagged on the row, never hidden
 JUMP_SESSIONS = 300
+PRINT_FLAG = 3.0               # a high or low this many times away from every close around it is one print, not a range
+SPLIT_GAP_SHARE = 0.5          # a split inferred from the tape must be in force at the open: the gap from the prior close carries at least half of the move
 HISTORY_SESSIONS = 252
 THREADS = int(os.environ.get("THREADS", "16"))
 RESERVE_S = 45.0
@@ -103,7 +109,7 @@ COLS = ["t", "name", "kind", "sector", "industry", "mcap", "adv", "px", "chg", "
         "sp_m", "hi_m", "lo_m", "pos_m", "own_m",
         "sp_q", "hi_q", "lo_q", "pos_q", "own_q",
         "rk_hv21", "rk_hv63", "rk_d", "rk_w", "rk_m", "rk_q",
-        "miss", "jd", "jr", "ja", "aside", "why"]
+        "miss", "jd", "jr", "ja", "pd", "pr", "pa", "aside", "why"]
 SIZES = (("mega", 200e9, None, "$200B and over"), ("large", 10e9, 200e9, "$10B to $200B"), ("mid", 2e9, 10e9, "$2B to $10B"), ("small", 300e6, 2e9, "$300M to $2B"),
          ("micro", None, 300e6, "under $300M"))
 CFG = Config(retries={"max_attempts": 4, "mode": "standard"}, connect_timeout=5, read_timeout=30, max_pool_connections=THREADS * 2)
@@ -126,9 +132,10 @@ DEFINITIONS = {
     "pos": "Where the last close sits inside the window's spread: 0 at the low, 100 at the high.",
     "own": "Where the window's spread stands among the stock's own last 252 windows of the same length (one ending on each session), 0 to 100. 95 means an unusually wide spread for this stock; 5 an unusually narrow one. Blank under 126 windows.",
     "rk_*": "Rank inside the row's own kind - stocks against stocks, ETFs against ETFs - 1 is the most volatile (21 and 63 sessions) or the widest spread (day, week, month, quarter). A measure that is set aside has no rank.",
-    "aside / why": "A row that is set aside is measured but left out of every ranking, every board and the market's medians; why says which of three reasons applies - jump (a flagged jump inside the last 63 sessions), thin, or pinned - and aside names the measures (all six). The figures still print.",
+    "aside / why": "A row that is set aside is measured but left out of every ranking, every board and the market's medians; why says which of four reasons applies - jump (a flagged jump inside the last 63 sessions), print (a flagged print inside them), thin, or pinned - and aside names the measures (all six). The figures still print.",
     "pinned": "A stock whose last 21 sessions fit inside 3.5% from the lowest low to the highest high. A freely trading company does not do that (the S&P 500 fund's own month is wider); a company whose takeover price is agreed does. Pinned names are listed on their own and kept out of the rankings and the market's medians.",
     "jd / jr / ja": "A flagged jump: the date, the ratio and the sessions since a one-session close-to-close move beyond 3-to-1 either way, inside the last 300 sessions, that no recorded or inferred split explains. It can be a real collapse or a corporate action the record does not carry.",
+    "pd / pr / pa": "A flagged print: the date, the ratio and the sessions since a bar whose high stood more than 3 times above, or whose low more than 3 times below, every close around it - the close before, its own and the close after. No trade beside it supports that price, so it is read as one bad print rather than a range; ratio is that high or low over the nearest of those closes.",
     "miss": "How many of the last 63 sessions the symbol printed no bar on (sessions before its first bar are not counted). More than 3 and the row is thin: its windows cover more calendar days than they say, so it is set aside.",
     "boards": "Each board is the 25 names at one end of one measure, among common stocks worth $1B or more whose measure is not set aside. Rising / falling is the 21-session volatility minus its reading 21 sessions ago.",
     "bands": "Stocks counted by their 21-session volatility: under 15%, 15-25%, 25-40%, 40-60%, 60-100%, 100% and over - with the market value in each band.",
@@ -140,6 +147,8 @@ LIMITATIONS = [
     "The windows are sessions, not calendar periods: a week is the last 5 sessions, a month 21, a quarter 63.",
     "Pinned is read from the tape alone (21 sessions inside 3.5%); no deal record is consulted. A deal agreed inside the last month still shows as a jump in its windows, and a cash-and-stock deal can keep floating.",
     "Bars are rebased for splits here (recorded, then inferred) but not for dividends. A large special dividend prints as a move.",
+    "A split inferred from the tape alone is accepted only when the session opened at the new price (the gap from the prior close carries at least half of the move). A fall that happened inside the session is kept as a fall, and flagged as a jump when it is beyond 3-to-1.",
+    "A collapse is a wide spread: a stock that fell 99% in the quarter prints a spread near 10,000%, because the spread is the high over the low. Reverse splits are rebased, so such a fall is the holder's own.",
     "The bank begins 2021-08-26; a listing younger than a window leaves that window blank.",
 ]
 
@@ -337,7 +346,51 @@ def flagged_jump(jumps):
     return {"date": hits[-1]["date"], "ratio": hits[-1]["ratio"], "ago": hits[-1]["ago"]} if hits else None
 
 
-def aside_of(jump, miss, pinned=False):
+def prints_of(bars, sessions=JUMP_SESSIONS):
+    """Bars of the last `sessions` whose high stands PRINT_FLAG times above, or whose low PRINT_FLAG times below, every
+    close around them (the close before, their own, the close after): [{date, ratio, ago}], ratio above 1 for a high,
+    under 1 for a low. The open is not consulted - it can be the bad print itself. Pure."""
+    out, n = [], len(bars)
+    for i in range(max(1, n - sessions), n):
+        b = bars[i]
+        near = [bars[i - 1]["c"], b["c"]] + ([bars[i + 1]["c"]] if i + 1 < n else [])
+        up, dn = b["h"] / max(near), b["l"] / min(near)
+        if up >= PRINT_FLAG:
+            out.append({"date": b["date"], "ratio": round(up, 4), "ago": n - 1 - i})
+        elif dn <= 1.0 / PRINT_FLAG:
+            out.append({"date": b["date"], "ratio": round(dn, 6), "ago": n - 1 - i})
+    return out
+
+
+def flagged_print(prints):
+    """The most recent flagged print, or None. Pure."""
+    return dict(prints[-1]) if prints else None
+
+
+def at_open(own, event):
+    """True when the session of an inferred split opened at the new price: the gap from the prior close to the open is
+    on the split's side and carries at least SPLIT_GAP_SHARE of the move (in logs). A split is in force from the first
+    trade; a fall that builds inside the session is a fall. Pure."""
+    i = next((k for k, b in enumerate(own) if b["date"] == event["date"]), None)
+    try:
+        gap, move = math.log(float(own[i]["o"]) / float(own[i - 1]["c"])), math.log(float(event["ratio"]))
+    except (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError):
+        return False
+    return i >= 1 and move != 0 and gap * move > 0 and abs(gap) >= SPLIT_GAP_SHARE * abs(move)
+
+
+def rebase(own, recorded=None):
+    """leaders_tape.rebase with one more test: a split inferred from the tape alone must be in force at the open.
+    Returns (bars, events applied, inferred events refused). Pure."""
+    bars, ev = T.rebase(own, recorded or [])
+    refused = [e for e in ev if e.get("source") == "inferred" and not at_open(own, e)]
+    if not refused:
+        return bars, ev, []
+    keep = [e for e in ev if e not in refused]
+    return (T.apply_splits(own, keep) if keep else own), keep, refused
+
+
+def aside_of(jump, miss, pinned=False, bad_print=None):
     """(measures, why): the ranked measures a row is set aside from, in RANKED's order, and the reason. Pure."""
     if miss is not None and miss > THIN_MISS:
         return [m for m, _, _ in RANKED], "thin"
@@ -345,6 +398,8 @@ def aside_of(jump, miss, pinned=False):
         return [m for m, _, _ in RANKED], "pinned"
     if jump and jump["ago"] <= JUMP_ASIDE:
         return [m for m, _, _ in RANKED], "jump"
+    if bad_print and bad_print["ago"] <= JUMP_ASIDE:
+        return [m for m, _, _ in RANKED], "print"
     return [], None
 
 
@@ -366,7 +421,7 @@ def _own(series):
     return M.pct_rank(series[-1], vals) if (series and series[-1] is not None and len(vals) >= OWN_MIN) else None
 
 
-def measure(meta, bars, jump=None, bench_tail=None):
+def measure(meta, bars, jump=None, bench_tail=None, bad_print=None):
     """(row, tail) for one symbol from its repaired bars: the row's measures, and the last sessions' (date, hv21, sp_d)
     for the market's own history. Pure."""
     dates = [b["date"] for b in bars]
@@ -400,19 +455,23 @@ def measure(meta, bars, jump=None, bench_tail=None):
     for col in RANK_COL.values():
         row[col] = None
     month = M.spread(H, L, C, 21)
-    aside, why = aside_of(jump, miss, is_pinned(meta["kind"], month["sp"] if month else None))
-    row.update({"miss": miss, "jd": jump["date"] if jump else None, "jr": jump["ratio"] if jump else None, "ja": jump["ago"] if jump else None, "aside": ",".join(aside) or None, "why": why})
+    aside, why = aside_of(jump, miss, is_pinned(meta["kind"], month["sp"] if month else None), bad_print)
+    row.update({"miss": miss, "jd": jump["date"] if jump else None, "jr": jump["ratio"] if jump else None, "ja": jump["ago"] if jump else None,
+                "pd": bad_print["date"] if bad_print else None, "pr": bad_print["ratio"] if bad_print else None, "pa": bad_print["ago"] if bad_print else None,
+                "aside": ",".join(aside) or None, "why": why})
     tail = [(Dt[i], hv21s[i], spd[i]) for i in range(max(0, len(Dt) - HISTORY_SESSIONS), len(Dt))]
     return row, tail
 
 
-def one_ticker(s3, meta, recorded, bank_last_ord, listings, first_bar, bench_tail):
+def one_ticker(s3, meta, recorded, bank_last_ord, listings, first_bar, bench_tail, on_refused=None):
     """(status, row, tail, note): read, repair and measure one symbol."""
     raw = read_bars(s3, meta["ticker"])
     if not raw:
         return "unbanked", None, None, None
     own, _ = T.own_history(raw, meta.get("ipo_date"))
-    bars, ev = T.rebase(own, recorded or [])
+    bars, ev, refused = rebase(own, recorded or [])
+    if refused and on_refused:
+        on_refused(meta["ticker"], refused)
     if meta["kind"] == "stock" and meta.get("mcap") and meta.get("sector"):
         bars, _ = T.separation_cut(bars, ev, meta["ticker"], meta["mcap"], meta["sector"], listings, first_bar)
     bars = clean(bars)
@@ -422,7 +481,7 @@ def one_ticker(s3, meta, recorded, bank_last_ord, listings, first_bar, bench_tai
         return "stale", None, None, bars[-1]["date"]
     if len(bars) < MIN_SESSIONS:
         return "short", None, None, len(bars)
-    row, tail = measure(meta, bars, flagged_jump(T.jumps_of(bars, ev)), bench_tail)
+    row, tail = measure(meta, bars, flagged_jump(T.jumps_of(bars, ev)), bench_tail, flagged_print(prints_of(bars)))
     return "scanned", row, tail, len(bars)
 
 
@@ -567,7 +626,7 @@ def build(s3, now, log=print, remaining_s=600.0):
     bench_tail = bench_dates[-THIN_WINDOW:]
     recorded, n_windows = recorded_splits(s3, bank_first, bank_last, set(universe))
     listings = listings_of(universe)
-    first_bars = {}
+    first_bars, refused = {}, {}
 
     def first_bar(t):
         if t not in first_bars:
@@ -582,7 +641,7 @@ def build(s3, now, log=print, remaining_s=600.0):
         if time.time() > deadline:
             return t, "timeout", None, None, None
         try:
-            return (t,) + one_ticker(s3, universe[t], recorded.get(t), order, listings, first_bar, bench_tail)
+            return (t,) + one_ticker(s3, universe[t], recorded.get(t), order, listings, first_bar, bench_tail, refused.__setitem__)
         except Exception as exc:  # noqa: BLE001
             return t, "error", None, None, "%s: %s" % (type(exc).__name__, str(exc)[:100])
 
@@ -593,7 +652,7 @@ def build(s3, now, log=print, remaining_s=600.0):
             if st == "scanned":
                 rows.append(row)
                 sessions_read.append(note)
-                if row["kind"] == "stock" and not row["aside"] and row["ja"] is None:
+                if row["kind"] == "stock" and not row["aside"] and row["ja"] is None and row["pa"] is None:
                     tails.append(tail)
             elif st == "error":
                 errors.append({"ticker": t, "error": note})
@@ -634,10 +693,13 @@ def build(s3, now, log=print, remaining_s=600.0):
                      "bank_sessions": len(bench), "median_sessions_read": sorted(sessions_read)[len(sessions_read) // 2] if sessions_read else None, "split_windows_read": n_windows,
                      "ranked": ranked, "set_aside": {k: sum(1 for r in rows if r["kind"] == k and r["aside"]) for k in KINDS},
                      "flagged_jump": {k: sum(1 for r in rows if r["kind"] == k and r["ja"] is not None) for k in KINDS},
+                     "flagged_print": {k: sum(1 for r in rows if r["kind"] == k and r["pa"] is not None) for k in KINDS},
+                     "splits_refused": {"n": len(refused), "sample": [{"t": t, "date": refused[t][-1]["date"], "ratio": refused[t][-1].get("ratio")} for t in sorted(refused)[:60]]},
                      "thin": {k: sum(1 for r in rows if r["kind"] == k and r["why"] == "thin") for k in KINDS},
                      "pinned": {k: sum(1 for r in rows if r["kind"] == k and r["why"] == "pinned") for k in KINDS},
                      "reclassified": [{"t": t, "why": others[t]} for t in sorted(others)]},
-        "windows": {"spread": {k: v for k, v in M.WINDOWS}, "volatility": list(M.HV_WINDOWS), "own_history": OWN_WINDOW, "prior": PRIOR, "atr": 14, "largest_move": 63, "pin_spread_m": PIN_SPREAD_M},
+        "windows": {"spread": {k: v for k, v in M.WINDOWS}, "volatility": list(M.HV_WINDOWS), "own_history": OWN_WINDOW, "prior": PRIOR, "atr": 14, "largest_move": 63, "pin_spread_m": PIN_SPREAD_M,
+                    "jump_flag": JUMP_FLAG, "print_flag": PRINT_FLAG, "aside_sessions": JUMP_ASIDE + 1},
         "board_rule": {"min_mcap": BOARD_MIN_MCAP, "n": BOARD_N, "population": {m: len(board_set(rows, m)) for m, _, _ in RANKED}},
         "market": {"stock": group_stats(stocks), "etf": group_stats(etfs), "benchmark": {k: bm.get(k) for k in COLS if not k.startswith("rk_")}},
         "bands": bands_of(rows),
