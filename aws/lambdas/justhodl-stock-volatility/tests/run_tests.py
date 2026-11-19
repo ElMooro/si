@@ -231,13 +231,9 @@ def test_aside_rules():
     every = ["hv21", "hv63", "sp_d", "sp_w", "sp_m", "sp_q"]
     ok("thin: every ranked measure", LF.aside_of(None, 4) == (every, "thin"))
     ok("pinned: every ranked measure; thin is said first", LF.aside_of(None, 0, True) == (every, "pinned") and LF.aside_of(None, 9, True) == (every, "thin"))
-    j = lambda ago: LF.aside_of({"date": "x", "ratio": 5.0, "ago": ago}, 0)[0]   # noqa: E731
-    ok("a jump on the last bar", j(0) == ["hv21", "hv63", "sp_w", "sp_m", "sp_q"] and LF.aside_of({"date": "x", "ratio": 5.0, "ago": 0}, 0)[1] == "jump")
-    ok("the day's own bar is never set aside for a jump", all("sp_d" not in j(a) for a in range(0, 70)))
-    ok("week: a bar from before the jump is inside 5 sessions up to 3 back", "sp_w" in j(3) and "sp_w" not in j(4))
-    ok("month spread up to 19 back, hv21 up to 20", "sp_m" in j(19) and "sp_m" not in j(20) and "hv21" in j(20) and "hv21" not in j(21))
-    ok("quarter spread up to 61 back, hv63 up to 62", "sp_q" in j(61) and "sp_q" not in j(62) and "hv63" in j(62) and j(63) == [])
-    ok("a jump that no window spans any more sets nothing aside and gives no reason", LF.aside_of({"date": "x", "ratio": 5.0, "ago": 200}, 0) == ([], None))
+    j = lambda ago: LF.aside_of({"date": "x", "ratio": 5.0, "ago": ago}, 0)   # noqa: E731
+    ok("a jump inside the last 63 sessions sets the whole row aside", j(0) == (every, "jump") and j(30) == (every, "jump") and j(62) == (every, "jump"))
+    ok("an older jump sets nothing aside and gives no reason", j(63) == ([], None) and j(200) == ([], None))
     ok("flagged jump: the most recent beyond 3-to-1 inside 300 sessions", LF.flagged_jump([{"date": "a", "ratio": 4.0, "ago": 200}, {"date": "b", "ratio": 0.25, "ago": 40}, {"date": "c", "ratio": 2.5, "ago": 5}]) == {"date": "b", "ratio": 0.25, "ago": 40}
        and LF.flagged_jump([{"date": "a", "ratio": 9.0, "ago": 301}]) is None and LF.flagged_jump([]) is None)
     ok("missed sessions", LF.missed_sessions(["d1", "d2", "d4"], ["d1", "d2", "d3", "d4"]) == 1 and LF.missed_sessions(["d3", "d4"], ["d1", "d2", "d3", "d4"]) == 0)
@@ -293,20 +289,20 @@ def test_rank_and_boards():
         row.update({"t": t, "kind": kind, "hv21": hv21, "hv63": hv21, "sp_d": hv21, "sp_w": hv21, "sp_m": hv21, "sp_q": hv21, "mcap": mcap, "aside": aside, "hv21p": hv21p, "ja": ja})
         row.update(kw)
         return row
-    rows = [r("A", "stock", 50, hv21p=20), r("B", "stock", 30, hv21p=45), r("C", "stock", 80, mcap=2e8), r("D", "stock", 90, aside="hv21,hv63", ja=5, hv21p=10),
+    rows = [r("A", "stock", 50, hv21p=20), r("B", "stock", 30, hv21p=45), r("C", "stock", 80, mcap=2e8), r("D", "stock", 90, aside="hv21,hv63,sp_d,sp_w,sp_m,sp_q", ja=5, hv21p=10),
             r("E", "stock", None), r("F", "etf", 12), r("G", "etf", 40), r("H", "stock", 30, hv21p=30)]
     counts = LF.rank(rows)
     by = {x["t"]: x for x in rows}
     ok("1 is the most volatile, inside the kind", (by["C"]["rk_hv21"], by["A"]["rk_hv21"], by["B"]["rk_hv21"], by["H"]["rk_hv21"]) == (1, 2, 3, 4) and (by["G"]["rk_hv21"], by["F"]["rk_hv21"]) == (1, 2))
-    ok("a measure set aside has no rank; the others of the row do", by["D"]["rk_hv21"] is None and by["D"]["rk_hv63"] is None and by["D"]["rk_d"] == 1 and by["E"]["rk_hv21"] is None)
-    ok("rank counts", counts["stock"]["hv21"] == 4 and counts["stock"]["sp_d"] == 5 and counts["etf"]["hv21"] == 2)
+    ok("a row set aside has no rank on any measure; a blank reading has none either", all(by["D"][c] is None for c in LF.RANK_COL.values()) and by["E"]["rk_hv21"] is None)
+    ok("rank counts", counts["stock"]["hv21"] == 4 and counts["stock"]["sp_d"] == 4 and counts["etf"]["hv21"] == 2)
     b = LF.boards_of(rows, n=2)
     ok("boards are drawn from $1B+ common stocks that are ranked", b["most_volatile"] == ["A", "B"] and b["least_volatile"] == ["H", "B"] and "C" not in b["widest_d"] and "F" not in b["most_volatile"])
-    ok("the day board ranks a row whose volatility is set aside", b["widest_d"] == ["D", "A"])
+    ok("a row set aside is on no board", b["widest_d"] == ["A", "B"] and not any("D" in v for v in b.values()))
     ok("rising / falling is hv21 against 21 sessions ago", b["vol_rising"] == ["A", "H"] and b["vol_falling"] == ["B", "H"])
     ok("twelve boards", sorted(b) == sorted(["most_volatile", "least_volatile", "vol_rising", "vol_falling"] + [p + "_" + w for p in ("widest", "narrowest") for w in "dwmq"]))
     g = LF.group_stats([x for x in rows if x["kind"] == "stock"])
-    ok("group medians skip what is set aside", g["n"] == 6 and g["med"]["hv21"] == 40.0 and g["med"]["sp_d"] == 50.0 and g["rising"] == 1 and g["falling"] == 1)
+    ok("group medians skip what is set aside", g["n"] == 6 and g["med"]["hv21"] == 40.0 and g["med"]["sp_d"] == 40.0 and g["rising"] == 1 and g["falling"] == 1)
     bands = LF.bands_of(rows)
     ok("bands hold every ranked stock once", sum(x["n"] for x in bands) == 4 and [x["n"] for x in bands] == [0, 0, 2, 1, 1, 0] and bands[4]["mcap"] == 2e8)
     ok("sizes", [LF.size_of(v) for v in (3e11, 2e11, 5e10, 5e9, 1e9, 1e8, None)] == ["mega", "mega", "large", "mid", "small", "micro", None])
@@ -423,10 +419,9 @@ def test_an_unexplained_jump_is_flagged_and_set_aside():
         out = LF.build(fresh(edit=edit), datetime(2026, 11, 19, tzinfo=timezone.utc), log=lambda *_: None)
         p = row_of(out, "PFE")
         ok("the jump is on the row", p["jd"] == iso(BARS["PFE"][cut][0]) and p["ja"] == 9 and near(p["jr"], BARS["PFE"][cut][4] / (BARS["PFE"][cut - 1][4] * 3.7), 1e-3), json.dumps({k: p[k] for k in ("jd", "jr", "ja", "aside")}))
-        ok("windows that span it are set aside, the figure still prints", p["aside"] == "hv21,hv63,sp_m,sp_q" and p["why"] == "jump" and p["hv21"] > 300 and p["rk_hv21"] is None and p["rk_m"] is None)
-        ok("windows after it are ranked", p["rk_d"] is not None and p["rk_w"] is not None)
-        ok("it is counted, and kept out of boards and history", out["universe"]["flagged_jump"]["stock"] == 1 and out["universe"]["set_aside"]["stock"] == 1 and "PFE" not in out["boards"]["most_volatile"]
-           and "PFE" in out["boards"]["widest_d"] and out["history"][-1]["n"] == 4 and out["universe"]["ranked"]["stock"]["hv21"] == 4)
+        ok("the row is set aside on every measure, the figures still print", p["aside"] == "hv21,hv63,sp_d,sp_w,sp_m,sp_q" and p["why"] == "jump" and p["hv21"] > 300 and all(p[c] is None for c in LF.RANK_COL.values()))
+        ok("it is counted, and kept out of boards and history", out["universe"]["flagged_jump"]["stock"] == 1 and out["universe"]["set_aside"]["stock"] == 1 and not any("PFE" in v for v in out["boards"].values())
+           and out["history"][-1]["n"] == 4 and out["universe"]["ranked"]["stock"] == {m: 4 for m in ("hv21", "hv63", "sp_d", "sp_w", "sp_m", "sp_q")})
         ok("the market's median skips it", out["market"]["stock"]["med"]["hv21"] < 200)
     finally:
         LF.MIN_SCANNED = old

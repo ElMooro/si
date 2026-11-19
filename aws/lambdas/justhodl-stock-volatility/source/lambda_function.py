@@ -19,7 +19,7 @@ One row for every listed common stock and every plain ETF in the warehouse, read
 
 Three kinds of row are measured but set aside from the rankings (`aside` names the measures, `why` the reason), so a
 ranking is of stocks that trade freely and nothing is hidden:
-    jump     a window that spans an unexplained one-session move beyond 3-to-1
+    jump     an unexplained one-session move beyond 3-to-1 inside the last 63 sessions (the longest ranked window)
     thin     a symbol that missed more than three of the last 63 sessions
     pinned   a stock whose last 21 sessions fit inside 3.5% from low to high - the tape of a company waiting for a
              takeover to close, not of a calm business (ops 6851: the 25 "least volatile" $1B+ stocks were all such)
@@ -91,8 +91,9 @@ PREF_NAME_RX = re.compile(r"\bpreferred\s+(stock|shares?|units?|securities|l\.?p
 NASDAQ_OTHER_ISSUE = frozenset("GHIJLMNOPZW")   # NASDAQ's fifth letter: G-J a convertible bond, L and Z a miscellaneous issue (baby bonds), M-P a preferred share, W a warrant
 OTHER_ISSUE_DV_SHARE = 0.10                    # ... when the line trades under a tenth of the dollar volume of the ticker it extends (GOOGL out-trades GOOG: a share class)
 KINDS = ("stock", "etf")
-# measure -> the sessions it looks back over. A jump `ago` sessions back is inside a volatility window of k returns
-# when ago <= k - 1, and inside a spread of k bars (it needs a bar from before the jump) when ago <= k - 2.
+# measure -> the sessions it looks back over. A flagged jump inside the longest of them (JUMP_ASIDE sessions back or
+# fewer) sets the whole row aside: one rule, so a row is either ranked on every measure or on none.
+JUMP_ASIDE = 62
 RANKED = (("hv21", 21, "vol"), ("hv63", 63, "vol"), ("sp_d", 1, "spread"), ("sp_w", 5, "spread"), ("sp_m", 21, "spread"), ("sp_q", 63, "spread"))
 RANK_COL = {"hv21": "rk_hv21", "hv63": "rk_hv63", "sp_d": "rk_d", "sp_w": "rk_w", "sp_m": "rk_m", "sp_q": "rk_q"}
 COLS = ["t", "name", "kind", "sector", "industry", "mcap", "adv", "px", "chg", "n",
@@ -117,20 +118,20 @@ DEFINITIONS = {
     "hv21 / hv63 / hv252": "Realized volatility, close to close: the sample standard deviation of the daily log returns of the last 21, 63 and 252 sessions, multiplied by the square root of 252, in percent a year. 16% a year is about 1% a day.",
     "yz21": "Yang-Zhang volatility over the last 21 sessions, annualized the same way: the variance of the overnight gap, plus the variance of the open-to-close move, plus the intraday range (Rogers-Satchell), weighted as Yang and Zhang (2000) weight them. It reads the whole bar, so a stock that gaps and reverses inside the day is not read as quiet.",
     "atr": "The chart's ATR %: the average true range of the last 14 sessions as a percent of the last close. The true range of a session is the largest of its high minus its low, its high minus the previous close, and the previous close minus its low.",
-    "hvp": "Where today's hv21 stands among the stock's own last 252 daily readings of hv21, 0 to 100: the share of those readings below it plus half the share equal to it. 95 means the stock has rarely been this volatile in a year; 5 that it has rarely been this quiet. Blank under 126 readings.",
-    "hv21p": "The stock's hv21 as it stood 21 sessions ago. hv21 above it: volatility is rising; below it: falling.",
+    "hvp": "Where today's 21-session volatility stands among the stock's own last 252 daily readings of it, 0 to 100: the share of those readings below it plus half the share equal to it. 95 means the stock has rarely been this volatile in a year; 5 that it has rarely been this quiet. Blank under 126 readings.",
+    "hv21p": "The stock's 21-session volatility as it stood 21 sessions ago. Today's reading above it: volatility is rising; below it: falling. Change is today's reading minus that one, in points.",
     "mx / mxd": "The largest one-session close-to-close move of the last 63 sessions, with its sign, and the session it printed on.",
     "sp_d / sp_w / sp_m / sp_q": "Price spread: how far the highest high of the window stood above its lowest low, in percent - (high / low - 1) x 100. d is the last session's own bar, w the last 5 sessions, m the last 21, q the last 63.",
     "hi / lo": "The highest high and the lowest low of that window, in dollars, on bars rebased for splits.",
     "pos": "Where the last close sits inside the window's spread: 0 at the low, 100 at the high.",
     "own": "Where the window's spread stands among the stock's own last 252 windows of the same length (one ending on each session), 0 to 100. 95 means an unusually wide spread for this stock; 5 an unusually narrow one. Blank under 126 windows.",
-    "rk_*": "Rank inside the row's own kind - stocks against stocks, ETFs against ETFs - 1 is the most volatile (rk_hv21, rk_hv63) or the widest spread (rk_d, rk_w, rk_m, rk_q). A measure that is set aside has no rank.",
-    "aside / why": "The measures of the row that are set aside from every ranking, by name, and the reason. jump: a volatility window that spans a flagged jump, a spread window that holds a bar from before it. thin: every measure. pinned: every measure. The figure itself still prints.",
+    "rk_*": "Rank inside the row's own kind - stocks against stocks, ETFs against ETFs - 1 is the most volatile (21 and 63 sessions) or the widest spread (day, week, month, quarter). A measure that is set aside has no rank.",
+    "aside / why": "A row that is set aside is measured but left out of every ranking, every board and the market's medians; why says which of three reasons applies - jump (a flagged jump inside the last 63 sessions), thin, or pinned - and aside names the measures (all six). The figures still print.",
     "pinned": "A stock whose last 21 sessions fit inside 3.5% from the lowest low to the highest high. A freely trading company does not do that (the S&P 500 fund's own month is wider); a company whose takeover price is agreed does. Pinned names are listed on their own and kept out of the rankings and the market's medians.",
     "jd / jr / ja": "A flagged jump: the date, the ratio and the sessions since a one-session close-to-close move beyond 3-to-1 either way, inside the last 300 sessions, that no recorded or inferred split explains. It can be a real collapse or a corporate action the record does not carry.",
     "miss": "How many of the last 63 sessions the symbol printed no bar on (sessions before its first bar are not counted). More than 3 and the row is thin: its windows cover more calendar days than they say, so it is set aside.",
-    "boards": "Each board is the 25 names at one end of one measure, among common stocks worth $1B or more whose measure is not set aside. Rising / falling is hv21 minus the reading 21 sessions ago.",
-    "bands": "Stocks counted by their hv21: under 15%, 15-25%, 25-40%, 40-60%, 60-100%, 100% and over - with the market value in each band.",
+    "boards": "Each board is the 25 names at one end of one measure, among common stocks worth $1B or more whose measure is not set aside. Rising / falling is the 21-session volatility minus its reading 21 sessions ago.",
+    "bands": "Stocks counted by their 21-session volatility: under 15%, 15-25%, 25-40%, 40-60%, 60-100%, 100% and over - with the market value in each band.",
     "universe": "Listed common stocks (no OTC, preferreds, warrants, units, rights, shells) and ETFs that are not geared or inverse, with a 20-session average dollar volume of at least the floor, a bar in the last 3 sessions and at least 22 sessions of their own continuous history. A line the factor book calls common stock is still left out when its own name says it is a note or a preferred share, or when it is a second NASDAQ issue of a listed company (fifth letter G-J, L-P, Z or W, the issuer's name, under a tenth of the dollar volume of the ticker it extends).",
 }
 
@@ -342,11 +343,9 @@ def aside_of(jump, miss, pinned=False):
         return [m for m, _, _ in RANKED], "thin"
     if pinned:
         return [m for m, _, _ in RANKED], "pinned"
-    if not jump:
-        return [], None
-    ago = jump["ago"]
-    out = [m for m, k, family in RANKED if ago <= (k - 1 if family == "vol" else k - 2)]
-    return out, ("jump" if out else None)
+    if jump and jump["ago"] <= JUMP_ASIDE:
+        return [m for m, _, _ in RANKED], "jump"
+    return [], None
 
 
 def is_pinned(kind, sp_m):
