@@ -226,6 +226,25 @@ def test_unadjusted_split_is_rebased():
        and abs(broken["bottom"]["low"] - truth["bottom"]["low"] * 2) < 0.001, json.dumps(broken.get("bottom"))[:200])
 
 
+def test_unexplained_jump_is_flagged_not_hidden():
+    rows = BARS["NVDA"]
+    order = {iso(r[0]): i for i, r in enumerate(rows)}
+    order["__last__"] = len(rows) - 1
+    s3 = FakeS3()
+    s3.put_raw(LF.bank_key("NVDA"), {"rows": [r + [None, None] for r in rows]}, gz=True)
+    _, clean_rows, _ = LF.one_ticker(s3, meta("NVDA"), None, None, order, [], lambda t: None)
+    ok("a tape without such a move carries no flag", clean_rows and all("jump" not in r for r in clean_rows.values()))
+    cut = len(rows) - 6
+    odd = [list(r) if i < cut else [r[0], r[1] * 43.3, r[2] * 43.3, r[3] * 43.3, r[4] * 43.3, r[5]] for i, r in enumerate(rows)]     # x43.3 with the same shares traded: no split ratio, no volume signature
+    s3.put_raw(LF.bank_key("NVDA"), {"rows": [r + [None, None] for r in odd]}, gz=True)
+    st, flagged, _ = LF.one_ticker(s3, meta("NVDA"), None, None, order, [], lambda t: None)
+    day = iso(rows[cut][0])
+    ok("a x43 session no split explains stays on the board with the flag", st == "scanned" and flagged and all(r.get("jump") == {"date": day, "ratio": r["jump"]["ratio"]} and 40 < r["jump"]["ratio"] < 47 for r in flagged.values()),      # x43.3 times that session's own move
+       json.dumps({k: v.get("jump") for k, v in flagged.items()}))
+    ok("the flag rule", LF.flagged_jump([{"date": "2026-01-02", "ratio": 2.4, "ago": 5}]) is None and LF.flagged_jump([{"date": "2026-01-02", "ratio": 0.3, "ago": 5}]) == {"date": "2026-01-02", "ratio": 0.3}
+       and LF.flagged_jump([{"date": "2025-01-02", "ratio": 9.0, "ago": 301}]) is None and LF.flagged_jump([]) is None and LF.flagged_jump(None) is None)
+
+
 def test_one_ticker_gates():
     s3 = FakeS3()
     bank(s3)
@@ -266,6 +285,7 @@ def test_build_and_handler():
             ok(name + " counts add up", c[name]["n"] == len(rows) == c[name]["stock"]["n"] + c[name]["etf"]["n"] and sum(c[name]["stock"]["by_status"].values()) == c[name]["stock"]["n"])
             ok(name + " one row a ticker, newest first", len({r["ticker"] for r in rows}) == len(rows) and [r["ago"] for r in rows] == sorted(r["ago"] for r in rows))
             ok(name + " prints add up to the board", sum((p["climax"] + p["bottom"]) if name == "bottom" else p[name] for p in out["prints"]) == len(rows))
+            ok(name + " flags are counted", c[name]["stock"]["flagged_jump"] == len([r for r in rows if r["kind"] == "stock" and r.get("jump")]))
             ok(name + " sector table adds up", sum(v[name] for v in out["by_sector"].values()) == c[name]["stock"]["n"])
         ok("sector table counts every scanned stock", sum(v["scanned"] for v in out["by_sector"].values()) == 5)
         ok("the ETF is on its boards as an etf", {r["ticker"]: r["kind"] for r in b["bottom"]}.get("QQQ") == "etf" and any(r["ticker"] == "QQQ" for r in b["distribution"]))
@@ -342,7 +362,7 @@ def test_contract_text():
        and cfg["eventbridge_scheduler"]["cron"].startswith("cron(") and cfg["eventbridge_scheduler"]["schedule_name"] == "justhodl-campaign-scan-daily")
     src = open(os.path.join(SRC, "lambda_function.py")).read()
     ok("reads S3 only: no provider call, no invoke, no event", all(x not in src for x in ("urllib", "requests", "lambda_client", ".invoke(", "put_events", "http://", "https://")))
-    ok("every mark is defined", set(LF.DEFINITIONS) >= {"CLIMAX", "BOTTOM", "ACCUM", "DIST", "D-TOP", "status", "source", "universe"} and len(LF.LIMITATIONS) >= 4)
+    ok("every mark is defined", set(LF.DEFINITIONS) >= {"CLIMAX", "BOTTOM", "ACCUM", "DIST", "D-TOP", "status", "source", "universe", "jump"} and len(LF.LIMITATIONS) >= 4)
 
 
 if __name__ == "__main__":

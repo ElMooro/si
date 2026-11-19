@@ -58,6 +58,8 @@ ACCUM_SESSIONS = int(os.environ.get("ACCUM_SESSIONS", "63"))
 DIST_SESSIONS = int(os.environ.get("DIST_SESSIONS", "63"))
 STALE_SESSIONS = 3             # a name whose last bar is older than this many sessions is not trading; it is not scanned
 SNAP_DAYS = 8                  # the chart snaps a bottom-desk date to the nearest bar inside this many days
+JUMP_FLAG = 3.0                # a close-to-close move beyond 3-to-1 either way that no split explains is flagged on the row, never hidden
+JUMP_SESSIONS = 300            # ... when it sits inside the sessions the scans look back over
 THREADS = int(os.environ.get("THREADS", "16"))
 RESERVE_S = 45.0
 MAX_ERROR_SHARE = 0.05
@@ -81,6 +83,7 @@ DEFINITIONS = {
     "DIST": "Distribution (distributionScan): a swing high within 3% of the 189-session high after an advance of 15% off the 252-session low (or 30% off the 504-session low), where the latest push bought less than the push before it (more volume for less progress, or a new high by under 2.5%), price then gave back half of the push and 3.5% from the high inside 18 sessions, did not close back at the high in the next 6, and the reaction was worse than the one before. The mark prints on the bar that completes those tests. Listed while that bar is inside the last 63 sessions.",
     "D-TOP": "The structure top (a failed swing high at the 252-session high) within 40 sessions of the distribution's rally high, when there is one.",
     "status": "Where the last close stands against the mark's own levels. Bottom: HELD (no low under the marked low since), UNDERCUT (a later low went under it and the last close is back at or above it) or BROKEN (the last close is under it). Accumulation: ABOVE (at or above the ACCUM bar's close), BASE (under it, above the low the base stands on) or LOST (under that low). Distribution: BELOW (under the DIST bar's close), RANGE (between it and the rally high) or RECLAIMED (at or above the rally high).",
+    "jump": "A row carries jump {date, ratio} when the symbol's bars hold a one-session close-to-close move beyond 3-to-1 either way, inside the last 300 sessions, that no recorded or inferred split explains. It can be a real collapse or a corporate action the record does not carry; percentages on that row should be read with it in mind.",
     "source": "scan = the chart's scan on this engine's bars; harvest = the bottom desk's own date for the symbol (the chart marks it the same way); both = the two agree on the mark inside 5 sessions.",
     "universe": "Listed common stocks (no OTC, preferreds, warrants, units, rights, shells) and ETFs that are not geared or inverse, with a 20-session average dollar volume of at least the floor, a bar in the last 3 sessions and at least 280 sessions of their own continuous history.",
 }
@@ -302,7 +305,14 @@ def _merge(scan_i, harv_i):
     return (scan_i, "scan") if scan_i > harv_i else (harv_i, "harvest")
 
 
-def rows_of(meta, bars, harvest=None):
+def flagged_jump(jumps):
+    """The most recent unexplained one-session move beyond JUMP_FLAG-to-1 inside the scans' reach, or None. A real
+    collapse and an unrecorded reverse split print the same bar; the row says so instead of guessing. Pure."""
+    hits = [j for j in jumps or [] if j.get("ratio") and j.get("ago", 10 ** 6) <= JUMP_SESSIONS and (j["ratio"] >= JUMP_FLAG or j["ratio"] <= 1.0 / JUMP_FLAG)]
+    return {"date": hits[-1]["date"], "ratio": hits[-1]["ratio"]} if hits else None
+
+
+def rows_of(meta, bars, harvest=None, jump=None):
     """The board rows of one symbol from its repaired bars: {board: row} for the boards it is on. Pure."""
     dates = [b["date"] for b in bars]
     O, H, L, C, V = [b["o"] for b in bars], [b["h"] for b in bars], [b["l"] for b in bars], [b["c"] for b in bars], [b["v"] for b in bars]
@@ -394,6 +404,9 @@ def rows_of(meta, bars, harvest=None):
         if tops:
             row["d_top_date"] = dates[tops[-1][2]]
         out["distribution"] = row
+    if jump:
+        for row in out.values():
+            row["jump"] = jump
     return out
 
 
@@ -413,7 +426,7 @@ def one_ticker(s3, meta, recorded, harvest, bank_last_ord, listings, first_bar):
         return "stale", {}, bars[-1]["date"]
     if len(bars) < MIN_SESSIONS:
         return "short", {}, len(bars)
-    return "scanned", rows_of(meta, bars, harvest), len(bars)
+    return "scanned", rows_of(meta, bars, harvest, flagged_jump(T.jumps_of(bars, ev))), len(bars)
 
 
 # --------------------------------------------------------------------------------------------------------------- build
@@ -430,7 +443,7 @@ def board_counts(rows):
     for kind in ("stock", "etf"):
         sub = [r for r in rows if r["kind"] == kind]
         out[kind] = {"n": len(sub), "new_5": len([r for r in sub if r["ago"] <= 4]), "by_status": summarize(sub, "status"), "by_mark": summarize(sub, "mark"),
-                     "mcap": _r(sum(r["mcap"] or 0 for r in sub), 0)}
+                     "mcap": _r(sum(r["mcap"] or 0 for r in sub), 0), "flagged_jump": len([r for r in sub if r.get("jump")])}
     return out
 
 
