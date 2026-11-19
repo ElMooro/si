@@ -1,0 +1,25 @@
+{
+  "runtime": "python3.12",
+  "memory": 2048,
+  "timeout": 900,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "How volatile every listed stock and plain ETF is (realized volatility 21 / 63 / 252 sessions, Yang-Zhang, ATR %) and how wide its price spread was over the last day, week, month and quarter, ranked - into data/stock-volatility.json; reads S3 only.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "OUT_KEY": "data/stock-volatility.json",
+    "MIN_DOLLAR_VOL": "250000",
+    "MIN_SESSIONS": "22",
+    "MIN_SCANNED": "2500",
+    "BOARD_MIN_MCAP": "1000000000",
+    "BOARD_N": "25",
+    "THREADS": "16"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-stock-volatility-daily",
+    "cron": "cron(6 4 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Stock volatility and price spread, daily 04:06 UTC (after the factor book 02:50 and the Polygon EOD bank's fold 03:10)"
+  }
+}
