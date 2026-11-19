@@ -256,7 +256,7 @@
   // FRED's copy of the S&P 500, then an ETF. The first pin of each index word is therefore known here and leads at once.
   // It steps aside as soon as the directory has answered, so the directory's own rows and order are what stays on screen.
   // tests/chart-search-bench-pins.test.js holds these two tables to the directory's SEARCH_POLICY: they cannot drift.
-  var BENCH = { "I:SPX": "Standard & Poor's 500", "I:NDX": "NASDAQ-100", "I:DJI": "Dow Jones Industrial Average", "I:RUT": "Russell 2000" };
+  var BENCH = { "I:SPX": "Standard & Poor's 500", "I:NDX": "NASDAQ-100", "I:DJI": "Dow Jones Industrial Average", "I:RUT": "Russell 2000 Index" };
   var BENCH_WORDS = { "sp500": "I:SPX", "spx": "I:SPX", "s&p 500": "I:SPX", "s&p": "I:SPX", "nasdaq": "I:NDX", "ndx": "I:NDX", "dow": "I:DJI", "dow jones": "I:DJI", "russell": "I:RUT" };
   function benchRows(q) {
     var id = BENCH_WORDS[String(q || "").trim().toLowerCase()];

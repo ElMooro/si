@@ -43,7 +43,7 @@ test('the dialog knows the first pin of every index word the directory pins, and
 
 test('the row is the same instrument row the directory sends: the Polygon index id, an index, pinned', () => {
   const U = dialog();
-  for (const [w, id, name] of [['sp500', 'I:SPX', "Standard & Poor's 500"], ['SPX', 'I:SPX', "Standard & Poor's 500"], [' S&P 500 ', 'I:SPX', "Standard & Poor's 500"], ['ndx', 'I:NDX', 'NASDAQ-100'], ['Dow Jones', 'I:DJI', 'Dow Jones Industrial Average'], ['russell', 'I:RUT', 'Russell 2000']]) {
+  for (const [w, id, name] of [['sp500', 'I:SPX', "Standard & Poor's 500"], ['SPX', 'I:SPX', "Standard & Poor's 500"], [' S&P 500 ', 'I:SPX', "Standard & Poor's 500"], ['ndx', 'I:NDX', 'NASDAQ-100'], ['Dow Jones', 'I:DJI', 'Dow Jones Industrial Average'], ['russell', 'I:RUT', 'Russell 2000 Index']]) {
     const r = U.benchRows(w)[0];
     assert.equal(r.id, id); assert.equal(r.sym, id); assert.equal(r.name, name); assert.equal(r.kind, 'instrument'); assert.equal(r.pinned, true); assert.equal(r.chartable, true);
     assert.equal(U.classify(r), 'indices');

@@ -8,8 +8,8 @@ jh-uni-search.js now knows the first pin of each index word. This proves it on t
      page): type each index word, read the list 1.2 s later, take the first row, see the index chart; then let the
      directory answer and see its own rows take over, with the same id and the same name in first place
   2. words that are not index words are untouched
-  3. nothing held back, a fresh page: type the word and sample the first row four times a second until the directory
-     has answered - it must be the index at every sample; 390 px
+  3. nothing held back, a fresh page: type the word and watch the first row from inside the page 25 times a second until
+     the directory has answered - it must be the index from the first list drawn; 390 px
 
 Writes nothing. Holding a request back changes no data: it is released to the real directory unchanged.
 """
@@ -47,7 +47,13 @@ LIST = r"""() => { const U = window.JHUniSearch, G = (U && U._G && U._G()) || {}
   return { rows: rows, answered: !!G.answered, failed: !!G.failed, first_is_local_pin: !!(m[0] && m[0].bench), first_group: m[0] ? m[0].grp : null,
     first: m[0] ? { id: m[0].id, name: m[0].name, src: m[0].src, type: m[0].type } : null, q: G.q || null, heading: head ? head.textContent.trim().slice(0, 40) : null }; }"""
 PIN = r"""(w) => { const U = window.JHUniSearch, b = (U && U.benchRows) ? U.benchRows(w) : []; return b[0] ? { id: b[0].id, name: b[0].name, src: b[0].src } : null; }"""
-FIRST = r"""() => { const e = document.querySelector('#jhus .us-row[data-i]'); return e ? e.getAttribute('title') : null; }"""
+# open the dialog and watch its first row from inside the page, 25 times a second: [ms since typing, first row, ticks so far].
+# The tick count tells a list that was empty from a page that was too busy to be looked at.
+WATCH = r"""(w) => { const t0 = performance.now(), tl = [], st = { ticks: 0, t0: t0 }; window.__jhWatch = { tl: tl, st: st };
+  const read = () => { const e = document.querySelector('#jhus .us-row[data-i]'); return e ? e.getAttribute('title') : '(no rows)'; };
+  st.iv = setInterval(() => { st.ticks++; const id = read(); if (tl[tl.length - 1][1] !== id) tl.push([Math.round(performance.now() - t0), id, st.ticks]); }, 40);
+  window.jhOpenSearch(w); tl.push([Math.round(performance.now() - t0), read(), 0]); }"""
+WATCHED = r"""() => { const W = window.__jhWatch; clearInterval(W.st.iv); return { timeline: W.tl, ticks: W.st.ticks, ms: Math.round(performance.now() - W.st.t0) }; }"""
 ANSWERED = r"""(w) => { const U = window.JHUniSearch, G = (U && U._G && U._G()) || {}; return String(G.q || '').toLowerCase() === w && !!G.answered; }"""
 
 
@@ -222,27 +228,29 @@ def main():
                 page.wait_for_timeout(400)
             ctx.close()
 
-            r.section("3. nothing held back, a fresh page: the first row four times a second until the directory answers")
+            r.section("3. nothing held back, a fresh page: the first row, watched inside the page until the directory answers")
             ctx = browser.new_context(viewport={"width": 1440, "height": 900}, device_scale_factor=1, user_agent="Mozilla/5.0 (X11; Linux x86_64) jh-ops-probe Chrome")
             page = open_chart(ctx, stamp + 1, errors)
             for word, pin in NATURAL:
                 t0 = time.time()
-                page.evaluate("(w) => window.jhOpenSearch(w)", word)
-                timeline, answered_at = [], None
+                page.evaluate(WATCH, word)
+                answered_at = None
                 while time.time() - t0 < 75:
                     page.wait_for_timeout(250)
-                    first = page.evaluate(FIRST)
-                    if first is not None and (not timeline or timeline[-1][1] != first):
-                        timeline.append([round(time.time() - t0, 1), first])
                     if page.evaluate(ANSWERED, word):
                         answered_at = round(time.time() - t0, 1)
                         break
                 page.wait_for_timeout(600)
+                seen = page.evaluate(WATCHED)
                 final = page.evaluate(LIST)
-                wrong = [x for x in timeline if x[1] != pin]
-                ck(timeline and not wrong and final["rows"] and final["rows"][0]["id"] == pin and final["answered"],
+                timeline = seen["timeline"]
+                shown = [x for x in timeline if x[1] != "(no rows)"]
+                wrong = [x for x in shown if x[1] != pin]
+                first_ms = shown[0][0] if shown else None
+                ck(shown and not wrong and first_ms is not None and first_ms <= 1500 and final["rows"] and final["rows"][0]["id"] == pin and final["answered"],
                    "%s typed naturally: first row over time %s, directory answered at %s s, final %s" % (word, timeline, answered_at, final["rows"][:1]))
-                r.log("%-7s first row over time %s; the directory answered after %s s; final rows %s" % (word, timeline, answered_at, [x["id"] for x in final["rows"][:4]]))
+                r.log("%-7s first row %s ms after typing: %s; every first row seen until the directory answered (%s s): %s; the page ran %d of %d possible samples; final rows %s" % (
+                    word, first_ms, shown[0][1] if shown else None, answered_at, sorted({x[1] for x in shown}), seen["ticks"], seen["ms"] // 40, [x["id"] for x in final["rows"][:4]]))
                 pack["natural"].append({"word": word, "pin": pin, "timeline": timeline, "directory_answer_s": answered_at, "final": final})
                 page.keyboard.press("Escape")
                 page.wait_for_timeout(600)
@@ -287,7 +295,8 @@ def main():
         waits = [x.get("directory_answer_s") for x in pack["silent"]] + [x.get("directory_answer_s") for x in pack["natural"]]
         r.kv(failures=len(fails), words=len(pack["silent"]), words_leading_with_the_index=sum(1 for x in pack["silent"] if x["before"]["rows"] and x["before"]["rows"][0]["id"] == x["pin"]),
              words_tested_with_the_directory_silent=sum(1 for x in pack["silent"] if not x.get("remembered")),
-             natural_words=len(pack["natural"]), natural_always_index=sum(1 for x in pack["natural"] if x["timeline"] and all(t[1] == x["pin"] for t in x["timeline"])),
+             natural_words=len(pack["natural"]), natural_always_index=sum(1 for x in pack["natural"] if any(t[1] == x["pin"] for t in x["timeline"]) and all(t[1] in (x["pin"], "(no rows)") for t in x["timeline"])),
+             natural_first_row_ms=[next((t[0] for t in x["timeline"] if t[1] != "(no rows)"), None) for x in pack["natural"]],
              slowest_directory_answer_s=max([w for w in waits if w is not None] or [0]))
         embed(r, "index-leads-proof", pack)
         r.section("screenshots (jpeg, base64)")
