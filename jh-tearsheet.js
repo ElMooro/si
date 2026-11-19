@@ -611,6 +611,470 @@
     }
   };
 
+  /* -- the Wyckoff desks (wyckoff-desk.html, one sheet a tab) and the capitulation desk (capitulation-desk.html) --
+     Selling climax, Capitulation, Buying climax, Candle spread and Spring read the feeds their tables already read;
+     Accumulation, Bottom and Distribution read data/campaign-scan.json - the chart's own marks over every stock. */
+  function med(list) { var a = list.filter(fin).sort(function (x, y) { return x - y; }); return a.length ? (a.length % 2 ? a[(a.length - 1) / 2] : (a[a.length / 2 - 1] + a[a.length / 2]) / 2) : null; }
+  function groupBy(list, f) {
+    var m = {}, order = [];
+    list.forEach(function (x) { var k = f(x); if (!m[k]) { m[k] = []; order.push(k); } m[k].push(x); });
+    return order.map(function (k) { return { key: k, list: m[k] }; }).sort(function (a, b) { return b.list.length - a.list.length || String(a.key).localeCompare(String(b.key)); });
+  }
+  function tick(r) { var n = r.name || r.company; return r.ticker + (n ? DOT + n : ''); }
+  function agoWord(n) { return !fin(n) ? D : n === 0 ? 'last session' : n === 1 ? '1 session ago' : n + ' sessions ago'; }
+  function plural(n, word) { return num(n) + ' ' + word + (n === 1 ? '' : 's'); }
+  function zpct(v, dp, signed) { return fin(v) ? pct(+v.toFixed(dp == null ? 1 : dp) || 0, dp, signed) : D; }      /* a move that rounds to nothing carries no sign */
+  var HARVEST = { ST_CONFIRMED: 'test confirmed', NO_RALLY: 'no rally', NO_TEST_BREAKOUT: 'breakout without a test' };
+  function harvestWord(sv) { return HARVEST[sv] || lower(String(sv || '').replace(/_/g, ' ')); }
+  function daysBetween(a, b) { var x = Date.parse(day(a) + 'T00:00:00Z'), y = Date.parse(day(b) + 'T00:00:00Z'); return isFinite(x) && isFinite(y) ? Math.round((y - x) / 864e5) : null; }
+  function daysWord(n) { return !fin(n) ? D : n <= 0 ? 'today' : n === 1 ? '1 day ago' : n + ' days ago'; }
+  function times(v, dp) { return fin(v) ? v.toFixed(dp == null ? 1 : dp) + '\u00d7' : D; }
+  function capped(v) { return v === 12 ? '12\u00d7+' : times(v); }      /* the chart's scan stops counting climax volume at 12 times */
+  function cap(r) { return fin(r.mcap) ? r.mcap : 0; }
+  function share(n, of) { return of ? n / of * 100 : null; }
+  function lower(s) { return String(s || '').toLowerCase(); }
+  function compose(groups, nameOf, smallOf, keep) {
+    var top = groups.slice(0, keep || 6), rest = groups.slice(keep || 6);
+    var out = top.map(function (g) { return { name: nameOf(g.key), value: g.list.length, tone: 'pos', big: num(g.list.length), small: smallOf(g) }; });
+    if (rest.length) {
+      var n = sum(rest, function (g) { return g.list.length; });
+      out.push({ name: 'Other (' + rest.length + ')', label: 'Other', value: n, tone: 'oth', rest: true, big: num(n), small: rest.slice(0, 4).map(function (g) { return nameOf(g.key) + ' ' + g.list.length; }).join(', ') });
+    }
+    return out;
+  }
+  function tickers(list, n) { return list.slice(0, n || 3).map(function (r) { return r.ticker; }).join(', '); }
+  function busiest(rows, dateOf) { var g = groupBy(rows.filter(function (r) { return dateOf(r); }), function (r) { return day(dateOf(r)); })[0]; return g ? { date: g.key, n: g.list.length } : null; }
+  var WY = {};
+
+  /* Accumulation, Bottom, Distribution: every stock (or ETF) the chart's icon would mark */
+  function scanParts(D_, st, board) {
+    var d = D_.scan;
+    if (!d || !d.boards || !d.boards[board]) throw new Error('the all-stock scan (data/campaign-scan.json) is not published yet');
+    var kind = st.fund === 'etf' ? 'etf' : 'stock', u = d.universe || {};
+    var rows = d.boards[board].filter(function (r) { return r.kind === kind; });
+    /* Rankings by percentage are read among names large enough to act on, and without the rows whose tape holds a
+       one-session move beyond 3-to-1 that no split explains (the engine flags them; they stay on the board and in the ring). */
+    var floor = kind === 'etf' ? 1e8 : 1e9, clear = rows.filter(function (r) { return !r.jump; }), sized = clear.filter(function (r) { return cap(r) >= floor; }), odd = rows.length - clear.length;
+    return { d: d, kind: kind, word: kind === 'etf' ? 'ETFs' : 'stocks', one: kind === 'etf' ? 'ETF' : 'stock', rows: rows, scanned: kind === 'etf' ? u.scanned_etf : u.scanned_stock, u: u, w: d.windows || {},
+      clear: clear, sized: sized, odd: odd, floorWord: kind === 'etf' ? '$100M of assets and larger' : '$1B and larger', largest: kind === 'etf' ? 'the largest fund' : 'the largest company', capWord: kind === 'etf' ? ' of assets' : ' of market cap',
+      sector: function (r) { return r.kind === 'etf' || !r.sector ? '' : ', ' + r.sector; },
+      oddNote: odd ? plural(odd, 'row') + ' on this board carr' + (odd === 1 ? 'ies' : 'y') + ' a one-session move beyond 3-to-1 that no split explains; ' + (odd === 1 ? 'it is' : 'they are') + ' listed in the table and left out of the medians and rankings here. ' : '',
+      controls: [{ id: 'stock', label: 'STOCKS', on: kind === 'stock' }, { id: 'etf', label: 'ETFS', on: kind === 'etf' }],
+      where: function (r) { return r.kind === 'etf' ? 'ETF' : (r.sector || 'Unclassified'); },
+      fresh: rows.filter(function (r) { return r.ago <= 4; }),
+      sectors: function () {
+        return groupBy(rows, function (r) { return r.sector || 'Unclassified'; }).map(function (g) {
+          var s = (d.by_sector || {})[g.key] || {};
+          return { name: g.key, sub: tickers(g.list.slice().sort(by(cap, true)), 4), big: num(g.list.length), small: s.scanned ? pct(share(g.list.length, s.scanned), 0) + ' of ' + num(s.scanned) + ' scanned' : '' };
+        });
+      },
+      foot: function (what) {
+        return 'Source: justhodl-campaign-scan ' + (d.version || '') + ' (data/campaign-scan.json), published ' + String(d.generated_at || '').slice(0, 16).replace('T', ' ') + ' UTC, bars as of ' + day(d.as_of) + ' from the Polygon end-of-day bank (since '
+          + day(u.bank_first_session) + '). ' + what + ' Scanned: ' + num(u.scanned_stock) + ' listed common stocks and ' + num(u.scanned_etf) + ' plain ETFs trading $' + num((u.min_dollar_vol || 0) / 1e3) + 'K a day or more with '
+          + num(u.min_sessions) + ' sessions of history; ' + num(u.short_history) + ' had less. ' + this.oddNote + 'A mark is where the tape printed a pattern, not a forecast.';
+      } };
+  }
+  function kind_cap(p) { return p.kind === 'etf' ? 'Assets marked' : 'Market cap marked'; }
+  function statusRing(p, title, hint, STAT, whole) {
+    var groups = STAT.map(function (s) { return { s: s, list: p.rows.filter(function (r) { return r.status === s[0]; }).sort(by(cap, true)) }; });
+    return { groups: groups, ring: { title: title, hint: hint, n: p.rows.length, center: num(p.rows.length), subs: [p.word.toUpperCase(), STAT.map(function (s, i) { return s[2] + ' ' + groups[i].list.length; }).slice(0, 2).join(DOT)], whole: whole,
+      aria: title + ': ' + groups.map(function (g) { return g.s[1] + ' ' + g.list.length; }).join(', '),
+      slices: groups.map(function (g) { return { name: g.s[1], label: g.s[2], value: g.list.length, tone: g.s[3], op: g.s[4], big: num(g.list.length), small: pct(share(g.list.length, p.rows.length), 0) + (g.list.length ? DOT + tickers(g.list) : '') }; }) } };
+  }
+
+  WY.bottom = function (D_, st) {
+    var p = scanParts(D_, st, 'bottom'), rows = p.rows, d = p.d;
+    var cl = rows.filter(function (r) { return r.mark === 'CLIMAX'; }), lo = rows.filter(function (r) { return r.mark === 'BOTTOM'; });
+    var SR = statusRing(p, 'Where the marked lows stand', 'by the last close', [['HELD', 'Low holding', 'HELD', 'pos', 1], ['UNDERCUT', 'Undercut, closed back above', 'UNDERCUT', 'pos', 0.5], ['BROKEN', 'Closing under the low', 'BROKEN', 'oth', 0.34]], 'the marked ' + p.word);
+    var held = SR.groups[0].list.length, under = SR.groups[1].list.length, broke = SR.groups[2].list.length, peak = busiest(cl, function (r) { return r.date; });
+    var facts = function (r) { return [p.where(r), fin(r.decline_pct) ? pct(r.decline_pct, 0) + ' into the low' : '', fin(r.vol_x) ? 'volume ' + capped(r.vol_x) : ''].filter(Boolean).join(DOT); };
+    var newest = function (r) { return { name: tick(r), sub: facts(r), big: zpct(r.since_pct, 1, true), tone: tone(r.since_pct), small: day(r.date) + DOT + lower(r.status) }; };
+    var card = function (list, label, none) {
+      var r = list.slice().sort(by(cap, true))[0];
+      if (!r) return { tone: '', big: D, eyebrow: label, title: 'None', text: none };
+      return { tone: tone(r.since_pct), big: pct(r.since_pct, 1, true), eyebrow: label + DOT + p.largest, title: tick(r),
+        text: money(cap(r)) + p.capWord + p.sector(r) + '. ' + (r.mark === 'CLIMAX' ? 'Selling climax' : 'Cycle low') + ' on ' + day(r.date) + ' (' + agoWord(r.ago) + ')'
+          + (fin(r.decline_pct) ? ', ' + pct(Math.abs(r.decline_pct), 0) + ' under the high before it' : '') + (fin(r.vol_x) ? ', on ' + capped(r.vol_x) + ' the usual volume and ' + times(r.range_x) + ' the usual range' : '')
+          + (r.climax_date ? '; its climax printed ' + day(r.climax_date) : '') + (r.rev_up_date ? '; reversal confirmed ' + day(r.rev_up_date) : '') + '. Marked low ' + fix(r.low) + ', last ' + fix(r.last) + ' (' + pct(r.off_low_pct, 1, true)
+          + ' against the low): ' + (r.status === 'HELD' ? 'the low has held' : r.status === 'UNDERCUT' ? 'the low was undercut and price closed back above it' : 'price is closing under the low') + '.'
+          + (r.accum_date ? ' The base that followed ended on ' + day(r.accum_date) + '.' : '') + (r.harvest_state ? ' Bottom desk: ' + harvestWord(r.harvest_state) + ', grade ' + (r.harvest_grade || D) + '.' : '') };
+    };
+    var mSince = med(p.clear.map(function (r) { return r.since_pct; }));
+    return {
+      eyebrow: 'Bottom tearsheet' + DOT + 'bars ' + day(d.as_of) + DOT + num(p.scanned) + ' ' + p.word + ' scanned',
+      title: num(rows.length) + ' ' + p.word + ' carry the Bot icon\u2019s mark' + DOT + num(cl.length) + ' live selling climaxes and ' + num(lo.length) + ' confirmed lows' + DOT + num(held) + ' lows are holding',
+      sub: 'Every ' + p.one + ' in the warehouse, scanned with the marks the chart prints' + DOT + 'a climax stays live for ' + (p.w.climax_sessions || 40) + ' sessions, a confirmed low is listed for ' + (p.w.bottom_sessions || 126) + DOT + 'published ' + day(d.generated_at),
+      controls: p.controls,
+      tiles: [{ k: 'On the board', v: num(rows.length), s: pct(share(rows.length, p.scanned), 0) + ' of ' + num(p.scanned) + ' ' + p.word + ' scanned' },
+        { k: 'Live climaxes', v: num(cl.length), s: num(cl.filter(function (r) { return r.ago <= 4; }).length) + ' in the last 5 sessions' + (peak ? DOT + 'most on ' + peak.date + ' (' + num(peak.n) + ')' : '') },
+        { k: 'Confirmed lows', v: num(lo.length), s: 'readable 40 sessions after the low' + DOT + num(lo.filter(function (r) { return r.accum_date; }).length) + ' already ended their base' },
+        { k: 'Low holding', v: pct(share(held, rows.length), 0), s: num(held) + ' held' + DOT + num(under) + ' undercut and back' + DOT + num(broke) + ' closing under' },
+        { k: 'Median since the mark', v: '<span class="' + tone(mSince) + '">' + zpct(mSince, 1, true) + '</span>', s: 'last close against the marked bar\u2019s close' },
+        { k: kind_cap(p), v: money(sum(rows, cap)), s: 'sum of the marked ' + p.word }],
+      cards: [card(cl, 'Live selling climax', 'No ' + p.one + ' carries a live selling climax.'), card(lo, 'Confirmed low', 'No ' + p.one + ' carries a confirmed low inside the window.')],
+      notes: [['Climax:', 'after a markdown, a bar at the 20, 60 or 126-session low that sold off on climactic volume and range and found demand (a close off the low, or a rally inside 8 sessions). It is the location of the selling, not a buy.'],
+        ['Confirmed low:', 'a swing low at the 126 or 252-session low, 12% or more under the year\u2019s high, that bounced 4% inside 12 sessions. It can only be read 40 sessions later; the bottom desk\u2019s secondary test counts as the same mark.'],
+        ['Caveat:', 'a third state matters as much as the mark: whether the low still holds. A climax whose low is closing under is a failed climax, and it stays on the board saying so.']],
+      ring: Object.assign(SR.ring, { caption: 'Each ' + p.one + ' once, under where its last close stands against the low of its mark on ' + day(d.as_of) + '. Held = no later low under it; undercut = a later low went under and the close is back above.' }),
+      lists: [{ key: 'new-climax', title: 'Newest selling climaxes', hint: 'largest first on each day', n: cl.length, rows: cl.slice().sort(function (a, b) { return a.ago - b.ago || cap(b) - cap(a); }).map(newest), none: 'no live climax' },
+        { key: 'new-low', title: 'Newest confirmed lows', hint: 'by the date of the low', n: lo.length, rows: lo.slice().sort(function (a, b) { return a.ago - b.ago || cap(b) - cap(a); }).map(function (r) {
+          return { name: tick(r), sub: [p.where(r), 'low ' + fix(r.low), r.rev_up_date ? 'reversal ' + day(r.rev_up_date) : '', r.source !== 'scan' ? 'bottom desk ' + harvestWord(r.harvest_state) : ''].filter(Boolean).join(DOT), big: zpct(r.off_low_pct, 1, true), tone: tone(r.off_low_pct), small: day(r.date) + DOT + 'vs the low' }; }), none: 'no confirmed low' },
+        { key: 'largest', title: 'Largest ' + (p.kind === 'etf' ? 'funds' : 'companies') + ' marked', hint: p.kind === 'etf' ? 'assets' : 'market cap', rows: rows.slice().sort(by(cap, true)).map(function (r) { return { name: tick(r), sub: p.where(r) + DOT + lower(r.mark) + ' ' + day(r.date) + DOT + lower(r.status), big: money(cap(r)), small: zpct(r.since_pct, 1, true) + ' since' }; }), none: 'none' },
+        { key: 'volume', title: 'Strongest climax bars', hint: 'volume \u00d7 range, the scan\u2019s score' + DOT + p.floorWord, rows: p.sized.filter(function (r) { return r.mark === 'CLIMAX' && fin(r.score); }).sort(by(function (r) { return r.score; }, true)).map(function (r) {
+          return { name: tick(r), sub: p.where(r) + DOT + 'volume ' + capped(r.vol_x) + DOT + 'range ' + times(r.range_x) + DOT + pct(r.decline_pct, 0) + ' into the low', big: num(r.score, 1), small: day(r.date) + DOT + lower(r.status) }; }), none: 'no climax that size carries a score' },
+        { key: 'deepest', title: 'Deepest declines into the low', hint: p.floorWord, tone: 'down', rows: p.sized.filter(function (r) { return fin(r.decline_pct); }).sort(by(function (r) { return r.decline_pct; })).map(function (r) {
+          return { name: tick(r), sub: p.where(r) + DOT + lower(r.mark) + ' ' + day(r.date) + DOT + lower(r.status), big: pct(r.decline_pct, 0), tone: 'down', small: pct(r.off_low_pct, 1, true) + ' vs the low' }; }), none: 'none' },
+        { key: 'strongest', title: 'Strongest since the mark', hint: p.floorWord, tone: 'up', rows: p.sized.filter(function (r) { return r.since_pct > 0; }).sort(by(function (r) { return r.since_pct; }, true)).map(newest), none: 'nothing is up since its mark' },
+        { key: 'broken', title: 'Lows that are breaking', hint: 'closing under the marked low' + DOT + p.floorWord, tone: 'down', n: broke, rows: p.sized.filter(function (r) { return r.status === 'BROKEN'; }).sort(by(function (r) { return r.off_low_pct; })).map(function (r) {
+          return { name: tick(r), sub: p.where(r) + DOT + lower(r.mark) + ' ' + day(r.date) + DOT + 'low ' + fix(r.low), big: pct(r.off_low_pct, 1, true), tone: 'down', small: 'vs the low' }; }), none: 'no marked low is closing under' }]
+        .concat(p.kind === 'stock' ? [{ key: 'sectors', title: 'By sector', hint: 'share of the sector\u2019s scanned stocks', rows: p.sectors(), none: 'none' }] : []),
+      foot: p.foot('CLIMAX and BOTTOM are the chart\u2019s own scans (sellingClimaxScan, structureScan) plus the bottom desk\u2019s climax and secondary-test dates, exactly as the Bot icon marks them.')
+    };
+  };
+
+  WY.accum = function (D_, st) {
+    var p = scanParts(D_, st, 'accumulation'), rows = p.rows, d = p.d;
+    var SR = statusRing(p, 'Where the breakouts stand', 'by the last close', [['ABOVE', 'Above the ACCUM bar', 'ABOVE', 'pos', 1], ['BASE', 'Back in the base', 'BASE', 'pos', 0.5], ['LOST', 'Under the base\u2019s low', 'LOST', 'oth', 0.34]], 'the marked ' + p.word);
+    var above = SR.groups[0].list, base = SR.groups[1].list, lost = SR.groups[2].list, mSince = med(p.clear.map(function (r) { return r.since_pct; })), mBase = med(rows.map(function (r) { return r.base_sessions; }));
+    var row = function (r) { return { name: tick(r), sub: [p.where(r), fin(r.base_sessions) ? 'base ' + plural(r.base_sessions, 'session') : '', fin(r.gain_from_low_pct) ? pct(r.gain_from_low_pct, 0, true) + ' off the low at the bar' : '', r.source !== 'scan' ? 'bottom desk trigger' : ''].filter(Boolean).join(DOT),
+      big: zpct(r.since_pct, 1, true), tone: tone(r.since_pct), small: day(r.date) + DOT + lower(r.status) }; };
+    var card = function (list, label, none) {
+      var r = list[0];
+      if (!r) return { tone: '', big: D, eyebrow: label, title: 'None', text: none };
+      return { tone: tone(r.since_pct), big: zpct(r.since_pct, 1, true), eyebrow: label + DOT + p.largest, title: tick(r),
+        text: money(cap(r)) + p.capWord + p.sector(r) + '. ACCUM printed on ' + day(r.date) + ' (' + agoWord(r.ago) + ') at ' + fix(r.px) + (r.low_date ? ', ' + plural(r.base_sessions, 'session') + ' after the low of ' + fix(r.low) + ' on ' + day(r.low_date)
+          + ' and ' + pct(r.gain_from_low_pct, 0, true) + ' above it' : '') + '. Last ' + fix(r.last) + ': ' + zpct(r.since_pct, 1, true) + ' since the bar' + (fin(r.off_low_pct) ? ', ' + pct(r.off_low_pct, 1, true) + ' against the low' : '') + '.'
+          + (r.climax_after ? ' A new selling climax printed on ' + day(r.climax_after) + '.' : '') + (r.harvest_state ? ' Bottom desk: ' + harvestWord(r.harvest_state) + ', grade ' + (r.harvest_grade || D) + '.' : '') };
+    };
+    return {
+      eyebrow: 'Accumulation tearsheet' + DOT + 'bars ' + day(d.as_of) + DOT + num(p.scanned) + ' ' + p.word + ' scanned',
+      title: num(rows.length) + ' ' + p.word + ' printed ACCUM in the last ' + (p.w.accumulation_sessions || 63) + ' sessions' + DOT + num(above.length) + ' are above the bar, ' + num(base.length) + ' back in the base, ' + num(lost.length) + ' under its low',
+      sub: 'Every ' + p.one + ' in the warehouse, scanned with the mark the chart\u2019s Acc icon prints' + DOT + 'ACCUM is the bar that ends the base after a confirmed low' + DOT + 'published ' + day(d.generated_at),
+      controls: p.controls,
+      tiles: [{ k: 'On the board', v: num(rows.length), s: pct(share(rows.length, p.scanned), 1) + ' of ' + num(p.scanned) + ' ' + p.word + ' scanned' },
+        { k: 'New in 5 sessions', v: num(p.fresh.length), s: p.fresh.length ? tickers(p.fresh.slice().sort(by(cap, true)), 4) : 'no new print' },
+        { k: 'Above the bar', v: pct(share(above.length, rows.length), 0), s: num(above.length) + ' above' + DOT + num(base.length) + ' in the base' + DOT + num(lost.length) + ' lost the low' },
+        { k: 'Median since the bar', v: '<span class="' + tone(mSince) + '">' + zpct(mSince, 1, true) + '</span>', s: 'last close against the ACCUM bar\u2019s close' },
+        { k: 'Median base', v: fin(mBase) ? num(mBase) + ' sessions' : D, s: 'from the low to the bar that ended it' },
+        { k: kind_cap(p), v: money(sum(rows, cap)), s: 'sum of the marked ' + p.word }],
+      cards: [card(above, 'Holding above the bar', 'No ' + p.one + ' is above its ACCUM bar.'), card(lost, 'Lost the low', 'No ' + p.one + ' has closed under the low its base stands on.')],
+      notes: [['The mark:', '8 to 50 sessions after a confirmed low, the first up-close bar that makes the highest high since the low, closes within 0.2% of it and at least 6% above the low. The bottom desk\u2019s trigger is marked the same way.'],
+        ['Read it late:', 'a low is only confirmed 40 sessions after it prints, so an ACCUM bar can appear on the chart weeks after its date. The date shown is the bar\u2019s, not the day it became readable.'],
+        ['Caveat:', 'the bar ends a base; it does not promise a markup. The ring shows how many have since fallen back into the base or under its low.']],
+      ring: Object.assign(SR.ring, { caption: 'Each ' + p.one + ' once, under where its last close stands on ' + day(d.as_of) + ': at or above the ACCUM bar\u2019s close, under it but above the low the base stands on, or under that low.' }),
+      lists: [{ key: 'newest', title: 'Newest ACCUM bars', hint: 'largest first on each day', rows: rows.slice().sort(function (a, b) { return a.ago - b.ago || cap(b) - cap(a); }).map(row), none: 'no ACCUM inside the window' },
+        { key: 'largest', title: 'Largest ' + (p.kind === 'etf' ? 'funds' : 'companies') + ' marked', hint: p.kind === 'etf' ? 'assets' : 'market cap', rows: rows.slice().sort(by(cap, true)).map(function (r) { return { name: tick(r), sub: p.where(r) + DOT + day(r.date) + DOT + lower(r.status), big: money(cap(r)), small: zpct(r.since_pct, 1, true) + ' since' }; }), none: 'none' },
+        { key: 'strongest', title: 'Strongest since the bar', hint: p.floorWord, tone: 'up', rows: p.sized.filter(function (r) { return r.since_pct > 0; }).sort(by(function (r) { return r.since_pct; }, true)).map(row), none: 'nothing that size is up since its bar' },
+        { key: 'weakest', title: 'Weakest since the bar', hint: p.floorWord, tone: 'down', rows: p.sized.filter(function (r) { return r.since_pct <= 0; }).sort(by(function (r) { return r.since_pct; })).map(row), none: 'nothing that size is down since its bar' },
+        { key: 'bases', title: 'Longest bases', hint: 'sessions from the low to the bar', rows: rows.filter(function (r) { return fin(r.base_sessions); }).sort(by(function (r) { return r.base_sessions; }, true)).map(function (r) {
+          return { name: tick(r), sub: p.where(r) + DOT + 'low ' + fix(r.low) + ' on ' + day(r.low_date) + DOT + lower(r.status), big: num(r.base_sessions), small: 'sessions' + DOT + day(r.date) }; }), none: 'none' }]
+        .concat(p.kind === 'stock' ? [{ key: 'sectors', title: 'By sector', hint: 'share of the sector\u2019s scanned stocks', rows: p.sectors(), none: 'none' }] : []),
+      foot: p.foot('ACCUM is the chart\u2019s end-of-accumulation bar (structureScan) plus the bottom desk\u2019s trigger date, exactly as the Acc icon marks them.')
+    };
+  };
+
+  WY.dist = function (D_, st) {
+    var p = scanParts(D_, st, 'distribution'), rows = p.rows, d = p.d;
+    var SR = statusRing(p, 'Where the failed rallies stand', 'by the last close', [['BELOW', 'Under the DIST bar', 'BELOW', 'pos', 1], ['RANGE', 'Between the bar and the high', 'RANGE', 'pos', 0.5], ['RECLAIMED', 'Back above the rally high', 'RECLAIMED', 'oth', 0.34]], 'the marked ' + p.word);
+    var below = SR.groups[0].list, range = SR.groups[1].list, back = SR.groups[2].list, mHigh = med(p.clear.map(function (r) { return r.below_high_pct; }));
+    var effort = rows.filter(function (r) { return r.why === 'more volume bought less'; }).length;
+    var row = function (r) { return { name: tick(r), sub: [p.where(r), 'rally high ' + fix(r.high) + ' on ' + day(r.high_date), fin(r.push_pct) ? 'push ' + pct(r.push_pct, 0, true) + ' after ' + pct(r.prev_push_pct, 0, true) : ''].filter(Boolean).join(DOT),
+      big: zpct(r.below_high_pct, 1, true), tone: tone(r.below_high_pct), small: day(r.date) + DOT + lower(r.status) }; };
+    var card = function (list, label, none) {
+      var r = list[0];
+      if (!r) return { tone: '', big: D, eyebrow: label, title: 'None', text: none };
+      return { tone: tone(r.since_pct), big: zpct(r.since_pct, 1, true), eyebrow: label + DOT + p.largest, title: tick(r),
+        text: money(cap(r)) + p.capWord + p.sector(r) + '. DIST printed on ' + day(r.date) + ' (' + agoWord(r.ago) + ') at ' + fix(r.px) + ', after the rally high of ' + fix(r.high) + ' on ' + day(r.high_date) + ': the last push gained '
+          + pct(r.push_pct, 1) + ' where the one before gained ' + pct(r.prev_push_pct, 1) + ' (' + r.why + '), and the reaction took ' + pct(Math.abs(r.reaction_pct), 1) + ' off the high.' + (r.d_top_date ? ' A structure top stands at ' + day(r.d_top_date) + '.' : '')
+          + ' Last ' + fix(r.last) + ': ' + pct(r.since_pct, 1, true) + ' since the bar, ' + pct(r.below_high_pct, 1, true) + ' against the high.' };
+    };
+    return {
+      eyebrow: 'Distribution tearsheet' + DOT + 'bars ' + day(d.as_of) + DOT + num(p.scanned) + ' ' + p.word + ' scanned',
+      title: num(rows.length) + ' ' + p.word + ' printed DIST in the last ' + (p.w.distribution_sessions || 63) + ' sessions' + DOT + num(below.length) + ' are under the bar, ' + num(range.length) + ' between it and the high, ' + num(back.length) + ' took the high back',
+      sub: 'Every ' + p.one + ' in the warehouse, scanned with the mark the chart\u2019s Dist icon prints' + DOT + 'a rally is not the verdict: DIST prints only after it fails its holding tests' + DOT + 'published ' + day(d.generated_at),
+      controls: p.controls,
+      tiles: [{ k: 'On the board', v: num(rows.length), s: pct(share(rows.length, p.scanned), 1) + ' of ' + num(p.scanned) + ' ' + p.word + ' scanned' },
+        { k: 'New in 5 sessions', v: num(p.fresh.length), s: p.fresh.length ? tickers(p.fresh.slice().sort(by(cap, true)), 4) : 'no new print' },
+        { k: 'Under the bar', v: pct(share(below.length, rows.length), 0), s: num(below.length) + ' under' + DOT + num(range.length) + ' in the range' + DOT + num(back.length) + ' back above the high' },
+        { k: 'Median against the high', v: '<span class="' + tone(mHigh) + '">' + zpct(mHigh, 1, true) + '</span>', s: 'last close against the rally high' },
+        { k: 'Why it printed', v: num(effort) + ' / ' + num(rows.length - effort), s: 'more volume bought less / the push barely cleared the last high' },
+        { k: kind_cap(p), v: money(sum(rows, cap)), s: 'sum of the marked ' + p.word }],
+      cards: [card(below, 'Under the bar', 'No ' + p.one + ' is under its DIST bar.'), card(back, 'Took the high back', 'No ' + p.one + ' has closed back above its rally high.')],
+      notes: [['The mark:', 'a swing high within 3% of the 189-session high after an advance of 15% off the year\u2019s low, where the last push bought less than the one before, gave back half of itself inside 18 sessions, was not reclaimed in the next 6 and reacted worse than the reaction before.'],
+        ['Where it prints:', 'on the bar that completes those tests, days after the rally high. The row shows both dates, and the push sizes the verdict rests on.'],
+        ['Caveat:', 'a distribution that is reclaimed was wrong. It stays on the board for the window, in the ring\u2019s third slice, so the failures are counted beside the successes.']],
+      ring: Object.assign(SR.ring, { caption: 'Each ' + p.one + ' once, under where its last close stands on ' + day(d.as_of) + ': under the DIST bar\u2019s close, between it and the rally high, or back at or above that high.' }),
+      lists: [{ key: 'newest', title: 'Newest DIST bars', hint: 'largest first on each day', rows: rows.slice().sort(function (a, b) { return a.ago - b.ago || cap(b) - cap(a); }).map(row), none: 'no DIST inside the window' },
+        { key: 'largest', title: 'Largest ' + (p.kind === 'etf' ? 'funds' : 'companies') + ' marked', hint: p.kind === 'etf' ? 'assets' : 'market cap', rows: rows.slice().sort(by(cap, true)).map(function (r) { return { name: tick(r), sub: p.where(r) + DOT + day(r.date) + DOT + lower(r.status), big: money(cap(r)), small: zpct(r.below_high_pct, 1, true) + ' vs high' }; }), none: 'none' },
+        { key: 'furthest', title: 'Furthest under the rally high', hint: p.floorWord, tone: 'down', rows: p.sized.filter(function (r) { return r.below_high_pct < 0; }).sort(by(function (r) { return r.below_high_pct; })).map(row), none: 'nothing is under its high' },
+        { key: 'reclaimed', title: 'Took the high back', hint: 'the distribution failed' + DOT + p.floorWord, tone: 'up', n: back.length, rows: p.sized.filter(function (r) { return r.status === 'RECLAIMED'; }).sort(by(function (r) { return r.below_high_pct; }, true)).map(row), none: 'no rally high that size was reclaimed' },
+        { key: 'effort', title: 'Most volume for the least progress', hint: 'last push against the one before' + DOT + p.floorWord, rows: p.sized.filter(function (r) { return fin(r.effort_x) && r.why === 'more volume bought less'; }).sort(by(function (r) { return r.effort_x; }, true)).map(function (r) {
+          return { name: tick(r), sub: p.where(r) + DOT + 'push ' + pct(r.push_pct, 0, true) + ' after ' + pct(r.prev_push_pct, 0, true) + DOT + lower(r.status), big: times(r.effort_x), small: day(r.date) }; }), none: 'none' }]
+        .concat(p.kind === 'stock' ? [{ key: 'sectors', title: 'By sector', hint: 'share of the sector\u2019s scanned stocks', rows: p.sectors(), none: 'none' }] : []),
+      foot: p.foot('DIST is the chart\u2019s distribution scan (distributionScan), exactly as the Dist icon marks it; D-TOP is the structure top within 40 sessions of the rally high.')
+    };
+  };
+
+  /* Selling climax: the bottom desk's daily rows in CLIMAX or TESTING (the table's own rule) */
+  WY.sc = function (D_) {
+    var d = D_.bottom;
+    if (!d || !d.board) throw new Error('the bottom desk\u2019s board (data/bottom.json) is not readable');
+    var rows = d.board.filter(function (r) { return r.frame === 'D' && (r.state === 'CLIMAX' || r.state === 'TESTING'); }), ref = d.session || d.generated_at, labels = d.desk_labels || {};
+    var where = function (r) { return r.desk === 'stocks' ? (r.sector || 'Unclassified') : (labels[r.desk] || r.desk || 'Other'); };
+    var cl = rows.filter(function (r) { return r.state === 'CLIMAX'; }), te = rows.filter(function (r) { return r.state === 'TESTING'; });
+    var age = function (r) { return daysBetween(r.sc_date, ref); }, fresh = rows.filter(function (r) { var a = age(r); return fin(a) && a <= 7; }), good = rows.filter(function (r) { return r.grade === 'A' || r.grade === 'B'; });
+    var groups = groupBy(rows, where), u = d.universe || {};
+    var row = function (r) { return { name: tick(r), sub: [where(r), pct(r.sc_decline_pct, 0) + ' into the climax', 'range ' + times(r.sc_range_x), 'grade ' + (r.grade || D)].join(DOT), big: times(r.sc_vol_x), small: day(r.sc_date) + DOT + lower(r.state) }; };
+    var card = function (r, label) {
+      if (!r) return { tone: '', big: D, eyebrow: label, title: 'None', text: 'No daily row is in a climax or testing one.' };
+      return { tone: '', big: times(r.sc_vol_x), eyebrow: label, title: tick(r), text: (fin(r.mcap) ? money(r.mcap) + ' of market cap, ' : '') + where(r) + '. Selling climax on ' + day(r.sc_date) + ' (' + daysWord(age(r)) + '): ' + pct(Math.abs(r.sc_decline_pct), 0)
+        + ' under the high before it, on ' + times(r.sc_vol_x) + ' the 50-day volume and ' + times(r.sc_range_x) + ' the average range. Climax low ' + fix(r.sc_low) + ', last ' + fix(r.last) + ' (' + pct(r.dist_sc_low_pct, 1, true) + ' against it). State '
+        + lower(r.state) + ', grade ' + (r.grade || D) + (fin(r.ar_rally_pct) ? '; the automatic rally ran ' + pct(r.ar_rally_pct, 0) : '') + '.' };
+    };
+    return {
+      eyebrow: 'Selling climax tearsheet' + DOT + 'session ' + day(ref) + DOT + num(u.scored) + ' instruments scored by the bottom desk',
+      title: num(rows.length) + ' names are in a selling climax or testing one' + DOT + num(cl.length) + ' at the climax, ' + num(te.length) + ' testing the low' + DOT + num(fresh.length) + ' printed in the last week',
+      sub: 'Daily bars' + DOT + 'the bottom desk\u2019s board, rows in CLIMAX or TESTING' + DOT + 'this is where the selling climaxed, not a buy' + DOT + 'published ' + day(d.generated_at),
+      tiles: [{ k: 'On the board', v: num(rows.length), s: num(cl.length) + ' climax' + DOT + num(te.length) + ' testing' },
+        { k: 'Printed in the last week', v: num(fresh.length), s: fresh.length ? tickers(fresh.slice().sort(by(function (r) { return r.sc_vol_x || 0; }, true)), 4) : 'no new climax' },
+        { k: 'Median climax volume', v: times(med(rows.map(function (r) { return r.sc_vol_x; }))), s: 'against the 50-day average' },
+        { k: 'Median decline', v: pct(med(rows.map(function (r) { return r.sc_decline_pct; })), 0), s: 'into the climax low' },
+        { k: 'Graded A or B', v: num(good.length), s: good.length ? tickers(good.slice().sort(by(function (r) { return r.score || 0; }, true)), 4) : 'none yet' },
+        { k: 'Most names', v: groups[0] ? groups[0].key : D, s: groups[0] ? num(groups[0].list.length) + ' of ' + num(rows.length) : '' }],
+      cards: [card(rows.slice().sort(by(function (r) { return r.sc_vol_x || 0; }, true))[0], 'Heaviest climax volume'), card(rows.filter(function (r) { return fin(r.mcap); }).sort(by(cap, true))[0], 'Largest company on the board')],
+      notes: [['The climax:', 'climactic volume at a new low of a real decline, a wide range, and a close off the low. CLIMAX = the bar has printed; TESTING = price rallied and is back testing that low.'],
+        ['What comes next:', 'the proof is the secondary test on shrunken volume. The Bottom tab follows the names that pass it.'],
+        ['Caveat:', 'the board is the bottom desk\u2019s top ' + num((d.board || []).length) + ' rows by score, not every climax in the market; the Bottom tab lists every stock the chart marks.']],
+      ring: { title: 'Where the climaxes are', hint: 'names by sector or desk', n: rows.length, center: num(rows.length), subs: ['NAMES', 'CLIMAX ' + cl.length + DOT + 'TESTING ' + te.length], whole: 'the board', aria: 'Selling-climax names by sector',
+        slices: compose(groups, function (k) { return k; }, function (g) { return pct(share(g.list.length, rows.length), 0) + DOT + tickers(g.list.slice().sort(by(function (r) { return r.sc_vol_x || 0; }, true))); }),
+        caption: 'Each name once, under its sector (stocks) or its desk (funds, bonds, countries, crypto).' },
+      lists: [{ key: 'newest', title: 'Newest climaxes', hint: 'by the date of the bar', rows: rows.slice().sort(function (a, b) { return String(b.sc_date).localeCompare(String(a.sc_date)) || (b.sc_vol_x || 0) - (a.sc_vol_x || 0); }).map(row), none: 'none' },
+        { key: 'volume', title: 'Heaviest volume', hint: 'climax bar against the 50-day average', rows: rows.slice().sort(by(function (r) { return r.sc_vol_x || 0; }, true)).map(row), none: 'none' },
+        { key: 'deepest', title: 'Deepest declines', hint: 'into the climax low', tone: 'down', rows: rows.filter(function (r) { return fin(r.sc_decline_pct); }).sort(by(function (r) { return r.sc_decline_pct; })).map(function (r) {
+          return { name: tick(r), sub: where(r) + DOT + 'volume ' + times(r.sc_vol_x) + DOT + lower(r.state), big: pct(r.sc_decline_pct, 0), tone: 'down', small: day(r.sc_date) }; }), none: 'none' },
+        { key: 'largest', title: 'Largest companies', hint: 'market cap', rows: rows.filter(function (r) { return fin(r.mcap); }).sort(by(cap, true)).map(function (r) { return { name: tick(r), sub: where(r) + DOT + lower(r.state) + DOT + 'volume ' + times(r.sc_vol_x), big: money(r.mcap), small: day(r.sc_date) }; }), none: 'none' },
+        { key: 'graded', title: 'Best graded', hint: 'the bottom desk\u2019s score', tone: 'up', rows: rows.filter(function (r) { return fin(r.score); }).sort(by(function (r) { return r.score; }, true)).map(function (r) {
+          return { name: tick(r), sub: where(r) + DOT + lower(r.state) + DOT + 'volume ' + times(r.sc_vol_x), big: (r.grade || D) + ' ' + num(r.score), small: day(r.sc_date) }; }), none: 'none' },
+        { key: 'testing', title: 'Testing the low', hint: 'closest to the climax low', n: te.length, rows: te.filter(function (r) { return fin(r.dist_sc_low_pct); }).sort(by(function (r) { return Math.abs(r.dist_sc_low_pct); })).map(function (r) {
+          return { name: tick(r), sub: where(r) + DOT + 'climax ' + day(r.sc_date) + DOT + 'low ' + fix(r.sc_low), big: pct(r.dist_sc_low_pct, 1, true), tone: tone(r.dist_sc_low_pct), small: 'vs the low' }; }), none: 'nothing is testing' }],
+      foot: 'Source: justhodl-bottom ' + (d.version || '') + ' (data/bottom.json), session ' + day(ref) + ', published ' + String(d.generated_at || '').slice(0, 16).replace('T', ' ') + ' UTC. The board carries the desk\u2019s ' + num((d.board || []).length) + ' highest-scored rows of '
+        + num(u.scored) + ' instruments scored; this tab reads the daily rows in CLIMAX or TESTING.'
+    };
+  };
+
+  /* Capitulation: panic-volume prints at the lows, all desks (capitulation-desk.json) */
+  var CAP_DESK = { stocks: 'Stocks', equity_etfs: 'Equity & sector ETFs', countries: 'Countries', bonds: 'Bonds', gold_metals: 'Gold & metals', commodities: 'Commodities', currencies: 'Currencies', crypto: 'Crypto' };
+  WY.capit = function (D_) {
+    var d = D_.capit;
+    if (!d || !d.boards || !d.breadth) throw new Error('the capitulation desk\u2019s feed (data/capitulation-desk.json) is not readable');
+    var B = d.breadth, C = d.counts || {}, P = d.params || {}, order = d.desk_order || Object.keys(d.boards), all = [];
+    order.forEach(function (k) { (d.boards[k] || []).forEach(function (r) { all.push(r); }); });
+    var latest = (d.latest || []).slice().sort(by(function (r) { return r.score || 0; }, true)), keep = P.keep_sessions || 60, win = P.latest_sessions || 5;
+    var total = fin(d.n_prints_60) ? d.n_prints_60 : sum(order, function (k) { return (C[k] || {}).prints_60; });
+    var desks = order.map(function (k) { return { key: k, n: (C[k] || {}).prints_60 || 0, five: (C[k] || {}).prints_5 || 0, scored: (C[k] || {}).scored }; }).filter(function (x) { return x.n > 0; }).sort(by(function (x) { return x.n; }, true));
+    var after = all.filter(function (r) { return r.after && r.after.sessions_since >= 1 && typeof r.after.held === 'boolean'; }), heldN = after.filter(function (r) { return r.after.held; }).length;
+    var sess = (B.sessions || []).slice().sort(by(function (s) { return s.total || 0; }, true)), last = B.last_session || {};
+    var desk = function (r) { return CAP_DESK[r.desk] || r.desk || ''; };
+    var row = function (r, big, small) { return { name: tick(r), sub: [desk(r), pct(r.ret_pct, 1, true) + ' on the day', 'volume ' + times(r.vol_x), 'range ' + times(r.range_x)].join(DOT), big: big, tone: 'down', small: small || day(r.date) }; };
+    var top = latest[0], cluster = sess[0];
+    return {
+      eyebrow: 'Capitulation tearsheet' + DOT + 'session ' + day(d.session) + DOT + num(B.n_scored) + ' instruments scored across ' + order.length + ' desks',
+      title: num(B.sum_5) + ' capitulation prints in the last ' + win + ' sessions' + DOT + lower(B.regime) + ' breadth, ' + (fin(B.sum_5_percentile) ? 'the ' + num(B.sum_5_percentile) + 'th percentile of the window' : D) + DOT + num(total) + ' prints in ' + keep + ' sessions',
+      sub: 'One session of panic: a down close on 2.5\u00d7 volume or more, a range 1.5\u00d7 the ATR, the close in the bottom 30% of the bar, at the 20-session low' + DOT + 'every desk on its own floor' + DOT + 'published ' + day(d.generated_at),
+      tiles: [{ k: 'Last ' + win + ' sessions', v: num(B.sum_5), s: lower(B.regime) + DOT + (fin(B.sum_5_percentile) ? num(B.sum_5_percentile) + 'th percentile' : '') + DOT + 'median ' + num(B.window_median_sum_5) },
+        { k: 'Last session', v: num(last.total), s: day(last.date) + (last.by_desk ? DOT + Object.keys(last.by_desk).map(function (k) { return (CAP_DESK[k] || k) + ' ' + last.by_desk[k]; }).join(', ') : '') },
+        { k: 'Last ' + keep + ' sessions', v: num(total), s: desks.slice(0, 3).map(function (x) { return (CAP_DESK[x.key] || x.key) + ' ' + num(x.n); }).join(DOT) },
+        { k: 'Share of the scored', v: pct(B.sum_5_pct_of_scored, 2), s: 'printed in the last ' + win + ' sessions, of ' + num(B.n_scored) },
+        { k: 'Heaviest session', v: cluster ? num(cluster.total) : D, s: cluster ? day(cluster.date) + DOT + pct(cluster.pct_of_scored, 1) + ' of the scored' : '' },
+        { k: 'Low held since', v: after.length ? pct(share(heldN, after.length), 0) : D, s: num(heldN) + ' of ' + num(after.length) + ' prints with a session after them' }],
+      cards: [top ? { tone: 'down', big: pct(top.ret_pct, 0, true), eyebrow: 'Highest-scored print of the last ' + win + ' sessions', title: tick(top),
+        text: desk(top) + '. ' + day(top.date) + ': ' + pct(top.ret_pct, 1, true) + ' on the day on ' + times(top.vol_x) + ' the 50-session volume and ' + times(top.range_x) + ' the ATR, closing ' + pct((top.loc || 0) * 100, 0) + ' up the bar at '
+          + fix(top.close) + '. That left it ' + pct(top.dd20_pct, 0) + ' under its 20-session high and ' + pct(top.dd60_pct, 0) + ' under its 60-session high. Score ' + num(top.score, 1) + (top.wyckoff && top.wyckoff.state ? '; bottom desk: ' + lower(top.wyckoff.state) + ', grade ' + (top.wyckoff.grade || D) : '') + '.' }
+        : { tone: '', big: D, eyebrow: 'Latest prints', title: 'None', text: 'No capitulation printed in the last ' + win + ' sessions.' },
+        cluster ? { tone: 'down', big: num(cluster.total), eyebrow: 'Heaviest session of the last ' + (B.sessions || []).length + DOT + day(cluster.date), title: pct(cluster.pct_of_scored, 1) + ' of everything scored printed on one day',
+          text: Object.keys(cluster.by_desk || {}).sort(function (a, b) { return cluster.by_desk[b] - cluster.by_desk[a]; }).map(function (k) { return (CAP_DESK[k] || k) + ' ' + cluster.by_desk[k]; }).join(', ') + '. A cluster is a session where at least '
+            + (P.cluster_share_pct || 2.5) + '% of the scored universe prints together; ' + num(B.n_clusters_window) + ' such sessions stand in the ' + num(B.window_sessions) + '-session window.' }
+          : { tone: '', big: D, eyebrow: 'Heaviest session', title: 'None', text: 'No session in the window carries a print.' }],
+      notes: [['Read:', String(d.read || '') + '.'],
+        ['Not a low by itself:', 'a print is one bar of panic. The follow-through columns on the desk below show whether the low held, how far it bounced and whether it was undercut.'],
+        ['Caveat:', 'the stock board keeps the ' + num(P.board_rows || 500) + ' highest-scored prints of the ' + keep + ' sessions; the ring counts every print, the lists rank what the boards hold (' + num(all.length) + ').']],
+      ring: { title: 'Prints by desk', hint: 'last ' + keep + ' sessions', n: total, center: num(total), subs: ['PRINTS', 'LAST ' + win + ': ' + num(B.sum_5)], whole: 'the prints', aria: 'Capitulation prints by desk over ' + keep + ' sessions',
+        slices: desks.map(function (x, i) { return { name: CAP_DESK[x.key] || x.key, value: x.n, tone: i < 5 ? 'pos' : 'oth', big: num(x.n), small: pct(share(x.n, total), 0) + DOT + pct(share(x.n, x.scored), 0) + ' of ' + num(x.scored) + ' scored' + DOT + x.five + ' in the last ' + win }; }),
+        caption: 'Every print of the last ' + keep + ' sessions once, under the desk that scored it. A desk\u2019s floor is its own: stocks \u22123%, equity ETFs \u22122%, bonds \u22121%, crypto \u22125%.' },
+      lists: [{ key: 'latest', title: 'Latest prints', hint: 'last ' + win + ' sessions, by score', tone: 'down', n: latest.length, rows: latest.map(function (r) { return row(r, num(r.score, 0), day(r.date) + DOT + 'score'); }), none: 'no print in the last ' + win + ' sessions' },
+        { key: 'volume', title: 'Heaviest volume', hint: 'against the 50-session average', rows: all.filter(function (r) { return fin(r.vol_x); }).sort(by(function (r) { return r.vol_x; }, true)).map(function (r) { return row(r, times(r.vol_x)); }), none: 'none' },
+        { key: 'falls', title: 'Deepest one-day falls', hint: 'the print bar', tone: 'down', rows: all.filter(function (r) { return fin(r.ret_pct); }).sort(by(function (r) { return r.ret_pct; })).map(function (r) { return row(r, pct(r.ret_pct, 1, true)); }), none: 'none' },
+        { key: 'bounce', title: 'Best bounce since the print', hint: 'highest close after it', tone: 'up', rows: all.filter(function (r) { return r.after && fin(r.after.bounce_pct) && r.after.bounce_pct >= 0.05; }).sort(by(function (r) { return r.after.bounce_pct; }, true)).map(function (r) {
+          return { name: tick(r), sub: [desk(r), 'printed ' + day(r.date), r.after.held ? 'low held' : 'low undercut'].join(DOT), big: zpct(r.after.bounce_pct, 1, true), tone: 'up', small: plural(r.after.sessions_since, 'session') }; }), none: 'no print has bounced yet' },
+        { key: 'undercut', title: 'Undercut since the print', hint: 'lowest low after it', tone: 'down', rows: all.filter(function (r) { return r.after && fin(r.after.undercut_pct) && r.after.undercut_pct <= -0.05; }).sort(by(function (r) { return r.after.undercut_pct; })).map(function (r) {
+          return { name: tick(r), sub: [desk(r), 'printed ' + day(r.date), fin(r.after.now_vs_print_pct) ? 'now ' + zpct(r.after.now_vs_print_pct, 1, true) + ' vs the print' : ''].filter(Boolean).join(DOT), big: zpct(r.after.undercut_pct, 1, true), tone: 'down', small: plural(r.after.sessions_since, 'session') }; }), none: 'no print has been undercut' },
+        { key: 'sessions', title: 'Heaviest sessions', hint: 'prints in one day', rows: sess.filter(function (s) { return s.total > 0; }).map(function (s) {
+          return { name: day(s.date), sub: Object.keys(s.by_desk || {}).sort(function (a, b) { return s.by_desk[b] - s.by_desk[a]; }).slice(0, 4).map(function (k) { return (CAP_DESK[k] || k) + ' ' + s.by_desk[k]; }).join(DOT), big: num(s.total), small: pct(s.pct_of_scored, 2) + ' of scored' }; }), none: 'none' }],
+      foot: 'Source: justhodl-bottom ' + (d.engine_version || '') + ' (data/capitulation-desk.json, contract ' + (d.contract || '') + '), session ' + day(d.session) + ', published ' + String(d.generated_at || '').slice(0, 16).replace('T', ' ')
+        + ' UTC. Breadth percentile is against ' + num(B.window_sessions) + ' sessions. A print is detected on the tape alone; nothing here is a forecast.'
+    };
+  };
+
+  /* Buying climax and Spring: the phase detector's book */
+  function phaseBook(D_) {
+    var d = D_.phase;
+    if (!d || !d.tickers) throw new Error('the phase detector\u2019s feed (data/phase-detector.json) is not readable');
+    return d;
+  }
+  var PHASE = { ACCUMULATION: 'Accumulation', DISTRIBUTION: 'Distribution', MARKUP: 'Markup', MARKDOWN: 'Markdown', NEUTRAL_RANGE: 'Neutral range', NEUTRAL: 'Neutral' };
+  WY.bc = function (D_) {
+    var d = phaseBook(D_), ref = d.generated_at, rows = [], B = d.boards || {}, pc = d.phase_counts || {};
+    Object.keys(d.tickers).forEach(function (t) {
+      var v = d.tickers[t] || {}, ev = (v.events || []).filter(function (e) { return e && e.type === 'BC'; }).sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); })[0];
+      if (ev) rows.push({ ticker: t, date: ev.date, phase: v.phase, price: v.price, days: v.days_in_phase, pressure: v.pressure, lo: v.range_low, hi: v.range_high, whales: (v.confirmations || {}).whales_flow_usd, age: daysBetween(ev.date, ref) });
+    });
+    rows.sort(function (a, b) { return String(b.date).localeCompare(String(a.date)) || a.ticker.localeCompare(b.ticker); });
+    var groups = groupBy(rows, function (r) { return r.phase || 'NEUTRAL'; }), inDist = rows.filter(function (r) { return r.phase === 'DISTRIBUTION'; }), fresh = rows.filter(function (r) { return fin(r.age) && r.age <= 7; });
+    var pos = function (r) { return fin(r.lo) && fin(r.hi) && r.hi > r.lo && fin(r.price) ? (r.price - r.lo) / (r.hi - r.lo) * 100 : null; };
+    var row = function (r) { return { name: r.ticker, sub: [PHASE[r.phase] || r.phase || '', fin(r.days) ? plural(r.days, 'day') + ' in phase' : '', fin(pos(r)) ? pct(pos(r), 0) + ' up its range' : '', fin(r.whales) ? '13F ' + money(r.whales, true) : ''].filter(Boolean).join(DOT),
+      big: fin(r.pressure) ? fix(r.pressure) : D, tone: tone(r.pressure), small: day(r.date) + DOT + 'pressure' }; };
+    var book = function (list) { return (list || []).map(function (x) { return { name: x.ticker, sub: [PHASE[x.phase] || x.phase, 'since ' + day(x.begin), fin(x.price) ? 'last ' + fix(x.price) : ''].filter(Boolean).join(DOT), big: fin(x.pressure) ? fix(x.pressure) : D, tone: tone(x.pressure), small: fin(x.days) ? plural(x.days, 'day') : '' }; }); };
+    var newest = rows[0];
+    return {
+      eyebrow: 'Buying climax tearsheet' + DOT + 'read ' + day(ref) + DOT + num(d.analyzed_n) + ' names analysed by the phase detector',
+      title: num(rows.length) + ' names carry a live buying climax' + DOT + num(inDist.length) + ' of them are in distribution now' + DOT + num(fresh.length) + ' printed in the last week',
+      sub: 'Daily bars' + DOT + 'climactic volume at or near a high, a wide range, a close off the extreme' + DOT + 'not a short by itself: the proof is weakness on the reaction' + DOT + 'published ' + day(ref),
+      tiles: [{ k: 'Live buying climaxes', v: num(rows.length), s: 'of ' + num(d.analyzed_n) + ' names analysed' },
+        { k: 'Printed in the last week', v: num(fresh.length), s: fresh.length ? tickers(fresh, 5) : 'no new climax' },
+        { k: 'In distribution now', v: num(inDist.length), s: inDist.length ? tickers(inDist, 5) : 'none of them' },
+        { k: 'Newest', v: newest ? newest.ticker : D, s: newest ? day(newest.date) + DOT + (PHASE[newest.phase] || newest.phase || '') : '' },
+        { k: 'Distribution book', v: num(pc.DISTRIBUTION), s: num((B.distribution_beginning || []).length) + ' beginning' + DOT + num((B.distribution_mature || []).length) + ' mature' },
+        { k: 'Ended in markdown', v: num((B.distribution_ended_markdown || []).length), s: 'distributions that resolved down' }],
+      cards: [newest ? { tone: '', big: day(newest.date).slice(5), eyebrow: 'Newest buying climax', title: newest.ticker, text: 'Printed ' + day(newest.date) + ' (' + daysWord(newest.age) + '). Phase now: ' + lower(PHASE[newest.phase] || newest.phase) + (fin(newest.days) ? ', ' + plural(newest.days, 'day') + ' in it' : '')
+        + (fin(newest.lo) ? '; range ' + fix(newest.lo) + ' to ' + fix(newest.hi) + ', last ' + fix(newest.price) : '') + (fin(newest.pressure) ? '; pressure ' + fix(newest.pressure) : '') + '.' }
+        : { tone: '', big: D, eyebrow: 'Newest buying climax', title: 'None', text: 'No name in the book carries a live buying climax.' },
+        (B.distribution_beginning || [])[0] ? { tone: 'down', big: num((B.distribution_beginning || []).length), eyebrow: 'Distribution beginning' + DOT + 'context, not the signal', title: (B.distribution_beginning || []).slice(0, 6).map(function (x) { return x.ticker; }).join(', '),
+          text: 'Names whose distribution phase began most recently: ' + (B.distribution_beginning || []).map(function (x) { return x.ticker + ' (' + day(x.begin) + ')'; }).join(', ') + '.' }
+          : { tone: '', big: D, eyebrow: 'Distribution beginning', title: 'None', text: 'No distribution began recently.' }],
+      notes: [['The climax:', 'buyers rush a high on climactic volume and the bar closes off its extreme. Supply met them there.'],
+        ['What comes next:', 'weakness on the reaction, or an upthrust that fails. Until one prints the trend has not been broken.'],
+        ['Caveat:', 'the phase detector reads a book of ' + num(d.universe_n) + ' liquid names, not the whole warehouse. Pressure is its own reading of effort against result, shown as published.']],
+      ring: { title: 'Where they stand now', hint: 'names by phase', n: rows.length, center: num(rows.length), subs: ['NAMES', 'DISTRIBUTION ' + inDist.length], whole: 'the names', aria: 'Names with a live buying climax by phase',
+        slices: compose(groups, function (k) { return PHASE[k] || k; }, function (g) { return pct(share(g.list.length, rows.length), 0) + DOT + tickers(g.list, 4); }), caption: 'Each name once, under the phase the detector reads for it on ' + day(ref) + '.' },
+      lists: [{ key: 'newest', title: 'Newest buying climaxes', hint: 'by the date of the bar', rows: rows.map(row), none: 'no live buying climax' },
+        { key: 'dist-begin', title: 'Distribution beginning', hint: 'context', tone: 'down', rows: book(B.distribution_beginning), none: 'none' },
+        { key: 'dist-mature', title: 'Distribution mature', hint: 'context', tone: 'down', rows: book(B.distribution_mature), none: 'none' },
+        { key: 'dist-ended', title: 'Ended in markdown', hint: 'distributions that resolved', tone: 'down', rows: book(B.distribution_ended_markdown), none: 'none' }],
+      foot: 'Source: justhodl-phase-detector (data/phase-detector.json), published ' + String(ref || '').slice(0, 16).replace('T', ' ') + ' UTC; ' + num(d.analyzed_n) + ' of ' + num(d.universe_n) + ' names analysed. Phases in the book: '
+        + Object.keys(pc).map(function (k) { return lower(PHASE[k] || k) + ' ' + pc[k]; }).join(', ') + '.'
+    };
+  };
+
+  WY.spring = function (D_) {
+    var d = phaseBook(D_), ref = d.generated_at, rows = [], pc = d.phase_counts || {};
+    Object.keys(d.tickers).forEach(function (t) {
+      var v = d.tickers[t] || {}, fired = null;
+      (v.events || []).forEach(function (e) { if (e && e.type === 'SPRING') fired = e; });
+      var dist = v.range_low && v.price ? (v.price - v.range_low) / v.range_low * 100 : null, base = { ticker: t, phase: v.phase, price: v.price, lo: v.range_low, hi: v.range_high, days: v.days_in_phase || 0, pressure: v.pressure, dist: dist };
+      if (v.phase === 'ACCUMULATION' && v.range_low && v.price) {
+        if (fired) rows.push(Object.assign(base, { kind: 'FIRED', date: fired.date, age: daysBetween(fired.date, ref) }));
+        else if ((v.days_in_phase || 0) >= 10 && dist <= 3) rows.push(Object.assign(base, { kind: 'FORMING' }));
+      } else if (fired && v.phase === 'DISTRIBUTION') rows.push(Object.assign(base, { kind: 'FAILED', date: fired.date, age: daysBetween(fired.date, ref) }));
+    });
+    var K = [['FIRED', 'Fired', 'pos', 1], ['FORMING', 'Forming', 'pos', 0.5], ['FAILED', 'Failed', 'oth', 0.34]];
+    var G = K.map(function (k) { return rows.filter(function (r) { return r.kind === k[0]; }); }), fired = G[0].sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); }), forming = G[1].sort(by(function (r) { return r.dist; })), failed = G[2];
+    var row = function (r) { return { name: r.ticker, sub: ['range ' + fix(r.lo) + ' to ' + fix(r.hi), plural(r.days, 'day') + ' in the range', fin(r.pressure) ? 'pressure ' + fix(r.pressure) : ''].filter(Boolean).join(DOT), big: zpct(r.dist, 1, true), tone: tone(r.dist), small: (r.date ? day(r.date) + DOT : '') + 'vs range low' }; };
+    var card = function (r, label, none, how) {
+      if (!r) return { tone: '', big: D, eyebrow: label, title: 'None', text: none };
+      return { tone: tone(r.dist), big: zpct(r.dist, 1, true), eyebrow: label, title: r.ticker, text: how(r) + ' Range ' + fix(r.lo) + ' to ' + fix(r.hi) + ', ' + plural(r.days, 'day') + ' old; last ' + fix(r.price) + ', ' + zpct(r.dist, 1, true) + ' against the range low' + (fin(r.pressure) ? '; pressure ' + fix(r.pressure) : '') + '.' };
+    };
+    return {
+      eyebrow: 'Spring tearsheet' + DOT + 'read ' + day(ref) + DOT + num(pc.ACCUMULATION) + ' names in accumulation of ' + num(d.analyzed_n) + ' analysed',
+      title: num(rows.length) + ' names are at a spring' + DOT + num(fired.length) + ' fired, ' + num(forming.length) + ' forming, ' + num(failed.length) + ' failed',
+      sub: 'A range under accumulation, then an undercut of support that closes back inside' + DOT + 'forming = 10 days or more in the range and within 3% of its low' + DOT + 'published ' + day(ref),
+      tiles: [{ k: 'At a spring', v: num(rows.length), s: 'of ' + num(pc.ACCUMULATION) + ' in accumulation and ' + num(pc.DISTRIBUTION) + ' in distribution' },
+        { k: 'Fired', v: num(fired.length), s: fired.length ? tickers(fired, 5) : 'no spring has printed' },
+        { k: 'Forming', v: num(forming.length), s: forming.length ? tickers(forming, 5) : 'nothing sits at its range low' },
+        { k: 'Failed', v: num(failed.length), s: failed.length ? tickers(failed, 5) + DOT + 'a spring inside distribution' : 'none' },
+        { k: 'Closest to the low', v: forming[0] ? forming[0].ticker : D, s: forming[0] ? zpct(forming[0].dist, 1, true) + ' against its range low' : '' },
+        { k: 'Median range age', v: fin(med(rows.map(function (r) { return r.days; }))) ? num(med(rows.map(function (r) { return r.days; }))) + ' days' : D, s: 'days in the phase' }],
+      cards: [card(fired[0], 'Newest fired spring', 'No spring has fired in a name still under accumulation.', function (r) { return 'Spring on ' + day(r.date) + ' (' + daysWord(r.age) + '), the name still in accumulation.'; }),
+        card(forming[0], 'Closest to its range low', 'No accumulation range is within 3% of its low.', function () { return 'No spring has printed yet: the undercut is what to watch for.'; })],
+      notes: [['Fired:', 'a spring event while the phase is still accumulation. Compare its volume with the climax before trusting it.'],
+        ['Failed:', 'a spring event in a name whose phase is distribution. That is an upthrust\u2019s cousin, not a buy.'],
+        ['Caveat:', 'the phase detector reads a book of ' + num(d.universe_n) + ' liquid names, not the whole warehouse.']],
+      ring: { title: 'Springs by state', hint: 'names', n: rows.length, center: num(rows.length), subs: ['NAMES', 'FIRED ' + fired.length + DOT + 'FORMING ' + forming.length], whole: 'the names', aria: 'Springs by state',
+        slices: K.map(function (k, i) { return { name: k[1], value: G[i].length, tone: k[2], op: k[3], big: num(G[i].length), small: pct(share(G[i].length, rows.length), 0) + (G[i].length ? DOT + tickers(G[i], 4) : '') }; }),
+        caption: 'Each name once: fired (the spring printed, still in accumulation), forming (at the range low, no spring yet) or failed (a spring inside distribution).' },
+      lists: [{ key: 'fired', title: 'Fired', hint: 'newest first', tone: 'up', rows: fired.map(row), none: 'no spring has fired' },
+        { key: 'forming', title: 'Forming', hint: 'closest to the range low', rows: forming.map(row), none: 'nothing is forming' },
+        { key: 'failed', title: 'Failed', hint: 'a spring inside distribution', tone: 'down', rows: failed.map(row), none: 'no failed spring' }],
+      foot: 'Source: justhodl-phase-detector (data/phase-detector.json), published ' + String(ref || '').slice(0, 16).replace('T', ' ') + ' UTC; ' + num(d.analyzed_n) + ' of ' + num(d.universe_n) + ' names analysed.'
+    };
+  };
+
+  /* Candle spread: Katlin's picks whose band is tight (the table's own rule) */
+  WY.spread = function (D_) {
+    var d = D_.katlin;
+    if (!d || !d.picks) throw new Error('Katlin\u2019s feed (data/katlin.json) is not readable');
+    var rows = d.picks.filter(function (x) { return x && x.bbw_pctile != null && x.bbw_pctile <= 20 && (x.squeeze || (x.accum_legs && x.accum_legs.bb_tight >= 70)); }).sort(by(function (r) { return r.bbw_pctile; }));
+    var where = function (r) { return r.asset_class === 'stock' || !r.asset_class ? (r.sector || 'Unclassified') : r.asset_class === 'etf' ? 'ETFs' : r.asset_class === 'crypto' ? 'Crypto' : r.asset_class; };
+    var sq = rows.filter(function (r) { return r.squeeze; }), legs = function (r) { return r.accum_legs || {}; }, acc = function (r) { return (r.pillars || {}).accumulation; }, groups = groupBy(rows, where), u = d.universe || {};
+    var row = function (r) { return { name: tick(r), sub: [where(r), r.squeeze ? 'squeeze' : 'tight', 'range contraction ' + num(legs(r).range_contraction), 'volume ' + (fin(r.vol_ratio_20_120) ? r.vol_ratio_20_120.toFixed(2) : D) + ' of its 120-day'].join(DOT), big: 'p' + num(r.bbw_pctile), small: 'band width' }; };
+    var card = function (r, label) {
+      if (!r) return { tone: '', big: D, eyebrow: label, title: 'None', text: 'No pick is coiled.' };
+      return { tone: '', big: 'p' + num(r.bbw_pctile), eyebrow: label, title: tick(r), text: (fin(r.mcap) ? money(r.mcap) + ' of market cap, ' : '') + where(r) + '. Bollinger width at the ' + num(r.bbw_pctile) + 'th percentile of its own history' + (r.squeeze ? ', in a squeeze' : '')
+        + '; range contraction ' + num(legs(r).range_contraction) + ' of 100, volume dry-up ' + num(legs(r).vol_dryup) + ', 20-day volume ' + (fin(r.vol_ratio_20_120) ? r.vol_ratio_20_120.toFixed(2) : D) + ' of the 120-day. Accumulation pillar ' + num(acc(r))
+        + (r.tier ? ', tier ' + lower(String(r.tier).replace(/_/g, ' ')) : '') + '. Last ' + fix(r.last) + '.' };
+    };
+    return {
+      eyebrow: 'Candle spread tearsheet' + DOT + 'session ' + day(d.session || d.as_of) + DOT + num(d.picks.length) + ' Katlin picks of ' + num(u.scored) + ' scored',
+      title: num(rows.length) + ' picks are coiled' + DOT + num(sq.length) + ' in a squeeze, ' + num(rows.length - sq.length) + ' tight' + DOT + 'tightest: ' + (rows[0] ? rows[0].ticker + ' at the ' + num(rows[0].bbw_pctile) + 'th percentile' : D),
+      sub: 'Daily bars' + DOT + 'Bollinger width at or under the 20th percentile, with a squeeze or a tight-band leg of 70 or more' + DOT + 'this is coiling, not a trigger' + DOT + 'published ' + day(d.generated_at),
+      tiles: [{ k: 'Coiled', v: num(rows.length), s: 'of ' + num(d.picks.length) + ' picks' },
+        { k: 'Squeeze / tight', v: num(sq.length) + ' / ' + num(rows.length - sq.length), s: 'band inside the channel / tight-band leg 70+' },
+        { k: 'Median band width', v: 'p' + num(med(rows.map(function (r) { return r.bbw_pctile; }))), s: 'percentile of each name\u2019s own history' },
+        { k: 'Median volume', v: fin(med(rows.map(function (r) { return r.vol_ratio_20_120; }))) ? med(rows.map(function (r) { return r.vol_ratio_20_120; })).toFixed(2) : D, s: '20-day against 120-day' },
+        { k: 'Accumulation 65+', v: num(rows.filter(function (r) { return acc(r) >= 65; }).length), s: 'coiled with the accumulation pillar behind it' },
+        { k: 'Most names', v: groups[0] ? groups[0].key : D, s: groups[0] ? num(groups[0].list.length) + ' of ' + num(rows.length) : '' }],
+      cards: [card(rows[0], 'Tightest band'), card(rows.filter(function (r) { return fin(r.mcap); }).sort(by(cap, true))[0], 'Largest company coiled')],
+      notes: [['The coil:', 'a narrow daily range inside a narrow Bollinger band. Energy is stored; direction is not given.'],
+        ['What comes next:', 'expansion. Which way is read from the structure around it: a base after a low, or a ledge under a high.'],
+        ['Caveat:', 'Katlin\u2019s permission panel below governs entries; a coiled row is research, not a signal.']],
+      ring: { title: 'Where the coils are', hint: 'names by sector or class', n: rows.length, center: num(rows.length), subs: ['NAMES', 'SQUEEZE ' + sq.length], whole: 'the coiled picks', aria: 'Coiled picks by sector',
+        slices: compose(groups, function (k) { return k; }, function (g) { return pct(share(g.list.length, rows.length), 0) + DOT + tickers(g.list); }), caption: 'Each coiled pick once, under its sector (stocks) or its class (ETFs, crypto).' },
+      lists: [{ key: 'tightest', title: 'Tightest bands', hint: 'Bollinger width percentile', rows: rows.map(row), none: 'no pick is coiled' },
+        { key: 'contraction', title: 'Most range contraction', hint: 'the leg, 0 to 100', rows: rows.filter(function (r) { return fin(legs(r).range_contraction); }).sort(by(function (r) { return legs(r).range_contraction; }, true)).map(function (r) {
+          return { name: tick(r), sub: where(r) + DOT + 'band p' + num(r.bbw_pctile) + DOT + (r.squeeze ? 'squeeze' : 'tight'), big: num(legs(r).range_contraction), small: 'of 100' }; }), none: 'none' },
+        { key: 'dry', title: 'Driest volume', hint: '20-day against 120-day', rows: rows.filter(function (r) { return fin(r.vol_ratio_20_120); }).sort(by(function (r) { return r.vol_ratio_20_120; })).map(function (r) {
+          return { name: tick(r), sub: where(r) + DOT + 'band p' + num(r.bbw_pctile), big: r.vol_ratio_20_120.toFixed(2), small: 'of its 120-day' }; }), none: 'none' },
+        { key: 'accum', title: 'Most accumulation behind it', hint: 'Katlin\u2019s pillar, 0 to 100', tone: 'up', rows: rows.filter(function (r) { return fin(acc(r)); }).sort(by(acc, true)).map(function (r) {
+          return { name: tick(r), sub: where(r) + DOT + 'band p' + num(r.bbw_pctile) + (r.tier ? DOT + lower(String(r.tier).replace(/_/g, ' ')) : ''), big: num(acc(r)), small: 'pillar' }; }), none: 'none' },
+        { key: 'largest', title: 'Largest companies coiled', hint: 'market cap', rows: rows.filter(function (r) { return fin(r.mcap); }).sort(by(cap, true)).map(function (r) { return { name: tick(r), sub: where(r) + DOT + 'band p' + num(r.bbw_pctile), big: money(r.mcap), small: r.squeeze ? 'squeeze' : 'tight' }; }), none: 'none' }],
+      foot: 'Source: justhodl-katlin ' + (d.version || '') + ' (data/katlin.json), session ' + day(d.session || d.as_of) + ', published ' + String(d.generated_at || '').slice(0, 16).replace('T', ' ') + ' UTC; ' + num(d.picks.length) + ' picks published of ' + num(u.scored) + ' instruments scored.'
+    };
+  };
+
+  var WY_FEEDS = ['/data/bottom.json', '/data/phase-detector.json', '/data/katlin.json', '/data/accumulation-radar.json', '/data/capitulation-desk.json', '/data/campaign-scan.json'];
+  function wyDocs(docs) {
+    var one = docs && docs.length === 1 ? docs[0] : null;
+    if (one && one.__wyckoff) return one;
+    return { bottom: docs[0], phase: docs[1], katlin: docs[2], radar: docs[3], capit: docs[4], scan: docs[5] };
+  }
+  function wyTab(st) {
+    if (st && st.tab) return st.tab;
+    try { return (new URLSearchParams(location.search).get('tab') || 'sc').toLowerCase(); } catch (e) { return 'sc'; }
+  }
+  ADAPTERS.wyckoff = {
+    feeds: WY_FEEDS, soft: true,
+    share: { global: 'JHWyckoffDocs', event: 'jh:wyckoff-docs', ms: 9000 },   /* the desk has already read these feeds: use its copies */
+    tabs: WY,
+    build: function (docs, st) {
+      var f = WY[wyTab(st)];
+      return f ? f(wyDocs(docs), st || {}) : { hide: true };
+    }
+  };
+  ADAPTERS.capitulation = {
+    feeds: ['/data/capitulation-desk.json'],
+    share: { global: 'JHCapitDoc', event: 'jh:capit-doc', ms: 8000 },
+    build: function (docs) { return WY.capit({ capit: docs[0] }); }
+  };
+
   /* -- boot -- */
   function get(url) { return fetch(url + (url.indexOf('?') < 0 ? '?' : '&') + 'v=' + Math.floor(Date.now() / 300000), { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(url + ' HTTP ' + r.status); return r.json(); }); }
 
@@ -630,8 +1094,13 @@
     el.innerHTML = '<div class="jts-in"><div class="jts-wait">Reading the tearsheet\u2026</div></div>';
     var state = {}, docs = null;
     function paint() {
-      try { render(el, ad.build(docs, state)); }
-      catch (e) { el.dataset.state = 'error'; el.innerHTML = '<div class="jts-in"><div class="jts-wait">The tearsheet could not be built from this feed (' + esc(e && e.message || e) + '). The rest of the page is unaffected.</div></div>'; }
+      try {
+        var model = ad.build(docs, state);
+        el.hidden = !!(model && model.hide);                 /* a tab with no sheet: the mount steps aside */
+        if (el.hidden) { el.dataset.state = 'hidden'; return; }
+        render(el, model);
+      }
+      catch (e) { el.hidden = false; el.dataset.state = 'error'; el.innerHTML = '<div class="jts-in"><div class="jts-wait">The tearsheet could not be built from this feed (' + esc(e && e.message || e) + '). The rest of the page is unaffected.</div></div>'; }
     }
     el.addEventListener('click', function (e) {
       var c = e.target.closest('[data-jts-ctl]'), a = e.target.closest('[data-jts-act]');
@@ -650,8 +1119,16 @@
         try { navigator.clipboard.writeText(url).then(ok, function () { window.prompt('Copy this link', url); }); } catch (err) { window.prompt('Copy this link', url); }
       }
     });
+    /* A desk with tabs tells its sheet which one is open: el.dispatchEvent(new CustomEvent('jts:set', { detail: { tab: 'sc' } })) */
+    el.addEventListener('jts:set', function (e) {
+      var patch = (e && e.detail) || {};
+      Object.keys(patch).forEach(function (key) { state[key] = patch[key]; });
+      el.__long = false;
+      if (docs) paint();
+    });
     function read() {
-      Promise.all(ad.feeds.map(get)).then(function (list) { docs = list; paint(); }).catch(function (e) {
+      /* soft: a sheet that stands on several feeds still builds the tabs whose feed arrived */
+      Promise.all(ad.feeds.map(function (u) { return ad.soft ? get(u).catch(function () { return null; }) : get(u); })).then(function (list) { docs = list; paint(); }).catch(function (e) {
         if (docs) return;
         el.dataset.state = 'error';
         el.innerHTML = '<div class="jts-in"><div class="jts-wait">The tearsheet\u2019s feed is not available right now (' + esc(e && e.message || e) + '). The rest of the page is unaffected.</div></div>';
@@ -667,7 +1144,7 @@
   }
 
   function boot() { Array.prototype.forEach.call(document.querySelectorAll('[data-jts]'), mount); }
-  var api = { version: '1.2.0', render: render, ring: ring, adapters: ADAPTERS, mount: mount, money: money, pct: pct };
+  var api = { version: '1.3.0', render: render, ring: ring, adapters: ADAPTERS, mount: mount, money: money, pct: pct };
   if (typeof module === 'object' && module.exports) module.exports = api;   /* node: the adapters and the ring are pure, tests/tearsheet-kit.test.js */
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
   window.JHTearsheet = api;

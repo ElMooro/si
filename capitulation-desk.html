@@ -68,6 +68,8 @@
     <div class="jh-stamp" id="stamp">loading the capitulation artifact…</div>
   </div>
 
+  <div id="jh-tearsheet" data-jh-chrome data-jts="capitulation" data-jts-flush></div>
+
   <section class="cp-sec" aria-label="Verdict: panic regime, breadth and follow-through">
     <p class="cp-read" id="read"></p>
     <div class="jh-kpis" id="kpis"></div>
@@ -122,6 +124,7 @@
 <script src="/private-artifacts.js?v=20260909"></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/jh-desk-core.js"></script>
+<script src="/jh-tearsheet.js?v=1.0.0" defer></script>
 <script>
 (function(){
   var D=JHDesk, KEY="data/capitulation-desk.json", DOC=null, desk="ALL", win="LATEST";
@@ -304,6 +307,7 @@
     try{
       DOC=await D.feed(KEY);
       if(!DOC||DOC.contract!=="capitulation.v1") throw new Error("data/capitulation-desk.json is not published yet (justhodl-bottom 1.3.0 writes it daily at 03:45 UTC)");
+      window.JHCapitDoc=DOC; try{ window.dispatchEvent(new CustomEvent("jh:capit-doc",{detail:DOC})); }catch(e2){}      // the tearsheet above reads this copy, not a second download
       stamp(); drawKpis(); drawChart(); drawDesks(); draw(); drawFollow(); drawBench(); drawDefs(); drawSources();
     }catch(e){
       document.getElementById("stamp").innerHTML='<span class="dn">'+esc(e.message||e)+"</span>";

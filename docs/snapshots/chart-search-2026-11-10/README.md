@@ -95,3 +95,17 @@ git rm dollar-indexes.html securities-held-outright.html ice-bofa-indices.html t
 
 then commit with `[skip-ops]` and push. That also takes back the month-end fix in the week / month / quarter / year
 arithmetic (`MacroData.monthsBack`), which the Macro and flows desks share.
+
+## The Acc / Bot / Dist icons open their all-stock desks (2026-11-19)
+
+`justhodl-campaign-scan` (data/campaign-scan.json) lists every stock and ETF the chart's Accumulation, Bottom and
+Distribution icons would mark. On `chart.html` a click that turns one of those marks on now also opens its desk
+(`/wyckoff-desk.html?tab=accum|bottom|dist`); the next click turns the marks off, as before. The wiring is one block in
+`jh-chart-tvrail.js` (it wraps `jhCampToggle` / `jhDistToggle`; the marking files themselves are unchanged) plus the rail's
+`dist` entry and a cache-bust on `chart.html`. The state before is commit `980fcbac`:
+
+```
+git checkout 980fcbac -- chart.html jh-chart-tvrail.js tests/helpers/chart-macro-line-preservation.cjs
+```
+
+That returns the three icons to marking only. The desks, the tearsheets and the engine are not touched by it.

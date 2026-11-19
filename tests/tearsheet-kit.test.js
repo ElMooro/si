@@ -6,7 +6,9 @@ const root = path.join(__dirname, '..');
 const feeds = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/tearsheet-feeds.json'), 'utf8'));
 // the Leaders feed is 3 MB: its trimmed copy (every leader, industry and fund; only the fields the sheet reads; ops 6838) has its own file
 feeds['data/leaders.json'] = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/tearsheet-leaders.json'), 'utf8'));
-const PAGES = { 'ark.html': 'ark', 'stablecoin-flow.html': 'stablecoin', 'firm-book.html': 'firmbook', 'paper-book.html': 'paperbook', 'sp500.html': 'sp500', 'insider-clusters.html': 'insiders', 'foreign-flows.html': 'tic', 'capital-inflows.html': 'capital', 'leaders.html': 'leaders' };
+// the Wyckoff desks' six feeds (real, trimmed; tests/wyckoff-tearsheets.test.js reads them tab by tab)
+Object.assign(feeds, Object.fromEntries(Object.entries(JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/tearsheet-wyckoff.json'), 'utf8'))).filter(([k]) => k.startsWith('data/'))));
+const PAGES = { 'ark.html': 'ark', 'stablecoin-flow.html': 'stablecoin', 'firm-book.html': 'firmbook', 'paper-book.html': 'paperbook', 'sp500.html': 'sp500', 'insider-clusters.html': 'insiders', 'foreign-flows.html': 'tic', 'capital-inflows.html': 'capital', 'leaders.html': 'leaders', 'wyckoff-desk.html': 'wyckoff', 'capitulation-desk.html': 'capitulation' };
 const build = (name, state) => kit.adapters[name].build(kit.adapters[name].feeds.map(f => structuredClone(feeds[f.slice(1)])), state || {});
 const sum = (list, f) => list.reduce((a, x) => a + f(x), 0);
 const near = (a, b, tol) => assert.ok(Math.abs(a - b) <= (tol == null ? 1e-6 * Math.max(1, Math.abs(b)) : tol), `${a} vs ${b}`);
@@ -271,7 +273,7 @@ test('Leaders: the sheet takes the desk\'s copy of the feed, and reads it itself
   assert.deepEqual(ad.share, { global: 'JHLeadersDoc', event: 'jh:leaders-doc', ms: 8000 });
   const desk = fs.readFileSync(path.join(root, 'jh-leaders.js'), 'utf8');
   assert.match(desk, /window\.JHLeadersDoc = d;/); assert.match(desk, /new CustomEvent\("jh:leaders-doc", \{ detail: d \}\)/);
-  for (const name of Object.keys(kit.adapters)) if (name !== 'leaders') assert.equal(kit.adapters[name].share, undefined, name);
-  assert.equal(kit.version, '1.2.0');
+  for (const name of Object.keys(kit.adapters)) if (!['leaders', 'wyckoff', 'capitulation'].includes(name)) assert.equal(kit.adapters[name].share, undefined, name);
+  assert.equal(kit.version, '1.3.0');
 });
 

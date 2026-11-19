@@ -49,15 +49,18 @@ footer{margin-top:22px;font-size:11px;color:var(--mut)}
   <h1>WYCKOFF DESK</h1>
   <p class="sub">Climax, capitulation, spring, accumulation, bottom, pump, distribution, and top. Each tab ends with the criteria that engine starts from. Capitulation is not a buy. A spring on a distribution range is a failed test. Click a ticker to open the chart.</p>
   <div class="tabs" id="tabs"></div>
+  <div id="jh-tearsheet" data-jh-chrome data-jts="wyckoff" data-jts-flush></div>
   <div class="kpi" id="kpi"></div>
   <div class="note" id="why"></div>
   <section class="memo" id="katlin-permission" aria-label="Katlin research permission" hidden></section>
   <div class="panel"><table id="board"></table></div>
   <section class="memo" id="memo"></section>
   <div class="meta" id="meta"></div>
-  <footer>Feeds: data/bottom.json (SC + bottom + pump/markup) · data/phase-detector.json (daily SC/BC/SPRING/phase) · data/katlin.json (BB width, candle contraction, accum legs) · data/accumulation-radar.json. No new vendor.</footer>
+  <footer>Feeds: data/bottom.json (SC + bottom + pump/markup) · data/phase-detector.json (daily SC/BC/SPRING/phase) · data/katlin.json (BB width, candle contraction, accum legs) · data/accumulation-radar.json · data/campaign-scan.json (every stock the chart’s Acc / Bot / Dist icons mark) · data/capitulation-desk.json (the Capitulation sheet). No new vendor.</footer>
 </div>
 <script src="/capital-view.js"></script>
+<script src="/jh-wyckoff-scan.js?v=1.0.0"></script>
+<script src="/jh-tearsheet.js?v=1.0.0" defer></script>
 <script>
 (function () {
   var TABS = [
@@ -93,6 +96,8 @@ footer{margin-top:22px;font-size:11px;color:var(--mut)}
   var tab = (new URLSearchParams(location.search).get("tab") || "sc").toLowerCase();
   if (!TABS.filter(function (t) { return t.id === tab; }).length) tab = "sc";
   var DATA = {};
+  // Additive hook: jh-wyckoff-scan.js (the all-stock boards and the tearsheet) is told after every paint. Nothing here depends on it.
+  function hook() { try { if (window.JHWyckoffHook) window.JHWyckoffHook(tab, DATA); } catch (e) {} }
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>]/g, function (c) { return ({ "&": "&", "<": "<", ">": ">" })[c]; }); }
   function num(x, d) { x = Number(x); return isFinite(x) ? x.toFixed(d == null ? 1 : d) : "—"; }
@@ -391,6 +396,7 @@ footer{margin-top:22px;font-size:11px;color:var(--mut)}
     document.getElementById("kpi").innerHTML = kpis.map(function (k) { return "<div><span>" + esc(k[0]) + "</span><b>" + esc(k[1]) + "</b></div>"; }).join("");
     if (!rows.length) {
       document.getElementById("board").innerHTML = "<tr><td class=empty colspan=9>" + esc(spec.empty || "No names match this scan on the current harvests.") + "</td></tr>";
+      hook();
       return;
     }
     var html = "<thead><tr>" + heads.map(function (h) { return "<th>" + esc(h) + "</th>"; }).join("") + "</tr></thead><tbody>";
@@ -402,6 +408,7 @@ footer{margin-top:22px;font-size:11px;color:var(--mut)}
     document.querySelectorAll("#board tr[data-t]").forEach(function (tr) {
       tr.onclick = function () { openChart(tr.getAttribute("data-t")); };
     });
+    hook();
   }
 
   TABS.forEach(function (t) {

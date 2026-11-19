@@ -238,6 +238,7 @@
       accum: ["Accumulation · tight band, long range", "/wyckoff-desk.html?tab=accum"],
       bottom: ["Bottom · SC / ST / hinge — predict the low", "/wyckoff-desk.html?tab=bottom"],
       pump: ["Pump · SOS / markup — start of bull run", "/wyckoff-desk.html?tab=pump"],
+      dist: ["Distribution · a rally that fails to hold", "/wyckoff-desk.html?tab=dist"],
       go: ["Bloomberg <GO> · function keyboard", "/bb-go.html"],
       splc: ["Supply chain", "/supply-chain.html"],
       cf: ["SEC filings", "/sec-filings.html"],
@@ -296,6 +297,49 @@
       else sn.innerHTML = "<p style='color:#9aa1ad'>Sniper script is not on this page.</p>";
     }
   };
+
+  /* The three icons that mark the chart (Acc, Bot, Dist) also open the desk that lists every stock carrying the mark
+     (justhodl-campaign-scan). Their marking functions live in files the annotation ledger keeps unchanged, so they are
+     wrapped here once they exist: a click that turns the marks on opens the desk too; the next click turns the marks
+     off, as it always did. A desk row, or a link with ?marks=accum|bottom|dist, asks for the marks without the desk. */
+  var jhMarkDesk = { accum: 1, bottom: 1, dist: 1 }, jhMarkQuiet = false;
+  function jhMarkOn(which) { return which === "dist" ? !!window.__jhDistOn : !!(window.__jhCampLayer && window.__jhCampLayer[which]); }
+  function jhWrapMarks() {
+    var camp = window.jhCampToggle, dist = window.jhDistToggle;
+    if (typeof camp === "function" && !camp.__jhDesk) {
+      window.jhCampToggle = function (which) {
+        var r = camp.apply(this, arguments);
+        if (!jhMarkQuiet && jhMarkDesk[which] && jhMarkOn(which) && window.jhOpenWorkspace) window.jhOpenWorkspace(which);
+        return r;
+      };
+      window.jhCampToggle.__jhDesk = true;
+    }
+    if (typeof dist === "function" && !dist.__jhDesk) {
+      window.jhDistToggle = function () {
+        var r = dist.apply(this, arguments);
+        if (!jhMarkQuiet && jhMarkOn("dist") && window.jhOpenWorkspace) window.jhOpenWorkspace("dist");
+        return r;
+      };
+      window.jhDistToggle.__jhDesk = true;
+    }
+  }
+  window.jhEnsureMarks = function (which) {
+    jhWrapMarks();
+    if (!jhMarkDesk[which] || jhMarkOn(which)) return;
+    jhMarkQuiet = true;
+    try {
+      if (which === "dist") { if (window.jhDistToggle) window.jhDistToggle(); }
+      else if (window.jhCampToggle) window.jhCampToggle(which);
+    } finally { jhMarkQuiet = false; }
+  };
+  function jhBootMarks() {
+    jhWrapMarks();
+    try {
+      var asked = new URLSearchParams(location.search).get("marks");
+      if (asked) asked.split(",").forEach(function (w) { window.jhEnsureMarks(w); });
+    } catch (e) {}
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", jhBootMarks); else jhBootMarks();
 
   window.jhTvChips = function (list, colors) {
     var host = document.getElementById("cmpchips");

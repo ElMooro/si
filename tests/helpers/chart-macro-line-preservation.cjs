@@ -412,7 +412,35 @@ function peelFredDesksRail(raw,file){
  assert.equal(hash(raw),BEFORE,'jh-chart-tvrail.js');
  return raw;
 }
-function normalize(raw,file){raw=peelFredDesksEngine(raw,file);raw=peelFredDesksRail(raw,file);raw=peelCandleClarity(raw,file);raw=peelScreenFit(raw,file);raw=peelFlowsEngine(raw,file);raw=peelFlowsRail(raw,file);raw=peelFormingBar(raw,file);raw=peelCapitHtml(raw,file);raw=peelCapitRail(raw,file);raw=peelLeadersHtml(raw,file);raw=peelLeadersEngine(raw,file);raw=peelLeadersRail(raw,file);raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
+// 2026-11-19: peel the mark-desk wiring (rail meta dist -> /wyckoff-desk.html?tab=dist; the Acc / Bot / Dist marking functions wrapped so a click that
+// turns the marks on also opens the all-stock desk, jhEnsureMarks and ?marks=) before the FRED-desk peels. Khalid: "accumulation, bottom,
+// distribution engines should be built for the icons there it should show all the corresponding stocks".
+function peelMarkDesksRail(raw,file){
+ const AFTER='09303dcb5f1e693d0efdade211b2e579c8d3b85a0b5157dd33048a7083277ed9';
+ const BEFORE='5b3c7f2cfd7604e34acc56ab0917cb7af99adc4c8f55bf360dc26092f6efdefa';
+ const LINE="      dist: [\"Distribution · a rally that fails to hold\", \"/wyckoff-desk.html?tab=dist\"],\n";
+ const BLOCK="  /* The three icons that mark the chart (Acc, Bot, Dist) also open the desk that lists every stock carrying the mark\n     (justhodl-campaign-scan). Their marking functions live in files the annotation ledger keeps unchanged, so they are\n     wrapped here once they exist: a click that turns the marks on opens the desk too; the next click turns the marks\n     off, as it always did. A desk row, or a link with ?marks=accum|bottom|dist, asks for the marks without the desk. */\n  var jhMarkDesk = { accum: 1, bottom: 1, dist: 1 }, jhMarkQuiet = false;\n  function jhMarkOn(which) { return which === \"dist\" ? !!window.__jhDistOn : !!(window.__jhCampLayer && window.__jhCampLayer[which]); }\n  function jhWrapMarks() {\n    var camp = window.jhCampToggle, dist = window.jhDistToggle;\n    if (typeof camp === \"function\" && !camp.__jhDesk) {\n      window.jhCampToggle = function (which) {\n        var r = camp.apply(this, arguments);\n        if (!jhMarkQuiet && jhMarkDesk[which] && jhMarkOn(which) && window.jhOpenWorkspace) window.jhOpenWorkspace(which);\n        return r;\n      };\n      window.jhCampToggle.__jhDesk = true;\n    }\n    if (typeof dist === \"function\" && !dist.__jhDesk) {\n      window.jhDistToggle = function () {\n        var r = dist.apply(this, arguments);\n        if (!jhMarkQuiet && jhMarkOn(\"dist\") && window.jhOpenWorkspace) window.jhOpenWorkspace(\"dist\");\n        return r;\n      };\n      window.jhDistToggle.__jhDesk = true;\n    }\n  }\n  window.jhEnsureMarks = function (which) {\n    jhWrapMarks();\n    if (!jhMarkDesk[which] || jhMarkOn(which)) return;\n    jhMarkQuiet = true;\n    try {\n      if (which === \"dist\") { if (window.jhDistToggle) window.jhDistToggle(); }\n      else if (window.jhCampToggle) window.jhCampToggle(which);\n    } finally { jhMarkQuiet = false; }\n  };\n  function jhBootMarks() {\n    jhWrapMarks();\n    try {\n      var asked = new URLSearchParams(location.search).get(\"marks\");\n      if (asked) asked.split(\",\").forEach(function (w) { window.jhEnsureMarks(w); });\n    } catch (e) {}\n  }\n  if (document.readyState === \"loading\") document.addEventListener(\"DOMContentLoaded\", jhBootMarks); else jhBootMarks();\n\n";
+ if(file!=='jh-chart-tvrail.js'||hash(raw)!==AFTER)return raw;
+ assert.equal(raw.split(LINE).length,2,'jh-chart-tvrail.js mark-desk meta');
+ raw=raw.replace(LINE,'');
+ assert.equal(raw.split(BLOCK).length,2,'jh-chart-tvrail.js mark-desk wrapper');
+ raw=raw.replace(BLOCK,'');
+ assert.equal(hash(raw),BEFORE,'jh-chart-tvrail.js');
+ return raw;
+}
+// 2026-11-19 (b): the rail's cache-bust on chart.html carries the mark-desk wiring, so a browser holding the old rail fetches the new one.
+function peelMarkDesksHtml(raw,file){
+ const AFTER='bb070c3949ec601148624c257e8afc3e29a81a6776061bf0001783b7e1bbff38';
+ const BEFORE='7422d4985604ff15f771b05b44bf20239328b03720cb88516028e720a005d8b6';
+ const FROM='&cds=20261015&marks=20261119&capit=20261105&ldr=20261105"></script>';
+ const TO='&cds=20261015&capit=20261105&ldr=20261105"></script>';
+ if(file!=='chart.html'||hash(raw)!==AFTER)return raw;
+ assert.equal(raw.split(FROM).length,2,'chart.html mark-desk rail cache');
+ raw=raw.replace(FROM,TO);
+ assert.equal(hash(raw),BEFORE,'chart.html');
+ return raw;
+}
+function normalize(raw,file){raw=peelMarkDesksHtml(raw,file);raw=peelMarkDesksRail(raw,file);raw=peelFredDesksEngine(raw,file);raw=peelFredDesksRail(raw,file);raw=peelCandleClarity(raw,file);raw=peelScreenFit(raw,file);raw=peelFlowsEngine(raw,file);raw=peelFlowsRail(raw,file);raw=peelFormingBar(raw,file);raw=peelCapitHtml(raw,file);raw=peelCapitRail(raw,file);raw=peelLeadersHtml(raw,file);raw=peelLeadersEngine(raw,file);raw=peelLeadersRail(raw,file);raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
  if(digest===row.before_sha256||digest!==row.after_sha256)return raw;
  for(const e of [...row.replacements].reverse()){assert.equal(raw.split(e.after).length,2,file+': '+e.after.slice(0,60));raw=raw.replace(e.after,e.before);}
  assert.equal(hash(raw),row.before_sha256,file);assert.equal(raw,fs.readFileSync(path.join(R,row.before_path),'utf8'));return raw;
