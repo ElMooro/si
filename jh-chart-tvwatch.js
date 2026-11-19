@@ -488,6 +488,11 @@
     if (extra) return extra;
     var venue = "", bare = u, cut = u.indexOf(":");
     if (cut > 0) { venue = u.slice(0, cut); bare = u.slice(cut + 1); }
+    /* 2026-11-19 (Khalid: "im trying to pull sp500 and i cant"): TradingView's search answers "sp500", "spx" and "us500" with broker and index-vendor ids of the S&P 500 cash index
+       (VANTAGE:SP500 is its first row). Each id here was read from that search or from his lists and routes to the index the chart already serves for SPX and TVC:SPX.
+       Futures, forwards, perpetuals and same-named foreign stocks (LSE:SPX is Spirax) are deliberately not listed. */
+    var spxCash = { "SP:SPX": 1, "SPCFD:SPX": 1, "SPREADEX:SPX": 1, "VANTAGE:SP500": 1, "BLUEBERRY:SP500": 1, "DARWINEX:SP500": 1, "CAPITALCOM:SPX500": 1, "FOREXCOM:SPX500": 1, "BLACKBULL:SPX500": 1, "FX:SPX500": 1, "OANDA:SPX500USD": 1, "IC:US500": 1, "CFI:US500": 1, "PEPPERSTONE:US500": 1, "BLACKBULL:US500": 1, "FPMARKETS:US500": 1, "TICKMILL:US500": 1, "FUSIONMARKETS:US500": 1, "GBEBROKERS:US500": 1, "TRADENATION:US500": 1, "PURPLETRADING:US500": 1, "ERRANTE:US500": 1, "GOMARKETS:US500": 1, "EQUITI:US500": 1 };
+    if (spxCash[u] === 1) return "^GSPC";
     var us = { NASDAQ: 1, NYSE: 1, AMEX: 1, ARCA: 1, BATS: 1, IEX: 1, OTC: 1 };
     if (us[venue] && /^[A-Z][A-Z0-9.-]{0,11}$/.test(bare)) return bare;
     if (venue === "CBOE" && bare === "VIX") return "^VIX";

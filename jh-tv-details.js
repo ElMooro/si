@@ -337,7 +337,7 @@
         slot("seas").innerHTML = "<h4>Seasonals<small>% from each year's start</small></h4>" + linesSvg(ser.slice().reverse(), 300, 130, { xlabels: mo.map(function (m) { return [m[1], m[0]]; }), vgrid: true, fmt: function (v) { return v.toFixed(0) + "%"; } }) +
           '<div class="tvd-leg">' + ser.map(function (s) { return '<span><i style="background:' + s.color + '"></i>' + s.y + "</span>"; }).join("") + '</div><div class="tvd-pill"><button type="button" data-tvd="seasonals">More seasonals</button></div>';
       }
-      if (!T) slot("extra").innerHTML = '<div class="tvd-ks" style="margin-top:14px"><span>Symbol</span><span>' + esc(x.id) + "</span><span>History</span><span>" + fdate(day(b[0].time)) + " → " + fdate(day(L.time)) + "</span><span>Observations</span><span>" + b.length.toLocaleString("en-US") + "</span></div>";
+      if (!T) slot("extra").innerHTML = '<div class="tvd-ks" style="margin-top:14px"><span>Symbol</span><span>' + esc(x.id) + "</span><span>History</span><span>" + fdate(day(b[0].time)) + " → " + fdate(day(L0.time)) + "</span><span>Observations</span><span>" + b.length.toLocaleString("en-US") + "</span></div>";
     });
 
     if (!T) return;

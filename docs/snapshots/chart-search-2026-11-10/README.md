@@ -109,3 +109,19 @@ git checkout 980fcbac -- chart.html jh-chart-tvrail.js tests/helpers/chart-macro
 ```
 
 That returns the three icons to marking only. The desks, the tearsheets and the engine are not touched by it.
+
+## VANTAGE:SP500 and the other S&P 500 cash-index ids chart the index (2026-11-19)
+
+TradingView's own search answers "sp500", "spx" and "us500" with broker and index-vendor ids of the S&P 500 cash index
+(`VANTAGE:SP500`, `SP:SPX`, `PEPPERSTONE:US500` ...). The watchlist router knew none of those venues and answered
+"No supported chart route; chart unchanged". `chartSymbol` in `jh-chart-tvwatch.js` now sends 24 such ids, each read from
+that search or found in the copied lists (`tests/fixtures/chart-spx-cash/tradingview-search-2026-11-19.json`), to `^GSPC`,
+the index `SPX` and `TVC:SPX` already chart. Futures, forwards, perpetuals and same-named foreign stocks are not in the
+list. `jh-tv-details.js` lost an undefined variable that stopped the details card's History line on any symbol that is not
+a stock ticker. The state before is commit `97f51c22`:
+
+```
+git checkout 97f51c22 -- jh-chart-tvwatch.js jh-tv-details.js tests/helpers/chart-macro-line-preservation.cjs tests/watchlist-identity.test.js
+```
+
+and remove `tests/chart-spx-cash-route.test.js` and `tests/fixtures/chart-spx-cash/`.

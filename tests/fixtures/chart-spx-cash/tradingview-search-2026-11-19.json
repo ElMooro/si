@@ -1,0 +1,795 @@
+{
+ "note": "TradingView symbol search as read through the data proxy (/tv-search) by ops 6846 on 2026-11-19, queries sp500 / spx / s&p 500 / us500, first 30 rows each; and the S&P 500 ids found in the copied TradingView lists.",
+ "read_at": "2026-11-19T19:08:03.189201+00:00",
+ "target": "^GSPC",
+ "routed": [
+  "SP:SPX",
+  "SPCFD:SPX",
+  "SPREADEX:SPX",
+  "VANTAGE:SP500",
+  "BLUEBERRY:SP500",
+  "DARWINEX:SP500",
+  "CAPITALCOM:SPX500",
+  "FOREXCOM:SPX500",
+  "BLACKBULL:SPX500",
+  "FX:SPX500",
+  "OANDA:SPX500USD",
+  "IC:US500",
+  "CFI:US500",
+  "PEPPERSTONE:US500",
+  "BLACKBULL:US500",
+  "FPMARKETS:US500",
+  "TICKMILL:US500",
+  "FUSIONMARKETS:US500",
+  "GBEBROKERS:US500",
+  "TRADENATION:US500",
+  "PURPLETRADING:US500",
+  "ERRANTE:US500",
+  "GOMARKETS:US500",
+  "EQUITI:US500"
+ ],
+ "from_lists": {
+  "SPCFD:SPX": {
+   "lists": 13,
+   "name": "SPX (SPCFD)"
+  }
+ },
+ "search_rows": [
+  {
+   "id": "VANTAGE:SP500",
+   "description": "S&P Index Cash CFD (USD)",
+   "exchange": "Vantage",
+   "type": "index",
+   "query": "sp500"
+  },
+  {
+   "id": "BLUEBERRY:SP500",
+   "description": "US SPX 500 Cash",
+   "exchange": "Blueberry",
+   "type": "index",
+   "query": "sp500"
+  },
+  {
+   "id": "DARWINEX:SP500",
+   "description": "US S&P 500 Index",
+   "exchange": "Darwinex",
+   "type": "index",
+   "query": "sp500"
+  },
+  {
+   "id": "VANTAGE:SP500FT",
+   "description": "SP500 Future",
+   "exchange": "Vantage",
+   "type": "index",
+   "query": "sp500"
+  },
+  {
+   "id": "HIP3XYZ:SP500USDC.P",
+   "description": "SP500 Perpetual Contract",
+   "exchange": "Trade[XYZ] HIP-3 Hyperliquid",
+   "type": "swap",
+   "query": "sp500"
+  },
+  {
+   "id": "MEXC:SP500USDT.P",
+   "description": "SP500 / Tether PERPETUAL FUTURES",
+   "exchange": "MEXC",
+   "type": "swap",
+   "query": "sp500"
+  },
+  {
+   "id": "DELTAIN:SPYXUSD.P",
+   "description": "SP500 xStock Token perpetual future quoted in USD",
+   "exchange": "Delta Exchange India",
+   "type": "swap",
+   "query": "sp500"
+  },
+  {
+   "id": "CRYPTO:SPYXUSD",
+   "description": "SP500 tokenized ETF (xStock)",
+   "exchange": "CRYPTO",
+   "type": "spot",
+   "query": "sp500"
+  },
+  {
+   "id": "EUROTLX:CI4432",
+   "description": "SP500 EP1130C",
+   "exchange": "EUROTLX",
+   "type": "structured",
+   "query": "sp500"
+  },
+  {
+   "id": "EUROTLX:I06299",
+   "description": "Intesa Sanpaolo SpA Protection Participation 2020-07.10.27 (Exp.05.10.27) on SP500 NTR10DRRCTL2D",
+   "exchange": "EUROTLX",
+   "type": "warrant",
+   "query": "sp500"
+  },
+  {
+   "id": "XETR:0USE",
+   "description": "OSSIAM SP500 UCITS ETF 1C/A (USD)- Capitalisation",
+   "exchange": "XETR",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "GETTEX:0USE",
+   "description": "OSSIAM SP500 UCITS ETF 1C/A (USD)- Capitalisation",
+   "exchange": "GETTEX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "LSX:A411U8",
+   "description": "OSSIAM SP500 UCITS ETF 1C/A (USD)- Capitalisation",
+   "exchange": "LSX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "LS:A411U8",
+   "description": "OSSIAM SP500 UCITS ETF 1C/A (USD)- Capitalisation",
+   "exchange": "LS",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:0026S0",
+   "description": "Hana 1Q U.S. SP500 ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:433330",
+   "description": "Shinhan SOL SP500 ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:483570",
+   "description": "KCGI KCGI US SP500 TOP10 ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:499150",
+   "description": "Shinhan SOL US SP500 JPY ETF(H) Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:494410",
+   "description": "Hanwha PLUS SP500 Growth ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:0041E0",
+   "description": "SAMSUNG KODEX US SP500 Active ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:453640",
+   "description": "SAMSUNG KODEX SP500 Health Care ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:453650",
+   "description": "SAMSUNG KODEX SP500 Financial ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:463680",
+   "description": "SAMSUNG KODEX SP500 Technology ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:0052S0",
+   "description": "Hana 1Q U.S. SP500 Blend 50 Active ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:0005C0",
+   "description": "KB RISE US SP500 Yen Hedged ETF(SYNTH H) Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:463640",
+   "description": "SAMSUNG KODEX SP500 Utilities ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:453630",
+   "description": "SAMSUNG KODEX SP500 Consumer Staples ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:0026E0",
+   "description": "SAMSUNG KODEX US SP500 Buffer March Active ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:0068M0",
+   "description": "SAMSUNG KODEX US SP500 Buffer June Active ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "KRX:0138T0",
+   "description": "KB RISE US SP500 10% Daily Fixed Covered Call ETF Units",
+   "exchange": "KRX",
+   "type": "fund",
+   "query": "sp500"
+  },
+  {
+   "id": "SP:SPX",
+   "description": "S&P 500",
+   "exchange": "SP",
+   "type": "index",
+   "query": "spx"
+  },
+  {
+   "id": "TVC:SPX",
+   "description": "S&P 500 Index",
+   "exchange": "TVC",
+   "type": "index",
+   "query": "spx"
+  },
+  {
+   "id": "SPREADEX:SPX",
+   "description": "SPX 500, Daily",
+   "exchange": "Spreadex",
+   "type": "index",
+   "query": "spx"
+  },
+  {
+   "id": "LSE:SPX",
+   "description": "Spirax Group plc.",
+   "exchange": "LSE",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "GETTEX:SPX",
+   "description": "Space Exploration Technologies Corp. Class A",
+   "exchange": "GETTEX",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "TRADEGATE:SPX",
+   "description": "Space Exploration Technologies Corp. Class A",
+   "exchange": "TRADEGATE",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "XETR:SPX",
+   "description": "Space Exploration Technologies Corp. Class A",
+   "exchange": "XETR",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "EURONEXT:SPX",
+   "description": "Amundi Core S&P 500 Swap UCITS ETF EUR Dist",
+   "exchange": "Euronext Paris",
+   "type": "fund",
+   "query": "spx"
+  },
+  {
+   "id": "FWB:SPX",
+   "description": "Space Exploration Technologies Corp. Class A",
+   "exchange": "FWB",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "ASX:SPX",
+   "description": "Spenda Limited",
+   "exchange": "ASX",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "HAM:SPX",
+   "description": "Space Exploration Technologies Corp. Class A",
+   "exchange": "HAM",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "HAN:SPX",
+   "description": "Space Exploration Technologies Corp. Class A",
+   "exchange": "HAN",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "DUS:SPX",
+   "description": "Space Exploration Technologies Corp. Class A",
+   "exchange": "DUS",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "MUN:SPX",
+   "description": "Space Exploration Technologies Corp. Class A",
+   "exchange": "MUN",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "TSXV:SPX",
+   "description": "Stellar AfricaGold, Inc.",
+   "exchange": "TSXV",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "NEO:SPX",
+   "description": "Stellar AfricaGold, Inc.",
+   "exchange": "NEO",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "BSESOF:SPX",
+   "description": "Space Exploration Technologies Corp. Class A",
+   "exchange": "BSESOF",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "SWB:SPX",
+   "description": "Space Exploration Technologies Corp. Class A",
+   "exchange": "SWB",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "BVB:SPX",
+   "description": "SIPEX Company",
+   "exchange": "BVB",
+   "type": "stock",
+   "query": "spx"
+  },
+  {
+   "id": "EUREX:SPXF",
+   "description": "Spirax Group plc Futures",
+   "exchange": "EUREX",
+   "type": "futures",
+   "query": "spx"
+  },
+  {
+   "id": "SHFE:SP",
+   "description": "Bleached Softwood Kraft Pulp Futures",
+   "exchange": "SHFE",
+   "type": "futures",
+   "query": "spx"
+  },
+  {
+   "id": "CAPITALCOM:SPX500",
+   "description": "US 500",
+   "exchange": "Capital.com",
+   "type": "index",
+   "query": "spx"
+  },
+  {
+   "id": "CMC Markets:SPX500",
+   "description": "US SPX 500",
+   "exchange": "CMC Markets",
+   "type": "futures",
+   "query": "spx"
+  },
+  {
+   "id": "AMEX:SPXL",
+   "description": "Direxion Daily S&P 500 Bull 3X ETF",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "spx"
+  },
+  {
+   "id": "OANDA:SPX500USD",
+   "description": "US SPX 500",
+   "exchange": "OANDA",
+   "type": "index",
+   "query": "spx"
+  },
+  {
+   "id": "FOREXCOM:SPX500",
+   "description": "US SP 500 CFD",
+   "exchange": "FOREXCOM",
+   "type": "index",
+   "query": "spx"
+  },
+  {
+   "id": "BLACKBULL:SPX500",
+   "description": "US500 Index (Cash)",
+   "exchange": "BlackBull Markets",
+   "type": "index",
+   "query": "spx"
+  },
+  {
+   "id": "AMEX:SPXS",
+   "description": "Direxion Daily S&P 500 Bear 3X ETF",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "spx"
+  },
+  {
+   "id": "FX:SPX500",
+   "description": "S&P 500 Index Cash",
+   "exchange": "FXCM",
+   "type": "index",
+   "query": "spx"
+  },
+  {
+   "id": "BLACKBULL:US500.F",
+   "description": "SPX500 Index (Futures)",
+   "exchange": "BlackBull Markets",
+   "type": "index",
+   "query": "spx"
+  },
+  {
+   "id": "CME:ES",
+   "description": "E-mini S&P 500 Futures",
+   "exchange": "CME",
+   "type": "futures",
+   "query": "s&p 500"
+  },
+  {
+   "id": "AMEX:SPY",
+   "description": "SPDR S&P 500 ETF TRUST",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "s&p 500"
+  },
+  {
+   "id": "CME:MES",
+   "description": "Micro E-mini S&P 500 Index Futures",
+   "exchange": "CME",
+   "type": "futures",
+   "query": "s&p 500"
+  },
+  {
+   "id": "TVC:VIX",
+   "description": "VOLATILITY S&P 500",
+   "exchange": "TVC",
+   "type": "index",
+   "query": "s&p 500"
+  },
+  {
+   "id": "AMEX:VOO",
+   "description": "Vanguard S&P 500 ETF",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "s&p 500"
+  },
+  {
+   "id": "INDEX:S5FI",
+   "description": "S&P 500 Stocks Above 50-Day Average",
+   "exchange": "INDEX",
+   "type": "index",
+   "query": "s&p 500"
+  },
+  {
+   "id": "IC:US500",
+   "description": "USA S&P 500 Index",
+   "exchange": "IC",
+   "type": "index",
+   "query": "s&p 500"
+  },
+  {
+   "id": "AMEX:RSP",
+   "description": "Invesco S&P 500 Equal Weight ETF",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "s&p 500"
+  },
+  {
+   "id": "INDEX:S5TH",
+   "description": "S&P 500 Stocks Above 200-Day Average",
+   "exchange": "INDEX",
+   "type": "index",
+   "query": "s&p 500"
+  },
+  {
+   "id": "CBOE:XSP",
+   "description": "S&P 500 MINI SPX OPTIONS INDEX",
+   "exchange": "CBOE",
+   "type": "index",
+   "query": "s&p 500"
+  },
+  {
+   "id": "INDEX:S5TW",
+   "description": "S&P 500 Stocks Above 20-Day Average",
+   "exchange": "INDEX",
+   "type": "index",
+   "query": "s&p 500"
+  },
+  {
+   "id": "CBOE:VIX3M",
+   "description": "CBOE S&P 500 3-Month Volatility Index",
+   "exchange": "CBOE",
+   "type": "index",
+   "query": "s&p 500"
+  },
+  {
+   "id": "CBOE:VXX",
+   "description": "iPath Series B S&P 500 VIX Short-Term Futures ETN",
+   "exchange": "CBOE",
+   "type": "fund",
+   "query": "s&p 500"
+  },
+  {
+   "id": "AMEX:SPMO",
+   "description": "Invesco S&P 500 Momentum ETF",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "s&p 500"
+  },
+  {
+   "id": "CBOE:VIX9D",
+   "description": "CBOE S&P 500 9-Day Volatility Index",
+   "exchange": "CBOE",
+   "type": "index",
+   "query": "s&p 500"
+  },
+  {
+   "id": "AMEX:SPYM",
+   "description": "State Street SPDR Portfolio S&P 500 ETF",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "s&p 500"
+  },
+  {
+   "id": "AMEX:IVV",
+   "description": "iShares Core S&P 500 ETF",
+   "exchange": "AMEX",
+   "type": "fund",
+   "query": "s&p 500"
+  },
+  {
+   "id": "CFI:US500",
+   "description": "S&P 500 SPOT",
+   "exchange": "CFI",
+   "type": "index",
+   "query": "s&p 500"
+  },
+  {
+   "id": "CME:NES",
+   "description": "E-nano S&P 500 Futures",
+   "exchange": "CME",
+   "type": "futures",
+   "query": "s&p 500"
+  },
+  {
+   "id": "BCBA:SPY",
+   "description": "SPDR S&P 500 ETF Trust Cert Deposito Arg Repr 0.05 Sh",
+   "exchange": "BYMA",
+   "type": "dr",
+   "query": "s&p 500"
+  },
+  {
+   "id": "INDEX:S5FD",
+   "description": "S&P 500 Stocks Above 5-Day Average",
+   "exchange": "INDEX",
+   "type": "index",
+   "query": "s&p 500"
+  },
+  {
+   "id": "TSX:VFV",
+   "description": "Vanguard S&P 500 Index ETF",
+   "exchange": "TSX",
+   "type": "fund",
+   "query": "s&p 500"
+  },
+  {
+   "id": "PEPPERSTONE:US500",
+   "description": "US 500 Index",
+   "exchange": "Pepperstone",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "BLACKBULL:US500",
+   "description": "US500 Index (Cash)",
+   "exchange": "BlackBull Markets",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "FPMARKETS:US500",
+   "description": "US 500 Index Cash",
+   "exchange": "FP Markets",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "TICKMILL:US500",
+   "description": "US SPX 500 Index",
+   "exchange": "Tickmill",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "FUSIONMARKETS:US500",
+   "description": "US 500 Index",
+   "exchange": "Fusion Markets",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "GBEBROKERS:US500",
+   "description": "SPX500",
+   "exchange": "GBE brokers",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "TRADENATION:US500",
+   "description": "US 500 (per 1.0)",
+   "exchange": "Trade Nation",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "PURPLETRADING:US500",
+   "description": "S&P 500 Index",
+   "exchange": "Purple Trading",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "EURONEXT:US500",
+   "description": "Franklin S&P 500 Screened UCITS ETF Accum Shs USD",
+   "exchange": "Euronext Paris",
+   "type": "fund",
+   "query": "us500"
+  },
+  {
+   "id": "ERRANTE:US500",
+   "description": "US 500 CASH",
+   "exchange": "Errante",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "GOMARKETS:US500",
+   "description": "US 500 Cash",
+   "exchange": "GO Markets",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "EQUITI:US500",
+   "description": "US SPX 500 Cash Index",
+   "exchange": "Equiti",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "PRIMEXBT:US500",
+   "description": "US large-cap index",
+   "exchange": "PrimeXBT",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "COINBASE Derivatives:US5",
+   "description": "US500 Index Perp Style Futures",
+   "exchange": "COINBASE Derivatives",
+   "type": "futures",
+   "query": "us500"
+  },
+  {
+   "id": "BX:LS9KXA",
+   "description": "Lang & Schwarz Aktiengesellschaft Underlying Tracker 2017-open end on TradeInvest US500",
+   "exchange": "BX",
+   "type": "structured",
+   "query": "us500"
+  },
+  {
+   "id": "OKX:US500USDT.P",
+   "description": "US500USDT Perpetual Swap Contract",
+   "exchange": "OKX",
+   "type": "swap",
+   "query": "us500"
+  },
+  {
+   "id": "KCEX:US500USDT.P",
+   "description": "US500 Index / USDT PERPETUAL SWAP CONTRACT",
+   "exchange": "KCEX",
+   "type": "swap",
+   "query": "us500"
+  },
+  {
+   "id": "MILSEDEX:DY0974",
+   "description": "DYN EXP SOL US500/EU50/JAP225/ 70 070929",
+   "exchange": "MILSEDEX",
+   "type": "structured",
+   "query": "us500"
+  },
+  {
+   "id": "MILSEDEX:DY8789",
+   "description": "DYN EXP SOL US500/EU50/JAP/FBK 70 120630",
+   "exchange": "MILSEDEX",
+   "type": "structured",
+   "query": "us500"
+  },
+  {
+   "id": "OKX:US500USD.UM",
+   "description": "US500USD UM X-Perp Contract",
+   "exchange": "OKX",
+   "type": "futures",
+   "query": "us500"
+  },
+  {
+   "id": "PEPPERSTONE:US500F",
+   "description": "US SPX 500 - Forward (17 Sep - 16 Dec)",
+   "exchange": "Pepperstone",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "TRADENATION:US500FU",
+   "description": "US 500 - Rolling Future (Per 1.0)",
+   "exchange": "Trade Nation",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "EURONEXT:US500-ETFP",
+   "description": "Franklin S&P 500 Screened UCITS ETF Accum Shs USD",
+   "exchange": "Euronext Paris",
+   "type": "fund",
+   "query": "us500"
+  },
+  {
+   "id": "PEPPERSTONE:US500.P",
+   "description": "US 500 Index Perpetual",
+   "exchange": "Pepperstone",
+   "type": "index",
+   "query": "us500"
+  },
+  {
+   "id": "FWB:US500472AC9",
+   "description": "Koninklijke Philips N.V. 6.875% 11-MAR-2038",
+   "exchange": "FWB",
+   "type": "bond",
+   "query": "us500"
+  },
+  {
+   "id": "FWB:US500631AH9",
+   "description": "Korea Electric Power Corporation 7.0% 01-FEB-2027",
+   "exchange": "FWB",
+   "type": "bond",
+   "query": "us500"
+  }
+ ]
+}

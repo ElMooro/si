@@ -1,0 +1,6 @@
+[
+ {
+  "before": "test('all current-main routing helpers remain byte identical',()=>{for(const id of ['extraChart','fredId','chartSymbol'])assert.equal(fn(watch,id),fn(previousRouted,id));});",
+  "after": "// 2026-11-19: chartSymbol gained the S&P 500 cash-index ids TradingView's search returns (VANTAGE:SP500, SP:SPX ... -> ^GSPC, the index SPX and TVC:SPX already chart),\n// ledgered in tests/fixtures/chart-spx-cash/tvwatch-spx-cash.edits.json and re-applied to the predecessor the same way.\nconst spxCashRoutes=JSON.parse(read('tests/fixtures/chart-spx-cash/tvwatch-spx-cash.edits.json'));for(const e of spxCashRoutes){assert.equal(previousRouted.split(e.before).length,2,'S&P 500 cash route predecessor: '+e.before.slice(0,40));previousRouted=previousRouted.replace(e.before,e.after);}\ntest('all current-main routing helpers remain byte identical',()=>{for(const id of ['extraChart','fredId','chartSymbol'])assert.equal(fn(watch,id),fn(previousRouted,id));});"
+ }
+]

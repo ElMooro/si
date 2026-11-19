@@ -415,6 +415,24 @@ function peelFredDesksRail(raw,file){
 // 2026-11-19: peel the mark-desk wiring (rail meta dist -> /wyckoff-desk.html?tab=dist; the Acc / Bot / Dist marking functions wrapped so a click that
 // turns the marks on also opens the all-stock desk, jhEnsureMarks and ?marks=) before the FRED-desk peels. Khalid: "accumulation, bottom,
 // distribution engines should be built for the icons there it should show all the corresponding stocks".
+function peelSpxCashWatch(raw,file){
+ const AFTER='15476552696562d0e9c9d0e7f62b49bdc8314fadc5141591b0cab799bb16a9af';
+ const BEFORE='d7dd68f586c33aca02605eec9ed8bd4ef8ecdc067fcb699005e854e67609a55a';
+ if(file!=='jh-chart-tvwatch.js'||hash(raw)!==AFTER)return raw;
+ const edits=JSON.parse(fs.readFileSync(path.join(R,'tests/fixtures/chart-spx-cash/tvwatch-spx-cash.edits.json'),'utf8'));
+ for(const e of [...edits].reverse()){assert.equal(raw.split(e.after).length,2,'jh-chart-tvwatch.js S&P 500 cash-index route: '+e.after.slice(0,50));raw=raw.replace(e.after,e.before);}
+ assert.equal(hash(raw),BEFORE,'jh-chart-tvwatch.js');
+ return raw;
+}
+function peelSpxCashIdentityTest(raw,file){
+ const AFTER='869b3cb8b924d7e9d18097a717198ab8de614419b5a5adedde4c0c230fffca89';
+ const BEFORE='e3e2ee96066b0f6cb89e5f35b309a967cf6897d32ec5420c9d0c51331bf5b86a';
+ if(file!=='tests/watchlist-identity.test.js'||hash(raw)!==AFTER)return raw;
+ const edits=JSON.parse(fs.readFileSync(path.join(R,'tests/fixtures/chart-spx-cash/identity-test-spx-cash.edits.json'),'utf8'));
+ for(const e of [...edits].reverse()){assert.equal(raw.split(e.after).length,2,'watchlist-identity test S&P 500 cash route');raw=raw.replace(e.after,e.before);}
+ assert.equal(hash(raw),BEFORE,'tests/watchlist-identity.test.js');
+ return raw;
+}
 function peelMarkDesksRail(raw,file){
  const AFTER='09303dcb5f1e693d0efdade211b2e579c8d3b85a0b5157dd33048a7083277ed9';
  const BEFORE='5b3c7f2cfd7604e34acc56ab0917cb7af99adc4c8f55bf360dc26092f6efdefa';
@@ -440,7 +458,7 @@ function peelMarkDesksHtml(raw,file){
  assert.equal(hash(raw),BEFORE,'chart.html');
  return raw;
 }
-function normalize(raw,file){raw=peelMarkDesksHtml(raw,file);raw=peelMarkDesksRail(raw,file);raw=peelFredDesksEngine(raw,file);raw=peelFredDesksRail(raw,file);raw=peelCandleClarity(raw,file);raw=peelScreenFit(raw,file);raw=peelFlowsEngine(raw,file);raw=peelFlowsRail(raw,file);raw=peelFormingBar(raw,file);raw=peelCapitHtml(raw,file);raw=peelCapitRail(raw,file);raw=peelLeadersHtml(raw,file);raw=peelLeadersEngine(raw,file);raw=peelLeadersRail(raw,file);raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
+function normalize(raw,file){raw=peelSpxCashWatch(raw,file);raw=peelSpxCashIdentityTest(raw,file);raw=peelMarkDesksHtml(raw,file);raw=peelMarkDesksRail(raw,file);raw=peelFredDesksEngine(raw,file);raw=peelFredDesksRail(raw,file);raw=peelCandleClarity(raw,file);raw=peelScreenFit(raw,file);raw=peelFlowsEngine(raw,file);raw=peelFlowsRail(raw,file);raw=peelFormingBar(raw,file);raw=peelCapitHtml(raw,file);raw=peelCapitRail(raw,file);raw=peelLeadersHtml(raw,file);raw=peelLeadersEngine(raw,file);raw=peelLeadersRail(raw,file);raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
  if(digest===row.before_sha256||digest!==row.after_sha256)return raw;
  for(const e of [...row.replacements].reverse()){assert.equal(raw.split(e.after).length,2,file+': '+e.after.slice(0,60));raw=raw.replace(e.after,e.before);}
  assert.equal(hash(raw),row.before_sha256,file);assert.equal(raw,fs.readFileSync(path.join(R,row.before_path),'utf8'));return raw;
