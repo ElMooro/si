@@ -17,10 +17,18 @@ One row for every listed common stock and every plain ETF in the warehouse, read
     ranks          rk_hv21, rk_hv63, rk_d, rk_w, rk_m, rk_q - 1 is the most volatile / the widest, counted inside
                    the row's own kind (stocks against stocks, ETFs against ETFs)
 
-A window that spans an unexplained one-session move beyond 3-to-1, or a symbol that missed more than three of the last
-63 sessions, is measured but set aside from the rankings (`aside` names the measures): the row says why, and nothing is
-hidden. The boards (most / least volatile, widest / narrowest spread per window, volatility rising / falling) are
-drawn from companies worth $1B or more, so a list is not twenty-five shells.
+Three kinds of row are measured but set aside from the rankings (`aside` names the measures, `why` the reason), so a
+ranking is of stocks that trade freely and nothing is hidden:
+    jump     a window that spans an unexplained one-session move beyond 3-to-1
+    thin     a symbol that missed more than three of the last 63 sessions
+    pinned   a stock whose last 21 sessions fit inside 3.5% from low to high - the tape of a company waiting for a
+             takeover to close, not of a calm business (ops 6851: the 25 "least volatile" $1B+ stocks were all such)
+The boards (most / least volatile, widest / narrowest spread per window, volatility rising / falling) are drawn from
+companies worth $1B or more, so a list is not twenty-five shells.
+
+The factor book lists some exchange-traded notes, preferred shares and warrants as common stock (ops 6852: ATLCL
+"6.125% Senior Notes due 2026", AGNCO, HBANL ...). They are not stocks, and they would own the quiet end of the table:
+other_issues() names them by what their own name says or by NASDAQ's fifth-letter convention, and they are left out.
 
 Reads S3 only - the Polygon EOD bank (data/warm/polygon-full/eod/<T>.json.gz), the factor book's identity and size
 columns and Polygon's split reference. No provider call, no invoke, no event. Daily.
@@ -64,18 +72,24 @@ THIN_WINDOW, THIN_MISS = 63, 3 # more than THIN_MISS of the last THIN_WINDOW ses
 OWN_WINDOW, OWN_MIN = 252, 126 # "own history" is the last 252 readings; fewer than 126 is not a history
 TAIL = OWN_WINDOW + 63 + 6     # the bars the rolling series need: 252 readings of the longest (63-session) window
 PRIOR = 21                     # the volatility reading this many sessions ago, to say whether it is rising
+PIN_SPREAD_M = 3.5             # a stock whose last 21 sessions fit inside this percent, low to high, trades like a pending deal
 JUMP_FLAG = 3.0                # a close-to-close move beyond 3-to-1 either way that no split explains is flagged on the row, never hidden
 JUMP_SESSIONS = 300
 HISTORY_SESSIONS = 252
 THREADS = int(os.environ.get("THREADS", "16"))
 RESERVE_S = 45.0
 MAX_ERROR_SHARE = 0.05
-BOOK_FIELDS = ["mcap", "dollar_vol_20d", "ipo_date"]
+BOOK_FIELDS = ["mcap", "dollar_vol_20d", "ipo_date", "exchange"]
 NOT_COMMON_SUFFIX = re.compile(r"-(R|RI|RT|RW|WS|WT|W|U|UN|CVR)$")
 # The campaign scan's universe rule, kept identical on purpose (tests/deployment/test_stock_volatility_engine.py runs
 # both on the same rows): a geared or inverse fund's tape is a derivative of another tape.
 GEARED_RX = re.compile(r"\b(\d(\.\d+)?x|ultrapro|ultrashort|inverse|leveraged|bull|bear)\b|\bultra\b(?![\s-]*short)"
                        r"|(?<!long/)(?<!long-)(?<!long )\bshort\b(?![\s-]*(term|duration|maturity|dated|income|bond|treasury|treasuries|muni|municipal|high yield|corporate|credit))", re.I)
+# What a "common stock" row of the factor book can really be (ops 6852, read-only audit of the book):
+DEBT_NAME_RX = re.compile(r"\d(\.\d+)?\s*%|\bnotes?\b|\bdebentures?\b|\bsr\.?\s+nt\b|\b\dm\s+bd\b", re.I)                       # a coupon, "Senior Notes due 2031", "SR NT", "1M BD"
+PREF_NAME_RX = re.compile(r"\bpreferred\s+(stock|shares?|units?|securities|l\.?p\.?)|\bdepositary\s+shares?\b.*\bpreferred\b|\bperpetual\b|\bcumulative\b", re.I)
+NASDAQ_OTHER_ISSUE = frozenset("GHIJLMNOPZW")   # NASDAQ's fifth letter: G-J a convertible bond, L and Z a miscellaneous issue (baby bonds), M-P a preferred share, W a warrant
+OTHER_ISSUE_DV_SHARE = 0.10                    # ... when the line trades under a tenth of the dollar volume of the ticker it extends (GOOGL out-trades GOOG: a share class)
 KINDS = ("stock", "etf")
 # measure -> the sessions it looks back over. A jump `ago` sessions back is inside a volatility window of k returns
 # when ago <= k - 1, and inside a spread of k bars (it needs a bar from before the jump) when ago <= k - 2.
@@ -88,7 +102,7 @@ COLS = ["t", "name", "kind", "sector", "industry", "mcap", "adv", "px", "chg", "
         "sp_m", "hi_m", "lo_m", "pos_m", "own_m",
         "sp_q", "hi_q", "lo_q", "pos_q", "own_q",
         "rk_hv21", "rk_hv63", "rk_d", "rk_w", "rk_m", "rk_q",
-        "miss", "jd", "jr", "ja", "aside"]
+        "miss", "jd", "jr", "ja", "aside", "why"]
 SIZES = (("mega", 200e9, None, "$200B and over"), ("large", 10e9, 200e9, "$10B to $200B"), ("mid", 2e9, 10e9, "$2B to $10B"), ("small", 300e6, 2e9, "$300M to $2B"),
          ("micro", None, 300e6, "under $300M"))
 CFG = Config(retries={"max_attempts": 4, "mode": "standard"}, connect_timeout=5, read_timeout=30, max_pool_connections=THREADS * 2)
@@ -111,18 +125,19 @@ DEFINITIONS = {
     "pos": "Where the last close sits inside the window's spread: 0 at the low, 100 at the high.",
     "own": "Where the window's spread stands among the stock's own last 252 windows of the same length (one ending on each session), 0 to 100. 95 means an unusually wide spread for this stock; 5 an unusually narrow one. Blank under 126 windows.",
     "rk_*": "Rank inside the row's own kind - stocks against stocks, ETFs against ETFs - 1 is the most volatile (rk_hv21, rk_hv63) or the widest spread (rk_d, rk_w, rk_m, rk_q). A measure that is set aside has no rank.",
-    "aside": "The measures of the row that are set aside from every ranking, by name. A volatility window is set aside when it spans a flagged jump; a spread window when it holds a bar from before the jump; every measure when the symbol is thin. The figure itself still prints.",
+    "aside / why": "The measures of the row that are set aside from every ranking, by name, and the reason. jump: a volatility window that spans a flagged jump, a spread window that holds a bar from before it. thin: every measure. pinned: every measure. The figure itself still prints.",
+    "pinned": "A stock whose last 21 sessions fit inside 3.5% from the lowest low to the highest high. A freely trading company does not do that (the S&P 500 fund's own month is wider); a company whose takeover price is agreed does. Pinned names are listed on their own and kept out of the rankings and the market's medians.",
     "jd / jr / ja": "A flagged jump: the date, the ratio and the sessions since a one-session close-to-close move beyond 3-to-1 either way, inside the last 300 sessions, that no recorded or inferred split explains. It can be a real collapse or a corporate action the record does not carry.",
     "miss": "How many of the last 63 sessions the symbol printed no bar on (sessions before its first bar are not counted). More than 3 and the row is thin: its windows cover more calendar days than they say, so it is set aside.",
     "boards": "Each board is the 25 names at one end of one measure, among common stocks worth $1B or more whose measure is not set aside. Rising / falling is hv21 minus the reading 21 sessions ago.",
     "bands": "Stocks counted by their hv21: under 15%, 15-25%, 25-40%, 40-60%, 60-100%, 100% and over - with the market value in each band.",
-    "universe": "Listed common stocks (no OTC, preferreds, warrants, units, rights, shells) and ETFs that are not geared or inverse, with a 20-session average dollar volume of at least the floor, a bar in the last 3 sessions and at least 22 sessions of their own continuous history.",
+    "universe": "Listed common stocks (no OTC, preferreds, warrants, units, rights, shells) and ETFs that are not geared or inverse, with a 20-session average dollar volume of at least the floor, a bar in the last 3 sessions and at least 22 sessions of their own continuous history. A line the factor book calls common stock is still left out when its own name says it is a note or a preferred share, or when it is a second NASDAQ issue of a listed company (fifth letter G-J, L-P, Z or W, the issuer's name, under a tenth of the dollar volume of the ticker it extends).",
 }
 
 LIMITATIONS = [
     "This is realized volatility: what the closes and bars already printed. It is not implied volatility - no option is read - and it is not a forecast.",
     "The windows are sessions, not calendar periods: a week is the last 5 sessions, a month 21, a quarter 63.",
-    "A stock pinned to a takeover price reads as one of the least volatile. That is the tape, not safety.",
+    "Pinned is read from the tape alone (21 sessions inside 3.5%); no deal record is consulted. A deal agreed inside the last month still shows as a jump in its windows, and a cash-and-stock deal can keep floating.",
     "Bars are rebased for splits here (recorded, then inferred) but not for dividends. A large special dividend prints as a move.",
     "The bank begins 2021-08-26; a listing younger than a window leaves that window blank.",
 ]
@@ -263,6 +278,34 @@ def listings_of(universe):
     return [(m["ipo_date"], t, m["mcap"], m["sector"]) for t, m in universe.items() if m["kind"] == "stock" and m.get("ipo_date") and m.get("mcap")]
 
 
+def other_issues(book_rows):
+    """{ticker: reason} for the rows the factor book calls common stock that are another kind of security. Pure.
+
+    By name: a coupon or "Notes" / "Debentures" (a baby bond), "Preferred Shares" / "Depositary Shares ... Preferred".
+    By structure: a five-letter NASDAQ ticker that extends a listed ticker of the same issuer name with one of
+    NASDAQ's fifth letters for a bond, a note, a preferred share or a warrant, and trades under a tenth of its dollar
+    volume. A share class (GOOGL / GOOG, FOXA / FOX, NWSA / NWS) fails one of those tests and stays."""
+    stocks = [r for r in book_rows if kind_of(r)[0] == "stock"]
+    by_name = {}
+    for r in stocks:
+        by_name.setdefault(str(r.get("name") or "").strip().lower(), []).append(r)
+    out = {}
+    for r in stocks:
+        sym, name = str(r.get("symbol") or "").upper(), str(r.get("name") or "")
+        if DEBT_NAME_RX.search(name):
+            out[canon(sym)] = "a note by its own name"
+        elif PREF_NAME_RX.search(name):
+            out[canon(sym)] = "a preferred share by its own name"
+        elif len(sym) == 5 and sym.isalpha() and sym[-1] in NASDAQ_OTHER_ISSUE and "NASDAQ" in str(r.get("exchange") or "").upper() and name.strip():
+            dv = _num(r.get("dollar_vol_20d")) or 0.0
+            for base in by_name.get(name.strip().lower(), []):
+                b = str(base.get("symbol") or "").upper()
+                if b != sym and len(b) in (3, 4) and sym.startswith(b) and dv < OTHER_ISSUE_DV_SHARE * (_num(base.get("dollar_vol_20d")) or 0.0):
+                    out[canon(sym)] = "a second issue of %s (NASDAQ fifth letter %s)" % (b, sym[-1])
+                    break
+    return out
+
+
 # --------------------------------------------------------------------------------------------------------- one ticker
 def _r(v, d=2):
     return None if v is None or v != v or v in (float("inf"), float("-inf")) else round(float(v), d)
@@ -293,14 +336,23 @@ def flagged_jump(jumps):
     return {"date": hits[-1]["date"], "ratio": hits[-1]["ratio"], "ago": hits[-1]["ago"]} if hits else None
 
 
-def aside_of(jump, miss):
-    """The ranked measures a row is set aside from, in RANKED's order. Pure."""
+def aside_of(jump, miss, pinned=False):
+    """(measures, why): the ranked measures a row is set aside from, in RANKED's order, and the reason. Pure."""
     if miss is not None and miss > THIN_MISS:
-        return [m for m, _, _ in RANKED]
+        return [m for m, _, _ in RANKED], "thin"
+    if pinned:
+        return [m for m, _, _ in RANKED], "pinned"
     if not jump:
-        return []
+        return [], None
     ago = jump["ago"]
-    return [m for m, k, family in RANKED if ago <= (k - 1 if family == "vol" else k - 2)]
+    out = [m for m, k, family in RANKED if ago <= (k - 1 if family == "vol" else k - 2)]
+    return out, ("jump" if out else None)
+
+
+def is_pinned(kind, sp_m):
+    """A stock whose last 21 sessions fit inside PIN_SPREAD_M percent: the tape of a pending deal. Funds are never pinned
+    (a cash fund is that quiet by design). Pure."""
+    return kind == "stock" and sp_m is not None and sp_m <= PIN_SPREAD_M
 
 
 def missed_sessions(dates, bench_tail):
@@ -348,8 +400,9 @@ def measure(meta, bars, jump=None, bench_tail=None):
         row["own_" + key] = _r(_own(series), 1)
     for col in RANK_COL.values():
         row[col] = None
-    aside = aside_of(jump, miss)
-    row.update({"miss": miss, "jd": jump["date"] if jump else None, "jr": jump["ratio"] if jump else None, "ja": jump["ago"] if jump else None, "aside": ",".join(aside) or None})
+    month = M.spread(H, L, C, 21)
+    aside, why = aside_of(jump, miss, is_pinned(meta["kind"], month["sp"] if month else None))
+    row.update({"miss": miss, "jd": jump["date"] if jump else None, "jr": jump["ratio"] if jump else None, "ja": jump["ago"] if jump else None, "aside": ",".join(aside) or None, "why": why})
     tail = [(Dt[i], hv21s[i], spd[i]) for i in range(max(0, len(Dt) - HISTORY_SESSIONS), len(Dt))]
     return row, tail
 
@@ -495,6 +548,11 @@ def build(s3, now, log=print, remaining_s=600.0):
     if not book:
         raise RuntimeError("the factor book is not readable: the universe cannot be drawn")
     universe, ustats = select_universe(book)
+    others = {t: why for t, why in other_issues(book).items() if t in universe}
+    for t in others:
+        ustats[universe.pop(t)["kind"]] -= 1
+    if others:
+        ustats["left_out"]["a note, preferred share or warrant the book lists as common stock"] = len(others)
     if len(universe) < MIN_SCANNED:
         raise RuntimeError("only %d symbols from %d factor-book rows: the book is short; the previous publication stands" % (len(universe), len(book)))
     man, man_err = optional(s3, polygon_bankfirst.MANIFEST)
@@ -577,14 +635,17 @@ def build(s3, now, log=print, remaining_s=600.0):
                      "bank_sessions": len(bench), "median_sessions_read": sorted(sessions_read)[len(sessions_read) // 2] if sessions_read else None, "split_windows_read": n_windows,
                      "ranked": ranked, "set_aside": {k: sum(1 for r in rows if r["kind"] == k and r["aside"]) for k in KINDS},
                      "flagged_jump": {k: sum(1 for r in rows if r["kind"] == k and r["ja"] is not None) for k in KINDS},
-                     "thin": {k: sum(1 for r in rows if r["kind"] == k and (r["miss"] or 0) > THIN_MISS) for k in KINDS}},
-        "windows": {"spread": {k: v for k, v in M.WINDOWS}, "volatility": list(M.HV_WINDOWS), "own_history": OWN_WINDOW, "prior": PRIOR, "atr": 14, "largest_move": 63},
+                     "thin": {k: sum(1 for r in rows if r["kind"] == k and r["why"] == "thin") for k in KINDS},
+                     "pinned": {k: sum(1 for r in rows if r["kind"] == k and r["why"] == "pinned") for k in KINDS},
+                     "reclassified": [{"t": t, "why": others[t]} for t in sorted(others)]},
+        "windows": {"spread": {k: v for k, v in M.WINDOWS}, "volatility": list(M.HV_WINDOWS), "own_history": OWN_WINDOW, "prior": PRIOR, "atr": 14, "largest_move": 63, "pin_spread_m": PIN_SPREAD_M},
         "board_rule": {"min_mcap": BOARD_MIN_MCAP, "n": BOARD_N, "population": {m: len(board_set(rows, m)) for m, _, _ in RANKED}},
         "market": {"stock": group_stats(stocks), "etf": group_stats(etfs), "benchmark": {k: bm.get(k) for k in COLS if not k.startswith("rk_")}},
         "bands": bands_of(rows),
         "by_sector": by_sector, "by_size": by_size,
         "history": history_of(tails, bench_dates),
         "boards": boards,
+        "pinned": [r["t"] for r in sorted(stocks, key=lambda r: (-(r.get("mcap") or 0), r["t"])) if r["why"] == "pinned"],
         "cols": COLS, "rows": [[r.get(c) for c in COLS] for r in rows],
         "definitions": DEFINITIONS, "limitations": LIMITATIONS, "sources": SOURCES,
         "n_errors": len(errors), "errors": errors[:40],

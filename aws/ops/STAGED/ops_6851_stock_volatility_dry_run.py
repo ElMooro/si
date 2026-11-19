@@ -31,7 +31,7 @@ from ops_report import report  # noqa: E402
 sys.modules.setdefault("chain_guard", SimpleNamespace(begin=lambda event, context=None: 0))   # build() never calls it; the import must resolve off-Lambda
 import lambda_function as LF  # noqa: E402
 
-SHOW = ["t", "name", "mcap", "px", "chg", "hv21", "hv63", "hv252", "yz21", "atr", "hvp", "hv21p", "mx", "mxd", "sp_d", "sp_w", "sp_m", "sp_q", "pos_q", "own_d", "own_q", "rk_hv21", "rk_d", "rk_q", "aside"]
+SHOW = ["t", "name", "mcap", "px", "chg", "hv21", "hv63", "hv252", "yz21", "atr", "hvp", "hv21p", "mx", "mxd", "sp_d", "sp_w", "sp_m", "sp_q", "pos_q", "own_d", "own_q", "rk_hv21", "rk_d", "rk_q", "aside", "why"]
 SAMPLE = ["AAPL", "MSFT", "NVDA", "TSLA", "JPM", "XOM", "PFE", "KO", "WMT", "AMD", "PLTR", "GME", "BRK.B", "SPY", "QQQ", "TLT", "GLD", "BIL"]
 
 
@@ -100,6 +100,9 @@ def main():
             m = measure_of.get(name) or ("sp_" + name[-1])
             r.log("%-13s %s" % (name, ", ".join("%s %s" % (t, by[t][m]) for t in tickers[:12])))
         r.log("changes: %s" % json.dumps(out["changes"])[:400])
+        r.log("pinned to a deal price (%d stocks): %s" % (len(out["pinned"]), ", ".join("%s $%.1fB month %s%% hv21 %s" % (t, (by[t]["mcap"] or 0) / 1e9, by[t]["sp_m"], by[t]["hv21"]) for t in out["pinned"][:60])))
+        rc = out["universe"]["reclassified"]
+        r.log("left out as a note, preferred share or warrant the book calls common stock (%d): %s" % (len(rc), "; ".join("%s = %s" % (x["t"], x["why"]) for x in rc)))
 
         r.section("the ends of the whole table (every stock, no size floor)")
         st = [x for x in rows if x["kind"] == "stock"]
@@ -107,8 +110,8 @@ def main():
             sub = sorted([x for x in st if x[key] is not None], key=lambda x: x[key], reverse=rev)[:10]
             r.log("%-15s %s" % (label, ", ".join("%s hv21 %s day %s mcap $%.0fM" % (x["t"], x["hv21"], x["sp_d"], (x["mcap"] or 0) / 1e6) for x in sub)))
         aside = [x for x in rows if x["aside"]]
-        r.log("set aside %d rows: flagged jump %d, thin %d; examples %s" % (len(aside), len([x for x in rows if x["ja"] is not None]), len([x for x in rows if (x["miss"] or 0) > LF.THIN_MISS]),
-                                                                    json.dumps([{k: x[k] for k in ("t", "kind", "mcap", "hv21", "jd", "jr", "ja", "miss", "aside")} for x in sorted(aside, key=lambda x: -(x["mcap"] or 0))[:10]])))
+        r.log("set aside %d rows: %s; flagged jump on %d rows; examples %s" % (len(aside), json.dumps({w: len([x for x in aside if x["why"] == w]) for w in ("jump", "thin", "pinned")}), len([x for x in rows if x["ja"] is not None]),
+                                                                    json.dumps([{k: x[k] for k in ("t", "kind", "mcap", "hv21", "jd", "jr", "ja", "miss", "aside", "why")} for x in sorted([x for x in aside if x["why"] != "pinned"], key=lambda x: -(x["mcap"] or 0))[:10]])))
         blank = {c: sum(1 for x in st if x[c] is None) for c in ("hv21", "hv63", "hv252", "yz21", "atr", "hvp", "hv21p", "sp_d", "sp_w", "sp_m", "sp_q", "own_d", "own_q", "mcap", "sector", "name")}
         r.log("blank readings among %d stocks: %s" % (len(st), json.dumps(blank)))
 

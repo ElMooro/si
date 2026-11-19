@@ -213,7 +213,7 @@ def test_measure_on_real_bars():
             ok("own percentile of spread %s %s" % (key, t), near(row["own_" + key], round(M.pct_rank(wins[0], wins), 1), 1e-6))
         big = max(range(len(C) - 63, len(C)), key=lambda i: abs(C[i] / C[i - 1] - 1))
         ok("largest move in 63 " + t, row["mx"] == round((C[big] / C[big - 1] - 1) * 100, 2) and row["mxd"] == dates[big])
-        ok("clean row " + t, row["miss"] == 0 and row["aside"] is None and row["jd"] is None and all(row[c] is None for c in LF.RANK_COL.values()))
+        ok("clean row " + t, row["miss"] == 0 and row["aside"] is None and row["why"] is None and row["jd"] is None and all(row[c] is None for c in LF.RANK_COL.values()))
         ok("tail " + t, len(tail) == 252 and tail[-1][0] == dates[-1] and near(tail[-1][1], M.hv(C, 21), 1e-7) and near(tail[-1][2], (H[-1] / L[-1] - 1) * 100))
     ok("every column of the artifact is a key of the row", set(LF.COLS) == set(row))
 
@@ -227,17 +227,64 @@ def test_short_history_leaves_blanks():
 
 
 def test_aside_rules():
-    ok("no jump, not thin: nothing aside", LF.aside_of(None, 0) == [] and LF.aside_of(None, 3) == [])
-    ok("thin: every ranked measure", LF.aside_of(None, 4) == ["hv21", "hv63", "sp_d", "sp_w", "sp_m", "sp_q"])
-    j = lambda ago: LF.aside_of({"date": "x", "ratio": 5.0, "ago": ago}, 0)   # noqa: E731
-    ok("a jump on the last bar", j(0) == ["hv21", "hv63", "sp_w", "sp_m", "sp_q"])
+    ok("no jump, not thin: nothing aside", LF.aside_of(None, 0) == ([], None) and LF.aside_of(None, 3) == ([], None))
+    every = ["hv21", "hv63", "sp_d", "sp_w", "sp_m", "sp_q"]
+    ok("thin: every ranked measure", LF.aside_of(None, 4) == (every, "thin"))
+    ok("pinned: every ranked measure; thin is said first", LF.aside_of(None, 0, True) == (every, "pinned") and LF.aside_of(None, 9, True) == (every, "thin"))
+    j = lambda ago: LF.aside_of({"date": "x", "ratio": 5.0, "ago": ago}, 0)[0]   # noqa: E731
+    ok("a jump on the last bar", j(0) == ["hv21", "hv63", "sp_w", "sp_m", "sp_q"] and LF.aside_of({"date": "x", "ratio": 5.0, "ago": 0}, 0)[1] == "jump")
     ok("the day's own bar is never set aside for a jump", all("sp_d" not in j(a) for a in range(0, 70)))
     ok("week: a bar from before the jump is inside 5 sessions up to 3 back", "sp_w" in j(3) and "sp_w" not in j(4))
     ok("month spread up to 19 back, hv21 up to 20", "sp_m" in j(19) and "sp_m" not in j(20) and "hv21" in j(20) and "hv21" not in j(21))
     ok("quarter spread up to 61 back, hv63 up to 62", "sp_q" in j(61) and "sp_q" not in j(62) and "hv63" in j(62) and j(63) == [])
+    ok("a jump that no window spans any more sets nothing aside and gives no reason", LF.aside_of({"date": "x", "ratio": 5.0, "ago": 200}, 0) == ([], None))
     ok("flagged jump: the most recent beyond 3-to-1 inside 300 sessions", LF.flagged_jump([{"date": "a", "ratio": 4.0, "ago": 200}, {"date": "b", "ratio": 0.25, "ago": 40}, {"date": "c", "ratio": 2.5, "ago": 5}]) == {"date": "b", "ratio": 0.25, "ago": 40}
        and LF.flagged_jump([{"date": "a", "ratio": 9.0, "ago": 301}]) is None and LF.flagged_jump([]) is None)
     ok("missed sessions", LF.missed_sessions(["d1", "d2", "d4"], ["d1", "d2", "d3", "d4"]) == 1 and LF.missed_sessions(["d3", "d4"], ["d1", "d2", "d3", "d4"]) == 0)
+    ok("pinned: a stock whose month fits inside 3.5%; never a fund; never without a month", LF.is_pinned("stock", 3.5) and not LF.is_pinned("stock", 3.51) and not LF.is_pinned("etf", 0.02) and not LF.is_pinned("stock", None))
+
+
+def test_a_pinned_stock_is_set_aside():
+    """PFE's real bars with the last 25 sessions replaced by a price that moves a few cents around $28: a company
+    waiting for its takeover to close."""
+    dates, O, H, L, C, bars = cols("PFE")
+    flat = [dict(b) for b in bars]
+    for i, b in enumerate(flat[-25:]):
+        c = 28.0 + 0.03 * (i % 3)
+        b.update({"o": 28.01, "h": 28.08, "l": 27.97, "c": c})
+    row, _ = LF.measure(meta("PFE"), flat, None, dates[-63:])
+    ok("the month fits inside 3.5%: pinned, every ranked measure aside, the figures still print", row["why"] == "pinned" and row["aside"] == "hv21,hv63,sp_d,sp_w,sp_m,sp_q" and row["sp_m"] < 1 and row["hv21"] < 3)
+    as_fund, _ = LF.measure(meta("PFE", kind="etf"), flat, None, dates[-63:])
+    ok("the same tape on a fund is not pinned", as_fund["why"] is None and as_fund["aside"] is None)
+    real, _ = LF.measure(meta("PFE"), bars, None, dates[-63:])
+    ok("the real PFE is not pinned", real["why"] is None and real["sp_m"] > 3.5)
+
+
+def test_notes_and_preferreds_the_book_calls_common_stock():
+    """Rows as the factor book holds them (ops 6852): Polygon type CS, is_common true, the issuer's name."""
+    def b(sym, name, dv, exchange="NASDAQ", **kw):
+        return book_row(sym, name=name, dollar_vol_20d=dv, exchange=exchange, **kw)
+    rows = [b("AGNC", "AGNC Investment Corp.", 224.8e6), b("AGNCO", "AGNC Investment Corp.", 1.4e6), b("AGNCL", "AGNC Investment Corp.", 0.4e6),
+            b("HBAN", "Huntington Bancshares Incorporated", 309.3e6), b("HBANL", "Huntington Bancshares Incorporated", 1.0e6), b("HBANZ", "Huntington Bancshares Incorporated", 0.3e6),
+            b("BHF", "Brighthouse Financial, Inc.", 60e6), b("BHFAL", "Brighthouse Financial, Inc.", 0.5e6), b("MCHP", "Microchip Technology Incorporated", 900e6), b("MCHPP", "Microchip Technology Incorporated", 19.2e6),
+            b("PSNY", "Polestar Automotive Holding UK PLC", 20e6), b("PSNYW", "Polestar Automotive Holding UK PLC", 0.7e6),
+            b("GOOG", "Alphabet Inc.", 8012.8e6), b("GOOGL", "Alphabet Inc.", 12330.0e6), b("FOX", "Fox Corporation", 58.9e6), b("FOXA", "Fox Corporation", 647.2e6),
+            b("NWS", "News Corporation", 30e6), b("NWSA", "News Corporation", 125.4e6), b("LILA", "Liberty Latin America Ltd.", 9e6), b("LILAK", "Liberty Latin America Ltd.", 17.3e6),
+            b("BBD", "Banco Bradesco S.A.", 300e6, "NYSE"), b("BBDO", "Banco Bradesco S.A.", 0.7e6, "NYSE"), b("METC", "Ramaco Resources, Inc.", 40e6), b("METCB", "Ramaco Resources, Inc.", 0.3e6),
+            b("ATLCL", "Atlanticus Holdings Corporation 6.125% Senior Notes due 2026", 0.3e6), b("JSM", "Navient Corporation SR NT 6% 121543", 0.5e6), b("EMP", "Entergy Mississippi, Inc. 1M BD 66", 0.3e6, "NYSE"),
+            b("CGABL", "The Carlyle Group Inc. 4.625% Subordinated Notes due 2061", 0.5e6), b("BPYPM", "Brookfield Property Preferred L.P.", 0.3e6),
+            b("PFBC", "Preferred Bank", 10.8e6), b("PTRN", "Pattern Group Inc. Series A Common Stock", 30e6), b("ARM", "Arm Holdings plc American Depositary Shares", 1159.9e6),
+            b("TECHL", "Lonely Five Letters Inc.", 5e6), b("ZZZZL", "AGNC Investment Corp.", 0.2e6, is_etf=True, is_common=False)]
+    got = LF.other_issues(rows)
+    ok("a second NASDAQ issue of the same issuer: preferred shares, notes, a warrant", {t: got[t] for t in ("AGNCO", "AGNCL", "HBANL", "HBANZ", "BHFAL", "MCHPP", "PSNYW")} == {
+        "AGNCO": "a second issue of AGNC (NASDAQ fifth letter O)", "AGNCL": "a second issue of AGNC (NASDAQ fifth letter L)", "HBANL": "a second issue of HBAN (NASDAQ fifth letter L)",
+        "HBANZ": "a second issue of HBAN (NASDAQ fifth letter Z)", "BHFAL": "a second issue of BHF (NASDAQ fifth letter L)", "MCHPP": "a second issue of MCHP (NASDAQ fifth letter P)",
+        "PSNYW": "a second issue of PSNY (NASDAQ fifth letter W)"})
+    ok("a note or a preferred share by its own name", {t: got[t] for t in ("ATLCL", "JSM", "EMP", "CGABL", "BPYPM")} == {
+        "ATLCL": "a note by its own name", "JSM": "a note by its own name", "EMP": "a note by its own name", "CGABL": "a note by its own name", "BPYPM": "a preferred share by its own name"})
+    ok("share classes and plain names stay", sorted(got) == sorted(["AGNCO", "AGNCL", "HBANL", "HBANZ", "BHFAL", "MCHPP", "PSNYW", "ATLCL", "JSM", "EMP", "CGABL", "BPYPM"]),
+       str(sorted(set(got) - {"AGNCO", "AGNCL", "HBANL", "HBANZ", "BHFAL", "MCHPP", "PSNYW", "ATLCL", "JSM", "EMP", "CGABL", "BPYPM"})))
+    ok("GOOGL out-trades GOOG: a share class; BBDO is on NYSE; METCB's B is a class letter; a fund is not looked at", not {"GOOGL", "FOXA", "NWSA", "LILAK", "BBDO", "METCB", "PFBC", "PTRN", "ARM", "TECHL", "ZZZZL"} & set(got))
 
 
 def test_rank_and_boards():
@@ -315,6 +362,7 @@ def test_build_and_handler():
         ok("boards name ranked $1B+ stocks", set(out["boards"]["most_volatile"]) == {r["t"] for r in st} and out["boards"]["most_volatile"][0] == top["t"] and out["boards"]["least_volatile"][0] == max(st, key=lambda r: r["rk_hv21"])["t"])
         ok("benchmark is SPY's own row", out["market"]["benchmark"]["t"] == "SPY" and out["market"]["benchmark"]["hv21"] == row_of(out, "SPY")["hv21"])
         ok("first publication has no previous one", out["changes"] == {"prev_as_of": None})
+        ok("nothing pinned, nothing reclassified in the plain fixture", out["pinned"] == [] and u["pinned"] == {"stock": 0, "etf": 0} and u["reclassified"] == [])
         ok("the artifact is JSON", json.loads(json.dumps(out))["rows"][0][0] == out["rows"][0][0])
         nv = row_of(out, "NVDA")
         _, _, H, L, C, _ = cols("NVDA")
@@ -375,7 +423,7 @@ def test_an_unexplained_jump_is_flagged_and_set_aside():
         out = LF.build(fresh(edit=edit), datetime(2026, 11, 19, tzinfo=timezone.utc), log=lambda *_: None)
         p = row_of(out, "PFE")
         ok("the jump is on the row", p["jd"] == iso(BARS["PFE"][cut][0]) and p["ja"] == 9 and near(p["jr"], BARS["PFE"][cut][4] / (BARS["PFE"][cut - 1][4] * 3.7), 1e-3), json.dumps({k: p[k] for k in ("jd", "jr", "ja", "aside")}))
-        ok("windows that span it are set aside, the figure still prints", p["aside"] == "hv21,hv63,sp_m,sp_q" and p["hv21"] > 300 and p["rk_hv21"] is None and p["rk_m"] is None)
+        ok("windows that span it are set aside, the figure still prints", p["aside"] == "hv21,hv63,sp_m,sp_q" and p["why"] == "jump" and p["hv21"] > 300 and p["rk_hv21"] is None and p["rk_m"] is None)
         ok("windows after it are ranked", p["rk_d"] is not None and p["rk_w"] is not None)
         ok("it is counted, and kept out of boards and history", out["universe"]["flagged_jump"]["stock"] == 1 and out["universe"]["set_aside"]["stock"] == 1 and "PFE" not in out["boards"]["most_volatile"]
            and "PFE" in out["boards"]["widest_d"] and out["history"][-1]["n"] == 4 and out["universe"]["ranked"]["stock"]["hv21"] == 4)
@@ -394,7 +442,7 @@ def test_a_thin_symbol_is_set_aside():
             return [r for i, r in enumerate(rows) if i not in drop] if t == "XOM" else rows
         out = LF.build(fresh(edit=edit), datetime(2026, 11, 19, tzinfo=timezone.utc), log=lambda *_: None)
         x = row_of(out, "XOM")
-        ok("five missed sessions of 63: thin, every ranked measure aside", x["miss"] == 5 and x["aside"] == "hv21,hv63,sp_d,sp_w,sp_m,sp_q" and x["rk_d"] is None and x["hv21"] is not None)
+        ok("five missed sessions of 63: thin, every ranked measure aside", x["miss"] == 5 and x["aside"] == "hv21,hv63,sp_d,sp_w,sp_m,sp_q" and x["why"] == "thin" and x["rk_d"] is None and x["hv21"] is not None)
         ok("thin rows are counted", out["universe"]["thin"]["stock"] == 1 and out["universe"]["ranked"]["stock"]["sp_d"] == 4)
     finally:
         LF.MIN_SCANNED = old
@@ -448,6 +496,17 @@ def test_stale_and_short_symbols_are_not_measured():
         u = out["universe"]
         ok("a symbol with no bar in the last 3 sessions and one with 15 sessions are left out, and counted", (u["scanned"], u["not_trading"], u["short_history"]) == (5, 1, 1)
            and not any(r[0] in ("LULU", "TSLA") for r in out["rows"]))
+        book = [book_row(t, exchange="NASDAQ") for t in ("NVDA", "PFE", "LULU", "XOM", "TSLA")] + [
+            book_row("QQQ", is_etf=True, is_common=False, name="Invesco QQQ Trust"), book_row("SPY", is_etf=True, is_common=False, name="SPDR"),
+            book_row("NVDAL", name="NVDA Corp", dollar_vol_20d=4e5, exchange="NASDAQ"), book_row("XOMN", name="Exxon 6.1% Senior Notes due 2050")]
+        s3 = fresh(book=book)
+        s3.put_raw(LF.bank_key("NVDAL"), {"rows": [list(r) + [None, None] for r in BARS["PFE"]]}, gz=True)
+        s3.put_raw(LF.bank_key("XOMN"), {"rows": [list(r) + [None, None] for r in BARS["XOM"]]}, gz=True)
+        out = LF.build(s3, datetime(2026, 11, 19, tzinfo=timezone.utc), log=lambda *_: None)
+        u = out["universe"]
+        ok("a note and a second issue the book calls common stock are left out, named and counted", [x["t"] for x in u["reclassified"]] == ["NVDAL", "XOMN"]
+           and u["left_out"]["a note, preferred share or warrant the book lists as common stock"] == 2 and u["eligible_stock"] == 5 and u["scanned_stock"] == 5 and not any(r[0] in ("NVDAL", "XOMN") for r in out["rows"]),
+           json.dumps(u["reclassified"]))
     finally:
         LF.MIN_SCANNED = old
 
