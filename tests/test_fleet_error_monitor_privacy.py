@@ -65,7 +65,8 @@ def scope(fixture):
         lam=fixture, cw=fixture, logs=fixture, sqs=fixture, sns=fixture, s3=fixture,
         VERSION="1.1.0", BUCKET="fixture", REGION="us-east-1", SNS_ARN="fixture", DLQ_NAME="fixture",
         ERROR_RATE_THRESHOLD=5, MIN_INVOCATIONS=5, LOOKBACK_MINUTES=15, DLQ_DEPTH_THRESHOLD=1,
-        DEDUPE_WINDOW_MINUTES=60, EXCLUDE=set(), fleet_error_category=fleet_error_category, sanitize_public=sanitize_public)
+        DEDUPE_WINDOW_MINUTES=60, DLQ_LOOKBACK_HOURS=25, DLQ_CRITICAL_COUNT=100, DLQ_REALERT_HOURS=168,
+        DLQ_ENGINES_KEY='<DLQ>:engines', EXCLUDE=set(), fleet_error_category=fleet_error_category, sanitize_public=sanitize_public)
     exec(compile(ast.Module(body=functions, type_ignores=[]), str(SOURCE), "exec"), namespace)
     namespace["send_telegram"] = lambda message: fixture.notifications.append(("telegram", message)) or True
     return namespace
