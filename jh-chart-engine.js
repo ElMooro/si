@@ -7452,6 +7452,70 @@ else if(o.id==="rvol"){
   load();
   clock(); setInterval(clock,1000);
   liveT=setInterval(tickLive, 15000);
+  /* 2026-11-20 (Khalid: "there are a lot of tabs that open automatically but they don't update automatically"): every open
+     tab's last price and day change used to be read once, when the page opened, and never again. They are now re-read
+     every 30 seconds while auto refresh is on and the page is on screen: US stocks and ETFs in one small /quotes call
+     (the 15-minute delayed Polygon snapshot the chart's forming candle is built from), anything that snapshot does not
+     carry (crypto, indices, macro series) from its own daily bars. A tab opened later gets its figures within seconds.
+     The figures are patched in place, so a click on a tab or its x is never torn down by a refresh. */
+  var tabQ={busy:false, at:0, n:0, changed:0, tried:{}, noSnap:{}, src:{}, last:null};
+  function tabUsTicker(s){ s=String(s||""); return !observationId(s) && s.indexOf(":")<0 && /^[A-Z]{1,5}([.\-][A-Z])?$/.test(s) && !tabQ.noSnap[s]; }
+  function tabQuoteText(q){ var up=q.chg>=0; return fmt(q.last)+" "+(up?"+":"")+(q.chg*100).toFixed(2)+"%"; }
+  function paintTabQuotes(){
+    var strip=document.getElementById("tabs"); if(!strip) return;
+    var tabs=strip.querySelectorAll(".tab[data-id]"), i, missing=false;
+    for(i=0;i<tabs.length;i++){
+      var q=quotes[tabs[i].getAttribute("data-id")]; if(!q) continue;
+      var sp=tabs[i].querySelector("span.up,span.dn");
+      if(!sp){ missing=true; break; }
+      var txt=tabQuoteText(q), cls=q.chg>=0?"up":"dn";
+      if(sp.textContent!==txt) sp.textContent=txt;
+      if(sp.className!==cls) sp.className=cls;
+    }
+    if(missing) renderTabs();
+  }
+  function tabQuoteSet(s, q, src){
+    var old=quotes[s];
+    if(!q.spark && old && old.spark) q.spark=old.spark;
+    if(!old || old.last!==q.last || old.chg!==q.chg) tabQ.changed++;
+    quotes[s]=q; if(bare(s)!==s) quotes[bare(s)]=q;
+    tabQ.src[s]=src;
+  }
+  async function refreshTabQuotes(onlyMissing){
+    if(tabQ.busy || !liveOn || replay.on || document.hidden) return;
+    tabQ.busy=true;
+    try{
+      var now=Date.now(), list=TABS.slice().filter(function(s){ return !onlyMissing || !quotes[s]; });
+      var us=list.filter(tabUsTicker).slice(0,60), map=null;
+      list.forEach(function(s){ tabQ.tried[s]=now; });
+      if(us.length){
+        try{
+          var r=await fetch(PROXY+"/quotes?tickers="+encodeURIComponent(us.map(function(s){ return s.replace("-","."); }).join(",")));
+          var d=r.ok?await r.json():null; map=d&&d.tickers?d.tickers:null;
+        }catch(e){ map=null; }
+        if(map) us.forEach(function(s){
+          var q=map[s.replace("-",".")];
+          if(!q){ tabQ.noSnap[s]=true; return; }                         /* not a US stock or ETF: its own daily bars from now on */
+          if(q.price>0 && q.prevClose>0 && q.dayClose>0) tabQuoteSet(s, {last:q.price, chg:(q.price-q.prevClose)/q.prevClose, chgv:q.price-q.prevClose, at:q.updatedTs||0}, "snapshot");
+        });
+      }
+      /* the rest, and a tab the snapshot gave nothing for yet: daily bars (klines keeps them 60 seconds) */
+      var rest=list.filter(function(s){ return !observationId(s) && (!tabUsTicker(s) || !quotes[s]); });
+      await Promise.all(rest.map(function(s){ return lastPx(s).then(function(px){ if(px) tabQuoteSet(s, px, "daily bars"); }).catch(function(){}); }));
+      if(!onlyMissing) tabQ.at=now;
+      tabQ.n++; tabQ.last=now;
+      paintTabQuotes();
+    }catch(e){}
+    tabQ.busy=false;
+  }
+  function tabQuoteTick(){
+    var now=Date.now(), missing=TABS.some(function(s){ return !quotes[s] && !(tabQ.tried[s] && now-tabQ.tried[s]<60000); });
+    if(now-tabQ.at>=30000) refreshTabQuotes(false); else if(missing) refreshTabQuotes(true);
+  }
+  setInterval(tabQuoteTick, 5000);
+  document.addEventListener("visibilitychange", function(){ if(!document.hidden) tabQuoteTick(); });
+  window.jhTabQuotes=function(){ return {passes:tabQ.n, changed:tabQ.changed, last:tabQ.last, every_ms:30000,
+    tabs:TABS.map(function(s){ var q=quotes[s]; return {s:s, last:q?q.last:null, chg:q?q.chg:null, src:tabQ.src[s]||null}; })}; };
   tapeT=setInterval(function(){ if(liveOn && !replay.on && /USDT$|BUSD$|USDC$/.test(resolveSym(active).ticker)) loadTape(false); }, 4000);
   if(window.Notification && Notification.permission==="default") Notification.requestPermission().catch(function(){});
 })();

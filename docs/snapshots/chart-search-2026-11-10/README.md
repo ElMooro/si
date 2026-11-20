@@ -192,3 +192,22 @@ as well: `git rm stock-volatility.html jh-stock-volatility.js tests/stock-volati
 tests/fixtures/stock-volatility-desk.json`, drop the `stock-volatility.html` row from `docs/ops/PAGE_ORDER.md`, and
 rebuild `config/page-data-contracts.json` (`python3.12 scripts/build_page_data_contracts.py`). The engine
 `justhodl-stock-volatility` keeps running once a day until its schedule `justhodl-stock-volatility-daily` is disabled.
+
+## 2026-11-20: the chart's tabs update on their own
+
+Khalid: "On the chart.html there are a lot of tabs that open automatically but they don't update automatically they
+should be updating automatically". Each open tab (SPY, QQQ, IWM ...) read its last price and day change once, when the
+page opened. `jh-chart-engine.js` now has one block after the live-tick timer (`refreshTabQuotes`): every 30 seconds,
+while auto refresh is on and the page is on screen, the tabs' US stocks and ETFs are re-read in one `/quotes` call
+(the 15-minute delayed Polygon snapshot), anything else from its own daily bars, and the figures are patched in place.
+The byte ledger peels the block first (`peelTabQuotes`, block text in
+`tests/fixtures/chart-macro-line/engine-tab-quotes.block.txt`). Nothing else on the chart changed.
+
+To take it back (state before = 2fa411bb):
+
+```
+git checkout 2fa411bb -- jh-chart-engine.js tests/helpers/chart-macro-line-preservation.cjs config/page-data-contracts.json
+git rm tests/chart-tab-quotes.test.js tests/fixtures/chart-macro-line/engine-tab-quotes.block.txt
+```
+
+then commit `[skip-ops]` and push.
