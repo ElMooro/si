@@ -48,8 +48,22 @@ SP500 = [{"symbol": "AAPL", "name": "Apple Inc."}, {"symbol": "NVDA", "name": "N
 sys.modules["fmp_bank"] = SimpleNamespace(walker=lambda dataset, entity=None, **kw: [dict(r) for r in SP500] if dataset == "sp500-constituent" else None,
                                           snapshot=lambda path, symbol=None: [dict(r) for r in PROFILES] if path == "profile" and symbol is None else None)
 
+# 1.1.0: the factor book (identity of every listed security) faked for the whole-market pass; tests swap BOOK's rows
+def book_row(sym, name, kind="stock", sector="Technology", industry="Software - Application", mcap=5e9, dv=5e7, ipo="2010-01-04", **flags):
+    r = {"symbol": sym, "name": name, "sector": sector, "industry": industry, "exchange": "NYSE", "is_etf": kind == "etf", "is_otc": False, "is_fund": False, "is_preferred": False,
+         "is_warrant_unit": False, "is_shell": False, "is_adr": False, "is_debt_or_structured": False, "is_common": kind == "stock", "security_type": "ETF" if kind == "etf" else "CS",
+         "mcap": mcap, "dollar_vol_20d": dv, "ipo_date": ipo}
+    r.update(flags)
+    return r
+
+
+BOOK = []
+sys.modules["bank_enrich"] = SimpleNamespace(rows=lambda fields=None, **kw: [dict(r) for r in BOOK])
+
 import lambda_function as lf  # noqa: E402
+import wide  # noqa: E402
 lf.THESIS_MIN_ROWS = 5   # the synthetic bank ranks ten names; production needs 20 per session
+wide.MIN_SCANNED = 3     # production refuses a table of fewer than 2,500 names
 
 NOW = datetime(2026, 11, 4, 3, 40, tzinfo=timezone.utc)
 START = date(2024, 10, 1)
@@ -353,7 +367,7 @@ def test_universe_assembly_and_ranks():
 
 def test_build_rows_boards_flows_and_13f():
     s3, out = built()
-    assert out["contract"] == "strength.v1" and out["version"] == "1.0.13" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
+    assert out["contract"] == "strength.v1" and out["version"] == "1.1.0" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
     assert out["benchmark"]["sessions"] == 300 and out["benchmark"]["h"]["q"] is not None and out["universe"]["n"] == len({t for items in lf.SLEEVES.values() for t, _ in items}) + 8
     by = {r["ticker"]: r for r in out["rows"]}
     # unbanked desk names carry no row; the bank manifest's last session is the as-of
@@ -480,7 +494,7 @@ def test_a_thin_day_is_not_a_session():
         s3.put(lf.bank_key(tk), {"rows": rows + [[sat_ms, c, c, c, c, 100.0, c, 1]]})
     logs = []
     out = lf.build(s3, NOW, log=logs.append)
-    assert out["version"] == "1.0.13" and out["as_of"] == fri and out["bank"]["last_session"] == fri and out["bank"]["manifest_last_session"] == s_iso
+    assert out["version"] == lf.VERSION == "1.1.0" and out["as_of"] == fri and out["bank"]["last_session"] == fri and out["bank"]["manifest_last_session"] == s_iso
     assert out["bank"]["thin_days"] == [{"day": s_iso, "tickers": 2, "of": 11, "benchmark": False}] and out["benchmark"]["as_of"] == fri
     assert any("set aside as thin" in str(m) for m in logs)
     by, by0 = {r["ticker"]: r for r in out["rows"]}, {r["ticker"]: r for r in base["rows"]}
@@ -500,6 +514,7 @@ def test_a_thin_day_is_not_a_session():
 
 def test_handler():
     s3 = seed()
+    BOOK[:] = []                    # no factor book: the whole-market pass must report it and leave the desk alone
     lf._s3 = lambda: s3
     res = lf.lambda_handler({}, SimpleNamespace(get_remaining_time_in_millis=lambda: 299000))
     assert res["statusCode"] == 200 and res["key"] == "data/strength.json" and res["rows"] == 11 and res["ranked"] == 10 and res["errors"] == 0
@@ -512,6 +527,8 @@ def test_handler():
     hist = [x for x in s3.puts if x["Key"].startswith(lf.HISTORY_PREFIX)]
     assert len(hist) == 1 and hist[0]["Key"] == lf.HISTORY_PREFIX + DATES[-1].isoformat() + ".json.gz" and hist[0]["ContentEncoding"] == "gzip"
     assert json.loads(gzip.decompress(hist[0]["Body"]))["as_of"] == doc["as_of"]
+    # 1.1.0: with no factor book the whole-market pass says so and publishes nothing; the desk's artifact is already written
+    assert "error" in res["wide"] and "factor book" in res["wide"]["error"] and not [x for x in s3.puts if x["Key"] == lf.WIDE_KEY]
 
 
 
@@ -630,6 +647,323 @@ def test_thesis_walk_forward_on_a_known_universe():
     assert y["all_days"]["strength"]["all"]["by_decile_mean_excess_pp"][9] > y["all_days"]["strength"]["all"]["by_decile_mean_excess_pp"][0]
     assert "industry-confirmed leaders on dump days" in th["verdict"] and "both-sides rank" in th["verdict"] and "big-days rank" in th["verdict"] and "None" not in th["verdict"], th["verdict"]
     assert len(json.dumps(th)) < 900000, len(json.dumps(th))
+
+
+# ------------------------------------------------------------------------------------------------ 1.1.0: the whole market
+RULES = {"flat_pct": lf.FLAT_PCT, "dump_pct": lf.DUMP_PCT, "rally_pct": lf.RALLY_PCT, "weights": dict(lf.WEIGHTS)}
+
+
+def closes_of(seed_, drift=0.0004, n=300, days=None):
+    """Closes from daily returns: a drift with noise, and `days` = {index from the end (1 = last session): return %}."""
+    rnd = random.Random(seed_)
+    rets = [drift + rnd.gauss(0, 0.003) for _ in range(n)]
+    for back, pct in (days or {}).items():
+        rets[n - back] = pct / 100.0
+    px, out = 100.0, []
+    for r in rets:
+        px *= 1 + r
+        out.append(px)
+    return out
+
+
+# SPY: three dump days (the last session -2%, 10 and 20 sessions back) and one rally day 15 back
+SPY_DAYS = {1: -2.0, 10: -1.5, 20: -1.2, 15: 1.4}
+
+
+def wide_seed():
+    """A bank of eleven names around SPY's three dump days, and the factor book that names them."""
+    s3 = S3Stub()
+    s3.put(pb.MANIFEST, {"last_session": DATES[-1].isoformat(), "updated_at": "2026-11-04T03:13:33+00:00", "tickers": 21088, "first_session": "2021-08-26"})
+    plan = {
+        "SPY": (1, 0.0004, SPY_DAYS),
+        "HOLD": (2, 0.0030, {1: 1.0, 10: 0.4, 20: 0.1, 15: 2.0}),        # strong coming in; up on every dump day, beats the rally
+        "FLAT": (3, 0.0004, {1: -0.1, 10: -0.2, 20: 0.0, 15: 1.0}),      # flat on the dump days
+        "LESS": (4, 0.0010, {1: -0.9, 10: -0.5, 20: -3.0, 15: 1.5}),     # down less on two, down MORE on the oldest
+        "MORE": (5, -0.0030, {1: -5.0, 10: -4.0, 20: -3.0, 15: 0.2}),    # weak coming in; down more every time
+        "SMAL": (6, 0.0004, {1: 0.6, 10: -2.5, 20: -2.0, 15: 1.0}),      # a $300M stock: counted among stocks, not among $1B+
+        "QQQE": (7, 0.0004, {1: -1.0, 10: -1.0, 20: -1.0, 15: 1.0}),     # an ETF, down less
+        "BOND": (8, 0.0001, {1: 0.4, 10: 0.3, 20: 0.2, 15: -0.3}),       # an ETF, up
+        "TINY": (9, 0.0004, {1: 3.0}),                                   # an ETF under the liquid floor
+    }
+    for t, (sd, drift, days) in plan.items():
+        s3.put(lf.bank_key(t), {"rows": bank_rows(closes_of(sd, drift, days=days))})
+    # DEAL: pinned to a deal price for the last 120 sessions (see seed()); NEWB: 30 sessions; LATE: its last bar is the session before
+    pinned = closes_of(12)
+    rows = bank_rows([c if i < 180 else 50.0 * (1 + 0.003 * math.sin(i)) for i, c in enumerate(pinned)])
+    for i, r in enumerate(rows):
+        if i >= 180:
+            r[2], r[3] = r[4] * 1.001, r[4] * 0.999
+    s3.put(lf.bank_key("DEAL"), {"rows": rows})
+    s3.put(lf.bank_key("NEWB"), {"rows": bank_rows(closes_of(13, n=30, days={1: 2.0}))})
+    s3.put(lf.bank_key("LATE"), {"rows": bank_rows(closes_of(14))[:-1]})
+    # SPLT: a 1-for-4 reverse split 40 sessions back that Polygon's reference records; without the rebase it is a +300% session
+    raw = closes_of(15, days={1: -0.5})
+    s3.put(lf.bank_key("SPLT"), {"rows": bank_rows([c / 4.0 if i < 260 else c for i, c in enumerate(raw)], vol_profile=lambda i: 4_000_000.0 if i < 260 else 1_000_000.0)})
+    # JUMP: a 5-to-1 print 30 sessions back that no split explains (volume does not move): measured, set aside
+    rawj = closes_of(16, days={5: 3.0})                  # a 3% day inside the month: the tape is not a deal's
+    s3.put(lf.bank_key("JUMP"), {"rows": bank_rows([c / 5.0 if i < 270 else c for i, c in enumerate(rawj)])})
+    # THIN: no bar on six of the last sixty-three sessions
+    rt = bank_rows(closes_of(17))
+    s3.put(lf.bank_key("THIN"), {"rows": [r for i, r in enumerate(rt) if i not in (245, 250, 255, 260, 265, 270)]})
+    s3.put(wide.BANK_SPLITS_ROOT + DATES[260].isoformat()[:7] + ".json.gz", {"results": [{"ticker": "SPLT", "execution_date": DATES[260].isoformat(), "split_from": 4, "split_to": 1}]})
+    ahead = (DATES[-1] + timedelta(days=3)).isoformat()
+    key = wide.BANK_SPLITS_ROOT + ahead[:7] + ".json.gz"
+    prior = json.loads(gzip.decompress(s3.store[key])) if key in s3.store else {"results": []}
+    prior["results"].append({"ticker": "HOLD", "execution_date": ahead, "split_from": 1, "split_to": 10})
+    s3.put(key, prior)
+    BOOK[:] = [
+        book_row("SPY", "SPDR S&P 500 ETF Trust", "etf", mcap=7e11, dv=4e10),
+        book_row("HOLD", "Holding Co", mcap=50e9), book_row("FLAT", "Flat Corp", sector="Utilities", industry="Regulated Electric", mcap=20e9),
+        book_row("LESS", "Less Inc", sector="Utilities", industry="Regulated Electric", mcap=2e9), book_row("MORE", "More Corp", mcap=3e9),
+        book_row("SMAL", "Small Co", mcap=3e8), book_row("QQQE", "Equal Weight Nasdaq ETF", "etf", mcap=1e9, dv=6e6),
+        book_row("BOND", "Long Treasury Bond ETF", "etf", mcap=5e9, dv=9e8), book_row("TINY", "Tiny Thematic ETF", "etf", mcap=5e7, dv=4e5),
+        book_row("DEAL", "Pending Deal Co", mcap=8e9), book_row("NEWB", "New Listing Inc", mcap=4e9, ipo=DATES[-30].isoformat()), book_row("LATE", "Late Print Co", mcap=2e9),
+        book_row("SPLT", "Reverse Split Co", mcap=1.5e9), book_row("JUMP", "Jump Co", mcap=6e9), book_row("THIN", "Thin Co", mcap=2e9),
+        book_row("GEAR", "ProShares UltraPro 3x Whatever", "etf"), book_row("OTCX", "Otc Co", is_otc=True), book_row("PREF", "Bank 6.5% Preferred", is_common=False, is_preferred=True),
+        book_row("DUST", "Dust Co", dv=1e5), book_row("UNBK", "Unbanked Co"),
+    ]
+    return s3
+
+
+def wide_built(**kw):
+    s3 = wide_seed()
+    doc = wide.build(s3, NOW, DATES[-1].isoformat(), lf.VERSION, RULES, classify=lf.asset_class_of, class_labels=lf.CLASS_LABEL, log=lambda *a: None, **kw)
+    return s3, doc, {r[0]: dict(zip(doc["cols"], r)) for r in doc["rows"]}
+
+
+def test_wide_record_is_the_capture_arithmetic():
+    """wide.record keeps the counts; on any series it must agree with the desk's capture() - one definition of a dump day."""
+    rnd = random.Random(7)
+    for trial in range(40):
+        s, c = [100.0], [50.0]
+        for _ in range(140):
+            sr = rnd.gauss(0, 0.012)
+            s.append(s[-1] * (1 + sr))
+            c.append(c[-1] * (1 + 0.6 * sr + rnd.gauss(0, 0.01)))
+        for n in (21, 63, 126):
+            a, b = wide.record(c, s, n, lf.DUMP_PCT, lf.RALLY_PCT, lf.FLAT_PCT), lf.capture(c, s, n)
+            assert a["dn"] == b["dump_days"] and a["rn"] == b["rally_days"] and a["dx"] == b["dump_excess_pp"] and a["rx"] == b["rally_excess_pp"], (trial, n, a, b)
+            assert a["dnx"] == b["down_excess_pp"] and a["upx"] == b["up_excess_pp"]
+            assert b["dump_held_pct"] == (lf.f(100.0 * a["dh"] / a["dn"], 0) if a["dn"] else None) and b["rally_beat_pct"] == (lf.f(100.0 * a["rb"] / a["rn"], 0) if a["rn"] else None)
+            assert 0 <= a["ds"] <= a["dh"] <= a["dn"]
+    assert wide.record([1.0] * 10, [1.0] * 10, 21, -1.0, 1.0, 0.25) is None
+    # the streak counts the most recent dump days held, newest first
+    s = [100, 98, 99, 97, 98, 96]                    # dump days at 1, 3, 5
+    assert wide.record([100, 99, 99, 99, 99, 95], s, 5, -1.0, 1.0, 0.25)["ds"] == 0          # the newest one broke
+    r = wide.record([100, 95, 95, 95, 95, 95], s, 5, -1.0, 1.0, 0.25)
+    assert (r["dn"], r["dh"], r["ds"]) == (3, 2, 2)
+
+
+def test_wide_universe_and_the_rows():
+    s3, doc, by = wide_built()
+    u = doc["universe"]
+    assert doc["contract"] == "strength-wide.v1" and doc["engine"] == "justhodl-strength" and doc["version"] == lf.VERSION and doc["as_of"] == DATES[-1].isoformat() and doc["prior_session"] == DATES[-2].isoformat()
+    assert doc["cols"] == wide.COLS and all(len(r) == len(wide.COLS) for r in doc["rows"])
+    # who is drawn: common stocks and plain ETFs that trade; the benchmark is the yardstick, not a row
+    assert u["left_out"] == {"geared or inverse fund": 1, "otc": 1, "not a common stock": 1, "thin (under the dollar-volume floor)": 1, "the benchmark": 1}, u["left_out"]
+    assert "SPY" not in by and "GEAR" not in by and "OTCX" not in by and "PREF" not in by and "DUST" not in by and "TINY" in by
+    assert u["unbanked"] == 1 and u["not_current"] == 1 and u["not_current_sample"] == ["LATE"] and "LATE" not in by and "UNBK" not in by
+    assert u["scanned"] == len(doc["rows"]) == 13 and u["scanned_stock"] == 10 and u["scanned_etf"] == 3 and u["eligible"] == 15
+    # the last session's bar and the close before it: the page needs nothing else to state a move
+    h = by["HOLD"]
+    assert round((h["c"] / h["pc"] - 1) * 100, 2) == 1.0 and h["o"] < h["c"] < h["h"] and h["l"] < h["c"] and h["v"] == 1_000_000 and h["av"] == 1_000_000 and h["vw"] == h["c"]
+    assert h["kind"] == "stock" and h["cls"] == "stock" and h["sp"] == 0 and h["mcap"] == 50e9 and h["sector"] == "Technology"
+    assert by["BOND"]["cls"] == "bond" and by["QQQE"]["cls"] == "equity_etf" and by["BOND"]["kind"] == "etf"
+    # excess vs SPY on the last session: the name's move minus SPY's -2%
+    assert h["x1"] == 3.0 and by["MORE"]["x1"] == -3.0 and by["FLAT"]["x1"] == 1.9 and by["QQQE"]["x1"] == 1.0
+    # the dump-day record: three dump days, one rally day
+    assert [d["date"] for d in doc["dump_days"]] == [DATES[-20].isoformat(), DATES[-10].isoformat(), DATES[-1].isoformat()] and [d["date"] for d in doc["rally_days"]] == [DATES[-15].isoformat()]
+    assert (h["dn"], h["dh"], h["ds"], h["rn"], h["rb"]) == (3, 3, 3, 1, 1) and h["dx"] == round((3.0 + 1.9 + 1.3) / 3, 2)
+    assert (by["FLAT"]["dh"], by["FLAT"]["ds"]) == (3, 3) and (by["LESS"]["dh"], by["LESS"]["ds"]) == (2, 2) and (by["MORE"]["dh"], by["MORE"]["ds"], by["MORE"]["rb"]) == (0, 0, 0)
+    assert by["SMAL"]["dh"] == 1 and by["SMAL"]["ds"] == 1                      # held today, broke on the two before
+    # ranks: among the name's kind; the leader ranks first, the laggard last; the rank carried in is one session older
+    st_ranks = [r["rs"] for r in by.values() if r["kind"] == "stock" and r["rs"] is not None]
+    assert by["HOLD"]["rs"] == max(st_ranks) and by["MORE"]["rs"] == min(st_ranks) and by["HOLD"]["rs"] > 80 > 20 > by["MORE"]["rs"]
+    assert by["HOLD"]["rsp"] is not None and by["BOND"]["rs"] is not None and by["QQQE"]["rs"] is not None
+    assert u["ranked"] == {"stock": 6, "etf": 3}, u["ranked"]
+    # set aside, measured and shown, never ranked: a deal tape, an unexplained 5-to-1 print, thin trading; a new listing is short, not set aside
+    assert by["DEAL"]["why"] == "pinned" and by["DEAL"]["rs"] is None and by["JUMP"]["why"] == "jump" and by["JUMP"]["jd"] == DATES[270].isoformat() and by["JUMP"]["rs"] is None
+    assert by["THIN"]["why"] == "thin" and by["THIN"]["rs"] is None and by["NEWB"]["why"] is None and by["NEWB"]["rs"] is None and by["NEWB"]["n"] == 30 and by["NEWB"]["x63"] is None
+    assert u["set_aside"] == {"pinned": 1, "jump": 1, "thin": 1}
+    # a recorded reverse split is rebased (no +300% session, no jump flag); an announced one is handed to the page
+    assert by["SPLT"]["why"] is None and by["SPLT"]["rs"] is not None and abs(by["SPLT"]["x21"]) < 15
+    assert doc["splits_ahead"] == {"HOLD": {"date": (DATES[-1] + timedelta(days=3)).isoformat(), "from": 1, "to": 10}}
+    assert by["HOLD"]["ma"] == 3 and by["MORE"]["ma"] == 0 and 0 <= by["HOLD"]["p52"] <= 100 and by["HOLD"]["atr"] > 0
+    assert doc["benchmark"]["ticker"] == "SPY" and round(doc["benchmark"]["ret"], 2) == -2.0 and doc["benchmark"]["av"] == 1_000_000
+    assert doc["rules"]["flat_pct"] == lf.FLAT_PCT and doc["rules"]["dump_pct"] == lf.DUMP_PCT and doc["rules"]["suspect"] == [0.56, 1.8]
+    assert "api.polygon.io" not in json.dumps(doc) and doc["n_errors"] == 0 and not s3.puts
+
+
+def test_wide_read_of_the_last_session():
+    s3, doc, by = wide_built()
+    ls = doc["last_session"]
+    assert ls["date"] == DATES[-1].isoformat() and ls["rank_as_of"] == DATES[-2].isoformat() and ls["regime"] == "dump" and round(ls["spy_ret"], 2) == -2.0 and ls["rank_col"] == "rsp"
+    bm = doc["benchmark"]
+    assert ls["spy_ret"] == bm["ret"] == round((bm["c"] / bm["pc"] - 1) * 100, 4), "SPY's move is stated from the published prices, so the page restates it exactly"
+    g = ls["groups"]
+    # counted: HOLD up, FLAT flat, LESS down less, MORE down more, SMAL up, NEWB up, SPLT down less (-0.5% > -2%); DEAL / JUMP / THIN are set aside
+    assert g["stocks"] == {"n": 7, "up": 3, "flat": 1, "down_less": 2, "down_more": 1, "held": 6, "held_pct": 85.7, "up_pct": 42.9, "beat": 6, "median_ret": -0.1,
+                           "mean_excess": g["stocks"]["mean_excess"], "beat_pct": 85.7}, g["stocks"]
+    assert (g["stocks_1b"]["n"], g["stocks_1b"]["held"], g["stocks_1b"]["down_more"]) == (6, 5, 1) and (g["stocks_10b"]["n"], g["stocks_10b"]["up"], g["stocks_10b"]["flat"]) == (2, 1, 1)
+    assert g["etfs"]["n"] == 3 and g["etfs"]["up"] == 2 and g["etfs"]["down_less"] == 1 and g["etfs_liquid"]["n"] == 2 and g["etfs_liquid"]["up"] == 1
+    assert (g["sp500"]["n"], g["sp500"]["up"], g["sp500"]["down_less"]) == (2, 1, 1) and by["SPLT"]["sp"] == 1 and by["NEWB"]["sp"] == 1      # the banked list names NEWB, SPLT and DEAL; DEAL is set aside
+    assert ls["n_counted"] == 10 and ls["mcap_1b"]["up"] == 50e9 + 4e9 and ls["mcap_1b"]["down_more"] == 3e9 and ls["mcap_1b"]["flat"] == 20e9 and ls["mcap_1b"]["down_less"] == 2e9 + 1.5e9
+    sec = {x["sector"]: x for x in ls["by_sector"]}
+    assert sec["Utilities"]["n"] == 2 and sec["Utilities"]["held_pct"] == 100.0 and sec["Technology"]["n"] == 4 and sec["Technology"]["down_more"] == 1 and ls["by_sector"][0]["sector"] == "Utilities"
+    cls = {x["cls"]: x for x in ls["by_class"]}
+    assert cls["bond"]["up"] == 1 and cls["bond"]["label"] == "Bonds" and cls["equity_etf"]["down_less"] == 1 and ls["by_class"][0]["cls"] == "bond"
+    b = ls["boards"]
+    assert b["up"] == ["NEWB", "HOLD"] and b["down_less"] == ["SPLT", "LESS"] and b["etf_up"] == ["BOND"] and b["etf_down_most"] == ["QQQE", "BOND"]
+    assert b["repeat"] == ["HOLD", "FLAT", "SPLT"]               # held up on every dump day of the quarter, the last session among them
+    assert "MORE" not in b["strong_holding"] and b["strong_breaking"] == [] and ls["by_rank"] == []          # six ranked $1B+ names: too few for deciles
+    # the same function reads the page's live join: outcome words and the regime
+    assert [wide.outcome(x, -2.0, 0.25) for x in (0.26, 0.25, -0.25, -0.26, -1.99, -2.0, -3.0)] == ["up", "flat", "flat", "down_less", "down_less", "down_more", "down_more"]
+    assert [wide.outcome(x, 1.0, 0.25) for x in (2.0, 0.5, 0.0, -0.5)] == ["up", "up", "flat", "down_more"]
+    assert [wide.regime_of(x, RULES) for x in (-1.0, -0.99, -0.25, 0.25, 0.26, 1.0)] == ["dump", "down", "flat", "flat", "up", "rally"]
+
+
+def test_wide_by_rank_is_walk_forward():
+    """With enough ranked $1B+ names the read carries ten buckets by the rank each name held BEFORE the session."""
+    rows = [{"t": "S%03d" % i, "kind": "stock", "mcap": 2e9, "adv": 1e7, "sp": 0, "sector": "X", "industry": "Y", "why": None, "rsp": float(i), "rs": 100.0 - i,
+             "ret": (-3.0 if i < 20 else 0.5), "dn": 0, "dh": 0} for i in range(100)]
+    rd = wide.session_read(rows, -2.0, RULES, rank_col="rsp")
+    assert len(rd["by_rank"]) == 10 and all(d["n"] == 10 for d in rd["by_rank"]) and rd["n_ranked_1b"] == 100
+    assert rd["by_rank"][0]["held_pct"] == 0.0 and rd["by_rank"][1]["held_pct"] == 0.0 and rd["by_rank"][2]["held_pct"] == 100.0 and rd["by_rank"][9]["up_pct"] == 100.0
+    assert rd["industries"]["n"] == 1 and rd["industries"]["holding"][0]["industry"] == "Y" and rd["industries"]["holding"][0]["n"] == 100
+    live = wide.session_read(rows, -2.0, RULES, rank_col="rs")           # the page's live read ranks by the table's current rank
+    assert live["by_rank"][9]["held_pct"] == 0.0 and live["rank_col"] == "rs"
+    assert wide.session_read([dict(r, ret=None) for r in rows], -2.0, RULES)["n_counted"] == 0
+
+
+def test_wide_never_publishes_a_partial_table():
+    s3 = wide_seed()
+    try:
+        wide.build(s3, NOW, DATES[-1].isoformat(), lf.VERSION, RULES, log=lambda *a: None, remaining_s=90.0)
+        raise SystemExit("a run with no time left must not start the pass")
+    except RuntimeError as exc:
+        assert "not started" in str(exc), exc
+    clock = {"t": 1000.0}
+
+    def tick():
+        clock["t"] += 200.0                       # every look at the clock costs 200 seconds: the deadline passes mid-read
+        return clock["t"]
+    real_time = wide.time
+    wide.time = SimpleNamespace(time=tick)
+    try:
+        wide.build(s3, NOW, DATES[-1].isoformat(), lf.VERSION, RULES, log=lambda *a: None, remaining_s=600.0)
+        raise SystemExit("a read that ran out of time must not return a table")
+    except RuntimeError as exc:
+        assert "partial table is not published" in str(exc), exc
+    finally:
+        wide.time = real_time
+    wide.MIN_SCANNED = 50
+    try:
+        wide.build(s3, NOW, DATES[-1].isoformat(), lf.VERSION, RULES, log=lambda *a: None)
+        raise SystemExit("a short universe must not return a table")
+    except RuntimeError as exc:
+        assert "book is short" in str(exc), exc
+    finally:
+        wide.MIN_SCANNED = 3
+    try:
+        wide.build(s3, NOW, DATES[-2].isoformat(), lf.VERSION, RULES, log=lambda *a: None)   # the desk stands on the session before: bars after it are left out
+    except RuntimeError as exc:
+        raise SystemExit("an earlier session must be readable: %s" % exc)
+    try:
+        wide.build(s3, NOW, (DATES[-1] + timedelta(days=1)).isoformat(), lf.VERSION, RULES, log=lambda *a: None)
+        raise SystemExit("a session the bank does not hold must not return a table")
+    except RuntimeError as exc:
+        assert "mid-fold" in str(exc), exc
+
+
+def test_wide_stands_on_the_desks_session():
+    """Bars after the session the desk stands on are left out of every series (the thin-day rule reaches the wide table)."""
+    s3 = wide_seed()
+    doc = wide.build(s3, NOW, DATES[-2].isoformat(), lf.VERSION, RULES, classify=lf.asset_class_of, log=lambda *a: None)
+    by = {r[0]: dict(zip(doc["cols"], r)) for r in doc["rows"]}
+    assert doc["as_of"] == DATES[-2].isoformat() and doc["prior_session"] == DATES[-3].isoformat() and "LATE" in by and doc["last_session"]["regime"] != "dump"
+    assert [d["date"] for d in doc["dump_days"]] == [DATES[-20].isoformat(), DATES[-10].isoformat()]
+
+
+def test_handler_writes_the_wide_table_after_the_desk():
+    s3 = wide_seed()
+    for k, v in seed().store.items():                  # the desk's own inputs beside the wide bank
+        s3.store.setdefault(k, v)
+    lf._s3 = lambda: s3
+    ctx = SimpleNamespace(get_remaining_time_in_millis=lambda: 880000)
+    res = lf.lambda_handler({}, ctx)
+    keys = [x["Key"] for x in s3.puts]
+    assert res["statusCode"] == 200 and res["key"] == "data/strength.json" and res["wide"]["key"] == lf.WIDE_KEY == "data/strength-wide.json" and res["wide"]["rows"] == 13 and "error" not in res["wide"]
+    assert keys.index("data/strength.json") < keys.index(lf.WIDE_KEY), keys          # the desk's artifact is safe before the whole-market pass starts
+    put = [x for x in s3.puts if x["Key"] == lf.WIDE_KEY][-1]
+    doc = json.loads(put["Body"])
+    assert put["CacheControl"] == "max-age=300" and doc["contract"] == "strength-wide.v1" and doc["as_of"] == json.loads([x for x in s3.puts if x["Key"] == "data/strength.json"][-1]["Body"])["as_of"]
+    hist = [x for x in s3.puts if x["Key"] == lf.HISTORY_PREFIX + DATES[-1].isoformat() + ".wide.json.gz"]
+    assert len(hist) == 1 and hist[0]["ContentEncoding"] == "gzip" and json.loads(gzip.decompress(hist[0]["Body"]))["as_of"] == doc["as_of"]
+    assert round(res["wide"]["spy_ret"], 2) == -2.0 and res["wide"]["spy_ret"] == doc["benchmark"]["ret"] and res["wide"]["held_up_1b_pct"] == doc["last_session"]["groups"]["stocks_1b"]["held_pct"]
+    # the desk alone
+    s3.puts.clear()
+    res = lf.lambda_handler({"wide": False}, ctx)
+    assert "skipped" in res["wide"] and [x["Key"] for x in s3.puts if x["Key"] == lf.WIDE_KEY] == []
+    # the whole-market table alone, on the session the published desk stands on
+    s3.puts.clear()
+    res = lf.lambda_handler({"wide_only": True}, ctx)
+    assert res["wide"]["rows"] == 13 and "data/strength.json" not in [x["Key"] for x in s3.puts] and lf.WIDE_KEY in [x["Key"] for x in s3.puts]
+    # a fault in the whole-market pass never costs the desk its artifact
+    s3.puts.clear()
+    real = sys.modules["bank_enrich"].rows
+    sys.modules["bank_enrich"].rows = lambda fields=None, **kw: (_ for _ in ()).throw(RuntimeError("book unreachable"))
+    try:
+        res = lf.lambda_handler({}, ctx)
+    finally:
+        sys.modules["bank_enrich"].rows = real
+    assert res["statusCode"] == 200 and res["rows"] > 0 and "book unreachable" in res["wide"]["error"] and "data/strength.json" in [x["Key"] for x in s3.puts] and lf.WIDE_KEY not in [x["Key"] for x in s3.puts]
+
+
+def test_wide_live_join_is_the_pages_arithmetic():
+    """Today's forming bars over the table: the move is the last price over the table's close; an announced split divides
+    the close; a move no split explains is shown, not counted; a name that has not printed is not counted."""
+    s3, doc, by = wide_built()
+    nxt = (DATES[-1] + timedelta(days=3)).isoformat()                 # the session after the table's (a Monday): HOLD splits 10-for-1 that day
+    spy_c = doc["benchmark"]["c"]
+
+    def bar(prev, pct, o_pct=0.0, hi_pct=None, lo_pct=None, v=500000.0):
+        c = prev * (1 + pct / 100.0)
+        o = prev * (1 + o_pct / 100.0)
+        return [o, max(o, c) * (1 + (hi_pct or 0) / 100.0), min(o, c) * (1 - (lo_pct or 0) / 100.0), c, v, (o + c) / 2, 1795196128833]
+    today = {"session": nxt, "as_of": nxt + "T17:35:28+00:00", "delay_minutes": 15, "fields": ["o", "h", "l", "c", "v", "vw", "updated_ms"], "rows": {
+        "SPY": bar(spy_c, -2.0, o_pct=-0.5, hi_pct=0.1, lo_pct=0.2),
+        "HOLD": bar(by["HOLD"]["c"] / 10.0, 1.5),                    # trades at a tenth: the announced 10-for-1
+        "FLAT": bar(by["FLAT"]["c"], 0.1), "LESS": bar(by["LESS"]["c"], -1.0), "MORE": bar(by["MORE"]["c"], -6.0),
+        "SMAL": bar(by["SMAL"]["c"], -80.0),                         # no split on record: unconfirmed
+        "BOND": bar(by["BOND"]["c"], 0.8), "QQQE": bar(by["QQQE"]["c"], -2.5), "DEAL": bar(by["DEAL"]["c"], 0.0),
+    }}
+    j = wide.live_join(doc, today)
+    rows = {r["t"]: r for r in j["rows"]}
+    assert j["session"] == nxt and j["as_of"] == doc["as_of"] and round(j["spy"]["ret"], 6) == -2.0 and round(j["spy"]["fo"], 4) == round((0.98 / 0.995 - 1) * 100, 4)
+    assert round(rows["HOLD"]["ret"], 6) == 1.5 and rows["HOLD"]["split"]["to"] == 10 and round(rows["HOLD"]["live"]["x"], 6) == 3.5
+    assert rows["SMAL"]["unconfirmed"] is True and rows["SMAL"]["ret"] is None and rows["NEWB"]["ret"] is None and rows["NEWB"].get("bar") is None and rows["NEWB"]["unconfirmed"] is False
+    assert round(rows["LESS"]["live"]["fo"], 6) == -1.0 and rows["LESS"]["live"]["pos"] == 0.0 and round(rows["BOND"]["live"]["vwx"], 4) == round((1.008 / 1.004 - 1) * 100, 4)
+    rd = wide.live_read(doc, today, class_labels=lf.CLASS_LABEL)
+    g = rd["groups"]
+    assert rd["date"] == nxt and rd["rank_as_of"] == doc["as_of"] and rd["rank_col"] == "rs" and rd["regime"] == "dump" and rd["bars_as_of"] == today["as_of"]
+    # counted: HOLD up, FLAT flat, LESS down less, MORE down more (DEAL is pinned, SMAL unconfirmed, the rest have not printed)
+    assert (g["stocks"]["n"], g["stocks"]["up"], g["stocks"]["flat"], g["stocks"]["down_less"], g["stocks"]["down_more"]) == (4, 1, 1, 1, 1) and g["etfs"]["n"] == 2 and g["etfs"]["down_more"] == 1
+    assert rd["n_unconfirmed"] == 1 and rd["unconfirmed"] == ["SMAL"] and rd["n_no_print"] == 13 - 8 and rd["boards"]["up"] == ["HOLD"] and rd["boards"]["strong_holding"] == ["HOLD"]
+    # no live session: the forming file is the table's own session (after the nightly run) or older
+    assert wide.live_join(doc, dict(today, session=doc["as_of"])) is None and wide.live_read(doc, {"session": DATES[-5].isoformat(), "rows": today["rows"]}) is None
+    assert wide.live_join(doc, {"session": nxt, "rows": {}}) is None and wide.live_join(doc, None) is None
+    # one bar, read alone
+    b = wide.bar_read([100.0, 104.0, 99.0, 103.0, 1e6, 101.0], 100.0, {"ret": -2.0, "fo": -1.0})
+    assert [round(b[k], 6) for k in ("ret", "fo", "pos", "x", "fox")] == [3.0, 3.0, 80.0, 5.0, 4.0] and round(b["vwx"], 4) == 1.9802
+    assert wide.bar_read([100.0, 100.0, 100.0, 100.0, 0, None], 100.0)["pos"] is None
+
+
+def test_tape_module_is_the_leaders_engines():
+    import hashlib
+    a = open(os.path.join(SRC, "leaders_tape.py"), "rb").read()
+    b = open(os.path.join(HERE, "..", "..", "justhodl-leaders", "source", "leaders_tape.py"), "rb").read()
+    assert hashlib.sha256(a).hexdigest() == hashlib.sha256(b).hexdigest(), "leaders_tape.py must stay byte-identical to the leaders engine's"
+    assert dict(wide.T.WEIGHTS) == dict(lf.WEIGHTS) and dict(wide.T.HORIZONS) == dict(lf.HORIZONS), "one composite: the desk's weights and horizons"
 
 
 if __name__ == "__main__":

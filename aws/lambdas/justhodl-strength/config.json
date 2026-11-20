@@ -1,17 +1,18 @@
 {
   "runtime": "python3.12",
   "memory": 2048,
-  "timeout": 300,
+  "timeout": 900,
   "handler": "lambda_function.lambda_handler",
   "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Relative strength vs the S&P 500 (1D-1Y, RS trend, information ratio, 52-week context) and the long-accumulation tight-spread detector from the Polygon EOD bank, ETF desk flows and the 13F per-ticker table into data/strength.json; reads S3 only.",
+  "description": "Relative strength vs the S&P 500 for the desk (data/strength.json) and for every listed stock and ETF (data/strength-wide.json): ranks, dump-day record, tight bases, fund flows, 13F read. Polygon EOD bank; reads S3 only.",
   "env": {
     "S3_BUCKET": "justhodl-dashboard-live",
     "OUT_KEY": "data/strength.json",
     "LOOKBACK_SESSIONS": "520",
     "MAX_UNIVERSE": "1200",
     "F13_TOP": "300",
-    "BOARD_ROWS": "40"
+    "BOARD_ROWS": "40",
+    "WIDE_KEY": "data/strength-wide.json"
   },
   "eventbridge_scheduler": {
     "schedule_name": "justhodl-strength-daily",

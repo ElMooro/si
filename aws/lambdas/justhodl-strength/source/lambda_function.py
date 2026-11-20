@@ -60,6 +60,16 @@ labelled the desk as of a Saturday. Now the session the desk stands on is read f
 (`effective_session`): the newest day that the benchmark AND at least a quarter of the banked universe carry. Bars dated
 after it are left out of every series (never deleted from the bank), the desk is as of that session, and the days set
 aside are named in `bank.thin_days` next to `bank.manifest_last_session`. On an ordinary day nothing changes.
+
+1.1.0 (Khalid 2026-11-20, the S&P 500 down 2%: "today everything is dumping hard however i cant see which stocks and
+etfs are showing strength and dumping less than sp500"): THE WHOLE MARKET. After the desk's own artifact is written the
+run measures every listed common stock and plain ETF that trades (wide.py: the factor book's universe, the leaders
+engine's history hygiene) and writes data/strength-wide.json - one row per name with the last session's bar, the close
+before it, excess return vs SPY on 1 / 5 / 21 / 63 / 126 sessions, the composite's percentile among its kind (now and
+one session earlier), the dump-day and rally-day record of the last 63 sessions, and the engine's own read of the last
+session (up / flat / down less / down more than SPY by size, sector, asset class and rank carried in). The page lays
+today's forming bars (the 5-minute Polygon lane) over that table, so the desk can be read while the index is falling.
+The pass is guarded: it cannot delay or damage data/strength.json, and it never publishes a partial table.
 """
 from __future__ import annotations
 
@@ -83,12 +93,13 @@ try:
 except Exception:  # noqa: BLE001
     etf_desk_catalog = None
 
-VERSION = "1.0.13"
+VERSION = "1.1.0"
 CONTRACT = "strength.v1"
 ENGINE = "justhodl-strength"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 OUT_KEY = os.environ.get("OUT_KEY", "data/strength.json")
 HISTORY_PREFIX = os.environ.get("HISTORY_PREFIX", "data/strength/history/")   # 1.0.7: every run keeps the artifact as of its session
+WIDE_KEY = os.environ.get("WIDE_KEY", "data/strength-wide.json")               # 1.1.0: every listed stock and ETF against SPY (wide.py)
 DESK_KEY = os.environ.get("ETF_DESK_KEY", "data/etf-desk-research.json")
 CANON_KEY = os.environ.get("FLOW_CANON_KEY", "data/provider-fund-flow-research.json")
 TICKERS_KEY = os.environ.get("TICKERS_13F_KEY", "data/13f-tickers.json")
@@ -105,6 +116,7 @@ MIN_SESSIONS = 70                                          # below this a row ca
 THREADS = 12
 THIN_SHARE = 0.25                                          # 1.0.12: a day fewer than a quarter of the banked universe carries is not a session
 RESERVE_S = 45.0                                           # seconds kept for the rows, the boards and the put
+DESK_BUDGET_S = 300.0                                      # 1.1.0: the desk's own build keeps the budget it always had; the rest of the run belongs to the whole-market pass
 WEIGHTS = (("d", 0.10), ("w", 0.20), ("m", 0.30), ("q", 0.25), ("h", 0.15))
 HORIZONS = (("d", 1), ("w", 5), ("m", 21), ("q", 63), ("h", 126), ("y", 252))
 BASE_TIERS = ((6.0, 40), (10.0, 40), (15.0, 120))       # (close range %, sessions) -> VERY TIGHT / TIGHT / LONG BASE; FORMING = 10% over 20
@@ -1777,6 +1789,30 @@ def put_json(s3, key, doc, cache="max-age=300"):
     return len(body)
 
 
+def wide_pass(s3, now, as_of, remaining_s, log=print):
+    """1.1.0 - the whole-market table (wide.py) -> data/strength-wide.json, written after the desk's own artifact.
+    Guarded twice: the module is imported here, so a fault in it can never cost the desk its artifact, and whatever it
+    raises is reported, not re-raised - the previous whole-market table stands. Returns a short note for the log."""
+    try:
+        import wide
+        if not as_of:
+            raise RuntimeError("the desk has no session to stand on")
+        doc = wide.build(s3, now, as_of, VERSION, {"flat_pct": FLAT_PCT, "dump_pct": DUMP_PCT, "rally_pct": RALLY_PCT, "weights": dict(WEIGHTS)},
+                         classify=asset_class_of, class_labels=CLASS_LABEL, log=log, remaining_s=remaining_s)
+        n = put_json(s3, WIDE_KEY, doc)
+        try:
+            body = gzip.compress(json.dumps(doc, separators=(",", ":"), default=str).encode("utf-8"))
+            s3.put_object(Bucket=S3_BUCKET, Key=HISTORY_PREFIX + str(as_of) + ".wide.json.gz", Body=body, ContentType="application/json", ContentEncoding="gzip", CacheControl="max-age=31536000")
+        except Exception as exc:  # noqa: BLE001
+            log("strength-wide: history snapshot failed: %s: %s" % (type(exc).__name__, str(exc)[:120]))
+        g = ((doc.get("last_session") or {}).get("groups") or {}).get("stocks_1b") or {}
+        return {"key": WIDE_KEY, "bytes": n, "rows": len(doc["rows"]), "as_of": doc["as_of"], "seconds": doc["run_seconds"], "errors": doc["n_errors"],
+                "spy_ret": (doc.get("last_session") or {}).get("spy_ret"), "held_up_1b_pct": g.get("held_pct")}
+    except Exception as exc:  # noqa: BLE001
+        log("strength-wide: NOT published, the previous table stands - %s: %s" % (type(exc).__name__, str(exc)[:300]))
+        return {"key": WIDE_KEY, "error": "%s: %s" % (type(exc).__name__, str(exc)[:300])}
+
+
 def lambda_handler(event, context):
     chain_guard.begin(event, context)   # trigger cap: a root run (the schedule) or whatever chain started it
     now = datetime.now(timezone.utc)
@@ -1785,8 +1821,15 @@ def lambda_handler(event, context):
         remaining = context.get_remaining_time_in_millis() / 1000.0
     except Exception:  # noqa: BLE001
         remaining = 300.0
-    out = build(s3, now, remaining_s=remaining)
-    trig = event.get("trigger") if isinstance(event, dict) else None
+    ev = event if isinstance(event, dict) else {}
+    if ev.get("wide_only"):
+        # the whole-market table alone, on the session the published desk stands on (an off-schedule refresh)
+        cur, _, err = optional(s3, OUT_KEY)
+        w = wide_pass(s3, now, (cur or {}).get("as_of"), remaining) if cur else {"key": WIDE_KEY, "error": "the desk artifact is not readable: %s" % err}
+        print("strength: wide only -> %s" % json.dumps(w))
+        return {"statusCode": 200, "wide": w}
+    out = build(s3, now, remaining_s=min(remaining, DESK_BUDGET_S))
+    trig = ev.get("trigger")
     out["trigger"] = {"kind": trig or "scheduled"}
     n = put_json(s3, OUT_KEY, out)
     try:
@@ -1806,4 +1849,14 @@ def lambda_handler(event, context):
         len(out["rows"]), b["n_ranked"], out["as_of"], [x["ticker"] for x in b["leaders"][:5]], [x["ticker"] for x in b["coil"][:5]],
         out["flows"]["n_universe_current"], out["flows"]["n_in_universe"], out["f13"]["n_in_universe"], json.dumps((out.get("classes") or {}).get("ranked")), (b.get("industries") or {}).get("n"),
         ls.get("date"), ls.get("spy_ret_pct"), lt.get("held_up_pct"), lt.get("mean_excess_pp"), w63.get("n_dump_days"), w63.get("n_rally_days"), n, out["run_seconds"], out["n_errors"]))
-    return {"statusCode": 200, "key": OUT_KEY, "bytes": n, "rows": len(out["rows"]), "ranked": b["n_ranked"], "as_of": out["as_of"], "run_seconds": out["run_seconds"], "errors": out["n_errors"]}
+    # 1.1.0: the whole market, after the desk's artifact is safely written
+    if ev.get("wide") is False:
+        w = {"key": WIDE_KEY, "skipped": "the event asked for the desk alone"}
+    else:
+        try:
+            left = context.get_remaining_time_in_millis() / 1000.0
+        except Exception:  # noqa: BLE001
+            left = max(0.0, remaining - (time.time() - now.timestamp()))
+        w = wide_pass(s3, now, out.get("as_of"), left)
+    print("strength: wide -> %s" % json.dumps(w))
+    return {"statusCode": 200, "key": OUT_KEY, "bytes": n, "rows": len(out["rows"]), "ranked": b["n_ranked"], "as_of": out["as_of"], "run_seconds": out["run_seconds"], "errors": out["n_errors"], "wide": w}
