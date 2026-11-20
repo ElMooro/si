@@ -47,7 +47,7 @@ test('every sheet has the picture\'s anatomy and prints no broken value', () => 
     assert.equal(m.notes.length, 3, name);
     assert.ok(m.lists.length >= 3, name);
     assert.ok(m.ring && m.ring.slices.length >= 2, name);
-    assert.doesNotMatch(JSON.stringify(m), /undefined|NaN|Infinity|\[object|\bnull\b/, name);
+    assert.doesNotMatch(JSON.stringify(m, (k, v) => (k === 'full' ? undefined : v)), /undefined|NaN|Infinity|\[object|\bnull\b/, name);   // `full` = a list's raw rows, drawn by the kit
     for (const s of m.ring.slices) assert.ok(Number.isFinite(s.value) && s.value > 0 && ['pos', 'up', 'down', 'oth'].includes(s.tone), `${name}: ${s.name}`);
     for (const l of m.lists) for (const r of l.rows) assert.ok(typeof r.name === 'string' && r.name.length, `${name}/${l.key}`);
   }
@@ -280,7 +280,7 @@ test('Leaders: the sheet takes the desk\'s copy of the feed, and reads it itself
   const desk = fs.readFileSync(path.join(root, 'jh-leaders.js'), 'utf8');
   assert.match(desk, /window\.JHLeadersDoc = d;/); assert.match(desk, /new CustomEvent\("jh:leaders-doc", \{ detail: d \}\)/);
   for (const name of Object.keys(kit.adapters)) if (!['leaders', 'wyckoff', 'capitulation', 'volatility', 'strength'].includes(name)) assert.equal(kit.adapters[name].share, undefined, name);
-  assert.equal(kit.version, '1.5.0');
+  assert.equal(kit.version, '1.6.0');
 });
 
 

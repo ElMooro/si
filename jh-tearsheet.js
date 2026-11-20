@@ -77,6 +77,29 @@
     + '.jts-sw.down{background:repeating-linear-gradient(45deg,var(--jr) 0 3px,var(--jb) 3px 5px)}.jts-leg .jts-nm{display:inline}'
     + '.jts .jts-foot{margin:10px 0 0;padding:0;font:10.5px/1.6 var(--js);color:var(--jd);max-width:1100px}.jts-wait{font:11px var(--jm);color:var(--jd);padding:10px 0}'
     + '@media (max-width:700px){.jts{padding:0 12px}.jts[data-jts-flush]{padding:0}.jts-in{padding:12px}.jts .jts-h{font-size:16px}.jts-score{grid-template-columns:repeat(2,minmax(0,1fr))}.jts-cols,.jts-cards,.jts-notes{grid-template-columns:minmax(0,1fr)}.jts-card .big{font-size:21px}}'
+    /* the full-list view */
+    + '.jts-chr{display:inline-flex;gap:9px;align-items:baseline;white-space:nowrap}.jts-go{color:var(--ja);font-weight:700;letter-spacing:.6px}'
+    + '.jts-ch[data-jts-open]{cursor:pointer}.jts-ch[data-jts-open]:hover,.jts-ch[data-jts-open]:focus-visible{background:var(--jb);box-shadow:inset 0 0 0 1px var(--ja);outline:none}'
+    + '.jts .jts-lnk{display:inline;width:auto;min-width:0;margin:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none;font:inherit;letter-spacing:0;text-transform:none;color:var(--ja);cursor:pointer;text-decoration:underline;text-underline-offset:2px}'
+    + '.jts .jts-lnk:hover,.jts .jts-lnk:focus-visible{color:var(--ji);outline:none}'
+    + '.jts-leg tr[data-jts-open]{cursor:pointer}.jts .jts-leg tr[data-jts-open]:hover td,.jts .jts-leg tr[data-jts-open]:focus-visible td{background:var(--jp2)}.jts-leg tr[data-jts-open]:focus-visible{outline:none}'
+    + '.jts-full{margin-top:12px;border:1px solid var(--jl);border-radius:6px;background:var(--jb);min-width:0;overflow:hidden;scroll-margin-top:62px}'
+    + '.jts-fnav{display:flex;gap:6px;flex-wrap:wrap;padding:9px;border-bottom:1px solid var(--jl);background:var(--jp2)}.jts-fnav .jts-btn i{font-style:normal;font-weight:500;margin-left:6px;opacity:.75}'
+    + '.jts-fhd{display:flex;justify-content:space-between;gap:10px 16px;align-items:center;flex-wrap:wrap;padding:11px 10px 4px}'
+    + '.jts-ft1{font:800 15px/1.3 var(--js);color:var(--ji)}.jts-ft1 i{font:500 11px var(--jm);font-style:normal;color:var(--jd);margin-left:8px}'
+    + '.jts-fn{padding:0 10px 9px;font:10.5px/1.5 var(--jm);color:var(--jd)}.jts-ftools{display:flex;gap:6px;flex-wrap:wrap;align-items:center}'
+    + '.jts .jts-find{width:300px;max-width:100%;height:auto;margin:0;padding:6px 9px;border:1px solid var(--jl);border-radius:4px;background:var(--jp);color:var(--ji);font:11px var(--jm);box-shadow:none}.jts .jts-find:focus{outline:none;border-color:var(--ja)}'
+    + '.jts-fwrap{max-height:76vh;overflow:auto;border-top:1px solid var(--jl)}'
+    + '.jts .jts-ft{width:100%;margin:0;border:0;border-collapse:separate;border-spacing:0;background:none;font:11.5px var(--jm);font-variant-numeric:tabular-nums}.jts .jts-ft tr{background:none}'
+    + '.jts .jts-ft th{position:sticky;top:0;z-index:2;padding:8px 7px;border:0;border-bottom:1px solid var(--jl);background:var(--jp2);color:var(--jd);font:700 9px/1.3 var(--jm);letter-spacing:.7px;text-transform:uppercase;text-align:right;white-space:nowrap;cursor:pointer;user-select:none}'
+    + '.jts .jts-ft th:hover,.jts .jts-ft th:focus-visible{color:var(--ja);outline:none}.jts .jts-ft th[aria-sort]{color:var(--ja)}'
+    + '.jts .jts-ft td{padding:6px 7px;border:0;border-bottom:1px solid var(--jl);background:var(--jb);color:var(--ji);text-align:right;white-space:nowrap}.jts .jts-ft tbody tr:hover td{background:var(--jp)}'
+    + '.jts .jts-ft .l{text-align:left}.jts .jts-ft .jts-fi{width:1%;color:var(--jd);cursor:default}.jts .jts-ft td.up{color:var(--jg)}.jts .jts-ft td.down{color:var(--jr)}'
+    + '.jts .jts-ft .jts-fk{position:sticky;left:0;font-weight:700}.jts .jts-ft td.jts-fk{z-index:1}.jts .jts-ft th.jts-fk{z-index:3}.jts .jts-ft td.jts-fk a{color:var(--ja);text-decoration:none}.jts .jts-ft td.jts-fk a:hover{text-decoration:underline}'
+    + '.jts-fx{display:inline-block;max-width:176px;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}.jts-fmore{display:flex;justify-content:center;padding:9px}'
+    + '@media (max-width:700px){.jts .jts-find{width:100%}.jts-ftools{width:100%}.jts-fx{max-width:130px}.jts-fwrap{max-height:70vh}}'
+    + '@media print{html.jts-print .jts-fwrap{max-height:none;overflow:visible}html.jts-print .jts-ftools,html.jts-print .jts-fnav,html.jts-print .jts-go{display:none!important}}'
+    /* end of the full-list view */
     + '@media print{html.jts-print body *{visibility:hidden!important}html.jts-print .jts,html.jts-print .jts *{visibility:visible!important}html.jts-print .jts{position:absolute;left:0;top:0;width:100%;max-width:none;margin:0;padding:0}html.jts-print .jts-act,html.jts-print .jts-ctl{display:none}}';
 
   function style() {
@@ -107,41 +130,144 @@
       arcs.push('<path class="jts-arc ' + t + '" d="M' + o0[0] + ' ' + o0[1] + 'A' + R + ' ' + R + ' 0 ' + large + ' 1 ' + o1[0] + ' ' + o1[1] + 'L' + i1[0] + ' ' + i1[1] + 'A' + RI + ' ' + RI + ' 0 ' + large + ' 0 ' + i0[0] + ' ' + i0[1] + 'Z"'
         + (t === 'down' ? ' fill="url(#' + id + ')"' : '') + ' fill-opacity="' + op + '" data-share="' + share.toFixed(3) + '"><title>' + esc(s.tip || (s.name + ': ' + (s.big || '') + DOT + share.toFixed(1) + '% of the whole')) + '</title></path>');
       if (share >= 6.5) labels.push('<text class="jts-rl" x="' + mid[0] + '" y="' + mid[1] + '"><tspan x="' + mid[0] + '" dy="-1">' + esc(s.label || s.name) + '</tspan><tspan x="' + mid[0] + '" dy="12">' + shareTxt + '</tspan></text>');
-      legend.push('<tr><td><i class="jts-sw ' + t + '" style="opacity:' + op + '"></i><b class="jts-nm">' + esc(s.name) + '</b></td><td class="n"><span class="jts-big ' + (t === 'up' ? 'up' : t === 'down' ? 'down' : '') + '">' + esc(s.big || '') + '</span><span class="jts-s">'
+      legend.push('<tr' + (s.open ? openAttr(s.open) : '') + '><td><i class="jts-sw ' + t + '" style="opacity:' + op + '"></i><b class="jts-nm">' + esc(s.name) + '</b></td><td class="n"><span class="jts-big ' + (t === 'up' ? 'up' : t === 'down' ? 'down' : '') + '">' + esc(s.big || '') + '</span><span class="jts-s">'
         + esc(s.small || (shareTxt + ' of ' + (r.whole || 'the whole'))) + '</span></td></tr>');
     });
-    return '<div class="jts-col jts-ringcol" data-jts-list="ring" data-total="' + total + '"><div class="jts-ch"><span><b>' + esc(r.title) + '</b> <i>' + esc(r.hint || '') + '</i></span><span class="jts-n">' + esc(r.n == null ? '' : r.n) + '</span></div>'
+    return '<div class="jts-col jts-ringcol" data-jts-list="ring" data-total="' + total + '"><div class="jts-ch"' + (r.open ? openAttr(r.open) : '') + '><span><b>' + esc(r.title) + '</b> <i>' + esc(r.hint || '') + '</i></span>'
+      + (r.open ? '<span class="jts-chr"><span class="jts-n">' + esc(r.n == null ? '' : r.n) + '</span><span class="jts-go">VIEW ALL \u203a</span></span>' : '<span class="jts-n">' + esc(r.n == null ? '' : r.n) + '</span>') + '</div>'
       + '<div class="jts-ring"><svg viewBox="0 0 220 220" role="img" aria-label="' + esc(r.aria || r.title) + '"><defs><pattern id="' + id + '" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)"><rect class="jts-hbg" width="6" height="6"></rect>'
       + '<line class="jts-hln" x1="0" y1="0" x2="0" y2="6"></line></pattern></defs>' + arcs.join('') + labels.join('') + '<text class="jts-rc" x="110" y="106">' + esc(r.center || '') + '</text>'
       + (r.subs || []).slice(0, 2).map(function (t, i) { return '<text class="jts-rs" x="110" y="' + (121 + i * 13) + '">' + esc(t) + '</text>'; }).join('') + '</svg></div>'
       + '<table class="jts-t jts-leg"><tbody>' + legend.join('') + '</tbody></table>' + (r.caption ? '<p class="jts-rest">' + esc(r.caption) + '</p>' : '') + '</div>';
   }
 
+  /* -- a list opened in full --
+     Khalid 2026-11-20: "you are only displaying the first six of each category - when I click on that category I should
+     be able to view the entire list and sort them by market cap and by industry, ascending and descending."
+
+     A list whose adapter gives it `full` opens in place of the sheet's body when its heading is clicked:
+       full: { cols: [{id, t, type: 's' | 'n', get(row), fmt(row), tone(row), tip, find: 'start', csv(row)}], rows: [...],
+               sort: {k, d}, units: ['stock', 'stocks'], href(row), pick(row), file }
+     rows arrive in the list's own order (full.sort names it); a click on a column heading ranks by that column, a second
+     click reverses it; blanks are last either way and ties keep the list's own order. A model's `more` lists have no
+     card and still open (a ring slice's or the ring's own `open`, or a category button; model.order orders the buttons).
+     A desk hears a click on a group row (full.pick) as the bubbling event jts:pick. Everything here is pure; mount()
+     does the wiring. */
+  function fullLists(m) { return (m.lists || []).concat(m.more || []); }
+  var FULL_PAGE = 200;
+  function fullBlank(v) { return v == null || v === '' || (typeof v === 'number' && !isFinite(v)); }
+  function fullKey(c, r) { var v = c.get(r); return fullBlank(v) ? null : c.type === 's' ? String(v).toLowerCase() : (fin(v) ? v : null); }
+  function fullSortOf(full, open) { return (open && open.sort) || full.sort || null; }
+  function fullRows(full, open) {
+    var rows = full.rows || [], q = String((open && open.q) || '').trim().toLowerCase(), s = open && open.sort ? open.sort : null;   /* unranked: the list's own order */
+    if (q) {
+      var text = full.cols.filter(function (c) { return c.type === 's'; });
+      rows = rows.filter(function (r) {
+        return text.some(function (c) { var v = c.get(r); if (fullBlank(v)) return false; v = String(v).toLowerCase(); return c.find === 'start' ? v.indexOf(q) === 0 : v.indexOf(q) >= 0; });
+      });
+    }
+    var c = s ? full.cols.filter(function (x) { return x.id === s.k; })[0] : null;
+    if (!c) return rows;
+    var dec = rows.map(function (r, i) { return { r: r, i: i, v: fullKey(c, r) }; });
+    dec.sort(function (a, b) {
+      if (a.v === null || b.v === null) return a.v === null && b.v === null ? a.i - b.i : a.v === null ? 1 : -1;
+      var cmp = a.v < b.v ? -1 : a.v > b.v ? 1 : 0;
+      return (s.d < 0 ? -cmp : cmp) || a.i - b.i;
+    });
+    return dec.map(function (x) { return x.r; });
+  }
+  function fullCsv(full, rows) {
+    var cell = function (v) { v = v == null ? '' : typeof v === 'number' ? (isFinite(v) ? String(Math.round(v * 1e4) / 1e4) : '') : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+    return [full.cols.map(function (c) { return cell(c.t); }).join(',')].concat(rows.map(function (r) {
+      return full.cols.map(function (c) { return cell(c.csv ? c.csv(r) : c.get(r)); }).join(',');
+    })).join('\n');
+  }
+  function fullWord(full, open) {
+    var s = fullSortOf(full, open), c = s ? full.cols.filter(function (x) { return x.id === s.k; })[0] : null;
+    return c ? 'ranked by ' + c.t + ', ' + (c.type === 's' ? (s.d < 0 ? 'Z to A' : 'A to Z') : (s.d < 0 ? 'highest first' : 'lowest first')) : 'in the list\u2019s own order';
+  }
+  /* the part a click on a heading or a keystroke in the find box redraws: the count line, the table, the show-all button */
+  /* on a phone the columns come in the adapter's `phone` order (the answer beside the ticker, the long text last) */
+  function fullCols(f, narrow) {
+    if (!narrow || !f.phone) return f.cols;
+    var at = function (c) { var i = f.phone.indexOf(c.id); return i < 0 ? f.phone.length : i; };
+    return f.cols.map(function (c, i) { return [c, i]; }).sort(function (a, b) { return (at(a[0]) - at(b[0])) || (a[1] - b[1]); }).map(function (x) { return x[0]; });
+  }
+  function fullBody(l, open, narrow) {
+    var f = l.full, cols = fullCols(f, narrow), rows = fullRows(f, open), s = fullSortOf(f, open) || {}, cap = open.all ? rows.length : Math.min(rows.length, FULL_PAGE), u = f.units || ['row', 'rows'], total = (f.rows || []).length;
+    var count = num(rows.length) + (rows.length !== total ? ' of ' + num(total) : '') + ' ' + (total === 1 ? u[0] : u[1]) + DOT + fullWord(f, open) + DOT + 'click a column heading to rank by it, again to reverse';
+    var head = '<th class="jts-fi">#</th>' + cols.map(function (c, j) {
+      var on = s.k === c.id;
+      return '<th class="' + (c.type === 's' ? 'l' : '') + (j === 0 ? ' jts-fk' : '') + '" data-jts-sort="' + esc(c.id) + '" tabindex="0"' + (on ? ' aria-sort="' + (s.d < 0 ? 'descending' : 'ascending') + '"' : '')
+        + ' title="' + esc((c.tip ? c.tip + DOT : '') + 'click to rank by this column, again to reverse') + '">' + esc(c.t) + '<span class="jts-ar">' + (on ? (s.d < 0 ? ' \u25be' : ' \u25b4') : '') + '</span></th>';
+    }).join('');
+    var body = rows.slice(0, cap).map(function (r, i) {
+      return '<tr><td class="jts-fi">' + (i + 1) + '</td>' + cols.map(function (c, j) {
+        var txt = esc(c.fmt ? c.fmt(r) : c.get(r)), t = c.tone ? c.tone(r) : '', inner = txt;
+        if (j === 0 && f.href) inner = '<a href="' + esc(f.href(r)) + '">' + txt + '</a>';
+        else if (j === 0 && f.pick) inner = '<button type="button" class="jts-lnk" data-jts-pick="' + i + '" title="' + esc(f.pickTip || 'Show these names') + '">' + txt + '</button>';
+        else if (c.type === 's') inner = '<span class="jts-fx" title="' + txt + '">' + txt + '</span>';
+        return '<td class="' + (c.type === 's' ? 'l' : '') + (j === 0 ? ' jts-fk' : '') + (t ? ' ' + t : '') + '">' + inner + '</td>';
+      }).join('') + '</tr>';
+    }).join('');
+    return '<div class="jts-fn" data-jts-count>' + esc(count) + '</div>'
+      + (rows.length ? '<div class="jts-fwrap"><table class="jts-ft"><thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table></div>'
+        : '<p class="jts-none">' + (total ? 'Nothing in this list matches \u201c' + esc(open.q) + '\u201d.' : esc(l.none || 'none')) + '</p>')
+      + (rows.length > cap ? '<div class="jts-fmore"><button type="button" class="jts-btn" data-jts-act="all">SHOW ALL ' + num(rows.length) + ' ROWS</button></div>' : '')
+      + (l.note ? '<p class="jts-rest">' + esc(l.note) + '</p>' : '');
+  }
+  function fullHtml(m, l, open, narrow) {
+    var order = m.order || [], at = function (x) { var i = order.indexOf(x.key); return i < 0 ? order.length : i; };
+    var can = fullLists(m).filter(function (x) { return x.full; }).map(function (x, i) { return [x, i]; }).sort(function (a, b) { return (at(a[0]) - at(b[0])) || (a[1] - b[1]); }).map(function (x) { return x[0]; });
+    return '<div class="jts-full" data-jts-full="' + esc(l.key) + '"><div class="jts-fnav">' + can.map(function (x) {
+      return '<button type="button" class="jts-btn" data-jts-open="' + esc(x.key) + '" aria-pressed="' + (x.key === l.key ? 'true' : 'false') + '">' + esc(x.short || x.title) + '<i>' + num((x.full.rows || []).length) + '</i></button>';
+    }).join('') + '</div><div class="jts-fhd"><div class="jts-ft1">' + esc(l.title) + ' <i>' + esc(l.hint || '') + '</i></div><div class="jts-ftools">'
+      + '<input type="search" class="jts-find" data-jts-find placeholder="' + esc(l.full.find || 'Find in this list') + '" aria-label="Find in this list" value="' + esc(open.q || '') + '">'
+      + '<button type="button" class="jts-btn" data-jts-act="csv">DOWNLOAD CSV</button><button type="button" class="jts-btn" data-jts-act="close">\u2039 BACK TO THE TEARSHEET</button></div></div>'
+      + '<div data-jts-fbody>' + fullBody(l, open, narrow) + '</div></div>';
+  }
+  function openAttr(key) { return ' data-jts-open="' + esc(key) + '" role="button" tabindex="0" title="Open the whole list: rank it by any column, either way"'; }
+
   function render(el, m) {
     style();
+    el.__model = m;
     var limit = el.__long ? 15 : (el.clientWidth && el.clientWidth < 520 ? 3 : 6);   /* a phone stacks the lists in one column: three rows each, MORE ROWS for the rest */
+    var lists = fullLists(m), cards = (m.lists || []).filter(function (l) { return l.card !== false; });
+    var open = el.__open || null, ol = open ? lists.filter(function (l) { return l.key === open.key && l.full; })[0] : null;
+    if (open && !ol) el.__open = open = null;                                         /* this scope has no such list: back to the sheet */
     function col(l) {
-      var rows = l.rows || [], shown = rows.slice(0, limit), rest = rows.slice(limit);
-      return '<div class="jts-col ' + (l.tone || '') + '" data-jts-list="' + esc(l.key || '') + '"><div class="jts-ch"><span><b>' + esc(l.title) + '</b> <i>' + esc(l.hint || '') + '</i></span><span class="jts-n">' + (l.n == null ? rows.length : esc(l.n)) + '</span></div>'
+      var rows = l.rows || [], shown = rows.slice(0, limit), rest = rows.slice(limit), can = !!l.full, all = can ? (l.full.rows || []).length : 0;
+      return '<div class="jts-col ' + (l.tone || '') + '" data-jts-list="' + esc(l.key || '') + '"><div class="jts-ch"' + (can ? openAttr(l.key) : '') + '><span><b>' + esc(l.title) + '</b> <i>' + esc(l.hint || '') + '</i></span>'
+        + (can ? '<span class="jts-chr"><span class="jts-n">' + (l.n == null ? rows.length : esc(l.n)) + '</span><span class="jts-go">VIEW ALL \u203a</span></span>' : '<span class="jts-n">' + (l.n == null ? rows.length : esc(l.n)) + '</span>') + '</div>'
         + (shown.length ? '<table class="jts-t"><tbody>' + shown.map(function (x) {
           return '<tr><td><b class="jts-nm">' + esc(x.name) + '</b><span class="jts-s">' + esc(x.sub || '') + '</span></td><td class="n"><span class="jts-big ' + (x.tone || '') + '">' + esc(x.big == null ? '' : x.big) + '</span><span class="jts-s">' + esc(x.small || '') + '</span></td></tr>';
         }).join('') + '</tbody></table>' : '<p class="jts-none">' + esc(l.none || 'none') + '</p>')
-        + (rest.length ? '<p class="jts-rest">The other ' + rest.length + ': ' + rest.slice(0, 12).map(function (x) { return esc(String(x.name).split(DOT)[0]) + (x.big ? ' (' + esc(x.big) + ')' : ''); }).join(', ') + (rest.length > 12 ? ' and ' + (rest.length - 12) + ' more' : '') + '</p>' : '')
+        + (rest.length ? '<p class="jts-rest">The other ' + rest.length + ': ' + rest.slice(0, 12).map(function (x) { return esc(String(x.name).split(DOT)[0]) + (x.big ? ' (' + esc(x.big) + ')' : ''); }).join(', ') + (rest.length > 12 ? ' and ' + (rest.length - 12) + ' more' : '')
+          + (can ? '. <button type="button" class="jts-lnk" data-jts-open="' + esc(l.key) + '">View all ' + num(all) + '</button>' : '') + '</p>'
+          : (can && all > shown.length ? '<p class="jts-rest"><button type="button" class="jts-lnk" data-jts-open="' + esc(l.key) + '">View all ' + num(all) + '</button></p>' : ''))
         + (l.note ? '<p class="jts-rest">' + esc(l.note) + '</p>' : '') + '</div>';
     }
-    var long = (m.lists || []).some(function (l) { return (l.rows || []).length > Math.min(limit, 6); });
+    var long = !ol && cards.some(function (l) { return (l.rows || []).length > Math.min(limit, 6); });
+    /* a repaint (the desk hands a fresh feed every minute) must not take the reader's place in an open list */
+    var was = ol ? el.querySelector('.jts-fwrap') : null, scroll = was ? [was.scrollTop, was.scrollLeft] : null, act = typeof document !== 'undefined' ? document.activeElement : null;
+    var caret = act && act.hasAttribute && act.hasAttribute('data-jts-find') && el.contains(act) ? [act.selectionStart, act.selectionEnd] : null;
     el.classList.add('jts');
     el.innerHTML = '<div class="jts-in"><div class="jts-top"><div class="jts-eye">' + esc(m.eyebrow) + '</div><div class="jts-act">' + (long ? '<button type="button" class="jts-btn" data-jts-act="more" aria-pressed="' + (el.__long ? 'true' : 'false') + '">' + (el.__long ? 'FEWER ROWS' : 'MORE ROWS') + '</button>' : '')
       + '<button type="button" class="jts-btn" data-jts-act="link">COPY LINK</button><button type="button" class="jts-btn" data-jts-act="print">PRINT' + DOT + 'SAVE PDF</button></div></div>'
       + '<div class="jts-h" role="heading" aria-level="2">' + esc(m.title) + '</div><div class="jts-sub">' + esc(m.sub || '') + '</div>'
       + ((m.controls || []).length ? '<div class="jts-ctl">' + m.controls.map(function (c) { return '<button type="button" class="jts-btn" data-jts-ctl="' + esc(c.id) + '" aria-pressed="' + (c.on ? 'true' : 'false') + '">' + esc(c.label) + '</button>'; }).join('') + '</div>' : '')
       + '<div class="jts-score">' + (m.tiles || []).map(function (t) { return '<div class="jts-kpi"><div class="k">' + esc(t.k) + '</div><div class="v">' + t.v + '</div><div class="s">' + esc(t.s || '') + '</div></div>'; }).join('') + '</div>'
-      + ((m.cards || []).length ? '<div class="jts-cards">' + m.cards.map(function (c) {
-        return '<div class="jts-card ' + (c.tone || '') + '"><div class="big ' + (c.tone || '') + '">' + esc(c.big) + '</div><div><div class="e">' + esc(c.eyebrow) + '</div><div class="t">' + esc(c.title) + '</div><p>' + esc(c.text) + '</p></div></div>';
-      }).join('') + '</div>' : '')
-      + ((m.notes || []).length ? '<div class="jts-notes">' + m.notes.map(function (n) { return '<p><b>' + esc(n[0]) + '</b> ' + esc(n[1]) + '</p>'; }).join('') + '</div>' : '')
-      + '<div class="jts-cols">' + (m.ring ? ring(m.ring) : '') + (m.lists || []).map(col).join('') + '</div><p class="jts-foot">' + esc(m.foot || '') + '</p></div>';
+      + (ol ? fullHtml(m, ol, open, !!(el.clientWidth && el.clientWidth < 520))
+        : ((m.cards || []).length ? '<div class="jts-cards">' + m.cards.map(function (c) {
+          return '<div class="jts-card ' + (c.tone || '') + '"><div class="big ' + (c.tone || '') + '">' + esc(c.big) + '</div><div><div class="e">' + esc(c.eyebrow) + '</div><div class="t">' + esc(c.title) + '</div><p>' + esc(c.text) + '</p></div></div>';
+        }).join('') + '</div>' : '')
+        + ((m.notes || []).length ? '<div class="jts-notes">' + m.notes.map(function (n) { return '<p><b>' + esc(n[0]) + '</b> ' + esc(n[1]) + '</p>'; }).join('') + '</div>' : '')
+        + '<div class="jts-cols">' + (m.ring ? ring(m.ring) : '') + cards.map(col).join('') + '</div>')
+      + '<p class="jts-foot">' + esc(m.foot || '') + '</p></div>';
+    if (scroll) { var now = el.querySelector('.jts-fwrap'); if (now) { now.scrollTop = scroll[0]; now.scrollLeft = scroll[1]; } }
+    if (caret) { var box = el.querySelector('[data-jts-find]'); if (box) { box.focus(); try { box.setSelectionRange(caret[0], caret[1]); } catch (e) { /* a search box may refuse a range */ } } }
     el.dataset.state = 'ready';
+    el.dataset.open = ol ? ol.key : '';
   }
 
   /* -- adapters: one per desk, each reading that desk's own published feed -- */
@@ -1216,16 +1342,18 @@
       var isWord = red ? (live ? 'are holding up' : 'held up') : (live ? 'are ahead of it' : 'were ahead of it'), nowWord = red ? (live ? 'are holding up now' : 'held up in the session') : (live ? 'are ahead of SPY now' : 'were ahead of SPY in the session');
       /* -- groups inside the scope -- */
       var grp = function (f, min) {
-        return groupBy(rows, f).filter(function (q) { return q.key && q.list.length >= (min || 1); }).map(function (q) { var s = strengthStats(q.list, spy.ret); s.name = q.key; return s; })
+        return groupBy(rows, f).filter(function (q) { return q.key && q.list.length >= (min || 1); }).map(function (q) { var s = strengthStats(q.list, spy.ret); s.name = q.key; s.sector = q.list[0].sector || ''; return s; })
           .sort(function (a, b) { return (b[key] - a[key]) || (b.median_ret - a.median_ret) || (a.name < b.name ? -1 : 1); });
       };
       var sectors = isEtf ? grp(cls) : grp(function (r) { return r.sector || 'Unclassified'; }), inds = isEtf ? [] : grp(function (r) { return r.industry; }, R.industry_min || 5);
       var grow = function (q) { return { name: q.name, sub: plural(q.n, S.unit) + DOT + 'up ' + num(q.up) + ', flat ' + num(q.flat) + ', down less ' + num(q.down_less) + ', down more ' + num(q.down_more), big: p0(q[key]), small: 'median ' + mv(q.median_ret) }; };
       /* -- the whole: market value by how it is doing against SPY -- */
       var OUT = [['up', 'Up', 'pos', 1], ['flat', 'Flat', 'pos', 0.62], ['down_less', 'Down less than SPY', 'pos', 0.4], ['down_more', 'Down more than SPY', 'oth', null]];
+      /* a slice opens the list of its names: the card of that outcome where the sheet shows one, a list kept off the cards where it does not */
+      var OPEN = { up: 'up', flat: 'flat', down_less: 'down-less', down_more: red ? (isEtf ? 'down-most-etf' : 'down-more') : 'down-most' };
       var total = sum(rows, cap), heldCap = sum(rows.filter(function (r) { return r.out !== 'down_more'; }), cap);
       var slices = OUT.map(function (o) {
-        var list = rows.filter(function (r) { return r.out === o[0]; }), val = sum(list, cap), s = { name: o[1], label: o[1].replace(' than SPY', ''), value: val, tone: o[2], big: money(val), small: plural(list.length, S.unit) + DOT + p0(share(list.length, rows.length)) + ' of them' };
+        var list = rows.filter(function (r) { return r.out === o[0]; }), val = sum(list, cap), s = { name: o[1], label: o[1].replace(' than SPY', ''), value: val, tone: o[2], big: money(val), small: plural(list.length, S.unit) + DOT + p0(share(list.length, rows.length)) + ' of them', open: OPEN[o[0]] };
         if (o[3] != null) s.op = o[3];
         return s;
       });
@@ -1250,22 +1378,72 @@
       var title = (live ? 'SPY ' + mv(spy.ret) + ' today' : 'SPY ' + mv(spy.ret) + ' on ' + day(v.session)) + DOT + p0(g[key]) + ' of ' + S.word + ' ' + isWord
         + (gTop ? DOT + 'the strongest tenth coming in: ' + p0(gTop[key]) : '');
       var u = v.universe || {}, sa = u.set_aside || {}, aside = sum(Object.keys(sa), function (q) { return sa[q]; });
+      /* -- every list opens in full (the kit draws it): all of its rows, ranked by any column either way --
+         Khalid 2026-11-20: "when I click on that category I should be able to view the entire list and sort them by market cap and by industry". */
+      var OUTW = { up: 'Up', flat: 'Flat', down_less: 'Down less', down_more: 'Down more' }, OUTN = { up: 3, flat: 2, down_less: 1, down_more: 0 };
+      var fld = function (id) { return function (r) { return r[id]; }; }, tn = function (f) { return function (r) { var q = f(r); return q > 0 ? 'up' : q < 0 ? 'down' : ''; }; };
+      var NC = [{ id: 't', t: 'Ticker', type: 's', find: 'start', get: fld('t') }, { id: 'name', t: 'Name', type: 's', get: function (r) { return r.name || ''; } },
+        isEtf ? { id: 'sector', t: 'Class', type: 's', get: cls } : { id: 'sector', t: 'Sector', type: 's', get: function (r) { return r.sector || 'Unclassified'; } },
+        isEtf ? { id: 'adv', t: 'Traded a day', type: 'n', tip: 'dollars traded on an average day', get: fld('adv'), fmt: function (r) { return money(r.adv); } }
+          : { id: 'industry', t: 'Industry', type: 's', get: function (r) { return r.industry || ''; } },
+        { id: 'mcap', t: isEtf ? 'Assets' : 'Mkt value', type: 'n', tip: isEtf ? 'the fund\'s assets' : 'the company\'s market value', get: fld('mcap'), fmt: function (r) { return money(r.mcap); } },
+        { id: 'px', t: 'Last', type: 'n', get: fld('px'), fmt: function (r) { return num(r.px, 2); } },
+        { id: 'ret', t: 'Move', type: 'n', tip: 'the last price over the close before', get: ret, fmt: function (r) { return mv(r.ret); }, tone: tn(ret) },
+        { id: 'x', t: 'vs SPY', type: 'n', tip: 'the move less SPY\'s, in points', get: x, fmt: function (r) { return fin(r.x) ? sign(+r.x.toFixed(2) || 0, true) + Math.abs(r.x).toFixed(2) : D; }, tone: tn(x) },
+        { id: 'out', t: 'Against SPY', type: 'n', tip: 'up, flat, down less than SPY, or down more', get: function (r) { return OUTN[r.out]; }, fmt: function (r) { return OUTW[r.out] || D; }, csv: function (r) { return OUTW[r.out] || ''; } },
+        { id: 'rank', t: 'Rank in', type: 'n', tip: 'the rank carried into the session, 0 to 100', get: fld('rank'), fmt: function (r) { return num(r.rank, 0); } },
+        { id: 'dump', t: 'Dump days', type: 'n', tip: 'dump days of the quarter it held up on, before this session', get: function (r) { return r.rec_n ? r.rec_h / r.rec_n + r.rec_n / 1e4 : null; },
+          fmt: function (r) { return r.rec_n ? r.rec_h + '/' + r.rec_n : D; }, csv: function (r) { return r.rec_n ? r.rec_h + ' of ' + r.rec_n : ''; } },
+        { id: 'fo', t: 'From open', type: 'n', tip: 'the last price over the day\'s open', get: fld('fo'), fmt: function (r) { return mv(r.fo); }, tone: tn(fld('fo')) },
+        { id: 'pos', t: 'Day range', type: 'n', tip: 'where the last price sits in the day\'s range: 0% the low, 100% the high', get: fld('pos'), fmt: function (r) { return fin(r.pos) ? num(r.pos, 0) + '%' : D; } },
+        { id: 'vwx', t: 'vs VWAP', type: 'n', tip: 'the last price against the day\'s volume-weighted average price', get: fld('vwx'), fmt: function (r) { return mv(r.vwx); }, tone: tn(fld('vwx')) },
+        { id: 'rv', t: 'Vol pace', type: 'n', tip: 'volume against its own average, over the market\'s pace at this hour', get: fld('rv'), fmt: function (r) { return times(r.rv); } }];
+      var fileOf = function (key) { return 'strength-' + key + '-' + k + '-' + day(v.session) + (live ? '-live' : ''); };
+      var all = function (key, list, id, d) {
+        return { cols: NC, rows: list, sort: { k: id, d: d }, units: [S.unit, S.unit + 's'], href: function (r) { return '/chart.html?s=' + encodeURIComponent(r.t); },
+          phone: ['t', 'ret', 'x', 'mcap', 'industry', 'adv', 'sector', 'out', 'rank', 'dump', 'name'],
+          find: isEtf ? 'Find a ticker, name or class' : 'Find a ticker, name, sector or industry', file: fileOf(key) };
+      };
+      var GC = function (label, sectorToo) {
+        return [{ id: 'name', t: label, type: 's', get: fld('name') }].concat(sectorToo ? [{ id: 'sector', t: 'Sector', type: 's', get: fld('sector') }] : []).concat([
+          { id: 'n', t: 'Counted', type: 'n', get: fld('n'), fmt: function (q) { return num(q.n); } },
+          { id: 'held', t: live ? 'Holding up' : 'Held up', type: 'n', tip: 'share up, flat, or down less than SPY', get: fld('held_pct'), fmt: function (q) { return p0(q.held_pct); } },
+          { id: 'up', t: 'Up', type: 'n', tip: 'share up more than the flat band', get: fld('up_pct'), fmt: function (q) { return p0(q.up_pct); } },
+          { id: 'beat', t: 'Ahead of SPY', type: 'n', tip: 'share whose move is above SPY\'s', get: fld('beat_pct'), fmt: function (q) { return p0(q.beat_pct); } },
+          { id: 'more', t: 'Down more', type: 'n', tip: 'share down at least as much as SPY', get: function (q) { return share(q.down_more, q.n); }, fmt: function (q) { return p0(share(q.down_more, q.n)); } },
+          { id: 'med', t: 'Median move', type: 'n', get: fld('median_ret'), fmt: function (q) { return mv(q.median_ret); }, tone: tn(fld('median_ret')) },
+          { id: 'mcap', t: 'Mkt value', type: 'n', get: fld('mcap'), fmt: function (q) { return money(q.mcap); } }]);
+      };
+      var gid = key === 'held_pct' ? 'held' : 'beat', scopeOf = isEtf ? 'b1' : k;
+      var grpFull = function (keyName, list, label, sectorToo, d, units, field) {
+        return { cols: GC(label, sectorToo), rows: list, sort: { k: gid, d: d }, units: units, phone: ['name', 'held', 'n', 'med', 'mcap', 'up', 'beat', 'more', 'sector'], find: 'Find ' + (/^[aeiou]/.test(units[0]) ? 'an ' : 'a ') + units[0], file: fileOf(keyName), pickTip: 'Show these names in the table below',
+          pick: function (q) { var o = { desk: 'strength', kind: isEtf ? 'etf' : 'stock', scope: scopeOf }; o[field] = q.name; return o; } };
+      };
+      var flat = top(named.filter(function (r) { return r.out === 'flat'; }), x);
+      var indUnits = ['industry', 'industries'], indsUp = inds.slice().reverse();
       var lists = [
-        { key: 'up', title: red ? (live ? 'Up while SPY falls' : 'Up while SPY fell') : 'Up the most', hint: 'by the move', n: up.length, rows: up.map(row), none: 'no ' + S.unit + (live ? ' is up' : ' was up'),
+        { key: 'all', card: false, short: 'ALL', title: 'All ' + S.word, hint: 'every counted ' + S.unit + ' in this scope', n: rows.length, rows: [], full: all('all', top(rows, x), 'x', -1) },
+        { key: 'up', short: 'UP', full: all('up', up, 'ret', -1), title: red ? (live ? 'Up while SPY falls' : 'Up while SPY fell') : 'Up the most', hint: 'by the move', n: up.length, rows: up.map(row), none: 'no ' + S.unit + (live ? ' is up' : ' was up'),
           note: unlisted ? plural(unlisted, 'fund') + ' that hold' + (unlisted === 1 ? 's' : '') + ' volatility itself (VIX futures, volatility-premium funds) ' + (unlisted === 1 ? 'is' : 'are') + ' counted in every figure above and left off these lists: how such a fund moves against SPY is its design, not strength.' : '' },
-        red ? { key: 'down-less', title: 'Down less than SPY', hint: 'closest to flat first', n: less.length, rows: less.map(row), none: 'none' }
-          : { key: 'down-most', title: 'Down the most', hint: live ? 'while SPY is not falling' : 'while SPY did not fall', n: more.length, rows: more.map(row), none: 'no ' + S.unit + ' is down more than SPY' },
-        { key: 'strong-holding', title: 'Strong coming in, ' + (red ? keyWord : 'still ahead'), hint: 'rank 80 or higher', n: sHold.length, rows: sHold.map(row), none: 'none' },
-        { key: 'strong-breaking', title: 'Strong coming in, ' + (live ? 'breaking' : 'broke'), hint: 'rank 80 or higher, down more than SPY', n: sBreak.length, rows: sBreak.map(row), none: 'no strong name ' + (live ? 'is' : 'was') + ' down more than SPY' },
-        { key: 'weak-bid', title: 'Weak coming in, bid', hint: 'rank 20 or lower, up', n: wBid.length, rows: wBid.map(row), none: 'none' },
-        { key: 'repeat', title: 'Held every dump day, ' + (live ? 'holding again' : 'held again'), hint: 'of the quarter before this session', n: repeat.length, rows: repeat.map(row), none: 'none',
+        { key: 'flat', card: false, short: 'FLAT', title: 'Flat', hint: 'within ' + R.flat_pct + '% either way', n: flat.length, rows: [], none: 'none', full: all('flat', flat, 'x', -1) },
+        red ? { key: 'down-less', short: 'DOWN LESS', full: all('down-less', less, 'x', -1), title: 'Down less than SPY', hint: 'closest to flat first', n: less.length, rows: less.map(row), none: 'none' }
+          : { key: 'down-less', card: false, short: 'DOWN LESS', full: all('down-less', less, 'x', -1), title: 'Down less than SPY', hint: 'closest to flat first', n: less.length, rows: [], none: 'none' },
+        red ? (isEtf ? null : { key: 'down-more', card: false, short: 'DOWN MORE', full: all('down-more', more, 'ret', 1), title: 'Down more than SPY', hint: 'the largest fall first', n: more.length, rows: [], none: 'none' })
+          : { key: 'down-most', short: 'DOWN MORE', full: all('down-most', more, 'ret', 1), title: 'Down the most', hint: live ? 'while SPY is not falling' : 'while SPY did not fall', n: more.length, rows: more.map(row), none: 'no ' + S.unit + ' is down more than SPY' },
+        { key: 'strong-holding', short: 'STRONG, ' + (red ? (live ? 'HOLDING' : 'HELD') : 'AHEAD'), full: all('strong-holding', sHold, 'x', -1), title: 'Strong coming in, ' + (red ? keyWord : 'still ahead'), hint: 'rank 80 or higher', n: sHold.length, rows: sHold.map(row), none: 'none' },
+        { key: 'strong-breaking', short: 'STRONG, ' + (live ? 'BREAKING' : 'BROKE'), full: all('strong-breaking', sBreak, 'x', 1), title: 'Strong coming in, ' + (live ? 'breaking' : 'broke'), hint: 'rank 80 or higher, down more than SPY', n: sBreak.length, rows: sBreak.map(row), none: 'no strong name ' + (live ? 'is' : 'was') + ' down more than SPY' },
+        { key: 'weak-bid', short: 'WEAK, BID', full: all('weak-bid', wBid, 'ret', -1), title: 'Weak coming in, bid', hint: 'rank 20 or lower, up', n: wBid.length, rows: wBid.map(row), none: 'none' },
+        { key: 'repeat', short: 'HELD EVERY DUMP DAY', full: all('repeat', repeat, 'x', -1), title: 'Held every dump day, ' + (live ? 'holding again' : 'held again'), hint: 'of the quarter before this session', n: repeat.length, rows: repeat.map(row), none: 'none',
           note: 'A dump day is a session SPY fell ' + Math.abs(R.dump_pct) + '% or more. These held up on every one of the quarter (three or more) and ' + (live ? 'are holding up in this session too.' : 'held up in this session too.') },
-        { key: 'groups', title: isEtf ? 'Asset classes' : 'Sectors', hint: 'share ' + shareWord, n: sectors.length, rows: sectors.map(grow), none: 'none' }
-      ];
+        { key: 'groups', short: isEtf ? 'ASSET CLASSES' : 'SECTORS', full: grpFull(isEtf ? 'classes' : 'sectors', sectors, isEtf ? 'Asset class' : 'Sector', false, -1, isEtf ? ['asset class', 'asset classes'] : ['sector', 'sectors'], 'sector'),
+          title: isEtf ? 'Asset classes' : 'Sectors', hint: 'share ' + shareWord, n: sectors.length, rows: sectors.map(grow), none: 'none' }
+      ].filter(function (l) { return l; });
       if (!isEtf) {
-        lists.push({ key: 'industries-holding', title: 'Industries ' + (red ? shareWord : 'ahead'), hint: (R.industry_min || 5) + ' or more ' + S.unit + 's', n: inds.length, rows: inds.slice(0, 15).map(grow), none: 'no industry has enough names' });
-        lists.push({ key: 'industries-breaking', title: live ? 'Industries breaking' : 'Industries that broke', hint: 'lowest share ' + shareWord, n: inds.length, rows: inds.slice(-15).reverse().map(grow), none: 'no industry has enough names' });
-      } else lists.push({ key: 'down-most-etf', title: 'Down the most', hint: 'by the move', n: more.length, rows: more.map(row), none: 'none' });
+        lists.push({ key: 'industries-holding', short: 'INDUSTRIES, BEST FIRST', full: grpFull('industries', inds, 'Industry', true, -1, indUnits, 'industry'),
+          title: 'Industries ' + (red ? shareWord : 'ahead'), hint: (R.industry_min || 5) + ' or more ' + S.unit + 's', n: inds.length, rows: inds.slice(0, 15).map(grow), none: 'no industry has enough names' });
+        lists.push({ key: 'industries-breaking', short: 'INDUSTRIES, WORST FIRST', full: grpFull('industries-worst-first', indsUp, 'Industry', true, 1, indUnits, 'industry'),
+          title: live ? 'Industries breaking' : 'Industries that broke', hint: 'lowest share ' + shareWord, n: inds.length, rows: inds.slice(-15).reverse().map(grow), none: 'no industry has enough names' });
+      } else if (red) lists.push({ key: 'down-most-etf', short: 'DOWN MORE', full: all('down-most-etf', more, 'ret', 1), title: 'Down the most', hint: 'by the move', n: more.length, rows: more.map(row), none: 'none' });
       return {
         eyebrow: 'Strength tearsheet' + DOT + when + DOT + num(counted.length) + ' stocks and ETFs counted',
         title: title,
@@ -1287,10 +1465,13 @@
           ['Caveat:', (live ? 'these are forming bars, ' + (v.delay_minutes || 15) + ' minutes behind the market, and the session is not over. ' : 'this is the last finished session. ')
             + num(aside) + ' names are measured and set aside from every count (pinned to a deal price, leveraged or inverse funds, an unexplained jump, thin trading)'
             + ((v.unconfirmed || []).length ? '; ' + num(v.unconfirmed.length) + ' moves the size of a split with none on record are shown as unconfirmed and not counted' : '') + '. Holding up on a down day is a fact about one session, not a forecast.']],
-        ring: { title: 'Market value by outcome', hint: 'against SPY', n: rows.length, center: money(total), subs: [num(rows.length) + ' ' + S.unit.toUpperCase() + 'S', (red ? (live ? 'HOLDING UP ' : 'HELD UP ') : 'UP OR FLAT ') + p0(red ? share(heldCap, total) : share(sum(rows.filter(function (r) { return r.out === 'up' || r.out === 'flat'; }), cap), total))],
+        ring: { title: 'Market value by outcome', hint: 'against SPY', open: 'all', n: rows.length, center: money(total), subs: [num(rows.length) + ' ' + S.unit.toUpperCase() + 'S', (red ? (live ? 'HOLDING UP ' : 'HELD UP ') : 'UP OR FLAT ') + p0(red ? share(heldCap, total) : share(sum(rows.filter(function (r) { return r.out === 'up' || r.out === 'flat'; }), cap), total))],
           whole: 'the scope\'s market value', aria: 'Market value of ' + S.word + ' by how each is doing against SPY', slices: slices,
           caption: 'Each counted ' + S.unit + ' once, at its market value' + (isEtf ? ' (a fund\'s assets)' : '') + ', by how it ' + (live ? 'is doing against SPY today' : 'did against SPY on ' + day(v.session)) + '. The count beside each slice is its share of the names, which can differ widely from its share of the value.' },
-        lists: lists,
+        /* the cards of the sheet; `more` are lists that open in full without a card (a ring slice or a category button opens them); `order` is
+           the order of the category buttons */
+        lists: lists.filter(function (l) { return l.card !== false; }), more: lists.filter(function (l) { return l.card === false; }),
+        order: ['all', 'up', 'flat', 'down-less', 'down-more', 'down-most', 'down-most-etf', 'strong-holding', 'strong-breaking', 'weak-bid', 'repeat', 'groups', 'industries-holding', 'industries-breaking'],
         foot: 'Source: justhodl-strength ' + ((v.table || {}).version || '') + ' (data/strength-wide.json, published ' + String((v.table || {}).generated_at || '').slice(0, 16).replace('T', ' ') + ' UTC, closes of ' + day(v.table_as_of) + ')'
           + (live ? ' under justhodl-polygon-today\'s forming day bars (data/warm/polygon-full/today.json.gz, every five minutes in the session, ' + (v.delay_minutes || 15) + ' minutes delayed)' : '')
           + '. The universe is every listed common stock and plain ETF trading $250k a day or more. The move is the last price over the close before.'
@@ -1325,12 +1506,54 @@
       }
       catch (e) { el.hidden = false; el.dataset.state = 'error'; el.innerHTML = '<div class="jts-in"><div class="jts-wait">The tearsheet could not be built from this feed (' + esc(e && e.message || e) + '). The rest of the page is unaffected.</div></div>'; }
     }
+    /* -- a list opened in full: which one, how it is ranked, what is being looked for -- */
+    function openList() { var o = el.__open, m = el.__model; return o && m ? fullLists(m).filter(function (l) { return l.key === o.key && l.full; })[0] : null; }
+    /* an opened list starts where the reader is looking: its own top comes into view when it is above the screen or far down it
+       (a card clicked deep in a long sheet); back on the sheet, the sheet's top comes back when it is above the screen */
+    function top() {
+      try {
+        var f = el.querySelector('.jts-full'), y = (f || el).getBoundingClientRect().top;
+        if (f ? (y < 0 || y > window.innerHeight * 0.55) : y < 0) (f || el).scrollIntoView({ block: 'start' });
+      } catch (e) { /* no layout: nothing to bring into view */ }
+    }
+    function body() { var l = openList(), host = el.querySelector('[data-jts-fbody]'); if (l && host) host.innerHTML = fullBody(l, el.__open, el.clientWidth < 520); else paint(); }
+    function show(key) { el.__open = key ? { key: key, sort: null, q: '', all: false } : null; paint(); top(); }
+    function rank(id) {
+      var l = openList();
+      if (!l) return;
+      var c = l.full.cols.filter(function (x) { return x.id === id; })[0], s = fullSortOf(l.full, el.__open);
+      if (!c) return;
+      el.__open.sort = s && s.k === id ? { k: id, d: -s.d } : { k: id, d: c.type === 's' ? 1 : -1 };
+      body();
+    }
+    function press(e) {
+      var o = e.target.closest('[data-jts-open]'), h = e.target.closest('[data-jts-sort]'), p = e.target.closest('[data-jts-pick]');
+      if (p) {
+        var l = openList();
+        if (l && l.full.pick) el.dispatchEvent(new CustomEvent('jts:pick', { bubbles: true, detail: l.full.pick(fullRows(l.full, el.__open)[+p.getAttribute('data-jts-pick')]) }));
+        return true;
+      }
+      if (o) { show(o.getAttribute('data-jts-open')); return true; }
+      if (h) { rank(h.getAttribute('data-jts-sort')); return true; }
+      return false;
+    }
     el.addEventListener('click', function (e) {
       var c = e.target.closest('[data-jts-ctl]'), a = e.target.closest('[data-jts-act]');
       if (c) { state.fund = c.getAttribute('data-jts-ctl'); paint(); return; }
-      if (!a) return;
+      if (!a) { press(e); return; }
       var act = a.getAttribute('data-jts-act');
       if (act === 'more') { el.__long = !el.__long; paint(); }
+      if (act === 'close') show(null);
+      if (act === 'all' && el.__open) { el.__open.all = true; body(); }
+      if (act === 'csv') {
+        var l = openList();
+        if (!l) return;
+        var link = document.createElement('a');
+        link.href = URL.createObjectURL(new Blob([fullCsv(l.full, fullRows(l.full, el.__open))], { type: 'text/csv' }));
+        link.download = (l.full.file || l.key) + '.csv';
+        document.body.appendChild(link); link.click(); link.remove();
+        setTimeout(function () { URL.revokeObjectURL(link.href); }, 4000);
+      }
       if (act === 'print') {
         document.documentElement.classList.add('jts-print');
         var done = function () { document.documentElement.classList.remove('jts-print'); window.removeEventListener('afterprint', done); };
@@ -1341,6 +1564,17 @@
         var url = location.origin + location.pathname + '#' + el.id, ok = function () { var t = a.textContent; a.textContent = 'COPIED'; setTimeout(function () { a.textContent = t; }, 1400); };
         try { navigator.clipboard.writeText(url).then(ok, function () { window.prompt('Copy this link', url); }); } catch (err) { window.prompt('Copy this link', url); }
       }
+    });
+    el.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && el.__open) { show(null); return; }
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('[data-jts-open]:not(button),[data-jts-sort]') && press(e)) e.preventDefault();
+    });
+    var typing = null;
+    el.addEventListener('input', function (e) {
+      if (!e.target.hasAttribute || !e.target.hasAttribute('data-jts-find') || !el.__open) return;
+      el.__open.q = e.target.value; el.__open.all = false;
+      clearTimeout(typing);
+      typing = setTimeout(body, 120);
     });
     /* A desk with tabs tells its sheet which one is open: el.dispatchEvent(new CustomEvent('jts:set', { detail: { tab: 'sc' } })) */
     el.addEventListener('jts:set', function (e) {
@@ -1367,7 +1601,7 @@
   }
 
   function boot() { Array.prototype.forEach.call(document.querySelectorAll('[data-jts]'), mount); }
-  var api = { version: '1.5.0', render: render, ring: ring, adapters: ADAPTERS, mount: mount, money: money, pct: pct };
+  var api = { version: '1.6.0', render: render, ring: ring, adapters: ADAPTERS, mount: mount, money: money, pct: pct, full: { rows: fullRows, csv: fullCsv, body: fullBody, html: fullHtml, page: FULL_PAGE } };
   if (typeof module === 'object' && module.exports) module.exports = api;   /* node: the adapters and the ring are pure, tests/tearsheet-kit.test.js */
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
   window.JHTearsheet = api;

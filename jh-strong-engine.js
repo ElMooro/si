@@ -227,9 +227,13 @@
       etf_up: names(etfBoard.filter(function (r) { return r.out === "up"; }), "ret"),
       etf_down_most: names(etfBoard, "ret", false)
     };
-    return { n_counted: pop.length, regime: regimeOf(spy, rules), groups: groups, mcap_1b: cap, by_sector: by_sector, by_class: by_class,
+    var out = { n_counted: pop.length, regime: regimeOf(spy, rules), groups: groups, mcap_1b: cap, by_sector: by_sector, by_class: by_class,
              industries: { n: industries.length, holding: industries.slice(0, 15), breaking: industries.slice(-15).reverse() },
              by_rank: by_rank, rank_col: rankCol, n_ranked_1b: m, by_record: by_record, record_cols: [dnCol, dhCol], boards: boards };
+    // every industry, best first, for the page (the read itself stays wide.py's: fifteen at each end). Not enumerable, so the read still
+    // compares and serialises as the reference's.
+    Object.defineProperty(out, "industries_all", { value: industries, enumerable: false });
+    return out;
   }
 
   /* ---- the desk's view of a session: the join, the read, and what each bar adds ---- */
@@ -274,7 +278,7 @@
     j.spy.vol = (sb[4] != null && bmAv) ? sb[4] / bmAv : null;
     return { contract: "strength-view.v1", mode: mode, session: j.session, rank_as_of: j.as_of, table_as_of: doc.as_of, bars_as_of: j.bars_as_of, delay_minutes: j.delay_minutes,
              gap_sessions: mode === "live" ? weekdaysBetween(doc.as_of, j.session) : null,
-             spy: j.spy, rows: j.rows, read: read, rules: rules, rank_col: rankCol, record_cols: rec, pace: pace,
+             spy: j.spy, rows: j.rows, read: read, industries: read.industries_all || [], rules: rules, rank_col: rankCol, record_cols: rec, pace: pace,
              n_no_print: j.rows.filter(function (r) { return !r.bar; }).length, unconfirmed: j.rows.filter(function (r) { return r.unconfirmed; }),
              splits_today: j.rows.filter(function (r) { return r.split; }), universe: doc.universe || {}, dump_days: doc.dump_days || [], rally_days: doc.rally_days || [],
              table: { version: doc.version, generated_at: doc.generated_at, as_of: doc.as_of, prior_session: doc.prior_session, definitions: doc.definitions || {}, sources: doc.sources || [], last_session: doc.last_session || null },

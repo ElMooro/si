@@ -225,8 +225,9 @@ test('the CSV carries every column of every view, the outcome as a word', () => 
   for (const id of new Set([].concat(T.VIEWS.today, T.VIEWS.record, T.VIEWS.trend))) assert.ok(T.COL[id], id);
   const lines = T.csvOf(cols, rows, v.class_labels).split('\n'), head = lines[0].split(',');
   assert.equal(lines.length, 4);
-  assert.deepEqual(head.slice(0, 3), ['t', 'name', 'where']);
-  assert.deepEqual(head.slice(-5), ['sector', 'industry', 'kind', 'set_aside', 'outcome']);
+  assert.deepEqual(head.slice(0, 4), ['t', 'name', 'where', 'industry']);
+  assert.deepEqual(head.slice(-4), ['sector', 'kind', 'set_aside', 'outcome']);
+  assert.equal(head.filter(h => h === 'industry').length, 1);
   const cell = (line, id) => line.split(',')[head.indexOf(id)];                // none of these three names holds a comma
   for (const [i, r] of rows.entries()) {
     assert.equal(cell(lines[i + 1], 't'), r.t);
@@ -240,13 +241,16 @@ test('the CSV carries every column of every view, the outcome as a word', () => 
   assert.doesNotMatch(lines.join('\n'), /undefined|NaN|\[object/);
 });
 
+// what a sheet prints: a list's `full` holds the desk's own rows (blanks and all) for the kit to rank; its cells are tested where they are drawn
+const shown = (k, v) => (k === 'full' ? undefined : v);
+
 test('the tearsheet: a ring of market value by outcome, tiles that restate the read, lists by what was carried in', () => {
   const v = view(), ad = kit.adapters.strength, m = ad.build([clone(v)], {});
   assert.deepEqual(m.controls.map(c => [c.id, c.label, c.on]), [['b1', '$1B+ STOCKS', true], ['sp', 'S&P 500', false], ['all', 'EVERY STOCK', false], ['etf', 'ETFS', false]]);
   assert.equal(m.tiles.length, 6);
   assert.equal(m.notes.length, 3);
   assert.equal(m.cards.length, 2);
-  assert.doesNotMatch(JSON.stringify(m), /undefined|NaN|Infinity|\[object|\bnull\b/);
+  assert.doesNotMatch(JSON.stringify(m, shown), /undefined|NaN|Infinity|\[object|\bnull\b/);
   const R = v.rules, scope = v.rows.filter(r => r.counted && r.kind === 'stock' && (r.mcap || 0) >= R.board_min_mcap), g = v.read.groups.stocks_1b;
   // the ring is the scope's market value, each name once
   const ring = sum(m.ring.slices, s => s.value);
@@ -317,7 +321,7 @@ test('the tearsheet follows the scope and the session', () => {
   const U = ad.build([clone(view(up))], {});
   assert.equal(U.tiles[1].k, 'Ahead of SPY');
   assert.deepEqual(U.lists.slice(0, 2).map(l => l.key), ['up', 'down-most']);
-  assert.doesNotMatch(JSON.stringify([sp, all, etf, L, U]), /undefined|NaN|Infinity|\[object|\bnull\b/);
+  assert.doesNotMatch(JSON.stringify([sp, all, etf, L, U], shown), /undefined|NaN|Infinity|\[object|\bnull\b/);
 });
 
 test('the sheet takes the desk\'s view, on every refresh, and reads the table itself only if none arrives', () => {
@@ -393,4 +397,184 @@ test('the engine reads three feeds and nothing else; a missing table never costs
   assert.equal((await E3.run()).market.mode, 'live');
   fail = true;
   assert.equal((await E3.run()).market.mode, 'live');
+});
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Khalid 2026-11-20 17:46 ET: "you are only displaying the first six of each category - when i click on that category i
+// should be able to view the entire list and sort them by market cap and by industry and sort them ascending and
+// descending". Every list of the sheet opens in full (kit 1.6.0): all of its rows, ranked by any column either way.
+const every = m => m.lists.concat(m.more || []);
+const tickers = rows => rows.map(r => r.t);
+
+test('every category opens in full: the whole list behind each card, each ring slice and the ring itself', () => {
+  const v = view(), ad = kit.adapters.strength, R = v.rules;
+  for (const fund of ['b1', 'sp', 'all', 'etf']) {
+    const m = ad.build([clone(v)], { fund }), lists = every(m), by = Object.fromEntries(lists.map(l => [l.key, l]));
+    // each card opens, and what opens is the card's own list: the same count, the same first rows in the same order
+    for (const l of m.lists) {
+      assert.ok(l.full && l.short, fund + ' ' + l.key);
+      if (l.key.startsWith('industries')) { assert.ok(l.full.rows.length >= l.rows.length && l.full.rows.length === l.n, l.key); continue; }
+      assert.equal(l.full.rows.length, l.n, fund + ' ' + l.key);
+      assert.deepEqual(l.full.rows.slice(0, 15).map(r => r.t || r.name), l.rows.slice(0, 15).map(r => r.name.split(' · ')[0]), fund + ' ' + l.key);
+    }
+    // the ring opens every counted name of the scope; each slice opens the names of its outcome
+    assert.equal(m.ring.open, 'all');
+    assert.equal(by.all.full.rows.length, m.ring.n);
+    assert.ok(by.all.card === false && by.flat.card === false && !m.lists.some(l => l.card === false));
+    const skip = fund === 'etf' ? (R.board_skip_cls || []) : [];
+    for (const [i, out] of ['up', 'flat', 'down_less', 'down_more'].entries()) {
+      const l = by[m.ring.slices[i].open];
+      assert.ok(l && l.full, fund + ' ' + out + ' -> ' + m.ring.slices[i].open);
+      assert.ok(l.full.rows.every(r => r.out === out), fund + ' ' + out);
+      assert.equal(l.full.rows.length, by.all.full.rows.filter(r => r.out === out && !skip.includes(r.cls)).length, fund + ' ' + out);
+    }
+    // the four outcomes are the whole scope, each name once (the funds that hold volatility are in "all" and on no list of names)
+    const named = by.all.full.rows.filter(r => !skip.includes(r.cls));
+    assert.equal(sum(['up', 'flat', 'down_less', 'down_more'], (o) => by[m.ring.slices[['up', 'flat', 'down_less', 'down_more'].indexOf(o)].open].full.rows.length), named.length);
+    assert.deepEqual(every(m).map(l => l.key).filter(k => !m.order.includes(k)), [], 'every list has its place among the category buttons');
+    // market value and (for companies) industry are columns of every list of names
+    const cols = by.up.full.cols.map(c => c.id);
+    assert.ok(cols.includes('mcap') && cols.includes('sector') && (fund === 'etf' ? cols.includes('adv') && !cols.includes('industry') : cols.includes('industry')), fund + ' ' + cols);
+    assert.equal(by.up.full.href(by.all.full.rows[0]), '/chart.html?s=' + encodeURIComponent(by.all.full.rows[0].t));
+  }
+  // with SPY not falling the cards differ; every outcome still opens
+  const U = ad.build([clone(view(Object.assign(clone(FX.today), { rows: Object.assign(clone(FX.today.rows), { SPY: (() => { const b = clone(FX.today.rows.SPY); b[3] = FX.wide.benchmark.c * 1.004; return b; })() }) })))], {});
+  const ub = Object.fromEntries(every(U).map(l => [l.key, l]));
+  assert.deepEqual(U.ring.slices.map(s => s.open), ['up', 'flat', 'down-less', 'down-most']);
+  assert.ok(ub['down-less'].card === false && ub['down-most'].card !== false && ub['down-less'].full && ub['down-most'].full);
+});
+
+test('an open list ranks by any column either way: market value, industry, the move; blanks last, ties in the list\'s own order', () => {
+  const v = view(), m = kit.adapters.strength.build([clone(v)], {}), up = every(m).find(l => l.key === 'up'), F = kit.full, f = up.full;
+  const col = id => f.cols.find(c => c.id === id);
+  // unranked = the list's own order, and the heading says which column that is
+  assert.deepEqual(tickers(F.rows(f, { sort: null, q: '' })), tickers(f.rows));
+  assert.deepEqual(f.sort, { k: 'ret', d: -1 });
+  for (let i = 1; i < f.rows.length; i++) assert.ok(f.rows[i - 1].ret >= f.rows[i].ret);
+  // market value: largest first, then smallest first
+  const big = F.rows(f, { sort: { k: 'mcap', d: -1 } }), small = F.rows(f, { sort: { k: 'mcap', d: 1 } });
+  assert.equal(big.length, f.rows.length);
+  for (let i = 1; i < big.length; i++) assert.ok(big[i - 1].mcap >= big[i].mcap, big[i - 1].t + ' ' + big[i].t);
+  for (let i = 1; i < small.length; i++) assert.ok(small[i - 1].mcap <= small[i].mcap);
+  assert.equal(big[0].mcap, Math.max(...f.rows.map(r => r.mcap)));
+  assert.equal(small[0].mcap, Math.min(...f.rows.map(r => r.mcap)));
+  // industry: A to Z keeps each industry together and, inside one, the list's own order (the move); Z to A is the mirror by industry
+  const az = F.rows(f, { sort: { k: 'industry', d: 1 } }), za = F.rows(f, { sort: { k: 'industry', d: -1 } });
+  const low = r => String(r.industry || '').toLowerCase(), named = az.filter(r => r.industry);
+  for (let i = 1; i < named.length; i++) {
+    assert.ok(low(named[i - 1]) <= low(named[i]));
+    if (low(named[i - 1]) === low(named[i])) assert.ok(named[i - 1].ret >= named[i].ret, 'inside an industry the list keeps its own order');
+  }
+  assert.deepEqual([...new Set(za.filter(r => r.industry).map(low))], [...new Set(named.map(low))].reverse());
+  assert.ok(new Set(named.map(low)).size > 20);
+  // a blank is last whichever way the column runs
+  const rows = [{ t: 'A', mcap: 5 }, { t: 'B', mcap: null }, { t: 'C', mcap: 9 }, { t: 'D', mcap: 5 }, { t: 'E' }];
+  const g = { cols: [{ id: 't', t: 'Ticker', type: 's', get: r => r.t }, { id: 'mcap', t: 'Mkt value', type: 'n', get: r => r.mcap }], rows };
+  assert.deepEqual(tickers(F.rows(g, { sort: { k: 'mcap', d: -1 } })), ['C', 'A', 'D', 'B', 'E']);
+  assert.deepEqual(tickers(F.rows(g, { sort: { k: 'mcap', d: 1 } })), ['A', 'D', 'C', 'B', 'E']);
+  assert.deepEqual(tickers(F.rows(g, { sort: { k: 't', d: -1 } })), ['E', 'D', 'C', 'B', 'A']);
+  assert.deepEqual(tickers(F.rows(g, { sort: { k: 'nope', d: 1 } })), ['A', 'B', 'C', 'D', 'E']);
+  // every column of every list ranks without throwing and keeps every row, both ways
+  for (const l of every(m)) for (const c of l.full.cols) for (const d of [-1, 1]) assert.equal(F.rows(l.full, { sort: { k: c.id, d } }).length, l.full.rows.length, l.key + ' ' + c.id);
+  // the dump-day column ranks by the share held, a longer record ahead of a shorter one at the same share
+  const dump = F.rows(f, { sort: { k: 'dump', d: -1 } }).filter(r => r.rec_n);
+  for (let i = 1; i < dump.length; i++) assert.ok(dump[i - 1].rec_h / dump[i - 1].rec_n >= dump[i].rec_h / dump[i].rec_n - 1e-3);
+  assert.equal(col('dump').fmt(dump[0]), dump[0].rec_h + '/' + dump[0].rec_n);
+});
+
+test('an open list is found by ticker, name, sector or industry, drawn 200 rows at a time, and saved as CSV', () => {
+  const v = view(), m = kit.adapters.strength.build([clone(v)], {}), by = Object.fromEntries(every(m).map(l => [l.key, l])), F = kit.full, all = by.all;
+  // find: a ticker from its first letters, a name or an industry from any part of it
+  const some = all.full.rows.find(r => r.industry && r.industry.includes('Banks')), word = 'banks';
+  const found = F.rows(all.full, { q: word });
+  assert.ok(found.length > 5 && found.every(r => (r.name + ' ' + r.sector + ' ' + r.industry).toLowerCase().includes(word) || r.t.toLowerCase().startsWith(word)));
+  assert.ok(found.includes(some));
+  const nv = F.rows(all.full, { q: 'NV' });
+  assert.ok(nv.length && nv.every(r => r.t.startsWith('NV') || (r.name + ' ' + r.sector + ' ' + r.industry).toLowerCase().includes('nv')));
+  assert.ok(nv.some(r => r.t.startsWith('NV')) && !nv.some(r => r.t.includes('NV') && !r.t.startsWith('NV') && !(r.name + ' ' + r.sector + ' ' + r.industry).toLowerCase().includes('nv')));
+  assert.equal(F.rows(all.full, { q: 'zzzzqq' }).length, 0);
+  // found, then ranked
+  const ranked = F.rows(all.full, { q: word, sort: { k: 'mcap', d: -1 } });
+  assert.deepEqual(tickers(ranked).sort(), tickers(found).sort());
+  for (let i = 1; i < ranked.length; i++) assert.ok(ranked[i - 1].mcap >= ranked[i].mcap);
+  // the drawing: a heading that says how the list is ranked, an arrow on that column, 200 rows and a button for the rest
+  assert.ok(all.full.rows.length > F.page);
+  const html = F.body(all, { key: 'all', sort: { k: 'mcap', d: -1 }, q: '', all: false });
+  assert.equal((html.match(/<tr><td class="jts-fi">/g) || []).length, F.page);
+  assert.match(html, new RegExp('data-jts-count>' + all.full.rows.length.toLocaleString('en-US') + ' stocks · ranked by Mkt value, highest first'));
+  assert.match(html, /data-jts-sort="mcap" tabindex="0" aria-sort="descending"/);
+  assert.equal((html.match(/aria-sort=/g) || []).length, 1);
+  assert.match(html, new RegExp('data-jts-act="all">SHOW ALL ' + all.full.rows.length.toLocaleString('en-US') + ' ROWS'));
+  assert.equal(all.full.cols.every(c => html.includes('data-jts-sort="' + c.id + '"')), true);
+  const whole = F.body(all, { key: 'all', sort: { k: 'industry', d: 1 }, q: '', all: true });
+  assert.equal((whole.match(/<tr><td class="jts-fi">/g) || []).length, all.full.rows.length);
+  assert.match(whole, /ranked by Industry, A to Z/);
+  assert.ok(!whole.includes('data-jts-act="all"'));
+  assert.doesNotMatch(whole.replace(/<[^>]+>/g, ' '), /undefined|NaN|Infinity|\[object|\bnull\b/);
+  assert.match(whole, /<td class="l jts-fk"><a href="\/chart\.html\?s=[A-Z.%0-9]+">/);
+  assert.match(F.body(all, { key: 'all', sort: null, q: 'zzzzqq', all: false }), /Nothing in this list matches “zzzzqq”\./);
+  // the full view: one button a category in the model's order, the open one pressed, a find box, CSV, the way back
+  const page = F.html(m, by.up, { key: 'up', sort: null, q: '', all: false });
+  const btn = [...page.matchAll(/data-jts-open="([^"]+)" aria-pressed="(true|false)"/g)].map(x => [x[1], x[2]]);
+  assert.deepEqual(btn.map(b => b[0]), ['all', 'up', 'flat', 'down-less', 'down-more', 'strong-holding', 'strong-breaking', 'weak-bid', 'repeat', 'groups', 'industries-holding', 'industries-breaking']);
+  assert.deepEqual(btn.filter(b => b[1] === 'true').map(b => b[0]), ['up']);
+  assert.ok(page.includes('data-jts-find') && page.includes('data-jts-act="csv"') && page.includes('data-jts-act="close"') && page.includes('ranked by Move, highest first'));
+  // a phone gets the same columns, the answer beside the ticker and the long text last
+  const phone = F.body(by.up, { key: 'up', sort: null, q: '', all: false }, true), ids = h => [...h.matchAll(/data-jts-sort="([^"]+)"/g)].map(x => x[1]);
+  assert.deepEqual(ids(phone).slice(0, 5), ['t', 'ret', 'x', 'mcap', 'industry']);
+  assert.deepEqual(ids(phone).slice().sort(), by.up.full.cols.map(c => c.id).sort());
+  assert.deepEqual(ids(F.body(by.up, { key: 'up', sort: null, q: '', all: false })), by.up.full.cols.map(c => c.id));
+  // CSV: the columns by their headings, every row of the list as ranked, numbers as numbers, the outcome as a word
+  const csv = F.csv(by.up.full, F.rows(by.up.full, { sort: { k: 'mcap', d: 1 } })).split('\n');
+  assert.equal(csv.length, by.up.full.rows.length + 1);
+  assert.equal(csv[0], 'Ticker,Name,Sector,Industry,Mkt value,Last,Move,vs SPY,Against SPY,Rank in,Dump days,From open,Day range,vs VWAP,Vol pace');
+  const first = F.rows(by.up.full, { sort: { k: 'mcap', d: 1 } })[0];
+  assert.ok(csv[1].startsWith(first.t + ',') && csv[1].includes(',Up,') && csv[1].includes(String(first.mcap)), csv[1]);
+  assert.doesNotMatch(csv.join('\n'), /undefined|NaN|\[object/);
+  assert.match(by.up.full.file, /^strength-up-b1-\d{4}-\d{2}-\d{2}-live$/);
+});
+
+test('sectors and industries open in full too, and a row hands its names to the table below', () => {
+  const v = view(), ad = kit.adapters.strength, m = ad.build([clone(v)], {}), by = Object.fromEntries(every(m).map(l => [l.key, l])), F = kit.full, R = v.rules;
+  const scope = v.rows.filter(r => r.counted && r.kind === 'stock' && (r.mcap || 0) >= R.board_min_mcap);
+  // sectors: every sector of the scope with its counts; industries: every industry with enough names, best first and worst first
+  const sec = by.groups.full, ind = by['industries-holding'].full, worst = by['industries-breaking'].full;
+  assert.deepEqual(sec.rows.map(g => g.name).sort(), [...new Set(scope.map(r => r.sector || 'Unclassified'))].sort());
+  assert.equal(sum(sec.rows, g => g.n), scope.length);
+  assert.equal(ind.rows.length, by['industries-holding'].n);
+  assert.ok(ind.rows.length > 30 && ind.rows.every(g => g.n >= (R.industry_min || 5) && g.sector));
+  assert.deepEqual(worst.rows.map(g => g.name), ind.rows.map(g => g.name).reverse());
+  assert.deepEqual([sec.sort, ind.sort, worst.sort], [{ k: 'held', d: -1 }, { k: 'held', d: -1 }, { k: 'held', d: 1 }]);
+  assert.deepEqual(ind.cols.map(c => c.id), ['name', 'sector', 'n', 'held', 'up', 'beat', 'more', 'med', 'mcap']);
+  const g0 = ind.rows.find(g => g.name === 'Semiconductors') || ind.rows[0], members = scope.filter(r => r.industry === g0.name);
+  assert.equal(g0.n, members.length);
+  assert.ok(Math.abs(g0.mcap - sum(members, r => r.mcap || 0)) < 1);
+  const byCap = F.rows(ind, { sort: { k: 'mcap', d: -1 } });
+  for (let i = 1; i < byCap.length; i++) assert.ok(byCap[i - 1].mcap >= byCap[i].mcap);
+  assert.deepEqual(F.rows(ind, { sort: { k: 'name', d: 1 } }).map(g => g.name), ind.rows.map(g => g.name).sort((a, b) => (a.toLowerCase() < b.toLowerCase() ? -1 : 1)));
+  const html = F.body(by['industries-holding'], { key: 'industries-holding', sort: null, q: '', all: true });
+  assert.equal((html.match(/data-jts-pick="/g) || []).length, ind.rows.length);
+  assert.match(html, new RegExp('data-jts-count>' + ind.rows.length + ' industries · ranked by Holding up, highest first'));
+  assert.doesNotMatch(html.replace(/<[^>]+>/g, ' '), /undefined|NaN|Infinity|\[object|\bnull\b/);
+  // a row's hand-over is what the table below needs: the kind, the size scope of the sheet, the sector or the industry
+  assert.deepEqual(ind.pick(g0), { desk: 'strength', kind: 'stock', scope: 'b1', industry: g0.name });
+  assert.deepEqual(sec.pick(sec.rows[0]), { desk: 'strength', kind: 'stock', scope: 'b1', sector: sec.rows[0].name });
+  const sp = ad.build([clone(v)], { fund: 'sp' }), etf = ad.build([clone(v)], { fund: 'etf' });
+  assert.equal(every(sp).find(l => l.key === 'groups').full.pick({ name: 'Energy' }).scope, 'sp');
+  const cls = every(etf).find(l => l.key === 'groups');
+  assert.deepEqual(cls.full.pick(cls.full.rows[0]), { desk: 'strength', kind: 'etf', scope: 'b1', sector: cls.full.rows[0].name });
+  // ... and the table lists exactly those names: the industry filter, the Industry column, the full industry list of the page
+  const want = { kind: 'stock', scope: 'b1', out: 'all', rank: 'all', show: 'counted', sector: '', industry: g0.name, q: '' };
+  assert.deepEqual(tickers(v.rows.filter(T.rowFilter(v, want))).sort(), tickers(members).sort());
+  const cut = v.rows.filter(T.rowFilter(v, Object.assign({}, want, { industry: '', sector: cls.full.rows[0].name, kind: 'etf' })));
+  assert.equal(cut.length, cls.full.rows[0].n);
+  assert.ok(T.VIEWS.today.includes('ind') && T.PHONE_TODAY.includes('ind') && T.COL.ind.t === 'Industry');
+  assert.equal(T.COL.ind.get(members[0]), g0.name);
+  assert.equal(T.COL.ind.get(v.rows.find(r => r.kind === 'etf')), null);
+  assert.equal(v.industries.length, v.read.industries.n);
+  assert.deepEqual(v.industries.slice(0, 15), v.read.industries.holding);
+  assert.deepEqual(v.industries.slice(-15).reverse(), v.read.industries.breaking);
+  assert.ok(!Object.keys(v.read).includes('industries_all') && !JSON.stringify(v.read).includes('industries_all'), 'the read stays the reference\'s');
+  assert.equal(typeof T.pick, 'function');
+  assert.equal(T.pick({ kind: 'stock', industry: g0.name }), false, 'nothing is drawn before the desk has a view');
 });

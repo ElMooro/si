@@ -31,7 +31,12 @@
   .sx-row label{font:11px var(--jh-mono);color:var(--jh-dim);display:inline-flex;gap:6px;align-items:center}
   .sx-in{background:var(--jh-panel);border:1px solid var(--jh-line);color:var(--jh-ink);font:12px var(--jh-mono);padding:5px 8px;border-radius:4px;min-width:0;max-width:100%}
   input.sx-in{width:190px}
-  select.sx-in{max-width:260px}
+  select.sx-in{max-width:230px}
+  .sx-row label[hidden]{display:none}
+  /* a group's name opens its names in the table below */
+  .sx-lnk{background:none;border:0;border-bottom:1px dotted var(--jh-dim);border-radius:0;margin:0;padding:0;font:inherit;font-weight:700;color:var(--jh-ink);cursor:pointer;text-align:left}
+  .sx-lnk:hover,.sx-lnk:focus-visible{color:var(--jh-amber);border-bottom-color:var(--jh-amber);outline:none}
+  .sx-sec{scroll-margin-top:58px}
   .sx-btn{background:transparent;border:1px solid var(--jh-line);color:var(--jh-dim);font:11px var(--jh-mono);padding:5px 9px;border-radius:4px;cursor:pointer}
   .sx-btn:hover{color:var(--jh-ink);border-color:var(--jh-amber-dim)}
   .sx-more{display:block;width:100%;margin-top:6px;padding:8px;text-align:center}
@@ -86,10 +91,11 @@
   .sx-tbl td.na,.sx-tbl .dim,.jh-kpi .dim{color:var(--jh-dim)}
   .sx-tbl td.amber{color:var(--jh-amber)}
   .sx-tbl td.strong{font-weight:600}
-  .sx-tbl .nm{display:inline-block;max-width:158px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;color:var(--jh-dim)}
-  .sx-tbl .nm.wh{max-width:142px}
-  /* sixteen columns: a little less air so the session view fits a 1440 screen without scrolling sideways */
-  #names-tbl .sx-tbl th,#names-tbl .sx-tbl td{padding-left:8px;padding-right:8px}
+  .sx-tbl .nm{display:inline-block;max-width:116px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;color:var(--jh-dim)}
+  .sx-tbl .nm.wh{max-width:120px}
+  /* seventeen columns: a little less air and shorter meters so the session view fits a 1440 screen without scrolling sideways */
+  #names-tbl .sx-tbl th,#names-tbl .sx-tbl td{padding-left:6px;padding-right:6px}
+  #names-tbl .sx-bar{width:34px}#names-tbl .sx-track{width:40px}
   .sx-tbl .nm2{display:none}
   .sx-chip{display:inline-block;padding:0 5px;border-radius:3px;font:500 10px/1.75 var(--jh-mono);border:1px solid var(--jh-line);margin-right:4px;white-space:nowrap;color:var(--jh-ink)}
   .sx-chip.mute{color:var(--jh-dim)}
@@ -212,6 +218,7 @@
     <div class="sx-row" data-jh-chrome>
       <div class="jh-chips" id="names-view" role="group" aria-label="Columns"></div>
       <label>Sector <select class="sx-in" id="names-sector"></select></label>
+      <label>Industry <select class="sx-in" id="names-industry"></select></label>
       <label>Find <input class="sx-in" id="names-q" type="search" placeholder="ticker, name or industry" autocomplete="off"></label>
       <button type="button" class="sx-btn" id="names-reset">Clear filters</button>
       <button type="button" class="sx-btn" id="names-csv">Download CSV</button>

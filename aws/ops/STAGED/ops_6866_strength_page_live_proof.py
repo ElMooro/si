@@ -39,8 +39,9 @@ BASE = "https://justhodl.ai"
 DESK_KEY, WIDE_KEY, TODAY_KEY = "data/strength.json", "data/strength-wide.json", "data/warm/polygon-full/today.json.gz"
 UA = "Mozilla/5.0 (X11; Linux x86_64) jh-ops-probe Chrome"
 READ_KEYS = ("regime", "n_counted", "n_ranked_1b", "mcap_1b", "rank_col", "record_cols", "groups", "by_sector", "by_class", "industries", "by_rank", "by_record", "boards")
-VIEW_TODAY = ["t", "name", "where", "mcap", "px", "ret", "x", "out", "rank", "dump", "fo", "pos", "vwx", "rv", "ticks"]
-VIEW_PHONE = ["t", "name", "ret", "x", "out", "rank", "dump", "where", "mcap", "px", "fo", "pos", "vwx", "rv", "ticks"]
+VIEW_TODAY = ["t", "name", "where", "ind", "mcap", "px", "ret", "x", "out", "rank", "dump", "fo", "pos", "vwx", "rv", "ticks"]
+VIEW_PHONE = ["t", "name", "ret", "x", "out", "mcap", "where", "ind", "rank", "dump", "px", "fo", "pos", "vwx", "rv", "ticks"]
+KIT_MIN = (1, 6, 0)
 VIEW_RECORD = ["t", "name", "ret", "x", "out", "rank", "dump", "ds", "dx", "rally", "rx", "dnx", "upx", "both"]
 VIEW_TREND = ["t", "name", "ret", "x", "out", "rank", "x5", "x21", "x63", "x126", "p52", "ma", "atr", "mcap"]
 PAGE = 200
@@ -169,12 +170,18 @@ def scope_rows(ref, kind="stock", scope="b1", out="auto", rank="all", show="coun
 
 
 def ordered(rows, key, desc=True):
-    """jh-strong-today.js sortRows: nulls last, ties by ticker."""
-    have = [r for r in rows if r.get(key) is not None]
-    none = sorted((r for r in rows if r.get(key) is None), key=lambda r: str(r["t"]))
-    have.sort(key=lambda r: str(r["t"]))
+    """jh-strong-today.js sortRows: blanks last either way; equal values by the move against SPY (best first), then the ticker."""
+    tie = lambda r: (r.get("x") is None, -(r.get("x") or 0.0), str(r["t"]))
+    have = sorted((r for r in rows if r.get(key) is not None), key=tie)
     have.sort(key=lambda r: r[key], reverse=desc)
-    return have + none
+    return have + sorted((r for r in rows if r.get(key) is None), key=tie)
+
+
+def semver(v):
+    try:
+        return tuple(int(x) for x in str(v).split(".")[:3])
+    except ValueError:
+        return (0, 0, 0)
 
 
 def number(text):
@@ -407,7 +414,9 @@ def prove(browser, r, ck, shots, base=BASE, stamp=0, route=None, facts=None):
         press("today-group", "industry")
         s2 = state()
         ind = ref_for(s2)["read"]["industries"]
-        ck(s2["today"]["group"] == "industry" and len(s2["today"]["groups"]) == len({g["industry"] for g in ind["holding"] + ind["breaking"]}), "%s px: industries %d rows vs %d" % (tag, len(s2["today"]["groups"]), len({g["industry"] for g in ind["holding"] + ind["breaking"]})))
+        shown_ind = [g[0] for g in s2["today"]["groups"]]
+        ck(s2["today"]["group"] == "industry" and len(shown_ind) == ind["n"] and all(any(x == g["industry"] or x.startswith(g["industry"] + " ") for x in shown_ind) for g in ind["holding"] + ind["breaking"]),
+           "%s px: the industry table has %d rows, first %s; the reference has %d industries, best %s" % (tag, len(shown_ind), shown_ind[:3], ind["n"], [g["industry"] for g in ind["holding"][:3]]))
         press("today-group", "sector")
 
         # ------------------------------------------------------------------------------------ every stock and ETF
@@ -504,7 +513,7 @@ def prove(browser, r, ck, shots, base=BASE, stamp=0, route=None, facts=None):
 
         # ------------------------------------------------------------------------------------------ the tearsheet
         ck(s["sheet"]["eye"].startswith("Strength tearsheet") and (("today %s" % ref["session"]) if live else ("last session %s" % ref["session"])) in s["sheet"]["eye"] and ("justhodl-strength %s" % v["version"]) in s["sheet"]["foot"]
-           and s["kit"] == "1.5.0", "%s px: eyebrow '%s', source '%s', kit %s" % (tag, s["sheet"]["eye"], s["sheet"]["foot"][:80], s["kit"]))
+           and semver(s["kit"]) >= KIT_MIN, "%s px: eyebrow '%s', source '%s', kit %s" % (tag, s["sheet"]["eye"], s["sheet"]["foot"][:80], s["kit"]))
         r.log("sheet: %s" % s["sheet"]["eye"])
         r.log("sheet: %s" % s["sheet"]["title"])
         for t in s["sheet"]["tiles"]:

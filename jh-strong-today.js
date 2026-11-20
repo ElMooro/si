@@ -15,9 +15,9 @@
   var MINUS = "−", DASH = "—", MID = "·", TIMES = "×";
   var $ = function (id) { return w.document.getElementById(id); };
   var V = null;                                                      // the view on screen
-  var S = { kind: "stock", scope: "b1", out: "auto", rank: "all", show: "counted", sector: "", q: "", view: "today", group: "sector", carried: "record", all: false,
+  var S = { kind: "stock", scope: "b1", out: "auto", rank: "all", show: "counted", sector: "", industry: "", q: "", view: "today", group: "sector", carried: "record", all: false,
             sort: { names: null, groups: null } };
-  var HASH_KEYS = ["kind", "scope", "out", "rank", "show", "sector", "q", "view", "group", "carried"];
+  var HASH_KEYS = ["kind", "scope", "out", "rank", "show", "sector", "industry", "q", "view", "group", "carried"];
   var DEFAULTS = { kind: "stock", scope: "b1", out: "auto", rank: "all", show: "counted", view: "today", group: "sector", carried: "record" };
   var PAGE = 200;
   var OUT_WORD = { up: "UP", flat: "FLAT", down_less: "DOWN LESS", down_more: "DOWN MORE" };
@@ -144,15 +144,19 @@
     $("carried-note").textContent = note;
   }
   function cmp(a, b) { return a < b ? -1 : a > b ? 1 : 0; }
-  function sortRows(rows, col, dir) {
+  /* blanks last either way; equal values fall back to `tie` (the names table: the move against SPY, best first, so a list ranked by industry
+     or sector reads best-to-worst inside each one), then the ticker */
+  function sortRows(rows, col, dir, tie) {
+    var last = function (a, b) { return (tie ? tie(a, b) : 0) || cmp(String(a.t || a.name || ""), String(b.t || b.name || "")); };
     return rows.slice().sort(function (a, b) {
       var x = col.get(a), y = col.get(b);
-      if (x == null && y == null) return cmp(String(a.t || a.name || ""), String(b.t || b.name || ""));
+      if (x == null && y == null) return last(a, b);
       if (x == null) return 1;
       if (y == null) return -1;
-      return (dir < 0 ? -cmp(x, y) : cmp(x, y)) || cmp(String(a.t || a.name || ""), String(b.t || b.name || ""));
+      return (dir < 0 ? -cmp(x, y) : cmp(x, y)) || last(a, b);
     });
   }
+  function byX(a, b) { var x = a.x, y = b.x; return ((x == null) - (y == null)) || (x == null ? 0 : cmp(y, x)); }
   function head(table, cols, numbered) {
     var s = S.sort[table];
     return "<thead><tr>" + (numbered ? '<th class="sx-pos" title="position in the list on screen">#</th>' : "") + cols.map(function (c) {
@@ -164,7 +168,7 @@
     var s = S.sort[table], c = null;
     if (s) cols.forEach(function (x) { if (x.id === s.k) c = x; });
     if (s && !c && table === "names" && COL[s.k]) c = COL[s.k];        // ranked by a column the view on screen does not show: the order holds
-    var sorted = c ? sortRows(rows, c, s.d) : rows, shown = cap ? sorted.slice(0, cap) : sorted;
+    var sorted = c ? sortRows(rows, c, s.d, table === "names" ? byX : null) : rows, shown = cap ? sorted.slice(0, cap) : sorted;
     $(hostId).innerHTML = '<table class="jh-tbl sx-tbl">' + head(table, cols, numbered) + "<tbody>" +
       (shown.map(function (r, i) { return "<tr>" + (numbered ? '<td class="sx-pos">' + (i + 1) + "</td>" : "") + cols.map(function (x) { var h = x.cell(r); return h.indexOf('<td class="') === 0 ? '<td class="c-' + x.id + " " + h.slice(11) : '<td class="c-' + x.id + '"' + h.slice(3); }).join("") + "</tr>"; }).join("") ||
         '<tr><td class="jh-load" colspan="' + (cols.length + (numbered ? 1 : 0)) + '">' + esc(empty) + "</td></tr>") + "</tbody></table>";
@@ -186,7 +190,8 @@
   function GROUP_COLS(v, nameT) {
     var isRed = red(v);
     return [
-      { id: "group", t: nameT, type: "s", get: function (g) { return g.name; }, cell: function (g) { return '<td class="l"><b>' + esc(g.name) + "</b>" + (g.sub ? ' <span class="dim">' + esc(g.sub) + "</span>" : "") + "</td>"; } },
+      { id: "group", t: nameT, type: "s", get: function (g) { return g.name; },
+        cell: function (g) { return '<td class="l"><button type="button" class="sx-lnk" data-pick="' + esc(g.name) + '" title="Show these names in the table below">' + esc(g.name) + "</button>" + (g.sub ? ' <span class="dim">' + esc(g.sub) + "</span>" : "") + "</td>"; } },
       { id: "n", t: "Counted", get: function (g) { return g.n; }, cell: function (g) { return num(g.n, fint); } },
       { id: "mix", t: "Up / flat / down less / down more", type: "s", get: function (g) { return g.n ? g.held_pct : null; }, cell: function (g) { return '<td class="l sx-mix">' + stack(g) + "</td>"; } },
       { id: "held", t: words(v).live ? "Holding up" : "Held up", tip: "share up, flat, or down less than SPY", get: function (g) { return g.held_pct; }, cell: function (g) { return num(g.held_pct, function (x) { return pc(x); }, isRed ? "strong" : ""); } },
@@ -199,13 +204,14 @@
     ];
   }
   function drawGroups(v) {
-    chips("today-group", [["sector", "SECTORS", "stocks worth $1B or more, by sector"], ["industry", "INDUSTRIES", "industries with five or more $1B+ stocks: the fifteen holding up best and the fifteen breaking most"], ["class", "ETF CLASSES", "ETFs trading $5M or more a day, by asset class"]], S.group, function (x) { S.group = x; S.sort.groups = null; writeHash(); drawGroups(V); });
+    chips("today-group", [["sector", "SECTORS", "stocks worth $1B or more, by sector"], ["industry", "INDUSTRIES", "every industry with five or more $1B+ stocks"], ["class", "ETF CLASSES", "ETFs trading $5M or more a day, by asset class"]], S.group, function (x) { S.group = x; S.sort.groups = null; writeHash(); drawGroups(V); });
     var rows, nameT, empty = "No group has a counted name yet.";
     if (S.group === "class") { rows = (v.read.by_class || []).map(function (g) { return Object.assign({ name: g.label }, g); }); nameT = "ETF class"; }
     else if (S.group === "industry") {
-      var ind = v.read.industries || {}, seen = {};
-      rows = (ind.holding || []).concat(ind.breaking || []).filter(function (g) { if (seen[g.industry]) return false; seen[g.industry] = 1; return true; }).map(function (g) { return Object.assign({ name: g.industry, sub: g.sector }, g); });
-      nameT = "Industry (" + fint(ind.n) + " with 5+ stocks; the 15 best and 15 worst)";
+      // every industry with enough names (the view's own list); a view from before that list existed falls back to the read's fifteen at each end
+      var ind = v.read.industries || {}, seen = {}, every = v.industries && v.industries.length ? v.industries : (ind.holding || []).concat(ind.breaking || []);
+      rows = every.filter(function (g) { if (seen[g.industry]) return false; seen[g.industry] = 1; return true; }).map(function (g) { return Object.assign({ name: g.industry, sub: g.sector }, g); });
+      nameT = "Industry (" + fint(rows.length) + " with 5 or more stocks)";
     } else { rows = (v.read.by_sector || []).map(function (g) { return Object.assign({ name: g.sector }, g); }); nameT = "Sector"; }
     if (!S.sort.groups) S.sort.groups = S.group === "class" ? { k: "med", d: -1 } : { k: red(v) ? "held" : "beat", d: -1 };
     var cols = GROUP_COLS(v, nameT).filter(function (c) { return c.id !== "cap" || S.group === "sector"; });
@@ -234,6 +240,8 @@
     t: { id: "t", t: "Ticker", type: "s", get: function (r) { return r.t; }, cell: function (r) { return '<td class="l">' + tk(r.t) + '<span class="nm2">' + esc(r.name || "") + "</span></td>"; } },
     name: { id: "name", t: "Name", type: "s", get: function (r) { return r.name; }, cell: nameCell },
     where: { id: "where", t: "Sector / class", type: "s", get: whereOf, cell: function (r) { return '<td class="l dim" title="' + esc(whereOf(r) + (r.industry ? " \u00b7 " + r.industry : "")) + '"><span class="nm wh">' + esc(whereOf(r)) + "</span></td>"; } },
+    ind: { id: "ind", t: "Industry", type: "s", tip: "the company's industry; a fund has none", get: function (r) { return r.kind === "etf" ? null : (r.industry || null); },
+           cell: function (r) { var x = r.kind === "etf" ? "" : (r.industry || ""); return '<td class="l dim" title="' + esc(x) + '"><span class="nm wh">' + esc(x || DASH) + "</span></td>"; } },
     mcap: { id: "mcap", t: "Mkt value", tip: "market value (a fund's assets)", get: function (r) { return r.mcap; }, cell: function (r) { return num(r.mcap, money); } },
     px: { id: "px", t: "Last", get: function (r) { return r.px; }, cell: function (r) { return num(r.px, px); } },
     ret: { id: "ret", t: "Move", tip: "the session's move: the last price over the close before", get: function (r) { return r.ret; }, cell: function (r) { return num(r.ret, sp, tone(r.ret)); } },
@@ -262,11 +270,11 @@
     atr: { id: "atr", t: "ATR", tip: "14-session average true range, percent of price", get: function (r) { return r.atr; }, cell: function (r) { return num(r.atr, function (x) { return x.toFixed(1) + "%"; }); } }
   };
   var VIEWS = {
-    today: ["t", "name", "where", "mcap", "px", "ret", "x", "out", "rank", "dump", "fo", "pos", "vwx", "rv", "ticks"],
+    today: ["t", "name", "where", "ind", "mcap", "px", "ret", "x", "out", "rank", "dump", "fo", "pos", "vwx", "rv", "ticks"],
     record: ["t", "name", "ret", "x", "out", "rank", "dump", "ds", "dx", "rally", "rx", "dnx", "upx", "both"],
     trend: ["t", "name", "ret", "x", "out", "rank", "x5", "x21", "x63", "x126", "p52", "ma", "atr", "mcap"]
   };
-  var PHONE_TODAY = ["t", "name", "ret", "x", "out", "rank", "dump", "where", "mcap", "px", "fo", "pos", "vwx", "rv", "ticks"];
+  var PHONE_TODAY = ["t", "name", "ret", "x", "out", "mcap", "where", "ind", "rank", "dump", "px", "fo", "pos", "vwx", "rv", "ticks"];
   function narrow() { try { return !!(w.matchMedia && w.matchMedia("(max-width: 640px)").matches); } catch (e) { return false; } }
   function outFilter(v) { return S.out === "auto" ? (red(v) ? "held" : "all") : S.out; }
   function rowFilter(v, st) {
@@ -287,6 +295,7 @@
       if (st.rank === "weak" && !(isNum(r.rank) && r.rank <= 20)) return false;
       if (st.rank === "record" && r.bucket !== "all") return false;
       if (st.sector && whereOf(r) !== st.sector) return false;
+      if (st.industry && r.industry !== st.industry) return false;
       if (q && !(String(r.t).toUpperCase().indexOf(q) === 0 || String(r.name || "").toUpperCase().indexOf(q) >= 0 || String(r.industry || "").toUpperCase().indexOf(q) >= 0)) return false;
       return true;
     };
@@ -294,7 +303,7 @@
   var last = { cols: [], rows: [] };
   function drawNames(v) {
     var isRed = red(v), of = outFilter(v);
-    chips("names-kind", [["stock", "STOCKS"], ["etf", "ETFS"], ["all", "BOTH"]], S.kind, function (x) { S.kind = x; S.sector = ""; S.all = false; writeHash(); drawNames(V); });
+    chips("names-kind", [["stock", "STOCKS"], ["etf", "ETFS"], ["all", "BOTH"]], S.kind, function (x) { S.kind = x; S.sector = ""; S.industry = ""; S.all = false; writeHash(); drawNames(V); });
     chips("names-scope", S.kind === "etf" ? [["b1", "TRADING $5M+ A DAY"], ["all", "EVERY ETF"]] : [["sp", "S&P 500"], ["b10", "$10B+"], ["b1", "$1B+"], ["all", "EVERY STOCK"]],
           S.kind === "etf" && S.scope !== "all" ? "b1" : S.scope, function (x) { S.scope = x; S.all = false; writeHash(); drawNames(V); });
     chips("names-out", [["held", v.mode === "live" ? "HOLDING UP" : "HELD UP", "up, flat, or down less than SPY"], ["up", "UP"], ["flat", "FLAT"], ["down_less", "DOWN LESS"], ["down_more", "DOWN MORE"], ["all", "ALL"]], of, function (x) { S.out = x; S.all = false; writeHash(); drawNames(V); });
@@ -307,6 +316,13 @@
     Object.keys(seen).sort().forEach(function (k) { opts.push('<option value="' + esc(k) + '"' + (k === S.sector ? " selected" : "") + ">" + esc(k) + " (" + seen[k] + ")</option>"); });
     $("names-sector").innerHTML = '<option value="">' + (S.kind === "etf" ? "every class" : S.kind === "all" ? "every sector and class" : "every sector") + "</option>" + opts.join("");
     if (S.sector && !seen[S.sector]) S.sector = "";
+    // the industry menu: the industries of the rows the other filters (the sector among them) leave; a fund has no industry
+    var poolI = v.rows.filter(rowFilter(v, Object.assign({}, S, { industry: "" }))), seenI = {}, optsI = [], im = $("names-industry");
+    poolI.forEach(function (r) { if (r.kind !== "etf" && r.industry) seenI[r.industry] = (seenI[r.industry] || 0) + 1; });
+    if (S.industry && !seenI[S.industry]) S.industry = "";
+    Object.keys(seenI).sort().forEach(function (k) { optsI.push('<option value="' + esc(k) + '"' + (k === S.industry ? " selected" : "") + ">" + esc(k) + " (" + seenI[k] + ")</option>"); });
+    im.innerHTML = '<option value="">every industry</option>' + optsI.join("");
+    im.parentNode.hidden = S.kind === "etf";
     var rows = v.rows.filter(rowFilter(v, S));
     var ids = VIEWS[S.view] || VIEWS.today;
     // on a phone the answer comes first: the move, the move against SPY and the word for it sit beside the ticker, the rest scrolls
@@ -333,8 +349,8 @@
   function csvOf(cols, rows, labels) {
     if (labels) LABELS = labels;
     function q(x) { x = x == null ? "" : String(x); return /[",\n]/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x; }
-    var extra = [["sector", function (r) { return r.sector; }], ["industry", function (r) { return r.industry; }], ["kind", function (r) { return r.kind; }], ["set_aside", function (r) { return r.why; }], ["outcome", function (r) { return r.out; }]];
-    return [cols.map(function (c) { return q(c.id); }).concat(extra.map(function (e) { return e[0]; })).join(",")].concat(rows.map(function (r) {
+    var extra = [["sector", function (r) { return r.sector; }], ["kind", function (r) { return r.kind; }], ["set_aside", function (r) { return r.why; }], ["outcome", function (r) { return r.out; }]];
+    return [cols.map(function (c) { return q(c.id === "ind" ? "industry" : c.id); }).concat(extra.map(function (e) { return e[0]; })).join(",")].concat(rows.map(function (r) {
       return cols.map(function (c) { var x = c.id === "out" ? r.out : c.id === "ticks" ? r.ticks : c.id === "dump" ? rec(r.rec_n, r.rec_h) : c.id === "rally" ? rec(r.rn, r.rb) : c.id === "where" ? whereOf(r) : c.get(r); return q(isNum(x) ? String(Math.round(x * 10000) / 10000) : x); })
         .concat(extra.map(function (e) { return q(e[1](r)); })).join(",");
     })).join("\n");
@@ -365,6 +381,19 @@
     if (S.sort.names && !(S.sort.names.k === "x" && S.sort.names.d === -1)) out.push("s_names=" + encodeURIComponent(S.sort.names.k + ":" + (S.sort.names.d > 0 ? "asc" : "desc")));
     try { w.history.replaceState(null, "", out.length ? "#" + out.join("&") : w.location.pathname + w.location.search); } catch (e) { /* a sandboxed frame: the state stays in memory */ }
   }
+  /* A group picked anywhere on the page - a row of the sector / industry / class table above, or a row of the tearsheet's sector and industry
+     lists opened in full (the kit's jts:pick event) - is shown in this table: every counted name of it, ranked by the move against SPY. */
+  function pick(d) {
+    if (!d || !V) return false;
+    S.kind = d.kind === "etf" ? "etf" : "stock";
+    S.scope = S.kind === "etf" ? (d.scope === "all" ? "all" : "b1") : (["sp", "b10", "b1", "all"].indexOf(d.scope) >= 0 ? d.scope : "b1");
+    S.out = d.out || "all"; S.rank = "all"; S.show = "counted"; S.q = ""; S.sector = d.sector || ""; S.industry = d.industry || ""; S.all = false; S.sort.names = null;
+    var qi = $("names-q"); if (qi) qi.value = "";
+    writeHash(); drawNames(V);
+    var sec = $("names");
+    try { sec.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (e) { try { sec.scrollIntoView(); } catch (e2) { /* no layout */ } }
+    return true;
+  }
   var wired = false;
   function wire() {
     if (wired) return;
@@ -374,7 +403,15 @@
     qi.value = S.q || "";
     qi.oninput = function () { clearTimeout(t); t = setTimeout(function () { S.q = qi.value; S.all = false; writeHash(); if (V) drawNames(V); }, 140); };
     $("names-sector").onchange = function () { S.sector = this.value; S.all = false; writeHash(); if (V) drawNames(V); };
-    $("names-reset").onclick = function () { Object.keys(DEFAULTS).forEach(function (k) { S[k] = DEFAULTS[k]; }); S.sector = ""; S.q = ""; qi.value = ""; S.all = false; S.sort.names = null; writeHash(); if (V) { drawGroups(V); drawCarried(V); drawNames(V); } };
+    $("names-industry").onchange = function () { S.industry = this.value; S.all = false; writeHash(); if (V) drawNames(V); };
+    $("today-groups").addEventListener("click", function (e) {
+      var b = e.target.closest ? e.target.closest("[data-pick]") : null;
+      if (!b) return;
+      var name = b.getAttribute("data-pick");
+      pick(S.group === "class" ? { kind: "etf", scope: "b1", sector: name } : S.group === "industry" ? { kind: "stock", scope: "b1", industry: name } : { kind: "stock", scope: "b1", sector: name });
+    });
+    w.document.addEventListener("jts:pick", function (e) { if (e && e.detail && e.detail.desk === "strength") pick(e.detail); });
+    $("names-reset").onclick = function () { Object.keys(DEFAULTS).forEach(function (k) { S[k] = DEFAULTS[k]; }); S.sector = ""; S.industry = ""; S.q = ""; qi.value = ""; S.all = false; S.sort.names = null; writeHash(); if (V) { drawGroups(V); drawCarried(V); drawNames(V); } };
     $("names-csv").onclick = download;
   }
   function render(v) {
@@ -402,6 +439,6 @@
     ["today-kpis", "today-bars", "carried", "today-groups", "names-tbl"].forEach(function (id) { var el = $(id); if (el) el.innerHTML = '<p class="jh-load">' + esc(msg) + "</p>"; });
   }
 
-  w.JHStrongToday = { render: render, fail: fail, verdictLine: verdictLine, rowFilter: rowFilter, csvOf: csvOf, state: S, COL: COL, VIEWS: VIEWS, PHONE_TODAY: PHONE_TODAY };
+  w.JHStrongToday = { render: render, fail: fail, verdictLine: verdictLine, rowFilter: rowFilter, csvOf: csvOf, state: S, COL: COL, VIEWS: VIEWS, PHONE_TODAY: PHONE_TODAY, pick: pick };
   if (typeof module === "object" && module.exports) module.exports = w.JHStrongToday;
 })(typeof window !== "undefined" ? window : globalThis);
