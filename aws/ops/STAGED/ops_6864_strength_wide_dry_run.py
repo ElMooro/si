@@ -82,6 +82,7 @@ def show_read(r, rd, by):
         group_line(r, "ETF " + g["label"][:24], g)
     r.log("by rank carried in ($1B+ stocks, weakest tenth -> strongest): held up %s | median %s | n %s" % (
         [d.get("held_pct") for d in rd["by_rank"]], [d.get("median_ret") for d in rd["by_rank"]], [d.get("n") for d in rd["by_rank"]]))
+    r.log("by the dump-day record carried in ($1B+ stocks): %s" % "; ".join("%s: n %s, held up %s%%, median %s%%" % (g["label"], g["n"], g.get("held_pct"), g.get("median_ret")) for g in rd.get("by_record") or []))
     ind = rd["industries"]
     r.log("industries (%d with 5+ $1B+ members) holding up: %s" % (ind["n"], "; ".join("%s %s%% of %d (median %+.2f%%)" % (g["industry"], g["held_pct"], g["n"], g["median_ret"]) for g in ind["holding"][:12])))
     r.log("industries breaking: %s" % "; ".join("%s %s%% of %d (median %+.2f%%)" % (g["industry"], g["held_pct"], g["n"], g["median_ret"]) for g in ind["breaking"][:12]))
@@ -125,6 +126,8 @@ def main():
         aside = [x for x in rows if x["why"]]
         r.log("set aside (%d): pinned %s | jump %s | thin %d" % (len(aside), ", ".join(x["t"] for x in aside if x["why"] == "pinned")[:700],
                                                                ", ".join("%s %s" % (x["t"], x["jd"]) for x in aside if x["why"] == "jump")[:900], sum(1 for x in aside if x["why"] == "thin")))
+        r.log("geared (leveraged or inverse by the desk's class map, %d): %s" % (sum(1 for x in aside if x["why"] == "geared"), ", ".join("%s %s" % (x["t"], (x["name"] or "")[:34]) for x in aside if x["why"] == "geared")[:2400]))
+        r.log("long-volatility funds (counted in their class, kept off the ETF boards): %s" % ", ".join(x["t"] for x in rows if x["cls"] == "volatility")[:600])
         st = [x for x in rows if x["kind"] == "stock" and x["rs"] is not None]
         big = [x for x in st if (x["mcap"] or 0) >= 1e9]
         r.log("strongest $1B+ stocks by rank: %s" % ", ".join("%s %.0f" % (x["t"], x["rs"]) for x in sorted(big, key=lambda x: -x["rs"])[:40]))

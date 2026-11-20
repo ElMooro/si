@@ -66,6 +66,9 @@ SPLIT_AHEAD_DAYS = 21
 BOARD_MIN_MCAP = 1e9
 BIG_MCAP = 10e9
 ETF_MIN_ADV = 5e6
+GEARED_CLS = "leveraged"       # a fund the desk's class map calls leveraged or inverse (an inverse fund tops every dump day and says nothing about strength): measured, set aside
+BOARD_SKIP_CLS = ("volatility",)   # long-volatility funds rise when SPY falls by construction: counted in their class, kept off the ETF boards
+RECORD_MIN = 3                 # dump days a name needs before its record is read
 IND_MIN = 5
 BOARD_N = 25
 THREADS = int(os.environ.get("WIDE_THREADS", "16"))
@@ -77,7 +80,7 @@ GEARED_RX = re.compile(r"\b(\d(\.\d+)?x|ultrapro|ultrashort|inverse|leveraged|bu
 COLS = ["t", "name", "kind", "cls", "sector", "industry", "mcap", "adv", "sp",
         "pc", "o", "h", "l", "c", "v", "vw", "av",
         "x1", "x5", "x21", "x63", "x126", "rs", "rsp",
-        "dn", "dh", "ds", "dx", "rn", "rb", "rx", "dnx", "upx",
+        "dn", "dh", "ds", "dx", "rn", "rb", "rx", "dnx", "upx", "dnp", "dhp",
         "atr", "p52", "ma", "n", "why", "jd"]
 HKEY = {"d": "x1", "w": "x5", "m": "x21", "q": "x63", "h": "x126"}
 OUTCOMES = ("up", "flat", "down_less", "down_more")
@@ -316,6 +319,7 @@ def measure(meta, bars, bench_close, bench_tail, prior_session, rules, jump=None
     vs = {k: _r(excess(c_al, s_al, hn)) for k, hn in T.HORIZONS if k in HKEY}
     vs_prev = {k: _r(excess(c_al, s_al, hn, end=-2)) for k, hn in T.HORIZONS if k in HKEY}
     rec = record(c_al, s_al, RECORD_N, rules["dump_pct"], rules["rally_pct"], rules["flat_pct"]) or {}
+    rec_prev = record(c_al[:-1], s_al[:-1], RECORD_N, rules["dump_pct"], rules["rally_pct"], rules["flat_pct"]) or {}      # the record a name carried INTO the last session
     prev = bars[-2] if n >= 2 else None
     vols = [b["v"] for b in bars[-21:-1]]
     month_hi, month_lo = max(b["h"] for b in bars[-21:]), min(b["l"] for b in bars[-21:])
@@ -323,7 +327,8 @@ def measure(meta, bars, bench_close, bench_tail, prior_session, rules, jump=None
     miss = missed_sessions(dates, bench_tail) if bench_tail else 0
     closes = [b["c"] for b in bars]
     s50, s200 = T.sma(closes, 50), T.sma(closes, 200)
-    why = "thin" if miss > THIN_MISS else "pinned" if (meta["kind"] == "stock" and sp_m is not None and sp_m <= PIN_SPREAD_M) else "jump" if jump else None
+    why = ("geared" if meta.get("cls") == GEARED_CLS else "thin" if miss > THIN_MISS
+           else "pinned" if (meta["kind"] == "stock" and sp_m is not None and sp_m <= PIN_SPREAD_M) else "jump" if jump else None)
     row = {"t": meta["ticker"], "name": meta["name"], "kind": meta["kind"], "cls": meta.get("cls"), "sector": meta["sector"], "industry": meta["industry"],
            "mcap": _r(meta["mcap"], 0), "adv": _r(meta["adv_usd"], 0), "sp": 1 if meta.get("sp500") else 0,
            "pc": _px(prev["c"]) if (prev and prev["date"] == prior_session) else None,
@@ -336,6 +341,7 @@ def measure(meta, bars, bench_close, bench_tail, prior_session, rules, jump=None
         row[col] = vs.get(k)
     for k in ("dn", "dh", "ds", "dx", "rn", "rb", "rx", "dnx", "upx"):
         row[k] = rec.get(k)
+    row["dnp"], row["dhp"] = rec_prev.get("dn"), rec_prev.get("dh")
     ranked = why is None and len(c_al) >= RANK_MIN and vs.get("m") is not None and vs.get("q") is not None
     row["_vs"] = vs if ranked else None
     row["_vs_prev"] = vs_prev if (ranked and vs_prev.get("m") is not None and vs_prev.get("q") is not None) else None
@@ -422,11 +428,23 @@ def stats_of(items, spy):
     return out
 
 
-def session_read(rows, spy_ret, rules, rank_col="rsp", class_labels=None):
+RECORD_BUCKETS = (("all", "held up on every dump day"), ("most", "on two thirds or more"), ("some", "on a third to two thirds"), ("few", "on fewer than a third"))
+
+
+def record_bucket(dn, dh):
+    """Which of RECORD_BUCKETS a dump-day record falls in; None under RECORD_MIN dump days. Integer arithmetic."""
+    if dn is None or dh is None or dn < RECORD_MIN:
+        return None
+    return "all" if dh == dn else "most" if 3 * dh >= 2 * dn else "some" if 3 * dh >= dn else "few"
+
+
+def session_read(rows, spy_ret, rules, rank_col="rsp", class_labels=None, rec=("dnp", "dhp")):
     """The read of one session over the table: every counted name's move against SPY's. `rows` are dicts carrying
     `ret` (the session's move in percent, None when it cannot be measured) beside the table's columns; a row that is
-    set aside (`why`) or has no `ret` is not counted. The page applies the same function to today's forming bars with
-    rank_col='rs'. Pure."""
+    set aside (`why`) or has no `ret` is not counted. `rank_col` and `rec` name the rank and the dump-day record each
+    name carried INTO the session: rsp and (dnp, dhp) for the table's own last session, rs and (dn, dh) when the page
+    reads today's forming bars. Pure."""
+    dn_col, dh_col = rec
     flat = rules["flat_pct"]
     pop = [dict(r, out=outcome(r["ret"], spy_ret, flat), x=r["ret"] - spy_ret) for r in rows if r.get("ret") is not None and not r.get("why")]
     stocks = [r for r in pop if r["kind"] == "stock"]
@@ -472,6 +490,13 @@ def session_read(rows, spy_ret, rules, rank_col="rsp", class_labels=None):
 
     def names(group, key, n=BOARD_N, reverse=True):
         return [r["t"] for r in sorted(group, key=lambda r: (-(r[key]) if reverse else r[key], r["t"]))[:n]]
+    by_record = []
+    for key, label in RECORD_BUCKETS:
+        g = st([r for r in big if record_bucket(r.get(dn_col), r.get(dh_col)) == key])
+        g["key"] = key
+        g["label"] = label
+        by_record.append(g)
+    etf_board = [r for r in liquid if (r.get("cls") or "equity_etf") not in BOARD_SKIP_CLS]
     strong = [r for r in big if (r.get(rank_col) or 0) >= 80]
     weak = [r for r in big if r.get(rank_col) is not None and r[rank_col] <= 20]
     boards = {"up": names([r for r in big if r["out"] == "up"], "ret"),
@@ -479,12 +504,12 @@ def session_read(rows, spy_ret, rules, rank_col="rsp", class_labels=None):
               "strong_holding": names([r for r in strong if r["out"] != "down_more"], "x"),
               "strong_breaking": names([r for r in strong if r["out"] == "down_more"], "x", reverse=False),
               "weak_bid": names([r for r in weak if r["out"] == "up"], "ret"),
-              "repeat": names([r for r in big if r["out"] != "down_more" and (r.get("dn") or 0) >= 3 and r.get("dh") == r.get("dn")], "x"),
-              "etf_up": names([r for r in liquid if r["out"] == "up"], "ret"),
-              "etf_down_most": names(liquid, "ret", reverse=False)}
+              "repeat": names([r for r in big if r["out"] != "down_more" and record_bucket(r.get(dn_col), r.get(dh_col)) == "all"], "x"),
+              "etf_up": names([r for r in etf_board if r["out"] == "up"], "ret"),
+              "etf_down_most": names(etf_board, "ret", reverse=False)}
     return {"n_counted": len(pop), "regime": regime_of(spy_ret, rules), "groups": groups, "mcap_1b": cap, "by_sector": by_sector, "by_class": by_class,
             "industries": {"n": len(industries), "holding": industries[:15], "breaking": industries[-15:][::-1]},
-            "by_rank": by_rank, "rank_col": rank_col, "n_ranked_1b": m, "boards": boards}
+            "by_rank": by_rank, "rank_col": rank_col, "n_ranked_1b": m, "by_record": by_record, "record_cols": [dn_col, dh_col], "boards": boards}
 
 
 # ------------------------------------------------------------------------------------- the page's live join, stated once
@@ -547,7 +572,7 @@ def live_read(doc, today, class_labels=None):
     if not j:
         return None
     rules = doc["rules"]
-    read = session_read(j["rows"], j["spy"]["ret"], rules, rank_col="rs", class_labels=class_labels)
+    read = session_read(j["rows"], j["spy"]["ret"], rules, rank_col="rs", class_labels=class_labels, rec=("dn", "dh"))
     read.update({"date": j["session"], "rank_as_of": j["as_of"], "spy_ret": _r(j["spy"]["ret"], 4), "bars_as_of": j["bars_as_of"],
                  "n_no_print": sum(1 for r in j["rows"] if not r.get("bar")), "n_unconfirmed": sum(1 for r in j["rows"] if r["unconfirmed"]),
                  "unconfirmed": [r["t"] for r in j["rows"] if r["unconfirmed"]][:60]})
@@ -638,7 +663,7 @@ def build(s3, now, as_of, version, rules, classify=None, class_labels=None, log=
     bm["ret"] = _r(spy_ret, 4)
     for r in rows:
         r["ret"] = (r["c"] / r["pc"] - 1.0) * 100.0 if r.get("pc") else None           # from the published (rounded) prices: the page restates the same figure
-    read = session_read(rows, spy_ret, rules, rank_col="rsp", class_labels=class_labels)
+    read = session_read(rows, spy_ret, rules, rank_col="rsp", class_labels=class_labels, rec=("dnp", "dhp"))
     read.update({"date": as_of, "prior_session": prior_session, "rank_as_of": prior_session, "spy_ret": _r(spy_ret, 4)})
     dump_days, rally_days = [], []
     for i in range(max(1, len(bench) - RECORD_N), len(bench)):
@@ -656,6 +681,7 @@ def build(s3, now, as_of, version, rules, classify=None, class_labels=None, log=
         "benchmark": bm,
         "rules": {"flat_pct": rules["flat_pct"], "dump_pct": rules["dump_pct"], "rally_pct": rules["rally_pct"], "weights": rules.get("weights"), "record_sessions": RECORD_N,
                   "rank_min_sessions": RANK_MIN, "board_min_mcap": BOARD_MIN_MCAP, "big_mcap": BIG_MCAP, "etf_min_adv": ETF_MIN_ADV, "industry_min": IND_MIN, "board_n": BOARD_N,
+                  "record_min": RECORD_MIN, "record_buckets": [list(x) for x in RECORD_BUCKETS], "board_skip_cls": list(BOARD_SKIP_CLS), "geared_cls": GEARED_CLS,
                   "suspect": list(SUSPECT), "pin_spread_m": PIN_SPREAD_M, "jump_flag": JUMP_FLAG, "jump_sessions": JUMP_ASIDE, "thin_miss": THIN_MISS, "thin_window": THIN_WINDOW,
                   "min_dollar_vol": MIN_DV},
         "universe": {"book_rows": ustats["book_rows"], "eligible": len(universe), "eligible_stock": ustats["stock"], "eligible_etf": ustats["etf"], "left_out": ustats["left_out"],
@@ -685,8 +711,8 @@ def definitions(rules):
         "excess": "x1 / x5 / x21 / x63 / x126 = the name's return minus SPY's over 1 / 5 / 21 / 63 / 126 common sessions, in percentage points",
         "rs": "the desk's composite (cross-sectional z-scores of those excess returns, weighted 10 / 20 / 30 / 25 / 15, each clipped at 3) as a percentile among the name's kind: a stock among all ranked stocks, an ETF among all ranked ETFs. A name needs %d common sessions with SPY" % RANK_MIN,
         "rsp": "the same rank one session earlier - the rank a name carried INTO the last session, so the last session's read is walk-forward",
-        "record": "over the last %d sessions: dn = SPY's dump days the name traded, dh = how many it held up on, ds = the streak of the most recent ones held, dx = its mean excess on them; rn / rb / rx = the same for rally days (beat SPY); dnx / upx = mean excess on all of SPY's down days / up days" % RECORD_N,
-        "set_aside": "pinned = a stock whose last 21 sessions fit inside %.1f%% (a pending deal: flat on every dump day by construction); jump = an unexplained close-to-close move beyond %.0f-to-1 inside %d sessions; thin = missed more than %d of the last %d sessions. Such a row is measured, shown, and kept out of the ranks and the counts" % (PIN_SPREAD_M, JUMP_FLAG, JUMP_ASIDE, THIN_MISS, THIN_WINDOW),
+        "record": "over the last %d sessions: dn = SPY's dump days the name traded, dh = how many it held up on, ds = the streak of the most recent ones held, dx = its mean excess on them; rn / rb / rx = the same for rally days (beat SPY); dnx / upx = mean excess on all of SPY's down days / up days; dnp / dhp = dn / dh one session earlier, the record a name carried INTO the last session. A record is read from %d dump days on: held up on every one, on two thirds or more, on a third to two thirds, on fewer" % (RECORD_N, RECORD_MIN),
+        "set_aside": "pinned = a stock whose last 21 sessions fit inside %.1f%% (a pending deal: flat on every dump day by construction); geared = a fund the desk's class map calls leveraged or inverse (an inverse fund rises on every dump day and says nothing about strength); jump = an unexplained close-to-close move beyond %.0f-to-1 inside %d sessions; thin = missed more than %d of the last %d sessions. Such a row is measured, shown, and kept out of the ranks and the counts. Long-volatility funds are counted in their class and kept off the ETF boards" % (PIN_SPREAD_M, JUMP_FLAG, JUMP_ASIDE, THIN_MISS, THIN_WINDOW),
         "splits_ahead": "splits Polygon's reference lists for the sessions after the table's own: on the execution day the page divides the last close by the ratio. A live move beyond x%.2f / x%.1f with no such record is shown as unconfirmed and not counted" % SUSPECT,
         "ma": "1 = the close is above its 50-day average, 2 = above its 200-day average, 3 = above both",
         "live": "the page joins this table with data/warm/polygon-full/today.json.gz (justhodl-polygon-today, every 5 minutes in the session, 15 minutes delayed): today's move = the forming bar's last price over this table's close",

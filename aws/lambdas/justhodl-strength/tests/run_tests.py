@@ -666,8 +666,8 @@ def closes_of(seed_, drift=0.0004, n=300, days=None):
     return out
 
 
-# SPY: three dump days (the last session -2%, 10 and 20 sessions back) and one rally day 15 back
-SPY_DAYS = {1: -2.0, 10: -1.5, 20: -1.2, 15: 1.4}
+# SPY: four dump days (the last session -2%, then 10, 20 and 30 sessions back) and one rally day 15 back
+SPY_DAYS = {1: -2.0, 10: -1.5, 20: -1.2, 30: -1.1, 15: 1.4}
 
 
 def wide_seed():
@@ -676,14 +676,16 @@ def wide_seed():
     s3.put(pb.MANIFEST, {"last_session": DATES[-1].isoformat(), "updated_at": "2026-11-04T03:13:33+00:00", "tickers": 21088, "first_session": "2021-08-26"})
     plan = {
         "SPY": (1, 0.0004, SPY_DAYS),
-        "HOLD": (2, 0.0030, {1: 1.0, 10: 0.4, 20: 0.1, 15: 2.0}),        # strong coming in; up on every dump day, beats the rally
-        "FLAT": (3, 0.0004, {1: -0.1, 10: -0.2, 20: 0.0, 15: 1.0}),      # flat on the dump days
-        "LESS": (4, 0.0010, {1: -0.9, 10: -0.5, 20: -3.0, 15: 1.5}),     # down less on two, down MORE on the oldest
-        "MORE": (5, -0.0030, {1: -5.0, 10: -4.0, 20: -3.0, 15: 0.2}),    # weak coming in; down more every time
-        "SMAL": (6, 0.0004, {1: 0.6, 10: -2.5, 20: -2.0, 15: 1.0}),      # a $300M stock: counted among stocks, not among $1B+
-        "QQQE": (7, 0.0004, {1: -1.0, 10: -1.0, 20: -1.0, 15: 1.0}),     # an ETF, down less
-        "BOND": (8, 0.0001, {1: 0.4, 10: 0.3, 20: 0.2, 15: -0.3}),       # an ETF, up
-        "TINY": (9, 0.0004, {1: 3.0}),                                   # an ETF under the liquid floor
+        "HOLD": (2, 0.0030, {1: 1.0, 10: 0.4, 20: 0.1, 30: 0.2, 15: 2.0}),        # strong coming in; up on every dump day, beats the rally
+        "FLAT": (3, 0.0004, {1: -0.1, 10: -0.2, 20: 0.0, 30: 0.0, 15: 1.0}),      # flat on the dump days
+        "LESS": (4, 0.0010, {1: -0.9, 10: -0.5, 20: -3.0, 30: -0.5, 15: 1.5}),    # down less on three, down MORE on one
+        "MORE": (5, -0.0030, {1: -5.0, 10: -4.0, 20: -3.0, 30: -3.0, 15: 0.2}),   # weak coming in; down more every time
+        "SMAL": (6, 0.0004, {1: 0.6, 10: -2.5, 20: -2.0, 30: -2.0, 15: 1.0}),     # a $300M stock: counted among stocks, not among $1B+
+        "QQQE": (7, 0.0004, {1: -1.0, 10: -1.0, 20: -1.0, 30: -1.0, 15: 1.0}),    # an ETF, down less
+        "BOND": (8, 0.0001, {1: 0.4, 10: 0.3, 20: 0.2, 30: 0.1, 15: -0.3}),       # an ETF, up
+        "TINY": (9, 0.0004, {1: 3.0}),                                            # an ETF under the liquid floor
+        "SHRT": (18, 0.0, {1: 2.0, 10: 1.5, 20: 1.2, 30: 1.1, 15: -1.4}),         # an inverse fund: up on every dump day by construction
+        "VOLX": (19, 0.0, {1: 6.0}),                                              # a long-volatility fund
     }
     for t, (sd, drift, days) in plan.items():
         s3.put(lf.bank_key(t), {"rows": bank_rows(closes_of(sd, drift, days=days))})
@@ -717,6 +719,7 @@ def wide_seed():
         book_row("LESS", "Less Inc", sector="Utilities", industry="Regulated Electric", mcap=2e9), book_row("MORE", "More Corp", mcap=3e9),
         book_row("SMAL", "Small Co", mcap=3e8), book_row("QQQE", "Equal Weight Nasdaq ETF", "etf", mcap=1e9, dv=6e6),
         book_row("BOND", "Long Treasury Bond ETF", "etf", mcap=5e9, dv=9e8), book_row("TINY", "Tiny Thematic ETF", "etf", mcap=5e7, dv=4e5),
+        book_row("SHRT", "ProShares Short S&P500", "etf", mcap=2e9, dv=5e8), book_row("VOLX", "Short-Term VIX Futures ETF", "etf", mcap=5e8, dv=2e8),
         book_row("DEAL", "Pending Deal Co", mcap=8e9), book_row("NEWB", "New Listing Inc", mcap=4e9, ipo=DATES[-30].isoformat()), book_row("LATE", "Late Print Co", mcap=2e9),
         book_row("SPLT", "Reverse Split Co", mcap=1.5e9), book_row("JUMP", "Jump Co", mcap=6e9), book_row("THIN", "Thin Co", mcap=2e9),
         book_row("GEAR", "ProShares UltraPro 3x Whatever", "etf"), book_row("OTCX", "Otc Co", is_otc=True), book_row("PREF", "Bank 6.5% Preferred", is_common=False, is_preferred=True),
@@ -763,7 +766,7 @@ def test_wide_universe_and_the_rows():
     assert u["left_out"] == {"geared or inverse fund": 1, "otc": 1, "not a common stock": 1, "thin (under the dollar-volume floor)": 1, "the benchmark": 1}, u["left_out"]
     assert "SPY" not in by and "GEAR" not in by and "OTCX" not in by and "PREF" not in by and "DUST" not in by and "TINY" in by
     assert u["unbanked"] == 1 and u["not_current"] == 1 and u["not_current_sample"] == ["LATE"] and "LATE" not in by and "UNBK" not in by
-    assert u["scanned"] == len(doc["rows"]) == 13 and u["scanned_stock"] == 10 and u["scanned_etf"] == 3 and u["eligible"] == 15
+    assert u["scanned"] == len(doc["rows"]) == 15 and u["scanned_stock"] == 10 and u["scanned_etf"] == 5 and u["eligible"] == 17
     # the last session's bar and the close before it: the page needs nothing else to state a move
     h = by["HOLD"]
     assert round((h["c"] / h["pc"] - 1) * 100, 2) == 1.0 and h["o"] < h["c"] < h["h"] and h["l"] < h["c"] and h["v"] == 1_000_000 and h["av"] == 1_000_000 and h["vw"] == h["c"]
@@ -771,20 +774,25 @@ def test_wide_universe_and_the_rows():
     assert by["BOND"]["cls"] == "bond" and by["QQQE"]["cls"] == "equity_etf" and by["BOND"]["kind"] == "etf"
     # excess vs SPY on the last session: the name's move minus SPY's -2%
     assert h["x1"] == 3.0 and by["MORE"]["x1"] == -3.0 and by["FLAT"]["x1"] == 1.9 and by["QQQE"]["x1"] == 1.0
-    # the dump-day record: three dump days, one rally day
-    assert [d["date"] for d in doc["dump_days"]] == [DATES[-20].isoformat(), DATES[-10].isoformat(), DATES[-1].isoformat()] and [d["date"] for d in doc["rally_days"]] == [DATES[-15].isoformat()]
-    assert (h["dn"], h["dh"], h["ds"], h["rn"], h["rb"]) == (3, 3, 3, 1, 1) and h["dx"] == round((3.0 + 1.9 + 1.3) / 3, 2)
-    assert (by["FLAT"]["dh"], by["FLAT"]["ds"]) == (3, 3) and (by["LESS"]["dh"], by["LESS"]["ds"]) == (2, 2) and (by["MORE"]["dh"], by["MORE"]["ds"], by["MORE"]["rb"]) == (0, 0, 0)
-    assert by["SMAL"]["dh"] == 1 and by["SMAL"]["ds"] == 1                      # held today, broke on the two before
+    # the dump-day record: four dump days, one rally day
+    assert [d["date"] for d in doc["dump_days"]] == [DATES[-30].isoformat(), DATES[-20].isoformat(), DATES[-10].isoformat(), DATES[-1].isoformat()] and [d["date"] for d in doc["rally_days"]] == [DATES[-15].isoformat()]
+    assert (h["dn"], h["dh"], h["ds"], h["rn"], h["rb"]) == (4, 4, 4, 1, 1) and abs(h["dx"] - (3.0 + 1.9 + 1.3 + 1.3) / 4) <= 0.006
+    assert (by["FLAT"]["dh"], by["FLAT"]["ds"]) == (4, 4) and (by["LESS"]["dh"], by["LESS"]["ds"]) == (3, 2) and (by["MORE"]["dh"], by["MORE"]["ds"], by["MORE"]["rb"]) == (0, 0, 0)
+    assert by["SMAL"]["dh"] == 1 and by["SMAL"]["ds"] == 1                      # held today, broke on the three before
+    # the record each name carried INTO the last session: the three dump days before it
+    assert (h["dnp"], h["dhp"]) == (3, 3) and (by["LESS"]["dnp"], by["LESS"]["dhp"]) == (3, 2) and (by["MORE"]["dnp"], by["MORE"]["dhp"]) == (3, 0) and by["NEWB"]["dnp"] is None
+    assert [wide.record_bucket(*x) for x in ((3, 3), (3, 2), (6, 4), (6, 3), (6, 2), (6, 1), (3, 0), (2, 2), (None, None))] == ["all", "most", "most", "some", "some", "few", "few", None, None]
     # ranks: among the name's kind; the leader ranks first, the laggard last; the rank carried in is one session older
     st_ranks = [r["rs"] for r in by.values() if r["kind"] == "stock" and r["rs"] is not None]
     assert by["HOLD"]["rs"] == max(st_ranks) and by["MORE"]["rs"] == min(st_ranks) and by["HOLD"]["rs"] > 80 > 20 > by["MORE"]["rs"]
     assert by["HOLD"]["rsp"] is not None and by["BOND"]["rs"] is not None and by["QQQE"]["rs"] is not None
-    assert u["ranked"] == {"stock": 6, "etf": 3}, u["ranked"]
+    assert u["ranked"] == {"stock": 6, "etf": 4}, u["ranked"]
     # set aside, measured and shown, never ranked: a deal tape, an unexplained 5-to-1 print, thin trading; a new listing is short, not set aside
     assert by["DEAL"]["why"] == "pinned" and by["DEAL"]["rs"] is None and by["JUMP"]["why"] == "jump" and by["JUMP"]["jd"] == DATES[270].isoformat() and by["JUMP"]["rs"] is None
     assert by["THIN"]["why"] == "thin" and by["THIN"]["rs"] is None and by["NEWB"]["why"] is None and by["NEWB"]["rs"] is None and by["NEWB"]["n"] == 30 and by["NEWB"]["x63"] is None
-    assert u["set_aside"] == {"pinned": 1, "jump": 1, "thin": 1}
+    assert u["set_aside"] == {"pinned": 1, "jump": 1, "thin": 1, "geared": 1}
+    # an inverse fund is measured and set aside (it tops every dump day by construction); a long-volatility fund is ranked in its class
+    assert by["SHRT"]["why"] == "geared" and by["SHRT"]["cls"] == "leveraged" and by["SHRT"]["rs"] is None and by["SHRT"]["dh"] == 4 and by["VOLX"]["cls"] == "volatility" and by["VOLX"]["why"] is None
     # a recorded reverse split is rebased (no +300% session, no jump flag); an announced one is handed to the page
     assert by["SPLT"]["why"] is None and by["SPLT"]["rs"] is not None and abs(by["SPLT"]["x21"]) < 15
     assert doc["splits_ahead"] == {"HOLD": {"date": (DATES[-1] + timedelta(days=3)).isoformat(), "from": 1, "to": 10}}
@@ -805,16 +813,21 @@ def test_wide_read_of_the_last_session():
     assert g["stocks"] == {"n": 7, "up": 3, "flat": 1, "down_less": 2, "down_more": 1, "held": 6, "held_pct": 85.7, "up_pct": 42.9, "beat": 6, "median_ret": -0.1,
                            "mean_excess": g["stocks"]["mean_excess"], "beat_pct": 85.7}, g["stocks"]
     assert (g["stocks_1b"]["n"], g["stocks_1b"]["held"], g["stocks_1b"]["down_more"]) == (6, 5, 1) and (g["stocks_10b"]["n"], g["stocks_10b"]["up"], g["stocks_10b"]["flat"]) == (2, 1, 1)
-    assert g["etfs"]["n"] == 3 and g["etfs"]["up"] == 2 and g["etfs"]["down_less"] == 1 and g["etfs_liquid"]["n"] == 2 and g["etfs_liquid"]["up"] == 1
+    assert g["etfs"]["n"] == 4 and g["etfs"]["up"] == 3 and g["etfs"]["down_less"] == 1 and g["etfs_liquid"]["n"] == 3 and g["etfs_liquid"]["up"] == 2
     assert (g["sp500"]["n"], g["sp500"]["up"], g["sp500"]["down_less"]) == (2, 1, 1) and by["SPLT"]["sp"] == 1 and by["NEWB"]["sp"] == 1      # the banked list names NEWB, SPLT and DEAL; DEAL is set aside
-    assert ls["n_counted"] == 10 and ls["mcap_1b"]["up"] == 50e9 + 4e9 and ls["mcap_1b"]["down_more"] == 3e9 and ls["mcap_1b"]["flat"] == 20e9 and ls["mcap_1b"]["down_less"] == 2e9 + 1.5e9
+    assert ls["n_counted"] == 11 and ls["mcap_1b"]["up"] == 50e9 + 4e9 and ls["mcap_1b"]["down_more"] == 3e9 and ls["mcap_1b"]["flat"] == 20e9 and ls["mcap_1b"]["down_less"] == 2e9 + 1.5e9
     sec = {x["sector"]: x for x in ls["by_sector"]}
     assert sec["Utilities"]["n"] == 2 and sec["Utilities"]["held_pct"] == 100.0 and sec["Technology"]["n"] == 4 and sec["Technology"]["down_more"] == 1 and ls["by_sector"][0]["sector"] == "Utilities"
     cls = {x["cls"]: x for x in ls["by_class"]}
-    assert cls["bond"]["up"] == 1 and cls["bond"]["label"] == "Bonds" and cls["equity_etf"]["down_less"] == 1 and ls["by_class"][0]["cls"] == "bond"
+    assert cls["bond"]["up"] == 1 and cls["bond"]["label"] == "Bonds" and cls["equity_etf"]["down_less"] == 1 and [x["cls"] for x in ls["by_class"]] == ["volatility", "bond", "equity_etf"]
+    assert "leveraged" not in cls, "a geared fund is in no class count"
     b = ls["boards"]
     assert b["up"] == ["NEWB", "HOLD"] and b["down_less"] == ["SPLT", "LESS"] and b["etf_up"] == ["BOND"] and b["etf_down_most"] == ["QQQE", "BOND"]
-    assert b["repeat"] == ["HOLD", "FLAT", "SPLT"]               # held up on every dump day of the quarter, the last session among them
+    assert b["repeat"] == ["HOLD", "FLAT", "SPLT"]               # held up on every dump day BEFORE the session, and again on it
+    assert "VOLX" not in b["etf_up"] and "SHRT" not in b["etf_up"]            # long volatility is counted in its class and kept off the board; the inverse fund is set aside
+    rec = {x["key"]: x for x in ls["by_record"]}
+    assert ls["record_cols"] == ["dnp", "dhp"] and [x["key"] for x in ls["by_record"]] == ["all", "most", "some", "few"]
+    assert (rec["all"]["n"], rec["all"]["held"]) == (3, 3) and (rec["most"]["n"], rec["most"]["down_less"]) == (1, 1) and rec["some"] == {"n": 0, "key": "some", "label": "on a third to two thirds"} and (rec["few"]["n"], rec["few"]["down_more"]) == (1, 1)
     assert "MORE" not in b["strong_holding"] and b["strong_breaking"] == [] and ls["by_rank"] == []          # six ranked $1B+ names: too few for deciles
     # the same function reads the page's live join: outcome words and the regime
     assert [wide.outcome(x, -2.0, 0.25) for x in (0.26, 0.25, -0.25, -0.26, -1.99, -2.0, -3.0)] == ["up", "flat", "flat", "down_less", "down_less", "down_more", "down_more"]
@@ -881,7 +894,7 @@ def test_wide_stands_on_the_desks_session():
     doc = wide.build(s3, NOW, DATES[-2].isoformat(), lf.VERSION, RULES, classify=lf.asset_class_of, log=lambda *a: None)
     by = {r[0]: dict(zip(doc["cols"], r)) for r in doc["rows"]}
     assert doc["as_of"] == DATES[-2].isoformat() and doc["prior_session"] == DATES[-3].isoformat() and "LATE" in by and doc["last_session"]["regime"] != "dump"
-    assert [d["date"] for d in doc["dump_days"]] == [DATES[-20].isoformat(), DATES[-10].isoformat()]
+    assert [d["date"] for d in doc["dump_days"]] == [DATES[-30].isoformat(), DATES[-20].isoformat(), DATES[-10].isoformat()]
 
 
 def test_handler_writes_the_wide_table_after_the_desk():
@@ -892,7 +905,7 @@ def test_handler_writes_the_wide_table_after_the_desk():
     ctx = SimpleNamespace(get_remaining_time_in_millis=lambda: 880000)
     res = lf.lambda_handler({}, ctx)
     keys = [x["Key"] for x in s3.puts]
-    assert res["statusCode"] == 200 and res["key"] == "data/strength.json" and res["wide"]["key"] == lf.WIDE_KEY == "data/strength-wide.json" and res["wide"]["rows"] == 13 and "error" not in res["wide"]
+    assert res["statusCode"] == 200 and res["key"] == "data/strength.json" and res["wide"]["key"] == lf.WIDE_KEY == "data/strength-wide.json" and res["wide"]["rows"] == 15 and "error" not in res["wide"]
     assert keys.index("data/strength.json") < keys.index(lf.WIDE_KEY), keys          # the desk's artifact is safe before the whole-market pass starts
     put = [x for x in s3.puts if x["Key"] == lf.WIDE_KEY][-1]
     doc = json.loads(put["Body"])
@@ -907,7 +920,7 @@ def test_handler_writes_the_wide_table_after_the_desk():
     # the whole-market table alone, on the session the published desk stands on
     s3.puts.clear()
     res = lf.lambda_handler({"wide_only": True}, ctx)
-    assert res["wide"]["rows"] == 13 and "data/strength.json" not in [x["Key"] for x in s3.puts] and lf.WIDE_KEY in [x["Key"] for x in s3.puts]
+    assert res["wide"]["rows"] == 15 and "data/strength.json" not in [x["Key"] for x in s3.puts] and lf.WIDE_KEY in [x["Key"] for x in s3.puts]
     # a fault in the whole-market pass never costs the desk its artifact
     s3.puts.clear()
     real = sys.modules["bank_enrich"].rows
@@ -948,7 +961,7 @@ def test_wide_live_join_is_the_pages_arithmetic():
     assert rd["date"] == nxt and rd["rank_as_of"] == doc["as_of"] and rd["rank_col"] == "rs" and rd["regime"] == "dump" and rd["bars_as_of"] == today["as_of"]
     # counted: HOLD up, FLAT flat, LESS down less, MORE down more (DEAL is pinned, SMAL unconfirmed, the rest have not printed)
     assert (g["stocks"]["n"], g["stocks"]["up"], g["stocks"]["flat"], g["stocks"]["down_less"], g["stocks"]["down_more"]) == (4, 1, 1, 1, 1) and g["etfs"]["n"] == 2 and g["etfs"]["down_more"] == 1
-    assert rd["n_unconfirmed"] == 1 and rd["unconfirmed"] == ["SMAL"] and rd["n_no_print"] == 13 - 8 and rd["boards"]["up"] == ["HOLD"] and rd["boards"]["strong_holding"] == ["HOLD"]
+    assert rd["n_unconfirmed"] == 1 and rd["unconfirmed"] == ["SMAL"] and rd["n_no_print"] == len(doc["rows"]) - 8 and rd["record_cols"] == ["dn", "dh"] and rd["boards"]["up"] == ["HOLD"] and rd["boards"]["strong_holding"] == ["HOLD"]
     # no live session: the forming file is the table's own session (after the nightly run) or older
     assert wide.live_join(doc, dict(today, session=doc["as_of"])) is None and wide.live_read(doc, {"session": DATES[-5].isoformat(), "rows": today["rows"]}) is None
     assert wide.live_join(doc, {"session": nxt, "rows": {}}) is None and wide.live_join(doc, None) is None
