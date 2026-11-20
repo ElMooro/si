@@ -5194,6 +5194,7 @@ else if(o.id==="rvol"){
       "<button class='wsico wsdesk' id=btn-bofa title='ICE BofA indices · spreads, yields and total return'><span class=g>ICE</span><span class=l>BofA</span></button>"+
       "<button class='wsico wsdesk' id=btn-13f title='13F · Institutional holdings'><span class=g>🏦</span><span class=l>13F</span></button>"+
       "<button class='wsico wsdesk' id=btn-ldr title='Leaders · industry leaders vs S&P 500'><span class=g>👑</span><span class=l>Leaders</span></button>"+
+      "<button class='wsico wsdesk' id=btn-svol title='Volatility · most and least volatile stocks, price spread'><span class=g>σ</span><span class=l>Volatility</span></button>"+
       "<button class='wsico wsdesk' id=btn-wysc title='Selling climax · Wyckoff daily'><span class=g>SC</span><span class=l>Climax</span></button>"+
       "<button class='wsico wsdesk' id=btn-capit title='Capitulation · panic volume at the lows'><span class=g>Cap</span><span class=l>Capit</span></button>"+
       "<button class='wsico wsdesk' id=btn-bc title='Buying climax · Wyckoff daily'><span class=g>BC</span><span class=l>Climax</span></button>"+
@@ -5257,6 +5258,7 @@ else if(o.id==="rvol"){
     var bbofa=document.getElementById("btn-bofa"); if(bbofa) bbofa.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("bofa"); };
     var b13f=document.getElementById("btn-13f"); if(b13f) b13f.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("13f"); };
     var bldr=document.getElementById("btn-ldr"); if(bldr) bldr.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("leaders"); };
+    var bsvol=document.getElementById("btn-svol"); if(bsvol) bsvol.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("volatility"); };
     var bsc=document.getElementById("btn-wysc"); if(bsc) bsc.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("sc"); };
     var bcap=document.getElementById("btn-capit"); if(bcap) bcap.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("capit"); };
     var bbc=document.getElementById("btn-bc"); if(bbc) bbc.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("bc"); };

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stock volatility &amp; price spread · JustHodl.AI</title>
+<meta name="description" content="Every listed stock ranked by how much it moves: realized volatility over 21, 63 and 252 sessions, and the price spread - highest high over lowest low - of the last day, week, month and quarter. Most and least volatile, widest and narrowest, each against the stock's own year.">
+<link rel="stylesheet" href="/jh-theme.css">
+<link rel="stylesheet" href="/jh-desk.css">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* the desk stylesheet's palette re-pointed at the site theme, so this page follows the theme in both modes */
+  :root{--bg:var(--jh-bg);--bg-1:var(--jh-panel);--bg-2:var(--jh-panel-2);--bg-3:var(--jh-panel-2);--line:var(--jh-line);--line-2:var(--jh-amber-dim);
+    --fg0:var(--jh-ink);--fg1:var(--jh-ink);--fg2:var(--jh-ink);--fg3:var(--jh-dim);--fg4:var(--jh-dim);--cyan:var(--jh-amber);--green:var(--jh-green);--red:var(--jh-red);--amber:var(--jh-amber)}
+  .jh-tbl th{background:var(--jh-panel-2)}
+  .jh-tbl td{border-bottom-color:var(--jh-line)}
+  .jh-tbl tr:hover td{background:var(--jh-panel-2)}
+  .jh-chip.jh-chip.on{color:var(--jh-bg)}
+  .jh-hero p{max-width:92ch;font-size:13px}
+  .jh-hero p.sv-verdict{color:var(--jh-ink);font-size:14.5px;line-height:1.55;margin-top:10px}
+
+  .sv-sec{margin:0 0 24px;scroll-margin-top:56px}
+  .sv-sec h2{font:600 12.5px/1.3 var(--jh-mono);letter-spacing:.07em;text-transform:uppercase;margin:0 0 6px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .sv-sec h2 .m{font-weight:400;color:var(--jh-dim);text-transform:none;letter-spacing:0}
+  .sv-sec h3{font:11px var(--jh-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--jh-dim);margin:0 0 6px}
+  .sv-sub{font-size:12.5px;line-height:1.55;color:var(--jh-dim);margin:0 0 10px;max-width:108ch}
+  .sv-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 8px}
+  .sv-row .jh-chips{margin:0}
+  .sv-row label{font:11px var(--jh-mono);color:var(--jh-dim);display:inline-flex;gap:6px;align-items:center}
+  .sv-in{background:var(--jh-panel);border:1px solid var(--jh-line);color:var(--jh-ink);font:12px var(--jh-mono);padding:5px 8px;border-radius:4px;min-width:0;max-width:100%}
+  input.sv-in{width:190px}
+  select.sv-in{max-width:240px}
+  .sv-btn{background:transparent;border:1px solid var(--jh-line);color:var(--jh-dim);font:11px var(--jh-mono);padding:5px 9px;border-radius:4px;cursor:pointer}
+  .sv-btn:hover{color:var(--jh-ink);border-color:var(--jh-amber-dim)}
+  .sv-more{display:block;width:100%;margin-top:6px;padding:8px;text-align:center}
+
+  .jh-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .jh-kpi .v{font-size:18px;line-height:1.25}
+  .jh-kpi .v small,.jh-kpi .l small{font:400 11px var(--jh-mono);color:var(--jh-dim);text-transform:none;letter-spacing:0}
+  .jh-kpi .s{line-height:1.6;margin-top:4px}
+  .jh-kpi a.tk{font-weight:600}
+  .sv-jump{background:none;border:0;padding:0;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+  .sv-jump:hover{text-decoration-style:solid;color:var(--jh-ink)}
+  .sv-changes{font:12px/1.9 var(--jh-mono);color:var(--jh-dim);margin:2px 0 0}
+  .sv-changes b{color:var(--jh-ink);font-weight:500}
+
+  /* tables: every header sorts; the position and the ticker stay put while the rest scrolls sideways */
+  .sv-tbl th{cursor:pointer;user-select:none;white-space:nowrap}
+  .sv-tbl th.txt,.sv-tbl td.l{text-align:left}
+  .sv-tbl th:not(.txt),.sv-tbl td:not(.l){text-align:right}
+  .sv-tbl th[aria-sort="descending"]::after{content:" \25BE";color:var(--jh-amber)}
+  .sv-tbl th[aria-sort="ascending"]::after{content:" \25B4";color:var(--jh-amber)}
+  .sv-tbl th[aria-sort]{color:var(--jh-ink)}
+  .sv-tbl th.sv-pos,.sv-tbl td.sv-pos{width:44px;min-width:44px;max-width:44px;text-align:right;color:var(--jh-dim);cursor:default;position:sticky;left:0;background:var(--jh-panel);z-index:1}
+  .sv-tbl th.sv-pos{z-index:3;background:var(--jh-panel-2)}
+  .sv-tbl th.sv-pos + th,.sv-tbl td.sv-pos + td{position:sticky;left:44px;background:var(--jh-panel);z-index:1}
+  .sv-tbl th.sv-pos + th{z-index:3;background:var(--jh-panel-2)}
+  .sv-tbl tr:hover td.sv-pos,.sv-tbl tr:hover td.sv-pos + td{background:var(--jh-panel-2)}
+  .sv-tbl td.na,.sv-tbl .dim,.jh-kpi .dim,.sv-changes .dim{color:var(--jh-dim)}
+  .sv-tbl td.amber{color:var(--jh-amber)}
+  .sv-tbl td.aside{color:var(--jh-dim);text-decoration:underline dotted;text-underline-offset:3px}
+  .sv-tbl .nm{display:inline-block;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;color:var(--jh-dim)}
+  .sv-tbl .nm.wide{max-width:260px}
+  .sv-tbl .nm2{display:none}
+  .sv-tbl td.wrap{white-space:normal;min-width:240px;max-width:460px;line-height:1.45;color:var(--jh-dim)}
+  .sv-tbl tr.sv-total td{border-top:1px solid var(--jh-line);color:var(--jh-dim)}
+  .sv-src td{font-size:11px}
+  .sv-chip{display:inline-block;padding:0 5px;border-radius:3px;font:500 10px/1.75 var(--jh-mono);border:1px solid var(--jh-line);margin-right:4px;white-space:nowrap;color:var(--jh-ink)}
+  .sv-chip.dn{color:var(--jh-red);border-color:color-mix(in srgb,var(--jh-red) 45%,transparent)}
+  .sv-chip.amber{color:var(--jh-amber);border-color:color-mix(in srgb,var(--jh-amber) 50%,transparent)}
+  .sv-chip.mute{color:var(--jh-dim)}
+  /* where a reading stands in the stock's own year: a neutral track, one marker */
+  .sv-bar{display:inline-block;width:54px;height:4px;border-radius:2px;background:var(--jh-line);vertical-align:middle;position:relative;margin-right:7px}
+  .sv-bar i{position:absolute;top:-4px;width:2px;height:12px;background:var(--jh-amber);margin-left:-1px;border-radius:1px}
+  .sv-rng{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  .sv-rng em{font-style:normal;color:var(--jh-dim);min-width:52px}
+  .sv-rng em:first-child{text-align:right}.sv-rng em:last-child{text-align:left}
+  .sv-track{display:inline-block;width:64px;height:4px;border-radius:2px;background:var(--jh-line);position:relative}
+  .sv-track i{position:absolute;top:-4px;width:2px;height:12px;background:var(--jh-ink);margin-left:-1px;border-radius:1px}
+  .sv-share{display:inline-block;width:110px;height:8px;background:var(--jh-line);border-radius:2px;vertical-align:middle;margin-right:8px;overflow:hidden}
+  .sv-share i{display:block;height:100%;background:var(--jh-amber);border-radius:2px 4px 4px 2px;opacity:.85}
+
+  /* the market's year: one line inside a wash; grid and axis recede; text is ink, never the line's colour */
+  .sv-grid2{display:grid;grid-template-columns:minmax(0,11fr) minmax(0,9fr);gap:12px;margin-bottom:6px}
+  .sv-bands .sv-share{width:76px}
+  .sv-grid2>div{min-width:0}
+  .sv-card{background:var(--jh-panel);border:1px solid var(--jh-line);border-radius:8px;padding:12px 14px}
+  .sv-histwrap{position:relative}
+  .sv-chart{display:block;max-width:100%;height:auto;touch-action:pan-y;outline:none}
+  .sv-chart:focus-visible{outline:1px solid var(--jh-amber-dim);outline-offset:2px}
+  .sv-line{fill:none;stroke:var(--jh-amber);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+  .sv-band{fill:var(--jh-amber);opacity:.1;stroke:none}
+  .sv-grid{stroke:var(--jh-line);stroke-width:1}
+  .sv-ax{font:10.5px var(--jh-mono);fill:var(--jh-dim)}
+  .sv-end{font:600 11.5px var(--jh-mono);fill:var(--jh-ink)}
+  .sv-dot{fill:var(--jh-amber);stroke:var(--jh-panel);stroke-width:2}
+  .sv-cross{stroke:var(--jh-dim);stroke-width:1}
+  .sv-tip{position:absolute;pointer-events:none;background:var(--jh-panel-2);border:1px solid var(--jh-line);border-radius:6px;padding:7px 9px;font:11px/1.55 var(--jh-mono);color:var(--jh-dim);min-width:200px;max-width:230px;z-index:5;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+  .sv-tip b{color:var(--jh-ink);font-weight:600}
+  .sv-tip span{color:var(--jh-ink)}
+  .sv-tip .d{color:var(--jh-dim);letter-spacing:.04em}
+  .sv-key{display:flex;gap:16px;flex-wrap:wrap;font:11px var(--jh-mono);color:var(--jh-dim);margin:6px 0 0}
+  .sv-key span{display:inline-flex;align-items:center;gap:6px}
+  .sv-key .k-line{display:inline-block;width:16px;height:2px;background:var(--jh-amber);border-radius:1px}
+  .sv-key .k-band{display:inline-block;width:14px;height:10px;background:var(--jh-amber);opacity:.2;border-radius:2px}
+  details.sv-num{margin-top:8px}
+  details.sv-num summary{font:11px var(--jh-mono);color:var(--jh-dim);cursor:pointer}
+  details.sv-num .jh-tblwrap{margin-top:6px;max-height:300px}
+
+  .sv-rules dl{display:grid;grid-template-columns:minmax(120px,190px) minmax(0,1fr);gap:6px 16px;margin:0;font-size:12px;line-height:1.55}
+  .sv-rules dt{font:500 11.5px/1.7 var(--jh-mono);color:var(--jh-amber)}
+  .sv-rules dd{margin:0;color:var(--jh-dim)}
+  .sv-rules ul{margin:0;padding-left:18px;font-size:12px;line-height:1.6;color:var(--jh-dim)}
+  .sv-rules h3{margin-top:14px}
+  .sv-ops p{font-size:12px;line-height:1.6;color:var(--jh-dim);margin:0 0 6px;max-width:150ch;overflow-wrap:anywhere}
+  .sv-ops b{color:var(--jh-ink);font-weight:500}
+  @media (min-width:1401px){.jh-ws-header{padding-right:40px}}   /* the site's desk-info tab is docked on the last 26px of this row */
+  @media (max-width:1100px){.sv-grid2{grid-template-columns:minmax(0,1fr)}.jh-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media (max-width:640px){
+    .jh-ws-header{flex-wrap:wrap;height:auto;padding:8px 14px;row-gap:4px}.jh-ws-crumb{display:none}.jh-ws-links{flex-wrap:wrap;gap:4px 12px;max-width:100%}
+    .jh-desk{padding:14px 12px 40px}
+    .sv-rules dl{grid-template-columns:minmax(0,1fr);gap:2px 0}.sv-rules dd{margin-bottom:8px}
+    input.sv-in{width:150px}.sv-tbl .nm{max-width:120px}
+    /* a phone: the name rides under the ticker and its own column goes, so the ranked figure is on screen */
+    .sv-tbl .c-name{display:none}
+    .sv-tbl .nm2{display:block;max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 10px/1.3 var(--jh-mono);color:var(--jh-dim)}
+    .jh-kpis{grid-template-columns:minmax(0,1fr)}
+    .sv-tbl th.sv-pos,.sv-tbl td.sv-pos{width:34px;min-width:34px;max-width:34px}
+    .sv-tbl th.sv-pos + th,.sv-tbl td.sv-pos + td{left:34px}
+    .sv-share{width:64px}
+    /* the long chip rows scroll sideways on a phone instead of stacking above the table */
+    #board-chips,#rows-view,#rows-show,#rows-size{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px;scrollbar-width:none;max-width:100%}
+    #board-chips .jh-chip,#rows-view .jh-chip,#rows-show .jh-chip,#rows-size .jh-chip{flex:0 0 auto}
+  }
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body data-research-context="data/stock-volatility.json">
+<header class="jh-ws-header">
+  <a class="jh-ws-brand" href="/">JUSTHODL<span>.AI</span></a>
+  <span class="jh-ws-crumb">VOLATILITY DESK · how much every listed stock moves, and how wide its price spread has been</span>
+  <nav class="jh-ws-links" aria-label="Desks">
+    <a href="/etf.html">ETF</a>
+    <a href="/strong.html">Strong</a>
+    <a href="/leaders.html">Leaders</a>
+    <a href="/stock-volatility.html" class="on" aria-current="page">Volatility</a>
+    <a href="/wyckoff-desk.html">Wyckoff</a>
+    <a href="/universe-heatmap.html">Heatmap</a>
+    <a href="/chart.html">Chart</a>
+  </nav>
+</header>
+<main class="jh-desk" id="app">
+  <div class="jh-hero">
+    <div>
+      <h1>STOCK VOLATILITY &amp; PRICE SPREAD</h1>
+      <p>Every listed common stock and plain ETF, measured each morning from the Polygon EOD bank. Volatility is realized: the standard deviation of daily returns over the last 21, 63 and 252 sessions, stated in percent a year. Price spread is how far the highest high of a window stood above its lowest low, for the last day, week (5 sessions), month (21) and quarter (63). Every column sorts both ways, so any of them ranks the market.</p>
+      <p class="sv-verdict" id="verdict-line" role="status">Reading the volatility artifact…</p>
+    </div>
+    <div class="jh-stamp" id="stamp">loading…</div>
+  </div>
+
+  <section class="sv-sec" id="verdict" data-jh-key="verdict" data-jh-title="Verdict" aria-label="Verdict: how volatile the market is now and which stocks stand at each end">
+    <h2>Verdict <span class="m" id="verdict-meta"></span></h2>
+    <div class="jh-kpis" id="kpis"></div>
+    <p class="sv-changes" id="changes"></p>
+  </section>
+
+  <section class="sv-sec" id="market" data-jh-key="market-year" data-jh-title="The market over a year" aria-label="The market over a year: median stock volatility and the stocks in each volatility band">
+    <h2>The market over a year</h2>
+    <p class="sv-sub">One line for all listed stocks: the median 21-session volatility on each of the last 252 sessions, inside the band that holds the middle half of them. Beside it, where the stocks and their market value sit today.</p>
+    <div class="sv-grid2">
+      <div class="sv-card">
+        <div class="sv-row"><div class="jh-chips" id="hist-mode" role="group" aria-label="Measure"></div></div>
+        <div class="sv-histwrap" id="hist"></div>
+        <div class="sv-key" id="hist-key"></div>
+        <details class="sv-num"><summary>The numbers behind the line</summary><div class="jh-tblwrap" id="hist-table"></div></details>
+      </div>
+      <div><h3>Stocks by how volatile they are now</h3><div class="jh-tblwrap" id="bands"></div></div>
+    </div>
+  </section>
+
+  <section class="sv-sec" id="boards" data-jh-key="boards" data-jh-title="The two ends" aria-label="The two ends of every ranking">
+    <h2>The two ends <span class="m" id="board-meta"></span></h2>
+    <p class="sv-sub">The 25 names at each end of each ranking, among common stocks worth $1B or more, so a list is not twenty-five shells. A stock whose last month fits inside 3.5% is waiting for a takeover to close: it is listed under Pinned and kept out of the rankings.</p>
+    <div class="jh-chips" id="board-chips" role="group" aria-label="Ranking"></div>
+    <div class="jh-tblwrap" style="max-height:560px" id="board"></div>
+  </section>
+
+  <section class="sv-sec" id="table" data-jh-key="every-stock" data-jh-title="Every stock" aria-label="Every stock and ETF, ranked by any column">
+    <h2>Every stock <span class="m" id="rows-meta"></span></h2>
+    <p class="sv-sub">Click a header to rank by it; click again to reverse. The # column is the position in the list on screen, so it is the rank under whatever filter is on. A dotted figure is measured but set aside from the rankings.</p>
+    <div class="sv-row"><div class="jh-chips" id="rows-kind" role="group" aria-label="Kind"></div><div class="jh-chips" id="rows-view" role="group" aria-label="Columns"></div></div>
+    <div class="sv-row">
+      <div class="jh-chips" id="rows-size" role="group" aria-label="Market value"></div>
+      <label>Sector <select class="sv-in" id="rows-sector"></select></label>
+      <label>Find <input class="sv-in" id="rows-q" type="search" placeholder="ticker, name or industry" autocomplete="off"></label>
+      <button type="button" class="sv-btn" id="rows-reset">Clear filters</button>
+      <button type="button" class="sv-btn" id="rows-csv">Download CSV</button>
+    </div>
+    <div class="jh-chips" id="rows-show" role="group" aria-label="Rows"></div>
+    <div class="jh-tblwrap" id="rows"><p class="jh-load">Reading the volatility artifact…</p></div>
+    <button type="button" class="sv-btn sv-more" id="rows-more" hidden></button>
+  </section>
+
+  <section class="sv-sec" id="groups" data-jh-key="sectors-sizes" data-jh-title="Sectors and sizes" aria-label="Sectors and sizes: the median stock of each group">
+    <h2>Sectors and sizes</h2>
+    <p class="sv-sub">The median stock of each sector and of each size, on the same measures. Rising is the share whose 21-session volatility is above its reading 21 sessions ago.</p>
+    <div class="jh-tblwrap" id="sectors" style="margin-bottom:12px"></div>
+    <div class="jh-tblwrap" id="sizes"></div>
+  </section>
+
+  <section class="sv-sec sv-rules" id="rules-sec" data-jh-key="reading-rules" data-jh-title="Reading rules" aria-label="Reading rules and limitations">
+    <h2>Reading rules</h2>
+    <div class="jh-card">
+      <div id="rules"></div>
+      <h3>What this desk cannot see</h3>
+      <ul id="limits"></ul>
+    </div>
+  </section>
+
+  <section class="sv-sec sv-ops" id="sources-sec" data-jh-key="sources" data-jh-title="Sources and engine observability" aria-label="Sources and engine observability">
+    <h2>Sources and engine observability</h2>
+    <div class="jh-tblwrap" id="sources" style="margin-bottom:10px"></div>
+    <div id="ops"></div>
+  </section>
+</main>
+<script src="/private-artifacts.js?v=20260909"></script>
+<script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-desk-core.js"></script>
+<script src="/jh-stock-volatility.js?v=20261119-vol-v1"></script>
+</body>
+</html>

@@ -172,3 +172,23 @@ git rm tests/chart-search-bench-pins.test.js
 ```
 
 then commit `[skip-ops]` and push.
+
+## 2026-11-19, evening: the Volatility button on the chart
+
+Khalid asked for an engine that measures every stock's volatility and price spread, and "an icon for it in chart.html".
+The chart toolbar has one new button, Volatility (σ), right after Leaders; it opens `/stock-volatility.html` in the
+workspace. In the chart's files that is two lines in `jh-chart-engine.js` (the button, its click) and one in
+`jh-chart-tvrail.js` (the workspace's name and page); the byte ledger peels them first (`peelVolDeskEngine`,
+`peelVolDeskRail`). Nothing else on the chart changed.
+
+To take the button off and keep the desk page:
+
+```
+git checkout 7a5a7c11 -- jh-chart-engine.js jh-chart-tvrail.js tests/helpers/chart-macro-line-preservation.cjs
+```
+
+then delete the last test of `tests/stock-volatility-desk.test.js`, commit `[skip-ops]` and push. To remove the desk
+as well: `git rm stock-volatility.html jh-stock-volatility.js tests/stock-volatility-desk.test.js
+tests/fixtures/stock-volatility-desk.json`, drop the `stock-volatility.html` row from `docs/ops/PAGE_ORDER.md`, and
+rebuild `config/page-data-contracts.json` (`python3.12 scripts/build_page_data_contracts.py`). The engine
+`justhodl-stock-volatility` keeps running once a day until its schedule `justhodl-stock-volatility-daily` is disabled.

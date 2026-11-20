@@ -473,7 +473,30 @@ function peelMarkDesksHtml(raw,file){
  assert.equal(hash(raw),BEFORE,'chart.html');
  return raw;
 }
-function normalize(raw,file){raw=peelIndexRoutes(raw,file);raw=peelSpxCashWatch(raw,file);raw=peelSpxCashIdentityTest(raw,file);raw=peelMarkDesksHtml(raw,file);raw=peelMarkDesksRail(raw,file);raw=peelFredDesksEngine(raw,file);raw=peelFredDesksRail(raw,file);raw=peelCandleClarity(raw,file);raw=peelScreenFit(raw,file);raw=peelFlowsEngine(raw,file);raw=peelFlowsRail(raw,file);raw=peelFormingBar(raw,file);raw=peelCapitHtml(raw,file);raw=peelCapitRail(raw,file);raw=peelLeadersHtml(raw,file);raw=peelLeadersEngine(raw,file);raw=peelLeadersRail(raw,file);raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
+// 2026-11-19: peel the Volatility desk (button + click after Leaders, rail meta) before every older peel.
+function peelVolDeskEngine(raw,file){
+ const AFTER='500cb50af75a6d5d7b5f95b98345b973f2e34a54c778ca362d713f9ffd4a21ec';
+ const BEFORE='bf37672d6bdd75d04ae60faa1b38e546c9df7831535644cfdbdc8e1b0d6d7989';
+ const BTN="      \"<button class='wsico wsdesk' id=btn-svol title='Volatility · most and least volatile stocks, price spread'><span class=g>σ</span><span class=l>Volatility</span></button>\"+\n";
+ const CLICK="    var bsvol=document.getElementById(\"btn-svol\"); if(bsvol) bsvol.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace(\"volatility\"); };\n";
+ if(file!=='jh-chart-engine.js'||hash(raw)!==AFTER)return raw;
+ assert.equal(raw.split(BTN).length,2,'jh-chart-engine.js Volatility desk button');
+ assert.equal(raw.split(CLICK).length,2,'jh-chart-engine.js Volatility desk click');
+ raw=raw.replace(BTN,'').replace(CLICK,'');
+ assert.equal(hash(raw),BEFORE,'jh-chart-engine.js');
+ return raw;
+}
+function peelVolDeskRail(raw,file){
+ const AFTER='60dc58a49a678431cbf3b7559aab662943b3ba62a4ba6c9311f13b4e90ebfe8d';
+ const BEFORE='09303dcb5f1e693d0efdade211b2e579c8d3b85a0b5157dd33048a7083277ed9';
+ const LINE="      volatility: [\"Volatility · most and least volatile stocks, price spread\", \"/stock-volatility.html\"],\n";
+ if(file!=='jh-chart-tvrail.js'||hash(raw)!==AFTER)return raw;
+ assert.equal(raw.split(LINE).length,2,'jh-chart-tvrail.js Volatility desk meta');
+ raw=raw.replace(LINE,'');
+ assert.equal(hash(raw),BEFORE,'jh-chart-tvrail.js');
+ return raw;
+}
+function normalize(raw,file){raw=peelVolDeskEngine(raw,file);raw=peelVolDeskRail(raw,file);raw=peelIndexRoutes(raw,file);raw=peelSpxCashWatch(raw,file);raw=peelSpxCashIdentityTest(raw,file);raw=peelMarkDesksHtml(raw,file);raw=peelMarkDesksRail(raw,file);raw=peelFredDesksEngine(raw,file);raw=peelFredDesksRail(raw,file);raw=peelCandleClarity(raw,file);raw=peelScreenFit(raw,file);raw=peelFlowsEngine(raw,file);raw=peelFlowsRail(raw,file);raw=peelFormingBar(raw,file);raw=peelCapitHtml(raw,file);raw=peelCapitRail(raw,file);raw=peelLeadersHtml(raw,file);raw=peelLeadersEngine(raw,file);raw=peelLeadersRail(raw,file);raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
  if(digest===row.before_sha256||digest!==row.after_sha256)return raw;
  for(const e of [...row.replacements].reverse()){assert.equal(raw.split(e.after).length,2,file+': '+e.after.slice(0,60));raw=raw.replace(e.after,e.before);}
  assert.equal(hash(raw),row.before_sha256,file);assert.equal(raw,fs.readFileSync(path.join(R,row.before_path),'utf8'));return raw;

@@ -230,6 +230,7 @@
       bofa: ["ICE BofA indices", "/ice-bofa-indices.html"],
       "13f": ["13F · Institutional book", "/13f.html"],
       leaders: ["Leaders · industry leaders vs S&P 500", "/leaders.html"],
+      volatility: ["Volatility · most and least volatile stocks, price spread", "/stock-volatility.html"],
       sc: ["Selling climax · Wyckoff daily", "/wyckoff-desk.html?tab=sc"],
       capit: ["Capitulation · panic volume at the lows", "/capitulation-desk.html"],
       bc: ["Buying climax · Wyckoff daily", "/wyckoff-desk.html?tab=bc"],
