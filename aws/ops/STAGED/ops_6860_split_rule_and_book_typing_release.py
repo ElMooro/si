@@ -242,7 +242,12 @@ def main():
         for fn, (key, want, _) in ENGINES.items():
             d, b = after[fn], before[fn]
             now_t = tickers_of(d)
-            left = sorted(set(moved) & now_t)
+            # the day-over-day record names what LEFT a board since the prior session: a moved row belongs there
+            on_rows = tickers_of({k: v for k, v in d.items() if k != "changes"})
+            left = sorted(set(moved) & on_rows)
+            named_gone = sorted(set(moved) & (tickers_of({"changes": d.get("changes")}) - on_rows))
+            if named_gone:
+                r.log("  named only in the day-over-day record as having left: %s" % ", ".join(named_gone))
             gone, came = sorted(b["tickers"] - now_t), sorted(now_t - b["tickers"])
             ck(d.get("version") == want, "%s wrote version %s, not %s" % (key, d.get("version"), want))
             ck(not left, "%s still carries rows the book moved out of common stock: %s" % (key, left[:12]))
