@@ -4,50 +4,166 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Strength vs S&P 500 · JustHodl.AI</title>
-<meta name="description" content="Relative strength versus the S&P 500 on 1 day to 1 year, RS trend and consistency, the long-accumulation tight-spread detector, reported fund flows and the 13F smart-money read — ETFs, stocks, metals, crypto.">
+<meta name="description" content="Every listed stock and ETF against the S&P 500, live while the market is open: who is up, flat, down less or down more than SPY, by sector, industry, asset class and the rank each name carried in. Relative strength on 1 day to 1 year, the dump-day record, long tight bases, fund flows and the 13F read.">
 <link rel="stylesheet" href="/jh-theme.css">
 <link rel="stylesheet" href="/jh-desk.css">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  .st-sec{margin:0 0 16px}
-  .st-sec h2{font:600 12px/1.3 "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;margin:0 0 6px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
-  .st-sec h2 .m{font-weight:400;opacity:.65;text-transform:none;letter-spacing:0}
-  .st-sub{font-size:12px;opacity:.75;margin:0 0 8px;max-width:1100px}
-  .st-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 8px}
+  /* the desk stylesheet's palette re-pointed at the site theme, so this page follows the theme in both modes */
+  :root{--bg:var(--jh-bg);--bg-1:var(--jh-panel);--bg-2:var(--jh-panel-2);--bg-3:var(--jh-panel-2);--line:var(--jh-line);--line-2:var(--jh-amber-dim);
+    --fg0:var(--jh-ink);--fg1:var(--jh-ink);--fg2:var(--jh-ink);--fg3:var(--jh-dim);--fg4:var(--jh-dim);--cyan:var(--jh-amber);--green:var(--jh-green);--red:var(--jh-red);--amber:var(--jh-amber)}
+  .jh-tbl th{background:var(--jh-panel-2)}
+  .jh-tbl td{border-bottom-color:var(--jh-line)}
+  .jh-tbl tr:hover td{background:var(--jh-panel-2)}
+  .jh-chip.jh-chip.on{color:var(--jh-bg)}
+  .jh-hero p{max-width:92ch;font-size:13px}
+  .jh-hero p.sx-verdict{color:var(--jh-ink);font-size:14.5px;line-height:1.55;margin-top:10px}
+  .jh-focus{border-color:var(--jh-amber-dim);background:var(--jh-panel)}
+
+  .st-sec,.sx-sec{margin:0 0 24px;scroll-margin-top:56px}
+  .st-sec h2,.sx-sec h2{font:600 12.5px/1.3 var(--jh-mono);letter-spacing:.07em;text-transform:uppercase;margin:0 0 6px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .st-sec h2 .m,.sx-sec h2 .m{font-weight:400;color:var(--jh-dim);text-transform:none;letter-spacing:0}
+  .sx-sec h3,.sx-card h3{font:11px var(--jh-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--jh-dim);margin:0 0 8px}
+  .sx-card h3 .m{text-transform:none;letter-spacing:0}
+  .st-sub,.sx-sub{font-size:12.5px;line-height:1.55;color:var(--jh-dim);margin:0 0 10px;max-width:118ch}
+  .st-row,.sx-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 8px}
+  .sx-row .jh-chips{margin:0}
+  .sx-row label{font:11px var(--jh-mono);color:var(--jh-dim);display:inline-flex;gap:6px;align-items:center}
+  .sx-in{background:var(--jh-panel);border:1px solid var(--jh-line);color:var(--jh-ink);font:12px var(--jh-mono);padding:5px 8px;border-radius:4px;min-width:0;max-width:100%}
+  input.sx-in{width:190px}
+  select.sx-in{max-width:260px}
+  .sx-btn{background:transparent;border:1px solid var(--jh-line);color:var(--jh-dim);font:11px var(--jh-mono);padding:5px 9px;border-radius:4px;cursor:pointer}
+  .sx-btn:hover{color:var(--jh-ink);border-color:var(--jh-amber-dim)}
+  .sx-more{display:block;width:100%;margin-top:6px;padding:8px;text-align:center}
+  .sx-note{font:11.5px/1.6 var(--jh-mono);color:var(--jh-dim);margin:8px 0 0;max-width:150ch}
+
+  .jh-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .jh-kpi .v{font-size:18px;line-height:1.25}
+  .jh-kpi .v small,.jh-kpi .l small{font:400 11px var(--jh-mono);color:var(--jh-dim);text-transform:none;letter-spacing:0}
+  .jh-kpi .s{line-height:1.6;margin-top:4px}
+
+  /* who is holding up: one row a group. Up, flat and down less are one hue stepping down; down more is hatched. */
+  .sx-grid2{display:grid;grid-template-columns:minmax(0,11fr) minmax(0,9fr);gap:12px;margin-bottom:12px}
+  .sx-grid2>div{min-width:0}
+  .sx-card{background:var(--jh-panel);border:1px solid var(--jh-line);border-radius:8px;padding:12px 14px}
+  .sx-card .jh-chips{margin:0 0 10px}
+  .sx-barrow{display:grid;grid-template-columns:132px minmax(0,1fr) 96px;gap:10px;align-items:center;padding:5px 0}
+  .sx-barl b,.sx-cl b{display:block;font:500 12px var(--jh-mono);color:var(--jh-ink)}
+  .sx-barl span,.sx-cl span,.sx-barv span,.sx-cv span{display:block;font:10.5px var(--jh-mono);color:var(--jh-dim)}
+  .sx-barv,.sx-cv{text-align:right}
+  .sx-barv b,.sx-cv b{font:600 14px var(--jh-mono);color:var(--jh-ink)}
+  .sx-stack{display:flex;height:18px;border-radius:3px;overflow:hidden;background:var(--jh-line);min-width:60px}
+  .sx-stack.empty{opacity:.4}
+  .sx-stack i{display:block;height:100%;position:relative;font-style:normal;box-shadow:inset -1px 0 0 var(--jh-panel)}
+  .sx-stack i b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:600 10px var(--jh-mono);color:var(--jh-bg)}
+  .s-up{background:var(--jh-amber)}
+  .s-flat{background:color-mix(in srgb,var(--jh-amber) 62%,var(--jh-panel))}
+  .s-less{background:color-mix(in srgb,var(--jh-amber) 34%,var(--jh-panel))}
+  .s-less b,.s-more b{color:var(--jh-ink) !important}
+  .s-more{background:repeating-linear-gradient(135deg,var(--jh-panel-2) 0 3px,var(--jh-dim) 3px 4px)}
+  .s-more b{background:var(--jh-panel-2);inset:2px 25% !important;border-radius:2px}
+  .sx-key{display:flex;gap:14px;flex-wrap:wrap;font:11px var(--jh-mono);color:var(--jh-dim);margin:8px 0 0}
+  .sx-key span{display:inline-flex;align-items:center;gap:6px}
+  .sx-key .k{display:inline-block;width:14px;height:10px;border-radius:2px}
+  .sx-mix .sx-stack{width:220px;height:12px}
+  .sx-mix .sx-stack i b{display:none}
+  .sx-crow{display:grid;grid-template-columns:132px minmax(0,1fr) 112px;gap:10px;align-items:center;padding:4px 0}
+  .sx-meter{height:10px;border-radius:2px;background:var(--jh-line);overflow:hidden}
+  .sx-meter i{display:block;height:100%;background:var(--jh-amber);border-radius:2px 4px 4px 2px;opacity:.88}
+
+  /* tables: every header sorts; the position and the ticker stay put while the rest scrolls sideways */
+  .sx-tbl th{cursor:pointer;user-select:none;white-space:nowrap}
+  .sx-tbl th.txt,.sx-tbl td.l{text-align:left}
+  .sx-tbl th:not(.txt),.sx-tbl td:not(.l){text-align:right}
+  .sx-tbl th[aria-sort="descending"]::after{content:" \25BE";color:var(--jh-amber)}
+  .sx-tbl th[aria-sort="ascending"]::after{content:" \25B4";color:var(--jh-amber)}
+  .sx-tbl th[aria-sort]{color:var(--jh-ink)}
+  .sx-tbl th.sx-pos,.sx-tbl td.sx-pos{width:44px;min-width:44px;max-width:44px;text-align:right;color:var(--jh-dim);cursor:default;position:sticky;left:0;background:var(--jh-panel);z-index:1}
+  .sx-tbl th.sx-pos{z-index:3;background:var(--jh-panel-2)}
+  .sx-tbl th.sx-pos + th,.sx-tbl td.sx-pos + td{position:sticky;left:44px;background:var(--jh-panel);z-index:1}
+  .sx-tbl th.sx-pos + th{z-index:3;background:var(--jh-panel-2)}
+  .sx-tbl tr:hover td.sx-pos,.sx-tbl tr:hover td.sx-pos + td{background:var(--jh-panel-2)}
+  .sx-tbl td.na,.sx-tbl .dim,.jh-kpi .dim{color:var(--jh-dim)}
+  .sx-tbl td.amber{color:var(--jh-amber)}
+  .sx-tbl td.strong{font-weight:600}
+  .sx-tbl .nm{display:inline-block;max-width:158px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;color:var(--jh-dim)}
+  .sx-tbl .nm.wh{max-width:142px}
+  /* sixteen columns: a little less air so the session view fits a 1440 screen without scrolling sideways */
+  #names-tbl .sx-tbl th,#names-tbl .sx-tbl td{padding-left:8px;padding-right:8px}
+  .sx-tbl .nm2{display:none}
+  .sx-chip{display:inline-block;padding:0 5px;border-radius:3px;font:500 10px/1.75 var(--jh-mono);border:1px solid var(--jh-line);margin-right:4px;white-space:nowrap;color:var(--jh-ink)}
+  .sx-chip.mute{color:var(--jh-dim)}
+  .sx-chip.o-up{color:var(--jh-bg);background:var(--jh-amber);border-color:var(--jh-amber);font-weight:700}
+  .sx-chip.o-flat{color:var(--jh-ink);border-color:var(--jh-amber)}
+  .sx-chip.o-down_less{color:var(--jh-ink);border-color:var(--jh-amber-dim);border-style:dashed}
+  .sx-chip.o-down_more{color:var(--jh-dim);border-style:dotted}
+  .sx-track{display:inline-block;width:56px;height:4px;border-radius:2px;background:var(--jh-line);position:relative;vertical-align:middle;margin-right:4px}
+  .sx-track i{position:absolute;top:-4px;width:2px;height:12px;background:var(--jh-ink);margin-left:-1px;border-radius:1px}
+  .sx-bar{display:inline-block;width:48px;height:4px;border-radius:2px;background:var(--jh-line);vertical-align:middle;position:relative;margin-right:7px}
+  .sx-bar i{position:absolute;top:-4px;width:2px;height:12px;background:var(--jh-amber);margin-left:-1px;border-radius:1px}
+  .sx-dots{display:inline-flex;gap:3px;vertical-align:middle;margin-right:5px}
+  .sx-dots i{width:7px;height:7px;border-radius:50%;border:1px solid var(--jh-dim);box-sizing:border-box}
+  .sx-dots i.on{background:var(--jh-amber);border-color:var(--jh-amber)}
+  .sx-dots i.na{border-style:dotted;opacity:.5}
+
+  /* the sections this desk already had, on the theme's tokens */
   .jh-tbl th[data-sort]{cursor:pointer;white-space:nowrap;user-select:none}
-  .jh-tbl th[data-sort][aria-sort="descending"]::after{content:" ▾"}
-  .jh-tbl th[data-sort][aria-sort="ascending"]::after{content:" ▴"}
+  .jh-tbl th[data-sort][aria-sort="descending"]::after{content:" \25BE";color:var(--jh-amber)}
+  .jh-tbl th[data-sort][aria-sort="ascending"]::after{content:" \25B4";color:var(--jh-amber)}
   .jh-tbl td.nm{max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .st-tier{display:inline-block;padding:1px 6px;border-radius:3px;font:600 10px/1.6 "IBM Plex Mono",monospace;letter-spacing:.04em;border:1px solid rgba(255,255,255,.18)}
-  .st-tier.VT{background:rgba(38,255,175,.16);border-color:rgba(38,255,175,.5)}
-  .st-tier.T{background:rgba(38,255,175,.08);border-color:rgba(38,255,175,.3)}
-  .st-tier.LB{background:rgba(120,180,255,.12);border-color:rgba(120,180,255,.4)}
-  .st-tier.F{opacity:.8}
-  .st-chip{display:inline-block;padding:0 5px;border-radius:3px;font:500 10px/1.7 "IBM Plex Mono",monospace;border:1px solid rgba(255,255,255,.14);margin-right:4px;white-space:nowrap}
-  .st-chip.up{color:#26ffaf;border-color:rgba(38,255,175,.4)}
-  .st-chip.dn{color:#ff5577;border-color:rgba(255,85,119,.4)}
-  .st-bar{display:inline-block;height:6px;border-radius:3px;background:linear-gradient(90deg,#ff5577,#ffd166 50%,#26ffaf);vertical-align:middle;position:relative;width:60px;opacity:.9}
-  .st-bar i{position:absolute;top:-3px;width:2px;height:12px;background:#fff;margin-left:-1px}
-  .st-small{font-size:11px;opacity:.75}
-  .st-verdict{font:600 14px/1.5 "IBM Plex Sans",system-ui,sans-serif;margin:0 0 10px;color:var(--fg1)}
-  .st-chipret{display:inline-block;padding:1px 6px;border-radius:3px;font:10px/1.6 "IBM Plex Mono",monospace;border:1px solid var(--line);margin:0 4px 4px 0}
+  .st-tier{display:inline-block;padding:1px 6px;border-radius:3px;font:600 10px/1.6 var(--jh-mono);letter-spacing:.04em;border:1px solid var(--jh-line)}
+  .st-tier.VT{background:color-mix(in srgb,var(--jh-amber) 22%,transparent);border-color:var(--jh-amber)}
+  .st-tier.T{background:color-mix(in srgb,var(--jh-amber) 10%,transparent);border-color:var(--jh-amber-dim)}
+  .st-tier.LB{border-color:var(--jh-amber-dim);border-style:dashed}
+  .st-tier.F{color:var(--jh-dim)}
+  .st-chip{display:inline-block;padding:0 5px;border-radius:3px;font:500 10px/1.7 var(--jh-mono);border:1px solid var(--jh-line);margin-right:4px;white-space:nowrap;color:var(--jh-ink)}
+  .st-chip.up{color:var(--jh-green);border-color:color-mix(in srgb,var(--jh-green) 45%,transparent)}
+  .st-chip.dn{color:var(--jh-red);border-color:color-mix(in srgb,var(--jh-red) 45%,transparent)}
+  .st-bar{display:inline-block;height:4px;border-radius:2px;background:var(--jh-line);vertical-align:middle;position:relative;width:54px;margin-right:4px}
+  .st-bar i{position:absolute;top:-4px;width:2px;height:12px;background:var(--jh-amber);margin-left:-1px;border-radius:1px}
+  .st-small{font-size:11px;color:var(--jh-dim)}
+  .st-verdict{font:500 13.5px/1.6 var(--jh-sans);margin:0 0 10px;color:var(--jh-ink);max-width:150ch}
+  .st-chipret{display:inline-block;padding:1px 6px;border-radius:3px;font:10px/1.6 var(--jh-mono);border:1px solid var(--jh-line);margin:0 4px 4px 0}
   .st-src td{font-size:11px}
   .st-grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
   .st-grid2 .jh-card{min-width:0}
-  @media (max-width:1100px){.st-grid2{grid-template-columns:minmax(0,1fr)}}
-  @media (max-width:640px){.jh-ws-header{flex-wrap:wrap;row-gap:4px}.jh-ws-crumb{display:none}.jh-ws-links{flex-wrap:wrap;gap:4px 10px;max-width:100%}.jh-hero{flex-wrap:wrap}}
   .st-flow{white-space:nowrap}
-  .st-flow small{opacity:.7}
+  .st-flow small{color:var(--jh-dim)}
+  #defs div{margin:0 0 5px;line-height:1.55}
+  #defs b{color:var(--jh-amber);font:500 11.5px var(--jh-mono)}
+
+  @media (min-width:1401px){.jh-ws-header{padding-right:40px}}   /* the site's desk-info tab is docked on the last 26px of this row */
+  @media (max-width:1100px){.sx-grid2,.st-grid2{grid-template-columns:minmax(0,1fr)}.jh-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  @media (max-width:640px){
+    .jh-ws-header{flex-wrap:wrap;height:auto;padding:8px 14px;row-gap:4px}.jh-ws-crumb{display:none}.jh-ws-links{flex-wrap:wrap;gap:4px 12px;max-width:100%}.jh-hero{flex-wrap:wrap}
+    .jh-desk{padding:14px 12px 40px}
+    .jh-kpis{grid-template-columns:minmax(0,1fr)}
+    input.sx-in{width:150px}
+    .sx-barrow{grid-template-columns:96px minmax(0,1fr) 70px;gap:8px}
+    .sx-crow{grid-template-columns:96px minmax(0,1fr) 92px;gap:8px}
+    .sx-mix .sx-stack{width:120px}
+    /* a phone: the name rides under the ticker and its own column goes, so the ranked figure is on screen */
+    .sx-tbl .c-name{display:none}
+    .sx-tbl .nm2{display:block;max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 10px/1.3 var(--jh-mono);color:var(--jh-dim)}
+    .sx-tbl th.sx-pos,.sx-tbl td.sx-pos{width:34px;min-width:34px;max-width:34px}
+    .sx-tbl th.sx-pos + th,.sx-tbl td.sx-pos + td{left:34px}
+    /* the long chip rows scroll sideways on a phone instead of stacking above the table */
+    #names-kind,#names-scope,#names-out,#names-rank,#names-view,#names-show,#today-group,#carried-mode,#chips,#thesis-win,#coil-scope,#lead-scope{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px;scrollbar-width:none;max-width:100%}
+    #names-kind .jh-chip,#names-scope .jh-chip,#names-out .jh-chip,#names-rank .jh-chip,#names-view .jh-chip,#names-show .jh-chip,#today-group .jh-chip,#carried-mode .jh-chip,#chips .jh-chip,#thesis-win .jh-chip,#coil-scope .jh-chip,#lead-scope .jh-chip{flex:0 0 auto}
+  }
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 </head>
 <body data-research-context="data/strength.json">
 <header class="jh-ws-header">
   <a class="jh-ws-brand" href="/">JUSTHODL<span>.AI</span></a>
-  <span class="jh-ws-crumb">STRENGTH DESK · relative strength vs S&P 500 · 1D / 1W / 1M / 3M / 6M / 1Y · long-accumulation tight-spread detector</span>
-  <nav class="jh-ws-links">
+  <span class="jh-ws-crumb">STRENGTH DESK · every stock and ETF against the S&P 500, live in the session · ranks, the dump-day record, tight bases</span>
+  <nav class="jh-ws-links" aria-label="Desks">
     <a href="/etf.html">ETF</a>
-    <a href="/strong.html" class="on">Strong</a>
+    <a href="/strong.html" class="on" aria-current="page">Strong</a>
     <a href="/leaders.html">Leaders</a>
+    <a href="/stock-volatility.html">Volatility</a>
+    <a href="/wyckoff-desk.html">Wyckoff</a>
     <a href="/13f.html">13F</a>
     <a href="/bonds.html">Bonds</a>
     <a href="/universe-heatmap.html">Heatmap</a>
@@ -55,19 +171,62 @@
   </nav>
 </header>
 <main class="jh-desk" id="app">
-  <div class="jh-hero">
+  <div class="jh-hero" data-jh-key="strength-vs-s-p">
     <div>
       <h1>STRENGTH vs S&P 500</h1>
-      <p>Every figure is excess return against SPY computed from the Polygon EOD bank (520 sessions of daily bars) by the strength engine each morning at 03:40 UTC; the day column and the day posture are overlaid from the Polygon quote, which is 15 minutes delayed on the Stocks Starter plan (the chart's daily candle for today comes from the same snapshot through the bank). Strength is the universe percentile of the 1D / 1W / 1M / 3M / 6M excess-return z-score (10 / 20 / 30 / 25 / 15). The base board lists the names whose closes have stayed inside a 6% / 10% / 15% band the longest — long accumulation with a tight price spread — with the volume and relative-strength evidence inside the base. Fund flows are the ETF desk's reported creation / redemption observations; the 13F read counts managers. Nothing here is a call.</p>
+      <p>Every listed common stock and plain ETF, measured against SPY. While the market is open the desk lays today's forming bars over last night's close and says who is up, flat, down less than the index or down more. Below that: the ranks, the walk-forward record, the asset classes, the long tight bases and the desk's own sleeves, computed each morning at 03:40 UTC from the Polygon EOD bank. Nothing here is a call.</p>
+      <p class="sx-verdict" id="verdict-line" role="status">Reading the strength artifacts…</p>
     </div>
     <div class="jh-stamp" id="stamp">loading the strength artifact…</div>
   </div>
 
-  <section class="st-sec" aria-label="Verdict: index regime, breadth and bases">
+  <div id="jh-tearsheet" data-jh-chrome data-jts="strength" data-jts-flush></div>
+
+  <section class="sx-sec" id="today" data-jh-key="today" data-jh-title="Against the S&P 500" aria-label="Against the S&P 500: who is up, flat, down less or down more than SPY">
+    <h2><span id="today-h">Today against the S&P 500</span> <span class="m" id="today-meta"></span></h2>
+    <p class="sx-sub" id="today-sub"></p>
+    <div class="jh-kpis" id="today-kpis" data-jh-title="The session at a glance"></div>
+    <div class="sx-grid2">
+      <div class="sx-card" id="today-who">
+        <h3 id="bars-h">Who is holding up <span class="m">· each group split by how it is doing against SPY</span></h3>
+        <div id="today-bars"><p class="jh-load">Reading the whole-market table…</p></div>
+        <div class="sx-key" id="today-key"></div>
+      </div>
+      <div class="sx-card" id="today-carried">
+        <h3 id="carried-h">By what each stock carried in</h3>
+        <div class="jh-chips" id="carried-mode" role="group" aria-label="Grouping"></div>
+        <div id="carried"></div>
+        <p class="sx-note" id="carried-note"></p>
+      </div>
+    </div>
+    <div class="sx-row" data-jh-chrome><div class="jh-chips" id="today-group" role="group" aria-label="Groups"></div></div>
+    <div class="jh-tblwrap" style="max-height:520px" id="today-groups" data-jh-title="Sectors, industries and ETF classes"></div>
+  </section>
+
+  <section class="sx-sec" id="names" data-jh-key="names" data-jh-title="Every stock and ETF" aria-label="Every stock and ETF against SPY, ranked by any column">
+    <h2>Every stock and ETF <span class="m" id="names-meta"></span></h2>
+    <p class="sx-sub">Click a header to rank by it; click again to reverse. The # column is the position in the list on screen. Rank in = the rank a name carried into the session (the desk's composite of excess return vs SPY, a percentile among all ranked stocks or all ranked ETFs). Dump days = how many of the quarter's dump days it held up on before this session. Facts counts five things the bar itself shows: up on the day, above the open, above the day's VWAP, in the upper third of the day's range, volume above the market's pace.</p>
+    <div class="sx-row" data-jh-chrome><div class="jh-chips" id="names-kind" role="group" aria-label="Kind"></div><div class="jh-chips" id="names-scope" role="group" aria-label="Size"></div></div>
+    <div class="sx-row" data-jh-chrome><div class="jh-chips" id="names-out" role="group" aria-label="Against SPY"></div></div>
+    <div class="sx-row" data-jh-chrome><div class="jh-chips" id="names-rank" role="group" aria-label="Carried in"></div><div class="jh-chips" id="names-show" role="group" aria-label="Rows"></div></div>
+    <div class="sx-row" data-jh-chrome>
+      <div class="jh-chips" id="names-view" role="group" aria-label="Columns"></div>
+      <label>Sector <select class="sx-in" id="names-sector"></select></label>
+      <label>Find <input class="sx-in" id="names-q" type="search" placeholder="ticker, name or industry" autocomplete="off"></label>
+      <button type="button" class="sx-btn" id="names-reset">Clear filters</button>
+      <button type="button" class="sx-btn" id="names-csv">Download CSV</button>
+    </div>
+    <div class="jh-tblwrap" id="names-tbl"><p class="jh-load">Reading the whole-market table…</p></div>
+    <button type="button" class="sx-btn sx-more" id="names-more" hidden></button>
+    <p class="sx-note" id="names-aside"></p>
+  </section>
+
+  <section class="st-sec" data-jh-key="verdict-index-regime-breadth-and-bases" data-jh-title="Verdict: index regime, breadth and bases" aria-label="Verdict: index regime, breadth and bases">
+    <h2>The desk's verdict <span class="m">· the 850-name desk: index regime, breadth against SPY, bases</span></h2>
     <div class="jh-kpis" id="kpis"></div>
   </section>
 
-  <section class="st-sec" aria-label="Thesis: how the strongest held up on S&P 500 dump days">
+  <section class="st-sec" data-jh-key="thesis-the-strongest-when-the-s-p-dumps" aria-label="Thesis: how the strongest held up on S&P 500 dump days">
     <h2>Thesis · the strongest when the S&P 500 dumps <span class="m" id="thesis-meta"></span></h2>
     <p class="st-sub">The engine tests its own thesis every run, walk-forward: for each session the universe is re-ranked from the closes through the <b>session before</b> by three definitions of strong — the <b>momentum rank</b> the desk shows (excess return vs SPY over 1d to 6M), the <b>both-sides rank</b> (over the trailing 63 sessions, the <i>weaker</i> of how the name moved on SPY's down days and on its up days — <i>dumps less than the S&amp;P 500 AND rallies more than it</i>; a name needs both) and the <b>big-days rank</b> (the same, measured only on SPY's dump days and rally days over 126 sessions) — then every name's move on the session itself is measured against SPY. Read over the last month, the last quarter, or the year as a reference. Dump day = SPY down 1% or more, rally day = SPY up 1% or more; "held up" = flat (within 0.25%), up, or down less than SPY; <b>industry-confirmed</b> = a top-tenth stock whose whole industry (its members ranked here) sat in the top 30% that session. This is the record, not a forecast.</p>
     <div class="st-row" id="thesis-win"></div>
@@ -80,21 +239,21 @@
     <div class="jh-card" style="margin-top:12px"><h3>Last session, the strongest tenth one by one <span class="st-small" id="last-meta"></span></h3><div class="st-row" id="thesis-pred"></div><div class="st-small" id="last-deciles" style="margin:0 0 8px"></div><div class="jh-tblwrap" style="max-height:420px" id="lastnames"></div></div>
   </section>
 
-  <section class="st-sec" aria-label="Asset classes: stocks, equity ETFs, countries, bonds, high yield, cash, gold, silver, metals, commodities, currencies, crypto, volatility">
+  <section class="st-sec" data-jh-key="asset-classes" aria-label="Asset classes: stocks, equity ETFs, countries, bonds, high yield, cash, gold, silver, metals, commodities, currencies, crypto, volatility">
     <h2>Asset classes <span class="m" id="class-meta"></span></h2>
     <p class="st-sub">Every class the desk ranks — stocks, equity ETFs (broad, sector, factor), countries, bonds, high yield, cash, gold, silver, metals and miners, commodities, currencies, crypto, volatility — with its breadth against SPY, its median move today and over the week, month and quarter, how much of it held up on the last session, and its strongest and weakest names. Leveraged and inverse funds are labelled and kept out of every rank.</p>
     <div class="jh-tblwrap" style="max-height:520px" id="classes"></div>
     <p class="st-small" id="excluded" style="margin-top:6px"></p>
   </section>
 
-  <section class="st-sec" aria-label="Long accumulation with a tight price spread">
+  <section class="st-sec" data-jh-key="long-accumulation-tight-price-spread" aria-label="Long accumulation with a tight price spread">
     <h2>Long accumulation · tight price spread <span class="m" id="coil-meta"></span></h2>
     <p class="st-sub">The longest trailing run of sessions whose closes all sit inside 6% (VERY TIGHT, ≥ 40 sessions), 10% (TIGHT, ≥ 40), 15% (LONG BASE, ≥ 120) or 10% (FORMING, ≥ 20) of the last close — and only when that run is a contraction of the name's own yearly range (at most 60% of it), so a cash fund never coils; a stock pinned almost motionless inside a sliver of a base (ATR ≤ 0.6%, range ≤ 3.5%) trades like a pending deal and is flagged PINNED off the board. Score 0–100 = base length (35) + tightness (30) + Bollinger-width squeeze percentile (10) + volume dry-up (8) + accumulation inside the base — Chaikin money flow and up-volume / down-volume (12) — + relative strength holding through the base (5). The 13F stance and the fund's 21-observation flow sit beside the score as corroboration and never enter it.</p>
     <div class="st-row" id="coil-scope"></div>
     <div class="jh-tblwrap" style="max-height:560px" id="coil"></div>
   </section>
 
-  <section class="st-sec" aria-label="Leaders and laggards by strength">
+  <section class="st-sec" data-jh-key="leaders-and-laggards" aria-label="Leaders and laggards by strength">
     <h2>Leaders and laggards <span class="m" id="lead-meta"></span></h2>
     <div class="st-row" id="lead-scope"></div>
     <div class="st-grid2">
@@ -104,25 +263,25 @@
     <p class="st-small" id="newhighs" style="margin-top:8px"></p>
   </section>
 
-  <section class="st-sec" aria-label="Focus: holding up while the index is heavy">
+  <section class="st-sec" data-jh-key="focus-holding-up-while-the-index-is-heav" aria-label="Focus: holding up while the index is heavy">
     <div class="jh-card jh-focus">
       <h3>Focus — holding up while the index is heavy <span class="st-small" id="focus-meta"></span></h3>
       <div class="jh-tblwrap" style="max-height:320px" id="focus"></div>
     </div>
   </section>
 
-  <section class="st-sec" aria-label="The desk: every sleeve against SPY">
+  <section class="st-sec" data-jh-key="the-desk" aria-label="The desk: every sleeve against SPY">
     <h2>The desk <span class="m" id="desk-meta"></span></h2>
     <div class="jh-chips" id="chips"></div>
     <div class="jh-tblwrap"><table class="jh-tbl" id="tbl"><thead></thead><tbody><tr><td class="jh-load" colspan="20">Reading the strength artifact…</td></tr></tbody></table></div>
   </section>
 
-  <section class="st-sec" aria-label="Reading rules and definitions">
+  <section class="st-sec" data-jh-key="reading-rules" aria-label="Reading rules and definitions">
     <h2>Reading rules</h2>
     <div class="jh-card"><div id="defs" class="st-small"></div></div>
   </section>
 
-  <section class="st-sec" aria-label="Sources and engine observability">
+  <section class="st-sec" data-jh-key="sources-and-engine-observability" aria-label="Sources and engine observability">
     <h2>Sources and engine observability</h2>
     <div class="jh-tblwrap" id="sources"></div>
     <p class="jh-note" id="note"></p>
@@ -131,7 +290,8 @@
 <script src="/private-artifacts.js?v=20260909"></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/jh-desk-core.js"></script>
-<script src="/jh-strong-engine.js?v=20261104-strength-v1"></script>
+<script src="/jh-strong-engine.js?v=20261120-strength-v3"></script>
+<script src="/jh-strong-today.js?v=20261120-strength-v3"></script>
 <script>
 (function(){
   var D=JHDesk, DATA=null, sleeve="ALL", coilScope="ALL", leadScope="DESK", thWin="63", thPred="strength", PRED_LABEL={strength:"MOMENTUM RANK",asymmetry:"BOTH-SIDES RANK",bigdays:"BIG-DAYS RANK"};
@@ -260,7 +420,7 @@
       ["Desk breadth vs SPY", (bd.pct_m==null?"—":num(bd.pct_m,0)+"%")+" beat on 1M", (bd.above_spy_w||0)+" / "+(bd.n||0)+" on 1W · "+(bd.above_spy_q||0)+" / "+(bd.n||0)+" on 3M"],
       ["Universe breadth", (bu.pct_m==null?"—":num(bu.pct_m,0)+"%")+" beat on 1M", (bu.n||0)+" names ranked · "+(bu.rs_new_highs||0)+" RS lines at 52-week highs"],
       ["Tight bases", coiled.length+" coiled", vt+" very tight · "+(bd.coiled||0)+" on the desk"],
-      ["Holding up now", d.focus.length+" names", d.dump?"bid / flat / dumping less than SPX":"SPX is not dumping; posture from the 15-minute-delayed quotes"]
+      ["Desk names holding up now", d.focus.length+" of "+d.desk.length, d.dump?"bid / flat / dumping less than SPX · every stock and ETF is in the section above":"SPX is not dumping; posture from the 15-minute-delayed quotes"]
     ].map(function(x){ return '<div class="jh-kpi"><div class="l">'+x[0]+'</div><div class="v">'+x[1]+'</div><div class="s">'+x[2]+"</div></div>"; }).join("");
   }
   var CLASS_LABEL={stock:"Stocks",equity_etf:"Equity ETFs",country:"Countries",bond:"Bonds",high_yield:"High yield",cash:"Cash / T-bills",gold:"Gold",silver:"Silver",metals:"Metals & miners",commodity:"Commodities",currency:"Currencies",crypto:"Crypto",volatility:"Volatility",leveraged:"Leveraged / inverse"};
@@ -380,10 +540,22 @@
       "<b>Flows.</b> "+esc(fl.n_universe_current)+" of "+esc(fl.n_in_universe)+" desk funds in the universe have a current flow source (ETF desk generated "+esc((fl.desk_generated_at||"").slice(0,16))+", reference end "+esc(fl.reference_end)+"). "+
       "<b>13F.</b> period "+esc(f13.period)+", "+esc(f13.n_in_universe)+" universe names with a cohort holder. "+
       "The strength ranking is a price fact; its walk-forward record is the thesis section above. It grants no sizing authority.";
-    document.getElementById("stamp").innerHTML="bars "+esc(doc.as_of||"")+" · engine "+esc((doc.generated_at||"").slice(0,16).replace("T"," "))+" UTC<br>SPY "+D.fmtPx(DATA.spy.px)+" "+pct(DATA.spy.d)+(DATA.spy.live?" live":" close");
+    var mk=DATA.market, ft=mk&&mk.mode==="live"&&mk.bars_as_of?new Date(mk.bars_as_of).toLocaleTimeString("en-US",{timeZone:"America/New_York",hour:"numeric",minute:"2-digit"})+" ET":null;
+    document.getElementById("stamp").innerHTML="bars "+esc(doc.as_of||"")+" · engine "+esc((doc.generated_at||"").slice(0,16).replace("T"," "))+" UTC<br>SPY "+D.fmtPx(DATA.spy.px)+" "+pct(DATA.spy.d)+(DATA.spy.live?" 15-min delayed":" close")+(ft?"<br>every stock and ETF: forming bars "+esc(ft):mk?"<br>every stock and ETF: session "+esc(mk.session):"");
+  }
+  function market(d){
+    var T=window.JHStrongToday;
+    if(!T) return;
+    if(d.market){
+      T.render(d.market);
+      /* the tearsheet (jh-tearsheet.js, the "strength" adapter) reads this same view: hand it over on every refresh */
+      window.JHStrengthDoc=d.market;
+      try{ window.dispatchEvent(new CustomEvent("jh:strength-doc",{detail:d.market})); }catch(e){}
+    } else T.fail(d.marketError||"The whole-market table is not available right now.");
   }
   function load(){
-    JHStrong.run().then(function(d){ DATA=d; draw(); }).catch(function(e){
+    JHStrong.run().then(function(d){ DATA=d; draw(); market(d); }).catch(function(e){
+      if(window.JHStrongToday) window.JHStrongToday.fail(String(e&&e.message||e));
       document.querySelector("#tbl tbody").innerHTML="<tr><td colspan=20 class=jh-load>"+esc(e&&e.message||e)+"</td></tr>";
       document.getElementById("stamp").textContent="strength artifact unavailable";
     });
@@ -392,5 +564,6 @@
   setInterval(load,60000);
 })();
 </script>
+<script src="/jh-tearsheet.js?v=1.0.0" defer></script>
 </body>
 </html>

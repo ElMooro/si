@@ -82,6 +82,10 @@ GEARED_RX = re.compile(r"\b(\d(\.\d+)?x|ultrapro|ultrashort|inverse|leveraged|bu
 INVERSE_RX = re.compile(r"\bproshares\b[\s-]*short\b(?![\s-]*term)|\bshort\s+(?:bitcoin|ether|qqq|s&p|dow|russell|midcap|smallcap|real estate|financials|msci|ftse|vix|nvda|coin|n100|tsla|mstr|aapl|amzn)"
                         r"|\byieldmax\b.*\bshort\b|\bdorsey wright short\b|\binverse\b|\bbear\b", re.I)
 ULTRA_SHORT_RX = re.compile(r"\bultra[\s-]*short\b", re.I)
+# A stock fund chosen or weighted by volatility ("S&P 500 Low Volatility", "Minimum Volatility", "Volatility Wtd") holds
+# stocks; the desk's name rule (\bvolatility\b) reads the word alone and files it with the VIX funds.
+STOCK_VOL_RX = re.compile(r"\b(?:low|min(?:imum)?|managed|disciplined)[\s-]+vol(?:atility)?\b|\bvolatility[\s-]+(?:wtd|weighted)\b", re.I)
+VOL_CLS = "volatility"
 COLS = ["t", "name", "kind", "cls", "sector", "industry", "mcap", "adv", "sp",
         "pc", "o", "h", "l", "c", "v", "vw", "av",
         "x1", "x5", "x21", "x63", "x126", "rs", "rsp",
@@ -232,10 +236,15 @@ def fund_class(t, name, classify):
     """(asset class, geared) for a fund. The desk's own class map and name rules decide the class (aws/lambdas/
     justhodl-strength/source/lambda_function.asset_class_of, passed in); two things are settled here because that
     map was written for the desk's 116 configured funds and this table holds 3,000: an "Ultra-Short" bond or income
-    fund is a cash-like bond fund, not a leveraged one (the word is a maturity), and a fund that is short the market
-    by its name is geared whatever its class. Pure."""
+    fund is a cash-like bond fund, not a leveraged one (the word is a maturity); a fund that is short the market by
+    its name is geared whatever its class; and a stock fund chosen or weighted by volatility ("Low Volatility",
+    "Minimum Volatility", "Volatility Wtd") is classed by the rest of its name, not with the funds that hold
+    volatility itself (the VIX futures funds stay there, and off the ETF boards). Pure."""
     n = str(name or "")
     cls = (classify(t, "fund", n)[0] if classify else None) or "equity_etf"
+    if cls == VOL_CLS and STOCK_VOL_RX.search(n):
+        again = (classify(t, "fund", STOCK_VOL_RX.sub(" ", n))[0] if classify else None) or "equity_etf"
+        cls = "equity_etf" if again == VOL_CLS else again
     inverse = bool(INVERSE_RX.search(n))
     if cls == GEARED_CLS and ULTRA_SHORT_RX.search(n) and not inverse:
         return "cash", False

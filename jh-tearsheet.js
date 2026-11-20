@@ -1161,6 +1161,143 @@
     }
   };
 
+  /* -- strength: every listed stock and ETF against the S&P 500 fund, today's forming bars or the last session --
+     The desk (jh-strong-engine.js) lays the nightly whole-market table under today's forming bars and hands this sheet
+     the view on every refresh; nothing is recomputed here but the sums of the scope on screen. */
+  function strengthStats(list, spy) {
+    var n = list.length, c = { up: 0, flat: 0, down_less: 0, down_more: 0 }, beat = 0;
+    list.forEach(function (r) { c[r.out]++; if (r.ret > spy) beat++; });
+    var held = n - c.down_more;
+    return { n: n, up: c.up, flat: c.flat, down_less: c.down_less, down_more: c.down_more, held: held, held_pct: share(held, n), up_pct: share(c.up, n), beat: beat, beat_pct: share(beat, n),
+      median_ret: med(list.map(function (r) { return r.ret; })), mcap: sum(list, cap) };
+  }
+  ADAPTERS.strength = {
+    feeds: ['/data/strength-wide.json'],
+    share: { global: 'JHStrengthDoc', event: 'jh:strength-doc', ms: 15000 },
+    build: function (docs, st) {
+      var v = docs[0];
+      if (v && v.contract === 'strength-wide.v1') {      /* the desk handed nothing over: the table alone, read as its own last session */
+        var E = typeof window !== 'undefined' ? window.JHStrong : null;
+        if (!E || !E.model) throw new Error('the desk has not built its view');
+        v = E.model(v, null, {});
+      }
+      var R = v.rules || {}, rd = v.read || {}, G = rd.groups || {}, spy = v.spy || {}, live = v.mode === 'live', red = rd.regime === 'dump' || rd.regime === 'down';
+      var counted = (v.rows || []).filter(function (r) { return r.counted; });
+      var stocks = counted.filter(function (r) { return r.kind === 'stock'; });
+      var etfs = counted.filter(function (r) { return r.kind === 'etf' && (r.adv || 0) >= R.etf_min_adv; });
+      var SC = { b1: { label: '$1B+ STOCKS', word: 'stocks worth $1B or more', unit: 'stock', rows: stocks.filter(function (r) { return (r.mcap || 0) >= R.board_min_mcap; }) },
+        sp: { label: 'S&P 500', word: 'S&P 500 members', unit: 'member', rows: stocks.filter(function (r) { return r.sp; }) },
+        all: { label: 'EVERY STOCK', word: 'listed stocks', unit: 'stock', rows: stocks },
+        etf: { label: 'ETFS', word: 'ETFs trading $5M or more a day', unit: 'fund', rows: etfs } };
+      var k = SC[st.fund] ? st.fund : 'b1', S = SC[k], rows = S.rows, isEtf = k === 'etf', g = strengthStats(rows, spy.ret);
+      var hm = function (iso) { try { return new Date(iso).toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' }) + ' ET'; } catch (e) { return String(iso || '').slice(11, 16) + ' UTC'; } };
+      var when = live ? 'today ' + day(v.session) + (v.bars_as_of ? ', bars as of ' + hm(v.bars_as_of) : '') + (v.delay_minutes ? ', ' + v.delay_minutes + ' minutes delayed' : '') : 'last session ' + day(v.session) + ' (final)';
+      var mv = function (x) { return zpct(x, 2, true); }, pts = function (x) { return fin(x) ? sign(+x.toFixed(2) || 0, true) + Math.abs(x).toFixed(2) + ' pts' : D; }, p0 = function (x) { return pct(x, 0); };
+      var nm = function (r) { return r.t + (r.name ? DOT + r.name : ''); };
+      var cls = function (r) { return (v.class_labels || {})[r.cls] || r.cls || 'ETF'; };
+      var where = function (r) { return (r.kind === 'etf' ? cls(r) : (r.sector || 'Unclassified')) + DOT + money(r.mcap); };
+      var carried = function (r) { return (fin(r.rank) ? 'rank ' + num(r.rank, 0) : 'not ranked') + (r.rec_n ? DOT + 'held ' + r.rec_h + ' of ' + r.rec_n + ' dump days' : ''); };
+      var row = function (r) { return { name: nm(r), sub: where(r) + DOT + carried(r), big: mv(r.ret), small: pts(r.x) + ' vs SPY' }; };
+      var top = function (list, f, desc) { return list.slice().sort(function (a, b) { return (desc === false ? f(a) - f(b) : f(b) - f(a)) || (a.t < b.t ? -1 : 1); }); };
+      var ret = function (r) { return r.ret; }, x = function (r) { return r.x; };
+      /* the engine keeps the funds that hold volatility itself off its ETF boards (rules.board_skip_cls): they rise when SPY falls by
+         construction. They are counted in every figure of the sheet and left off its lists of names. */
+      var skip = isEtf ? (R.board_skip_cls || []) : [], named = skip.length ? rows.filter(function (r) { return skip.indexOf(r.cls) < 0; }) : rows, unlisted = rows.length - named.length;
+      var up = top(named.filter(function (r) { return r.out === 'up'; }), ret), less = top(named.filter(function (r) { return r.out === 'down_less'; }), x), more = top(named.filter(function (r) { return r.out === 'down_more'; }), ret, false);
+      var strong = named.filter(function (r) { return (r.rank || 0) >= 80; }), weak = named.filter(function (r) { return fin(r.rank) && r.rank <= 20; });
+      var sHold = top(strong.filter(function (r) { return r.out !== 'down_more'; }), x), sBreak = top(strong.filter(function (r) { return r.out === 'down_more'; }), x, false);
+      var wBid = top(weak.filter(function (r) { return r.out === 'up'; }), ret), repeat = top(named.filter(function (r) { return r.bucket === 'all' && r.out !== 'down_more'; }), x);
+      var every = rows.filter(function (r) { return r.bucket === 'all'; }), few = rows.filter(function (r) { return r.bucket === 'few'; });
+      var gEvery = strengthStats(every, spy.ret), gFew = strengthStats(few, spy.ret);
+      var ranked = top(rows.filter(function (r) { return fin(r.rank); }), function (r) { return r.rank; }, false), tenth = Math.floor(ranked.length / 10);
+      var gTop = tenth >= 5 ? strengthStats(ranked.slice(-tenth), spy.ret) : null, gBot = tenth >= 5 ? strengthStats(ranked.slice(0, tenth), spy.ret) : null;
+      /* a finished session is told in the past tense */
+      var key = red ? 'held_pct' : 'beat_pct', keyWord = red ? (live ? 'holding up' : 'held up') : 'ahead of SPY', shareWord = red && !live ? 'that held up' : keyWord;
+      var isWord = red ? (live ? 'are holding up' : 'held up') : (live ? 'are ahead of it' : 'were ahead of it'), nowWord = red ? (live ? 'are holding up now' : 'held up in the session') : (live ? 'are ahead of SPY now' : 'were ahead of SPY in the session');
+      /* -- groups inside the scope -- */
+      var grp = function (f, min) {
+        return groupBy(rows, f).filter(function (q) { return q.key && q.list.length >= (min || 1); }).map(function (q) { var s = strengthStats(q.list, spy.ret); s.name = q.key; return s; })
+          .sort(function (a, b) { return (b[key] - a[key]) || (b.median_ret - a.median_ret) || (a.name < b.name ? -1 : 1); });
+      };
+      var sectors = isEtf ? grp(cls) : grp(function (r) { return r.sector || 'Unclassified'; }), inds = isEtf ? [] : grp(function (r) { return r.industry; }, R.industry_min || 5);
+      var grow = function (q) { return { name: q.name, sub: plural(q.n, S.unit) + DOT + 'up ' + num(q.up) + ', flat ' + num(q.flat) + ', down less ' + num(q.down_less) + ', down more ' + num(q.down_more), big: p0(q[key]), small: 'median ' + mv(q.median_ret) }; };
+      /* -- the whole: market value by how it is doing against SPY -- */
+      var OUT = [['up', 'Up', 'pos', 1], ['flat', 'Flat', 'pos', 0.62], ['down_less', 'Down less than SPY', 'pos', 0.4], ['down_more', 'Down more than SPY', 'oth', null]];
+      var total = sum(rows, cap), heldCap = sum(rows.filter(function (r) { return r.out !== 'down_more'; }), cap);
+      var slices = OUT.map(function (o) {
+        var list = rows.filter(function (r) { return r.out === o[0]; }), val = sum(list, cap), s = { name: o[1], label: o[1].replace(' than SPY', ''), value: val, tone: o[2], big: money(val), small: plural(list.length, S.unit) + DOT + p0(share(list.length, rows.length)) + ' of them' };
+        if (o[3] != null) s.op = o[3];
+        return s;
+      });
+      /* -- the two cards -- */
+      var bigOf = function (list) { return list.slice().sort(by(cap, true))[0]; };
+      var good = bigOf(red ? up : up.filter(function (r) { return r.ret > spy.ret; }));
+      var bad = bigOf(sBreak.length ? sBreak : more);
+      var facts = function (r) {
+        var out = [];
+        if (fin(r.fo)) out.push(r.fo > 0 ? 'above its open' : 'below its open');
+        if (fin(r.vwx)) out.push(r.vwx > 0 ? 'above the day\'s VWAP' : 'below the day\'s VWAP');
+        if (fin(r.pos)) out.push('at ' + num(r.pos, 0) + '% of the day\'s range');
+        if (fin(r.rv)) out.push('volume ' + times(r.rv) + ' the market\'s pace');
+        return out.length ? ' It is ' + out.join(', ') + '.' : '';
+      };
+      var card = function (r, eyebrow, none) {
+        if (!r) return { tone: '', big: D, eyebrow: eyebrow, title: 'None', text: none };
+        return { tone: '', big: mv(r.ret), eyebrow: eyebrow, title: nm(r),
+          text: money(r.mcap) + (r.kind === 'etf' ? ' of assets, ' + cls(r) : ' of market value, ' + (r.sector || 'unclassified') + (r.industry ? ' (' + r.industry + ')' : '')) + '. ' + mv(r.ret) + ' against SPY\'s ' + mv(spy.ret) + ': ' + pts(r.x) + '. '
+            + (fin(r.rank) ? 'It carried a rank of ' + num(r.rank, 0) + ' into the session' : 'It carried no rank into the session') + (r.rec_n ? ' and had held up on ' + r.rec_h + ' of the quarter\'s ' + r.rec_n + ' dump days' : '') + '.' + facts(r) };
+      };
+      var title = (live ? 'SPY ' + mv(spy.ret) + ' today' : 'SPY ' + mv(spy.ret) + ' on ' + day(v.session)) + DOT + p0(g[key]) + ' of ' + S.word + ' ' + isWord
+        + (gTop ? DOT + 'the strongest tenth coming in: ' + p0(gTop[key]) : '');
+      var u = v.universe || {}, sa = u.set_aside || {}, aside = sum(Object.keys(sa), function (q) { return sa[q]; });
+      var lists = [
+        { key: 'up', title: red ? (live ? 'Up while SPY falls' : 'Up while SPY fell') : 'Up the most', hint: 'by the move', n: up.length, rows: up.map(row), none: 'no ' + S.unit + (live ? ' is up' : ' was up'),
+          note: unlisted ? plural(unlisted, 'fund') + ' that hold' + (unlisted === 1 ? 's' : '') + ' volatility itself (VIX futures, volatility-premium funds) ' + (unlisted === 1 ? 'is' : 'are') + ' counted in every figure above and left off these lists: how such a fund moves against SPY is its design, not strength.' : '' },
+        red ? { key: 'down-less', title: 'Down less than SPY', hint: 'closest to flat first', n: less.length, rows: less.map(row), none: 'none' }
+          : { key: 'down-most', title: 'Down the most', hint: live ? 'while SPY is not falling' : 'while SPY did not fall', n: more.length, rows: more.map(row), none: 'no ' + S.unit + ' is down more than SPY' },
+        { key: 'strong-holding', title: 'Strong coming in, ' + (red ? keyWord : 'still ahead'), hint: 'rank 80 or higher', n: sHold.length, rows: sHold.map(row), none: 'none' },
+        { key: 'strong-breaking', title: 'Strong coming in, ' + (live ? 'breaking' : 'broke'), hint: 'rank 80 or higher, down more than SPY', n: sBreak.length, rows: sBreak.map(row), none: 'no strong name ' + (live ? 'is' : 'was') + ' down more than SPY' },
+        { key: 'weak-bid', title: 'Weak coming in, bid', hint: 'rank 20 or lower, up', n: wBid.length, rows: wBid.map(row), none: 'none' },
+        { key: 'repeat', title: 'Held every dump day, ' + (live ? 'holding again' : 'held again'), hint: 'of the quarter before this session', n: repeat.length, rows: repeat.map(row), none: 'none',
+          note: 'A dump day is a session SPY fell ' + Math.abs(R.dump_pct) + '% or more. These held up on every one of the quarter (three or more) and ' + (live ? 'are holding up in this session too.' : 'held up in this session too.') },
+        { key: 'groups', title: isEtf ? 'Asset classes' : 'Sectors', hint: 'share ' + shareWord, n: sectors.length, rows: sectors.map(grow), none: 'none' }
+      ];
+      if (!isEtf) {
+        lists.push({ key: 'industries-holding', title: 'Industries ' + (red ? shareWord : 'ahead'), hint: (R.industry_min || 5) + ' or more ' + S.unit + 's', n: inds.length, rows: inds.slice(0, 15).map(grow), none: 'no industry has enough names' });
+        lists.push({ key: 'industries-breaking', title: live ? 'Industries breaking' : 'Industries that broke', hint: 'lowest share ' + shareWord, n: inds.length, rows: inds.slice(-15).reverse().map(grow), none: 'no industry has enough names' });
+      } else lists.push({ key: 'down-most-etf', title: 'Down the most', hint: 'by the move', n: more.length, rows: more.map(row), none: 'none' });
+      return {
+        eyebrow: 'Strength tearsheet' + DOT + when + DOT + num(counted.length) + ' stocks and ETFs counted',
+        title: title,
+        sub: 'Up = more than +' + R.flat_pct + '%' + DOT + 'flat = within ' + R.flat_pct + '% either way' + DOT + 'down less = down, but less than SPY' + DOT + 'down more = down at least as much' + DOT + 'holding up = the first three' + DOT + 'ranks and records as of ' + day(v.rank_as_of),
+        controls: ['b1', 'sp', 'all', 'etf'].map(function (id) { return { id: id, label: SC[id].label, on: id === k }; }),
+        tiles: [{ k: 'S&P 500 fund (SPY)', v: mv(spy.ret), s: 'from the open ' + mv(spy.fo) + (fin(spy.pos) ? DOT + num(spy.pos, 0) + '% of the day\'s range' : '') + (fin(spy.vwx) ? DOT + (spy.vwx >= 0 ? 'above' : 'below') + ' the day\'s VWAP' : '') },
+          { k: red ? (live ? 'Holding up' : 'Held up') : 'Ahead of SPY', v: p0(g[key]), s: num(g.n) + ' ' + S.unit + 's' + DOT + 'up ' + num(g.up) + DOT + 'flat ' + num(g.flat) + DOT + 'down less ' + num(g.down_less) },
+          { k: 'Down more than SPY', v: p0(share(g.down_more, g.n)), s: num(g.down_more) + ' of ' + num(g.n) + DOT + 'median move ' + mv(g.median_ret) },
+          { k: live ? 'Market value holding up' : 'Market value that held up', v: p0(share(heldCap, total)), s: money(heldCap) + ' of ' + money(total) },
+          { k: 'Strongest tenth coming in', v: gTop ? p0(gTop[key]) : D, s: gTop ? keyWord + DOT + 'median ' + mv(gTop.median_ret) + DOT + 'weakest tenth ' + p0(gBot[key]) + ', median ' + mv(gBot.median_ret) : 'too few ranked names have printed' },
+          { k: 'Held every dump day before', v: gEvery.n ? p0(gEvery[key]) : D, s: gEvery.n ? num(gEvery.n) + ' ' + S.unit + 's' + DOT + keyWord + (gFew.n ? DOT + 'held fewer than a third: ' + p0(gFew[key]) + ' of ' + num(gFew.n) : '') : 'no record of three dump days' }],
+        cards: [card(good, 'Largest ' + (isEtf ? 'fund' : 'company') + (red ? (live ? ' up while SPY falls' : ' up while SPY fell') : ' ahead of SPY'), 'No ' + S.unit + ' in this scope ' + (live ? 'is' : 'was') + ' up.'),
+          card(bad, sBreak.length ? (live ? 'Largest strong name breaking' : 'Largest strong name that broke') : 'Largest name down more than SPY', 'No ' + S.unit + ' in this scope ' + (live ? 'is' : 'was') + ' down more than SPY.')],
+        notes: [['Where:', sectors.length > 1 ? 'by ' + (isEtf ? 'asset class' : 'sector') + ', the share ' + shareWord + ' runs from ' + p0(sectors[0][key]) + ' in ' + sectors[0].name + ' (' + plural(sectors[0].n, S.unit) + ') to ' + p0(sectors[sectors.length - 1][key]) + ' in ' + sectors[sectors.length - 1].name + ' (' + plural(sectors[sectors.length - 1].n, S.unit) + ').'
+            + ' By market value ' + p0(share(heldCap, total)) + ' of the scope ' + (live ? 'is holding up' : 'held up') + ', against ' + p0(g.held_pct) + ' by count: the larger names ' + (live ? 'are doing' : 'did') + (share(heldCap, total) < g.held_pct ? ' worse than the typical one.' : ' no worse than the typical one.') : 'one group in this scope.'],
+          ['Carried in:', (gTop ? 'the strongest tenth by rank: ' + p0(gTop[key]) + ' ' + keyWord + ', median ' + mv(gTop.median_ret) + '; the weakest tenth: ' + p0(gBot[key]) + ', median ' + mv(gBot.median_ret) + '. ' : '')
+            + (gEvery.n ? num(gEvery.n) + ' ' + S.unit + 's had held up on every dump day of the quarter: ' + p0(gEvery[key]) + ' ' + nowWord + (gFew.n ? ', against ' + p0(gFew[key]) + ' of the ' + num(gFew.n) + ' that had held on fewer than a third' : '') + '.' : '')
+            + ' Ranks and records are as of ' + day(v.rank_as_of) + ', before this session.'],
+          ['Caveat:', (live ? 'these are forming bars, ' + (v.delay_minutes || 15) + ' minutes behind the market, and the session is not over. ' : 'this is the last finished session. ')
+            + num(aside) + ' names are measured and set aside from every count (pinned to a deal price, leveraged or inverse funds, an unexplained jump, thin trading)'
+            + ((v.unconfirmed || []).length ? '; ' + num(v.unconfirmed.length) + ' moves the size of a split with none on record are shown as unconfirmed and not counted' : '') + '. Holding up on a down day is a fact about one session, not a forecast.']],
+        ring: { title: 'Market value by outcome', hint: 'against SPY', n: rows.length, center: money(total), subs: [num(rows.length) + ' ' + S.unit.toUpperCase() + 'S', (red ? (live ? 'HOLDING UP ' : 'HELD UP ') : 'UP OR FLAT ') + p0(red ? share(heldCap, total) : share(sum(rows.filter(function (r) { return r.out === 'up' || r.out === 'flat'; }), cap), total))],
+          whole: 'the scope\'s market value', aria: 'Market value of ' + S.word + ' by how each is doing against SPY', slices: slices,
+          caption: 'Each counted ' + S.unit + ' once, at its market value' + (isEtf ? ' (a fund\'s assets)' : '') + ', by how it ' + (live ? 'is doing against SPY today' : 'did against SPY on ' + day(v.session)) + '. The count beside each slice is its share of the names, which can differ widely from its share of the value.' },
+        lists: lists,
+        foot: 'Source: justhodl-strength ' + ((v.table || {}).version || '') + ' (data/strength-wide.json, published ' + String((v.table || {}).generated_at || '').slice(0, 16).replace('T', ' ') + ' UTC, closes of ' + day(v.table_as_of) + ')'
+          + (live ? ' under justhodl-polygon-today\'s forming day bars (data/warm/polygon-full/today.json.gz, every five minutes in the session, ' + (v.delay_minutes || 15) + ' minutes delayed)' : '')
+          + '. The universe is every listed common stock and plain ETF trading $250k a day or more. The move is the last price over the close before.'
+      };
+    }
+  };
+
   /* -- boot -- */
   function get(url) { return fetch(url + (url.indexOf('?') < 0 ? '?' : '&') + 'v=' + Math.floor(Date.now() / 300000), { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(url + ' HTTP ' + r.status); return r.json(); }); }
 
@@ -1230,7 +1367,7 @@
   }
 
   function boot() { Array.prototype.forEach.call(document.querySelectorAll('[data-jts]'), mount); }
-  var api = { version: '1.4.0', render: render, ring: ring, adapters: ADAPTERS, mount: mount, money: money, pct: pct };
+  var api = { version: '1.5.0', render: render, ring: ring, adapters: ADAPTERS, mount: mount, money: money, pct: pct };
   if (typeof module === 'object' && module.exports) module.exports = api;   /* node: the adapters and the ring are pure, tests/tearsheet-kit.test.js */
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
   window.JHTearsheet = api;

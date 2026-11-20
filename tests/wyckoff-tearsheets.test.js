@@ -29,7 +29,7 @@ function deskRows(data, tab) {
 }
 
 test('the kit carries one sheet for each of the eight desks, and steps aside on a tab that has none', () => {
-  assert.equal(kit.version, '1.4.0');
+  assert.equal(kit.version, '1.5.0');
   assert.deepEqual(Object.keys(kit.adapters.wyckoff.tabs).sort(), TABS.slice().sort());
   assert.deepEqual(kit.adapters.wyckoff.build([docs()], { tab: 'pump' }), { hide: true });
   assert.deepEqual(kit.adapters.wyckoff.build([docs()], { tab: 'top' }), { hide: true });

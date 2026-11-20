@@ -949,10 +949,19 @@ def test_wide_fund_class_and_what_is_geared():
              ("WNTR", "YieldMax MSTR Short Option Income Strategy ETF"): ("equity_etf", True), ("DWSH", "AdvisorShares Dorsey Wright Short ETF"): ("equity_etf", True),
              ("SH", "ProShares - Short S&P500"): ("leveraged", True), ("PSQ", "ProShares - Short QQQ"): ("leveraged", True), ("BITI", "ProShares Short Bitcoin ETF"): ("leveraged", True),
              ("SVXY", "ProShares - Short VIX Short-Term Futures ETF"): ("leveraged", True), ("SLTY", "YieldMax Ultra Short Option Income Strategy ETF"): ("leveraged", True),
-             ("XLP", "Consumer Staples Select Sector SPDR Fund"): ("equity_etf", False), ("TLT", "iShares 20+ Year Treasury Bond ETF"): ("bond", False)}
+             ("XLP", "Consumer Staples Select Sector SPDR Fund"): ("equity_etf", False), ("TLT", "iShares 20+ Year Treasury Bond ETF"): ("bond", False),
+             # a stock fund chosen or weighted by volatility is a stock fund (26 of the 33 funds the second table of 2026-11-20 had under
+             # "volatility" - SPLV and SPHD among them, kept off the ETF boards on a dump day); the funds that hold volatility stay
+             ("SPLV", "Invesco S&P 500 Low Volatility ETF"): ("equity_etf", False), ("SPHD", "Invesco S&P 500 High Dividend Low Volatility ETF"): ("equity_etf", False),
+             ("VFMV", "Vanguard U.S. Minimum Volatility ETF"): ("equity_etf", False), ("CFA", "VictoryShares US 500 Volatility Wtd ETF"): ("equity_etf", False),
+             ("HUSV", "First Trust Horizon Managed Volatility Domestic ETF"): ("equity_etf", False), ("BDVL", "iShares Disciplined Volatility Equity Active ETF"): ("equity_etf", False),
+             ("EELV", "Invesco S&P Emerging Markets Low Volatility ETF"): ("country", False), ("LVHI", "Franklin International Low Volatility High Dividend Index ETF"): ("country", False),
+             ("VXX", "iPath Series B S&P 500 VIX Short-Term Futures ETN"): ("volatility", False), ("VXZ", "iPath Series B S&P 500 VIX Mid-Term Futures ETN"): ("volatility", False),
+             ("SVOL", "Simplify Volatility Premium ETF"): ("volatility", False), ("IVOL", "Quadratic Interest Rate Volatility and Inflation Hedge ETF"): ("volatility", False)}
     for (t, n), want in cases.items():
         assert fc(t, n) == want, (t, n, fc(t, n), want)
     assert wide.fund_class("ABCD", "Some Equity Fund", None) == ("equity_etf", False)
+    assert wide.fund_class("ABCD", "Some Low Volatility Fund", lambda t, k, n: ("volatility", None)) == ("equity_etf", False)   # a class map that cannot tell: a stock fund
 
 
 def test_wide_live_join_is_the_pages_arithmetic():

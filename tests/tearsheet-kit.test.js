@@ -10,7 +10,11 @@ feeds['data/leaders.json'] = JSON.parse(fs.readFileSync(path.join(__dirname, 'fi
 Object.assign(feeds, Object.fromEntries(Object.entries(JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/tearsheet-wyckoff.json'), 'utf8'))).filter(([k]) => k.startsWith('data/'))));
 // the Volatility desk's feed: the slice of the real artifact its own desk test reads (ops 6851 dry run)
 feeds['data/stock-volatility.json'] = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/stock-volatility-desk.json'), 'utf8'));
-const PAGES = { 'stock-volatility.html': 'volatility', 'ark.html': 'ark', 'stablecoin-flow.html': 'stablecoin', 'firm-book.html': 'firmbook', 'paper-book.html': 'paperbook', 'sp500.html': 'sp500', 'insider-clusters.html': 'insiders', 'foreign-flows.html': 'tic', 'capital-inflows.html': 'capital', 'leaders.html': 'leaders', 'wyckoff-desk.html': 'wyckoff', 'capitulation-desk.html': 'capitulation' };
+// the Strength desk hands its sheet a VIEW, not a feed: the whole-market table under today's forming bars, built by the desk's own engine
+// (jh-strong-engine.js) from real feeds (a cut of the live table and forming-bar file of 2026-11-20; tests/strength-desk.test.js reads it in full)
+const strengthFx = JSON.parse(require('node:zlib').gunzipSync(fs.readFileSync(path.join(__dirname, 'fixtures/strength-desk.json.gz'))).toString('utf8'));
+feeds['data/strength-wide.json'] = require('../jh-strong-engine.js').model(strengthFx.wide, strengthFx.today, { classLabels: strengthFx.class_labels });
+const PAGES = { 'strong.html': 'strength', 'stock-volatility.html': 'volatility', 'ark.html': 'ark', 'stablecoin-flow.html': 'stablecoin', 'firm-book.html': 'firmbook', 'paper-book.html': 'paperbook', 'sp500.html': 'sp500', 'insider-clusters.html': 'insiders', 'foreign-flows.html': 'tic', 'capital-inflows.html': 'capital', 'leaders.html': 'leaders', 'wyckoff-desk.html': 'wyckoff', 'capitulation-desk.html': 'capitulation' };
 const build = (name, state) => kit.adapters[name].build(kit.adapters[name].feeds.map(f => structuredClone(feeds[f.slice(1)])), state || {});
 const sum = (list, f) => list.reduce((a, x) => a + f(x), 0);
 const near = (a, b, tol) => assert.ok(Math.abs(a - b) <= (tol == null ? 1e-6 * Math.max(1, Math.abs(b)) : tol), `${a} vs ${b}`);
@@ -275,8 +279,8 @@ test('Leaders: the sheet takes the desk\'s copy of the feed, and reads it itself
   assert.deepEqual(ad.share, { global: 'JHLeadersDoc', event: 'jh:leaders-doc', ms: 8000 });
   const desk = fs.readFileSync(path.join(root, 'jh-leaders.js'), 'utf8');
   assert.match(desk, /window\.JHLeadersDoc = d;/); assert.match(desk, /new CustomEvent\("jh:leaders-doc", \{ detail: d \}\)/);
-  for (const name of Object.keys(kit.adapters)) if (!['leaders', 'wyckoff', 'capitulation', 'volatility'].includes(name)) assert.equal(kit.adapters[name].share, undefined, name);
-  assert.equal(kit.version, '1.4.0');
+  for (const name of Object.keys(kit.adapters)) if (!['leaders', 'wyckoff', 'capitulation', 'volatility', 'strength'].includes(name)) assert.equal(kit.adapters[name].share, undefined, name);
+  assert.equal(kit.version, '1.5.0');
 });
 
 

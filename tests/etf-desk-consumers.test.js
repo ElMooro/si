@@ -53,7 +53,10 @@ test('Strong v2 reads only the strength artifact and never the legacy inferred E
     reverseFromDesk:()=>{throw Error('must not read legacy inference');}}};ctx.window=ctx;vm.createContext(ctx);
   vm.runInContext(fs.readFileSync(path.join(root,'jh-strong-engine.js'),'utf8'),ctx);
   const result=await ctx.JHStrong.run(),qqq=result.rows.find(r=>r.ticker==='QQQ'),aapl=result.rows.find(r=>r.ticker==='AAPL');
-  assert.deepEqual(keys,['data/strength.json']);assert.equal(qqq.live,null);assert.equal(aapl.live,null);
+  // v3 (2026-11-20): beside its own artifact the desk reads the whole-market table and today's forming bars; never the legacy feeds. Here the
+  // table is not the strength-wide contract, so the forming bars are not asked for and the market-wide sections say why
+  assert.deepEqual(keys,['data/strength.json','data/strength-wide.json']);assert.equal(result.market,null);assert.match(result.marketError,/strength-wide\.json is not published yet/);
+  assert.equal(qqq.live,null);assert.equal(aapl.live,null);
   assert.equal(qqq.flow.w5.usd,5.7e9);assert.equal(aapl.flow,null);assert.equal(aapl.f13.stance,'DISTRIBUTING');assert.equal(aapl.demand,undefined);assert.equal(aapl.crowding,undefined);
   assert.equal(qqq.flow1d,undefined);assert.equal(result.spy.d,-0.2);assert.equal(result.dump,false);assert.deepEqual(result.sleeves,['ETF','STOCK']);
   // an artifact that is not the strength contract is refused, never substituted by the legacy feeds
