@@ -822,12 +822,38 @@ def apply_splits(bars, events):
     return out
 
 
-def infer_splits(bars):
+SPLIT_GAP_SHARE = 0.5                  # an inferred split must be in force at the open: the gap from the prior close carries at least this share of the session's move (logs). 0 switches the test off
+
+
+def at_open(pc, o, r):
+    """True when a session whose close-to-close ratio is r opened at the new price: the gap from the prior close (pc)
+    to the open (o) is on the move's side and carries at least SPLIT_GAP_SHARE of it, in logs. A split is in force
+    from the first trade; a fall or a spike that builds inside the session is not one (ops 6855: JDZG opened
+    2026-10-28 at 6.30 against a prior close of 6.10 and closed at 1.50 on four times the shares - the tape of a
+    4-for-1 by its closes and volume). A bar with no open cannot be tested and passes. Pure."""
+    if not SPLIT_GAP_SHARE or o is None:
+        return True
+    try:
+        gap, move = math.log(float(o) / float(pc)), math.log(float(r))
+    except (TypeError, ValueError, ZeroDivisionError):
+        return False
+    return move != 0 and gap * move > 0 and abs(gap) >= SPLIT_GAP_SHARE * abs(move)
+
+
+def _ratio(a, b):
+    try:
+        return float(a) / float(b)
+    except (TypeError, ValueError, ZeroDivisionError):
+        return None
+
+
+def infer_splits(bars, refused=None):
     """Unrecorded splits in unadjusted bars (the strength desk's rule): a close-to-close ratio >= 1.8 or <= 0.56 is a
     split when the shares traded (5 sessions each side) moved inversely by about the same amount (within x1.6), OR
     when the ratio lands within 2% of a common split ratio and volume moved in the split's direction by no more than
     x2.5 away from it - a 2-for-1 doubles the shares traded; a 50% crash multiplies them many times over and stays a
-    crash."""
+    crash. AND the session opened at the new price (at_open): a move that passes the volume tests but built inside
+    the session stays a move; such an event is appended to `refused` when a list is given."""
     found = []
     n = len(bars)
     for i in range(1, n):
@@ -850,7 +876,12 @@ def infer_splits(bars):
         if not (volume_matches or (exact and volume_direction and volume_bounded)):
             continue
         ratio = snap if abs(math.log(snap) - math.log(r)) <= math.log(1.04) else r
-        found.append({"date": bars[i]["date"], "factor": f(ratio, 6), "ratio": f(r, 4), "source": "inferred", "evidence": "volume" if volume_matches else "ratio"})
+        event = {"date": bars[i]["date"], "factor": f(ratio, 6), "ratio": f(r, 4), "source": "inferred", "evidence": "volume" if volume_matches else "ratio"}
+        if not at_open(pc, bars[i].get("o"), r):
+            if refused is not None:
+                refused.append(dict(event, open_gap=f(_ratio(bars[i].get("o"), pc), 4)))
+            continue
+        found.append(event)
     return found
 
 
@@ -891,14 +922,19 @@ def confirm_recorded(bars, recorded):
     return out
 
 
-def rebase(bars, recorded=None):
+def rebase(bars, recorded=None, refused=None):
     """Bars with every split the bank left unadjusted rebased: recorded splits the bars still print first, then
-    inferred ones not within three days of a recorded one. Returns (bars, events)."""
+    inferred ones not within three days of a recorded one. Returns (bars, events). `refused`, when a list is given,
+    receives the inferred events turned down because the session did not open at the new price."""
     if not bars:
         return bars, []
     ev = confirm_recorded(bars, recorded or [])
     adjusted = apply_splits(bars, ev) if ev else bars
-    inferred = [x for x in infer_splits(adjusted) if not any(abs((datetime.fromisoformat(x["date"]) - datetime.fromisoformat(r["date"])).days) <= 3 for r in ev)]
+    near = lambda x: any(abs((datetime.fromisoformat(x["date"]) - datetime.fromisoformat(r["date"])).days) <= 3 for r in ev)   # noqa: E731
+    turned_down = [] if refused is not None else None
+    inferred = [x for x in infer_splits(adjusted, turned_down) if not near(x)]
+    if turned_down:
+        refused.extend(x for x in turned_down if not near(x))
     if inferred:
         adjusted = apply_splits(adjusted, inferred)
         ev = ev + inferred

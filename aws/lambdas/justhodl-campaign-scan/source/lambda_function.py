@@ -42,7 +42,7 @@ import polygon_bankfirst    # aws/shared: the Polygon EOD bank's layout (ROOT, M
 import chart_scans as S     # the chart's own scans, ported; parity is a test
 import leaders_tape as T    # the leaders engine's pure tape module, byte-identical copy: own_history, rebase, separation_cut
 
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 CONTRACT = "campaign-scan.v1"
 ENGINE = "justhodl-campaign-scan"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -94,6 +94,7 @@ DEFINITIONS = {
 LIMITATIONS = [
     "The bank begins 2021-08-26. The chart may hold a longer history; a mark that depends on bars older than the bank can differ.",
     "Bars are rebased for splits here (recorded, then inferred). The chart's bars come from its own provider; around a fresh split the two can disagree for a few sessions.",
+    "A split inferred from the tape alone is accepted only when the session opened at the new price (the gap from the prior close carries at least half of the move). A fall or a spike that built inside the session is kept as the move it was (universe.splits_refused), and flagged as a jump when it is beyond 3-to-1.",
     "A confirmed low is 40 sessions old before any scan can read it. A newer low shows first as a climax, or not at all.",
     "A mark is a pattern on the tape. It carries no fundamental, no position and no forecast.",
 ]
@@ -413,13 +414,16 @@ def rows_of(meta, bars, harvest=None, jump=None):
     return out
 
 
-def one_ticker(s3, meta, recorded, harvest, bank_last_ord, listings, first_bar):
+def one_ticker(s3, meta, recorded, harvest, bank_last_ord, listings, first_bar, on_refused=None):
     """(status, rows, note): read, repair and scan one symbol."""
     raw = read_bars(s3, meta["ticker"])
     if not raw:
         return "unbanked", {}, None
     own, _ = T.own_history(raw, meta.get("ipo_date"))
-    bars, ev = T.rebase(own, recorded or [])
+    turned_down = []
+    bars, ev = T.rebase(own, recorded or [], turned_down)
+    if turned_down and on_refused:
+        on_refused(meta["ticker"], turned_down)
     if meta["kind"] == "stock" and meta.get("mcap") and meta.get("sector"):
         bars, _ = T.separation_cut(bars, ev, meta["ticker"], meta["mcap"], meta["sector"], listings, first_bar)
     bars = clean(bars)
@@ -503,12 +507,13 @@ def build(s3, now, log=print, remaining_s=600.0):
 
     status, boards, notes = {}, {b: [] for b in BOARDS}, {"stale": [], "short": 0, "unbanked": 0, "unreadable": 0}
     scanned_by_kind, scanned_by_sector, sessions_read = {"stock": 0, "etf": 0}, {}, []
+    split_refused = {}
 
     def work(t):
         if time.time() > deadline:
             return t, "timeout", {}, None
         try:
-            st, rows, note = one_ticker(s3, universe[t], recorded.get(t), harvest.get(t), order, listings, first_bar)
+            st, rows, note = one_ticker(s3, universe[t], recorded.get(t), harvest.get(t), order, listings, first_bar, split_refused.__setitem__)
             return t, st, rows, note
         except Exception as exc:  # noqa: BLE001
             return t, "error", {}, "%s: %s" % (type(exc).__name__, str(exc)[:100])
@@ -555,6 +560,7 @@ def build(s3, now, log=print, remaining_s=600.0):
         "engine": ENGINE, "version": VERSION, "contract": CONTRACT, "generated_at": now.isoformat(timespec="seconds"), "as_of": bank_last,
         "universe": {"book_rows": ustats["book_rows"], "eligible": len(universe), "eligible_stock": ustats["stock"], "eligible_etf": ustats["etf"], "left_out": ustats["left_out"],
                      "scanned": n_scanned, "scanned_stock": scanned_by_kind["stock"], "scanned_etf": scanned_by_kind["etf"], "short_history": notes["short"],
+                     "splits_refused": {"n": len(split_refused), "sample": [{"t": t, "date": split_refused[t][-1]["date"], "ratio": split_refused[t][-1].get("ratio"), "open_gap": split_refused[t][-1].get("open_gap")} for t in sorted(split_refused)[:80]]},
                      "not_trading": len(notes["stale"]), "unbanked": notes["unbanked"], "unreadable": notes["unreadable"], "min_dollar_vol": MIN_DV, "min_sessions": MIN_SESSIONS,
                      "bank_first_session": bank_first, "bank_sessions": len(bench), "median_sessions_read": sorted(sessions_read)[len(sessions_read) // 2] if sessions_read else None,
                      "split_windows_read": n_windows, "harvest_rows": len(harvest)},

@@ -234,6 +234,14 @@ def test_split_adjustment_recorded_and_inferred():
     assert len(found) == 1 and found[0]["date"] == DATES[40].isoformat() and found[0]["factor"] == 3.0 and found[0]["source"] == "inferred"
     crash = [{"date": DATES[i].isoformat(), "c": 20.0 if i < 40 else 8.0, "v": 1000.0 if i < 40 else 9000.0} for i in range(60)]   # a real -60% day: volume explodes, no split
     assert lf.infer_splits(crash) == []
+    # 1.0.13 - and the session must OPEN at the new price (ops 6855: JDZG 2026-10-28 opened 6.30, closed 1.50 on 4x the shares)
+    opened = [dict(b, o=b["c"]) for b in jump]                                                           # in force at the open: a reverse split
+    assert len(lf.infer_splits(opened)) == 1
+    inside = [dict(b, o=(20.0 if i <= 40 else b["c"])) for i, b in enumerate(jump)]                      # that session opens at the old price: a spike that built inside it
+    turned = []
+    assert lf.infer_splits(inside, refused=turned) == [] and lf.infer_splits(inside) == []
+    assert len(turned) == 1 and turned[0]["date"] == DATES[40].isoformat() and turned[0]["open_gap"] < 1.01 and turned[0]["ratio"] > 2.9
+    assert lf.at_open(100, 49, 0.25) and not lf.at_open(100, 51, 0.25) and lf.at_open(100, 210, 4.0) and not lf.at_open(100, 190, 4.0) and lf.at_open(100, None, 0.25) and not lf.at_open(100, 0, 0.25)
     squeeze = [{"date": DATES[i].isoformat(), "c": 20.0 if i < 40 else 45.0, "v": 1000.0 if i < 40 else 1000.0} for i in range(60)]   # +125% with flat volume: not a split
     assert lf.infer_splits(squeeze) == []
     odd = [{"date": DATES[i].isoformat(), "c": 20.0 if i < 40 else 20.0 * 2.37, "v": 2370.0 if i < 40 else 1000.0} for i in range(60)]   # an unusual ratio is kept as measured
@@ -345,7 +353,7 @@ def test_universe_assembly_and_ranks():
 
 def test_build_rows_boards_flows_and_13f():
     s3, out = built()
-    assert out["contract"] == "strength.v1" and out["version"] == "1.0.12" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
+    assert out["contract"] == "strength.v1" and out["version"] == "1.0.13" and out["as_of"] == DATES[-1].isoformat() and out["benchmark"]["ticker"] == "SPY"
     assert out["benchmark"]["sessions"] == 300 and out["benchmark"]["h"]["q"] is not None and out["universe"]["n"] == len({t for items in lf.SLEEVES.values() for t, _ in items}) + 8
     by = {r["ticker"]: r for r in out["rows"]}
     # unbanked desk names carry no row; the bank manifest's last session is the as-of
@@ -472,7 +480,7 @@ def test_a_thin_day_is_not_a_session():
         s3.put(lf.bank_key(tk), {"rows": rows + [[sat_ms, c, c, c, c, 100.0, c, 1]]})
     logs = []
     out = lf.build(s3, NOW, log=logs.append)
-    assert out["version"] == "1.0.12" and out["as_of"] == fri and out["bank"]["last_session"] == fri and out["bank"]["manifest_last_session"] == s_iso
+    assert out["version"] == "1.0.13" and out["as_of"] == fri and out["bank"]["last_session"] == fri and out["bank"]["manifest_last_session"] == s_iso
     assert out["bank"]["thin_days"] == [{"day": s_iso, "tickers": 2, "of": 11, "benchmark": False}] and out["benchmark"]["as_of"] == fri
     assert any("set aside as thin" in str(m) for m in logs)
     by, by0 = {r["ticker"]: r for r in out["rows"]}, {r["ticker"]: r for r in base["rows"]}

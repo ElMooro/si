@@ -83,7 +83,7 @@ try:
 except Exception:  # noqa: BLE001
     etf_desk_catalog = None
 
-VERSION = "1.0.12"
+VERSION = "1.0.13"
 CONTRACT = "strength.v1"
 ENGINE = "justhodl-strength"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -951,7 +951,35 @@ def apply_splits(bars, events):
     return out
 
 
-def infer_splits(bars, fund=False):
+SPLIT_GAP_SHARE = 0.5                  # 1.0.13: an inferred split must be in force at the open. 0 switches the test off
+
+
+def at_open(pc, o, r):
+    """True when a session whose close-to-close ratio is r opened at the new price: the gap from the prior close (pc)
+    to the open (o) is on the move's side and carries at least SPLIT_GAP_SHARE of it, in logs. A split is in force
+    from the first trade; a fall or a spike that builds inside the session is not one (ops 6855: JDZG opened
+    2026-10-28 at 6.30 against a prior close of 6.10 and closed at 1.50 on four times the shares - the tape of a
+    4-for-1 by its closes and volume). A bar with no open cannot be tested and passes. Same rule as
+    leaders_tape.at_open. Pure."""
+    if not SPLIT_GAP_SHARE or o is None:
+        return True
+    try:
+        gap, move = math.log(float(o) / float(pc)), math.log(float(r))
+    except (TypeError, ValueError, ZeroDivisionError):
+        return False
+    return move != 0 and gap * move > 0 and abs(gap) >= SPLIT_GAP_SHARE * abs(move)
+
+
+def _turn_down(refused, event, bar, pc):
+    if refused is not None:
+        try:
+            gap = round(float(bar.get("o")) / float(pc), 4)
+        except (TypeError, ValueError, ZeroDivisionError):
+            gap = None
+        refused.append(dict(event, open_gap=gap))
+
+
+def infer_splits(bars, fund=False, refused=None):
     """Unrecorded splits in unadjusted bars: a close-to-close ratio >= 1.8 or <= 0.56 is a split when the shares traded
     (5 sessions each side) moved inversely by about the same amount (within x1.6) - a reverse split prints a 3x price
     with ~1/3 the shares - OR when the ratio lands within 2% of a common split ratio and volume at least moved in the
@@ -965,6 +993,10 @@ def infer_splits(bars, fund=False):
     of the 20 sessions before it; for a fund (not leveraged) the ratio snaps to a common split ratio within 15% because
     its sector moves on the split day too (SOXX printed x0.293 against 1/3 with semis -11% that day); a stock keeps the
     2% snap, so a crash stays a crash. Evidence 'fresh-volume' / 'fresh-ratio'.
+    1.0.13 - every inferred split must also OPEN at the new price (at_open): 53 one-session crashes and spikes passed
+    the volume tests in the listed universe (BMNR 2025-07, LUNR 2023-02, AKBA 2022-03) because a move that heavy
+    multiplies the shares traded about as much as the split it imitates. Such an event goes to `refused` when a list
+    is given, and the bars keep the move.
     Returns [{date, factor, ratio, source: 'inferred', evidence}] oldest first. Pure."""
     found = []
     n = len(bars)
@@ -1005,12 +1037,20 @@ def infer_splits(bars, fund=False):
             near = abs(math.log(snap) - math.log(r)) <= math.log(tol if fund else 1.06)
             if not (near and volume_direction and (fund or volume_bounded)):
                 continue
-            found.append({"date": bars[i]["date"], "factor": f(snap, 6), "ratio": f(r, 4), "source": "inferred", "evidence": "fresh-volume" if volume_matches else "fresh-ratio"})
+            event = {"date": bars[i]["date"], "factor": f(snap, 6), "ratio": f(r, 4), "source": "inferred", "evidence": "fresh-volume" if volume_matches else "fresh-ratio"}
+            if at_open(pc, bars[i].get("o"), r):
+                found.append(event)
+            else:
+                _turn_down(refused, event, bars[i], pc)
             continue
         if not (volume_matches or (exact and volume_direction and volume_bounded)):
             continue                                                            # a crash or a squeeze: volume explodes the other way
         ratio = snap if abs(math.log(snap) - math.log(r)) <= math.log(1.04) else r
-        found.append({"date": bars[i]["date"], "factor": f(ratio, 6), "ratio": f(r, 4), "source": "inferred", "evidence": "volume" if volume_matches else "ratio"})
+        event = {"date": bars[i]["date"], "factor": f(ratio, 6), "ratio": f(r, 4), "source": "inferred", "evidence": "volume" if volume_matches else "ratio"}
+        if at_open(pc, bars[i].get("o"), r):
+            found.append(event)
+        else:
+            _turn_down(refused, event, bars[i], pc)
     return found
 
 
@@ -1621,7 +1661,7 @@ def build(s3, now, log=print, remaining_s=300.0):
     banked = {t for t, b in bars_by.items() if b} | {BENCH}
     first_day = min([b[0]["date"] for b in bars_by.values() if b] + [bench[0]["date"] if bench else bank_last or "2026-01-01"])
     poly, n_windows = polygon_splits(s3, first_day, bank_last or (bench[-1]["date"] if bench else first_day), banked)
-    splits_by = {}
+    splits_by, split_refused = {}, {}
     for t in list(bars_by.keys()) + [BENCH]:
         b = bench if t == BENCH else bars_by.get(t)
         if not b:
@@ -1631,7 +1671,12 @@ def build(s3, now, log=print, remaining_s=300.0):
         adjusted = apply_splits(b, ev) if ev else b
         m_ = u.get(t) or {}
         is_fund = t == BENCH or (m_.get("kind") == "fund" and m_.get("asset_class") != "leveraged")
-        inferred = [x for x in infer_splits(adjusted, fund=is_fund) if not any(abs((datetime.fromisoformat(x["date"]) - datetime.fromisoformat(r["date"])).days) <= 3 for r in ev)]
+        near = lambda x, ev=ev: any(abs((datetime.fromisoformat(x["date"]) - datetime.fromisoformat(r["date"])).days) <= 3 for r in ev)   # noqa: E731
+        turned_down = []
+        inferred = [x for x in infer_splits(adjusted, fund=is_fund, refused=turned_down) if not near(x)]
+        turned_down = [x for x in turned_down if not near(x)]
+        if turned_down:
+            split_refused[t] = turned_down
         if inferred:
             adjusted = apply_splits(adjusted, inferred)
             ev = ev + inferred
@@ -1691,6 +1736,7 @@ def build(s3, now, log=print, remaining_s=300.0):
                    "n_rows_adjusted": sum(1 for r in rows if r.get("splits")), "recorded": sum(1 for r in rows for e in (r.get("splits") or []) if e.get("source") == "corporate-actions"),
                    "polygon": sum(1 for r in rows for e in (r.get("splits") or []) if e.get("source") == "polygon-splits"),
                    "inferred": sum(1 for r in rows for e in (r.get("splits") or []) if e.get("source") == "inferred"),
+                   "n_refused": len(split_refused), "refused": {t: ev for t, ev in sorted(split_refused.items())},
                    "note": "bank bars are unadjusted grouped-daily rows; bars before a split are rebased by the split factor (Polygon's split reference where the bars print it, the justhodl-corporate-actions record, or inferred from a volume-confirmed price jump - a fund's fresh split from the split day alone)"},
         "universe": {"n": len(u), "n_rows": len(rows), "n_ranked": boards["n_ranked"], "scopes": {s: sum(1 for v in u.values() if s in v["scopes"]) for s in ("desk", "etf-desk", "sp500", "13f")},
                      "unbanked": unbanked, "skipped_for_time": skipped, "sp500_rows": len(sp500), "etf_desk_rows": len(etf_desk), "f13_rows": len(f13), "max": MAX_UNIVERSE},
@@ -1712,7 +1758,7 @@ def build(s3, now, log=print, remaining_s=300.0):
             "f13": "the 13F cohort's read of the ticker across two dated disclosures: holders, bull / bear manager votes, net dollars at reported prices. Newly disclosed is not bought; absent is not sold.",
             "posture": "day posture from close-to-close moves; the page overlays the live quote",
             "pinned": "a stock whose 14-session ATR is <= 0.6% of price inside a base of <= 3.5% trades like a pending deal (merger arbitrage), not an accumulation: flagged PINNED and kept off the coil board",
-            "splits": "bank bars are unadjusted; bars before a recorded split (corporate-actions) or an inferred one (close ratio >= 1.8 or <= 0.56 with volume moving the opposite way, 5 sessions each side) are rebased by the split factor",
+            "splits": "bank bars are unadjusted; bars before a recorded split (corporate-actions) or an inferred one (close ratio >= 1.8 or <= 0.56 with volume moving the opposite way, 5 sessions each side) are rebased by the split factor. An inferred split must also open at the new price (the gap from the prior close carries at least half of the session's move); a fall or a spike that built inside the session is kept as the move it was and listed under splits.refused",
             "asset_class": "stock; equity_etf (broad / sector / factor); country; bond (treasury / aggregate / IG corporate / mortgage / TIPS / international / EM debt / muni); high_yield (corporate / fallen angels / loans / muni / EM); cash (T-bills); gold; silver; metals (platinum / palladium / copper / base metals / miners); commodity (energy / broad / agriculture); currency; crypto; volatility; leveraged (labelled, outside the ranks)",
             "strength_in_class": "the row's percentile inside its own asset class (classes with at least 5 ranked members)",
             "capture": "over the trailing 21, 63 and 126 sessions: mean excess vs SPY on SPY's down days (down_excess_pp) and on its up days (up_excess_pp), the capture ratios, how often the name held up on dump days (SPY <= -1%) and beat SPY on rally days (SPY >= +1%), the mean excess on those dump days / rally days; asym_pp = down_excess + up_excess; both_pp = the weaker side, min(down_excess, up_excess) - 'dumps less than the S&P 500 AND rallies more than it'; bigday_pp (126 sessions) = min(dump-day excess, rally-day excess) with at least 3 of each; asym_rank = the universe percentile of both_pp over 63 sessions",

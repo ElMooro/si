@@ -43,7 +43,6 @@ from __future__ import annotations
 
 import gzip
 import json
-import math
 import os
 import re
 import time
@@ -60,7 +59,7 @@ import polygon_bankfirst    # aws/shared: the Polygon EOD bank's layout (ROOT, M
 import leaders_tape as T    # the leaders engine's pure tape module, byte-identical copy: own_history, rebase, separation_cut, atr_pct
 import vol_measures as M    # this engine's own arithmetic: realized volatility and the price spread
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 CONTRACT = "stock-volatility.v1"
 ENGINE = "justhodl-stock-volatility"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -80,7 +79,6 @@ PIN_SPREAD_M = 3.5             # a stock whose last 21 sessions fit inside this 
 JUMP_FLAG = 3.0                # a close-to-close move beyond 3-to-1 either way that no split explains is flagged on the row, never hidden
 JUMP_SESSIONS = 300
 PRINT_FLAG = 3.0               # a high or low this many times away from every close around it is one print, not a range
-SPLIT_GAP_SHARE = 0.5          # a split inferred from the tape must be in force at the open: the gap from the prior close carries at least half of the move
 HISTORY_SESSIONS = 252
 THREADS = int(os.environ.get("THREADS", "16"))
 RESERVE_S = 45.0
@@ -367,27 +365,12 @@ def flagged_print(prints):
     return dict(prints[-1]) if prints else None
 
 
-def at_open(own, event):
-    """True when the session of an inferred split opened at the new price: the gap from the prior close to the open is
-    on the split's side and carries at least SPLIT_GAP_SHARE of the move (in logs). A split is in force from the first
-    trade; a fall that builds inside the session is a fall. Pure."""
-    i = next((k for k, b in enumerate(own) if b["date"] == event["date"]), None)
-    try:
-        gap, move = math.log(float(own[i]["o"]) / float(own[i - 1]["c"])), math.log(float(event["ratio"]))
-    except (TypeError, ValueError, KeyError, IndexError, ZeroDivisionError):
-        return False
-    return i >= 1 and move != 0 and gap * move > 0 and abs(gap) >= SPLIT_GAP_SHARE * abs(move)
-
-
 def rebase(own, recorded=None):
-    """leaders_tape.rebase with one more test: a split inferred from the tape alone must be in force at the open.
-    Returns (bars, events applied, inferred events refused). Pure."""
-    bars, ev = T.rebase(own, recorded or [])
-    refused = [e for e in ev if e.get("source") == "inferred" and not at_open(own, e)]
-    if not refused:
-        return bars, ev, []
-    keep = [e for e in ev if e not in refused]
-    return (T.apply_splits(own, keep) if keep else own), keep, refused
+    """leaders_tape.rebase, also returning the inferred splits it refused: a split inferred from the tape alone must
+    be in force at the open (leaders_tape.at_open). Returns (bars, events applied, inferred events refused). Pure."""
+    refused = []
+    bars, ev = T.rebase(own, recorded or [], refused)
+    return bars, ev, refused
 
 
 def aside_of(jump, miss, pinned=False, bad_print=None):

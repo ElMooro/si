@@ -400,6 +400,20 @@ def test_split_rebasing():
     assert len(ev3) == 1 and ev3[0]["source"] == "inferred" and adj3[0]["c"] == 50.0
     crash = bars_of(closes[:250] + [50.0] * 50, [1e6] * 250 + [8e6] * 5 + [1e6] * 45)
     assert T.rebase(crash, None)[1] == []
+    # ... and the session must OPEN at the new price (ops 6855: JDZG opened 2026-10-28 at 6.30 and closed it at 1.50 on
+    # four times the shares). The same closes and volume with that session opening where the last one closed: a fall,
+    # kept as a fall and reported
+    fall = [dict(b) for b in raw]
+    fall[250]["o"], fall[250]["h"] = 100.0, 101.0
+    turned = []
+    adj5, ev5 = T.rebase(fall, None, turned)
+    assert ev5 == [] and adj5[0]["c"] == 100.0 and adj5[250]["c"] == 50.0
+    assert len(turned) == 1 and turned[0]["date"] == day and turned[0]["ratio"] == 0.5 and turned[0]["open_gap"] == 1.0 and turned[0]["source"] == "inferred"
+    assert T.rebase(fall, None)[1] == []                                           # no list given: same answer
+    assert T.at_open(100, 49, 0.25) and not T.at_open(100, 51, 0.25) and not T.at_open(100, 103, 0.25) and T.at_open(100, 210, 4.0) and not T.at_open(100, 190, 4.0)
+    assert T.at_open(100, None, 0.25) and not T.at_open(100, 0, 0.25)             # no open: untestable, passes; a broken open: not a split
+    turned = []
+    assert len(T.rebase(raw, rec, turned)[1]) == 1 and turned == []               # a recorded split is not second-guessed
     # a 1-for-3 reverse split, recorded
     rev = bars_of([20.0] * 250 + [60.0] * 50, [3e6] * 250 + [1e6] * 50)
     adj4, ev4 = T.rebase(rev, [{"date": rev[250]["date"], "split_from": 3, "split_to": 1}])

@@ -24,6 +24,13 @@ v1.0.1 (2026-10-26): the first join ran out of 3 GB in 19 s decoding whole-marke
 now STREAMED once (gunzip -> text -> csv.reader) into a SQLite staging file on /tmp keyed (block, symbol), and the
 documents are assembled from indexed lookups - memory stays flat whatever the files weigh (ephemeral storage 2 GB).
 
+v1.0.9 (2026-11-20, ops 6852 / 6859): a second security of an issuer is not its common stock. Polygon's reference list
+types AGNCO, HBANL, ATLCL, BHFAL ... as "CS"; the book carried these preferred shares, baby bonds and notes as common
+stock, so common-only screens and boards could rank a note beside a company. other_issues.py reads the listing's own
+name (a coupon, "Notes", "Preferred Shares" ...) and the NASDAQ fifth letter of a ticker that extends a listed ticker
+of the same issuer name and trades under a tenth of its dollar volume; such a row gets its flag (is_preferred /
+is_debt_or_structured / is_warrant_unit) and is_common False, and is named with the reason in coverage.other_issues.
+Share classes (GOOGL, FOXA, NWSA) trade as much as their sibling and stay.
 v1.0.8 (2026-11-08, ops 6764): a thin grouped file is not a session. The Polygon tape folded a Saturday file
 (grouped/2026-11-07.json.gz, 271 symbols) and the returns pass took it as session 0, so close/returns/dollar_vol_20d
 existed for 271 symbols instead of ~12,500, every common stock lost dollar_vol_20d, and justhodl-leaders refused its
@@ -60,8 +67,9 @@ from botocore.config import Config
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import fmp_bank  # noqa: E402  (aws/shared, bundled)
+import other_issues  # noqa: E402  (this engine: a second security of an issuer is not its common stock)
 
-VERSION = "1.0.8"
+VERSION = "1.0.9"
 SCHEMA = "factor-book/1.0"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 ROOT = "data/warm/factor-book/"
@@ -1057,6 +1065,10 @@ def lambda_handler(event=None, context=None):
     src.coverage["returns"] = rinfo
     src.as_of["polygon-tape"] = rinfo.get("last_session")
     log("returns: %s (%.0fs)" % (json.dumps(rinfo), time.time() - t0))
+    moved = other_issues.apply(uni, {s: (d or {}).get("dollar_vol_20d") for s, d in returns.items()} if returns else None)     # v1.0.9
+    src.coverage["other_issues"] = {"n": len(moved), "by_flag": {k: sum(1 for h in moved.values() if h["flag"] == k) for k in sorted({h["flag"] for h in moved.values()})},
+                                    "structure_test": bool(returns), "tickers": {s: h["why"] for s, h in sorted(moved.items())}}
+    log("other issues moved out of common stock: %d" % len(moved))
 
     holders_inv = None
 

@@ -56,7 +56,7 @@ import polygon_bankfirst    # aws/shared: the Polygon EOD bank's layout (ROOT, M
 import leaders_patterns as P
 import leaders_tape as T
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 CONTRACT = "leaders.v1"
 ENGINE = "justhodl-leaders"
 S3_BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -899,7 +899,7 @@ def build(s3, now, log=print, remaining_s=300.0):
     # 2b. splits: recorded ones the bars still print (the predecessor symbol's included), then inferred ones
     first_day = min([b[0]["date"] for b in bars_by.values() if b] + [bench[0]["date"]])
     rec, n_windows = recorded_splits(s3, first_day, (bank_last or bench[-1]["date"]), set(bars_by) | {BENCH} | {o for olds in alias.values() for o in olds})
-    splits_by, jumps_by = {}, {}
+    splits_by, jumps_by, split_refused = {}, {}, {}
     bench, ev = T.rebase(bench, rec.get(BENCH))
     if ev:
         splits_by[BENCH] = ev
@@ -919,7 +919,10 @@ def build(s3, now, log=print, remaining_s=300.0):
         return first_bars[t]
     for t, b in list(bars_by.items()):
         if b:
-            b, ev = T.rebase(b, (rec.get(t) or []) + [e for o in alias.get(t, []) for e in rec.get(o) or []])
+            turned_down = []
+            b, ev = T.rebase(b, (rec.get(t) or []) + [e for o in alias.get(t, []) for e in rec.get(o) or []], turned_down)
+            if turned_down:
+                split_refused[t] = turned_down
             if ev:
                 splits_by[t] = ev
             # 2c. a collapse on the session a same-sector company of matching value prints its first bar is a
@@ -1067,7 +1070,8 @@ def build(s3, now, log=print, remaining_s=300.0):
         "changes": changes_since(prev, rows, etfs, as_of),
         "splits": {"windows_read": n_windows, "n_rebased": len(splits_by), "recorded": sum(1 for ev in splits_by.values() for e in ev if e.get("source") == "polygon-splits"),
                    "inferred": sum(1 for ev in splits_by.values() for e in ev if e.get("source") == "inferred"), "tickers": {t: ev for t, ev in sorted(splits_by.items())},
-                   "note": "the bank's history was pulled adjusted; sessions appended since are raw. A recorded split is applied only when the bars still print it; an unrecorded jump is rebased when volume confirms it"},
+                   "n_refused": len(split_refused), "refused": {t: ev for t, ev in sorted(split_refused.items())},
+                   "note": "the bank's history was pulled adjusted; sessions appended since are raw. A recorded split is applied only when the bars still print it; an unrecorded jump is rebased when volume confirms it AND the session opened at the new price - a fall or a spike that built inside the session is kept as the move it was (refused)"},
         "history": {"gap_days": T.GAP_DAYS, "n_cut": len(cuts), "n_stitched": len(stitched_by), "n_with_jumps": len(jumps_by),
                     "cut": {t: c for t, c in sorted(cuts.items())}, "stitched": {t: x for t, x in sorted(stitched_by.items())}, "refused": {t: x for t, x in sorted(refused_by.items())},
                     "short": sorted(r["ticker"] for r in rows + etfs if r["sessions"] < 253),

@@ -506,12 +506,17 @@ def test_a_fall_inside_the_session_is_not_a_split():
            json.dumps(b["universe"]["splits_refused"]))
         ok("... so it stays a fall: flagged as a jump, set aside, the quarter's high still the old price", tb["jd"] == day and tb["ja"] == 29 and tb["jr"] < 1 / 3 and tb["why"] == "jump" and tb["hi_q"] > 3 * tb["px"]
            and tb["hv63"] > 2 * ta["hv63"], json.dumps({k: tb[k] for k in ("jd", "jr", "ja", "why", "hi_q", "px", "hv63")}))
-        own = LF.clean(dict_bars(BARS["TSLA"]))
-        e = {"date": own[cut]["date"], "ratio": 0.25}
-        gap = lambda o: [dict(x, o=o) if k == cut else x for k, x in enumerate(own)]   # noqa: E731
-        pc = own[cut - 1]["c"]
-        ok("at the open: the gap carries at least half the move, on the move's side", LF.at_open(gap(pc * 0.25), e) and LF.at_open(gap(pc * 0.49), e) and not LF.at_open(gap(pc * 0.51), e) and not LF.at_open(gap(pc * 1.03), e)
-           and not LF.at_open(gap(pc * 4), e) and not LF.at_open(own, {"date": "1999-01-01", "ratio": 0.25}) and not LF.at_open(own, {"date": own[0]["date"], "ratio": 0.25}))
+        A = LF.T.at_open
+        ok("at the open: the gap carries at least half the move, on the move's side", A(100, 25, 0.25) and A(100, 49, 0.25) and not A(100, 51, 0.25) and not A(100, 103, 0.25) and not A(100, 400, 0.25)
+           and A(100, 400, 4.0) and A(100, 210, 4.0) and not A(100, 190, 4.0) and not A(100, 97, 4.0))
+        ok("a bar with no open cannot be tested and passes; a broken one fails; the switch turns the test off", A(100, None, 0.25) and not A(100, 0, 0.25) and not A(0, 25, 0.25))
+        keep = LF.T.SPLIT_GAP_SHARE
+        LF.T.SPLIT_GAP_SHARE = 0
+        try:
+            ok("... off: the old rule", A(100, 103, 0.25))
+        finally:
+            LF.T.SPLIT_GAP_SHARE = keep
+        ok("the event that is refused says where the session opened", b["universe"]["splits_refused"]["sample"][0]["ratio"] < 0.3)
     finally:
         LF.MIN_SCANNED = old
 
