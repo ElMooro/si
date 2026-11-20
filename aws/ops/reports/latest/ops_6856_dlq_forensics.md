@@ -1,0 +1,425 @@
+# ops 6856 - dead-letter queue forensics 2026-11-20 (justhodl-dlq-default: who put 3,255 messages there, when, and why; read-only)
+
+**Status:** success  
+**Duration:** 67.8s  
+**Finished:** 2026-11-20T03:07:45+00:00  
+
+## Data
+
+| depth_inflight | depth_visible | dropped_15d | fns_dropping | messages_read | msg_kinds | msg_top_errors | msg_top_functions | newest_message | oldest_message | retention_days | sqs_sent_15d | top_droppers |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0 | 3255 | 3547 | 37 | 3255 | {"eventbridge-event": 2843, "payload": 247, "eventbridge-schedule": 150, "scheduler": 15} | -|Function not invoked. Function isconfigured with z x2845; 200|RequestId: <id> Error: Task timed out after N seco x97; 200|HTTP Error N: Too Many Requests x56; 200|Request already attempted; inspect its retained fa x42 | (direct async invoke / bus event - not n 3090; portfolio-snapshot 14; research-backtest 14; signal-genealogy 14; earnings-blackout 14; causality-scanner 14; positioning-analog 14; estimate-revisions 14 | 2026-11-20T01:00+00:00 | 2026-11-06T03:28+00:00 | 14.0 | 3547 | event-coordinator 3107; earnings-blackout 30; estimate-revisions 30; positioning-analog 30; signal-genealogy 30; forensic-screen 29; dark-pool 26; chart-patterns 16 |
+
+## Log
+## A. the queue
+
+- `03:06:37` depth: 3255 visible + 0 in flight + 0 delayed | retention 14.0 d | visibility timeout 60 s | created 2026-05-22 | last modified 2026-06-02T21:56+00:00
+- `03:06:37` redrive policy (this queue's own DLQ): none | redrive allow policy: none | encryption: SSE-SQS
+- `03:06:37` policy statement: Allow ['sqs:SendMessage', 'sqs:GetQueueAttributes', 'sqs:GetQueueUrl'] on justhodl-dlq-default | principal {"AWS": "arn:aws:iam::857687956942:root"} | condition keys []
+- `03:06:37` SQS queues that use it as their own DLQ: none
+## B. the queue's CloudWatch record, 15 days (UTC days)
+
+- `03:06:38` 2026-11-05: sent   289 | deleted     0 | received     0 | depth max  4392 | oldest 14.0 d
+- `03:06:38` 2026-11-06: sent   288 | deleted     0 | received     0 | depth max  4430 | oldest 14.0 d
+- `03:06:38` 2026-11-07: sent   303 | deleted     0 | received     0 | depth max  4324 | oldest 14.0 d
+- `03:06:38` 2026-11-08: sent   289 | deleted     0 | received     0 | depth max  4328 | oldest 14.0 d
+- `03:06:38` 2026-11-09: sent    67 | deleted     0 | received     0 | depth max  4337 | oldest 14.0 d
+- `03:06:38` 2026-11-10: sent    58 | deleted     0 | received     0 | depth max  4326 | oldest 14.0 d
+- `03:06:38` 2026-11-11: sent   303 | deleted     0 | received     0 | depth max  4500 | oldest 14.0 d
+- `03:06:38` 2026-11-12: sent   305 | deleted     0 | received     0 | depth max  4334 | oldest 14.0 d
+- `03:06:38` 2026-11-13: sent   304 | deleted     0 | received     0 | depth max  4401 | oldest 14.0 d
+- `03:06:38` 2026-11-14: sent   289 | deleted     0 | received     0 | depth max  4465 | oldest 14.0 d
+- `03:06:38` 2026-11-15: sent   307 | deleted     0 | received     0 | depth max  4522 | oldest 14.0 d
+- `03:06:38` 2026-11-16: sent    83 | deleted     0 | received     0 | depth max  3949 | oldest 14.0 d
+- `03:06:38` 2026-11-17: sent    68 | deleted     0 | received     0 | depth max  3498 | oldest 14.0 d
+- `03:06:38` 2026-11-18: sent   295 | deleted     0 | received     0 | depth max  3383 | oldest 14.0 d
+- `03:06:38` 2026-11-19: sent   296 | deleted     0 | received     0 | depth max  3420 | oldest 14.0 d
+- `03:06:38` 2026-11-20: sent     3 | deleted     0 | received     0 | depth max  3256 | oldest 14.0 d
+- `03:06:38` last 72 h, hours with arrivals (51 h, 659 messages): 11-17T03 18, 11-17T05 6, 11-17T06 4, 11-17T07 1, 11-17T08 1, 11-17T09 1, 11-17T10 1, 11-17T11 6, 11-17T12 2, 11-17T13 9, 11-17T14 4, 11-17T17 1, 11-17T21 7, 11-17T22 3, 11-17T23 1, 11-18T00 2, 11-18T01 1, 11-18T03 254, 11-18T05 1, 11-18T06 1, 11-18T08 1, 11-18T09 1, 11-18T10 1, 11-18T11 6, 11-18T12 2, 11-18T13 9, 11-18T14 3, 11-18T15 1, 11-18T17 1, 11-18T21 6, 11-18T22 4, 11-18T23 1, 11-19T00 2, 11-19T01 1, 11-19T03 251, 11-19T06 4, 11-19T07 1, 11-19T08 1, 11-19T09 1, 11-19T10 1, 11-19T11 6, 11-19T12 2, 11-19T13 9, 11-19T14 4, 11-19T15 1, 11-19T17 1, 11-19T21 7, 11-19T22 3, 11-19T23 1, 11-20T00 2, 11-20T01 1
+## C. per function: AsyncEventsDropped over 15 days (the events Lambda gave up on)
+
+- `03:06:49` 920 functions; 914 send their dead letters to justhodl-dlq-default; other targets: {'none': 6}
+- `03:07:05` 37 functions dropped async events in 15 days, 3547 events in all (queue: 3547 sent in the same window)
+- `03:07:05` dropped per day (all functions) vs queue sent: 11-05 289/289, 11-06 288/288, 11-07 303/303, 11-08 289/289, 11-09 67/67, 11-10 58/58, 11-11 303/303, 11-12 305/305, 11-13 304/304, 11-14 289/289, 11-15 307/307, 11-16 83/83, 11-17 68/68, 11-18 295/295, 11-19 296/296, 11-20 3/3
+- `03:07:05` still inside the queue's retention (since 2026-11-06): 3258 events from 37 functions
+- `03:07:05`   event-coordinator                             3107 | 11-05 263, 11-06 262, 11-07 278, 11-08 262, 11-09 40, 11-10 30, 11-11 274, 11-12 276, 11-13 276, 11-14 261, 11-15 274, 11-16 50, 11-17 36, 11-18 262, 11-19 262, 11-20 1
+- `03:07:05`   earnings-blackout                               30 | 11-05 2, 11-06 2, 11-07 2, 11-08 2, 11-09 2, 11-10 2, 11-11 2, 11-12 2, 11-13 2, 11-14 2, 11-15 2, 11-16 2, 11-17 2, 11-18 2, 11-19 2
+- `03:07:05`   estimate-revisions                              30 | 11-05 2, 11-06 2, 11-07 2, 11-08 2, 11-09 2, 11-10 2, 11-11 2, 11-12 2, 11-13 2, 11-14 2, 11-15 2, 11-16 2, 11-17 2, 11-18 2, 11-19 2
+- `03:07:05`   positioning-analog                              30 | 11-05 2, 11-06 2, 11-07 2, 11-08 2, 11-09 2, 11-10 2, 11-11 2, 11-12 2, 11-13 2, 11-14 2, 11-15 2, 11-16 2, 11-17 2, 11-18 2, 11-19 2
+- `03:07:05`   signal-genealogy                                30 | 11-05 2, 11-06 2, 11-07 2, 11-08 2, 11-09 2, 11-10 2, 11-11 2, 11-12 2, 11-13 2, 11-14 2, 11-15 2, 11-16 2, 11-17 2, 11-18 2, 11-19 2
+- `03:07:05`   forensic-screen                                 29 | 11-05 1, 11-06 2, 11-07 2, 11-08 2, 11-09 2, 11-10 2, 11-11 2, 11-12 2, 11-13 2, 11-14 2, 11-15 2, 11-16 2, 11-17 2, 11-18 2, 11-19 2
+- `03:07:05`   dark-pool                                       26 | 11-05 2, 11-06 2, 11-07 1, 11-08 1, 11-09 2, 11-10 2, 11-11 2, 11-12 2, 11-13 2, 11-14 1, 11-15 1, 11-16 2, 11-17 2, 11-18 2, 11-19 2
+- `03:07:05`   chart-patterns                                  16 | 11-05 1, 11-06 1, 11-07 1, 11-08 1, 11-09 1, 11-10 1, 11-11 1, 11-12 1, 11-13 1, 11-14 1, 11-15 1, 11-16 1, 11-17 1, 11-18 1, 11-19 1, 11-20 1
+- `03:07:05`   predictability                                  16 | 11-05 1, 11-06 1, 11-07 1, 11-08 1, 11-09 1, 11-10 1, 11-11 1, 11-12 1, 11-13 1, 11-14 1, 11-15 1, 11-16 1, 11-17 1, 11-18 1, 11-19 1, 11-20 1
+- `03:07:05`   causality-scanner                               15 | 11-05 1, 11-06 1, 11-07 1, 11-08 1, 11-09 1, 11-10 1, 11-11 1, 11-12 1, 11-13 1, 11-14 1, 11-15 1, 11-16 1, 11-17 1, 11-18 1, 11-19 1
+- `03:07:05`   fmp-ratios                                      15 | 11-05 1, 11-06 1, 11-07 1, 11-08 1, 11-09 1, 11-10 1, 11-11 1, 11-12 1, 11-13 1, 11-14 1, 11-15 1, 11-16 1, 11-17 1, 11-18 1, 11-19 1
+- `03:07:05`   investor-lenses                                 15 | 11-05 1, 11-06 1, 11-07 1, 11-08 1, 11-09 1, 11-10 1, 11-11 1, 11-12 1, 11-13 1, 11-14 1, 11-15 1, 11-16 1, 11-17 1, 11-18 1, 11-19 1
+- `03:07:05`   momentum-breakout                               15 | 11-05 1, 11-06 1, 11-07 1, 11-08 1, 11-09 1, 11-10 1, 11-11 1, 11-12 1, 11-13 1, 11-14 1, 11-15 1, 11-16 1, 11-17 1, 11-18 1, 11-19 1
+- `03:07:05`   portfolio-snapshot                              15 | 11-05 1, 11-06 1, 11-07 1, 11-08 1, 11-09 1, 11-10 1, 11-11 1, 11-12 1, 11-13 1, 11-14 1, 11-15 1, 11-16 1, 11-17 1, 11-18 1, 11-19 1
+- `03:07:05`   research-backtest                               15 | 11-05 1, 11-06 1, 11-07 1, 11-08 1, 11-09 1, 11-10 1, 11-11 1, 11-12 1, 11-13 1, 11-14 1, 11-15 1, 11-16 1, 11-17 1, 11-18 1, 11-19 1
+- `03:07:05`   revenue-acceleration                            15 | 11-05 1, 11-06 1, 11-07 1, 11-08 1, 11-09 1, 11-10 1, 11-11 1, 11-12 1, 11-13 1, 11-14 1, 11-15 1, 11-16 1, 11-17 1, 11-18 1, 11-19 1
+- `03:07:05`   share-flows                                     15 | 11-05 1, 11-06 1, 11-07 1, 11-08 1, 11-09 1, 11-10 1, 11-11 1, 11-12 1, 11-13 1, 11-14 1, 11-15 1, 11-16 1, 11-17 1, 11-18 1, 11-19 1
+- `03:07:05`   volatility-squeeze-hunter                       15 | 11-05 1, 11-06 1, 11-07 1, 11-08 1, 11-09 1, 11-10 1, 11-11 1, 11-12 1, 11-13 1, 11-14 1, 11-15 1, 11-16 1, 11-17 1, 11-18 1, 11-19 1
+- `03:07:05`   eps-revision-velocity                           14 | 11-06 1, 11-07 1, 11-08 1, 11-09 1, 11-10 1, 11-11 1, 11-12 1, 11-13 1, 11-14 1, 11-15 1, 11-16 1, 11-17 1, 11-18 1, 11-19 1
+- `03:07:05`   port-cargo                                      11 | 11-05 1, 11-06 1, 11-09 1, 11-10 1, 11-11 1, 11-13 1, 11-14 1, 11-15 1, 11-16 1, 11-17 1, 11-19 1
+- `03:07:05`   bagger-engine                                   10 | 11-08 1, 11-12 1, 11-13 1, 11-14 1, 11-15 2, 11-16 1, 11-17 1, 11-18 1, 11-19 1
+- `03:07:05`   ecb-derived                                     10 | 11-05 1, 11-09 1, 11-10 1, 11-11 2, 11-12 1, 11-14 1, 11-16 1, 11-18 1, 11-19 1
+- `03:07:05`   hiring-velocity                                 10 | 11-08 1, 11-12 1, 11-13 1, 11-14 1, 11-15 2, 11-16 1, 11-17 1, 11-18 1, 11-19 1
+- `03:07:05`   stock-screener                                   8 | 11-15 1, 11-16 1, 11-17 2, 11-18 2, 11-19 2
+- `03:07:05`   corporate-actions                                6 | 11-05 1, 11-06 1, 11-07 1, 11-08 1, 11-10 1, 11-11 1
+- `03:07:05`   momentum-leaders                                 6 | 11-07 1, 11-15 1, 11-16 1, 11-17 1, 11-18 1, 11-19 1
+- `03:07:05`   earnings-pead                                    5 | 11-15 1, 11-16 1, 11-17 1, 11-18 1, 11-19 1
+- `03:07:05`   feed-catalog                                     3 | 11-15 1, 11-17 1, 11-19 1
+- `03:07:05`   systemic-stress                                  3 | 11-05 1, 11-12 1, 11-18 1
+- `03:07:05`   auction-crisis-detector                          2 | 11-14 1, 11-15 1
+- `03:07:05`   insider-trades                                   2 | 11-12 1, 11-13 1
+- `03:07:05`   miss-calibrator                                  2 | 11-09 1, 11-16 1
+- `03:07:05`   momentum-scanner                                 2 | 11-10 1, 11-11 1
+- `03:07:05`   imf-full                                         1 | 11-16 1
+- `03:07:05`   leaders                                          1 | 11-08 1
+- `03:07:05`   outcome-checker                                  1 | 11-18 1
+- `03:07:05`   trade-nowcast                                    1 | 11-19 1
+- `03:07:07` governor: stage NORMAL | CAP ['justhodl-event-coordinator', 'justhodl-miss-calibrator', 'ofrapi'] | ANOM none
+- `03:07:08` the top 30 droppers in detail:
+- `03:07:10` justhodl-event-coordinator: dropped 3107 | reserved 0 | governor hold CAP | retries 1, max age 900 s | timeout 60 s mem 256 MB | last modified 2026-11-03T05:41
+- `03:07:10`     triggers: NONE (invoked by another function / the bus)
+- `03:07:10`     5 d: 11-15 recv274 n0 e0 t0, 11-16 recv50 n0 e0 t0, 11-17 recv36 n0 e0 t0, 11-18 recv262 n0 e0 t0, 11-19 recv262 n0 e0 t0, 11-20 recv1 n0 e0 t0
+- `03:07:10` justhodl-earnings-blackout: dropped 30 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 120 s mem 256 MB | last modified 2026-10-26T21:58
+- `03:07:10`     triggers: rule justhodl-blackout-daily ENABLED cron(31 11 * * ? *)
+- `03:07:10`     5 d: 11-15 recv2 n6 e6 t0, 11-16 recv2 n6 e6 t0, 11-17 recv2 n6 e6 t0, 11-18 recv2 n6 e6 t0, 11-19 recv2 n6 e6 t0
+- `03:07:11`     log 11-19 13:30: [ERROR] HTTPError: HTTP Error 429: Too Many Requests Traceback (most recent call last): File "/var/task/lambda_function.py", line 66, in lambda_handler j = _get("https://financialmodelingprep.com/stable/earnings-calendar?from=%s&to=%s&limit
+- `03:07:11`     log 11-19 13:30: REPORT RequestId: b18f75c3-61e7-4124-8608-f610976b50ba Duration: 3707.44 ms Billed Duration: 4229 ms Memory Size: 256 MB Max Memory Used: 162 MB Init Duration: 520.93 ms XRAY TraceId: 1-6afef9fe-6bf63d82668981e91aca1ee9 SegmentId: 8b16d7bfe
+- `03:07:11`     log 11-19 13:32: [ERROR] HTTPError: HTTP Error 429: Too Many Requests Traceback (most recent call last): File "/var/task/lambda_function.py", line 66, in lambda_handler j = _get("https://financialmodelingprep.com/stable/earnings-calendar?from=%s&to=%s&limit
+- `03:07:11`     log 11-19 13:32: REPORT RequestId: b18f75c3-61e7-4124-8608-f610976b50ba Duration: 3307.32 ms Billed Duration: 3308 ms Memory Size: 256 MB Max Memory Used: 221 MB XRAY TraceId: 1-6afef9fe-6bf63d82668981e91aca1ee9 SegmentId: e88137ef23da535d Sampled: true
+- `03:07:11`     log 11-19 13:33: [ERROR] HTTPError: HTTP Error 429: Too Many Requests Traceback (most recent call last): File "/var/task/lambda_function.py", line 66, in lambda_handler j = _get("https://financialmodelingprep.com/stable/earnings-calendar?from=%s&to=%s&limit
+- `03:07:11`     log 11-19 13:33: REPORT RequestId: b18f75c3-61e7-4124-8608-f610976b50ba Duration: 2914.08 ms Billed Duration: 2915 ms Memory Size: 256 MB Max Memory Used: 238 MB XRAY TraceId: 1-6afef9fe-6bf63d82668981e91aca1ee9 SegmentId: 7b1206492cf57af5 Sampled: true
+- `03:07:12` justhodl-estimate-revisions: dropped 30 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 120 s mem 512 MB | last modified 2026-10-26T22:03
+- `03:07:12`     triggers: rule estrev-daily-am DISABLED cron(40 13 ? * MON-FRI *); rule estrev-daily-pm DISABLED cron(40 17 ? * MON-FRI *); rule justhodl-estimate-revisions-daily ENABLED cron(1 12 * * ? *)
+- `03:07:12`     5 d: 11-15 recv2 n6 e6 t0, 11-16 recv2 n6 e6 t0, 11-17 recv2 n6 e6 t0, 11-18 recv2 n6 e6 t0, 11-19 recv2 n6 e6 t0
+- `03:07:12`     log 11-19 13:30: [ERROR] ValueError: Original received calendar required Traceback (most recent call last): File "/var/task/lambda_function.py", line 440, in lambda_handler calendar_acquisition=_estimate_calendar_fetch();calendar_evidence=calendar_projectio
+- `03:07:12`     log 11-19 13:30: REPORT RequestId: a51c79d4-19e7-46f4-92c3-15853c010181 Duration: 774.15 ms Billed Duration: 1292 ms Memory Size: 512 MB Max Memory Used: 113 MB Init Duration: 517.13 ms XRAY TraceId: 1-6afef9fe-6bf63d82668981e91aca1ee9 SegmentId: c9c29fe423
+- `03:07:12`     log 11-19 13:31: [ERROR] ValueError: Original received calendar required Traceback (most recent call last): File "/var/task/lambda_function.py", line 440, in lambda_handler calendar_acquisition=_estimate_calendar_fetch();calendar_evidence=calendar_projectio
+- `03:07:12`     log 11-19 13:31: REPORT RequestId: a51c79d4-19e7-46f4-92c3-15853c010181 Duration: 544.91 ms Billed Duration: 545 ms Memory Size: 512 MB Max Memory Used: 125 MB XRAY TraceId: 1-6afef9fe-6bf63d82668981e91aca1ee9 SegmentId: 7169b445206408fa Sampled: true
+- `03:07:12`     log 11-19 13:34: [ERROR] ValueError: Original received calendar required Traceback (most recent call last): File "/var/task/lambda_function.py", line 440, in lambda_handler calendar_acquisition=_estimate_calendar_fetch();calendar_evidence=calendar_projectio
+- `03:07:12`     log 11-19 13:34: REPORT RequestId: a51c79d4-19e7-46f4-92c3-15853c010181 Duration: 593.10 ms Billed Duration: 594 ms Memory Size: 512 MB Max Memory Used: 130 MB XRAY TraceId: 1-6afef9fe-6bf63d82668981e91aca1ee9 SegmentId: 73e5bb8df7268680 Sampled: true
+- `03:07:12` justhodl-positioning-analog: dropped 30 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 240 s mem 768 MB | last modified 2026-10-26T22:49
+- `03:07:12`     triggers: rule justhodl-positioning-analog-daily ENABLED cron(40 22 * * ? *)
+- `03:07:12`     5 d: 11-15 recv2 n6 e6 t0, 11-16 recv2 n6 e6 t0, 11-17 recv2 n6 e6 t0, 11-18 recv2 n6 e6 t0, 11-19 recv2 n6 e6 t0
+- `03:07:13`     log 11-19 22:40: [ERROR] HTTPError: HTTP Error 429: Too Many Requests Traceback (most recent call last): File "/var/task/lambda_function.py", line 145, in lambda_handler spx = spx_closes(); assert len(spx) > 6500, "SPX history thin: %d" % len(spx) File "/va
+- `03:07:13`     log 11-19 22:40: REPORT RequestId: fdc34285-19c3-4210-898b-7d54786ea650 Duration: 943.47 ms Billed Duration: 1502 ms Memory Size: 768 MB Max Memory Used: 100 MB Init Duration: 557.73 ms XRAY TraceId: 1-6aff7ae8-121c86007e6f65e449b0fa08 SegmentId: 95105fb65e
+- `03:07:13`     log 11-19 22:41: [ERROR] HTTPError: HTTP Error 429: Too Many Requests Traceback (most recent call last): File "/var/task/lambda_function.py", line 145, in lambda_handler spx = spx_closes(); assert len(spx) > 6500, "SPX history thin: %d" % len(spx) File "/va
+- `03:07:13`     log 11-19 22:41: REPORT RequestId: fdc34285-19c3-4210-898b-7d54786ea650 Duration: 693.35 ms Billed Duration: 694 ms Memory Size: 768 MB Max Memory Used: 102 MB XRAY TraceId: 1-6aff7ae8-121c86007e6f65e449b0fa08 SegmentId: 7dd52e6c204d6aba Sampled: true
+- `03:07:13`     log 11-19 22:43: [ERROR] HTTPError: HTTP Error 429: Too Many Requests Traceback (most recent call last): File "/var/task/lambda_function.py", line 145, in lambda_handler spx = spx_closes(); assert len(spx) > 6500, "SPX history thin: %d" % len(spx) File "/va
+- `03:07:13`     log 11-19 22:43: REPORT RequestId: fdc34285-19c3-4210-898b-7d54786ea650 Duration: 665.44 ms Billed Duration: 666 ms Memory Size: 768 MB Max Memory Used: 102 MB XRAY TraceId: 1-6aff7ae8-121c86007e6f65e449b0fa08 SegmentId: e7242274011ede6c Sampled: true
+- `03:07:13` justhodl-signal-genealogy: dropped 30 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 600 s mem 2048 MB | last modified 2026-10-26T15:59
+- `03:07:13`     triggers: rule signal-genealogy-daily ENABLED cron(40 6 * * ? *)
+- `03:07:13`     5 d: 11-15 recv2 n6 e6 t0, 11-16 recv2 n6 e6 t0, 11-17 recv2 n6 e6 t0, 11-18 recv2 n6 e6 t0, 11-19 recv2 n6 e6 t0
+- `03:07:14`     log 11-19 13:34: [ERROR] ValueError: complete_artifact_exceeds_budget Traceback (most recent call last): File "/var/task/lambda_function.py", line 33, in lambda_handler result=run(client,client,cutoff,Path(directory)/'run',guard) File "/var/task/genealogy_n
+- `03:07:14`     log 11-19 13:34: REPORT RequestId: 8b61d128-7792-45b0-921a-ce0d2a07a2a5 Duration: 204054.21 ms Billed Duration: 204274 ms Memory Size: 2048 MB Max Memory Used: 526 MB Init Duration: 218.93 ms XRAY TraceId: 1-6afef9fe-6bf63d82668981e91aca1ee9 SegmentId: 73df
+- `03:07:14`     log 11-19 13:38: [ERROR] ValueError: complete_artifact_exceeds_budget Traceback (most recent call last): File "/var/task/lambda_function.py", line 33, in lambda_handler result=run(client,client,cutoff,Path(directory)/'run',guard) File "/var/task/genealogy_n
+- `03:07:14`     log 11-19 13:38: REPORT RequestId: 8b61d128-7792-45b0-921a-ce0d2a07a2a5 Duration: 200835.41 ms Billed Duration: 200836 ms Memory Size: 2048 MB Max Memory Used: 529 MB XRAY TraceId: 1-6afef9fe-6bf63d82668981e91aca1ee9 SegmentId: b2f284dcf6686588 Sampled: tru
+- `03:07:14`     log 11-19 13:44: [ERROR] ValueError: complete_artifact_exceeds_budget Traceback (most recent call last): File "/var/task/lambda_function.py", line 33, in lambda_handler result=run(client,client,cutoff,Path(directory)/'run',guard) File "/var/task/genealogy_n
+- `03:07:14`     log 11-19 13:44: REPORT RequestId: 8b61d128-7792-45b0-921a-ce0d2a07a2a5 Duration: 202940.44 ms Billed Duration: 202941 ms Memory Size: 2048 MB Max Memory Used: 530 MB XRAY TraceId: 1-6afef9fe-6bf63d82668981e91aca1ee9 SegmentId: 7bb4852de248d700 Sampled: tru
+- `03:07:14` justhodl-forensic-screen: dropped 29 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 840 s mem 1024 MB | last modified 2026-09-25T11:37
+- `03:07:14`     triggers: rule justhodl-forensic-screen-12h ENABLED cron(26 17 * * ? *)
+- `03:07:14`     5 d: 11-15 recv2 n6 e6 t0, 11-16 recv2 n6 e6 t0, 11-17 recv2 n6 e6 t0, 11-18 recv2 n6 e6 t0, 11-19 recv2 n6 e6 t0
+- `03:07:15`     log 11-19 17:26: [ERROR] ValueError: Ready accounting acquisition is future-dated or older than 48 hours Traceback (most recent call last): File "/var/task/lambda_function.py", line 81, in lambda_handler result = producer.run(client, BUCKET, event.get('requ
+- `03:07:15`     log 11-19 17:26: REPORT RequestId: 2da2fac6-032d-4d3b-a0c8-8d6937dd3985 Duration: 1145.93 ms Billed Duration: 1395 ms Memory Size: 1024 MB Max Memory Used: 102 MB Init Duration: 248.83 ms XRAY TraceId: 1-6aff3136-75dd3575006fb9cf6b6aba22 SegmentId: d6d7bf84
+- `03:07:15`     log 11-19 17:27: [ERROR] ValueError: Request already attempted; inspect its retained failure or ambiguous state Traceback (most recent call last): File "/var/task/lambda_function.py", line 81, in lambda_handler result = producer.run(client, BUCKET, event.ge
+- `03:07:15`     log 11-19 17:27: REPORT RequestId: 2da2fac6-032d-4d3b-a0c8-8d6937dd3985 Duration: 77.43 ms Billed Duration: 78 ms Memory Size: 1024 MB Max Memory Used: 103 MB XRAY TraceId: 1-6aff3136-75dd3575006fb9cf6b6aba22 SegmentId: 5da7945714b65f77 Sampled: true
+- `03:07:15`     log 11-19 17:29: [ERROR] ValueError: Request already attempted; inspect its retained failure or ambiguous state Traceback (most recent call last): File "/var/task/lambda_function.py", line 81, in lambda_handler result = producer.run(client, BUCKET, event.ge
+- `03:07:15`     log 11-19 17:29: REPORT RequestId: 2da2fac6-032d-4d3b-a0c8-8d6937dd3985 Duration: 86.38 ms Billed Duration: 87 ms Memory Size: 1024 MB Max Memory Used: 103 MB XRAY TraceId: 1-6aff3136-75dd3575006fb9cf6b6aba22 SegmentId: 606165a3c3da9a03 Sampled: true
+- `03:07:15` justhodl-dark-pool: dropped 26 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 300 s mem 1024 MB | last modified 2026-09-25T03:22
+- `03:07:15`     triggers: rule justhodl-dark-pool-daily ENABLED cron(31 23 ? * MON-FRI *); rule justhodl-dark-pool-weekly DISABLED cron(0 14 ? * WED *)
+- `03:07:15`     5 d: 11-15 recv1 n3 e3 t0, 11-16 recv2 n6 e6 t0, 11-17 recv2 n6 e6 t0, 11-18 recv2 n6 e6 t0, 11-19 recv2 n6 e6 t0
+- `03:07:15`     log 11-19 23:31: [ERROR] ValueError: One or more planned sources failed; current head retained Traceback (most recent call last): File "/var/task/lambda_function.py", line 46, in lambda_handler result=producer.run(client,BUCKET,event.get('request_id') or ev
+- `03:07:15`     log 11-19 23:31: REPORT RequestId: 72e6efff-d69f-4e1d-956b-822cc1e42c2a Duration: 32769.13 ms Billed Duration: 33133 ms Memory Size: 1024 MB Max Memory Used: 201 MB Init Duration: 363.82 ms XRAY TraceId: 1-6aff86ba-23a8babf1b0767e5438264eb SegmentId: d9b962
+- `03:07:15`     log 11-19 23:32: [ERROR] ValueError: Request already attempted; inspect retained status instead of recollecting Traceback (most recent call last): File "/var/task/lambda_function.py", line 46, in lambda_handler result=producer.run(client,BUCKET,event.get('r
+- `03:07:15`     log 11-19 23:32: REPORT RequestId: 72e6efff-d69f-4e1d-956b-822cc1e42c2a Duration: 84.52 ms Billed Duration: 85 ms Memory Size: 1024 MB Max Memory Used: 201 MB XRAY TraceId: 1-6aff86ba-23a8babf1b0767e5438264eb SegmentId: e48c2d391832824d Sampled: true
+- `03:07:15`     log 11-19 23:34: [ERROR] ValueError: Request already attempted; inspect retained status instead of recollecting Traceback (most recent call last): File "/var/task/lambda_function.py", line 46, in lambda_handler result=producer.run(client,BUCKET,event.get('r
+- `03:07:15`     log 11-19 23:34: REPORT RequestId: 72e6efff-d69f-4e1d-956b-822cc1e42c2a Duration: 92.14 ms Billed Duration: 93 ms Memory Size: 1024 MB Max Memory Used: 201 MB XRAY TraceId: 1-6aff86ba-23a8babf1b0767e5438264eb SegmentId: 2e5257300f9c92c6 Sampled: true
+- `03:07:16` justhodl-chart-patterns: dropped 16 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 600 s mem 1024 MB | last modified 2026-10-26T21:43
+- `03:07:16`     triggers: sched justhodl-chart-patterns-daily ENABLED cron(30 23 * * ? *)
+- `03:07:16`     5 d: 11-15 recv1 n3 e3 t0, 11-16 recv1 n3 e3 t0, 11-17 recv1 n3 e3 t0, 11-18 recv1 n3 e3 t0, 11-19 recv1 n3 e3 t0
+- `03:07:16`     log 11-20 00:01: [fmp-bankfirst] hits=1 stale=799 misses=0 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=55.9s
+- `03:07:16`     log 11-20 00:01: [fmp-bankfirst] hits=1 stale=849 misses=0 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=58.4s
+- `03:07:16`     log 11-20 00:02: [fmp-bankfirst] hits=1 stale=899 misses=0 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=60.9s
+- `03:07:16`     log 11-20 00:02: [fmp-bankfirst] hits=1 stale=949 misses=0 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=63.9s
+- `03:07:16`     log 11-20 00:03: [fmp-bankfirst] hits=1 stale=999 misses=0 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=66.8s
+- `03:07:16`     log 11-20 00:03: REPORT RequestId: 2e6aff86-78fd-4b05-bf38-cfac64d76fe7 Duration: 600000.00 ms Billed Duration: 600000 ms Memory Size: 1024 MB Max Memory Used: 170 MB Status: timeout XRAY TraceId: 1-6aff868f-431d62ba2ca5f752611e5b0f SegmentId: 0d512ed76e7a9
+- `03:07:17` justhodl-predictability: dropped 16 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 600 s mem 1024 MB | last modified 2026-10-26T22:51
+- `03:07:17`     triggers: sched justhodl-predictability-daily ENABLED cron(50 23 * * ? *)
+- `03:07:17`     5 d: 11-15 recv1 n3 e3 t0, 11-16 recv1 n3 e3 t0, 11-17 recv1 n3 e3 t0, 11-18 recv1 n3 e3 t0, 11-19 recv1 n3 e3 t0, 11-20 recv0 n2 e2 t0
+- `03:07:17`     log 11-19 23:50: [fmp-bankfirst] first hit: hits=1 stale=0 misses=0 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=0.2s
+- `03:07:17`     log 11-20 00:00: REPORT RequestId: db6aff8b-2819-4f3c-b5bf-f84f3e72e045 Duration: 600000.00 ms Billed Duration: 600332 ms Memory Size: 1024 MB Max Memory Used: 95 MB Init Duration: 331.15 ms Status: timeout XRAY TraceId: 1-6aff8b35-2ee66920004bb3ae543ac15a 
+- `03:07:17`     log 11-20 00:01: [fmp-bankfirst] first hit: hits=1 stale=0 misses=0 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=0.1s
+- `03:07:17`     log 11-20 00:11: REPORT RequestId: db6aff8b-2819-4f3c-b5bf-f84f3e72e045 Duration: 600000.00 ms Billed Duration: 600000 ms Memory Size: 1024 MB Max Memory Used: 95 MB Status: timeout XRAY TraceId: 1-6aff8b35-2ee66920004bb3ae543ac15a SegmentId: 8289274d710572
+- `03:07:17`     log 11-20 00:13: [fmp-bankfirst] first hit: hits=1 stale=0 misses=0 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=0.1s
+- `03:07:17`     log 11-20 00:23: REPORT RequestId: db6aff8b-2819-4f3c-b5bf-f84f3e72e045 Duration: 600000.00 ms Billed Duration: 600000 ms Memory Size: 1024 MB Max Memory Used: 95 MB Status: timeout XRAY TraceId: 1-6aff8b35-2ee66920004bb3ae543ac15a SegmentId: d8d6dc4dcef2a0
+- `03:07:18` justhodl-causality-scanner: dropped 15 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 600 s mem 2048 MB | last modified 2026-09-09T03:24
+- `03:07:18`     triggers: rule causality-scanner-daily-resurrected ENABLED cron(8 14 * * ? *); rule causality-scanner-weekly DISABLED cron(0 21 ? * SUN *); sched causality-scanner-sched DISABLED cron(0 21 ? * SUN *)
+- `03:07:18`     5 d: 11-15 recv1 n3 e3 t0, 11-16 recv1 n3 e3 t0, 11-17 recv1 n3 e3 t0, 11-18 recv1 n3 e3 t0, 11-19 recv1 n3 e3 t0
+- `03:07:18`     log 11-19 14:18: REPORT RequestId: 5c711647-dde2-482a-a2e5-146584b02e79 Duration: 600000.00 ms Billed Duration: 600418 ms Memory Size: 2048 MB Max Memory Used: 1945 MB Init Duration: 417.52 ms Status: timeout XRAY TraceId: 1-6aff02e1-4e99d41a7a26a5442c31bb4
+- `03:07:18`     log 11-19 14:29: REPORT RequestId: 5c711647-dde2-482a-a2e5-146584b02e79 Duration: 600000.00 ms Billed Duration: 600000 ms Memory Size: 2048 MB Max Memory Used: 1948 MB Status: timeout XRAY TraceId: 1-6aff02e1-4e99d41a7a26a5442c31bb44 SegmentId: 68f8bce77768
+- `03:07:18`     log 11-19 14:41: REPORT RequestId: 5c711647-dde2-482a-a2e5-146584b02e79 Duration: 600000.00 ms Billed Duration: 600000 ms Memory Size: 2048 MB Max Memory Used: 1932 MB Status: timeout XRAY TraceId: 1-6aff02e1-4e99d41a7a26a5442c31bb44 SegmentId: 3cd8ed4091bb
+- `03:07:19` justhodl-fmp-ratios: dropped 15 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 900 s mem 1024 MB | last modified 2026-10-26T22:11
+- `03:07:19`     triggers: sched justhodl-fmp-ratios-daily ENABLED cron(38 22 * * ? *)
+- `03:07:19`     5 d: 11-15 recv1 n3 e3 t0, 11-16 recv1 n3 e3 t0, 11-17 recv1 n3 e3 t0, 11-18 recv1 n3 e3 t0, 11-19 recv1 n3 e3 t0
+- `03:07:19`     log 11-19 22:47: [fmp-ratios] attempted 314 ok 0 errors 314 skipped(time) 0 key_status {"status": "http_429", "path": "ratios"} in 252s
+- `03:07:19`     log 11-19 22:47: [ERROR] RuntimeError: FMP key status {"status": "http_429", "path": "ratios"} - previous book kept Traceback (most recent call last): File "/var/task/lambda_function.py", line 184, in lambda_handler raise RuntimeError("FMP key status %s - p
+- `03:07:19`     log 11-19 22:47: REPORT RequestId: c96aff7a-48c0-439a-ace6-cabd135bb4a1 Duration: 251992.79 ms Billed Duration: 251993 ms Memory Size: 1024 MB Max Memory Used: 118 MB XRAY TraceId: 1-6aff7a67-1be76d5d0391141778c848c5 SegmentId: 6bcdb1c37754404c Sampled: tru
+- `03:07:19`     log 11-19 22:54: [fmp-ratios] attempted 314 ok 0 errors 314 skipped(time) 0 key_status {"status": "http_429", "path": "ratios"} in 252s
+- `03:07:19`     log 11-19 22:54: [ERROR] RuntimeError: FMP key status {"status": "http_429", "path": "ratios"} - previous book kept Traceback (most recent call last): File "/var/task/lambda_function.py", line 184, in lambda_handler raise RuntimeError("FMP key status %s - p
+- `03:07:19`     log 11-19 22:54: REPORT RequestId: c96aff7a-48c0-439a-ace6-cabd135bb4a1 Duration: 251984.14 ms Billed Duration: 251985 ms Memory Size: 1024 MB Max Memory Used: 119 MB XRAY TraceId: 1-6aff7a67-1be76d5d0391141778c848c5 SegmentId: c68f44bfe0f946db Sampled: tru
+- `03:07:19` justhodl-investor-lenses: dropped 15 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 60 s mem 256 MB | last modified 2026-10-26T22:25
+- `03:07:19`     triggers: rule justhodl-investor-lenses-daily ENABLED cron(15 13 * * ? *)
+- `03:07:19`     5 d: 11-15 recv1 n3 e3 t0, 11-16 recv1 n3 e3 t0, 11-17 recv1 n3 e3 t0, 11-18 recv1 n3 e3 t0, 11-19 recv1 n3 e3 t0
+- `03:07:20`     log 11-19 13:15: [fmp-bankfirst] first hit: hits=1 stale=0 misses=0 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=0.3s
+- `03:07:20`     log 11-19 13:16: REPORT RequestId: d709064d-a454-4b04-bb6d-5119e3640745 Duration: 60000.00 ms Billed Duration: 60459 ms Memory Size: 256 MB Max Memory Used: 95 MB Init Duration: 458.02 ms Status: timeout XRAY TraceId: 1-6afef65a-3327c27f6309be965b1ed388 Seg
+- `03:07:20`     log 11-19 13:17: [fmp-bankfirst] first hit: hits=1 stale=0 misses=0 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=0.2s
+- `03:07:20`     log 11-19 13:18: REPORT RequestId: d709064d-a454-4b04-bb6d-5119e3640745 Duration: 60000.00 ms Billed Duration: 60000 ms Memory Size: 256 MB Max Memory Used: 95 MB Status: timeout XRAY TraceId: 1-6afef65a-3327c27f6309be965b1ed388 SegmentId: 2acaabd08ee54dd1 
+- `03:07:20`     log 11-19 13:20: [fmp-bankfirst] first hit: hits=1 stale=0 misses=0 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=0.2s
+- `03:07:20`     log 11-19 13:21: REPORT RequestId: d709064d-a454-4b04-bb6d-5119e3640745 Duration: 60000.00 ms Billed Duration: 60000 ms Memory Size: 256 MB Max Memory Used: 96 MB Status: timeout XRAY TraceId: 1-6afef65a-3327c27f6309be965b1ed388 SegmentId: 0678b69946d10c7f 
+- `03:07:20` justhodl-momentum-breakout: dropped 15 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 300 s mem 1024 MB | last modified 2026-10-26T22:36
+- `03:07:20`     triggers: NONE (invoked by another function / the bus)
+- `03:07:20`     5 d: 11-15 recv1 n3 e3 t0, 11-16 recv1 n3 e3 t0, 11-17 recv1 n3 e3 t0, 11-18 recv1 n3 e3 t0, 11-19 recv1 n3 e3 t0
+- `03:07:21`     log 11-19 11:15: [ERROR] ValueError: No received market observations; preserve current Traceback (most recent call last): File "/var/task/lambda_function.py", line 476, in lambda_handler raise ValueError('No received market observations; preserve current')
+- `03:07:21`     log 11-19 11:15: REPORT RequestId: 3b995f62-8fe6-403b-81fb-e75832c4c135 Duration: 1083.60 ms Billed Duration: 1494 ms Memory Size: 1024 MB Max Memory Used: 123 MB Init Duration: 409.96 ms XRAY TraceId: 1-6afeda61-543226a337b9b976767ed323 SegmentId: c85d4f70
+- `03:07:21`     log 11-19 11:16: [ERROR] ValueError: No received market observations; preserve current Traceback (most recent call last): File "/var/task/lambda_function.py", line 476, in lambda_handler raise ValueError('No received market observations; preserve current')
+- `03:07:21`     log 11-19 11:16: REPORT RequestId: 3b995f62-8fe6-403b-81fb-e75832c4c135 Duration: 886.98 ms Billed Duration: 887 ms Memory Size: 1024 MB Max Memory Used: 131 MB XRAY TraceId: 1-6afeda61-543226a337b9b976767ed323 SegmentId: de6050a7553474bd Sampled: true
+- `03:07:21`     log 11-19 11:18: [ERROR] ValueError: No received market observations; preserve current Traceback (most recent call last): File "/var/task/lambda_function.py", line 476, in lambda_handler raise ValueError('No received market observations; preserve current')
+- `03:07:21`     log 11-19 11:18: REPORT RequestId: 3b995f62-8fe6-403b-81fb-e75832c4c135 Duration: 997.73 ms Billed Duration: 998 ms Memory Size: 1024 MB Max Memory Used: 134 MB XRAY TraceId: 1-6afeda61-543226a337b9b976767ed323 SegmentId: 148501856c46d57f Sampled: true
+- `03:07:21` justhodl-portfolio-snapshot: dropped 15 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 180 s mem 512 MB | last modified 2026-09-30T15:30
+- `03:07:21`     triggers: sched portfolio-snapshot-sched DISABLED cron(40 21 * * ? *)
+- `03:07:21`     5 d: 11-15 recv1 n4 e4 t0, 11-16 recv1 n4 e4 t0, 11-17 recv1 n4 e4 t0, 11-18 recv1 n4 e4 t0, 11-19 recv1 n4 e4 t0
+- `03:07:21`     log 11-19 21:40: [ERROR] OrderingUnavailable: Snapshot retention conflicts with lifecycle expiry Traceback (most recent call last): File "/var/task/lambda_function.py", line 1001, in lambda_handler attempt = None if validation_only else begin_snapshot_publi
+- `03:07:21`     log 11-19 21:40: REPORT RequestId: 9f48b01e-5530-4d5b-b547-fa199ecf90cc Duration: 169.82 ms Billed Duration: 775 ms Memory Size: 512 MB Max Memory Used: 97 MB Init Duration: 605.13 ms XRAY TraceId: 1-6aff6cc7-02e85f8c4328d06642fc816a SegmentId: 6c0fabb8d80a
+- `03:07:21`     log 11-19 21:41: [ERROR] OrderingUnavailable: Snapshot retention conflicts with lifecycle expiry Traceback (most recent call last): File "/var/task/lambda_function.py", line 1001, in lambda_handler attempt = None if validation_only else begin_snapshot_publi
+- `03:07:21`     log 11-19 21:41: REPORT RequestId: 9f48b01e-5530-4d5b-b547-fa199ecf90cc Duration: 116.47 ms Billed Duration: 117 ms Memory Size: 512 MB Max Memory Used: 97 MB XRAY TraceId: 1-6aff6cc7-02e85f8c4328d06642fc816a SegmentId: 7e7367db12d53b29 Sampled: true
+- `03:07:21`     log 11-19 21:43: [ERROR] OrderingUnavailable: Snapshot retention conflicts with lifecycle expiry Traceback (most recent call last): File "/var/task/lambda_function.py", line 1001, in lambda_handler attempt = None if validation_only else begin_snapshot_publi
+- `03:07:21`     log 11-19 21:43: REPORT RequestId: 9f48b01e-5530-4d5b-b547-fa199ecf90cc Duration: 130.77 ms Billed Duration: 131 ms Memory Size: 512 MB Max Memory Used: 97 MB XRAY TraceId: 1-6aff6cc7-02e85f8c4328d06642fc816a SegmentId: fd89ddec3b4058d7 Sampled: true
+- `03:07:22` justhodl-research-backtest: dropped 15 | reserved 2 | governor hold - | default (2 retries, 6 h) | timeout 900 s mem 2048 MB | last modified 2026-10-25T21:23
+- `03:07:22`     triggers: NONE (invoked by another function / the bus)
+- `03:07:22`     5 d: 11-15 recv1 n3 e3 t0, 11-16 recv1 n3 e3 t0, 11-17 recv1 n3 e3 t0, 11-18 recv1 n3 e3 t0, 11-19 recv1 n3 e3 t0
+- `03:07:22`     log 11-19 11:48: [ERROR] RuntimeError: RESEARCH_DEADLINE_EXCEEDED_NO_PUBLICATION Traceback (most recent call last): File "/var/task/lambda_function.py", line 578, in lambda_handler list(pool.map(read_s3_json,historical_keys+list_keys_under(CRITIQUE_PREFIX))
+- `03:07:22`     log 11-19 11:48: REPORT RequestId: 40d74b94-97d6-4fee-924f-6d2681a0dbcf Duration: 855193.66 ms Billed Duration: 855194 ms Memory Size: 2048 MB Max Memory Used: 240 MB XRAY TraceId: 1-6afed733-76a5c6ea452c056c0b87cde6 SegmentId: 94363fb6157ca282 Sampled: tru
+- `03:07:22` justhodl-revenue-acceleration: dropped 15 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 600 s mem 1024 MB | last modified 2026-10-26T23:00
+- `03:07:22`     triggers: NONE (invoked by another function / the bus)
+- `03:07:22`     5 d: 11-15 recv1 n3 e3 t0, 11-16 recv1 n3 e3 t0, 11-17 recv1 n3 e3 t0, 11-18 recv1 n3 e3 t0, 11-19 recv1 n3 e3 t0
+- `03:07:23`     log 11-19 11:15: [ERROR] ValueError: All statement populations unavailable; preserve previous publication Traceback (most recent call last): File "/var/task/lambda_function.py", line 584, in lambda_handler raise ValueError('All statement populations unavail
+- `03:07:23`     log 11-19 11:15: REPORT RequestId: 356ca661-a66d-44d0-b97e-05f1fd8803c7 Duration: 561.66 ms Billed Duration: 1068 ms Memory Size: 1024 MB Max Memory Used: 122 MB Init Duration: 505.61 ms XRAY TraceId: 1-6afeda61-543226a337b9b976767ed323 SegmentId: a7c28764d
+- `03:07:23`     log 11-19 11:16: [ERROR] ValueError: All statement populations unavailable; preserve previous publication Traceback (most recent call last): File "/var/task/lambda_function.py", line 584, in lambda_handler raise ValueError('All statement populations unavail
+- `03:07:23`     log 11-19 11:16: REPORT RequestId: 356ca661-a66d-44d0-b97e-05f1fd8803c7 Duration: 548.58 ms Billed Duration: 549 ms Memory Size: 1024 MB Max Memory Used: 136 MB XRAY TraceId: 1-6afeda61-543226a337b9b976767ed323 SegmentId: c7b13c189515df19 Sampled: true
+- `03:07:23`     log 11-19 11:18: [ERROR] ValueError: All statement populations unavailable; preserve previous publication Traceback (most recent call last): File "/var/task/lambda_function.py", line 584, in lambda_handler raise ValueError('All statement populations unavail
+- `03:07:23`     log 11-19 11:18: REPORT RequestId: 356ca661-a66d-44d0-b97e-05f1fd8803c7 Duration: 522.32 ms Billed Duration: 523 ms Memory Size: 1024 MB Max Memory Used: 143 MB XRAY TraceId: 1-6afeda61-543226a337b9b976767ed323 SegmentId: 3748da51e1f846b4 Sampled: true
+- `03:07:23` justhodl-share-flows: dropped 15 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 900 s mem 4096 MB | last modified 2026-09-26T01:13
+- `03:07:23`     triggers: sched justhodl-share-flows-daily ENABLED cron(35 13 * * ? *)
+- `03:07:23`     5 d: 11-15 recv1 n3 e3 t0, 11-16 recv1 n3 e3 t0, 11-17 recv1 n3 e3 t0, 11-18 recv1 n3 e3 t0, 11-19 recv1 n3 e3 t0
+- `03:07:24`     log 11-19 13:35: [ERROR] ValueError: Underlying capital-structure or SEC acquisition is future-dated or older than 48 hours Traceback (most recent call last): File "/var/task/lambda_function.py", line 86, in lambda_handler result = producer.run(client, BUCK
+- `03:07:24`     log 11-19 13:35: REPORT RequestId: 5f6afefb-0427-42d6-9419-6d06c20109ca Duration: 1190.32 ms Billed Duration: 1538 ms Memory Size: 4096 MB Max Memory Used: 124 MB Init Duration: 346.71 ms XRAY TraceId: 1-6afefb22-5ea20c352a6215e54bff5f87 SegmentId: 4d31c6a4
+- `03:07:24`     log 11-19 13:36: [ERROR] ValueError: Request already attempted; inspect its retained failure or ambiguous state Traceback (most recent call last): File "/var/task/lambda_function.py", line 86, in lambda_handler result = producer.run(client, BUCKET, event.ge
+- `03:07:24`     log 11-19 13:36: REPORT RequestId: 5f6afefb-0427-42d6-9419-6d06c20109ca Duration: 76.19 ms Billed Duration: 77 ms Memory Size: 4096 MB Max Memory Used: 124 MB XRAY TraceId: 1-6afefb22-5ea20c352a6215e54bff5f87 SegmentId: f9bd18ca502febcf Sampled: true
+- `03:07:24`     log 11-19 13:38: [ERROR] ValueError: Request already attempted; inspect its retained failure or ambiguous state Traceback (most recent call last): File "/var/task/lambda_function.py", line 86, in lambda_handler result = producer.run(client, BUCKET, event.ge
+- `03:07:24`     log 11-19 13:38: REPORT RequestId: 5f6afefb-0427-42d6-9419-6d06c20109ca Duration: 98.17 ms Billed Duration: 99 ms Memory Size: 4096 MB Max Memory Used: 124 MB XRAY TraceId: 1-6afefb22-5ea20c352a6215e54bff5f87 SegmentId: b8dfacd2c4963cd7 Sampled: true
+- `03:07:24` justhodl-volatility-squeeze-hunter: dropped 15 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 600 s mem 1024 MB | last modified 2026-10-26T23:33
+- `03:07:24`     triggers: NONE (invoked by another function / the bus)
+- `03:07:24`     5 d: 11-15 recv1 n3 e3 t0, 11-16 recv1 n3 e3 t0, 11-17 recv1 n3 e3 t0, 11-18 recv1 n3 e3 t0, 11-19 recv1 n3 e3 t0
+- `03:07:25`     log 11-19 11:30: [ERROR] ValueError: No received market observations; preserve current Traceback (most recent call last): File "/var/task/lambda_function.py", line 555, in lambda_handler raise ValueError('No received market observations; preserve current')
+- `03:07:25`     log 11-19 11:30: REPORT RequestId: d945ba38-ef29-42d9-ae2a-2ecfefe8f52b Duration: 1111.51 ms Billed Duration: 1650 ms Memory Size: 1024 MB Max Memory Used: 131 MB Init Duration: 538.20 ms XRAY TraceId: 1-6afedde4-437cb6245fd3d6c3302ede34 SegmentId: 2a10c6e4
+- `03:07:25`     log 11-19 11:31: [ERROR] ValueError: No received market observations; preserve current Traceback (most recent call last): File "/var/task/lambda_function.py", line 555, in lambda_handler raise ValueError('No received market observations; preserve current')
+- `03:07:25`     log 11-19 11:31: REPORT RequestId: d945ba38-ef29-42d9-ae2a-2ecfefe8f52b Duration: 1053.14 ms Billed Duration: 1054 ms Memory Size: 1024 MB Max Memory Used: 133 MB XRAY TraceId: 1-6afedde4-437cb6245fd3d6c3302ede34 SegmentId: fdfc7e1ab2325ca6 Sampled: true
+- `03:07:25`     log 11-19 11:33: [ERROR] ValueError: No received market observations; preserve current Traceback (most recent call last): File "/var/task/lambda_function.py", line 555, in lambda_handler raise ValueError('No received market observations; preserve current')
+- `03:07:25`     log 11-19 11:33: REPORT RequestId: d945ba38-ef29-42d9-ae2a-2ecfefe8f52b Duration: 1179.35 ms Billed Duration: 1180 ms Memory Size: 1024 MB Max Memory Used: 141 MB XRAY TraceId: 1-6afedde4-437cb6245fd3d6c3302ede34 SegmentId: e3a9d8318663fc45 Sampled: true
+- `03:07:25` justhodl-eps-revision-velocity: dropped 14 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 300 s mem 1024 MB | last modified 2026-10-26T22:02
+- `03:07:25`     triggers: NONE (invoked by another function / the bus)
+- `03:07:25`     5 d: 11-15 recv1 n3 e3 t0, 11-16 recv1 n3 e3 t0, 11-17 recv1 n3 e3 t0, 11-18 recv1 n3 e3 t0, 11-19 recv1 n3 e3 t0
+- `03:07:26`     log 11-19 11:00: REPORT RequestId: 7eaa2a5e-3c84-498d-ae1e-6239b1cf3d9d Duration: 1743.49 ms Billed Duration: 2186 ms Memory Size: 1024 MB Max Memory Used: 155 MB Init Duration: 441.82 ms XRAY TraceId: 1-6afed6ba-313ba2c662142a18123c612a SegmentId: 8e642f09
+- `03:07:26`     log 11-19 11:01: [ERROR] ValueError: All provider populations unavailable; preserve previous publication Traceback (most recent call last): File "/var/task/lambda_function.py", line 692, in lambda_handler raise ValueError('All provider populations unavailab
+- `03:07:26`     log 11-19 11:01: REPORT RequestId: 7eaa2a5e-3c84-498d-ae1e-6239b1cf3d9d Duration: 963.55 ms Billed Duration: 964 ms Memory Size: 1024 MB Max Memory Used: 168 MB XRAY TraceId: 1-6afed6ba-313ba2c662142a18123c612a SegmentId: b9679ed7f6d365a6 Sampled: true
+- `03:07:26`     log 11-19 11:03: [fmp-bankfirst] hits=25 stale=6 misses=19 unshaped=0 passthrough=0 bypassed=0 errors=0 bank_time=3.3s
+- `03:07:26`     log 11-19 11:03: [ERROR] ValueError: All provider populations unavailable; preserve previous publication Traceback (most recent call last): File "/var/task/lambda_function.py", line 692, in lambda_handler raise ValueError('All provider populations unavailab
+- `03:07:26`     log 11-19 11:03: REPORT RequestId: 7eaa2a5e-3c84-498d-ae1e-6239b1cf3d9d Duration: 1192.35 ms Billed Duration: 1193 ms Memory Size: 1024 MB Max Memory Used: 174 MB XRAY TraceId: 1-6afed6ba-313ba2c662142a18123c612a SegmentId: 799f25182fe55590 Sampled: true
+- `03:07:27` justhodl-port-cargo: dropped 11 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 780 s mem 1536 MB | last modified 2026-09-27T07:10
+- `03:07:27`     triggers: rule justhodl-port-cargo-daily DISABLED cron(40 12 * * ? *); sched justhodl-port-cargo-daily ENABLED cron(40 12 * * ? *)
+- `03:07:27`     5 d: 11-15 recv1 n3 e3 t0, 11-16 recv1 n3 e3 t0, 11-17 recv1 n3 e3 t0, 11-18 recv1 n1 e0 t0, 11-19 recv1 n3 e3 t0
+- `03:07:27`     log 11-19 12:41: [ERROR] CaptureError: Whole provider acquisition failed Traceback (most recent call last): File "/var/task/lambda_function.py", line 536, in lambda_handler return cargo_store.run(sys.modules[__name__], event, context) File "/var/task/cargo_
+- `03:07:27`     log 11-19 12:41: REPORT RequestId: b86afeee-20de-4769-8641-05dcf4339274 Duration: 58803.54 ms Billed Duration: 59243 ms Memory Size: 1536 MB Max Memory Used: 181 MB Init Duration: 439.23 ms XRAY TraceId: 1-6afeee45-5989920d380fcc1a2a9db187 SegmentId: 253f94
+- `03:07:27`     log 11-19 12:43: [ERROR] CaptureError: Whole provider acquisition failed Traceback (most recent call last): File "/var/task/lambda_function.py", line 536, in lambda_handler return cargo_store.run(sys.modules[__name__], event, context) File "/var/task/cargo_
+- `03:07:27`     log 11-19 12:43: REPORT RequestId: b86afeee-20de-4769-8641-05dcf4339274 Duration: 60874.01 ms Billed Duration: 60875 ms Memory Size: 1536 MB Max Memory Used: 230 MB XRAY TraceId: 1-6afeee45-5989920d380fcc1a2a9db187 SegmentId: 5c120b92cf28694f Sampled: true
+- `03:07:27`     log 11-19 12:46: [ERROR] CaptureError: Whole provider acquisition failed Traceback (most recent call last): File "/var/task/lambda_function.py", line 536, in lambda_handler return cargo_store.run(sys.modules[__name__], event, context) File "/var/task/cargo_
+- `03:07:27`     log 11-19 12:46: REPORT RequestId: b86afeee-20de-4769-8641-05dcf4339274 Duration: 58592.31 ms Billed Duration: 58593 ms Memory Size: 1536 MB Max Memory Used: 245 MB XRAY TraceId: 1-6afeee45-5989920d380fcc1a2a9db187 SegmentId: 9e65644d2b655b2c Sampled: true
+- `03:07:27` justhodl-bagger-engine: dropped 10 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 720 s mem 1024 MB | last modified 2026-10-26T21:30
+- `03:07:27`     triggers: rule bagger-engine-weekly ENABLED cron(0 12 ? * SUN *)
+- `03:07:27`     5 d: 11-15 recv2 n6 e6 t0, 11-16 recv1 n3 e3 t0, 11-17 recv1 n3 e3 t0, 11-18 recv1 n3 e3 t0, 11-19 recv1 n3 e3 t0
+- `03:07:28`     log 11-19 14:00: [fmp-bankfirst] hits=1874 stale=0 misses=25 unshaped=0 passthrough=0 bypassed=1375 errors=0 bank_time=80.2s
+- `03:07:28`     log 11-19 14:00: [fmp-bankfirst] hits=1924 stale=0 misses=25 unshaped=0 passthrough=0 bypassed=1411 errors=0 bank_time=82.2s
+- `03:07:28`     log 11-19 14:00: [fmp-bankfirst] hits=1975 stale=0 misses=25 unshaped=0 passthrough=0 bypassed=1450 errors=0 bank_time=84.4s
+- `03:07:28`     log 11-19 14:00: [fmp-bankfirst] hits=2023 stale=0 misses=25 unshaped=0 passthrough=0 bypassed=1486 errors=0 bank_time=86.8s
+- `03:07:28`     log 11-19 14:00: [fmp-bankfirst] hits=2069 stale=0 misses=31 unshaped=0 passthrough=0 bypassed=1522 errors=0 bank_time=89.6s
+- `03:07:28`     log 11-19 14:09: REPORT RequestId: bb3e57f5-8fd3-4627-935c-e68133b0159f Duration: 720000.00 ms Billed Duration: 720000 ms Memory Size: 1024 MB Max Memory Used: 128 MB Status: timeout XRAY TraceId: 1-6afef9fe-6bf63d82668981e91aca1ee9 SegmentId: ced0b235ea1a8
+- `03:07:28` justhodl-ecb-derived: dropped 10 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 300 s mem 512 MB | last modified 2026-10-08T17:31
+- `03:07:28`     triggers: rule justhodl-ecb-derived-daily ENABLED cron(30 15 * * ? *)
+- `03:07:28`     5 d: 11-15 recv1 n1 e0 t0, 11-16 recv1 n3 e3 t0, 11-17 recv1 n2 e1 t0, 11-18 recv1 n3 e3 t0, 11-19 recv1 n3 e3 t0
+- `03:07:29`     log 11-19 15:35: REPORT RequestId: 647cf04d-b579-4ad1-acff-19bcc8f4a204 Duration: 300000.00 ms Billed Duration: 300442 ms Memory Size: 512 MB Max Memory Used: 98 MB Init Duration: 441.65 ms Status: timeout XRAY TraceId: 1-6aff160b-2553fb5172482b212144a5b6 S
+- `03:07:29`     log 11-19 15:41: REPORT RequestId: 647cf04d-b579-4ad1-acff-19bcc8f4a204 Duration: 300000.00 ms Billed Duration: 300000 ms Memory Size: 512 MB Max Memory Used: 98 MB Status: timeout XRAY TraceId: 1-6aff160b-2553fb5172482b212144a5b6 SegmentId: 4630994bce02d26
+- `03:07:29`     log 11-19 15:45: [ecb-derived] FM/M.U2.EUR.RT.MM.EURIBOR3MD_.HSTA err: The read operation timed out
+- `03:07:29`     log 11-19 15:46: [ecb-derived] EWT/Q.U2.N.WT.INWR._T.4F0.GY err: The read operation timed out
+- `03:07:29`     log 11-19 15:47: [ecb-derived] EWT/Q.U2.N.WT.COVR._T.4F0._Z err: The read operation timed out
+- `03:07:29`     log 11-19 15:48: REPORT RequestId: 647cf04d-b579-4ad1-acff-19bcc8f4a204 Duration: 300000.00 ms Billed Duration: 300000 ms Memory Size: 512 MB Max Memory Used: 99 MB Status: timeout XRAY TraceId: 1-6aff160b-2553fb5172482b212144a5b6 SegmentId: 4bdbc9ecee66a77
+- `03:07:29` justhodl-hiring-velocity: dropped 10 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 600 s mem 1024 MB | last modified 2026-10-26T22:17
+- `03:07:29`     triggers: rule hiring-velocity-weekly ENABLED cron(30 12 ? * SUN *)
+- `03:07:29`     5 d: 11-15 recv2 n6 e6 t0, 11-16 recv1 n3 e3 t0, 11-17 recv1 n3 e3 t0, 11-18 recv1 n3 e3 t0, 11-19 recv1 n3 e3 t0
+- `03:07:29`     log 11-19 13:30: [ERROR] ValueError: No received employee/income population; preserve previous publication Traceback (most recent call last): File "/var/task/lambda_function.py", line 492, in lambda_handler raise ValueError('No received employee/income popu
+- `03:07:29`     log 11-19 13:30: REPORT RequestId: fdc4cf82-df93-4a58-816c-92be3a69f401 Duration: 2173.18 ms Billed Duration: 3012 ms Memory Size: 1024 MB Max Memory Used: 258 MB Init Duration: 837.88 ms XRAY TraceId: 1-6afef9fe-6bf63d82668981e91aca1ee9 SegmentId: ccfaae24
+- `03:07:29`     log 11-19 13:31: [ERROR] ValueError: No received employee/income population; preserve previous publication Traceback (most recent call last): File "/var/task/lambda_function.py", line 492, in lambda_handler raise ValueError('No received employee/income popu
+- `03:07:29`     log 11-19 13:31: REPORT RequestId: fdc4cf82-df93-4a58-816c-92be3a69f401 Duration: 2199.82 ms Billed Duration: 2200 ms Memory Size: 1024 MB Max Memory Used: 346 MB XRAY TraceId: 1-6afef9fe-6bf63d82668981e91aca1ee9 SegmentId: 512e5e5df3e1b392 Sampled: true
+- `03:07:29`     log 11-19 13:33: [ERROR] ValueError: No received employee/income population; preserve previous publication Traceback (most recent call last): File "/var/task/lambda_function.py", line 492, in lambda_handler raise ValueError('No received employee/income popu
+- `03:07:29`     log 11-19 13:33: REPORT RequestId: fdc4cf82-df93-4a58-816c-92be3a69f401 Duration: 2014.79 ms Billed Duration: 2015 ms Memory Size: 1024 MB Max Memory Used: 349 MB XRAY TraceId: 1-6afef9fe-6bf63d82668981e91aca1ee9 SegmentId: 02278eb2c3a3df84 Sampled: true
+- `03:07:30` justhodl-stock-screener: dropped 8 | reserved 2 | governor hold - | default (2 retries, 6 h) | timeout 900 s mem 1280 MB | last modified 2026-11-03T06:04
+- `03:07:30`     triggers: rule justhodl-stock-screener-4h ENABLED cron(51 9 * * ? *)
+- `03:07:30`     5 d: 11-15 recv1 n4 e4 t0, 11-16 recv1 n4 e4 t0, 11-17 recv2 n6 e6 t0, 11-18 recv2 n6 e6 t0, 11-19 recv2 n6 e6 t0
+- `03:07:30`     log 11-19 14:19: ERR historical-price-eod/full: exhausted retries (HTTP Error 429: Too Many Requests)
+- `03:07:30`     log 11-19 14:19: ERR analyst-estimates: exhausted retries (HTTP Error 429: Too Many Requests)
+- `03:07:30`     log 11-19 14:19: ERR financial-growth: exhausted retries (HTTP Error 429: Too Many Requests)
+- `03:07:30`     log 11-19 14:19: ERR financial-growth: exhausted retries (HTTP Error 429: Too Many Requests)
+- `03:07:30`     log 11-19 14:19: ERR shares-float: exhausted retries (HTTP Error 429: Too Many Requests)
+- `03:07:30`     log 11-19 14:19: REPORT RequestId: e90d40a7-9a02-4add-b860-97f1c0b5a611 Duration: 900000.00 ms Billed Duration: 900000 ms Memory Size: 1280 MB Max Memory Used: 364 MB Status: timeout XRAY TraceId: 1-6afef9fe-6bf63d82668981e91aca1ee9 SegmentId: d5ee670941aca
+- `03:07:31` justhodl-corporate-actions: dropped 6 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 900 s mem 256 MB | last modified 2026-11-13T11:48
+- `03:07:31`     triggers: rule justhodl-corporate-actions-schedule DISABLED cron(30 6 ? * * *); sched justhodl-corporate-actions-schedule ENABLED cron(30 6 ? * * *)
+- `03:07:31`     5 d: 11-15 recv1 n1 e0 t0, 11-16 recv1 n1 e0 t0, 11-17 recv1 n1 e0 t0, 11-18 recv1 n1 e0 t0, 11-19 recv1 n1 e0 t0
+- `03:07:31`     log 11-19 06:41: [corpact] http failed https://api.polygon.***: HTTPError 403
+- `03:07:31`     log 11-19 06:41: [corpact] http failed https://api.polygon.***: HTTPError 403
+- `03:07:31`     log 11-19 06:42: [corpact] http failed https://api.polygon.***: HTTPError 403
+- `03:07:31`     log 11-19 06:42: [corpact] http failed https://api.polygon.***: HTTPError 403
+- `03:07:31`     log 11-19 06:43: [corpact] http failed https://api.polygon.***: HTTPError 403
+- `03:07:31`     log 11-19 06:44: REPORT RequestId: 236afe97-68d8-40b4-8999-937a423a08e0 Duration: 835378.38 ms Billed Duration: 835714 ms Memory Size: 256 MB Max Memory Used: 165 MB Init Duration: 335.05 ms XRAY TraceId: 1-6afe9784-43bdb514068af3086d27bae8 SegmentId: ca3ef
+- `03:07:32` justhodl-momentum-leaders: dropped 6 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 300 s mem 1024 MB | last modified 2026-10-26T22:37
+- `03:07:32`     triggers: sched justhodl-momentum-leaders-hourly ENABLED cron(49 9 * * ? *)
+- `03:07:32`     5 d: 11-15 recv1 n3 e3 t0, 11-16 recv1 n3 e3 t0, 11-17 recv1 n3 e3 t0, 11-18 recv1 n3 e3 t0, 11-19 recv1 n3 e3 t0
+- `03:07:32`     log 11-19 09:49: [ERROR] ValueError: No received market observations; preserve current Traceback (most recent call last): File "/var/task/lambda_function.py", line 701, in lambda_handler raise ValueError('No received market observations; preserve current')
+- `03:07:32`     log 11-19 09:49: REPORT RequestId: c96afec6-0c8b-4368-80d6-701d8a1fd179 Duration: 984.79 ms Billed Duration: 1406 ms Memory Size: 1024 MB Max Memory Used: 109 MB Init Duration: 420.75 ms XRAY TraceId: 1-6afec61d-187f13f6552de3fb42e5be73 SegmentId: 17a2cac9f
+- `03:07:32`     log 11-19 09:50: [ERROR] ValueError: No received market observations; preserve current Traceback (most recent call last): File "/var/task/lambda_function.py", line 701, in lambda_handler raise ValueError('No received market observations; preserve current')
+- `03:07:32`     log 11-19 09:50: REPORT RequestId: c96afec6-0c8b-4368-80d6-701d8a1fd179 Duration: 797.32 ms Billed Duration: 798 ms Memory Size: 1024 MB Max Memory Used: 114 MB XRAY TraceId: 1-6afec61d-187f13f6552de3fb42e5be73 SegmentId: 5dddf0e7723d19aa Sampled: true
+- `03:07:32`     log 11-19 09:52: [ERROR] ValueError: No received market observations; preserve current Traceback (most recent call last): File "/var/task/lambda_function.py", line 701, in lambda_handler raise ValueError('No received market observations; preserve current')
+- `03:07:32`     log 11-19 09:52: REPORT RequestId: c96afec6-0c8b-4368-80d6-701d8a1fd179 Duration: 809.83 ms Billed Duration: 810 ms Memory Size: 1024 MB Max Memory Used: 115 MB XRAY TraceId: 1-6afec61d-187f13f6552de3fb42e5be73 SegmentId: d0e89bb55e734628 Sampled: true
+- `03:07:32` justhodl-earnings-pead: dropped 5 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 600 s mem 1024 MB | last modified 2026-10-26T21:59
+- `03:07:32`     triggers: NONE (invoked by another function / the bus)
+- `03:07:32`     5 d: 11-15 recv1 n3 e3 t0, 11-16 recv1 n3 e3 t0, 11-17 recv1 n3 e3 t0, 11-18 recv1 n3 e3 t0, 11-19 recv1 n3 e3 t0
+- `03:07:33`     log 11-19 08:00: [ERROR] ValueError: All earnings populations unavailable; preserve previous publication Traceback (most recent call last): File "/var/task/lambda_function.py", line 540, in lambda_handler raise ValueError('All earnings populations unavailab
+- `03:07:33`     log 11-19 08:00: REPORT RequestId: 8b55de36-5a07-46d0-9233-979faa5e1790 Duration: 1522.03 ms Billed Duration: 1942 ms Memory Size: 1024 MB Max Memory Used: 205 MB Init Duration: 419.58 ms XRAY TraceId: 1-6afeaca7-05f8cf527913c7ed47bb1d8d SegmentId: 1cb9d0db
+- `03:07:33`     log 11-19 08:01: [ERROR] ValueError: All earnings populations unavailable; preserve previous publication Traceback (most recent call last): File "/var/task/lambda_function.py", line 540, in lambda_handler raise ValueError('All earnings populations unavailab
+- `03:07:33`     log 11-19 08:01: REPORT RequestId: 8b55de36-5a07-46d0-9233-979faa5e1790 Duration: 1727.88 ms Billed Duration: 1728 ms Memory Size: 1024 MB Max Memory Used: 252 MB XRAY TraceId: 1-6afeaca7-05f8cf527913c7ed47bb1d8d SegmentId: f721f1be8002daf6 Sampled: true
+- `03:07:33`     log 11-19 08:03: [ERROR] ValueError: All earnings populations unavailable; preserve previous publication Traceback (most recent call last): File "/var/task/lambda_function.py", line 540, in lambda_handler raise ValueError('All earnings populations unavailab
+- `03:07:33`     log 11-19 08:03: REPORT RequestId: 8b55de36-5a07-46d0-9233-979faa5e1790 Duration: 1261.71 ms Billed Duration: 1262 ms Memory Size: 1024 MB Max Memory Used: 255 MB XRAY TraceId: 1-6afeaca7-05f8cf527913c7ed47bb1d8d SegmentId: 5f26d5fb72ecf372 Sampled: true
+- `03:07:33` justhodl-feed-catalog: dropped 3 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 840 s mem 2048 MB | last modified 2026-09-09T03:38
+- `03:07:33`     triggers: rule feed-catalog-daily ENABLED cron(15 6 * * ? *); rule justhodl-feed-catalog-cadence DISABLED cron(50 21 * * ? *)
+- `03:07:33`     5 d: 11-15 recv1 n3 e3 t0, 11-16 recv1 n1 e0 t0, 11-17 recv1 n3 e3 t0, 11-18 recv1 n3 e2 t0, 11-19 recv1 n3 e3 t0
+- `03:07:34`     log 11-19 06:29: REPORT RequestId: 1052b883-3fb7-460c-998f-3b08b32940b3 Duration: 840000.00 ms Billed Duration: 840589 ms Memory Size: 2048 MB Max Memory Used: 1812 MB Init Duration: 588.52 ms Status: timeout XRAY TraceId: 1-6afe9412-430d649014ba70f468a983e
+- `03:07:34`     log 11-19 06:44: REPORT RequestId: 1052b883-3fb7-460c-998f-3b08b32940b3 Duration: 840000.00 ms Billed Duration: 840000 ms Memory Size: 2048 MB Max Memory Used: 1812 MB Status: timeout XRAY TraceId: 1-6afe9412-430d649014ba70f468a983e0 SegmentId: ec3f8742e32a
+- `03:07:34`     log 11-19 07:00: REPORT RequestId: 1052b883-3fb7-460c-998f-3b08b32940b3 Duration: 840000.00 ms Billed Duration: 840000 ms Memory Size: 2048 MB Max Memory Used: 1812 MB Status: timeout XRAY TraceId: 1-6afe9412-430d649014ba70f468a983e0 SegmentId: 3548c584ec9e
+- `03:07:34` justhodl-systemic-stress: dropped 3 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 150 s mem 256 MB | last modified 2026-09-09T03:35
+- `03:07:34`     triggers: rule systemic-stress-daily ENABLED cron(8 12 * * ? *)
+- `03:07:34`     5 d: 11-15 recv1 n1 e0 t0, 11-16 recv1 n1 e0 t0, 11-17 recv1 n2 e1 t0, 11-18 recv1 n3 e3 t0, 11-19 recv1 n1 e0 t0
+- `03:07:35`     log 11-19 12:09: [systemic-stress] composite 66.2/100 (ELEVATED) | euro CISS pct 10.8 | frag 100 (ACUTE FRAGMENTATION) | ciss=8 sov=11 errors=0
+- `03:07:35`     log 11-19 12:09: REPORT RequestId: 050c1419-baba-43bd-a9fc-a87b3ef6c835 Duration: 79139.34 ms Billed Duration: 79647 ms Memory Size: 256 MB Max Memory Used: 104 MB Init Duration: 507.18 ms XRAY TraceId: 1-6afee6a4-382be6544b819f26366affca SegmentId: 4f4e21a
+- `03:07:35` justhodl-auction-crisis-detector: dropped 2 | reserved None | governor hold - | default (2 retries, 6 h) | timeout 240 s mem 1024 MB | last modified 2026-10-08T21:44
+- `03:07:35`     triggers: rule justhodl-auction-crisis-active ENABLED cron(50 19 * * ? *); rule justhodl-auction-crisis-backstop DISABLED cron(5 13 * * ? *)
+- `03:07:35`     5 d: 11-15 recv1 n3 e3 t0, 11-16 recv1 n1 e0 t0, 11-17 recv1 n1 e0 t0, 11-18 recv1 n1 e0 t0, 11-19 recv1 n1 e0 t0
+- `03:07:36`     log 11-19 19:50: REPORT RequestId: 732078c3-1e31-42f0-a8a6-849d8c864de4 Duration: 16689.37 ms Billed Duration: 17162 ms Memory Size: 1024 MB Max Memory Used: 138 MB Init Duration: 472.49 ms XRAY TraceId: 1-6aff5306-3e4b5e90305ed6f04e90b775 SegmentId: c9d460
+## D. the messages themselves (received, never deleted; visible again after 300 s)
+
+- `03:07:42` 3255 distinct messages read (queue reported 3255 visible + 0 in flight)
+- `03:07:44` oldest 2026-11-06T03:28+00:00 | newest 2026-11-20T01:00+00:00 | body bytes median 976 max 1001 | earlier receives (1 = first time read): {1: 3255}
+- `03:07:44` by arrival day: 11-06 285, 11-07 303, 11-08 289, 11-09 67, 11-10 58, 11-11 303, 11-12 305, 11-13 304, 11-14 289, 11-15 307, 11-16 83, 11-17 68, 11-18 295, 11-19 296, 11-20 3
+- `03:07:44` by kind of original event: {'eventbridge-event': 2843, 'payload': 247, 'eventbridge-schedule': 150, 'scheduler': 15}
+- `03:07:44` by ErrorCode | ErrorMessage family:
+- `03:07:44`    2845  code - | Function not invoked. Function isconfigured with zero reserved concurrent executions
+- `03:07:44`      97  code 200 | RequestId: <id> Error: Task timed out after N seconds
+- `03:07:44`      56  code 200 | HTTP Error N: Too Many Requests
+- `03:07:44`      42  code 200 | Request already attempted; inspect its retained failure or ambiguous state
+- `03:07:44`      34  code 200 | No received market observations; preserve current
+- `03:07:44`      28  code 200 | complete_artifact_exceeds_budget
+- `03:07:44`      28  code 200 | Original received calendar required
+- `03:07:44`      24  code 200 | Request already attempted; inspect retained status instead of recollecting
+- `03:07:44`      14  code 200 | All statement populations unavailable; preserve previous publication
+- `03:07:44`      14  code 200 | Snapshot retention conflicts with lifecycle expiry
+- `03:07:44`      14  code 200 | RESEARCH_DEADLINE_EXCEEDED_NO_PUBLICATION
+- `03:07:44`      14  code 200 | FMP key status {"status": "http_N", "path": "ratios"} - previous book kept
+- `03:07:44`      14  code 200 | All provider populations unavailable; preserve previous publication
+- `03:07:44`      10  code 200 | Whole provider acquisition failed
+- `03:07:44`      10  code 200 | No received employee/income population; preserve previous publication
+- `03:07:44`       5  code 200 | All earnings populations unavailable; preserve previous publication
+- `03:07:44`       2  code 200 | '>' not supported between instances of 'NoneType' and 'int'
+- `03:07:44`       1  code 200 | only N leaders from N factor-book rows: the book is short; the previous publication stands
+- `03:07:44`       1  code 200 | Auction acquisition incomplete at page N; previous publication preserved (HTTPError)
+- `03:07:44`       1  code 200 | Auction acquisition incomplete at page N; previous publication preserved (TimeoutError)
+- `03:07:44`       1  code 200 | Source unavailable; exact failed attempt retained, no immediate retry
+- `03:07:44` by event shape (top 40; names only, no payload values):
+- `03:07:44`    1817  eventbridge-event | justhodl.jhsignal-bridge | jhsignal.published
+- `03:07:44`     736  eventbridge-event | justhodl.jhsignal-bridge | jhsignal.revised
+- `03:07:44`     232  payload | keys: (empty)
+- `03:07:44`      94  eventbridge-event | justhodl.jh-fusion | jhsignal.fusion_changed
+- `03:07:44`      51  eventbridge-event | justhodl.jhsignal-bridge | jhsignal.expired
+- `03:07:44`      31  eventbridge-event | justhodl.ticker-trends | ticker_trends.spike
+- `03:07:44`      23  eventbridge-event | justhodl.political-stocks | political.cluster_buy
+- `03:07:44`      20  eventbridge-event | justhodl.ark-holdings | ark.position_change
+- `03:07:44`      14  eventbridge-schedule | justhodl-portfolio-snapshot-hourly
+- `03:07:44`      14  eventbridge-event | justhodl.miss-detector | miss.detected
+- `03:07:44`      14  eventbridge-schedule | justhodl-research-backtest-daily
+- `03:07:44`      14  eventbridge-event | justhodl.calibrator | calibrator.weights_updated
+- `03:07:44`      14  eventbridge-schedule | signal-genealogy-daily
+- `03:07:44`      14  eventbridge-schedule | justhodl-blackout-daily
+- `03:07:44`      14  eventbridge-schedule | causality-scanner-daily-resurrected
+- `03:07:44`      14  eventbridge-schedule | justhodl-positioning-analog-daily
+- `03:07:44`      14  eventbridge-schedule | justhodl-estimate-revisions-daily
+- `03:07:44`      14  eventbridge-schedule | justhodl-forensic-screen-12h
+- `03:07:44`      14  eventbridge-event | justhodl.jhsignal-bridge | jhsignal.batch_published
+- `03:07:44`      14  payload | keys: tickers
+- `03:07:44`      13  eventbridge-event | justhodl.outcome-checker | outcome.resolved
+- `03:07:44`      10  scheduler | justhodl-port-cargo-daily
+- `03:07:44`      10  eventbridge-schedule | justhodl-dark-pool-daily
+- `03:07:44`       9  eventbridge-event | justhodl.master-ranker | convergence.tier_up
+- `03:07:44`       7  eventbridge-schedule | justhodl-ecb-derived-daily
+- `03:07:44`       5  scheduler | justhodl-corporate-actions-schedule
+- `03:07:44`       5  eventbridge-event | justhodl.jh-fusion | jhsignal.regime_changed
+- `03:07:44`       5  eventbridge-schedule | justhodl-stock-screener-4h
+- `03:07:44`       3  eventbridge-schedule | feed-catalog-daily
+- `03:07:44`       2  eventbridge-schedule | bagger-engine-weekly
+- `03:07:44`       2  eventbridge-event | justhodl.rotation-chain | rotation.next_up
+- `03:07:44`       2  eventbridge-schedule | hiring-velocity-weekly
+- `03:07:44`       2  eventbridge-schedule | miss-calibrator-weekly
+- `03:07:44`       2  eventbridge-schedule | systemic-stress-daily
+- `03:07:44`       2  eventbridge-schedule | justhodl-insider-trades-30min
+- `03:07:44`       2  eventbridge-schedule | justhodl-auction-crisis-active
+- `03:07:44`       1  eventbridge-schedule | justhodl-outcome-checker-4h
+- `03:07:44`       1  payload | keys: redrain
+- `03:07:44` by target function, where the event names its rule / schedule (top 60):
+- `03:07:44`    3090  (direct async invoke / bus event - not named in the  11-06:274 11-07:294 11-08:278 11-09:55 11-10:46 11-11:291 11-12:294 11-13:293 11-14:278 11-15:293 11-16:70 11-17:56 11-18:282 11-19:283 11-20:3 | code - Function not invoked. Function isconfigured with zero reserv x2843; code 200 RequestId: <id> Error: Task timed out after N seconds x56
+- `03:07:44`      14  portfolio-snapshot                                   11-06:1 11-07:1 11-08:1 11-09:1 11-10:1 11-11:1 11-12:1 11-13:1 11-14:1 11-15:1 11-16:1 11-17:1 11-18:1 11-19:1 | code 200 Snapshot retention conflicts with lifecycle expiry x14
+- `03:07:44`      14  research-backtest                                    11-06:1 11-07:1 11-08:1 11-09:1 11-10:1 11-11:1 11-12:1 11-13:1 11-14:1 11-15:1 11-16:1 11-17:1 11-18:1 11-19:1 | code 200 RESEARCH_DEADLINE_EXCEEDED_NO_PUBLICATION x14
+- `03:07:44`      14  signal-genealogy                                     11-06:1 11-07:1 11-08:1 11-09:1 11-10:1 11-11:1 11-12:1 11-13:1 11-14:1 11-15:1 11-16:1 11-17:1 11-18:1 11-19:1 | code 200 complete_artifact_exceeds_budget x14
+- `03:07:44`      14  earnings-blackout                                    11-06:1 11-07:1 11-08:1 11-09:1 11-10:1 11-11:1 11-12:1 11-13:1 11-14:1 11-15:1 11-16:1 11-17:1 11-18:1 11-19:1 | code 200 HTTP Error N: Too Many Requests x14
+- `03:07:44`      14  causality-scanner                                    11-06:1 11-07:1 11-08:1 11-09:1 11-10:1 11-11:1 11-12:1 11-13:1 11-14:1 11-15:1 11-16:1 11-17:1 11-18:1 11-19:1 | code 200 RequestId: <id> Error: Task timed out after N seconds x14
+- `03:07:44`      14  positioning-analog                                   11-06:1 11-07:1 11-08:1 11-09:1 11-10:1 11-11:1 11-12:1 11-13:1 11-14:1 11-15:1 11-16:1 11-17:1 11-18:1 11-19:1 | code 200 HTTP Error N: Too Many Requests x14
+- `03:07:44`      14  estimate-revisions                                   11-06:1 11-07:1 11-08:1 11-09:1 11-10:1 11-11:1 11-12:1 11-13:1 11-14:1 11-15:1 11-16:1 11-17:1 11-18:1 11-19:1 | code 200 Original received calendar required x14
+- `03:07:44`      14  forensic-screen                                      11-06:1 11-07:1 11-08:1 11-09:1 11-10:1 11-11:1 11-12:1 11-13:1 11-14:1 11-15:1 11-16:1 11-17:1 11-18:1 11-19:1 | code 200 Request already attempted; inspect its retained failure or a x14
+- `03:07:44`      10  port-cargo                                           11-06:1 11-09:1 11-10:1 11-11:1 11-13:1 11-14:1 11-15:1 11-16:1 11-17:1 11-19:1 | code 200 Whole provider acquisition failed x10
+- `03:07:44`      10  dark-pool                                            11-06:1 11-09:1 11-10:1 11-11:1 11-12:1 11-13:1 11-16:1 11-17:1 11-18:1 11-19:1 | code 200 Request already attempted; inspect retained status instead o x10
+- `03:07:44`       7  ecb-derived                                          11-09:1 11-10:1 11-11:1 11-14:1 11-16:1 11-18:1 11-19:1 | code 200 RequestId: <id> Error: Task timed out after N seconds x7
+- `03:07:44`       5  corporate-actions                                    11-06:1 11-07:1 11-08:1 11-10:1 11-11:1 | code 200 RequestId: <id> Error: Task timed out after N seconds x5
+- `03:07:44`       5  stock-screener                                       11-15:1 11-16:1 11-17:1 11-18:1 11-19:1 | code 200 RequestId: <id> Error: Task timed out after N seconds x5
+- `03:07:44`       3  feed-catalog                                         11-15:1 11-17:1 11-19:1 | code 200 RequestId: <id> Error: Task timed out after N seconds x3
+- `03:07:44`       2  bagger-engine                                        11-08:1 11-15:1 | code 200 RequestId: <id> Error: Task timed out after N seconds x2
+- `03:07:44`       2  hiring-velocity                                      11-08:1 11-15:1 | code 200 No received employee/income population; preserve previous pu x2
+- `03:07:44`       2  miss-calibrator                                      11-09:1 11-16:1 | code - Function not invoked. Function isconfigured with zero reserv x2
+- `03:07:44`       2  systemic-stress                                      11-12:1 11-18:1 | code 200 RequestId: <id> Error: Task timed out after N seconds x2
+- `03:07:44`       2  insider-trades                                       11-12:1 11-13:1 | code 200 RequestId: <id> Error: Task timed out after N seconds x2
+- `03:07:44`       2  auction-crisis-detector                              11-14:1 11-15:1 | code 200 Auction acquisition incomplete at page N; previous publicati x1; code 200 Auction acquisition incomplete at page N; previous publicati x1
+- `03:07:44`       1  outcome-checker                                      11-18:1 | code 200 RequestId: <id> Error: Task timed out after N seconds x1
+## E. the monitor (justhodl-fleet-error-monitor)
+
+- `03:07:44` data/_fleet-monitor.json (0.6 h old): version 1.2.0 run 20261120_022909 | scanned 920 | detected 1 raised 1 suppressed 0 | dlq {'available': True, 'visible': 3255, 'inflight': 0, 'total': 3255} | sns True telegram False
+- `03:07:44` data/_fleet-monitor-alert-history.json (0.6 h old): 1064 keys | DLQ entries {'<DLQ>:CRITICAL': '2026-11-20T02:29:41.071839+00:00'}
+- `03:07:45` monitor triggers: rule fleet-error-monitor-5min DISABLED cron(39 3 * * ? *); rule justhodl-fleet-error-6h DISABLED cron(34 2 * * ? *); sched fleet-error-monitor-sched ENABLED rate(24 hours) | last modified 2026-10-17T00:31
+- `03:07:45` monitor invocations, last 6 d (hour UTC x count): 11-15T02 x1, 11-16T02 x1, 11-17T02 x1, 11-18T02 x1, 11-19T02 x1, 11-20T02 x1
+- `03:07:45` ✅ read-only; nothing deleted, nothing purged, nothing changed (3255 messages return to the queue within 300 s)
