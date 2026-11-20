@@ -13,7 +13,13 @@ Order is the nightly order: the book first, then the four engines that read it.
   2   strength, leaders, campaign scan and stock volatility are invoked once each (Event) and their artifacts polled
       for the new version: no moved ticker is left on any of them, the refused "splits" are published, and what
       changed on each artifact against the copy read before the run is listed.
-A same-session re-run keeps each desk's day-over-day record (leaders / campaign scan changes_since).  Re-runnable.
+A same-session re-run keeps each desk's day-over-day record (leaders / campaign scan changes_since).
+
+Re-runnable: when the book and the four artifacts already stand at the new versions the op invokes nothing and only
+verifies what stands.  The first run (44769073387, 2026-11-20 16:01-16:12 UTC) did the invokes - the book in 393 s,
+the four engines in 42 to 226 s - and recorded what left each artifact; its two failed checks were this op's own
+reading (the manifest keeps the pass under sources.other_issues, and bank_enrich's column cache returned the book
+as it was before the run), corrected here.
 """
 from datetime import datetime, timezone
 from pathlib import Path
@@ -96,8 +102,13 @@ def deployed(lam, fn, member):
 
 
 def common_rows():
+    """The book as it stands now: the whole matrix re-read (rows(fields=...) would answer from the 30-minute column cache)."""
     bank_enrich.matrix(max_age_s=0)
-    return {str(x["symbol"]).upper(): x for x in bank_enrich.rows(fields=["mcap", "dollar_vol_20d"]) if x.get("symbol")}
+    return {str(x["symbol"]).upper(): x for x in bank_enrich.rows() if x.get("symbol")}
+
+
+def passed(man):
+    return ((man or {}).get("sources") or {}).get("other_issues") or {}
 
 
 def main():
@@ -157,22 +168,28 @@ def main():
         # ------------------------------------------------------------------ 1. the book
         r.section("1. %s: one run, then the book read back" % BOOK)
         man0 = bank_enrich.manifest(max_age_s=0) or {}
+        standing = man0.get("version") == BOOK_VERSION and bool(passed(man0).get("n")) and all(before[fn]["version"] == ENGINES[fn][1] for fn in ENGINES)
         t_inv = time.time()
-        res = lam.invoke(FunctionName=BOOK, InvocationType="Event", Payload=json.dumps({"force": True, "trigger": "ops-6860"}).encode())
-        r.log("invoke status %s (manifest before: generated %s, version %s)" % (res.get("StatusCode"), man0.get("generated_at") or man0.get("updated_at"), man0.get("version")))
-        man = {}
-        while time.time() - t_inv < 870:
-            time.sleep(30)
-            try:
-                if s3.head_object(Bucket=LIVE, Key=bank_enrich.ROOT + "manifest.json")["LastModified"].timestamp() > t_inv:
-                    man = bank_enrich.manifest(max_age_s=0) or {}
-                    break
-            except Exception:  # noqa: BLE001
-                pass
-        if not man:
-            r.fail("the factor book's manifest did not refresh within 14.5 min of the invoke")
-            sys.exit(1)
-        oi = (man.get("coverage") or {}).get("other_issues") or {}
+        if standing:
+            man = man0
+            r.log("already released: the book is %s (generated %s) with its pass recorded, and the four artifacts are at the new versions - nothing is invoked, what stands is verified" % (
+                man0.get("version"), man0.get("generated_at") or man0.get("updated_at")))
+        else:
+            res = lam.invoke(FunctionName=BOOK, InvocationType="Event", Payload=json.dumps({"force": True, "trigger": "ops-6860"}).encode())
+            r.log("invoke status %s (manifest before: generated %s, version %s)" % (res.get("StatusCode"), man0.get("generated_at") or man0.get("updated_at"), man0.get("version")))
+            man = {}
+            while time.time() - t_inv < 870:
+                time.sleep(30)
+                try:
+                    if s3.head_object(Bucket=LIVE, Key=bank_enrich.ROOT + "manifest.json")["LastModified"].timestamp() > t_inv:
+                        man = bank_enrich.manifest(max_age_s=0) or {}
+                        break
+                except Exception:  # noqa: BLE001
+                    pass
+            if not man:
+                r.fail("the factor book's manifest did not refresh within 14.5 min of the invoke")
+                sys.exit(1)
+        oi = passed(man)
         moved = oi.get("tickers") or {}
         r.log("the book: version %s, written %.0fs after the invoke; other_issues n %s, by flag %s, by evidence %s, structure test %s, reference names %s" % (
             man.get("version"), time.time() - t_inv, oi.get("n"), json.dumps(oi.get("by_flag")), json.dumps(oi.get("by_evidence")), oi.get("structure_test"), oi.get("reference_names")))
@@ -184,7 +201,7 @@ def main():
         ck(all((book.get(s) or {}).get("is_common") for s in CONTROLS if s in book), "a control lost is_common: %s" % [s for s in CONTROLS if s in book and not book[s].get("is_common")])
         ck(all(s in moved for s in EXPECTED if s in book), "expected to move and did not: %s" % [s for s in EXPECTED if s in book and s not in moved])
         was_common = [s for s in moved if (before_book.get(s) or {}).get("is_common")]
-        r.log("common stock %d -> %d; %d of the %d moved rows were common stock before this run" % (n_common0, n_common1, len(was_common), len(moved)))
+        r.log("common stock now %d (%d when this op started; 5,333 before the release); %d of the %d moved rows were common stock when this op started" % (n_common1, n_common0, len(was_common), len(moved)))
         for flag in ("is_preferred", "is_debt_or_structured", "is_warrant_unit"):
             names = sorted(s for s in moved if (book.get(s) or {}).get(flag) and not (flag != "is_preferred" and (book.get(s) or {}).get("is_preferred") and "preferred" in moved[s]))
             r.log("  %s (%d): %s" % (flag, len(names), ", ".join(names)))
@@ -197,10 +214,17 @@ def main():
         # ------------------------------------------------------------------ 2. the four engines
         r.section("2. strength, leaders, campaign scan, stock volatility: one run each")
         t_eng = time.time()
-        for fn in ENGINES:
-            res = lam.invoke(FunctionName=fn, InvocationType="Event", Payload=json.dumps({"trigger": "ops-6860"}).encode())
-            r.log("%s invoke status %s" % (fn, res.get("StatusCode")))
         after, waiting = {}, set(ENGINES)
+        if standing:
+            for fn, (key, _, _) in ENGINES.items():
+                after[fn] = read(s3, key)
+            waiting = set()
+            newer = [fn for fn in ENGINES if str(after[fn].get("generated_at") or "") < str(man.get("generated_at") or man.get("updated_at") or "")]
+            ck(not newer, "written before the book's 1.0.9 run, so not on the corrected book: %s" % newer)
+        else:
+            for fn in ENGINES:
+                res = lam.invoke(FunctionName=fn, InvocationType="Event", Payload=json.dumps({"trigger": "ops-6860"}).encode())
+                r.log("%s invoke status %s" % (fn, res.get("StatusCode")))
         while waiting and time.time() - t_eng < 780:
             time.sleep(20)
             for fn in sorted(waiting):
