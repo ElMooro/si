@@ -527,6 +527,9 @@
       if (!d || d.contract !== CONTRACT) { if (!doc) fail("data/stock-volatility.json is not published yet - justhodl-stock-volatility runs daily at 04:06 UTC, after the Polygon EOD bank folds the session."); return; }
       if (doc && doc.generated_at === d.generated_at) return;
       doc = d; ROWS = unpack(d); BY = index(ROWS);
+      /* the tearsheet (jh-tearsheet.js, the "volatility" adapter) reads this same artifact: hand it the copy instead of a second 2.7 MB download */
+      window.JHStockVolDoc = d;
+      try { window.dispatchEvent(new CustomEvent("jh:stock-vol-doc", { detail: d })); } catch (e) { /* a browser without CustomEvent(): the sheet reads the feed itself */ }
       stamp();
       draw();
     }).catch(function (e) { if (!doc) fail(String(e && e.message || e)); });

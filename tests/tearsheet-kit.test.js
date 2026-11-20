@@ -8,7 +8,9 @@ const feeds = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/tearshee
 feeds['data/leaders.json'] = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/tearsheet-leaders.json'), 'utf8'));
 // the Wyckoff desks' six feeds (real, trimmed; tests/wyckoff-tearsheets.test.js reads them tab by tab)
 Object.assign(feeds, Object.fromEntries(Object.entries(JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/tearsheet-wyckoff.json'), 'utf8'))).filter(([k]) => k.startsWith('data/'))));
-const PAGES = { 'ark.html': 'ark', 'stablecoin-flow.html': 'stablecoin', 'firm-book.html': 'firmbook', 'paper-book.html': 'paperbook', 'sp500.html': 'sp500', 'insider-clusters.html': 'insiders', 'foreign-flows.html': 'tic', 'capital-inflows.html': 'capital', 'leaders.html': 'leaders', 'wyckoff-desk.html': 'wyckoff', 'capitulation-desk.html': 'capitulation' };
+// the Volatility desk's feed: the slice of the real artifact its own desk test reads (ops 6851 dry run)
+feeds['data/stock-volatility.json'] = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures/stock-volatility-desk.json'), 'utf8'));
+const PAGES = { 'stock-volatility.html': 'volatility', 'ark.html': 'ark', 'stablecoin-flow.html': 'stablecoin', 'firm-book.html': 'firmbook', 'paper-book.html': 'paperbook', 'sp500.html': 'sp500', 'insider-clusters.html': 'insiders', 'foreign-flows.html': 'tic', 'capital-inflows.html': 'capital', 'leaders.html': 'leaders', 'wyckoff-desk.html': 'wyckoff', 'capitulation-desk.html': 'capitulation' };
 const build = (name, state) => kit.adapters[name].build(kit.adapters[name].feeds.map(f => structuredClone(feeds[f.slice(1)])), state || {});
 const sum = (list, f) => list.reduce((a, x) => a + f(x), 0);
 const near = (a, b, tol) => assert.ok(Math.abs(a - b) <= (tol == null ? 1e-6 * Math.max(1, Math.abs(b)) : tol), `${a} vs ${b}`);
@@ -273,7 +275,76 @@ test('Leaders: the sheet takes the desk\'s copy of the feed, and reads it itself
   assert.deepEqual(ad.share, { global: 'JHLeadersDoc', event: 'jh:leaders-doc', ms: 8000 });
   const desk = fs.readFileSync(path.join(root, 'jh-leaders.js'), 'utf8');
   assert.match(desk, /window\.JHLeadersDoc = d;/); assert.match(desk, /new CustomEvent\("jh:leaders-doc", \{ detail: d \}\)/);
-  for (const name of Object.keys(kit.adapters)) if (!['leaders', 'wyckoff', 'capitulation'].includes(name)) assert.equal(kit.adapters[name].share, undefined, name);
-  assert.equal(kit.version, '1.3.0');
+  for (const name of Object.keys(kit.adapters)) if (!['leaders', 'wyckoff', 'capitulation', 'volatility'].includes(name)) assert.equal(kit.adapters[name].share, undefined, name);
+  assert.equal(kit.version, '1.4.0');
 });
 
+
+// ---------------------------------------------------------------------------------------------------- Volatility desk
+test('Volatility: the ring is the ranked stocks\' market value by band, and every figure is the desk\'s own', () => {
+  const d = feeds['data/stock-volatility.json'], m = build('volatility'), med = d.market.stock.med, ix = Object.fromEntries(d.cols.map((c, i) => [c, i]));
+  const total = sum(d.bands, b => b.mcap), hot = sum(d.bands.filter(b => b.from >= 40), b => b.mcap);
+  near(sum(m.ring.slices, s => s.value), total);
+  assert.equal(m.ring.center, kit.money(total));
+  assert.equal(m.ring.n, sum(d.bands, b => b.n));
+  assert.deepEqual(m.ring.slices.map(s => s.name), d.bands.map(b => `${b.band} a year`));
+  assert.deepEqual(m.ring.slices.map(s => s.label), ['under 15', '15-25', '25-40', '40-60', '60-100', '100+']);   // a band's own % beside the slice's share would read as two shares
+  assert.deepEqual(m.ring.slices.map(s => s.small), d.bands.map(b => `${b.n.toLocaleString('en-US')} stock${b.n === 1 ? '' : 's'}`));
+  const ops = m.ring.slices.map(s => s.op);
+  assert.ok(ops.every((o, i) => s_tone(m.ring.slices[i]) && (i === 0 || o > ops[i - 1])), 'one hue, darker with volatility');
+  assert.equal(m.tiles[0].v, `${med.hv21.toFixed(1)}%`);
+  assert.match(m.tiles[0].s, new RegExp(`^${med.hv21p.toFixed(1)}% a month ago`));
+  assert.equal(m.tiles[2].v, `${d.market.benchmark.hv21.toFixed(1)}%`);
+  assert.equal(m.tiles[3].v, `${med.sp_m.toFixed(1)}%`);
+  assert.equal(m.tiles[4].v, `${Math.round(hot / total * 100)}%`);
+  assert.equal(m.tiles[5].v, String(d.universe.set_aside.stock));
+  assert.match(m.tiles[5].s, new RegExp(`^${d.universe.pinned.stock} pinned to a deal price`));
+  assert.match(m.title, new RegExp(`moving at ${med.hv21.toFixed(1)}% a year, up from ${med.hv21p.toFixed(1)}% a month ago`));
+  // the lists are the engine's boards, name for name and in its order
+  const tick = key => m.lists.find(l => l.key === key).rows.map(r => r.name.split(' · ')[0]);
+  assert.deepEqual(tick('most-volatile'), d.boards.most_volatile);
+  assert.deepEqual(tick('least-volatile'), d.boards.least_volatile);
+  assert.deepEqual(tick('widest'), d.boards.widest_m);
+  assert.deepEqual(tick('narrowest'), d.boards.narrowest_m);
+  assert.deepEqual(tick('rising'), d.boards.vol_rising);
+  assert.deepEqual(tick('falling'), d.boards.vol_falling);
+  assert.deepEqual(tick('pinned').slice().sort(), d.pinned.slice().sort());
+  const top = d.rows.find(r => r[ix.t] === d.boards.most_volatile[0]), low = d.rows.find(r => r[ix.t] === d.boards.least_volatile[0]);
+  assert.equal(m.lists[0].rows[0].big, `${top[ix.hv21].toFixed(1)}%`);
+  assert.equal(m.cards[0].big, `${top[ix.hv21].toFixed(1)}%`); assert.equal(m.cards[1].big, `${low[ix.hv21].toFixed(1)}%`);
+  assert.ok(m.cards[0].title.startsWith(top[ix.t]) && m.cards[1].title.startsWith(low[ix.t]));
+  assert.equal(m.lists.find(l => l.key === 'sectors').rows.length, d.by_sector.length);
+  const sec = m.lists.find(l => l.key === 'sectors').rows.map(r => parseFloat(r.big));
+  assert.ok(sec.every((v, i) => i === 0 || v <= sec[i - 1]), 'sectors, most volatile first');
+  // volatility is neither good nor bad: nothing on the sheet is coloured up or down
+  assert.doesNotMatch(JSON.stringify(m), /"tone":"(up|down)"|class=\\"(up|down)\\"/);
+  function s_tone(s) { return s.tone === 'pos'; }
+});
+
+test('Volatility: the four buttons move the spread lists and the spread tile; the month is the default', () => {
+  const d = feeds['data/stock-volatility.json'], med = d.market.stock.med;
+  const dp = v => `${v.toFixed(Math.abs(v) < 10 ? 2 : 1)}%`;
+  assert.deepEqual(build('volatility').controls.map(c => [c.id, c.label, c.on]), [['d', '1 DAY', false], ['w', '1 WEEK', false], ['m', '1 MONTH', true], ['q', '1 QUARTER', false]]);
+  for (const k of ['d', 'w', 'm', 'q']) {
+    const m = build('volatility', { fund: k }), tick = key => m.lists.find(l => l.key === key).rows.map(r => r.name.split(' · ')[0]);
+    assert.deepEqual(tick('widest'), d.boards[`widest_${k}`], k);
+    assert.deepEqual(tick('narrowest'), d.boards[`narrowest_${k}`], k);
+    assert.equal(m.tiles[3].v, dp(med[`sp_${k}`]), k);
+    assert.equal(m.controls.find(c => c.on).id, k);
+    // what has no window does not move
+    assert.deepEqual(tick('most-volatile'), d.boards.most_volatile);
+    assert.equal(m.ring.center, build('volatility').ring.center);
+  }
+  assert.equal(build('volatility', { fund: 'zz' }).controls.find(c => c.on).id, 'm');
+});
+
+test('Volatility: the sheet takes the desk\'s copy of the feed and sits above the desk\'s own sections', () => {
+  const ad = kit.adapters.volatility, js = fs.readFileSync(path.join(root, 'jh-stock-volatility.js'), 'utf8'), html = fs.readFileSync(path.join(root, 'stock-volatility.html'), 'utf8');
+  assert.deepEqual(ad.share, { global: 'JHStockVolDoc', event: 'jh:stock-vol-doc', ms: 8000 });
+  assert.match(js, /window\.JHStockVolDoc = d;/); assert.match(js, /new CustomEvent\("jh:stock-vol-doc", \{ detail: d \}\)/);
+  assert.ok(html.indexOf('data-jts="volatility"') > html.indexOf('id="stamp"') && html.indexOf('data-jts="volatility"') < html.indexOf('data-jh-key="verdict"'));
+  // a feed with no board and no band still gives a sheet that says so, not a broken one
+  const bare = structuredClone(feeds['data/stock-volatility.json']); bare.boards = {}; bare.pinned = [];
+  const m = ad.build([bare], {});
+  assert.equal(m.cards[0].title, 'None'); assert.equal(m.lists[0].rows.length, 0); assert.doesNotMatch(JSON.stringify(m), /undefined|NaN/);
+});

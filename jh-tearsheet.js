@@ -1075,6 +1075,92 @@
     build: function (docs) { return WY.capit({ capit: docs[0] }); }
   };
 
+  /* -- the Volatility desk (stock-volatility.html): data/stock-volatility.json (justhodl-stock-volatility). The whole is
+        the market value of the ranked common stocks, cut by how volatile each one is now; the lists are the engine's
+        own boards, so every name on the sheet is a name on the desk. Volatility is neither good nor bad: no list or
+        figure is coloured up or down. The four buttons choose the window of the price-spread lists. -- */
+  ADAPTERS.volatility = {
+    feeds: ['/data/stock-volatility.json'],
+    share: { global: 'JHStockVolDoc', event: 'jh:stock-vol-doc', ms: 8000 },   /* the desk has already read this 2.7 MB feed: use its copy */
+    build: function (docs, st) {
+      var d = docs[0], cols = d.cols || [], U = d.universe || {}, mk = d.market || {}, M = mk.stock || {}, md = M.med || {}, B = mk.benchmark || {}, boards = d.boards || {};
+      var WIN = { d: { label: '1 DAY', word: 'the day', of: 'day' }, w: { label: '1 WEEK', word: 'the week', of: 'week' }, m: { label: '1 MONTH', word: 'the month', of: 'month' }, q: { label: '1 QUARTER', word: 'the quarter', of: 'quarter' } };
+      var k = WIN[st.fund] ? st.fund : 'm', W = WIN[k], sp = 'sp_' + k;
+      var byT = {};
+      (d.rows || []).forEach(function (r) { var o = {}, i; for (i = 0; i < cols.length; i++) o[cols[i]] = r[i]; byT[o.t] = o; });
+      var rowsOf = function (list) { return (list || []).map(function (t) { return byT[t]; }).filter(Boolean); };
+      var nm = function (r) { return r.t + (r.name ? DOT + r.name : ''); };
+      var pp = function (v, dp) { return fin(v) ? num(v, dp == null ? (Math.abs(v) < 10 ? 2 : 1) : dp) + '%' : D; };
+      var vp = function (v) { return pp(v, 1); };
+      var pts = function (v) { return fin(v) ? sign(v, true) + Math.abs(v).toFixed(1) + ' pts' : D; };
+      var px = function (v) { return fin(v) ? num(v, Math.abs(v) < 10 ? 3 : 2) : D; };
+      var chg = function (r) { return fin(r.hv21) && fin(r.hv21p) ? r.hv21 - r.hv21p : null; };
+      var where = function (r) { return (r.sector || 'Unclassified') + DOT + money(r.mcap); };
+      var inYear = function (v) { return !fin(v) ? '' : v >= 99.5 ? 'its highest in a year' : v <= 0.5 ? 'its lowest in a year' : 'above ' + num(v, 0) + '% of its year'; };
+      /* -- the whole: ranked common stocks by volatility band -- */
+      var bands = (d.bands || []).filter(function (b) { return fin(b.mcap); }), total = sum(bands, function (b) { return b.mcap; }), nRanked = sum(bands, function (b) { return b.n; });
+      var hot = sum(bands.filter(function (b) { return b.from >= 40; }), function (b) { return b.mcap; }), calm = sum(bands.filter(function (b) { return b.to <= 25; }), function (b) { return b.mcap; });
+      var share = function (v) { return total ? v / total * 100 : null; };
+      var OPS = [0.2, 0.34, 0.5, 0.66, 0.82, 1];
+      /* -- counts -- */
+      var aside = (U.set_aside || {}).stock || 0, pinnedN = (U.pinned || {}).stock || 0, moved = (M.rising || 0) + (M.falling || 0), risingPct = moved ? M.rising / moved * 100 : null;
+      var dir = !fin(md.hv21) || !fin(md.hv21p) ? '' : md.hv21 > md.hv21p ? ', up from ' + vp(md.hv21p) + ' a month ago' : md.hv21 < md.hv21p ? ', down from ' + vp(md.hv21p) + ' a month ago' : ', where it stood a month ago';
+      /* -- rows -- */
+      var volRow = function (r) { return { name: nm(r), sub: where(r) + DOT + vp(r.hv21p) + ' a month ago', big: vp(r.hv21), small: inYear(r.hvp) }; };
+      var spreadRow = function (r) { return { name: nm(r), sub: where(r) + DOT + 'low ' + px(r['lo_' + k]) + ' to high ' + px(r['hi_' + k]), big: pp(r[sp]), small: 'volatility ' + vp(r.hv21) }; };
+      var moveRow = function (r) { return { name: nm(r), sub: where(r) + DOT + 'was ' + vp(r.hv21p), big: pts(chg(r)), small: 'now ' + vp(r.hv21) }; };
+      var pinRow = function (r) { return { name: nm(r), sub: where(r) + DOT + 'last ' + px(r.px), big: pp(r.sp_m), small: 'month spread' }; };
+      var sectors = (d.by_sector || []).filter(function (g) { return g.med && fin(g.med.hv21); }).sort(by(function (g) { return g.med.hv21; }, true));
+      var sectorRow = function (g) { return { name: g.sector, sub: plural(g.n, 'stock') + DOT + money(g.mcap) + DOT + num(g.rising || 0) + ' rising, ' + num(g.falling || 0) + ' falling', big: vp(g.med.hv21), small: W.of + ' spread ' + pp(g.med[sp]) }; };
+      var sizes = (d.by_size || []).filter(function (g) { return g.med && fin(g.med.hv21); });
+      var notable = function (r, end) {
+        var when = day(d.as_of);
+        if (!r) return { tone: '', big: D, eyebrow: end + ' volatile' + DOT + when, title: 'None', text: 'No company worth $1B or more is ranked on ' + when + '.' };
+        return { tone: '', big: vp(r.hv21), eyebrow: end + ' volatile' + DOT + 'companies worth $1B or more', title: nm(r),
+          text: money(r.mcap) + ' of market value, ' + (r.sector || 'unclassified') + (r.industry ? ' (' + r.industry + ')' : '') + '. ' + vp(r.hv21) + ' a year on its last 21 sessions, ' + vp(r.hv21p) + ' a month earlier, ' + vp(r.hv252) + ' over a year'
+            + (fin(r.hvp) ? '; ' + (r.hvp >= 99.5 ? 'the highest reading of its last year' : r.hvp <= 0.5 ? 'the lowest reading of its last year' : 'above ' + num(r.hvp, 0) + '% of its own readings of the last year') : '') + '. Largest one-day move of the quarter ' + pct(r.mx, 1, true) + ' on ' + day(r.mxd) + '. Price spread ' + pp(r.sp_d) + ' for the day, ' + pp(r.sp_w) + ' the week, '
+            + pp(r.sp_m) + ' the month, ' + pp(r.sp_q) + ' the quarter.' };
+      };
+      var most = rowsOf(boards.most_volatile), least = rowsOf(boards.least_volatile), wide = rowsOf(boards['widest_' + k]), narrow = rowsOf(boards['narrowest_' + k]);
+      var rising = rowsOf(boards.vol_rising), falling = rowsOf(boards.vol_falling), pinned = rowsOf(d.pinned).sort(by(function (r) { return r.mcap || 0; }, true));
+      var pop = ((d.board_rule || {}).population || {}), others = ['d', 'w', 'm', 'q'].filter(function (x) { return x !== k; }).map(function (x) { return WIN[x].of + ' ' + pp(md['sp_' + x]); }).join(DOT);
+      return {
+        eyebrow: 'Volatility tearsheet' + DOT + 'bars ' + day(d.as_of) + DOT + num(U.scanned_stock) + ' stocks and ' + num(U.scanned_etf) + ' ETFs measured',
+        title: 'The median stock is moving at ' + vp(md.hv21) + ' a year' + dir + DOT + pct(share(hot), 0) + ' of market value sits in stocks above 40%',
+        sub: 'Realized volatility of daily closes over 21 sessions, in percent a year' + DOT + 'price spread = the highest high over the lowest low of the window' + DOT + 'lists from companies worth $1B or more' + DOT + 'published ' + day(d.generated_at),
+        controls: ['d', 'w', 'm', 'q'].map(function (id) { return { id: id, label: WIN[id].label, on: id === k }; }),
+        tiles: [{ k: 'Median stock volatility', v: vp(md.hv21), s: vp(md.hv21p) + ' a month ago' + DOT + '63 sessions ' + vp(md.hv63) + DOT + 'a year ' + vp(md.hv252) },
+          { k: 'More volatile than a month ago', v: pct(risingPct, 0), s: num(M.rising || 0) + ' rising' + DOT + num(M.falling || 0) + ' falling' },
+          { k: 'S&P 500 fund (' + (B.t || 'SPY') + ')', v: vp(B.hv21), s: vp(B.hv21p) + ' a month ago' + (fin(B.hvp) ? DOT + inYear(B.hvp) : '') },
+          { k: 'Median price spread', v: pp(md[sp]), s: W.word + DOT + others },
+          { k: 'Market value above 40%', v: pct(share(hot), 0), s: money(hot) + ' of ' + money(total) + DOT + 'under 25%: ' + pct(share(calm), 0) },
+          { k: 'Measured, not ranked', v: num(aside), s: num(pinnedN) + ' pinned to a deal price' + DOT + num(aside - pinnedN) + ' jump, print or thin' }],
+        cards: [notable(most[0], 'Most'), notable(least[0], 'Least')],
+        notes: [['Spread:', 'the median stock traded a range of ' + pp(md.sp_d) + ' on the day, ' + pp(md.sp_w) + ' over the week, ' + pp(md.sp_m) + ' over the month and ' + pp(md.sp_q) + ' over the quarter, the highest high over the lowest low of each window.'
+            + (B.t ? ' ' + B.t + ': ' + pp(B.sp_d) + ', ' + pp(B.sp_w) + ', ' + pp(B.sp_m) + ' and ' + pp(B.sp_q) + '.' : '')],
+          ['Where:', (sectors.length ? 'by sector the median runs from ' + vp(sectors[0].med.hv21) + ' in ' + sectors[0].sector + ' to ' + vp(sectors[sectors.length - 1].med.hv21) + ' in ' + sectors[sectors.length - 1].sector + '. ' : '')
+            + (sizes.length ? 'By size: ' + sizes.map(function (g) { return (g.label || g.size) + ' ' + vp(g.med.hv21); }).join(', ') + '.' : '')],
+          ['Caveat:', 'this is realized volatility, what the closes did, not what options price. A stock that collapsed prints a wide spread, because the spread is the high over the low. ' + num(aside) + ' stocks are measured but not ranked or counted here: '
+            + num(pinnedN) + ' pinned to a deal price, the rest for an unexplained one-day jump, a price print no trade supports, or thin trading.']],
+        ring: { title: 'Market value by volatility', hint: 'fainter is calmer', n: nRanked, center: money(total), subs: [num(nRanked) + ' STOCKS', 'ABOVE 40% ' + pct(share(hot), 0)], whole: 'ranked market value',
+          aria: 'Market value of the ranked common stocks by volatility band',
+          slices: bands.map(function (b, i) { return { name: b.band + ' a year', label: String(b.band).replace(/%/g, '').replace(' and over', '+'), value: b.mcap, tone: 'pos', op: OPS[Math.min(i, OPS.length - 1)], big: money(b.mcap), small: plural(b.n, 'stock') }; }),
+          caption: 'Each ranked common stock is counted once, at its market value, in the band its 21-session volatility falls in on ' + day(d.as_of) + '. Fainter is calmer, brighter more volatile. Stocks set aside are not in the ring.' },
+        lists: [{ key: 'most-volatile', title: 'Most volatile', hint: '21 sessions, a year', n: pop.hv21, rows: most.map(volRow), none: 'no company is ranked' },
+          { key: 'least-volatile', title: 'Least volatile', hint: '21 sessions, a year', n: pop.hv21, rows: least.map(volRow), none: 'no company is ranked' },
+          { key: 'widest', title: 'Widest price spread', hint: W.word + ', high over low', n: pop[sp], rows: wide.map(spreadRow), none: 'no company is ranked' },
+          { key: 'narrowest', title: 'Narrowest price spread', hint: W.word + ', high over low', n: pop[sp], rows: narrow.map(spreadRow), none: 'no company is ranked' },
+          { key: 'rising', title: 'Volatility rising', hint: 'against 21 sessions ago', rows: rising.map(moveRow), none: 'no company is more volatile' },
+          { key: 'falling', title: 'Volatility falling', hint: 'against 21 sessions ago', rows: falling.map(moveRow), none: 'no company is calmer' },
+          { key: 'sectors', title: 'Sectors', hint: 'median stock, most volatile first', rows: sectors.map(sectorRow), none: 'no sector is measured' },
+          { key: 'pinned', title: 'Pinned to a deal price', hint: 'measured, not ranked', n: pinnedN, rows: pinned.map(pinRow), none: 'no stock is pinned',
+            note: 'A stock whose last month fits inside ' + num(((d.windows || {}).pin_spread_m) || 3.5, 1) + '% is waiting for a takeover to close: its calm is the deal, not the company.' }],
+        foot: 'Source: justhodl-stock-volatility ' + (d.version || '') + ' (data/stock-volatility.json), published ' + String(d.generated_at || '').slice(0, 16).replace('T', ' ') + ' UTC from the Polygon end-of-day bank, bars as of ' + day(d.as_of)
+          + '. Volatility = the standard deviation of daily log returns, annualized. Lists show the ' + num((d.board_rule || {}).n || 25, 0) + ' names at each end among ranked common stocks worth $1B or more; the count beside a list is the size of that ranking.'
+      };
+    }
+  };
+
   /* -- boot -- */
   function get(url) { return fetch(url + (url.indexOf('?') < 0 ? '?' : '&') + 'v=' + Math.floor(Date.now() / 300000), { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(url + ' HTTP ' + r.status); return r.json(); }); }
 
@@ -1144,7 +1230,7 @@
   }
 
   function boot() { Array.prototype.forEach.call(document.querySelectorAll('[data-jts]'), mount); }
-  var api = { version: '1.3.0', render: render, ring: ring, adapters: ADAPTERS, mount: mount, money: money, pct: pct };
+  var api = { version: '1.4.0', render: render, ring: ring, adapters: ADAPTERS, mount: mount, money: money, pct: pct };
   if (typeof module === 'object' && module.exports) module.exports = api;   /* node: the adapters and the ring are pure, tests/tearsheet-kit.test.js */
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
   window.JHTearsheet = api;
