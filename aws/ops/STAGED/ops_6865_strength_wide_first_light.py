@@ -110,8 +110,10 @@ def main():
             have = json.loads(s3.get_object(Bucket=BUCKET, Key=LF.WIDE_KEY)["Body"].read())
         except Exception as exc:  # noqa: BLE001
             r.log("no whole-market table yet (%s)" % type(exc).__name__)
-        if have and have.get("as_of") == desk["as_of"] and have.get("version") == LF.VERSION and not RUN_AGAIN:
-            r.log("the table already stands on %s (version %s, generated %s): nothing invoked" % (have["as_of"], have["version"], have["generated_at"]))
+        deployed = datetime.fromisoformat(str(cf.get("LastModified"))[:19] + "+00:00")
+        made = datetime.fromisoformat(have["generated_at"]) if have and have.get("generated_at") else None
+        if have and have.get("as_of") == desk["as_of"] and have.get("version") == LF.VERSION and made and made > deployed and not RUN_AGAIN:
+            r.log("the table already stands on %s (version %s, generated %s, by the code deployed %s): nothing invoked" % (have["as_of"], have["version"], have["generated_at"], deployed.isoformat()))
         else:
             t0 = time.time()
             resp = lam_once.invoke(FunctionName=FN, InvocationType="RequestResponse", Payload=json.dumps({"wide_only": True, "trigger": "ops_6865_first_light"}).encode())
@@ -136,6 +138,7 @@ def main():
         r.log("benchmark %s" % json.dumps(doc["benchmark"]))
         r.log("dump days %s | rally days %s" % (json.dumps([d["date"] for d in doc["dump_days"]]), json.dumps([d["date"] for d in doc["rally_days"]])))
         r.log("splits ahead: %s" % json.dumps(doc["splits_ahead"])[:900])
+        r.log("geared (%d): %s" % (u["set_aside"].get("geared", 0), ", ".join("%s %s" % (x["t"], x["cls"]) for x in rows if x["why"] == "geared")))
         checks = [
             ("contract and version", doc["contract"] == "strength-wide.v1" and doc["version"] == LF.VERSION == "1.1.0"),
             ("stands on the desk's session", doc["as_of"] == desk["as_of"]),
@@ -147,6 +150,9 @@ def main():
             ("cache five minutes", obj.get("CacheControl") == "max-age=300"),
             ("the rules are the desk's", doc["rules"]["flat_pct"] == LF.FLAT_PCT and doc["rules"]["dump_pct"] == LF.DUMP_PCT and doc["rules"]["rally_pct"] == LF.RALLY_PCT),
             ("geared funds set aside, never ranked", all(x["rs"] is None for x in rows if x["why"]) and all(x["why"] == "geared" for x in rows if x["cls"] == "leveraged")),
+            ("an ultra-short bond fund is cash-like, not geared; a fund short by its name is geared", by.get("JPST", {}).get("cls") == "cash" and by.get("JPST", {}).get("why") is None
+             and by.get("RWM", {}).get("why") == "geared" and by.get("SH", {}).get("why") == "geared" and by.get("VIXY", {}).get("why") is None and 10 <= u["set_aside"].get("geared", 0) <= 40),
+            ("the read restates from the document alone", W.last_read(doc, class_labels=LF.CLASS_LABEL) == doc["last_session"]),
         ]
         for label, ok in checks:
             (r.ok if ok else r.fail)(label)

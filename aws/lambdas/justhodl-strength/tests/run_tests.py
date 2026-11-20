@@ -829,6 +829,8 @@ def test_wide_read_of_the_last_session():
     assert ls["record_cols"] == ["dnp", "dhp"] and [x["key"] for x in ls["by_record"]] == ["all", "most", "some", "few"]
     assert (rec["all"]["n"], rec["all"]["held"]) == (3, 3) and (rec["most"]["n"], rec["most"]["down_less"]) == (1, 1) and rec["some"] == {"n": 0, "key": "some", "label": "on a third to two thirds"} and (rec["few"]["n"], rec["few"]["down_more"]) == (1, 1)
     assert "MORE" not in b["strong_holding"] and b["strong_breaking"] == [] and ls["by_rank"] == []          # six ranked $1B+ names: too few for deciles
+    # the read can be restated from the published document alone (the page does exactly this when the market is shut)
+    assert wide.last_read(json.loads(json.dumps(doc)), class_labels=lf.CLASS_LABEL) == json.loads(json.dumps(ls))
     # the same function reads the page's live join: outcome words and the regime
     assert [wide.outcome(x, -2.0, 0.25) for x in (0.26, 0.25, -0.25, -0.26, -1.99, -2.0, -3.0)] == ["up", "flat", "flat", "down_less", "down_less", "down_more", "down_more"]
     assert [wide.outcome(x, 1.0, 0.25) for x in (2.0, 0.5, 0.0, -0.5)] == ["up", "up", "flat", "down_more"]
@@ -930,6 +932,27 @@ def test_handler_writes_the_wide_table_after_the_desk():
     finally:
         sys.modules["bank_enrich"].rows = real
     assert res["statusCode"] == 200 and res["rows"] > 0 and "book unreachable" in res["wide"]["error"] and "data/strength.json" in [x["Key"] for x in s3.puts] and lf.WIDE_KEY not in [x["Key"] for x in s3.puts]
+
+
+def test_wide_fund_class_and_what_is_geared():
+    """Real names from the live table of 2026-11-19: an "Ultra-Short" bond fund is cash-like, not leveraged (32 of the first
+    table's 37 geared funds were such bond funds); a fund short the market by its name is geared whatever its class."""
+    fc = lambda t, n: wide.fund_class(t, n, lf.asset_class_of)   # noqa: E731
+    cases = {("JPST", "JPMorgan Ultra-Short Income ETF"): ("cash", False), ("ICSH", "iShares Ultra Short Duration Bond Active ETF"): ("cash", False),
+             ("PUSH", "PGIM Ultra Short Municipal Bond ETF"): ("cash", False), ("VGUS", "Vanguard Ultra-Short Treasury ETF"): ("cash", False),
+             ("BSV", "Vanguard Short-Term Bond ETF"): ("bond", False), ("SMB", "VanEck Short Muni ETF"): ("bond", False), ("TUA", "Simplify Short Term Treasury Futures Strategy ETF"): ("bond", False),
+             ("SHYD", "VanEck Short High Yield Muni ETF"): ("high_yield", False), ("NEAR", "iShares Short Duration Bond Active ETF"): ("bond", False),
+             ("VIXY", "ProShares - VIX Short-Term Futures ETF"): ("volatility", False), ("CLSE", "Convergence Long/Short Equity ETF"): ("equity_etf", False),
+             ("RWM", "ProShares - Short Russell2000"): ("equity_etf", True), ("MYY", "ProShares - Short MidCap400"): ("equity_etf", True), ("REK", "ProShares - Short Real Estate"): ("equity_etf", True),
+             ("TBF", "ProShares - Short 20+ Year Treasury"): ("bond", True), ("SJB", "ProShares - Short High Yield"): ("high_yield", True), ("EUM", "ProShares - Short MSCI Emerging Markets"): ("country", True),
+             ("SETH", "ProShares - Short Ether ETF"): ("crypto", True), ("DIPS", "YieldMax Short NVDA Option Income Strategy ETF"): ("equity_etf", True),
+             ("WNTR", "YieldMax MSTR Short Option Income Strategy ETF"): ("equity_etf", True), ("DWSH", "AdvisorShares Dorsey Wright Short ETF"): ("equity_etf", True),
+             ("SH", "ProShares - Short S&P500"): ("leveraged", True), ("PSQ", "ProShares - Short QQQ"): ("leveraged", True), ("BITI", "ProShares Short Bitcoin ETF"): ("leveraged", True),
+             ("SVXY", "ProShares - Short VIX Short-Term Futures ETF"): ("leveraged", True), ("SLTY", "YieldMax Ultra Short Option Income Strategy ETF"): ("leveraged", True),
+             ("XLP", "Consumer Staples Select Sector SPDR Fund"): ("equity_etf", False), ("TLT", "iShares 20+ Year Treasury Bond ETF"): ("bond", False)}
+    for (t, n), want in cases.items():
+        assert fc(t, n) == want, (t, n, fc(t, n), want)
+    assert wide.fund_class("ABCD", "Some Equity Fund", None) == ("equity_etf", False)
 
 
 def test_wide_live_join_is_the_pages_arithmetic():

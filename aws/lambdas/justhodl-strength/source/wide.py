@@ -77,6 +77,11 @@ MIN_BUDGET_S = 60.0             # with less than this left after the reserve the
 BOOK_FIELDS = ["mcap", "dollar_vol_20d", "ipo_date", "exchange"]
 NOT_COMMON_SUFFIX = re.compile(r"-(R|RI|RT|RW|WS|WT|W|U|UN|CVR)$")
 GEARED_RX = re.compile(r"\b(\d(\.\d+)?x|ultrapro|ultrashort|inverse|leveraged|bull|bear)\b|\bultra\b(?![\s-]*short)", re.I)
+# A fund whose name says it is short the market: measured, set aside (it rises on every dump day by construction). Bond
+# funds say "Short-Term", "Short Duration", "Short Maturity", "Short Muni", "Ultra-Short Income": those are maturities.
+INVERSE_RX = re.compile(r"\bproshares\b[\s-]*short\b(?![\s-]*term)|\bshort\s+(?:bitcoin|ether|qqq|s&p|dow|russell|midcap|smallcap|real estate|financials|msci|ftse|vix|nvda|coin|n100|tsla|mstr|aapl|amzn)"
+                        r"|\byieldmax\b.*\bshort\b|\bdorsey wright short\b|\binverse\b|\bbear\b", re.I)
+ULTRA_SHORT_RX = re.compile(r"\bultra[\s-]*short\b", re.I)
 COLS = ["t", "name", "kind", "cls", "sector", "industry", "mcap", "adv", "sp",
         "pc", "o", "h", "l", "c", "v", "vw", "av",
         "x1", "x5", "x21", "x63", "x126", "rs", "rsp",
@@ -223,6 +228,20 @@ def select_universe(book_rows, min_dv=MIN_DV):
     return out, stats
 
 
+def fund_class(t, name, classify):
+    """(asset class, geared) for a fund. The desk's own class map and name rules decide the class (aws/lambdas/
+    justhodl-strength/source/lambda_function.asset_class_of, passed in); two things are settled here because that
+    map was written for the desk's 116 configured funds and this table holds 3,000: an "Ultra-Short" bond or income
+    fund is a cash-like bond fund, not a leveraged one (the word is a maturity), and a fund that is short the market
+    by its name is geared whatever its class. Pure."""
+    n = str(name or "")
+    cls = (classify(t, "fund", n)[0] if classify else None) or "equity_etf"
+    inverse = bool(INVERSE_RX.search(n))
+    if cls == GEARED_CLS and ULTRA_SHORT_RX.search(n) and not inverse:
+        return "cash", False
+    return cls, cls == GEARED_CLS or inverse
+
+
 # ------------------------------------------------------------------------------------------------------------ measures
 def _r(v, d=2):
     return None if v is None or v != v or v in (float("inf"), float("-inf")) else round(float(v), d)
@@ -327,7 +346,7 @@ def measure(meta, bars, bench_close, bench_tail, prior_session, rules, jump=None
     miss = missed_sessions(dates, bench_tail) if bench_tail else 0
     closes = [b["c"] for b in bars]
     s50, s200 = T.sma(closes, 50), T.sma(closes, 200)
-    why = ("geared" if meta.get("cls") == GEARED_CLS else "thin" if miss > THIN_MISS
+    why = ("geared" if meta.get("geared") else "thin" if miss > THIN_MISS
            else "pinned" if (meta["kind"] == "stock" and sp_m is not None and sp_m <= PIN_SPREAD_M) else "jump" if jump else None)
     row = {"t": meta["ticker"], "name": meta["name"], "kind": meta["kind"], "cls": meta.get("cls"), "sector": meta["sector"], "industry": meta["industry"],
            "mcap": _r(meta["mcap"], 0), "adv": _r(meta["adv_usd"], 0), "sp": 1 if meta.get("sp500") else 0,
@@ -579,6 +598,19 @@ def live_read(doc, today, class_labels=None):
     return read
 
 
+def last_read(doc, class_labels=None):
+    """The last session's read recomputed from a published table: what build() stored under `last_session`, restated
+    from the document alone (the proofs and the page's tests hold the two equal). Pure."""
+    rows = [dict(zip(doc["cols"], raw)) for raw in doc["rows"]]
+    for r in rows:
+        r["ret"] = (r["c"] / r["pc"] - 1.0) * 100.0 if r.get("pc") else None
+    bm = doc["benchmark"]
+    spy_ret = (bm["c"] / bm["pc"] - 1.0) * 100.0
+    read = session_read(rows, spy_ret, doc["rules"], rank_col="rsp", class_labels=class_labels, rec=("dnp", "dhp"))
+    read.update({"date": doc["as_of"], "prior_session": doc["prior_session"], "rank_as_of": doc["prior_session"], "spy_ret": _r(spy_ret, 4)})
+    return read
+
+
 # --------------------------------------------------------------------------------------------------------------- build
 def build(s3, now, as_of, version, rules, classify=None, class_labels=None, log=print, remaining_s=600.0):
     """The whole-market table as a document. `as_of` is the session the desk stands on (the main run's own read of the
@@ -613,7 +645,7 @@ def build(s3, now, as_of, version, rules, classify=None, class_labels=None, log=
         errors.append({"input": "sp500-constituent", "error": "%s: %s" % (type(exc).__name__, str(exc)[:120])})
     for t, meta in universe.items():
         meta["sp500"] = t in sp500
-        meta["cls"] = "stock" if meta["kind"] == "stock" else ((classify(t, "fund", meta["name"])[0] if classify else None) or "equity_etf")
+        meta["cls"], meta["geared"] = ("stock", False) if meta["kind"] == "stock" else fund_class(t, meta["name"], classify)
     recorded, ahead, n_windows = split_reference(s3, bench[0]["date"], as_of, set(universe) | {BENCH})
     listings = [(m["ipo_date"], t, m["mcap"], m["sector"]) for t, m in universe.items() if m["kind"] == "stock" and m.get("ipo_date") and m.get("mcap")]
     first_bars, refused = {}, {}
@@ -712,7 +744,7 @@ def definitions(rules):
         "rs": "the desk's composite (cross-sectional z-scores of those excess returns, weighted 10 / 20 / 30 / 25 / 15, each clipped at 3) as a percentile among the name's kind: a stock among all ranked stocks, an ETF among all ranked ETFs. A name needs %d common sessions with SPY" % RANK_MIN,
         "rsp": "the same rank one session earlier - the rank a name carried INTO the last session, so the last session's read is walk-forward",
         "record": "over the last %d sessions: dn = SPY's dump days the name traded, dh = how many it held up on, ds = the streak of the most recent ones held, dx = its mean excess on them; rn / rb / rx = the same for rally days (beat SPY); dnx / upx = mean excess on all of SPY's down days / up days; dnp / dhp = dn / dh one session earlier, the record a name carried INTO the last session. A record is read from %d dump days on: held up on every one, on two thirds or more, on a third to two thirds, on fewer" % (RECORD_N, RECORD_MIN),
-        "set_aside": "pinned = a stock whose last 21 sessions fit inside %.1f%% (a pending deal: flat on every dump day by construction); geared = a fund the desk's class map calls leveraged or inverse (an inverse fund rises on every dump day and says nothing about strength); jump = an unexplained close-to-close move beyond %.0f-to-1 inside %d sessions; thin = missed more than %d of the last %d sessions. Such a row is measured, shown, and kept out of the ranks and the counts. Long-volatility funds are counted in their class and kept off the ETF boards" % (PIN_SPREAD_M, JUMP_FLAG, JUMP_ASIDE, THIN_MISS, THIN_WINDOW),
+        "set_aside": "pinned = a stock whose last 21 sessions fit inside %.1f%% (a pending deal: flat on every dump day by construction); geared = a fund the desk's class map calls leveraged or inverse, or whose name says it is short the market (it rises on every dump day and says nothing about strength); jump = an unexplained close-to-close move beyond %.0f-to-1 inside %d sessions; thin = missed more than %d of the last %d sessions. Such a row is measured, shown, and kept out of the ranks and the counts. Long-volatility funds are counted in their class and kept off the ETF boards" % (PIN_SPREAD_M, JUMP_FLAG, JUMP_ASIDE, THIN_MISS, THIN_WINDOW),
         "splits_ahead": "splits Polygon's reference lists for the sessions after the table's own: on the execution day the page divides the last close by the ratio. A live move beyond x%.2f / x%.1f with no such record is shown as unconfirmed and not counted" % SUSPECT,
         "ma": "1 = the close is above its 50-day average, 2 = above its 200-day average, 3 = above both",
         "live": "the page joins this table with data/warm/polygon-full/today.json.gz (justhodl-polygon-today, every 5 minutes in the session, 15 minutes delayed): today's move = the forming bar's last price over this table's close",
