@@ -27,8 +27,9 @@ documents are assembled from indexed lookups - memory stays flat whatever the fi
 v1.0.9 (2026-11-20, ops 6852 / 6859): a second security of an issuer is not its common stock. Polygon's reference list
 types AGNCO, HBANL, ATLCL, BHFAL ... as "CS"; the book carried these preferred shares, baby bonds and notes as common
 stock, so common-only screens and boards could rank a note beside a company. other_issues.py reads the listing's own
-name (a coupon, "Notes", "Preferred Shares" ...) and the NASDAQ fifth letter of a ticker that extends a listed ticker
-of the same issuer name and trades under a tenth of its dollar volume; such a row gets its flag (is_preferred /
+name in the book (a coupon, "Notes", "Preferred Shares" ...), then Polygon's name for it ("... Depositary Shares
+Each Representing ...", "... 6.25% Subordinated Notes due 2060"), then the NASDAQ fifth letter of a ticker that extends
+a listed ticker of the same issuer name and trades under a tenth of its dollar volume; such a row gets its flag (is_preferred /
 is_debt_or_structured / is_warrant_unit) and is_common False, and is named with the reason in coverage.other_issues.
 Share classes (GOOGL, FOXA, NWSA) trade as much as their sibling and stay.
 v1.0.8 (2026-11-08, ops 6764): a thin grouped file is not a session. The Polygon tape folded a Saturday file
@@ -289,6 +290,14 @@ def load_polygon_types():
         if isinstance(r, dict) and r.get("ticker") and r.get("type"):
             out[str(r["ticker"]).upper()] = str(r["type"]).upper()
     return out
+
+
+def load_polygon_names():
+    """{polygon ticker: name} from the same reference list (v1.0.9): Polygon spells out the instrument where the book's
+    provider gives only the issuer.  {} when not banked."""
+    doc = _get_json(POLY_ROOT + "tickers-stocks-active/latest.json.gz")
+    rows = doc.get("results") if isinstance(doc, dict) else doc
+    return {str(r["ticker"]).upper(): str(r["name"]) for r in rows or [] if isinstance(r, dict) and r.get("ticker") and r.get("name")}
 
 
 def poly_type(sym, types):
@@ -1065,9 +1074,11 @@ def lambda_handler(event=None, context=None):
     src.coverage["returns"] = rinfo
     src.as_of["polygon-tape"] = rinfo.get("last_session")
     log("returns: %s (%.0fs)" % (json.dumps(rinfo), time.time() - t0))
-    moved = other_issues.apply(uni, {s: (d or {}).get("dollar_vol_20d") for s, d in returns.items()} if returns else None)     # v1.0.9
+    pnames = load_polygon_names() if ptypes else {}
+    moved = other_issues.apply(uni, {s: (d or {}).get("dollar_vol_20d") for s, d in returns.items()} if returns else None, pnames)     # v1.0.9
     src.coverage["other_issues"] = {"n": len(moved), "by_flag": {k: sum(1 for h in moved.values() if h["flag"] == k) for k in sorted({h["flag"] for h in moved.values()})},
-                                    "structure_test": bool(returns), "tickers": {s: h["why"] for s, h in sorted(moved.items())}}
+                                    "by_evidence": {k: sum(1 for h in moved.values() if h["evidence"] == k) for k in sorted({h["evidence"] for h in moved.values()})},
+                                    "structure_test": bool(returns), "reference_names": len(pnames), "tickers": {s: h["why"] for s, h in sorted(moved.items())}}
     log("other issues moved out of common stock: %d" % len(moved))
 
     holders_inv = None

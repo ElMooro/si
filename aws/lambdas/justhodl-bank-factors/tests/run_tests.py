@@ -422,6 +422,62 @@ def test_a_thin_grouped_file_is_not_a_session():
     assert out["returns"]["thin_skipped"] == [{"day": sat.isoformat(), "rows": 1}] and out["returns"]["sessions"] == 30, out["returns"]
 
 
+def test_a_second_issue_of_an_issuer_is_not_its_common_stock():
+    """v1.0.9 (ops 6852 / 6859): names, types and dollar volumes as the live book and Polygon's reference list carry
+    them on 2026-11-20. Polygon types every one of these "CS"."""
+    import other_issues as oi
+    rows = {  # symbol: (book name, exchange, polygon type, $ volume 20d, is_adr, polygon name) -> expected (flag, evidence) or None
+        "ATLCL": ("Atlanticus Holdings Corporation 6.125% Senior Notes due 2026", "NASDAQ", "CS", 327726, False, None, ("is_debt_or_structured", "book name")),
+        "EMP": ("Entergy Mississippi, Inc. 1M BD 66", "NYSE", "CS", 329076, False, None, ("is_debt_or_structured", "book name")),
+        "JSM": ("Navient Corporation SR NT 6% 121543", "NASDAQ", "CS", 484819, False, None, ("is_debt_or_structured", "book name")),
+        "BPYPM": ("Brookfield Property Preferred L.P.", "NASDAQ", "CS", 281164, False, None, ("is_preferred", "book name")),
+        "AGNCL": ("AGNC Investment Corp.", "NASDAQ", "CS", 429718, False,
+                  "AGNC Investment Corp. Depositary Shares Each Representing a 1/1,000th Interest in a Share of 6.125% Series F Fixed-to-Floating Rate Cumulative Redeemable Preferred Stock", ("is_preferred", "reference name")),
+        "BHFAL": ("Brighthouse Financial, Inc.", "NASDAQ", "CS", 546817, False, "Brighthouse Financial, Inc. 6.25% Junior Subordinated Debentures due 2058", ("is_debt_or_structured", "reference name")),
+        "WAFDP": ("WaFd, Inc.", "NASDAQ", "CS", 786179, False, "WaFd, Inc. Depositary Shares", ("is_preferred", "reference name")),
+        "FRMEP": ("First Merchants Corporation", "NASDAQ", "CS", None, False, "First Merchants Corporation Depository Shares", ("is_preferred", "reference name")),
+        "HWCPZ": ("Hancock Whitney Corporation - 6", "NASDAQ", "CS", 232389, False, "Hancock Whitney Corporation 6.25% Subordinated Notes due 2060", ("is_debt_or_structured", "reference name")),
+        "AUROW": ("Aurora Innovation, Inc.", "NASDAQ", None, None, False, None, ("is_warrant_unit", "structure")),
+        # the companies themselves, share classes and ADRs stay common stock
+        "AUR": ("Aurora Innovation, Inc.", "NASDAQ", "CS", 150e6, False, "Aurora Innovation, Inc. Class A Common Stock", None),
+        "AGNC": ("AGNC Investment Corp.", "NASDAQ", "CS", 300e6, False, "AGNC Investment Corp. Common Stock", None),
+        "WAFD": ("WaFd, Inc.", "NASDAQ", "CS", 40e6, False, "WaFd, Inc. Common Stock", None),
+        "GOOG": ("Alphabet Inc.", "NASDAQ", "CS", 4e9, False, "Alphabet Inc. Class C Capital Stock", None),
+        "GOOGL": ("Alphabet Inc.", "NASDAQ", "CS", 5e9, False, "Alphabet Inc. Class A Common Stock", None),
+        "FOX": ("Fox Corporation", "NASDAQ", "CS", 60e6, False, "Fox Corporation Class B Common Stock", None),
+        "FOXA": ("Fox Corporation", "NASDAQ", "CS", 180e6, False, "Fox Corporation Class A Common Stock", None),
+        "PFBC": ("Preferred Bank", "NASDAQ", "CS", 12e6, False, "Preferred Bank Common Stock", None),
+        "BBD": ("Banco Bradesco S.A.", "NYSE", "ADRC", 169817940, True, "Banco Bradesco S.A. American Depositary Shares (Each representing one Preferred Share)", None),
+        "ARM": ("Arm Holdings plc American Depositary Shares", "NASDAQ", "ADRC", 900e6, True, "Arm Holdings plc American Depositary Shares", None),
+        "XPREF": ("Example Holdings Preferred Shares ADR", "NYSE", "ADRC", 1e6, True, None, None),          # an ADR is never moved, whatever its name
+    }
+    uni = {s: {"symbol": s, "name": v[0], "exchange": v[1], "security_type": v[2], "is_adr": v[4], "is_common": True, "is_preferred": False, "is_debt_or_structured": False, "is_warrant_unit": False} for s, v in rows.items()}
+    dv = {s: v[3] for s, v in rows.items()}
+    ref = {s: v[5] for s, v in rows.items() if v[5]}
+    hits = oi.find(list(uni.values()), dv, ref)
+    for s, v in rows.items():
+        want = v[6]
+        got = (hits[s]["flag"], hits[s]["evidence"]) if s in hits else None
+        assert got == want, (s, got, want)
+    assert hits["AUROW"]["base"] == "AUR" and "fifth letter W" in hits["AUROW"]["why"] and hits["AGNCL"]["why"] == "a preferred share by the reference list's name for it"
+    # without the reference names the shortened book names say nothing; AGNCL falls to structure (letter L: a note) - the names are the better evidence
+    bare = oi.find(list(uni.values()), dv, None)
+    assert bare["AGNCL"]["evidence"] == "structure" and bare["AGNCL"]["flag"] == "is_debt_or_structured" and "HWCPZ" not in bare and bare["ATLCL"]["evidence"] == "book name"
+    # without dollar volumes the structure test does not run: no row is moved on its ticker alone
+    blind = oi.find(list(uni.values()), None, ref)
+    assert "AUROW" not in blind and blind["AGNCL"]["evidence"] == "reference name"
+    # a share class that out-trades its sibling stays whatever its fifth letter
+    assert "GOOGL" not in hits and "FOXA" not in hits
+    # apply(): the flag is set, is_common cleared, nothing else touched
+    moved = oi.apply(uni, dv, ref)
+    assert set(moved) == set(hits)
+    assert uni["AGNCL"]["is_common"] is False and uni["AGNCL"]["is_preferred"] is True and uni["BHFAL"]["is_debt_or_structured"] is True and uni["AUROW"]["is_warrant_unit"] is True
+    assert all(uni[s]["is_common"] is True and not uni[s]["is_preferred"] and not uni[s]["is_debt_or_structured"] for s, v in rows.items() if v[6] is None)
+    assert oi.find(list(uni.values()), dv, ref) == {}                                  # a second pass finds nothing left
+    lf, _ = boot()
+    assert lf.VERSION == "1.0.9" and callable(lf.load_polygon_names) and lf.other_issues is not None
+
+
 if __name__ == "__main__":
     n = 0
     for name, fn in sorted(globals().items()):

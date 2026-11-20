@@ -32,8 +32,9 @@ from ops_report import report  # noqa: E402
 
 sys.modules.setdefault("chain_guard", SimpleNamespace(begin=lambda event, context=None: 0))
 LIVE = "justhodl-dashboard-live"
+RUN_SPLIT_AB = False   # run 44764318291 (2026-11-20 15:32 UTC) did part 2 on this code: leaders 0 tickers, strength 0, campaign scan 15 (53 events refused). True repeats it (10 minutes)
 LAMBDAS = ROOT / "aws" / "lambdas"
-CONTROLS = ["GOOGL", "GOOG", "FOXA", "FOX", "NWSA", "NWS", "LBTYA", "LBTYK", "LBRDA", "LBRDK", "FWONA", "FWONK", "Z", "ZG", "UA", "UAA", "PFBC", "CMCSA", "BATRA", "BATRK", "LILAK", "LILA", "SIRI", "QRTEA"]
+CONTROLS = ["BBD", "CIB", "BAK", "ARM", "AGNC", "HBAN", "GOOGL", "GOOG", "FOXA", "FOX", "NWSA", "NWS", "LBTYA", "LBTYK", "LBRDA", "LBRDK", "FWONA", "FWONK", "Z", "ZG", "UA", "UAA", "PFBC", "CMCSA", "BATRA", "BATRK", "LILAK", "LILA", "SIRI", "QRTEA"]
 SKIP_KEYS = {"generated_at", "run_seconds", "trigger", "elapsed_s", "built_at", "seconds", "run_id"}
 TICKER_KEYS = ("ticker", "t", "symbol", "sym")
 MISSING = "<absent>"
@@ -164,9 +165,11 @@ def main():
             pname = {}
             r.log("Polygon reference list not read: %s" % str(exc)[:120])
         what_if = copy.deepcopy(uni)
-        hits = OI.apply(what_if, dv)
-        r.log("book rows %d, common stock by its flags %d; would be moved out: %d (%s); Polygon reference rows %d" % (
-            len(uni), n_common, len(hits), json.dumps({w: sum(1 for h in hits.values() if h["flag"] == w) for w in sorted({h["flag"] for h in hits.values()})}), len(pname)))
+        names = {s: str(x.get("name")) for s, x in pname.items() if x.get("name")}
+        hits = OI.apply(what_if, dv, names)
+        r.log("book rows %d, common stock by its flags %d; would be moved out: %d (%s; by evidence %s); Polygon reference rows %d" % (
+            len(uni), n_common, len(hits), json.dumps({w: sum(1 for h in hits.values() if h["flag"] == w) for w in sorted({h["flag"] for h in hits.values()})}),
+            json.dumps({w: sum(1 for h in hits.values() if h["evidence"] == w) for w in sorted({h["evidence"] for h in hits.values()})}), len(pname)))
         for s in sorted(hits, key=lambda s: (hits[s]["flag"], s)):
             x, p = uni[s], pname.get(s) or pname.get(s.replace("-", ".")) or {}
             r.log("  %-7s -> %-22s %-62s | book: %s | %s | type %s | $vol %s | mcap %s | Polygon: %s" % (
@@ -178,9 +181,9 @@ def main():
         for s, x in uni.items():
             if x.get("is_common") and s not in hits:
                 nm = str((pname.get(s) or pname.get(s.replace("-", ".")) or {}).get("name") or "")
-                if nm and (OI.NAMED_NOTE.search(nm) or OI.NAMED_PREFERRED.search(nm)):
+                if nm and OI.by_name(nm, depositary=True):
                     extra.append((s, nm, x.get("name"), x.get("dollar_vol_20d")))
-        r.log("common-stock rows the rule leaves alone whose POLYGON name names a note or a preferred: %d" % len(extra))
+        r.log("common-stock rows the rule leaves alone whose POLYGON name names a note or a preferred (ADRs: the company's listed equity): %d" % len(extra))
         for s, nm, bn, v in sorted(extra, key=lambda e: -(e[3] or 0))[:60]:
             r.log("  %-7s Polygon: %-80s | book: %s | $vol %s" % (s, nm[:80], str(bn)[:50], "%.0f" % v if v else None))
         liquid = [s for s in hits if (uni[s].get("dollar_vol_20d") or 0) >= 250000]
@@ -188,7 +191,10 @@ def main():
 
         # ------------------------------------------------------------------ 2. the split rule, engine by engine
         summary = {}
-        for name, where in (("justhodl-leaders", "T"), ("justhodl-campaign-scan", "T"), ("justhodl-strength", None)):
+        if not RUN_SPLIT_AB:
+            r.section("2. the split rule: not repeated in this run")
+            r.log("run 44764318291 built each engine with the old and the new rule on this code: leaders 0 tickers differ, strength 0, campaign scan 15 tickers (53 inferred splits refused)")
+        for name, where in ((("justhodl-leaders", "T"), ("justhodl-campaign-scan", "T"), ("justhodl-strength", None)) if RUN_SPLIT_AB else ()):
             r.section("2. %s: build() with the at-the-open test off, then on" % name)
             try:
                 LF = load_engine(name)
@@ -212,7 +218,10 @@ def main():
                 import traceback
                 r.log("%s FAILED: %s" % (name, traceback.format_exc()[-900:]))
                 summary[name] = {"error": str(exc)[:200]}
-        r.kv(**{k.replace("justhodl-", "").replace("-", "_") + "_tickers": v.get("tickers") for k, v in summary.items()}, book_hits=len(hits))
+        r.kv(**{k.replace("justhodl-", "").replace("-", "_") + "_tickers": v.get("tickers") for k, v in summary.items()}, book_hits=len(hits), controls_hit=len([s for s in CONTROLS if s in hits]))
+        if any(s in hits for s in CONTROLS):
+            r.fail("a control would be moved out of common stock: %s" % [s for s in CONTROLS if s in hits])
+            sys.exit(1)
         if any("error" in v for v in summary.values()):
             r.fail("an engine did not build: %s" % json.dumps(summary)[:600])
             sys.exit(1)
