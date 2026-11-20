@@ -21,6 +21,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 import base64
 import json
+import re
 import subprocess
 import sys
 import time
@@ -121,13 +122,19 @@ DRAWN = r"""() => { const d = window.lastBars || [], iso = (s) => new Date(s * 1
   return { bars: d.length, camp: c.length, campLast: c.slice(-2).map(m => m.text + ' ' + iso(m.time)), dist: x.length, distLast: x.slice(-2).map(m => m.text + ' ' + iso(m.time)) }; }"""
 
 
+def kit_minor(kit):
+    """The kit's 1.x version: this proof was written for 1.3.0 and holds for every later kit (1.4.0 added the Volatility adapter)."""
+    m = re.search(r"version: '1\.(\d+)\.\d+'", kit)
+    return int(m.group(1)) if m else -1
+
+
 def main():
     with report("ops_6845_wyckoff_desks_live_proof") as r:
         now = datetime.now(timezone.utc)
         r.heading("ops 6845 - the Wyckoff desks and the all-stock boards, live %s" % now.isoformat(timespec="minutes"))
         stamp = int(time.time())
         wy, kit, rail, chart, scanjs = (get(p, stamp, False) for p in ("wyckoff-desk.html", "jh-tearsheet.js", "jh-chart-tvrail.js", "chart.html", "jh-wyckoff-scan.js"))
-        new = 'data-jts="wyckoff"' in wy and "version: '1.3.0'" in kit and "ADAPTERS.wyckoff" in kit and "jhEnsureMarks" in rail and "marks=20261119" in chart and "JHWyckoffHook" in scanjs
+        new = 'data-jts="wyckoff"' in wy and kit_minor(kit) >= 3 and "ADAPTERS.wyckoff" in kit and "jhEnsureMarks" in rail and "marks=20261119" in chart and "JHWyckoffHook" in scanjs
         r.log("served: wyckoff-desk.html %d bytes, kit %d, rail %d, chart.html %d, scan script %d - the new build is live: %s" % (len(wy), len(kit), len(rail), len(chart), len(scanjs), new))
         if not new:
             r.fail("the served site is not the new build yet (Pages deploy pending?)")

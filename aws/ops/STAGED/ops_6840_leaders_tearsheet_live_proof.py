@@ -21,6 +21,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 import base64
 import json
+import re
 import subprocess
 import sys
 import time
@@ -138,6 +139,12 @@ SHEET = r"""() => { const s = document.querySelector('[data-jts]'); if (!s) retu
       secs: [...document.querySelectorAll('main [data-jh-key][data-jh-sec]')].map(e => e.getAttribute('data-jh-sec') + ' ' + e.getAttribute('data-jh-key')) } } }"""
 
 
+def kit_minor(kit):
+    """The kit's 1.x version: this proof was written for 1.2.0 and holds for every later kit (1.4.0 added the Volatility adapter)."""
+    m = re.search(r"version: '1\.(\d+)\.\d+'", kit)
+    return int(m.group(1)) if m else -1
+
+
 def main():
     with report("ops_6840_leaders_tearsheet_live_proof") as r:
         now = datetime.now(timezone.utc)
@@ -145,7 +152,7 @@ def main():
         stamp = int(time.time())
         html = urllib.request.urlopen(urllib.request.Request("%s/leaders.html?nocache=%d" % (BASE, stamp), headers=UA), timeout=40).read().decode("utf-8", "replace")
         kit = urllib.request.urlopen(urllib.request.Request("%s/jh-tearsheet.js?nocache=%d" % (BASE, stamp), headers=UA), timeout=40).read().decode("utf-8", "replace")
-        new = 'data-jts="leaders"' in html and "ADAPTERS.leaders" in kit and "version: '1.2.0'" in kit
+        new = 'data-jts="leaders"' in html and "ADAPTERS.leaders" in kit and kit_minor(kit) >= 2
         r.log("served leaders.html %d bytes, kit %d bytes: the new build is live %s" % (len(html), len(kit), new))
         if not new:
             r.fail("the served site is not the new build yet (Pages deploy pending?)")
