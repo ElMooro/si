@@ -78,6 +78,8 @@ def http(url, timeout=120):
     try:
         with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=timeout) as resp:
             raw = resp.read()
+            if raw[:2] == b"\x1f\x8b":      # the dataset calls answer gzip whatever was asked for
+                raw = gzip.decompress(raw)
             return resp.status, raw, time.time() - t0, dict(resp.headers)
     except urllib.error.HTTPError as e:
         return e.code, b"", time.time() - t0, {}
@@ -160,6 +162,8 @@ def main():
             for m, body in ser.items():
                 source[m] = newest(body)
             sample = next(iter(ser.items()), (None, {}))
+            if doc is None:
+                r.log("  dataset %s did not parse as JSON; first bytes %r" % (ds, raw[:160]))
             r.log("/series/dataset?dataset=%s: %s, %.1f MB, %.1f s | top keys %s | %d series | sample %s keys %s | newest dates: %s" % (
                 ds, code, len(raw) / 1e6, secs, list(doc)[:5] if isinstance(doc, dict) else type(doc).__name__, len(ser), sample[0],
                 list(sample[1])[:5], ", ".join("%s %d" % d for d in sorted(Counter(v[0] or "-" for m, v in source.items() if m in ser).items(), reverse=True)[:5])))
