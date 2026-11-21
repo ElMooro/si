@@ -1,0 +1,287 @@
+# ops 6882 - crypto ids on the live chart, with the requests behind each (read-only), 2026-11-21T17:43+00:00
+
+**Status:** success  
+**Duration:** 518.8s  
+**Finished:** 2026-11-21T17:52:36+00:00  
+
+## Data
+
+| blank | charts | dialog_clicks | dialog_clicks_ok | ids | no_route |
+|---|---|---|---|---|---|
+| 4 | 11 | 7 | 3 | 20 | 3 |
+
+## Log
+- `17:43:58` installing playwright
+- `17:44:18` page scripts: jh-chart-tvwatch.js?v=702f93ae jh-chart-engine.js?v=20261002ac-shelves&line=20261005&watch=watchlist-transaction-v1&macro=20261006&candles=20261013&auc=20261014&cds=20261015&us10y=20261021c&fit=20261112&wick=20261112&ldr=20261105 jh-uni-search.js?v=071b0d6f jh-tv-watchlist.js?v=e808e9bd
+## 1. Each id, opened the way the screen opens it
+
+- `17:44:27`    BTC-USD           direct   -> CHARTS    | active BTC-USD          chart BTC-USD     4441 bars, last 2026-11-21 (18 h) close 60004.890625 | data/warm/katlin/crypto-bars/B |  | 5s
+- `17:44:27`       /ohlc?ticker=BTC-USD&span=day&mult=1&days=12000 [200, 4449 warehouse+yahoo]
+- `17:44:27`       /yf-ohlc?symbol=BTC-USD&range=max&interval=1d&nowarehouse=1 [200, 4449 yahoo]
+- `17:44:27`       /api/yahoo-fund?ticker=BTC-USD [404, 0]
+- `17:44:27`       /fmp?ep=profile&symbol=SOXL [200, 1 Financial Modeling Prep /stable/pr]
+- `17:44:27`       /fmp?ep=profile&symbol=DLLL [200, 1 Financial Modeling Prep /stable/pr]
+- `17:44:27`       /fmp?ep=profile&symbol=SHY [200, 1 Financial Modeling Prep /stable/pr]
+- `17:44:27`       /aggTrades?symbol=BTC-USD&limit=500 [200, 0 unavailable]
+- `17:44:27`       /api/trades?symbol=BTC-USD&limit=500 [404, 0]
+- `17:44:27`       /ohlc?ticker=BTC-USD&span=day&mult=1&days=40 [200, 4449 warehouse+yahoo]
+- `17:44:39`    INDEX:BTCUSD      router   -> NO ROUTE  | active SPY              chart SPY         8509 bars, last 2026-11-20 (42 h) close 689.81 | data/warm/tv-bars/universe/US_ | No supported chart route; chart unchanged | 6s
+- `17:44:39`       /yf-ohlc?symbol=ROM&range=max&interval=1d [200, 4984 yahoo]
+- `17:44:39`       /ohlc?ticker=USD&span=day&mult=1&days=12000 [200, 1255 polygon (warehouse empty)]
+- `17:44:39`       /ohlc?ticker=MSFL&span=day&mult=1&days=12000 [200, 674 polygon (warehouse empty)]
+- `17:44:39`       /fmp?ep=profile&symbol=ETHT [200, 1 Financial Modeling Prep /stable/pr]
+- `17:44:39`       /yf-ohlc?symbol=USD&range=max&interval=1d [200, 4984 yahoo]
+- `17:44:39`       /yf-ohlc?symbol=MSFL&range=max&interval=1d [200, 674 yahoo]
+- `17:44:39`       /data/etf-flow-hist/ETHT.json [403, 0 upstream not ok]
+- `17:44:39`       /fmp?ep=profile&symbol=XOMX [200, 1 Financial Modeling Prep /stable/pr]
+- `17:44:39`       /fmp?ep=profile&symbol=SPXL [200, 1 Financial Modeling Prep /stable/pr]
+- `17:45:10`    INDEX:ETHUSD      router   -> same chart | active ^ETHUSD          chart SPY         8509 bars, last 2026-11-20 (42 h) close 689.81 | data/warm/tv-bars/universe/US_ | Possible proxy or source substitution; equivalence unverif | 29s
+- `17:45:10`       /data/provider-flow-research/histories/3626ce73d71b48b493ff38ec06b429582892e460b3349c4 [200, 0]
+- `17:45:10`       /fmp?ep=earnings&symbol=MRVL [200, 12 Financial Modeling Prep /stable/ea]
+- `17:45:10`       /yf-ohlc?symbol=%5EETHUSD&range=max&interval=1d&nowarehouse=1 [200, 0 yahoo]
+- `17:45:10`       /data/etf-flow-hist/SMH.json [200, 0 Massive ETF Global fund-flows]
+- `17:45:10`       /edgar-insiders/MRVL.json [200, 0]
+- `17:45:10`       /data/provider-flow-research/histories/09dbffb9ce13478b250cb4bf744faaf88aba54dfeeaf277 [200, 0]
+- `17:45:10`       /edgar-insiders/MRVL.json?r=1795283082155 [200, 0]
+- `17:45:10`       /yf-ohlc?symbol=CORZ&range=max&interval=1d [200, 711 yahoo]
+- `17:45:10`       /ohlc?ticker=WULF&span=day&mult=1&days=12000 [200, 1240 polygon (warehouse empty)]
+- `17:45:17`    X:BTCUSD          direct   -> CHARTS    | active X:BTCUSD         chart X:BTCUSD    2268 bars, last 2026-11-20 (42 h) close 58814.99 | Warehouse OHLC · provider iden | Possible proxy or source substitution; equivalence unverif | 4s
+- `17:45:17`       /ohlc?ticker=EAOR&span=day&mult=1&days=12000 [200, 1184 polygon (warehouse empty)]
+- `17:45:17`       /yf-ohlc?symbol=MOOD&range=max&interval=1d [200, 1132 yahoo]
+- `17:45:17`       /yf-ohlc?symbol=EAOR&range=max&interval=1d [200, 1 yahoo]
+- `17:45:17`       /fmp?ep=profile&symbol=DIAL [200, 1 Financial Modeling Prep /stable/pr]
+- `17:45:17`       /series?id=X%3ABTCUSD [200, 2268 warehouse:data/warm/katlin/crypto-]
+- `17:45:17`       /fmp?ep=profile&symbol=HGLB [200, 1 Financial Modeling Prep /stable/pr]
+- `17:45:17`       /data/etf-flow-hist/DIAL.json [403, 0 upstream not ok]
+- `17:45:17`       /ohlc?ticker=EAOK&span=day&mult=1&days=12000 [200, 1184 polygon (warehouse empty)]
+- `17:45:17`       /ohlc?ticker=DIAL&span=day&mult=1&days=12000 [200, 1255 polygon (warehouse empty)]
+- `17:45:47`    X:SOLUSD          direct   -> CHARTS    | active X:SOLUSD         chart X:SOLUSD    2094 bars, last 2026-11-20 (42 h) close 68.72 | Warehouse OHLC · provider iden | Possible proxy or source substitution; equivalence unverif | 26s
+- `17:45:47`       /api/klines?symbol=NQEM30&interval=1d&limit=1000 [404, 0]
+- `17:45:47`       /api/yahoo?ticker=NQEM30&range=max&interval=1d [404, 0]
+- `17:45:47`       /edgar-insiders/KRX.json?r=1795283121574 [403, 0 upstream not ok]
+- `17:45:47`       /edgar-insiders/BKXTR.json?r=1795283121595 [403, 0 upstream not ok]
+- `17:45:47`       /ohlc?ticker=NQEM30&span=day&days=2200 [200, 0 polygon (warehouse empty)]
+- `17:45:47`       /ohlc?ticker=KRX&span=day&mult=1&days=12000 [200, 0 polygon (warehouse empty)]
+- `17:45:47`       /ohlc?ticker=BKXTR&span=day&mult=1&days=12000 [200, 0 polygon (warehouse empty)]
+- `17:45:47`       /fmp?ep=profile&symbol=QABA [200, 1 Financial Modeling Prep /stable/pr]
+- `17:45:47`       /yf-ohlc?symbol=KRX&range=max&interval=1d [200, 0 yahoo]
+- `17:45:58`    X:ARBUSD          direct   -> CHARTS    | active X:ARBUSD         chart X:ARBUSD    1339 bars, last 2026-11-20 (42 h) close 0.11388 | Warehouse OHLC · provider iden | Possible proxy or source substitution; equivalence unverif | 4s
+- `17:45:58`       /edgar-insiders/NQTW55N.json?r=1795283154371 [403, 0 upstream not ok]
+- `17:45:58`       /api/klines?symbol=NQHK55N&interval=1d&limit=1000 [404, 0]
+- `17:45:58`       /api/yahoo?ticker=NQHK55N&range=max&interval=1d [404, 0]
+- `17:45:58`       /ohlc?ticker=NQTW55N&span=day&mult=1&days=12000 [200, 0 polygon (warehouse empty)]
+- `17:45:58`       /api/klines?symbol=NQNL55&interval=1d&limit=1000 [404, 0]
+- `17:45:58`       /series?id=X%3AARBUSD [200, 1339 warehouse:data/warm/katlin/crypto-]
+- `17:45:58`       /yf-ohlc?symbol=NQTW55N&range=max&interval=1d [200, 0 yahoo]
+- `17:45:58`       /api/yahoo-fund?ticker=ARBUSD [404, 0]
+- `17:45:58`       /api/yahoo?ticker=NQNL55&range=max&interval=1d [404, 0]
+- `17:46:07`    X:TONUSD          direct   -> CHARTS    | active X:TONUSD         chart X:TONUSD    1285 bars, last 2026-11-20 (42 h) close 0.9771 | Warehouse OHLC · provider iden | Possible proxy or source substitution; equivalence unverif | 4s
+- `17:46:07`       /api/klines?symbol=NQLA55&interval=1d&limit=1000 [404, 0]
+- `17:46:07`       /ohlc?ticker=NQCH55T&span=day&days=2200 [200, 0 polygon (warehouse empty)]
+- `17:46:07`       /api/yahoo?ticker=NQLA55&range=max&interval=1d [404, 0]
+- `17:46:07`       /ohlc?ticker=NQNA55&span=day&mult=1&days=12000 [200, 0 polygon (warehouse empty)]
+- `17:46:07`       /fmp?ep=profile&symbol=NQNL55T [200, 0 Financial Modeling Prep /stable/pr]
+- `17:46:07`       /series?id=X%3ATONUSD [200, 1285 warehouse:data/warm/katlin/crypto-]
+- `17:46:07`       /yf-ohlc?symbol=NQNA55&range=max&interval=1d [200, 0 yahoo]
+- `17:46:07`       /fmp?ep=earnings&symbol=NQNL55T [200, 0 Financial Modeling Prep /stable/ea]
+- `17:46:07`       /ohlc?ticker=NQLA55&span=day&days=2200 [200, 0 polygon (warehouse empty)]
+- `17:46:17`    X:SUIUSD          direct   -> CHARTS    | active X:SUIUSD         chart X:SUIUSD    1297 bars, last 2026-11-20 (42 h) close 0.65 | Warehouse OHLC · provider iden | Possible proxy or source substitution; equivalence unverif | 4s
+- `17:46:17`       /ohlc?ticker=ANGL&span=day&mult=1&days=12000 [200, 3676 warehouse]
+- `17:46:17`       /yf-ohlc?symbol=FEMS&range=max&interval=1d [200, 3712 yahoo]
+- `17:46:17`       /fmp?ep=profile&symbol=PGHY [200, 1 Financial Modeling Prep /stable/pr]
+- `17:46:17`       /ohlc?ticker=EEMS&span=day&mult=1&days=12000 [200, 1255 polygon (warehouse empty)]
+- `17:46:17`       /fmp?ep=profile&symbol=EFR [200, 1 Financial Modeling Prep /stable/pr]
+- `17:46:17`       /series?id=X%3ASUIUSD [200, 1297 warehouse:data/warm/katlin/crypto-]
+- `17:46:17`       /data/etf-flow-hist/PGHY.json [403, 0 upstream not ok]
+- `17:46:17`       /yf-ohlc?symbol=EEMS&range=max&interval=1d [200, 3838 yahoo]
+- `17:46:17`       /data/etf-flow-hist/EFR.json [403, 0 upstream not ok]
+- `17:46:52`    BINANCE:BTCUSDT   router   -> BLANK     | active BINANCE:BTCUSDT  chart None           0 bars, last - (- h) close None | None | Possible proxy or source substitution; equivalence unverif | 29s
+- `17:46:52`       /ohlc?ticker=FLRT&span=day&mult=1&days=12000 [200, 1255 polygon (warehouse empty)]
+- `17:46:52`       /data/etf-flow-hist/EMHY.json [403, 0 upstream not ok]
+- `17:46:52`       /yf-ohlc?symbol=%5EETHUSD&range=max&interval=1d&nowarehouse=1 [200, 0 yahoo]
+- `17:46:52`       /yf-ohlc?symbol=%5EETHUSD&range=max&interval=1d [200, 0 yahoo]
+- `17:46:52`       /ohlc?ticker=QAUTOX&span=day&days=2200 [200, 0 polygon (warehouse empty)]
+- `17:46:52`       /yf-ohlc?symbol=FLRT&range=max&interval=1d [200, 2958 yahoo]
+- `17:46:52`       /ohlc?ticker=%5EETHUSD&span=day&mult=1&days=12000 [400, 0 invalid params]
+- `17:46:52`       /fmp?ep=profile&symbol=EWX [200, 1 Financial Modeling Prep /stable/pr]
+- `17:46:52`       /data/series/%5EETHUSD.json [400, 0]
+- `17:47:26`    BINANCE:SOLUSDT   router   -> BLANK     | active BINANCE:SOLUSDT  chart None           0 bars, last - (- h) close None | None | Possible proxy or source substitution; equivalence unverif | 29s
+- `17:47:26`       /ohlc?ticker=BTC-USD&span=day&mult=1&days=12000 [200, 4449 warehouse+yahoo]
+- `17:47:26`       /yf-ohlc?symbol=BTC-USD&range=max&interval=1d&nowarehouse=1 [200, 4449 yahoo]
+- `17:47:26`       /api/trades?symbol=SPY&limit=500 [404, 0]
+- `17:47:26`       /aggTrades?symbol=SPY&limit=500 [200, 0 unavailable]
+- `17:47:26`       /yf-ohlc?symbol=%5EETHUSD&range=max&interval=1d [200, 0 yahoo]
+- `17:47:26`       /ohlc?ticker=%5EETHUSD&span=day&mult=1&days=12000 [400, 0 invalid params]
+- `17:47:26`       /data/series/%5EETHUSD.json [400, 0]
+- `17:47:26`       /series?id=BINANCE%3ABTCUSDT [500, 0 no market feed for BINANCE:BTCUSDT]
+- `17:47:26`       /api/klines?symbol=%5EETHUSD&interval=1d&limit=1000 [404, 0]
+- `17:47:57`    COINBASE:SOLUSD   router   -> BLANK     | active COINBASE:SOLUSD  chart None           0 bars, last - (- h) close None | None | Possible proxy or source substitution; equivalence unverif | 29s
+- `17:47:57`       /aggTrades?symbol=SPY&limit=500 [200, 0 unavailable]
+- `17:47:57`       /api/trades?symbol=SPY&limit=500 [404, 0]
+- `17:47:57`       /yf-ohlc?symbol=%5EETHUSD&range=max&interval=1d&nowarehouse=1 [200, 0 yahoo]
+- `17:47:57`       /series?id=X%3ABTCUSD [200, 2268 warehouse:data/warm/katlin/crypto-]
+- `17:47:57`       /series?id=X%3ATONUSD [200, 1285 warehouse:data/warm/katlin/crypto-]
+- `17:47:57`       /series?id=X%3ASUIUSD [200, 1297 warehouse:data/warm/katlin/crypto-]
+- `17:47:57`       /series?id=X%3ASOLUSD [200, 2094 warehouse:data/warm/katlin/crypto-]
+- `17:47:57`       /series?id=X%3AARBUSD [200, 1339 warehouse:data/warm/katlin/crypto-]
+- `17:47:57`       /yf-ohlc?symbol=%5EETHUSD&range=max&interval=1d [200, 0 yahoo]
+- `17:48:31`    KRAKEN:XBTUSD     router   -> BLANK     | active KRAKEN:XBTUSD    chart None           0 bars, last - (- h) close None | None | Possible proxy or source substitution; equivalence unverif | 29s
+- `17:48:31`       /ohlc?ticker=BTC-USD&span=day&mult=1&days=12000 [200, 4449 warehouse+yahoo]
+- `17:48:31`       /yf-ohlc?symbol=BTC-USD&range=max&interval=1d&nowarehouse=1 [200, 4449 yahoo]
+- `17:48:31`       /yf-ohlc?symbol=%5EETHUSD&range=max&interval=1d [200, 0 yahoo]
+- `17:48:31`       /ohlc?ticker=%5EETHUSD&span=day&mult=1&days=12000 [400, 0 invalid params]
+- `17:48:31`       /series?id=BINANCE%3ASOLUSDT [500, 0 no market feed for BINANCE:SOLUSDT]
+- `17:48:31`       /data/series/%5EETHUSD.json [400, 0]
+- `17:48:31`       /api/klines?symbol=%5EETHUSD&interval=1d&limit=1000 [404, 0]
+- `17:48:31`       /api/yahoo?ticker=%5EETHUSD&range=max&interval=1d [404, 0]
+- `17:48:31`       /series?id=BINANCE%3ABTCUSDT [500, 0 no market feed for BINANCE:BTCUSDT]
+- `17:48:41`    BITSTAMP:BTCUSD   router   -> CHARTS    | active BTC-USD          chart BTC-USD     4441 bars, last 2026-11-21 (18 h) close 59903.51953125 | data/warm/katlin/crypto-bars/B | Possible proxy or source substitution; equivalence unverif | 4s
+- `17:48:41`       /series?id=BITSTAMP%3ABTCUSD [200, 546 warehouse:data/series-cache/cd/cdb]
+- `17:48:41`       /api/trades?symbol=BTC-USD&limit=500 [404, 0]
+- `17:48:41`       /yf-ohlc?symbol=%5EETHUSD&range=max&interval=1d&nowarehouse=1 [200, 0 yahoo]
+- `17:48:41`       /series?id=X%3ATONUSD [200, 1285 warehouse:data/warm/katlin/crypto-]
+- `17:48:41`       /series?id=X%3ASOLUSD [200, 2094 warehouse:data/warm/katlin/crypto-]
+- `17:48:41`       /series?id=COINBASE%3ASOLUSD [200, 2094 warehouse:data/warm/katlin/crypto-]
+- `17:48:41`       /series?id=X%3AARBUSD [200, 1339 warehouse:data/warm/katlin/crypto-]
+- `17:48:41`       /series?id=X%3ASUIUSD [200, 1297 warehouse:data/warm/katlin/crypto-]
+- `17:48:41`       /series?id=X%3ABTCUSD [200, 2268 warehouse:data/warm/katlin/crypto-]
+- `17:48:52`    COINBASE:ETHUSD   router   -> CHARTS    | active ETH-USD          chart ETH-USD     3290 bars, last 2026-11-21 (18 h) close 1677.300048828125 | data/warm/katlin/crypto-bars/E | Possible proxy or source substitution; equivalence unverif | 4s
+- `17:48:52`       /series?id=COINBASE%3AETHUSD [200, 3252 warehouse:data/warm/tv-bars/univer]
+- `17:48:52`       /ohlc?ticker=ETH-USD&span=day&mult=1&days=12000 [200, 3300 warehouse+yahoo]
+- `17:48:52`       /yf-ohlc?symbol=ETH-USD&range=max&interval=1d&nowarehouse=1 [200, 3300 yahoo]
+- `17:48:52`       /api/yahoo-fund?ticker=ETH-USD [404, 0]
+- `17:48:52`       /yf-ohlc?symbol=%5EETHUSD&range=max&interval=1d&nowarehouse=1 [200, 0 yahoo]
+- `17:48:52`       /series?id=COINBASE%3ASOLUSD [200, 2094 warehouse:data/warm/katlin/crypto-]
+- `17:48:52`       /ohlc?ticker=ETH-USD&span=day&mult=1&days=40 [200, 3300 warehouse+yahoo]
+- `17:48:52`       /api/trades?symbol=ETH-USD&limit=500 [404, 0]
+- `17:48:52`       /series?id=KRAKEN%3AXBTUSD [500, 0 no market feed for KRAKEN:XBTUSD a]
+- `17:49:02`    CRYPTO:BTCUSD     router   -> CHARTS    | active BTC-USD          chart BTC-USD     4441 bars, last 2026-11-21 (18 h) close 59903.51953125 | data/warm/katlin/crypto-bars/B | Possible proxy or source substitution; equivalence unverif | 4s
+- `17:49:02`       /ohlc?ticker=BTCUSDT&span=day&mult=1&days=12000 [200, 0 polygon (warehouse empty)]
+- `17:49:02`       /series?id=CRYPTO%3ABTCUSD [500, 0 no market feed for CRYPTO:BTCUSD a]
+- `17:49:02`       /api/trades?symbol=BTC-USD&limit=500 [404, 0]
+- `17:49:02`       /yf-ohlc?symbol=BTC-USD&range=max&interval=1d [200, 4449 warehouse+yahoo]
+- `17:49:02`       /aggTrades?symbol=BTC-USD&limit=500 [200, 0 unavailable]
+- `17:49:02`       /yf-ohlc?symbol=BTC-USD&range=max&interval=1d&nowarehouse=1 [200, 4449 yahoo]
+- `17:49:37`    SOLUSD            direct   -> same chart | active SPY              chart SPY         8509 bars, last 2026-11-20 (42 h) close 689.81 | data/warm/tv-bars/universe/US_ | Possible proxy or source substitution; equivalence unverif | 29s
+- `17:49:37`       /ohlc?ticker=SOLUSD&span=day&mult=1&days=12000 [200, 0 polygon (warehouse empty)]
+- `17:49:37`       /yf-ohlc?symbol=SOLUSD&range=max&interval=1d [200, 0 yahoo]
+- `17:49:37`       /ohlc?ticker=SPY&span=day&mult=1&days=12000 [200, 8512 warehouse]
+- `17:49:37`       /api/klines?symbol=SOLUSD&interval=1d&limit=1000 [404, 0]
+- `17:49:37`       /api/yahoo?ticker=SOLUSD&range=max&interval=1d [404, 0]
+- `17:49:37`       /api/trades?symbol=SPY&limit=500 [404, 0]
+- `17:49:37`       /aggTrades?symbol=SPY&limit=500 [200, 0 unavailable]
+- `17:49:45`    CME:BTC1!         router   -> NO ROUTE  | active SPY              chart SPY         8509 bars, last 2026-11-20 (42 h) close 689.81 | data/warm/tv-bars/universe/US_ | No supported chart route; chart unchanged | 6s
+- `17:49:45`       /ohlc?ticker=BTC-USD&span=day&mult=1&days=12000 [200, 4449 warehouse+yahoo]
+- `17:49:45`       /yf-ohlc?symbol=BTC-USD&range=max&interval=1d&nowarehouse=1 [200, 4449 yahoo]
+- `17:49:45`       /aggTrades?symbol=SPY&limit=500 [200, 0 unavailable]
+- `17:49:45`       /series?id=BINANCE%3ABTCUSDT [500, 0 no market feed for BINANCE:BTCUSDT]
+- `17:49:45`       /series?id=KRAKEN%3AXBTUSD [500, 0 no market feed for KRAKEN:XBTUSD a]
+- `17:49:45`       /series?id=BINANCE%3ASOLUSDT [500, 0 no market feed for BINANCE:SOLUSDT]
+- `17:49:45`       /series?id=CME%3ABTC1! [500, 0 no warehouse bars for BITCOIN (US:]
+- `17:49:45`       /ohlc?ticker=BTC1!&span=day&mult=1&days=12000 [400, 0 invalid params]
+- `17:49:45`       /yf-ohlc?symbol=BTC1!&range=max&interval=1d [400, 0 invalid symbol]
+- `17:49:53`    CRYPTOCAP:BTC.D   router   -> NO ROUTE  | active SPY              chart SPY         8509 bars, last 2026-11-20 (42 h) close 689.81 | data/warm/tv-bars/universe/US_ | No supported chart route; chart unchanged | 6s
+- `17:49:53`       /series?id=CRYPTOCAP%3ABTC.D [500, 0 no warehouse bars for BTC_DOMINANC]
+- `17:49:53`       /ohlc?ticker=BTC.D&span=day&mult=1&days=12000 [200, 0 polygon (warehouse empty)]
+- `17:49:53`       /yf-ohlc?symbol=BTC.D&range=max&interval=1d [200, 0 yahoo]
+- `17:49:53`       /api/klines?symbol=BTC.D&interval=1d&limit=1000 [404, 0]
+- `17:49:53`       /api/yahoo?ticker=BTC.D&range=max&interval=1d [404, 0]
+- `17:49:59`    AMEX:IBIT         router   -> CHARTS    | active IBIT             chart IBIT         717 bars, last 2026-11-20 (42 h) close 33.02 | data/warm/tv-bars/universe/US_ | No supported chart route; chart unchanged | 4s
+- `17:49:59`       /fmp?ep=ratios-ttm&symbol=IBIT [200, 0 Financial Modeling Prep /stable/ra]
+- `17:49:59`       /fmp?ep=dividends&symbol=IBIT [200, 0 Financial Modeling Prep /stable/di]
+- `17:49:59`       /fmp?ep=earnings&symbol=IBIT [200, 0 Financial Modeling Prep /stable/ea]
+- `17:49:59`       /fmp?ep=key-metrics-ttm&symbol=IBIT [200, 0 Financial Modeling Prep /stable/ke]
+- `17:49:59`       /fmp?ep=institutional-ownership/symbol-positions-summary&symbol=IBIT&year=2026&quarter [200, 1 Financial Modeling Prep /stable/in]
+- `17:49:59`       /data/watchlist-insights/etf/IBIT.json [200, 0 ETF Global constituents via data/e]
+- `17:49:59`       /fmp?ep=shares-float&symbol=IBIT [200, 1 Financial Modeling Prep /stable/sh]
+- `17:49:59`       /data/etf-flow-hist/IBIT.json [200, 0 Massive ETF Global fund-flows]
+- `17:49:59`       /data/watchlist-insights/stock/IB.json [200, 0]
+- `17:50:10`    SPY               direct   -> CHARTS    | active SPY              chart SPY         8509 bars, last 2026-11-20 (42 h) close 689.81 | data/warm/tv-bars/universe/US_ | No supported chart route; chart unchanged | 4s
+- `17:50:10`       /api/yahoo-fund?ticker=QQQ [404, 0]
+- `17:50:10`       /aggTrades?symbol=QQQ&limit=500 [200, 0 unavailable]
+- `17:50:10`       /api/trades?symbol=QQQ&limit=500 [404, 0]
+- `17:50:10`       /ohlc?ticker=QQQ&span=day&mult=1&days=40 [200, 6970 warehouse]
+- `17:50:10`       /aggTrades?symbol=SPY&limit=500 [200, 0 unavailable]
+- `17:50:10`       /api/trades?symbol=SPY&limit=500 [404, 0]
+- `17:50:10`       /ohlc?ticker=SPY [200, 8512 warehouse]
+- `17:50:10`       /ohlc?ticker=SPY&span=day&mult=1&days=12000 [200, 8512 warehouse]
+- `17:50:10`       /yf-ohlc?symbol=%5EETHUSD&range=max&interval=1d&nowarehouse=1 [200, 0 yahoo]
+- `17:50:10` verdicts: {"BLANK": 4, "CHARTS": 11, "NO ROUTE": 3, "same chart": 2}
+## 2. The Symbol Search dialog: type the word, click the row
+
+- `17:50:13`   'btc' -> first rows: BTC | CRYPTOCAP:TOTAL3-CRYPTOCAP:BTC | INDEX:BTCUSD | CME:BTC1!-INDEX:BTCUSD | BITSTAMP:BTCUSD | COINBASE:BTCUSD | CRYPTOCAP:BTC.D | CME:BTC1!
+- `17:50:19`    click INDEX:BTCUSD      dialog   -> NO ROUTE  | active SPY              chart SPY         8509 bars, last 2026-11-20 (42 h) close 689.81 | data/warm/tv-bars/universe/US_ | No supported chart route; chart unchanged | 6s
+- `17:50:19`       /series?id=INDEX%3ABTCUSD [200, 2268 warehouse:data/warm/katlin/crypto-]
+- `17:50:19`       /ohlc?ticker=BTCUSDT&span=day&mult=1&days=12000 [200, 0 polygon (warehouse empty)]
+- `17:50:19`       /yf-ohlc?symbol=BTC-USD&range=max&interval=1d [200, 4449 warehouse+yahoo]
+- `17:50:19`       /yf-ohlc?symbol=BTC-USD&range=max&interval=1d&nowarehouse=1 [200, 4449 yahoo]
+- `17:50:23`   'bitcoin' -> first rows: X:BTCUSD | COINBASE:BTCUSD | INDEX:BTCUSD | IBIT | BTC | CME:BTC1!-INDEX:BTCUSD | BITSTAMP:BTCUSD | BITSTAMP:BTCUSD/TVC:VIX
+- `17:50:28`    click INDEX:BTCUSD      dialog   -> NO ROUTE  | active SPY              chart SPY         8509 bars, last 2026-11-20 (42 h) close 689.81 | data/warm/tv-bars/universe/US_ | No supported chart route; chart unchanged | 6s
+- `17:50:28`       /ohlc?ticker=SPY&span=day&mult=1&days=12000 [200, 8512 warehouse]
+- `17:50:28`       /api/trades?symbol=SPY&limit=500 [404, 0]
+- `17:50:28`       /aggTrades?symbol=SPY&limit=500 [200, 0 unavailable]
+- `17:50:32`   'eth' -> first rows: X:ETHUSD | ETHA | ETH | equity-research-tickers:asset:21107d5589312f62 | equity-research-tickers:asset:8154edc9e70c18cc | INDEX:ETHUSD | AMEX:ETHT | CBOE:ETHU
+- `17:51:00`    click INDEX:ETHUSD      dialog   -> same chart | active ^ETHUSD          chart SPY         8509 bars, last 2026-11-20 (42 h) close 689.81 | data/warm/tv-bars/universe/US_ | Possible proxy or source substitution; equivalence unverif | 29s
+- `17:51:00`       /yf-ohlc?symbol=%5EETHUSD&range=max&interval=1d&nowarehouse=1 [200, 0 yahoo]
+- `17:51:00`       /series?id=INDEX%3AETHUSD [200, 2268 warehouse:data/warm/katlin/crypto-]
+- `17:51:00`       /yf-ohlc?symbol=%5EETHUSD&range=max&interval=1d [200, 0 yahoo]
+- `17:51:00`       /ohlc?ticker=%5EETHUSD&span=day&mult=1&days=12000 [400, 0 invalid params]
+- `17:51:00`       /data/series/%5EETHUSD.json [400, 0]
+- `17:51:00`       /api/klines?symbol=%5EETHUSD&interval=1d&limit=1000 [404, 0]
+- `17:51:00`       /api/yahoo?ticker=%5EETHUSD&range=max&interval=1d [404, 0]
+- `17:51:00`       /ohlc?ticker=ETHUSDT&span=day&mult=1&days=12000 [200, 0 polygon (warehouse empty)]
+- `17:51:00`       /yf-ohlc?symbol=ETH-USD&range=max&interval=1d [200, 3300 warehouse+yahoo]
+- `17:51:04`   'ethereum' -> first rows: X:ETHUSD | ETHA | INDEX:ETHUSD | BYBIT:ETHUSDU2025 | KRAKEN:ETHBTC | INTOTHEBLOCK:ETH_INVESTORS | INTOTHEBLOCK:ETH_WHALESPERCENTAGE | INTOTHEBLOCK:ETH_INVESTORSPERCENTAGE
+- `17:51:33`    click INDEX:ETHUSD      dialog   -> same chart | active ^ETHUSD          chart SPY         8509 bars, last 2026-11-20 (42 h) close 689.81 | data/warm/tv-bars/universe/US_ | Possible proxy or source substitution; equivalence unverif | 29s
+- `17:51:33`       /yf-ohlc?symbol=%5EETHUSD&range=max&interval=1d&nowarehouse=1 [200, 0 yahoo]
+- `17:51:33`       /yf-ohlc?symbol=%5EETHUSD&range=max&interval=1d [200, 0 yahoo]
+- `17:51:33`       /ohlc?ticker=%5EETHUSD&span=day&mult=1&days=12000 [400, 0 invalid params]
+- `17:51:33`       /data/series/%5EETHUSD.json [400, 0]
+- `17:51:33`       /api/klines?symbol=%5EETHUSD&interval=1d&limit=1000 [404, 0]
+- `17:51:33`       /api/yahoo?ticker=%5EETHUSD&range=max&interval=1d [404, 0]
+- `17:51:33`       /series?id=KRAKEN%3AXBTUSD [500, 0 no market feed for KRAKEN:XBTUSD a]
+- `17:51:33`       /ohlc?ticker=XBTUSD&span=day&mult=1&days=12000 [200, 0 polygon (warehouse empty)]
+- `17:51:33`       /yf-ohlc?symbol=XBTUSD&range=max&interval=1d [200, 0 yahoo]
+- `17:51:38`   'sol' -> first rows: X:SOLUSD | polygon:asset:c7f3799b0d7975a7 | indicator-bus:SOL | PEPPERSTONE:GASOLINE | FX_IDC:CHFPEN | FX_IDC:JPYPEN | AMEX:UGA | ECONOMICS:USGS
+- `17:51:43`    click X:SOLUSD          dialog   -> CHARTS    | active X:SOLUSD         chart X:SOLUSD    2094 bars, last 2026-11-20 (42 h) close 68.72 | Warehouse OHLC · provider iden | Possible proxy or source substitution; equivalence unverif | 4s
+- `17:51:43`       /series?id=X%3ASOLUSD [200, 2094 warehouse:data/warm/katlin/crypto-]
+- `17:51:43`       /aggTrades?symbol=SOLUSD&limit=500 [200, 0 unavailable]
+- `17:51:43`       /api/trades?symbol=SOLUSD&limit=500 [404, 0]
+- `17:51:49`   'btc' -> first rows: X:BTCUSD | COINBASE:BTCUSD | INDEX:BTCUSD | IBIT | BTC | CRYPTOCAP:TOTAL3-CRYPTOCAP:BTC | CME:BTC1!-INDEX:BTCUSD | BITSTAMP:BTCUSD
+- `17:51:53`    click X:BTCUSD          dialog   -> CHARTS    | active X:BTCUSD         chart X:BTCUSD    2268 bars, last 2026-11-20 (42 h) close 58814.99 | Warehouse OHLC · provider iden | Possible proxy or source substitution; equivalence unverif | 4s
+- `17:51:53`       /series?id=X%3ABTCUSD [200, 2268 warehouse:data/warm/katlin/crypto-]
+- `17:51:53`       /api/trades?symbol=BTCUSDT&limit=500 [404, 0]
+- `17:51:53`       /aggTrades?symbol=BTCUSDT&limit=500 [200, 0 unavailable]
+- `17:52:01`   'btc' -> first rows: X:BTCUSD | COINBASE:BTCUSD | INDEX:BTCUSD | BTC | CRYPTOCAP:TOTAL3-CRYPTOCAP:BTC | CME:BTC1!-INDEX:BTCUSD | BITSTAMP:BTCUSD | CRYPTOCAP:BTC.D
+- `17:52:03`    click COINBASE:BTCUSD   dialog   -> CHARTS    | active BTC-USD          chart BTC-USD     4441 bars, last 2026-11-21 (18 h) close 59908.671875 | data/warm/katlin/crypto-bars/B | Possible proxy or source substitution; equivalence unverif | 3s
+- `17:52:03`       /yf-ohlc?symbol=%5EGSPC&range=max&interval=1d&nowarehouse=1 [200, 14345 yahoo]
+- `17:52:03`       /api/trades?symbol=BTC-USD&limit=500 [404, 0]
+- `17:52:03`       /series?id=COINBASE%3ABTCUSD [200, 4401 warehouse:data/warm/tv-bars/univer]
+- `17:52:03`       /ohlc?ticker=BTCUSDT&span=day&mult=1&days=12000 [200, 0 polygon (warehouse empty)]
+- `17:52:03`       /aggTrades?symbol=BTC-USD&limit=500 [200, 0 unavailable]
+- `17:52:03`       /yf-ohlc?symbol=BTC-USD&range=max&interval=1d [200, 4449 warehouse+yahoo]
+- `17:52:03`       /yf-ohlc?symbol=BTC-USD&range=max&interval=1d&nowarehouse=1 [200, 4449 yahoo]
+- `17:52:03` dialog clicks that changed the chart to the picked instrument: 3 of 7
+## 3. Bitcoin on intraday timeframes
+
+- `17:52:15`   BTC-USD at 1h  :  4441 bars, newest bar 2026-11-21 (17.9 h old), spacing 1440 min, close 59937.7890625 | data/warm/katlin/crypto-bars/BTC.json.gz
+- `17:52:15`       /ohlc?ticker=BTC-USD&span=hour&mult=1&days=730 [200, 0 polygon (warehouse empty)]
+- `17:52:15`       /yf-ohlc?symbol=BTC-USD&range=2y&interval=60m [200, 4449 warehouse+yahoo]
+- `17:52:15`       /api/klines?symbol=BTC-USD&interval=1h&limit=1000 [404, 0]
+- `17:52:15`       /api/yahoo?ticker=BTC-USD&range=2y&interval=60m [404, 0]
+- `17:52:15`       /ohlc?ticker=BTC-USD&span=day&mult=1&days=12000 [200, 4449 warehouse+yahoo]
+- `17:52:15`       /yf-ohlc?symbol=BTC-USD&range=max&interval=1d&nowarehouse=1 [200, 4449 yahoo]
+- `17:52:15`       /aggTrades?symbol=BTC-USD&limit=500 [200, 0 unavailable]
+- `17:52:26`   BTC-USD at 15m :  4441 bars, newest bar 2026-11-21 (17.9 h old), spacing 1440 min, close 59942.96875 | data/warm/katlin/crypto-bars/BTC.json.gz
+- `17:52:26`       /ohlc?ticker=BTC-USD&span=minute&mult=15&days=90 [200, 0 polygon (warehouse empty)]
+- `17:52:26`       /yf-ohlc?symbol=BTC-USD&range=3mo&interval=15m [200, 4449 warehouse+yahoo]
+- `17:52:26`       /api/klines?symbol=BTC-USD&interval=15m&limit=1000 [404, 0]
+- `17:52:26`       /api/yahoo?ticker=BTC-USD&range=3mo&interval=15m [404, 0]
+- `17:52:26`       /yf-ohlc?symbol=%5EETHUSD&range=max&interval=1d&nowarehouse=1 [200, 0 yahoo]
+- `17:52:26`       /series?id=COINBASE%3ASOLUSD [200, 2094 warehouse:data/warm/katlin/crypto-]
+- `17:52:26`       /series?id=X%3ABTCUSD [200, 2268 warehouse:data/warm/katlin/crypto-]
+- `17:52:36`   BTC-USD at 1d  :  4441 bars, newest bar 2026-11-21 (17.9 h old), spacing 1440 min, close 59942.96875 | data/warm/katlin/crypto-bars/BTC.json.gz
+- `17:52:36`       /aggTrades?symbol=BTC-USD&limit=500 [200, 0 unavailable]
+- `17:52:36`       /api/trades?symbol=BTC-USD&limit=500 [404, 0]
+- `17:52:36` page errors: none
+- `17:52:36` ✅ read-only; nothing changed
