@@ -1,0 +1,10 @@
+[
+ {
+  "before": "          // A conflicting MARKET suggestion cannot silently replace AAPL with MSFT.\n          if (!prefixId && original && original.engine === \"equity\" && String(original.ticker || \"\").toUpperCase() === base &&\n",
+  "after": "          // A conflicting MARKET suggestion cannot silently replace AAPL with MSFT.\n          // 2026-11-21: a reviewed crypto route is not a native lookup - the chart has no bars under BTCUSDT, SOLUSD or XBTUSD (ops 6882: blank charts).\n          var reviewedCrypto = !!(proposal && chartSymbol.crypto && chartSymbol.crypto[u] === proposal);\n          if (!reviewedCrypto && !prefixId && original && original.engine === \"equity\" && String(original.ticker || \"\").toUpperCase() === base &&\n"
+ },
+ {
+  "before": "      if (route.reason === \"No supported chart route; chart unchanged\") route.reason = route.relation === \"exact\" ? \"Identifier routing unchanged; underlying data identity is not certified\" : route.relation === \"provider-prefix\" ? \"Provider prefix route; identical series ID with explicit provider prefix\" : \"Possible proxy or source substitution; equivalence unverified\";\n",
+  "after": "      if (route.reason === \"No supported chart route; chart unchanged\") route.reason = route.relation === \"exact\" ? \"Identifier routing unchanged; underlying data identity is not certified\" : route.relation === \"provider-prefix\" ? \"Provider prefix route; identical series ID with explicit provider prefix\" : \"Possible proxy or source substitution; equivalence unverified\";\n      if (chartSymbol.crypto && chartSymbol.crypto[u] === route.handoff && route.relation === \"mapped-route\") route.reason = \"Possible proxy or source substitution; equivalence unverified. Reviewed crypto route: the coin's US dollar tape - banked daily bars plus today's forming bar. One venue's own prints, or a dollar-stablecoin quote, can differ slightly from it.\";\n"
+ }
+]

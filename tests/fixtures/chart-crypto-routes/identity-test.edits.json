@@ -1,0 +1,14 @@
+[
+ {
+  "before": "['BINANCE:BTCUSDT','BINANCE:BTCUSDT','BTCUSDT'],['BINANCE:BTCUSDC','BINANCE:BTCUSDC','BTCUSDC'],['COINBASE:BTCUSD','BTC-USD','BTC-USD'],",
+  "after": "['BINANCE:BTCUSDT','BTC-USD','BTC-USD'],['BINANCE:BTCUSDC','BTC-USD','BTC-USD'],['BINANCE:FOOUSDT','BINANCE:FOOUSDT','FOOUSDT'],['COINBASE:BTCUSD','BTC-USD','BTC-USD'],"
+ },
+ {
+  "before": "const indexRoutes=JSON.parse(read('tests/fixtures/chart-index-routes/tvwatch.edits.json'));for(const e of indexRoutes){assert.equal(previousRouted.split(e.before).length,2,'index route predecessor: '+e.before.slice(0,40));previousRouted=previousRouted.replace(e.before,e.after);}\n",
+  "after": "const indexRoutes=JSON.parse(read('tests/fixtures/chart-index-routes/tvwatch.edits.json'));for(const e of indexRoutes){assert.equal(previousRouted.split(e.before).length,2,'index route predecessor: '+e.before.slice(0,40));previousRouted=previousRouted.replace(e.before,e.after);}\n// 2026-11-21 (Khalid: \"INDEX:BTCUSD - No supported chart route ... i cant pull btc on chart\"): chartSymbol gained the reviewed crypto routes (a spot pair of a banked coin under a crypto venue\n// or INDEX -> the coin's own tape; CME bitcoin / ether futures), ledgered in tests/fixtures/chart-crypto-routes/tvwatch.edits.json and re-applied here. A coin with no banked bars keeps the native route.\nconst cryptoRoutes=JSON.parse(read('tests/fixtures/chart-crypto-routes/tvwatch.edits.json'));for(const e of cryptoRoutes){assert.equal(previousRouted.split(e.before).length,2,'crypto route predecessor: '+e.before.slice(0,40));previousRouted=previousRouted.replace(e.before,e.after);}\n"
+ },
+ {
+  "before": "r=c.chartRoute(\"BINANCE:BTCUSDT\");r.frame=r.handoff;const text=c.chartRouteText(r,{symbol:r.frame,source:\"invented+yahoo\"},[{}]);assert.match(text,/fallback\\/supplemental lookup: BTC-USD/);assert.match(text,/supplementary Yahoo data, including after a successful primary lookup/);assert.match(text,/BTC\\/USDT/);assert.match(text,/BTC\\/USD/);});",
+  "after": "r=c.chartRoute(\"BINANCE:FOOUSDT\");r.frame=r.handoff;const text=c.chartRouteText(r,{symbol:r.frame,source:\"invented+yahoo\"},[{}]);assert.match(text,/fallback\\/supplemental lookup: FOO-USD/);assert.match(text,/supplementary Yahoo data, including after a successful primary lookup/);assert.match(text,/FOO\\/USDT/);assert.match(text,/FOO\\/USD/);});"
+ }
+]

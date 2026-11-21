@@ -1,0 +1,14 @@
+[
+ {
+  "before": "  function resolveSym(raw, classificationOnly){\n",
+  "after": "  /* 2026-11-21 (Khalid: \"i cant pull btc on chart ... i want all my crypto and stocks and etfs to refresh\"): the coins with banked daily bars (data/warm/katlin/crypto-bars, ops 6880).\n     The directory's ids for them (X:BTCUSD, X:SOLUSD ...) are those banked bars alone - they end yesterday and have no forming bar - while the coin's tape (BTC-USD) is the same bank\n     plus today's bar, so a pick of the directory id opens the tape. The watchlist router carries the same list (tests/chart-crypto-routes.test.js keeps the two equal). */\n  var CRYPTO_TAPE=\" AAVE ADA AERO AKT ALGO APE APT AR ARB ASTR ATOM AVAX AXS BCH BNB BONK BTC CFX CHZ COMP CRV DASH DOGE DOT EGLD EIGEN ENA ENS EOS ETC ETH FET FIL FLOW FLR GALA GRT HBAR HYPE ICP IMX INJ IOTA JTO JUP KAS KAVA LDO LINK LTC MANA MATIC MINA MKR NEAR NEO ONDO OP PENDLE PEPE POL PYTH QNT RENDER RNDR ROSE RUNE SAND SEI SHIB SNX SOL STRK STX SUI TAO THETA TIA TON TRX UNI VET VIRTUAL W WIF WLD XLM XMR XRP XTZ ZEC ZK ZRO \";\n  function cryptoTapeId(s){\n    var m=/^X:([A-Z0-9]{1,10})USD$/i.exec(String(s||\"\").trim());\n    return m && CRYPTO_TAPE.indexOf(\" \"+m[1].toUpperCase()+\" \")>=0 ? m[1].toUpperCase()+\"-USD\" : \"\";\n  }\n  /* An outside daily series joins banked bars only when it is the same coin: on the newest 30 days both carry, at least 5 of them, the median distance between closes is within 3%.\n     ops 6881: the outside ARB-USD, TON-USD, AERO-USD and JUP-USD are other coins (99% away) and were being joined on as older history and as today's bar. */\n  function sameCoinTape(outside, banked){\n    var m={}, r=[], i, k;\n    for(i=0;i<(banked||[]).length;i++){ k=utcMidnight(banked[i].time); if(k && banked[i].close>0) m[k]=banked[i].close; }\n    for(i=(outside||[]).length-1;i>=0 && r.length<30;i--){ k=utcMidnight(outside[i].time); if(k && m[k]>0 && outside[i].close>0) r.push(Math.abs(outside[i].close/m[k]-1)); }\n    if(r.length<5) return false;\n    r.sort(function(a,b){ return a-b; });\n    return r[Math.floor(r.length/2)]<=0.03;\n  }\n  function resolveSym(raw, classificationOnly){\n"
+ },
+ {
+  "before": "                if(ydC.length>=8){\n",
+  "after": "                if(ydC.length>=8 && sameCoinTape(ydC, d)){\n"
+ },
+ {
+  "before": "  function chartId(s){\n    s=String(s||\"\").trim();\n",
+  "after": "  function chartId(s){\n    s=String(s||\"\").trim();\n    s=cryptoTapeId(s)||s; /* 2026-11-21: the directory's id of a banked coin opens that coin's tape */\n"
+ }
+]

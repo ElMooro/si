@@ -430,6 +430,22 @@ function peelIndexRoutes(raw,file){
  assert.equal(hash(raw),plan.before,file);
  return raw;
 }
+// 2026-11-21 (Khalid: "INDEX:BTCUSD - No supported chart route; chart unchanged. i cant pull btc on chart. investigate why i cant pull symbols out of search bar"): one reviewed crypto
+// table at the top of the watchlist router (a spot pair of a banked coin under a crypto venue or INDEX -> the coin's own tape; CME bitcoin / ether futures), which also outranks the
+// native route; the engine opens the directory's X:<coin>USD ids on that tape and joins an outside daily series only when it is the same coin; the identity test re-applies the router
+// edit and keeps the native-route cases on a coin with no banked bars. Every edit is a before/after pair under tests/fixtures/chart-crypto-routes.
+function peelCryptoRoutes(raw,file){
+ const plans={
+  'jh-chart-engine.js':{after:'c29415360c8b21ad3ea2d0074da00c020327472a9a730f1561548d39408bc40e',before:'3e155083ed083a0fe3e4c6cbf9973bc0ce71f3310b564a955c254ed568087272',edits:['engine.edits.json']},
+  'jh-chart-tvwatch.js':{after:'6b56696275092f2b68d5cedc2f5043b3027224bbbc37cb4d475cace4776e4984',before:'73960757ad566281eb496e729cca8e2c1b4aff32f4f42e75b7f6ff05a3dd4a95',edits:['tvwatch.edits.json','tvwatch-route.edits.json']},
+  'tests/watchlist-identity.test.js':{after:'7d3429ddc834e7ebf737f752bbfabdb1b5e0204c2dbf666dd34fc9224cb68d32',before:'9bb2fdc7e091b7673446496d03e577a8495a8a2341300b39bbb6f0dc45a55fa2',edits:['identity-test.edits.json']}
+ },plan=plans[file];
+ if(!plan||hash(raw)!==plan.after)return raw;
+ const edits=[].concat(...plan.edits.map(f=>JSON.parse(fs.readFileSync(path.join(R,'tests/fixtures/chart-crypto-routes',f),'utf8'))));
+ for(const e of [...edits].reverse()){assert.equal(raw.split(e.after).length,2,file+' crypto routes: '+e.after.slice(0,50));raw=raw.replace(e.after,e.before);}
+ assert.equal(hash(raw),plan.before,file);
+ return raw;
+}
 function peelSpxCashWatch(raw,file){
  const AFTER='15476552696562d0e9c9d0e7f62b49bdc8314fadc5141591b0cab799bb16a9af';
  const BEFORE='d7dd68f586c33aca02605eec9ed8bd4ef8ecdc067fcb699005e854e67609a55a';
@@ -509,7 +525,7 @@ function peelTabQuotes(raw,file){
  assert.equal(hash(raw),BEFORE,'jh-chart-engine.js');
  return raw;
 }
-function normalize(raw,file){raw=peelTabQuotes(raw,file);raw=peelVolDeskEngine(raw,file);raw=peelVolDeskRail(raw,file);raw=peelIndexRoutes(raw,file);raw=peelSpxCashWatch(raw,file);raw=peelSpxCashIdentityTest(raw,file);raw=peelMarkDesksHtml(raw,file);raw=peelMarkDesksRail(raw,file);raw=peelFredDesksEngine(raw,file);raw=peelFredDesksRail(raw,file);raw=peelCandleClarity(raw,file);raw=peelScreenFit(raw,file);raw=peelFlowsEngine(raw,file);raw=peelFlowsRail(raw,file);raw=peelFormingBar(raw,file);raw=peelCapitHtml(raw,file);raw=peelCapitRail(raw,file);raw=peelLeadersHtml(raw,file);raw=peelLeadersEngine(raw,file);raw=peelLeadersRail(raw,file);raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
+function normalize(raw,file){raw=peelCryptoRoutes(raw,file);raw=peelTabQuotes(raw,file);raw=peelVolDeskEngine(raw,file);raw=peelVolDeskRail(raw,file);raw=peelIndexRoutes(raw,file);raw=peelSpxCashWatch(raw,file);raw=peelSpxCashIdentityTest(raw,file);raw=peelMarkDesksHtml(raw,file);raw=peelMarkDesksRail(raw,file);raw=peelFredDesksEngine(raw,file);raw=peelFredDesksRail(raw,file);raw=peelCandleClarity(raw,file);raw=peelScreenFit(raw,file);raw=peelFlowsEngine(raw,file);raw=peelFlowsRail(raw,file);raw=peelFormingBar(raw,file);raw=peelCapitHtml(raw,file);raw=peelCapitRail(raw,file);raw=peelLeadersHtml(raw,file);raw=peelLeadersEngine(raw,file);raw=peelLeadersRail(raw,file);raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
  if(digest===row.before_sha256||digest!==row.after_sha256)return raw;
  for(const e of [...row.replacements].reverse()){assert.equal(raw.split(e.after).length,2,file+': '+e.after.slice(0,60));raw=raw.replace(e.after,e.before);}
  assert.equal(hash(raw),row.before_sha256,file);assert.equal(raw,fs.readFileSync(path.join(R,row.before_path),'utf8'));return raw;

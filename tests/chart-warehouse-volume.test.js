@@ -26,7 +26,7 @@ test('conflicts remain unavailable; valid named volume wins; generic scalar is n
  const plain={...bar(0,100),value:12345};delete plain.volume;assert.equal(h.c.toBars({source:'unknown',bars:[plain]})[0].volume,null);
 });
 for(const leading of [0,null])for(const spike of [8000,1000000])test('complete crypto path preserves leading '+leading+' and latest '+spike,async()=>{
- const primary=Array.from({length:40},(_,i)=>bar(i,i<3?leading:i===39?spike:100)),older=Array.from({length:48},(_,i)=>({...bar(i-8,50),close:90+i*.1,open:90+i*.1,high:92+i*.1,low:89+i*.1}));
+ const primary=Array.from({length:40},(_,i)=>bar(i,i<3?leading:i===39?spike:100)),older=Array.from({length:48},(_,i)=>({...bar(i-8,50),close:99.2+i*.1,open:99.2+i*.1,high:101.2+i*.1,low:98.2+i*.1}));   // 2026-11-21: 1% under the banked closes (was an invented 10%) - an outside series now joins only when it is the same coin (tests/chart-crypto-routes.test.js)
  const packets=[{source:'warehouse',warehouse_key:'invented/crypto-bars/BTC.json',bars:primary},{source:'invented:yahoo',bars:older}],input=structuredClone(packets);
  for(const [file,fixed] of [[prior,false],[current,true]]){
   const h=boot(file,packets),out=await h.c.klines('BTCUSDT','1d',false);assert.equal(out.length,48);assert.equal(h.calls.length,2);assert.ok(h.calls[1].endsWith('&nowarehouse=1'));assert.equal(out.at(-1).volume,fixed?spike:null);

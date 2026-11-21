@@ -1,0 +1,2408 @@
+{
+ "what": "Recorded evidence for the reviewed crypto routes (Khalid 2026-11-21: 'INDEX:BTCUSD - No supported chart route; chart unchanged. i cant pull btc on chart').",
+ "sources": {
+  "banked_coins": "ops 6880 section 1 (data/warm/katlin/crypto-bars inventory, 2026-11-21 17:31 UTC)",
+  "vendor_agreement": "ops 6881 section 1 (newest 30 shared days, tolerance 3%)",
+  "live_before": "ops 6882 sections 1 and 2 (real browser on justhodl.ai/chart.html before the change)",
+  "futures": "ops 6881 section 2: BTC=F 2,248 daily bars from 2017-12-18, ETH=F 1,460 from 2021-02-05; MBT=F and MET=F one bar"
+ },
+ "banked_coins": [
+  "AAVE",
+  "ADA",
+  "AERO",
+  "AKT",
+  "ALGO",
+  "APE",
+  "APT",
+  "AR",
+  "ARB",
+  "ASTR",
+  "ATOM",
+  "AVAX",
+  "AXS",
+  "BCH",
+  "BNB",
+  "BONK",
+  "BTC",
+  "CFX",
+  "CHZ",
+  "COMP",
+  "CRV",
+  "DASH",
+  "DOGE",
+  "DOT",
+  "EGLD",
+  "EIGEN",
+  "ENA",
+  "ENS",
+  "EOS",
+  "ETC",
+  "ETH",
+  "FET",
+  "FIL",
+  "FLOW",
+  "FLR",
+  "GALA",
+  "GRT",
+  "HBAR",
+  "HYPE",
+  "ICP",
+  "IMX",
+  "INJ",
+  "IOTA",
+  "JTO",
+  "JUP",
+  "KAS",
+  "KAVA",
+  "LDO",
+  "LINK",
+  "LTC",
+  "MANA",
+  "MATIC",
+  "MINA",
+  "MKR",
+  "NEAR",
+  "NEO",
+  "ONDO",
+  "OP",
+  "PENDLE",
+  "PEPE",
+  "POL",
+  "PYTH",
+  "QNT",
+  "RENDER",
+  "RNDR",
+  "ROSE",
+  "RUNE",
+  "SAND",
+  "SEI",
+  "SHIB",
+  "SNX",
+  "SOL",
+  "STRK",
+  "STX",
+  "SUI",
+  "TAO",
+  "THETA",
+  "TIA",
+  "TON",
+  "TRX",
+  "UNI",
+  "VET",
+  "VIRTUAL",
+  "W",
+  "WIF",
+  "WLD",
+  "XLM",
+  "XMR",
+  "XRP",
+  "XTZ",
+  "ZEC",
+  "ZK",
+  "ZRO"
+ ],
+ "vendor_agreement": {
+  "AAVE": {
+   "bank_last": "2026-11-20",
+   "bank_close": 97.87,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.1,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.14,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "ADA": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.14286,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.06,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.14,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "AERO": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.3959,
+   "yahoo": {
+    "verdict": "DIFFERENT",
+    "days": 30,
+    "median_pct": 100.0,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.16,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "AKT": {
+   "bank_last": "2026-10-10",
+   "bank_close": 0.7372,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.26,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.06,
+    "newest": "11-21"
+   }
+  },
+  "ALGO": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.0734,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.12,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.15,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "APE": {
+   "bank_last": "2026-10-10",
+   "bank_close": 0.15365,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.08,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.05,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.05,
+    "newest": "11-21"
+   }
+  },
+  "APT": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.3691,
+   "yahoo": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.17,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "ARB": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.11388,
+   "yahoo": {
+    "verdict": "DIFFERENT",
+    "days": 30,
+    "median_pct": 99.61,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.14,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "ASTR": {
+   "bank_last": "2026-10-10",
+   "bank_close": 0.00698,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.18,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.18,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   }
+  },
+  "ATOM": {
+   "bank_last": "2026-11-20",
+   "bank_close": 1.2255,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.1,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.12,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "AVAX": {
+   "bank_last": "2026-11-20",
+   "bank_close": 6.508,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.07,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.12,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "AXS": {
+   "bank_last": "2026-10-10",
+   "bank_close": 1.219,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.06,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.08,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.11,
+    "newest": "11-21"
+   }
+  },
+  "BCH": {
+   "bank_last": "2026-11-20",
+   "bank_close": 194.29,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.08,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.11,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "BNB": {
+   "bank_last": "2026-11-20",
+   "bank_close": 539.32,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.04,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.13,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.01,
+    "newest": "11-21"
+   }
+  },
+  "BONK": {
+   "bank_last": "2026-11-20",
+   "bank_close": 2.1e-06,
+   "yahoo": {
+    "verdict": "DIFFERENT",
+    "days": 30,
+    "median_pct": 6.38,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.33,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "BTC": {
+   "bank_last": "2026-11-20",
+   "bank_close": 58815.0,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.02,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.13,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "CHZ": {
+   "bank_last": "2026-10-10",
+   "bank_close": 0.01565,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.09,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.07,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.2,
+    "newest": "11-21"
+   }
+  },
+  "COMP": {
+   "bank_last": "2026-10-10",
+   "bank_close": 24.28,
+   "yahoo": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.05,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.09,
+    "newest": "11-21"
+   }
+  },
+  "CRV": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.1797,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.13,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.15,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "DASH": {
+   "bank_last": "2026-10-10",
+   "bank_close": 51.359,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.1,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.05,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.09,
+    "newest": "11-21"
+   }
+  },
+  "DOGE": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.05426,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.05,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.13,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "DOT": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.6619,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.11,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.14,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "EGLD": {
+   "bank_last": "2026-10-10",
+   "bank_close": 4.0281,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.29,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.35,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.18,
+    "newest": "11-21"
+   }
+  },
+  "EIGEN": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.11355,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.15,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.17,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "ENA": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.09897,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.08,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.15,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "ENS": {
+   "bank_last": "2026-10-10",
+   "bank_close": 6.336,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.07,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.09,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.1,
+    "newest": "11-21"
+   }
+  },
+  "EOS": {
+   "bank_last": "2026-07-02",
+   "bank_close": 0.063277,
+   "yahoo": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.02,
+    "newest": "05-26"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.22,
+    "newest": "12-10"
+   }
+  },
+  "ETC": {
+   "bank_last": "2026-11-20",
+   "bank_close": 5.467,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.07,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.11,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "ETH": {
+   "bank_last": "2026-11-20",
+   "bank_close": 1619.29,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.03,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.13,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "FET": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.1141,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.13,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.15,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "FIL": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.5346,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.11,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.12,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "FLOW": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.01422,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.25,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.24,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "FLR": {
+   "bank_last": "2026-10-10",
+   "bank_close": 0.007043,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.08,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.06,
+    "newest": "11-21"
+   }
+  },
+  "GALA": {
+   "bank_last": "2026-10-10",
+   "bank_close": 0.002448,
+   "yahoo": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.15,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "05-12"
+   }
+  },
+  "GRT": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.01586,
+   "yahoo": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.15,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "HBAR": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.05155,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.05,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.11,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "HYPE": {
+   "bank_last": "2026-11-20",
+   "bank_close": 60.94,
+   "yahoo": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.12,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "ICP": {
+   "bank_last": "2026-11-20",
+   "bank_close": 2.0218,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.09,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.13,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "IMX": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.09041,
+   "yahoo": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.15,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "INJ": {
+   "bank_last": "2026-11-20",
+   "bank_close": 6.362,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.12,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.15,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "IOTA": {
+   "bank_last": "2021-06-02",
+   "bank_close": 1.25371,
+   "yahoo": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   }
+  },
+  "JTO": {
+   "bank_last": "2026-10-10",
+   "bank_close": 0.5196,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.09,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.06,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.05,
+    "newest": "11-21"
+   }
+  },
+  "JUP": {
+   "bank_last": "2026-10-10",
+   "bank_close": 0.3703,
+   "yahoo": {
+    "verdict": "DIFFERENT",
+    "days": 30,
+    "median_pct": 99.89,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.09,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": "09-06"
+   }
+  },
+  "KAS": {
+   "bank_last": "2026-10-10",
+   "bank_close": 0.04133,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.08,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   },
+   "coinbase": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   }
+  },
+  "KAVA": {
+   "bank_last": "2026-10-10",
+   "bank_close": 0.0671,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.08,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.09,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.15,
+    "newest": "11-21"
+   }
+  },
+  "LDO": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.24013,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.13,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.17,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "LINK": {
+   "bank_last": "2026-11-20",
+   "bank_close": 8.525,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.07,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.14,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "LTC": {
+   "bank_last": "2026-11-20",
+   "bank_close": 40.552,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.05,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.11,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "MANA": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.0557,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.1,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.17,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "MATIC": {
+   "bank_last": "2025-10-14",
+   "bank_close": 0.1995,
+   "yahoo": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.02,
+    "newest": "09-10"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.04,
+    "newest": "10-14"
+   }
+  },
+  "MINA": {
+   "bank_last": "2026-10-10",
+   "bank_close": 0.0871,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.13,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.16,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.15,
+    "newest": "11-21"
+   }
+  },
+  "MKR": {
+   "bank_last": "2026-09-29",
+   "bank_close": 1788.0,
+   "yahoo": {
+    "verdict": "too few days",
+    "days": 3,
+    "median_pct": null,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.04,
+    "newest": "09-15"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.1,
+    "newest": "01-12"
+   }
+  },
+  "NEAR": {
+   "bank_last": "2026-11-20",
+   "bank_close": 2.8448,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.09,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.14,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "NEO": {
+   "bank_last": "2026-10-10",
+   "bank_close": 2.45,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.32,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.37,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   }
+  },
+  "ONDO": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.28135,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.08,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.11,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "OP": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.07,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.1,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.13,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "PENDLE": {
+   "bank_last": "2026-11-20",
+   "bank_close": 1.2705,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.16,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.17,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "PEPE": {
+   "bank_last": "2026-11-20",
+   "bank_close": 3.47e-06,
+   "yahoo": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.21,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "POL": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.07587,
+   "yahoo": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.1,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "PYTH": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.04817,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.15,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.13,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "QNT": {
+   "bank_last": "2026-10-10",
+   "bank_close": 246.73,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.09,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.05,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.02,
+    "newest": "11-21"
+   }
+  },
+  "RENDER": {
+   "bank_last": "2026-11-20",
+   "bank_close": 1.2716,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.08,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.13,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "RNDR": {
+   "bank_last": "2026-09-29",
+   "bank_close": 1.896,
+   "yahoo": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.07,
+    "newest": "07-22"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "06-26"
+   }
+  },
+  "ROSE": {
+   "bank_last": "2026-10-10",
+   "bank_close": 0.008233,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.06,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.05,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.12,
+    "newest": "11-21"
+   }
+  },
+  "RUNE": {
+   "bank_last": "2026-10-10",
+   "bank_close": 0.693,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.16,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.15,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   }
+  },
+  "SAND": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.0336,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.17,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.19,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "SEI": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.03519,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.1,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.14,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "SHIB": {
+   "bank_last": "2026-11-20",
+   "bank_close": 3.58e-06,
+   "yahoo": {
+    "verdict": "DIFFERENT",
+    "days": 30,
+    "median_pct": 5.96,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.22,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "SNX": {
+   "bank_last": "2026-10-10",
+   "bank_close": 0.24583,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.06,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.06,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.09,
+    "newest": "11-21"
+   }
+  },
+  "SOL": {
+   "bank_last": "2026-11-20",
+   "bank_close": 68.72,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.04,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.13,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "STRK": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.03051,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.29,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.16,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "STX": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.245,
+   "yahoo": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.15,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "SUI": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.65,
+   "yahoo": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.13,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "TAO": {
+   "bank_last": "2026-11-20",
+   "bank_close": 180.62,
+   "yahoo": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.11,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "THETA": {
+   "bank_last": "2024-11-04",
+   "bank_close": 1.0199,
+   "yahoo": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   }
+  },
+  "TIA": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.3278,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.11,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.15,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "TON": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.9771,
+   "yahoo": {
+    "verdict": "DIFFERENT",
+    "days": 30,
+    "median_pct": 99.75,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.11,
+    "newest": "06-30"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "TRX": {
+   "bank_last": "2026-10-10",
+   "bank_close": 0.330595,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.02,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.03,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   }
+  },
+  "UNI": {
+   "bank_last": "2026-11-20",
+   "bank_close": 4.4628,
+   "yahoo": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.14,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "VET": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.004477,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.12,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.14,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "W": {
+   "bank_last": "2026-10-10",
+   "bank_close": 0.01706,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.11,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.09,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.12,
+    "newest": "11-21"
+   }
+  },
+  "WIF": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.12183,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.1,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.19,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "WLD": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.2296,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.11,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.14,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "XLM": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.127205,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.06,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.1,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "XMR": {
+   "bank_last": "2026-10-10",
+   "bank_close": 517.06,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.09,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.11,
+    "newest": "02-20"
+   },
+   "coinbase": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   }
+  },
+  "XRP": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.9086,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.05,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.13,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "XTZ": {
+   "bank_last": "2026-11-20",
+   "bank_close": 0.1975,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.08,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.16,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "ZEC": {
+   "bank_last": "2026-11-20",
+   "bank_close": 758.69,
+   "yahoo": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.12,
+    "newest": "11-21"
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.13,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.0,
+    "newest": "11-21"
+   }
+  },
+  "ZK": {
+   "bank_last": "2026-10-10",
+   "bank_close": 0.013726,
+   "yahoo": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.08,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.05,
+    "newest": "11-21"
+   }
+  },
+  "ZRO": {
+   "bank_last": "2026-10-10",
+   "bank_close": 1.961,
+   "yahoo": {
+    "verdict": "no bars",
+    "days": 0,
+    "median_pct": null,
+    "newest": null
+   },
+   "binance": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.07,
+    "newest": "11-21"
+   },
+   "coinbase": {
+    "verdict": "SAME",
+    "days": 30,
+    "median_pct": 0.03,
+    "newest": "11-21"
+   }
+  }
+ },
+ "live_before": {
+  "BTC-USD": {
+   "how": "direct",
+   "verdict": "CHARTS",
+   "active": "BTC-USD",
+   "chart": "BTC-USD",
+   "bars": 4441,
+   "last": "2026-11-21"
+  },
+  "INDEX:BTCUSD": {
+   "how": "router",
+   "verdict": "NO ROUTE",
+   "active": "SPY",
+   "chart": "SPY",
+   "bars": 8509,
+   "last": "2026-11-20"
+  },
+  "INDEX:ETHUSD": {
+   "how": "router",
+   "verdict": "same chart",
+   "active": "^ETHUSD",
+   "chart": "SPY",
+   "bars": 8509,
+   "last": "2026-11-20"
+  },
+  "X:BTCUSD": {
+   "how": "direct",
+   "verdict": "CHARTS",
+   "active": "X:BTCUSD",
+   "chart": "X:BTCUSD",
+   "bars": 2268,
+   "last": "2026-11-20"
+  },
+  "X:SOLUSD": {
+   "how": "direct",
+   "verdict": "CHARTS",
+   "active": "X:SOLUSD",
+   "chart": "X:SOLUSD",
+   "bars": 2094,
+   "last": "2026-11-20"
+  },
+  "X:ARBUSD": {
+   "how": "direct",
+   "verdict": "CHARTS",
+   "active": "X:ARBUSD",
+   "chart": "X:ARBUSD",
+   "bars": 1339,
+   "last": "2026-11-20"
+  },
+  "X:TONUSD": {
+   "how": "direct",
+   "verdict": "CHARTS",
+   "active": "X:TONUSD",
+   "chart": "X:TONUSD",
+   "bars": 1285,
+   "last": "2026-11-20"
+  },
+  "X:SUIUSD": {
+   "how": "direct",
+   "verdict": "CHARTS",
+   "active": "X:SUIUSD",
+   "chart": "X:SUIUSD",
+   "bars": 1297,
+   "last": "2026-11-20"
+  },
+  "BINANCE:BTCUSDT": {
+   "how": "router",
+   "verdict": "BLANK",
+   "active": "BINANCE:BTCUSDT",
+   "chart": "None",
+   "bars": 0,
+   "last": "-"
+  },
+  "BINANCE:SOLUSDT": {
+   "how": "router",
+   "verdict": "BLANK",
+   "active": "BINANCE:SOLUSDT",
+   "chart": "None",
+   "bars": 0,
+   "last": "-"
+  },
+  "COINBASE:SOLUSD": {
+   "how": "router",
+   "verdict": "BLANK",
+   "active": "COINBASE:SOLUSD",
+   "chart": "None",
+   "bars": 0,
+   "last": "-"
+  },
+  "KRAKEN:XBTUSD": {
+   "how": "router",
+   "verdict": "BLANK",
+   "active": "KRAKEN:XBTUSD",
+   "chart": "None",
+   "bars": 0,
+   "last": "-"
+  },
+  "BITSTAMP:BTCUSD": {
+   "how": "router",
+   "verdict": "CHARTS",
+   "active": "BTC-USD",
+   "chart": "BTC-USD",
+   "bars": 4441,
+   "last": "2026-11-21"
+  },
+  "COINBASE:ETHUSD": {
+   "how": "router",
+   "verdict": "CHARTS",
+   "active": "ETH-USD",
+   "chart": "ETH-USD",
+   "bars": 3290,
+   "last": "2026-11-21"
+  },
+  "CRYPTO:BTCUSD": {
+   "how": "router",
+   "verdict": "CHARTS",
+   "active": "BTC-USD",
+   "chart": "BTC-USD",
+   "bars": 4441,
+   "last": "2026-11-21"
+  },
+  "SOLUSD": {
+   "how": "direct",
+   "verdict": "same chart",
+   "active": "SPY",
+   "chart": "SPY",
+   "bars": 8509,
+   "last": "2026-11-20"
+  },
+  "CME:BTC1!": {
+   "how": "router",
+   "verdict": "NO ROUTE",
+   "active": "SPY",
+   "chart": "SPY",
+   "bars": 8509,
+   "last": "2026-11-20"
+  },
+  "CRYPTOCAP:BTC.D": {
+   "how": "router",
+   "verdict": "NO ROUTE",
+   "active": "SPY",
+   "chart": "SPY",
+   "bars": 8509,
+   "last": "2026-11-20"
+  },
+  "AMEX:IBIT": {
+   "how": "router",
+   "verdict": "CHARTS",
+   "active": "IBIT",
+   "chart": "IBIT",
+   "bars": 717,
+   "last": "2026-11-20"
+  },
+  "SPY": {
+   "how": "direct",
+   "verdict": "CHARTS",
+   "active": "SPY",
+   "chart": "SPY",
+   "bars": 8509,
+   "last": "2026-11-20"
+  }
+ },
+ "dialog_before": [
+  {
+   "word": "btc",
+   "first_rows": [
+    "BTC",
+    "CRYPTOCAP:TOTAL3-CRYPTOCAP:BTC",
+    "INDEX:BTCUSD",
+    "CME:BTC1!-INDEX:BTCUSD",
+    "BITSTAMP:BTCUSD",
+    "COINBASE:BTCUSD",
+    "CRYPTOCAP:BTC.D",
+    "CME:BTC1!"
+   ]
+  },
+  {
+   "word": "bitcoin",
+   "first_rows": [
+    "X:BTCUSD",
+    "COINBASE:BTCUSD",
+    "INDEX:BTCUSD",
+    "IBIT",
+    "BTC",
+    "CME:BTC1!-INDEX:BTCUSD",
+    "BITSTAMP:BTCUSD",
+    "BITSTAMP:BTCUSD/TVC:VIX"
+   ]
+  },
+  {
+   "word": "eth",
+   "first_rows": [
+    "X:ETHUSD",
+    "ETHA",
+    "ETH",
+    "equity-research-tickers:asset:21107d5589312f62",
+    "equity-research-tickers:asset:8154edc9e70c18cc",
+    "INDEX:ETHUSD",
+    "AMEX:ETHT",
+    "CBOE:ETHU"
+   ]
+  },
+  {
+   "word": "ethereum",
+   "first_rows": [
+    "X:ETHUSD",
+    "ETHA",
+    "INDEX:ETHUSD",
+    "BYBIT:ETHUSDU2025",
+    "KRAKEN:ETHBTC",
+    "INTOTHEBLOCK:ETH_INVESTORS",
+    "INTOTHEBLOCK:ETH_WHALESPERCENTAGE",
+    "INTOTHEBLOCK:ETH_INVESTORSPERCENTAGE"
+   ]
+  },
+  {
+   "word": "sol",
+   "first_rows": [
+    "X:SOLUSD",
+    "polygon:asset:c7f3799b0d7975a7",
+    "indicator-bus:SOL",
+    "PEPPERSTONE:GASOLINE",
+    "FX_IDC:CHFPEN",
+    "FX_IDC:JPYPEN",
+    "AMEX:UGA",
+    "ECONOMICS:USGS"
+   ]
+  },
+  {
+   "word": "btc",
+   "first_rows": [
+    "X:BTCUSD",
+    "COINBASE:BTCUSD",
+    "INDEX:BTCUSD",
+    "IBIT",
+    "BTC",
+    "CRYPTOCAP:TOTAL3-CRYPTOCAP:BTC",
+    "CME:BTC1!-INDEX:BTCUSD",
+    "BITSTAMP:BTCUSD"
+   ]
+  },
+  {
+   "word": "btc",
+   "first_rows": [
+    "X:BTCUSD",
+    "COINBASE:BTCUSD",
+    "INDEX:BTCUSD",
+    "BTC",
+    "CRYPTOCAP:TOTAL3-CRYPTOCAP:BTC",
+    "CME:BTC1!-INDEX:BTCUSD",
+    "BITSTAMP:BTCUSD",
+    "CRYPTOCAP:BTC.D"
+   ]
+  }
+ ],
+ "dialog_clicks_before": [
+  {
+   "row": "INDEX:BTCUSD",
+   "verdict": "NO ROUTE",
+   "active": "SPY",
+   "chart": "SPY"
+  },
+  {
+   "row": "INDEX:BTCUSD",
+   "verdict": "NO ROUTE",
+   "active": "SPY",
+   "chart": "SPY"
+  },
+  {
+   "row": "INDEX:ETHUSD",
+   "verdict": "same chart",
+   "active": "^ETHUSD",
+   "chart": "SPY"
+  },
+  {
+   "row": "INDEX:ETHUSD",
+   "verdict": "same chart",
+   "active": "^ETHUSD",
+   "chart": "SPY"
+  },
+  {
+   "row": "X:SOLUSD",
+   "verdict": "CHARTS",
+   "active": "X:SOLUSD",
+   "chart": "X:SOLUSD"
+  },
+  {
+   "row": "X:BTCUSD",
+   "verdict": "CHARTS",
+   "active": "X:BTCUSD",
+   "chart": "X:BTCUSD"
+  },
+  {
+   "row": "COINBASE:BTCUSD",
+   "verdict": "CHARTS",
+   "active": "BTC-USD",
+   "chart": "BTC-USD"
+  }
+ ],
+ "symbol_map_hits": {
+  "INDEX:BTCUSD": {
+   "source": "COINGECKO",
+   "id": "bitcoin"
+  },
+  "CME:BTC1!": {
+   "source": "COINGECKO",
+   "id": "bitcoin"
+  }
+ },
+ "expected": {
+  "INDEX:BTCUSD": "BTC-USD",
+  "INDEX:ETHUSD": "ETH-USD",
+  "BINANCE:BTCUSDT": "BTC-USD",
+  "BINANCE:SOLUSDT": "SOL-USD",
+  "COINBASE:SOLUSD": "SOL-USD",
+  "KRAKEN:XBTUSD": "BTC-USD",
+  "BITSTAMP:BTCUSD": "BTC-USD",
+  "COINBASE:ETHUSD": "ETH-USD",
+  "CRYPTO:BTCUSD": "BTC-USD",
+  "SOLUSD": "SOL-USD",
+  "CME:BTC1!": "BTC=F"
+ }
+}

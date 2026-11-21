@@ -487,6 +487,25 @@
       "^TNX": "TVC:TNX"
     }, indexTarget;
     if (u.indexOf(" ") < 0) for (indexTarget in indexRoutes) if ((" " + indexRoutes[indexTarget] + " ").indexOf(" " + u + " ") >= 0) return indexTarget;
+    /* Reviewed crypto routes. 2026-11-21 (Khalid: "INDEX:BTCUSD · No supported chart route; chart unchanged i cant pull btc on chart. investigate why i cant pull symbols out of
+       search bar"): TradingView's first answer for "bitcoin" is INDEX:BTCUSD and for "ethereum" INDEX:ETHUSD. The symbol map sends those to a provider's coin id ("bitcoin") this
+       router cannot hand to the chart, and a map hit it cannot use ended the search before the venue rules below; BINANCE:BTCUSDT, COINBASE:SOLUSD and KRAKEN:XBTUSD took the
+       native route and drew nothing (ops 6879, 6882). A spot pair of a banked coin against the dollar or a dollar stablecoin, under a crypto venue or the INDEX namespace, is
+       that coin's own tape: the banked daily bars plus today's forming bar. The coins are the bank (data/warm/katlin/crypto-bars, ops 6880) - no other coin has banked bars
+       to check an outside series against; Kraken's XBT and XDG are bitcoin and dogecoin. CME's bitcoin and ether futures route to those contracts on the futures feed (ops
+       6881). Perpetuals, dated futures, cross pairs (ETHBTC), market-cap and dominance series (CRYPTOCAP) and on-chain metrics are deliberately not listed: the warehouse holds
+       no such series. Reviewed here, so these decide before the symbol map. */
+    var cryptoCoins = " AAVE ADA AERO AKT ALGO APE APT AR ARB ASTR ATOM AVAX AXS BCH BNB BONK BTC CFX CHZ COMP CRV DASH DOGE DOT EGLD EIGEN ENA ENS EOS ETC ETH FET FIL FLOW FLR GALA GRT HBAR HYPE ICP IMX INJ IOTA JTO JUP KAS KAVA LDO LINK LTC MANA MATIC MINA MKR NEAR NEO ONDO OP PENDLE PEPE POL PYTH QNT RENDER RNDR ROSE RUNE SAND SEI SHIB SNX SOL STRK STX SUI TAO THETA TIA TON TRX UNI VET VIRTUAL W WIF WLD XLM XMR XRP XTZ ZEC ZK ZRO ";
+    var cryptoPair = /^(?:(INDEX|CRYPTO|COINBASE|BITSTAMP|KRAKEN|BINANCE|BINANCEUS|BYBIT|BITFINEX|GEMINI|OKX|KUCOIN|MEXC|GATEIO|HTX|BITGET|CRYPTOCOM|POLONIEX|PYTH):)?([A-Z0-9]{2,14})$/.exec(u);
+    var cryptoQuotes = ["USD", "USDT", "USDC", "BUSD"], cryptoFutures = { "CME:BTC1!": "BTC=F", "CME:MBT1!": "BTC=F", "CME:ETH1!": "ETH=F", "CME:MET1!": "ETH=F" }, cryptoCoin, cq;
+    /* The dollar itself is tried first (ARBUSD is ARB against the dollar, not AR against BUSD); an id with no venue is a pair only against the dollar itself (BTCUSDT stays as typed). */
+    if (cryptoPair) for (cq = 0; cq < cryptoQuotes.length && (cryptoPair[1] || !cq); cq++) {
+      if (cryptoPair[2].slice(-cryptoQuotes[cq].length) !== cryptoQuotes[cq]) continue;
+      cryptoCoin = cryptoPair[2].slice(0, -cryptoQuotes[cq].length);
+      cryptoCoin = cryptoCoin === "XBT" ? "BTC" : cryptoCoin === "XDG" ? "DOGE" : cryptoCoin;
+      if (cryptoCoin && cryptoCoins.indexOf(" " + cryptoCoin + " ") >= 0) { (chartSymbol.crypto || (chartSymbol.crypto = {}))[u] = cryptoCoin + "-USD"; return cryptoCoin + "-USD"; }
+    }
+    if (cryptoFutures[u]) return cryptoFutures[u];
     if (hit && hit.source === "MARKET" && hit.id && /^[A-Z0-9.^=-]{1,24}$/.test(String(hit.id).toUpperCase())) return String(hit.id).toUpperCase();
     if (hit && hit.source === "FRED" && /^[A-Z0-9]+$/.test(hit.id || "")) return "FRED:" + fredId(hit.id);
     if (hit && hit.source === "COINGECKO" && /^[a-z]{2,6}$/.test(hit.id || "")) return String(hit.id).toUpperCase() + "-USD";
@@ -679,7 +698,9 @@
           }
           // Preserve the exact literal primary lookup where native routing already supports it.
           // A conflicting MARKET suggestion cannot silently replace AAPL with MSFT.
-          if (!prefixId && original && original.engine === "equity" && String(original.ticker || "").toUpperCase() === base &&
+          // 2026-11-21: a reviewed crypto route is not a native lookup - the chart has no bars under BTCUSDT, SOLUSD or XBTUSD (ops 6882: blank charts).
+          var reviewedCrypto = !!(proposal && chartSymbol.crypto && chartSymbol.crypto[u] === proposal);
+          if (!reviewedCrypto && !prefixId && original && original.engine === "equity" && String(original.ticker || "").toUpperCase() === base &&
               (rawVenue || (!u.includes(":") && (!mapHit || mapHit.source === "MARKET") && !/^(BTC|ETH)$/.test(u)))) {
             route.handoff = requested; route.resolved = original.ticker; route.primary = original.ticker; route.fallback = original.yahoo || null;
             route.relation = rawVenue || String(route.fallback || "").toUpperCase() !== base ? "native-route" : "exact";
@@ -704,6 +725,7 @@
       route.handoffHints = routeHints(route.handoff);
       if (!route.primary) route.primary = route.resolved;
       if (route.reason === "No supported chart route; chart unchanged") route.reason = route.relation === "exact" ? "Identifier routing unchanged; underlying data identity is not certified" : route.relation === "provider-prefix" ? "Provider prefix route; identical series ID with explicit provider prefix" : "Possible proxy or source substitution; equivalence unverified";
+      if (chartSymbol.crypto && chartSymbol.crypto[u] === route.handoff && route.relation === "mapped-route") route.reason = "Possible proxy or source substitution; equivalence unverified. Reviewed crypto route: the coin's US dollar tape - banked daily bars plus today's forming bar. One venue's own prints, or a dollar-stablecoin quote, can differ slightly from it.";
       if (/^regionalfed:/i.test(route.handoff || "")) route.reason = "Possible proxy or source substitution; equivalence unverified. Official regional Federal Reserve monthly history. Source definitions distinguish index contributions, seasonal adjustment, survey comparison and expectations. Survey diffusion points are not growth percentages. Month-start chart anchors are not release dates. Current revised histories are not original release vintages.";
       if (/^regionalfed:dallas-wei:/i.test(route.handoff || "")) route.reason = "Possible proxy or source substitution; equivalence unverified. Official Dallas Fed weekly economic activity history. WEI points are scaled to four-quarter GDP growth and are not realized GDP or a forecast. Saturday reference dates are not release times. Publisher-labelled vintages are not independently verified release-time snapshots.";
       if (/^regionalfed:cleveland-/i.test(route.handoff || "")) route.reason = "Possible proxy or source substitution; equivalence unverified. Official Cleveland Fed inflation history. Monthly fractions, annualized monthly percentages and published YoY percentages are distinct series. The publisher interpolated October and November 2025 underlying changes; affected observations are flagged. Current revised history, not verified release-time vintages. Source: Federal Reserve Bank of Cleveland, CC BY-SA 4.0.";

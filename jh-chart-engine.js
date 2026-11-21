@@ -340,6 +340,24 @@
     if(/^(BTCUSD|ETHUSD)$/.test(t)) return true;
     return false;
   }
+  /* 2026-11-21 (Khalid: "i cant pull btc on chart ... i want all my crypto and stocks and etfs to refresh"): the coins with banked daily bars (data/warm/katlin/crypto-bars, ops 6880).
+     The directory's ids for them (X:BTCUSD, X:SOLUSD ...) are those banked bars alone - they end yesterday and have no forming bar - while the coin's tape (BTC-USD) is the same bank
+     plus today's bar, so a pick of the directory id opens the tape. The watchlist router carries the same list (tests/chart-crypto-routes.test.js keeps the two equal). */
+  var CRYPTO_TAPE=" AAVE ADA AERO AKT ALGO APE APT AR ARB ASTR ATOM AVAX AXS BCH BNB BONK BTC CFX CHZ COMP CRV DASH DOGE DOT EGLD EIGEN ENA ENS EOS ETC ETH FET FIL FLOW FLR GALA GRT HBAR HYPE ICP IMX INJ IOTA JTO JUP KAS KAVA LDO LINK LTC MANA MATIC MINA MKR NEAR NEO ONDO OP PENDLE PEPE POL PYTH QNT RENDER RNDR ROSE RUNE SAND SEI SHIB SNX SOL STRK STX SUI TAO THETA TIA TON TRX UNI VET VIRTUAL W WIF WLD XLM XMR XRP XTZ ZEC ZK ZRO ";
+  function cryptoTapeId(s){
+    var m=/^X:([A-Z0-9]{1,10})USD$/i.exec(String(s||"").trim());
+    return m && CRYPTO_TAPE.indexOf(" "+m[1].toUpperCase()+" ")>=0 ? m[1].toUpperCase()+"-USD" : "";
+  }
+  /* An outside daily series joins banked bars only when it is the same coin: on the newest 30 days both carry, at least 5 of them, the median distance between closes is within 3%.
+     ops 6881: the outside ARB-USD, TON-USD, AERO-USD and JUP-USD are other coins (99% away) and were being joined on as older history and as today's bar. */
+  function sameCoinTape(outside, banked){
+    var m={}, r=[], i, k;
+    for(i=0;i<(banked||[]).length;i++){ k=utcMidnight(banked[i].time); if(k && banked[i].close>0) m[k]=banked[i].close; }
+    for(i=(outside||[]).length-1;i>=0 && r.length<30;i--){ k=utcMidnight(outside[i].time); if(k && m[k]>0 && outside[i].close>0) r.push(Math.abs(outside[i].close/m[k]-1)); }
+    if(r.length<5) return false;
+    r.sort(function(a,b){ return a-b; });
+    return r[Math.floor(r.length/2)]<=0.03;
+  }
   function resolveSym(raw, classificationOnly){
     var orig=String(raw||"").trim();
     if(window.JHChartCatalog && window.JHChartCatalog.isWarehouse && window.JHChartCatalog.isWarehouse(orig) && !/^(CQ|CISS|DESK|DATA):/i.test(orig)){
@@ -2147,7 +2165,7 @@
               try{
                 var yrawC=await fetchJson(PROXY+"/yf-ohlc?symbol="+encodeURIComponent(ys||t)+"&range=max&interval=1d&nowarehouse=1");
                 var ydC=asDaily(cleanWildTicks(toBars(yrawC)));
-                if(ydC.length>=8){
+                if(ydC.length>=8 && sameCoinTape(ydC, d)){
                   var n0=d.length, t0=d.length?d[0].time:0;
                   // Keep the complete primary tape, including missing and measured-zero
                   // volumes. Magnitude alone cannot identify a bad print or unit change.
@@ -5672,6 +5690,7 @@ else if(o.id==="rvol"){
   }
   function chartId(s){
     s=String(s||"").trim();
+    s=cryptoTapeId(s)||s; /* 2026-11-21: the directory's id of a banked coin opens that coin's tape */
     if(window.JHChartCatalog && window.JHChartCatalog.chartId){
       var mapped=window.JHChartCatalog.chartId(s);
       if(mapped) s=mapped;
