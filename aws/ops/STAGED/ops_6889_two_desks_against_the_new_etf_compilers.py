@@ -24,8 +24,10 @@ import traceback
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "aws" / "ops"))
 LIVE = "justhodl-dashboard-live"
-FILES = {"etf_native": "aws/lambdas/justhodl-etf-true-flows/source/etf_native.py", "etf_research": "aws/lambdas/justhodl-etf-true-flows/source/etf_research.py",
-         "etf_universe": "aws/lambdas/justhodl-etf-true-flows/source/etf_universe.py", "evidence_store": "aws/shared/evidence_store.py"}
+# 3.1.0 added a fifth compiler to the publication's inventory (etf_issuers); the first run of this script (19:27 UTC) showed it: "Complete reviewed upstream compiler required"
+FILES = {"etf_issuers": "aws/lambdas/justhodl-etf-true-flows/source/etf_issuers.py", "etf_native": "aws/lambdas/justhodl-etf-true-flows/source/etf_native.py",
+         "etf_research": "aws/lambdas/justhodl-etf-true-flows/source/etf_research.py", "etf_universe": "aws/lambdas/justhodl-etf-true-flows/source/etf_universe.py",
+         "evidence_store": "aws/shared/evidence_store.py"}
 
 
 def repo_digests(root=ROOT):
