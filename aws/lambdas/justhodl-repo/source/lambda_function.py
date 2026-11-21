@@ -37,6 +37,8 @@ from datetime import datetime, timedelta, timezone
 import boto3
 
 from history_writes import history_etags, put_history
+from repo_scope import (FUNDING_BUCKET, FUNDING_CORE, derived_series,
+                         dtcc_banked, ofr_extras, refresh_due)
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 s3 = boto3.client("s3", region_name="us-east-1")
@@ -170,6 +172,8 @@ def group_of(e):
         return "Reference rates & volumes"
     if "AFtD" in m or "AFtR" in m:
         return "Primary dealer FAILS"
+    if e.get("family") == "PDSEC":
+        return "Primary dealer securities borrowed & lent"
     if m.startswith("NYPD"):
         return "Primary dealer financing"
     if e.get("family") == "DOLLAR":
@@ -189,7 +193,7 @@ def group_of(e):
     if e.get("family") == "FREDREPO":
         return "FRED repo & SOFR complex"
     if e.get("family") == "MMFRP":
-        return "MMF repo counterparties (OFR)"
+        return "Money market funds (OFR)"
     if e.get("family") == "SPONSORED":
         return "FICC sponsored repo"
     if e.get("family") == "RATESPCT":
@@ -445,6 +449,8 @@ def lambda_handler(event, context):
 
     def _bucket(fid, title):
         t = (title or "").lower()
+        if fid in FUNDING_CORE:
+            return FUNDING_BUCKET
         if fid.startswith("SOFR"):
             return "SOFR"
         if fid.startswith("RRP") or "reverse repurchase" in t:
@@ -459,7 +465,7 @@ def lambda_handler(event, context):
     CORE = ["SOFR", "SOFR30DAYAVG", "SOFR90DAYAVG", "SOFR180DAYAVG",
              "SOFRINDEX", "RRPONTSYD", "RRPONTSYAWARD", "RPONTSYD",
              "RPONAGYD", "RPONMBSD", "WLRRAL", "WORAL", "IORB",
-             "WREPOFOR", "WLRRAFOIAL"]
+             "WREPOFOR", "WLRRAFOIAL"] + list(FUNDING_CORE)
     if fred_key:
         try:
             import urllib.request as _ur
@@ -495,9 +501,12 @@ def lambda_handler(event, context):
             _d = sread(wkey)
             pairs = extract_pairs(_d)
             if pairs:
-                stale = (datetime.now(timezone.utc) -
-                          datetime.strptime(pairs[-1][0], "%Y-%m-%d")
-                          .replace(tzinfo=timezone.utc)).days > 3
+                # 2026-11-21: by the series' own rhythm (repo_scope) -- a
+                # daily series the day after its print, an annual line
+                # only when its next print can exist; the old rule (older
+                # than 3 days) asked FRED about ~1,000 series every run
+                stale = refresh_due(fid, pairs,
+                                     datetime.now(timezone.utc).date())
         except Exception:
             pass
         if stale and fred_key:
@@ -569,6 +578,17 @@ def lambda_handler(event, context):
                                        f"/hf/v1/series/full?mnemonic={_fs}"})
         except Exception:
             pass
+
+    # v3.0 (2026-11-21): every banked OFR series the inventory never
+    # listed -- money-market-fund repo by collateral and term with the
+    # yields funds earn on it, dealer securities borrowed and lent
+    try:
+        _ofr_cat = list(sread("data/warm/ofr/state.json").get("series")
+                         or {})
+    except Exception:
+        _ofr_cat = []
+    scope.extend(ofr_extras(names, {e["mnemonic"] for e in scope},
+                             _ofr_cat))
 
     # v2.0-B: NY Fed secured-rate PERCENTILES (SOFR/TGCR/BGCR) --
     # banked + self-extending; P25/75/99 become first-class rows via
@@ -1289,6 +1309,15 @@ def lambda_handler(event, context):
     except Exception as _de:
         diag['dtcc']['error'] = (type(_de).__name__ + ':'
                                    + str(_de)[:80])
+    # v3.0: the banked DTCC history stays on the board on the days the
+    # live file cannot be fetched (it left the page with the first 404)
+    for _e in dtcc_banked({e["mnemonic"] for e in scope}):
+        try:
+            s3.head_object(Bucket=BUCKET, Key=_e["s3_key"])
+            scope.append(_e)
+            diag['dtcc']['banked_only'] = True
+        except Exception:
+            pass
 
     # 2026-11-21: a history file is written only when its bytes changed
     # (history_writes.py); one listing gives every file's ETag.
@@ -1436,6 +1465,11 @@ def lambda_handler(event, context):
     _emit("D_SOFR_SRF", "SOFR − SRF min bid rate (bps): market vs "
            "backstop; positive = knocking on the ceiling",
            _spread("SOFR", "SRF_MINRATE"))
+    # v3.0: SOFR against fed funds, the SOFR tail, SOFR against interest
+    # on reserves across the 2021 rename, fed funds against target, the
+    # Fed's repo operations summed (repo_scope.derived_series)
+    for _mn, _nm, _pp9, _tier in derived_series(_pairs):
+        _emit(_mn, _nm, _pp9, tier=_tier)
 
     # ── barometer: labeled, transparent heuristic ────────────────────
     def latest(m):
@@ -1500,7 +1534,7 @@ def lambda_handler(event, context):
     groups = {}
     for r in rows:
         groups.setdefault(r["group"], []).append(r)
-    out = {"as_of": now, "engine_v": "2.9", "diag": diag,
+    out = {"as_of": now, "engine_v": "3.0", "diag": diag,
             "note": ("barometer is a labeled heuristic: score = 50 + "
                      "10*mean(clipped z), components listed in full"),
             "counts": {"series": len(rows), "skipped": len(skipped),
@@ -1517,7 +1551,7 @@ def lambda_handler(event, context):
     s3.put_object(Bucket=BUCKET, Key="data/repo.json",
                    Body=json.dumps(out, separators=(",", ":")).encode(),
                    ContentType="application/json", CacheControl="no-cache")
-    res = {"ok": True, "v": "2.9", "ice": ice_added, "frepo": frepo_added, "series": len(rows), "skipped": len(skipped),
+    res = {"ok": True, "v": "3.0", "ice": ice_added, "frepo": frepo_added, "series": len(rows), "skipped": len(skipped),
             "history_written": hist_stats["written"], "history_unchanged": hist_stats["unchanged"],
             "barometer": score, "label": label,
             "secs": round(time.time() - t0, 1)}

@@ -1,0 +1,283 @@
+"""The whole board build, end to end, on a stub bucket and a stub wire (2026-11-21, engine 3.0).  No network, no AWS.
+
+The engine is one long handler with a dozen inline feeders; until now only its helpers were tested.  This runs the
+handler itself and reads the board it publishes: the refreshed OFR layout is read, the series the inventory never
+listed are on the board, the policy and funding series are banked and bucketed, the derived spreads come out with the
+right numbers, the banked DTCC history survives a 404, FRED is asked by each series' rhythm, and a second run writes
+no history file again.
+"""
+from datetime import date, datetime, timedelta, timezone
+import gzip
+import io
+import json
+import os
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+sys.path[:0] = [str(HERE.parent / "source"), str(HERE.parents[2] / "shared"), str(HERE.parents[2] / "shared" / "tests")]
+os.environ.setdefault("AWS_DEFAULT_REGION", "us-east-1")
+os.environ.setdefault("AWS_ACCESS_KEY_ID", "test")
+os.environ.setdefault("AWS_SECRET_ACCESS_KEY", "test")
+
+TODAY = datetime.now(timezone.utc).date()
+
+
+def business_days(n, end=None):
+    """The last n weekdays up to `end` (default: two days ago, so a daily series is due)."""
+    d, out = (end or TODAY - timedelta(days=2)), []
+    while len(out) < n:
+        if d.weekday() < 5:
+            out.append(d.isoformat())
+        d -= timedelta(days=1)
+    return out[::-1]
+
+
+DAYS = business_days(80)
+SPIKE = DAYS[40]                                     # one day on which repo trades far above everything else
+
+
+def level(base, spike=None):
+    return [[d, (spike if (spike is not None and d == SPIKE) else base)] for d in DAYS]
+
+
+def ofr_doc(m, rows):
+    return gzip.compress(json.dumps({"mnemonic": m, "source_url": "u", "raw_snapshot_key": None, "as_of": "x", "refreshed_by": "dataset",
+                                     "payload": {m: {"timeseries": {"aggregation": rows}, "metadata": {"mnemonic": m}}}}).encode())
+
+
+def fred_doc(fid, rows, title="t"):
+    return json.dumps({"id": fid, "title": title, "observations": [{"date": d, "value": v} for d, v in rows]}).encode()
+
+
+OFR = {"FNYR-SOFR-A": level(3.91, 5.25), "FNYR-EFFR-A": level(3.88, 3.95), "FNYR-TGCR-A": level(3.88, 5.10),
+       "REPO-TRIV1_AR_TOT-P": level(3.90, 4.93), "REPO-DVP_AR_TOT-P": level(3.92, 5.60), "REPO-GCF_AR_TOT-P": level(3.95, 6.00),
+       "REPO-TRIV1_TV_OO-P": level(1.8e12), "REPO-TRIV1_TV_TOT-P": level(2.3e12), "NYPD-PD_AFtD_T-A": level(1.0e11),
+       "MMF-MMF_RP_wFR-M": level(6.8e9), "MMF-MMF_RP_T_OO-M": level(9.0e11), "NYPD-PD_SB_T_TOT-A": level(4.0e11),
+       "NYPD-PD_SL_TOT-A": []}                                                                      # banked, empty at the source
+INVENTORY = ["FNYR-SOFR-A", "FNYR-EFFR-A", "FNYR-TGCR-A", "REPO-TRIV1_AR_TOT-P", "REPO-DVP_AR_TOT-P", "REPO-GCF_AR_TOT-P",
+             "REPO-TRIV1_TV_OO-P", "REPO-TRIV1_TV_TOT-P", "NYPD-PD_AFtD_T-A"]
+NAMES = {"repo": {"REPO-TRIV1_AR_TOT-P": "Tri-Party Average Rate: Total", "REPO-DVP_AR_TOT-P": "DVP Average Rate: Total", "REPO-GCF_AR_TOT-P": "GCF Average Rate: Total",
+                  "REPO-TRIV1_TV_OO-P": "Tri-Party Volume: Overnight", "REPO-TRIV1_TV_TOT-P": "Tri-Party Volume: Total"},
+         "nypd": {"NYPD-PD_AFtD_T-A": "Fails to Deliver: Treasury", "NYPD-PD_SB_T_TOT-A": "Primary Dealer Securities Borrowed Backed by U.S. Treasury Securities: Total",
+                  "NYPD-PD_SL_TOT-A": "Primary Dealer Securities Lent: Total"},
+         "fnyr": {"FNYR-SOFR-A": "Secured Overnight Financing Rate", "FNYR-EFFR-A": "Effective Federal Funds Rate", "FNYR-TGCR-A": "Tri-Party General Collateral Rate"},
+         "mmf": {"MMF-MMF_RP_wFR-M": "MMF Repo with the Federal Reserve", "MMF-MMF_RP_T_OO-M": "MMF Repo Backed by U.S. Treasury Securities: Overnight/Open"}}
+QUARTERS = [("%d-%02d-01" % (y, m), 100.0 + i) for i, (y, m) in enumerate([(TODAY.year - 2, 1), (TODAY.year - 2, 4), (TODAY.year - 2, 7), (TODAY.year - 2, 10),
+                                                                             (TODAY.year - 1, 1), (TODAY.year - 1, 4), (TODAY.year - 1, 7), (TODAY.year - 1, 10)])]
+RECENT_QUARTERS = [((TODAY - timedelta(days=91 * k + 20)).isoformat(), 50.0 + k) for k in range(7, -1, -1)]      # last print 20 days ago: not due
+FRED_TITLES = {"SOFR": "Secured Overnight Financing Rate", "IORB": "Interest Rate on Reserve Balances", "IOER": "Interest Rate on Excess Reserves",
+               "DFF": "Federal Funds Effective Rate", "DFEDTARU": "Federal Funds Target Range - Upper Limit", "RPONTSYD": "Overnight Repurchase Agreements: Treasury Securities Purchased by the Federal Reserve in the Temporary Open Market Operations",
+               "RPONMBSD": "Overnight Repurchase Agreements: Mortgage-Backed Securities Purchased by the Federal Reserve in the Temporary Open Market Operations",
+               "RRPONTSYD": "Overnight Reverse Repurchase Agreements: Treasury Securities Sold by the Federal Reserve", "WRESBAL": "Reserve Balances with Federal Reserve Banks",
+               "BOGZ1FL000Q": "Some Sector; Security Repurchase Agreements; Liability, Level", "BOGZ1FL111Q": "Another Sector; Security Repurchase Agreements; Asset, Level"}
+FRED_OBS = {"SOFR": [(d, 5.25 if d == SPIKE else 3.91) for d in DAYS] + [((TODAY - timedelta(days=1)).isoformat(), 3.92)],
+            "IORB": [(DAYS[0], 3.90)], "IOER": [], "DFF": [(d, 3.88) for d in DAYS], "DFEDTARU": [(DAYS[0], 4.00)],
+            "RPONTSYD": [(d, 40.85 if d == SPIKE else 0.0) for d in DAYS], "RPONMBSD": [(d, 11.7 if d == SPIKE else 0.0) for d in DAYS],
+            "RRPONTSYD": [(d, 0.4) for d in DAYS], "WRESBAL": [((TODAY - timedelta(days=7 * k + 10)).isoformat(), 2979656.0) for k in range(8, -1, -1)],
+            "BOGZ1FL000Q": QUARTERS, "BOGZ1FL111Q": RECENT_QUARTERS}
+
+
+class Answer(io.BytesIO):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        return False
+
+
+class Wire:
+    """Every URL the handler asks, answered from the fixtures above or refused like a dead host."""
+
+    def __init__(self):
+        self.calls = []
+
+    def __call__(self, req, timeout=None):
+        url = req.full_url if hasattr(req, "full_url") else str(req)
+        self.calls.append(url)
+        q = dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(url).query))
+        if "financialresearch.gov/v1/metadata/mnemonics" in url:
+            return Answer(json.dumps([{"mnemonic": m, "series_name": n} for m, n in NAMES[q["dataset"]].items()]).encode())
+        if "/fred/tags/series" in url:
+            return Answer(json.dumps({"seriess": [{"id": i, "title": FRED_TITLES[i]} for i in ("RPONTSYD", "RPONMBSD", "RRPONTSYD", "BOGZ1FL000Q", "BOGZ1FL111Q")]}).encode())
+        if "/fred/series/search" in url:
+            return Answer(json.dumps({"seriess": [{"id": "SOFR", "title": FRED_TITLES["SOFR"]}]}).encode())
+        if "/fred/series/observations" in url:
+            rows = [{"date": d, "value": str(v)} for d, v in FRED_OBS.get(q["series_id"], []) if d >= q.get("observation_start", "")]
+            return Answer(json.dumps({"observations": rows}).encode())
+        if "/fred/series?" in url:
+            sid = q["series_id"]
+            return Answer(json.dumps({"seriess": [{"title": FRED_TITLES[sid]}] if sid in FRED_TITLES else []}).encode())
+        if "markets.newyorkfed.org/api/rates/secured/" in url:
+            rt = url.split("/secured/")[1].split("/")[0]
+            rows = [{"effectiveDate": d, "type": rt.upper(), "percentRate": 3.91, "percentPercentile1": 3.85, "percentPercentile25": 3.88,
+                     "percentPercentile75": 5.85 if d == SPIKE else 3.95, "percentPercentile99": 9.0 if d == SPIKE else 3.98} for d in DAYS]
+            return Answer(json.dumps({"refRates": rows}).encode())
+        if "markets.newyorkfed.org/api/rp/results/search.json" in url:
+            ops = [{"operationDate": d, "operationId": "RP %s" % d, "operationType": "Repo", "totalAmtAccepted": 50.35e9 if d == SPIKE else 1.0e6,
+                    "details": [{"minimumBidRate": 4.0}]} for d in DAYS]
+            return Answer(json.dumps({"repo": {"operations": ops}}).encode())
+        raise urllib.error.HTTPError(url, 404, "Not Found", {}, None)
+
+
+class Bucket:
+    def __init__(self, objects):
+        self.objects, self.puts = dict(objects), []
+
+    def get_object(self, Bucket, Key):
+        if Key not in self.objects:
+            raise KeyError("NoSuchKey " + Key)
+        return {"Body": io.BytesIO(self.objects[Key])}
+
+    def head_object(self, Bucket, Key):
+        if Key not in self.objects:
+            raise KeyError("404 " + Key)
+        return {}
+
+    def put_object(self, Bucket, Key, Body, **kw):
+        self.objects[Key] = Body
+        self.puts.append(Key)
+
+    def list_objects_v2(self, **kw):
+        keys = sorted(k for k in self.objects if k.startswith(kw["Prefix"]))
+        if kw.get("Delimiter"):
+            cut = len(kw["Prefix"])
+            return {"CommonPrefixes": [{"Prefix": p} for p in sorted({k[:cut] + k[cut:].split("/")[0] + "/" for k in keys if "/" in k[cut:]})]}
+        return {"Contents": [{"Key": k, "ETag": '"%s"' % __import__("hashlib").md5(self.objects[k]).hexdigest()} for k in keys]}
+
+
+def seeded():
+    obj = {"data/repo-master-inventory.json": json.dumps({"series": [
+        {"mnemonic": m, "name": "", "family": m.split("-")[0], "tenor": "total", "collateral": "total", "s3_key": "data/warm/ofr/series/%s.json.gz" % m,
+         "api_url": "u", "tier": 1 if m in ("FNYR-SOFR-A", "REPO-TRIV1_AR_TOT-P") else 2} for m in INVENTORY]}).encode(),
+        "data/warm/ofr/state.json": json.dumps({"series": {m: ["sig", len(r), r[-1][0] if r else None] for m, r in OFR.items()}}).encode(),
+        "data/settlement-fails.json": b"{}",
+        "data/warm/dtcc-fails/treasury.json": fred_doc("DTCC-TREASURY-FAILS", [(d, 2.0e10) for d in DAYS[:40]]),
+        "data/warm/fred-scoped/FRED_Repo_Complex/BOGZ1FL111Q.json": fred_doc("BOGZ1FL111Q", RECENT_QUARTERS),
+        "data/warm/fred-scoped/FRED_Repo_Complex/SOFR.json": fred_doc("SOFR", [(d, 5.25 if d == SPIKE else 3.91) for d in DAYS])}
+    for m, rows in OFR.items():
+        obj["data/warm/ofr/series/%s.json.gz" % m] = ofr_doc(m, rows)
+    return obj
+
+
+def build(bucket, wire):
+    import lambda_function as lf
+    lf.s3 = bucket
+    os.environ["FRED_API_KEY"] = "k"
+    os.environ.pop("TE_API_KEY", None)
+    real = urllib.request.urlopen
+    urllib.request.urlopen = wire
+    try:
+        res = lf.lambda_handler({}, None)
+    finally:
+        urllib.request.urlopen = real
+    assert res["statusCode"] == 200, res
+    return json.loads(res["body"]), json.loads(bucket.objects["data/repo.json"])
+
+
+def rows_of(board):
+    return {s["id"]: dict(s, group=g["name"]) for g in board["groups"] for s in g["series"]}
+
+
+def test_the_board_build_end_to_end():
+    bucket, wire = Bucket(seeded()), Wire()
+    res, board = build(bucket, wire)
+    rows = rows_of(board)
+    assert board["engine_v"] == "3.0" == res["v"] and res["ok"]
+
+    # the refreshed OFR layout is read, names come from the OFR metadata
+    sofr = rows["FNYR-SOFR-A"]
+    assert sofr["group"] == "Reference rates & volumes" and sofr["last"] == DAYS[-1] and sofr["last_value"] == 3.91 and sofr["n_obs"] == 80
+    assert sofr["label"] == "Secured Overnight Financing Rate" and sofr["tier"] == 1
+
+    # series the inventory never listed
+    mmf = rows["MMF-MMF_RP_T_OO-M"]
+    assert mmf["group"] == "Money market funds (OFR)" == rows["MMF-MMF_RP_wFR-M"]["group"] and mmf["label"].startswith("MMF Repo Backed by U.S. Treasury")
+    sb = rows["NYPD-PD_SB_T_TOT-A"]
+    assert sb["group"] == "Primary dealer securities borrowed & lent" and sb["last_value"] == 4.0e11 and sb["tier"] == 2
+    assert rows["NYPD-PD_AFtD_T-A"]["group"] == "Primary dealer FAILS"
+    assert {"id": "NYPD-PD_SL_TOT-A", "reason": "no_pairs_extracted"} in board["skipped"]       # empty at the source: a skipped row with its reason
+    assert len([i for i in rows if i == "MMF-MMF_RP_wFR-M"]) == 1
+
+    # policy and funding series: banked from FRED on first touch, in their own bucket
+    for fid in ("DFF", "DFEDTARU", "WRESBAL"):
+        assert rows[fid]["group"] == "FRED repo & SOFR complex" and rows[fid]["bucket"] == "Policy rates, reserves and Fed lending", rows[fid]
+        assert "data/warm/fred-scoped/FRED_Repo_Complex/%s.json" % fid in bucket.objects
+    assert rows["IORB"]["bucket"] != "Policy rates, reserves and Fed lending" and rows["RPONTSYD"]["bucket"] == "Fed repo ops (incl SRF)"
+    assert "IOER" not in rows and "TEDRATE" not in rows                                           # nothing at FRED for them here: absent, not invented
+
+    # FRED is asked by rhythm: the daily series two days old is, the quarterly line 20 days after its print is not
+    asked = [dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(u).query))["series_id"] for u in wire.calls if "/fred/series/observations" in u]
+    assert "SOFR" in asked and "BOGZ1FL111Q" not in asked and "BOGZ1FL000Q" in asked, asked
+    assert rows["SOFR"]["last"] == (TODAY - timedelta(days=1)).isoformat() and rows["SOFR"]["last_value"] == 3.92
+    assert rows["BOGZ1FL111Q"]["n_obs"] == 8                                                       # still on the board from the bank
+
+    # derived spreads, with the numbers of the spike day in their histories
+    def hist(sid):
+        h = json.loads(bucket.objects["data/repo-history/%s.json" % sid])
+        return dict(zip(h["dates"], h["values"]))
+
+    assert round(hist("D_SOFR_EFFR")[SPIKE], 6) == 130.0                      # 5.25 against 3.95
+    assert round(hist("D_SOFR_TAIL")[SPIKE], 6) == 375.0                      # 9.00 against 5.25
+    assert round(hist("D_SOFR_ADMIN")[SPIKE], 6) == 135.0                     # against IORB 3.90
+    assert round(hist("D_EFFR_TARGET")[DAYS[-1]], 6) == -12.0                 # 3.88 against the 4.00 top of the range
+    assert round(hist("D_FED_REPO")[SPIKE], 6) == 52.55 and hist("D_FED_REPO")[DAYS[0]] == 0.0
+    for sid in ("D_SOFR_EFFR", "D_SOFR_TAIL", "D_SOFR_ADMIN", "D_EFFR_TARGET", "D_FED_REPO"):
+        assert rows[sid]["group"] == "Derived stress indicators" and rows[sid]["tier"] == 1
+    assert round(hist("D_GCF_TRI")[SPIKE], 6) == 107.0 and round(hist("D_SOFR_P75_P25")[SPIKE], 6) == 197.0     # the older derived rows still build
+    assert rows["SRF_TAKEUP"]["group"] == "Standing Repo Facility" and round(hist("SRF_TAKEUP")[SPIKE], 6) == 50.35
+
+    # DTCC answered 404: the banked history stays on the board and says so
+    dtcc = rows["DTCC-TREASURY-FAILS"]
+    assert dtcc["group"] == "DTCC daily settlement fails (FICC)" and dtcc["n_obs"] == 40 and "banked history" in dtcc["label"]
+    assert board["diag"]["dtcc"].get("banked_only") is True and "404" in board["diag"]["dtcc"]["error"]
+    assert "DTCC-AGENCY-FAILS" not in rows                                                         # never banked here: not offered
+
+    # counts add up and every row has its history file
+    assert board["counts"]["series"] == len(rows) == board["counts"]["history_files"]
+    assert board["counts"]["history_written"] == len(rows) and board["counts"]["history_unchanged"] == 0
+    assert all("data/repo-history/%s.json" % r["sid"] in bucket.objects for r in rows.values())
+
+    # a second run on the same inputs writes no history file again
+    before = len([k for k in bucket.puts if k.startswith("data/repo-history/")])
+    res2, board2 = build(bucket, Wire())
+    assert board2["counts"]["history_written"] == 0 and board2["counts"]["history_unchanged"] == len(rows), board2["counts"]
+    assert len([k for k in bucket.puts if k.startswith("data/repo-history/")]) == before
+
+
+def test_without_the_ofr_names_call_the_bank_catalog_still_brings_the_extra_series():
+    bucket = Bucket(seeded())
+
+    class NoNames(Wire):
+        def __call__(self, req, timeout=None):
+            url = req.full_url if hasattr(req, "full_url") else str(req)
+            if "metadata/mnemonics" in url:
+                raise urllib.error.URLError("down")
+            return Wire.__call__(self, req, timeout)
+
+    _, board = build(bucket, NoNames())
+    rows = rows_of(board)
+    assert rows["MMF-MMF_RP_T_OO-M"]["group"] == "Money market funds (OFR)" and rows["NYPD-PD_SB_T_TOT-A"]["group"] == "Primary dealer securities borrowed & lent"
+    assert rows["MMF-MMF_RP_T_OO-M"]["label"] == ""                       # no name without the metadata call - the row is still there
+
+
+def test_the_engine_source_compiles_and_keeps_its_contact_lines_out_of_the_new_module():
+    src = (HERE.parent / "source" / "lambda_function.py").read_text()
+    compile(src, "lambda_function.py", "exec")
+    scope = (HERE.parent / "source" / "repo_scope.py").read_text()
+    assert "@" not in scope and "User-Agent" not in scope
+    assert '"engine_v": "3.0"' in src and "refresh_due(fid, pairs," in src and "derived_series(_pairs)" in src
+
+
+def main():
+    tests = [(n, f) for n, f in sorted(globals().items()) if n.startswith("test_") and callable(f)]
+    for _, fn in tests:
+        fn()
+    print("board build: %d tests passed" % len(tests))
+
+
+if __name__ == "__main__":
+    main()
