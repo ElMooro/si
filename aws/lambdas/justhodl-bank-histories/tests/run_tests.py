@@ -4,7 +4,10 @@ no key.
 
 v1.2.0: a document is written only when its content changed - a new bank vintage alone writes nothing, the upgrade from
 the v1.0-1.1 hashes writes nothing that did not change, a block with unchanged inputs is confirmed without being read, a
-failed put is written by the next run, a dry run writes nothing at all.  (The bank vintage in the fixture is relative to
+failed put is written by the next run, a dry run writes nothing at all.
+v1.3.0: every snapshot family of a symbol lives in ONE document (snapshots/latest/<SYM>.json.gz); the nine one-family
+blocks are retired from the manifest when the combined block is complete; the reader takes the combined block first,
+reads one object for any number of families, and still understands the one-family layout.  (The bank vintage in the fixture is relative to
 the clock: the freshness guard reads the bank manifest's age, and a fixed date turned this suite red two days after it
 was written - which would have blocked every deploy of this engine.)
 
@@ -41,8 +44,10 @@ class S3Stub:
     def __init__(self):
         self.store, self.meta, self.puts = {}, {}, 0
         self.put_keys, self.fail = [], set()             # every key put, in order; keys whose next put raises
+        self.gets = []                                   # every key read, in order
 
     def get_object(self, Bucket, Key):
+        self.gets.append(Key)
         if Key not in self.store:
             raise KeyError("NoSuchKey: " + Key)
         return {"Body": io.BytesIO(self.store[Key]), "Metadata": self.meta.get(Key) or {}}
@@ -147,12 +152,18 @@ def test_inverts_year_files_into_per_symbol_docs_write_if_changed():
     assert man["blocks"]["income-statement-bulk/quarter"]["symbols"] == 1
     hashes = json.loads(gzip.decompress(s3.store[lf.ROOT + "_state/hashes/income-statement-bulk__annual.json.gz"]))
     assert set(hashes) == {"AAPL", "MSFT"}
-    # v1.1.0: snapshot blocks -> one tiny doc per symbol, verbatim row (description kept), part files merged
-    prof = json.loads(gzip.decompress(s3.store[lf.ROOT + "profile-bulk/latest/MSFT.json.gz"]))
-    assert prof["period"] == "latest" and prof["years"] == [] and prof["rows"][0]["companyName"] == "Microsoft" and prof["rows"][0]["description"] == "Microsoft develops..." and prof["rows"][0]["mktCap"] == 3900000000000, prof
-    assert lf.ROOT + "profile-bulk/latest/SAP.json.gz" not in s3.store and lf.ROOT + "ratios-ttm-bulk/latest/AAPL.json.gz" in s3.store
-    assert man["blocks"]["profile-bulk/latest"]["files"] == 2 and man["blocks"]["profile-bulk/latest"]["symbols"] == 2 and man["blocks"]["profile-bulk/latest"]["years"] is None
-    assert man["blocks"]["scores-bulk/latest"]["files"] == 0                      # not banked in the fixture -> recorded, nothing written
+    # v1.3.0: ONE snapshot document per symbol, every family it has, verbatim rows (description kept), part files merged
+    snap = json.loads(gzip.decompress(s3.store[lf.ROOT + "snapshots/latest/MSFT.json.gz"]))
+    assert snap["symbol"] == "MSFT" and snap["period"] == "latest" and snap["as_of"] == VINTAGE and snap["n"] == 2 and list(snap["families"]) == ["profile-bulk", "ratios-ttm-bulk"], snap
+    prof = snap["families"]["profile-bulk"]
+    assert prof["endpoint"] == "profile" and prof["rows"][0]["companyName"] == "Microsoft" and prof["rows"][0]["description"] == "Microsoft develops..." and prof["rows"][0]["mktCap"] == 3900000000000, prof
+    assert snap["families"]["ratios-ttm-bulk"] == {"endpoint": "ratios-ttm", "rows": [{"symbol": "MSFT", "peRatioTTM": 30.0, "priceToSalesRatioTTM": 12.0}]}, snap
+    assert lf.ROOT + "snapshots/latest/SAP.json.gz" not in s3.store and lf.ROOT + "snapshots/latest/AAPL.json.gz" in s3.store
+    assert not [k for k in s3.store if k.startswith(lf.ROOT + "profile-bulk/") or k.startswith(lf.ROOT + "ratios-ttm-bulk/")], "no one-family snapshot document is written any more"
+    sb = man["blocks"]["snapshots/latest"]
+    assert sb["files"] == 3 and sb["symbols"] == 2 and sb["years"] is None and sb["bulks"] == ["profile-bulk", "ratios-ttm-bulk"] and sb["written"] == 2, sb
+    assert not [b for b in man["blocks"] if b.endswith("/latest") and b != "snapshots/latest"], man["blocks"].keys()   # the nine one-family blocks are gone
+    assert set(json.loads(gzip.decompress(s3.store[lf.ROOT + "_state/hashes/snapshots__latest.json.gz"]))) == {"AAPL", "MSFT"}
     # second run: nothing changed -> no document re-put
     puts = s3.puts
     out2 = lf.lambda_handler({}, None)
@@ -162,7 +173,7 @@ def test_inverts_year_files_into_per_symbol_docs_write_if_changed():
     doc_puts = sum(1 for k in s3.store if k.startswith(lf.ROOT) and "/_state/" not in k and k != lf.MANIFEST_KEY and "/latest/" not in k)
     assert doc_puts == 5 and all(b.get("written", 0) == 0 for b in man2["blocks"].values()), (doc_puts, man2["blocks"])   # AAPL+MSFT annual, AAPL quarter, AAPL+MSFT ratios; nothing re-put
     # v1.2.0: the inputs did not change, so no block was read again - each was confirmed from its files' ETags and sizes
-    assert sorted(out2["confirmed_unread"]) == sorted(out2["blocks"]) and out2["puts"] == 0 and out2["unchanged"] == 9, out2
+    assert sorted(out2["confirmed_unread"]) == sorted(out2["blocks"]) and out2["puts"] == 0 and out2["unchanged"] == 7, out2
     assert all(b.get("checked") == "inputs unchanged" for b in man2["blocks"].values() if b.get("files")), man2["blocks"]
     assert not [k for k in s3.put_keys[puts:] if k.startswith(lf.ROOT) and "/_state/" not in k and k != lf.MANIFEST_KEY], "no document and no hash state re-put"
     assert not [k for k in s3.put_keys[puts:] if "/_state/hashes/" in k], "an unchanged hash state is not re-put either"
@@ -212,6 +223,13 @@ def test_fmp_bank_statements_read_the_history_book_first_and_the_shim_accepts_de
     assert rows and rows[0]["symbol"] == "SAP"
     # snapshots: the per-symbol document answers first (no table decode); the symbol field is carried
     fmp_bank._TABLES.clear(); fmp_bank._MISSING.clear(); fmp_bank.STATS["table_builds"] = 0
+    assert fmp_bank.snapshot_layout("profile-bulk") == "combined" and fmp_bank.snapshot_layout("ratios-ttm-bulk") == "combined" and fmp_bank.snapshot_layout("scores-bulk") is None
+    fmp_bank._cache.clear()
+    mark = len(s3.gets)
+    d1, d2 = fmp_bank.snapshot_doc("profile", "aapl"), fmp_bank.snapshot_doc("ratios-ttm", "AAPL")
+    assert d1["rows"][0]["companyName"] == "Apple Inc." and d1["bulk"] == "profile-bulk" and d1["endpoint"] == "profile" and d1["as_of"] == VINTAGE and d1["period"] == "latest", d1
+    assert d2["rows"][0]["peRatioTTM"] == 39.2 and d2["n"] == 1 and fmp_bank.snapshot_doc("financial-scores", "AAPL") is None, d2
+    assert [k for k in s3.gets[mark:] if "/snapshots/latest/" in k] == [lf.ROOT + "snapshots/latest/AAPL.json.gz"], "two families of one symbol are one read"
     prow = fmp_bank.snapshot("profile", "aapl")
     assert prow and prow[0]["companyName"] == "Apple Inc." and prow[0]["symbol"] == "AAPL" and prow[0]["description"] == "Apple designs..." and fmp_bank.STATS["table_builds"] == 0, prow
     assert fmp_bank.try_bank("profile", "symbol=MSFT")[0]["price"] == 524.5 and fmp_bank.STATS["table_builds"] == 0
@@ -279,13 +297,13 @@ def test_a_new_bank_vintage_alone_rewrites_nothing_and_a_real_change_rewrites_on
     'changed' - 110,000 to 400,000 identical files rewritten a day.  A vintage is not a change."""
     lf, s3, fmp_bank = boot()
     seed(lf, s3)
-    assert lf.lambda_handler({}, None)["puts"] == 9
+    assert lf.lambda_handler({}, None)["puts"] == 7
     # the bank runs again: a new vintage, and it re-saved one year-file with the same rows (other bytes, another ETag)
     _bank_ran(lf, s3, fmp_bank, VINTAGE_2)
     s3.store[lf.FMP_ROOT + "income-statement-bulk/2025/annual.csv.gz"] = csv_gz([inc(*r) for r in INC_2025], mtime=1700000000)
     mark = len(s3.put_keys)
     out = lf.lambda_handler({}, None)
-    assert out["ok"] and out["puts"] == 0 and out["unchanged"] == 9 and out["phase"] == "STEADY", out
+    assert out["ok"] and out["puts"] == 0 and out["unchanged"] == 7 and out["phase"] == "STEADY", out
     assert _docs(lf, s3.put_keys[mark:]) == [], "no document is rewritten for a new vintage"
     man = json.loads(s3.store[lf.MANIFEST_KEY])
     b = man["blocks"]["income-statement-bulk/annual"]
@@ -300,7 +318,7 @@ def test_a_new_bank_vintage_alone_rewrites_nothing_and_a_real_change_rewrites_on
     s3.store[lf.FMP_ROOT + "income-statement-bulk/2025/annual.csv.gz"] = csv_gz(rows)
     mark = len(s3.put_keys)
     out = lf.lambda_handler({}, None)
-    assert out["puts"] == 1 and out["unchanged"] == 8, out
+    assert out["puts"] == 1 and out["unchanged"] == 6, out
     assert _docs(lf, s3.put_keys[mark:]) == [lf.ROOT + "income-statement-bulk/annual/AAPL.json.gz"], s3.put_keys[mark:]
     d = _doc(lf, s3, "income-statement-bulk/annual/AAPL.json.gz")
     assert d["rows"][0]["revenue"] == 417000000000 and d["as_of"] == VINTAGE_2
@@ -336,12 +354,12 @@ def test_the_upgrade_from_the_old_hashes_rewrites_only_what_changed():
     s3.store[lf.FMP_ROOT + "income-statement-bulk/2025/annual.csv.gz"] = csv_gz(rows)
     mark = len(s3.put_keys)
     out = lf.lambda_handler({}, None)
-    assert out["ok"] and out["confirmed_unread"] == [] and out["puts"] == 1 and out["unchanged"] == 8, out
+    assert out["ok"] and out["confirmed_unread"] == [] and out["puts"] == 1 and out["unchanged"] == 6, out
     assert _docs(lf, s3.put_keys[mark:]) == [lf.ROOT + "income-statement-bulk/annual/MSFT.json.gz"], s3.put_keys[mark:]
     man = json.loads(s3.store[lf.MANIFEST_KEY])
     b = man["blocks"]["income-statement-bulk/annual"]
     assert b["migrated"] == 1 and b["changed"] == 1 and b["hash_rev"] == 2 and b["source_sig"] and b["legacy_as_of"] is None, b
-    assert man["blocks"]["profile-bulk/latest"]["migrated"] == 2 and man["blocks"]["ratios-bulk/annual"]["migrated"] == 2
+    assert man["blocks"]["snapshots/latest"]["migrated"] == 2 and man["blocks"]["ratios-bulk/annual"]["migrated"] == 2
     new = json.loads(gzip.decompress(s3.store[lf.ROOT + "_state/hashes/income-statement-bulk__annual.json.gz"]))
     assert new == {sym: lf.doc_hash(_doc(lf, s3, "income-statement-bulk/annual/%s.json.gz" % sym)) for sym in ("AAPL", "MSFT")}, new
     # and from then on the block is confirmed without a read
@@ -357,7 +375,7 @@ def test_a_failed_put_is_written_by_the_next_run():
     lost = lf.ROOT + "income-statement-bulk/annual/AAPL.json.gz"
     s3.fail.add(lost)
     out = lf.lambda_handler({}, None)
-    assert out["ok"] and out["puts"] == 8 and lost not in s3.store, out
+    assert out["ok"] and out["puts"] == 6 and lost not in s3.store, out
     st = json.loads(s3.store[lf.STATE_KEY])
     b = st["blocks"]["income-statement-bulk/annual"]
     assert b["failed"] == 1 and b["written"] == 1 and b["source_sig"] is None and b["hash_rev"] is None, b
@@ -379,7 +397,7 @@ def test_a_universe_change_and_the_weekly_full_read():
     mark = len(s3.put_keys)
     out = lf.lambda_handler({}, None)
     assert out["confirmed_unread"] == [] and out["puts"] == 2, out
-    assert sorted(_docs(lf, s3.put_keys[mark:])) == [lf.ROOT + "income-statement-bulk/annual/SAP.json.gz", lf.ROOT + "profile-bulk/latest/SAP.json.gz"], s3.put_keys[mark:]
+    assert sorted(_docs(lf, s3.put_keys[mark:])) == [lf.ROOT + "income-statement-bulk/annual/SAP.json.gz", lf.ROOT + "snapshots/latest/SAP.json.gz"], s3.put_keys[mark:]
     # each block is read in full once a week whatever its signature says; a block last read 9 days ago is overdue
     st = json.loads(s3.store[lf.STATE_KEY])
     st["blocks"]["ratios-bulk/annual"]["staged_at"] = ago(days=9)
@@ -400,6 +418,7 @@ def test_a_universe_change_and_the_weekly_full_read():
              for bid in ["%s/%s" % (b_, k) for _, b_ in lf.BULKS for k in ("annual", "quarter")] + ["%s/latest" % b_ for _, b_ in lf.SNAPSHOT_BULKS]}
     per_day = [list(slots.values()).count(d) for d in range(7)]
     assert sum(per_day) == 27 and max(per_day) <= 9, per_day           # spread over the week: no day reads the whole book
+    assert lf.full_check_due("snapshots/latest", {}, base) and len([d for d in range(7) if lf.full_check_due("snapshots/latest", {"staged_at": (base + _td(days=d - 1)).isoformat()}, base + _td(days=d))]) == 1
 
 
 def test_a_dry_run_writes_nothing():
@@ -407,7 +426,7 @@ def test_a_dry_run_writes_nothing():
     seed(lf, s3)
     before = dict(s3.store)
     out = lf.lambda_handler({"dry_run": True}, None)
-    assert out["ok"] and out["dry_run"] and out["would_put"] == 9 and out["unchanged"] == 0, out
+    assert out["ok"] and out["dry_run"] and out["would_put"] == 7 and out["unchanged"] == 0, out
     assert s3.store == before and s3.puts == 0, "a dry run puts nothing: no lease, no state, no manifest, no document"
     assert out["detail"]["income-statement-bulk/annual"] == {"symbols": 2, "written": 2, "unchanged": 0, "changed": 0, "new": 2, "migrated": 0,
                                                              "seconds": out["detail"]["income-statement-bulk/annual"]["seconds"], "checked": "read in full"}, out["detail"]
@@ -417,8 +436,103 @@ def test_a_dry_run_writes_nothing():
     s3.store[lf.STATE_KEY] = json.dumps(st).encode()
     before, puts = dict(s3.store), s3.puts
     out = lf.lambda_handler({"dry_run": True, "full": True}, None)
-    assert out["ok"] and out["would_put"] == 0 and out["unchanged"] == 9 and out["confirmed_unread"] == [], out
+    assert out["ok"] and out["would_put"] == 0 and out["unchanged"] == 7 and out["confirmed_unread"] == [], out
     assert s3.store == before and s3.puts == puts
+
+
+def test_the_one_family_snapshot_layout_is_retired_once_and_still_readable_until_then():
+    """A book as v1.2.0 left it: nine one-family snapshot blocks with their documents.  The first v1.3.0 run writes the
+    combined documents, takes the nine blocks off the manifest and leaves their documents where they are.  A reader of
+    this version reads either layout - whichever the manifest lists - and the combined one wins."""
+    lf, s3, fmp_bank = boot()
+    seed(lf, s3)
+    R = lf.ROOT
+    old_doc = {"symbol": "AAPL", "endpoint": "profile", "bulk": "profile-bulk", "period": "latest", "schema": lf.SCHEMA, "as_of": VINTAGE, "n": 1, "years": [],
+               "rows": [{"symbol": "AAPL", "companyName": "Apple Inc. (as the old layout held it)", "price": 300.0}]}
+    s3.store[R + "profile-bulk/latest/AAPL.json.gz"] = jgz(old_doc)
+    block = {"endpoint": "profile", "bulk": "profile-bulk", "period": "latest", "files": 2, "symbols": 1, "written": 0, "unchanged": 1, "failed": 0, "refreshed_at": ago(hours=2),
+             "as_of": VINTAGE, "partial": False, "hash_rev": 2, "source_sig": "x", "staged_at": ago(hours=2), "checked": "read in full"}
+    s3.store[lf.STATE_KEY] = json.dumps({"blocks": {"profile-bulk/latest": block, "peers-bulk/latest": dict(block, bulk="peers-bulk", endpoint="stock-peers")}}).encode()
+    s3.store[lf.MANIFEST_KEY] = json.dumps({"blocks": {"profile-bulk/latest": block}}).encode()
+    # before the first v1.3.0 run: this reader serves the one-family document the manifest lists
+    assert fmp_bank.snapshot_layout("profile-bulk") == "single"
+    assert fmp_bank.snapshot_doc("profile", "AAPL")["rows"][0]["companyName"].endswith("(as the old layout held it)")
+    # a dry run retires nothing and says so; a run asked for one block looks at that block only
+    before = dict(s3.store)
+    dry = lf.lambda_handler({"dry_run": True}, None)
+    assert dry["ok"] and s3.store == before and "snapshots/latest" in dry["blocks"] and not any("retired" in n for n in dry["notes"]), dry
+    one = lf.lambda_handler({"dry_run": True, "blocks": ["ratios-bulk/annual"]}, None)
+    assert one["blocks"] == ["ratios-bulk/annual"] and lf.lambda_handler({"dry_run": True, "blocks": ["snapshots/latest"]}, None)["blocks"] == ["snapshots/latest"], one
+    # nor does a run whose combined block is not complete (one put lost): the nine blocks stay listed and served
+    s3.fail.add(R + "snapshots/latest/MSFT.json.gz")
+    out = lf.lambda_handler({}, None)
+    st = json.loads(s3.store[lf.STATE_KEY])
+    assert out["ok"] and "retired_blocks" not in st and "profile-bulk/latest" in st["blocks"] and st["blocks"]["snapshots/latest"]["failed"] == 1 and st["blocks"]["snapshots/latest"]["source_sig"] is None, st["blocks"].keys()
+    fmp_bank._HIST_MAN.update(at=0.0, doc=None)
+    fmp_bank._cache.clear()
+    assert fmp_bank.snapshot_layouts("profile-bulk") == ["combined", "single"] and fmp_bank.snapshot_layouts("peers-bulk") == ["single"]
+    assert fmp_bank.snapshot_doc("profile", "AAPL")["rows"][0]["companyName"] == "Apple Inc."                              # the combined document, where it landed
+    assert R + "snapshots/latest/MSFT.json.gz" not in s3.store and fmp_bank.snapshot_doc("profile", "MSFT") is None        # MSFT never had an old document in this fixture
+    s3.store[R + "profile-bulk/latest/MSFT.json.gz"] = jgz(dict(old_doc, symbol="MSFT", rows=[{"symbol": "MSFT", "companyName": "Microsoft (old layout)"}]))
+    fmp_bank._cache.clear()
+    fmp_bank._MISSING.clear()                      # the reader remembers a missing object for 15 minutes
+    assert fmp_bank.snapshot_doc("profile", "MSFT")["rows"][0]["companyName"] == "Microsoft (old layout)", "until the combined block is complete a lost document falls back to the one-family one"
+    out = lf.lambda_handler({}, None)
+    assert out["ok"] and "snapshots/latest" in out["blocks"] and any("retired 2 one-family snapshot blocks" in n for n in out["notes"]), out
+    st = json.loads(s3.store[lf.STATE_KEY])
+    man = json.loads(s3.store[lf.MANIFEST_KEY])
+    assert st["retired_blocks"]["blocks"] == ["profile-bulk/latest", "peers-bulk/latest"] and st["retired_blocks"]["superseded_by"] == "snapshots/latest" and st["retired_blocks"]["by"] == lf.VERSION, st["retired_blocks"]
+    assert "profile-bulk/latest" not in man["blocks"] and "peers-bulk/latest" not in man["blocks"] and man["retired_blocks"]["blocks"] == st["retired_blocks"]["blocks"]
+    assert man["phase"] == "STEADY" and man["stale_blocks"] == [] and man["pending_blocks"] == [], man
+    assert json.loads(gzip.decompress(s3.store[R + "profile-bulk/latest/AAPL.json.gz"])) == old_doc, "the old document is left where it is"
+    fmp_bank._HIST_MAN.update(at=0.0, doc=None)
+    fmp_bank._cache.clear()
+    assert fmp_bank.snapshot_layout("profile-bulk") == "combined"
+    assert fmp_bank.snapshot_doc("profile", "AAPL")["rows"][0]["companyName"] == "Apple Inc.", "the combined block wins; the frozen one-family document is no longer read"
+    # even with both layouts listed (a manifest caught between two writers) the combined block wins
+    both = json.loads(s3.store[lf.MANIFEST_KEY])
+    both["blocks"]["profile-bulk/latest"] = block
+    s3.store[lf.MANIFEST_KEY] = json.dumps(both).encode()
+    fmp_bank._HIST_MAN.update(at=0.0, doc=None)
+    fmp_bank._cache.clear()
+    assert fmp_bank.snapshot_layout("profile-bulk") == "combined" and fmp_bank.snapshot_doc("profile", "AAPL")["rows"][0]["companyName"] == "Apple Inc."
+    s3.store[lf.MANIFEST_KEY] = json.dumps(man).encode()
+    # a later run does not bring the retired blocks back, and the record of the retirement stays
+    out = lf.lambda_handler({}, None)
+    st = json.loads(s3.store[lf.STATE_KEY])
+    assert out["puts"] == 0 and "profile-bulk/latest" not in st["blocks"] and st["retired_blocks"]["blocks"] == ["profile-bulk/latest", "peers-bulk/latest"], out
+    # a combined block that is partial (the run's clock ended mid-write) is not served: the reader says the book has no such block
+    man = json.loads(s3.store[lf.MANIFEST_KEY])
+    man["blocks"]["snapshots/latest"]["partial"] = True
+    s3.store[lf.MANIFEST_KEY] = json.dumps(man).encode()
+    fmp_bank._HIST_MAN.update(at=0.0, doc=None)
+    fmp_bank._cache.clear()
+    assert fmp_bank.snapshot_layout("profile-bulk") is None and fmp_bank.snapshot_doc("profile", "AAPL") is None
+
+
+def test_one_snapshot_document_changes_when_any_family_changes_and_only_then():
+    lf, s3, fmp_bank = boot()
+    seed(lf, s3)
+    assert lf.lambda_handler({}, None)["puts"] == 7
+    # MSFT's TTM multiple moves; AAPL's row is the same -> one document
+    _bank_ran(lf, s3, fmp_bank, VINTAGE_2)
+    s3.store[lf.FMP_ROOT + "ratios-ttm-bulk/latest.csv.gz"] = csv_gz([{"symbol": "AAPL", "peRatioTTM": 39.2, "priceToSalesRatioTTM": 9.1}, {"symbol": "MSFT", "peRatioTTM": 31.5, "priceToSalesRatioTTM": 12.0}])
+    mark = len(s3.put_keys)
+    out = lf.lambda_handler({}, None)
+    assert out["puts"] == 1 and _docs(lf, s3.put_keys[mark:]) == [lf.ROOT + "snapshots/latest/MSFT.json.gz"], (out, s3.put_keys[mark:])
+    d = _doc(lf, s3, "snapshots/latest/MSFT.json.gz")
+    assert d["families"]["ratios-ttm-bulk"]["rows"][0]["peRatioTTM"] == 31.5 and d["families"]["profile-bulk"]["rows"][0]["price"] == 524.5 and d["as_of"] == VINTAGE_2
+    assert _doc(lf, s3, "snapshots/latest/AAPL.json.gz")["as_of"] == VINTAGE
+    b = json.loads(s3.store[lf.MANIFEST_KEY])["blocks"]["snapshots/latest"]
+    assert b["written"] == 1 and b["changed"] == 1 and b["unchanged"] == 1 and b["checked"] == "read in full", b
+    # a family the bank stops holding leaves the documents (and the block's list of families)
+    del s3.store[lf.FMP_ROOT + "ratios-ttm-bulk/latest.csv.gz"]
+    out = lf.lambda_handler({}, None)
+    b = json.loads(s3.store[lf.MANIFEST_KEY])["blocks"]["snapshots/latest"]
+    assert out["puts"] == 2 and b["bulks"] == ["profile-bulk"] and list(_doc(lf, s3, "snapshots/latest/AAPL.json.gz")["families"]) == ["profile-bulk"], (out, b)
+    fmp_bank._HIST_MAN.update(at=0.0, doc=None)
+    fmp_bank._cache.clear()
+    assert fmp_bank.snapshot_layout("ratios-ttm-bulk") is None and fmp_bank.snapshot_layout("profile-bulk") == "combined"
 
 
 TESTS = [test_inverts_year_files_into_per_symbol_docs_write_if_changed,
@@ -428,7 +542,9 @@ TESTS = [test_inverts_year_files_into_per_symbol_docs_write_if_changed,
          test_the_upgrade_from_the_old_hashes_rewrites_only_what_changed,
          test_a_failed_put_is_written_by_the_next_run,
          test_a_universe_change_and_the_weekly_full_read,
-         test_a_dry_run_writes_nothing]
+         test_a_dry_run_writes_nothing,
+         test_the_one_family_snapshot_layout_is_retired_once_and_still_readable_until_then,
+         test_one_snapshot_document_changes_when_any_family_changes_and_only_then]
 
 if __name__ == "__main__":
     for t in TESTS:
