@@ -1,4 +1,4 @@
-"""justhodl-bank-histories v1.0.0 - the HISTORY BOOK: per-symbol statement / ratio / metric / growth histories, inverted
+"""justhodl-bank-histories v1.2.0 - the HISTORY BOOK: per-symbol statement / ratio / metric / growth histories, inverted
 once a day from the FMP bank's whole-market year-files (bank fusion wave 3, 2026-10-26).
 
 Why.  The FMP bank holds every statement as one whole-market CSV per (endpoint, fiscal year, period) - the right shape
@@ -22,6 +22,22 @@ universe when present, else every symbol in the files), write-if-changed by cont
 bounded in-flight puts.  Blocks are processed oldest-refreshed first inside the run budget; `manifest.json` says which
 block was refreshed when and how many symbols it holds - a block refreshed > 2 days ago is listed under `stale_blocks`
 (the reader labels `as_of` per block, never guesses).  Lease-guarded (one run at a time), idempotent, no provider call.
+
+v1.2.0 (2026-11-21) - write a document only when its content changed.  Until now the write-if-changed hash covered the
+whole body INCLUDING `as_of` (the FMP bank manifest's updated_at, a new value every time the bank runs), so no document
+ever matched its stored hash: every run rewrote every document it reached - 110,000 to 400,000 identical files a day,
+each write billed twice (the live bucket and its archive copy) and each leaving an old version behind.  Now:
+  * the hash covers the document WITHOUT `as_of`; an unchanged document is not written.  `as_of` inside a document is
+    therefore the bank vintage at which that document's content last changed; the vintage a block was last checked
+    against is the block record's `as_of` in manifest.json (what the readers have always used);
+  * the first run after the upgrade recognises a document written by v1.0-1.1 from its old-style hash (rebuilt with the
+    vintage the block was last written at), so the upgrade itself rewrites nothing that did not change;
+  * a block whose inputs are byte-identical to its last complete read (every source file's ETag and size, the universe,
+    this engine's version) is confirmed without being read again - one run then covers all 25 blocks, the phase reaches
+    STEADY and the conductor has nothing to kick.  Each block is still read in full once a week on its own day;
+  * a document whose put failed keeps its OLD hash, so the next run writes it (before, the new hash was recorded first
+    and only the daily full rewrite hid it);
+  * `{"dry_run": true}` reads and compares, writes nothing (no lease, no state, no document) and returns the counts.
 """
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
@@ -41,7 +57,7 @@ from botocore.config import Config
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import fmp_bank  # noqa: E402  (bundled shared module: the FMP bank manifest + value typing)
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 SCHEMA = "history-book/1.0"
 ENGINE = "justhodl-bank-histories"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -57,6 +73,8 @@ FLOOR_QUARTER = int(os.environ.get("HISTORY_BOOK_FLOOR_QUARTER", "2016"))
 DB_PATH = os.environ.get("HISTORY_BOOK_DB", "/tmp/history-book.sqlite")
 UNIVERSE_MODE = os.environ.get("HISTORY_BOOK_UNIVERSE", "factor-book")      # factor-book | all
 STALE_AFTER_S = 2 * 86400
+HASH_REV = 2                                               # 2 = document hash without `as_of` (v1.2.0); absent/1 = whole body incl. as_of
+FULL_CHECK_EVERY_S = 7 * 86400                             # every block is read in full at least this often, whatever its signature says
 FRESH_WITHIN_S = int(os.environ.get("HISTORY_BOOK_FRESH_WITHIN_S", str(20 * 3600)))   # a block older than this is pending again (phase BACKFILL -> the conductor kicks)
 # v1.1.0: the SNAPSHOT bulks too - one tiny document per symbol under <bulk>/latest/<SYMBOL>.json.gz, so a per-ticker desk's
 # /profile, /ratios-ttm, /key-metrics-ttm, /financial-scores, /rating, /discounted-cash-flow, /price-target-summary,
@@ -146,12 +164,61 @@ def held_files(man, bulk, kind):
     return out
 
 
-def _exists(key):
+def _head(key):
+    """(etag, size) of an object, or None when it is not there (or could not be asked - the caller then reads the block)."""
     try:
-        _s3().head_object(Bucket=BUCKET, Key=key)
-        return True
+        h = _s3().head_object(Bucket=BUCKET, Key=key)
     except Exception:  # noqa: BLE001
-        return False
+        return None
+    return (str(h.get("ETag") or "").strip('"'), int(h.get("ContentLength") or 0))
+
+
+def _exists(key):
+    return _head(key) is not None
+
+
+def universe_signature(universe):
+    return "all" if universe is None else hashlib.sha1(",".join(sorted(universe)).encode("utf-8")).hexdigest()[:16]
+
+
+def source_signature(files, extra):
+    """(signature, missing files): one hash over everything a block is built from - each source file's key, ETag and
+    size, plus `extra` (the universe, the document shape, this engine's version).  Equal to the signature stored at the
+    block's last complete read = the block would come out byte for byte the same, so it need not be read again."""
+    with ThreadPoolExecutor(max_workers=max(1, min(WORKERS, 16))) as pool:
+        heads = list(pool.map(lambda f: (f[2], _head(f[2])), files))
+    h = hashlib.sha1(extra.encode("utf-8"))
+    for key, hd in sorted(heads, key=lambda t: t[0]):
+        h.update(("|%s:%s:%s" % (key, hd[0] if hd else "missing", hd[1] if hd else "-")).encode("utf-8"))
+    return h.hexdigest()[:24], sum(1 for _, hd in heads if hd is None)
+
+
+def doc_hash(doc):
+    """Content hash of a per-symbol document: everything but the `as_of` stamp (the stamp alone is not a change)."""
+    core = {k: v for k, v in doc.items() if k != "as_of"}
+    return hashlib.sha1(json.dumps(core, separators=(",", ":"), default=str).encode("utf-8")).hexdigest()[:20]
+
+
+def legacy_hash(doc, as_of):
+    """The v1.0-1.1 hash: the whole body with the `as_of` it was written at.  Used once per document, on the first run
+    after v1.2.0, to see that a document written by the old engine has not changed."""
+    return hashlib.sha1(json.dumps(dict(doc, as_of=as_of), separators=(",", ":"), default=str).encode("utf-8")).hexdigest()[:20]
+
+
+def full_check_due(bid, prev, now):
+    """True when the block must be read in full although its signature matches: never read by this version, overdue, or
+    today is its weekly day (the 25 blocks are spread over the week so one run always fits)."""
+    last = prev.get("staged_at")
+    if not last:
+        return True
+    try:
+        age = (now - datetime.fromisoformat(last)).total_seconds()
+    except (TypeError, ValueError):
+        return True
+    if age >= FULL_CHECK_EVERY_S + 86400:
+        return True
+    slot = int(hashlib.sha1(bid.encode("utf-8")).hexdigest(), 16) % 7
+    return now.toordinal() % 7 == slot and age > 20 * 3600
 
 
 def snapshot_files(bulk):
@@ -275,45 +342,66 @@ def stage_block(files, universe, deadline, notes):
     return st, done, rows_n
 
 
-def emit_block(endpoint, bulk, kind, st, as_of, hashes, deadline, stats):
-    """Write one document per symbol (write-if-changed via the block's hash state); returns the new hash state."""
+def emit_block(endpoint, bulk, kind, st, as_of, hashes, deadline, stats, legacy_as_of=None, dry_run=False, on_doc=None):
+    """Write one document per symbol whose content changed (the block's hash state decides); returns the new hash state.
+
+    legacy_as_of: the vintage the block was last written at by v1.0-1.1 (their hash covered it) - lets the first v1.2.0
+    run see an unchanged document as unchanged.  dry_run: compare only, put nothing.  on_doc(sym, key, doc, verdict):
+    called per document with verdict same | changed | new (the dry-run proof samples through it)."""
     new_hashes = {}
-    futs = []
+    futs = {}
     inflight_max = WORKERS * 2
-    written = unchanged = failed = 0
-    bytes_out = 0
+    counts = {"written": 0, "unchanged": 0, "failed": 0, "bytes": 0, "changed": 0, "new": 0, "migrated": 0, "symbols": 0}
+
+    def settle(done):
+        for f in as_completed(done):
+            sym, h = done[f]
+            try:
+                counts["bytes"] += f.result()
+                counts["written"] += 1
+                new_hashes[sym] = h
+            except Exception:  # noqa: BLE001
+                counts["failed"] += 1                    # the old hash (or none) stands: the next run writes it
+                if sym in hashes:
+                    new_hashes[sym] = hashes[sym]
+
     with ThreadPoolExecutor(max_workers=WORKERS) as pool:
         for sym, rows in st.iter_symbols():
             years = sorted({str(r.get("fiscalYear") or str(r.get("date") or "")[:4]) for r in rows if (r.get("fiscalYear") or r.get("date"))}, reverse=True) if kind != "latest" else []
             doc = {"symbol": sym, "endpoint": endpoint, "bulk": bulk, "period": kind, "schema": SCHEMA, "as_of": as_of, "n": len(rows), "years": years, "rows": rows}
-            body = json.dumps(doc, separators=(",", ":"), default=str)
-            h = hashlib.sha1(body.encode("utf-8")).hexdigest()[:20]
-            new_hashes[sym] = h
-            if hashes.get(sym) == h:
-                unchanged += 1
-                continue
             key = ROOT + "%s/%s/%s.json.gz" % (bulk, kind, sym.replace("/", "_"))
-            futs.append(pool.submit(_put_json_gz, key, doc, {"symbol": sym, "endpoint": endpoint, "period": kind, "n": len(rows)}, _s3()))
-            if len(futs) >= inflight_max:
-                for f in as_completed(futs):
-                    try:
-                        bytes_out += f.result()
-                        written += 1
-                    except Exception:  # noqa: BLE001
-                        failed += 1
-                futs = []
+            h = doc_hash(doc)
+            old = hashes.get(sym)
+            counts["symbols"] += 1
+            same = old == h
+            if not same and old and legacy_as_of and old == legacy_hash(doc, legacy_as_of):
+                same = True
+                counts["migrated"] += 1
+            if same:
+                new_hashes[sym] = h
+                counts["unchanged"] += 1
+                if on_doc:
+                    on_doc(sym, key, doc, "same")
+                continue
+            verdict = "changed" if old else "new"
+            counts[verdict] += 1
+            if on_doc:
+                on_doc(sym, key, doc, verdict)
+            if dry_run:
+                counts["written"] += 1                   # what a real run would put
+                new_hashes[sym] = h
+            else:
+                futs[pool.submit(_put_json_gz, key, doc, {"symbol": sym, "endpoint": endpoint, "period": kind, "n": len(rows)}, _s3())] = (sym, h)
+                if len(futs) >= inflight_max:
+                    settle(futs)
+                    futs = {}
             if time.time() > deadline:
                 stats["deadline_hit"] = True
                 break
-        for f in as_completed(futs):
-            try:
-                bytes_out += f.result()
-                written += 1
-            except Exception:  # noqa: BLE001
-                failed += 1
-    stats.update({"written": written, "unchanged": unchanged, "failed": failed, "bytes": bytes_out, "symbols": len(new_hashes)})
+        settle(futs)
+    stats.update(counts)
     if stats.get("deadline_hit"):
-        # a partial emit keeps the OLD hashes for the symbols not reached so they are written next time
+        # a partial emit keeps the OLD hashes for the symbols not reached so they are compared (and written) next time
         for sym, h in hashes.items():
             new_hashes.setdefault(sym, h)
     return new_hashes
@@ -322,6 +410,7 @@ def emit_block(endpoint, bulk, kind, st, as_of, hashes, deadline, stats):
 def lambda_handler(event=None, context=None):
     t0 = time.time()
     event = event or {}
+    dry = bool(event.get("dry_run"))                    # read and compare only: no lease, no state, no manifest, no document
     budget = float(event.get("budget_s") or BUDGET_S)
     if context is not None and hasattr(context, "get_remaining_time_in_millis"):
         budget = min(budget, max(60.0, context.get_remaining_time_in_millis() / 1000.0 - 45.0))
@@ -332,17 +421,20 @@ def lambda_handler(event=None, context=None):
         lease = float(state.get("lease_until") or 0)                 # epoch seconds - the conductor's contract (scripts/fmp_backfill_conductor.py)
     except (TypeError, ValueError):
         lease = 0.0
-    if lease > time.time() and not event.get("force"):
-        return {"ok": False, "skipped": "lease held until %s" % datetime.fromtimestamp(lease, timezone.utc).isoformat()}
-    state["lease_until"] = deadline + 120
-    _put_json(STATE_KEY, state)
+    if not dry:
+        if lease > time.time() and not event.get("force"):
+            return {"ok": False, "skipped": "lease held until %s" % datetime.fromtimestamp(lease, timezone.utc).isoformat()}
+        state["lease_until"] = deadline + 120
+        _put_json(STATE_KEY, state)
     man_fmp = fmp_bank.manifest() or {}
     as_of = man_fmp.get("updated_at")
     if not man_fmp.get("dated_keys"):
-        state.pop("lease_until", None)
-        _put_json(STATE_KEY, state)
+        if not dry:
+            state.pop("lease_until", None)
+            _put_json(STATE_KEY, state)
         return {"ok": False, "error": "fmp-bank manifest has no dated_keys; nothing to invert"}
     universe = load_universe()
+    sig_extra = "%s|v%s|h%d|u:%s" % (SCHEMA, VERSION, HASH_REV, universe_signature(universe))
     blocks = state.setdefault("blocks", {})
     only = set(event.get("blocks") or [])
     order = []
@@ -368,17 +460,29 @@ def lambda_handler(event=None, context=None):
     prio = {b: i for i, (_, b) in enumerate(BULKS + SNAPSHOT_BULKS)}
     # oldest-refreshed first; never-built blocks first of all, then the priority order (statements, metrics, snapshots)
     order.sort(key=lambda t: (blocks.get(t[0], {}).get("refreshed_at") or "", prio.get(t[2], 99)))
-    notes, done_blocks = [], []
+    notes, done_blocks, confirmed = [], [], []
     reserve = min(120.0, budget * 0.15)                 # time kept for the manifest / state writes
     for bid, endpoint, bulk, kind, files in order:
         if time.time() > deadline - reserve:
             notes.append("budget: %s not reached" % bid)
             continue
-        est = blocks.get(bid, {}).get("seconds")
+        prev = blocks.get(bid) or {}
+        tb = time.time()
+        sig, missing = source_signature(files, sig_extra + "|" + kind)
+        if missing:
+            notes.append("%s: %d of %d source files missing" % (bid, missing, len(files)))
+        if (prev.get("source_sig") == sig and prev.get("hash_rev") == HASH_REV and prev.get("refreshed_at") and not prev.get("partial")
+                and not prev.get("failed") and not event.get("full") and not full_check_due(bid, prev, now)):
+            # nothing this block is built from has changed since it was last read in full: confirmed, not read again
+            blocks[bid] = dict(prev, written=0, unchanged=prev.get("symbols", 0), failed=0, bytes=0, refreshed_at=now.isoformat(), as_of=as_of,
+                               checked="inputs unchanged", check_seconds=round(time.time() - tb, 2), missing_files=missing)
+            done_blocks.append(bid)
+            confirmed.append(bid)
+            continue
+        est = prev.get("seconds")
         if est and time.time() + est * 1.2 > deadline:
             notes.append("budget: %s needs ~%ds, skipped this run" % (bid, est))
             continue
-        tb = time.time()
         st, files_done, rows_n = stage_block(files, universe, deadline - reserve / 2, notes)
         if files_done < len(files):
             st.close()
@@ -387,33 +491,51 @@ def lambda_handler(event=None, context=None):
             break
         hashes_key = ROOT + "_state/hashes/%s__%s.json.gz" % (bulk, kind)
         hashes = _get_json(hashes_key) or {}
+        # a block last written by v1.0-1.1 carries hashes that cover the vintage it was written at
+        legacy_as_of = (prev.get("legacy_as_of") or prev.get("as_of")) if prev.get("hash_rev") != HASH_REV else None
         stats = {}
-        new_hashes = emit_block(endpoint, bulk, kind, st, as_of, hashes, deadline, stats)
+        new_hashes = emit_block(endpoint, bulk, kind, st, as_of, hashes, deadline, stats, legacy_as_of=legacy_as_of, dry_run=dry)
         st.close()
-        _put_json_gz(hashes_key, new_hashes)
+        if not dry and new_hashes != hashes:
+            _put_json_gz(hashes_key, new_hashes)
         secs = round(time.time() - tb, 1)
+        complete = not stats.get("deadline_hit") and not stats.get("failed")
         blocks[bid] = {"endpoint": endpoint, "bulk": bulk, "period": kind, "files": len(files), "years": ([files[-1][0], files[0][0]] if kind != "latest" else None), "rows": rows_n,
                        "symbols": stats.get("symbols", 0), "written": stats.get("written", 0), "unchanged": stats.get("unchanged", 0), "failed": stats.get("failed", 0),
-                       "bytes": stats.get("bytes", 0), "seconds": secs, "refreshed_at": now.isoformat(), "as_of": as_of, "partial": bool(stats.get("deadline_hit"))}
+                       "changed": stats.get("changed", 0), "new": stats.get("new", 0), "migrated": stats.get("migrated", 0),
+                       "bytes": stats.get("bytes", 0), "seconds": secs, "refreshed_at": now.isoformat(), "as_of": as_of, "partial": bool(stats.get("deadline_hit")),
+                       "checked": "read in full", "staged_at": now.isoformat(), "missing_files": missing,
+                       # the signature and the hash revision stand only for a complete read: anything less is read again next run
+                       "source_sig": sig if complete else None, "hash_rev": HASH_REV if complete else prev.get("hash_rev"),
+                       "legacy_as_of": None if complete else legacy_as_of}
         done_blocks.append(bid)
-        print("[history-book] %s: %d files, %d rows, %d symbols, written %d unchanged %d failed %d, %.0f s" % (bid, len(files), rows_n, stats.get("symbols", 0), stats.get("written", 0), stats.get("unchanged", 0), stats.get("failed", 0), secs))
-        _put_json(STATE_KEY, state)
+        print("[history-book] %s: %d files, %d rows, %d symbols, written %d unchanged %d failed %d, %.0f s%s" % (bid, len(files), rows_n, stats.get("symbols", 0), stats.get("written", 0), stats.get("unchanged", 0), stats.get("failed", 0), secs, " (dry run)" if dry else ""))
+        if not dry:
+            _put_json(STATE_KEY, state)
     stale = [bid for bid, b in blocks.items() if b.get("refreshed_at") and (now - datetime.fromisoformat(b["refreshed_at"])).total_seconds() > STALE_AFTER_S]
     def _fresh(bid):
         ra = blocks.get(bid, {}).get("refreshed_at")
         return bool(ra) and (now - datetime.fromisoformat(ra)).total_seconds() <= FRESH_WITHIN_S and not blocks.get(bid, {}).get("partial")
     pending = [bid for bid, *_ in order if bid not in done_blocks and not _fresh(bid)]
     phase = "STEADY" if not pending and not stale else "BACKFILL"
+    puts = sum(blocks[b].get("written", 0) for b in done_blocks)
+    unchanged = sum(blocks[b].get("unchanged", 0) for b in done_blocks)
+    last_run = {"started": now.isoformat(), "seconds": round(time.time() - t0, 1), "blocks": done_blocks, "confirmed_unread": confirmed, "notes": notes}
+    if dry:
+        return {"ok": True, "dry_run": True, "version": VERSION, "phase": phase, "blocks": done_blocks, "confirmed_unread": confirmed, "notes": notes,
+                "seconds": round(time.time() - t0, 1), "stale_blocks": stale, "pending": pending, "would_put": puts, "unchanged": unchanged,
+                "detail": {b: {k: blocks[b].get(k) for k in ("symbols", "written", "unchanged", "changed", "new", "migrated", "seconds", "checked")} for b in done_blocks}}
     manifest = {"schema": SCHEMA, "version": VERSION, "engine": ENGINE, "updated_at": now.isoformat(), "as_of": as_of, "prefix": ROOT, "phase": phase, "pending_blocks": pending,
                 "layout": ROOT + "<bulk>/<annual|quarter|latest>/<SYMBOL>.json.gz", "universe": "factor-book" if universe else "all symbols in the files",
                 "universe_size": len(universe) if universe else None, "floor_annual": FLOOR_ANNUAL, "floor_quarter": FLOOR_QUARTER,
-                "blocks": blocks, "stale_blocks": stale, "last_run": {"started": now.isoformat(), "seconds": round(time.time() - t0, 1), "blocks": done_blocks, "notes": notes},
+                "as_of_meaning": "blocks.<id>.as_of = the bank vintage the block was last checked against; as_of inside a document = the vintage at which that document's content last changed (a document is written only when it changes)",
+                "blocks": blocks, "stale_blocks": stale, "last_run": last_run,
                 "read_with": "aws/shared/fmp_bank.statements (history book first) / fmp_bankfirst"}
     _put_json(MANIFEST_KEY, manifest)
     state.pop("lease_until", None)
-    state["last_run"] = dict(manifest["last_run"], puts=sum(blocks[b].get("written", 0) for b in done_blocks), unchanged=sum(blocks[b].get("unchanged", 0) for b in done_blocks))
+    state["last_run"] = dict(last_run, puts=puts, unchanged=unchanged)
     state["updated_at"] = datetime.now(timezone.utc).isoformat()
     state["phase"] = phase
     _put_json(STATE_KEY, state)
-    return {"ok": True, "version": VERSION, "phase": phase, "blocks": done_blocks, "notes": notes, "seconds": round(time.time() - t0, 1),
-            "stale_blocks": stale, "pending": pending}
+    return {"ok": True, "version": VERSION, "phase": phase, "blocks": done_blocks, "confirmed_unread": confirmed, "notes": notes, "seconds": round(time.time() - t0, 1),
+            "stale_blocks": stale, "pending": pending, "puts": puts, "unchanged": unchanged}
