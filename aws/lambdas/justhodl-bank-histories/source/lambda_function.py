@@ -1,4 +1,4 @@
-"""justhodl-bank-histories v1.2.0 - the HISTORY BOOK: per-symbol statement / ratio / metric / growth histories, inverted
+"""justhodl-bank-histories v1.3.0 - the HISTORY BOOK: per-symbol statement / ratio / metric / growth histories, inverted
 once a day from the FMP bank's whole-market year-files (bank fusion wave 3, 2026-10-26).
 
 Why.  The FMP bank holds every statement as one whole-market CSV per (endpoint, fiscal year, period) - the right shape
@@ -38,6 +38,20 @@ each write billed twice (the live bucket and its archive copy) and each leaving 
   * a document whose put failed keeps its OLD hash, so the next run writes it (before, the new hash was recorded first
     and only the daily full rewrite hid it);
   * `{"dry_run": true}` reads and compares, writes nothing (no lease, no state, no document) and returns the counts.
+
+v1.3.0 (2026-11-21) - ONE snapshot document per symbol.  v1.1.0 wrote nine tiny documents per symbol, one per snapshot
+family (<bulk>/latest/<SYMBOL>.json.gz).  Six of the nine carry price-linked values (price, market cap, TTM multiples,
+Altman Z, the rating / DCF date), so on every day the bank refreshes them about 90,000 of 135,000 documents really do
+change - a third of everything the live bucket receives, for values that describe the same 27,000 symbols.  Now:
+
+    data/warm/history-book/snapshots/latest/<SYMBOL>.json.gz
+        {"symbol", "period": "latest", "schema", "as_of", "n", "families": {<bulk>: {"endpoint", "rows": [verbatim typed rows]}}}
+
+one object per symbol, written when any family changed (about 25,000 a day instead of 90,000), and a per-ticker desk
+that asks all nine families reads one object instead of nine.  The block is `snapshots/latest` in manifest.json with the
+list of families it holds under `bulks`; the nine `<bulk>/latest` blocks are retired from the manifest the moment the
+combined block is complete (their old documents stay in the bucket, no longer listed and no longer read).  The reader
+(aws/shared/fmp_bank.snapshot_doc) takes the combined block first and still understands the nine-block layout.
 """
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
@@ -57,7 +71,7 @@ from botocore.config import Config
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import fmp_bank  # noqa: E402  (bundled shared module: the FMP bank manifest + value typing)
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 SCHEMA = "history-book/1.0"
 ENGINE = "justhodl-bank-histories"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
@@ -89,6 +103,8 @@ BULKS = [("income-statement", "income-statement-bulk"), ("balance-sheet-statemen
          ("financial-growth", "financial-growth-bulk"), ("income-statement-growth", "income-statement-growth-bulk"),
          ("balance-sheet-statement-growth", "balance-sheet-statement-growth-bulk"), ("cash-flow-statement-growth", "cash-flow-statement-growth-bulk")]
 PERIODS = {"annual": ["annual"], "quarter": ["Q1", "Q2", "Q3", "Q4"]}
+SNAPSHOT_BLOCK = "snapshots/latest"                        # v1.3.0: every snapshot family of a symbol in one document
+SNAPSHOT_ENDPOINT = {b: e for e, b in SNAPSHOT_BULKS}
 _CFG = Config(retries={"max_attempts": 6, "mode": "standard"}, connect_timeout=5, read_timeout=120, max_pool_connections=64)
 s3 = boto3.client("s3", region_name=os.environ.get("AWS_REGION", "us-east-1"), config=_CFG)
 _LOCAL = __import__("threading").local()
@@ -278,16 +294,18 @@ class Staging:
         self.con.execute("CREATE INDEX ix ON rows(sym, ord DESC)")
         self.con.commit()
 
-    def iter_symbols(self):
-        """Yield (sym, [row dicts newest first]) grouped, in one ordered scan."""
-        cur = self.con.execute("SELECT sym, ord, period, row FROM rows ORDER BY sym, ord DESC")
+    def iter_symbols(self, with_period=False):
+        """Yield (sym, [row dicts newest first]) grouped, in one ordered scan; with_period: [(period, row dict)] instead
+        (the combined snapshot block stages the family in the period column).  Rows of equal order keep the order they
+        were staged in, so a document comes out the same from the same files."""
+        cur = self.con.execute("SELECT sym, ord, period, row FROM rows ORDER BY sym, ord DESC, rowid")
         cur_sym, rows = None, []
-        for sym, _ord, _period, row in cur:
+        for sym, _ord, period, row in cur:
             if sym != cur_sym:
                 if cur_sym is not None:
                     yield cur_sym, rows
                 cur_sym, rows = sym, []
-            rows.append(json.loads(row))
+            rows.append((period, json.loads(row)) if with_period else json.loads(row))
         if cur_sym is not None:
             yield cur_sym, rows
 
@@ -333,7 +351,7 @@ def stage_block(files, universe, deadline, notes):
             d = (row[i_date].strip() if (i_date is not None and i_date < len(row)) else "") or ""
             fy = (row[i_fy].strip() if (i_fy is not None and i_fy < len(row)) else "") or str(year)
             per = (row[i_per].strip() if (i_per is not None and i_per < len(row)) else "") or period
-            ord_ = "%s|%s|%s" % (d or ("%s-00-00" % fy), fy, per) if period != "latest" else "latest"
+            ord_ = "%s|%s|%s" % (d or ("%s-00-00" % fy), fy, per) if year else "latest"      # year 0 = a snapshot file
             typed = fmp_bank._typed(dict(zip(header, row)))
             st.add(sym, ord_, period, json.dumps(typed, separators=(",", ":"), default=str))
             rows_n += 1
@@ -342,8 +360,9 @@ def stage_block(files, universe, deadline, notes):
     return st, done, rows_n
 
 
-def emit_block(endpoint, bulk, kind, st, as_of, hashes, deadline, stats, legacy_as_of=None, dry_run=False, on_doc=None):
-    """Write one document per symbol whose content changed (the block's hash state decides); returns the new hash state.
+def emit_docs(docs, hashes, deadline, stats, legacy_as_of=None, dry_run=False, on_doc=None):
+    """Write each (symbol, key, document, metadata) whose content changed (the hash state decides); returns the new
+    hash state.
 
     legacy_as_of: the vintage the block was last written at by v1.0-1.1 (their hash covered it) - lets the first v1.2.0
     run see an unchanged document as unchanged.  dry_run: compare only, put nothing.  on_doc(sym, key, doc, verdict):
@@ -366,10 +385,7 @@ def emit_block(endpoint, bulk, kind, st, as_of, hashes, deadline, stats, legacy_
                     new_hashes[sym] = hashes[sym]
 
     with ThreadPoolExecutor(max_workers=WORKERS) as pool:
-        for sym, rows in st.iter_symbols():
-            years = sorted({str(r.get("fiscalYear") or str(r.get("date") or "")[:4]) for r in rows if (r.get("fiscalYear") or r.get("date"))}, reverse=True) if kind != "latest" else []
-            doc = {"symbol": sym, "endpoint": endpoint, "bulk": bulk, "period": kind, "schema": SCHEMA, "as_of": as_of, "n": len(rows), "years": years, "rows": rows}
-            key = ROOT + "%s/%s/%s.json.gz" % (bulk, kind, sym.replace("/", "_"))
+        for sym, key, doc, meta in docs:
             h = doc_hash(doc)
             old = hashes.get(sym)
             counts["symbols"] += 1
@@ -391,7 +407,7 @@ def emit_block(endpoint, bulk, kind, st, as_of, hashes, deadline, stats, legacy_
                 counts["written"] += 1                   # what a real run would put
                 new_hashes[sym] = h
             else:
-                futs[pool.submit(_put_json_gz, key, doc, {"symbol": sym, "endpoint": endpoint, "period": kind, "n": len(rows)}, _s3())] = (sym, h)
+                futs[pool.submit(_put_json_gz, key, doc, meta, _s3())] = (sym, h)
                 if len(futs) >= inflight_max:
                     settle(futs)
                     futs = {}
@@ -405,6 +421,32 @@ def emit_block(endpoint, bulk, kind, st, as_of, hashes, deadline, stats, legacy_
         for sym, h in hashes.items():
             new_hashes.setdefault(sym, h)
     return new_hashes
+
+
+def block_docs(endpoint, bulk, kind, st, as_of):
+    """One document per symbol of a dated block (or of one snapshot family, the pre-1.3.0 layout)."""
+    for sym, rows in st.iter_symbols():
+        years = sorted({str(r.get("fiscalYear") or str(r.get("date") or "")[:4]) for r in rows if (r.get("fiscalYear") or r.get("date"))}, reverse=True) if kind != "latest" else []
+        doc = {"symbol": sym, "endpoint": endpoint, "bulk": bulk, "period": kind, "schema": SCHEMA, "as_of": as_of, "n": len(rows), "years": years, "rows": rows}
+        yield sym, ROOT + "%s/%s/%s.json.gz" % (bulk, kind, sym.replace("/", "_")), doc, {"symbol": sym, "endpoint": endpoint, "period": kind, "n": len(rows)}
+
+
+def snapshot_docs(st, as_of):
+    """One document per symbol holding every snapshot family it has, in the fixed family order (v1.3.0)."""
+    order = [b for _, b in SNAPSHOT_BULKS]
+    for sym, pairs in st.iter_symbols(with_period=True):
+        by = {}
+        for bulk, row in pairs:
+            by.setdefault(bulk, []).append(row)
+        doc = {"symbol": sym, "period": "latest", "schema": SCHEMA, "as_of": as_of, "n": len(pairs),
+               "families": {b: {"endpoint": SNAPSHOT_ENDPOINT[b], "rows": by[b]} for b in order if b in by}}
+        yield sym, ROOT + "snapshots/latest/%s.json.gz" % sym.replace("/", "_"), doc, {"symbol": sym, "period": "latest", "n": len(pairs), "families": len(doc["families"])}
+
+
+def emit_block(endpoint, bulk, kind, st, as_of, hashes, deadline, stats, legacy_as_of=None, dry_run=False, on_doc=None):
+    """Write one document per symbol of a block whose content changed; returns the new hash state."""
+    docs = snapshot_docs(st, as_of) if "%s/%s" % (bulk, kind) == SNAPSHOT_BLOCK else block_docs(endpoint, bulk, kind, st, as_of)
+    return emit_docs(docs, hashes, deadline, stats, legacy_as_of=legacy_as_of, dry_run=dry_run, on_doc=on_doc)
 
 
 def lambda_handler(event=None, context=None):
@@ -448,16 +490,16 @@ def lambda_handler(event=None, context=None):
                 blocks.setdefault(bid, {})["files"] = 0
                 continue
             order.append((bid, endpoint, bulk, kind, files))
-    for endpoint, bulk in SNAPSHOT_BULKS:
-        bid = "%s/latest" % bulk
-        if only and bid not in only:
-            continue
-        files = snapshot_files(bulk)
-        if not files:
-            blocks.setdefault(bid, {})["files"] = 0
-            continue
-        order.append((bid, endpoint, bulk, "latest", files))
-    prio = {b: i for i, (_, b) in enumerate(BULKS + SNAPSHOT_BULKS)}
+    snap_files, snap_bulks = [], []
+    if not only or SNAPSHOT_BLOCK in only:
+        for endpoint, bulk in SNAPSHOT_BULKS:
+            files = [(0, bulk, key) for _y, _p, key in snapshot_files(bulk)]     # the family rides in the period slot
+            if files:
+                snap_files += files
+                snap_bulks.append(bulk)
+        if snap_files:
+            order.append((SNAPSHOT_BLOCK, None, "snapshots", "latest", snap_files))
+    prio = {b: i for i, (_, b) in enumerate(BULKS + [(None, "snapshots")])}
     # oldest-refreshed first; never-built blocks first of all, then the priority order (statements, metrics, snapshots)
     order.sort(key=lambda t: (blocks.get(t[0], {}).get("refreshed_at") or "", prio.get(t[2], 99)))
     notes, done_blocks, confirmed = [], [], []
@@ -505,10 +547,17 @@ def lambda_handler(event=None, context=None):
                        "changed": stats.get("changed", 0), "new": stats.get("new", 0), "migrated": stats.get("migrated", 0),
                        "bytes": stats.get("bytes", 0), "seconds": secs, "refreshed_at": now.isoformat(), "as_of": as_of, "partial": bool(stats.get("deadline_hit")),
                        "checked": "read in full", "staged_at": now.isoformat(), "missing_files": missing,
+                       **({"bulks": snap_bulks} if bid == SNAPSHOT_BLOCK else {}),
                        # the signature and the hash revision stand only for a complete read: anything less is read again next run
                        "source_sig": sig if complete else None, "hash_rev": HASH_REV if complete else prev.get("hash_rev"),
                        "legacy_as_of": None if complete else legacy_as_of}
         done_blocks.append(bid)
+        if bid == SNAPSHOT_BLOCK and complete and not dry:
+            # the nine one-family blocks are superseded: off the manifest, so no reader takes their (now frozen) documents
+            retired = [b for b in ["%s/latest" % x for _, x in SNAPSHOT_BULKS] if blocks.pop(b, None) is not None]
+            if retired:
+                state["retired_blocks"] = {"at": now.isoformat(), "by": VERSION, "blocks": retired, "superseded_by": SNAPSHOT_BLOCK}
+                notes.append("retired %d one-family snapshot blocks: %s holds them" % (len(retired), SNAPSHOT_BLOCK))
         print("[history-book] %s: %d files, %d rows, %d symbols, written %d unchanged %d failed %d, %.0f s%s" % (bid, len(files), rows_n, stats.get("symbols", 0), stats.get("written", 0), stats.get("unchanged", 0), stats.get("failed", 0), secs, " (dry run)" if dry else ""))
         if not dry:
             _put_json(STATE_KEY, state)
@@ -526,8 +575,9 @@ def lambda_handler(event=None, context=None):
                 "seconds": round(time.time() - t0, 1), "stale_blocks": stale, "pending": pending, "would_put": puts, "unchanged": unchanged,
                 "detail": {b: {k: blocks[b].get(k) for k in ("symbols", "written", "unchanged", "changed", "new", "migrated", "seconds", "checked")} for b in done_blocks}}
     manifest = {"schema": SCHEMA, "version": VERSION, "engine": ENGINE, "updated_at": now.isoformat(), "as_of": as_of, "prefix": ROOT, "phase": phase, "pending_blocks": pending,
-                "layout": ROOT + "<bulk>/<annual|quarter|latest>/<SYMBOL>.json.gz", "universe": "factor-book" if universe else "all symbols in the files",
+                "layout": ROOT + "<bulk>/<annual|quarter>/<SYMBOL>.json.gz; snapshots/latest/<SYMBOL>.json.gz holds every snapshot family of a symbol", "universe": "factor-book" if universe else "all symbols in the files",
                 "universe_size": len(universe) if universe else None, "floor_annual": FLOOR_ANNUAL, "floor_quarter": FLOOR_QUARTER,
+                "retired_blocks": state.get("retired_blocks"),
                 "as_of_meaning": "blocks.<id>.as_of = the bank vintage the block was last checked against; as_of inside a document = the vintage at which that document's content last changed (a document is written only when it changes)",
                 "blocks": blocks, "stale_blocks": stale, "last_run": last_run,
                 "read_with": "aws/shared/fmp_bank.statements (history book first) / fmp_bankfirst"}
