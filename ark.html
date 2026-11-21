@@ -29,6 +29,8 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 .fund-tag{display:inline-block;font-family:var(--mono);font-size:9px;padding:1px 5px;background:rgba(251,146,60,.16);color:var(--ark);border-radius:2px;margin:0 3px 0 0;border:1px solid rgba(251,146,60,.3);letter-spacing:.5px;font-weight:700}
 .delta-pos{color:var(--green);font-weight:700}.delta-neg{color:var(--red);font-weight:700}
 table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px}
+/* a phone: the cross-fund table is wider than the screen - it slides inside its own box, the page does not */
+@media (max-width:700px){#cross-fund{overflow-x:auto;-webkit-overflow-scrolling:touch}}
 th{text-align:left;color:var(--dim);font-weight:600;padding:9px 6px;border-bottom:1px solid var(--line);text-transform:uppercase;font-size:9.5px}
 th.r{text-align:right}td{padding:9px 6px;border-bottom:1px solid rgba(28,36,51,.5);vertical-align:top}td.r{text-align:right}tr:hover td{background:var(--panel2)}
 .tick{font-weight:700}.tick a{color:var(--cyan);text-decoration:none}.tick a:hover{text-decoration:underline}

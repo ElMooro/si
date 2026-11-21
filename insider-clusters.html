@@ -65,7 +65,7 @@ body{background-image:radial-gradient(ellipse at 80% -10%,rgba(0,230,118,.04),tr
 .section-title{font-family:var(--display);font-weight:600;font-size:24px;color:var(--t1);margin-bottom:8px;letter-spacing:-.01em}
 .section-blurb{font-size:13px;color:var(--t2);margin-bottom:18px;max-width:680px}
 
-.cluster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:14px}
+.cluster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(380px,100%),1fr));gap:14px}
 .card{background:var(--bg1);border:1px solid var(--brd);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:10px;transition:border-color .15s,transform .15s}
 .card:hover{border-color:var(--brd2);transform:translateY(-1px)}
 .card-strong{border-color:rgba(0,230,118,.3);box-shadow:0 0 0 1px rgba(0,230,118,.05)}
