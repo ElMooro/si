@@ -1,5 +1,9 @@
 """
-justhodl-polygon-bank v1.2.0 -- the Polygon/Massive REST families the fleet never banked, verbatim on S3.
+justhodl-polygon-bank v1.2.1 -- the Polygon/Massive REST families the fleet never banked, verbatim on S3.
+
+v1.2.1 (2026-11-21, Khalid: data stays current "without my monthly budget going over $250"): write-if-changed compares
+the payload WITHOUT Polygon's per-request `request_id` (content_sha, metadata `content-sha256`), so a file whose data
+did not change is no longer written again on every visit.  A changed file is still banked verbatim, stamp included.
 
 Why (Khalid, 2026-10-25: "fix it all, I want 100% of the data pulled and used by my system"): the provider audit found
 the Polygon plans (Stocks delayed, Options, Futures Basic, ETF Global) ~70% used: the grouped-daily tape, options chains
@@ -60,7 +64,7 @@ except Exception:  # noqa: BLE001
 UNIVERSE_MODULES = {"industry_etf_catalog": industry_etf_catalog}      # the only modules a spec universe may name
 
 ENGINE = "justhodl-polygon-bank"
-VERSION = "1.2.0"
+VERSION = "1.2.1"
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 HOST = os.environ.get("POLYGON_HOST", "https://api.polygon.io")
 UA = {"User-Agent": "JustHodl Research (raafouis@gmail.com) polygon-bank/" + VERSION}
@@ -273,6 +277,20 @@ class Fetch:
         return ("ok" if rows else "empty", rows if rows else None, total, n)
 
 
+VOLATILE_KEYS = ("request_id",)
+
+
+def content_sha(obj):
+    """sha256 of a payload without the provider's per-request stamp.
+
+    v1.2.1: Polygon stamps every response with a fresh `request_id`.  A response banked verbatim therefore never hashed
+    the same twice, and a file whose data had not changed was written again on every visit - about 3,700 files a day,
+    each billed twice on the versioned bucket (ops 6872: the newest two versions of a sampled file differ only in that
+    field).  The data under the stamp is what a file is; only the top-level stamp is set aside, nothing nested."""
+    core = {k: v for k, v in obj.items() if k not in VOLATILE_KEYS} if isinstance(obj, dict) else obj
+    return hashlib.sha256(json.dumps(core, separators=(",", ":"), ensure_ascii=False, default=str).encode("utf-8")).hexdigest()
+
+
 class Store:
     def __init__(self):
         self.puts = 0
@@ -291,9 +309,11 @@ class Store:
     def put(self, key, obj, meta):
         body = json.dumps(obj, separators=(",", ":"), ensure_ascii=False, default=str).encode("utf-8")
         sha = hashlib.sha256(body).hexdigest()
+        content = content_sha(obj)
         try:
             head = s3.head_object(Bucket=BUCKET, Key=key)
-            if (head.get("Metadata") or {}).get("sha256") == sha:
+            have = head.get("Metadata") or {}
+            if have.get("sha256") == sha or have.get("content-sha256") == content:
                 with self.lock:
                     self.unchanged += 1
                 return False, len(body)
@@ -302,6 +322,7 @@ class Store:
         gz = gzip.compress(body, compresslevel=6)
         m = {k: str(v)[:250] for k, v in meta.items()}
         m["sha256"] = sha
+        m["content-sha256"] = content
         m["engine"] = ENGINE
         s3.put_object(Bucket=BUCKET, Key=key, Body=gz, ContentType="application/json", ContentEncoding="gzip", Metadata=m)
         with self.lock:

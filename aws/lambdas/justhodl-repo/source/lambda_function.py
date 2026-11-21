@@ -36,6 +36,8 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 
+from history_writes import history_etags, put_history
+
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 s3 = boto3.client("s3", region_name="us-east-1")
 
@@ -1288,6 +1290,10 @@ def lambda_handler(event, context):
         diag['dtcc']['error'] = (type(_de).__name__ + ':'
                                    + str(_de)[:80])
 
+    # 2026-11-21: a history file is written only when its bytes changed
+    # (history_writes.py); one listing gives every file's ETag.
+    hist_etags = history_etags(s3, BUCKET)
+    hist_stats = {"written": 0, "unchanged": 0}
     values = {}
     rows = []
     skipped = []
@@ -1323,15 +1329,14 @@ def lambda_handler(event, context):
                 continue
             last_d, last_v, chg = changes(pairs)
             values[e["mnemonic"]] = (last_d, last_v, pairs)
-            s3.put_object(
-                Bucket=BUCKET, Key=f"data/repo-history/{sid}.json",
-                Body=json.dumps({"id": e["mnemonic"],
-                                  "label": e.get("name") or e["mnemonic"],
-                                  "dates": [p[0] for p in pairs],
-                                  "values": [p[1] for p in pairs]},
-                                 separators=(",", ":")).encode(),
-                ContentType="application/json",
-                CacheControl="public, max-age=1800")
+            put_history(
+                s3, BUCKET, f"data/repo-history/{sid}.json",
+                json.dumps({"id": e["mnemonic"],
+                             "label": e.get("name") or e["mnemonic"],
+                             "dates": [p[0] for p in pairs],
+                             "values": [p[1] for p in pairs]},
+                            separators=(",", ":")).encode(),
+                hist_etags, hist_stats)
             rows.append({"id": e["mnemonic"], "sid": sid,
                           "label": names.get(e["mnemonic"]) or e.get("name") or "",
                           "tenor": e.get("tenor"),
@@ -1357,14 +1362,12 @@ def lambda_handler(event, context):
         pl = sorted(pairs.items())
         last_d, last_v, chg = changes(pl)
         sid = safe_id(mn)
-        s3.put_object(Bucket=BUCKET,
-                       Key=f"data/repo-history/{sid}.json",
-                       Body=json.dumps({"id": mn, "label": name,
-                                          "dates": [x[0] for x in pl],
-                                          "values": [x[1] for x in pl]},
-                                         separators=(",", ":")).encode(),
-                       ContentType="application/json",
-                       CacheControl="public, max-age=1800")
+        put_history(s3, BUCKET, f"data/repo-history/{sid}.json",
+                     json.dumps({"id": mn, "label": name,
+                                  "dates": [x[0] for x in pl],
+                                  "values": [x[1] for x in pl]},
+                                 separators=(",", ":")).encode(),
+                     hist_etags, hist_stats)
         values[mn] = (last_d, last_v, pl)
         rows.append({"id": mn, "sid": sid, "label": name,
                       "group": "Derived stress indicators",
@@ -1501,7 +1504,9 @@ def lambda_handler(event, context):
             "note": ("barometer is a labeled heuristic: score = 50 + "
                      "10*mean(clipped z), components listed in full"),
             "counts": {"series": len(rows), "skipped": len(skipped),
-                        "history_files": len(rows)},
+                        "history_files": len(rows),
+                        "history_written": hist_stats["written"],
+                        "history_unchanged": hist_stats["unchanged"]},
             "barometer": {"score": score, "label": label,
                            "components": comps},
             "groups": [{"name": g, "series": groups[g]}
@@ -1513,6 +1518,7 @@ def lambda_handler(event, context):
                    Body=json.dumps(out, separators=(",", ":")).encode(),
                    ContentType="application/json", CacheControl="no-cache")
     res = {"ok": True, "v": "2.9", "ice": ice_added, "frepo": frepo_added, "series": len(rows), "skipped": len(skipped),
+            "history_written": hist_stats["written"], "history_unchanged": hist_stats["unchanged"],
             "barometer": score, "label": label,
             "secs": round(time.time() - t0, 1)}
     print("[repo] " + json.dumps(res))

@@ -307,6 +307,74 @@ def test_epoch_restarts_the_lap_and_replaces_files_from_the_old_question():
     assert st2["lap"] >= before and st2["epoch_started_at"] == st["epoch_started_at"]
 
 
+class StampedPolygon(FakePolygon):
+    """The real provider stamps every answer with a fresh request_id; FakePolygon above never did, which is how a file
+    rewritten on every visit passed test_second_run_unchanged (ops 6872 found it on the live bucket)."""
+    n = 0
+
+    def _resp(self, body):
+        doc = json.loads(body)
+        if isinstance(doc, dict):
+            StampedPolygon.n += 1
+            doc["request_id"] = "req-%06d" % StampedPolygon.n
+        return FakePolygon._resp(json.dumps(doc).encode())
+
+
+def data_puts(s3, root, before=None):
+    """Banked data files written (the manifest, state, catalog and run records are rewritten every run by design)."""
+    return {k for k in s3.store if k.endswith(".json.gz") and k.startswith(root) and "/_state/" not in k and (before is None or s3.store[k] is not before.get(k))}
+
+
+def test_a_fresh_request_id_alone_never_rewrites_a_file():
+    lf, s3, _ = boot()
+    import urllib.request as ur
+    ur.urlopen = StampedPolygon()
+    first = lf.lambda_handler({}, None)
+    root = lf._spec()["root"]
+    files = {k: v for k, v in s3.store.items() if k.endswith(".json.gz") and k.startswith(root)}
+    assert first["puts"] > 10 and len(files) > 10, first
+    stamped = [k for k in files if isinstance(gz(s3, k), dict) and "request_id" in gz(s3, k)]
+    assert len(stamped) > 3, "the fixture must bank verbatim answers that carry the stamp"
+    for k in stamped:                                             # banked verbatim: the stamp is in the file, and beside it the hash of the data without it
+        doc = gz(s3, k)
+        assert s3.meta[k]["content-sha256"] == lf.content_sha(doc) != s3.meta[k]["sha256"]
+        assert lf.content_sha(doc) == lf.content_sha({kk: vv for kk, vv in doc.items() if kk != "request_id"})
+    ur.urlopen = StampedPolygon()                                 # every answer comes back with a NEW request_id and the same data
+    second = lf.lambda_handler({}, None)
+    after = {k: v for k, v in s3.store.items() if k.endswith(".json.gz") and k.startswith(root)}
+    rewritten = sorted(k for k in files if after[k] is not files[k])
+    assert rewritten == [], "rewritten although only the request_id changed: %s" % rewritten[:5]
+    assert second["unchanged"] >= len(stamped) and second["puts"] <= first["puts"] - len(files) + len(set(after) - set(files)), (first, second)
+
+
+def test_changed_data_is_still_written_and_a_file_banked_before_this_version_is_recognised():
+    lf, s3, _ = boot()
+    st = lf.Store()
+    key = "data/warm/polygon-bank/x/latest.json.gz"
+    one = {"status": "OK", "request_id": "a", "results": [{"ticker": "AAPL", "c": 1}]}
+    assert st.put(key, one, {"path": "/x"})[0] is True and s3.puts == 1
+    assert st.put(key, dict(one, request_id="b"), {"path": "/x"})[0] is False and s3.puts == 1           # only the stamp moved
+    assert gz(s3, key)["request_id"] == "a"                                                              # the banked file is untouched
+    changed = {"status": "OK", "request_id": "c", "results": [{"ticker": "AAPL", "c": 2}]}
+    assert st.put(key, changed, {"path": "/x"})[0] is True and s3.puts == 2 and gz(s3, key) == changed   # real change: banked verbatim, stamp included
+    nested = {"status": "OK", "request_id": "d", "results": [{"ticker": "AAPL", "c": 2, "request_id": "inner"}]}
+    assert st.put(key, nested, {"path": "/x"})[0] is True and s3.puts == 3                               # only the top-level stamp is set aside
+    assert (st.puts, st.unchanged) == (3, 1)
+    # a file written by v1.2.0 carries only `sha256` (of the whole body): identical bytes are still recognised, and the
+    # first visit with a new stamp writes it once, after which it is stable
+    old_key = "data/warm/polygon-bank/y/latest.json.gz"
+    body = json.dumps(one, separators=(",", ":"), ensure_ascii=False, default=str).encode("utf-8")
+    import hashlib
+    s3.store[old_key], s3.meta[old_key] = gzip.compress(body), {"sha256": hashlib.sha256(body).hexdigest(), "engine": "justhodl-polygon-bank"}
+    puts = s3.puts
+    assert st.put(old_key, one, {})[0] is False and s3.puts == puts
+    assert st.put(old_key, dict(one, request_id="z"), {})[0] is True and s3.puts == puts + 1
+    assert st.put(old_key, dict(one, request_id="zz"), {})[0] is False and s3.puts == puts + 1
+    for payload in ([], [{"a": 1}], {"results": []}):                                                    # lists and stampless answers hash as themselves
+        assert lf.content_sha(payload) == hashlib.sha256(json.dumps(payload, separators=(",", ":"), ensure_ascii=False, default=str).encode("utf-8")).hexdigest()
+    assert lf.VERSION == "1.2.1"
+
+
 def test_module_universe_is_the_reviewed_catalog():
     lf, s3, fake = boot()
     import industry_etf_catalog as cat
