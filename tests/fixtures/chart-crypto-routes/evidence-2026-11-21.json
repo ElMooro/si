@@ -4,7 +4,9 @@
   "banked_coins": "ops 6880 section 1 (data/warm/katlin/crypto-bars inventory, 2026-11-21 17:31 UTC)",
   "vendor_agreement": "ops 6881 section 1 (newest 30 shared days, tolerance 3%)",
   "live_before": "ops 6882 sections 1 and 2 (real browser on justhodl.ai/chart.html before the change)",
-  "futures": "ops 6881 section 2: BTC=F 2,248 daily bars from 2017-12-18, ETH=F 1,460 from 2021-02-05; MBT=F and MET=F one bar"
+  "futures": "ops 6881 section 2: BTC=F 2,248 daily bars from 2017-12-18, ETH=F 1,460 from 2021-02-05; MBT=F and MET=F one bar",
+  "empty_bank": "ops 6883 (2026-11-21 18:36 UTC): the bank files of AR, CFX and VIRTUAL hold no rows and the data proxy answers no bars for them; they are not routed",
+  "bank_stopped": "ops 6883: the bank stopped on 2026-10-10 for COMP GALA JUP ZK ZRO, 2026-09-29 RNDR, 2026-07-02 EOS, 2025-10-14 MATIC, 2021-06-02 IOTA"
  },
  "banked_coins": [
   "AAVE",
@@ -2404,5 +2406,10 @@
   "CRYPTO:BTCUSD": "BTC-USD",
   "SOLUSD": "SOL-USD",
   "CME:BTC1!": "BTC=F"
- }
+ },
+ "empty_bank": [
+  "AR",
+  "CFX",
+  "VIRTUAL"
+ ]
 }

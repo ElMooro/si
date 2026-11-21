@@ -436,8 +436,8 @@ function peelIndexRoutes(raw,file){
 // edit and keeps the native-route cases on a coin with no banked bars. Every edit is a before/after pair under tests/fixtures/chart-crypto-routes.
 function peelCryptoRoutes(raw,file){
  const plans={
-  'jh-chart-engine.js':{after:'c29415360c8b21ad3ea2d0074da00c020327472a9a730f1561548d39408bc40e',before:'3e155083ed083a0fe3e4c6cbf9973bc0ce71f3310b564a955c254ed568087272',edits:['engine.edits.json']},
-  'jh-chart-tvwatch.js':{after:'6b56696275092f2b68d5cedc2f5043b3027224bbbc37cb4d475cace4776e4984',before:'73960757ad566281eb496e729cca8e2c1b4aff32f4f42e75b7f6ff05a3dd4a95',edits:['tvwatch.edits.json','tvwatch-route.edits.json']},
+  'jh-chart-engine.js':{after:'8860815ca07acac8d1823ff8d99f1139e5bcedf1765d947b36c87efea3740fba',before:'3e155083ed083a0fe3e4c6cbf9973bc0ce71f3310b564a955c254ed568087272',edits:['engine.edits.json']},
+  'jh-chart-tvwatch.js':{after:'9926aca0ef44415b771fe7d382b04e0784f501a600b4adc4a5c3bc70d9cf8d97',before:'73960757ad566281eb496e729cca8e2c1b4aff32f4f42e75b7f6ff05a3dd4a95',edits:['tvwatch.edits.json','tvwatch-route.edits.json']},
   'tests/watchlist-identity.test.js':{after:'7d3429ddc834e7ebf737f752bbfabdb1b5e0204c2dbf666dd34fc9224cb68d32',before:'9bb2fdc7e091b7673446496d03e577a8495a8a2341300b39bbb6f0dc45a55fa2',edits:['identity-test.edits.json']}
  },plan=plans[file];
  if(!plan||hash(raw)!==plan.after)return raw;

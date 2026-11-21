@@ -340,12 +340,13 @@
     if(/^(BTCUSD|ETHUSD)$/.test(t)) return true;
     return false;
   }
-  /* 2026-11-21 (Khalid: "i cant pull btc on chart ... i want all my crypto and stocks and etfs to refresh"): the coins with banked daily bars (data/warm/katlin/crypto-bars, ops 6880).
+  /* 2026-11-21 (Khalid: "i cant pull btc on chart ... i want all my crypto and stocks and etfs to refresh"): the 90 coins with banked daily bars (data/warm/katlin/crypto-bars, ops 6880, 6883).
      The directory's ids for them (X:BTCUSD, X:SOLUSD ...) are those banked bars alone - they end yesterday and have no forming bar - while the coin's tape (BTC-USD) is the same bank
-     plus today's bar, so a pick of the directory id opens the tape. The watchlist router carries the same list (tests/chart-crypto-routes.test.js keeps the two equal). */
-  var CRYPTO_TAPE=" AAVE ADA AERO AKT ALGO APE APT AR ARB ASTR ATOM AVAX AXS BCH BNB BONK BTC CFX CHZ COMP CRV DASH DOGE DOT EGLD EIGEN ENA ENS EOS ETC ETH FET FIL FLOW FLR GALA GRT HBAR HYPE ICP IMX INJ IOTA JTO JUP KAS KAVA LDO LINK LTC MANA MATIC MINA MKR NEAR NEO ONDO OP PENDLE PEPE POL PYTH QNT RENDER RNDR ROSE RUNE SAND SEI SHIB SNX SOL STRK STX SUI TAO THETA TIA TON TRX UNI VET VIRTUAL W WIF WLD XLM XMR XRP XTZ ZEC ZK ZRO ";
+     plus today's bar, so a pick of the directory id opens the tape; so does the pair typed with no venue (SOLUSD), which no feed answers under that name. A stablecoin pair typed
+     bare (BTCUSDT) stays as typed. The watchlist router carries the same list (tests/chart-crypto-routes.test.js keeps the two equal). */
+  var CRYPTO_TAPE=" AAVE ADA AERO AKT ALGO APE APT ARB ASTR ATOM AVAX AXS BCH BNB BONK BTC CHZ COMP CRV DASH DOGE DOT EGLD EIGEN ENA ENS EOS ETC ETH FET FIL FLOW FLR GALA GRT HBAR HYPE ICP IMX INJ IOTA JTO JUP KAS KAVA LDO LINK LTC MANA MATIC MINA MKR NEAR NEO ONDO OP PENDLE PEPE POL PYTH QNT RENDER RNDR ROSE RUNE SAND SEI SHIB SNX SOL STRK STX SUI TAO THETA TIA TON TRX UNI VET W WIF WLD XLM XMR XRP XTZ ZEC ZK ZRO ";
   function cryptoTapeId(s){
-    var m=/^X:([A-Z0-9]{1,10})USD$/i.exec(String(s||"").trim());
+    var m=/^(?:X:)?([A-Z0-9]{1,10})USD$/i.exec(String(s||"").trim());
     return m && CRYPTO_TAPE.indexOf(" "+m[1].toUpperCase()+" ")>=0 ? m[1].toUpperCase()+"-USD" : "";
   }
   /* An outside daily series joins banked bars only when it is the same coin: on the newest 30 days both carry, at least 5 of them, the median distance between closes is within 3%.

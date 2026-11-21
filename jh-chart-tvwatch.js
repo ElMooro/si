@@ -491,11 +491,11 @@
        search bar"): TradingView's first answer for "bitcoin" is INDEX:BTCUSD and for "ethereum" INDEX:ETHUSD. The symbol map sends those to a provider's coin id ("bitcoin") this
        router cannot hand to the chart, and a map hit it cannot use ended the search before the venue rules below; BINANCE:BTCUSDT, COINBASE:SOLUSD and KRAKEN:XBTUSD took the
        native route and drew nothing (ops 6879, 6882). A spot pair of a banked coin against the dollar or a dollar stablecoin, under a crypto venue or the INDEX namespace, is
-       that coin's own tape: the banked daily bars plus today's forming bar. The coins are the bank (data/warm/katlin/crypto-bars, ops 6880) - no other coin has banked bars
-       to check an outside series against; Kraken's XBT and XDG are bitcoin and dogecoin. CME's bitcoin and ether futures route to those contracts on the futures feed (ops
+       that coin's own tape: the banked daily bars plus today's forming bar. The coins are the 90 with banked bars (data/warm/katlin/crypto-bars, ops 6880, 6883) - no other coin
+       has banked bars to check an outside series against; Kraken's XBT and XDG are bitcoin and dogecoin. CME's bitcoin and ether futures route to those contracts on the futures feed (ops
        6881). Perpetuals, dated futures, cross pairs (ETHBTC), market-cap and dominance series (CRYPTOCAP) and on-chain metrics are deliberately not listed: the warehouse holds
        no such series. Reviewed here, so these decide before the symbol map. */
-    var cryptoCoins = " AAVE ADA AERO AKT ALGO APE APT AR ARB ASTR ATOM AVAX AXS BCH BNB BONK BTC CFX CHZ COMP CRV DASH DOGE DOT EGLD EIGEN ENA ENS EOS ETC ETH FET FIL FLOW FLR GALA GRT HBAR HYPE ICP IMX INJ IOTA JTO JUP KAS KAVA LDO LINK LTC MANA MATIC MINA MKR NEAR NEO ONDO OP PENDLE PEPE POL PYTH QNT RENDER RNDR ROSE RUNE SAND SEI SHIB SNX SOL STRK STX SUI TAO THETA TIA TON TRX UNI VET VIRTUAL W WIF WLD XLM XMR XRP XTZ ZEC ZK ZRO ";
+    var cryptoCoins = " AAVE ADA AERO AKT ALGO APE APT ARB ASTR ATOM AVAX AXS BCH BNB BONK BTC CHZ COMP CRV DASH DOGE DOT EGLD EIGEN ENA ENS EOS ETC ETH FET FIL FLOW FLR GALA GRT HBAR HYPE ICP IMX INJ IOTA JTO JUP KAS KAVA LDO LINK LTC MANA MATIC MINA MKR NEAR NEO ONDO OP PENDLE PEPE POL PYTH QNT RENDER RNDR ROSE RUNE SAND SEI SHIB SNX SOL STRK STX SUI TAO THETA TIA TON TRX UNI VET W WIF WLD XLM XMR XRP XTZ ZEC ZK ZRO ";
     var cryptoPair = /^(?:(INDEX|CRYPTO|COINBASE|BITSTAMP|KRAKEN|BINANCE|BINANCEUS|BYBIT|BITFINEX|GEMINI|OKX|KUCOIN|MEXC|GATEIO|HTX|BITGET|CRYPTOCOM|POLONIEX|PYTH):)?([A-Z0-9]{2,14})$/.exec(u);
     var cryptoQuotes = ["USD", "USDT", "USDC", "BUSD"], cryptoFutures = { "CME:BTC1!": "BTC=F", "CME:MBT1!": "BTC=F", "CME:ETH1!": "ETH=F", "CME:MET1!": "ETH=F" }, cryptoCoin, cq;
     /* The dollar itself is tried first (ARBUSD is ARB against the dollar, not AR against BUSD); an id with no venue is a pair only against the dollar itself (BTCUSDT stays as typed). */

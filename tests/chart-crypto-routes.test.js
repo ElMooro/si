@@ -31,13 +31,13 @@ function predecessor(file,src){let raw=src;
  const edits=[].concat(...names.map(f=>JSON.parse(read('tests/fixtures/chart-crypto-routes/'+f))));
  for(const e of [...edits].reverse()){assert.equal(raw.split(e.after).length,2,file+': '+e.after.slice(0,40));raw=raw.replace(e.after,e.before);}return raw;}
 const watchBefore=predecessor('jh-chart-tvwatch.js',watch),engineBefore=predecessor('jh-chart-engine.js',engine);
-const COINS=fixture.banked_coins,LIVE_MAP=Object.fromEntries(Object.entries(fixture.symbol_map_hits));
+const COINS=fixture.banked_coins.filter(c=>!fixture.empty_bank.includes(c)),LIVE_MAP=Object.fromEntries(Object.entries(fixture.symbol_map_hits));
 const VENUES=['INDEX','CRYPTO','COINBASE','BITSTAMP','KRAKEN','BINANCE','BINANCEUS','BYBIT','BITFINEX','GEMINI','OKX','KUCOIN','MEXC','GATEIO','HTX','BITGET','CRYPTOCOM','POLONIEX','PYTH'];
 const routerList=(()=>{const m=/var cryptoCoins = "([A-Z0-9 ]+)";/.exec(fn(watch,'chartSymbol'));assert.ok(m,'router coin list');return m[1];})();
 const engineList=(()=>{const m=/var CRYPTO_TAPE="([A-Z0-9 ]+)";/.exec(engine);assert.ok(m,'engine coin list');return m[1];})();
 
-test('the router and the engine carry one coin list, and it is the bank',()=>{
- assert.equal(routerList,engineList);assert.equal(routerList,' '+COINS.join(' ')+' ');assert.equal(COINS.length,93);assert.deepEqual(COINS,COINS.slice().sort());
+test('the router and the engine carry one coin list, and it is the coins with banked bars',()=>{
+ assert.equal(routerList,engineList);assert.equal(routerList,' '+COINS.join(' ')+' ');assert.equal(fixture.banked_coins.length,93);assert.deepEqual(fixture.empty_bank,['AR','CFX','VIRTUAL']);assert.equal(COINS.length,90);assert.deepEqual(COINS,COINS.slice().sort());
  for(const c of ['BTC','ETH','SOL','XRP','DOGE','ARB','TON','SUI','PEPE'])assert.ok(COINS.includes(c),c);
  const venues=/var cryptoPair = \/\^\(\?:\(([A-Z|]+)\):\)\?/.exec(fn(watch,'chartSymbol'));assert.ok(venues);assert.deepEqual(venues[1].split('|'),VENUES);
 });
@@ -72,11 +72,12 @@ test('every banked coin, under every listed venue and dollar quote, is that coin
   for(const v of VENUES)for(const q of ['USD','USDT','USDC','BUSD']){const c=harness(),id=v+':'+coin+q,want=reading(coin+q);if(want!==coin)twoReadings.add(coin+q+'='+want);assert.equal(c.chartSymbol(id),want+'-USD',id);n++;}
   const c=harness();assert.equal(c.chartRoute('BINANCE:'+coin+'USDT').handoff,coin+'-USD');assert.equal(c.chartRoute('INDEX:'+coin+'USD').handoff,coin+'-USD');assert.equal(c.chartRoute(coin+'USD').handoff,coin+'-USD',coin+'USD');
  }
- assert.equal(n,93*19*4);assert.deepEqual([...twoReadings],['ARBUSD=ARB']);       // the one pair with two readings among the banked coins
+ assert.equal(n,90*19*4);assert.deepEqual([...twoReadings],[]);
+ const ar=harness();assert.equal(ar.chartSymbol('BINANCE:ARBUSD'),'ARB-USD');assert.equal(ar.chartSymbol('ARBUSD'),'ARB-USD');      // the dollar is read first: ARB against the dollar, never AR against BUSD
  const k=harness();assert.equal(k.chartSymbol('KRAKEN:XBTUSD'),'BTC-USD');assert.equal(k.chartSymbol('KRAKEN:XBTUSDT'),'BTC-USD');assert.equal(k.chartSymbol('KRAKEN:XDGUSD'),'DOGE-USD');
 });
 test('what is deliberately not routed stays as it was',()=>{
- const same=['BINANCE:ETHBTC','KRAKEN:ETHBTC','BINANCE:FOOUSDT','COINBASE:FOOUSD','BINANCE:BTCUSDT.P','BYBIT:ETHUSDU2025','BINANCE:BTCUSDH2025','CRYPTOCAP:BTC.D','CRYPTOCAP:TOTAL','CRYPTOCAP:BTC','BITFINEX:BTCUSDLONGS','GLASSNODE:BTC_SOPR',
+ const same=['BINANCE:ETHBTC','KRAKEN:ETHBTC','BINANCE:FOOUSDT','COINBASE:FOOUSD','BINANCE:ARUSDT','COINBASE:CFXUSD','INDEX:VIRTUALUSD','VIRTUALUSD','BINANCE:BTCUSDT.P','BYBIT:ETHUSDU2025','BINANCE:BTCUSDH2025','CRYPTOCAP:BTC.D','CRYPTOCAP:TOTAL','CRYPTOCAP:BTC','BITFINEX:BTCUSDLONGS','GLASSNODE:BTC_SOPR',
   'INTOTHEBLOCK:BTC_HASHRATE','INDEX:SPXUSD','INDEX:ADVN','OANDA:EURUSD','FX:GBPUSD','FX_IDC:JPYUSD','EURUSD','XAUUSD','XAGUSD','BUSD','USDTUSD','BTCUSDT','BTCUSDC','BTC','ETH','BTC-USD','ETH-USD','AAPL','COIN','MSTR','NASDAQ:AAPL','NASDAQ:COIN',
   'AMEX:IBIT','CME_MINI:ES1!','CME:GE1!','TVC:GOLD','I:SPX','VANTAGE:SP500','FRED:DGS10','X:BTCUSD','X:SOLUSD','BINANCE:BTCUSD BINANCE:ETHUSD'];
  for(const map of [null,LIVE_MAP])for(const id of same){
@@ -111,7 +112,9 @@ function engineScope(src=engine){const c={Math,Number,String,Object,Date,isFinit
 test('the directory\'s id of a banked coin opens that coin\'s tape; nothing else is touched',()=>{
  const c=engineScope();
  for(const coin of COINS){assert.equal(c.cryptoTapeId('X:'+coin+'USD'),coin+'-USD');assert.equal(c.cryptoTapeId('x:'+coin.toLowerCase()+'usd'),coin+'-USD');assert.equal(c.cryptoTapeId(' X:'+coin+'USD '),coin+'-USD');}
- for(const id of ['X:BTCEUR','X:BTCUSDT','X:FOOUSD','X:USD','BTC-USD','BTCUSD','I:SPX','C:EURUSD','INDEX:BTCUSD','COINBASE:BTCUSD','FRED:DGS10','AAPL','',null,undefined])assert.equal(c.cryptoTapeId(id),'',String(id));
+ for(const coin of COINS)assert.equal(c.cryptoTapeId(coin+'USD'),coin+'-USD');                                  // the pair typed with no venue: no feed answers "SOLUSD" (live before: the chart stayed where it was)
+ assert.equal(fixture.live_before.SOLUSD.verdict,'same chart');assert.equal(c.cryptoTapeId('arbusd'),'ARB-USD');assert.equal(c.cryptoTapeId('BTCUSD'),'BTC-USD');
+ for(const id of ['X:BTCEUR','X:BTCUSDT','BTCUSDT','BTCUSDC','ETHBTC','X:FOOUSD','FOOUSD','X:ARUSD','ARUSD','X:CFXUSD','X:VIRTUALUSD','EURUSD','XAUUSD','BUSD','USD','X:USD','BTC-USD','I:SPX','C:EURUSD','INDEX:BTCUSD','COINBASE:BTCUSD','FRED:DGS10','AAPL','COIN','',null,undefined])assert.equal(c.cryptoTapeId(id),'',String(id));
  const chartId=fn(engine,'chartId');assert.ok(chartId.startsWith('function chartId(s){\n    s=String(s||"").trim();\n    s=cryptoTapeId(s)||s;'),'the directory id is rewritten before anything else decides');
  assert.equal(fn(engineBefore,'chartId'),chartId.replace(/\n    s=cryptoTapeId\(s\)\|\|s;[^\n]*/,''));
  for(const id of ['X:BTCUSD','X:SOLUSD','X:ARBUSD','X:TONUSD','X:SUIUSD']){assert.equal(fixture.live_before[id].verdict,'CHARTS');assert.equal(fixture.live_before[id].last,'2026-11-20',id+' ended a day behind before the change');}
