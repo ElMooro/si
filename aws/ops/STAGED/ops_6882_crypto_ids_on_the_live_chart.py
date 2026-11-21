@@ -111,6 +111,11 @@ def main():
                 page.wait_for_timeout(3000)
             scripts = page.evaluate("() => Array.from(document.scripts).map(s => s.src).filter(s => /jh-chart-tvwatch|jh-chart-engine|jh-uni-search|jh-tv-watchlist/.test(s)).map(s => s.split('/').pop())")
             r.log("page scripts: %s" % " ".join(scripts))
+            # is the code the browser was served the fixed code?  (the engine's script URL is not content-stamped: the edge may hold the old file for some minutes)
+            marks = page.evaluate("""async () => { const out = {}; for (const s of Array.from(document.scripts).map(s => s.src).filter(s => /jh-chart-tvwatch|jh-chart-engine/.test(s))) {
+              try { const t = await (await fetch(s)).text(); out[s.split('/').pop().split('?')[0]] = { bytes: t.length, crypto_table: t.indexOf('var cryptoCoins = ') >= 0, tape_id: t.indexOf('function cryptoTapeId') >= 0, same_coin: t.indexOf('function sameCoinTape') >= 0 }; }
+              catch (e) { out[s] = String(e); } } return out; }""")
+            r.log("served code: %s" % json.dumps(marks, sort_keys=True))
 
             def settle(before_symbol, want_change=True, limit=26):
                 """Wait until the chart holds bars for a new symbol, or the route status says it will not; -> seconds waited."""
