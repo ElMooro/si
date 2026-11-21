@@ -71,6 +71,15 @@ jobs:
         with:
           fetch-depth: 50
 
+      # Every engine runs on the python3.12 Lambda runtime, and every engine suite was written and reviewed on 3.12.
+      # ubuntu-latest moved to an image whose system python3 is 3.14 (2026-11): the gate was testing 3.12 code on 3.14,
+      # and a suite that pins an ast.dump() digest (justhodl-financial-secretary) fails there although the engine is
+      # unchanged - which stopped the 2026-11-21 fleet lane at preflight. The gate runs on the runtime's interpreter.
+      - name: Use the Lambda runtime's Python for every gate
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Pin exact recovery checkout
         env:
           EXPECTED_RELEASE_SHA: ${{ github.event.inputs.expected_sha }}

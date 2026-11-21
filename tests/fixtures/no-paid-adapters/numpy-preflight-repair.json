@@ -10,6 +10,10 @@
       [
         "concurrency:\n  group: deploy-lambdas-production\n  cancel-in-progress: false\n",
         "concurrency:\n  group: deploy-lambdas-production\n  cancel-in-progress: false\n  queue: max\n"
+      ],
+      [
+        "      - name: Checkout\n        uses: actions/checkout@v4\n        with:\n          fetch-depth: 50\n\n      - name: Pin exact recovery checkout\n",
+        "      - name: Checkout\n        uses: actions/checkout@v4\n        with:\n          fetch-depth: 50\n\n      # Every engine runs on the python3.12 Lambda runtime, and every engine suite was written and reviewed on 3.12.\n      # ubuntu-latest moved to an image whose system python3 is 3.14 (2026-11): the gate was testing 3.12 code on 3.14,\n      # and a suite that pins an ast.dump() digest (justhodl-financial-secretary) fails there although the engine is\n      # unchanged - which stopped the 2026-11-21 fleet lane at preflight. The gate runs on the runtime's interpreter.\n      - name: Use the Lambda runtime's Python for every gate\n        uses: actions/setup-python@v5\n        with:\n          python-version: '3.12'\n\n      - name: Pin exact recovery checkout\n"
       ]
     ]
   },
