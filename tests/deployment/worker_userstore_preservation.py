@@ -42,7 +42,20 @@ def peel_crawler_gate(raw, file):
     assert hashlib.sha256(raw.encode()).hexdigest() == t['before_sha256'], file
     return raw
 
+def peel_crypto_tape(raw, file):
+    """2026-11-21: same-coin rule and forming bar of the banked crypto tape; same peel as peelCryptoTape in the .cjs helper.
+    Both chains are taught in the same commit (the ops 6551 / 6628 trap: a Lambda deploy fails preflight when only the JS one is)."""
+    t = json.loads((R/'tests/fixtures/worker-crypto-tape/transition.json').read_bytes())
+    if file != t['path'] or hashlib.sha256(raw.encode()).hexdigest() != t['after_sha256']:
+        return raw
+    for e in reversed(t['replacements']):
+        assert raw.count(e['after']) == 1, "crypto tape hunk"
+        raw = raw.replace(e['after'], e['before'], 1)
+    assert hashlib.sha256(raw.encode()).hexdigest() == t['before_sha256'], file
+    return raw
+
 def normalize(raw,file):
+    raw = peel_crypto_tape(raw, file)
     raw = peel_crawler_gate(raw, file)
     raw = peel_edge_revalidate(raw, file)
     raw = peel_heat_range(raw, file)

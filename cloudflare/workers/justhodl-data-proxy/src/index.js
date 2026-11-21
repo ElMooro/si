@@ -6,6 +6,7 @@ import { handleSnapshotPublication, routeSnapshotPublication } from './snapshot-
 import { handleAskDesk } from './ask_desk_api.js';
 import {reviewedArtifact, serveReviewedArtifact} from './reviewed-artifacts.js';
 import {warehouseOHLC, formingSession, yahooChartSymbol, isCryptoWarehouse, mergeBarsPrefer, yahooResultToBars, binanceSymbol, binanceKlinesToBars} from './warehouse-ohlc.js';
+import {sameCoinDaily, coinbaseProduct, coinbaseCandlesToBars, formingBars, utcToday, bankLastDay} from './crypto-tape.js';
 /**
  * justhodl-data-proxy v2.1.0
  *
@@ -91,14 +92,19 @@ async function fetchYahooDaily(symbol) {
   return yahooResultToBars(await resp.json());
 }
 
+/* Binance's public market-data host. 2026-11-21: api.binance.com answers HTTP 451 from US addresses (ops 6881), so the Binance
+ * fallback below never ran from there; this host serves the same klines and is asked when the first refuses. */
+const BINANCE_PUBLIC = "https://data-api.binance.vision";
+
 async function fetchBinanceDaily(symbol) {
   const pair = binanceSymbol(symbol);
   if (!pair || !/^[A-Z0-9]{5,20}$/.test(pair)) return [];
   const out = [];
-  let endTime = Date.now();
+  let endTime = Date.now(), host = "https://api.binance.com";
   for (let page = 0; page < 12; page++) {
-    const url = `https://api.binance.com/api/v3/klines?symbol=${encodeURIComponent(pair)}&interval=1d&limit=1000&endTime=${endTime}`;
-    const resp = await fetch(url, { cf: { cacheTtl: 300, cacheEverything: true } });
+    const query = `/api/v3/klines?symbol=${encodeURIComponent(pair)}&interval=1d&limit=1000&endTime=${endTime}`;
+    let resp = await fetch(host + query, { cf: { cacheTtl: 300, cacheEverything: true } });
+    if (!resp.ok && page === 0 && host !== BINANCE_PUBLIC) { host = BINANCE_PUBLIC; resp = await fetch(host + query, { cf: { cacheTtl: 300, cacheEverything: true } }); }
     if (!resp.ok) break;
     const rows = await resp.json();
     if (!Array.isArray(rows) || !rows.length) break;
@@ -117,13 +123,69 @@ async function fetchBinanceDaily(symbol) {
 
 /* Katlin crypto-bars start 2020-09-05. Yahoo BTC-USD is 2014-09-17; Binance BTCUSDT 2017-08.
  * Warehouse wins overlapping days (it is the live bank). Older vendor bars prepend. Equities skip. */
+/* Coinbase Exchange daily candles, newest 300 days. The banked bars are this venue's candles (Polygon X:<COIN>USD equals them to the
+ * cent on 81 of the 93 banked coins, ops 6881), so today's forming bar from here is the bar the bank will hold tomorrow. */
+async function fetchCoinbaseDaily(symbol) {
+  const product = coinbaseProduct(symbol);
+  if (!product) return [];
+  const resp = await fetch(`https://api.exchange.coinbase.com/products/${encodeURIComponent(product)}/candles?granularity=86400`,
+    { headers: { "User-Agent": "justhodl-data-proxy", "Accept": "application/json" }, cf: { cacheTtl: 60, cacheEverything: true } });
+  if (!resp.ok) return [];
+  return coinbaseCandlesToBars(await resp.json());
+}
+
+async function fetchBinanceRecent(symbol) {
+  const pair = binanceSymbol(symbol);
+  if (!pair || !/^[A-Z0-9]{5,20}$/.test(pair)) return [];
+  const resp = await fetch(`${BINANCE_PUBLIC}/api/v3/klines?symbol=${encodeURIComponent(pair)}&interval=1d&limit=45`, { cf: { cacheTtl: 60, cacheEverything: true } });
+  if (!resp.ok) return [];
+  return binanceKlinesToBars(await resp.json());
+}
+
+/* The banked crypto tape, made whole: older years from an outside history, and the days since the bank's last completed day - today's
+ * forming bar - from a venue. 2026-11-21 (Khalid: "i cant pull btc on chart ... i want all my crypto and stocks and etfs to refresh
+ * for my data to stay accurate"): every outside series must first be the SAME COIN as the bank (crypto-tape.js). Before this rule the
+ * outside ticker of the same letters was another coin for ARB, TON, AERO and JUP - its history and a 99% lower bar for today were
+ * joined on - and 22 coins had no bar for today at all (ops 6881). What is refused is named in the answer. */
 async function extendCryptoDaily(ticker, warm) {
   if (!warm || !isCryptoWarehouse(warm.warehouse_key) || (warm.span && warm.span !== "day") || (warm.mult && warm.mult !== 1)) return warm;
+  const refused = [];
+  const sameCoin = (name, rows) => {
+    if (!rows || rows.length < 2) return [];
+    const verdict = sameCoinDaily(rows, warm.bars);
+    if (verdict.same) return rows;
+    refused.push({ source: name, shared_days: verdict.days, median_distance: verdict.median });
+    return [];
+  };
+  let out = await joinCryptoHistory(ticker, warm, sameCoin);
+  const bankLast = bankLastDay(warm.bars), today = utcToday(Date.now());
+  /* Only a live bank is extended: a tape whose last banked day is more than ten days back is a coin no longer banked (MATIC, RNDR). */
+  if (bankLast && bankLast < today && today - bankLast <= 10 * 86400) {
+    for (const [name, load] of [["coinbase", fetchCoinbaseDaily], ["binance", fetchBinanceRecent]]) {
+      let rows = [];
+      try { rows = sameCoin(name, await load(ticker)); } catch (eV) { rows = []; }
+      const forming = rows.length ? formingBars(out, rows, bankLast, today) : null;
+      if (!forming) continue;
+      const named = String(out.source || "warehouse");
+      out = Object.assign({}, out, {
+        bars: forming.bars,
+        source: named.split("+").includes(name) ? named : named + "+" + name,
+        forming_source: name,
+        forming_n: forming.added,
+        forming_policy: "Days after the bank's last completed UTC day, today's forming bar included, come from one venue that matches the banked closes (median within 3% on the newest 30 shared days). They are replaced by the banked bar once that day is banked."
+      });
+      break;
+    }
+  }
+  return refused.length ? Object.assign({}, out, { outside_refused: refused }) : out;
+}
+
+async function joinCryptoHistory(ticker, warm, sameCoin) {
   let hist = [], historySource = "yahoo";
-  try { hist = await fetchYahooDaily(ticker); } catch (eY) { hist = []; }
+  try { hist = sameCoin("yahoo", await fetchYahooDaily(ticker)); } catch (eY) { hist = []; }
   if (hist.length < 2) {
     historySource = "binance";
-    try { hist = await fetchBinanceDaily(ticker); } catch (eB) { hist = []; }
+    try { hist = sameCoin("binance", await fetchBinanceDaily(ticker)); } catch (eB) { hist = []; }
   }
   if (hist.length < 2) return warm;
   const merged = mergeBarsPrefer(hist, warm.bars);

@@ -29,5 +29,13 @@ function peelCrawlerGate(raw,file){
  assert.equal(hash(raw),t.before_sha256,file);
  return raw;
 }
-function normalize(raw,file){raw=peelCrawlerGate(raw,file);raw=peelEdgeRevalidate(raw,file);raw=peelHeatRange(raw,file);const t=manifest.entries[file];if(!t)return raw;assert.equal(hash(raw),t.after_sha256,file);for(const e of [...t.replacements].reverse()){assert.equal(raw.split(e.after).length,2,file);raw=raw.replace(e.after,e.before);}assert.equal(hash(raw),t.before_sha256,file);assert.equal(raw,fs.readFileSync(path.join(R,t.before_path),'utf8'),file);return raw;}
+// 2026-11-21: peel the same-coin rule and the forming bar of the banked crypto tape (hunks and hashes live in fixtures/worker-crypto-tape).
+function peelCryptoTape(raw,file){
+ const t=require('../fixtures/worker-crypto-tape/transition.json');
+ if(file!==t.path||hash(raw)!==t.after_sha256)return raw;
+ for(const e of [...t.replacements].reverse()){assert.equal(raw.split(e.after).length,2,'crypto tape hunk');raw=raw.replace(e.after,()=>e.before);}
+ assert.equal(hash(raw),t.before_sha256,file);
+ return raw;
+}
+function normalize(raw,file){raw=peelCryptoTape(raw,file);raw=peelCrawlerGate(raw,file);raw=peelEdgeRevalidate(raw,file);raw=peelHeatRange(raw,file);const t=manifest.entries[file];if(!t)return raw;assert.equal(hash(raw),t.after_sha256,file);for(const e of [...t.replacements].reverse()){assert.equal(raw.split(e.after).length,2,file);raw=raw.replace(e.after,e.before);}assert.equal(hash(raw),t.before_sha256,file);assert.equal(raw,fs.readFileSync(path.join(R,t.before_path),'utf8'),file);return raw;}
 module.exports={normalize,manifest};
