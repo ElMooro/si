@@ -66,7 +66,7 @@ try:
 except Exception:
     pass
 
-SCHEMA = "1.0"
+SCHEMA = "1.0"      # unchanged on 2026-11-21: the policy block is additive, readers pin nothing else
 FRED_BASE = "https://api.stlouisfed.org/fred/series/observations"
 NYFED = "https://markets.newyorkfed.org/api"
 S3_BUCKET = "justhodl-dashboard-live"
@@ -449,7 +449,9 @@ def lambda_handler(event, context):
         srf_bn = round(srf_fred_bn, 2) if srf_fred_bn is not None else None
     rrp_bn = round(rrp[-1][1], 1) if rrp else None
     dwin_bn = round(dwin[-1][1] / 1000.0, 1) if dwin else None
-    swpt_bn = round(swpt[-1][1], 1) if swpt else None
+    # SWPT, WRESBAL and WTREGEN are published in millions of dollars; until 2026-11-21 the three fields below
+    # carried the millions under a "_usd_bn" name (reserves read 2,979,656 "billion").  Billions, as named.
+    swpt_bn = round(swpt[-1][1] / 1000.0, 2) if swpt else None
     facilities = {
         "rrp_usd_bn": rrp_bn,
         "rrp_series_1y": [[d, round(v, 1)] for d, v in rrp[-260:]],
@@ -467,12 +469,14 @@ def lambda_handler(event, context):
     res_4w = value_days_ago(wresbal, 28) if wresbal else None
     res_13w = value_days_ago(wresbal, 91) if wresbal else None
     reserves = {
-        "wresbal_usd_bn": round(res_now, 0) if res_now else None,
+        "wresbal_usd_bn": round(res_now / 1000.0, 1) if res_now else None,
         "chg_4w_pct": (round((res_now / res_4w - 1) * 100, 2)
                        if res_now and res_4w else None),
         "chg_13w_pct": (round((res_now / res_13w - 1) * 100, 2)
                         if res_now and res_13w else None),
-        "tga_usd_bn": round(tga[-1][1], 1) if tga else None,
+        "tga_usd_bn": round(tga[-1][1] / 1000.0, 1) if tga else None,
+        "as_of": wresbal[-1][0] if wresbal else None,
+        "tga_as_of": tga[-1][0] if tga else None,
         "walcl_13w_chg_usd_bn": (round((walcl[-1][1] -
                                         (value_days_ago(walcl, 91) or
                                          walcl[-1][1])) / 1000.0, 1)
@@ -613,6 +617,17 @@ def lambda_handler(event, context):
                       "as_of": obfr_rows[-1]["date"]} if obfr_rows else None),
         },
         "distribution": distribution,
+        # the corridor the rates trade in, as levels (2026-11-21): the page drew them back out of the spreads
+        "policy": {
+            "admin_rate": ff_admin.get(as_of),
+            "admin_rate_name": "IORB" if as_of >= "2021-07-29" else "IOER",
+            "on_rrp_award": rrp_award[-1][1] if rrp_award else None,
+            "on_rrp_award_as_of": rrp_award[-1][0] if rrp_award else None,
+            "range_top": ceil[-1][1] if ceil else None,
+            "range_top_as_of": ceil[-1][0] if ceil else None,
+            "note": ("Floor = the ON RRP award rate; IORB = the rate banks earn on reserves; ceiling = the top of "
+                     "the target range, which is the Standing Repo Facility's minimum bid rate."),
+        },
         "spreads": spreads,
         "facilities": facilities,
         "reserves": reserves,
