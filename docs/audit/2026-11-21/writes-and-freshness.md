@@ -108,18 +108,23 @@ ops 6877 read those engines' own logs. The largest single cause is one provider:
 Not done here: per-file limits for the 53 slower-by-schedule feeds and a clear-out of the 193 leftovers, so the monitor
 goes quiet enough to mean something; and the engine-by-engine repair of the last group.
 
-## 5. One more saving, built and parked: one snapshot document per symbol
+## 5. One snapshot document per symbol - shipped 2026-11-21 19:24 UTC (history book 1.3.0)
 
-What the history book still writes on a day the bank refreshes is real change: nine small snapshot documents per
-symbol, six of them carrying price-linked values - about 90,000 of 135,000. Branch `history-book-one-snapshot-doc`
-(v1.3.0, 10 tests) keeps every snapshot family of a symbol in one document: about 25,000 writes instead of 90,000
-(about $19 a month on refresh days), and a desk that asks nine families for one ticker reads one object.
+What the history book still wrote on a day the bank refreshes was real change: nine small snapshot documents per
+symbol, six of them carrying price-linked values - about 90,000 of 135,000. Version 1.3.0 keeps every snapshot family
+of a symbol in one document.
 
-It is not on main because the reader lives in `aws/shared/fmp_bank.py`, which is bundled into 225 engines: merging
-redeploys all of them, about two hours. ops 6875 ran every one of those engines' deploy gates: the static checks pass,
-100 of 101 suites are green, and `justhodl-bond-desk` is red ("Reviewed upstream compiler differs" - a reviewed pin that
-needs its own review, and blocks that engine's own next deploy either way). Order when it ships: reader -> all
-importers redeployed and verified -> writer.
+Order it shipped in, each step proven before the next (Khalid's say 2026-11-21 12:12 ET):
+
+1. the reader (`aws/shared/fmp_bank.py`, reads both layouts) to all 225 importers - ops 6887 downloaded every package:
+   224 byte-identical to the repo reader, `justhodl-bond-desk` held back by its red test;
+2. the writer - ops 6888: dry run 27,127 documents in 19.9 s with the state file untouched; first run 129 s, 27,127
+   written, 0 failed, 62.6 MB; 333 of 333 families on 60 symbols equal, row for row, to the nine documents they
+   replace; the nine one-family blocks retired from the manifest; a second pass writes 0 in 0.9 s;
+3. the bond desk - its test was red for a real reason (stale compiler pins, see `crypto-chart-and-decisions.md`
+   section 4); fixed, deployed 19:40 UTC, 225 of 225.
+
+A refresh day now writes at most 27,127 snapshot documents instead of about 90,000.
 
 ## 6. The bill
 
@@ -132,7 +137,9 @@ Writes by everything but the history book run at about 105,000 files a day (Nov 
 | after step 1, on days it cannot (most of the last week) | about 105,000 | about $32 |
 | with the one-snapshot-document change, bank refreshing | about 130,000 | about $39 |
 
-The month was on pace for about $275 against the $200 Khalid expects. Step 1 alone moves the pace to roughly $235;
-the parked snapshot change (about $19) and a monthly World Bank pass (about $9-11) would take it to about $205.
+The month was on pace for about $275 against the $200 Khalid expects (ceiling stated 2026-11-21: $250). Step 1 alone
+moves the pace to roughly $235; the snapshot change (about $19, shipped) and the monthly World Bank pass (about $9,
+applied by ops 6885: `rate(7 days)` -> `cron(0 1 1 * ? *)`) take it to about $205. These are estimates from measured
+write counts; the bill itself confirms them only as the days are billed.
 
 The first full day on the new engine is 2026-11-21; ops 6870 re-read on 2026-11-22 confirms the day's cost.
