@@ -431,20 +431,54 @@ def _snapshot_keys(bulk):
     return keys
 
 
+SNAPSHOT_BOOK = "snapshots/latest"     # history book v1.3.0: one document per symbol holding every snapshot family
+
+
+def snapshot_layouts(bulk):
+    """Where the history book holds a snapshot family, best first: "combined" (v1.3.0: snapshots/latest/<SYM>.json.gz,
+    every family of the symbol in one document) and / or "single" (v1.1-1.2: <bulk>/latest/<SYM>.json.gz, one document
+    per family); [] when the book has neither built.  Both are listed only between the first combined write and the
+    moment that block is complete - the writer takes the single-family blocks off the manifest then."""
+    blocks = history_manifest().get("blocks") or {}
+
+    def built(b):
+        return isinstance(b, dict) and bool(b.get("refreshed_at")) and bool(b.get("symbols")) and not b.get("partial")
+    out = []
+    b = blocks.get(SNAPSHOT_BOOK)
+    if built(b) and bulk in (b.get("bulks") or []):
+        out.append("combined")
+    if built(blocks.get("%s/latest" % bulk)):
+        out.append("single")
+    return out
+
+
+def snapshot_layout(bulk):
+    """The layout a snapshot family is read from ("combined" wins), or None when the book has not built it."""
+    return (snapshot_layouts(bulk) or [None])[0]
+
+
 def snapshot_doc(path, symbol):
-    """One symbol's latest snapshot rows from the history book's `<bulk>/latest/<SYM>.json.gz` (wave 3b): the per-ticker
-    shape - one small read, no whole-market table.  None when the block or the symbol is not there."""
+    """One symbol's latest snapshot rows from the history book (wave 3b): the per-ticker shape - one small read, no
+    whole-market table.  Returns {symbol, endpoint, bulk, period, as_of, rows, ...} or None when the block or the symbol
+    is not there.  v1.3.0 of the book keeps every family of a symbol in one document, so a desk that asks nine families
+    for one ticker reads one object (the bytes cache answers the other eight)."""
     bulk = SNAPSHOTS.get(path)
     if not bulk or not symbol:
         return None
-    b = (history_manifest().get("blocks") or {}).get("%s/latest" % bulk)
-    if not (isinstance(b, dict) and b.get("refreshed_at") and b.get("symbols") and not b.get("partial")):
-        return None
     sym = _norm(symbol)
-    for cand in dict.fromkeys([sym, sym.replace("-", "."), sym.replace(".", "-")]):
-        doc = _wjson(HISTORY_ROOT + "%s/latest/%s.json.gz" % (bulk, cand.replace("/", "_")))
-        if isinstance(doc, dict) and isinstance(doc.get("rows"), list) and doc["rows"]:
-            return doc
+    cands = [c.replace("/", "_") for c in dict.fromkeys([sym, sym.replace("-", "."), sym.replace(".", "-")])]
+    for layout in snapshot_layouts(bulk):
+        for name in cands:
+            if layout == "combined":
+                doc = _wjson(HISTORY_ROOT + "snapshots/latest/%s.json.gz" % name)
+                fam = (doc.get("families") or {}).get(bulk) if isinstance(doc, dict) and isinstance(doc.get("families"), dict) else None
+                if isinstance(fam, dict) and isinstance(fam.get("rows"), list) and fam["rows"]:
+                    return {"symbol": doc.get("symbol"), "endpoint": fam.get("endpoint"), "bulk": bulk, "period": "latest", "schema": doc.get("schema"),
+                            "as_of": doc.get("as_of"), "n": len(fam["rows"]), "years": [], "rows": fam["rows"]}
+            else:
+                doc = _wjson(HISTORY_ROOT + "%s/latest/%s.json.gz" % (bulk, name))
+                if isinstance(doc, dict) and isinstance(doc.get("rows"), list) and doc["rows"]:
+                    return doc
     return None
 
 
@@ -460,9 +494,8 @@ def snapshot(path, symbol=None):
         if doc is not None:
             STATS["history_book_hits"] = STATS.get("history_book_hits", 0) + 1
             return [dict(r, symbol=r.get("symbol") or _norm(symbol)) for r in doc["rows"] if isinstance(r, dict)]
-        b = (history_manifest().get("blocks") or {}).get("%s/latest" % bulk)
-        if isinstance(b, dict) and b.get("refreshed_at") and b.get("symbols") and not b.get("partial") and not _point_scans_allowed():
-            STATS["book_only_misses"] = STATS.get("book_only_misses", 0) + 1
+        if snapshot_layout(bulk) is not None and not _point_scans_allowed():
+            STATS["book_only_misses"] = STATS.get("book_only_misses", 0) + 1       # the book is built and has no such symbol: no whole-market decode here
             return None
     keys = _snapshot_keys(bulk)
     if not keys:
