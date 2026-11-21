@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>REPO — Master Board · JustHodl.AI</title>
+<title>Repo desk — rates, venues, Fed facilities, crisis spikes · JustHodl.AI</title>
 <style>
 :root{--bg:#0c0f13;--panel:#12161c;--line:#1e242c;--tx:#e8e8e8;--dim:#8b949e;
 --amber:#F0B429;--grn:#6fce8a;--red:#E07A6A}
@@ -78,8 +78,57 @@ border-radius:8px}
 .x{float:right;background:none;border:none;color:var(--dim);font-size:20px;cursor:pointer}
 .foot{color:var(--dim);font-size:11px;margin:16px 0}
 .err{color:var(--red);padding:20px}
+/* ── the Desk and Crisis views (jh-repo-desk.js, 2026-11-21) ── */
+.rd-hero{display:flex;gap:16px;align-items:center;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--dim);border-radius:10px;padding:14px 16px;margin-bottom:14px}
+.rd-hero.rd-calm{border-left-color:var(--grn)}.rd-hero.rd-firm{border-left-color:#9bd28f}.rd-hero.rd-elev{border-left-color:var(--amber)}.rd-hero.rd-stress{border-left-color:var(--red)}
+.rd-score{white-space:nowrap}.rd-score b{font-size:40px;font-weight:700;line-height:1}.rd-score span{color:var(--dim);font-size:13px;margin-left:4px}
+.rd-regime{font-size:15px;font-weight:700;letter-spacing:.6px}.rd-regime small{color:var(--dim);font-weight:400}
+.rd-head{font-size:13px;margin:3px 0}.rd-asof{color:var(--dim);font-size:12px}
+.rd-sec{margin:0 0 20px}.rd-sec h2{font-size:14px;margin:0 0 2px;color:var(--amber);letter-spacing:.4px}
+.rd-sec p{color:var(--dim);font-size:12px;margin:0 0 8px;max-width:920px}
+.rd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(212px,1fr));gap:8px}
+.rd-tile{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+.rd-click{cursor:pointer}.rd-tile.rd-click:hover{border-color:#3a4658}
+.rd-lab{color:var(--dim);font-size:11.5px;line-height:1.3;min-height:30px}
+.rd-val{font-size:21px;font-weight:650;font-variant-numeric:tabular-nums;margin:2px 0}
+.rd-none{font-size:12px;color:#5a6472;font-weight:400}
+.rd-meta{display:flex;flex-wrap:wrap;gap:3px 8px;font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums}
+.rd-date.rd-late{color:var(--amber)}
+.rd-mv i{font-style:normal;color:#5a6472;text-transform:uppercase;font-size:9.5px}
+.rd-mv.pos{color:var(--grn)}.rd-mv.neg{color:var(--red)}
+.rd-note{color:#6b7480;font-size:10.5px;line-height:1.35;margin-top:5px}
+.rd-corr{width:100%;min-width:640px;height:auto;display:block;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.rd-band{fill:#1a222d}.rd-p99{fill:#3a2f12}.rd-p75{fill:#6b5514}
+.rd-line{stroke-width:2}.rd-line.rd-floor{stroke:var(--grn)}.rd-line.rd-admin{stroke:var(--dim)}.rd-line.rd-top{stroke:var(--red)}
+.rd-tick{fill:var(--tx);font-size:13px}.rd-ticklab{fill:var(--dim);font-size:11px}
+.rd-dot{fill:#8b949e;stroke:#0c0f13;stroke-width:1.5}.rd-dot.rd-sofr{fill:var(--amber)}
+.rd-ratelab{fill:var(--dim);font-size:11.5px}.rd-ratelab.rd-sofr{fill:var(--amber);font-size:13px;font-weight:700}
+.rd-comps{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.rd-comp{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:12px}
+.rd-compTop{display:flex;justify-content:space-between;gap:8px}.rd-compTop span{color:var(--dim)}
+.rd-bar{height:5px;background:#1a2028;border-radius:4px;margin:6px 0 4px}.rd-bar i{display:block;height:5px;border-radius:4px;background:var(--amber)}
+.rd-comp small{color:#5a6472;font-size:10.5px}
+.rd-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.rd-matrix th small,.rd-matrix td small{display:block;color:#5a6472;font-size:10px;font-weight:400;text-transform:none;letter-spacing:0}
+.rd-matrix td.rd-hot b{color:var(--red)}
+.rd-matrix th,.rd-matrix td{padding:6px 8px;font-size:12.5px}
+.rd-matrix td.namecell,.rd-matrix th.namecell{white-space:normal;min-width:170px;position:sticky;left:0;z-index:1;background:var(--panel)}
+.rd-matrix th.namecell{background:#10141a}
+.rd-lists{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:10px}
+.rd-list{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+.rd-list h3{margin:0 0 6px;font-size:13px;color:var(--tx)}.rd-list h3 small{color:#5a6472;font-weight:400;font-size:10.5px}
+.rd-list ol{margin:0;padding:0;list-style:none}
+.rd-list li{display:flex;flex-wrap:wrap;gap:3px 10px;align-items:baseline;padding:4px 0;border-top:1px solid var(--line);font-size:12px;font-variant-numeric:tabular-nums}
+.rd-d{color:var(--dim);min-width:78px}.rd-over{color:var(--red)}
+.rd-tag{font-size:10.5px;border-radius:10px;padding:1px 8px;background:#161b22;color:var(--dim)}
+.rd-tag.rd-episode{background:#3a1a15;color:#f0a79b}
+.rd-foot{color:var(--dim);font-size:11px;margin:6px 0 16px}
+#spk{margin-top:8px;font-size:12px;color:var(--dim);display:flex;flex-wrap:wrap;gap:3px 14px}
+#spk b{color:var(--tx)}#spk em{font-style:normal;color:#f0a79b}
+@media (max-width:640px){.rd-hero{flex-direction:column;align-items:flex-start}.rd-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.rd-val{font-size:18px}
+.rd-lists,.rd-comps{grid-template-columns:1fr}input[type=search]{width:100%}.wrap{padding:10px}}
 </style></head><body><div class="wrap">
-<h1>REPO · Master Board</h1>
+<h1>REPO · Desk and master board</h1>
 <div class="sub" id="asof">loading /data/repo.json …</div>
 
 <div class="baro" id="baro" style="display:none">
@@ -94,7 +143,8 @@ border-radius:8px}
   <button class="gbtn" id="starbtn">★ starred only</button>
 </div>
 <div id="main"></div>
-<div class="foot">Every value from the permanent warm bank · engine justhodl-repo (daily 06:10 UTC) ·
+<div class="foot">Desk and Crisis spikes: engines justhodl-repo-market (overnight desk, daily) and justhodl-repo (the board) read as one market.
+Board: every value from the permanent warm bank · engine justhodl-repo (daily 06:10 UTC) ·
 D% = vs previous observation · W/M/Q/Y% = vs the series' own value 7/30/91/365 calendar days back ·
 ★ + red tag = your barometer inputs · click any row for its full-history chart with % views.
 ✎ custom names & 🗒 notes are saved in this browser (localStorage, per-device) and searchable.</div>
@@ -112,14 +162,18 @@ D% = vs previous observation · W/M/Q/Y% = vs the series' own value 7/30/91/365 
   <h2 id="ct"></h2><div class="meta" id="cm"></div>
   <div class="modes" id="modes"></div>
   <canvas id="cv"></canvas>
+  <div id="spk"></div>
 </div></div>
 
+<script src="/jh-repo-desk.js?v=20261121a"></script>
 <script>
 "use strict";
 const fmt=(v,d=3)=>v==null?"—":(+v).toLocaleString(undefined,{maximumFractionDigits:d});
 const cls=v=>v==null?"na":v>0?"pos":v<0?"neg":"";
 const pc=v=>v==null?"—":(v>0?"+":"")+(+v).toFixed(2)+"%";
-let DATA=null,rows=[],TAB='overview',sortK='tier',sortA=true,starOnly=false;
+let DATA=null,DESK=null,PD=null,rows=[],sortK='tier',sortA=true,starOnly=false;
+/* the Desk opens first; #crisis, #overview or a group name in the address opens that view */
+let TAB=(()=>{const h=decodeURIComponent((location.hash||'').slice(1));return h||'desk';})();
 let FAV={};try{FAV=JSON.parse(localStorage.getItem('repoFavs')||'{}')}catch(e){}
 const saveFav=()=>localStorage.setItem('repoFavs',JSON.stringify(FAV));
 let NAMES={};try{NAMES=JSON.parse(localStorage.getItem('repoNames')||'{}')}catch(e){}
@@ -131,13 +185,11 @@ const esc=t=>(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&q
 const COLORS=[null,'red','amber','green'];
 const dot=c=>c==='red'?'#E07A6A':c==='amber'?'#F0B429':c==='green'?'#6fce8a':'#3a4250';
 
-const GORDER=["Tri-party haircuts (NY Fed monthly)","European sovereign collateral (ECB MMSR)","European sovereign yields & spreads","SFTR EU/UK repo (ICMA weekly)","DTCC daily settlement fails (FICC)","Derived stress indicators","Standing Repo Facility","FICC sponsored repo","Rate percentiles (NY Fed)","MMF repo counterparties (OFR)","FRED repo & SOFR complex","Reference rates & volumes","Tri-party (TRIV1, ex-Fed)","DVP bilateral cleared",
-"GCF","Primary dealer FAILS","Primary dealer financing","Tri-party (TRI legacy)",
-"Dollar (FRED trade-weighted)","ICE BofA option-adjusted spreads (FRED)"];
+const GORDER=["Reference rates & volumes","Derived stress indicators","Rate percentiles (NY Fed)","Standing Repo Facility","Tri-party (TRIV1, ex-Fed)","GCF","DVP bilateral cleared","FICC sponsored repo","Money market funds (OFR)","Primary dealer financing","Primary dealer securities borrowed & lent","Primary dealer FAILS","DTCC daily settlement fails (FICC)","FRED repo & SOFR complex","Tri-party haircuts (NY Fed monthly)","European sovereign collateral (ECB MMSR)","European sovereign yields & spreads","SFTR EU/UK repo (ICMA weekly)","Tri-party (TRI legacy)","Dollar (FRED trade-weighted)","ICE BofA option-adjusted spreads (FRED)"];
 const SHORT={"Reference rates & volumes":"Ref rates","Tri-party (TRIV1, ex-Fed)":"Tri-party",
 "DVP bilateral cleared":"DVP","GCF":"GCF","Primary dealer FAILS":"PD fails",
 "Primary dealer financing":"PD financing","Tri-party (TRI legacy)":"TRI legacy",
-"Dollar (FRED trade-weighted)":"Dollar","FRED repo & SOFR complex":"FRED repo/SOFR","Tri-party haircuts (NY Fed monthly)":"Haircuts","European sovereign collateral (ECB MMSR)":"EU collateral","European sovereign yields & spreads":"EU yields","SFTR EU/UK repo (ICMA weekly)":"SFTR","DTCC daily settlement fails (FICC)":"DTCC fails","Derived stress indicators":"Derived","Standing Repo Facility":"SRF","FICC sponsored repo":"Sponsored","Rate percentiles (NY Fed)":"Percentiles","MMF repo counterparties (OFR)":"MMF cpty","ICE BofA option-adjusted spreads (FRED)":"ICE BofA"};
+"Dollar (FRED trade-weighted)":"Dollar","Money market funds (OFR)":"Money funds","Primary dealer securities borrowed & lent":"PD sec lending","FRED repo & SOFR complex":"FRED repo/SOFR","Tri-party haircuts (NY Fed monthly)":"Haircuts","European sovereign collateral (ECB MMSR)":"EU collateral","European sovereign yields & spreads":"EU yields","SFTR EU/UK repo (ICMA weekly)":"SFTR","DTCC daily settlement fails (FICC)":"DTCC fails","Derived stress indicators":"Derived","Standing Repo Facility":"SRF","FICC sponsored repo":"Sponsored","Rate percentiles (NY Fed)":"Percentiles","MMF repo counterparties (OFR)":"MMF cpty","ICE BofA option-adjusted spreads (FRED)":"ICE BofA"};
 
 function subgroup(r){
   const id=r.id, g=r.group;
@@ -151,6 +203,8 @@ function subgroup(r){
     return"Other indices";}
   if(g==="Primary dealer FAILS")return id.includes("AFtD")?"Fails to DELIVER":"Fails to RECEIVE";
   if(g==="Primary dealer financing")return id.includes("_RRP_")?"Reverse repo (securities in)":"Repo (securities out)";
+  if(g.startsWith("Primary dealer securities"))return id.includes("_SB_")?"Securities borrowed":"Securities lent";
+  if(g.startsWith("Money market funds"))return id.includes("-MY_")?"Median yield on repo":id.includes("_RP_w")?"Repo by counterparty":id.includes("_RP_")?"Repo by collateral and term":"Holdings";
   if(/Tri-party|DVP|GCF/.test(g)){
     if(id.includes("_AR_"))return"Average rates";
     if(id.includes("_TV_"))return"Transaction volumes";
@@ -161,11 +215,13 @@ function subgroup(r){
   return"";
 }
 
-fetch('/data/repo.json?t='+Date.now()).then(r=>r.json()).then(d=>{
-  DATA=d;rows=[];
+const optional=u=>fetch(u+'?t='+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
+Promise.all([fetch('/data/repo.json?t='+Date.now()).then(r=>r.json()),optional('/data/repo-market.json'),optional('/data/nyfed-primary-dealer.json')]).then(([d,desk,pd])=>{
+  DATA=d;DESK=desk;PD=pd;rows=[];
   (d.groups||[]).forEach(g=>g.series.forEach(s=>{s.group=g.name;s.sub=subgroup(s);rows.push(s);}));
   document.getElementById('asof').textContent=
-    `as of ${d.as_of} · ${rows.length} series across ${d.groups.length} groups · ${d.counts.skipped} skipped (empty at source)`;
+    `board as of ${d.as_of} · ${rows.length} series across ${d.groups.length} groups · ${d.counts.skipped} skipped (empty at source)`+
+    (desk?` · overnight desk as of ${desk.as_of}`:' · overnight desk feed unavailable');
   renderTabs();renderBaro();render();
   document.getElementById('q').oninput=()=>render();
   document.getElementById('starbtn').onclick=()=>{starOnly=!starOnly;
@@ -176,13 +232,19 @@ fetch('/data/repo.json?t='+Date.now()).then(r=>r.json()).then(d=>{
 function renderTabs(){
   const gs=GORDER.filter(g=>rows.some(r=>r.group===g));
   rows.forEach(r=>{if(!gs.includes(r.group))gs.push(r.group);});
-  const t=[['overview','Overview',rows.length],['favorites','★ Favorites',rows.filter(r=>(FAV[r.id]||{}).star).length],...gs.map(g=>[g,SHORT[g]||g,
+  const t=[['desk','Desk',''],['crisis','Crisis spikes',''],['overview','Overview',rows.length],['favorites','★ Favorites',rows.filter(r=>(FAV[r.id]||{}).star).length],...gs.map(g=>[g,SHORT[g]||g,
     rows.filter(r=>r.group===g).length])];
   document.getElementById('tabs').innerHTML=t.map(([k,lab,n])=>
     `<button class="tab ${TAB===k?'on':''}" data-t="${k}">${lab}<span class="n">${n}</span></button>`).join('');
   document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{TAB=b.dataset.t;
-    document.getElementById('q').value='';renderTabs();render();window.scrollTo(0,0);});
+    document.getElementById('q').value='';try{history.replaceState(null,'','#'+encodeURIComponent(TAB));}catch(e){}
+    renderTabs();render();window.scrollTo(0,0);});
 }
+/* what the Desk and Crisis views read: the board's rows by id, the overnight desk feed, the dealers' financing block */
+function deskCtx(){const byId={};rows.forEach(r=>{byId[r.id]=r;});
+  return{rows:byId,desk:DESK,pd:(PD&&PD.financing)||null,today:new Date().toISOString().slice(0,10),
+    open:(sid,id)=>{const rr=byId[id];window._cn=rr?rr.label:'';openChart(sid,id);},
+    history:sid=>HCACHE[sid]?Promise.resolve(HCACHE[sid]):fetch('/data/repo-history/'+sid+'.json').then(r=>r.json()).then(h=>(HCACHE[sid]=h))};}
 
 function renderBaro(){
   const el=document.getElementById('baro');el.style.display='block';
@@ -231,7 +293,7 @@ function tableFor(rs,withGroupCol){
       `<td class="${cls(c.pop)}">${pc(c.pop)}</td><td class="${cls(c.w)}">${pc(c.w)}</td>`+
       `<td class="${cls(c.m)}">${pc(c.m)}</td><td class="${cls(c.q)}">${pc(c.q)}</td>`+
       `<td class="${cls(c.y)}">${pc(c.y)}</td></tr>`;});
-  return h+'</tbody></table>';
+  return '<div class="rd-scroll">'+h+'</tbody></table></div>';
 }
 
 function wire(el){
@@ -260,6 +322,12 @@ function render(){
   const q=(document.getElementById('q').value||'').toLowerCase();
   const el=document.getElementById('main');
   let pool=rows.filter(r=>(!starOnly||((FAV[r.id]||{}).star)));
+  const deskView=!q&&(TAB==='desk'||TAB==='crisis');
+  document.getElementById('baro').style.display=deskView?'none':'block';      /* the board's own barometer belongs to the board views */
+  if(deskView&&window.JHRepoDesk){
+    if(TAB==='desk')JHRepoDesk.renderDesk(el,deskCtx());else JHRepoDesk.renderCrisis(el,deskCtx()).catch(e=>{el.innerHTML=`<div class="err">could not read the histories (${e})</div>`;});
+    return;
+  }
   if(q){
     const rs=pool.filter(r=>(r.id+' '+(r.label||'')+' '+r.group+' '+(NAMES[r.id]||'')+' '+(NOTES[r.id]||'')).toLowerCase().includes(q));
     el.innerHTML=`<div class="sec">Search results — ${rs.length} series (all groups)</div>`+
@@ -295,7 +363,7 @@ function render(){
 }
 
 /* ── chart overlay (unchanged mechanics) ───────────────────────── */
-let CUR=null,MODE='level';const HCACHE={};
+let CUR=null,MODE='level',SPK=[];const HCACHE={};
 const MODES=[['level','Level'],['d','D%'],['w','W%'],['m','M%'],['q','Q%'],['y','Y%']];
 function openChart(sid,id){
   document.getElementById('ovl').classList.add('on');
@@ -310,6 +378,10 @@ function openChart(sid,id){
   (HCACHE[sid]?Promise.resolve(HCACHE[sid]):
     fetch('/data/repo-history/'+sid+'.json').then(r=>r.json()).then(h=>(HCACHE[sid]=h)))
   .then(h=>{CUR=h;
+    /* the series' largest spikes above its own median of the quarter before: marked on the chart, listed under it */
+    SPK=window.JHRepoDesk?JHRepoDesk.spikes(h.dates,h.values,Object.assign({top:6},JHRepoDesk.windowFor(h.dates))):[];
+    document.getElementById('spk').innerHTML=SPK.length?'<span>Largest spikes over its own prior median:</span>'+SPK.map(s=>{const l=JHRepoDesk.labelFor(s.date);
+      return `<span>${s.date} <b>${fmt(s.value)}</b> (${fmt(s.base)} before)${l.name?` <em>${esc(l.name)}</em>`:''}</span>`;}).join(''):'';
     document.getElementById('cm').textContent=
       `${h.label||''} · ${h.dates.length} obs · ${h.dates[0]} → ${h.dates[h.dates.length-1]}`+(NOTES[id]?'  ·  🗒 '+NOTES[id].slice(0,140):'');
     draw();})
@@ -363,6 +435,7 @@ function draw(){
   g.lineWidth=1.6;g.beginPath();
   V.forEach((v,i)=>{const x=X(i),y=Y(v);i?g.lineTo(x,y):g.moveTo(x,y);});
   g.stroke();
+  if(MODE==='level'){g.fillStyle='#E07A6A';SPK.forEach(s=>{if(s.index<V.length){g.beginPath();g.arc(X(s.index),Y(V[s.index]),3.5,0,6.2832);g.fill();}});}
   const lv=V[V.length-1];
   g.fillStyle=g.strokeStyle;
   g.fillText((unit?pc(lv):fmt(lv)),W-P.r-70,Y(lv)-6);

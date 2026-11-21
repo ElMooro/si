@@ -30,7 +30,8 @@ function predecessor(file,src){let raw=src;
  const names=file==='jh-chart-tvwatch.js'?['tvwatch.edits.json','tvwatch-route.edits.json']:['engine.edits.json'];
  const edits=[].concat(...names.map(f=>JSON.parse(read('tests/fixtures/chart-crypto-routes/'+f))));
  for(const e of [...edits].reverse()){assert.equal(raw.split(e.after).length,2,file+': '+e.after.slice(0,40));raw=raw.replace(e.after,e.before);}return raw;}
-const watchBefore=predecessor('jh-chart-tvwatch.js',watch),engineBefore=predecessor('jh-chart-engine.js',engine);
+// later additions to the engine (the Repo desk button, 2026-11-21) are peeled first, then this change's own ledger
+const watchBefore=predecessor('jh-chart-tvwatch.js',watch),engineBefore=predecessor('jh-chart-engine.js',before.peelRepoDeskEngine(engine,'jh-chart-engine.js'));
 const COINS=fixture.banked_coins.filter(c=>!fixture.empty_bank.includes(c)),LIVE_MAP=Object.fromEntries(Object.entries(fixture.symbol_map_hits));
 const VENUES=['INDEX','CRYPTO','COINBASE','BITSTAMP','KRAKEN','BINANCE','BINANCEUS','BYBIT','BITFINEX','GEMINI','OKX','KUCOIN','MEXC','GATEIO','HTX','BITGET','CRYPTOCOM','POLONIEX','PYTH'];
 const routerList=(()=>{const m=/var cryptoCoins = "([A-Z0-9 ]+)";/.exec(fn(watch,'chartSymbol'));assert.ok(m,'router coin list');return m[1];})();

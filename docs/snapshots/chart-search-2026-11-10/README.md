@@ -211,3 +211,23 @@ git rm tests/chart-tab-quotes.test.js tests/fixtures/chart-macro-line/engine-tab
 ```
 
 then commit `[skip-ops]` and push.
+
+## 2026-11-21: the chart's Repo button and the Repo desk
+
+Khalid: "display an icon for it in the chart.html make sure it cover all the different aspect of the repo market and
+repo rate including their spikes in crisis". `jh-chart-engine.js` has one more button (`btn-repo`, right after CDS)
+and its click, `jh-chart-tvrail.js` one more entry (`repo` -> `/repo.html`), and `chart.html` carries `&repo=20261121`
+on both script tags so a browser never pairs a new button with an old rail. `repo.html` opens on a new Desk view and
+has a Crisis spikes view (`jh-repo-desk.js`); the master board, favourites, notes and search are as they were. The
+byte ledger peels the three chart files first (`peelRepoDeskEngine`, `peelRepoDeskRail`, `peelRepoDeskHtml`).
+
+To take the button back (state before = 720f7134):
+
+```
+git checkout 720f7134 -- jh-chart-engine.js jh-chart-tvrail.js chart.html tests/helpers/chart-macro-line-preservation.cjs tests/chart-crypto-routes.test.js
+```
+
+then delete the last test of `tests/repo-desk.test.js`, commit `[skip-ops]` and push. To take the page back as well:
+`git checkout 720f7134 -- repo.html config/page-data-contracts.json` and `git rm jh-repo-desk.js tests/repo-desk.test.js
+tests/fixtures/repo-desk.json.gz`. The engines are independent of the page: `justhodl-ofr-stfm` keeps refreshing the
+OFR bank and `justhodl-repo` 3.0 keeps the wider board either way.
