@@ -128,7 +128,7 @@ async function fetchBinanceDaily(symbol) {
 async function fetchCoinbaseDaily(symbol) {
   const product = coinbaseProduct(symbol);
   if (!product) return [];
-  const resp = await fetch(`https://api.exchange.coinbase.com/products/${encodeURIComponent(product)}/candles?granularity=86400`,
+  const resp = await venueFetch(`https://api.exchange.coinbase.com/products/${encodeURIComponent(product)}/candles?granularity=86400`,
     { headers: { "User-Agent": "justhodl-data-proxy", "Accept": "application/json" }, cf: { cacheTtl: 60, cacheEverything: true } });
   if (!resp.ok) return [];
   return coinbaseCandlesToBars(await resp.json());
@@ -142,50 +142,91 @@ async function fetchBinanceRecent(symbol) {
   return binanceKlinesToBars(await resp.json());
 }
 
+/* A venue is asked again when it is busy for a moment (Coinbase's public limit is per address, and a worker's address is shared). */
+async function venueFetch(url, init) {
+  let resp = await fetch(url, init);
+  for (let attempt = 1; attempt <= 2 && (resp.status === 429 || resp.status >= 500); attempt++) {
+    await new Promise(done => setTimeout(done, 350 * attempt));
+    resp = await fetch(url, init);
+  }
+  return resp;
+}
+
+/* Is this venue's <coin> the banked coin?  true / false, or null when the coin has no bank.  An answered question is kept for a day,
+ * so an intraday request does not re-read the bank and the venue's daily candles each time; an unanswered one is asked again. */
+async function venueIsCoin(name, ticker, loadDaily, bankBars) {
+  const key = new Request(`https://ohlc.cache/crypto-venue-v1/${name}/${ticker}`, { method: "GET" });
+  const kept = await caches.default.match(key);
+  if (kept) return (await kept.text()) === "same";
+  const bars = await bankBars();
+  if (!bars) return null;
+  let daily = [];
+  try { daily = await loadDaily(ticker); } catch (eD) { daily = []; }
+  if (daily.length < 2) return false;
+  const same = sameCoinDaily(daily, bars).same;
+  await caches.default.put(key, new Response(same ? "same" : "other", { headers: { "Cache-Control": "public, max-age=86400" } }));
+  return same;
+}
+
 /* Hourly and minute bars for a banked coin. Polygon's plan carries no crypto intraday (ops 6880), so the chart's intraday views of a
- * coin were drawn from DAILY bars (ops 6882: "BTC-USD at 1h: spacing 1440 min"). A venue's public klines are used, and only after
- * that venue's daily candles pass the same-coin rule against the banked bars; a coin with no bank gets nothing from here. */
+ * coin were drawn from DAILY bars (ops 6882: "BTC-USD at 1h: spacing 1440 min"). A venue's public klines are used - Coinbase Exchange
+ * first (the bank's own venue), then Binance's public host - and only after that venue's daily candles pass the same-coin rule
+ * against the banked bars. -> {bars, ...}, {unavailable: true} for a banked coin no venue answered, or null for anything else. */
 async function fetchCryptoIntraday(ticker, span, mult, days, env) {
   const plan = intradayPlan(span, mult);
   if (!plan) return null;
-  const bank = await warehouseOHLC(BUCKET_BASE, ticker, "day", 1, env.SYMDIR_URL || "");
-  if (!bank || !isCryptoWarehouse(bank.warehouse_key)) return null;
+  let bank;
+  const bankBars = async () => {
+    if (bank === undefined) {
+      try { const doc = await warehouseOHLC(BUCKET_BASE, ticker, "day", 1, env.SYMDIR_URL || ""); bank = doc && isCryptoWarehouse(doc.warehouse_key) ? doc.bars : null; }
+      catch (eB) { bank = null; }
+    }
+    return bank;
+  };
   const policy = "Intraday bars are one venue's public klines; that venue's daily candles matched the banked closes (median within 3% on the newest 30 shared days). Not banked; volume is the venue's own.";
   const pair = binanceSymbol(ticker), product = coinbaseProduct(ticker);
-  let daily = [], rows = [];
-  try { daily = await fetchBinanceRecent(ticker); } catch (eD) { daily = []; }
-  if (pair && daily.length >= 2 && sameCoinDaily(daily, bank.bars).same) {
-    let endTime = 0;
-    for (let page = 0, pages = intradayPages(days, plan.binance.seconds, 1000, 8); page < pages; page++) {
-      const resp = await fetch(`${BINANCE_PUBLIC}/api/v3/klines?symbol=${encodeURIComponent(pair)}&interval=${plan.binance.interval}&limit=1000` + (endTime ? `&endTime=${endTime}` : ""), { cf: { cacheTtl: page ? 600 : 30, cacheEverything: true } });
-      if (!resp.ok) break;
-      const raw = await resp.json();
-      if (!Array.isArray(raw) || !raw.length) break;
-      rows = binanceKlinesToBars(raw).concat(rows);
-      endTime = Number(raw[0][0]) - 1;
-      if (raw.length < 1000 || !Number.isFinite(endTime) || endTime <= 0) break;
+  let banked = false, rows = [];
+  if (product) {
+    const same = await venueIsCoin("coinbase", ticker, fetchCoinbaseDaily, bankBars);
+    if (same === null) return null;
+    banked = true;
+    if (same) {
+      let end = (Math.floor(Date.now() / 1000 / plan.coinbase.seconds) + 1) * plan.coinbase.seconds;
+      for (let page = 0, pages = intradayPages(days, plan.coinbase.seconds, 300, span === "minute" ? 3 : 4); page < pages; page++) {
+        const start = end - 300 * plan.coinbase.seconds;
+        const resp = await venueFetch(`https://api.exchange.coinbase.com/products/${encodeURIComponent(product)}/candles?granularity=${plan.coinbase.granularity}&start=${new Date(start * 1000).toISOString()}&end=${new Date(end * 1000).toISOString()}`,
+          { headers: { "User-Agent": "justhodl-data-proxy", "Accept": "application/json" }, cf: { cacheTtl: page ? 600 : 30, cacheEverything: true } });
+        if (!resp.ok) break;
+        const got = coinbaseCandlesToBars(await resp.json());
+        if (!got.length) break;
+        rows = got.concat(rows);
+        end = start;
+      }
+      const bars = intradayBars(rows, plan, "coinbase");
+      if (bars.length >= 2) return { bars, source: "coinbase public market data", venue: "coinbase", venue_pair: product, venue_interval: plan.coinbase.granularity + "s", intraday_policy: policy };
     }
-    const bars = intradayBars(rows, plan, "binance");
-    if (bars.length >= 2) return { bars, source: "binance public market data", venue: "binance", venue_pair: pair, venue_interval: plan.binance.interval, checked_against: bank.warehouse_key, intraday_policy: policy };
   }
-  try { daily = await fetchCoinbaseDaily(ticker); } catch (eC) { daily = []; }
-  if (product && daily.length >= 2 && sameCoinDaily(daily, bank.bars).same) {
-    rows = [];
-    let end = (Math.floor(Date.now() / 1000 / plan.coinbase.seconds) + 1) * plan.coinbase.seconds;
-    for (let page = 0, pages = intradayPages(days, plan.coinbase.seconds, 300, 6); page < pages; page++) {
-      const start = end - 300 * plan.coinbase.seconds;
-      const resp = await fetch(`https://api.exchange.coinbase.com/products/${encodeURIComponent(product)}/candles?granularity=${plan.coinbase.granularity}&start=${new Date(start * 1000).toISOString()}&end=${new Date(end * 1000).toISOString()}`,
-        { headers: { "User-Agent": "justhodl-data-proxy", "Accept": "application/json" }, cf: { cacheTtl: page ? 600 : 30, cacheEverything: true } });
-      if (!resp.ok) break;
-      const got = coinbaseCandlesToBars(await resp.json());
-      if (!got.length) break;
-      rows = got.concat(rows);
-      end = start;
+  if (pair && /^[A-Z0-9]{5,20}$/.test(pair)) {
+    const same = await venueIsCoin("binance", ticker, fetchBinanceRecent, bankBars);
+    if (same === null) return null;
+    banked = true;
+    if (same) {
+      rows = [];
+      let endTime = 0;
+      for (let page = 0, pages = intradayPages(days, plan.binance.seconds, 1000, 3); page < pages; page++) {
+        const resp = await venueFetch(`${BINANCE_PUBLIC}/api/v3/klines?symbol=${encodeURIComponent(pair)}&interval=${plan.binance.interval}&limit=1000` + (endTime ? `&endTime=${endTime}` : ""), { cf: { cacheTtl: page ? 600 : 30, cacheEverything: true } });
+        if (!resp.ok) break;
+        const raw = await resp.json();
+        if (!Array.isArray(raw) || !raw.length) break;
+        rows = binanceKlinesToBars(raw).concat(rows);
+        endTime = Number(raw[0][0]) - 1;
+        if (raw.length < 1000 || !Number.isFinite(endTime) || endTime <= 0) break;
+      }
+      const bars = intradayBars(rows, plan, "binance");
+      if (bars.length >= 2) return { bars, source: "binance public market data", venue: "binance", venue_pair: pair, venue_interval: plan.binance.interval, intraday_policy: policy };
     }
-    const bars = intradayBars(rows, plan, "coinbase");
-    if (bars.length >= 2) return { bars, source: "coinbase public market data", venue: "coinbase", venue_pair: product, venue_interval: plan.coinbase.granularity + "s", checked_against: bank.warehouse_key, intraday_policy: policy };
   }
-  return null;
+  return banked ? { unavailable: true } : null;
 }
 
 /* The banked crypto tape, made whole: older years from an outside history, and the days since the bank's last completed day - today's
@@ -2065,6 +2106,11 @@ export default {
         try {
           const warm = await warehouseOHLC(BUCKET_BASE, symbol, {"1d":"day","1wk":"week","1mo":"month"}[interval],1,env.SYMDIR_URL || "");
           if (warm) {
+            /* 2026-11-21: an intraday interval asked of this route was answered with the coin's DAILY banked bars, which the chart then drew on its hourly view (ops 6882). */
+            const askedInterval = (url.searchParams.get("interval") || "1d").trim();
+            if (isCryptoWarehouse(warm.warehouse_key) && !["1d","1wk","1mo"].includes(askedInterval)) {
+              return new Response(JSON.stringify({symbol, bars:[], count:0, source:"no intraday bars on this route", asked_interval:askedInterval}), {headers:{"Content-Type":"application/json", "Cache-Control":"no-store", "X-Source":"no intraday bars on this route", ...corsHeaders()}});
+            }
             const ext = interval === "1d" ? await extendCryptoDaily(symbol, warm) : warm;
             return new Response(JSON.stringify({symbol, ...ext, count:ext.bars.length}), {headers:{"Content-Type":"application/json", "X-Source":ext.source || "warehouse", ...corsHeaders()}});
           }
@@ -2253,6 +2299,11 @@ export default {
         if (cryptoHit) return new Response(await cryptoHit.text(), { headers: { "Content-Type": "application/json", "X-Cache": "HIT", ...corsHeaders() } });
         let intraday = null;
         try { intraday = await fetchCryptoIntraday(ticker, span, mult, days, env); } catch (eI) { intraday = null; }
+        if (intraday && intraday.unavailable) {
+          /* Nothing else carries a coin's intraday bars: say so, uncached, rather than fall through to an answer that is empty for a minute. */
+          return new Response(JSON.stringify({ ticker, span, mult, bars: [], count: 0, source: "crypto intraday unavailable", note: "No same-coin venue answered just now; asked again on the next request." }),
+            { headers: { "Content-Type": "application/json", "Cache-Control": "no-store", "X-Source": "crypto intraday unavailable", ...corsHeaders() } });
+        }
         if (intraday) {
           const cryptoBody = JSON.stringify({ ticker, span, mult, ...intraday, count: intraday.bars.length }), cryptoAge = span === "minute" ? 30 : 60;
           ctx.waitUntil(caches.default.put(cryptoKey, new Response(cryptoBody, { headers: { "Content-Type": "application/json", "Cache-Control": `public, max-age=${cryptoAge}` } })));

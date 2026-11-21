@@ -108,39 +108,71 @@ async function intraday(route,{bank,answers}){
   if(u.hostname==='bank.example'){if(['minute','hour'].includes(u.searchParams.get('span'))||!bank)return Response.json({warehouse_empty:true,bars:[]});
    return Response.json({warehouse_empty:false,warehouse_key:bank.key||'data/warm/katlin/crypto-bars/BTC.json.gz',last_modified:'2026-11-21T03:48:00Z',bars:bank.rows,source_span:'day',source_mult:1});}
   const a=answers[u.hostname];if(a===undefined)throw new Error('unexpected host '+u.hostname);
-  if(typeof a==='number')return Response.json({msg:'refused'},{status:a});
-  return Response.json(typeof a==='function'?a(u,init):a);};
+  const v=typeof a==='function'?a(u,init):a;
+  if(typeof v==='number')return Response.json({msg:'refused'},{status:v});
+  return Response.json(v);};
  try{const worker=(await import(workerURL)).default,r=await worker.fetch(new Request('https://worker.example'+route),{SYMDIR_URL:'https://bank.example',POLYGON_KEY:'fixture'},{waitUntil:p=>p});
   return {status:r.status,header:r.headers.get('X-Source'),cache:r.headers.get('Cache-Control'),doc:await r.json(),calls,hosts:calls.map(c=>new URL(c).hostname),puts};}
  finally{global.fetch=original;global.caches=savedCaches;Date.now=savedNow;}
 }
 const liveBank={rows:bankRows(-60,-1)};
-test('a banked coin\'s hourly view is hourly bars from a same-coin venue, newest bar the hour now forming',async()=>{
- const r=await intraday('/ohlc?ticker=BTC-USD&span=hour&mult=1&days=60',{bank:liveBank,answers:{'data-api.binance.vision':u=>u.searchParams.get('interval')==='1d'?binance(range(-44,0),1.001):
-   u.searchParams.get('endTime')?klines(440,HOUR,Math.floor(Number(u.searchParams.get('endTime'))/1000/HOUR)*HOUR):klines(1000,HOUR,hourOpen)}});
- assert.equal(r.status,200);assert.equal(r.doc.source,'binance public market data');assert.equal(r.header,r.doc.source);assert.equal(r.doc.venue_pair,'BTCUSDT');assert.equal(r.doc.venue_interval,'1h');
- assert.equal(r.doc.span,'hour');assert.equal(r.doc.mult,1);assert.equal(r.doc.count,1440);assert.equal(r.doc.bars.length,1440);        // 60 days of hours, two pages
+// Coinbase Exchange: daily candles for the same-coin question, then pages of 300 candles walking back from the bar now forming
+const cbVenue=(scale=1,opts={})=>(u,init)=>{assert.ok(init&&init.headers&&init.headers['User-Agent'],'Coinbase refuses a request with no User-Agent');const g=Number(u.searchParams.get('granularity'));
+ if(g===86400)return coinbase(range(-299,0),scale);
+ const end=Date.parse(u.searchParams.get('end'))/1000,start=Date.parse(u.searchParams.get('start'))/1000;assert.equal(end-start,300*g);assert.equal(end%g,0);
+ if(opts.busy&&opts.busy.n-->0)return 429;
+ return Array.from({length:300},(_,i)=>[end-g*(i+1),199,201,200,200+i*0,4]);};
+test('a banked coin\'s hourly view is hourly bars from the bank\'s own venue, newest bar the hour now forming',async()=>{
+ const r=await intraday('/ohlc?ticker=BTC-USD&span=hour&mult=1&days=60',{bank:liveBank,answers:{'api.exchange.coinbase.com':cbVenue()}});
+ assert.equal(r.status,200);assert.equal(r.doc.source,'coinbase public market data');assert.equal(r.header,r.doc.source);assert.equal(r.doc.venue_pair,'BTC-USD');assert.equal(r.doc.venue_interval,'3600s');
+ assert.equal(r.doc.span,'hour');assert.equal(r.doc.mult,1);assert.equal(r.doc.count,1200);assert.equal(r.doc.bars.length,1200);                 // four pages of 300 (60 days of hours = 1,440 asked, 50 days answered)
  assert.equal(r.doc.bars.at(-1).time,hourOpen);for(let i=1;i<r.doc.bars.length;i++)assert.equal(r.doc.bars[i].time-r.doc.bars[i-1].time,HOUR);
- assert.equal(r.doc.checked_against,'data/warm/katlin/crypto-bars/BTC.json.gz');assert.match(r.doc.intraday_policy,/matched the banked closes/);assert.equal(r.cache,'public, max-age=60');
- assert.deepEqual(r.hosts,['bank.example','bank.example','data-api.binance.vision','data-api.binance.vision','data-api.binance.vision']);
- assert.ok(!r.calls.some(c=>c.includes('polygon.io')),'Polygon is not asked for what its plan does not carry');assert.equal(r.puts.length,1);assert.match(r.puts[0],/crypto-intraday-v1\/BTC-USD\/1hour\/60$/);
- assert.ok(!r.calls[2].includes('endTime'),'the newest page has a stable address');
+ assert.match(r.doc.intraday_policy,/matched the banked closes/);assert.equal(r.cache,'public, max-age=60');
+ assert.deepEqual(r.hosts,['bank.example','bank.example','api.exchange.coinbase.com','api.exchange.coinbase.com','api.exchange.coinbase.com','api.exchange.coinbase.com','api.exchange.coinbase.com']);
+ assert.ok(!r.calls.some(c=>c.includes('polygon.io')),'Polygon is not asked for what its plan does not carry');
+ assert.equal(r.puts.length,2);assert.match(r.puts[0],/crypto-venue-v1\/coinbase\/BTC-USD$/);assert.match(r.puts[1],/crypto-intraday-v1\/BTC-USD\/1hour\/60$/);
 });
 test('a bar the venue does not publish is rebuilt from the one below it',async()=>{
- const r=await intraday('/ohlc?ticker=ETH-USD&span=minute&mult=45&days=1',{bank:liveBank,answers:{'data-api.binance.vision':u=>u.searchParams.get('interval')==='1d'?binance(range(-44,0)):klines(96,900,Math.floor(NOWSEC/900)*900)}});
- assert.equal(r.doc.venue_interval,'15m');assert.equal(r.doc.mult,45);assert.equal(r.cache,'public, max-age=30');
+ const r=await intraday('/ohlc?ticker=ETH-USD&span=minute&mult=45&days=1',{bank:liveBank,answers:{'api.exchange.coinbase.com':cbVenue()}});
+ assert.equal(r.doc.venue_interval,'900s');assert.equal(r.doc.mult,45);assert.equal(r.cache,'public, max-age=30');
  for(let i=1;i<r.doc.bars.length;i++)assert.equal(r.doc.bars[i].time-r.doc.bars[i-1].time,2700);for(const b of r.doc.bars)assert.equal(b.time%2700,0);
- assert.ok(r.doc.bars.length>=32&&r.doc.bars.length<=33);assert.equal(r.doc.bars[1].volume,15);assert.deepEqual(Object.keys(r.doc.bars[1]),['time','open','high','low','close','volume']);                       // three 15-minute bars of volume 5
+ assert.ok(r.doc.bars.length>=100&&r.doc.bars.length<=101);assert.equal(r.doc.bars[1].volume,12);assert.deepEqual(Object.keys(r.doc.bars[1]),['time','open','high','low','close','volume']);     // three 15-minute bars of volume 4
+ assert.equal(r.calls.filter(c=>c.includes('granularity=900')).length,1);
 });
-test('another coin on the first venue is passed over; the next same-coin venue answers; with none, nothing is drawn from a venue',async()=>{
- const cb=(u,init)=>{assert.ok(init.headers['User-Agent']);if(u.searchParams.get('granularity')==='86400')return coinbase(range(-299,0));
-  const end=Date.parse(u.searchParams.get('end'))/1000,start=Date.parse(u.searchParams.get('start'))/1000;assert.equal(end-start,300*HOUR);return Array.from({length:300},(_,i)=>[end-HOUR*(i+1),199,201,200,200,4]);};
- let r=await intraday('/ohlc?ticker=TON-USD&span=hour&mult=1&days=20',{bank:{rows:bankRows(-60,-1),key:'data/warm/katlin/crypto-bars/TON.json.gz'},answers:{'data-api.binance.vision':binance(range(-44,0),0.002),'api.exchange.coinbase.com':cb}});
- assert.equal(r.doc.source,'coinbase public market data');assert.equal(r.doc.venue_pair,'TON-USD');assert.equal(r.doc.count,600);                 // 20 days of hours = 480 -> two pages of 300
+test('another coin on the first venue is passed over; the next same-coin venue answers',async()=>{
+ const r=await intraday('/ohlc?ticker=TON-USD&span=hour&mult=1&days=20',{bank:{rows:bankRows(-60,-1),key:'data/warm/katlin/crypto-bars/TON.json.gz'},answers:{'api.exchange.coinbase.com':cbVenue(0.002),
+   'data-api.binance.vision':u=>u.searchParams.get('interval')==='1d'?binance(range(-44,0),1.001):klines(480,HOUR,hourOpen)}});
+ assert.equal(r.doc.source,'binance public market data');assert.equal(r.doc.venue_pair,'TONUSDT');assert.equal(r.doc.venue_interval,'1h');assert.equal(r.doc.count,480);
  for(let i=1;i<r.doc.bars.length;i++)assert.equal(r.doc.bars[i].time-r.doc.bars[i-1].time,HOUR);
- assert.ok(!r.calls.some(c=>c.includes('interval=1h')),'the other coin\'s hourly klines are never read');
- r=await intraday('/ohlc?ticker=KAS-USD&span=hour&mult=1&days=20',{bank:liveBank,answers:{'data-api.binance.vision':binance(range(-44,0),0.002),'api.exchange.coinbase.com':404,'api.polygon.io':{results:[]}}});
- assert.equal(r.doc.source,'polygon (warehouse empty)');assert.equal(r.doc.count,0);                                                             // falls through exactly as before
+ assert.ok(!r.calls.some(c=>c.includes('granularity=3600')),'the other coin\'s hourly candles are never read');assert.ok(!r.calls.find(c=>c.includes('interval=1h')).includes('endTime'),'the newest page has a stable address');
+ assert.deepEqual(r.puts.map(p=>p.split('/crypto-')[1]),['venue-v1/coinbase/TON-USD','venue-v1/binance/TON-USD','intraday-v1/TON-USD/1hour/20']);
+});
+test('a banked coin no venue answers says so, uncached, instead of an empty answer kept for a minute or daily bars in disguise',async()=>{
+ let r=await intraday('/ohlc?ticker=KAS-USD&span=hour&mult=1&days=20',{bank:liveBank,answers:{'api.exchange.coinbase.com':404,'data-api.binance.vision':binance(range(-44,0),0.002)}});
+ assert.equal(r.status,200);assert.equal(r.doc.source,'crypto intraday unavailable');assert.equal(r.doc.count,0);assert.deepEqual(r.doc.bars,[]);assert.equal(r.cache,'no-store');assert.equal(r.header,'crypto intraday unavailable');
+ assert.ok(!r.calls.some(c=>c.includes('polygon.io')));assert.deepEqual(r.puts.map(p=>p.split('/crypto-')[1]),['venue-v1/binance/KAS-USD']);        // "another coin" is kept; a venue that did not answer is asked again
+ r=await intraday('/yf-ohlc?symbol=BTC-USD&range=2y&interval=60m',{bank:liveBank,answers:{}});                                                       // the route the chart tries next
+ assert.equal(r.doc.source,'no intraday bars on this route');assert.deepEqual(r.doc.bars,[]);assert.equal(r.doc.asked_interval,'60m');assert.equal(r.cache,'no-store');assert.deepEqual(r.hosts,['bank.example']);
+ for(const iv of ['15m','5m','1h','90m'])assert.deepEqual((await intraday('/yf-ohlc?symbol=BTC-USD&range=3mo&interval='+iv,{bank:liveBank,answers:{}})).doc.bars,[]);
+ r=await intraday('/yf-ohlc?symbol=AAPL&range=2y&interval=60m',{bank:{rows:bankRows(-60,-1),key:'data/warm/tv-bars/universe/US__AAPL.json.gz'},answers:{}});
+ assert.equal(r.doc.source,'warehouse');assert.equal(r.doc.count,60);                                                                               // any other symbol on that route is answered as before
+});
+test('a venue busy for a moment is asked again; an answered same-coin question is kept, so the next timeframe reads neither the bank nor the daily candles',async()=>{
+ const busy={n:2};
+ let r=await intraday('/ohlc?ticker=SOL-USD&span=minute&mult=15&days=3',{bank:liveBank,answers:{'api.exchange.coinbase.com':cbVenue(1,{busy})}});
+ assert.equal(r.doc.source,'coinbase public market data');assert.equal(r.doc.count,300);assert.equal(busy.n,-1);assert.equal(r.calls.filter(c=>c.includes('granularity=900')).length,3);       // refused twice, answered the third time
+ const kept=new Map(),saved=global.caches;
+ const withCache=async route=>{const calls=[],original=global.fetch,savedNow=Date.now;Date.now=()=>NOW;global.caches={default:{match:async k=>kept.has(k.url)?new Response(kept.get(k.url)):undefined,put:async(k,v)=>{kept.set(k.url,await v.text());}}};
+  global.fetch=async(input,init)=>{const u=new URL(typeof input==='string'?input:input.url);calls.push(u.href);if(u.hostname==='bank.example')return Response.json(u.searchParams.get('span')==='day'?{warehouse_empty:false,warehouse_key:'data/warm/katlin/crypto-bars/SOL.json.gz',bars:bankRows(-60,-1),source_span:'day',source_mult:1}:{warehouse_empty:true,bars:[]});
+   const a=cbVenue()(u,init);return Response.json(a);};
+  try{const worker=(await import(workerURL)).default,res=await worker.fetch(new Request('https://worker.example'+route),{SYMDIR_URL:'https://bank.example',POLYGON_KEY:'fixture'},{waitUntil:p=>p});return {doc:await res.json(),calls,cache:res.headers.get('X-Cache')};}
+  finally{global.fetch=original;global.caches=saved;Date.now=savedNow;}};
+ const first=await withCache('/ohlc?ticker=SOL-USD&span=hour&mult=1&days=10');
+ assert.equal(first.calls.filter(c=>c.includes('span=day')).length,1);assert.equal(first.calls.filter(c=>c.includes('granularity=86400')).length,1);assert.equal(kept.get('https://ohlc.cache/crypto-venue-v1/coinbase/SOL-USD'),'same');
+ const second=await withCache('/ohlc?ticker=SOL-USD&span=minute&mult=5&days=1');
+ assert.equal(second.doc.source,'coinbase public market data');assert.equal(second.calls.filter(c=>c.includes('span=day')).length,0);assert.equal(second.calls.filter(c=>c.includes('granularity=86400')).length,0);
+ assert.equal(second.calls.filter(c=>c.includes('granularity=300')).length,1);
+ const again=await withCache('/ohlc?ticker=SOL-USD&span=minute&mult=5&days=1');assert.equal(again.cache,'HIT');assert.equal(again.calls.length,1);assert.deepEqual(again.doc,second.doc);          // within the half minute: one bank question for the span, nothing else
 });
 test('only banked coins, only intraday, only the dollar tape: every other request is untouched',async()=>{
  const poly={results:[{t:hourOpen*1000,o:1,h:2,l:.5,c:1.5,v:9}]};
@@ -157,9 +189,9 @@ test('only banked coins, only intraday, only the dollar tape: every other reques
  for(const bad of [['day',1],['week',1],['hour',0],['hour',1.5],['minute','x']])assert.equal(m.intradayPlan(...bad),null);
  assert.equal(m.intradayPages(60,3600,1000,8),2);assert.equal(m.intradayPages(730,3600,1000,8),8);assert.equal(m.intradayPages(0,3600,1000,8),1);assert.equal(m.intradayPages(7,60,1000,8),8);assert.equal(m.intradayPages(20,3600,300,6),2);
 });
-test('the worker change is four ledgered hunks and both preservation chains know it',()=>{
+test('the worker change is five ledgered hunks and both preservation chains know it',()=>{
  const hash=s=>crypto.createHash('sha256').update(s).digest('hex'),t=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/worker-crypto-tape/transition.json'),'utf8'));
- let raw=fs.readFileSync(path.join(__dirname,'..',t.path),'utf8');assert.equal(hash(raw),t.after_sha256);assert.equal(t.replacements.length,4);
+ let raw=fs.readFileSync(path.join(__dirname,'..',t.path),'utf8');assert.equal(hash(raw),t.after_sha256);assert.equal(t.replacements.length,5);
  for(const e of [...t.replacements].reverse()){assert.equal(raw.split(e.after).length,2);raw=raw.replace(e.after,()=>e.before);}assert.equal(hash(raw),t.before_sha256);
  assert.equal(require('./helpers/worker-userstore-preservation.cjs').normalize(fs.readFileSync(path.join(__dirname,'..',t.path),'utf8'),t.path).length>0,true);
  assert.match(fs.readFileSync(path.join(__dirname,'deployment/worker_userstore_preservation.py'),'utf8'),/def peel_crypto_tape\(raw, file\):[\s\S]*raw = peel_crypto_tape\(raw, file\)\n    raw = peel_crawler_gate\(raw, file\)/);
