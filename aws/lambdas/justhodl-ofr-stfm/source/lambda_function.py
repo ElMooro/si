@@ -11,7 +11,13 @@ over runs, COMPLETE-and-maintain. Explicit failures; F4 snapshots.
 ops 4759: also converges the sibling Hedge Fund Monitor catalog
 (/hf/v1, 497+ mnemonics, discovered ops 4752) with its own state at
 data/warm/ofr-hfm/state.json -- new HFM series auto-bank, and the
-held set refreshes on a rolling 10-per-run cursor once complete."""
+held set refreshes on a rolling 10-per-run cursor once complete.
+
+2026-11-21: the short-term-funding bank itself had no refresh at all - a mnemonic in state.done was never fetched
+again, so every series file stayed as written on 2026-08-06 and the repo board that reads them stopped there
+(ops 6893).  Every run now refreshes the whole bank from the five dataset calls (ofr_refresh), writing only the
+series whose observations changed, and the sponsored-repo pair of the hedge-fund catalog the same way.
+{"dry_run": true} asks the source, compares with the state and writes nothing."""
 import gzip
 import json
 import os
@@ -28,7 +34,14 @@ try:
 except Exception:
     snapshot = None
 
+from ofr_refresh import DATASETS, HF_DATASETS, record, refresh
+
 BASE = "https://data.financialresearch.gov/v1"
+HF_BASE = "https://data.financialresearch.gov/hf/v1"
+STATE_KEY = "data/warm/ofr/state.json"
+HF_STATE_KEY = "data/warm/ofr-hfm/state.json"
+SERIES_PREFIX = "data/warm/ofr/series/"
+HF_SERIES_PREFIX = "data/warm/ofr-hfm/series/"
 TRANCHE = int(os.environ.get("TRANCHE", "30"))
 SEED = ["REPO-TRI_AR_OO-P", "REPO-TRI_TV_OO-P", "REPO-DVP_AR_OO-P",
         "REPO-GCF_AR_OO-P", "MMF-MMF_RP_TOT-M", "NYPD-PD_RP_TOT-W",
@@ -40,6 +53,42 @@ def _fetch(url):
         "User-Agent": "JustHodl research admin@justhodl.ai"})
     with urllib.request.urlopen(req, timeout=45) as r:
         return r.read()
+
+
+def _fetch_dataset(url):
+    """A whole dataset (up to ~10 MB) needs more than the 45 seconds one series gets."""
+    req = urllib.request.Request(url, headers={"User-Agent": "JustHodl research (OFR bank refresh)"})
+    with urllib.request.urlopen(req, timeout=150) as r:
+        return r.read()
+
+
+def _put_series(key, body):
+    s3.put_object(Bucket=BUCKET, Key=key, Body=body, ContentType="application/gzip")
+
+
+def _put_hf_series(key, body):
+    """The hedge-fund catalog's files have always been stored as gzip-encoded JSON; a refreshed file keeps that."""
+    s3.put_object(Bucket=BUCKET, Key=key, Body=body, ContentType="application/json", ContentEncoding="gzip")
+
+
+def _state(key):
+    try:
+        return json.loads(s3.get_object(Bucket=BUCKET, Key=key)["Body"].read())
+    except Exception:
+        return {"done": [], "catalog": None}
+
+
+def dry_run(now):
+    """What a run would write, read from the source and the two state files; nothing is written."""
+    stfm = refresh(_fetch_dataset, None, dict(_state(STATE_KEY).get("series") or {}), BASE, DATASETS, now,
+                   SERIES_PREFIX, dry_run=True)
+    hf = refresh(_fetch_dataset, None, dict(_state(HF_STATE_KEY).get("series") or {}), HF_BASE, HF_DATASETS, now,
+                 HF_SERIES_PREFIX, layout="raw", dry_run=True)
+    res = {"ok": True, "dry_run": True, "refresh": record(stfm), "would_write": stfm["written_ids"],
+           "hf": {"refresh": record(hf), "would_write": hf["written_ids"]}}
+    print(json.dumps({"dry_run": True, "would_write": stfm["written"], "unchanged": stfm["unchanged"],
+                      "hf_would_write": hf["written"]}))
+    return {"statusCode": 200, "body": json.dumps(res)}
 
 
 def _catalog():
@@ -71,7 +120,9 @@ def _catalog():
 
 def lambda_handler(event, context):
     now = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    state_key = "data/warm/ofr/state.json"
+    if isinstance(event, dict) and event.get("dry_run"):
+        return dry_run(now)
+    state_key = STATE_KEY
     try:
         state = json.loads(s3.get_object(
             Bucket=BUCKET, Key=state_key)["Body"].read())
@@ -128,6 +179,10 @@ def lambda_handler(event, context):
             state.setdefault("failures", {})[m] = \
                 f"{type(e).__name__}: {str(e)[:60]}"
         time.sleep(0.4)
+    # the daily refresh: every series of the five datasets, written only where the observations changed
+    ref = refresh(_fetch_dataset, _put_series, state.setdefault("series", {}), BASE, DATASETS, now, SERIES_PREFIX)
+    state["done"] = sorted(set(state["done"]) | set(ref["written_ids"]))
+    state["refresh"] = record(ref)
     n_cat = len(state["catalog"])
     n_done = len(set(state["done"]))
     state["as_of"] = now
@@ -143,8 +198,7 @@ def lambda_handler(event, context):
     # rediscover-merge-converge pattern here, own state, so new HFM
     # series auto-bank exactly like STFM's do, and the whole set
     # refreshes on a rolling tranche.
-    HF_BASE = "https://data.financialresearch.gov/hf/v1"
-    hf_key = "data/warm/ofr-hfm/state.json"
+    hf_key = HF_STATE_KEY
     try:
         hf = json.loads(s3.get_object(
             Bucket=BUCKET, Key=hf_key)["Body"].read())
@@ -199,7 +253,11 @@ def lambda_handler(event, context):
             hf.setdefault("failures", {})[m] = \
                 f"{type(e).__name__}: {str(e)[:60]}"
         time.sleep(0.3)
-    hf["done"] = sorted(set(hf["done"]))
+    # sponsored repo is two series of one small dataset: refreshed every run, not once in fifty days
+    hf_ref = refresh(_fetch_dataset, _put_hf_series, hf.setdefault("series", {}), HF_BASE, HF_DATASETS, now,
+                     HF_SERIES_PREFIX, layout="raw")
+    hf["done"] = sorted(set(hf["done"]) | set(hf_ref["written_ids"]))
+    hf["refresh"] = record(hf_ref)
     hf["as_of"] = now
     n_hf_cat = len(hf.get("catalog") or [])
     hf["progress_pct"] = (round(100 * len(hf["done"]) / n_hf_cat, 1)
@@ -212,6 +270,10 @@ def lambda_handler(event, context):
                   ContentType="application/json", CacheControl="no-cache")
     res = {"ok": True, "catalog": n_cat,
            "catalog_source": state.get("catalog_source"),
+           "refresh": {k: state["refresh"][k] for k in ("written", "unchanged", "newest")},
+           "refresh_problems": {"shrank": len(ref["shrank"]), "failed": len(ref["failed"]),
+                                "datasets": {d: v["error"] for d, v in ref["datasets"].items() if v.get("error")}},
+           "hf_refresh": {k: hf["refresh"][k] for k in ("written", "unchanged", "newest")},
            "pulled_this_run": got, "failed": failed,
            "done_total": n_done, "progress_pct": state["progress_pct"],
            "hf": {"catalog": n_hf_cat, "pulled": hf_pulled,
