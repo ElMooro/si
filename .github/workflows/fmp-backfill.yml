@@ -25,6 +25,10 @@ on:
         description: 'max kicks per engine this run (default 12)'
         required: false
         default: '12'
+      fmp_kicks:
+        description: 'extra kicks for justhodl-fmp-bank / justhodl-fmp-walker this run (default 0: FMP allows 150 GB per 30 days for the whole fleet - their own daily runs carry the backfill)'
+        required: false
+        default: '0'
 
 permissions:
   actions: write
@@ -58,10 +62,11 @@ jobs:
           ENGINES: ${{ inputs.engines }}
           MAX_MINUTES: ${{ inputs.max_minutes || '320' }}
           MAX_KICKS: ${{ inputs.max_kicks || '12' }}
+          FMP_KICKS: ${{ inputs.fmp_kicks || '0' }}
         run: |
           set -euo pipefail
           python3 -m pip install -q boto3
-          python3 scripts/fmp_backfill_conductor.py --engines "${ENGINES}" --max-minutes "${MAX_MINUTES}" --max-kicks "${MAX_KICKS}" | tee conductor.log
+          python3 scripts/fmp_backfill_conductor.py --engines "${ENGINES}" --max-minutes "${MAX_MINUTES}" --max-kicks "${MAX_KICKS}" --fmp-kicks "${FMP_KICKS}" | tee conductor.log
           tail -n 40 conductor.log >> "$GITHUB_STEP_SUMMARY"
           grep -q '^ALL_STEADY$' conductor.log && echo "all_steady=true" >> "$GITHUB_OUTPUT" || echo "all_steady=false" >> "$GITHUB_OUTPUT"
       - name: Disable this workflow once every default engine is STEADY (the daily schedules carry on alone)

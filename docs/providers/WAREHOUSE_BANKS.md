@@ -12,6 +12,13 @@ Doctrine that every bank follows (the 2026-09-02 warehouse rule applied to the p
 * **Once a day, bounded, no self-chaining.** One Scheduler schedule per bank (cadence floor), one 780-second budget per
   invoke, cursors in state; the backfill is finished by `.github/workflows/fmp-backfill.yml` (daily, ≤ 320 min, ≤ 12
   lease-guarded re-kicks per engine, disables itself on `ALL_STEADY`).
+* **Paced by the provider's quota, not by the runner's clock (2026-11-21).** FMP Ultimate allows 150 GB of responses
+  per rolling 30 days - about 5 GB a day - for everything on the key: the two FMP banks *and* every engine that calls
+  FMP live. Twelve extra kicks a day spent it in two days (2026-10-25/26) and the whole fleet's FMP calls answered 429
+  for four weeks. The conductor therefore gives `justhodl-fmp-bank` and `justhodl-fmp-walker` **no extra kicks**
+  (`KICK_CAPS` in `scripts/fmp_backfill_conductor.py`; it prints `PACED` and never `ALL_STEADY` while they are still
+  filling): their own daily runs carry the backfill, daily-refresh lanes first. `fmp_kicks` on a manual dispatch raises
+  it for one run - only with bandwidth to spare. A walker of any metered provider gets its entry in `KICK_CAPS` first.
 * **Write-if-changed.** sha256 in metadata; an unchanged body is never re-put (no versions churn, LastModified stays a
   true change signal).
 * **Measured coverage.** `justhodl-provider-coverage` folds the manifests into `data/provider-coverage.json` daily.

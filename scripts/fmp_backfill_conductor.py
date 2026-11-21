@@ -8,6 +8,15 @@ done (the workflow disables itself on that token).  Exit 0 always on bounded com
 unauthorized key (nothing to conduct until the key is fixed).
 
 Doctrine: no self-chaining inside AWS; the only re-kicks are these, from a runner, lease-guarded, counted and bounded.
+
+Pacing (2026-11-21): a backfill is paced by the provider's quota, not by how fast AWS can run it.  FMP Ultimate allows
+150 GB of responses per rolling 30 days - about 5 GB a day - for EVERYTHING on the key: the two FMP engines here and
+every engine that calls FMP live.  The engines' own daily runs already pull up to 2 GB (bank) + 1.5 GB (walker) each,
+daily-refresh lanes first; twelve extra kicks a day on top spent the whole quota in two days on 2026-10-25/26 and every
+FMP call fleet-wide answered 429 'Bandwidth Limit Reach' for the following four weeks (ops 6877: fmp-ratios 314 of 314
+calls refused, stock-screener, earnings-blackout, positioning-analog ... failing every day).  So the two FMP engines get
+NO extra kicks by default (KICK_CAPS): their own schedules carry the backfill at a rate the quota can hold, and the
+fleet's live calls keep working.  `--fmp-kicks N` raises it for one run - only with bandwidth to spare (the add-on).
 """
 from __future__ import annotations
 
@@ -31,6 +40,15 @@ ENGINES = {
     "justhodl-bank-histories": {"state": "data/warm/history-book/_state/state.json", "manifest": "data/warm/history-book/manifest.json", "wait_s": 16 * 60},
 }
 CFG = Config(retries={"max_attempts": 10, "mode": "standard"}, connect_timeout=10, read_timeout=120)
+# extra kicks per conductor run where the provider's quota, not the runner's clock, is the limit (see Pacing above)
+KICK_CAPS = {"justhodl-fmp-bank": 0, "justhodl-fmp-walker": 0}
+
+
+def kick_cap(name, max_kicks, fmp_kicks=None):
+    """How many kicks this run may give an engine: the general cap, or the provider-paced one where one is set."""
+    if name in KICK_CAPS:
+        return max(0, min(max_kicks, KICK_CAPS[name] if fmp_kicks is None else fmp_kicks))
+    return max_kicks
 
 
 def now():
@@ -44,29 +62,41 @@ def jget(s3, key):
         return {}
 
 
-def main():
+def main(argv=None, s3=None, lam=None):
     ap = argparse.ArgumentParser()
     ap.add_argument("--engines", default="")
     ap.add_argument("--max-minutes", type=int, default=320)
     ap.add_argument("--max-kicks", type=int, default=12)
-    a = ap.parse_args()
+    ap.add_argument("--fmp-kicks", type=int, default=None, help="extra kicks for the two FMP engines this run (default: KICK_CAPS = 0)")
+    a = ap.parse_args(argv)
     names = [n for n in a.engines.split() if n] or list(ENGINES)
     for n in names:
         if n not in ENGINES:
             print("unknown engine %s" % n)
             return 1
-    s3 = boto3.client("s3", region_name="us-east-1", config=CFG)
-    lam = boto3.client("lambda", region_name="us-east-1", config=CFG)
+    s3 = s3 or boto3.client("s3", region_name="us-east-1", config=CFG)
+    lam = lam or boto3.client("lambda", region_name="us-east-1", config=CFG)
+    caps = {n: kick_cap(n, a.max_kicks, a.fmp_kicks) for n in names}
+    paced = []
     t_end = time.time() + a.max_minutes * 60
     kicks = {n: 0 for n in names}
     steady = {n: False for n in names}
     unauthorized = False
     bandwidth_held = []
     print("%s conductor start: engines=%s max_minutes=%d max_kicks=%d" % (now(), names, a.max_minutes, a.max_kicks))
-    while time.time() < t_end and not all(steady.values()) and any(kicks[n] < a.max_kicks for n in names if not steady[n]):
+    for n in names:
+        if caps[n] <= 0:                      # provider-paced: never kicked here; say where it stands
+            man0, st0 = jget(s3, ENGINES[n]["manifest"]), jget(s3, ENGINES[n]["state"])
+            if (man0.get("phase") or st0.get("phase")) == "STEADY":
+                steady[n] = True
+                print("%s %s STEADY (objects %s, %.1f MB)" % (now(), n, man0.get("objects"), (man0.get("bytes") or 0) / 1e6))
+            else:
+                print("%s %s PACED: phase %s, no extra kicks - the provider's quota is shared with the fleet's live calls; its own daily schedule carries the backfill" % (
+                    now(), n, man0.get("phase") or st0.get("phase")))
+    while time.time() < t_end and not all(steady.values()) and any(kicks[n] < caps[n] for n in names if not steady[n]):
         progressed = False
         for n in names:
-            if steady[n] or kicks[n] >= a.max_kicks or time.time() > t_end - 60:
+            if steady[n] or kicks[n] >= caps[n] or time.time() > t_end - 60:
                 continue
             e = ENGINES[n]
             st = jget(s3, e["state"])
@@ -112,9 +142,14 @@ def main():
             time.sleep(60)
     for n in names:
         man = jget(s3, ENGINES[n]["manifest"])
-        print("%s %s final: phase %s kicks %d objects %s %.1f MB" % (now(), n, man.get("phase"), kicks[n], man.get("objects"), (man.get("bytes") or 0) / 1e6))
+        if not steady[n] and caps[n] < a.max_kicks and kicks[n] >= caps[n]:
+            paced.append(n)                   # still BACKFILL, held to its own schedule by the provider's quota
+        print("%s %s final: phase %s kicks %d%s objects %s %.1f MB" % (now(), n, man.get("phase"), kicks[n], " (paced: cap %d)" % caps[n] if n in paced else "",
+                                                                     man.get("objects"), (man.get("bytes") or 0) / 1e6))
     if bandwidth_held:
         print("BANDWIDTH_HOLD %s" % " ".join(bandwidth_held))
+    if paced:
+        print("PACED %s" % " ".join(paced))
     if all(steady.values()) and not unauthorized and not bandwidth_held:
         print("ALL_STEADY")
     return 2 if unauthorized else 0
