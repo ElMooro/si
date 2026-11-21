@@ -1,0 +1,181 @@
+# ops 6876 - the slow-source walkers, and which stale feeds are really late (read-only)
+
+**Status:** success  
+**Duration:** 41.7s  
+**Finished:** 2026-11-21T05:15:29+00:00  
+
+## Data
+
+| engines_behind_late_feeds | feeds_checked | no_engine_runs_it | nobody_claims | past_limit | really_late | slower_by_schedule |
+|---|---|---|---|---|---|---|
+| 90 | 1554 | 31 | 162 | 362 | 115 | 53 |
+
+## Log
+## A. The walkers
+
+- `05:15:07` justhodl-worldbank-full
+- `05:15:07`   trigger sched justhodl-worldbank-full-weekly | ENABLED | rate(7 days) | payload fields {redrain}
+- `05:15:07`   trigger sched justhodl-worldbank-full-2h | ENABLED | daily 03:20 | payload fields {}
+- `05:15:07`   runs per UTC hour (00..23):
+- `05:15:07`     2026-11-15   .  .  .  1  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  = 1
+- `05:15:07`     2026-11-16   .  5  5  4  .  .  3  5  5  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  = 27
+- `05:15:07`     2026-11-17   .  .  .  5  6  2  7 11  8  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  = 39
+- `05:15:07`     2026-11-18   .  .  .  5  5  3 12 13  8  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  = 46
+- `05:15:07`     2026-11-19   .  .  .  5  6  2 12 15 12  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  = 52
+- `05:15:07`     2026-11-20   .  .  .  5  6  2 16 20 16  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  = 65
+- `05:15:07`     2026-11-21   .  .  .  5  5  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  = 10
+- `05:15:08`   _state/state.json: version=1.1.1; phase=DRAIN; queue=[9041]; have={29468}; failures={2777}; lease_until=1795238648.2624345; n_indicators=29490; as_of=2026-11-21T05:10:07+00:00; n_banked=29468; bytes_total=470977241; run_open=True
+- `05:15:08`   manifest.json: as_of=2026-11-21T05:10:07+00:00; engine=justhodl-worldbank-full; version=1.1.1; indicators_catalog=29490; banked=29468; no_data=0; bytes=470977241; gb=0.47; queue_left=9041; failures=2777; phase=DRAIN; last_run.state_writes=4; last_run.uploaded=735; last_run.unchanged=0; note=complete api.worldbank.org indicator warehouse -- every indicator's of
+- `05:15:08`   _state/inflight.json: iid=None; attempt=0; at=2026-10-27T20:59:24+00:00
+- `05:15:09`     log 11-20 05:44  [chain_guard] justhodl-worldbank-full parked at hop 12 -> data/_state/chain-parked/justhodl-worldbank-full/d29d43cdf946.json (resumer picks it up within 5 min)
+- `05:15:09` justhodl-eia-bank
+- `05:15:09`   trigger sched justhodl-eia-bank-daily | ENABLED | daily 21:31 | payload fields {}
+- `05:15:09`   runs per UTC hour (00..23):
+- `05:15:09`     2026-11-14   .  .  .  .  .  .  .  .  .  1  1  2  3  2  1  .  .  .  .  .  .  1  .  .  = 11
+- `05:15:09`     2026-11-15   .  .  .  .  .  .  .  .  .  1  1  2  2  3  2  .  .  .  .  .  .  1  .  .  = 12
+- `05:15:09`     2026-11-16   .  .  .  .  .  .  .  .  .  .  2  3  2  2  3  .  .  .  .  .  .  1  .  .  = 13
+- `05:15:09`     2026-11-17   .  .  .  .  .  .  .  .  .  .  .  2  2  2  3  2  .  .  .  .  .  1  .  .  = 12
+- `05:15:09`     2026-11-18   .  .  .  .  .  .  .  .  .  .  1  2  3  2  2  2  .  .  .  .  .  1  .  .  = 13
+- `05:15:09`     2026-11-19   .  .  .  .  .  .  .  .  .  .  1  1  3  2  2  2  .  .  .  .  .  1  .  .  = 12
+- `05:15:09`     2026-11-20   .  .  .  .  .  .  .  .  .  .  1  1  3  2  2  2  .  .  .  .  .  1  .  .  = 12
+- `05:15:09`   _state/state.json: version=1.0.0; started_at=2026-10-25T18:47:57.173001+00:00; runs=285; key_status=ok; phase=BACKFILL; objects=20941; bytes=1352288803; lease_until=0; leaves={232}; tree_day=2026-11-16; tree_discovered=232; leaf_state={232}; stream_cursor=40; last_run.started_at=2026-11-20T21:31:25.108254+00:00; last_run.steps=[3]; last_run.calls=277; last_run.retries=3; last_run.http={1}; last_run.puts=30; last_run.unchanged=244; last_run.put_bytes=3444795; last_run.seconds=777.8; last_run.finished_at=2026-11-20T21:44:22.618654+00:00; updated_at=2026-11-20T21:44:22.618675+00:00
+- `05:15:09`   manifest.json: engine=justhodl-eia-bank; version=1.0.0; updated_at=2026-11-20T21:44:22.618735+00:00; objects=20941; bytes=1352288803; pages=20941; pages_bytes=1352288803; datasets=232; datasets_declared=232; leaves=232; leaves_complete=207; phase=BACKFILL; key_status=ok; tree_day=2026-11-16; endpoints_served=[229]; endpoints_refused=[3]; rows_total_known=218852091; rows_banked_est=50731659; run.started_at=2026-11-20T21:31:25.108254+00:00; run.steps=[3]; run.calls=277; run.retries=3; run.http={1}; run.puts=30; run.unchanged=244; run.put_bytes=3444795; run.seconds=777.8; run.finished_at=2026-11-20T21:44:22.618654+00:00; runs=285; skipped=[1]; label=EIA v2 - every leaf route, full history as offset pages + daily newest
+- `05:15:10` chain resumer ledger: 39 entries; resumes per engine and day: {('justhodl-guardrail-notify', '2026-09-09'): 1, ('justhodl-worldbank-full', '2026-09-14'): 4, ('justhodl-worldbank-full', '2026-09-21'): 5, ('justhodl-worldbank-full', '2026-09-28'): 4, ('justhodl-worldbank-full', '2026-10-05'): 4, ('justhodl-worldbank-full', '2026-10-12'): 3, ('justhodl-worldbank-full', '2026-10-26'): 1, ('justhodl-worldbank-full', '2026-10-27'): 2, ('justhodl-worldbank-full', '2026-10-28'): 1, ('justhodl-worldbank-full', '2026-11-09'): 1, ('justhodl-worldbank-full', '2026-11-16'): 1, ('justhodl-worldbank-full', '2026-11-17'): 2, ('justhodl-worldbank-full', '2026-11-18'): 3, ('justhodl-worldbank-full', '2026-11-19'): 3, ('justhodl-worldbank-full', '2026-11-20'): 4}
+- `05:15:10` chain resumer last run: version=1.0.0; ran_at=2026-11-20T06:36:51.151794+00:00; resumed=[4]; held=[0]; errors=[0]; skipped=0
+- `05:15:10` data/_state/chain-parked/: 3 tickets [('justhodl-worldbank-full', 3)]
+- `05:15:10` data/_state/chain-parked-held/: 0 tickets []
+- `05:15:10` a week of Lambda for the bank engines:
+- `05:15:11`   justhodl-fmp-bank            runs   18 (errors 0) x   166 s,  2048 MB -> $0.43 a month | triggers: justhodl-fmp-bank-daily [daily 23:13]
+- `05:15:12`   justhodl-fmp-walker          runs   24 (errors 0) x   220 s,  2048 MB -> $0.75 a month | triggers: justhodl-fmp-walker-prices [daily 22:40]; justhodl-fmp-walker-daily [daily 23:27]
+- `05:15:12`   justhodl-polygon-bank        runs   88 (errors 0) x   739 s,  1536 MB -> $6.97 a month | triggers: justhodl-polygon-bank-daily [daily 22:41]
+- `05:15:13`   justhodl-provider-bank       runs    7 (errors 0) x   256 s,  1024 MB -> $0.13 a month | triggers: justhodl-provider-bank-daily [daily 21:53]
+- `05:15:13`   justhodl-eia-bank            runs   85 (errors 0) x   771 s,  1024 MB -> $4.68 a month | triggers: justhodl-eia-bank-daily [daily 21:31]
+- `05:15:14`   justhodl-polygon-eod         runs    7 (errors 0) x   125 s,  3008 MB -> $0.18 a month | triggers: justhodl-polygon-eod-daily [daily 03:10]
+- `05:15:15`   justhodl-bank-histories      runs   16 (errors 0) x   679 s,  3008 MB -> $2.28 a month | triggers: justhodl-bank-histories-daily [daily 03:05]
+- `05:15:15`   justhodl-bank-factors        runs    8 (errors 0) x   411 s,  3008 MB -> $0.69 a month | triggers: justhodl-bank-factors-daily [daily 02:50]
+- `05:15:16`   justhodl-worldbank-full      runs  240 (errors 0) x   677 s,  1024 MB -> $11.60 a month | triggers: justhodl-worldbank-full-weekly [rate(7 days)]; justhodl-worldbank-full-2h [daily 03:20]
+- `05:15:16`   justhodl-chain-resumer       runs    7 (errors 0) x     2 s,   256 MB -> $0.00 a month | triggers: justhodl-chain-resumer-daily [MON-FRI 13:00]; justhodl-chain-resumer-5min [daily 06:36]
+## B. The stale list, sorted into what it is
+
+- `05:15:16` monitor report of 2026-11-20T07:59:11.605314+00:00: 1554 feeds checked, 667 past their limit
+- `05:15:29` runs daily, file old: 115 feeds (over 5 weeks 40, 9 - 35 days 37, 27 h - 3 days 27, 3 - 9 days 11)
+- `05:15:29`     ai/catalog.json                                          MISSING      age     0.0 h (limit 26.0) | justhodl-ai [daily, 9 runs / 0 errors in 3 days]
+- `05:15:29`     ai/control.json                                          MISSING      age     0.0 h (limit 26.0) | justhodl-ai [daily, 9 runs / 0 errors in 3 days]
+- `05:15:29`     ai/cost/mtd-sagemaker.json                               MISSING      age     0.0 h (limit 26.0) | justhodl-ai [daily, 9 runs / 0 errors in 3 days]
+- `05:15:29`     ai/datasets/brain/latest.json                            MISSING      age     0.0 h (limit 26.0) | justhodl-ai [daily, 9 runs / 0 errors in 3 days]
+- `05:15:29`     ai/market-read/anthropic-health.json                     MISSING      age     0.0 h (limit 26.0) | justhodl-ai [daily, 9 runs / 0 errors in 3 days]
+- `05:15:29`     ai/policy.json                                           MISSING      age     0.0 h (limit 26.0) | justhodl-ai [daily, 9 runs / 0 errors in 3 days]
+- `05:15:29`     ai/pricing.json                                          MISSING      age     0.0 h (limit 26.0) | justhodl-ai [daily, 9 runs / 0 errors in 3 days]
+- `05:15:29`     ai/read-model/latest.json                                MISSING      age     0.0 h (limit 26.0) | justhodl-ai [daily, 9 runs / 0 errors in 3 days]
+- `05:15:29`     data/signal-genealogy-research/cache/current.json        MISSING      age     0.0 h (limit 26.0) | justhodl-signal-genealogy [daily, 18 runs / 18 errors in 3 days]
+- `05:15:29`     data/symbology/bond-cusips.json                          MISSING      age     0.0 h (limit 26.0) | justhodl-symbology-master [daily, 3 runs / 0 errors in 3 days]
+- `05:15:29`     data/warm/blackswan/vn_VNINDEX.json                      MISSING      age     0.0 h (limit 26.0) | justhodl-blackswan-watch [daily, 3 runs / 0 errors in 3 days]
+- `05:15:29`     factory/gearb/champion.json                              MISSING      age     0.0 h (limit 26.0) | justhodl-ai [daily, 9 runs / 0 errors in 3 days]
+- `05:15:29`     kcs/flash-cache.json                                     MISSING      age     0.0 h (limit 26.0) | justhodl-asia-leads [daily, 4 runs / 1 errors in 3 days]
+- `05:15:29`     latest_brief.json                                        MISSING      age     0.0 h (limit 26.0) | macro-financial-intelligence [daily, 20 runs / 0 errors in 3 days]
+- `05:15:29`     data/money-flow-state.json                               SOURCE_STALE age     8.5 h (limit 26.0) | justhodl-money-flow-state [daily, 3 runs / 0 errors in 3 days]
+- `05:15:29`     data/eurodollar-stress.json                              SOURCE_STALE age    10.2 h (limit 3.0) | justhodl-eurodollar-stress [daily, 3 runs / 0 errors in 3 days]
+- `05:15:29`     data/retail-sentiment.json                               SOURCE_STALE age    12.8 h (limit 2.0) | justhodl-retail-sentiment [daily, 3 runs / 0 errors in 3 days]
+- `05:15:29`     data/sector-rotation.json                                SOURCE_STALE age    13.3 h (limit 7.0) | justhodl-sector-rotation [daily, 3 runs / 0 errors in 3 days]
+- `05:15:29`     data/report.json                                         SOURCE_STALE age    15.2 h (limit 26.0) | justhodl-daily-report-v3 [daily, 6 runs / 0 errors in 3 days]
+- `05:15:29`     data/apex-fusion.json                                    SOURCE_STALE age    19.6 h (limit 5.0) | justhodl-apex-fusion [daily, 3 runs / 0 errors in 3 days]
+- `05:15:29`     data/finviz-news.json                                    SOURCE_STALE age    21.0 h (limit 8.0) | justhodl-finviz-news [daily, 3 runs / 0 errors in 3 days]
+- `05:15:29`     data/a2a/inbox/claude-audit.json                         SOURCE_STALE age    22.6 h (limit 26.0) | justhodl-backend-agent [daily, 3 runs / 0 errors in 3 days]
+- `05:15:29`     data/a2a/inbox/claude.json                               SOURCE_STALE age    22.6 h (limit 26.0) | justhodl-backend-agent [daily, 3 runs / 0 errors in 3 days]
+- `05:15:29`     data/trade-nowcast.json                                  SOURCE_STALE age    41.9 h (limit 26.0) | justhodl-trade-nowcast [daily, 5 runs / 3 errors in 3 days]
+- `05:15:29`     data/port-cargo.json                                     SOURCE_STALE age    43.3 h (limit 26.0) | justhodl-port-cargo [daily, 7 runs / 6 errors in 3 days]
+- `05:15:29`     data/feed-catalog.json                                   SOURCE_STALE age    49.0 h (limit 26.0) | justhodl-feed-catalog [daily, 9 runs / 8 errors in 3 days]
+- `05:15:29`     data/ecb-derived.json                                    SOURCE_STALE age    64.3 h (limit 8.0) | justhodl-ecb-derived [daily, 12 runs / 12 errors in 3 days]
+- `05:15:29`     data/13f-security-master.json                            SOURCE_STALE age    76.3 h (limit 26.0) | justhodl-13f-book [daily, 9 runs / 0 errors in 3 days]
+- `05:15:29`     data/sec-cik-ticker-map.json                             SOURCE_STALE age    91.8 h (limit 26.0) | justhodl-sec-8k-enrich [daily, 3 runs / 0 errors in 3 days]
+- `05:15:29`     data/katlin-backtest.json                                SOURCE_STALE age   118.3 h (limit 26.0) | justhodl-katlin [daily, 6 runs / 0 errors in 3 days]
+- `05:15:29`     data/fortress-backtest.json                              SOURCE_STALE age   118.9 h (limit 26.0) | justhodl-fortress [daily, 3 runs / 0 errors in 3 days]
+- `05:15:29`     screener/data.json                                       SOURCE_STALE age   142.1 h (limit 26.0) | justhodl-stock-screener [daily, 13 runs / 12 errors in 3 days]
+- `05:15:29`     screener/history.json                                    SOURCE_STALE age   142.1 h (limit 26.0) | justhodl-stock-screener [daily, 13 runs / 12 errors in 3 days]
+- `05:15:29`     screener/just-crossed.json                               SOURCE_STALE age   142.1 h (limit 26.0) | justhodl-stock-screener [daily, 13 runs / 12 errors in 3 days]
+- `05:15:29`     data/momentum-leaders.json                               SOURCE_STALE age   142.2 h (limit 26.0) | justhodl-momentum-leaders [daily, 7 runs / 6 errors in 3 days]
+- `05:15:29`     data/earnings-pead.json                                  SOURCE_STALE age   143.9 h (limit 26.0) | justhodl-earnings-pead [daily, 7 runs / 6 errors in 3 days]
+- `05:15:29`     data/china-liquidity-history.json                        SOURCE_STALE age   185.4 h (limit 26.0) | justhodl-china-liquidity [daily, 3 runs / 0 errors in 3 days]
+- `05:15:29`     data/china-liquidity.json                                SOURCE_STALE age   185.4 h (limit 26.0) | justhodl-china-liquidity [daily, 3 runs / 0 errors in 3 days]
+- `05:15:29`     data/fmp-market-snapshot-last-good.json                  SOURCE_STALE age   217.3 h (limit 26.0) | fmp-fundamentals-agent [no enabled trigger, 91 runs / 0 errors in 3 days]
+- `05:15:29`     data/sector-flow-state.json                              SOURCE_STALE age   226.7 h (limit 26.0) | justhodl-sector-flow-state [daily, 8 runs / 4 errors in 3 days]
+- `05:15:29`     data/fundgraph/symdir2.json                              SOURCE_STALE age   262.6 h (limit 26.0) | justhodl-fundamental-graphs [daily, 23 runs / 0 errors in 3 days]
+- `05:15:29`     data/nyfed-primary-dealer.json                           SOURCE_STALE age   322.4 h (limit 26.0) | justhodl-nyfed-pd [weekly, 2 runs / 0 errors in 3 days]
+- `05:15:29`     data/momentum-themes.json                                SOURCE_STALE age   352.9 h (limit 26.0) | justhodl-theme-classifier [daily, 3 runs / 0 errors in 3 days]
+- `05:15:29`     data/eps-revision-velocity.json                          SOURCE_STALE age   357.0 h (limit 26.0) | justhodl-eps-revision-velocity [daily, 7 runs / 6 errors in 3 days]
+- `05:15:29`     data/forensic-screen.json                                SOURCE_STALE age   402.4 h (limit 26.0) | justhodl-forensic-screen [daily, 18 runs / 18 errors in 3 days]
+- `05:15:29`     data/vol-target-unwind.json                              SOURCE_STALE age   402.6 h (limit 26.0) | justhodl-vol-target-unwind [daily, 6 runs / 0 errors in 3 days]
+- `05:15:29`     data/theme-momentum.json                                 SOURCE_STALE age   404.5 h (limit 26.0) | justhodl-theme-rotation-engine [daily, 3 runs / 0 errors in 3 days]
+- `05:15:29`     data/theme-rotation-state.json                           SOURCE_STALE age   404.5 h (limit 26.0) | justhodl-theme-rotation-engine [daily, 3 runs / 0 errors in 3 days]
+- `05:15:29`     data/predictability.json                                 SOURCE_STALE age   416.1 h (limit 26.0) | justhodl-predictability [daily, 9 runs / 9 errors in 3 days]
+- `05:15:29`     data/chart-patterns.json                                 SOURCE_STALE age   416.4 h (limit 26.0) | justhodl-chart-patterns [daily, 9 runs / 9 errors in 3 days]
+- `05:15:29`     data/fmp-ratios.json                                     SOURCE_STALE age   417.2 h (limit 26.0) | justhodl-fmp-ratios [daily, 9 runs / 9 errors in 3 days]
+- `05:15:29`     data/gold-equity-rotation.json                           SOURCE_STALE age   417.2 h (limit 26.0) | justhodl-gold-equity-rotation [daily, 3 runs / 0 errors in 3 days]
+- `05:15:29`     data/insider-aggregate.json                              SOURCE_STALE age   417.4 h (limit 26.0) | justhodl-insider-aggregate [daily, 12 runs / 6 errors in 3 days]
+- `05:15:29`     data/leading-markets-history.json                        SOURCE_STALE age   417.5 h (limit 26.0) | justhodl-leading-markets [daily, 6 runs / 0 errors in 3 days]
+- `05:15:29`     data/leading-markets.json                                SOURCE_STALE age   417.5 h (limit 26.0) | justhodl-leading-markets [daily, 6 runs / 0 errors in 3 days]
+- `05:15:29`     data/gf-value.json                                       SOURCE_STALE age   417.9 h (limit 26.0) | justhodl-gf-value [daily, 3 runs / 0 errors in 3 days]
+- `05:15:29`     data/earnings-iv-crush.json                              SOURCE_STALE age   417.9 h (limit 26.0) | justhodl-earnings-iv-crush [daily, 3 runs / 0 errors in 3 days]
+- `05:15:29`     data/cross-asset-regime-state.json                       SOURCE_STALE age   419.4 h (limit 26.0) | justhodl-cross-asset-regime [daily, 6 runs / 0 errors in 3 days]
+- `05:15:29`     data/cross-asset-regime.json                             SOURCE_STALE age   419.4 h (limit 26.0) | justhodl-cross-asset-regime [daily, 6 runs / 0 errors in 3 days]
+- `05:15:29`     data/velocity-acceleration.json                          SOURCE_STALE age   421.5 h (limit 26.0) | justhodl-velocity-acceleration [daily, 3 runs / 0 errors in 3 days]
+- `05:15:29`     screener/cot-latest.json                                 SOURCE_STALE age   489.9 h (limit 26.0) | justhodl-cot-tracker [weekly, 1 runs / 0 errors in 3 days]
+- `05:15:29`     data/earnings-quality.json                               SOURCE_STALE age   497.6 h (limit 26.0) | justhodl-earnings-quality [daily, 6 runs / 0 errors in 3 days]
+- `05:15:29`     data/carry-surface.json                                  SOURCE_STALE age   498.6 h (limit 30.0) | justhodl-carry-surface [daily, 6 runs / 0 errors in 3 days]
+- `05:15:29`     data/russell-recon-frontrun.json                         SOURCE_STALE age   499.5 h (limit 26.0) | justhodl-russell-recon-frontrun [daily, 6 runs / 0 errors in 3 days]
+- `05:15:29`     data/earnings-blackout.json                              SOURCE_STALE age   500.4 h (limit 26.0) | justhodl-earnings-blackout [daily, 18 runs / 18 errors in 3 days]
+- `05:15:29`     data/volatility-squeeze.json                             SOURCE_STALE age   500.5 h (limit 26.0) | justhodl-volatility-squeeze-hunter [daily, 9 runs / 9 errors in 3 days]
+- `05:15:29`     data/momentum-breakout.json                              SOURCE_STALE age   500.7 h (limit 26.0) | justhodl-momentum-breakout [daily, 7 runs / 6 errors in 3 days]
+- `05:15:29`     data/revenue-acceleration.json                           SOURCE_STALE age   500.7 h (limit 26.0) | justhodl-revenue-acceleration [daily, 7 runs / 6 errors in 3 days]
+- `05:15:29`     data/forward-orders.json                                 SOURCE_STALE age   500.9 h (limit 26.0) | justhodl-forward-orders [daily, 5 runs / 0 errors in 3 days]
+- `05:15:29`     data/signal-genealogy-research/current.json              SOURCE_STALE age   546.4 h (limit 26.0) | justhodl-signal-genealogy [daily, 18 runs / 18 errors in 3 days]
+- `05:15:29` runs, content not readable by the monitor: 1 feeds (27 h - 3 days 1)
+- `05:15:29`     data/warm/worldbank-full/_state/state.json               INVALID      age     0.0 h (limit 26.0) | justhodl-worldbank-full [daily, 163 runs / 0 errors in 3 days]
+- `05:15:29` slower by schedule: 53 feeds (3 - 9 days 44, 27 h - 3 days 9)
+- `05:15:29`     provider-window-sentinel/events.json                     MISSING      age     0.0 h (limit 26.0) | justhodl-provider-window-sentinel [weekly, 0 runs / 0 errors in 3 days]
+- `05:15:29`     spend-governor/state.json                                MISSING      age     0.0 h (limit 26.0) | justhodl-spend-governor [other, 83 runs / 0 errors in 3 days]
+- `05:15:29`     spx-beaters/ai-cache.json                                MISSING      age     0.0 h (limit 26.0) | justhodl-spx-beaters [weekly, 0 runs / 0 errors in 3 days]
+- `05:15:29`     treasury_historical_comprehensive.json                   MISSING      age     0.0 h (limit 26.0) | treasury-api [weekly, 27 runs / 0 errors in 3 days]
+- `05:15:29`     data/sellside-views.json                                 SOURCE_STALE age    41.9 h (limit 26.0) | justhodl-sellside-views [other, 2 runs / 0 errors in 3 days]
+- `05:15:29`     data/asset-discovery.json                                SOURCE_STALE age    42.4 h (limit 26.0) | justhodl-asset-discovery [monthly, 1 runs / 0 errors in 3 days]
+- `05:15:29`     data/brain-compiler.json                                 SOURCE_STALE age    42.4 h (limit 26.0) | justhodl-brain-compiler [monthly, 1 runs / 0 errors in 3 days]
+- `05:15:29`     data/inventory-drawdown.json                             SOURCE_STALE age    56.5 h (limit 26.0) | justhodl-inventory-drawdown [weekly, 0 runs / 0 errors in 3 days]
+- `05:15:29`     data/dealer-survey.json                                  SOURCE_STALE age    63.2 h (limit 26.0) | justhodl-nyfed-dealer-survey [weekly, 0 runs / 0 errors in 3 days]
+- `05:15:29`     data/methodology-gaps.json                               SOURCE_STALE age    77.9 h (limit 26.0) | justhodl-methodology-scout [weekly, 0 runs / 0 errors in 3 days]
+- `05:15:29`     data/methodology-kb.json                                 SOURCE_STALE age    77.9 h (limit 26.0) | justhodl-methodology-scout [weekly, 0 runs / 0 errors in 3 days]
+- `05:15:29`     data/source-intel.json                                   SOURCE_STALE age    77.9 h (limit 26.0) | justhodl-methodology-scout [weekly, 0 runs / 0 errors in 3 days]
+- `05:15:29`     data/equity-ftd.json                                     SOURCE_STALE age    88.8 h (limit 26.0) | justhodl-equity-ftd [weekly, 1 runs / 0 errors in 3 days]
+- `05:15:29`     data/whales.json                                         SOURCE_STALE age    90.8 h (limit 26.0) | justhodl-whales [weekly, 0 runs / 0 errors in 3 days]
+- `05:15:29` no engine runs it: 31 feeds (27 h - 3 days 16, over 5 weeks 13, 9 - 35 days 2)
+- `05:15:29`     data/activist-radar.json                                 MISSING      age     0.0 h (limit 26.0) | justhodl-activist-radar (function gone)
+- `05:15:29`     data/biotech-catalysts.json                              MISSING      age     0.0 h (limit 26.0) | justhodl-biotech-catalysts [no enabled trigger, 0 runs / 0 errors in 3 days]
+- `05:15:29`     data/earnings-transcripts.json                           MISSING      age     0.0 h (limit 26.0) | justhodl-earnings-transcripts [no enabled trigger, 0 runs / 0 errors in 3 days]
+- `05:15:29`     data/engine-robustness.json                              MISSING      age     0.0 h (limit 26.0) | justhodl-engine-robustness [no enabled trigger, 0 runs / 0 errors in 3 days]
+- `05:15:29`     data/ipo-calendar.json                                   MISSING      age     0.0 h (limit 26.0) | justhodl-ipo-calendar (function gone)
+- `05:15:29`     data/kill-switch-state.json                              MISSING      age     0.0 h (limit 26.0) | justhodl-kill-switch [no enabled trigger, 0 runs / 0 errors in 3 days]
+- `05:15:29`     data/prediction-markets.json                             MISSING      age     0.0 h (limit 26.0) | justhodl-prediction-markets [no enabled trigger, 0 runs / 0 errors in 3 days]
+- `05:15:29`     data/regsho-threshold.json                               MISSING      age     0.0 h (limit 26.0) | justhodl-regsho [no enabled trigger, 0 runs / 0 errors in 3 days]
+- `05:15:29`     data/retail-attention.json                               MISSING      age     0.0 h (limit 26.0) | justhodl-retail-attention [no enabled trigger, 0 runs / 0 errors in 3 days]
+- `05:15:29`     data/sentiment-surveys.json                              MISSING      age     0.0 h (limit 26.0) | justhodl-sentiment-surveys [no enabled trigger, 0 runs / 0 errors in 3 days]
+- `05:15:29`     data/transcripts-index.json                              MISSING      age     0.0 h (limit 26.0) | justhodl-transcript-indexer [no enabled trigger, 0 runs / 0 errors in 3 days]
+- `05:15:29`     data/tv-descriptions.json                                MISSING      age     0.0 h (limit 26.0) | justhodl-tv-notes-ingest [no enabled trigger, 0 runs / 0 errors in 3 days]
+- `05:15:29`     data/usaspending-contracts.json                          MISSING      age     0.0 h (limit 26.0) | justhodl-usaspending [no enabled trigger, 0 runs / 0 errors in 3 days]
+- `05:15:29`     data/uspto-patents.json                                  MISSING      age     0.0 h (limit 26.0) | justhodl-uspto-patents [no enabled trigger, 0 runs / 0 errors in 3 days]
+- `05:15:29` nobody claims it: 162 feeds (over 5 weeks 156, 9 - 35 days 4, 3 - 9 days 2)
+- `05:15:29`     data/worldbank-wgi.json                                  SOURCE_STALE age   100.9 h (limit 26.0) | -
+- `05:15:29`     data/fragile-states-index.json                           SOURCE_STALE age   101.1 h (limit 26.0) | -
+- `05:15:29`     data/ai-factory.json                                     SOURCE_STALE age   819.8 h (limit 26.0) | -
+- `05:15:29`     data/factory-public.json                                 SOURCE_STALE age   819.8 h (limit 26.0) | -
+- `05:15:29`     data/student-state.json                                  SOURCE_STALE age   819.9 h (limit 26.0) | -
+- `05:15:29`     data/engine-manifest.json                                SOURCE_STALE age   820.3 h (limit 26.0) | -
+- `05:15:29`     data/signal-genealogy.json                               SOURCE_STALE age  1273.3 h (limit 26.0) | -
+- `05:15:29`     data/statement-research-verification.json                SOURCE_STALE age  1340.2 h (limit 26.0) | -
+- `05:15:29`     data/sec-ftd-research-verification.json                  SOURCE_STALE age  1342.8 h (limit 26.0) | -
+- `05:15:29`     data/short-interest-research-verification.json           SOURCE_STALE age  1344.9 h (limit 26.0) | -
+- `05:15:29`     data/short-volume-research-verification.json             SOURCE_STALE age  1346.6 h (limit 26.0) | -
+- `05:15:29`     data/offexchange-research-verification.json              SOURCE_STALE age  1348.2 h (limit 26.0) | -
+- `05:15:29`     data/gold-rotation-research-verification.json            SOURCE_STALE age  1350.6 h (limit 26.0) | -
+- `05:15:29`     data/flow-state-research-verification.json               SOURCE_STALE age  1351.5 h (limit 26.0) | -
+- `05:15:29` engines behind the really-late feeds: justhodl-ai 9, justhodl-ai-brief-router 4, justhodl-retail-sentiment 3, justhodl-stock-screener 3, justhodl-china-liquidity 2, justhodl-cross-asset-regime 2, justhodl-estimate-revisions 2, justhodl-insider-aggregate 2, justhodl-leading-markets 2, justhodl-nyfed-pd 2, justhodl-theme-rotation-engine 2, justhodl-backend-agent 2, justhodl-signal-genealogy 2, justhodl-tv-bars 2, justhodl-13f-book 1, justhodl-activist-filings-scanner 1, justhodl-apex-fusion 1, justhodl-bagger-engine 1, justhodl-capital-flow 1, justhodl-capitulation 1, justhodl-carry-surface 1, justhodl-catalyst-clusters 1, justhodl-causality-scanner 1, justhodl-chart-patterns 1, justhodl-credit-stress 1, justhodl-crypto-funding 1, justhodl-dark-pool 1, justhodl-divergence-interpreter 1, justhodl-earnings-blackout 1, justhodl-earnings-iv-crush 1, justhodl-earnings-pead 1, justhodl-earnings-quality 1, justhodl-ecb-derived 1, justhodl-eps-revision-velocity 1, justhodl-eurodollar-stress 1, justhodl-feed-catalog 1, justhodl-finviz-news 1, fmp-fundamentals-agent 1, justhodl-fmp-ratios 1, justhodl-forensic-screen 1
+- `05:15:29` of those, engines with errors in the last 3 days: ['justhodl-asia-leads', 'justhodl-bagger-engine', 'justhodl-causality-scanner', 'justhodl-chart-patterns', 'justhodl-dark-pool', 'justhodl-earnings-blackout', 'justhodl-earnings-pead', 'justhodl-ecb-derived', 'justhodl-eps-revision-velocity', 'justhodl-estimate-revisions', 'justhodl-feed-catalog', 'justhodl-fmp-ratios', 'justhodl-forensic-screen', 'justhodl-hiring-velocity', 'justhodl-insider-aggregate', 'justhodl-momentum-breakout', 'justhodl-momentum-leaders', 'justhodl-port-cargo', 'justhodl-positioning-analog', 'justhodl-predictability', 'justhodl-research-backtest', 'justhodl-revenue-acceleration', 'justhodl-sector-flow-state', 'justhodl-share-flows', 'justhodl-signal-genealogy', 'justhodl-stock-screener', 'justhodl-trade-nowcast', 'justhodl-volatility-squeeze-hunter']
+- `05:15:29` ✅ read-only; nothing changed
