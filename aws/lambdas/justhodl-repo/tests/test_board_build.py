@@ -78,7 +78,8 @@ FRED_OBS = {"SOFR": [(d, 5.25 if d == SPIKE else 3.91) for d in DAYS] + [((TODAY
             "IORB": [(DAYS[0], 3.90)], "IOER": [], "DFF": [(d, 3.88) for d in DAYS], "DFEDTARU": [(DAYS[0], 4.00)],
             "RPONTSYD": [(d, 40.85 if d == SPIKE else 0.0) for d in DAYS], "RPONMBSD": [(d, 11.7 if d == SPIKE else 0.0) for d in DAYS],
             "RRPONTSYD": [(d, 0.4) for d in DAYS], "WRESBAL": [((TODAY - timedelta(days=7 * k + 10)).isoformat(), 2979656.0) for k in range(8, -1, -1)],
-            "BOGZ1FL000Q": QUARTERS, "BOGZ1FL111Q": RECENT_QUARTERS}
+            "BOGZ1FL000Q": QUARTERS, "BOGZ1FL111Q": RECENT_QUARTERS,
+            "DTWEXBGS": [(d, 120.0 + i / 10.0) for i, d in enumerate(DAYS)]}
 
 
 class Answer(io.BytesIO):
@@ -157,7 +158,10 @@ def seeded():
         "data/settlement-fails.json": b"{}",
         "data/warm/dtcc-fails/treasury.json": fred_doc("DTCC-TREASURY-FAILS", [(d, 2.0e10) for d in DAYS[:40]]),
         "data/warm/fred-scoped/FRED_Repo_Complex/BOGZ1FL111Q.json": fred_doc("BOGZ1FL111Q", RECENT_QUARTERS),
-        "data/warm/fred-scoped/FRED_Repo_Complex/SOFR.json": fred_doc("SOFR", [(d, 5.25 if d == SPIKE else 3.91) for d in DAYS])}
+        "data/warm/fred-scoped/FRED_Repo_Complex/SOFR.json": fred_doc("SOFR", [(d, 5.25 if d == SPIKE else 3.91) for d in DAYS]),
+        # the dollar complex as it was found: banked once, ten weeks behind
+        "data/warm/fred-scoped/Dollar_TradeWeighted/DTWEXBGS.json": json.dumps({"id": "DTWEXBGS", "source": "FRED API via justhodl-repo", "banked_at": "x",
+            "observations": [{"date": d, "value": str(120.0 + i / 10.0), "realtime_start": "r"} for i, d in enumerate(DAYS[:30])]}).encode()}
     for m, rows in OFR.items():
         obj["data/warm/ofr/series/%s.json.gz" % m] = ofr_doc(m, rows)
     return obj
@@ -215,6 +219,13 @@ def test_the_board_build_end_to_end():
     assert rows["SOFR"]["last"] == (TODAY - timedelta(days=1)).isoformat() and rows["SOFR"]["last_value"] == 3.92
     assert rows["BOGZ1FL111Q"]["n_obs"] == 8                                                       # still on the board from the bank
 
+    # the dollar complex: banked ten weeks behind, brought up to the source, its older rows untouched
+    dollar = rows["DTWEXBGS"]
+    assert dollar["group"] == "Dollar (FRED trade-weighted)" and dollar["last"] == DAYS[-1] and dollar["n_obs"] == 80 and dollar["tier"] == 1
+    banked = json.loads(bucket.objects["data/warm/fred-scoped/Dollar_TradeWeighted/DTWEXBGS.json"])
+    assert len(banked["observations"]) == 80 and banked["observations"][0]["realtime_start"] == "r" and "refreshed_at" in banked and "asked_at" in banked
+    assert "DTWEXBGS" in asked
+
     # derived spreads, with the numbers of the spike day in their histories
     def hist(sid):
         h = json.loads(bucket.objects["data/repo-history/%s.json" % sid])
@@ -243,8 +254,12 @@ def test_the_board_build_end_to_end():
 
     # a second run on the same inputs writes no history file again
     before = len([k for k in bucket.puts if k.startswith("data/repo-history/")])
-    res2, board2 = build(bucket, Wire())
+    wire2 = Wire()
+    res2, board2 = build(bucket, wire2)
     assert board2["counts"]["history_written"] == 0 and board2["counts"]["history_unchanged"] == len(rows), board2["counts"]
+    asked2 = [dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(u).query))["series_id"] for u in wire2.calls if "/fred/series/observations" in u]
+    assert "BOGZ1FL000Q" in asked and "BOGZ1FL000Q" not in asked2, asked2       # asked a moment ago and still silent: not again for 30 days
+    assert "SOFR" not in asked2 and "DTWEXBGS" in asked2                         # yesterday's print is in: not asked; a daily series two days old is
     assert len([k for k in bucket.puts if k.startswith("data/repo-history/")]) == before
 
 

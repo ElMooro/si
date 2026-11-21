@@ -38,7 +38,7 @@ import boto3
 
 from history_writes import history_etags, put_history
 from repo_scope import (FUNDING_BUCKET, FUNDING_CORE, derived_series,
-                         dtcc_banked, ofr_extras, refresh_due)
+                         dtcc_banked, ofr_extras, refresh_due, stamp_day)
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 s3 = boto3.client("s3", region_name="us-east-1")
@@ -271,6 +271,49 @@ def lambda_handler(event, context):
                 dollar_miss.append({"id": fid,
                                      "reason": f"{type(ex).__name__}: "
                                                f"{str(ex)[:60]}"})
+        # v3.0 (2026-11-21): the dollar complex was banked once and never
+        # asked again -- its newest print was 2026-08-07 three months
+        # later.  Its tail is now refreshed by the series' own rhythm.
+        if ok and fred_key:
+            try:
+                _dd = sread(wkey)
+                _dp = extract_pairs(_dd)
+                if refresh_due(fid, _dp,
+                                datetime.now(timezone.utc).date(),
+                                stamp_day(_dd.get("asked_at")
+                                          or _dd.get("refreshed_at"))):
+                    _u = ("https://api.stlouisfed.org/fred/series/"
+                          f"observations?series_id={fid}"
+                          f"&api_key={fred_key}&file_type=json"
+                          "&observation_start="
+                          + (_dp[-1][0] if _dp else "1970-01-01"))
+                    with urllib.request.urlopen(urllib.request.Request(
+                            _u, headers={"User-Agent":
+                                          "JustHodl research"}),
+                            timeout=60) as _r:
+                        _new = json.loads(_r.read()).get(
+                            "observations") or []
+                    _by = {o.get("date"): o for o in
+                            (_dd.get("observations") or [])
+                            if isinstance(o, dict)}
+                    _n0 = len(_by)
+                    for _o in _new:
+                        if isinstance(_o, dict) and _num(
+                                _o.get("value")) is not None:
+                            _by[_o.get("date")] = _o
+                    # the ask is stamped even when nothing new came, so
+                    # a series that has ended is asked once a month
+                    _dd["asked_at"] = now
+                    if len(_by) > _n0:
+                        _dd["observations"] = [_by[k] for k in sorted(_by)]
+                        _dd["refreshed_at"] = now
+                    s3.put_object(Bucket=BUCKET, Key=wkey,
+                                   Body=json.dumps(
+                                       _dd, separators=(",", ":")
+                                   ).encode(),
+                                   ContentType="application/json")
+            except Exception as _dx:
+                print("[repo] dollar refresh", fid, type(_dx).__name__)
         if ok:
             scope.append({"mnemonic": fid,
                            "name": DOLLAR_TITLES.get(fid, f"FRED {fid}"),
@@ -506,7 +549,10 @@ def lambda_handler(event, context):
                 # only when its next print can exist; the old rule (older
                 # than 3 days) asked FRED about ~1,000 series every run
                 stale = refresh_due(fid, pairs,
-                                     datetime.now(timezone.utc).date())
+                                     datetime.now(timezone.utc).date(),
+                                     stamp_day(_d.get("banked_at")
+                                               if isinstance(_d, dict)
+                                               else None))
         except Exception:
             pass
         if stale and fred_key:

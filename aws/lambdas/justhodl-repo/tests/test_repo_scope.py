@@ -56,35 +56,56 @@ def test_refresh_due_asks_by_the_series_own_rhythm():
     assert rs.refresh_due("X", [], today) is True and rs.refresh_due("X", [("2026-01-01", 1.0)], today) is True
 
 
+def simulate(series_id, pairs, start, days_, asked=None):
+    """Run the rule day after day the way the engine does: an ask stamps the document."""
+    calls = []
+    for k in range(days_):
+        today = start + timedelta(days=k)
+        if rs.refresh_due(series_id, pairs, today, asked):
+            calls.append(today)
+            asked = today
+    return calls
+
+
 def test_slow_series_are_not_asked_before_their_next_print_can_exist_and_then_every_fourth_day():
     quarterly = [("%d-%02d-01" % (2024 + q // 4, 1 + 3 * (q % 4)), float(q)) for q in range(10)]       # last 2026-04-01
     assert rs.spacing_days(quarterly) in (90, 91, 92)
     assert rs.refresh_due("BOGZ1FL000Q", quarterly, date(2026, 7, 1)) is False          # 91 days after the last quarter: not out yet
-    window = [date(2026, 9, 1) + timedelta(days=i) for i in range(40)]                  # 153+ days: the release window
-    asked = [d for d in window if rs.refresh_due("BOGZ1FL000Q", quarterly, d)]
-    assert len(asked) == 10 and all((b - a).days == 4 for a, b in zip(asked, asked[1:])), asked
-    other = [d for d in window if rs.refresh_due("BOGZ1FL111Q", quarterly, d)]
-    assert len(other) == 10                                                              # each series on its own day of the four
+    asked = simulate("BOGZ1FL000Q", quarterly, date(2026, 8, 1), 80)                     # through the release window
+    assert asked[0] >= date(2026, 8, 15) and 12 <= len(asked) <= 18 and all((b - a).days == 4 for a, b in zip(asked, asked[1:])), asked
+    firsts = {simulate("BOGZ1FL%03dQ" % i, quarterly, date(2026, 8, 1), 80)[0] for i in range(40)}
+    assert len(firsts) >= 4                                                              # lines of one release start on different days
     annual = [("%d-01-01" % y, float(y)) for y in range(2015, 2026)]                     # last 2025-01-01
     assert rs.refresh_due("BOGZ1FA000A", annual, date(2026, 2, 1)) is False             # 396 days: not before a year plus 60 days
-    assert any(rs.refresh_due("BOGZ1FA000A", annual, date(2026, 3, 10) + timedelta(days=i)) for i in range(4))
-    ended = [("%d-01-01" % y, float(y)) for y in range(2008, 2020)]                      # stopped in 2019
-    year = [date(2026, 1, 1) + timedelta(days=i) for i in range(360)]
-    assert sum(1 for d in year if rs.refresh_due("DTWEXM_A", ended, d)) == 12           # once every thirty days
-    dead_daily = days("2019-11-01", 40)
-    assert sum(1 for d in year if rs.refresh_due("DTWEXM", dead_daily, d)) == 12
+    assert simulate("BOGZ1FA000A", annual, date(2026, 3, 1), 30)
+
+
+def test_a_silent_series_is_asked_at_once_when_never_asked_and_then_once_a_month():
+    """The dollar complex on 2026-11-21: daily series whose bank stopped on 2026-08-07.  Ended or frozen look the same
+    from the last observation; what tells them apart is whether anyone has asked."""
+    frozen = days("2026-06-29", 40)                                                      # last print 2026-08-07
+    assert frozen[-1][0] == "2026-08-07"
+    today = date(2026, 11, 22)
+    assert rs.refresh_due("DTWEXBGS", frozen, today) is True                             # never asked: now
+    assert rs.refresh_due("DTWEXBGS", frozen, today, asked=date(2026, 8, 7)) is True     # not asked for 107 days: now
+    assert rs.refresh_due("DTWEXBGS", frozen, today, asked=date(2026, 11, 21)) is False  # asked yesterday and still silent: it has ended
+    ended = [("%d-01-01" % y, float(y)) for y in range(2008, 2020)]                      # an annual line that stopped in 2019
+    assert len(simulate("DTWEXM_A", ended, date(2026, 1, 1), 360)) == 12                 # once every thirty days
+    assert len(simulate("DTWEXM", days("2019-11-01", 40), date(2026, 1, 1), 360)) == 12
+    assert rs.stamp_day("2026-11-21T06:10:17+00:00") == date(2026, 11, 21) and rs.stamp_day("x") is None and rs.stamp_day(None) is None
 
 
 def test_a_year_of_asking_is_a_fraction_of_asking_everything_every_day():
     """~1,000 series a day before; the mix the board really holds (ops 6892): 660 + 330 slow lines, about 25 daily."""
-    today0 = date(2026, 1, 1)
     quarterly = [("%d-%02d-01" % (2023 + q // 4, 1 + 3 * (q % 4)), 1.0) for q in range(12)]            # last 2025-10-01
     annual = [("%d-01-01" % y, 1.0) for y in range(2015, 2026)]
-    calls = 0
+    calls, worst_day = 0, {}
     for i in range(300):
-        series = quarterly if i % 2 else annual
-        calls += sum(1 for k in range(90) if rs.refresh_due("S%04d" % i, series, today0 + timedelta(days=k)))
+        for d in simulate("S%04d" % i, quarterly if i % 2 else annual, date(2026, 1, 1), 90):
+            calls += 1
+            worst_day[d] = worst_day.get(d, 0) + 1
     assert calls < 300 * 90 / 6, calls                 # under a sixth of asking daily, even inside a release window
+    assert max(worst_day.values()) <= 300 / 2, max(worst_day.values())      # and never the whole board on one day
 
 
 def test_derived_spreads_from_banked_components():

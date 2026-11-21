@@ -69,35 +69,46 @@ def spacing_days(pairs):
     return gaps[len(gaps) // 2] if gaps else None
 
 
-def refresh_due(series_id, pairs, today):
-    """Whether FRED should be asked for this series today.
+def refresh_due(series_id, pairs, today, asked=None):
+    """Whether FRED should be asked for this series today.  `asked` = the day it was last asked (the banked document's
+    own stamp), None when unknown.
 
     daily    as soon as yesterday's print can be out (the old rule waited until the bank was more than 3 days old)
     weekly   once the last observation is a week old
-    slower   only once the next observation can exist (a month / quarter / year plus the usual publication delay),
-             and then every fourth day, each series on its own day
-    ended    a series three periods overdue is asked once a month
+    slower   only once the next observation can exist (a month / quarter / year plus the usual publication delay, with
+             a few days of spread so lines of one release are not all asked on one day), then every fourth day
+    silent   a series far behind its own rhythm has either ended or sits in a bank that stopped asking: it is asked
+             at once if it was never asked, or not for 30 days, and then once every 30 days
     """
     if not pairs:
         return True
     gap = spacing_days(pairs)
-    age = (today - _day(pairs[-1][0])).days
     if gap is None:                       # one observation: its rhythm is unknown, ask
         return True
+    age = (today - _day(pairs[-1][0])).days
+    since = (today - asked).days if asked else None
+
+    def every(n):
+        return since is None or since >= n
+
     if gap <= 4:                          # daily
-        return age > 1 if age <= 45 else _own_day(series_id, today, 30)
+        return age > 1 if age <= 45 else every(30)
     if gap <= 10:                         # weekly
-        return age > 7 if age <= 60 else _own_day(series_id, today, 30)
-    wait = gap + (10 if gap <= 40 else 45 if gap <= 100 else 60)
+        return age > 7 if age <= 60 else every(30)
+    wait = gap + (10 if gap <= 40 else 45 if gap <= 100 else 60) + zlib.crc32(str(series_id).encode()) % 5
     if age <= wait:
         return False
     if age > 3 * gap + 90:
-        return _own_day(series_id, today, 30)
-    return _own_day(series_id, today, 4)
+        return every(30)
+    return every(4)
 
 
-def _own_day(series_id, today, every):
-    return (today.toordinal() + zlib.crc32(str(series_id).encode())) % every == 0
+def stamp_day(text):
+    """The day in a banked document's own time stamp ("2026-11-21T06:10:17+00:00"), or None."""
+    try:
+        return _day(str(text)[:10])
+    except Exception:  # noqa: BLE001 - an unreadable stamp means 'never asked'
+        return None
 
 
 def _first(pairs, *ids):
