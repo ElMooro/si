@@ -97,7 +97,7 @@
     + '.jts .jts-ft .l{text-align:left}.jts .jts-ft .jts-fi{width:1%;color:var(--jd);cursor:default}.jts .jts-ft td.up{color:var(--jg)}.jts .jts-ft td.down{color:var(--jr)}'
     + '.jts .jts-ft .jts-fk{position:sticky;left:0;font-weight:700}.jts .jts-ft td.jts-fk{z-index:1}.jts .jts-ft th.jts-fk{z-index:3}.jts .jts-ft td.jts-fk a{color:var(--ja);text-decoration:none}.jts .jts-ft td.jts-fk a:hover{text-decoration:underline}'
     + '.jts-fx{display:inline-block;max-width:176px;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}.jts-fmore{display:flex;justify-content:center;padding:9px}'
-    + '@media (max-width:700px){.jts .jts-find{width:100%}.jts-ftools{width:100%}.jts-fx{max-width:130px}.jts-fwrap{max-height:70vh}}'
+    + '@media (max-width:700px){.jts .jts-find{width:100%}.jts-ftools{width:100%}.jts-fx{max-width:130px}.jts-fwrap{max-height:70vh}.jts-fnav{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin}.jts-fnav .jts-btn{flex:none}}'
     + '@media print{html.jts-print .jts-fwrap{max-height:none;overflow:visible}html.jts-print .jts-ftools,html.jts-print .jts-fnav,html.jts-print .jts-go{display:none!important}}'
     /* end of the full-list view */
     + '@media print{html.jts-print body *{visibility:hidden!important}html.jts-print .jts,html.jts-print .jts *{visibility:visible!important}html.jts-print .jts{position:absolute;left:0;top:0;width:100%;max-width:none;margin:0;padding:0}html.jts-print .jts-act,html.jts-print .jts-ctl{display:none}}';
@@ -204,7 +204,8 @@
     var body = rows.slice(0, cap).map(function (r, i) {
       return '<tr><td class="jts-fi">' + (i + 1) + '</td>' + cols.map(function (c, j) {
         var txt = esc(c.fmt ? c.fmt(r) : c.get(r)), t = c.tone ? c.tone(r) : '', inner = txt;
-        if (j === 0 && f.href) inner = '<a href="' + esc(f.href(r)) + '">' + txt + '</a>';
+        var to = j === 0 && f.href ? f.href(r) : '';
+        if (to) inner = '<a href="' + esc(to) + '" target="_top">' + txt + '</a>';
         else if (j === 0 && f.pick) inner = '<button type="button" class="jts-lnk" data-jts-pick="' + i + '" title="' + esc(f.pickTip || 'Show these names') + '">' + txt + '</button>';
         else if (c.type === 's') inner = '<span class="jts-fx" title="' + txt + '">' + txt + '</span>';
         return '<td class="' + (c.type === 's' ? 'l' : '') + (j === 0 ? ' jts-fk' : '') + (t ? ' ' + t : '') + '">' + inner + '</td>';
@@ -228,6 +229,70 @@
   }
   function openAttr(key) { return ' data-jts-open="' + esc(key) + '" role="button" tabindex="0" title="Open the whole list: rank it by any column, either way"'; }
 
+  /* -- every list opens in full (kit 1.7.0) --
+     Khalid 2026-11-20: "now do the same with Volatility - most and least volatile stocks, price spread - and all the
+     other engines that aren't showing the whole list."
+
+     An adapter writes a card's rows as FL(list, row, S, k, d): list.map(row) for the card, and the whole list for the
+     full view - S is a sheet() of typed columns over the adapter's own records (tx text, nx number), k / d the column
+     and direction the list already stands in. hidden() is a list with no card (a ring's whole, a ring slice's members).
+     finish() runs on every model an adapter builds: it moves each list's whole onto the list as `full`, and a list
+     written without columns still opens, on the four things every card row carries (name, detail, figure, note) with
+     the figure ranked by its value. Nothing here adds a row the feed does not carry. */
+  function getter(g) { return typeof g === 'function' ? g : function (r) { return r == null ? null : r[g]; }; }
+  function tx(id, t, g, o) { return Object.assign({ id: id, t: t, type: 's', get: getter(g) }, o || {}); }
+  function nx(id, t, g, f, o) {
+    var get = getter(g), c = Object.assign({ id: id, t: t, type: 'n', get: get, fmt: function (r) { var v = get(r); return fin(v) ? f(v) : D; } }, o || {});
+    if (c.tone === true) c.tone = function (r) { return tone(get(r)); };
+    return c;
+  }
+  function fP(dp, signed) { return function (v) { return pct(+v.toFixed(dp == null ? 1 : dp) || 0, dp, signed); }; }   /* a move that rounds to nothing carries no sign */
+  function fN(dp) { return function (v) { return num(v, dp); }; }
+  function fS(dp, unit) { return function (v) { var z = +v.toFixed(dp == null ? 1 : dp) || 0; return sign(z, true) + Math.abs(z).toFixed(dp == null ? 1 : dp) + (unit || ''); }; }
+  function fNs(dp) { return function (v) { return sign(v, true) + num(Math.abs(v), dp); }; }
+  var fM = function (v) { return money(v); }, fMs = function (v) { return money(v, true); }, fX = function (v) { return v.toFixed(1) + '\u00d7'; }, fPx = function (v) { return num(v, Math.abs(v) < 10 ? 3 : 2); };
+  var chartOf = function (t) { return t ? '/chart.html?s=' + encodeURIComponent(t) : ''; };
+  function sheet(cols, units, o) { return Object.assign({ cols: cols, units: units }, o || {}); }
+  function wholeOf(list, S, k, d, o) { return Object.assign({}, S, { rows: list, sort: k ? { k: k, d: d || -1 } : null }, o || {}); }
+  function FL(list, row, S, k, d, o) {
+    var out = list.map(row);
+    Object.defineProperty(out, 'full', { value: wholeOf((o && o.rows) || list, S, k, d, o) });
+    return out;
+  }
+  /* a copy of the list ranked by a figure, blanks last, ties in the list's own order */
+  function sorted(list, f, desc) {
+    return list.map(function (r, i) { var v = f(r); return { r: r, i: i, v: fin(v) ? v : null }; }).sort(function (a, b) {
+      if (a.v === null || b.v === null) return a.v === null && b.v === null ? a.i - b.i : a.v === null ? 1 : -1;
+      return (desc ? b.v - a.v : a.v - b.v) || a.i - b.i;
+    }).map(function (x) { return x.r; });
+  }
+  function hidden(key, title, hint, list, S, k, d, o) { return { key: key, title: title, hint: hint, card: false, rows: [], full: wholeOf(list, S, k, d, o) }; }
+  /* the value of a figure as a card prints it: $1.2B, \u22123.4%, 2.1\u00d7, +3.4 pts, 1,234 */
+  function figure(s) {
+    var m = /^([+\u2212-]?)\s*\$?\s*(\d+(?:\.\d+)?)\s*([KMBT]?)\s*(%|\u00d7|x|pts|pp|bp)?\+?$/.exec(String(s == null ? '' : s).replace(/,/g, '').trim());
+    if (!m) return null;
+    var v = parseFloat(m[2]) * ({ K: 1e3, M: 1e6, B: 1e9, T: 1e12 }[m[3]] || 1);
+    return m[1] === '\u2212' || m[1] === '-' ? -v : v;
+  }
+  function autoFull(l) {
+    var rows = l.rows || [], has = function (k) { return rows.some(function (x) { return !fullBlank(x[k]) && x[k] !== D; }); }, H = l.heads || [];
+    var said = rows.filter(function (x) { return !fullBlank(x.big) && x.big !== D; }), numeric = said.length > 0 && said.every(function (x) { return figure(x.big) !== null; });
+    var cols = [tx('name', H[0] || 'Name', 'name')];
+    if (has('sub')) cols.push(tx('sub', H[1] || 'Detail', 'sub'));
+    if (said.length) cols.push(numeric ? { id: 'big', t: H[2] || 'Figure', type: 'n', get: function (x) { return figure(x.big); }, fmt: function (x) { return x.big; }, tone: function (x) { return x.tone || ''; }, csv: function (x) { return x.big; } }
+      : tx('big', H[2] || 'Figure', 'big', { tone: function (x) { return x.tone || ''; } }));
+    if (has('small')) cols.push(tx('small', H[3] || 'Note', 'small'));
+    return { cols: cols, rows: rows, sort: null, units: l.units || ['row', 'rows'] };
+  }
+  function finish(m) {
+    if (!m || m.hide) return m;
+    fullLists(m).forEach(function (l) {
+      if (!l.full && l.rows && l.rows.full) l.full = l.rows.full;
+      if (!l.full && (l.rows || []).length) l.full = autoFull(l);
+    });
+    return m;
+  }
+
   function render(el, m) {
     style();
     el.__model = m;
@@ -236,9 +301,9 @@
     var open = el.__open || null, ol = open ? lists.filter(function (l) { return l.key === open.key && l.full; })[0] : null;
     if (open && !ol) el.__open = open = null;                                         /* this scope has no such list: back to the sheet */
     function col(l) {
-      var rows = l.rows || [], shown = rows.slice(0, limit), rest = rows.slice(limit), can = !!l.full, all = can ? (l.full.rows || []).length : 0;
+      var rows = l.rows || [], shown = rows.slice(0, limit), rest = rows.slice(limit), can = !!l.full, all = can ? (l.full.rows || []).length : 0, count = l.n != null ? esc(l.n) : can ? all : rows.length;
       return '<div class="jts-col ' + (l.tone || '') + '" data-jts-list="' + esc(l.key || '') + '"><div class="jts-ch"' + (can ? openAttr(l.key) : '') + '><span><b>' + esc(l.title) + '</b> <i>' + esc(l.hint || '') + '</i></span>'
-        + (can ? '<span class="jts-chr"><span class="jts-n">' + (l.n == null ? rows.length : esc(l.n)) + '</span><span class="jts-go">VIEW ALL \u203a</span></span>' : '<span class="jts-n">' + (l.n == null ? rows.length : esc(l.n)) + '</span>') + '</div>'
+        + (can ? '<span class="jts-chr"><span class="jts-n">' + count + '</span><span class="jts-go">VIEW ALL \u203a</span></span>' : '<span class="jts-n">' + count + '</span>') + '</div>'
         + (shown.length ? '<table class="jts-t"><tbody>' + shown.map(function (x) {
           return '<tr><td><b class="jts-nm">' + esc(x.name) + '</b><span class="jts-s">' + esc(x.sub || '') + '</span></td><td class="n"><span class="jts-big ' + (x.tone || '') + '">' + esc(x.big == null ? '' : x.big) + '</span><span class="jts-s">' + esc(x.small || '') + '</span></td></tr>';
         }).join('') + '</tbody></table>' : '<p class="jts-none">' + esc(l.none || 'none') + '</p>')
@@ -264,6 +329,9 @@
         + ((m.notes || []).length ? '<div class="jts-notes">' + m.notes.map(function (n) { return '<p><b>' + esc(n[0]) + '</b> ' + esc(n[1]) + '</p>'; }).join('') + '</div>' : '')
         + '<div class="jts-cols">' + (m.ring ? ring(m.ring) : '') + cards.map(col).join('') + '</div>')
       + '<p class="jts-foot">' + esc(m.foot || '') + '</p></div>';
+    /* a phone keeps the lists' buttons on one row that slides: the open one stands at its start */
+    var nav = ol ? el.querySelector('.jts-fnav') : null, on = nav ? nav.querySelector('[aria-pressed="true"]') : null;
+    if (on && nav.scrollWidth > nav.clientWidth) nav.scrollLeft = Math.max(0, on.offsetLeft - nav.offsetLeft - 9);
     if (scroll) { var now = el.querySelector('.jts-fwrap'); if (now) { now.scrollTop = scroll[0]; now.scrollLeft = scroll[1]; } }
     if (caret) { var box = el.querySelector('[data-jts-find]'); if (box) { box.focus(); try { box.setSelectionRange(caret[0], caret[1]); } catch (e) { /* a search box may refuse a range */ } } }
     el.dataset.state = 'ready';
@@ -318,6 +386,19 @@
         var v = x.current_value != null ? x.current_value : x.market_value != null ? x.market_value : x.prev_value, sh = x.current_shares != null ? x.current_shares : x.shares != null ? x.shares : x.prev_shares;
         return { name: label(x), sub: (x.fund || '') + (x.weight != null ? DOT + pct(x.weight, 2) + ' of the fund' : kind === 'down' ? DOT + 'held before' : ''), big: money(v), tone: kind, small: num(sh) + ' sh' };
       };
+      /* the full view's columns: a line of a fund, a move in one, a position */
+      var valOf = function (x) { return x.current_value != null ? x.current_value : x.market_value != null ? x.market_value : x.prev_value; }, shOf = function (x) { return x.current_shares != null ? x.current_shares : x.shares != null ? x.shares : x.prev_shares; };
+      var LINE = sheet([tx('t', 'Ticker', 'ticker', { find: 'start' }), tx('co', 'Company', 'company'), tx('fund', 'Fund', 'fund'), nx('val', 'Value', valOf, fM), nx('sh', 'Shares', shOf, fN(0)), nx('w', '% of the fund', 'weight', fP(2))],
+        ['line', 'lines'], { href: function (x) { return chartOf(x.ticker); }, find: 'Find a ticker, company or fund' });
+      var MOVE = function (s) {
+        return sheet([tx('t', 'Ticker', function (r) { return r.x.ticker; }, { find: 'start' }), tx('co', 'Company', function (r) { return r.x.company; }), tx('fund', 'Fund', function (r) { return r.x.fund; }),
+          nx('usd', 'Dollars moved', function (r) { return s * r.usd; }, fMs, { tone: true, tip: 'shares added or sold x the position\u2019s reported price that day' }),
+          nx('dsh', 'Shares moved', function (r) { var v = s > 0 ? r.x.shares_added : r.x.shares_sold; return fin(v) ? s * v : null; }, fNs(0), { tone: true }), nx('chg', 'Change in shares', function (r) { return r.x.pct_change; }, fP(1, true), { tone: true }),
+          nx('sh', 'Shares now', function (r) { return r.x.current_shares; }, fN(0)), nx('val', 'Value now', function (r) { return r.x.current_value; }, fM), nx('w', '% of the fund', function (r) { return r.x.weight; }, fP(2))],
+          ['line', 'lines'], { href: function (r) { return chartOf(r.x.ticker); }, find: 'Find a ticker, company or fund', phone: ['t', 'usd', 'chg', 'fund', 'w', 'co'] });
+      };
+      var POSN = sheet([tx('t', 'Ticker', 'ticker', { find: 'start' }), tx('co', 'Company', 'company'), nx('val', 'Value', 'value', fM), nx('w', '% of the value', 'w', fP(2)), nx('nf', 'Funds', function (p) { return p.funds.length; }, fN(0)), tx('in', 'Held in', function (p) { return p.funds.join(', '); })],
+        ['position', 'positions'], { href: function (p) { return chartOf(p.ticker); }, find: 'Find a ticker, company or fund' });
       var counts = n.adds + ' added to, ' + n.trims + ' cut, ' + n.opened + ' opened, ' + n.closed + ' closed since ' + since;
       return {
         eyebrow: 'ARK tearsheet' + DOT + (held && base ? 'holdings ' + held + ' vs ' + base : 'snapshot ' + now + ' vs ' + prev), title: who + ': ' + money(total) + ' across ' + pos.length + ' positions' + DOT + (scoped ? counts : listed + ' of the day\u2019s largest moves are in this fund'),
@@ -332,16 +413,17 @@
           stale.length ? ['Stale at the source:', stale.map(function (f) { return f + '\u2019s holdings are dated ' + fundDate(f); }).join('; ') + ', not ' + held + ': the source has not updated ' + (stale.length > 1 ? 'them' : 'it') + ', so ' + (stale.length > 1 ? 'their' : 'its') + ' lines cannot show a change.']
             : ['Held by the most funds:', multi ? label(multi) + ' sits in ' + multi.funds.length + ' funds (' + multi.funds.join(', ') + ').' : 'no ticker is held by more than one fund in this view.'],
           ['Caveat:', 'a share count that rises on every line of a fund on the same day is usually new money entering the fund (creation units), not a fresh call on each name; the percentage beside each move is the change in shares.']],
-        ring: { title: 'Current positions', hint: 'top 6 of ' + pos.length, n: pos.length, center: money(total), subs: ['REPORTED VALUE', 'TOP 10 = ' + pct(top10, 0)], whole: 'the value', aria: 'Positions by reported value: ' + top6.map(function (p) { return p.ticker + ' ' + pct(p.w, 0); }).join(', '),
+        ring: { open: 'positions', title: 'Current positions', hint: 'top 6 of ' + pos.length, n: pos.length, center: money(total), subs: ['REPORTED VALUE', 'TOP 10 = ' + pct(top10, 0)], whole: 'the value', aria: 'Positions by reported value: ' + top6.map(function (p) { return p.ticker + ' ' + pct(p.w, 0); }).join(', '),
           slices: top6.map(function (p) { return { name: label(p), label: p.ticker, value: p.value, tone: 'pos', big: pct(p.w), small: money(p.value) + (p.funds.length > 1 ? DOT + p.funds.length + ' funds' : '') }; })
             .concat(restV > 0 ? [{ name: (pos.length - 6) + ' other positions', label: 'other', value: restV, tone: 'oth', big: pct(restV / total * 100), small: money(restV) }] : []),
           caption: 'Slices are shares of the reported value' + (fund === 'ALL' ? ' of all funds together' : ' of ' + fund) + '.' },
-        lists: [{ key: 'new', title: 'Initiations', hint: 'new lines', tone: 'up', n: scoped ? n.opened : opened.length, rows: opened.map(function (x) { return plain(x, 'up'); }), none: 'no position opened since ' + since },
-          { key: 'adds', title: 'Increases', hint: 'largest by dollars', tone: 'up', n: scoped ? n.adds : adds.length, rows: adds.map(function (r) { return moveRow(r, 'up'); }), none: (complete ? 'no line added to in ' : 'none listed for ') + (fund === 'ALL' ? 'any fund' : fund),
+        lists: [{ key: 'new', title: 'Initiations', hint: 'new lines', tone: 'up', n: scoped ? n.opened : opened.length, rows: FL(opened, function (x) { return plain(x, 'up'); }, LINE, 'val', -1), none: 'no position opened since ' + since },
+          { key: 'adds', title: 'Increases', hint: 'largest by dollars', tone: 'up', n: scoped ? n.adds : adds.length, rows: FL(adds, function (r) { return moveRow(r, 'up'); }, MOVE(1), 'usd', -1), none: (complete ? 'no line added to in ' : 'none listed for ') + (fund === 'ALL' ? 'any fund' : fund),
             note: !complete && fund === 'ALL' && (diff.n_position_adds || 0) > adds.length ? 'The feed lists the ' + adds.length + ' largest of ' + diff.n_position_adds + ' additions (largest by percent).' : '' },
-          { key: 'trims', title: 'Reductions', hint: 'largest by dollars', tone: 'down', n: scoped ? n.trims : trims.length, rows: trims.map(function (r) { return moveRow(r, 'down'); }), none: (complete ? 'no line cut in ' : 'none listed for ') + (fund === 'ALL' ? 'any fund' : fund),
+          { key: 'trims', title: 'Reductions', hint: 'largest by dollars', tone: 'down', n: scoped ? n.trims : trims.length, rows: FL(trims, function (r) { return moveRow(r, 'down'); }, MOVE(-1), 'usd', 1), none: (complete ? 'no line cut in ' : 'none listed for ') + (fund === 'ALL' ? 'any fund' : fund),
             note: !complete && fund === 'ALL' && (diff.n_position_trims || 0) > trims.length ? 'The feed lists the ' + trims.length + ' largest of ' + diff.n_position_trims + ' cuts (largest by percent).' : '' },
-          { key: 'closed', title: 'Terminations', hint: 'lines gone', tone: 'down', n: scoped ? n.closed : closed.length, rows: closed.map(function (x) { return plain(x, 'down'); }), none: 'no position closed since ' + since }],
+          { key: 'closed', title: 'Terminations', hint: 'lines gone', tone: 'down', n: scoped ? n.closed : closed.length, rows: FL(closed, function (x) { return plain(x, 'down'); }, LINE, 'val', -1), none: 'no position closed since ' + since }],
+        more: [hidden('positions', 'Current positions', fund === 'ALL' ? 'all funds, one row a ticker' : 'every line of ' + fund, pos, POSN, 'val', -1)],
         foot: 'Source: ARK Invest daily fund holdings via arkfunds.io' + (held && base ? ', holdings dated ' + held + ' against ' + base : '') + ' (snapshot ' + now + ' against ' + prev + '). Dollar size of a move = shares added or sold x the position\u2019s reported price that day. Percent changes are changes in share count; a line counts as changed when its shares move 1% or more. '
           + (complete ? 'Every such line is listed.' : 'The feed publishes the 15 largest additions and cuts by percent.') + ' ARK ETFs are actively managed; a daily file shows holdings, not intent.'
       };
@@ -362,6 +444,13 @@
         return { tone: kind, big: money(c.delta_30d, true), eyebrow: 'Most notable ' + (kind === 'up' ? 'minting' : 'redemption') + DOT + '30 days', title: nm(c),
           text: 'Supply went from ' + money(c.prev_month) + ' to ' + money(c.circulating_usd) + ' (' + pct(c.delta_30d_pct, 1, true) + '); ' + money(c.delta_7d, true) + ' of it in the last 7 days and ' + money(c.delta_24h, true) + ' in the last 24 hours.' };
       };
+      /* the whole of the minting and redeeming lists: every coin the feed carries, by its 30-day change */
+      var known = [], seenC = {};
+      coins.concat(minters, burners).forEach(function (c) { if (c && !seenC[c.symbol]) { seenC[c.symbol] = 1; known.push(c); } });
+      var d30 = function (c) { return c.delta_30d || 0; }, grew = known.filter(function (c) { return c.delta_30d > 0; }).sort(by(d30, true)), shrank = known.filter(function (c) { return c.delta_30d < 0; }).sort(by(d30));
+      var COIN = sheet([tx('t', 'Symbol', 'symbol', { find: 'start' }), tx('name', 'Coin', 'name'), nx('sup', 'Supply', 'circulating_usd', fM), nx('w', '% of supply', w, fP(1)), nx('d1', '24 hours', 'delta_24h', fMs, { tone: true }), nx('d7', '7 days', 'delta_7d', fMs, { tone: true }),
+        nx('d30', '30 days', 'delta_30d', fMs, { tone: true }), nx('p30', '30 days, %', 'delta_30d_pct', fP(1, true), { tone: true }), tx('mech', 'Backing', 'mechanism')], ['coin', 'coins'], { find: 'Find a coin', phone: ['t', 'd30', 'p30', 'sup', 'name'] });
+      var CHAIN = sheet([tx('name', 'Chain', 'chain'), nx('sup', 'Supply', 'circulating_usd', fM), nx('w', '% of supply', function (c) { return total ? c.circulating_usd / total * 100 : null; }, fP(1))], ['chain', 'chains']);
       var chains = (a.top_chains || []).slice(0, 10);
       return {
         eyebrow: 'Stablecoin tearsheet' + DOT + day(d.as_of) + ' vs 30 days ago', title: 'Stablecoins: ' + money(total) + ' outstanding, ' + money(a.delta_30d_usd, true) + ' in 30 days (' + pct(a.delta_30d_pct, 1, true) + ')' + DOT + 'state ' + (d.state || D),
@@ -373,13 +462,13 @@
         notes: [['Regime:', (d.state_description || d.state || D) + (fin(d.signal_strength) ? ' Signal strength ' + d.signal_strength + '/100.' : '')],
           ['Where it lives:', chains.slice(0, 3).map(function (c) { return c.chain + ' ' + money(c.circulating_usd) + ' (' + pct(total ? c.circulating_usd / total * 100 : 0, 0) + ')'; }).join(', ') + '.'],
           ['Caveat:', 'supply is what issuers have minted, not what is being spent; a coin can shrink because holders redeem for dollars or because it moves to another issuer.']],
-        ring: { title: 'Supply by coin', hint: 'top 6 of ' + num(a.n_stablecoins), n: a.n_stablecoins, center: money(total), subs: ['OUTSTANDING', '30D ' + pct(a.delta_30d_pct, 1, true)], whole: 'supply', aria: 'Stablecoin supply by coin',
+        ring: { open: 'coins', title: 'Supply by coin', hint: 'top 6 of ' + num(a.n_stablecoins), n: a.n_stablecoins, center: money(total), subs: ['OUTSTANDING', '30D ' + pct(a.delta_30d_pct, 1, true)], whole: 'supply', aria: 'Stablecoin supply by coin',
           slices: top6.map(function (c) { return { name: nm(c), label: c.symbol, value: c.circulating_usd, tone: 'pos', big: pct(w(c)), small: money(c.circulating_usd) + DOT + '30d ' + pct(c.delta_30d_pct, 1, true) }; })
             .concat(restV > 0 ? [{ name: ((a.n_stablecoins || coins.length) - 6) + ' other coins', label: 'other', value: restV, tone: 'oth', big: pct(restV / total * 100), small: money(restV) }] : []),
           caption: 'Slices are shares of all USD-pegged supply.' },
-        lists: [{ key: 'mint', title: 'Minting', hint: 'largest 30-day growth', tone: 'up', rows: minters.map(row) }, { key: 'burn', title: 'Redeeming', hint: 'largest 30-day shrink', tone: 'down', rows: burners.map(row) },
-          { key: 'coins', title: 'Largest coins', hint: 'supply and 30-day change', rows: coins.map(function (c) { return { name: nm(c), sub: pct(w(c)) + ' of supply' + DOT + '7d ' + money(c.delta_7d, true), big: money(c.circulating_usd), small: '30d ' + pct(c.delta_30d_pct, 1, true) }; }) },
-          { key: 'chains', title: 'By chain', hint: 'where the supply sits', rows: chains.map(function (c) { return { name: c.chain, sub: '', big: money(c.circulating_usd), small: pct(total ? c.circulating_usd / total * 100 : 0) + ' of supply' }; }) }],
+        lists: [{ key: 'mint', title: 'Minting', hint: 'largest 30-day growth', tone: 'up', rows: FL(minters, row, COIN, 'd30', -1, { rows: grew })}, { key: 'burn', title: 'Redeeming', hint: 'largest 30-day shrink', tone: 'down', rows: FL(burners, row, COIN, 'd30', 1, { rows: shrank })},
+          { key: 'coins', title: 'Largest coins', hint: 'supply and 30-day change', rows: FL(coins, function (c) { return { name: nm(c), sub: pct(w(c)) + ' of supply' + DOT + '7d ' + money(c.delta_7d, true), big: money(c.circulating_usd), small: '30d ' + pct(c.delta_30d_pct, 1, true) }; }, COIN, 'sup', -1)},
+          { key: 'chains', title: 'By chain', hint: 'where the supply sits', rows: FL(chains, function (c) { return { name: c.chain, sub: '', big: money(c.circulating_usd), small: pct(total ? c.circulating_usd / total * 100 : 0) + ' of supply' }; }, CHAIN, null, 0, { rows: a.top_chains || [] })}],
         foot: 'Source: DefiLlama stablecoin supply, as of ' + day(d.as_of) + '. Changes are supply now against supply 24 hours, 7 days and 30 days ago. Minting and redeeming lists are the feed\u2019s own largest movers over 30 days.'
       };
     }
@@ -396,6 +485,12 @@
       var row = function (p) { return { name: nm(p), sub: (p.sector && p.sector !== 'Unknown' ? p.sector : 'sector not mapped') + DOT + (p.n_desks || 1) + (p.n_desks > 1 ? ' desks' : ' desk') + (p.price ? DOT + '$' + num(p.price, 2) : ''), big: pct(p.net_pct, 2, true), tone: tone(p.net_pct), small: 'of capital' }; };
       var desks = Object.keys(d.desk_contributions || {}).map(function (k) { return d.desk_contributions[k]; }).sort(by(function (x) { return x.gross_contributed_pct || 0; }, true));
       var sectors = (d.sector_exposure || []).slice().sort(by(function (s) { return s.gross_pct || 0; }, true));
+      var POSN = sheet([tx('t', 'Symbol', 'symbol', { find: 'start' }), tx('name', 'Name', 'name'), tx('sec', 'Sector', function (p) { return p.sector && p.sector !== 'Unknown' ? p.sector : 'Sector not mapped'; }), tx('side', 'Side', function (p) { return p.net_pct > 0 ? 'Long' : p.net_pct < 0 ? 'Short' : 'Flat'; }),
+        nx('net', 'Net % of capital', 'net_pct', fP(2, true), { tone: true }), nx('gross', 'Gross % of capital', g, fP(2)), nx('nd', 'Desks', function (p) { return p.n_desks || 1; }, fN(0)), tx('by', 'Held by', function (p) { return Object.keys(p.desks || {}).join(', '); }), nx('px', 'Price', 'price', fN(2))],
+        ['position', 'positions'], { href: function (p) { return chartOf(p.symbol); }, find: 'Find a symbol, name, sector or desk', phone: ['t', 'net', 'side', 'sec', 'nd', 'name'] });
+      var SECT = sheet([tx('name', 'Sector', function (s) { return s.sector === 'Unknown' ? 'Sector not mapped' : s.sector; }), nx('n', 'Names', 'n', fN(0)), nx('gross', 'Gross % of capital', 'gross_pct', fP(2)), nx('net', 'Net % of capital', 'net_pct', fP(2, true), { tone: true })], ['sector', 'sectors']);
+      var DESK = sheet([tx('name', 'Desk', 'name'), tx('status', 'Status', 'status'), tx('sleeve', 'Sleeve', 'sleeve'), nx('n', 'Positions', function (x) { return x.n_positions || 0; }, fN(0)), nx('budget', 'Budget, % of capital', 'capital_pct', fP(1)),
+        nx('gross', 'Gross in the book', function (x) { return x.gross_contributed_pct || 0; }, fP(1))], ['desk', 'desks']);
       var bl = longs[0], bs = shorts[0];
       return {
         eyebrow: 'Firm book tearsheet' + DOT + day(d.generated_at), title: 'Firm book: ' + pct(f.gross_exposure_pct, 1) + ' gross, ' + pct(f.net_exposure_pct, 1, true) + ' net' + DOT + num(f.n_longs) + ' longs against ' + num(f.n_shorts) + ' shorts',
@@ -407,11 +502,12 @@
           bl ? { tone: 'up', big: pct(bl.net_pct, 2, true), eyebrow: 'Largest long', title: nm(bl), text: 'The biggest single long in the book: ' + pct(bl.net_pct, 2) + ' of capital' + (bl.sector ? ', ' + bl.sector : '') + ', carried by ' + (bl.n_desks || 1) + (bl.n_desks > 1 ? ' desks.' : ' desk.') } : null].filter(Boolean),
         notes: [['The book in one line:', d.headline || D], ['Desks firing:', (desks.filter(function (x) { return x.n_positions; }).map(function (x) { return x.name + ' ' + pct(x.gross_contributed_pct, 1) + ' (' + x.n_positions + ')'; }).join(', ') || 'none') + '.'],
           ['Overlaps and conflicts:', (d.conviction_overlap || []).length + ' names held by more than one desk on the same side, ' + (d.desk_conflicts || []).length + ' where desks disagree.']],
-        ring: { title: 'Gross exposure', hint: 'long solid, short hatched', n: book.length, center: pct(stated, 1), subs: ['OF CAPITAL, GROSS', 'LONG ' + pct(gross ? lt / gross * 100 : 0, 0) + DOT + 'SHORT ' + pct(gross ? stt / gross * 100 : 0, 0)], whole: 'gross', aria: 'Gross exposure by position, longs and shorts',
+        ring: { open: 'book', title: 'Gross exposure', hint: 'long solid, short hatched', n: book.length, center: pct(stated, 1), subs: ['OF CAPITAL, GROSS', 'LONG ' + pct(gross ? lt / gross * 100 : 0, 0) + DOT + 'SHORT ' + pct(gross ? stt / gross * 100 : 0, 0)], whole: 'gross', aria: 'Gross exposure by position, longs and shorts',
           slices: side(longs, 'up').concat(side(shorts, 'down')), caption: 'Solid = long, hatched = short. Each slice is a share of gross exposure (' + pct(stated, 1) + ' of capital).' },
-        lists: [{ key: 'longs', title: 'Largest longs', hint: 'net % of capital', tone: 'up', n: longs.length, rows: longs.map(row) }, { key: 'shorts', title: 'Largest shorts', hint: 'net % of capital', tone: 'down', n: shorts.length, rows: shorts.map(row) },
-          { key: 'sectors', title: 'By sector', hint: 'gross and net', rows: sectors.map(function (s) { return { name: s.sector === 'Unknown' ? 'Sector not mapped' : s.sector, sub: s.n + ' names' + DOT + 'net ' + pct(s.net_pct, 2, true), big: pct(s.gross_pct, 2), small: 'gross' }; }) },
-          { key: 'desks', title: 'By desk', hint: 'capital and status', rows: desks.map(function (x) { return { name: x.name, sub: (x.status || '') + DOT + (x.n_positions || 0) + ' positions' + DOT + 'budget ' + pct(x.capital_pct, 1), big: pct(x.gross_contributed_pct, 1), small: 'gross in the book' }; }) }],
+        lists: [{ key: 'longs', title: 'Largest longs', hint: 'net % of capital', tone: 'up', n: longs.length, rows: FL(longs, row, POSN, 'net', -1)}, { key: 'shorts', title: 'Largest shorts', hint: 'net % of capital', tone: 'down', n: shorts.length, rows: FL(shorts, row, POSN, 'net', 1)},
+          { key: 'sectors', title: 'By sector', hint: 'gross and net', rows: FL(sectors, function (s) { return { name: s.sector === 'Unknown' ? 'Sector not mapped' : s.sector, sub: s.n + ' names' + DOT + 'net ' + pct(s.net_pct, 2, true), big: pct(s.gross_pct, 2), small: 'gross' }; }, SECT, 'gross', -1)},
+          { key: 'desks', title: 'By desk', hint: 'capital and status', rows: FL(desks, function (x) { return { name: x.name, sub: (x.status || '') + DOT + (x.n_positions || 0) + ' positions' + DOT + 'budget ' + pct(x.capital_pct, 1), big: pct(x.gross_contributed_pct, 1), small: 'gross in the book' }; }, DESK, 'gross', -1)}],
+        more: [hidden('book', 'The whole book', 'every position, largest gross first', book.slice().sort(by(g, true)), POSN, 'gross', -1)],
         foot: 'Source: justhodl-firm-book, ' + day(d.generated_at) + '. Sizes are percent of firm capital after netting every desk. ' + (d.disclaimer ? String(d.disclaimer).slice(0, 220) : '')
       };
     }
@@ -424,6 +520,10 @@
       var at = trades.filter(function (t) { return t.date === last; }), buys = at.filter(function (t) { return /buy/i.test(t.side); }).sort(by(function (t) { return t.notional || 0; }, true)), sells = at.filter(function (t) { return /sell/i.test(t.side); }).sort(by(function (t) { return t.notional || 0; }, true));
       var earlier = trades.filter(function (t) { return t.date !== last; }), nav = d.nav, held = {};
       pos.forEach(function (p) { held[p.ticker] = 1; });
+      var isBuy = function (t) { return /buy/i.test(t.side); };
+      var TRADE = sheet([tx('t', 'Ticker', 'ticker', { find: 'start' }), tx('date', 'Date', 'date'), tx('side', 'Side', function (t) { return isBuy(t) ? 'Bought' : 'Sold'; }), nx('usd', 'Notional', function (t) { return fin(t.notional) ? (isBuy(t) ? 1 : -1) * t.notional : null; }, fMs, { tone: true }),
+        nx('px', 'Price', 'px', fN(2)), nx('slip', 'Slippage, $', 'slippage', fN(2))], ['trade', 'trades'], { href: function (t) { return chartOf(t.ticker); }, find: 'Find a ticker or a date' });
+      var HELD = sheet([tx('t', 'Ticker', 'ticker', { find: 'start' }), nx('w', '% of the book', 'weight_pct', fP(1)), nx('sh', 'Shares', 'shares', fN(1)), nx('px', 'Price', 'px', fN(2))], ['position', 'positions'], { href: function (p) { return chartOf(p.ticker); } });
       var row = function (t) { return { name: t.ticker, sub: t.date + DOT + 'at $' + num(t.px, 2) + DOT + 'slippage $' + num(t.slippage, 2), big: (/buy/i.test(t.side) ? '+' : MINUS) + money(t.notional), tone: /buy/i.test(t.side) ? 'up' : 'down', small: /sell/i.test(t.side) && !held[t.ticker] ? 'closed' : /buy/i.test(t.side) ? 'bought' : 'sold' }; };
       var card = function (t, kind) {
         if (!t) return { tone: kind, big: D, eyebrow: 'Most notable ' + (kind === 'up' ? 'buy' : 'sale') + DOT + 'last rebalance', title: 'None', text: 'Nothing was ' + (kind === 'up' ? 'bought' : 'sold') + ' at the ' + (last || 'last') + ' rebalance.' };
@@ -440,11 +540,12 @@
         notes: [['Largest holding:', pos[0] ? pos[0].ticker + ', ' + pct(pos[0].weight_pct, 1) + ' of the book (' + num(pos[0].shares, 1) + ' shares at $' + num(pos[0].px, 2) + ').' : 'the book is all cash.'],
           ['Rebalance turnover:', at.length ? money(sum(at, function (t) { return t.notional; })) + ' traded across ' + at.length + ' orders on ' + last + (fin(nav) ? ', ' + pct(sum(at, function (t) { return t.notional; }) / nav * 100, 0) + ' of the book.' : '.') : 'no trades at the last rebalance.'],
           ['Caveat:', 'paper capital, not money at risk; fills are modelled with slippage and the record is ' + num(d.n_days) + ' days long.']],
-        ring: { title: 'Current positions', hint: 'share of the book', n: pos.length, center: money(nav), subs: ['NET ASSET VALUE', 'CASH ' + pct(d.cash_pct, 1)], whole: 'the book', aria: 'Paper book by position and cash',
+        ring: { open: 'positions', title: 'Current positions', hint: 'share of the book', n: pos.length, center: money(nav), subs: ['NET ASSET VALUE', 'CASH ' + pct(d.cash_pct, 1)], whole: 'the book', aria: 'Paper book by position and cash',
           slices: pos.map(function (p) { return { name: p.ticker, value: p.weight_pct, tone: 'pos', big: pct(p.weight_pct, 1), small: num(p.shares, 1) + ' sh at $' + num(p.px, 2) }; }).concat(d.cash_pct > 0 ? [{ name: 'Cash', label: 'cash', value: d.cash_pct, tone: 'oth', big: pct(d.cash_pct, 1), small: 'uninvested' }] : []),
           caption: 'Slices are shares of net asset value; cash is the grey slice.' },
-        lists: [{ key: 'buys', title: 'Bought', hint: 'last rebalance', tone: 'up', rows: buys.map(row), none: 'nothing bought on ' + (last || D) }, { key: 'sells', title: 'Sold', hint: 'last rebalance', tone: 'down', rows: sells.map(row), none: 'nothing sold on ' + (last || D) },
-          { key: 'earlier', title: 'Earlier trades', hint: 'most recent first', rows: earlier.map(row), none: 'no earlier trades in the feed' }],
+        lists: [{ key: 'buys', title: 'Bought', hint: 'last rebalance', tone: 'up', rows: FL(buys, row, TRADE, 'usd', -1), none: 'nothing bought on ' + (last || D) }, { key: 'sells', title: 'Sold', hint: 'last rebalance', tone: 'down', rows: FL(sells, row, TRADE, 'usd', 1), none: 'nothing sold on ' + (last || D) },
+          { key: 'earlier', title: 'Earlier trades', hint: 'most recent first', rows: FL(earlier, row, TRADE), none: 'no earlier trades in the feed' }],
+        more: [hidden('positions', 'Current positions', 'share of the book', pos, HELD, 'w', -1)],
         foot: 'Source: justhodl-paper-book, ' + day(d.generated_at) + '. ' + (d.note ? String(d.note).slice(0, 260) : '')
       };
     }
@@ -453,8 +554,8 @@
   ADAPTERS.sp500 = {
     feeds: ['/data/sp500.json'],
     build: function (docs) {
-      var d = docs[0], ix = d.index || {}, F = d.member_fields || [], iChg = F.indexOf('px_chg_since_census_pct'), iSec = F.indexOf('sector'), iCap = F.indexOf('mcap'), iPe = F.indexOf('pe_ttm'), iMom = F.indexOf('mom_6m_pct');
-      var mem = Object.keys(d.members || {}).map(function (t) { var r = d.members[t]; return { t: t, chg: r[iChg], sec: r[iSec], cap: r[iCap], pe: r[iPe], mom: r[iMom] }; }).filter(function (m) { return fin(m.cap); });
+      var d = docs[0], ix = d.index || {}, F = d.member_fields || [], iChg = F.indexOf('px_chg_since_census_pct'), iSec = F.indexOf('sector'), iCap = F.indexOf('mcap'), iPe = F.indexOf('pe_ttm'), iMom = F.indexOf('mom_6m_pct'), fld = function (r, name) { var i = F.indexOf(name); return i < 0 ? null : r[i]; };
+      var mem = Object.keys(d.members || {}).map(function (t) { var r = d.members[t]; return { t: t, chg: r[iChg], sec: r[iSec], cap: r[iCap], pe: r[iPe], mom: r[iMom], fwd: fld(r, 'pe_fwd'), dy: fld(r, 'div_yield_pct'), fcf: fld(r, 'fcf_yield_pct'), roe: fld(r, 'roe_pct'), rev: fld(r, 'revenue_yoy_pct'), eps: fld(r, 'eps_yoy_pct'), m12: fld(r, 'mom_12_1_pct'), beta: fld(r, 'beta_2y') }; }).filter(function (m) { return fin(m.cap); });
       var total = ix.total_mcap || sum(mem, function (m) { return m.cap; });
       mem.forEach(function (m) { m.w = total ? m.cap / total * 100 : 0; m.contrib = fin(m.chg) ? m.w * m.chg / 100 : null; });
       var heavy = mem.slice().sort(by(function (m) { return m.cap; }, true)), top10 = sum(heavy.slice(0, 10), function (m) { return m.w; });
@@ -463,6 +564,11 @@
       var secs = Object.keys(d.sectors || {}).map(function (k) { var s = d.sectors[k]; return { name: k, w: s.weight_pct, n: s.n, cap: s.cap_t, pe: s.pe_ttm, fwd: s.pe_fwd }; }).sort(by(function (s) { return s.w || 0; }, true));
       var SHORT = { 'Technology': 'Tech', 'Communication Services': 'Comm', 'Financial Services': 'Financials', 'Consumer Cyclical': 'Cyclical', 'Consumer Defensive': 'Defensive', 'Healthcare': 'Health', 'Industrials': 'Industrial', 'Basic Materials': 'Materials', 'Real Estate': 'Real est.' };
       var top6 = secs.slice(0, 6), restW = sum(secs.slice(6), function (s) { return s.w; }), v = d.valuation || {}, pe = (v.pe_ttm || {}).agg, ey = (v.earnings_yield_pct || {}).agg;
+      var MEMB = sheet([tx('t', 'Ticker', 't', { find: 'start' }), tx('sec', 'Sector', 'sec'), nx('cap', 'Mkt value', 'cap', fM), nx('w', '% of the index', 'w', fP(2)), nx('chg', 'Since the census', 'chg', fP(1, true), { tone: true, tip: 'price change since the last fundamentals census' }),
+        nx('contrib', 'Index points', 'contrib', fS(3), { tone: true, tip: 'the member\u2019s contribution to the index\u2019s move since the census, in percentage points' }), nx('pe', 'P/E', 'pe', fN(1)), nx('fwd', 'Forward P/E', 'fwd', fN(1)), nx('mom', '6 months', 'mom', fP(0, true), { tone: true }),
+        nx('m12', '12-1 momentum', 'm12', fP(0, true), { tone: true }), nx('dy', 'Dividend yield', 'dy', fP(2)), nx('fcf', 'FCF yield', 'fcf', fP(1)), nx('roe', 'ROE', 'roe', fP(1)), nx('rev', 'Revenue, 1 year', 'rev', fP(1, true), { tone: true }), nx('eps', 'EPS, 1 year', 'eps', fP(1, true), { tone: true }),
+        nx('beta', 'Beta', 'beta', fN(2))], ['member', 'members'], { href: function (m) { return chartOf(m.t); }, find: 'Find a ticker or a sector', phone: ['t', 'chg', 'contrib', 'w', 'cap', 'sec'] });
+      var SECS = sheet([tx('name', 'Sector', 'name'), nx('w', '% of the index', 'w', fP(1)), nx('n', 'Members', 'n', fN(0)), nx('cap', 'Mkt value', 'cap', fM), nx('pe', 'P/E', 'pe', fN(1)), nx('fwd', 'Forward P/E', 'fwd', fN(1))], ['sector', 'sectors']);
       var row = function (m) { return { name: m.t, sub: (m.sec || '') + DOT + pct(m.w, 2) + ' of the index' + (fin(m.pe) ? DOT + 'P/E ' + m.pe.toFixed(1) : ''), big: pct(m.chg, 1, true), tone: tone(m.chg), small: (m.contrib >= 0 ? '+' : MINUS) + Math.abs(m.contrib).toFixed(3) + ' pts of index' }; };
       var card = function (m, kind) { return !m ? null : { tone: kind, big: pct(m.chg, 1, true), eyebrow: 'Largest ' + (kind === 'up' ? 'lift' : 'drag') + ' on the index' + DOT + 'since the last fundamentals census', title: m.t + DOT + (m.sec || ''),
         text: m.t + ' is ' + pct(m.w, 2) + ' of the index and has moved ' + pct(m.chg, 1, true) + ' since ' + (ix.fundamentals_asof || 'the census') + ': ' + (m.contrib >= 0 ? '+' : MINUS) + Math.abs(m.contrib).toFixed(2) + ' percentage points of the index on its own.' }; };
@@ -475,12 +581,12 @@
         cards: [card(drag[0], 'down'), card(lift[0], 'up')].filter(Boolean),
         notes: [['Largest member:', heavy[0] ? heavy[0].t + ', ' + money(heavy[0].cap) + ' (' + pct(heavy[0].w, 1) + ' of the index).' : D], ['Concentration:', 'the ten largest members are ' + pct(top10, 1) + ' of the index; ' + (secs[0] ? secs[0].name + ' alone is ' + pct(secs[0].w, 1) + '.' : '')],
           ['Caveat:', 'weights here are full market value, not the float-adjusted weights of the official index, so they differ slightly from S&P\u2019s own.']],
-        ring: { title: 'Index by sector', hint: 'share of market value', n: secs.length, center: money(total), subs: ['MARKET VALUE', num(ix.members) + ' MEMBERS'], whole: 'the index', aria: 'S&P 500 market value by sector',
+        ring: { open: 'sectors', title: 'Index by sector', hint: 'share of market value', n: secs.length, center: money(total), subs: ['MARKET VALUE', num(ix.members) + ' MEMBERS'], whole: 'the index', aria: 'S&P 500 market value by sector',
           slices: top6.map(function (s) { return { name: s.name, label: SHORT[s.name] || s.name, value: s.w, tone: 'pos', big: pct(s.w, 1), small: s.n + ' members' + (fin(s.pe) ? DOT + 'P/E ' + s.pe.toFixed(1) : '') }; })
             .concat(restW > 0 ? [{ name: (secs.length - 6) + ' other sectors', label: 'other', value: restW, tone: 'oth', big: pct(restW, 1), small: secs.slice(6).map(function (s) { return s.name; }).join(', ') }] : []), caption: 'Slices are shares of total market value.' },
-        lists: [{ key: 'lift', title: 'Lifting the index', hint: 'largest contributions', tone: 'up', n: upN, rows: lift.filter(function (m) { return m.contrib > 0; }).map(row) }, { key: 'drag', title: 'Dragging the index', hint: 'largest contributions', tone: 'down', n: dnN, rows: drag.filter(function (m) { return m.contrib < 0; }).map(row) },
-          { key: 'heavy', title: 'Heaviest members', hint: 'share of the index', n: mem.length, rows: heavy.map(function (m) { return { name: m.t, sub: (m.sec || '') + (fin(m.pe) ? DOT + 'P/E ' + m.pe.toFixed(1) : '') + (fin(m.mom) ? DOT + '6m ' + pct(m.mom, 0, true) : ''), big: pct(m.w, 2), small: money(m.cap) }; }) },
-          { key: 'sectors', title: 'Sectors', hint: 'weight and valuation', rows: secs.map(function (s) { return { name: s.name, sub: s.n + ' members' + (fin(s.fwd) ? DOT + 'forward P/E ' + s.fwd.toFixed(1) : ''), big: pct(s.w, 1), small: fin(s.pe) ? 'P/E ' + s.pe.toFixed(1) : '' }; }) }],
+        lists: [{ key: 'lift', title: 'Lifting the index', hint: 'largest contributions', tone: 'up', n: upN, rows: FL(lift.filter(function (m) { return m.contrib > 0; }), row, MEMB, 'contrib', -1)}, { key: 'drag', title: 'Dragging the index', hint: 'largest contributions', tone: 'down', n: dnN, rows: FL(drag.filter(function (m) { return m.contrib < 0; }), row, MEMB, 'contrib', 1)},
+          { key: 'heavy', title: 'Heaviest members', hint: 'share of the index', n: mem.length, rows: FL(heavy, function (m) { return { name: m.t, sub: (m.sec || '') + (fin(m.pe) ? DOT + 'P/E ' + m.pe.toFixed(1) : '') + (fin(m.mom) ? DOT + '6m ' + pct(m.mom, 0, true) : ''), big: pct(m.w, 2), small: money(m.cap) }; }, MEMB, 'cap', -1)},
+          { key: 'sectors', title: 'Sectors', hint: 'weight and valuation', rows: FL(secs, function (s) { return { name: s.name, sub: s.n + ' members' + (fin(s.fwd) ? DOT + 'forward P/E ' + s.fwd.toFixed(1) : ''), big: pct(s.w, 1), small: fin(s.pe) ? 'P/E ' + s.pe.toFixed(1) : '' }; }, SECS, 'w', -1)}],
         foot: 'Source: justhodl-sp500 ' + (d.engine_v || '') + ', prices ' + (ix.px_date || D) + ', fundamentals ' + (ix.fundamentals_asof || D) + '. A member\u2019s contribution = its weight x its price change since the census, in percentage points of the index.'
       };
     }
@@ -512,10 +618,17 @@
       var drow = function (c) { var sc = scoreOf(c); return { name: nm(c), sub: people(c.n_insiders) + DOT + c.n_transactions + (c.n_transactions === 1 ? ' buy' : ' buys') + DOT + day(c.first_buy) + (c.last_buy !== c.first_buy ? ' to ' + day(c.last_buy) : '') + (role(c) ? DOT + role(c) : '') + also(c) + off(c), big: money(c.total_value), small: pct(share(c)) + ' of the dollars' + (sc ? DOT + 'score ' + sc : '') }; };
       var rich = dollars[0], best = scored[0], nTick = s.n_unique_tickers || pop.length, left = Math.max(nTick - scored.length, 0), aside = hy ? (hy.set_aside || []) : [];
       var whoSet = hy ? 'companies' : 'scored companies', avg = function (c) { return fin(c.avg_price) ? c.avg_price : c.total_shares ? c.total_value / c.total_shares : null; };
-      var lists = [{ key: 'clusters', title: 'Strongest scores', hint: 'by score', tone: 'up', n: scored.length, rows: scored.map(crow) }, { key: 'dollars', title: 'Largest dollars', hint: 'by company', n: pop.length, rows: dollars.map(drow) },
-        { key: 'ceo', title: 'The CEO is buying', hint: 'by score', tone: 'up', n: ceo.length, rows: ceo.map(crow), none: 'no chief executive bought in the window' }, { key: 'crowd', title: 'Most insiders', hint: 'breadth of the buying', n: multi.length, rows: crowd.filter(function (c) { return c.n_insiders >= 2; }).map(function (c) { var r = crow(c); r.big = String(c.n_insiders); r.tone = ''; r.small = 'insiders' + DOT + 'score ' + (fin(c.score) ? c.score.toFixed(0) : D); return r; }), none: 'no company has two insiders buying' },
-        { key: 'types', title: 'By kind of buying', hint: 'scored companies and dollars', rows: typeRows.map(function (t) { return { name: t.name, sub: t.n + (t.n === 1 ? ' company' : ' companies') + DOT + 'largest ' + t.top.ticker, big: money(t.usd), small: pct(total ? t.usd / total * 100 : 0) + ' of the dollars' }; }) }];
-      if (aside.length) lists.push({ key: 'aside', title: 'Set aside', hint: 'not counted', tone: 'down', n: aside.length, rows: aside.map(function (a) { return { name: a.ticker + (a.company ? DOT + a.company : ''), sub: (a.insider_name || '') + DOT + num(a.shares) + ' sh at $' + num(a.price, 2) + DOT + (a.reason || ''), big: money(a.value), tone: 'down', small: 'as filed' + DOT + 'not counted' }; }),
+      var coOf = function (c) { return c.company || (byTicker[c.ticker] || {}).company; }, scOf = function (c) { var x = c.score != null ? c : byTicker[c.ticker]; return x && fin(x.score) ? x.score : null; };
+      var kindOf = function (c) { var x = c.signal_type ? c : byTicker[c.ticker]; return x && x.signal_type ? kind(x) : null; };
+      var CLUS = sheet([tx('t', 'Ticker', 'ticker', { find: 'start' }), tx('co', 'Company', coOf), nx('score', 'Score', scOf, fN(0)), nx('usd', 'Dollars bought', 'total_value', fM), nx('share', '% of the dollars', share, fP(1)), nx('n', 'Insiders', 'n_insiders', fN(0)),
+        nx('buys', 'Buys', 'n_transactions', fN(0)), nx('px', 'Average price', avg, fN(2)), tx('first', 'First buy', function (c) { return c.first_buy ? day(c.first_buy) : null; }), tx('last', 'Last buy', function (c) { return c.last_buy ? day(c.last_buy) : null; }),
+        tx('role', 'Most senior buyer', role), tx('kind', 'Kind of buying', kindOf)], ['company', 'companies'], { href: function (c) { return chartOf(c.ticker); }, find: 'Find a ticker, company or role', phone: ['t', 'score', 'usd', 'n', 'co'] });
+      var KINDS = sheet([tx('name', 'Kind of buying', 'name'), nx('n', 'Companies', 'n', fN(0)), nx('usd', 'Dollars bought', 'usd', fM), nx('share', '% of the dollars', function (t) { return total ? t.usd / total * 100 : null; }, fP(1)), tx('top', 'Largest', function (t) { return (t.top || {}).ticker; })], ['kind', 'kinds']);
+      var ASIDE = sheet([tx('t', 'Ticker', 'ticker', { find: 'start' }), tx('co', 'Company', 'company'), tx('who', 'Insider', 'insider_name'), nx('usd', 'Value as filed', 'value', fM), nx('sh', 'Shares', 'shares', fN(0)), nx('px', 'Price', 'price', fN(2)), tx('why', 'Why it is set aside', 'reason')], ['filing', 'filings']);
+      var lists = [{ key: 'clusters', title: 'Strongest scores', hint: 'by score', tone: 'up', n: scored.length, rows: FL(scored, crow, CLUS, 'score', -1)}, { key: 'dollars', title: 'Largest dollars', hint: 'by company', n: pop.length, rows: FL(dollars, drow, CLUS, 'usd', -1)},
+        { key: 'ceo', title: 'The CEO is buying', hint: 'by score', tone: 'up', n: ceo.length, rows: FL(ceo, crow, CLUS, 'score', -1), none: 'no chief executive bought in the window' }, { key: 'crowd', title: 'Most insiders', hint: 'breadth of the buying', n: multi.length, rows: FL(crowd.filter(function (c) { return c.n_insiders >= 2; }), function (c) { var r = crow(c); r.big = String(c.n_insiders); r.tone = ''; r.small = 'insiders' + DOT + 'score ' + (fin(c.score) ? c.score.toFixed(0) : D); return r; }, CLUS, 'n', -1), none: 'no company has two insiders buying' },
+        { key: 'types', title: 'By kind of buying', hint: 'scored companies and dollars', rows: FL(typeRows, function (t) { return { name: t.name, sub: t.n + (t.n === 1 ? ' company' : ' companies') + DOT + 'largest ' + t.top.ticker, big: money(t.usd), small: pct(total ? t.usd / total * 100 : 0) + ' of the dollars' }; }, KINDS, 'usd', -1)}];
+      if (aside.length) lists.push({ key: 'aside', title: 'Set aside', hint: 'not counted', tone: 'down', n: aside.length, rows: FL(aside, function (a) { return { name: a.ticker + (a.company ? DOT + a.company : ''), sub: (a.insider_name || '') + DOT + num(a.shares) + ' sh at $' + num(a.price, 2) + DOT + (a.reason || ''), big: money(a.value), tone: 'down', small: 'as filed' + DOT + 'not counted' }; }, ASIDE),
         note: 'A purchase is set aside only when its price is far off the stock\u2019s tape and it is worth more than the whole company.' });
       return {
         eyebrow: 'Insider buying tearsheet' + DOT + 'last ' + days + ' days to ' + day(d.generated_at), title: 'Insider buying: ' + money(total) + ' across ' + num(pop.length) + ' ' + whoSet + ' in ' + days + ' days' + DOT + multi.length + ' with two or more insiders, ' + strong.length + ' strong',
@@ -528,7 +641,7 @@
           best ? { tone: 'up', big: fin(best.score) ? best.score.toFixed(0) : D, eyebrow: 'Strongest score' + DOT + kind(best), title: nm(best), text: best.rationale || '' } : null].filter(Boolean),
         notes: [['Who is buying:', typeRows.slice().sort(by(function (t) { return t.n; }, true)).map(function (t) { return t.name + ' ' + t.n; }).join(', ') + ' (scored companies).'], ['Most insiders in one name:', crowd[0] ? nm(crowd[0]) + ', ' + people(crowd[0].n_insiders) + ', ' + money(crowd[0].total_value) + '.' : D],
           ['Caveat:', 'the largest dollar lines are usually 10% holders, who are funds and parent companies rather than management; the score, not the dollars, is what weighs who bought.' + (hy && hy.n_off_tape ? ' ' + hy.n_off_tape + ' lines are for another class of security (preferred units, class A, a local line) and are counted at the price filed.' : '') + ' Sales are not on this sheet.']],
-        ring: { title: 'Insider dollars', hint: 'top 6 of ' + num(pop.length), n: pop.length, center: money(total), subs: ['BOUGHT IN ' + days + ' DAYS', num(pop.length) + ' COMPANIES'], whole: 'the dollars', aria: 'Insider buying dollars by company',
+        ring: { open: 'dollars', title: 'Insider dollars', hint: 'top 6 of ' + num(pop.length), n: pop.length, center: money(total), subs: ['BOUGHT IN ' + days + ' DAYS', num(pop.length) + ' COMPANIES'], whole: 'the dollars', aria: 'Insider buying dollars by company',
           slices: top6.map(function (c) { return { name: nm(c), label: c.ticker, value: c.total_value, tone: 'pos', big: money(c.total_value), small: pct(share(c)) + ' of the dollars' + DOT + people(c.n_insiders) }; })
             .concat(restV > 0 ? [{ name: (pop.length - top6.length) + ' other companies', label: 'other', value: restV, tone: 'oth', big: money(restV), small: pct(restV / total * 100) + ' of the dollars' }] : []), caption: 'Slices are shares of the purchase dollars' + (hy ? ' of every company with a purchase.' : ' in the scored set.') },
         lists: lists,
@@ -549,6 +662,8 @@
       var up = rows.filter(function (r) { return c3(r) > 0; }).sort(by(c3, true)), dn = rows.filter(function (r) { return c3(r) < 0; }).sort(by(c3));
       var yoy = rows.filter(function (r) { return fin(r.yoy_change_b); }).sort(by(function (r) { return Math.abs(r.yoy_change_b); }, true));
       var top6 = rows.slice(0, 6), otherNamed = named - sum(top6, function (r) { return r.current_b; }), rest = total - named, when = month(T.as_of || d.observation_date);
+      var HOLD = sheet([tx('name', 'Jurisdiction', 'country'), nx('now', 'Holdings', function (r) { return r.current_b * B; }, fM), nx('w', '% of the total', w, fP(1)), nx('c3', '3 months', function (r) { return fin(c3(r)) ? c3(r) * B : null; }, fMs, { tone: true }),
+        nx('c12', '1 year', function (r) { return fin(r.yoy_change_b) ? r.yoy_change_b * B : null; }, fMs, { tone: true }), nx('p12', '1 year, %', 'yoy_pct', fP(1, true), { tone: true })], ['jurisdiction', 'jurisdictions'], { find: 'Find a jurisdiction' });
       var row3 = function (r) { return { name: r.country, sub: 'holds ' + money(r.current_b * B) + DOT + pct(w(r)) + ' of all foreign holdings', big: money(c3(r) * B, true), tone: tone(c3(r)), small: 'in 3 months' }; };
       var card = function (r, kind) {
         if (!r) return null;
@@ -565,14 +680,14 @@
         cards: [card(dn[0], 'down'), card(up[0], 'up')].filter(Boolean),
         notes: [['Largest holder:', rows[0] ? rows[0].country + ', ' + money(rows[0].current_b * B) + ' (' + pct(w(rows[0])) + ' of all foreign holdings).' : D],
           ['Holdings are not transactions:', d.interpretation || 'holdings changes include valuation and other adjustments.'], ['Coverage:', (d.holder_coverage || '') + ' The ' + rows.length + ' named here hold ' + pct(total ? named / total * 100 : 0, 0) + ' of the total.']],
-        ring: { title: 'Who holds them', hint: 'top 6 of ' + rows.length + ' named', n: rows.length, center: money(total * B), subs: ['FOREIGN HOLDINGS', when.toUpperCase()], whole: 'foreign holdings', aria: 'Foreign holdings of US Treasuries by jurisdiction',
+        ring: { open: 'holders', title: 'Who holds them', hint: 'top 6 of ' + rows.length + ' named', n: rows.length, center: money(total * B), subs: ['FOREIGN HOLDINGS', when.toUpperCase()], whole: 'foreign holdings', aria: 'Foreign holdings of US Treasuries by jurisdiction',
           slices: top6.map(function (r) { return { name: r.country, label: r.country.split(',')[0].replace('United Kingdom', 'UK').slice(0, 10), value: r.current_b, tone: 'pos', big: pct(w(r)), small: money(r.current_b * B) + DOT + '3m ' + money(c3(r) * B, true) }; })
             .concat(otherNamed > 0 ? [{ name: (rows.length - 6) + ' other named jurisdictions', label: (rows.length - 6) + ' more', value: otherNamed, tone: 'oth', big: pct(otherNamed / total * 100), small: money(otherNamed * B) }] : [])
             .concat(rest > 0 ? [{ name: 'All other holders', label: 'unnamed', value: rest, tone: 'oth', big: pct(rest / total * 100), small: money(rest * B) + DOT + 'not named in the feed' }] : []),
           caption: 'Slices are shares of all foreign holdings of US Treasuries. Custody and residence, not ultimate ownership.' },
-        lists: [{ key: 'up', title: 'Holdings up', hint: '3-month change', tone: 'up', rows: up.map(row3), none: 'no named jurisdiction rose' }, { key: 'down', title: 'Holdings down', hint: '3-month change', tone: 'down', rows: dn.map(row3), none: 'no named jurisdiction fell' },
-          { key: 'holders', title: 'Largest holders', hint: 'share of the total', rows: rows.map(function (r) { return { name: r.country, sub: '3m ' + money(c3(r) * B, true) + (fin(r.yoy_change_b) ? DOT + '1y ' + money(r.yoy_change_b * B, true) : ''), big: money(r.current_b * B), small: pct(w(r)) + ' of the total' }; }) },
-          { key: 'yoy', title: 'Over a year', hint: 'largest changes either way', rows: yoy.map(function (r) { return { name: r.country, sub: 'holds ' + money(r.current_b * B), big: money(r.yoy_change_b * B, true), tone: tone(r.yoy_change_b), small: pct(r.yoy_pct, 1, true) }; }) }],
+        lists: [{ key: 'up', title: 'Holdings up', hint: '3-month change', tone: 'up', rows: FL(up, row3, HOLD, 'c3', -1), none: 'no named jurisdiction rose' }, { key: 'down', title: 'Holdings down', hint: '3-month change', tone: 'down', rows: FL(dn, row3, HOLD, 'c3', 1), none: 'no named jurisdiction fell' },
+          { key: 'holders', title: 'Largest holders', hint: 'share of the total', rows: FL(rows, function (r) { return { name: r.country, sub: '3m ' + money(c3(r) * B, true) + (fin(r.yoy_change_b) ? DOT + '1y ' + money(r.yoy_change_b * B, true) : ''), big: money(r.current_b * B), small: pct(w(r)) + ' of the total' }; }, HOLD, 'now', -1)},
+          { key: 'yoy', title: 'Over a year', hint: 'largest changes either way', rows: FL(yoy, function (r) { return { name: r.country, sub: 'holds ' + money(r.current_b * B), big: money(r.yoy_change_b * B, true), tone: tone(r.yoy_change_b), small: pct(r.yoy_pct, 1, true) }; }, HOLD)}],
         foot: 'Source: US Treasury International Capital (TIC) system, major foreign holders of Treasury securities, ' + when + ' (read ' + day((d.quality || {}).acquired_at || d.generated_at) + '). ' + (T.scope || '') + ' Research measurements, not a forecast or a trade signal.'
       };
     }
@@ -586,6 +701,11 @@
       var buys = cls.filter(function (c) { return c.m > 0; }).sort(by(function (c) { return c.m; }, true)), sells = cls.filter(function (c) { return c.m < 0; }).sort(by(function (c) { return c.m; }));
       var inn = sum(buys, function (c) { return c.m; }), out = -sum(sells, function (c) { return c.m; }), gross = inn + out, net = fin(h.latest_month_b) ? h.latest_month_b : inn - out, when = month(d.data_asof);
       var lt = (d.holder_splits || {}).lt_total || {}, off = lt.official || {}, prv = lt.private || {}, hist = (d.history_12mo_rolling_b || []).slice(0, 12);
+      var TYPE = sheet([tx('name', 'Security type', 'name'), nx('m', when, function (c) { return c.m * B; }, fMs, { tone: true }), nx('share', '% of the month\u2019s gross', function (c) { return gross ? Math.abs(c.m) / gross * 100 : null; }, fP(1)),
+        nx('y', '12 months', function (c) { return fin(c.y) ? c.y * B : null; }, fMs, { tone: true }), tx('id', 'Series', 'id')], ['security type', 'security types']);
+      var prints = (d.history_12mo_rolling_b || []).map(function (x, i, list) { var p = list[i + 1]; return { asof: x.asof, v: x.rolling_12mo_b, chg: p && fin(x.rolling_12mo_b) && fin(p.rolling_12mo_b) ? x.rolling_12mo_b - p.rolling_12mo_b : null }; });
+      var PRINT = sheet([tx('asof', '12 months to', 'asof', { fmt: function (x) { return month(x.asof); } }), nx('v', '12-month total', function (x) { return fin(x.v) ? x.v * B : null; }, fMs, { tone: true }),
+        nx('chg', 'Against the print before', function (x) { return fin(x.chg) ? x.chg * B : null; }, fMs, { tone: true })], ['print', 'prints']);
       var row = function (c) { return { name: c.name, sub: '12 months ' + money(c.y * B, true) + DOT + pct(gross ? Math.abs(c.m) / gross * 100 : 0) + ' of the month\u2019s gross', big: money(c.m * B, true), tone: tone(c.m), small: when }; };
       var card = function (c, kind) {
         if (!c) return { tone: kind, big: D, eyebrow: 'Most notable ' + (kind === 'up' ? 'buying' : 'selling') + DOT + when, title: 'None', text: 'Foreign investors were not net ' + (kind === 'up' ? 'buyers' : 'sellers') + ' of any of the four security types in ' + when + '.' };
@@ -604,11 +724,11 @@
         cards: [card(sells[0], 'down'), card(buys[0], 'up')],
         notes: [['Who bought:', 'private investors ' + money(prv.latest * B, true) + ' and official holders ' + money(off.latest * B, true) + ' in ' + when + '; ' + money(prv.sum_12m * B, true) + ' and ' + money(off.sum_12m * B, true) + ' over twelve months.'],
           ['Run rate:', 'the last three months annualise to ' + money(h.run_rate_3mo_annualized_b * B, true) + '. ' + ((d.exact_headline || {}).annualization_note || '')], ['Caveat:', (d.regime_interpretation || '') + ' ' + (d.vintage_note || '')]],
-        ring: { title: 'The month by security type', hint: 'bought solid, sold hatched', n: cls.length, center: money(gross * B), subs: ['GROSS, ' + when.toUpperCase(), 'IN ' + pct(gross ? inn / gross * 100 : 0, 0) + DOT + 'OUT ' + pct(gross ? out / gross * 100 : 0, 0)], whole: 'the gross', aria: 'Net foreign transactions by security type',
+        ring: { open: 'year', title: 'The month by security type', hint: 'bought solid, sold hatched', n: cls.length, center: money(gross * B), subs: ['GROSS, ' + when.toUpperCase(), 'IN ' + pct(gross ? inn / gross * 100 : 0, 0) + DOT + 'OUT ' + pct(gross ? out / gross * 100 : 0, 0)], whole: 'the gross', aria: 'Net foreign transactions by security type',
           slices: side(buys, 'up').concat(side(sells, 'down')), caption: 'Solid = net bought, hatched = net sold. Each slice is a share of the gross (' + money(gross * B) + '); the net is ' + money(net * B, true) + '.' },
-        lists: [{ key: 'bought', title: 'Bought', hint: 'net purchases, ' + when, tone: 'up', rows: buys.map(row), none: 'nothing was net bought' }, { key: 'sold', title: 'Sold', hint: 'net sales, ' + when, tone: 'down', rows: sells.map(row), none: 'nothing was net sold' },
-          { key: 'year', title: 'Twelve months by type', hint: 'to ' + when, rows: cls.slice().sort(by(function (c) { return c.y; }, true)).map(function (c) { return { name: c.name, sub: when + ' ' + money(c.m * B, true) + DOT + c.id, big: money(c.y * B, true), tone: tone(c.y), small: '12 months' }; }) },
-          { key: 'history', title: 'Twelve-month total', hint: 'each print, newest first', rows: hist.map(function (x, i) { var p = hist[i + 1]; return { name: month(x.asof), sub: p ? money((x.rolling_12mo_b - p.rolling_12mo_b) * B, true) + ' against ' + month(p.asof) : '', big: money(x.rolling_12mo_b * B, true), small: '12 months to date' }; }) }],
+        lists: [{ key: 'bought', title: 'Bought', hint: 'net purchases, ' + when, tone: 'up', rows: FL(buys, row, TYPE, 'm', -1), none: 'nothing was net bought' }, { key: 'sold', title: 'Sold', hint: 'net sales, ' + when, tone: 'down', rows: FL(sells, row, TYPE, 'm', 1), none: 'nothing was net sold' },
+          { key: 'year', title: 'Twelve months by type', hint: 'to ' + when, rows: FL(cls.slice().sort(by(function (c) { return c.y; }, true)), function (c) { return { name: c.name, sub: when + ' ' + money(c.m * B, true) + DOT + c.id, big: money(c.y * B, true), tone: tone(c.y), small: '12 months' }; }, TYPE, 'y', -1)},
+          { key: 'history', title: 'Twelve-month total', hint: 'each print, newest first', rows: FL(hist, function (x, i) { var p = hist[i + 1]; return { name: month(x.asof), sub: p ? money((x.rolling_12mo_b - p.rolling_12mo_b) * B, true) + ' against ' + month(p.asof) : '', big: money(x.rolling_12mo_b * B, true), small: '12 months to date' }; }, PRINT, 'asof', -1, { rows: prints })}],
         foot: 'Source: US Treasury International Capital (TIC) system, transactions in long-term securities, ' + when + ' (read ' + day(d.generated_at) + '). ' + (d.disclaimer || '')
       };
     }
@@ -697,6 +817,27 @@
       var kinds = Object.keys(gNew).sort(function (a, b) { var ia = ORDER.indexOf(a), ib = ORDER.indexOf(b); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || gNew[b].length - gNew[a].length; });
       var newRows = kinds.map(function (s) { var t = gNew[s]; return { name: sentence(s), sub: t.slice(0, 8).join(', ') + (t.length > 8 ? ' and ' + (t.length - 8) + ' more' : ''), big: num(t.length), tone: UP[s] ? 'up' : DOWN[s] ? 'down' : '', small: 'new' }; });
       var goneTop = Object.keys(gGone).sort(function (a, b) { return gGone[b].length - gGone[a].length; }).slice(0, 4).map(function (s) { return gGone[s].length + ' ' + low(s); });
+      /* the full view's columns: a leader, a signal printed, an industry, a fund */
+      var byTk = {}, span = W.word.replace('the ', '');
+      (d.rows || []).forEach(function (r) { byTk[r.ticker] = r; });
+      var LEAD = sheet([tx('t', 'Ticker', 'ticker', { find: 'start' }), tx('name', 'Name', 'name'), tx('ind', 'Industry', 'industry'), nx('mcap', 'Mkt cap', function (r) { return fin(r.mcap) ? r.mcap : null; }, fM),
+        nx('vs', 'vs S&P 500, ' + span, function (r) { return (r.vs || {})[k]; }, fS(1, ' pts'), { tone: true, tip: 'the stock\u2019s return less the S&P 500\u2019s over ' + W.word + ', in percentage points' }),
+        nx('own', 'Own return, ' + span, function (r) { return (r.h || {})[k]; }, fP(1, true), { tone: true }), nx('score', 'Tape score', function (r) { return (r.ad || {}).score; }, fS(0), { tone: true, tip: 'accumulation above zero, distribution below' }),
+        tx('tape', 'Tape', function (r) { return sentence(lab(r)); }), nx('mf', 'Signed $ volume', mf, fMs, { tone: true, tip: 'dollar volume on up days less dollar volume on down days over ' + W.word }),
+        tx('smart', 'Smart money', function (r) { var v = verdict(r); return v ? sentence(v) : null; }), nx('f13', '13F net', net13, fMs, { tone: true }), nx('hold', '13F holders', function (r) { return (r.f13 || {}).n_holders; }, fN(0)),
+        nx('dh', 'Holders, change', function (r) { return (r.f13 || {}).holder_delta; }, fNs(0), { tone: true }), nx('ib', 'Insiders bought', function (r) { return (r.insider || {}).buy_usd; }, fM), nx('is', 'Insiders sold', function (r) { return (r.insider || {}).sell_usd; }, fM)],
+        ['leader', 'leaders'], { href: function (r) { return chartOf(r.ticker); }, find: 'Find a ticker, name or industry', phone: ['t', 'vs', 'own', 'score', 'mcap', 'tape', 'ind', 'name'] });
+      var rankOf = function (sg) { var i = ORDER.indexOf(sg); return i < 0 ? 99 : i; };
+      var prints = (ch['new'] || []).map(function (x) { return { ticker: x.ticker, signal: x.signal, r: byTk[x.ticker] || {} }; })
+        .sort(function (a, b) { return rankOf(a.signal) - rankOf(b.signal) || String(a.signal).localeCompare(String(b.signal)) || String(a.ticker).localeCompare(String(b.ticker)); });
+      var PRINTED = sheet([tx('t', 'Ticker', 'ticker', { find: 'start' }), tx('name', 'Name', function (x) { return x.r.name; }), tx('sig', 'Signal', function (x) { return sentence(x.signal); }, { tone: function (x) { return UP[x.signal] ? 'up' : DOWN[x.signal] ? 'down' : ''; } }),
+        tx('ind', 'Industry', function (x) { return x.r.industry; }), nx('mcap', 'Mkt cap', function (x) { return fin(x.r.mcap) ? x.r.mcap : null; }, fM), nx('vs', 'vs S&P 500, ' + span, function (x) { return (x.r.vs || {})[k]; }, fS(1, ' pts'), { tone: true }),
+        nx('score', 'Tape score', function (x) { return (x.r.ad || {}).score; }, fS(0), { tone: true })], ['print', 'prints'], { href: function (x) { return chartOf(x.ticker); }, find: 'Find a ticker, name, signal or industry', phone: ['t', 'sig', 'vs', 'mcap', 'name'] });
+      var INDS = sheet([tx('name', 'Industry', 'industry'), nx('vs', 'vs S&P 500, ' + span, function (x) { return x.vs[k]; }, fS(1, ' pts'), { tone: true }), nx('mcap', 'Mkt cap', 'mcap_usd', fM), nx('n', 'Leaders', function (x) { return (x.leaders || []).length; }, fN(0)),
+        tx('who', 'Its leaders', function (x) { return (x.leaders || []).join(', '); }), tx('tape', 'Tape', function (x) { var l = (x.ad || {}).label; return l ? sentence(l) : null; })], ['industry', 'industries'], { find: 'Find an industry or a ticker' });
+      var FUND = sheet([tx('t', 'Ticker', 'ticker', { find: 'start' }), tx('role', 'Kind', function (f) { return (f.role || 'fund') + ' fund'; }), nx('usd', 'Net flow', function (f) { return flowOf(f).usd; }, fMs, { tone: true }), nx('aum', '% of assets', function (f) { return flowOf(f).pct_aum; }, fS(2, '%'), { tone: true }),
+        nx('n', 'Industries', function (f) { return (f.industries || []).length; }, fN(0)), tx('cov', 'Covers', function (f) { return (f.industries || []).join(', '); }), tx('end', 'Reports to', function (f) { var e = flowOf(f).end; return e ? day(e) : null; })],
+        ['fund', 'funds'], { href: function (f) { return chartOf(f.ticker); }, find: 'Find a fund or an industry' });
       var bl = (d.boards || {}).leaders || {}, n = function (key) { return (bl[key] || []).length; };
       var conf = function (key) { return (d.rows || []).filter(function (r) { return r[key] && r[key].state === 'CONFIRMED'; }).length; };
       return {
@@ -716,21 +857,23 @@
           ['Patterns:', n('double_top') + ' double tops (' + conf('dtop') + ' confirmed) and ' + n('double_bottom') + ' double bottoms (' + conf('dbot') + ' confirmed); ' + n('buying_climax') + ' buying and ' + n('selling_climax') + ' selling climaxes inside 30 sessions; ' + n('tight') + ' tight bases; '
             + n('rs_new_highs') + ' new highs and ' + n('rs_new_lows') + ' new lows of relative strength.'],
           ['Caveat:', 'the tape label and signed dollar volume are read from price and volume \u2014 an estimate of pressure, not a reported flow. The 13F cohort is ' + num(f13.n_cohort) + ' managers as of ' + day(f13.period) + ' and arrives 45 days or more after the quarter; newly disclosed is not bought. Fund flows are reported creations and redemptions.']],
-        ring: { title: 'Market cap by tape', hint: 'accumulation solid, distribution hatched', n: live.length, center: money(total), subs: [num(live.length) + ' LEADERS', 'ACC ' + pct(share(accCap), 0) + DOT + 'DIST ' + pct(share(distCap), 0)], whole: 'the leaders\u2019 market cap', aria: 'The leaders\u2019 market cap by tape label',
-          slices: GRADES.map(function (g) { var t = tier[g[0]]; return { name: g[1], label: g[2], value: t.cap, tone: g[3], op: g[4], big: money(t.cap), small: num(t.list.length) + ' leaders' + (t.list.length ? DOT + t.list.slice(0, 3).map(function (r) { return r.ticker; }).join(', ') : '') }; }),
+        ring: { open: 'all', title: 'Market cap by tape', hint: 'accumulation solid, distribution hatched', n: live.length, center: money(total), subs: [num(live.length) + ' LEADERS', 'ACC ' + pct(share(accCap), 0) + DOT + 'DIST ' + pct(share(distCap), 0)], whole: 'the leaders\u2019 market cap', aria: 'The leaders\u2019 market cap by tape label',
+          slices: GRADES.map(function (g, gi) { var t = tier[g[0]]; return { open: t.list.length ? 'tape-' + gi : '', name: g[1], label: g[2], value: t.cap, tone: g[3], op: g[4], big: money(t.cap), small: num(t.list.length) + ' leaders' + (t.list.length ? DOT + t.list.slice(0, 3).map(function (r) { return r.ticker; }).join(', ') : '') }; }),
           caption: 'Each leader\u2019s market cap is counted once, under the label the engine read from its price and volume on ' + day(d.as_of) + ' (score at or beyond \u00b120, strong at \u00b160). Solid = accumulation, hatched = distribution, plain = neutral.' },
-        lists: [{ key: 'strongest', title: 'Strongest against the S&P 500', hint: W.word + ', percentage points', tone: 'up', n: beat, rows: strong.filter(function (r) { return r.vs[k] > 0; }).map(vsRow), none: 'no leader is ahead' },
-          { key: 'weakest', title: 'Weakest against the S&P 500', hint: W.word + ', percentage points', tone: 'down', n: read.length - beat, rows: weak.filter(function (r) { return r.vs[k] <= 0; }).map(vsRow), none: 'no leader is behind' },
-          { key: 'printed', title: 'Printed since ' + (ch.prev_as_of ? day(ch.prev_as_of) : 'the prior session'), hint: 'signals that appeared', n: nNew, rows: newRows, none: ch.note || 'nothing new was printed',
+        lists: [{ key: 'strongest', title: 'Strongest against the S&P 500', hint: W.word + ', percentage points', tone: 'up', n: beat, rows: FL(strong.filter(function (r) { return r.vs[k] > 0; }), vsRow, LEAD, 'vs', -1), none: 'no leader is ahead' },
+          { key: 'weakest', title: 'Weakest against the S&P 500', hint: W.word + ', percentage points', tone: 'down', n: read.length - beat, rows: FL(weak.filter(function (r) { return r.vs[k] <= 0; }), vsRow, LEAD, 'vs', 1), none: 'no leader is behind' },
+          { key: 'printed', title: 'Printed since ' + (ch.prev_as_of ? day(ch.prev_as_of) : 'the prior session'), hint: 'signals that appeared', n: nNew, rows: newRows, full: wholeOf(prints, PRINTED), none: ch.note || 'nothing new was printed',
             note: nGone ? num(nGone) + ' signals went away' + (goneTop.length ? ': ' + goneTop.join(', ') + (Object.keys(gGone).length > 4 ? ' and others' : '') : '') + '.' : '' },
-          { key: 'accumulation', title: 'Under accumulation', hint: 'highest tape scores', tone: 'up', rows: accList.map(tapeRow), none: 'no leader is under accumulation' },
-          { key: 'distribution', title: 'Under distribution', hint: 'lowest tape scores', tone: 'down', rows: distList.map(tapeRow), none: 'no leader is under distribution' },
-          { key: 'smart-buying', title: 'Smart money buying', hint: '13F cohort and insiders', tone: 'up', rows: buying.map(smartRow), none: 'no leader reads as buying' },
-          { key: 'smart-selling', title: 'Smart money selling', hint: '13F cohort and insiders', tone: 'down', rows: selling.map(smartRow), none: 'no leader reads as selling' },
-          { key: 'industries-leading', title: 'Industries leading', hint: 'cap-weighted, ' + W.word, tone: 'up', rows: inds.filter(function (x) { return x.vs[k] > 0; }).sort(by(function (x) { return x.vs[k]; }, true)).map(indRow), none: 'no industry is ahead' },
-          { key: 'industries-lagging', title: 'Industries lagging', hint: 'cap-weighted, ' + W.word, tone: 'down', rows: inds.filter(function (x) { return x.vs[k] <= 0; }).sort(by(function (x) { return x.vs[k]; })).map(indRow), none: 'no industry is behind' },
-          { key: 'fund-inflows', title: 'Fund inflows', hint: 'reported creations, ' + W.obs + ' reports', tone: 'up', rows: fin_.map(fundRow), none: 'no fund took money in', note: asideNote },
-          { key: 'fund-outflows', title: 'Fund outflows', hint: 'reported redemptions, ' + W.obs + ' reports', tone: 'down', rows: fout.map(fundRow), none: 'no fund lost money' }],
+          { key: 'accumulation', title: 'Under accumulation', hint: 'highest tape scores', tone: 'up', rows: FL(accList, tapeRow, LEAD, 'score', -1), none: 'no leader is under accumulation' },
+          { key: 'distribution', title: 'Under distribution', hint: 'lowest tape scores', tone: 'down', rows: FL(distList, tapeRow, LEAD, 'score', 1), none: 'no leader is under distribution' },
+          { key: 'smart-buying', title: 'Smart money buying', hint: '13F cohort and insiders', tone: 'up', rows: FL(buying, smartRow, LEAD, 'f13', -1), none: 'no leader reads as buying' },
+          { key: 'smart-selling', title: 'Smart money selling', hint: '13F cohort and insiders', tone: 'down', rows: FL(selling, smartRow, LEAD, 'f13', 1), none: 'no leader reads as selling' },
+          { key: 'industries-leading', title: 'Industries leading', hint: 'cap-weighted, ' + W.word, tone: 'up', rows: FL(inds.filter(function (x) { return x.vs[k] > 0; }).sort(by(function (x) { return x.vs[k]; }, true)), indRow, INDS, 'vs', -1), none: 'no industry is ahead' },
+          { key: 'industries-lagging', title: 'Industries lagging', hint: 'cap-weighted, ' + W.word, tone: 'down', rows: FL(inds.filter(function (x) { return x.vs[k] <= 0; }).sort(by(function (x) { return x.vs[k]; })), indRow, INDS, 'vs', 1), none: 'no industry is behind' },
+          { key: 'fund-inflows', title: 'Fund inflows', hint: 'reported creations, ' + W.obs + ' reports', tone: 'up', rows: FL(fin_, fundRow, FUND, 'usd', -1), none: 'no fund took money in', note: asideNote },
+          { key: 'fund-outflows', title: 'Fund outflows', hint: 'reported redemptions, ' + W.obs + ' reports', tone: 'down', rows: FL(fout, fundRow, FUND, 'usd', 1), none: 'no fund lost money' }],
+        more: [hidden('all', 'Every leader', 'largest first', live.slice().sort(by(cap, true)), LEAD, 'mcap', -1)]
+          .concat(GRADES.map(function (g, gi) { return hidden('tape-' + gi, g[1], 'leaders the tape reads so, largest first', tier[g[0]].list, LEAD, 'mcap', -1); })),
         foot: 'Source: justhodl-leaders ' + (d.version || '') + ' (data/leaders.json), published ' + String(d.generated_at || '').slice(0, 16).replace('T', ' ') + ' UTC from the Polygon end-of-day bank, bars as of ' + day(d.as_of) + '; 13F period ' + day(f13.period) + '; Form 4 purchases and sales over '
           + ((d.insiders || {}).window_days || 90) + ' days to ' + day((d.insiders || {}).newest_day) + '. A leader is one of the five largest companies of its industry by market cap; excess return is against SPY in percentage points.'
       };
@@ -773,6 +916,18 @@
   var WY = {};
 
   /* Accumulation, Bottom, Distribution: every stock (or ETF) the chart's icon would mark */
+  /* the full view of a scan board: what every row carries, then the tab's own columns */
+  function scanSheet(p, cols) {
+    var head = [tx('t', 'Ticker', 'ticker', { find: 'start' }), tx('name', 'Name', 'name')].concat(p.kind === 'etf' ? [] : [tx('sec', 'Sector', function (r) { return r.sector || 'Unclassified'; })],
+      [nx('mcap', p.kind === 'etf' ? 'Assets' : 'Mkt cap', function (r) { return fin(r.mcap) ? r.mcap : null; }, fM)]);
+    return sheet(head.concat(cols), [p.one, p.word], { href: function (r) { return chartOf(r.ticker); }, find: p.kind === 'etf' ? 'Find a ticker or name' : 'Find a ticker, name or sector' });
+  }
+  function scanSectors(d) {
+    var scanned = function (g) { return ((d.by_sector || {})[g.key] || {}).scanned; };
+    return sheet([tx('name', 'Sector', 'key'), nx('n', 'Marked', function (g) { return g.list.length; }, fN(0)), nx('of', 'Scanned', scanned, fN(0)), nx('share', '% of the scanned', function (g) { return scanned(g) ? share(g.list.length, scanned(g)) : null; }, fP(0)),
+      nx('mcap', 'Mkt cap marked', function (g) { return sum(g.list, cap); }, fM), tx('top', 'Largest', function (g) { return tickers(g.list.slice().sort(by(cap, true)), 4); })], ['sector', 'sectors']);
+  }
+  var statusWord = function (r) { return r.status ? lower(r.status) : null; }, dayOf = function (k) { return function (r) { return r[k] ? day(r[k]) : null; }; };
   function scanParts(D_, st, board) {
     var d = D_.scan;
     if (!d || !d.boards || !d.boards[board]) throw new Error('the all-stock scan (data/campaign-scan.json) is not published yet');
@@ -789,10 +944,10 @@
       where: function (r) { return r.kind === 'etf' ? 'ETF' : (r.sector || 'Unclassified'); },
       fresh: rows.filter(function (r) { return r.ago <= 4; }),
       sectors: function () {
-        return groupBy(rows, function (r) { return r.sector || 'Unclassified'; }).map(function (g) {
+        return FL(groupBy(rows, function (r) { return r.sector || 'Unclassified'; }), function (g) {
           var s = (d.by_sector || {})[g.key] || {};
           return { name: g.key, sub: tickers(g.list.slice().sort(by(cap, true)), 4), big: num(g.list.length), small: s.scanned ? pct(share(g.list.length, s.scanned), 0) + ' of ' + num(s.scanned) + ' scanned' : '' };
-        });
+        }, scanSectors(d), 'n', -1);
       },
       foot: function (what) {
         return 'Source: justhodl-campaign-scan ' + (d.version || '') + ' (data/campaign-scan.json), published ' + String(d.generated_at || '').slice(0, 16).replace('T', ' ') + ' UTC, bars as of ' + day(d.as_of) + ' from the Polygon end-of-day bank (since '
@@ -803,9 +958,9 @@
   function kind_cap(p) { return p.kind === 'etf' ? 'Assets marked' : 'Market cap marked'; }
   function statusRing(p, title, hint, STAT, whole) {
     var groups = STAT.map(function (s) { return { s: s, list: p.rows.filter(function (r) { return r.status === s[0]; }).sort(by(cap, true)) }; });
-    return { groups: groups, ring: { title: title, hint: hint, n: p.rows.length, center: num(p.rows.length), subs: [p.word.toUpperCase(), STAT.map(function (s, i) { return s[2] + ' ' + groups[i].list.length; }).slice(0, 2).join(DOT)], whole: whole,
+    return { groups: groups, more: function (S) { return groups.map(function (g, gi) { return hidden('status-' + gi, g.s[1], 'largest first', g.list, S, 'mcap', -1); }); }, ring: { open: 'largest', title: title, hint: hint, n: p.rows.length, center: num(p.rows.length), subs: [p.word.toUpperCase(), STAT.map(function (s, i) { return s[2] + ' ' + groups[i].list.length; }).slice(0, 2).join(DOT)], whole: whole,
       aria: title + ': ' + groups.map(function (g) { return g.s[1] + ' ' + g.list.length; }).join(', '),
-      slices: groups.map(function (g) { return { name: g.s[1], label: g.s[2], value: g.list.length, tone: g.s[3], op: g.s[4], big: num(g.list.length), small: pct(share(g.list.length, p.rows.length), 0) + (g.list.length ? DOT + tickers(g.list) : '') }; }) } };
+      slices: groups.map(function (g, gi) { return { open: g.list.length ? 'status-' + gi : '', name: g.s[1], label: g.s[2], value: g.list.length, tone: g.s[3], op: g.s[4], big: num(g.list.length), small: pct(share(g.list.length, p.rows.length), 0) + (g.list.length ? DOT + tickers(g.list) : '') }; }) } };
   }
 
   WY.bottom = function (D_, st) {
@@ -813,6 +968,9 @@
     var cl = rows.filter(function (r) { return r.mark === 'CLIMAX'; }), lo = rows.filter(function (r) { return r.mark === 'BOTTOM'; });
     var SR = statusRing(p, 'Where the marked lows stand', 'by the last close', [['HELD', 'Low holding', 'HELD', 'pos', 1], ['UNDERCUT', 'Undercut, closed back above', 'UNDERCUT', 'pos', 0.5], ['BROKEN', 'Closing under the low', 'BROKEN', 'oth', 0.34]], 'the marked ' + p.word);
     var held = SR.groups[0].list.length, under = SR.groups[1].list.length, broke = SR.groups[2].list.length, peak = busiest(cl, function (r) { return r.date; });
+    var S = scanSheet(p, [tx('mark', 'Mark', function (r) { return r.mark === 'CLIMAX' ? 'Selling climax' : r.mark === 'BOTTOM' ? 'Confirmed low' : r.mark; }), tx('date', 'Date', dayOf('date')), nx('ago', 'Sessions ago', 'ago', fN(0)), tx('status', 'Status', statusWord),
+      nx('since', 'Since the mark', 'since_pct', fP(1, true), { tone: true }), nx('decline', 'Decline into the low', 'decline_pct', fP(0)), nx('vol', 'Volume', 'vol_x', capped, { tip: 'the bar\u2019s volume against its average; the scan stops counting at 12 times' }), nx('range', 'Range', 'range_x', fX),
+      nx('score', 'Score', 'score', fN(2), { tip: 'volume x range, the scan\u2019s score of a climax bar' }), nx('low', 'Low', 'low', fPx), nx('last', 'Last', 'last', fPx), nx('off', 'Against the low', 'off_low_pct', fP(1, true), { tone: true })]);
     var facts = function (r) { return [p.where(r), fin(r.decline_pct) ? pct(r.decline_pct, 0) + ' into the low' : '', fin(r.vol_x) ? 'volume ' + capped(r.vol_x) : ''].filter(Boolean).join(DOT); };
     var newest = function (r) { return { name: tick(r), sub: facts(r), big: zpct(r.since_pct, 1, true), tone: tone(r.since_pct), small: day(r.date) + DOT + lower(r.status) }; };
     var card = function (list, label, none) {
@@ -842,18 +1000,19 @@
         ['Confirmed low:', 'a swing low at the 126 or 252-session low, 12% or more under the year\u2019s high, that bounced 4% inside 12 sessions. It can only be read 40 sessions later; the bottom desk\u2019s secondary test counts as the same mark.'],
         ['Caveat:', 'a third state matters as much as the mark: whether the low still holds. A climax whose low is closing under is a failed climax, and it stays on the board saying so.']],
       ring: Object.assign(SR.ring, { caption: 'Each ' + p.one + ' once, under where its last close stands against the low of its mark on ' + day(d.as_of) + '. Held = no later low under it; undercut = a later low went under and the close is back above.' }),
-      lists: [{ key: 'new-climax', title: 'Newest selling climaxes', hint: 'largest first on each day', n: cl.length, rows: cl.slice().sort(function (a, b) { return a.ago - b.ago || cap(b) - cap(a); }).map(newest), none: 'no live climax' },
-        { key: 'new-low', title: 'Newest confirmed lows', hint: 'by the date of the low', n: lo.length, rows: lo.slice().sort(function (a, b) { return a.ago - b.ago || cap(b) - cap(a); }).map(function (r) {
-          return { name: tick(r), sub: [p.where(r), 'low ' + fix(r.low), r.rev_up_date ? 'reversal ' + day(r.rev_up_date) : '', r.source !== 'scan' ? 'bottom desk ' + harvestWord(r.harvest_state) : ''].filter(Boolean).join(DOT), big: zpct(r.off_low_pct, 1, true), tone: tone(r.off_low_pct), small: day(r.date) + DOT + 'vs the low' }; }), none: 'no confirmed low' },
-        { key: 'largest', title: 'Largest ' + (p.kind === 'etf' ? 'funds' : 'companies') + ' marked', hint: p.kind === 'etf' ? 'assets' : 'market cap', rows: rows.slice().sort(by(cap, true)).map(function (r) { return { name: tick(r), sub: p.where(r) + DOT + lower(r.mark) + ' ' + day(r.date) + DOT + lower(r.status), big: money(cap(r)), small: zpct(r.since_pct, 1, true) + ' since' }; }), none: 'none' },
-        { key: 'volume', title: 'Strongest climax bars', hint: 'volume \u00d7 range, the scan\u2019s score' + DOT + p.floorWord, rows: p.sized.filter(function (r) { return r.mark === 'CLIMAX' && fin(r.score); }).sort(by(function (r) { return r.score; }, true)).map(function (r) {
-          return { name: tick(r), sub: p.where(r) + DOT + 'volume ' + capped(r.vol_x) + DOT + 'range ' + times(r.range_x) + DOT + pct(r.decline_pct, 0) + ' into the low', big: num(r.score, 1), small: day(r.date) + DOT + lower(r.status) }; }), none: 'no climax that size carries a score' },
-        { key: 'deepest', title: 'Deepest declines into the low', hint: p.floorWord, tone: 'down', rows: p.sized.filter(function (r) { return fin(r.decline_pct); }).sort(by(function (r) { return r.decline_pct; })).map(function (r) {
-          return { name: tick(r), sub: p.where(r) + DOT + lower(r.mark) + ' ' + day(r.date) + DOT + lower(r.status), big: pct(r.decline_pct, 0), tone: 'down', small: pct(r.off_low_pct, 1, true) + ' vs the low' }; }), none: 'none' },
-        { key: 'strongest', title: 'Strongest since the mark', hint: p.floorWord, tone: 'up', rows: p.sized.filter(function (r) { return r.since_pct > 0; }).sort(by(function (r) { return r.since_pct; }, true)).map(newest), none: 'nothing is up since its mark' },
-        { key: 'broken', title: 'Lows that are breaking', hint: 'closing under the marked low' + DOT + p.floorWord, tone: 'down', n: broke, rows: p.sized.filter(function (r) { return r.status === 'BROKEN'; }).sort(by(function (r) { return r.off_low_pct; })).map(function (r) {
-          return { name: tick(r), sub: p.where(r) + DOT + lower(r.mark) + ' ' + day(r.date) + DOT + 'low ' + fix(r.low), big: pct(r.off_low_pct, 1, true), tone: 'down', small: 'vs the low' }; }), none: 'no marked low is closing under' }]
+      lists: [{ key: 'new-climax', title: 'Newest selling climaxes', hint: 'largest first on each day', n: cl.length, rows: FL(cl.slice().sort(function (a, b) { return a.ago - b.ago || cap(b) - cap(a); }), newest, S, 'ago', 1), none: 'no live climax' },
+        { key: 'new-low', title: 'Newest confirmed lows', hint: 'by the date of the low', n: lo.length, rows: FL(lo.slice().sort(function (a, b) { return a.ago - b.ago || cap(b) - cap(a); }), function (r) {
+          return { name: tick(r), sub: [p.where(r), 'low ' + fix(r.low), r.rev_up_date ? 'reversal ' + day(r.rev_up_date) : '', r.source !== 'scan' ? 'bottom desk ' + harvestWord(r.harvest_state) : ''].filter(Boolean).join(DOT), big: zpct(r.off_low_pct, 1, true), tone: tone(r.off_low_pct), small: day(r.date) + DOT + 'vs the low' }; }, S, 'ago', 1), none: 'no confirmed low' },
+        { key: 'largest', title: 'Largest ' + (p.kind === 'etf' ? 'funds' : 'companies') + ' marked', hint: p.kind === 'etf' ? 'assets' : 'market cap', rows: FL(rows.slice().sort(by(cap, true)), function (r) { return { name: tick(r), sub: p.where(r) + DOT + lower(r.mark) + ' ' + day(r.date) + DOT + lower(r.status), big: money(cap(r)), small: zpct(r.since_pct, 1, true) + ' since' }; }, S, 'mcap', -1), none: 'none' },
+        { key: 'volume', title: 'Strongest climax bars', hint: 'volume \u00d7 range, the scan\u2019s score' + DOT + p.floorWord, rows: FL(p.sized.filter(function (r) { return r.mark === 'CLIMAX' && fin(r.score); }).sort(by(function (r) { return r.score; }, true)), function (r) {
+          return { name: tick(r), sub: p.where(r) + DOT + 'volume ' + capped(r.vol_x) + DOT + 'range ' + times(r.range_x) + DOT + pct(r.decline_pct, 0) + ' into the low', big: num(r.score, 1), small: day(r.date) + DOT + lower(r.status) }; }, S, 'score', -1), none: 'no climax that size carries a score' },
+        { key: 'deepest', title: 'Deepest declines into the low', hint: p.floorWord, tone: 'down', rows: FL(p.sized.filter(function (r) { return fin(r.decline_pct); }).sort(by(function (r) { return r.decline_pct; })), function (r) {
+          return { name: tick(r), sub: p.where(r) + DOT + lower(r.mark) + ' ' + day(r.date) + DOT + lower(r.status), big: pct(r.decline_pct, 0), tone: 'down', small: pct(r.off_low_pct, 1, true) + ' vs the low' }; }, S, 'decline', 1), none: 'none' },
+        { key: 'strongest', title: 'Strongest since the mark', hint: p.floorWord, tone: 'up', rows: FL(p.sized.filter(function (r) { return r.since_pct > 0; }).sort(by(function (r) { return r.since_pct; }, true)), newest, S, 'since', -1), none: 'nothing is up since its mark' },
+        { key: 'broken', title: 'Lows that are breaking', hint: 'closing under the marked low' + DOT + p.floorWord, tone: 'down', n: broke, rows: FL(p.sized.filter(function (r) { return r.status === 'BROKEN'; }).sort(by(function (r) { return r.off_low_pct; })), function (r) {
+          return { name: tick(r), sub: p.where(r) + DOT + lower(r.mark) + ' ' + day(r.date) + DOT + 'low ' + fix(r.low), big: pct(r.off_low_pct, 1, true), tone: 'down', small: 'vs the low' }; }, S, 'off', 1, { rows: sorted(rows.filter(function (r) { return r.status === 'BROKEN'; }), function (r) { return r.off_low_pct; }) }), none: 'no marked low is closing under' }]
         .concat(p.kind === 'stock' ? [{ key: 'sectors', title: 'By sector', hint: 'share of the sector\u2019s scanned stocks', rows: p.sectors(), none: 'none' }] : []),
+      more: SR.more(S),
       foot: p.foot('CLIMAX and BOTTOM are the chart\u2019s own scans (sellingClimaxScan, structureScan) plus the bottom desk\u2019s climax and secondary-test dates, exactly as the Bot icon marks them.')
     };
   };
@@ -862,6 +1021,9 @@
     var p = scanParts(D_, st, 'accumulation'), rows = p.rows, d = p.d;
     var SR = statusRing(p, 'Where the breakouts stand', 'by the last close', [['ABOVE', 'Above the ACCUM bar', 'ABOVE', 'pos', 1], ['BASE', 'Back in the base', 'BASE', 'pos', 0.5], ['LOST', 'Under the base\u2019s low', 'LOST', 'oth', 0.34]], 'the marked ' + p.word);
     var above = SR.groups[0].list, base = SR.groups[1].list, lost = SR.groups[2].list, mSince = med(p.clear.map(function (r) { return r.since_pct; })), mBase = med(rows.map(function (r) { return r.base_sessions; }));
+    var S = scanSheet(p, [tx('date', 'ACCUM bar', dayOf('date')), nx('ago', 'Sessions ago', 'ago', fN(0)), tx('status', 'Status', statusWord), nx('since', 'Since the bar', 'since_pct', fP(1, true), { tone: true }), nx('base', 'Base, sessions', 'base_sessions', fN(0)),
+      nx('gain', 'Off the low at the bar', 'gain_from_low_pct', fP(0, true)), nx('low', 'Base low', 'low', fPx), tx('lowd', 'Low on', dayOf('low_date')), nx('px', 'Close on the bar', 'px', fPx), nx('last', 'Last', 'last', fPx),
+      nx('off', 'Against the low', 'off_low_pct', fP(1, true), { tone: true }), tx('src', 'Read by', function (r) { return r.source === 'scan' ? 'chart scan' : r.source ? 'bottom desk trigger' : null; }), tx('grade', 'Desk grade', 'harvest_grade')]);
     var row = function (r) { return { name: tick(r), sub: [p.where(r), fin(r.base_sessions) ? 'base ' + plural(r.base_sessions, 'session') : '', fin(r.gain_from_low_pct) ? pct(r.gain_from_low_pct, 0, true) + ' off the low at the bar' : '', r.source !== 'scan' ? 'bottom desk trigger' : ''].filter(Boolean).join(DOT),
       big: zpct(r.since_pct, 1, true), tone: tone(r.since_pct), small: day(r.date) + DOT + lower(r.status) }; };
     var card = function (list, label, none) {
@@ -888,13 +1050,14 @@
         ['Read it late:', 'a low is only confirmed 40 sessions after it prints, so an ACCUM bar can appear on the chart weeks after its date. The date shown is the bar\u2019s, not the day it became readable.'],
         ['Caveat:', 'the bar ends a base; it does not promise a markup. The ring shows how many have since fallen back into the base or under its low.']],
       ring: Object.assign(SR.ring, { caption: 'Each ' + p.one + ' once, under where its last close stands on ' + day(d.as_of) + ': at or above the ACCUM bar\u2019s close, under it but above the low the base stands on, or under that low.' }),
-      lists: [{ key: 'newest', title: 'Newest ACCUM bars', hint: 'largest first on each day', rows: rows.slice().sort(function (a, b) { return a.ago - b.ago || cap(b) - cap(a); }).map(row), none: 'no ACCUM inside the window' },
-        { key: 'largest', title: 'Largest ' + (p.kind === 'etf' ? 'funds' : 'companies') + ' marked', hint: p.kind === 'etf' ? 'assets' : 'market cap', rows: rows.slice().sort(by(cap, true)).map(function (r) { return { name: tick(r), sub: p.where(r) + DOT + day(r.date) + DOT + lower(r.status), big: money(cap(r)), small: zpct(r.since_pct, 1, true) + ' since' }; }), none: 'none' },
-        { key: 'strongest', title: 'Strongest since the bar', hint: p.floorWord, tone: 'up', rows: p.sized.filter(function (r) { return r.since_pct > 0; }).sort(by(function (r) { return r.since_pct; }, true)).map(row), none: 'nothing that size is up since its bar' },
-        { key: 'weakest', title: 'Weakest since the bar', hint: p.floorWord, tone: 'down', rows: p.sized.filter(function (r) { return r.since_pct <= 0; }).sort(by(function (r) { return r.since_pct; })).map(row), none: 'nothing that size is down since its bar' },
-        { key: 'bases', title: 'Longest bases', hint: 'sessions from the low to the bar', rows: rows.filter(function (r) { return fin(r.base_sessions); }).sort(by(function (r) { return r.base_sessions; }, true)).map(function (r) {
-          return { name: tick(r), sub: p.where(r) + DOT + 'low ' + fix(r.low) + ' on ' + day(r.low_date) + DOT + lower(r.status), big: num(r.base_sessions), small: 'sessions' + DOT + day(r.date) }; }), none: 'none' }]
+      lists: [{ key: 'newest', title: 'Newest ACCUM bars', hint: 'largest first on each day', rows: FL(rows.slice().sort(function (a, b) { return a.ago - b.ago || cap(b) - cap(a); }), row, S, 'ago', 1), none: 'no ACCUM inside the window' },
+        { key: 'largest', title: 'Largest ' + (p.kind === 'etf' ? 'funds' : 'companies') + ' marked', hint: p.kind === 'etf' ? 'assets' : 'market cap', rows: FL(rows.slice().sort(by(cap, true)), function (r) { return { name: tick(r), sub: p.where(r) + DOT + day(r.date) + DOT + lower(r.status), big: money(cap(r)), small: zpct(r.since_pct, 1, true) + ' since' }; }, S, 'mcap', -1), none: 'none' },
+        { key: 'strongest', title: 'Strongest since the bar', hint: p.floorWord, tone: 'up', rows: FL(p.sized.filter(function (r) { return r.since_pct > 0; }).sort(by(function (r) { return r.since_pct; }, true)), row, S, 'since', -1), none: 'nothing that size is up since its bar' },
+        { key: 'weakest', title: 'Weakest since the bar', hint: p.floorWord, tone: 'down', rows: FL(p.sized.filter(function (r) { return r.since_pct <= 0; }).sort(by(function (r) { return r.since_pct; })), row, S, 'since', 1), none: 'nothing that size is down since its bar' },
+        { key: 'bases', title: 'Longest bases', hint: 'sessions from the low to the bar', rows: FL(rows.filter(function (r) { return fin(r.base_sessions); }).sort(by(function (r) { return r.base_sessions; }, true)), function (r) {
+          return { name: tick(r), sub: p.where(r) + DOT + 'low ' + fix(r.low) + ' on ' + day(r.low_date) + DOT + lower(r.status), big: num(r.base_sessions), small: 'sessions' + DOT + day(r.date) }; }, S, 'base', -1), none: 'none' }]
         .concat(p.kind === 'stock' ? [{ key: 'sectors', title: 'By sector', hint: 'share of the sector\u2019s scanned stocks', rows: p.sectors(), none: 'none' }] : []),
+      more: SR.more(S),
       foot: p.foot('ACCUM is the chart\u2019s end-of-accumulation bar (structureScan) plus the bottom desk\u2019s trigger date, exactly as the Acc icon marks them.')
     };
   };
@@ -903,6 +1066,9 @@
     var p = scanParts(D_, st, 'distribution'), rows = p.rows, d = p.d;
     var SR = statusRing(p, 'Where the failed rallies stand', 'by the last close', [['BELOW', 'Under the DIST bar', 'BELOW', 'pos', 1], ['RANGE', 'Between the bar and the high', 'RANGE', 'pos', 0.5], ['RECLAIMED', 'Back above the rally high', 'RECLAIMED', 'oth', 0.34]], 'the marked ' + p.word);
     var below = SR.groups[0].list, range = SR.groups[1].list, back = SR.groups[2].list, mHigh = med(p.clear.map(function (r) { return r.below_high_pct; }));
+    var S = scanSheet(p, [tx('date', 'DIST bar', dayOf('date')), nx('ago', 'Sessions ago', 'ago', fN(0)), tx('status', 'Status', statusWord), nx('below', 'Against the rally high', 'below_high_pct', fP(1, true), { tone: true }),
+      nx('since', 'Since the bar', 'since_pct', fP(1, true), { tone: true }), nx('high', 'Rally high', 'high', fPx), tx('highd', 'High on', dayOf('high_date')), nx('push', 'Last push', 'push_pct', fP(0, true)), nx('prev', 'Push before', 'prev_push_pct', fP(0, true)),
+      nx('react', 'Reaction', 'reaction_pct', fP(0, true)), nx('effort', 'Volume, push on push', 'effort_x', fX, { tip: 'the last push\u2019s volume against the push before it' }), tx('why', 'Why', 'why'), nx('px', 'Close on the bar', 'px', fPx), nx('last', 'Last', 'last', fPx)]);
     var effort = rows.filter(function (r) { return r.why === 'more volume bought less'; }).length;
     var row = function (r) { return { name: tick(r), sub: [p.where(r), 'rally high ' + fix(r.high) + ' on ' + day(r.high_date), fin(r.push_pct) ? 'push ' + pct(r.push_pct, 0, true) + ' after ' + pct(r.prev_push_pct, 0, true) : ''].filter(Boolean).join(DOT),
       big: zpct(r.below_high_pct, 1, true), tone: tone(r.below_high_pct), small: day(r.date) + DOT + lower(r.status) }; };
@@ -930,13 +1096,14 @@
         ['Where it prints:', 'on the bar that completes those tests, days after the rally high. The row shows both dates, and the push sizes the verdict rests on.'],
         ['Caveat:', 'a distribution that is reclaimed was wrong. It stays on the board for the window, in the ring\u2019s third slice, so the failures are counted beside the successes.']],
       ring: Object.assign(SR.ring, { caption: 'Each ' + p.one + ' once, under where its last close stands on ' + day(d.as_of) + ': under the DIST bar\u2019s close, between it and the rally high, or back at or above that high.' }),
-      lists: [{ key: 'newest', title: 'Newest DIST bars', hint: 'largest first on each day', rows: rows.slice().sort(function (a, b) { return a.ago - b.ago || cap(b) - cap(a); }).map(row), none: 'no DIST inside the window' },
-        { key: 'largest', title: 'Largest ' + (p.kind === 'etf' ? 'funds' : 'companies') + ' marked', hint: p.kind === 'etf' ? 'assets' : 'market cap', rows: rows.slice().sort(by(cap, true)).map(function (r) { return { name: tick(r), sub: p.where(r) + DOT + day(r.date) + DOT + lower(r.status), big: money(cap(r)), small: zpct(r.below_high_pct, 1, true) + ' vs high' }; }), none: 'none' },
-        { key: 'furthest', title: 'Furthest under the rally high', hint: p.floorWord, tone: 'down', rows: p.sized.filter(function (r) { return r.below_high_pct < 0; }).sort(by(function (r) { return r.below_high_pct; })).map(row), none: 'nothing is under its high' },
-        { key: 'reclaimed', title: 'Took the high back', hint: 'the distribution failed' + DOT + p.floorWord, tone: 'up', n: back.length, rows: p.sized.filter(function (r) { return r.status === 'RECLAIMED'; }).sort(by(function (r) { return r.below_high_pct; }, true)).map(row), none: 'no rally high that size was reclaimed' },
-        { key: 'effort', title: 'Most volume for the least progress', hint: 'last push against the one before' + DOT + p.floorWord, rows: p.sized.filter(function (r) { return fin(r.effort_x) && r.why === 'more volume bought less'; }).sort(by(function (r) { return r.effort_x; }, true)).map(function (r) {
-          return { name: tick(r), sub: p.where(r) + DOT + 'push ' + pct(r.push_pct, 0, true) + ' after ' + pct(r.prev_push_pct, 0, true) + DOT + lower(r.status), big: times(r.effort_x), small: day(r.date) }; }), none: 'none' }]
+      lists: [{ key: 'newest', title: 'Newest DIST bars', hint: 'largest first on each day', rows: FL(rows.slice().sort(function (a, b) { return a.ago - b.ago || cap(b) - cap(a); }), row, S, 'ago', 1), none: 'no DIST inside the window' },
+        { key: 'largest', title: 'Largest ' + (p.kind === 'etf' ? 'funds' : 'companies') + ' marked', hint: p.kind === 'etf' ? 'assets' : 'market cap', rows: FL(rows.slice().sort(by(cap, true)), function (r) { return { name: tick(r), sub: p.where(r) + DOT + day(r.date) + DOT + lower(r.status), big: money(cap(r)), small: zpct(r.below_high_pct, 1, true) + ' vs high' }; }, S, 'mcap', -1), none: 'none' },
+        { key: 'furthest', title: 'Furthest under the rally high', hint: p.floorWord, tone: 'down', rows: FL(p.sized.filter(function (r) { return r.below_high_pct < 0; }).sort(by(function (r) { return r.below_high_pct; })), row, S, 'below', 1), none: 'nothing is under its high' },
+        { key: 'reclaimed', title: 'Took the high back', hint: 'the distribution failed' + DOT + p.floorWord, tone: 'up', n: back.length, rows: FL(p.sized.filter(function (r) { return r.status === 'RECLAIMED'; }).sort(by(function (r) { return r.below_high_pct; }, true)), row, S, 'below', -1, { rows: sorted(rows.filter(function (r) { return r.status === 'RECLAIMED'; }), function (r) { return r.below_high_pct; }, true) }), none: 'no rally high that size was reclaimed' },
+        { key: 'effort', title: 'Most volume for the least progress', hint: 'last push against the one before' + DOT + p.floorWord, rows: FL(p.sized.filter(function (r) { return fin(r.effort_x) && r.why === 'more volume bought less'; }).sort(by(function (r) { return r.effort_x; }, true)), function (r) {
+          return { name: tick(r), sub: p.where(r) + DOT + 'push ' + pct(r.push_pct, 0, true) + ' after ' + pct(r.prev_push_pct, 0, true) + DOT + lower(r.status), big: times(r.effort_x), small: day(r.date) }; }, S, 'effort', -1), none: 'none' }]
         .concat(p.kind === 'stock' ? [{ key: 'sectors', title: 'By sector', hint: 'share of the sector\u2019s scanned stocks', rows: p.sectors(), none: 'none' }] : []),
+      more: SR.more(S),
       foot: p.foot('DIST is the chart\u2019s distribution scan (distributionScan), exactly as the Dist icon marks it; D-TOP is the structure top within 40 sessions of the rally high.')
     };
   };
@@ -950,6 +1117,10 @@
     var cl = rows.filter(function (r) { return r.state === 'CLIMAX'; }), te = rows.filter(function (r) { return r.state === 'TESTING'; });
     var age = function (r) { return daysBetween(r.sc_date, ref); }, fresh = rows.filter(function (r) { var a = age(r); return fin(a) && a <= 7; }), good = rows.filter(function (r) { return r.grade === 'A' || r.grade === 'B'; });
     var groups = groupBy(rows, where), u = d.universe || {};
+    var S = sheet([tx('t', 'Ticker', 'ticker', { find: 'start' }), tx('name', 'Name', function (r) { return r.name || r.company; }), tx('where', 'Sector or desk', where), nx('mcap', 'Mkt cap', function (r) { return fin(r.mcap) ? r.mcap : null; }, fM),
+      tx('state', 'State', function (r) { return r.state ? lower(r.state) : null; }), tx('grade', 'Grade', 'grade'), nx('score', 'Score', 'score', fN(1)), tx('date', 'Climax', dayOf('sc_date')), nx('vol', 'Volume', 'sc_vol_x', fX, { tip: 'the climax bar against the 50-day average volume' }),
+      nx('range', 'Range', 'sc_range_x', fX), nx('decline', 'Decline into it', 'sc_decline_pct', fP(0)), nx('low', 'Climax low', 'sc_low', fPx), nx('last', 'Last', 'last', fPx), nx('off', 'Against the low', 'dist_sc_low_pct', fP(1, true), { tone: true }),
+      nx('ar', 'Automatic rally', 'ar_rally_pct', fP(0))], ['name', 'names'], { href: function (r) { return r.desk === 'crypto' || r.desk === 'currencies' ? '' : chartOf(r.ticker); }, find: 'Find a ticker, name, sector or desk', phone: ['t', 'vol', 'date', 'decline', 'state', 'grade', 'where'] });
     var row = function (r) { return { name: tick(r), sub: [where(r), pct(r.sc_decline_pct, 0) + ' into the climax', 'range ' + times(r.sc_range_x), 'grade ' + (r.grade || D)].join(DOT), big: times(r.sc_vol_x), small: day(r.sc_date) + DOT + lower(r.state) }; };
     var card = function (r, label) {
       if (!r) return { tone: '', big: D, eyebrow: label, title: 'None', text: 'No daily row is in a climax or testing one.' };
@@ -971,18 +1142,18 @@
       notes: [['The climax:', 'climactic volume at a new low of a real decline, a wide range, and a close off the low. CLIMAX = the bar has printed; TESTING = price rallied and is back testing that low.'],
         ['What comes next:', 'the proof is the secondary test on shrunken volume. The Bottom tab follows the names that pass it.'],
         ['Caveat:', 'the board is the bottom desk\u2019s top ' + num((d.board || []).length) + ' rows by score, not every climax in the market; the Bottom tab lists every stock the chart marks.']],
-      ring: { title: 'Where the climaxes are', hint: 'names by sector or desk', n: rows.length, center: num(rows.length), subs: ['NAMES', 'CLIMAX ' + cl.length + DOT + 'TESTING ' + te.length], whole: 'the board', aria: 'Selling-climax names by sector',
+      ring: { open: 'newest', title: 'Where the climaxes are', hint: 'names by sector or desk', n: rows.length, center: num(rows.length), subs: ['NAMES', 'CLIMAX ' + cl.length + DOT + 'TESTING ' + te.length], whole: 'the board', aria: 'Selling-climax names by sector',
         slices: compose(groups, function (k) { return k; }, function (g) { return pct(share(g.list.length, rows.length), 0) + DOT + tickers(g.list.slice().sort(by(function (r) { return r.sc_vol_x || 0; }, true))); }),
         caption: 'Each name once, under its sector (stocks) or its desk (funds, bonds, countries, crypto).' },
-      lists: [{ key: 'newest', title: 'Newest climaxes', hint: 'by the date of the bar', rows: rows.slice().sort(function (a, b) { return String(b.sc_date).localeCompare(String(a.sc_date)) || (b.sc_vol_x || 0) - (a.sc_vol_x || 0); }).map(row), none: 'none' },
-        { key: 'volume', title: 'Heaviest volume', hint: 'climax bar against the 50-day average', rows: rows.slice().sort(by(function (r) { return r.sc_vol_x || 0; }, true)).map(row), none: 'none' },
-        { key: 'deepest', title: 'Deepest declines', hint: 'into the climax low', tone: 'down', rows: rows.filter(function (r) { return fin(r.sc_decline_pct); }).sort(by(function (r) { return r.sc_decline_pct; })).map(function (r) {
-          return { name: tick(r), sub: where(r) + DOT + 'volume ' + times(r.sc_vol_x) + DOT + lower(r.state), big: pct(r.sc_decline_pct, 0), tone: 'down', small: day(r.sc_date) }; }), none: 'none' },
-        { key: 'largest', title: 'Largest companies', hint: 'market cap', rows: rows.filter(function (r) { return fin(r.mcap); }).sort(by(cap, true)).map(function (r) { return { name: tick(r), sub: where(r) + DOT + lower(r.state) + DOT + 'volume ' + times(r.sc_vol_x), big: money(r.mcap), small: day(r.sc_date) }; }), none: 'none' },
-        { key: 'graded', title: 'Best graded', hint: 'the bottom desk\u2019s score', tone: 'up', rows: rows.filter(function (r) { return fin(r.score); }).sort(by(function (r) { return r.score; }, true)).map(function (r) {
-          return { name: tick(r), sub: where(r) + DOT + lower(r.state) + DOT + 'volume ' + times(r.sc_vol_x), big: (r.grade || D) + ' ' + num(r.score), small: day(r.sc_date) }; }), none: 'none' },
-        { key: 'testing', title: 'Testing the low', hint: 'closest to the climax low', n: te.length, rows: te.filter(function (r) { return fin(r.dist_sc_low_pct); }).sort(by(function (r) { return Math.abs(r.dist_sc_low_pct); })).map(function (r) {
-          return { name: tick(r), sub: where(r) + DOT + 'climax ' + day(r.sc_date) + DOT + 'low ' + fix(r.sc_low), big: pct(r.dist_sc_low_pct, 1, true), tone: tone(r.dist_sc_low_pct), small: 'vs the low' }; }), none: 'nothing is testing' }],
+      lists: [{ key: 'newest', title: 'Newest climaxes', hint: 'by the date of the bar', rows: FL(rows.slice().sort(function (a, b) { return String(b.sc_date).localeCompare(String(a.sc_date)) || (b.sc_vol_x || 0) - (a.sc_vol_x || 0); }), row, S, 'date', -1), none: 'none' },
+        { key: 'volume', title: 'Heaviest volume', hint: 'climax bar against the 50-day average', rows: FL(rows.slice().sort(by(function (r) { return r.sc_vol_x || 0; }, true)), row, S, 'vol', -1), none: 'none' },
+        { key: 'deepest', title: 'Deepest declines', hint: 'into the climax low', tone: 'down', rows: FL(rows.filter(function (r) { return fin(r.sc_decline_pct); }).sort(by(function (r) { return r.sc_decline_pct; })), function (r) {
+          return { name: tick(r), sub: where(r) + DOT + 'volume ' + times(r.sc_vol_x) + DOT + lower(r.state), big: pct(r.sc_decline_pct, 0), tone: 'down', small: day(r.sc_date) }; }, S, 'decline', 1), none: 'none' },
+        { key: 'largest', title: 'Largest companies', hint: 'market cap', rows: FL(rows.filter(function (r) { return fin(r.mcap); }).sort(by(cap, true)), function (r) { return { name: tick(r), sub: where(r) + DOT + lower(r.state) + DOT + 'volume ' + times(r.sc_vol_x), big: money(r.mcap), small: day(r.sc_date) }; }, S, 'mcap', -1), none: 'none' },
+        { key: 'graded', title: 'Best graded', hint: 'the bottom desk\u2019s score', tone: 'up', rows: FL(rows.filter(function (r) { return fin(r.score); }).sort(by(function (r) { return r.score; }, true)), function (r) {
+          return { name: tick(r), sub: where(r) + DOT + lower(r.state) + DOT + 'volume ' + times(r.sc_vol_x), big: (r.grade || D) + ' ' + num(r.score), small: day(r.sc_date) }; }, S, 'score', -1), none: 'none' },
+        { key: 'testing', title: 'Testing the low', hint: 'closest to the climax low', n: te.length, rows: FL(te.filter(function (r) { return fin(r.dist_sc_low_pct); }).sort(by(function (r) { return Math.abs(r.dist_sc_low_pct); })), function (r) {
+          return { name: tick(r), sub: where(r) + DOT + 'climax ' + day(r.sc_date) + DOT + 'low ' + fix(r.sc_low), big: pct(r.dist_sc_low_pct, 1, true), tone: tone(r.dist_sc_low_pct), small: 'vs the low' }; }, S), none: 'nothing is testing' }],
       foot: 'Source: justhodl-bottom ' + (d.version || '') + ' (data/bottom.json), session ' + day(ref) + ', published ' + String(d.generated_at || '').slice(0, 16).replace('T', ' ') + ' UTC. The board carries the desk\u2019s ' + num((d.board || []).length) + ' highest-scored rows of '
         + num(u.scored) + ' instruments scored; this tab reads the daily rows in CLIMAX or TESTING.'
     };
@@ -1002,6 +1173,16 @@
     var sess = (B.sessions || []).slice().sort(by(function (s) { return s.total || 0; }, true)), last = B.last_session || {};
     var desk = function (r) { return CAP_DESK[r.desk] || r.desk || ''; };
     var row = function (r, big, small) { return { name: tick(r), sub: [desk(r), pct(r.ret_pct, 1, true) + ' on the day', 'volume ' + times(r.vol_x), 'range ' + times(r.range_x)].join(DOT), big: big, tone: 'down', small: small || day(r.date) }; };
+    var aft = function (k) { return function (r) { return (r.after || {})[k]; }; }, newestFirst = function (a, b) { return String(b.date).localeCompare(String(a.date)) || (b.score || 0) - (a.score || 0); };
+    var S = sheet([tx('t', 'Ticker', 'ticker', { find: 'start' }), tx('name', 'Name', 'name'), tx('desk', 'Desk', desk), tx('date', 'Print', dayOf('date')), nx('score', 'Score', 'score', fN(0)), nx('ret', 'On the day', 'ret_pct', fP(1, true), { tone: true }),
+      nx('vol', 'Volume', 'vol_x', fX, { tip: 'the print bar against the 50-session average volume' }), nx('range', 'Range', 'range_x', fX), nx('dd20', 'Fall, 20 sessions', 'dd20_pct', fP(0)), nx('dd60', 'Fall, 60 sessions', 'dd60_pct', fP(0)),
+      nx('since', 'Sessions since', aft('sessions_since'), fN(0)), nx('bounce', 'Bounce since', aft('bounce_pct'), fP(1, true), { tone: true, tip: 'the highest close after the print, against it' }),
+      nx('under', 'Undercut since', aft('undercut_pct'), fP(1, true), { tone: true, tip: 'the lowest low after the print, against its low' }), tx('held', 'Its low', function (r) { var h = (r.after || {}).held; return h === true ? 'held' : h === false ? 'undercut' : null; }),
+      nx('now', 'Now against the print', aft('now_vs_print_pct'), fP(1, true), { tone: true }), tx('ctx', 'Context', function (r) { return r.context ? lower(r.context) : null; }),
+      tx('wy', 'Bottom desk', function (r) { var y = r.wyckoff || {}; return y.state ? lower(y.state) + (y.grade ? ', grade ' + y.grade : '') : null; })],
+      ['print', 'prints'], { href: function (r) { return r.desk === 'crypto' || r.desk === 'currencies' ? '' : chartOf(r.ticker); }, find: 'Find a ticker, name or desk', phone: ['t', 'score', 'ret', 'vol', 'date', 'desk'] });
+    var DAYS = sheet([tx('date', 'Session', dayOf('date')), nx('n', 'Prints', 'total', fN(0)), nx('share', '% of the scored', 'pct_of_scored', fP(2)), nx('s5', 'Five-session sum', 'sum_5', fN(0))].concat(order.map(function (k) {
+      return nx('d_' + k, CAP_DESK[k] || k, function (s) { return (s.by_desk || {})[k] || 0; }, fN(0)); })), ['session', 'sessions']);
     var top = latest[0], cluster = sess[0];
     return {
       eyebrow: 'Capitulation tearsheet' + DOT + 'session ' + day(d.session) + DOT + num(B.n_scored) + ' instruments scored across ' + order.length + ' desks',
@@ -1024,18 +1205,20 @@
       notes: [['Read:', String(d.read || '') + '.'],
         ['Not a low by itself:', 'a print is one bar of panic. The follow-through columns on the desk below show whether the low held, how far it bounced and whether it was undercut.'],
         ['Caveat:', 'the stock board keeps the ' + num(P.board_rows || 500) + ' highest-scored prints of the ' + keep + ' sessions; the ring counts every print, the lists rank what the boards hold (' + num(all.length) + ').']],
-      ring: { title: 'Prints by desk', hint: 'last ' + keep + ' sessions', n: total, center: num(total), subs: ['PRINTS', 'LAST ' + win + ': ' + num(B.sum_5)], whole: 'the prints', aria: 'Capitulation prints by desk over ' + keep + ' sessions',
-        slices: desks.map(function (x, i) { return { name: CAP_DESK[x.key] || x.key, value: x.n, tone: i < 5 ? 'pos' : 'oth', big: num(x.n), small: pct(share(x.n, total), 0) + DOT + pct(share(x.n, x.scored), 0) + ' of ' + num(x.scored) + ' scored' + DOT + x.five + ' in the last ' + win }; }),
+      ring: { open: 'all', title: 'Prints by desk', hint: 'last ' + keep + ' sessions', n: total, center: num(total), subs: ['PRINTS', 'LAST ' + win + ': ' + num(B.sum_5)], whole: 'the prints', aria: 'Capitulation prints by desk over ' + keep + ' sessions',
+        slices: desks.map(function (x, i) { return { open: (d.boards[x.key] || []).length ? 'desk-' + x.key : '', name: CAP_DESK[x.key] || x.key, value: x.n, tone: i < 5 ? 'pos' : 'oth', big: num(x.n), small: pct(share(x.n, total), 0) + DOT + pct(share(x.n, x.scored), 0) + ' of ' + num(x.scored) + ' scored' + DOT + x.five + ' in the last ' + win }; }),
         caption: 'Every print of the last ' + keep + ' sessions once, under the desk that scored it. A desk\u2019s floor is its own: stocks \u22123%, equity ETFs \u22122%, bonds \u22121%, crypto \u22125%.' },
-      lists: [{ key: 'latest', title: 'Latest prints', hint: 'last ' + win + ' sessions, by score', tone: 'down', n: latest.length, rows: latest.map(function (r) { return row(r, num(r.score, 0), day(r.date) + DOT + 'score'); }), none: 'no print in the last ' + win + ' sessions' },
-        { key: 'volume', title: 'Heaviest volume', hint: 'against the 50-session average', rows: all.filter(function (r) { return fin(r.vol_x); }).sort(by(function (r) { return r.vol_x; }, true)).map(function (r) { return row(r, times(r.vol_x)); }), none: 'none' },
-        { key: 'falls', title: 'Deepest one-day falls', hint: 'the print bar', tone: 'down', rows: all.filter(function (r) { return fin(r.ret_pct); }).sort(by(function (r) { return r.ret_pct; })).map(function (r) { return row(r, pct(r.ret_pct, 1, true)); }), none: 'none' },
-        { key: 'bounce', title: 'Best bounce since the print', hint: 'highest close after it', tone: 'up', rows: all.filter(function (r) { return r.after && fin(r.after.bounce_pct) && r.after.bounce_pct >= 0.05; }).sort(by(function (r) { return r.after.bounce_pct; }, true)).map(function (r) {
-          return { name: tick(r), sub: [desk(r), 'printed ' + day(r.date), r.after.held ? 'low held' : 'low undercut'].join(DOT), big: zpct(r.after.bounce_pct, 1, true), tone: 'up', small: plural(r.after.sessions_since, 'session') }; }), none: 'no print has bounced yet' },
-        { key: 'undercut', title: 'Undercut since the print', hint: 'lowest low after it', tone: 'down', rows: all.filter(function (r) { return r.after && fin(r.after.undercut_pct) && r.after.undercut_pct <= -0.05; }).sort(by(function (r) { return r.after.undercut_pct; })).map(function (r) {
-          return { name: tick(r), sub: [desk(r), 'printed ' + day(r.date), fin(r.after.now_vs_print_pct) ? 'now ' + zpct(r.after.now_vs_print_pct, 1, true) + ' vs the print' : ''].filter(Boolean).join(DOT), big: zpct(r.after.undercut_pct, 1, true), tone: 'down', small: plural(r.after.sessions_since, 'session') }; }), none: 'no print has been undercut' },
-        { key: 'sessions', title: 'Heaviest sessions', hint: 'prints in one day', rows: sess.filter(function (s) { return s.total > 0; }).map(function (s) {
-          return { name: day(s.date), sub: Object.keys(s.by_desk || {}).sort(function (a, b) { return s.by_desk[b] - s.by_desk[a]; }).slice(0, 4).map(function (k) { return (CAP_DESK[k] || k) + ' ' + s.by_desk[k]; }).join(DOT), big: num(s.total), small: pct(s.pct_of_scored, 2) + ' of scored' }; }), none: 'none' }],
+      lists: [{ key: 'latest', title: 'Latest prints', hint: 'last ' + win + ' sessions, by score', tone: 'down', n: latest.length, rows: FL(latest, function (r) { return row(r, num(r.score, 0), day(r.date) + DOT + 'score'); }, S, 'score', -1), none: 'no print in the last ' + win + ' sessions' },
+        { key: 'volume', title: 'Heaviest volume', hint: 'against the 50-session average', rows: FL(all.filter(function (r) { return fin(r.vol_x); }).sort(by(function (r) { return r.vol_x; }, true)), function (r) { return row(r, times(r.vol_x)); }, S, 'vol', -1), none: 'none' },
+        { key: 'falls', title: 'Deepest one-day falls', hint: 'the print bar', tone: 'down', rows: FL(all.filter(function (r) { return fin(r.ret_pct); }).sort(by(function (r) { return r.ret_pct; })), function (r) { return row(r, pct(r.ret_pct, 1, true)); }, S, 'ret', 1), none: 'none' },
+        { key: 'bounce', title: 'Best bounce since the print', hint: 'highest close after it', tone: 'up', rows: FL(all.filter(function (r) { return r.after && fin(r.after.bounce_pct) && r.after.bounce_pct >= 0.05; }).sort(by(function (r) { return r.after.bounce_pct; }, true)), function (r) {
+          return { name: tick(r), sub: [desk(r), 'printed ' + day(r.date), r.after.held ? 'low held' : 'low undercut'].join(DOT), big: zpct(r.after.bounce_pct, 1, true), tone: 'up', small: plural(r.after.sessions_since, 'session') }; }, S, 'bounce', -1), none: 'no print has bounced yet' },
+        { key: 'undercut', title: 'Undercut since the print', hint: 'lowest low after it', tone: 'down', rows: FL(all.filter(function (r) { return r.after && fin(r.after.undercut_pct) && r.after.undercut_pct <= -0.05; }).sort(by(function (r) { return r.after.undercut_pct; })), function (r) {
+          return { name: tick(r), sub: [desk(r), 'printed ' + day(r.date), fin(r.after.now_vs_print_pct) ? 'now ' + zpct(r.after.now_vs_print_pct, 1, true) + ' vs the print' : ''].filter(Boolean).join(DOT), big: zpct(r.after.undercut_pct, 1, true), tone: 'down', small: plural(r.after.sessions_since, 'session') }; }, S, 'under', 1), none: 'no print has been undercut' },
+        { key: 'sessions', title: 'Heaviest sessions', hint: 'prints in one day', rows: FL(sess.filter(function (s) { return s.total > 0; }), function (s) {
+          return { name: day(s.date), sub: Object.keys(s.by_desk || {}).sort(function (a, b) { return s.by_desk[b] - s.by_desk[a]; }).slice(0, 4).map(function (k) { return (CAP_DESK[k] || k) + ' ' + s.by_desk[k]; }).join(DOT), big: num(s.total), small: pct(s.pct_of_scored, 2) + ' of scored' }; }, DAYS, 'n', -1), none: 'none' }],
+      more: [hidden('all', 'Every print', 'last ' + keep + ' sessions, newest first', all.slice().sort(newestFirst), S, 'date', -1)].concat(order.filter(function (k) { return (d.boards[k] || []).length; }).map(function (k) {
+        return hidden('desk-' + k, CAP_DESK[k] || k, 'its prints, newest first', d.boards[k].slice().sort(newestFirst), S, 'date', -1); })),
       foot: 'Source: justhodl-bottom ' + (d.engine_version || '') + ' (data/capitulation-desk.json, contract ' + (d.contract || '') + '), session ' + day(d.session) + ', published ' + String(d.generated_at || '').slice(0, 16).replace('T', ' ')
         + ' UTC. Breadth percentile is against ' + num(B.window_sessions) + ' sessions. A print is detected on the tape alone; nothing here is a forecast.'
     };
@@ -1059,7 +1242,11 @@
     var pos = function (r) { return fin(r.lo) && fin(r.hi) && r.hi > r.lo && fin(r.price) ? (r.price - r.lo) / (r.hi - r.lo) * 100 : null; };
     var row = function (r) { return { name: r.ticker, sub: [PHASE[r.phase] || r.phase || '', fin(r.days) ? plural(r.days, 'day') + ' in phase' : '', fin(pos(r)) ? pct(pos(r), 0) + ' up its range' : '', fin(r.whales) ? '13F ' + money(r.whales, true) : ''].filter(Boolean).join(DOT),
       big: fin(r.pressure) ? fix(r.pressure) : D, tone: tone(r.pressure), small: day(r.date) + DOT + 'pressure' }; };
-    var book = function (list) { return (list || []).map(function (x) { return { name: x.ticker, sub: [PHASE[x.phase] || x.phase, 'since ' + day(x.begin), fin(x.price) ? 'last ' + fix(x.price) : ''].filter(Boolean).join(DOT), big: fin(x.pressure) ? fix(x.pressure) : D, tone: tone(x.pressure), small: fin(x.days) ? plural(x.days, 'day') : '' }; }); };
+    var book = function (list) { return FL((list || []), function (x) { return { name: x.ticker, sub: [PHASE[x.phase] || x.phase, 'since ' + day(x.begin), fin(x.price) ? 'last ' + fix(x.price) : ''].filter(Boolean).join(DOT), big: fin(x.pressure) ? fix(x.pressure) : D, tone: tone(x.pressure), small: fin(x.days) ? plural(x.days, 'day') : '' }; }, BOOK); };
+    var phaseOf = function (r) { return PHASE[r.phase] || r.phase; }, link = { href: function (r) { return chartOf(r.ticker); }, find: 'Find a ticker or a phase' };
+    var S = sheet([tx('t', 'Ticker', 'ticker', { find: 'start' }), tx('date', 'Buying climax', dayOf('date')), tx('phase', 'Phase now', phaseOf), nx('days', 'Days in phase', 'days', fN(0)), nx('press', 'Pressure', 'pressure', fS(2), { tone: true }),
+      nx('pos', 'Up its range', pos, fP(0)), nx('last', 'Last', 'price', fPx), nx('lo', 'Range low', 'lo', fPx), nx('hi', 'Range high', 'hi', fPx), nx('whales', '13F flow', 'whales', fMs, { tone: true })], ['name', 'names'], link);
+    var BOOK = sheet([tx('t', 'Ticker', 'ticker', { find: 'start' }), tx('phase', 'Phase', phaseOf), tx('begin', 'Since', dayOf('begin')), nx('days', 'Days', 'days', fN(0)), nx('press', 'Pressure', 'pressure', fS(2), { tone: true }), nx('last', 'Last', 'price', fPx)], ['name', 'names'], link);
     var newest = rows[0];
     return {
       eyebrow: 'Buying climax tearsheet' + DOT + 'read ' + day(ref) + DOT + num(d.analyzed_n) + ' names analysed by the phase detector',
@@ -1080,9 +1267,9 @@
       notes: [['The climax:', 'buyers rush a high on climactic volume and the bar closes off its extreme. Supply met them there.'],
         ['What comes next:', 'weakness on the reaction, or an upthrust that fails. Until one prints the trend has not been broken.'],
         ['Caveat:', 'the phase detector reads a book of ' + num(d.universe_n) + ' liquid names, not the whole warehouse. Pressure is its own reading of effort against result, shown as published.']],
-      ring: { title: 'Where they stand now', hint: 'names by phase', n: rows.length, center: num(rows.length), subs: ['NAMES', 'DISTRIBUTION ' + inDist.length], whole: 'the names', aria: 'Names with a live buying climax by phase',
+      ring: { open: 'newest', title: 'Where they stand now', hint: 'names by phase', n: rows.length, center: num(rows.length), subs: ['NAMES', 'DISTRIBUTION ' + inDist.length], whole: 'the names', aria: 'Names with a live buying climax by phase',
         slices: compose(groups, function (k) { return PHASE[k] || k; }, function (g) { return pct(share(g.list.length, rows.length), 0) + DOT + tickers(g.list, 4); }), caption: 'Each name once, under the phase the detector reads for it on ' + day(ref) + '.' },
-      lists: [{ key: 'newest', title: 'Newest buying climaxes', hint: 'by the date of the bar', rows: rows.map(row), none: 'no live buying climax' },
+      lists: [{ key: 'newest', title: 'Newest buying climaxes', hint: 'by the date of the bar', rows: FL(rows, row, S, 'date', -1), none: 'no live buying climax' },
         { key: 'dist-begin', title: 'Distribution beginning', hint: 'context', tone: 'down', rows: book(B.distribution_beginning), none: 'none' },
         { key: 'dist-mature', title: 'Distribution mature', hint: 'context', tone: 'down', rows: book(B.distribution_mature), none: 'none' },
         { key: 'dist-ended', title: 'Ended in markdown', hint: 'distributions that resolved', tone: 'down', rows: book(B.distribution_ended_markdown), none: 'none' }],
@@ -1105,6 +1292,9 @@
     var K = [['FIRED', 'Fired', 'pos', 1], ['FORMING', 'Forming', 'pos', 0.5], ['FAILED', 'Failed', 'oth', 0.34]];
     var G = K.map(function (k) { return rows.filter(function (r) { return r.kind === k[0]; }); }), fired = G[0].sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); }), forming = G[1].sort(by(function (r) { return r.dist; })), failed = G[2];
     var row = function (r) { return { name: r.ticker, sub: ['range ' + fix(r.lo) + ' to ' + fix(r.hi), plural(r.days, 'day') + ' in the range', fin(r.pressure) ? 'pressure ' + fix(r.pressure) : ''].filter(Boolean).join(DOT), big: zpct(r.dist, 1, true), tone: tone(r.dist), small: (r.date ? day(r.date) + DOT : '') + 'vs range low' }; };
+    var S = sheet([tx('t', 'Ticker', 'ticker', { find: 'start' }), tx('state', 'State', function (r) { return r.kind ? lower(r.kind) : null; }), tx('date', 'Spring', dayOf('date')), nx('dist', 'Against the range low', 'dist', fP(1, true), { tone: true }),
+      nx('lo', 'Range low', 'lo', fPx), nx('hi', 'Range high', 'hi', fPx), nx('last', 'Last', 'price', fPx), nx('days', 'Days in the range', 'days', fN(0)), nx('press', 'Pressure', 'pressure', fS(2), { tone: true })],
+      ['name', 'names'], { href: function (r) { return chartOf(r.ticker); }, find: 'Find a ticker' });
     var card = function (r, label, none, how) {
       if (!r) return { tone: '', big: D, eyebrow: label, title: 'None', text: none };
       return { tone: tone(r.dist), big: zpct(r.dist, 1, true), eyebrow: label, title: r.ticker, text: how(r) + ' Range ' + fix(r.lo) + ' to ' + fix(r.hi) + ', ' + plural(r.days, 'day') + ' old; last ' + fix(r.price) + ', ' + zpct(r.dist, 1, true) + ' against the range low' + (fin(r.pressure) ? '; pressure ' + fix(r.pressure) : '') + '.' };
@@ -1125,11 +1315,11 @@
         ['Failed:', 'a spring event in a name whose phase is distribution. That is an upthrust\u2019s cousin, not a buy.'],
         ['Caveat:', 'the phase detector reads a book of ' + num(d.universe_n) + ' liquid names, not the whole warehouse.']],
       ring: { title: 'Springs by state', hint: 'names', n: rows.length, center: num(rows.length), subs: ['NAMES', 'FIRED ' + fired.length + DOT + 'FORMING ' + forming.length], whole: 'the names', aria: 'Springs by state',
-        slices: K.map(function (k, i) { return { name: k[1], value: G[i].length, tone: k[2], op: k[3], big: num(G[i].length), small: pct(share(G[i].length, rows.length), 0) + (G[i].length ? DOT + tickers(G[i], 4) : '') }; }),
+        slices: K.map(function (k, i) { return { open: G[i].length ? ['fired', 'forming', 'failed'][i] : '', name: k[1], value: G[i].length, tone: k[2], op: k[3], big: num(G[i].length), small: pct(share(G[i].length, rows.length), 0) + (G[i].length ? DOT + tickers(G[i], 4) : '') }; }),
         caption: 'Each name once: fired (the spring printed, still in accumulation), forming (at the range low, no spring yet) or failed (a spring inside distribution).' },
-      lists: [{ key: 'fired', title: 'Fired', hint: 'newest first', tone: 'up', rows: fired.map(row), none: 'no spring has fired' },
-        { key: 'forming', title: 'Forming', hint: 'closest to the range low', rows: forming.map(row), none: 'nothing is forming' },
-        { key: 'failed', title: 'Failed', hint: 'a spring inside distribution', tone: 'down', rows: failed.map(row), none: 'no failed spring' }],
+      lists: [{ key: 'fired', title: 'Fired', hint: 'newest first', tone: 'up', rows: FL(fired, row, S, 'date', -1), none: 'no spring has fired' },
+        { key: 'forming', title: 'Forming', hint: 'closest to the range low', rows: FL(forming, row, S, 'dist', 1), none: 'nothing is forming' },
+        { key: 'failed', title: 'Failed', hint: 'a spring inside distribution', tone: 'down', rows: FL(failed, row, S), none: 'no failed spring' }],
       foot: 'Source: justhodl-phase-detector (data/phase-detector.json), published ' + String(ref || '').slice(0, 16).replace('T', ' ') + ' UTC; ' + num(d.analyzed_n) + ' of ' + num(d.universe_n) + ' names analysed.'
     };
   };
@@ -1141,6 +1331,11 @@
     var rows = d.picks.filter(function (x) { return x && x.bbw_pctile != null && x.bbw_pctile <= 20 && (x.squeeze || (x.accum_legs && x.accum_legs.bb_tight >= 70)); }).sort(by(function (r) { return r.bbw_pctile; }));
     var where = function (r) { return r.asset_class === 'stock' || !r.asset_class ? (r.sector || 'Unclassified') : r.asset_class === 'etf' ? 'ETFs' : r.asset_class === 'crypto' ? 'Crypto' : r.asset_class; };
     var sq = rows.filter(function (r) { return r.squeeze; }), legs = function (r) { return r.accum_legs || {}; }, acc = function (r) { return (r.pillars || {}).accumulation; }, groups = groupBy(rows, where), u = d.universe || {};
+    var S = sheet([tx('t', 'Ticker', 'ticker', { find: 'start' }), tx('name', 'Name', 'name'), tx('where', 'Sector or class', where), nx('mcap', 'Mkt cap', function (r) { return fin(r.mcap) ? r.mcap : null; }, fM),
+      nx('bbw', 'Band width, percentile', 'bbw_pctile', fN(0), { tip: 'Bollinger band width against the pick\u2019s own history: low is tight' }), tx('sq', 'Coil', function (r) { return r.squeeze ? 'squeeze' : 'tight'; }),
+      nx('rc', 'Range contraction', function (r) { return legs(r).range_contraction; }, fN(0)), nx('dry', 'Volume dry-up', function (r) { return legs(r).vol_dryup; }, fN(0)), nx('vr', '20-day over 120-day volume', 'vol_ratio_20_120', fN(2)),
+      nx('acc', 'Accumulation pillar', acc, fN(0)), tx('tier', 'Tier', function (r) { return r.tier ? lower(String(r.tier).replace(/_/g, ' ')) : null; }), nx('weeks', 'Base, weeks', 'base_weeks', fN(0)), nx('last', 'Last', 'last', fPx)],
+      ['pick', 'picks'], { href: function (r) { return chartOf(r.asset_class === 'crypto' ? r.ticker + '-USD' : r.ticker); }, find: 'Find a ticker, name, sector or tier', phone: ['t', 'bbw', 'sq', 'acc', 'mcap', 'where'] });
     var row = function (r) { return { name: tick(r), sub: [where(r), r.squeeze ? 'squeeze' : 'tight', 'range contraction ' + num(legs(r).range_contraction), 'volume ' + (fin(r.vol_ratio_20_120) ? r.vol_ratio_20_120.toFixed(2) : D) + ' of its 120-day'].join(DOT), big: 'p' + num(r.bbw_pctile), small: 'band width' }; };
     var card = function (r, label) {
       if (!r) return { tone: '', big: D, eyebrow: label, title: 'None', text: 'No pick is coiled.' };
@@ -1162,16 +1357,16 @@
       notes: [['The coil:', 'a narrow daily range inside a narrow Bollinger band. Energy is stored; direction is not given.'],
         ['What comes next:', 'expansion. Which way is read from the structure around it: a base after a low, or a ledge under a high.'],
         ['Caveat:', 'Katlin\u2019s permission panel below governs entries; a coiled row is research, not a signal.']],
-      ring: { title: 'Where the coils are', hint: 'names by sector or class', n: rows.length, center: num(rows.length), subs: ['NAMES', 'SQUEEZE ' + sq.length], whole: 'the coiled picks', aria: 'Coiled picks by sector',
+      ring: { open: 'tightest', title: 'Where the coils are', hint: 'names by sector or class', n: rows.length, center: num(rows.length), subs: ['NAMES', 'SQUEEZE ' + sq.length], whole: 'the coiled picks', aria: 'Coiled picks by sector',
         slices: compose(groups, function (k) { return k; }, function (g) { return pct(share(g.list.length, rows.length), 0) + DOT + tickers(g.list); }), caption: 'Each coiled pick once, under its sector (stocks) or its class (ETFs, crypto).' },
-      lists: [{ key: 'tightest', title: 'Tightest bands', hint: 'Bollinger width percentile', rows: rows.map(row), none: 'no pick is coiled' },
-        { key: 'contraction', title: 'Most range contraction', hint: 'the leg, 0 to 100', rows: rows.filter(function (r) { return fin(legs(r).range_contraction); }).sort(by(function (r) { return legs(r).range_contraction; }, true)).map(function (r) {
-          return { name: tick(r), sub: where(r) + DOT + 'band p' + num(r.bbw_pctile) + DOT + (r.squeeze ? 'squeeze' : 'tight'), big: num(legs(r).range_contraction), small: 'of 100' }; }), none: 'none' },
-        { key: 'dry', title: 'Driest volume', hint: '20-day against 120-day', rows: rows.filter(function (r) { return fin(r.vol_ratio_20_120); }).sort(by(function (r) { return r.vol_ratio_20_120; })).map(function (r) {
-          return { name: tick(r), sub: where(r) + DOT + 'band p' + num(r.bbw_pctile), big: r.vol_ratio_20_120.toFixed(2), small: 'of its 120-day' }; }), none: 'none' },
-        { key: 'accum', title: 'Most accumulation behind it', hint: 'Katlin\u2019s pillar, 0 to 100', tone: 'up', rows: rows.filter(function (r) { return fin(acc(r)); }).sort(by(acc, true)).map(function (r) {
-          return { name: tick(r), sub: where(r) + DOT + 'band p' + num(r.bbw_pctile) + (r.tier ? DOT + lower(String(r.tier).replace(/_/g, ' ')) : ''), big: num(acc(r)), small: 'pillar' }; }), none: 'none' },
-        { key: 'largest', title: 'Largest companies coiled', hint: 'market cap', rows: rows.filter(function (r) { return fin(r.mcap); }).sort(by(cap, true)).map(function (r) { return { name: tick(r), sub: where(r) + DOT + 'band p' + num(r.bbw_pctile), big: money(r.mcap), small: r.squeeze ? 'squeeze' : 'tight' }; }), none: 'none' }],
+      lists: [{ key: 'tightest', title: 'Tightest bands', hint: 'Bollinger width percentile', rows: FL(rows, row, S, 'bbw', 1), none: 'no pick is coiled' },
+        { key: 'contraction', title: 'Most range contraction', hint: 'the leg, 0 to 100', rows: FL(rows.filter(function (r) { return fin(legs(r).range_contraction); }).sort(by(function (r) { return legs(r).range_contraction; }, true)), function (r) {
+          return { name: tick(r), sub: where(r) + DOT + 'band p' + num(r.bbw_pctile) + DOT + (r.squeeze ? 'squeeze' : 'tight'), big: num(legs(r).range_contraction), small: 'of 100' }; }, S, 'rc', -1), none: 'none' },
+        { key: 'dry', title: 'Driest volume', hint: '20-day against 120-day', rows: FL(rows.filter(function (r) { return fin(r.vol_ratio_20_120); }).sort(by(function (r) { return r.vol_ratio_20_120; })), function (r) {
+          return { name: tick(r), sub: where(r) + DOT + 'band p' + num(r.bbw_pctile), big: r.vol_ratio_20_120.toFixed(2), small: 'of its 120-day' }; }, S, 'vr', 1), none: 'none' },
+        { key: 'accum', title: 'Most accumulation behind it', hint: 'Katlin\u2019s pillar, 0 to 100', tone: 'up', rows: FL(rows.filter(function (r) { return fin(acc(r)); }).sort(by(acc, true)), function (r) {
+          return { name: tick(r), sub: where(r) + DOT + 'band p' + num(r.bbw_pctile) + (r.tier ? DOT + lower(String(r.tier).replace(/_/g, ' ')) : ''), big: num(acc(r)), small: 'pillar' }; }, S, 'acc', -1), none: 'none' },
+        { key: 'largest', title: 'Largest companies coiled', hint: 'market cap', rows: FL(rows.filter(function (r) { return fin(r.mcap); }).sort(by(cap, true)), function (r) { return { name: tick(r), sub: where(r) + DOT + 'band p' + num(r.bbw_pctile), big: money(r.mcap), small: r.squeeze ? 'squeeze' : 'tight' }; }, S, 'mcap', -1), none: 'none' }],
       foot: 'Source: justhodl-katlin ' + (d.version || '') + ' (data/katlin.json), session ' + day(d.session || d.as_of) + ', published ' + String(d.generated_at || '').slice(0, 16).replace('T', ' ') + ' UTC; ' + num(d.picks.length) + ' picks published of ' + num(u.scored) + ' instruments scored.'
     };
   };
@@ -1202,9 +1397,9 @@
   };
 
   /* -- the Volatility desk (stock-volatility.html): data/stock-volatility.json (justhodl-stock-volatility). The whole is
-        the market value of the ranked common stocks, cut by how volatile each one is now; the lists are the engine's
-        own boards, so every name on the sheet is a name on the desk. Volatility is neither good nor bad: no list or
-        figure is coloured up or down. The four buttons choose the window of the price-spread lists. -- */
+        the market value of the ranked common stocks, cut by how volatile each one is now; a card is the engine's
+        own board and its heading opens the whole ranking that board is the end of, so every name on the sheet is a name on
+        the desk. Volatility is neither good nor bad: no list, figure or column is coloured up or down. The four buttons choose the window of the price-spread lists. -- */
   ADAPTERS.volatility = {
     feeds: ['/data/stock-volatility.json'],
     share: { global: 'JHStockVolDoc', event: 'jh:stock-vol-doc', ms: 8000 },   /* the desk has already read this 2.7 MB feed: use its copy */
@@ -1212,8 +1407,8 @@
       var d = docs[0], cols = d.cols || [], U = d.universe || {}, mk = d.market || {}, M = mk.stock || {}, md = M.med || {}, B = mk.benchmark || {}, boards = d.boards || {};
       var WIN = { d: { label: '1 DAY', word: 'the day', of: 'day' }, w: { label: '1 WEEK', word: 'the week', of: 'week' }, m: { label: '1 MONTH', word: 'the month', of: 'month' }, q: { label: '1 QUARTER', word: 'the quarter', of: 'quarter' } };
       var k = WIN[st.fund] ? st.fund : 'm', W = WIN[k], sp = 'sp_' + k;
-      var byT = {};
-      (d.rows || []).forEach(function (r) { var o = {}, i; for (i = 0; i < cols.length; i++) o[cols[i]] = r[i]; byT[o.t] = o; });
+      var byT = {}, every = [];
+      (d.rows || []).forEach(function (r) { var o = {}, i; for (i = 0; i < cols.length; i++) o[cols[i]] = r[i]; byT[o.t] = o; every.push(o); });
       var rowsOf = function (list) { return (list || []).map(function (t) { return byT[t]; }).filter(Boolean); };
       var nm = function (r) { return r.t + (r.name ? DOT + r.name : ''); };
       var pp = function (v, dp) { return fin(v) ? num(v, dp == null ? (Math.abs(v) < 10 ? 2 : 1) : dp) + '%' : D; };
@@ -1249,6 +1444,46 @@
       };
       var most = rowsOf(boards.most_volatile), least = rowsOf(boards.least_volatile), wide = rowsOf(boards['widest_' + k]), narrow = rowsOf(boards['narrowest_' + k]);
       var rising = rowsOf(boards.vol_rising), falling = rowsOf(boards.vol_falling), pinned = rowsOf(d.pinned).sort(by(function (r) { return r.mcap || 0; }, true));
+      /* -- the whole of every list. A board is the 25 names at one end of a ranking; the whole list is that ranking: common
+            stocks at or above the board's size floor that the engine ranked for the measure (its rk_ column), so the first
+            25 rows of a list opened in full are the card's own. Rising / falling is the engine's rule too: a reading 21
+            sessions ago, and no flagged jump inside the two windows being compared. -- */
+      var BR = d.board_rule || {}, floor = fin(BR.min_mcap) ? BR.min_mcap : 1e9, prior = (d.windows || {}).prior || 21, RK = { hv21: 'rk_hv21', sp_d: 'rk_d', sp_w: 'rk_w', sp_m: 'rk_m', sp_q: 'rk_q' };
+      var rankedBy = function (m) { return every.filter(function (r) { return r.kind === 'stock' && (r.mcap || 0) >= floor && fin(r[RK[m]]); }).sort(by(function (r) { return r[RK[m]]; })); };
+      var volAll = rankedBy('hv21'), spAll = rankedBy(sp), back = function (list) { return list.slice().reverse(); };
+      var moving = volAll.filter(function (r) { return fin(r.hv21p) && (r.ja == null || r.ja > 21 + prior); }).sort(function (a, b) { return chg(b) - chg(a) || (a.t < b.t ? -1 : a.t > b.t ? 1 : 0); });
+      var upAll = moving.filter(function (r) { return chg(r) > 0; }), downAll = back(moving).filter(function (r) { return chg(r) < 0; });
+      var rankedAll = every.filter(function (r) { return r.kind === 'stock' && fin(r.rk_hv21); }).sort(by(function (r) { return r.mcap || 0; }, true));
+      var asideAll = every.filter(function (r) { return r.kind === 'stock' && r.aside; }).sort(by(function (r) { return r.mcap || 0; }, true)), etfAll = every.filter(function (r) { return r.kind === 'etf'; }).sort(by(function (r) { return r.mcap || 0; }, true));
+      var WHY = { jump: 'an unexplained one-day jump', pinned: 'pinned to a deal price', thin: 'thin trading', print: 'a price print no trade supports' };
+      var COL = {
+        t: tx('t', 'Ticker', 't', { find: 'start' }), name: tx('name', 'Name', 'name'), sector: tx('sector', 'Sector', function (r) { return r.kind === 'stock' ? (r.sector || 'Unclassified') : null; }), industry: tx('industry', 'Industry', 'industry'),
+        mcap: nx('mcap', 'Mkt value', 'mcap', fM), px: nx('px', 'Last', 'px', px),
+        hv21: nx('hv21', 'Volatility, 21 sessions', 'hv21', vp, { tip: 'realized volatility of the last 21 daily closes, in percent a year' }), hv21p: nx('hv21p', 'A month ago', 'hv21p', vp, { tip: 'the same reading 21 sessions ago' }),
+        dv: nx('dv', 'Change', chg, pts, { tip: 'today\u2019s 21-session volatility less the reading 21 sessions ago, in points' }), hvp: nx('hvp', 'In its own year', 'hvp', fN(0), { tip: 'where today\u2019s reading stands among the stock\u2019s own last 252 readings, 0 to 100' }),
+        hv63: nx('hv63', '63 sessions', 'hv63', vp), hv252: nx('hv252', 'A year', 'hv252', vp), yz21: nx('yz21', 'Yang-Zhang, 21', 'yz21', vp, { tip: 'volatility read from the whole bar: the gap, the open-to-close move and the range' }),
+        sp_d: nx('sp_d', 'Spread, day', 'sp_d', pp, { tip: 'the high over the low of the last session' }), sp_w: nx('sp_w', 'Spread, week', 'sp_w', pp, { tip: 'the highest high over the lowest low of the last 5 sessions' }),
+        sp_m: nx('sp_m', 'Spread, month', 'sp_m', pp, { tip: 'the highest high over the lowest low of the last 21 sessions' }), sp_q: nx('sp_q', 'Spread, quarter', 'sp_q', pp, { tip: 'the highest high over the lowest low of the last 63 sessions' }),
+        lo: nx('lo', 'Low of ' + W.word, 'lo_' + k, px), hi: nx('hi', 'High of ' + W.word, 'hi_' + k, px), pos: nx('pos', 'Close in the spread', 'pos_' + k, fN(0), { tip: 'where the last close sits inside the spread of ' + W.word + ': 0 at the low, 100 at the high' }),
+        own: nx('own', 'Spread in its own year', 'own_' + k, fN(0), { tip: 'where the spread of ' + W.word + ' stands among the stock\u2019s own last 252 windows of that length, 0 to 100' }),
+        atr: nx('atr', 'ATR %', 'atr', pp, { tip: 'average true range of the last 14 sessions as a percent of the last close' }), mx: nx('mx', 'Largest move', 'mx', fP(1, true), { tip: 'the largest one-session move of the last 63 sessions' }), mxd: tx('mxd', 'On', function (r) { return r.mxd ? day(r.mxd) : null; }),
+        adv: nx('adv', '$ traded a day', 'adv', fM, { tip: '20-session average dollar volume' }), why: tx('why', 'Why it is set aside', function (r) { return WHY[r.why] || r.why; })
+      };
+      var ORDER = ['t', 'name', 'sector', 'industry', 'mcap', 'px', 'hv21', 'hv21p', 'dv', 'hvp', 'hv63', 'hv252', 'sp_d', 'sp_w', 'sp_m', 'sp_q', 'lo', 'hi', 'pos', 'own', 'yz21', 'atr', 'mx', 'mxd', 'adv'];
+      /* one sheet a kind of list: the columns it leads with stand right after the name, so the ranked figure is on screen */
+      var VS = function (lead, o) {
+        o = o || {};
+        var ids = ['t', 'name'].concat(lead, ORDER.filter(function (id) { return id !== 't' && id !== 'name' && lead.indexOf(id) < 0; })).filter(function (id) { return !(o.etf && (id === 'sector' || id === 'industry')); });
+        if (o.why) ids.splice(2, 0, 'why');
+        return sheet(ids.map(function (id) { return o.etf && id === 'mcap' ? nx('mcap', 'Assets', 'mcap', fM) : COL[id]; }), o.etf ? ['ETF', 'ETFs'] : ['stock', 'stocks'],
+          { href: function (r) { return chartOf(r.t); }, find: o.etf ? 'Find a ticker or name' : 'Find a ticker, name, sector or industry', phone: ['t'].concat(lead, ['mcap', 'sector', 'name'].filter(function (id) { return lead.indexOf(id) < 0; })) });
+      };
+      var S_VOL = VS(['hv21', 'hv21p', 'dv', 'hvp']), S_SP = VS([sp, 'lo', 'hi', 'pos', 'own', 'hv21']), S_MOVE = VS(['dv', 'hv21', 'hv21p', 'hvp']), S_PIN = VS(['sp_m', 'mcap', 'px']), S_SIZE = VS(['mcap', 'hv21', 'hv21p', 'dv', sp]);
+      var medOf = function (m) { return function (g) { return (g.med || {})[m]; }; };
+      var S_SECT = sheet([tx('name', 'Sector', 'sector'), nx('n', 'Stocks', 'n', fN(0)), nx('mcap', 'Mkt value', 'mcap', fM), nx('hv21', 'Median volatility, 21', medOf('hv21'), vp), nx('hv21p', 'A month ago', medOf('hv21p'), vp), nx('hv63', '63 sessions', medOf('hv63'), vp),
+        nx('hv252', 'A year', medOf('hv252'), vp), nx('up', 'Rising', function (g) { return g.rising || 0; }, fN(0)), nx('dn', 'Falling', function (g) { return g.falling || 0; }, fN(0)), nx('sp_d', 'Median spread, day', medOf('sp_d'), pp), nx('sp_w', 'Week', medOf('sp_w'), pp),
+        nx('sp_m', 'Month', medOf('sp_m'), pp), nx('sp_q', 'Quarter', medOf('sp_q'), pp), nx('atr', 'Median ATR %', medOf('atr'), pp)], ['sector', 'sectors'], { phone: ['name', 'hv21', sp, 'n', 'mcap'] });
+      var inBand = function (b) { return rankedAll.filter(function (r) { return r.hv21 >= b.from && (b.to == null || r.hv21 < b.to); }); };
       var pop = ((d.board_rule || {}).population || {}), others = ['d', 'w', 'm', 'q'].filter(function (x) { return x !== k; }).map(function (x) { return WIN[x].of + ' ' + pp(md['sp_' + x]); }).join(DOT);
       return {
         eyebrow: 'Volatility tearsheet' + DOT + 'bars ' + day(d.as_of) + DOT + num(U.scanned_stock) + ' stocks and ' + num(U.scanned_etf) + ' ETFs measured',
@@ -1268,21 +1503,26 @@
             + (sizes.length ? 'By size: ' + sizes.map(function (g) { return (g.label || g.size) + ' ' + vp(g.med.hv21); }).join(', ') + '.' : '')],
           ['Caveat:', 'this is realized volatility, what the closes did, not what options price. A stock that collapsed prints a wide spread, because the spread is the high over the low. ' + num(aside) + ' stocks are measured but not ranked or counted here: '
             + num(pinnedN) + ' pinned to a deal price, the rest for an unexplained one-day jump, a price print no trade supports, or thin trading.']],
-        ring: { title: 'Market value by volatility', hint: 'fainter is calmer', n: nRanked, center: money(total), subs: [num(nRanked) + ' STOCKS', 'ABOVE 40% ' + pct(share(hot), 0)], whole: 'ranked market value',
+        ring: { open: 'ranked', title: 'Market value by volatility', hint: 'fainter is calmer', n: nRanked, center: money(total), subs: [num(nRanked) + ' STOCKS', 'ABOVE 40% ' + pct(share(hot), 0)], whole: 'ranked market value',
           aria: 'Market value of the ranked common stocks by volatility band',
-          slices: bands.map(function (b, i) { return { name: b.band + ' a year', label: String(b.band).replace(/%/g, '').replace(' and over', '+'), value: b.mcap, tone: 'pos', op: OPS[Math.min(i, OPS.length - 1)], big: money(b.mcap), small: plural(b.n, 'stock') }; }),
+          slices: bands.map(function (b, i) { return { open: b.n ? 'band-' + i : '', name: b.band + ' a year', label: String(b.band).replace(/%/g, '').replace(' and over', '+'), value: b.mcap, tone: 'pos', op: OPS[Math.min(i, OPS.length - 1)], big: money(b.mcap), small: plural(b.n, 'stock') }; }),
           caption: 'Each ranked common stock is counted once, at its market value, in the band its 21-session volatility falls in on ' + day(d.as_of) + '. Fainter is calmer, brighter more volatile. Stocks set aside are not in the ring.' },
-        lists: [{ key: 'most-volatile', title: 'Most volatile', hint: '21 sessions, a year', n: pop.hv21, rows: most.map(volRow), none: 'no company is ranked' },
-          { key: 'least-volatile', title: 'Least volatile', hint: '21 sessions, a year', n: pop.hv21, rows: least.map(volRow), none: 'no company is ranked' },
-          { key: 'widest', title: 'Widest price spread', hint: W.word + ', high over low', n: pop[sp], rows: wide.map(spreadRow), none: 'no company is ranked' },
-          { key: 'narrowest', title: 'Narrowest price spread', hint: W.word + ', high over low', n: pop[sp], rows: narrow.map(spreadRow), none: 'no company is ranked' },
-          { key: 'rising', title: 'Volatility rising', hint: 'against 21 sessions ago', rows: rising.map(moveRow), none: 'no company is more volatile' },
-          { key: 'falling', title: 'Volatility falling', hint: 'against 21 sessions ago', rows: falling.map(moveRow), none: 'no company is calmer' },
-          { key: 'sectors', title: 'Sectors', hint: 'median stock, most volatile first', rows: sectors.map(sectorRow), none: 'no sector is measured' },
-          { key: 'pinned', title: 'Pinned to a deal price', hint: 'measured, not ranked', n: pinnedN, rows: pinned.map(pinRow), none: 'no stock is pinned',
+        lists: [{ key: 'most-volatile', title: 'Most volatile', hint: '21 sessions, a year', n: pop.hv21, rows: FL(most, volRow, S_VOL, 'hv21', -1, { rows: volAll }), none: 'no company is ranked' },
+          { key: 'least-volatile', title: 'Least volatile', hint: '21 sessions, a year', n: pop.hv21, rows: FL(least, volRow, S_VOL, 'hv21', 1, { rows: back(volAll) }), none: 'no company is ranked' },
+          { key: 'widest', title: 'Widest price spread', hint: W.word + ', high over low', n: pop[sp], rows: FL(wide, spreadRow, S_SP, sp, -1, { rows: spAll }), none: 'no company is ranked' },
+          { key: 'narrowest', title: 'Narrowest price spread', hint: W.word + ', high over low', n: pop[sp], rows: FL(narrow, spreadRow, S_SP, sp, 1, { rows: back(spAll) }), none: 'no company is ranked' },
+          { key: 'rising', title: 'Volatility rising', hint: 'against 21 sessions ago', rows: FL(rising, moveRow, S_MOVE, 'dv', -1, { rows: upAll }), none: 'no company is more volatile' },
+          { key: 'falling', title: 'Volatility falling', hint: 'against 21 sessions ago', rows: FL(falling, moveRow, S_MOVE, 'dv', 1, { rows: downAll }), none: 'no company is calmer' },
+          { key: 'sectors', title: 'Sectors', hint: 'median stock, most volatile first', rows: FL(sectors, sectorRow, S_SECT, 'hv21', -1), none: 'no sector is measured' },
+          { key: 'pinned', title: 'Pinned to a deal price', hint: 'measured, not ranked', n: pinnedN, rows: FL(pinned, pinRow, S_PIN, 'mcap', -1), none: 'no stock is pinned',
             note: 'A stock whose last month fits inside ' + num(((d.windows || {}).pin_spread_m) || 3.5, 1) + '% is waiting for a takeover to close: its calm is the deal, not the company.' }],
+        more: [hidden('ranked', 'Every ranked stock', 'common stocks of any size, largest first', rankedAll, S_SIZE, 'mcap', -1)]
+          .concat(bands.map(function (b, i) { return hidden('band-' + i, b.band + ' a year', 'ranked stocks in the band, largest first', inBand(b), S_SIZE, 'mcap', -1); }))
+          .concat([hidden('aside', 'Measured, not ranked', 'stocks set aside, largest first', asideAll, VS(['mcap', 'hv21', 'sp_m'], { why: true }), 'mcap', -1),
+            hidden('etfs', 'Every ETF measured', 'largest first', etfAll, VS(['mcap', 'hv21', 'hv21p', 'dv', sp], { etf: true }), 'mcap', -1)]),
+        order: ['most-volatile', 'least-volatile', 'widest', 'narrowest', 'rising', 'falling', 'sectors', 'ranked'].concat(bands.map(function (b, i) { return 'band-' + i; }), ['pinned', 'aside', 'etfs']),
         foot: 'Source: justhodl-stock-volatility ' + (d.version || '') + ' (data/stock-volatility.json), published ' + String(d.generated_at || '').slice(0, 16).replace('T', ' ') + ' UTC from the Polygon end-of-day bank, bars as of ' + day(d.as_of)
-          + '. Volatility = the standard deviation of daily log returns, annualized. Lists show the ' + num((d.board_rule || {}).n || 25, 0) + ' names at each end among ranked common stocks worth $1B or more; the count beside a list is the size of that ranking.'
+          + '. Volatility = the standard deviation of daily log returns, annualized. A card shows the names at one end of a ranking among common stocks worth $1B or more, and its heading opens the whole ranking; the count beside it is the size of that ranking.'
       };
     }
   };
@@ -1479,6 +1719,10 @@
     }
   };
 
+  /* every model leaves through finish(): each of its lists opens in full */
+  Object.keys(WY).forEach(function (tab) { var f = WY[tab]; WY[tab] = function (D_, st) { return finish(f(D_, st)); }; });
+  Object.keys(ADAPTERS).forEach(function (name) { var build = ADAPTERS[name].build; ADAPTERS[name].build = function (docs, st) { return finish(build.call(ADAPTERS[name], docs, st)); }; });
+
   /* -- boot -- */
   function get(url) { return fetch(url + (url.indexOf('?') < 0 ? '?' : '&') + 'v=' + Math.floor(Date.now() / 300000), { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(url + ' HTTP ' + r.status); return r.json(); }); }
 
@@ -1526,8 +1770,21 @@
       el.__open.sort = s && s.k === id ? { k: id, d: -s.d } : { k: id, d: c.type === 's' ? 1 : -1 };
       body();
     }
+    /* inside the chart's workspace a ticker loads in the chart behind the desk, as the desk's own tables do */
+    function inChart(a, e) {
+      try {
+        var s = new URL(a.getAttribute('href'), location.href).searchParams.get('s');
+        if (s && window.top !== window && typeof window.top.jhOpenSymbol === 'function') {
+          e.preventDefault();
+          window.top.jhOpenSymbol(s);
+          var x = window.top.document.getElementById('wsx');
+          if (x) x.click();
+        }
+      } catch (err) { /* another origin: the link's own target=_top navigation stands */ }
+    }
     function press(e) {
-      var o = e.target.closest('[data-jts-open]'), h = e.target.closest('[data-jts-sort]'), p = e.target.closest('[data-jts-pick]');
+      var o = e.target.closest('[data-jts-open]'), h = e.target.closest('[data-jts-sort]'), p = e.target.closest('[data-jts-pick]'), a = e.target.closest('.jts-ft a[href]');
+      if (a) { if (e.type === 'click') inChart(a, e); return false; }
       if (p) {
         var l = openList();
         if (l && l.full.pick) el.dispatchEvent(new CustomEvent('jts:pick', { bubbles: true, detail: l.full.pick(fullRows(l.full, el.__open)[+p.getAttribute('data-jts-pick')]) }));
@@ -1550,7 +1807,7 @@
         if (!l) return;
         var link = document.createElement('a');
         link.href = URL.createObjectURL(new Blob([fullCsv(l.full, fullRows(l.full, el.__open))], { type: 'text/csv' }));
-        link.download = (l.full.file || l.key) + '.csv';
+        link.download = (l.full.file || name + '-' + l.key) + '.csv';
         document.body.appendChild(link); link.click(); link.remove();
         setTimeout(function () { URL.revokeObjectURL(link.href); }, 4000);
       }
@@ -1601,7 +1858,7 @@
   }
 
   function boot() { Array.prototype.forEach.call(document.querySelectorAll('[data-jts]'), mount); }
-  var api = { version: '1.6.0', render: render, ring: ring, adapters: ADAPTERS, mount: mount, money: money, pct: pct, full: { rows: fullRows, csv: fullCsv, body: fullBody, html: fullHtml, page: FULL_PAGE } };
+  var api = { version: '1.7.0', render: render, ring: ring, adapters: ADAPTERS, mount: mount, money: money, pct: pct, full: { rows: fullRows, csv: fullCsv, body: fullBody, html: fullHtml, page: FULL_PAGE, finish: finish, figure: figure } };
   if (typeof module === 'object' && module.exports) module.exports = api;   /* node: the adapters and the ring are pure, tests/tearsheet-kit.test.js */
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
   window.JHTearsheet = api;

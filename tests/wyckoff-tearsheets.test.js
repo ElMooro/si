@@ -29,7 +29,7 @@ function deskRows(data, tab) {
 }
 
 test('the kit carries one sheet for each of the eight desks, and steps aside on a tab that has none', () => {
-  assert.equal(kit.version, '1.6.0');
+  assert.equal(kit.version, '1.7.0');
   assert.deepEqual(Object.keys(kit.adapters.wyckoff.tabs).sort(), TABS.slice().sort());
   assert.deepEqual(kit.adapters.wyckoff.build([docs()], { tab: 'pump' }), { hide: true });
   assert.deepEqual(kit.adapters.wyckoff.build([docs()], { tab: 'top' }), { hide: true });
@@ -52,7 +52,7 @@ test('every sheet has the anatomy of the picture and prints no broken value', ()
     assert.equal(m.notes.length, 3, id);
     assert.ok(m.lists.length >= 3, id);
     assert.ok(m.ring.slices.length >= 2 && m.ring.caption && m.ring.aria, id);
-    assert.doesNotMatch(JSON.stringify(m), /undefined|NaN|Infinity|\[object|\bnull\b|\u22120\.0%/, id);
+    assert.doesNotMatch(JSON.stringify(m, (k, v) => (k === 'full' ? undefined : v)), /undefined|NaN|Infinity|\[object|\bnull\b|\u22120\.0%/, id);   // `full` = a list's raw rows, drawn by the kit
     for (const s of m.ring.slices) assert.ok(Number.isFinite(s.value) && s.value >= 0 && ['pos', 'oth'].includes(s.tone), `${id}: a status is a part of a whole, never a signed side (${s.name})`);
     for (const l of m.lists) for (const r of l.rows) assert.ok(typeof r.name === 'string' && r.name.length && r.big !== '', `${id}/${l.key}`);
     assert.match(m.eyebrow, / tearsheet \u00b7 /, id);

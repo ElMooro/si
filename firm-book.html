@@ -30,6 +30,8 @@ nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
 .sechead{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);margin:22px 0 8px;border-bottom:1px solid var(--line);padding-bottom:5px}
 .sechead small{color:var(--dim);text-transform:none;letter-spacing:0;font-size:10px}
 table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+/* a phone: the desk's own tables are wider than the screen - each slides inside its own box, the page does not (the tearsheet's tables fit and are left alone) */
+@media (max-width:700px){table:not(#jh-tearsheet table){display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}}
 th{font-family:var(--mono);font-size:8.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);text-align:right;padding:8px 9px;border-bottom:1px solid var(--line);background:var(--panel2)}
 th.l,td.l{text-align:left}
 td{font-size:12px;padding:7px 9px;border-bottom:1px solid var(--line);text-align:right;font-family:var(--mono)}

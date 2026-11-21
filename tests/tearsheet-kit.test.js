@@ -188,7 +188,7 @@ test('insider scanner 2.2.0: dollars are every company with a purchase; what was
   assert.match(m.foot, /175 feed rows were 52 lines\); 2 impossible records \(\$209\.92B as filed\) set aside and listed/);
   assert.match(m.sub, /2 impossible records set aside/);
   assert.equal(m.tiles.length, 6);
-  assert.doesNotMatch(JSON.stringify(m), /undefined|NaN|Infinity|\[object|\bnull\b/);
+  assert.doesNotMatch(JSON.stringify(m, (k, v) => (k === 'full' ? undefined : v)), /undefined|NaN|Infinity|\[object|\bnull\b/);
   // an engine whose hygiene did not run falls back to the scored set, as before
   const old = kit.adapters.insiders.build([{ ...d, hygiene: { applied: false } }], {});
   assert.equal(old.lists.find(l => l.key === 'dollars').rows.length, d.clusters.length);
@@ -280,7 +280,7 @@ test('Leaders: the sheet takes the desk\'s copy of the feed, and reads it itself
   const desk = fs.readFileSync(path.join(root, 'jh-leaders.js'), 'utf8');
   assert.match(desk, /window\.JHLeadersDoc = d;/); assert.match(desk, /new CustomEvent\("jh:leaders-doc", \{ detail: d \}\)/);
   for (const name of Object.keys(kit.adapters)) if (!['leaders', 'wyckoff', 'capitulation', 'volatility', 'strength'].includes(name)) assert.equal(kit.adapters[name].share, undefined, name);
-  assert.equal(kit.version, '1.6.0');
+  assert.equal(kit.version, '1.7.0');
 });
 
 

@@ -511,7 +511,7 @@ test('an open list is found by ticker, name, sector or industry, drawn 200 rows 
   assert.match(whole, /ranked by Industry, A to Z/);
   assert.ok(!whole.includes('data-jts-act="all"'));
   assert.doesNotMatch(whole.replace(/<[^>]+>/g, ' '), /undefined|NaN|Infinity|\[object|\bnull\b/);
-  assert.match(whole, /<td class="l jts-fk"><a href="\/chart\.html\?s=[A-Z.%0-9]+">/);
+  assert.match(whole, /<td class="l jts-fk"><a href="\/chart\.html\?s=[A-Z.%0-9]+" target="_top">/);   // _top: the desk may sit inside the chart's workspace
   assert.match(F.body(all, { key: 'all', sort: null, q: 'zzzzqq', all: false }), /Nothing in this list matches “zzzzqq”\./);
   // the full view: one button a category in the model's order, the open one pressed, a find box, CSV, the way back
   const page = F.html(m, by.up, { key: 'up', sort: null, q: '', all: false });
