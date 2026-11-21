@@ -8,7 +8,7 @@
  *
  * Nothing here fetches. Pure functions so the rule can be tested bar by bar.
  */
-import { utcDay } from './warehouse-ohlc.js';
+import { utcDay, aggregateBars } from './warehouse-ohlc.js';
 
 export const SAME_COIN = { min_days: 5, window_days: 30, max_median_distance: 0.03 };
 
@@ -91,4 +91,43 @@ export function bankLastDay(bars) {
     if (t > last) last = t;
   }
   return last;
+}
+
+/* ---------------------------------------------------------------- intraday bars for a banked coin
+ * The Polygon plan carries no crypto intraday (ops 6880: 403 on every crypto intraday call), so the hourly and minute views of a
+ * coin were answered with DAILY bars (ops 6882: "BTC-USD at 1h: spacing 1440 min"). Intraday bars come from a venue's public
+ * klines, and only after that venue's daily candles pass the same-coin rule against the bank. */
+const BINANCE_STEPS = { minute: [30, 15, 5, 3, 1], hour: [12, 8, 6, 4, 2, 1] };
+const COINBASE_STEPS = { minute: [15, 5, 1], hour: [6, 1] };
+
+/* Which interval each venue is asked for: the largest one it publishes that divides the requested bar (45m from 15m, 3h from 1h). */
+export function intradayPlan(span, mult) {
+  mult = Number(mult);
+  if (!BINANCE_STEPS[span] || !Number.isInteger(mult) || mult < 1) return null;
+  const unit = span === "minute" ? 60 : 3600, pick = steps => steps.find(s => mult % s === 0);
+  const b = pick(BINANCE_STEPS[span]), c = pick(COINBASE_STEPS[span]);
+  return {
+    span, mult, seconds: unit * mult,
+    binance: { interval: b + (span === "minute" ? "m" : "h"), mult: b, seconds: unit * b },
+    coinbase: { granularity: unit * c, mult: c, seconds: unit * c }
+  };
+}
+
+/* How many pages of `perPage` bars cover `days`, within `cap`. */
+export function intradayPages(days, sourceSeconds, perPage, cap) {
+  const want = Math.ceil((Number(days) > 0 ? Number(days) : 1) * 86400 / (sourceSeconds * perPage));
+  return Math.max(1, Math.min(cap, want));
+}
+
+/* Venue rows (already {time, open, high, low, close, value}) -> ascending, one per bar start, rebuilt to the requested bar. */
+export function intradayBars(rows, plan, venue) {
+  const seen = new Map();
+  for (const r of rows || []) {
+    const t = Number(r && r.time);
+    if (Number.isFinite(t) && t > 0 && close(r)) seen.set(Math.floor(t), r);
+  }
+  const sorted = [...seen.values()].sort((a, b) => a.time - b.time);
+  /* `volume` by name: the chart reads a bare `value` as volume only on banked answers. */
+  return aggregateBars(sorted, plan.span, plan.mult, plan.span, plan[venue].mult)
+    .map(b => ({ time: b.time, open: b.open, high: b.high, low: b.low, close: b.close, volume: b.value == null ? null : b.value }));
 }
