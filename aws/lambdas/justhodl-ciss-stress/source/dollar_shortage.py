@@ -83,7 +83,7 @@ US = (
      'label': 'Federal Reserve repurchase agreements with foreign official accounts', 'short': 'Fed repos with foreign central banks (FIMA)',
      'what': 'Dollars the Federal Reserve has lent overnight to foreign central banks against their Treasuries, the FIMA repo facility. It lets them raise dollars without selling.'},
     {'id': 'USD_DXY', 'part': 'price', 'fred': tuple(sid for sid, _ in DXY_LEGS), 'calc': 'dxy', 'unit': 'idx', 'places': 'usd', 'freq': 'D', 'allow': 16, 'worse': 'higher', 'release': H10,
-     'label': 'US dollar index (DXY), rebuilt from the Federal Reserve\'s H.10 rates', 'short': 'DXY, rebuilt',
+     'label': 'US dollar index (DXY), rebuilt from the Federal Reserve\'s H.10 rates', 'short': 'DXY, rebuilt from the Fed\'s H.10 rates',
      'what': 'ICE\'s dollar index formula on the Federal Reserve\'s daily noon rates for the euro, yen, pound, Canadian dollar, krona and franc; one value for each day all six were published. '
              'H.10 is released a week in arrears, so this runs behind the market\'s own print.'},
     {'id': 'USD_BROAD', 'part': 'price', 'fred': ('DTWEXBGS',), 'unit': 'idx', 'places': 'usd', 'freq': 'D', 'allow': 16, 'worse': 'higher', 'release': H10,
