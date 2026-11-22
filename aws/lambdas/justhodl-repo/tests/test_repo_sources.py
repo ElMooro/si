@@ -315,6 +315,112 @@ def test_repo_against_policy_spans_the_survey_rate_and_sofr_both_ways_round():
     assert ids[-2:] == ["D_REPO_TARGET", "D_TARGET_REPO"] and ids[:5] == ["D_SOFR_EFFR", "D_SOFR_TAIL", "D_SOFR_ADMIN", "D_EFFR_TARGET", "D_FED_REPO"]
 
 
+def refusal(code):
+    import urllib.error
+    return urllib.error.HTTPError("https://api.stlouisfed.org/x", code, "refused", {}, None)
+
+
+def test_fred_answers_are_asked_again_only_when_the_refusal_can_pass():
+    import io
+    import json
+
+    class Opener:
+        def __init__(self, script):
+            self.script, self.calls, self.agents = list(script), 0, []
+
+        def __call__(self, req, timeout=None):
+            self.calls += 1
+            self.agents.append(req.get_header("User-agent"))
+            step = self.script.pop(0)
+            if isinstance(step, Exception):
+                raise step
+            return io.BytesIO(json.dumps(step).encode())
+
+    naps = []
+    o = Opener([refusal(503), refusal(429), {"ok": 1}])
+    assert S.fred_json("https://api.stlouisfed.org/fred/x", sleep=naps.append, opener=o) == {"ok": 1} and o.calls == 3 and naps == [3, 8] and o.agents[0] == "JustHodl research"
+    o = Opener([refusal(400), {"ok": 1}])                              # a bad request stays bad: not asked again
+    try:
+        S.fred_json("https://api.stlouisfed.org/fred/x", sleep=naps.append, opener=o)
+        raise AssertionError("a 400 was retried into an answer")
+    except Exception as e:
+        assert getattr(e, "code", None) == 400 and o.calls == 1
+    o = Opener([refusal(503), OSError("reset"), refusal(502)])
+    try:
+        S.fred_json("https://api.stlouisfed.org/fred/x", sleep=lambda n: None, opener=o)
+        raise AssertionError("three refusals became an answer")
+    except Exception as e:
+        assert getattr(e, "code", None) == 502 and o.calls == 3
+
+
+def test_fred_inventory_asks_the_engines_three_questions():
+    asked = []
+
+    def get_json(url):
+        asked.append(url)
+        if "tags/series" in url and "offset=0" in url:
+            return {"seriess": [{"id": "A%03d" % i, "title": "t%d" % i} for i in range(500)]}
+        if "tags/series" in url:
+            return {"seriess": [{"id": "B1", "title": "second page " + "x" * 200}]}
+        return {"seriess": [{"id": "SOFR", "title": "Secured Overnight Financing Rate"}, {"id": "OBFR", "title": "not in the SOFR family"}, {"id": "A001", "title": "other title"}]}
+
+    inv = S.fred_repo_inventory("KEY", get_json)
+    assert len(inv) == 502 and inv["A001"] == "t1" and inv["SOFR"] == "Secured Overnight Financing Rate" and "OBFR" not in inv and len(inv["B1"]) == 150
+    assert len(asked) == 3 and "offset=500" in asked[1] and "repurchase+agreements" in asked[0] and "search_text=SOFR" in asked[2] and all("api_key=KEY" in u for u in asked)
+    assert S.inventory_short({}, {}) and not S.inventory_short({"a": ""}, {}) and S.inventory_short({"a": ""}, {str(i): "" for i in range(10)})
+    assert not S.inventory_short({str(i): "" for i in range(8)}, {str(i): "" for i in range(10)})
+
+
+def test_fred_group_inventory_keeps_the_group_when_fred_refuses():
+    whole = {"SOFR": "Secured Overnight Financing Rate", "RPONTSYD": "Fed repo", "BOGZ1": "a flow line", "BOGZ2": "another", "BOGZ3": "third"}
+    prefix = "data/warm/fred-scoped/FRED_Repo_Complex"
+    listing = [prefix + "/SOFR.json", prefix + "/IORB.json", prefix + "/_note.json", prefix + "/readme.txt"]
+
+    def refuse(url):
+        raise refusal(503)
+
+    naps = []
+    # a whole answer: recorded once, and not written again while it stays the same
+    bank = Bank()
+    got, how = S.fred_group_inventory(whole, "KEY", bank.read, bank.put, lambda p: listing, prefix, "2026-11-22T06:10:00+00:00", get_json=refuse, sleep=naps.append)
+    assert got == whole and how == "fred" and bank.objects[S.FRED_INVENTORY_KEY] == {"at": "2026-11-22T06:10:00+00:00", "ids": whole} and naps == []
+    got, how = S.fred_group_inventory(whole, "KEY", bank.read, bank.put, lambda p: listing, prefix, "later", get_json=refuse, sleep=naps.append)
+    assert how == "fred" and bank.puts == [S.FRED_INVENTORY_KEY] and bank.objects[S.FRED_INVENTORY_KEY]["at"] == "2026-11-22T06:10:00+00:00"
+
+    # the 06:10 run of 2026-11-22: nothing came back, FRED still refuses -> the last good inventory, nothing recorded
+    got, how = S.fred_group_inventory({}, "KEY", bank.read, bank.put, lambda p: listing, prefix, "t", get_json=refuse, sleep=naps.append)
+    assert got == whole and how == "fred refused (HTTPError): served from the last good inventory of 2026-11-22" and naps == [3] and bank.puts == [S.FRED_INVENTORY_KEY]
+    # half an answer (the second page failed) is short of the last good one: asked again, and the second answer is taken
+    got, how = S.fred_group_inventory({"SOFR": "x"}, "KEY", bank.read, bank.put, lambda p: listing, prefix, "t2", get_json=lambda u: {"seriess": [{"id": k, "title": v} for k, v in whole.items()]}, sleep=naps.append)
+    assert got == whole and how == "fred, asked again" and bank.puts == [S.FRED_INVENTORY_KEY]
+    # FRED itself now lists a new series: two answers agree, the inventory moves on
+    grown = dict(whole, NEW1="new line")
+    got, how = S.fred_group_inventory(grown, "KEY", bank.read, bank.put, lambda p: listing, prefix, "t3", get_json=refuse, sleep=naps.append)
+    assert got == grown and how == "fred" and bank.objects[S.FRED_INVENTORY_KEY] == {"at": "t3", "ids": grown}
+
+    # before any inventory was recorded: the bank's own documents are the inventory (titles come from the documents)
+    fresh = Bank()
+    got, how = S.fred_group_inventory({}, "KEY", fresh.read, fresh.put, lambda p: listing if p == prefix + "/" else [], prefix, "t", get_json=refuse, sleep=naps.append)
+    assert got == {"SOFR": "", "IORB": ""} and how == "fred refused (HTTPError): served from the bank's own listing" and fresh.puts == []
+    # without a key nothing is asked; an empty answer still falls back
+    got, how = S.fred_group_inventory({}, "", bank.read, bank.put, lambda p: listing, prefix, "t", get_json=refuse, sleep=naps.append)
+    assert got == grown and how == "fred answered nothing: served from the last good inventory of t3"
+    # a second answer that is empty is a refusal too
+    got, how = S.fred_group_inventory({}, "KEY", bank.read, bank.put, lambda p: listing, prefix, "t", get_json=lambda u: {"seriess": []}, sleep=naps.append)
+    assert got == grown and "served from the last good inventory" in how
+
+
+def test_bank_keys_reads_every_page():
+    class Store:
+        def list_objects_v2(self, **kw):
+            assert kw["Bucket"] == "b" and kw["Prefix"] == "p/"
+            if "ContinuationToken" not in kw:
+                return {"Contents": [{"Key": "p/a"}, {"Key": "p/b"}], "NextContinuationToken": "n"}
+            return {"Contents": [{"Key": "p/c"}]}
+
+    assert S.bank_keys(Store(), "b")("p/") == ["p/a", "p/b", "p/c"]
+
+
 def test_the_module_has_no_contact_line_and_no_engine_state():
     text = (HERE.parent / "source" / "repo_sources.py").read_text()
     assert "@" not in text and "boto3" not in text

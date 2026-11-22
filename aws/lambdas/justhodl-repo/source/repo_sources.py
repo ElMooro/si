@@ -80,6 +80,106 @@ def bank_io(s3, bucket, client="Mozilla/5.0 JustHodl research"):
     return read, fetch, put
 
 
+def bank_keys(s3, bucket):
+    """list(prefix) -> every key under a prefix."""
+    def keys(prefix):
+        out, token = [], None
+        while True:
+            kw = {"Bucket": bucket, "Prefix": prefix}
+            if token:
+                kw["ContinuationToken"] = token
+            page = s3.list_objects_v2(**kw)
+            out.extend(o["Key"] for o in page.get("Contents") or [])
+            token = page.get("NextContinuationToken")
+            if not token:
+                return out
+    return keys
+
+
+# ------------------------------------------------------------------ the FRED group's inventory
+# 2026-11-22: FRED refused every request for about half a minute during the 06:10 UTC run.  The engine asked its
+# discovery once, got nothing, and the board lost the whole FRED group - 1,034 series, the policy rates among them
+# (ops 6904, 6907, 6908; FRED answered normally ten minutes later).  A discovery that comes back short is now asked
+# again, and when FRED still refuses the group is served from its bank: every series ever discovered is banked.
+FRED_API = "https://api.stlouisfed.org/fred/"
+FRED_INVENTORY_KEY = "data/repo-state/fred-repo-inventory.json"
+FRED_CLIENT = {"User-Agent": "JustHodl research"}
+
+
+def fred_json(url, tries=3, pauses=(3, 8), sleep=None, opener=None):
+    """One FRED answer as JSON; a refusal that can pass (429, 5xx, a dropped connection) is asked again."""
+    import json
+    import time
+    import urllib.error
+    import urllib.request
+    opener, sleep = opener or urllib.request.urlopen, sleep or time.sleep
+    for attempt in range(tries):
+        try:
+            with opener(urllib.request.Request(url, headers=FRED_CLIENT), timeout=20) as resp:
+                return json.loads(resp.read())
+        except urllib.error.HTTPError as e:
+            if e.code not in (429, 500, 502, 503, 504) or attempt == tries - 1:
+                raise
+        except (OSError, ValueError):
+            if attempt == tries - 1:
+                raise
+        sleep(pauses[min(attempt, len(pauses) - 1)])
+
+
+def fred_repo_inventory(key, get_json):
+    """{series id: title}: the same three questions the engine's discovery asks (two pages of the 'repurchase
+    agreements' tag, and the SOFR family)."""
+    from urllib.parse import urlencode
+    out = {}
+    for offset in (0, 500):
+        rows = get_json(FRED_API + "tags/series?" + urlencode({"tag_names": "repurchase agreements", "api_key": key, "file_type": "json",
+                                                               "limit": 500, "offset": offset})).get("seriess") or []
+        for row in rows:
+            out[row["id"]] = str(row.get("title") or "")[:150]
+        if len(rows) < 500:
+            break
+    for row in get_json(FRED_API + "series/search?" + urlencode({"search_text": "SOFR", "api_key": key, "file_type": "json", "limit": 60})).get("seriess") or []:
+        if row["id"].startswith("SOFR"):
+            out.setdefault(row["id"], str(row.get("title") or "")[:150])
+    return out
+
+
+def inventory_short(found, last_good):
+    """A discovery with nothing in it, or with under four fifths of the last good one, is not the whole group."""
+    return not found or (bool(last_good) and len(found) < 0.8 * len(last_good))
+
+
+def fred_group_inventory(found, key, read, put, keys, bank_prefix, now, get_json=None, sleep=None):
+    """({series id: title}, how it was obtained) for this run.
+
+    found = what the engine's own single-shot discovery returned (possibly nothing, possibly half).  A whole
+    inventory is recorded as the last good one, written only when it differs; a short one is asked again; and if
+    FRED still refuses, the last good inventory - or, before one exists, every banked document - is used, so the
+    series stay on the board at their banked values.
+    """
+    import time
+    last = read(FRED_INVENTORY_KEY) or {}
+    last_ids = last.get("ids") if isinstance(last.get("ids"), dict) else {}
+    found, how = dict(found), "fred"
+    if inventory_short(found, last_ids) and key:
+        try:
+            (sleep or time.sleep)(3)
+            found, how = fred_repo_inventory(key, get_json or fred_json), "fred, asked again"
+        except Exception as e:  # noqa: BLE001
+            how = "fred refused (%s)" % type(e).__name__
+    if how.startswith("fred refused") or not found or (how == "fred" and inventory_short(found, last_ids)):
+        if last_ids:
+            banked, source = dict(last_ids), "the last good inventory of %s" % str(last.get("at") or "")[:10]
+        else:
+            banked = {k.rsplit("/", 1)[-1][:-5]: "" for k in keys(bank_prefix + "/") if k.endswith(".json") and not k.rsplit("/", 1)[-1].startswith("_")}
+            source = "the bank's own listing"
+        banked.update({k: v for k, v in found.items() if v})
+        return banked, "%s: served from %s" % (how if how != "fred" else "fred answered nothing", source)
+    if found != last_ids:
+        put(FRED_INVENTORY_KEY, {"at": now, "ids": found})
+    return found, how
+
+
 # ------------------------------------------------------------------ workbooks, standard library only
 def _column(ref):
     n = 0

@@ -64,6 +64,10 @@ def main():
         r.log("engine %s | as of %s | counts %s" % (board.get("engine_v"), board.get("as_of"), json.dumps(counts)))
         r.log("own sources: %s" % json.dumps(diag.get("own_sources"))[:900])
         r.log("dtcc: %s" % json.dumps(diag.get("dtcc"))[:300])
+        fred_n = sum(1 for x in rows.values() if x["group"] == "FRED repo & SOFR complex")
+        r.log("FRED group: %d series on the board | inventory this run: %s" % (fred_n, json.dumps(diag.get("fred_group"))))
+        if fred_n < 900:
+            fails.append("the FRED group has %d series (FRED refused the 06:10 UTC run of 2026-11-22; the group is 1,034 series)" % fred_n)
         if board.get("engine_v") != "3.1":
             r.fail("the board on the site is engine %s: the 3.1 run has not happened yet" % board.get("engine_v"))
             sys.exit(1)

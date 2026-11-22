@@ -364,6 +364,68 @@ def test_the_board_reads_its_own_sources():
             FRED_TITLES.pop(k, None)
 
 
+def test_fred_refusing_a_whole_run_leaves_its_group_on_the_board():
+    """2026-11-22 06:10 UTC: FRED refused every request for half a minute and the board published 766 series instead
+    of 1,800 - no FRED group, no policy rates, none of the spreads built on them.  The group is now served from its
+    bank on such a day, at its banked values, and nothing is asked of FRED beyond the one retry."""
+    import time
+    import urllib.error
+    import repo_sources as S
+
+    class Down(Wire):
+        def __call__(self, req, timeout=None):
+            url = req.full_url if hasattr(req, "full_url") else str(req)
+            if "api.stlouisfed.org" in url:
+                self.calls.append(url)
+                raise urllib.error.HTTPError(url, 503, "Service Unavailable", {}, None)
+            return Wire.__call__(self, req, timeout)
+
+    def fred_rows(board):
+        return {i: r for i, r in rows_of(board).items() if r["group"] == "FRED repo & SOFR complex"}
+
+    real_sleep, naps = time.sleep, []
+    time.sleep = naps.append
+    try:
+        bucket = Bucket(seeded())
+        _, first = build(bucket, Wire())
+        good = fred_rows(first)
+        assert len(good) == 10 and {"SOFR", "IORB", "DFF", "DFEDTARU", "RPONTSYD", "BOGZ1FL111Q"} <= set(good)
+        assert first["diag"]["fred_group"] == {"ids": first["diag"]["fred_group"]["ids"], "inventory": "fred"} and naps == []
+        recorded = json.loads(bucket.objects[S.FRED_INVENTORY_KEY])
+        assert set(recorded["ids"]) == {"RPONTSYD", "RPONMBSD", "RRPONTSYD", "BOGZ1FL000Q", "BOGZ1FL111Q", "SOFR"}          # what FRED's discovery itself answered
+
+        # FRED refuses everything for the whole run
+        wire = Down()
+        res, second = build(bucket, wire)
+        held = fred_rows(second)
+        assert set(held) == set(good), sorted(set(good) ^ set(held))
+        for sid in ("SOFR", "IORB", "DFEDTARU", "BOGZ1FL111Q"):
+            assert held[sid]["label"] == good[sid]["label"] and held[sid]["last"] == good[sid]["last"] and held[sid]["last_value"] == good[sid]["last_value"], sid
+        assert "fred refused (HTTPError): served from the last good inventory" in second["diag"]["fred_group"]["inventory"]
+        both = rows_of(second)
+        assert {"D_SOFR_ADMIN", "D_SOFR_EFFR", "D_EFFR_TARGET"} <= set(both) and both["D_SOFR_ADMIN"]["last_value"] == rows_of(first)["D_SOFR_ADMIN"]["last_value"]
+        assert second["counts"]["series"] == first["counts"]["series"]
+        asked = [u for u in wire.calls if "api.stlouisfed.org" in u]
+        assert sum("/fred/tags/series" in u for u in asked) == 1 + 3                 # the engine's one try, then the retry's three
+        assert not any("/fred/series?" in u for u in asked)                          # no title is asked for one by one
+        observed = {dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(u).query)).get("series_id") for u in asked if "/fred/series/observations" in u}
+        assert observed and not observed & set(good), observed       # other blocks make their own single tries; nothing of this group is asked once FRED has refused twice
+        assert json.loads(bucket.objects[S.FRED_INVENTORY_KEY]) == recorded          # a refused day is not recorded as an inventory
+
+        # the same day before any inventory was recorded: the bank's documents are the inventory, titles and all
+        del bucket.objects[S.FRED_INVENTORY_KEY]
+        _, third = build(bucket, Down())
+        listed = fred_rows(third)
+        assert set(listed) == set(good) and "served from the bank's own listing" in third["diag"]["fred_group"]["inventory"]
+        assert listed["IORB"]["label"] == good["IORB"]["label"] and listed["BOGZ1FL111Q"]["bucket"] == good["BOGZ1FL111Q"]["bucket"]
+
+        # FRED is back: the group is asked as usual and the inventory is recorded again
+        _, fourth = build(bucket, Wire())
+        assert fourth["diag"]["fred_group"]["inventory"] == "fred" and set(fred_rows(fourth)) == set(good) and S.FRED_INVENTORY_KEY in bucket.objects
+    finally:
+        time.sleep = real_sleep
+
+
 def test_the_engine_source_compiles_and_keeps_its_contact_lines_out_of_the_new_module():
     src = (HERE.parent / "source" / "lambda_function.py").read_text()
     compile(src, "lambda_function.py", "exec")

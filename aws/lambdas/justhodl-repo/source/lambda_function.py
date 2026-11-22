@@ -39,9 +39,10 @@ import boto3
 from history_writes import history_etags, put_history
 from repo_scope import (FUNDING_BUCKET, FUNDING_CORE, derived_series,
                          dtcc_banked, ofr_extras, refresh_due, stamp_day)
-from repo_sources import (DTCC_CLIENT, DTCC_FAILS_URLS, bank_io,
+from repo_sources import (DTCC_CLIENT, DTCC_FAILS_URLS, bank_io, bank_keys,
                            bank_survey_rate, dtcc_fails, dtcc_url,
-                           refresh_haircuts, survey_scope)
+                           fred_group_inventory, refresh_haircuts,
+                           survey_scope)
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 s3 = boto3.client("s3", region_name="us-east-1")
@@ -495,6 +496,21 @@ def lambda_handler(event, context):
         except Exception as _e:
             print("[repo] frepo discovery failed:", type(_e).__name__)
 
+    # 2026-11-22: at 06:10 UTC FRED refused every request for half a
+    # minute, the discovery above got nothing, and the board lost this
+    # whole group (1,034 series, the policy rates among them).  A short
+    # discovery is asked again; if FRED still refuses, the group is
+    # served from its bank (repo_sources.fred_group_inventory).
+    _fred_how = "fred"
+    try:
+        _ir, _if, _ip = bank_io(s3, BUCKET)
+        frepo_meta, _fred_how = fred_group_inventory(
+            frepo_meta, fred_key, _ir, _ip, bank_keys(s3, BUCKET),
+            FREPO_DIR, now)
+    except Exception as _ie:
+        _fred_how = "inventory check failed: " + type(_ie).__name__
+    print(f"[repo] fred group inventory: {len(frepo_meta)} ids, {_fred_how}")
+
     def _bucket(fid, title):
         t = (title or "").lower()
         if fid in FUNDING_CORE:
@@ -519,6 +535,11 @@ def lambda_handler(event, context):
             import urllib.request as _ur
             for _cid in CORE:
                 if _cid in frepo_meta:
+                    continue
+                if "served from" in _fred_how:
+                    # FRED is refusing: no title is asked for, the banked
+                    # document carries it
+                    frepo_meta[_cid] = ""
                     continue
                 try:
                     with _ur.urlopen(_ur.Request(
@@ -548,6 +569,9 @@ def lambda_handler(event, context):
         try:
             _d = sread(wkey)
             pairs = extract_pairs(_d)
+            if not title and isinstance(_d, dict):
+                # served from the bank's listing: the title is the banked one
+                title = str(_d.get("title") or "")[:150]
             if pairs:
                 # 2026-11-21: by the series' own rhythm (repo_scope) -- a
                 # daily series the day after its print, an annual line
@@ -560,7 +584,7 @@ def lambda_handler(event, context):
                                                else None))
         except Exception:
             pass
-        if stale and fred_key:
+        if stale and fred_key and "served from" not in _fred_how:
             try:
                 import urllib.request as _ur
                 _st = pairs[-1][0] if pairs else "1970-01-01"
@@ -1319,6 +1343,7 @@ def lambda_handler(event, context):
     # via Wayback snapshots).
     diag['dtcc'] = {}
     diag['own_sources'] = _own
+    diag['fred_group'] = {"ids": len(frepo_meta), "inventory": _fred_how}
     try:
         import urllib.request as _ur
         # 2026-11-22: DTCC moved the file to cms-prod.dtcc.com (the old
