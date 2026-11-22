@@ -26,7 +26,8 @@ sys.path[:0] = [str(ROOT / "aws" / "ops"), str(ROOT / "aws" / "shared")]
 LIVE, FN = "justhodl-dashboard-live", "justhodl-ciss-stress"
 SOURCE = ROOT / "aws" / "lambdas" / FN / "source"
 DESK, HISTORY, WAREHOUSE = "data/ciss-sovereign.json", "data/ciss-sovereign-history.json", "data/ciss-stress.json"
-NEED = {"sovciss": 11, "euro_area": 6, "contribution": 6, "ciss": 10, "clifs": 20, "curve": 4, "yield": 20, "spread": 19, "target": 15, "debt": 20, "auxiliary": 3}
+NEED = {"sovciss": 11, "sovciss_ended": 5, "euro_area": 6, "contribution": 6, "ciss": 10, "clifs": 20, "curve": 4, "yield": 20, "spread": 19, "target": 15, "debt": 20, "deficit": 20, "primary": 20,
+        "interest": 20, "auxiliary": 3}
 
 
 def differences(measures, rows):
@@ -105,6 +106,8 @@ def main():
         m = doc["measures"]
         r.log("desk %d bytes written %s | history %d bytes written %s" % (len(desk_raw), desk_when.strftime("%H:%M:%S"), len(hist_raw), hist_when.strftime("%H:%M:%S")))
         r.log("contract %s %s | generated %s | coverage %s | errors %s" % (doc.get("contract"), doc.get("version"), doc.get("generated_at"), json.dumps(doc.get("coverage")), json.dumps(doc.get("errors"))))
+        if doc.get("version") != "1.1.0":
+            fails.append("the published document is version %s, not the checkout's 1.1.0" % doc.get("version"))
         if doc.get("contract") != "ciss-sovereign.v1" or doc.get("errors"):
             fails.append("contract or errors: %s %s" % (doc.get("contract"), json.dumps(doc.get("errors"))[:200]))
         manifest = json.loads(get(doc["replay"]["manifest_key"])[0])

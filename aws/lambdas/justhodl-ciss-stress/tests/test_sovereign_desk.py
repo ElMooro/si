@@ -98,8 +98,14 @@ def ciss_originals():
     out[key] = ecb_csv({key: {'area': 'PL', 'rows': [(m, '0.05', 'A') for m in months('2020-01', '2026-09')]}})
     key = 'CLIFS.M.GB._Z.4F.EC.CLIFS_CI.IDX'                            # ended at source long ago
     out[key] = ecb_csv({key: {'area': 'GB', 'rows': [(m, '0.07', 'A') for m in months('2008-01', '2010-12')]}})
-    key = 'CISS.M.FR.Z0Z.4F.EC.SOV_CI.IDX'                              # legacy monthly methodology: not on the desk at all
+    key = 'CISS.M.FR.Z0Z.4F.EC.SOV_CI.IDX'                              # legacy monthly series of a country that has a daily one: not used
     out[key] = ecb_csv({key: {'area': 'FR', 'rows': [(m, '0.2', 'A') for m in months('2020-01', '2025-04')]}})
+    key = 'CISS.M.PL.Z0Z.4F.EC.SOV_CI.IDX'                              # Poland has no daily SovCISS: its ended monthly series is kept for its history
+    out[key] = ecb_csv({key: {'area': 'PL', 'rows': [(m, '0.61' if m == '2011-11' else '0.12', 'A') for m in months('2000-09', '2025-04')]}})
+    key = 'CISS.M.U2.Z0Z.4F.EC.SOV_GDPW.IDX'                            # the ended euro-area monthly aggregate: not on the desk
+    out[key] = ecb_csv({key: {'area': 'U2', 'rows': [(m, '0.1', 'A') for m in months('2000-09', '2025-04')]}})
+    key = 'CISS.D.US.Z0Z.4F.EC.SS_CIN.IDX'
+    out[key] = ecb_csv({key: {'area': 'US', 'rows': [(d, level(d, 0.014), 'A') for d in business_days('1987-10-01', '1987-12-31') + DAYS]}})
     return out
 
 
@@ -130,11 +136,18 @@ def aux_originals():
     quarters = ['%d-Q%d' % (y, q) for y in range(2022, 2027) for q in range(1, 5) if (y, q) <= (2026, 2)]
     debt = {gfs('FR'): {'area': 'FR', 'unit': 'XDC_R_B1GQ_CY', 'rows': [(q, '%.1f' % (110 + i * 0.5), 'A') for i, q in enumerate(quarters)]},
             gfs('B6'): {'area': 'B6', 'unit': 'XDC_R_B1GQ_CY', 'rows': [(q, '82.9', 'A') for q in quarters]}}
+    fiscal = lambda code: 'GFS.Q.N.%%s.W0.S13.S1.%s.XDC_R_B1GQ_CY._Z.S.V.CY._T' % code
+    deficit = {fiscal('_Z.B.B9._Z._Z._Z') % 'FR': {'area': 'FR', 'unit': 'XDC_R_B1GQ_CY', 'rows': [(q, '-5.1066', 'A') for q in quarters]},
+               fiscal('_Z.B.B9._Z._Z._Z') % 'I9': {'area': 'I9', 'unit': 'XDC_R_B1GQ_CY', 'rows': [(q, '-3.2404', 'A') for q in quarters]},
+               fiscal('_Z.B.B9._Z._Z._Z') % 'B6': {'area': 'B6', 'unit': 'XDC_R_B1GQ_CY', 'rows': [(q, '-3.1', 'A') for q in quarters]}}
+    primary = {fiscal('_Z.B.B9P._Z._Z._Z') % 'FR': {'area': 'FR', 'unit': 'XDC_R_B1GQ_CY', 'rows': [(q, '-2.6964', 'A') for q in quarters]}}
+    interest = {fiscal('C.D.D41._Z._Z._T') % 'FR': {'area': 'FR', 'unit': 'XDC_R_B1GQ_CY', 'rows': [(q, '2.4102', 'A') for q in quarters]}}
     eurusd = {'EXR.D.USD.EUR.SP00.A': {'unit': 'USD', 'rows': [(d, '1.0992', 'A') for d in recent] + [('2026-11-20', '1.0990', 'A')]}}
     weeks = ['2026-W%02d' % w for w in range(30, 47)]
     claims_ea = {'ILM.W.U2.C.A030000.U2.Z06': {'area': 'U2', 'unit': 'EUR', 'mult': '6', 'rows': [(w, '20193', 'A') for w in weeks]}}
     claims_non = {'ILM.W.U2.C.A020000.U4.Z06': {'area': 'U2', 'unit': 'EUR', 'mult': '6', 'rows': [(w, '521892', 'A') for w in weeks]}}
-    return {'curve': ecb_csv(curve), 'yields': ecb_csv(yields), 'target': ecb_csv(target), 'debt': ecb_csv(debt), 'eurusd': ecb_csv(eurusd),
+    return {'curve': ecb_csv(curve), 'yields': ecb_csv(yields), 'target': ecb_csv(target), 'debt': ecb_csv(debt), 'deficit': ecb_csv(deficit), 'primary': ecb_csv(primary),
+            'interest': ecb_csv(interest), 'eurusd': ecb_csv(eurusd),
             'fx_claims_ea': ecb_csv(claims_ea), 'fx_claims_nonea': ecb_csv(claims_non)}
 
 
@@ -286,7 +299,7 @@ class Compile(unittest.TestCase):
         self.assertEqual((m['Y10_BG']['key'], m['Y10_BG']['value']), ('IRS.M.BG.L.L40.CI.0000.EUR.N.Z', 4.09))
         rows = {c['area']: c for c in self.doc['countries']}
         self.assertEqual((rows['BG']['euro'], rows['DK']['euro'], rows['FR']['euro']), (True, False, True))
-        self.assertEqual(rows['FR']['ids'], {'sovciss': 'SOV_FR', 'yield': 'Y10_FR', 'spread': 'S10_FR', 'debt': 'DEBT_FR'})
+        self.assertEqual(rows['FR']['ids'], {'sovciss': 'SOV_FR', 'yield': 'Y10_FR', 'spread': 'S10_FR', 'debt': 'DEBT_FR', 'deficit': 'DEF_FR', 'primary': 'PRIM_FR', 'interest': 'INT_FR'})
         self.assertNotIn('Y10_V5', m)
 
     def test_ended_and_legacy_series_do_not_pose_as_current(self):
@@ -295,7 +308,42 @@ class Compile(unittest.TestCase):
         self.assertNotIn('Y10_GB', m)
         ended = {e['id'] for e in self.doc['ended_at_source']}
         self.assertEqual(ended, {'CLIFS_GB', 'Y10_GB'})
-        self.assertFalse([k for k in m.values() if k['key'] and '.SOV_CI.' in k['key']])
+        self.assertEqual([k['id'] for k in m.values() if k['key'] and '.SOV_CI.' in k['key']], ['SOVM_PL'])
+
+    def test_a_country_with_only_the_ended_monthly_sovciss_keeps_its_history(self):
+        m = self.doc['measures']['SOVM_PL']
+        self.assertEqual((m['status'], m['group'], m['date'], m['value'], m['freq']), ('ended', 'sovciss_ended', '2025-04-30', 0.12, 'M'))
+        self.assertEqual(m['peaks']['italy2011']['hi'], [0.61, '2011-11-30'])
+        self.assertEqual(self.hist['series']['SOVM_PL']['d'][0], '2000-09-30')
+        rows = {c['area']: c for c in self.doc['countries']}
+        self.assertEqual(rows['PL']['ids'].get('sovciss_ended'), 'SOVM_PL')
+        self.assertNotIn('sovciss_ended', rows['FR']['ids'])                     # France is read from its daily series
+        self.assertNotIn('SOVM_FR', self.doc['measures'])
+        self.assertNotIn('SOVM_PL', {e['id'] for e in self.doc['ended_at_source']})
+        self.assertFalse([k for k in self.doc['measures'] if k.startswith('SOVM_U2') or k == 'EA_SOVM'])
+
+    def test_the_fiscal_figures_are_the_ecbs_four_quarter_sums(self):
+        m = self.doc['measures']
+        self.assertEqual((m['DEF_FR']['value'], m['PRIM_FR']['value'], m['INT_FR']['value']), (-5.11, -2.7, 2.41))
+        self.assertEqual((m['DEF_FR']['unit'], m['DEF_FR']['freq'], m['DEF_FR']['date'], m['DEF_FR']['group']), ('pct_gdp', 'Q', '2026-06-30', 'deficit'))
+        self.assertEqual(m['DEF_I9']['label'], 'Euro area government balance (deficit is negative)')
+        self.assertNotIn('DEF_B6', m)
+
+    def test_the_ciss_of_the_united_states_reaches_the_1987_window(self):
+        m = self.doc['measures']['CISS_US']
+        self.assertEqual(self.doc['world_ciss'], ['CISS_US'])
+        self.assertEqual((m['start'], m['group']), ('1987-10-01', 'ciss'))
+        self.assertIn('crash1987', m['peaks'])
+        self.assertNotIn('crash1987', self.doc['measures']['SOV_FR']['peaks'])
+
+    def test_the_windows_are_in_order_and_do_not_overlap(self):
+        eps = self.doc['episodes']
+        self.assertEqual(len(eps), 22)
+        self.assertEqual(len({e['id'] for e in eps}), 22)
+        for a, b in zip(eps, eps[1:]):
+            self.assertLess(a['to'], b['from'], (a['id'], b['id']))
+        for e in eps:
+            self.assertLess(e['from'], e['to'])
 
     def test_a_blank_newest_row_leaves_the_last_reading_with_its_own_date(self):
         m = self.doc['measures']['CISS_DE']
@@ -359,6 +407,8 @@ class Publication(unittest.TestCase):
         self.assertEqual(s3.objects[manifest['compiler']['key']], Path(desk.__file__).read_bytes())
         self.assertEqual(doc['warehouse'], binding)
         self.assertNotIn('CISS.M.FR.Z0Z.4F.EC.SOV_CI.IDX', manifest['receipts'])
+        self.assertNotIn('CISS.M.U2.Z0Z.4F.EC.SOV_GDPW.IDX', manifest['receipts'])
+        self.assertIn('CISS.M.PL.Z0Z.4F.EC.SOV_CI.IDX', manifest['receipts'])
         rebuilt, _ = desk.compile_desk(manifest['warehouse'], manifest['receipts'], manifest['aux'], lambda r: store.original(s3, 'test', r), manifest['generated_at'], manifest['errors'])
         self.assertEqual(model.digest(rebuilt), manifest['output_sha256'])
         self.assertLess(s3.puts.index(desk.HISTORY), s3.puts.index(desk.CURRENT))      # the page never reads a document whose history is not there yet

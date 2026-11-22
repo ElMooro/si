@@ -11,8 +11,11 @@ Added from the ECB Data Portal, each response retained through evidence_store be
   * the euro-area government yield curve for AAA issuers and for all issuers (daily)  -> all issuers minus AAA
   * 10-year government yields by country (monthly, convergence statistic)           -> spread to Germany
   * TARGET balances by national central bank (monthly, end of month)
-  * general government debt as a percentage of GDP (quarterly)
+  * general government debt, deficit, balance before interest and interest paid, percent of GDP (quarterly)
   * the euro reference rate and the Eurosystem's foreign-currency claims (the CISS page's auxiliaries)
+
+Since 1.1.0 the six countries whose SovCISS the ECB published only in its monthly series, stopped in 2025 (Czechia,
+Denmark, Hungary, Poland, Sweden, United Kingdom), are carried as ended series for their history.
 
 Nothing here is a forecast, a probability or a position size.  A number is a dated measurement or it is absent.
 compile_desk() is pure: the same receipts and the same clock give the same bytes, which is what publish() checks
@@ -33,7 +36,7 @@ import time
 import ciss_source_model as model
 from ciss_source_model import encoded, digest, clock, PREFIX
 
-VERSION = '1.0.0'
+VERSION = '1.1.0'
 CONTRACT = 'ciss-sovereign.v1'
 HISTORY_CONTRACT = 'ciss-sovereign-history.v1'
 CURRENT = 'data/ciss-sovereign.json'
@@ -48,6 +51,9 @@ AUX = {
     'yields': 'IRS/M..L.L40.CI.0000..N.Z',
     'target': 'TGB/M...A094T.U2.EUR.E',
     'debt': 'GFS/Q.N..W0.S13.S1.C.L.LE.GD.T._Z.XDC_R_B1GQ_CY._T.F.V.N._T',
+    'deficit': 'GFS/Q.N..W0.S13.S1._Z.B.B9._Z._Z._Z.XDC_R_B1GQ_CY._Z.S.V.CY._T',
+    'primary': 'GFS/Q.N..W0.S13.S1._Z.B.B9P._Z._Z._Z.XDC_R_B1GQ_CY._Z.S.V.CY._T',
+    'interest': 'GFS/Q.N..W0.S13.S1.C.D.D41._Z._Z._T.XDC_R_B1GQ_CY._Z.S.V.CY._T',
     'eurusd': 'EXR/D.USD.EUR.SP00.A',
     'fx_claims_ea': 'ILM/W.U2.C.A030000.U2.Z06',
     'fx_claims_nonea': 'ILM/W.U2.C.A020000.U4.Z06',
@@ -57,13 +63,23 @@ AUX_LABEL = {
     'yields': '10-year government yields by country, convergence statistic (monthly)',
     'target': 'TARGET balances of the national central banks, end of month',
     'debt': 'General government debt, percent of GDP (quarterly)',
+    'deficit': 'Government deficit (-) or surplus (+), four-quarter sum, percent of GDP',
+    'primary': 'Government primary balance (before interest), four-quarter sum, percent of GDP',
+    'interest': 'Government interest expenditure, four-quarter sum, percent of GDP',
     'eurusd': 'Euro reference rate against the US dollar (daily)',
     'fx_claims_ea': 'Eurosystem claims on euro-area residents in foreign currency (weekly)',
     'fx_claims_nonea': 'Eurosystem claims on non-euro-area residents in foreign currency (weekly)',
 }
 
-# Named windows of euro-area sovereign history.  A cell on the desk is the highest reading inside the window.
+# Named windows.  A cell on the desk is the highest reading inside the window.  The CISS of the euro area, the United
+# States and the United Kingdom reaches back to 1980, so the windows do too; a series that starts later simply has no
+# reading in the early ones.
 EPISODES = [
+    {'id': 'crash1987', 'from': '1987-10-14', 'to': '1987-12-31', 'name': 'October 1987 crash'},
+    {'id': 'erm1992', 'from': '1992-09-01', 'to': '1993-08-31', 'name': 'ERM crisis'},
+    {'id': 'ltcm1998', 'from': '1998-08-17', 'to': '1998-10-31', 'name': 'Russia default and LTCM'},
+    {'id': 'sept2001', 'from': '2001-09-11', 'to': '2001-10-31', 'name': '11 September 2001'},
+    {'id': 'bear2002', 'from': '2002-06-01', 'to': '2002-10-31', 'name': 'WorldCom and the 2002 lows'},
     {'id': 'gfc2008', 'from': '2008-09-15', 'to': '2009-03-31', 'name': 'Lehman and the global crisis'},
     {'id': 'greece2010', 'from': '2010-04-23', 'to': '2010-06-30', 'name': 'Greece asks for a rescue'},
     {'id': 'ireland2010', 'from': '2010-11-01', 'to': '2010-12-31', 'name': 'Ireland rescue'},
@@ -71,6 +87,7 @@ EPISODES = [
     {'id': 'spain2012', 'from': '2012-05-01', 'to': '2012-07-31', 'name': "Spain's banks, \"whatever it takes\""},
     {'id': 'cyprus2013', 'from': '2013-03-15', 'to': '2013-04-15', 'name': 'Cyprus bail-in'},
     {'id': 'greece2015', 'from': '2015-06-26', 'to': '2015-07-20', 'name': 'Greek referendum'},
+    {'id': 'china2015', 'from': '2015-08-11', 'to': '2016-02-29', 'name': 'China devaluation and equity rout'},
     {'id': 'brexit2016', 'from': '2016-06-23', 'to': '2016-07-08', 'name': 'Brexit vote'},
     {'id': 'italy2018', 'from': '2018-05-15', 'to': '2018-11-30', 'name': 'Italy: government and budget'},
     {'id': 'covid2020', 'from': '2020-02-24', 'to': '2020-04-30', 'name': 'COVID'},
@@ -269,6 +286,9 @@ def ciss_id(row):
         return 'CLIFS_' + area, name + ' CLIFS', 'clifs'
     if indicator == 'SOV_CIN':
         return 'SOV_' + area, name + ' SovCISS', 'sovciss'
+    if indicator == 'SOV_CI' and parts[1] == 'M' and area != 'U2':
+        # the monthly methodology the ECB stopped in 2025; shown only for countries that have no daily SovCISS
+        return 'SOVM_' + area, name + ' SovCISS (monthly series, ended at the ECB)', 'sovciss_ended'
     if indicator == 'SOV_GDPWN':
         return 'EA_SOV_GDP', 'Euro area SovCISS, GDP-weighted', 'euro_area'
     if indicator == 'SOV_EWN':
@@ -278,6 +298,11 @@ def ciss_id(row):
     if area == 'U2' and kind == 'CON' and indicator in CONTRIBUTION:
         return 'EA_CON_' + indicator[3:], CONTRIBUTION[indicator] + ' contribution to the euro-area CISS', 'contribution'
     return None
+
+
+def daily_sovereigns(keys):
+    """Countries the ECB publishes a daily SovCISS for."""
+    return {key.split('.')[2] for key in keys if key.split('.')[0] == 'CISS' and key.split('.')[6] == 'SOV_CIN'}
 
 
 def compile_desk(binding, receipts, aux, read, generated_at, errors=None):
@@ -293,10 +318,10 @@ def compile_desk(binding, receipts, aux, read, generated_at, errors=None):
     issues = dict(errors or {})
     measures, history, sources, ended = {}, {}, [], []
 
-    def add(m, obs):
+    def add(m, obs, keep_ended=False):
         if m is None:
             return
-        if m['status'] == 'ended':
+        if m['status'] == 'ended' and not keep_ended:
             ended.append({'id': m['id'], 'key': m['key'], 'last': m['date']})
             return
         if m['id'] in measures:
@@ -307,15 +332,21 @@ def compile_desk(binding, receipts, aux, read, generated_at, errors=None):
 
     # 1. the warehouse's own series, each from its original CSV
     sov = {}
+    daily = daily_sovereigns(receipts)
     for key in sorted(receipts):
         named = ciss_id({'key': key, 'area': key.split('.')[2]})
         if not named:
             continue
+        if named[2] == 'sovciss_ended' and key.split('.')[2] in daily:
+            continue                                            # the daily series carries this country
         try:
             entry = flow_series(read(receipts[key])).get(key)
             if entry is None:
                 raise ValueError('response holds another series')
             obs, info = observations(entry, today)
+            if obs and named[2] == 'sovciss_ended':
+                add(measure(named[0], named[1], 'index', freq_of(key), obs, today, info, key=key, evidence=receipts[key], group=named[2], area=key.split('.')[2]), obs, keep_ended=True)
+                continue
             if not obs or (now.date() - date.fromisoformat(obs[-1][0])).days > ENDED:
                 ended.append({'id': named[0], 'key': key, 'last': obs[-1][0] if obs else None})
                 continue
@@ -430,6 +461,18 @@ def compile_desk(binding, receipts, aux, read, generated_at, errors=None):
             obs, info = aux_obs('debt', key)
             add(measure('DEBT_' + area, AREAS.get(area, area) + ' government debt', 'pct_gdp', 'Q', obs, today, info, key=key, evidence=receipt('debt'), group='debt', area=area), obs)
 
+    # the deficit, the balance before interest, and the interest bill: four-quarter sums, percent of GDP
+    for name, prefix, words in (('deficit', 'DEF_', ' government balance (deficit is negative)'), ('primary', 'PRIM_', ' government balance before interest'),
+                                ('interest', 'INT_', ' government interest paid')):
+        if name not in parsed:
+            continue
+        for key in sorted(parsed[name]):
+            area = key.split('.')[3]
+            if area not in model.COUNTRIES and area != 'I9':
+                continue
+            obs, info = aux_obs(name, key)
+            add(measure(prefix + area, AREAS.get(area, area) + words, 'pct_gdp', 'Q', obs, today, info, key=key, evidence=receipt(name), group=name, area=area), obs)
+
     # the CISS page's auxiliaries
     auxiliaries = []
     for name, mid, label, unit, freq, billions in (('eurusd', 'AUX_EURUSD', 'EUR/USD reference rate', 'usd', 'D', False),
@@ -449,8 +492,9 @@ def compile_desk(binding, receipts, aux, read, generated_at, errors=None):
     # one row per country: which measures exist for it
     countries = []
     for area in sorted({m['area'] for m in measures.values() if m.get('area') and m['area'] in model.COUNTRIES and m['area'] != 'U2'}):
-        ids = {kind: prefix + area for kind, prefix in (('sovciss', 'SOV_'), ('ciss', 'CISS_'), ('clifs', 'CLIFS_'), ('yield', 'Y10_'), ('spread', 'S10_'),
-                                                         ('target', 'TGT_'), ('debt', 'DEBT_')) if prefix + area in measures}
+        ids = {kind: prefix + area for kind, prefix in (('sovciss', 'SOV_'), ('sovciss_ended', 'SOVM_'), ('ciss', 'CISS_'), ('clifs', 'CLIFS_'), ('yield', 'Y10_'),
+                                                         ('spread', 'S10_'), ('target', 'TGT_'), ('debt', 'DEBT_'), ('deficit', 'DEF_'), ('primary', 'PRIM_'),
+                                                         ('interest', 'INT_')) if prefix + area in measures}
         countries.append({'area': area, 'country': AREAS[area], 'euro': area in members, 'ids': ids})
 
     doc = {'engine': 'ciss-stress', 'document': 'sovereign', 'version': VERSION, 'contract': CONTRACT, 'generated_at': generated_at,
@@ -458,13 +502,15 @@ def compile_desk(binding, receipts, aux, read, generated_at, errors=None):
            'euro_area': [m for m in ('EA_SOV_GDP', 'EA_SOV_EQ', 'EA_SOV_RANGE', 'EA_CURVE_10Y', 'EA_CURVE_2Y', 'EA_ALL_10Y', 'EA_AAA_10Y', 'Y10_U2', 'EA_TGT_DEBT', 'EA_CISS', 'EA_CON_BMN')
                          if m in measures],
            'contributions': [m for m in ('EA_CON_BMN', 'EA_CON_EMN', 'EA_CON_FIN', 'EA_CON_FXN', 'EA_CON_MMN', 'EA_CON_CON') if m in measures],
+           'world_ciss': [m for m in ('CISS_US', 'CISS_CN', 'CISS_GB') if m in measures],
            'auxiliaries': auxiliaries, 'sources': sources, 'ended_at_source': sorted(ended, key=lambda e: (e['key'] or '', e['id'])), 'errors': issues,
            'coverage': {'measures': len(measures), 'countries': len(countries), 'errors': len(issues), 'status': 'degraded' if issues else 'measured'},
            'units': {'index': 'ECB composite indicator, 0 to 1', 'pct': 'percent per annum', 'bp': 'basis points', 'eur_bn': 'EUR billions',
                      'pct_gdp': 'percent of GDP', 'usd': 'US dollars per euro'},
            'definitions': {'pctile': 'share of the series\' own observations at or below the latest, percent; not a probability of crisis',
                            'change': 'latest minus the source\'s reading one horizon earlier, in the measure\'s own unit',
-                           'peaks': 'highest and lowest reading inside each named window', 'status': 'current, late (older than the source\'s rhythm allows) or ended'},
+                           'peaks': 'highest and lowest reading inside each named window',
+                           'status': 'current, late (older than the source\'s rhythm allows) or ended (a series the ECB stopped, kept for its history)'},
            'calls_eligible': False, 'sizing_eligible': False,
            'decision': {'verb': 'WAIT', 'meaning': 'abstain', 'reason': 'Dated stress measurements do not establish a validated forecast or portfolio size.'}}
     hist = {'engine': 'ciss-stress', 'document': 'sovereign-history', 'contract': HISTORY_CONTRACT, 'version': VERSION, 'generated_at': generated_at,
@@ -506,7 +552,9 @@ def run(client, bucket, store, budget_seconds=240, now=None):
     if warehouse.get('contract') != model.CONTRACT or not (warehouse.get('replay') or {}).get('manifest_key'):
         raise ValueError('canonical CISS warehouse required')
     binding = {'generated_at': warehouse['generated_at'], 'manifest_key': warehouse['replay']['manifest_key'], 'output_sha256': warehouse['replay']['output_sha256']}
-    receipts = {row['key']: row['evidence'] for row in warehouse['series'] if ciss_id(row)}
+    daily = daily_sovereigns(row['key'] for row in warehouse['series'])
+    receipts = {row['key']: row['evidence'] for row in warehouse['series']
+                if ciss_id(row) and not (ciss_id(row)[2] == 'sovciss_ended' and row['area'] in daily)}
     try:
         previous, _, _ = store.read(client, bucket, CURRENT)
     except Exception as exc:                                    # noqa: BLE001

@@ -27,7 +27,8 @@ import time
 ROOT = Path(__file__).resolve().parents[3]
 sys.path[:0] = [str(ROOT / "aws" / "ops"), str(ROOT / "aws" / "shared"), str(ROOT / "aws" / "lambdas" / "justhodl-ciss-stress" / "source")]
 LIVE = "justhodl-dashboard-live"
-GROUPS = {"sovciss": 11, "euro_area": 5, "contribution": 6, "ciss": 10, "clifs": 20, "curve": 4, "yield": 20, "spread": 19, "target": 15, "debt": 20, "auxiliary": 3}
+GROUPS = {"sovciss": 11, "sovciss_ended": 5, "euro_area": 5, "contribution": 6, "ciss": 10, "clifs": 20, "curve": 4, "yield": 20, "spread": 19, "target": 15, "debt": 20, "deficit": 20, "primary": 20,
+          "interest": 20, "auxiliary": 3}
 SHOW_PEAKS = ("EA_SOV_GDP", "EA_SOV_RANGE", "SOV_GR", "SOV_IT", "SOV_ES", "SOV_FR", "EA_CURVE_10Y", "S10_GR", "S10_IT", "S10_FR", "TGT_IT", "TGT_DE")
 
 
@@ -235,6 +236,13 @@ def main():
             g = lambda kind: m.get(c["ids"].get(kind, ""))
             r.log("  %-4s %-14s %-4s %9s %6s %9s %9s %10s %10s %8s %8s" % (c["area"], c["country"][:14], "yes" if c["euro"] else "no", fmt(g("sovciss")), (g("sovciss") or {}).get("pctile", "-"), fmt(g("yield")),
                                                                          fmt(g("spread")), fmt(g("target")), fmt(g("debt")), fmt(g("clifs")), fmt(g("ciss"))))
+        for x in sorted((x for x in m.values() if x["group"] == "sovciss_ended"), key=lambda x: x["id"]):
+            r.log("  ended SovCISS %-8s %s last %s on %s | history from %s | record %s on %s | 2011-12 peak %s" % (x["id"], x["label"][:34], x["value"], x["date"], x["start"], x["high"][0], x["high"][1],
+                                                                                                             (x["peaks"].get("italy2011") or {}).get("hi")))
+        r.log("  fiscal (four-quarter, %% of GDP): %s" % " | ".join("%s balance %s, before interest %s, interest %s (%s)" % (
+            c["area"], fmt(g2), fmt(m.get(c["ids"].get("primary", ""))), fmt(m.get(c["ids"].get("interest", ""))), g2["period"]) for c in doc["countries"] for g2 in [m.get(c["ids"].get("deficit", ""))] if g2)[:1800])
+        r.log("  CISS outside the euro area: %s" % " | ".join("%s %s on %s, history from %s, 1987 window %s, Lehman window %s" % (
+            m[i]["label"], m[i]["value"], m[i]["date"], m[i]["start"], (m[i]["peaks"].get("crash1987") or {}).get("hi"), (m[i]["peaks"].get("gfc2008") or {}).get("hi")) for i in doc.get("world_ciss", [])))
         r.log("  auxiliaries: %s" % " | ".join("%s %s on %s (exact %s)" % (m[a]["label"], m[a]["value"], m[a]["date"], m[a]["exact"]) for a in doc["auxiliaries"]))
         r.log("  crisis peaks (highest reading inside each window; TARGET shows the lowest):")
         r.log("    %-28s %s" % ("", " ".join("%-12s" % mid for mid in SHOW_PEAKS)))
