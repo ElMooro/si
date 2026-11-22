@@ -18,6 +18,7 @@ from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 import importlib.util
 import json
+import re
 import sys
 import time
 import urllib.request
@@ -89,12 +90,21 @@ def window_peak(dates, values, start, end):
 
 
 def selftest():
+    assert desk_script(b'<script src="/jh-repo-desk.js?v=1a2b3c"></script>') == "/jh-repo-desk.js?v=1a2b3c" and desk_script(b"<p>no script</p>") == "/jh-repo-desk.js"
+    assert fmt_kind("usdb", 3398.38) == "$3.40T" and fmt_kind("usdb", 3002.182) == "$3.00T" and fmt_kind("pct", 2.0) == "2.0%"
     assert fmt_measure("bp", 1, 315.0) == "+315 bp" and fmt_measure("bp", 100, 4.58) == "+458 bp" and fmt_measure("bp", 1, 32.0) == "+32.0 bp" and fmt_measure("bp", 1, -11.0) == "-11.0 bp"
     assert fmt_measure("$B", 1e-9, 2683588000000.0) == "$2,684B" and fmt_measure("$B", 1, 74.6) == "$74.6B" and fmt_measure("$B", 1e-3, 583000.0) == "$583B"
     assert fixed(2.235, 2) == "2.24" and fixed(2683.588, 0) == "2,684" and fixed(-11.0, 1) == "-11.0" and fixed(0.05, 1) == "0.1"
     assert fmt_kind("rate", 3.91) == "3.91%" and fmt_kind("usd", 2.235e12) == "$2.24T" and fmt_kind("usd", 2.7373e11) == "$274B" and fmt_kind("usd", 6.114e9) == "$6.1B"
     assert window_peak(["2019-09-16", "2019-09-17", "2019-10-07"], [33, 315, 999], "2019-09-13", "2019-10-04") == ("2019-09-17", 315)
     assert window_peak(["2019-09-16"], [None], "2019-09-13", "2019-10-04") is None
+
+
+def desk_script(html):
+    """The address repo.html itself names for the desk script.  The site build stamps every shared script reference
+    with a content hash (scripts/stamp_assets.py), so the reference in the repository is not the one that is served."""
+    m = re.search(rb"""src=["'](/jh-repo-desk\.js[^"']*)["']""", html)
+    return m.group(1).decode() if m else "/jh-repo-desk.js"
 
 
 def fetch(path, timeout=60):
@@ -108,7 +118,7 @@ def main():
     from ops_report import report
     with report("ops_6906_repo_desk_live_proof_v2") as r:
         stamp = int(time.time())
-        r.heading("ops 6898 - the chart's Repo button and the desk it opens, live (read-only), %s" % datetime.now(timezone.utc).isoformat(timespec="minutes"))
+        r.heading("ops 6906 - the Repo desk after its four open items, real browser on the live site (read-only), %s" % datetime.now(timezone.utc).isoformat(timespec="minutes"))
         fails = []
 
         def ck(cond, msg):
@@ -124,8 +134,8 @@ def main():
             try:
                 served = {"engine": b"id=btn-repo" in fetch("/jh-chart-engine.js?probe=%d" % (stamp + attempt)),
                           "rail": b'repo: ["Repo' in fetch("/jh-chart-tvrail.js?probe=%d" % (stamp + attempt)),
-                          "desk": b"D_REPO_TARGET" in fetch("/jh-repo-desk.js?v=20261122a&probe=%d" % (stamp + attempt)),
-                          "page": b"jh-repo-desk.js?v=20261122a" in fetch("/repo.html?probe=%d" % (stamp + attempt)),
+                          "desk": b"D_REPO_TARGET" in fetch(desk_script(fetch("/repo.html?probe=%d" % (stamp + attempt)))),
+                          "page": b"JHRepoDesk.dealerFinancing(PD)" in fetch("/repo.html?probe=%d" % (stamp + attempt)),
                           "dealer_page": b"Original observations" in fetch("/jh-dealer-research.js?probe=%d" % (stamp + attempt))}
             except Exception as e:  # noqa: BLE001
                 served = {"error": str(e)[:80]}
