@@ -9,7 +9,9 @@ A real browser on justhodl.ai, judged against the documents the pages read:
   3. a chart opens, draws its history, changes range, answers the pointer;
   4. Crisis peaks: every set draws all its series over their whole history; cells equal the measures' own peaks and
      open that series' chart around the window;
-  5. World and Sources: rows as the documents say; a retained ECB response is fetched and its SHA-256 recomputed;
+  5. World and Sources: rows as the documents say; the World tab's chart draws every country of each of its four sets,
+     "Only tagged" keeps to the tagged countries as they are tagged, a cell opens that country's history; a retained
+     ECB response is fetched and its SHA-256 recomputed;
   6. the desk alone at 390 px: nothing wider than the screen; a deep link opens a chart; tags survive a reload;
   7. ciss.html: a readable headline with the exact value beside it, the reconciliation in words, current / blank /
      ended counts as the warehouse says, auxiliaries with their originals - and one checked in the browser;
@@ -138,8 +140,8 @@ def main():
                 desk_html, ciss_html = fetch("/sovereign-desk.html?probe=%d" % (stamp + attempt)), fetch("/ciss.html?probe=%d" % (stamp + attempt))
                 served = {"engine": b"id=btn-sov" in fetch("/jh-chart-engine.js?probe=%d" % (stamp + attempt)),
                           "rail": b'sov: ["Sovereign stress' in fetch("/jh-chart-tvrail.js?probe=%d" % (stamp + attempt)),
-                          "desk_page": b'id="sov-pal"' in desk_html,                                   # the page of the second round: tags, sorting
-                          "desk_script": b"function arrange(" in fetch(script_of(desk_html, "jh-sovereign-desk.js")),
+                          "desk_page": b".gbtn small{" in desk_html,                                   # the page of the third round: the World tab's chart
+                          "desk_script": b"function worldCols(" in fetch(script_of(desk_html, "jh-sovereign-desk.js")),
                           "ciss_page": b'id="ciss-exact"' in ciss_html,
                           "ciss_script": b"verifiedMeasure" in fetch(script_of(ciss_html, "jh-ciss-research.js")),
                           "fiscal_page": b"yoyB(" in fetch("/sovereign.html?probe=%d" % (stamp + attempt))}
@@ -158,6 +160,9 @@ def main():
         hist = json.loads(fetch("/data/ciss-sovereign-history.json?probe=%d" % stamp))
         ware = json.loads(fetch("/data/ciss-stress.json?exact=1&probe=%d" % stamp))
         world = json.loads(fetch("/data/global-sovereign.json?probe=%d" % stamp))
+        wh = json.loads(fetch("/data/ciss-sovereign-world.json?probe=%d" % stamp))
+        ck(wh.get("contract") == "sovereign-world.v1" and not wh.get("errors") and len(wh["countries"]) == len(world["countries"]), "the World tab's histories: contract, errors or countries (%s, %s, %d)" % (
+            wh.get("contract"), json.dumps(wh.get("errors"))[:120], len(wh.get("countries") or [])))
         M = doc["measures"]
         r.log("documents: desk %s, %d measures, %d countries, errors %s | history %d series | warehouse %s" % (
             doc["generated_at"][:19], len(M), len(doc["countries"]), json.dumps(doc["errors"]), len(hist["series"]), ware["generated_at"][:19]))
@@ -389,6 +394,109 @@ def main():
             top = max((c for c in world["countries"] if isinstance(c.get("cds_bp"), (int, float))), key=lambda c: c["cds_bp"])
             r.log("world: %d rows | first: %s" % (len(w_rows), " | ".join(w_rows[0])))
             ck(len(w_rows) == len(world["countries"]) and w_rows[0][0] == top["country"], "the world table: %d rows, first %s (widest CDS in the document: %s)" % (len(w_rows), w_rows[0][0], top["country"]))
+
+            r.section("5b. The World tab's chart: all countries, or only the tagged ones")
+            fr.wait_for_selector("#sov-ov", timeout=60000)
+            fr.wait_for_timeout(900)
+            WM = wh["measures"]
+            wkey = lambda name: "czechia" if name.lower() == "czech republic" else name.lower()
+            held = lambda sid: [c for c in wh["countries"] if sid in c["ids"]]
+            many = lambda: fr.evaluate("""() => { const c = document.getElementById('sov-ov'); return { lines: +c.getAttribute('data-lines'), mode: c.getAttribute('data-mode'),
+                legend: Array.from(document.querySelectorAll('#sov-leg .lg')).map(b => [b.getAttribute('data-line'), !b.classList.contains('off')]),
+                sets: Array.from(document.querySelectorAll('[data-wset]')).map(b => [b.getAttribute('data-wset'), b.innerText.replace(/\\s+/g, ' ').trim(), b.classList.contains('on')]),
+                modes: Array.from(document.querySelectorAll('[data-olines]')).filter(b => b.classList.contains('on')).map(b => b.getAttribute('data-olines')),
+                miss: (document.getElementById('sov-wmiss') || {}).innerText || '', ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }; }""")
+            k = many()
+            r.log("sets on the page: %s" % " | ".join("%s%s" % (s[1], "*" if s[2] else "") for s in k["sets"]))
+            ck([(s[0], s[1]) for s in k["sets"]] == [(s["id"], "%s %d" % (s["name"], s["n"])) for s in wh["sets"]] and [s[0] for s in k["sets"] if s[2]] == ["yield"], "the four sets, the long yields first: %s" % k["sets"])
+            for s in wh["sets"]:
+                fr.click("[data-wset='%s']" % s["id"])
+                fr.wait_for_timeout(700)
+                k = many()
+                drawn = fr.evaluate(PIXELS, "#sov-ov")
+                want = [c["ids"][s["id"]] for c in held(s["id"])]
+                by = {}
+                for mid in want:
+                    by[WM[mid]["source"]] = by.get(WM[mid]["source"], 0) + 1
+                r.log("  %-15s %d of %d countries drawn (%d line pixels), legend %d, mode %s | sources %s | from %s | overflow %s px" % (
+                    s["id"], k["lines"], len(wh["countries"]), drawn, len(k["legend"]), k["mode"], by, min(WM[m]["start"] for m in want), k["ox"]))
+                ck(k["lines"] == s["n"] == len(want) and sorted(x[0] for x in k["legend"]) == sorted(want) and all(x[1] for x in k["legend"]) and k["modes"] == ["all"] and drawn > 1500 and k["ox"] <= 1,
+                   "set %s: %d lines for %d countries, %d pixels" % (s["id"], k["lines"], s["n"], drawn))
+                names_missing = [c["country"] for c in wh["countries"] if s["id"] not in c["ids"]]
+                ck(all(n in k["miss"] for n in names_missing) and (bool(k["miss"]) == bool(names_missing)), "set %s: the countries without a history are not all named: %s" % (s["id"], k["miss"][:160]))
+            # tags made in the world table; "Only tagged" keeps to them, also when another country is tagged afterwards
+            fr.click("[data-wset='yield']")
+            fr.wait_for_timeout(500)
+            tagged = []
+
+            def tag(country, colour):
+                fr.click("table[data-table='world'] .tg[data-tag='%s']" % wkey(country))
+                fr.wait_for_selector("#sov-pal [data-colour='%s']" % colour, state="visible", timeout=10000)
+                fr.click("#sov-pal [data-colour='%s']" % colour)
+                fr.wait_for_timeout(500)
+                tagged.append(country)
+            expect = lambda sid: sorted(c["ids"][sid] for c in held(sid) if c["country"] in tagged)
+            tag("Turkey", "red")
+            tag("Japan", "blue")
+            fr.click("[data-olines='tagged']")
+            fr.wait_for_timeout(500)
+            k = many()
+            on = sorted(x[0] for x in k["legend"] if x[1])
+            r.log("Turkey and Japan tagged, 'Only tagged' on the long yields: %d line(s) %s (Turkey has no monthly yield: %s)" % (k["lines"], on, "Turkey" in wh["missing"]["yield"]))
+            ck(on == expect("yield") and k["lines"] == len(on) and k["mode"] == "tagged" and k["modes"] == ["tagged"], "'Only tagged' on the yields: %s against %s" % (on, expect("yield")))
+            ck(sorted(x[0] for x in k["legend"][:len(on)]) == on, "tagged countries do not lead the list: %s" % [x[0] for x in k["legend"]][:3])
+            tag("United States", "green")
+            k = many()
+            on = sorted(x[0] for x in k["legend"] if x[1])
+            r.log("the United States tagged while 'Only tagged' is on: %d line(s) %s" % (k["lines"], on))
+            ck(on == expect("yield") and k["lines"] == len(on) == 2, "'Only tagged' did not follow a new tag: %s" % on)
+            box = fr.evaluate("() => { const b = document.getElementById('sov-ov').getBoundingClientRect(); return [b.width, b.height]; }")
+            fr.hover("#sov-ov", position={"x": box[0] * 0.7, "y": box[1] * 0.5})
+            fr.wait_for_timeout(300)
+            tip = fr.evaluate("() => document.getElementById('sov-otip').innerText.replace(/\\s+/g, ' ')")
+            r.log("under the pointer: %s" % tip[:150])
+            ck("United States" in tip and "Japan" in tip and re.search(r"\d{4}", tip), "the pointer read-out on the World chart: %s" % tip[:120])
+            for sid in ("cds", "yield_reported", "cds_reported"):
+                fr.click("[data-wset='%s']" % sid)
+                fr.wait_for_timeout(600)
+                k = many()
+                on = sorted(x[0] for x in k["legend"] if x[1])
+                r.log("  'Only tagged' carried to %-15s %d line(s) %s" % (sid, k["lines"], on))
+                ck(on == expect(sid) and k["lines"] == len(on) and k["mode"] == "tagged", "'Only tagged' on %s: %s against %s" % (sid, on, expect(sid)))
+            # a line's name flips it; "Show all" brings every country back
+            other = next(c["ids"]["cds_reported"] for c in held("cds_reported") if c["country"] not in tagged)
+            fr.click("#sov-leg .lg[data-line='%s']" % other)
+            fr.wait_for_timeout(400)
+            k = many()
+            ck(k["lines"] == len(expect("cds_reported")) + 1 and k["modes"] == [], "a click on one name should add that one line: %d lines, mode buttons %s" % (k["lines"], k["modes"]))
+            fr.click("[data-olines='all']")
+            fr.wait_for_timeout(400)
+            ck(many()["lines"] == len(held("cds_reported")), "'Show all' did not bring every country back")
+            # cells of the table open that country's history
+            pick = lambda country, kind: next(c["ids"] for c in wh["countries"] if c["country"] == country).get(kind) or next(c["ids"] for c in wh["countries"] if c["country"] == country).get(kind + "_reported")
+            fr.click("[data-wset='yield']")
+            fr.wait_for_timeout(500)
+            for country, kind in (("Turkey", "cds"), ("Japan", "yield")):
+                mid = pick(country, kind)
+                fr.click("table[data-table='world'] tr[data-key='%s'] td.c[data-id='%s']" % (wkey(country), mid))
+                fr.wait_for_timeout(900)
+                cc = fr.evaluate(CANVAS)
+                r.log("  the %s figure of %s opens: %s | %s | %d line pixels" % (kind, country, cc["title"], cc["meta"][:150], cc["amber"]))
+                ck(cc["on"] and cc["title"] == WM[mid]["label"] and WM[mid]["source_label"][:40] in cc["meta"] and cc["amber"] > 300, "the %s cell of %s did not open %s" % (kind, country, mid))
+                fr.press("body", "Escape")
+            fr.click("table[data-table='world'] tr[data-key='japan'] .cn")
+            fr.wait_for_timeout(700)
+            ck(fr.evaluate(CANVAS)["title"] == WM[pick("Japan", "yield")]["label"], "the country name in the world table did not open its history")
+            fr.press("body", "Escape")
+            kept = fr.evaluate("() => { try { return localStorage.getItem('jh.sovereign-desk.v1'); } catch (e) { return ''; } }")
+            r.log("kept in the browser: %s" % kept)
+            fr.click("[data-olines='tagged']")
+            fr.wait_for_timeout(300)
+            ck('"lines":"tagged"' in (fr.evaluate("() => { try { return localStorage.getItem('jh.sovereign-desk.v1'); } catch (e) { return ''; } }") or ""), "'Only tagged' is not kept for the next visit")
+            fr.click("[data-cleartags]")
+            fr.wait_for_timeout(400)
+            k = many()
+            ck(k["mode"] == "all" and k["lines"] == len(held("yield")), "clearing the tags should show every country again: mode %s, %d lines" % (k["mode"], k["lines"]))
             fr.click("#sov-tabs .tab[data-view='sources']")
             fr.wait_for_timeout(500)
             src = fr.evaluate("() => ({ rows: document.querySelectorAll('table.board tbody tr').length, text: document.getElementById('sov-main').innerText.replace(/\\s+/g, ' ').slice(0, 420), complete: document.getElementById('sov-main').innerText.includes('Nothing: every response arrived and compiled.'), links: Array.from(document.querySelectorAll('#sov-main a')).map(a => a.getAttribute('href')) })")
@@ -515,11 +623,11 @@ def main():
                 r.log("favicon.ico: HTTP %s" % resp.status)
         except Exception as e:  # noqa: BLE001
             r.log("favicon.ico: %s (the one console 404 the first page of a browser session reports)" % str(e)[:60])
-        r.kv(failed_checks=len(fails), measures=len(M), tiles=len(d["tiles"]) + len(d["world"]), board_rows=len(d["board"]), ended_rows=len(d["ended"]), ciss_table_rows=len(d["ciss"]), world_rows=len(w_rows), ciss_rows=c["rows"])
+        r.kv(failed_checks=len(fails), world_series=len(wh["measures"]), measures=len(M), tiles=len(d["tiles"]) + len(d["world"]), board_rows=len(d["board"]), ended_rows=len(d["ended"]), ciss_table_rows=len(d["ciss"]), world_rows=len(w_rows), ciss_rows=c["rows"])
         if fails:
             r.fail("%d checks failed: %s" % (len(fails), " | ".join(fails)[:1500]))
             sys.exit(1)
-        r.ok("the Sovereign button opens the desk; tiles, boards, tags, sorting, charts, crisis histories, world and sources hold against the documents; the CISS page reads plainly and checks its auxiliaries against their originals")
+        r.ok("the Sovereign button opens the desk; tiles, boards, tags, sorting, charts, crisis histories, the World chart (all and only tagged) and sources hold against the documents; the CISS page reads plainly and checks its auxiliaries against their originals")
     sys.exit(0)
 
 

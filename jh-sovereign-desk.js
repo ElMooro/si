@@ -261,6 +261,9 @@
     });
   }
 
+  var GAP = 45;           /* days of silence after which a traded or reported daily series is not joined by a line */
+  /* the longest silence a line is drawn across: none for the ECB's and the OECD's regular series, GAP days for the World tab's daily ones */
+  function gapOf(m) { return m && m.source && m.freq === "D" ? GAP : 0; }
   var LEAD = "#35d0e0";   /* the first series of a set on a chart of many: a colour no tag uses */
   /* a line's colour on a chart of many: the country's tag if it has one, else its place in the palette */
   function lineColour(i, tag) {
@@ -281,9 +284,44 @@
     }).sort(function (a, b) { return (isNum(b.cds) ? b.cds : -1) - (isNum(a.cds) ? a.cds : -1) || (a.country < b.country ? -1 : 1); });
   }
 
+  /* ---- the World tab's histories (data/ciss-sovereign-world.json) ---- */
+  /* the series of one set: tagged countries first, in the order of the tag colours, then by latest reading, highest first */
+  function worldCols(wh, setName, tags) {
+    var out = [];
+    ((wh && wh.countries) || []).forEach(function (c) {
+      var id = c.ids && c.ids[setName], m = id && wh.measures && wh.measures[id];
+      if (m) out.push({ id: id, m: m, country: c.country, key: ckey(c.country), rank: tagRank(tags, ckey(c.country)) });
+    });
+    return out.sort(function (a, b) {
+      var ta = a.rank < 0 ? TAGS.length : a.rank, tb = b.rank < 0 ? TAGS.length : b.rank;
+      return ta - tb || b.m.value - a.m.value || (a.country < b.country ? -1 : a.country > b.country ? 1 : 0);
+    });
+  }
+  /* {country key: its series ids} */
+  function worldIds(wh) {
+    var out = {};
+    ((wh && wh.countries) || []).forEach(function (c) { out[ckey(c.country)] = c.ids || {}; });
+    return out;
+  }
+  /* which of a country's series a cell of the world table opens: the long history when there is one, else the table's own
+     daily record; on an "as reported" set the other way round.  kind: "yield", "cds", or "name" (the set on screen first) */
+  function worldPick(ids, kind, setName) {
+    if (!ids) return null;
+    if (kind === "name") return ids[setName] || ids.yield || ids.cds || ids.yield_reported || ids.cds_reported || null;
+    var reported = /_reported$/.test(setName || ""), long = ids[kind] || null, own = ids[kind + "_reported"] || null;
+    return reported ? own || long : long || own;
+  }
+  /* is a line of a chart of many drawn?  mode: all, tagged (tagged countries, and a set's leading aggregate), none; a click
+     on one line's name flips that line against the mode */
+  function lineShown(mode, tagged, lead, flipped) {
+    var base = mode === "none" ? false : mode === "tagged" ? !!(tagged || lead) : true;
+    return flipped ? !base : base;
+  }
+
   var api = { fmt: fmt, fmtChange: fmtChange, fmtDate: fmtDate, when: when, age: age, worseUp: worseUp, heat: heat, standing: standing, record: record, sparkPath: sparkPath,
               board: board, commonWhen: commonWhen, read: read, crisis: crisis, side: side, windowOf: windowOf, visible: visible, around: around, bands: bands, ecbPage: ecbPage,
               dataPath: dataPath, world: world, ckey: ckey, joinWorld: joinWorld, tagRank: tagRank, arrange: arrange, nextSort: nextSort, orderIds: orderIds, lineColour: lineColour,
+              worldCols: worldCols, worldIds: worldIds, worldPick: worldPick, lineShown: lineShown, gapOf: gapOf, GAP: GAP,
               SETS: SETS, RANGES: RANGES, ALLOW: ALLOW, TAGS: TAGS };
   root.JHSovereignDesk = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
@@ -292,12 +330,14 @@
   var doc = root.document;
   if (!doc || !doc.getElementById("sov-main")) return;
   var $ = function (id) { return doc.getElementById(id); };
-  var D = null, H = null, W = null, WJ = {}, view = "desk", setId = "sovciss";
-  var chart = { id: null, years: 0, span: null, ep: null, geo: null }, over = { years: 0, hidden: {}, geo: null };
+  var D = null, H = null, W = null, WJ = {}, WH = null, view = "desk", setId = "sovciss", wset = "yield";
+  var chart = { id: null, years: 0, span: null, ep: null, geo: null }, over = { years: 0, mode: "all", flip: {}, geo: null };
   var today = new Date().toISOString().slice(0, 10);
   var KEY = "jh.sovereign-desk.v1", prefs = { tags: {}, sort: {}, show: "all" };
-  try { var kept = JSON.parse(root.localStorage.getItem(KEY) || "null"); if (kept && typeof kept === "object") { prefs.tags = kept.tags || {}; prefs.sort = kept.sort || {}; prefs.show = kept.show || "all"; } } catch (e) { /* a browser that keeps nothing still works */ }
-  function save() { try { root.localStorage.setItem(KEY, JSON.stringify(prefs)); } catch (e) { /* kept for this visit only */ } }
+  try { var kept = JSON.parse(root.localStorage.getItem(KEY) || "null"); if (kept && typeof kept === "object") { prefs.tags = kept.tags || {}; prefs.sort = kept.sort || {}; prefs.show = kept.show || "all"; if (kept.lines === "tagged") over.mode = "tagged"; } } catch (e) { /* a browser that keeps nothing still works */ }
+  function save() { prefs.lines = over.mode === "tagged" ? "tagged" : "all"; try { root.localStorage.setItem(KEY, JSON.stringify(prefs)); } catch (e) { /* kept for this visit only */ } }
+  function meas(id) { return (D && D.measures[id]) || (WH && WH.measures && WH.measures[id]) || null; }
+  function seriesOf(id) { return (H && H.series && H.series[id]) || (WH && WH.series && WH.series[id]) || null; }
 
   function getJson(path) {
     return fetch(path, { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); });
@@ -454,11 +494,7 @@
     var html = "<div class=ctrl>" + SETS.map(function (s) { return "<button class='gbtn" + (s.id === setId ? " on" : "") + "' data-set='" + s.id + "'>" + esc(s.name) + "</button>"; }).join("") + "</div>";
     html += "<div class=sec>" + esc(sc.set.name) + " · every series over its whole history, named windows shaded</div>";
     if (oneUnit) {
-      html += "<div class=ctrl id=sov-ovrg>" + RANGES.map(function (r) { return "<button class='gbtn" + (r[1] === over.years ? " on" : "") + "' data-oyears='" + r[1] + "'>" + r[0] + "</button>"; }).join("")
-        + "<button class=gbtn data-olines=all>Show all</button><button class=gbtn data-olines=tagged>Only tagged</button><button class=gbtn data-olines=none>Hide all</button></div>"
-        + "<div class=cvbox><canvas id=sov-ov class=ovc></canvas><div id=sov-otip class=tip></div></div><div class=legend id=sov-leg>" + c.cols.map(function (m, i) {
-          var colr = i === 0 && !colTag(m, names) ? LEAD : lineColour(i, colTag(m, names)), off = over.hidden[m.id];
-          return "<button class='lg" + (off ? " off" : "") + "' data-line='" + esc(m.id) + "' title='Click to hide or show; double-click for its own chart'><i style='background:" + colr + "'></i>" + esc(colName(m, names)) + (m.status === "ended" ? " <span class=old>ended</span>" : "") + "</button>"; }).join("") + "</div>";
+      html += manyHtml(setCtx());
     } else {
       html += "<p class=note>These series are in different units, so each has its own small chart over its whole history. Click one for the full chart.</p><div class=minis>" + c.cols.map(function (m) {
         return "<div class=mini data-id='" + esc(m.id) + "' tabindex=0 role=button><div class=mt>" + esc(colName(m, names)) + " <b>" + fmt(m.unit, m.value) + "</b></div><canvas class=mc data-mini='" + esc(m.id) + "'></canvas><div class=ms>" + m.start.slice(0, 4) + " – " + m.date.slice(0, 4) + "</div></div>"; }).join("") + "</div>";
@@ -525,8 +561,12 @@
     if (lo < 0 && hi > 0) { g.strokeStyle = "#3a4452"; g.lineWidth = 1; g.beginPath(); g.moveTo(L, Y(0)); g.lineTo(wpx - R, Y(0)); g.stroke(); }
     live.forEach(function (l) {
       g.globalAlpha = l.alpha || 1; g.strokeStyle = l.colour; g.lineWidth = l.width || 1.4; g.beginPath();
-      l.pts.forEach(function (p, i) { if (i) g.lineTo(X(p[0]), Y(p[1])); else g.moveTo(X(p[0]), Y(p[1])); });
+      var n = l.pts.length, gap = l.gap || Infinity;      /* days: two readings further apart than this are not joined */
+      l.pts.forEach(function (p, i) { if (i && p[0] - l.pts[i - 1][0] <= gap) g.lineTo(X(p[0]), Y(p[1])); else g.moveTo(X(p[0]), Y(p[1])); });
       g.stroke();
+      if (l.gap) { g.fillStyle = l.colour; l.pts.forEach(function (p, i) {
+        if ((i && p[0] - l.pts[i - 1][0] <= gap) || (i < n - 1 && l.pts[i + 1][0] - p[0] <= gap)) return;
+        g.beginPath(); g.arc(X(p[0]), Y(p[1]), opt.mini ? 1.2 : 1.8, 0, 6.3); g.fill(); }); }
       if (!l.ended) { var last = l.pts[l.pts.length - 1]; g.fillStyle = l.colour; g.beginPath(); g.arc(X(last[0]), Y(last[1]), opt.mini ? 2 : 3, 0, 6.3); g.fill(); }
     });
     g.globalAlpha = 1;
@@ -537,23 +577,52 @@
     while (b - a > 1) { var mid = (a + b) >> 1; if (pts[mid][0] <= day) a = mid; else b = mid; }
     return Math.abs(pts[b][0] - day) < Math.abs(pts[a][0] - day) ? pts[b] : pts[a];
   }
+  /* ---- a chart of many lines: one description for Crisis peaks and for the World tab ---- */
+  function setCtx() {
+    var sc = setCols(), names = sc.names;
+    return { cols: sc.ids.map(function (id) { return D.measures[id]; }).filter(Boolean), lead: true, name: function (m) { return colName(m, names); }, tag: function (m) { return colTag(m, names); },
+             series: function (id) { return H && H.series[id]; }, ready: function () { return !!H; }, empty: "Every series is hidden — pick one in the list below." };
+  }
+  function worldCtx() {
+    return { cols: worldCols(WH, wset, prefs.tags).map(function (c) { return c.m; }), lead: false, name: function (m) { return m.country; }, tag: function (m) { return prefs.tags[ckey(m.country)]; },
+             series: function (id) { return WH.series[id]; }, ready: function () { return true; },
+             empty: Object.keys(prefs.tags).length ? "Nothing to draw: every line is hidden, or no tagged country has a history in this set." : "No country is tagged yet — click the dot beside a country in the table below." };
+  }
+  function manyCtx() { return view === "world" ? (WH && WH.measures ? worldCtx() : null) : setCtx(); }
+  function shownIn(ctx, m, i) { return lineShown(over.mode, ctx.tag(m), ctx.lead && i === 0, over.flip[m.id]); }
+  function manyHtml(ctx) {
+    var plain = !Object.keys(over.flip).length;
+    return "<div class=ctrl id=sov-ovrg>" + RANGES.map(function (r) { return "<button class='gbtn" + (r[1] === over.years ? " on" : "") + "' data-oyears='" + r[1] + "'>" + r[0] + "</button>"; }).join("")
+      + [["all", "Show all"], ["tagged", "Only tagged"], ["none", "Hide all"]].map(function (b) { return "<button class='gbtn" + (plain && over.mode === b[0] ? " on" : "") + "' data-olines=" + b[0] + ">" + b[1] + "</button>"; }).join("") + "</div>"
+      + "<div class=cvbox><canvas id=sov-ov class=ovc></canvas><div id=sov-otip class=tip></div></div><div class=legend id=sov-leg>" + ctx.cols.map(function (m, i) {
+        var t = ctx.tag(m), colr = ctx.lead && i === 0 && !t ? LEAD : lineColour(i, t);
+        return "<button class='lg" + (shownIn(ctx, m, i) ? "" : " off") + "' data-line='" + esc(m.id) + "' title='" + esc((m.source_label ? m.source_label + ". " : "") + "Click to hide or show; double-click for its own chart") + "'><i style='background:" + colr + "'></i>"
+          + esc(ctx.name(m)) + (m.status === "ended" ? " <span class=old>ended</span>" : "") + "</button>"; }).join("") + "</div>";
+  }
   function drawSet() {
-    var sc = setCols(), names = sc.names, cols = sc.ids.map(function (id) { return D.measures[id]; });
-    var cv = $("sov-ov");
-    if (cv) {
-      var anyTag = cols.some(function (m) { return colTag(m, names); });
-      var lines = cols.map(function (m, i) {
-        var t = colTag(m, names), lead = i === 0;
-        return { id: m.id, name: colName(m, names), unit: m.unit, ended: m.status === "ended", colour: lead && !t ? LEAD : lineColour(i, t), width: t || lead ? 2.2 : 1.1, alpha: t || lead ? 1 : anyTag ? 0.35 : 0.8,
-                 pts: over.hidden[m.id] ? [] : points(H.series[m.id], over.years) };
+    var ctx = manyCtx(), cv = $("sov-ov");
+    if (cv && ctx && ctx.ready()) {
+      var anyTag = ctx.cols.some(function (m) { return ctx.tag(m); });
+      var lines = ctx.cols.map(function (m, i) {
+        var t = ctx.tag(m), lead = ctx.lead && i === 0;
+        return { id: m.id, name: ctx.name(m), unit: m.unit, ended: m.status === "ended", gap: gapOf(m), colour: lead && !t ? LEAD : lineColour(i, t), width: t || lead ? 2.2 : 1.1, alpha: t || lead ? 1 : anyTag ? 0.35 : 0.8,
+                 pts: shownIn(ctx, m, i) ? points(ctx.series(m.id), over.years) : [] };
       });
-      over.geo = plot(cv, lines.slice().reverse(), { unit: cols[0].unit, episodes: D.episodes, empty: Object.keys(H.series).length ? "Every series is hidden — pick one in the list below." : "The histories could not be read." });
+      over.geo = plot(cv, lines.slice().reverse(), { unit: (ctx.cols[0] || {}).unit, episodes: D.episodes, empty: lines.some(function (l) { return l.pts.length >= 2; }) || !lines.length ? "No history in this range." : ctx.empty });
       cv.setAttribute("data-lines", lines.filter(function (l) { return l.pts.length >= 2; }).length);
+      cv.setAttribute("data-mode", over.mode);
     }
     doc.querySelectorAll("canvas[data-mini]").forEach(function (mc) {
       var m = D.measures[mc.getAttribute("data-mini")];
       plot(mc, [{ colour: "#F0B429", width: 1.2, pts: points(H.series[m.id], 0), ended: m.status === "ended" }], { unit: m.unit, episodes: D.episodes, mini: true, empty: "no history" });
     });
+  }
+  function syncMany() {
+    var ctx = manyCtx(); if (!ctx) return;
+    var plain = !Object.keys(over.flip).length;
+    doc.querySelectorAll("[data-olines]").forEach(function (b) { b.classList.toggle("on", plain && b.getAttribute("data-olines") === over.mode); });
+    ctx.cols.forEach(function (m, i) { var b = doc.querySelector("#sov-leg [data-line='" + m.id + "']"); if (b) b.classList.toggle("off", !shownIn(ctx, m, i)); });
+    drawSet();
   }
   function hoverSet(ev) {
     var geo = over.geo, tip = $("sov-otip"); if (!geo || !tip) return;
@@ -569,16 +638,16 @@
   }
 
   function drawChart() {
-    var m = D.measures[chart.id], cv = $("sov-cv");
-    if (!H) { var g = cv.getContext("2d"); g.clearRect(0, 0, cv.width, cv.height); return; }
-    chart.geo = plot(cv, [{ colour: "#F0B429", width: 1.4, pts: points(H.series[chart.id], chart.years, chart.span), ended: m.status === "ended" }],
-      { unit: m.unit, episodes: D.episodes, ep: chart.ep, empty: H.series[chart.id] ? "Not enough history in this range." : "No history for this measure." });
+    var m = meas(chart.id), cv = $("sov-cv"), s = seriesOf(chart.id);
+    if (!m || (!s && !H)) { var g = cv.getContext("2d"); g.clearRect(0, 0, cv.width, cv.height); return; }
+    chart.geo = plot(cv, [{ colour: "#F0B429", width: 1.4, pts: s ? points(s, chart.years, chart.span) : [], ended: m.status === "ended", gap: gapOf(m) }],
+      { unit: m.unit, episodes: D.episodes, ep: chart.ep, empty: s ? "Not enough history in this range." : "No history for this measure." });
   }
   function hoverChart(ev) {
     var geo = chart.geo, tip = $("sov-tip"); if (!geo) { tip.style.display = "none"; return; }
     var box = $("sov-cv").getBoundingClientRect(), px = (ev.touches ? ev.touches[0].clientX : ev.clientX) - box.left;
     var pts = geo.lines[0].pts, best = nearest(pts, geo.x0 + (px - geo.L) / (geo.w - geo.L - geo.R) * (geo.x1 - geo.x0));
-    var m = D.measures[chart.id], ep = windowOf(D.episodes, best[2]);
+    var m = meas(chart.id), ep = windowOf(D.episodes, best[2]);
     tip.style.display = "block"; tip.style.left = Math.min(geo.w - 170, Math.max(4, geo.X(best[0]) + 10)) + "px"; tip.style.top = Math.max(4, geo.Y(best[1]) - 34) + "px";
     tip.innerHTML = "<b>" + fmt(m.unit, best[1]) + "</b> " + fmtDate(best[2]) + (ep ? "<br>" + esc(ep.name) : "");
   }
@@ -589,43 +658,80 @@
   }
   function link(key, text) { var p = dataPath(key); return p ? "<a href='" + esc(p) + "' target=_blank rel=noopener>" + esc(text) + "</a>" : ""; }
   function openChart(id, epId) {
-    var m = D.measures[id]; if (!m) return;
+    var m = meas(id); if (!m) return;
     var ep = epId && D.episodes.filter(function (e) { return e.id === epId; })[0];
     chart.id = id; chart.years = 0; chart.ep = ep ? ep.id : null; chart.span = ep ? around(ep) : null;
     $("sov-ct").textContent = m.label;
-    var links = [];
-    if (m.key && ecbPage(m)) links.push("<a href='" + esc(ecbPage(m)) + "' target=_blank rel=noopener>the series at the ECB</a>");
+    var links = [], own = !!m.source;          /* a measure of the World tab names its own source */
+    if (own) {
+      if (m.source === "ecb" && ecbPage(m)) links.push("<a href='" + esc(ecbPage(m)) + "' target=_blank rel=noopener>the series at the ECB</a>");
+      if (m.source === "oecd") links.push("<a href='https://fred.stlouisfed.org/series/" + encodeURIComponent(String(m.key).split(":").pop()) + "' target=_blank rel=noopener>the series at FRED</a>");
+      if (m.source === "dtcc") links.push("<a href='/cds.html' target=_blank rel=noopener>the CDS desk that measured it</a>");
+      if (m.source === "reported") links.push(link("data/global-sovereign.json", "today's world document"));
+      links.push(link("data/ciss-sovereign-world.json", "the stored histories"));
+    }
+    if (!own && m.key && ecbPage(m)) links.push("<a href='" + esc(ecbPage(m)) + "' target=_blank rel=noopener>the series at the ECB</a>");
     if (m.evidence) links.push(link(m.evidence.key, "the response it was read from (.gz)"));
-    if (m.key && /^(CISS|CLIFS)\./.test(m.key)) links.push("<a href='/ciss.html?series=" + encodeURIComponent(m.key) + "' target=_blank rel=noopener>in the CISS register</a>");
+    if (!own && m.key && /^(CISS|CLIFS)\./.test(m.key)) links.push("<a href='/ciss.html?series=" + encodeURIComponent(m.key) + "' target=_blank rel=noopener>in the CISS register</a>");
     $("sov-cm").innerHTML = "<b>" + fmt(m.unit, m.value) + "</b> · " + when(m) + (m.status === "ended" ? " · <span class=old>the ECB stopped this series; this is its last reading</span>" : oldNote(m))
       + (m.blank_after ? " · the ECB's " + esc(m.blank_after) + " row is blank" : "") + " · " + esc(standing(m)) + "<br>"
-      + (m.key ? "<code>" + esc(m.key) + "</code>" : esc(m.derived || "")) + (m.exact && m.key ? " · source value " + esc(m.exact) : "") + "<br>" + links.join(" · ");
+      + (own ? esc(m.source_label) : (m.key ? "<code>" + esc(m.key) + "</code>" : esc(m.derived || "")) + (m.exact && m.key ? " · source value " + esc(m.exact) : "")) + "<br>" + links.filter(Boolean).join(" · ");
     var peaks = (D.episodes || []).map(function (e) { var p = (m.peaks || {})[e.id]; return p ? [e, p[side(m)]] : null; }).filter(Boolean);
     $("sov-cs").innerHTML = "<div class=stat>History from " + fmtDate(m.start) + " · " + m.n.toLocaleString("en-US") + " observations · high " + fmt(m.unit, m.high[0]) + " on " + fmtDate(m.high[1]) + " · low " + fmt(m.unit, m.low[0]) + " on "
-      + fmtDate(m.low[1]) + " · mean " + fmt(m.unit, m.mean) + (m.freq === "D" ? " · the line is the last reading of each week; highs and lows are from every day" : "") + "</div>"
+      + fmtDate(m.low[1]) + " · mean " + fmt(m.unit, m.mean) + (m.freq === "D" && !own ? " · the line is the last reading of each week; highs and lows are from every day" : "")
+      + (m.source === "dtcc" ? " · one point for each day the name traded; days more than " + GAP + " apart are not joined" : "") + (m.source === "reported" ? " · as the provider showed it each day, unchecked" : "") + "</div>"
       + (peaks.length ? "<div class=sec>" + (side(m) === "lo" ? "Lowest" : "Highest") + " reading inside each named window (shaded on the chart) · click one to look around it</div><div class=chips>" + peaks.map(function (p) {
         return "<span class='chip" + (p[0].id === chart.ep ? " cur" : "") + "' data-chart-ep='" + esc(p[0].id) + "' tabindex=0 role=button>" + esc(p[0].name) + " <b>" + fmt(m.unit, p[1][0]) + "</b> " + fmtDate(p[1][1]) + "</span>"; }).join("") + "</div>" : "");
     rangeButtons();
     $("sov-ovl").classList.add("on");
-    needHistory(function () { if (chart.id) drawChart(); });
+    if (own) drawChart(); else needHistory(function () { if (chart.id) drawChart(); });
   }
   function closeChart() { $("sov-ovl").classList.remove("on"); chart.id = null; $("sov-tip").style.display = "none"; }
 
   /* ---- World, Sources ---- */
+  function needWorld() {
+    if (WH) return;
+    WH = { loading: true };
+    getJson("/data/ciss-sovereign-world.json").then(function (d) { if (d.contract !== "sovereign-world.v1" || !d.measures || !d.series) throw new Error("unexpected document"); WH = d; })
+      .catch(function (e) { WH = { error: e.message }; }).then(function () { if (view === "world") render(); });
+  }
+  function worldChart() {
+    if (!WH || WH.loading) return "<p class=note id=sov-wwait>Loading the histories…</p>";
+    if (WH.error) return "<p class=note id=sov-wwait>The histories behind this table could not be read (" + esc(WH.error) + "). The table below is complete without them.</p>";
+    var set = WH.sets.filter(function (s) { return s.id === wset; })[0] || WH.sets[0]; wset = set.id;
+    var ctx = worldCtx(), by = (WH.coverage || {}).by_source || {}, miss = (WH.missing || {})[wset] || [];
+    var html = "<div class=ctrl id=sov-wsets>" + WH.sets.map(function (s) { return "<button class='gbtn" + (s.id === wset ? " on" : "") + "' data-wset='" + s.id + "' title='" + esc(s.detail) + "'>" + esc(s.name) + " <small>" + s.n + "</small></button>"; }).join("") + "</div>"
+      + "<div class=sec>" + esc(set.name) + " · " + ctx.cols.length + " of " + WH.countries.length + " countries · every series over its whole stored history</div>"
+      + "<p class=note>" + esc(set.detail.charAt(0).toUpperCase() + set.detail.slice(1)) + (/_reported$/.test(wset) && WH.reported_since ? " since " + fmtDate(WH.reported_since) : "") + ". Tagged countries are drawn thick in their colour; "
+      + "“Only tagged” keeps to them as you tag. Click a name in the list to hide or show its line, double-click it or click a country in the table for its own chart.</p>"
+      + manyHtml(ctx);
+    if (miss.length) html += "<p class=note id=sov-wmiss><b>No stored history in this set for:</b> " + esc(miss.join(", ")) + "." + (/_reported$/.test(wset) ? "" : " Their daily record is in “" + esc((WH.sets.filter(function (s) { return s.id === wset + "_reported"; })[0] || {}).name || "as reported") + "”.") + " Nothing is estimated for them.</p>";
+    html += "<p class=note>Lines: " + ["ecb", "oecd", "dtcc", "reported"].filter(function (k) { return by[k]; }).map(function (k) { return by[k] + " " + { ecb: "from the ECB", oecd: "from the OECD", dtcc: "measured from DTCC prints", reported: "kept from this table day by day" }[k]; }).join(", ")
+      + " · compiled " + esc(String(WH.generated_at || "").slice(0, 16).replace("T", " ")) + " UTC · " + link("data/ciss-sovereign-world.json", "the document") + "</p>";
+    return html;
+  }
   function renderWorld() {
     if (!W) { $("sov-main").innerHTML = "<p class=note>Loading the world table…</p>"; return; }
     if (W.error) { $("sov-main").innerHTML = "<p class=note>The world table is not available (" + esc(W.error) + ").</p>"; return; }
-    var rows = world(W), txt = function (v) { return "<td class=l>" + esc(v || "") + "</td>"; };
+    needWorld();
+    var rows = world(W), txt = function (v) { return "<td class=l>" + esc(v || "") + "</td>"; }, ids = worldIds(WH);
+    var cell = function (r, kind, text, bold) {
+      var id = text ? worldPick(ids[r.key], kind, wset) : null, m = id && WH.measures[id];
+      return "<td" + (m ? " class=c data-id='" + esc(id) + "' title='" + esc(m.label + " — its history") + "'" : "") + ">" + (bold ? "<b>" + text + "</b>" : text) + "</td>";
+    };
     $("sov-main").innerHTML = "<p class=note>Outside the ECB's reach: 10-year yields, default-swap spreads, ratings and policy rates as reported by World Government Bonds, " + esc(String(W.generated_at || "").slice(0, 10))
-      + ". Reported figures only; a missing figure is left blank. <a href='/global-sovereign.html' target=_blank rel=noopener>Open the full page</a>.</p>" + tagBar() + table("world", [
-      { id: "country", label: "Country", cls: "l", first: 1, value: function (r) { return r.country; }, cell: function (r) { return "<td class='l nm'>" + tagButton(r) + esc(r.country) + "</td>"; } },
+      + ". Reported figures only; a missing figure is left blank. <a href='/global-sovereign.html' target=_blank rel=noopener>Open the full page</a>.</p>" + worldChart() + tagBar() + table("world", [
+      { id: "country", label: "Country", cls: "l", first: 1, value: function (r) { return r.country; }, cell: function (r) {
+          var id = worldPick(ids[r.key], "name", wset), m = id && WH.measures[id];
+          return "<td class='l nm'>" + tagButton(r) + (m ? "<span class=cn data-id='" + esc(id) + "' tabindex=0 role=button title='" + esc(m.label + " — its history") + "'>" + esc(r.country) + "</span>" : esc(r.country)) + "</td>"; } },
       { id: "region", label: "Region", cls: "l", first: 1, value: function (r) { return r.region; }, cell: function (r) { return txt(r.region); } },
-      { id: "y", label: "10y yield", value: function (r) { return isNum(r.y) ? r.y : null; }, cell: function (r) { return "<td>" + (isNum(r.y) ? fixed(r.y, 2) + "%" : "") + "</td>"; } },
+      { id: "y", label: "10y yield", value: function (r) { return isNum(r.y) ? r.y : null; }, cell: function (r) { return cell(r, "yield", isNum(r.y) ? fixed(r.y, 2) + "%" : ""); } },
       { id: "spread", label: "vs Bund", value: function (r) { return isNum(r.spread) ? r.spread : null; }, cell: function (r) { return "<td>" + (isNum(r.spread) ? fmtChange("bp", r.spread) : "") + "</td>"; } },
-      { id: "cds", label: "CDS", value: function (r) { return isNum(r.cds) ? r.cds : null; }, cell: function (r) { return "<td><b>" + (isNum(r.cds) ? fixed(r.cds, 1) + " bp" : "") + "</b></td>"; } },
+      { id: "cds", label: "CDS", value: function (r) { return isNum(r.cds) ? r.cds : null; }, cell: function (r) { return cell(r, "cds", isNum(r.cds) ? fixed(r.cds, 1) + " bp" : "", true); } },
       { id: "rating", label: "Rating", cls: "l", first: 1, value: function (r) { return r.rating; }, cell: function (r) { return txt(r.rating); } },
       { id: "policy", label: "Policy rate", value: function (r) { return isNum(r.policy) ? r.policy : null; }, cell: function (r) { return "<td>" + (isNum(r.policy) ? fixed(r.policy, 2) + "%" : "") + "</td>"; } },
       { id: "asof", label: "As of", cls: "l", cell: function (r) { return txt(r.asOf); } }], rows, ["cds", -1]);
+    if (WH && WH.measures) drawSet();
   }
   function renderSources() {
     var html = "<p class=note>Every ECB number on this desk is read from an ECB response that is kept as it arrived. The run receipt lists them; compiling twice from two separate reads has to give the same document before it is published.</p>";
@@ -636,7 +742,8 @@
         + (s.evidence ? link(s.evidence.key, "response (.gz)") : s.warehouse ? link(s.warehouse.manifest_key, "warehouse receipt") + " · <a href='/ciss.html' target=_blank rel=noopener>CISS register</a>" : "") + "</td></tr>";
     });
     html += "</tbody></table></div><p class=note>" + link(D.replay.manifest_key, "Run receipt") + " · " + link(D.replay.compiler.key, "the compiler that produced it") + " · " + link("data/ciss-sovereign.json", "this document")
-      + " · " + link(D.history.key, "histories") + " · CDS and ratings: " + link("data/global-sovereign.json", "the world document") + " (World Government Bonds, as reported)</p>";
+      + " · " + link(D.history.key, "histories") + " · CDS and ratings: " + link("data/global-sovereign.json", "the world document") + " (World Government Bonds, as reported) · the World tab's charts: "
+      + link("data/ciss-sovereign-world.json", "the stored histories") + " (ECB and OECD monthly yields, CDS measured from DTCC prints, the world table's own daily figures)</p>";
     var errs = Object.keys(D.errors || {});
     html += "<div class=sec>Not available in this run</div><p class=note>" + (errs.length ? errs.map(function (k) { return esc(k + ": " + D.errors[k]); }).join("<br>") : "Nothing: every response arrived and compiled.") + "</p>";
     if ((D.ended_at_source || []).length) html += "<div class=sec>Ended at the source, not shown</div><p class=note>" + D.ended_at_source.map(function (e) { return esc((e.key || e.id) + " — last " + e.last); }).join("<br>") + "</p>";
@@ -668,29 +775,26 @@
     if ((hit = t.closest && t.closest("#sov-pal [data-colour]"))) {
       var key = $("sov-pal").getAttribute("data-for"), colour = hit.getAttribute("data-colour");
       if (colour) prefs.tags[key] = colour; else delete prefs.tags[key];
-      if (prefs.show !== "all" && !Object.keys(prefs.tags).length) prefs.show = "all";
+      if (!Object.keys(prefs.tags).length) { prefs.show = "all"; if (over.mode === "tagged") over.mode = "all"; }
       save(); render(); return;
     }
     if ((hit = t.closest && t.closest("[data-tag]"))) { var p = $("sov-pal"); if (p.style.display === "flex" && p.getAttribute("data-for") === hit.getAttribute("data-tag")) closePalette(); else openPalette(hit); return; }
     closePalette();
-    if ((hit = t.closest && t.closest("#sov-tabs .tab"))) { view = hit.getAttribute("data-view"); render(); return; }
+    if ((hit = t.closest && t.closest("#sov-tabs .tab"))) { view = hit.getAttribute("data-view"); over.flip = {}; render(); return; }
     if ((hit = t.closest && t.closest("[data-show]"))) { prefs.show = hit.getAttribute("data-show"); save(); render(); return; }
-    if (t.closest && t.closest("[data-cleartags]")) { prefs.tags = {}; prefs.show = "all"; save(); render(); return; }
+    if (t.closest && t.closest("[data-cleartags]")) { prefs.tags = {}; prefs.show = "all"; if (over.mode === "tagged") over.mode = "all"; save(); render(); return; }
     if ((hit = t.closest && t.closest("th[data-sort]"))) {
       var tb = hit.closest("table"), sorted = tb.getAttribute("data-sorted").split(":");
       prefs.sort[tb.getAttribute("data-table")] = nextSort([sorted[0], +sorted[1]], hit.getAttribute("data-sort"), +hit.getAttribute("data-first"));
       save(); render(); return;
     }
-    if ((hit = t.closest && t.closest("[data-set]"))) { setId = hit.getAttribute("data-set"); over.hidden = {}; render(); return; }
+    if ((hit = t.closest && t.closest("[data-set]"))) { setId = hit.getAttribute("data-set"); over.flip = {}; render(); return; }
+    if ((hit = t.closest && t.closest("[data-wset]"))) { wset = hit.getAttribute("data-wset"); over.flip = {}; render(); return; }
     if ((hit = t.closest && t.closest("[data-oyears]"))) { over.years = +hit.getAttribute("data-oyears"); hit.parentNode.querySelectorAll("[data-oyears]").forEach(function (b) { b.classList.toggle("on", +b.getAttribute("data-oyears") === over.years); }); drawSet(); return; }
-    if ((hit = t.closest && t.closest("[data-olines]"))) {
-      var mode = hit.getAttribute("data-olines"), sc = setCols(); over.hidden = {};
-      sc.ids.forEach(function (id, i) { var m = D.measures[id]; if (mode === "none" || (mode === "tagged" && i > 0 && !colTag(m, sc.names))) over.hidden[id] = 1; });
-      doc.querySelectorAll("#sov-leg .lg").forEach(function (b) { b.classList.toggle("off", !!over.hidden[b.getAttribute("data-line")]); }); drawSet(); return;
-    }
+    if ((hit = t.closest && t.closest("[data-olines]"))) { over.mode = hit.getAttribute("data-olines"); over.flip = {}; save(); syncMany(); return; }
     if ((hit = t.closest && t.closest("#sov-leg [data-line]"))) {
-      var lid = hit.getAttribute("data-line"); if (over.hidden[lid]) delete over.hidden[lid]; else over.hidden[lid] = 1;
-      hit.classList.toggle("off", !!over.hidden[lid]); drawSet(); return;
+      var lid = hit.getAttribute("data-line"); if (over.flip[lid]) delete over.flip[lid]; else over.flip[lid] = 1;
+      syncMany(); return;
     }
     if ((hit = t.closest && t.closest("[data-years]"))) { chart.years = +hit.getAttribute("data-years"); chart.span = null; rangeButtons(); drawChart(); return; }
     if (t.closest && t.closest("[data-window]")) { var e0 = D.episodes.filter(function (e) { return e.id === chart.ep; })[0]; chart.span = around(e0); rangeButtons(); drawChart(); return; }
@@ -708,7 +812,7 @@
   $("sov-cv").addEventListener("mouseleave", function () { $("sov-tip").style.display = "none"; });
   doc.addEventListener("mousemove", function (ev) { if (ev.target.id === "sov-ov") hoverSet(ev); else if ($("sov-otip")) $("sov-otip").style.display = "none"; });
   doc.addEventListener("touchstart", function (ev) { if (ev.target.id === "sov-ov") hoverSet(ev); }, { passive: true });
-  root.addEventListener("resize", function () { if (chart.id) drawChart(); if (view === "crisis" && H) drawSet(); });
+  root.addEventListener("resize", function () { if (chart.id) drawChart(); if ((view === "crisis" && H) || (view === "world" && WH && WH.measures)) drawSet(); });
 
   getJson("/data/ciss-sovereign.json").then(function (d) {
     if (d.contract !== "ciss-sovereign.v1" || !d.measures) throw new Error("unexpected document");

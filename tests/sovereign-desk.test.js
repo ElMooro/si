@@ -349,6 +349,108 @@ test('tags and sorting are kept in the browser, and the page offers them', () =>
   for (const css of ['.tg{', '#sov-pal{', 'th.sort{', '.legend{', '.minis{']) assert.ok(html.includes(css), css);
 });
 
+// ---- the third round, 2026-11-22: a chart on the World tab, all countries or only the tagged ones ----
+const WH = FX.world_history;
+test('the World tab\'s histories: four sets, a country only where the site holds a history, each line naming its source', () => {
+  assert.deepEqual([WH.contract, WH.version], ['sovereign-world.v1', '1.0.0']);
+  assert.deepEqual(WH.sets.map(s => s.id), ['yield', 'cds', 'yield_reported', 'cds_reported']);
+  assert.equal(WH.countries.length, 44);
+  const allowed = { yield: ['ecb', 'oecd'], cds: ['dtcc'], yield_reported: ['reported'], cds_reported: ['reported'] };
+  for (const s of WH.sets) {
+    const held = WH.countries.filter(c => c.ids[s.id]);
+    assert.equal(s.n, held.length, s.id);
+    assert.deepEqual(WH.missing[s.id], WH.countries.filter(c => !c.ids[s.id]).map(c => c.country), s.id + ': the missing are named');
+    for (const c of held) {
+      const m = WH.measures[c.ids[s.id]];
+      assert.ok(m && m.set === s.id && m.country === c.country && allowed[s.id].includes(m.source) && m.source_label && m.unit === s.unit, c.country + ' ' + s.id);
+      assert.ok(WH.series_ids.includes(m.id) && m.n >= 2);
+    }
+  }
+  assert.deepEqual(WH.sets.map(s => s.n), [30, 25, 44, 38]);
+  assert.equal(Object.keys(WH.measures).length, 137);
+  assert.equal(WH.reported_since, '2026-09-26');
+  // decades of monthly yields from the OECD and the ECB; two years of measured CDS; the table's own figures since late September
+  const us = WH.measures.WY_UNITED_STATES, tr = WH.measures.WC_TURKEY, ry = WH.measures.RY_TURKEY;
+  assert.deepEqual([us.source, us.start, us.freq, us.key], ['oecd', '1953-04-30', 'M', 'fred:IRLTLT01USM156N']);
+  assert.deepEqual(us.high, [15.32, '1981-09-30']);
+  assert.deepEqual([WH.measures.WY_ITALY.source, WH.measures.WY_ITALY.start], ['ecb', '1991-03-31']);
+  assert.deepEqual([tr.source, tr.start, tr.freq, tr.unit], ['dtcc', '2024-09-03', 'D', 'bp']);
+  assert.deepEqual([ry.source, ry.start], ['reported', '2026-09-26']);
+  assert.ok(ry.source_label.includes('kept by the site since 26 September 2026'));
+  assert.equal(WH.measures.WY_RUSSIA.status, 'ended');                         // its source stopped in 2018; kept for its history
+  for (const id of Object.keys(WH.series)) {
+    const s = WH.series[id], m = WH.measures[id];
+    assert.ok(s.d.length === m.n && s.d[0] === m.start && s.d[s.d.length - 1] === m.date && s.v[s.v.length - 1] === m.value, id);
+  }
+  assert.ok(!WH.missing.yield.includes('Germany') && WH.missing.yield.includes('Turkey') && WH.missing.cds_reported.includes('Vietnam'));
+});
+
+test('on the World chart tagged countries lead in the order of their colours, the rest follow by their latest reading', () => {
+  const plain = desk.worldCols(WH, 'yield', {});
+  assert.equal(plain.length, 30);
+  assert.deepEqual(plain.slice(0, 3).map(c => c.country), ['Mexico', 'South Africa', 'Russia']);
+  const values = plain.map(c => c.m.value);
+  assert.deepEqual(values, [...values].sort((a, b) => b - a));
+  const tags = { turkey: 'red', japan: 'blue', 'united states': 'green' };    // red, green, blue is the order of the palette
+  assert.deepEqual(desk.worldCols(WH, 'yield', tags).slice(0, 3).map(c => c.country), ['United States', 'Japan', 'Mexico']);   // Turkey has no monthly yield
+  assert.deepEqual(desk.worldCols(WH, 'cds', tags).slice(0, 4).map(c => c.country), ['Turkey', 'United States', 'Japan', 'Colombia']);
+  assert.deepEqual(desk.worldCols(WH, 'yield_reported', tags).slice(0, 3).map(c => [c.country, c.id, c.key]), [['Turkey', 'RY_TURKEY', 'turkey'], ['United States', 'RY_UNITED_STATES', 'united states'], ['Japan', 'RY_JAPAN', 'japan']]);
+  assert.equal(desk.worldCols(WH, 'yield_reported', {}).length, 44);
+  assert.deepEqual(desk.worldCols(WH, 'no-such-set', tags), []);
+  assert.deepEqual(desk.worldCols(null, 'yield', tags), []);
+  assert.deepEqual(desk.worldCols({ error: 'HTTP 404' }, 'yield', tags), []);
+  // the ECB says Czechia, the world table Czech Republic: one key, so a tag made on the Desk reaches the World chart
+  assert.equal(desk.worldCols(WH, 'yield', { czechia: 'amber' })[0].country, 'Czech Republic');
+  assert.ok(desk.worldIds(WH).czechia.yield === 'WY_CZECHIA' && !('czech republic' in desk.worldIds(WH)));
+});
+
+test('"Only tagged" draws the tagged lines and a set\'s leading aggregate; a click on one name flips that line', () => {
+  const shown = (mode, tagged, lead, flipped) => desk.lineShown(mode, tagged, lead, flipped);
+  assert.deepEqual([shown('all', null, false), shown('all', 'red', false), shown('none', 'red', true)], [true, true, false]);
+  assert.deepEqual([shown('tagged', 'red', false), shown('tagged', null, false), shown('tagged', undefined, true)], [true, false, true]);
+  assert.deepEqual([shown('tagged', null, false, 1), shown('tagged', 'red', false, 1), shown('all', null, false, 1), shown('none', null, false, 1)], [true, false, false, true]);
+  assert.equal(shown('something else', null, false), true);
+});
+
+test('a cell of the world table opens the long history when there is one, the table\'s own record otherwise', () => {
+  const ids = desk.worldIds(WH);
+  assert.equal(desk.worldPick(ids.germany, 'yield', 'yield'), 'WY_GERMANY');
+  assert.equal(desk.worldPick(ids.germany, 'yield', 'cds_reported'), 'RY_GERMANY');          // on an "as reported" set, the reported series first
+  assert.equal(desk.worldPick(ids.turkey, 'yield', 'yield'), 'RY_TURKEY');                   // no monthly yield is held for Turkey
+  assert.equal(desk.worldPick(ids.turkey, 'cds', 'yield'), 'WC_TURKEY');
+  assert.equal(desk.worldPick(ids.turkey, 'cds', 'yield_reported'), 'RC_TURKEY');
+  assert.equal(desk.worldPick(ids.vietnam, 'cds', 'cds'), null);                             // neither measured nor reported
+  assert.equal(desk.worldPick(ids.turkey, 'name', 'yield'), 'WC_TURKEY');                    // the set on screen first, then whatever is held
+  assert.equal(desk.worldPick(ids.turkey, 'name', 'cds_reported'), 'RC_TURKEY');
+  assert.equal(desk.worldPick(ids.vietnam, 'name', 'cds'), 'RY_VIETNAM');
+  assert.equal(desk.worldPick(undefined, 'name', 'yield'), null);
+  assert.equal(desk.worldPick({}, 'yield', 'yield'), null);
+});
+
+test('days a sovereign did not trade are not joined across a long silence; the ECB\'s and the OECD\'s regular series are', () => {
+  assert.equal(desk.GAP, 45);
+  assert.equal(desk.gapOf(WH.measures.WC_TURKEY), 45);
+  assert.equal(desk.gapOf(WH.measures.RY_TURKEY), 45);
+  assert.equal(desk.gapOf(WH.measures.WY_UNITED_STATES), 0);                                  // monthly
+  assert.equal(desk.gapOf(M.SOV_FR), 0);                                                      // the desk's own ECB series
+  assert.equal(desk.gapOf(null), 0);
+  // Thailand's CDS printed once in 2024 and three times in November 2026: a dot and a short line, not a line across two years
+  const th = WH.series.WC_THAILAND, day = iso => Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10)) / 86400000;
+  assert.equal(th.d.length, 4);
+  assert.ok(day(th.d[1]) - day(th.d[0]) > desk.GAP && day(th.d[3]) - day(th.d[1]) <= desk.GAP);
+});
+
+test('the page draws the World chart with the same controls as Crisis peaks and keeps "Only tagged" between visits', () => {
+  const html = read('sovereign-desk.html'), js = read('jh-sovereign-desk.js');
+  for (const hook of ['data-wset=', '/data/ciss-sovereign-world.json', 'data-olines=', 'data-oyears=', 'id=sov-wmiss', 'function manyHtml(', 'function worldCtx(']) assert.ok(js.includes(hook), hook);
+  assert.equal((js.match(/function manyHtml\(/g) || []).length, 1);
+  assert.ok(js.includes('manyHtml(setCtx())') && js.includes('manyHtml(ctx)'), 'one description of the chart of many, used by both views');
+  assert.ok(/kept\.lines === "tagged"/.test(js) && /prefs\.lines = over\.mode === "tagged"/.test(js));
+  assert.ok(js.includes('if (over.mode === "tagged") over.mode = "all"'), 'clearing the last tag must not leave an empty chart');
+  assert.ok(html.includes('.gbtn small{'));
+  assert.ok(/The World tab's charts draw the histories the site holds/.test(html));
+});
+
 // ---- the CISS page's repairs, on rows of the live warehouse ----
 const W = FX.warehouse, row = key => W.series.find(r => r.key === key);
 
