@@ -263,7 +263,7 @@ def main():
         if fails:
             r.fail(" | ".join(fails))
             sys.exit(1)
-        r.ok("the document compiles from live originals and seven ECB responses, agrees with the warehouse, and replays; nothing was written")
+        r.ok("the document compiles from live originals and %d added ECB responses, agrees with the warehouse, and replays; nothing was written" % len(desk.AUX))
     sys.exit(0)
 
 
