@@ -318,10 +318,47 @@
     return flipped ? !base : base;
   }
 
+  /* ---- Dollar shortage: the euro's reference rate and the Eurosystem's two foreign-currency claims ---- */
+  var DOLLAR = ["AUX_EURUSD", "AUX_FX_EA", "AUX_FX_NONEA"];
+  var DOLLAR_SHORT = { AUX_EURUSD: "EUR/USD", AUX_FX_EA: "Foreign-currency lending to euro-area banks", AUX_FX_NONEA: "Foreign-currency claims abroad" };
+  var DOLLAR_COL = { AUX_EURUSD: "EUR/USD", AUX_FX_EA: "Lending to banks", AUX_FX_NONEA: "Claims abroad" };
+  /* the three measures and their histories: from the dollar-shortage document (every observation) or, while that has not
+     arrived, from the desk's own two documents (the reference rate is then one reading a week) */
+  function dollarData(ds, deskDoc, hist) {
+    var full = !!(ds && ds.contract === "ciss-dollar-shortage.v1" && ds.measures && ds.series);
+    var M = full ? ds.measures : (deskDoc && deskDoc.measures) || {}, S = full ? ds.series : (hist && hist.series) || {};
+    return { ids: DOLLAR.filter(function (id) { return M[id]; }), measures: M, series: S, full: full, episodes: (full ? ds.episodes : deskDoc && deskDoc.episodes) || [] };
+  }
+  /* the end of a window that a dollar shortage shows in: the euro's low, lending's high; null where the page takes no side */
+  function dollarSide(id) { return id === "AUX_EURUSD" ? "lo" : id === "AUX_FX_EA" ? "hi" : null; }
+  /* the opening lines, in words, from the measures' own numbers */
+  function dollarRead(dd) {
+    var M = dd.measures, out = [], lend = M.AUX_FX_EA, eur = M.AUX_EURUSD, abroad = M.AUX_FX_NONEA;
+    function moves(m, keys) { return keys.map(function (k) { return fmtChange(m.unit, m.change[k]) + " over a " + { "1w": "week", "1m": "month", "12m": "year" }[k]; }).join(", "); }
+    if (lend) {
+      var big = (lend.tops || []).filter(function (x) { return x[0] >= 100; });
+      out.push("Foreign-currency lending to euro-area banks is " + fmt("eur_bn", lend.value) + " in the week to " + fmtDate(lend.date) + " — " + standing(lend) + "; " + moves(lend, ["1w", "12m"]) + "."
+        + (big.length ? " It has stood above €100 bn " + (big.length === 1 ? "once" : "at " + big.length + " separate peaks") + ": " + big.map(function (x) { return fmt("eur_bn", x[0]) + " on " + fmtDate(x[1]); }).join(", ") + "." : ""));
+    }
+    if (eur) out.push("EUR/USD, the ECB's reference rate, is " + fmt("index", eur.value) + " on " + fmtDate(eur.date) + ": " + moves(eur, ["1w", "1m", "12m"]) + "; " + standing(eur)
+      + " (highest " + fmt("index", eur.high[0]) + " on " + fmtDate(eur.high[1]) + ", lowest " + fmt("index", eur.low[0]) + " on " + fmtDate(eur.low[1]) + ").");
+    if (abroad) out.push("The Eurosystem's foreign-currency claims abroad are " + fmt("eur_bn", abroad.value) + " in the week to " + fmtDate(abroad.date) + " — " + standing(abroad) + "; " + moves(abroad, ["1w", "12m"]) + ".");
+    return out;
+  }
+  /* one row per named window: the lowest and highest reading of each of the three inside it; windows before 1999 hold none */
+  function dollarWindows(dd) {
+    var cols = dd.ids.map(function (id) { return dd.measures[id]; });
+    var rows = dd.episodes.map(function (ep) {
+      return { ep: ep, cells: cols.map(function (m) { var p = (m.peaks || {})[ep.id]; return p ? { lo: p.lo, hi: p.hi } : null; }) };
+    }).filter(function (r) { return r.cells.some(Boolean); });
+    return { cols: cols, rows: rows, now: cols.map(function (m) { return [m.value, m.date]; }), record: cols.map(function (m) { return { lo: m.low, hi: m.high }; }) };
+  }
+
   var api = { fmt: fmt, fmtChange: fmtChange, fmtDate: fmtDate, when: when, age: age, worseUp: worseUp, heat: heat, standing: standing, record: record, sparkPath: sparkPath,
               board: board, commonWhen: commonWhen, read: read, crisis: crisis, side: side, windowOf: windowOf, visible: visible, around: around, bands: bands, ecbPage: ecbPage,
               dataPath: dataPath, world: world, ckey: ckey, joinWorld: joinWorld, tagRank: tagRank, arrange: arrange, nextSort: nextSort, orderIds: orderIds, lineColour: lineColour,
               worldCols: worldCols, worldIds: worldIds, worldPick: worldPick, lineShown: lineShown, gapOf: gapOf, GAP: GAP,
+              dollarData: dollarData, dollarSide: dollarSide, dollarRead: dollarRead, dollarWindows: dollarWindows, DOLLAR: DOLLAR,
               SETS: SETS, RANGES: RANGES, ALLOW: ALLOW, TAGS: TAGS };
   root.JHSovereignDesk = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
@@ -330,14 +367,16 @@
   var doc = root.document;
   if (!doc || !doc.getElementById("sov-main")) return;
   var $ = function (id) { return doc.getElementById(id); };
-  var D = null, H = null, W = null, WJ = {}, WH = null, view = "desk", setId = "sovciss", wset = "yield";
+  var D = null, H = null, W = null, WJ = {}, WH = null, DS = null, view = "desk", setId = "sovciss", wset = "yield", dyears = 0, dgeo = {};
+  var VIEWS = ["desk", "crisis", "world", "dollar", "sources"];
   var chart = { id: null, years: 0, span: null, ep: null, geo: null }, over = { years: 0, mode: "all", flip: {}, geo: null };
   var today = new Date().toISOString().slice(0, 10);
   var KEY = "jh.sovereign-desk.v1", prefs = { tags: {}, sort: {}, show: "all" };
   try { var kept = JSON.parse(root.localStorage.getItem(KEY) || "null"); if (kept && typeof kept === "object") { prefs.tags = kept.tags || {}; prefs.sort = kept.sort || {}; prefs.show = kept.show || "all"; if (kept.lines === "tagged") over.mode = "tagged"; } } catch (e) { /* a browser that keeps nothing still works */ }
   function save() { prefs.lines = over.mode === "tagged" ? "tagged" : "all"; try { root.localStorage.setItem(KEY, JSON.stringify(prefs)); } catch (e) { /* kept for this visit only */ } }
   function meas(id) { return (D && D.measures[id]) || (WH && WH.measures && WH.measures[id]) || null; }
-  function seriesOf(id) { return (H && H.series && H.series[id]) || (WH && WH.series && WH.series[id]) || null; }
+  function everyDay(id) { return DS && DS.series && DS.series[id] ? DS.series[id] : null; }        /* the dollar-shortage document keeps every observation */
+  function seriesOf(id) { return everyDay(id) || (H && H.series && H.series[id]) || (WH && WH.series && WH.series[id]) || null; }
 
   function getJson(path) {
     return fetch(path, { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); });
@@ -544,7 +583,8 @@
       l.pts.forEach(function (p) { if (p[1] < lo) lo = p[1]; if (p[1] > hi) hi = p[1]; });
     });
     if (lo > 0 && lo / (hi || 1) < 0.35 && opt.unit !== "eur_bn") lo = 0;
-    var pad = (hi - lo || Math.abs(hi) || 1) * 0.06; hi += pad; if (lo !== 0) lo -= pad;
+    var floor = lo, pad = (hi - lo || Math.abs(hi) || 1) * 0.06; hi += pad; if (lo !== 0) lo -= pad;
+    if (floor >= 0 && lo < 0) lo = 0;          /* the margin never takes the axis of a series that is never negative below zero */
     var X = function (d) { return L + (d - x0) / (x1 - x0 || 1) * (wpx - L - R); }, Y = function (v) { return T + (hi - v) / (hi - lo || 1) * (hpx - T - B); };
     bands(opt.episodes, firstIso, lastIso).forEach(function (b) {
       var bx = L + b.x0 * (wpx - L - R), bw = Math.max(opt.mini ? 1 : 2, (b.x1 - b.x0) * (wpx - L - R)), strong = opt.ep && b.ep.id === opt.ep;
@@ -678,13 +718,13 @@
       + (own ? esc(m.source_label) : (m.key ? "<code>" + esc(m.key) + "</code>" : esc(m.derived || "")) + (m.exact && m.key ? " · source value " + esc(m.exact) : "")) + "<br>" + links.filter(Boolean).join(" · ");
     var peaks = (D.episodes || []).map(function (e) { var p = (m.peaks || {})[e.id]; return p ? [e, p[side(m)]] : null; }).filter(Boolean);
     $("sov-cs").innerHTML = "<div class=stat>History from " + fmtDate(m.start) + " · " + m.n.toLocaleString("en-US") + " observations · high " + fmt(m.unit, m.high[0]) + " on " + fmtDate(m.high[1]) + " · low " + fmt(m.unit, m.low[0]) + " on "
-      + fmtDate(m.low[1]) + " · mean " + fmt(m.unit, m.mean) + (m.freq === "D" && !own ? " · the line is the last reading of each week; highs and lows are from every day" : "")
+      + fmtDate(m.low[1]) + " · mean " + fmt(m.unit, m.mean) + (m.freq === "D" && !own && !everyDay(m.id) ? "<span id=sov-wk class=wk> · the line is the last reading of each week; highs and lows are from every day</span>" : "")
       + (m.source === "dtcc" ? " · one point for each day the name traded; days more than " + GAP + " apart are not joined" : "") + (m.source === "reported" ? " · as the provider showed it each day, unchecked" : "") + "</div>"
       + (peaks.length ? "<div class=sec>" + (side(m) === "lo" ? "Lowest" : "Highest") + " reading inside each named window (shaded on the chart) · click one to look around it</div><div class=chips>" + peaks.map(function (p) {
         return "<span class='chip" + (p[0].id === chart.ep ? " cur" : "") + "' data-chart-ep='" + esc(p[0].id) + "' tabindex=0 role=button>" + esc(p[0].name) + " <b>" + fmt(m.unit, p[1][0]) + "</b> " + fmtDate(p[1][1]) + "</span>"; }).join("") + "</div>" : "");
     rangeButtons();
     $("sov-ovl").classList.add("on");
-    if (own) drawChart(); else needHistory(function () { if (chart.id) drawChart(); });
+    if (own || everyDay(id)) drawChart(); else needHistory(function () { if (chart.id) drawChart(); });
   }
   function closeChart() { $("sov-ovl").classList.remove("on"); chart.id = null; $("sov-tip").style.display = "none"; }
 
@@ -733,6 +773,70 @@
       { id: "asof", label: "As of", cls: "l", cell: function (r) { return txt(r.asOf); } }], rows, ["cds", -1]);
     if (WH && WH.measures) drawSet();
   }
+  /* ---- Dollar shortage ---- */
+  function needDollar() {
+    if (DS) return;
+    DS = { loading: true };
+    getJson("/data/ciss-dollar-shortage.json").then(function (d) { if (d.contract !== "ciss-dollar-shortage.v1" || !d.measures || !d.series) throw new Error("unexpected document"); DS = d; })
+      .catch(function (e) { DS = { error: e.message }; }).then(function () { if (view === "dollar") render(); if (chart.id && everyDay(chart.id)) { var wk = $("sov-wk"); if (wk) wk.parentNode.removeChild(wk); drawChart(); } });
+  }
+  function renderDollar() {
+    needDollar();
+    var dd = dollarData(DS, D, H);
+    if (!dd.ids.length) { $("sov-main").innerHTML = "<p class=note>The euro's reference rate and the Eurosystem's foreign-currency claims are not in this run's documents; see Sources.</p>"; return; }
+    var M = dd.measures, w = dollarWindows(dd);
+    var html = "<div class=read id=sov-dread>" + dollarRead(dd).map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("") + "</div>"
+      + "<p class=note>Three ECB measurements read side by side. In a dollar shortage the euro falls against the dollar and euro-area banks borrow dollars from the Eurosystem, which shows as a jump in its foreign-currency claims on euro-area residents. "
+      + "Measurements, not a forecast.</p>"
+      + "<div class=sec>The three measures · click one for its own chart</div><div class=tiles id=sov-dtiles>" + dd.ids.map(function (id) { return tile(M[id]); }).join("") + "</div>"
+      + "<div class=sec>Their whole history · named windows shaded</div><div class=ctrl id=sov-drg>" + RANGES.map(function (r) { return "<button class='gbtn" + (r[1] === dyears ? " on" : "") + "' data-dyears='" + r[1] + "'>" + r[0] + "</button>"; }).join("") + "</div>"
+      + "<div class=dcharts>" + dd.ids.map(function (id) { var m = M[id];
+          return "<div class=dchart><div class=mt>" + esc(DOLLAR_SHORT[id]) + " <b>" + fmt(m.unit, m.value) + "</b> <span class=td>" + when(m) + oldNote(m) + "</span></div>"
+            + "<div class=cvbox><canvas class=dcv data-dchart='" + esc(id) + "'></canvas><div class=tip data-dtip='" + esc(id) + "'></div></div>"
+            + "<p class=note>" + esc(m.what || m.label) + "</p></div>"; }).join("") + "</div>";
+    html += "<div class=sec>Inside each named window · the lowest and the highest reading · click a cell for the chart around it</div>"
+      + "<p class=note>A dollar shortage shows in the euro's low and in lending's high; those two columns are marked. The reference rate is read from every day, the two claims from every week.</p>"
+      + "<div class=scroll><table class='board dwin'><thead><tr><th class=l>Window</th>" + w.cols.map(function (m) {
+          var s = dollarSide(m.id); return "<th class='" + (s === "lo" ? "mk" : "") + "' title='" + esc(m.label) + "'>" + esc(DOLLAR_COL[m.id]) + "<small>low</small></th><th class='" + (s === "hi" ? "mk" : "") + "' title='" + esc(m.label) + "'>" + esc(DOLLAR_COL[m.id]) + "<small>high</small></th>"; }).join("") + "</tr></thead><tbody>";
+    function pair(m, c, ep) {
+      if (!c) return "<td class=nil>—</td><td class=nil>—</td>";
+      var s = dollarSide(m.id), share = m.high && m.high[0] ? Math.max(0, Math.min(1, c.hi[0] / m.high[0])) : 0;
+      function td(x, side) {
+        return "<td class='c" + (s === side ? " mk" : "") + "' data-id='" + esc(m.id) + "'" + (ep ? " data-ep='" + esc(ep.id) + "'" : "") + (m.id === "AUX_FX_EA" && side === "hi" ? " style='background:rgba(224,122,106," + (share * 0.55).toFixed(2) + ")'" : "")
+          + " title='" + esc(fmtDate(x[1])) + "'>" + fmt(m.unit === "usd" ? "index" : m.unit, x[0]).replace(" bn", "") + "</td>"; }
+      return td(c.lo, "lo") + td(c.hi, "hi");
+    }
+    w.rows.forEach(function (r) {
+      html += "<tr data-ep='" + esc(r.ep.id) + "'><td class='l nm'>" + esc(r.ep.name) + "<small>" + fmtDate(r.ep.from) + " – " + fmtDate(r.ep.to) + "</small></td>" + r.cells.map(function (c, i) { return pair(w.cols[i], c, r.ep); }).join("") + "</tr>";
+    });
+    html += "<tr class=nowrow><td class='l nm'>Now<small>each at its latest date</small></td>" + w.cols.map(function (m) { return "<td class=c colspan=2 data-id='" + esc(m.id) + "' style='text-align:center'>" + fmt(m.unit === "usd" ? "index" : m.unit, m.value).replace(" bn", "") + " <span class=old>" + when(m) + "</span></td>"; }).join("") + "</tr>";
+    html += "<tr class=recrow><td class='l nm'>Record<small>whole history</small></td>" + w.cols.map(function (m, i) { return pair(m, w.record[i], null); }).join("") + "</tr></tbody></table></div>";
+    html += "<div class=sec>Where each number comes from</div><p class=note id=sov-dsrc>" + dd.ids.map(function (id) { var m = M[id];
+      return "<b>" + esc(m.label) + "</b> · <code>" + esc(m.key) + "</code> · since " + fmtDate(m.start) + ", " + m.n.toLocaleString("en-US") + " observations · <a href='" + esc(ecbPage(m)) + "' target=_blank rel=noopener>the series at the ECB</a>"
+        + (m.evidence ? " · " + link(m.evidence.key, "the response it was read from (.gz)") : ""); }).join("<br>")
+      + "<br>Each is checked against that response on the <a href='/ciss.html' target=_blank rel=noopener>CISS register</a>. "
+      + (dd.full ? link("data/ciss-dollar-shortage.json", "The document") + " · compiled " + esc(String(DS.generated_at).slice(0, 16).replace("T", " ")) + " UTC from the ECB responses the desk document names."
+                 : "<span class=old>The complete daily history has not arrived" + (DS && DS.error ? " (" + esc(DS.error) + ")" : "") + "; the reference rate is drawn from one reading a week.</span>")
+      + " The same three are on the <a href='/dollar-indexes.html' target=_blank rel=noopener>Dollar desk</a>.</p>";
+    $("sov-main").innerHTML = html;
+    if (dd.full) drawDollar(); else needHistory(function () { if (view === "dollar") drawDollar(); });
+  }
+  function drawDollar() {
+    var dd = dollarData(DS, D, H); dgeo = {};
+    doc.querySelectorAll("canvas[data-dchart]").forEach(function (cv) {
+      var id = cv.getAttribute("data-dchart"), m = dd.measures[id];
+      dgeo[id] = plot(cv, [{ colour: "#F0B429", width: 1.3, pts: points(dd.series[id], dyears) }], { unit: m.unit === "usd" ? "index" : m.unit, episodes: dd.episodes, empty: dd.series[id] ? "Not enough history in this range." : "No history for this measure." });
+      cv.setAttribute("data-points", dgeo[id] ? dgeo[id].lines[0].pts.length : 0);
+    });
+  }
+  function hoverDollar(ev) {
+    var cv = ev.target, id = cv.getAttribute("data-dchart"), geo = dgeo[id], tip = doc.querySelector("[data-dtip='" + id + "']"); if (!geo || !tip) return;
+    var box = cv.getBoundingClientRect(), px = (ev.touches ? ev.touches[0].clientX : ev.clientX) - box.left;
+    var best = nearest(geo.lines[0].pts, geo.x0 + (px - geo.L) / (geo.w - geo.L - geo.R) * (geo.x1 - geo.x0)), m = meas(id), ep = windowOf(D.episodes, best[2]);
+    tip.style.display = "block"; tip.style.left = Math.min(geo.w - 170, Math.max(4, geo.X(best[0]) + 10)) + "px"; tip.style.top = Math.max(4, geo.Y(best[1]) - 34) + "px";
+    tip.innerHTML = "<b>" + fmt(m.unit === "usd" ? "index" : m.unit, best[1]) + "</b> " + fmtDate(best[2]) + (ep ? "<br>" + esc(ep.name) : "");
+  }
+
   function renderSources() {
     var html = "<p class=note>Every ECB number on this desk is read from an ECB response that is kept as it arrived. The run receipt lists them; compiling twice from two separate reads has to give the same document before it is published.</p>";
     html += "<div class=scroll><table class=board><thead><tr><th class=l>ECB response</th><th>Series</th><th>Rows</th><th class=l>Newest period</th><th class=l>Received</th><th class=l>Original</th></tr></thead><tbody>";
@@ -743,7 +847,8 @@
     });
     html += "</tbody></table></div><p class=note>" + link(D.replay.manifest_key, "Run receipt") + " · " + link(D.replay.compiler.key, "the compiler that produced it") + " · " + link("data/ciss-sovereign.json", "this document")
       + " · " + link(D.history.key, "histories") + " · CDS and ratings: " + link("data/global-sovereign.json", "the world document") + " (World Government Bonds, as reported) · the World tab's charts: "
-      + link("data/ciss-sovereign-world.json", "the stored histories") + " (ECB and OECD monthly yields, CDS measured from DTCC prints, the world table's own daily figures)</p>";
+      + link("data/ciss-sovereign-world.json", "the stored histories") + " (ECB and OECD monthly yields, CDS measured from DTCC prints, the world table's own daily figures) · the Dollar shortage tab: "
+      + link("data/ciss-dollar-shortage.json", "its document") + " (the same ECB responses, every observation)</p>";
     var errs = Object.keys(D.errors || {});
     html += "<div class=sec>Not available in this run</div><p class=note>" + (errs.length ? errs.map(function (k) { return esc(k + ": " + D.errors[k]); }).join("<br>") : "Nothing: every response arrived and compiled.") + "</p>";
     if ((D.ended_at_source || []).length) html += "<div class=sec>Ended at the source, not shown</div><p class=note>" + D.ended_at_source.map(function (e) { return esc((e.key || e.id) + " — last " + e.last); }).join("<br>") + "</p>";
@@ -756,7 +861,7 @@
     doc.querySelectorAll("#sov-tabs .tab").forEach(function (t) { t.classList.toggle("on", t.getAttribute("data-view") === view); });
     closePalette();
     if (!D) return;
-    if (view === "desk") renderDesk(); else if (view === "crisis") renderCrisis(); else if (view === "world") renderWorld(); else renderSources();
+    if (view === "desk") renderDesk(); else if (view === "crisis") renderCrisis(); else if (view === "world") renderWorld(); else if (view === "dollar") renderDollar(); else renderSources();
   }
 
   /* ---- the colour palette for a tag ---- */
@@ -790,6 +895,7 @@
     }
     if ((hit = t.closest && t.closest("[data-set]"))) { setId = hit.getAttribute("data-set"); over.flip = {}; render(); return; }
     if ((hit = t.closest && t.closest("[data-wset]"))) { wset = hit.getAttribute("data-wset"); over.flip = {}; render(); return; }
+    if ((hit = t.closest && t.closest("[data-dyears]"))) { dyears = +hit.getAttribute("data-dyears"); hit.parentNode.querySelectorAll("[data-dyears]").forEach(function (b) { b.classList.toggle("on", +b.getAttribute("data-dyears") === dyears); }); drawDollar(); return; }
     if ((hit = t.closest && t.closest("[data-oyears]"))) { over.years = +hit.getAttribute("data-oyears"); hit.parentNode.querySelectorAll("[data-oyears]").forEach(function (b) { b.classList.toggle("on", +b.getAttribute("data-oyears") === over.years); }); drawSet(); return; }
     if ((hit = t.closest && t.closest("[data-olines]"))) { over.mode = hit.getAttribute("data-olines"); over.flip = {}; save(); syncMany(); return; }
     if ((hit = t.closest && t.closest("#sov-leg [data-line]"))) {
@@ -810,9 +916,13 @@
   $("sov-cv").addEventListener("mousemove", hoverChart);
   $("sov-cv").addEventListener("touchstart", hoverChart, { passive: true });
   $("sov-cv").addEventListener("mouseleave", function () { $("sov-tip").style.display = "none"; });
-  doc.addEventListener("mousemove", function (ev) { if (ev.target.id === "sov-ov") hoverSet(ev); else if ($("sov-otip")) $("sov-otip").style.display = "none"; });
-  doc.addEventListener("touchstart", function (ev) { if (ev.target.id === "sov-ov") hoverSet(ev); }, { passive: true });
-  root.addEventListener("resize", function () { if (chart.id) drawChart(); if ((view === "crisis" && H) || (view === "world" && WH && WH.measures)) drawSet(); });
+  function isDollarChart(el) { return !!(el && el.getAttribute && el.getAttribute("data-dchart")); }
+  doc.addEventListener("mousemove", function (ev) {
+    if (ev.target.id === "sov-ov") hoverSet(ev); else if ($("sov-otip")) $("sov-otip").style.display = "none";
+    if (isDollarChart(ev.target)) hoverDollar(ev); else doc.querySelectorAll("[data-dtip]").forEach(function (x) { x.style.display = "none"; });
+  });
+  doc.addEventListener("touchstart", function (ev) { if (ev.target.id === "sov-ov") hoverSet(ev); else if (isDollarChart(ev.target)) hoverDollar(ev); }, { passive: true });
+  root.addEventListener("resize", function () { if (chart.id) drawChart(); if ((view === "crisis" && H) || (view === "world" && WH && WH.measures)) drawSet(); if (view === "dollar" && doc.querySelector("canvas[data-dchart]")) drawDollar(); });
 
   getJson("/data/ciss-sovereign.json").then(function (d) {
     if (d.contract !== "ciss-sovereign.v1" || !d.measures) throw new Error("unexpected document");
@@ -820,8 +930,10 @@
     var ea = d.measures.EA_SOV_GDP, n = Object.keys(d.measures).length;
     $("sov-asof").innerHTML = "ECB data" + (ea ? " to " + fmtDate(ea.date) : "") + " · compiled " + esc(d.generated_at.slice(0, 16).replace("T", " ")) + " UTC · " + n + " measures, " + d.countries.length + " countries"
       + (Object.keys(d.errors || {}).length ? " · <span class=old>" + Object.keys(d.errors).length + " source(s) not available in this run — see Sources</span>" : "");
+    var params = new URLSearchParams(root.location.search), tab = params.get("view");
+    if (tab && VIEWS.indexOf(tab) >= 0) view = tab;                                              /* ?view=dollar opens a tab directly */
     render();
-    var want = new URLSearchParams(root.location.search).get("m");
+    var want = params.get("m");
     if (want && d.measures[want]) openChart(want);
     getJson("/data/global-sovereign.json").then(function (w) { W = w; WJ = joinWorld(w); render(); }).catch(function (e) { W = { error: e.message }; if (view === "world") render(); });
   }).catch(function (e) {

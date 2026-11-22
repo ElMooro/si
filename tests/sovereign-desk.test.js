@@ -451,6 +451,96 @@ test('the page draws the World chart with the same controls as Crisis peaks and 
   assert.ok(/The World tab's charts draw the histories the site holds/.test(html));
 });
 
+// ---- the fourth round, 2026-11-22: a Dollar shortage tab, and the same three on the Dollar desk ----
+const DS = FX.dollar;
+test('the dollar-shortage document is the desk\'s three ECB measurements with every observation', () => {
+  assert.deepEqual([DS.contract, DS.version, DS.order], ['ciss-dollar-shortage.v1', '1.0.0', desk.DOLLAR]);
+  assert.deepEqual(desk.DOLLAR, ['AUX_EURUSD', 'AUX_FX_EA', 'AUX_FX_NONEA']);
+  for (const id of DS.order) {
+    const m = DS.measures[id], d = M[id];
+    for (const k of ['value', 'date', 'n', 'start', 'high', 'low', 'unit', 'freq', 'key', 'label']) assert.deepEqual(m[k], d[k], id + '.' + k + ' is the desk document\'s');
+    assert.deepEqual(m.peaks.gfc2008, d.peaks.gfc2008);
+    assert.equal(DS.series_n[id], m.n);
+    assert.ok(m.what && m.evidence && m.evidence.sha256.length === 64);
+  }
+  assert.deepEqual(DS.series_n, { AUX_EURUSD: 7141, AUX_FX_EA: 1455, AUX_FX_NONEA: 1455 });
+  assert.equal(H.AUX_EURUSD, undefined);                                                     // (this fixture carries only a few of the desk's weekly histories)
+  assert.deepEqual(DS.sources.map(s => s.path), ['EXR/D.USD.EUR.SP00.A', 'ILM/W.U2.C.A030000.U2.Z06', 'ILM/W.U2.C.A020000.U4.Z06']);
+  // the reference rate for every working day, not one a week
+  const d = DS.series.AUX_EURUSD.d, gaps = d.slice(1).map((x, i) => (Date.parse(x) - Date.parse(d[i])) / 86400000);
+  assert.ok(gaps.filter(g => g === 1).length > gaps.length * 0.7 && Math.max(...gaps) <= 5);
+  assert.deepEqual([d[d.length - 1], DS.series.AUX_EURUSD.v[d.length - 1]], [DS.measures.AUX_EURUSD.date, DS.measures.AUX_EURUSD.value]);
+  // the ECB's dollar operations are where its own series has them
+  assert.deepEqual(DS.measures.AUX_FX_EA.high, [248.854, '2008-12-05']);
+  assert.deepEqual(DS.measures.AUX_FX_EA.tops.slice(0, 4).map(x => x[1].slice(0, 4)), ['2008', '2020', '2009', '2012']);
+  const ea = DS.series.AUX_FX_EA;
+  assert.equal(Math.max(...ea.v), 248.854);
+  assert.equal(ea.d[ea.v.indexOf(248.854)], '2008-12-05');
+});
+
+test('the Dollar shortage tab reads the complete document, and the desk\'s own two documents until it arrives', () => {
+  const full = desk.dollarData(DS, D, { series: {} });
+  assert.deepEqual([full.full, full.ids, full.episodes.length], [true, desk.DOLLAR, 22]);
+  assert.equal(full.series.AUX_EURUSD, DS.series.AUX_EURUSD);
+  for (const missing of [null, { loading: true }, { error: 'HTTP 404' }, { contract: 'something-else', measures: {}, series: {} }]) {
+    const back = desk.dollarData(missing, D, { series: { AUX_EURUSD: { d: ['2026-11-20'], v: [1.099] } } });
+    assert.deepEqual([back.full, back.ids], [false, desk.DOLLAR]);
+    assert.equal(back.measures.AUX_FX_EA, M.AUX_FX_EA);
+    assert.deepEqual(back.series.AUX_EURUSD.v, [1.099]);
+  }
+  assert.deepEqual(desk.dollarData(null, { measures: {} }, null).ids, []);
+  assert.deepEqual(desk.dollarData(null, null, null).ids, []);
+  assert.deepEqual([desk.dollarSide('AUX_EURUSD'), desk.dollarSide('AUX_FX_EA'), desk.dollarSide('AUX_FX_NONEA')], ['lo', 'hi', null]);
+});
+
+test('the Dollar shortage tab opens in words made of the measures\' own numbers', () => {
+  const lines = desk.dollarRead(desk.dollarData(DS, D, null)), lend = DS.measures.AUX_FX_EA, eur = DS.measures.AUX_EURUSD, abroad = DS.measures.AUX_FX_NONEA;
+  assert.equal(lines.length, 3);
+  assert.ok(lines[0].startsWith('Foreign-currency lending to euro-area banks is ' + desk.fmt('eur_bn', lend.value) + ' in the week to ' + desk.fmtDate(lend.date) + ' — ' + desk.standing(lend)), lines[0]);
+  assert.ok(lines[0].includes(desk.fmtChange('eur_bn', lend.change['1w']) + ' over a week, ' + desk.fmtChange('eur_bn', lend.change['12m']) + ' over a year'), lines[0]);
+  const big = lend.tops.filter(x => x[0] >= 100);
+  assert.equal(big.length, 4);
+  assert.ok(lines[0].endsWith('It has stood above €100 bn at 4 separate peaks: €248.9 bn on 5 Dec 2008, €153.8 bn on 8 May 2020, €142.1 bn on 10 Apr 2009, €100.6 bn on 10 Feb 2012.'), lines[0]);
+  assert.ok(lines[1].startsWith('EUR/USD, the ECB\'s reference rate, is ' + desk.fmt('index', eur.value) + ' on ' + desk.fmtDate(eur.date) + ': '), lines[1]);
+  assert.ok(lines[1].includes('highest 1.5990 on 15 Jul 2008, lowest 0.8252 on 26 Oct 2000') && lines[1].includes(desk.standing(eur)), lines[1]);
+  assert.ok(lines[2].includes(desk.fmt('eur_bn', abroad.value)) && lines[2].includes(desk.standing(abroad)), lines[2]);
+  assert.ok(!lines.join(' ').match(/NaN|undefined|null/));
+  // a series that never stood above 100 says nothing about peaks; a missing measure costs only its line
+  const quiet = { ...lend, tops: [[61.288, '2009-08-14']] };
+  assert.ok(!desk.dollarRead({ measures: { AUX_FX_EA: quiet } })[0].includes('stood above'));
+  assert.equal(desk.dollarRead({ measures: { AUX_EURUSD: eur } }).length, 1);
+});
+
+test('inside each named window: the euro\'s low and high, lending\'s low and high, as the measures have them', () => {
+  const w = desk.dollarWindows(desk.dollarData(DS, D, null));
+  assert.deepEqual(w.cols.map(m => m.id), desk.DOLLAR);
+  assert.equal(w.rows.length, 19);                                                           // the three begin in January 1999: no reading in 1987, 1992 or 1998
+  assert.equal(w.rows[0].ep.id, 'sept2001');
+  const row = id => w.rows.find(r => r.ep.id === id);
+  assert.deepEqual(row('gfc2008').cells[0].lo, [1.246, '2008-10-27']);
+  assert.deepEqual(row('gfc2008').cells[1].hi, [248.854, '2008-12-05']);
+  assert.deepEqual(row('covid2020').cells[1].hi, [150.104, '2020-04-24']);
+  assert.deepEqual(row('gilts2022').cells[0].lo, [0.9565, '2022-09-28']);                    // the euro below parity
+  for (const r of w.rows) for (const c of r.cells) assert.ok(c && c.lo[0] <= c.hi[0]);
+  assert.deepEqual(w.now, desk.DOLLAR.map(id => [DS.measures[id].value, DS.measures[id].date]));
+  assert.deepEqual(w.record[1], { lo: DS.measures.AUX_FX_EA.low, hi: DS.measures.AUX_FX_EA.high });
+});
+
+test('the page has the Dollar shortage tab, and the Dollar desk carries the same three from the same document', () => {
+  const html = read('sovereign-desk.html'), js = read('jh-sovereign-desk.js'), pro = read('chart-pro.html'), bundle = read('assets/jh-workspaces.js');
+  assert.ok(/<button class="tab" data-view="dollar">Dollar shortage<\/button>/.test(html));
+  assert.ok(html.indexOf('data-view="world"') < html.indexOf('data-view="dollar"') && html.indexOf('data-view="dollar"') < html.indexOf('data-view="sources"'));
+  for (const hook of ['/data/ciss-dollar-shortage.json', 'data-dchart=', 'data-dyears=', 'data-dtip=', 'function renderDollar(', 'VIEWS.indexOf(tab) >= 0', 'if (floor >= 0 && lo < 0) lo = 0']) assert.ok(js.includes(hook), hook);
+  for (const css of ['.dcharts{', '.dcv{', 'table.dwin th.mk']) assert.ok(html.includes(css), css);
+  for (const text of [pro, bundle]) {
+    assert.ok(text.includes('"ecb-dollar": { url: "/data/ciss-dollar-shortage.json"'), 'the Dollar desk reads the same document');
+    assert.ok(text.includes('"/sovereign-desk.html?view=dollar&m=" + encodeURIComponent(field)'), 'a card opens its chart on the Sovereign desk');
+    for (const id of desk.DOLLAR) assert.ok(text.includes('["flows:ecb-dollar/' + id + '",'), id + ' is on the Dollar desk');
+    assert.ok(text.includes('{ cat: "Dollar shortage · the euro side, from the ECB"'));
+  }
+  assert.ok(/static feedChart\(symbol\)/.test(pro) && pro.includes('if (this.calcSpec(symbol) || this.feedChart(symbol)) return this.chartSeries(symbol);'));
+});
+
 // ---- the CISS page's repairs, on rows of the live warehouse ----
 const W = FX.warehouse, row = key => W.series.find(r => r.key === key);
 

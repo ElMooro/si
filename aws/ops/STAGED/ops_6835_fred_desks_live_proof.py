@@ -39,7 +39,7 @@ from ops_report import report  # noqa: E402
 BASE = "https://justhodl.ai"
 PROXY = "https://justhodl-data-proxy.raafouis.workers.dev"
 UA = {"User-Agent": "Mozilla/5.0 jh-ops"}
-DESKS = [("dollar", "dollar-indexes.html", "💵 Dollar indexes", 95, 8, "btn-usd"),
+DESKS = [("dollar", "dollar-indexes.html", "💵 Dollar indexes", 98, 9, "btn-usd"),
          ("soma", "securities-held-outright.html", "🏛 Fed securities held outright", 222, 25, "btn-soma"),
          ("bofa", "ice-bofa-indices.html", "📉 ICE BofA indices", 192, 16, "btn-bofa")]
 DXY = {"k": 50.14348112, "legs": [("DEXUSEU", -0.576), ("DEXJPUS", 0.136), ("DEXUSUK", -0.119), ("DEXCAUS", 0.091), ("DEXSDUS", 0.042), ("DEXSZUS", 0.036)]}

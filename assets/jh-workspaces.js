@@ -523,6 +523,11 @@ class MacroData {
     // (data/etf-creations/<TICKER>.json; metrics flow, flow_5d, flow_20d, shares, nav, net_assets; default flow_5d)
     "etfc": { url: field => "/data/etf-creations/" + String(field).split(".")[0].replace(/[^A-Z0-9]/g, "") + ".json", rows: () => [],
       obs: (p, field) => { const metric = String(field).split(".")[1] || "flow_5d"; const s = (p.series || {})[metric]; return s && Array.isArray(p.d) ? p.d.map((d, i) => [d, s[i]]) : []; }, date: "d", label: "issuer tape · etf-true-flows" },
+    // flows:ecb-dollar/<measure id>: the CISS engine's dollar-shortage document (data/ciss-dollar-shortage.json) - the euro's ECB reference
+    // rate and the Eurosystem's two foreign-currency claims, every observation, read from ECB responses kept as they arrived.  These are
+    // levels, not flows; the adapter is only the way a site document reaches a card.  Their chart is on the Sovereign desk (feed.chart).
+    "ecb-dollar": { url: "/data/ciss-dollar-shortage.json", rows: () => [], obs: (p, field) => { const s = (p.series || {})[field]; return s && s.d && s.v ? s.d.map((d, i) => [d, s.v[i]]) : []; }, date: "d", label: "ECB · CISS engine",
+      chart: field => "/sovereign-desk.html?view=dollar&m=" + encodeURIComponent(field) },
     "crypto-etf": { url: "/data/crypto-etf-flows-history.json", rows: p => p.series, date: "date", label: "Polygon fund flows" },
     "crypto-exchange": { url: "/data/crypto-exchange-flows-history.json", rows: p => p.series, date: "date", label: "CoinMetrics / CryptoQuant" },
     "apac": { url: "/data/history/apac-flows.json", rows: p => Object.keys(p.days || {}).sort().map(d => Object.assign({ date: d }, p.days[d])), date: "date", label: "TWSE / Naver" },
@@ -534,13 +539,21 @@ class MacroData {
      effective exchange rate of the dollar or its trade-weighted value (88: 36 + the G-10 index and the Dallas Fed's 50 state indexes the
      wider wording of ops 6834 found), "held outright" (222: the 103 lines the H.4.1 prints today, then the lines that ended),
      or ICE BofA (192) is here exactly once; ops 6834 read each one through /series.  A 4th tuple element "C" marks a line that is
-     itself a change (see isChangeSeries).  calc:dxy is worked out in the browser (see fetchCalc). ── */
+     itself a change (see isChangeSeries).  calc:dxy is worked out in the browser (see fetchCalc).
+     2026-11-22 (Khalid: "add these 3 ... under their own tab called dollar shortage and also add it to the dxy tab"): the family
+     "Dollar shortage" holds the three ECB measurements of the Sovereign desk tab of that name, read from the same document
+     through the flows: adapter (FLOW_FEEDS "ecb-dollar"); they are levels and their chart opens on the Sovereign desk. ── */
   static DOLLAR_CATALOG = [
     { cat: "DXY · rebuilt from FRED, and its six currencies", flag: "💵", items: [
       ["calc:dxy","DXY · U.S. Dollar Index, rebuilt from FRED's six exchange rates","index"], ["DEXUSEU","Euro · 57.6% of the DXY","USD per EUR"],
       ["DEXJPUS","Japanese yen · 13.6% of the DXY","JPY per USD"], ["DEXUSUK","British pound · 11.9% of the DXY","USD per GBP"],
       ["DEXCAUS","Canadian dollar · 9.1% of the DXY","CAD per USD"], ["DEXSDUS","Swedish krona · 4.2% of the DXY","SEK per USD"],
       ["DEXSZUS","Swiss franc · 3.6% of the DXY","CHF per USD"]
+    ]},
+    { cat: "Dollar shortage · the euro side, from the ECB", flag: "💶", items: [
+      ["flows:ecb-dollar/AUX_EURUSD","EUR/USD · ECB reference rate, daily","USD per EUR"],
+      ["flows:ecb-dollar/AUX_FX_EA","Eurosystem foreign-currency lending to euro-area banks · weekly","EUR bn"],
+      ["flows:ecb-dollar/AUX_FX_NONEA","Eurosystem foreign-currency claims abroad · weekly","EUR bn"]
     ]},
     { cat: "Fed dollar indexes · daily", flag: "🏦", items: [
       ["DTWEXBGS","Broad dollar index · nominal, daily","index"], ["DTWEXAFEGS","Dollar vs advanced foreign economies · nominal, daily","index"],
@@ -2372,7 +2385,7 @@ class MacroData {
     root.__wired = true;
     document.getElementById('macro-focus-close').addEventListener('click', () => this.closeFocus());
     document.getElementById('macro-focus-chart').addEventListener('click', () => { const item = this.focusItem; if (!item) return; this.closeFocus(); this.chartSeries(item.symbol); this.close(); });
-    document.getElementById('macro-focus-compare').addEventListener('click', () => { const item = this.focusItem; if (!item) return; this.compareSeries(item.symbol); if (!this.calcSpec(item.symbol)) jhToast('Added to the chart comparison'); });
+    document.getElementById('macro-focus-compare').addEventListener('click', () => { const item = this.focusItem; if (!item) return; this.compareSeries(item.symbol); if (!this.calcSpec(item.symbol) && !this.feedChart(item.symbol)) jhToast('Added to the chart comparison'); });
     root.addEventListener('click', e => {
       const note = e.target.closest('.macro-note');
       if (note && this.focusItem && !note.classList.contains('editing')) { e.stopPropagation(); this.editNote(note, this.focusItem.uid, this.focusCategory && this.focusCategory.id); }
@@ -3121,15 +3134,20 @@ class MacroData {
   }
 
   static calcSpec(symbol) { return /^calc:/i.test(String(symbol)) ? this.CALC[String(symbol).slice(5).toLowerCase()] || null : null; }
+  /* a feed may name the page that charts its series (FLOW_FEEDS[feed].chart): flows:<feed>/<field> -> that page, else null */
+  static feedChart(symbol) {
+    const m = /^flows:([^/]+)\/(.+)$/i.exec(String(symbol)), feed = m && this.FLOW_FEEDS[m[1]];
+    return feed && typeof feed.chart === 'function' ? feed.chart(m[2]) : null;
+  }
   static compareSeries(symbol) {
-    if (this.calcSpec(symbol)) return this.chartSeries(symbol);
+    if (this.calcSpec(symbol) || this.feedChart(symbol)) return this.chartSeries(symbol);
     CompareController.add(symbol);
   }
   static chartSeries(symbol) {
-    const calc = this.calcSpec(symbol);
-    if (calc) {   // a series worked out here has no chart of its own: open the market's own print of it on the main chart
-      const opened = window.open(calc.chart, '_blank', 'noopener');
-      if (!opened) location.href = calc.chart;
+    const calc = this.calcSpec(symbol), elsewhere = calc ? calc.chart : this.feedChart(symbol);
+    if (elsewhere) {   // a series worked out here, or one a site document carries, has no chart of its own here: open the page that charts it
+      const opened = window.open(elsewhere, '_blank', 'noopener');
+      if (!opened) location.href = elsewhere;
       return;
     }
     if (symbol.includes(':')) {
