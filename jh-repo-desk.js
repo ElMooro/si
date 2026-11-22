@@ -344,6 +344,16 @@
     return { id: m.id, first: dates[0] || null, last: dates[dates.length - 1] || null, n: dates.length, spikes: found, cells: cells };
   }
 
+  /* The spikes a series' own chart marks and lists.  A crisis measure is read exactly as the Crisis view reads it,
+     with its own threshold - a climb from far below zero back to nothing is a return to normal, not a spike - so the
+     chart and the table never disagree.  Every other series follows the general rule. */
+  function chartSpikes(id, h) {
+    var m = null;
+    for (var i = 0; i < MEASURES.length; i++) if (MEASURES[i].id === id) m = MEASURES[i];
+    if (m) return readMeasure(m, h).spikes.slice(0, 6);
+    return spikes(h.dates, h.values, Object.assign({ top: 6 }, windowFor(h.dates)));
+  }
+
   /* Dealers' Treasury financing out of the dealer engine's document (data/nyfed-primary-dealer.json).  In some weeks
      the New York Fed withholds one side, and the engine then publishes no figure for it.  The desk shows each side
      at its last published week under that week's own date, so a withheld week reads as an old number, not a blank. */
@@ -488,7 +498,7 @@
   var api = {
     median: median, prevFromPct: prevFromPct, moveFromPct: moveFromPct, excessSeries: excessSeries, spikes: spikes, windowPeak: windowPeak,
     baselineBefore: baselineBefore, spacingDays: spacingDays, windowFor: windowFor, calendarTurn: calendarTurn, labelFor: labelFor, corridor: corridor,
-    ageDays: ageDays, isLate: isLate, usd: usd, fmtKind: fmtKind, tileMove: tileMove, fmtMeasure: fmtMeasure, readMeasure: readMeasure, dealerFinancing: dealerFinancing,
+    ageDays: ageDays, isLate: isLate, usd: usd, fmtKind: fmtKind, tileMove: tileMove, fmtMeasure: fmtMeasure, readMeasure: readMeasure, dealerFinancing: dealerFinancing, chartSpikes: chartSpikes,
     EPISODES: EPISODES, SECTIONS: SECTIONS, MEASURES: MEASURES, tileHtml: tileHtml, corridorSvg: corridorSvg, renderDesk: renderDesk, renderCrisis: renderCrisis
   };
   root.JHRepoDesk = api;

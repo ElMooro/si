@@ -134,8 +134,8 @@ def main():
             try:
                 served = {"engine": b"id=btn-repo" in fetch("/jh-chart-engine.js?probe=%d" % (stamp + attempt)),
                           "rail": b'repo: ["Repo' in fetch("/jh-chart-tvrail.js?probe=%d" % (stamp + attempt)),
-                          "desk": b"D_REPO_TARGET" in fetch(desk_script(fetch("/repo.html?probe=%d" % (stamp + attempt)))),
-                          "page": b"JHRepoDesk.dealerFinancing(PD)" in fetch("/repo.html?probe=%d" % (stamp + attempt)),
+                          "desk": b"function chartSpikes" in fetch(desk_script(fetch("/repo.html?probe=%d" % (stamp + attempt)))),
+                          "page": b"JHRepoDesk.chartSpikes(id,h)" in fetch("/repo.html?probe=%d" % (stamp + attempt)),
                           "dealer_page": b"Original observations" in fetch("/jh-dealer-research.js?probe=%d" % (stamp + attempt))}
             except Exception as e:  # noqa: BLE001
                 served = {"error": str(e)[:80]}
@@ -338,7 +338,8 @@ def main():
             fr.wait_for_function("() => document.getElementById('ovl').classList.contains('on') && document.getElementById('cm').textContent.includes('obs')", timeout=60000)
             chart = fr.evaluate("() => ({ title: document.getElementById('ct').textContent, meta: document.getElementById('cm').textContent, spikes: document.getElementById('spk').innerText.replace(/\\s+/g, ' ') })")
             r.log("chart: %s | %s | %s" % (chart["title"][:80], chart["meta"][-60:], chart["spikes"][:260]))
-            ck("D_REPO_TARGET" in chart["title"] and "2019-09-17" in chart["spikes"], "the history chart: %s" % chart)
+            # the chart lists what the Crisis view lists: the climb back from 85 bp under policy in December 2008 is not a spike
+            ck("D_REPO_TARGET" in chart["title"] and "2019-09-17" in chart["spikes"] and "2008-12-16" not in chart["spikes"] and "2009-01-16" not in chart["spikes"], "the history chart: %s" % chart)
             fr.evaluate("() => closeOvl()")
             fr.evaluate("() => document.querySelector('.tab[data-t=\"overview\"]').click()")
             fr.wait_for_selector("tr.row", timeout=30000)

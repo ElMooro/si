@@ -165,7 +165,7 @@ D% = vs previous observation · W/M/Q/Y% = vs the series' own value 7/30/91/365 
   <div id="spk"></div>
 </div></div>
 
-<script src="/jh-repo-desk.js?v=20261122a"></script>
+<script src="/jh-repo-desk.js?v=20261122b"></script>
 <script>
 "use strict";
 const fmt=(v,d=3)=>v==null?"—":(+v).toLocaleString(undefined,{maximumFractionDigits:d});
@@ -379,7 +379,7 @@ function openChart(sid,id){
     fetch('/data/repo-history/'+sid+'.json').then(r=>r.json()).then(h=>(HCACHE[sid]=h)))
   .then(h=>{CUR=h;
     /* the series' largest spikes above its own median of the quarter before: marked on the chart, listed under it */
-    SPK=window.JHRepoDesk?JHRepoDesk.spikes(h.dates,h.values,Object.assign({top:6},JHRepoDesk.windowFor(h.dates))):[];
+    SPK=window.JHRepoDesk?JHRepoDesk.chartSpikes(id,h):[];
     document.getElementById('spk').innerHTML=SPK.length?'<span>Largest spikes over its own prior median:</span>'+SPK.map(s=>{const l=JHRepoDesk.labelFor(s.date);
       return `<span>${s.date} <b>${fmt(s.value)}</b> (${fmt(s.base)} before)${l.name?` <em>${esc(l.name)}</em>`:''}</span>`;}).join(''):'';
     document.getElementById('cm').textContent=

@@ -149,6 +149,21 @@ test('the repo rate before SOFR: the dealer survey rate carries repo against the
   assert.deepEqual(D.labelFor('1999-12-30'), { kind: 'episode', id: 'y2k1999', name: 'Year-end 1999 (Y2K)' });
 });
 
+test('a series\' own chart marks the spikes the Crisis view lists, not every climb back to zero', () => {
+  const up = H('D_REPO_TARGET'), m = D.MEASURES.find((x) => x.id === 'D_REPO_TARGET');
+  const general = D.spikes(up.dates, up.values, Object.assign({ top: 6 }, D.windowFor(up.dates)));
+  // the general rule alone calls the end of 2008 a spike: repo climbing from 85 bp under policy to 2.5 bp under it
+  assert.ok(general.some((s) => s.date === '2008-12-16' && s.value < 0), general.map((s) => s.date + ' ' + s.value).join(' | '));
+  const marked = D.chartSpikes('D_REPO_TARGET', up);
+  assert.deepEqual(marked, D.readMeasure(m, up).spikes.slice(0, 6));
+  assert.ok(marked.length === 6 && marked.every((s) => s.value >= m.min) && !marked.some((s) => s.date.startsWith('2008-12') || s.date.startsWith('2009-01')));
+  assert.equal(marked[0].date, '2019-09-17');
+  // a series that is not a crisis measure keeps the general rule
+  const sofr = H('SOFR');
+  assert.deepEqual(D.chartSpikes('SOFR', sofr), D.spikes(sofr.dates, sofr.values, Object.assign({ top: 6 }, D.windowFor(sofr.dates))));
+  assert.equal(D.chartSpikes('SOFR', sofr)[0].date, '2019-09-17');
+});
+
 test('dealers\' Treasury financing: a side the New York Fed withholds is shown at its last published week', () => {
   const real = D.dealerFinancing(FX.dealer).treasury;
   assert.deepEqual(real, { as_of: '2026-11-11', repo_out_b: 3398.38, repo_out_b_as_of: '2026-11-11', reverse_repo_in_b: 3002.182, reverse_repo_in_b_as_of: '2026-10-28' });
@@ -325,7 +340,7 @@ test('repo.html opens on the Desk, keeps the board, and marks spikes on every ch
   assert.match(HTML, /\['desk','Desk',''\],\['crisis','Crisis spikes',''\],\['overview','Overview',rows\.length\]/);
   assert.match(HTML, /return h\|\|'desk';/);
   assert.match(HTML, /optional\('\/data\/repo-market\.json'\),optional\('\/data\/nyfed-primary-dealer\.json'\)/);
-  assert.match(HTML, /JHRepoDesk\.spikes\(h\.dates,h\.values,Object\.assign\(\{top:6\},JHRepoDesk\.windowFor\(h\.dates\)\)\)/);
+  assert.match(HTML, /SPK=window\.JHRepoDesk\?JHRepoDesk\.chartSpikes\(id,h\):\[\];/);
   assert.ok(HTML.includes('<div id="spk"></div>') && HTML.includes('★ Favorites') && HTML.includes("localStorage.getItem('repoFavs')"));
   const order = /const GORDER=(\[[^\]]+\]);/.exec(HTML);
   const groups = JSON.parse(order[1]);
