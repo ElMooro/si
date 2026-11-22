@@ -214,6 +214,62 @@ aws/lambdas/justhodl-ciss-stress/source/lambda_function.py aws/lambdas/justhodl-
 and `git rm aws/lambdas/justhodl-ciss-stress/source/world_history.py
 aws/lambdas/justhodl-ciss-stress/tests/test_sovereign_world.py`. The two objects it wrote simply stop being refreshed.
 
+## Fourth round, same day (Khalid, 13:52 ET): a Dollar shortage tab, and the same three on the Dollar desk
+
+Asked: "add these 3 to it under their own tab called dollar shortage and also add it to the dxy tab" — the euro's
+reference rate against the dollar, the Eurosystem's claims on euro-area residents in foreign currency, and its claims
+on non-euro-area residents in foreign currency (the three auxiliaries of the CISS page).
+
+### What changed
+
+* **Engine** `justhodl-ciss-stress`: a third module, `dollar_shortage.py`, publishes `data/ciss-dollar-shortage.json`
+  (contract `ciss-dollar-shortage.v1`, 219 KB, 53 KB compressed) right after the desk document. It makes **no request
+  to the ECB or anyone**: it reads the desk document that is published and the three ECB responses that document
+  names, and writes the three measures with every observation — 7,141 daily fixes of the reference rate since
+  4 January 1999 (the desk's history keeps one a week), 1,455 weekly readings of each claim. Every figure must equal
+  the desk document's (date, value, count, source row) or nothing is published. Event `{"dollar_only": true}`
+  compiles it alone. The warehouse, the desk document and the world histories are untouched.
+* **Sovereign desk**: a tab **Dollar shortage** between World and Sources (`?view=dollar` opens it): the reading in
+  words, three tiles, each one's whole history with the named windows shaded and 1Y / 5Y / 10Y / All, a table of the
+  lowest and highest reading inside each window (the euro's low and lending's high are marked; a cell opens the chart
+  around that window), and the ECB series and kept response behind each number. Until the document has arrived the
+  tab draws from the desk's own two documents and says so.
+* **Dollar desk** (`dollar-indexes.html`, the "$ Dollar" button): a ninth family, "Dollar shortage · the euro side,
+  from the ECB", with the three as cards like every other series there — history strip since 1996 with the four bear
+  markets, day / week / month / quarter / year change — read from the same document through the desk engine's feed
+  adapter (`FLOW_FEEDS["ecb-dollar"]`). A card's "open on the chart" opens the Sovereign desk's tab on that series.
+  The desk is now 98 series in 9 families.
+* Charts: the margin no longer takes the axis of a never-negative series below zero.
+
+What the ECB's own series says: its foreign-currency lending to euro-area banks stood above €100 bn at four peaks —
+€248.9 bn on 5 Dec 2008, €153.8 bn on 8 May 2020, €142.1 bn on 10 Apr 2009, €100.6 bn on 10 Feb 2012 — and is
+€20.2 bn in the week to 13 Nov 2026.
+
+### Proof
+
+* Dry run, ops 6921 (18:59 UTC): 0 failed checks; the desk's weekly history is inside the complete series value for
+  value; the data worker hands `/data` documents to the site's pages.
+* One dollar-only run of the deployed engine, ops 6922 (19:12 UTC, 2.0 s, no request to anyone; the fourth disclosed
+  one-off run of this engine today): published, equal to the desk document figure for figure, nothing else touched.
+* Real browser on the live site, ops 6915 (19:52 UTC), **0 failed checks**: the tab's three tiles and charts equal
+  the document (7,141 / 1,455 / 1,455 points drawn), the Lehman row reads 1.2460 / 1.4731 and €85.5 / €248.9 as the
+  measures do, a cell opened lending's chart on the COVID window, the reference rate's own chart drew every day; on
+  the Dollar desk the three cards read 1.099, 20.19 and 521.89 with week / month / quarter / year changes equal to
+  the proof's own arithmetic on the same series and four bear-market bands each, and the card's chart button opened
+  `/sovereign-desk.html?view=dollar&m=AUX_FX_EA`; nothing wider than a 390 px screen.
+  (Two earlier attempts of the proof itself failed on its own slips — a script path, a variable read before it was
+  set — and judged nothing; both are fixed and one is now in its self-test.)
+* Tests: page 40, desks 9, engine 70, node suite 5,164, deployment 1,233.
+
+### Taking the fourth round back
+
+Pages: `git checkout 10f4ca4e -- sovereign-desk.html jh-sovereign-desk.js chart-pro.html assets/jh-workspaces.js
+tests/sovereign-desk.test.js tests/fred-desks.test.js tests/fixtures/sovereign-desk.json.gz` (then
+`python scripts/build_workspaces.py`). Engine: `git checkout b2f22e12 --
+aws/lambdas/justhodl-ciss-stress/source/lambda_function.py aws/lambdas/justhodl-ciss-stress/tests/test_sovereign_desk.py`
+and `git rm aws/lambdas/justhodl-ciss-stress/source/dollar_shortage.py
+aws/lambdas/justhodl-ciss-stress/tests/test_sovereign_dollar.py`. The object it wrote simply stops being refreshed.
+
 ## Taking it back
 
 Button: see `docs/snapshots/chart-search-2026-11-10/README.md` (section 2026-11-22). Page: `git rm sovereign-desk.html
