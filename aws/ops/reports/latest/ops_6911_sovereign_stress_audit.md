@@ -1,0 +1,367 @@
+# ops 6911 - sovereign stress: the pages, engines and data as they are (read-only), 2026-11-22T14:38+00:00
+
+**Status:** success  
+**Duration:** 92.1s  
+**Finished:** 2026-11-22T14:40:04+00:00  
+
+## Log
+## 1. The pages, in a real browser
+
+- `14:38:32` installing playwright
+- `14:38:46` /ciss.html -> HTTP 200 | CISS · Source-backed stress research · JustHodl | 30625 chars | tables [88, 0, 0], 0 svg, 0 canvas | overflow 0 px
+- `14:38:46`     marks {"unavailable": 1, "pending": 4, "dash": 90, "nan": 0, "undef": 0, "loading": 0, "error": 0, "long_decimal": 32}
+- `14:38:46`     data asked: ['/data/ciss-ai.json', '/data/ciss-stress.json', '/data/ecb-hist/eurusd.json', '/data/ecb-hist/fx_claims_nonea.json', '/data/ecb-hist/ilm_usd_claims.json', '/data/market-tape.json', '/data/subscribe-endpoint.json']
+- `14:38:46`     errors ['console: Failed to load resource: the server responded with a status of 404 ()'] | failed requests []
+- `14:38:46`     text: JUSTHODL·AI Market observations unavailable or stale 09:38:45 ET COMMAND CENTER → JustHodl Sovereign stress Euro fragmentation Calls ECB · SYSTEMIC-STRESS RESEARCH CISS, SovCISS & CLIFS Inspect the measurement, its definition and the original observation. Daily and monthly series stay separate; a missing latest row remains missing. Collected 2026-11-22T07:13:48.274895+00:00 · current retrieved vintage; historical as-
+- `14:38:46`     status: Collected 2026-11-22T07:13:48.274895+00:00 · current retrieved vintage; historical as-known-at releases are not reconstructed.
+- `14:38:46`     read: ECB euro-area CISS measured 0.009462216765937262 on 2026-11-19. | reconcile: matched · 2026-11-19 · residual 1.25E-17
+- `14:38:46`     narrative: Market contributions and the signed correlation contribution are reported separately; they are not standalone index levels or cross-currency basis spreads.
+- `14:38:46`     table: 88 rows, 26 without a value | quality {"fresh 3 days at collection": 25, "stale 571 days at collection": 15, "fresh 53 days at collection": 27, "fresh 9 days at collection": 1, "2025-04 M \u00b7 status A": 4, "stale 5805 days at collection": 1, "2026-11-19 D \u00b7 status A": 5, "stale 569 days at collection": 8, "missing 2 days at collection": 2} | families ['All families', 'Euro-area composite', 'Euro-area contributions', 'Euro-area SovCISS', 'Country CISS', 'Country SovCISS', 'CLIFS', 'Other / legacy']
+- `14:38:46`       Austria NEW SovCISS - Composite Indicator of Sovereign Stres | 0.04221704514811954 dimensionless_index | 2026-11-19 D · status A | fresh 3 days at collection | 0.03392 index points · dated baseline | 43.6 within this series · %
+- `14:38:46`       Austria NEW CISS - Composite Indicator of Systemic Stress. C | 0.005243894744560988 dimensionless_index | 2026-11-19 D · status A | fresh 3 days at collection | -0.00171 index points · dated baseline | 19.2 within this series · %
+- `14:38:46`       Austria Composite Indicator of Sovereign Stress (SovCISS)Aus | — dimensionless_index | 2025-04 M · status A | stale 571 days at collection | — index points · dated baseline | — within this series · %
+- `14:38:46`       Austria Country Level Index of Financial Stress (CLIFS) Aust | 0.0547 dimensionless_index | 2026-09 M · status A | fresh 53 days at collection | 0.0178 index points · dated baseline | 42.9 within this series · %
+- `14:38:46`       Belgium NEW SovCISS - Composite Indicator of Sovereign Stres | 0.1612518481628588 dimensionless_index | 2026-11-19 D · status A | fresh 3 days at collection | 0.14411 index points · dated baseline | 79 within this series · %
+- `14:38:46`       Belgium NEW CISS - Composite Indicator of Systemic Stress. C | 0.05922394596394556 dimensionless_index | 2026-11-19 D · status A | fresh 3 days at collection | 0.0473 index points · dated baseline | 63.2 within this series · %
+- `14:38:46`       United Kingdom Country Level Index of Financial Stress (CLIF | 0.076 dimensionless_index | 2026-09 M · status A | fresh 53 days at collection | 0.0328 index points · dated baseline | 82.9 within this series · %
+- `14:38:46`       United States CISS - Composite Indicator of Systemic Stress  | — dimensionless_index | 2025-05-02 D · status A | stale 569 days at collection | — index points · dated baseline | — within this series · %
+- `14:38:46`       United States NEW CISS - Composite Indicator of Systemic Str | 0.014519322460004142 dimensionless_index | 2026-11-19 D · status A | fresh 3 days at collection | -0.00341 index points · dated baseline | 38.8 within this series · %
+- `14:38:46`     aux: EUR/USD reference rate 1.0992 USD per EUR · 2026-11-19 Dated auxiliary measurement; original-source replay for this auxiliary is pending. Inspect auxiliary packet
+- `14:38:46`     aux: Claims on euro-area residents in foreign currency 20.193 EUR bn · 2026-11-13 Dated auxiliary measurement; original-source replay for this auxiliary is pending. Inspect au
+- `14:38:46`     aux: Claims on non-euro-area residents in foreign currency 521.892 EUR bn · 2026-11-13 Dated auxiliary measurement; original-source replay for this auxiliary is pending. Inspe
+- `14:38:48`     detail dialog: open False, 0 svg | Series evidenceClose
+- `14:38:58` /sovereign-stress.html -> HTTP 200 | Sovereign Stress · JustHodl.AI | 17059 chars | tables [17, 14, 0], 19 svg, 0 canvas | overflow 0 px
+- `14:38:58`     marks {"unavailable": 1, "pending": 0, "dash": 63, "nan": 0, "undef": 0, "loading": 0, "error": 0, "long_decimal": 2}
+- `14:38:58`     data asked: ['/data/market-tape.json', '/data/sovereign-stress.json', '/data/subscribe-endpoint.json', 'https://justhodl-data-proxy.raafouis.workers.dev/data/sovereign-gssi.json', 'https://justhodl-data-proxy.raafouis.workers.dev/data/sovereign-stress-history.json']
+- `14:38:58`     errors [] | failed requests []
+- `14:38:58`     text: JUSTHODL·AI Market observations unavailable or stale 09:38:57 ET COMMAND CENTER → JUSTHODL TERMINAL Home Stress Index Euro Fragmentation Risk Desk updated 11/22/2026, 12:08:01 PM §13Measurement evidence and decision limits Stress scores and percentile labels on this desk are descriptive heuristics. They are not calibrated crisis probabilities, asset-return forecasts or position weights. No trade or size is authorized
+- `14:39:07` /systemic-stress.html -> HTTP 200 | Systemic & Sovereign Stress · JustHodl.AI | 13988 chars | tables [0], 1 svg, 0 canvas | overflow 0 px
+- `14:39:07`     marks {"unavailable": 1, "pending": 0, "dash": 22, "nan": 0, "undef": 0, "loading": 0, "error": 0, "long_decimal": 0}
+- `14:39:07`     data asked: ['/data/market-tape.json', '/data/subscribe-endpoint.json', '/data/systemic-stress.json']
+- `14:39:07`     errors [] | failed requests []
+- `14:39:07`     text: JUSTHODL·AI Market observations unavailable or stale 09:39:06 ET COMMAND CENTER → 🛡️ SYSTEMIC & SOVEREIGN STRESS The ECB's official stress indices, straight from the ECB Data Portal. The CISS measures financial-system stress for the euro area and, country-by-country, for the US, UK, China, Germany, France, Italy and Spain — cross-correlation weighted so it spikes only when stress is broad. The SovCISS applies the sa
+- `14:39:17` /global-sovereign.html -> HTTP 200 | Global Sovereign Research · JustHodl.AI | 16143 chars | tables [45, 123, 437, 0], 2 svg, 0 canvas | overflow 0 px
+- `14:39:17`     marks {"unavailable": 28, "pending": 0, "dash": 1, "nan": 0, "undef": 0, "loading": 0, "error": 0, "long_decimal": 0}
+- `14:39:17`     data asked: ['/data/global-sovereign-longhistory.json', '/data/global-sovereign.json', '/data/market-tape.json', '/data/subscribe-endpoint.json']
+- `14:39:17`     errors [] | failed requests []
+- `14:39:17`     text: JUSTHODL·AI Market observations unavailable or stale 09:39:16 ET COMMAND CENTER → JUSTHODL · RESEARCH Sovereign stress Funding Bond desk Calls RATES · SOVEREIGNS · EVIDENCE REVIEW §9Global Sovereign Research Inspect reported yields, CDS and policy rates across the configured country universe. See which fields arrived, the dates actually supplied, and where the evidence remains incomplete. §10WAIT · research abstentio
+- `14:39:26` /sovereign.html -> HTTP 200 | Sovereign Demand & Fiscal · JustHodl.AI | 7027 chars | tables [0, 0, 0], 0 svg, 0 canvas | overflow 0 px
+- `14:39:26`     marks {"unavailable": 1, "pending": 0, "dash": 1, "nan": 0, "undef": 0, "loading": 1, "error": 0, "long_decimal": 0}
+- `14:39:26`     data asked: ['/data/fed-collateral.json', '/data/market-tape.json', '/data/settlement-fails.json', '/data/sovereign-fiscal.json', '/data/subscribe-endpoint.json']
+- `14:39:26`     errors ["Cannot read properties of null (reading 'toFixed')"] | failed requests []
+- `14:39:26`     text: JUSTHODL·AI Market observations unavailable or stale 09:39:25 ET COMMAND CENTER → §20\ud83c\udfdb Sovereign Demand & Fiscal — foreign UST demand, the deficit, debt service & Fed collateral \u2190 homeauctionsbondsrepo Loading sovereign & fiscal intelligence\u2026 Page explanation › ☰ JUSTHODL · all desks × CORE DESKS index why industry case earnings tape truth sp500 spx beaters capital flow foreign flows global flows
+- `14:39:35` /euro-fragmentation.html -> HTTP 200 | Euro Fragmentation · JustHodl.AI | 13235 chars | tables [0], 1 svg, 0 canvas | overflow 0 px
+- `14:39:35`     marks {"unavailable": 1, "pending": 0, "dash": 20, "nan": 0, "undef": 0, "loading": 0, "error": 0, "long_decimal": 0}
+- `14:39:35`     data asked: ['/data/euro-fragmentation.json', '/data/market-tape.json', '/data/subscribe-endpoint.json']
+- `14:39:35`     errors [] | failed requests []
+- `14:39:35`     text: JUSTHODL·AI Market observations unavailable or stale 09:39:34 ET COMMAND CENTER → ⚡ EURO-AREA SOVEREIGN FRAGMENTATION The euro's structural fault line. This engine answers one question: is the monetary union's bond market pricing every member as one currency, or splintering — pricing redenomination risk into France, Belgium and the periphery? It fuses the ECB's daily SovCISS sovereign-stress index with 10Y yield spre
+- `14:39:45` /global-stress.html -> HTTP 200 | Global Stress Research · JustHodl | 21052 chars | tables [8, 8, 8, 8, 8, 8, 8, 8], 14 svg, 0 canvas | overflow 0 px
+- `14:39:45`     marks {"unavailable": 1, "pending": 0, "dash": 30, "nan": 0, "undef": 0, "loading": 0, "error": 0, "long_decimal": 0}
+- `14:39:45`     data asked: ['/data/global-stress.json', '/data/market-tape.json', '/data/subscribe-endpoint.json']
+- `14:39:45`     errors [] | failed requests []
+- `14:39:45`     text: JUSTHODL·AI Market observations unavailable or stale 09:39:44 ET COMMAND CENTER → All research Calls Risk Gate Portfolio scenarios Stress Research Global Stress CROSS-MARKET RESEARCH §15Global Stress Research Global source desk · instrument identities, dated returns and reproducible cross-market comparisons. RESEARCH AUTHORITY §16WAIT — research abstains Inspect cross-market prices, credit spreads and co-movement. No
+- `14:39:54` /stress.html -> HTTP 200 | Stress-Test Simulator · JustHodl.AI | 8356 chars | tables [0], 0 svg, 0 canvas | overflow 0 px
+- `14:39:54`     marks {"unavailable": 2, "pending": 0, "dash": 1, "nan": 0, "undef": 0, "loading": 0, "error": 0, "long_decimal": 0}
+- `14:39:54`     data asked: ['/data/auction-tenor-signals.json', '/data/liquidity-credit-engine.json', '/data/liquidity-pulse.json', '/data/market-tape.json', '/data/subscribe-endpoint.json']
+- `14:39:54`     errors [] | failed requests []
+- `14:39:54`     text: JUSTHODL·AI Market observations unavailable or stale 09:39:53 ET COMMAND CENTER → 🌪 Stress-Test Simulator — what-if scenario engine Desk Risk 🌪 STRESS 🏛 AUCTIONS 📈 BONDS Regime Why What this does. Apply a hypothetical shock to 5 macro factors (equity, vol, rates, dollar, commodity) and see the projected impact on a $100k equal-weight portfolio across 10 cross-asset positions. Per-asset moves use historical OLS fa
+## 4. The chart's desk buttons, in order
+
+- `14:39:55`   btn-macro        📈 MACRO            Macro & Economic Data
+- `14:39:55`   btn-flows        ⇄ FLOWS            Inflows & outflows
+- `14:39:55`   btn-heat         ▦ HEAT             Universe Heatmap
+- `14:39:55`   btn-auc          Auc AUCTION        Treasury Auctions
+- `14:39:55`   btn-corm         ▣ CORR             Correlation Matrix
+- `14:39:55`   btn-etf          Ⓔ ETF              ETF Desk
+- `14:39:55`   btn-str          ▲ STRONG           Strength vs S&P 500
+- `14:39:55`   btn-bnd          🏛 BONDS            Bonds & Yields
+- `14:39:55`   btn-cds          CDS CDS            Credit default swaps
+- `14:39:55`   btn-repo         Rp REPO            Repo · rates, venues, Fed facilities, crisis spike
+- `14:39:55`   btn-usd          $ DOLLAR           Dollar indexes · the DXY and every FRED dollar ind
+- `14:39:55`   btn-soma         Fed OUTRIGHT       Fed securities held outright · every H.4.1 line on
+- `14:39:55`   btn-bofa         ICE BOFA           ICE BofA indices · spreads, yields and total retur
+- `14:39:55`   btn-13f          🏦 13F              13F · Institutional holdings
+- `14:39:55`   btn-ldr          👑 LEADERS          Leaders · industry leaders vs S&P 500
+- `14:39:55`   btn-svol         σ VOLATILITY       Volatility · most and least volatile stocks, price
+- `14:39:55`   btn-wysc         SC CLIMAX          Selling climax · Wyckoff daily
+- `14:39:55`   btn-capit        Cap CAPIT          Capitulation · panic volume at the lows
+- `14:39:55`   btn-bc           BC CLIMAX          Buying climax · Wyckoff daily
+- `14:39:55`   btn-nr           NR SPREAD          Candle spread · tight range + Bollinger
+- `14:39:55`   btn-spr          Spr SPRING         Spring · forming / fired / failed
+- `14:39:55`   btn-acc          Acc ACCUM          Accumulation · click to mark it on this chart
+- `14:39:55`   btn-bot          Bot BOTTOM         Bottom · click to mark the climax and the low on t
+- `14:39:55`   btn-dist         Dst DIST           Distribution · click to mark a rally that fails to
+- `14:39:55`   btn-pump         Pmp PUMP           Pump · SOS / markup — start of the bull run
+- `14:39:55`   btn-snip         K KHALID           Khalid sniper · every box must pass
+- `14:39:55`   btn-demand       D DEMAND           Demand zones · DBR / RBR
+- `14:39:55`   btn-supply       S SUPPLY           Supply zones · RBD / DBD
+- `14:39:55`   btn-alrt         🔔 ALERT            Alert Center
+## 2. The documents
+
+- `14:39:56`   data/ciss...: more than 40 objects
+- `14:39:56`   data/global-stress...: more than 40 objects
+- `14:39:56`   data/ciss-ai.json                                               7534 bytes  written 2026-11-22 07:40 (6 h ago)
+- `14:39:56`   data/ciss-consumers-verification.json                          11919 bytes  written 2026-09-19 01:30 (1549 h ago)
+- `14:39:56`   data/ciss-donor-permissions-verification.json                   7081 bytes  written 2026-09-19 02:15 (1548 h ago)
+- `14:39:56`   data/ciss-headline.json                                          559 bytes  written 2026-09-18 16:07 (1558 h ago)
+- `14:39:56`   data/sovereign-fiscal.json                                     97772 bytes  written 2026-11-22 07:11 (7 h ago)
+- `14:39:56`   data/sovereign-gssi.json                                      104523 bytes  written 2026-11-22 12:09 (2 h ago)
+- `14:39:56`   data/sovereign-stress-history.json                             64626 bytes  written 2026-11-22 12:09 (2 h ago)
+- `14:39:56`   data/sovereign-stress.json                                     85658 bytes  written 2026-11-22 12:09 (2 h ago)
+- `14:39:56`   data/systemic-stress-decisive-call.json                          612 bytes  written 2026-11-21 19:20 (19 h ago)
+- `14:39:56`   data/systemic-stress.json                                       6497 bytes  written 2026-11-22 12:10 (2 h ago)
+- `14:39:56`   data/global-sovereign-history.json                             12102 bytes  written 2026-11-21 18:16 (20 h ago)
+- `14:39:56`   data/global-sovereign-longhistory.json                         49923 bytes  written 2026-07-16 18:15 (3092 h ago)
+- `14:39:56`   data/global-sovereign.json                                     34189 bytes  written 2026-11-21 18:16 (20 h ago)
+- `14:39:56`   data/global-stress-history.json                                  589 bytes  written 2026-11-21 19:35 (19 h ago)
+- `14:39:56`   data/global-stress-research-verification.json                  40679 bytes  written 2026-09-20 09:14 (1517 h ago)
+- `14:39:56`   data/euro-fragmentation.json                                11626319 bytes  written 2026-11-22 13:05 (1 h ago)
+- `14:39:56` data/ciss-stress.json (4620510 bytes, written 2026-11-22 07:14):
+- `14:39:56`     call                       null
+- `14:39:56`     calls_eligible             false
+- `14:39:56`     canonical_warehouse        "data/ciss-stress.json"
+- `14:39:56`     catalog                    {88 keys: CISS.D.AT.Z0Z.4F.EC.SOV_CIN.IDX, CISS.D.AT.Z0Z.4F.EC.SS_CIN.IDX, CISS.D.BE.Z0Z.4F.EC.SOV_CIN.IDX, CISS.D.BE.Z0Z.4F.EC.SS_CIN.IDX, CISS.D.CN.Z0Z.4F.EC.SS_CIN.IDX, CISS.D.DE.Z0Z.4F.EC.SOV_CIN.IDX, CISS.D.DE.Z0Z.4F.EC.SS_CIN.IDX, CISS.D.ES.Z0Z.4F.EC.SOV_CIN.IDX, CISS.D.ES.Z0Z.4F.EC.SS_CIN.IDX, CISS.D.FI.Z0Z.4F.EC.SOV_CIN.
+- `14:39:56`     categories                 {7 keys: clifs, country_ciss, ea_headline, ea_subindex, other, sovereign_country, sovereign_ea}
+- `14:39:56`     collection_started_at      "2026-11-22T07:10:43.940018+00:00"
+- `14:39:56`     contract                   "ciss-research.v1"
+- `14:39:56`     coverage                   {5 keys: compiled, discovered, errors, fresh, status}
+- `14:39:56`     decision                   {3 keys: meaning, reason, verb}
+- `14:39:56`     discovered_series          88
+- `14:39:56`     ea_composite               0.009462216765937262
+- `14:39:56`     ea_composite_date          "2026-11-19"
+- `14:39:56`     ea_regime                  null
+- `14:39:56`     engine                     "ciss-stress"
+- `14:39:56`     errors                     {0 keys: }
+- `14:39:56`     field_units                {3 keys: ea_composite, series.*.chg_1y, series.*.pctile}
+- `14:39:56`     frequency_note             "Frequency belongs to each exact ECB key. Current daily and legacy ...
+- `14:39:56`     generated_at               "2026-11-22T07:13:48.274895+00:00"
+- `14:39:56`     headline_reconciliation    {7 keys: component_keys, component_sum_decimal, date, definition, residual_decimal, status, tolerance_decimal}
+- `14:39:56`     n_series                   88
+- `14:39:56`     provenance                 "ECB original CSV observations and metadata; current retrieved vint...
+- `14:39:56`     quality                    {14 keys: acquisition_age_seconds, basis, evaluated_at, excluded_future_rows, frequency, maximum_acquisition_age_seconds, maximum_observation_age_days, missing, observation_age_days, observation_date, original_source_verified, period_end, source_acquired_at, status}
+- `14:39:56`     replay                     {3 keys: compiler, manifest_key, output_sha256}
+- `14:39:56`     series                     [88] {55 keys: acquired_at, annual_comparison, area, call, calls_eligible, category, change_unit, chart_aggregation, chart_points, chg_1y, comparisons, country, discontinued, distribution_definition}
+- `14:39:56`     sizing_eligible            false
+- `14:39:56`     version                    "2.0.0"
+- `14:39:56`   series: 88 | keys of one: ['acquired_at', 'annual_comparison', 'area', 'call', 'calls_eligible', 'category', 'change_unit', 'chart_aggregation', 'chart_points', 'chg_1y', 'comparisons', 'country', 'discontinued', 'distribution_definition', 'duplicate_rows', 'evidence', 'flow', 'freq', 'historical_point_in_time', 'id', 'indicator', 'key', 'label', 'last_observed_date', 'last_observed_value', 'latest', 'latest_date', 'latest_decimal', 'maintenance_status', 'max', 'mean', 'min', 'n_numeric', 'n_obs', 'observation_period_end', 'observation_status', 'pct_of_peak', 'pctile', 'percentile_3y', 'percentile_3y_observations']
+- `14:39:56`   one series: {"acquired_at": "2026-11-22T07:11:36.660463+00:00", "area": "AT", "call": null, "calls_eligible": false, "category": "sovereign_country", "change_unit": "index_points", "chart_aggregation": "last observation per ISO week", "chg_1y": 0.03391570935354749, "country": "Austria", "discontinued": false, "distribution_definition": "empirical fraction <= latest; full current retrieved-vintage history; not a probability of crisis", "duplicate_rows": 0, "flow": "CISS", "freq": "D", "historical_point_in_time": false, "id": "CISS_D_AT_Z0Z_4F_EC_SOV_CIN_IDX", "indicator": "NEW SovCISS - Composite Indicator of Sovereign Stress Austria", "key": "CISS.D.AT.Z0Z.4F.EC.SOV_CIN.IDX", "label": "Austria, Composite Indicator of Sovereign Stress, Index", "last_observed_date": "2026-11-19", "last_observed_value": 0.04221704514811954, "latest": 0.04221704514811954, "latest_date": "2026-11-19", "latest_decimal": "
+- `14:39:56`   by category: {'sovereign_country': 28, 'clifs': 28, 'country_ciss': 15, 'other': 6, 'ea_subindex': 6, 'sovereign_ea': 4, 'ea_headline': 1}
+- `14:39:56`   by area: {'U2': 18, 'AT': 4, 'BE': 4, 'DE': 4, 'ES': 4, 'FI': 4, 'FR': 4, 'IE': 4, 'IT': 4, 'NL': 4, 'PT': 4, 'GB': 3, 'GR': 3, 'US': 2, 'CZ': 2, 'DK': 2, 'HU': 2, 'PL': 2, 'SE': 2, 'CN': 1, 'BG': 1, 'CY': 1, 'EE': 1, 'HR': 1, 'LT': 1, 'LU': 1, 'LV': 1, 'MT': 1, 'RO': 1, 'SI': 1}
+- `14:39:56`   by country: {'Euro Area': 18, 'Austria': 4, 'Belgium': 4, 'Germany': 4, 'Spain': 4, 'Finland': 4, 'France': 4, 'Ireland': 4, 'Italy': 4, 'Netherlands': 4, 'Portugal': 4, 'United Kingdom': 3, 'Greece': 3, 'United States': 2, 'Czechia': 2, 'Denmark': 2, 'Hungary': 2, 'Poland': 2, 'Sweden': 2, 'China': 1, 'Bulgaria': 1, 'Cyprus': 1, 'Estonia': 1, 'Croatia': 1, 'Lithuania': 1, 'Luxembourg': 1, 'Latvia': 1, 'Malta': 1, 'Romania': 1, 'Slovenia': 1}
+- `14:39:56`   by quality: {'fresh': 58, 'missing': 2, 'stale': 28}
+- `14:39:56`   reasons a series does not qualify: {'current_qualified_observation': 30}
+- `14:39:56`   latest dates: {'2026-11-20': 2, '2026-11-19': 30, '2026-11-13': 1, '2026-09': 27, '2025-05-02': 8, '2025-04': 19, '2010-12': 1}
+- `14:39:56`     CISS.D.AT.Z0Z.4F.EC.SOV_CIN.IDX      2026-11-19 0.0422170451 fresh | Austria, Composite Indicator of Sovereign Stress, Index
+- `14:39:56`     CISS.D.BE.Z0Z.4F.EC.SOV_CIN.IDX      2026-11-19 0.1612518481 fresh | Belgium, Composite Indicator of Sovereign Stress, Index
+- `14:39:56`     CISS.D.DE.Z0Z.4F.EC.SOV_CIN.IDX      2026-11-19 0.0302583334 fresh | Germany, Composite Indicator of Sovereign Stress, Index
+- `14:39:56`     CISS.D.ES.Z0Z.4F.EC.SOV_CIN.IDX      2026-11-19 0.0056725815 fresh | Spain, Composite Indicator of Sovereign Stress, Index
+- `14:39:56`     CISS.D.FI.Z0Z.4F.EC.SOV_CIN.IDX      2026-11-19 0.0060210503 fresh | Finland, Composite Indicator of Sovereign Stress, Index
+- `14:39:56`     CISS.D.FR.Z0Z.4F.EC.SOV_CIN.IDX      2026-11-19 0.1739110231 fresh | France, Composite Indicator of Sovereign Stress, Index
+- `14:39:56`     CISS.D.GR.Z0Z.4F.EC.SOV_CIN.IDX      2026-11-19 0.1006746469 fresh | Greece, Composite Indicator of Sovereign Stress, Index
+- `14:39:56`     CISS.D.IE.Z0Z.4F.EC.SOV_CIN.IDX      2026-11-19 0.0241547233 fresh | Ireland, Composite Indicator of Sovereign Stress, Index
+- `14:39:56`     CISS.D.IT.Z0Z.4F.EC.SOV_CIN.IDX      2026-11-19 0.0474026716 fresh | Italy, Composite Indicator of Sovereign Stress, Index
+- `14:39:56`     CISS.D.NL.Z0Z.4F.EC.SOV_CIN.IDX      2026-11-19 0.0173054754 fresh | Netherlands, Composite Indicator of Sovereign Stress, Index
+- `14:39:56`     CISS.D.PT.Z0Z.4F.EC.SOV_CIN.IDX      2026-11-19 0.0037656008 fresh | Portugal, Composite Indicator of Sovereign Stress, Index
+- `14:39:56`     CISS.D.U2.Z0Z.4F.EC.SOV_EWN.IDX      2026-11-19 0.0069431519 fresh | Euro area (changing composition), Correlation and equal-coun
+- `14:39:56`     CISS.D.U2.Z0Z.4F.EC.SOV_GDPWN.IDX    2026-11-19 0.0112304093 fresh | Euro area (changing composition), Correlation and real GDP-c
+- `14:39:56`     CISS.M.AT.Z0Z.4F.EC.SOV_CI.IDX       2025-04    None         stale | Austria, Sovereign Systemic Stress Composite Indicator, Inde
+- `14:39:56`     CISS.M.BE.Z0Z.4F.EC.SOV_CI.IDX       2025-04    None         stale | Belgium, Sovereign Systemic Stress Composite Indicator, Inde
+- `14:39:56`     CISS.M.CZ.Z0Z.4F.EC.SOV_CI.IDX       2025-04    None         stale | Czech Republic, Sovereign Systemic Stress Composite Indicato
+- `14:39:56`     CISS.M.DE.Z0Z.4F.EC.SOV_CI.IDX       2025-04    None         stale | Germany, Sovereign Systemic Stress Composite Indicator, Inde
+- `14:39:56`     CISS.M.DK.Z0Z.4F.EC.SOV_CI.IDX       2025-04    None         stale | Denmark, Sovereign Systemic Stress Composite Indicator, Inde
+- `14:39:56`     CISS.M.ES.Z0Z.4F.EC.SOV_CI.IDX       2025-04    None         stale | Spain, Sovereign Systemic Stress Composite Indicator, Index
+- `14:39:56`     CISS.M.FI.Z0Z.4F.EC.SOV_CI.IDX       2025-04    None         stale | Finland, Sovereign Systemic Stress Composite Indicator, Inde
+- `14:39:56`     CISS.M.FR.Z0Z.4F.EC.SOV_CI.IDX       2025-04    None         stale | France, Sovereign Systemic Stress Composite Indicator, Index
+- `14:39:56`     CISS.M.GB.Z0Z.4F.EC.SOV_CI.IDX       2025-04    None         stale | United Kingdom, Sovereign Systemic Stress Composite Indicato
+- `14:39:56`     CISS.M.GR.Z0Z.4F.EC.SOV_CI.IDX       2025-04    None         stale | Greece, Sovereign Systemic Stress Composite Indicator, Index
+- `14:39:56`     CISS.M.HU.Z0Z.4F.EC.SOV_CI.IDX       2025-04    None         stale | Hungary, Sovereign Systemic Stress Composite Indicator, Inde
+- `14:39:56`     CISS.M.IE.Z0Z.4F.EC.SOV_CI.IDX       2025-04    None         stale | Ireland, Sovereign Systemic Stress Composite Indicator, Inde
+- `14:39:56`     CISS.M.IT.Z0Z.4F.EC.SOV_CI.IDX       2025-04    None         stale | Italy, Sovereign Systemic Stress Composite Indicator, Index
+- `14:39:56`     CISS.M.NL.Z0Z.4F.EC.SOV_CI.IDX       2025-04    None         stale | Netherlands, Sovereign Systemic Stress Composite Indicator, 
+- `14:39:56`     CISS.M.PL.Z0Z.4F.EC.SOV_CI.IDX       2025-04    None         stale | Poland, Sovereign Systemic Stress Composite Indicator, Index
+- `14:39:56`     CISS.M.PT.Z0Z.4F.EC.SOV_CI.IDX       2025-04    None         stale | Portugal, Sovereign Systemic Stress Composite Indicator, Ind
+- `14:39:56`     CISS.M.SE.Z0Z.4F.EC.SOV_CI.IDX       2025-04    None         stale | Sweden, Sovereign Systemic Stress Composite Indicator, Index
+- `14:39:56`     CISS.M.U2.Z0Z.4F.EC.SOV_EW.IDX       2025-04    None         stale | Euro area (changing composition), Sovereign Systemic Stress 
+- `14:39:56`     CISS.M.U2.Z0Z.4F.EC.SOV_GDPW.IDX     2025-04    None         stale | Euro area (changing composition), Sovereign Systemic Stress 
+- `14:39:56`   errors: {}
+- `14:39:56`   quality: {"acquisition_age_seconds": 174.717525, "basis": "observation-period end and acquisition ceilings; exact release calendar not verified", "evaluated_at": "2026-11-22T07:13:48.274895+00:00", "excluded_future_rows": 0, "frequency": "daily", "maximum_acquisition_age_seconds": 259200, "maximum_observation_age_days": 14, "missing": [], "observation_age_days": 3, "observation_date": "2026-11-19", "original_source_verified": true, "period_end": "2026-11-19", "source_acquired_at": "2026-11-22T07:10:53.557370+00:00", "status": "fresh"}
+- `14:39:56`   coverage: {"compiled": 88, "discovered": 88, "errors": 0, "fresh": 58, "status": "measured"}
+- `14:39:56` data/ciss-ai.json (7534 bytes, written 2026-11-22 07:40):
+- `14:39:56`     based_on                   "2026-11-19"
+- `14:39:56`     call                       null
+- `14:39:56`     calls_eligible             false
+- `14:39:56`     claims                     [7] {8 keys: acquired_at, evidence, observation_date, series_id, source_row, unit, value, value_decimal}
+- `14:39:56`     contract                   "ciss-commentary.v1"
+- `14:39:56`     decision                   {2 keys: meaning, verb}
+- `14:39:56`     ea_composite               0.009462216765937262
+- `14:39:56`     ea_regime                  null
+- `14:39:56`     engine                     "ciss-ai"
+- `14:39:56`     generated_at               "2026-11-22T07:40:23.555037+00:00"
+- `14:39:56`     interpretation             {9 keys: cross_country, headline, liquidity, regime, regime_read, risk_assets, sovereign, stress_source, watch}
+- `14:39:56`     model                      "deterministic source observations; no AI API"
+- `14:39:56`     ok                         true
+- `14:39:56`     quality                    {3 keys: source_age_seconds, source_contract, status}
+- `14:39:56`     replay                     {3 keys: compiler, manifest_key, output_sha256}
+- `14:39:56`     sizing_eligible            false
+- `14:39:56`     source_generated_at        "2026-11-22T07:13:48.274895+00:00"
+- `14:39:56`     source_replay              {3 keys: compiler, manifest_key, output_sha256}
+- `14:39:56`     version                    "2.0.0"
+- `14:39:56` data/sovereign-stress.json (85658 bytes, written 2026-11-22 12:09):
+- `14:39:56`     schema_version             "2.0"
+- `14:39:56`     version                    "2.6.0"
+- `14:39:56`     method                     "sovereign_systemic_stress"
+- `14:39:56`     generated_at               "2026-11-22T12:08:01.976948+00:00"
+- `14:39:56`     elapsed_s                  73.15
+- `14:39:56`     ok                         true
+- `14:39:56`     headline                   "Europe systemic stress: CALM (17/100). Euro-area CISS calm (13.026...
+- `14:39:56`     europe_stress              {6 keys: score_0_100, regime, worst_country, read, score_kind, calls_eligible}
+- `14:39:56`     systemic_stress_ciss       {4 keys: euro_area, united_states, china, united_kingdom}
+- `14:39:56`     sovereign_stress_sovciss   {8 keys: euro_area, germany, france, italy, spain, portugal, greece, finland}
+- `14:39:56`     asia_sovereigns            {4 keys: south_korea, singapore, hong_kong, taiwan}
+- `14:39:56`     most_stressed_sovereign    "greece"
+- `14:39:56`     quality                    {11 keys: observation_date, publication_date, frequency, freshness_basis, status, missing, ciss_ea_as_of, sovciss_ranking_eligible, warehouse_generated_at, coverage_scope, calibration_status}
+- `14:39:56`     ciss_warehouse             {3 keys: key, generated_at, replay}
+- `14:39:56`     equity_market_stress       {2 keys: vix, sp500}
+- `14:39:56`     sovereign_spreads          {0 keys: }
+- `14:39:56`     bond_market_read           "Sovereign-bond stress is read from the SovCISS and the cds-proxy s...
+- `14:39:56`     unemployment               {8 keys: germany, france, italy, spain, netherlands, greece, finland, eu_27}
+- `14:39:56`     industrial_production      {7 keys: germany, france, italy, spain, netherlands, finland, euro_area}
+- `14:39:56`     country_stress_scores      {7 keys: germany, france, italy, spain, netherlands, greece, portugal}
+- `14:39:56`     wgb_sovereigns             {10 keys: south_korea, singapore, hong_kong, taiwan, chile, peru, netherlands, switzerland, turkey, argentina}
+- `14:39:56`     deltas                     {16 keys: germany, argentina, peru, italy, greece, turkey, singapore, portugal, chile, france, south_korea, spain, netherlands, switzerland}
+- `14:39:56`     signals_fired              [0] 
+- `14:39:56`     history_key                "data/sovereign-stress-history.json"
+- `14:39:56`     yoy_chart                  [10] {4 keys: name, kind, yoy_bp, note}
+- `14:39:56`     gssi_key                   "data/sovereign-gssi.json"
+- `14:39:56`     gssi_current               {4 keys: gssi, pctile, yoy_pct, detected}
+- `14:39:56`     cross_reference            {4 keys: crisis_composite, eurodollar_stress, cds_proxy_credit_risk, cds_proxy_regime}
+- `14:39:56`     sources                    [4] "ECB CISS/SovCISS canonical warehouse: data/ciss-stress.json"
+- `14:39:56`     errors                     [3] "yoy/singapore: MAS SGS empty"
+- `14:39:56`     calls_eligible             false
+- `14:39:56`     sizing_eligible            false
+- `14:39:56`     call                       null
+- `14:39:56`     decision                   {3 keys: verb, meaning, reason}
+- `14:39:56`     signal_emission            {2 keys: enabled, reason}
+- `14:39:56`     field_units                {3 keys: europe_stress.score_0_100, systemic_stress_ciss.*.level, sovereign_stress_sovciss.*.level}
+- `14:39:56`     pd_settlement_fails        {15 keys: scope_id, as_of, unit, ftd_bn, ftr_bn, combined_bn, quality, label, source, source_generated_at, ust_ex_tips, note, role, calls_eligible}
+- `14:39:56` data/systemic-stress.json (6497 bytes, written 2026-11-22 12:10):
+- `14:39:56`     schema_version             "1.0"
+- `14:39:56`     method                     "ecb_ciss_sovciss_systemic_stress"
+- `14:39:56`     generated_at               "2026-11-22T12:08:05.008311+00:00"
+- `14:39:56`     elapsed_s                  135.89
+- `14:39:56`     ok                         true
+- `14:39:56`     headline                   "Systemic stress ELEVATED. Composite 60/100 \u2014 euro-area CISS c...
+- `14:39:56`     composite                  {3 keys: score_0_100, regime, read}
+- `14:39:56`     systemic_stress            {4 keys: euro_area, countries, most_stressed, read}
+- `14:39:56`     sovereign_stress           {9 keys: countries, euro_area_avg_sovciss, dispersion, most_stressed, germany_benchmark, fragmentation_gap, fragmentation_score, fragmentation_label, read}
+- `14:39:56`     cross_reference            {8 keys: cds_proxy_regime, cds_proxy_composite, credit_stress_regime, vix_level, canary_grid_state, eurodollar_verdict, eurodollar_health, eurodollar_funding_stress}
+- `14:39:56`     sources                    [1] "ECB Data Portal \u2014 CISS / SovCISS (Composite Indicators of Sys...
+- `14:39:56`     errors                     [0] 
+- `14:39:56` data/global-sovereign.json (34189 bytes, written 2026-11-21 18:16):
+- `14:39:56`     calls_eligible             false
+- `14:39:56`     countries                  [44] {11 keys: as_of, cb_rate_pct, cds_bp, cds_default_prob_pct, country, rating, regime, region, spread_vs_bund_bp, stress_0_100, yield_10y_pct}
+- `14:39:56`     decision                   {3 keys: meaning, reason, verb}
+- `14:39:56`     elapsed_s                  77.0
+- `14:39:56`     errors                     [1] "Saudi Arabia"
+- `14:39:56`     eurodollar_hub_avg_cds_bp  32.2
+- `14:39:56`     eurodollar_hub_chg_30d     0.3
+- `14:39:56`     eurodollar_hub_chg_7d      0.3
+- `14:39:56`     eurodollar_hub_detail      [21] {3 keys: cds_bp, country, stress}
+- `14:39:56`     eurodollar_hub_history     [123] {5 keys: avg_cds_bp, date, stress, worst_cds_bp, worst_country}
+- `14:39:56`     eurodollar_hub_history_n   123
+- `14:39:56`     eurodollar_hub_n           21
+- `14:39:56`     eurodollar_hub_percentile  84.6
+- `14:39:56`     eurodollar_hub_stress_0_100 61.7
+- `14:39:56`     eurodollar_hub_worst       {3 keys: cds_bp, country, stress}
+- `14:39:56`     execution_eligible         false
+- `14:39:56`     forecast_qualified         false
+- `14:39:56`     generated_at               "2026-11-21T18:16:35.884259+00:00"
+- `14:39:56`     global_avg_cds_bp          57.3
+- `14:39:56`     global_avg_stress          33.7
+- `14:39:56`     highest_cds                {11 keys: as_of, cb_rate_pct, cds_bp, cds_default_prob_pct, country, rating, regime, region, spread_vs_bund_bp, stress_0_100, yield_10y_pct}
+- `14:39:56`     highest_stress             {11 keys: as_of, cb_rate_pct, cds_bp, cds_default_prob_pct, country, rating, regime, region, spread_vs_bund_bp, stress_0_100, yield_10y_pct}
+- `14:39:56`     history_comparison_basis   "Exact UTC snapshot calendar dates; missing prior dates remain unav...
+- `14:39:56`     lowest_stress              {11 keys: as_of, cb_rate_pct, cds_bp, cds_default_prob_pct, country, rating, regime, region, spread_vs_bund_bp, stress_0_100, yield_10y_pct}
+- `14:39:56`     n_countries                44
+- `14:39:56`     n_errors                   1
+- `14:39:56`     ok                         true
+- `14:39:56`     publication_record         {3 keys: manifest_key, output_sha256, scope}
+- `14:39:56`     quality                    {2 keys: scope, status}
+- `14:39:56`     regions                    [5] {4 keys: avg_cds_bp, avg_stress, n, region}
+- `14:39:56`     sizing_eligible            false
+- `14:39:56`     source                     "World Government Bonds (worldgovernmentbonds.com) \u2014 provider-...
+- `14:39:56`     source_evidence            {11 keys: compiler_sha256, complete_responses_retained, configured_countries, contract, coverage, definitions_verified, manifest, observation_clocks_verified, original_source_replay_verified, requests_attempted, scope}
+- `14:39:56`     version                    "1.4.2"
+- `14:39:56` data/sovereign-fiscal.json (97772 bytes, written 2026-11-22 07:11):
+- `14:39:56`     engine                     "sovereign-fiscal"
+- `14:39:56`     version                    "1.0.0"
+- `14:39:56`     generated_at               "2026-11-22T07:10:49.157292+00:00"
+- `14:39:56`     reads                      [4] "Total foreign UST holdings up $649bn YoY (7.5%) to $9270bn"
+- `14:39:56`     tic                        {5 keys: holders, total, ranking, as_of, source}
+- `14:39:56`     fiscal                     {6 keys: deficit_monthly, receipts_monthly, outlays_monthly, deficit_ttm, as_of, source}
+- `14:39:56`     debt_service               {6 keys: avg_interest, total_debt_tn, total_debt_latest_tn, debt_as_of, implied_annual_interest_bn, source}
+- `14:39:56` data/global-stress.json (2804533 bytes, written 2026-11-21 19:35):
+- `14:39:56`     bond_stress                null
+- `14:39:56`     bonds                      [0] 
+- `14:39:56`     breadth                    null
+- `14:39:56`     call                       null
+- `14:39:56`     calls_eligible             false
+- `14:39:56`     ciss_systemic              {5 keys: applied, floor, source, use, value}
+- `14:39:56`     contagion                  null
+- `14:39:56`     context                    {9 keys: ciss-stress, euro-fragmentation, eurodollar-stress, global-sovereign, jsi, liquidity-flow, risk-regime, settlement-fails, sovereign-stress}
+- `14:39:56`     contract                   "global-stress-research.v1"
+- `14:39:56`     correlations               {4 keys: interpretation, method, pairs, window_end_dates}
+- `14:39:56`     credit_dispersion          {11 keys: calls_eligible, execution_eligible, formula, left, left_row_index, observation_date, right, right_row_index, sizing_eligible, unit, value}
+- `14:39:56`     credit_spreads             null
+- `14:39:56`     decision                   {3 keys: meaning, reason, verb}
+- `14:39:56`     decision_qualification     {3 keys: model_id, scorecard_manifest_key, status}
+- `14:39:56`     dimension_scores           {0 keys: }
+- `14:39:56`     engine                     "justhodl-global-stress"
+- `14:39:56`     equities                   [0] 
+- `14:39:56`     equity_stress              null
+- `14:39:56`     escalation                 null
+- `14:39:56`     execution_eligible         false
+- `14:39:56`     flashing_red               [0] 
+- `14:39:56`     funding                    null
+- `14:39:56`     generated_at               "2026-11-21T19:35:26.378212+00:00"
+- `14:39:56`     global_stress_index        null
+- `14:39:56`     global_stress_index_ciss_adj null
+- `14:39:56`     global_stress_level        null
+- `14:39:56`     gsi_by_horizon             {0 keys: }
+- `14:39:56`     headline                   "Original-source cross-market measurements; no qualified Global Str...
+- `14:39:56`     hot_signals                [0] 
+- `14:39:56`     how_to_read                "Use instruments, measurements and exact-date correlations. Legacy ...
+- `14:39:56`     implied_vol                null
+- `14:39:56`     instruments                {14 keys: BWX, EEM, EMB, EWJ, EWU, EWY, FEZ, GLD, HYG, IEF, INDA, LQD, MCHI, SPY}
+- `14:39:56`     market_stress_index        null
+- `14:39:56`     measurements               {10 keys: BAMLC0A0CM, BAMLEMCBPIOAS, BAMLEMHBHYCRPIOAS, BAMLH0A0HYM2, BAMLH0A1HYBB, BAMLH0A2HYB, BAMLH0A3HYC, DGS10, T10Y2Y, VIXCLS}
+- `14:39:56`     methodology                {7 keys: adjustments, authority, dates, dependencies, gold, rates, sovereign}
+- `14:39:56`     numerical_policy           {4 keys: arithmetic, derived_output_decimal_places, native_source_values, replay}
+- `14:39:56`     ok                         true
+- `14:39:56`     quality                    {5 keys: expected_instruments, expected_native_series, fresh_instruments, fresh_native_series, status}
+- `14:39:56`     rates                      null
+- `14:39:56`     replay                     {2 keys: manifest_key, output_sha256}
+## 3. The engines
+
+- `14:39:57` justhodl-ciss-stress: updated 2026-09-19T01:26 | 14 days: {"Invocations": 14, "days": ["11-16", "11-17", "11-18", "11-19", "11-20", "11-21"], "Errors": 0} | rules ['ciss-stress-daily cron(10 7 * * ? *) ENABLED']
+- `14:39:58`     last run 2026-11-22 07:14: REPORT RequestId: d140ea7f-4909-4ca8-8311-44c6a8e86fa6	Duration: 221950.37 ms	Billed Duration: 222362 ms	Memory Size: 1024 MB	Max Memory Used: 422 MB	Init Duration: 411.56 ms	
+XRAY TraceId: 1-6b029573-2ef1772740c2f56361ac44a2	Segm
+- `14:39:59` justhodl-ciss-ai: updated 2026-09-19T01:26 | 14 days: {"Invocations": 14, "days": ["11-16", "11-17", "11-18", "11-19", "11-20", "11-21"], "Errors": 0} | rules ['ciss-ai-daily cron(40 7 * * ? *) ENABLED']
+- `14:39:59`     last run 2026-11-22 07:40: REPORT RequestId: 13dd165c-ddbe-48ba-bc73-5160d93e955c	Duration: 4334.69 ms	Billed Duration: 4844 ms	Memory Size: 512 MB	Max Memory Used: 155 MB	Init Duration: 508.65 ms	
+XRAY TraceId: 1-6b029c65-4f4bd44e102a9ebd6a783297	SegmentId
+- `14:40:00` justhodl-sovereign-stress: updated 2026-09-20T10:46 | 14 days: {"Invocations": 14, "days": ["11-16", "11-17", "11-18", "11-19", "11-20", "11-21"], "Errors": 0} | rules ['sovereign-stress-daily cron(8 12 ? * * *) ENABLED']
+- `14:40:00`     last run 2026-11-22 12:09: [gssi] 8655 obs 1992-12-11->2026-11-13 | now 36.7 (37p) yoy -8.1 | detected 8/14 | 11.5s || [sovereign-stress] CALM (17.2) | CISS EA CALM | most-stressed sov greece | errors=3 || REPORT RequestId: a4417f81-7650-4d02-ac96-848d61f9431e	Duration: 73403.76 ms	Billed Duration: 73938 ms	Memory Size: 1024 MB	Max Memory Used: 171 MB	Init Duration: 533.24 ms	
+XRAY TraceId: 1-6b02db21-4766e1f84253919247bcc616	Segmen
+- `14:40:01` justhodl-systemic-stress: updated 2026-09-09T03:35 | 14 days: {"Invocations": 22, "days": ["11-16", "11-17", "11-18", "11-19", "11-20", "11-21"], "Errors": 10} | rules ['systemic-stress-daily cron(8 12 * * ? *) ENABLED']
+- `14:40:01`     last run 2026-11-22 12:10: [systemic-stress] composite 60.1/100 (ELEVATED) | euro CISS pct 14.7 | frag 74.0 (ACUTE FRAGMENTATION) | ciss=8 sov=11 errors=0 || REPORT RequestId: dadf0c8e-bd93-492f-8bd0-b73fb92e9e68	Duration: 135946.56 ms	Billed Duration: 136449 ms	Memory Size: 256 MB	Max Memory Used: 102 MB	Init Duration: 501.96 ms	
+XRAY TraceId: 1-6b02db24-0d6700ca024ec40270a52cfb	Segme
+- `14:40:02` justhodl-global-sovereign: updated 2026-09-26T23:18 | 14 days: {"Invocations": 14, "days": ["11-16", "11-17", "11-18", "11-19", "11-20", "11-21"], "Errors": 0} | rules ['global-sovereign-12h cron(15 18 * * ? *) ENABLED']
+- `14:40:02`     last run 2026-11-21 18:16: REPORT RequestId: e7ed57ba-0dde-4229-9aae-2acf0d843c57	Duration: 77611.18 ms	Billed Duration: 78042 ms	Memory Size: 512 MB	Max Memory Used: 96 MB	Init Duration: 430.23 ms	
+XRAY TraceId: 1-6b01dfb6-6ed79fd7745d5c466cc95747	SegmentI
+- `14:40:03` justhodl-sovereign-fiscal: updated 2026-09-09T01:57 | 14 days: {"Invocations": 14, "days": ["11-16", "11-17", "11-18", "11-19", "11-20", "11-21"], "Errors": 0} | rules ['justhodl-sovereign-fiscal-sched cron(0 14 ? * TUE *) DISABLED', 'sovereign-fiscal-daily cron(10 7 * * ? *) ENABLED']
+- `14:40:03`     last run 2026-11-22 07:11: REPORT RequestId: 1270f856-1590-45de-8f78-aa6ac3dcac24	Duration: 17047.95 ms	Billed Duration: 17477 ms	Memory Size: 512 MB	Max Memory Used: 98 MB	Init Duration: 428.13 ms	
+XRAY TraceId: 1-6b029578-4dbdf41b5ed27c993b68b499	SegmentI
+- `14:40:04` justhodl-global-stress: updated 2026-09-20T10:36 | 14 days: {"Invocations": 14, "days": ["11-16", "11-17", "11-18", "11-19", "11-20", "11-21"], "Errors": 0} | rules []
+- `14:40:04`     last run 2026-11-21 19:35: REPORT RequestId: d66b01f2-6478-4cf8-b4ec-db5b893d8908	Duration: 25654.23 ms	Billed Duration: 26254 ms	Memory Size: 512 MB	Max Memory Used: 177 MB	Init Duration: 599.03 ms	
+XRAY TraceId: 1-6b01f26c-496685bc0520ccfe003e9a2b	Segment
+- `14:40:04` ✅ read-only; nothing changed
