@@ -197,11 +197,11 @@ def main():
                 continue
             checked += 1
             bad = []
-            if x["date"] != row["latest_date"] or abs(x["value"] - row["latest"]) > 6e-6:
-                bad.append("value %s on %s against %s on %s" % (x["value"], x["date"], row["latest"], row["latest_date"]))
+            if x["period"] != row["latest_date"] or abs(x["value"] - row["latest"]) > 6e-6:
+                bad.append("value %s for %s against %s for %s" % (x["value"], x["period"], row["latest"], row["latest_date"]))
             if row.get("pctile") is not None and abs(x["pctile"] - row["pctile"]) > 0.06:
                 bad.append("percentile %s against %s" % (x["pctile"], row["pctile"]))
-            if row.get("percentile_5y") is not None and x["pctile_5y"] is not None and abs(x["pctile_5y"] - row["percentile_5y"]) > 0.6:
+            if row.get("percentile_5y") is not None and x["pctile_5y"] is not None and abs(x["pctile_5y"] - row["percentile_5y"]) > 0.06:
                 bad.append("5-year percentile %s against %s" % (x["pctile_5y"], row["percentile_5y"]))
             for name in ("1w", "1m", "3m", "12m"):
                 theirs = ((row.get("comparisons") or {}).get(name) or {}).get("value")

@@ -4,10 +4,14 @@ Original CSVs, exact definitions, source clocks and frozen compiler receipts are
 retained before publication. These measurements do not authorize a trade or size.
 """
 import json
+import os
+import sys
 import boto3
 import ciss_source_store as store
-import sovereign_desk
 from ciss_source_store import run
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))     # sovereign_desk.py sits beside this file, also when a test loads it by path
+import sovereign_desk  # noqa: E402
 
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"

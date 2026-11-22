@@ -218,8 +218,8 @@ def measure(mid, label, unit, freq, obs, today, info=None, key=None, derived=Non
     last_day, last = obs[-1]
     age = (date.fromisoformat(today) - date.fromisoformat(last_day)).days
     values = [v for _, v in obs]
-    last_date = date.fromisoformat(last_day)
-    five = date(last_date.year - 5, last_date.month, min(last_date.day, calendar.monthrange(last_date.year - 5, last_date.month)[1])).isoformat()
+    now_day = date.fromisoformat(today)                 # five calendar years back from the day of compilation, as the warehouse counts them
+    five = date(now_day.year - 5, now_day.month, min(now_day.day, calendar.monthrange(now_day.year - 5, now_day.month)[1])).isoformat()
     recent = [v for d, v in obs if d >= five]
     high = max(obs, key=lambda p: (p[1], -date.fromisoformat(p[0]).toordinal()))
     low = min(obs, key=lambda p: (p[1], date.fromisoformat(p[0]).toordinal()))
@@ -402,6 +402,7 @@ def compile_desk(binding, receipts, aux, read, generated_at, errors=None):
 
     # TARGET balances, EUR billions
     if 'target' in parsed:
+        owed = {}
         for key in sorted(parsed['target']):
             area = key.split('.')[2]
             if area not in model.COUNTRIES and area != '4F':
@@ -410,6 +411,15 @@ def compile_desk(binding, receipts, aux, read, generated_at, errors=None):
             scale = Decimal(10) ** (int(entry['meta']['unit_mult']) - 9)
             obs, info = aux_obs('target', key, scale)
             add(measure('TGT_' + area, AREAS.get(area, area) + ' TARGET balance', 'eur_bn', 'M', obs, today, info, key=key, evidence=receipt('target'), group='target', area=area), obs)
+            if area != '4F':
+                for day, value in obs:
+                    if value < 0:
+                        owed[day] = owed.get(day, Decimal(0)) - value
+                    else:
+                        owed.setdefault(day, Decimal(0))
+        total = sorted(owed.items())
+        add(measure('EA_TGT_DEBT', 'TARGET liabilities of the national central banks in deficit', 'eur_bn', 'M', total, today, group='euro_area', evidence=receipt('target'),
+                    derived='sum of the negative end-of-month TARGET balances of the national central banks reporting that month, shown as a positive amount'), total)
 
     # government debt, percent of GDP
     if 'debt' in parsed:
@@ -445,7 +455,7 @@ def compile_desk(binding, receipts, aux, read, generated_at, errors=None):
 
     doc = {'engine': 'ciss-stress', 'document': 'sovereign', 'version': VERSION, 'contract': CONTRACT, 'generated_at': generated_at,
            'warehouse': binding, 'episodes': EPISODES, 'measures': measures, 'countries': countries, 'cross_section': cross,
-           'euro_area': [m for m in ('EA_SOV_GDP', 'EA_SOV_EQ', 'EA_SOV_RANGE', 'EA_CURVE_10Y', 'EA_CURVE_2Y', 'EA_CISS', 'EA_CON_BMN', 'Y10_U2', 'EA_ALL_10Y', 'EA_AAA_10Y', 'TGT_4F')
+           'euro_area': [m for m in ('EA_SOV_GDP', 'EA_SOV_EQ', 'EA_SOV_RANGE', 'EA_CURVE_10Y', 'EA_CURVE_2Y', 'EA_ALL_10Y', 'EA_AAA_10Y', 'Y10_U2', 'EA_TGT_DEBT', 'EA_CISS', 'EA_CON_BMN')
                          if m in measures],
            'contributions': [m for m in ('EA_CON_BMN', 'EA_CON_EMN', 'EA_CON_FIN', 'EA_CON_FXN', 'EA_CON_MMN', 'EA_CON_CON') if m in measures],
            'auxiliaries': auxiliaries, 'sources': sources, 'ended_at_source': sorted(ended, key=lambda e: (e['key'] or '', e['id'])), 'errors': issues,

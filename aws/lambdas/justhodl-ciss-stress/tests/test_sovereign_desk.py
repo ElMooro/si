@@ -222,6 +222,14 @@ class Measures(unittest.TestCase):
         self.assertTrue(all(g >= 120 for g in gaps))
         self.assertEqual(len(m['spark']), 260)
 
+    def test_the_five_year_window_runs_back_from_the_day_of_compilation(self):
+        obs = [(desk.period_end(m).isoformat(), Decimal(i)) for i, m in enumerate(months('2015-01', '2026-09'))]
+        m = desk.measure('X', 'x', 'index', 'M', obs, TODAY)
+        self.assertEqual(m['pctile_5y'], 100.0)
+        falling = [(d, -v) for d, v in obs]
+        window = [v for d, v in falling if d >= '2021-11-22']                    # 59 month-ends, as the warehouse counts them
+        self.assertEqual((len(window), desk.measure('X', 'x', 'index', 'M', falling, TODAY)['pctile_5y']), (59, round(100 / 59, 1)))
+
     def test_a_reading_older_than_its_rhythm_is_late_and_a_long_silent_series_has_ended(self):
         late = desk.measure('X', 'x', 'pct', 'D', [('2026-11-01', Decimal(1))], TODAY)
         ended = desk.measure('X', 'x', 'pct', 'M', [('2025-04-30', Decimal(1))], TODAY)
@@ -270,6 +278,8 @@ class Compile(unittest.TestCase):
         self.assertEqual((m['AUX_FX_EA']['value'], m['AUX_FX_EA']['date'], m['AUX_FX_NONEA']['value']), (20.193, '2026-11-13', 521.892))
         self.assertEqual((m['AUX_EURUSD']['value'], m['AUX_EURUSD']['date'], m['AUX_EURUSD']['exact']), (1.099, '2026-11-20', '1.0990'))
         self.assertNotIn('TGT_U4', m)
+        # what the national central banks in deficit owe: Italy's 400 bn; the ECB's own balance is not a national central bank's
+        self.assertEqual((m['EA_TGT_DEBT']['value'], m['EA_TGT_DEBT']['date'], m['EA_TGT_DEBT']['n']), (400.0, '2026-09-30', 33))
 
     def test_a_country_that_changed_currency_is_read_from_its_current_series(self):
         m = self.doc['measures']
