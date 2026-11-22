@@ -25,11 +25,11 @@ LEGS = {'DEXUSEU': [1.0600, 1.0550, 1.0500], 'DEXJPUS': [155.10, 156.20, 157.30]
         'DEXCAUS': [1.4100, 1.4200, 1.4256], 'DEXSDUS': [10.90, 10.95, 11.00], 'DEXSZUS': [0.8900, None, 0.9000]}
 FED = {
     'SWPT': [['2026-11-04', 150.0], ['2026-11-11', 120.0], ['2026-11-18', 146.0]],                          # USD millions
-    'H41RESPPALGTRFNWW': [['2026-11-11', 0.0], ['2026-11-18', 1.0]],
+    'H41RESPPALGTRFNWW': [['2026-10-28', 0.0], ['2026-11-04', 2.0], ['2026-11-11', 0.0], ['2026-11-18', 1.0]],       # zeros before the line existed
     'DTWEXBGS': [['2026-11-12', 122.1], ['2026-11-13', 122.6503]],
     'DTWEXAFEGS': [['2026-11-12', 116.0], ['2026-11-13', 116.236]],
     'DTWEXEMEGS': [['2026-11-12', 130.5], ['2026-11-13', 130.8877]],
-    'WMTSECL1': [['2026-11-11', 2550000.0], ['2026-11-18', 2544011.0]],
+    'WMTSECL1': [['2026-10-28', 0.0], ['2026-11-04', 0.0], ['2026-11-11', 2550000.0], ['2026-11-18', 2544011.0]],
     'WSEFINTL1': [['2026-11-11', 2820000.0], ['2026-11-18', 2813231.0]],
     'WLRRAFOIAL': [['2026-11-11', 310000.0], ['2026-11-18', 316712.0]],
     'SOFR': [['2021-07-27', 0.05], ['2021-07-28', 0.05], ['2021-07-29', 0.05], ['2026-11-19', 3.91]],
@@ -203,6 +203,11 @@ class FederalReserve(unittest.TestCase):
         self.assertEqual(M['FED_SWAPS']['change']['1w'], 0.026)
         self.assertEqual((M['FED_FIMA']['value'], M['FED_CUSTODY_UST']['value'], M['FED_CUSTODY_ALL']['value'], M['FED_FOREIGN_RRP']['value']), (0.001, 2544.011, 2813.231, 316.712))
         self.assertEqual((M['FED_CUSTODY_UST']['worse'], M['FED_FOREIGN_RRP']['worse'], M['FED_SWAPS']['worse']), ('lower', None, 'higher'))
+        # FRED's zeros from before the Federal Reserve printed a line are not readings; a zero after its first reading is
+        self.assertEqual(out['series']['FED_CUSTODY_UST'], {'d': ['2026-11-11', '2026-11-18'], 'v': [2550.0, 2544.011]})
+        self.assertEqual((M['FED_CUSTODY_UST']['low'], M['FED_CUSTODY_UST']['start']), ([2544.011, '2026-11-18'], '2026-11-11'))
+        self.assertEqual(out['series']['FED_FIMA'], {'d': ['2026-11-04', '2026-11-11', '2026-11-18'], 'v': [0.002, 0.0, 0.001]})
+        self.assertIn('start', out['definitions'])
         self.assertEqual(M['H8_NET_DUE']['value'], 885.647)                                        # H.8 is in billions already
         self.assertEqual(out['series']['H8_NET_DUE']['d'], ['2008-05-28', '2026-11-11'])           # nothing from before the euro
         self.assertEqual((M['H8_NET_DUE']['low'], M['H8_NET_DUE']['status']), ([-615.423, '2008-05-28'], 'current'))

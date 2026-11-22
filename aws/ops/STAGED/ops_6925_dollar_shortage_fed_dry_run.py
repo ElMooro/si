@@ -39,7 +39,10 @@ KNOWN = (
     ("H8_NET_DUE", lambda m: m["low"] == [-615.423, "2008-05-28"], "foreign banks' US offices were owed $615 bn by their offices abroad in May 2008"),
     ("USD_DXY", lambda m: 70 < m["low"][0] < 75 and m["low"][1].startswith("2008") and 118 < m["high"][0] < 122 and m["high"][1][:4] in ("2001", "2002"), "DXY's low was near 71 in 2008 and its high near 120 in 2001-02"),
     ("USD_BROAD", lambda m: m["start"] == "2006-01-02", "the broad dollar index begins on 2 January 2006"),
-    ("FED_CUSTODY_UST", lambda m: m["value"] > 2000, "Treasuries in custody are above $2,000 bn"),
+    ("FED_CUSTODY_UST", lambda m: m["value"] > 2000 and m["low"][0] > 1000 and m["start"].startswith("2007"), "Treasuries in custody are above $2,000 bn and the line has no reading below $1,000 bn since it began in 2007"),
+    ("FED_CUSTODY_ALL", lambda m: m["low"][0] > 1500 and m["start"].startswith("2007"), "all securities in custody: no reading below $1,500 bn since the line began in 2007"),
+    ("FED_FIMA", lambda m: m["start"].startswith("2020"), "the repo line with foreign central banks begins in 2020"),
+    ("FED_SWAPS", lambda m: m["start"].startswith("2007-12"), "the swap line begins with its first drawing in December 2007"),
 )
 
 

@@ -71,12 +71,15 @@ H41 = 'Federal Reserve H.4.1, Wednesday level'
 H10 = 'Federal Reserve H.10'
 IORB_FROM = '2021-07-29'                 # the day the rate on reserve balances replaced the rate on excess reserves
 # `places` names a unit of the desk whose rounding is used (usd: 4 places, eur_bn: 3, bp: 2); `allow` is how many days
-# after its date a reading still counts as current (H.10 is published a week in arrears)
+# after its date a reading still counts as current (H.10 is published a week in arrears).
+# `lead`: FRED carries every H.4.1 line back to 18 December 2002 and fills the weeks before the Federal Reserve began
+# printing the line with zeros (custody holdings until mid-2007, the foreign repo line until 2020).  Those zeros are not
+# readings, so such a line's history begins at its first reading above zero; zeros after that are kept - they are real.
 US = (
-    {'id': 'FED_SWAPS', 'part': 'backstop', 'fred': ('SWPT',), 'scale': Decimal('0.001'), 'unit': 'usd_bn', 'places': 'eur_bn', 'freq': 'W', 'allow': 21, 'worse': 'higher', 'release': H41,
+    {'id': 'FED_SWAPS', 'lead': True, 'part': 'backstop', 'fred': ('SWPT',), 'scale': Decimal('0.001'), 'unit': 'usd_bn', 'places': 'eur_bn', 'freq': 'W', 'allow': 21, 'worse': 'higher', 'release': H41,
      'label': 'Federal Reserve central bank liquidity swaps outstanding', 'short': 'Fed swap lines drawn',
      'what': 'Dollars the Federal Reserve has lent to foreign central banks through its swap lines and not yet been repaid. Foreign central banks draw on them to lend dollars to their own banks.'},
-    {'id': 'FED_FIMA', 'part': 'backstop', 'fred': ('H41RESPPALGTRFNWW',), 'scale': Decimal('0.001'), 'unit': 'usd_bn', 'places': 'eur_bn', 'freq': 'W', 'allow': 21, 'worse': 'higher', 'release': H41,
+    {'id': 'FED_FIMA', 'lead': True, 'part': 'backstop', 'fred': ('H41RESPPALGTRFNWW',), 'scale': Decimal('0.001'), 'unit': 'usd_bn', 'places': 'eur_bn', 'freq': 'W', 'allow': 21, 'worse': 'higher', 'release': H41,
      'label': 'Federal Reserve repurchase agreements with foreign official accounts', 'short': 'Fed repos with foreign central banks (FIMA)',
      'what': 'Dollars the Federal Reserve has lent overnight to foreign central banks against their Treasuries, the FIMA repo facility. It lets them raise dollars without selling.'},
     {'id': 'USD_DXY', 'part': 'price', 'fred': tuple(sid for sid, _ in DXY_LEGS), 'calc': 'dxy', 'unit': 'idx', 'places': 'usd', 'freq': 'D', 'allow': 16, 'worse': 'higher', 'release': H10,
@@ -92,10 +95,10 @@ US = (
     {'id': 'USD_EME', 'part': 'price', 'fred': ('DTWEXEMEGS',), 'unit': 'idx', 'places': 'usd', 'freq': 'D', 'allow': 16, 'worse': 'higher', 'release': H10,
      'label': 'Nominal US dollar index against emerging market economies', 'short': 'Dollar against emerging markets',
      'what': 'The Federal Reserve\'s trade-weighted dollar against emerging-market trading partners; where a dollar shortage usually bites first.'},
-    {'id': 'FED_CUSTODY_UST', 'part': 'official', 'fred': ('WMTSECL1',), 'scale': Decimal('0.001'), 'unit': 'usd_bn', 'places': 'eur_bn', 'freq': 'W', 'allow': 21, 'worse': 'lower', 'release': H41,
+    {'id': 'FED_CUSTODY_UST', 'lead': True, 'part': 'official', 'fred': ('WMTSECL1',), 'scale': Decimal('0.001'), 'unit': 'usd_bn', 'places': 'eur_bn', 'freq': 'W', 'allow': 21, 'worse': 'lower', 'release': H41,
      'label': 'US Treasury securities held in custody at the Federal Reserve for foreign official and international accounts', 'short': 'Treasuries in custody for foreign central banks',
      'what': 'Treasuries that foreign central banks keep at the Federal Reserve. They fall when those central banks sell Treasuries to raise dollars.'},
-    {'id': 'FED_CUSTODY_ALL', 'part': 'official', 'fred': ('WSEFINTL1',), 'scale': Decimal('0.001'), 'unit': 'usd_bn', 'places': 'eur_bn', 'freq': 'W', 'allow': 21, 'worse': 'lower', 'release': H41,
+    {'id': 'FED_CUSTODY_ALL', 'lead': True, 'part': 'official', 'fred': ('WSEFINTL1',), 'scale': Decimal('0.001'), 'unit': 'usd_bn', 'places': 'eur_bn', 'freq': 'W', 'allow': 21, 'worse': 'lower', 'release': H41,
      'label': 'Securities held in custody at the Federal Reserve for foreign official and international accounts', 'short': 'All securities in custody',
      'what': 'Treasuries, agency debt and mortgage-backed securities held in custody for foreign official and international accounts.'},
     {'id': 'FED_FOREIGN_RRP', 'part': 'official', 'fred': ('WLRRAFOIAL',), 'scale': Decimal('0.001'), 'unit': 'usd_bn', 'places': 'eur_bn', 'freq': 'W', 'allow': 21, 'worse': None, 'release': H41,
@@ -153,7 +156,11 @@ def us_obs(spec, kept, today):
         obs = spread_obs(*parts)
     else:
         obs = [(day, value * spec['scale']) for day, value in parts[0]] if spec.get('scale') else parts[0]
-    return [p for p in obs if p[0] >= FROM]
+    obs = [p for p in obs if p[0] >= FROM]
+    if spec.get('lead'):
+        first = next((i for i, (_, value) in enumerate(obs) if value > 0), len(obs))
+        obs = obs[first:]
+    return obs
 
 
 def us_measure(spec, obs, kept, today):
@@ -224,6 +231,7 @@ def compile_dollar(desk_doc, read, generated_at, kept=None, errors=None):
                             'pctile': 'share of the series\' own observations at or below the latest, percent; not a probability',
                             'worse': 'the direction a dollar shortage moves the series in; none where the page takes no side',
                             'USD_DXY': '50.14348112 x EURUSD^-0.576 x USDJPY^0.136 x GBPUSD^-0.119 x USDCAD^0.091 x USDSEK^0.042 x USDCHF^0.036 on H.10 rates',
+                            'start': 'an H.4.1 line begins at its first reading above zero: FRED fills the weeks before the line was printed with zeros',
                             'absent': 'a cross-currency basis is not here: no free official source publishes one'},
             'coverage': {'measures': len(measures), 'observations': sum(len(s['d']) for s in series.values()), 'ecb': len(SERIES), 'fed': len(measures) - len(SERIES),
                          'errors': len(issues), 'status': 'degraded' if issues else 'measured'},
