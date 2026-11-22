@@ -125,3 +125,22 @@ legacy 11; pages - repo desk 19, dealer page 12; node suite 5,123; deployment 1,
 - The FRED discovery reads the first 1,000 of the 2,012 series FRED tags "repurchase agreements" (alphabetical). The
   rates and facilities are covered by name; which series fall in the second thousand was not examined. Not changed.
 - Other engines that ask a source exactly once and drop a whole group when it refuses were not looked for.
+
+## After the first proof
+
+ops 6906's first pass (07:21 UTC, 0 failed checks) showed one thing worth changing: the chart behind "Repo − policy
+rate" listed 2008-12-16 (−2.5 bp, up from −85.5) as its second-largest spike. Repo climbing back from far under the
+policy rate is a return to normal, not a squeeze; the Crisis list beside it already left it out. A measure's own chart
+now lists exactly what the Crisis view lists (`chartSpikes()`). Second pass, 14:23 UTC: 0 failed checks.
+
+One trap for the next proof: the site build replaces every shared script's `?v=` with a content hash, so a proof must
+ask the served page which script address it names. ops 6906 waited 13 minutes for the repository's string before that
+was understood; the page had been live all along.
+
+## Taking it back
+
+Page: `git checkout 537ec91a -- repo.html jh-repo-desk.js tests/repo-desk.test.js tests/fixtures/repo-desk.json.gz`, then
+`python3 scripts/build_page_data_contracts.py`, commit and push. The engines are independent of the page. Engine 3.1's
+banks are additive (`gc-survey-rate.json`, the three new haircut months, the DTCC days, the FRED inventory); the board
+simply stops carrying a series whose code is reverted. The dealer engine must not go back to 4.0.0: its single request
+is refused.
