@@ -138,13 +138,13 @@ def verified_context(ref,read):
 
 
 def compile_research(inputs,read):
-    parsed,catalog=native.load(inputs,read);at=inputs['generated_at'];acquired=inputs['sources']['observations']['acquired_at'];series={}
+    parsed,catalog=native.load(inputs,read);at=inputs['generated_at'];acquired=native.acquired(inputs['sources']);series={}
     for key,rows in parsed.items():
         definition=native.SERIES[key];history=[[d,r['usd_mn'],r['row_index'],r['status'],r['seriesbreak']] for d,r in sorted(rows.items())]
         latest=history[-1];reviewed=definition['definition_status']=='reviewed'
         comparable=[[r[0],r[1] if reviewed and r[4]=='SBN2024' else None,r[4]] for r in history]
         series[key]={'definition':definition,'catalog_row_index':catalog[key]['row_index'],'history':history,'as_of':latest[0],
-                     'reported_value':latest[1],'original_row_index':latest[2],'source_status':latest[3],
+                     'reported_value':latest[1],'original_row_index':latest[2],'original_response':native.RESPONSE_OF[key],'source_status':latest[3],
                      'reviewed_catalog_period':'SBN2024','history_scope_note':'Earlier rows are retained original numbers. Historical key-by-key scope mappings have not been verified; current labels must not be projected backwards.',
                      'quality':quality(latest[0],acquired,at,latest[1] is not None,reviewed),
                      'statistics':statistics(comparable),'comparisons':comparisons(comparable),**AUTHORITY}
@@ -178,7 +178,7 @@ def compile_research(inputs,read):
                            'gross_two_sided_b':value('treasury_two_sided'),'source_group':'treasury_two_sided',
                            'note':'Gross repo plus reverse-repo balances, not unique collateral or measured reuse.'},**AUTHORITY}
     summary={status:sum(r['quality']['status']==status for r in series.values()) for status in sorted({r['quality']['status'] for r in series.values()})}
-    out={'contract':CONTRACT,'engine':'justhodl-nyfed-pd','version':'4.0.0','methodology_version':METHOD,
+    out={'contract':CONTRACT,'engine':'justhodl-nyfed-pd','version':'4.1.0','methodology_version':METHOD,
          'generated_at':at,'source_generated_at':acquired,'as_of':corp['as_of'],
          'quality':{'status':'fresh' if summary.get('fresh')==len(series) else 'degraded','counts':summary,'total_series':len(series)},
          'native_series':series,'groups':measured,'history_columns':HISTORY_COLUMNS,'group_history_columns':GROUP_COLUMNS,

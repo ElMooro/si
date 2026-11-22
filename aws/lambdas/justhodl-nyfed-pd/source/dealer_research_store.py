@@ -165,7 +165,7 @@ def run(client,bucket):
     names=list(native.URLS)
     with ThreadPoolExecutor(max_workers=4) as pool:
         captures=dict(zip(names,pool.map(lambda name:acquire(client,bucket,name),names)))
-    stamp=now();inputs={'contract':'dealer-original-inputs.v1','generated_at':stamp,'sources':captures,
+    stamp=now();inputs={'contract':native.INPUTS,'generated_at':stamp,'sources':captures,
                        'legacy_context':legacy,'previous_output':prior,'fails_context':context(client,bucket,read)}
     output=model.compile_research(inputs,read);refs={}
     for name,value in (('input',inputs),('output',output)):

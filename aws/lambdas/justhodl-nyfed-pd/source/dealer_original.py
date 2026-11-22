@@ -18,7 +18,15 @@ REGISTRY_PATH = Path(__file__).with_name('dealer-native-registry.json')
 REGISTRY = json.loads(REGISTRY_PATH.read_bytes())
 SERIES = REGISTRY['series']
 KEYS = tuple(sorted(SERIES))
-DATA_URL = BASE+'get/'+'_'.join(KEYS)+'.json'
+# 2026-11-22 (ops 6899, 6900): one request naming all 70 series answered until 2026-11-06 and has answered 422 on
+# every run since 2026-11-12.  Measured: 35 names in one request still answer, 40 do not.  The observations are
+# therefore asked in parts of at most PART_SIZE names.  Each part is its own original response - captured, hashed and
+# replayed like every other source - and must hold exactly the series it was asked for.
+PART_SIZE = 14
+INPUTS = 'dealer-original-inputs.v2'
+OBSERVATION_KEYS = {'observations_%d' % (i//PART_SIZE+1): KEYS[i:i+PART_SIZE] for i in range(0, len(KEYS), PART_SIZE)}
+OBSERVATION_URLS = {name: BASE+'get/'+'_'.join(part)+'.json' for name, part in OBSERVATION_KEYS.items()}
+RESPONSE_OF = {key: name for name, part in OBSERVATION_KEYS.items() for key in part}
 # Reporting-definition snapshots reviewed against official FR2004C instructions.
 # One-based PDF pages identify the accounting rules; source-period boundaries
 # come from the independently captured NY Fed series-break catalog.
@@ -38,7 +46,7 @@ SECTION_PAGES = {
     'SBN2022': {'net_outright_position':13,'transactions':19,'financing':25,'specific_issue_position':31},
     'SBN2024': {'net_outright_position':13,'transactions':19,'financing':25,'specific_issue_position':33},
 }
-URLS = {'catalog':CATALOG_URL,'breaks':BREAKS_URL,'observations':DATA_URL,
+URLS = {'catalog':CATALOG_URL,'breaks':BREAKS_URL,**OBSERVATION_URLS,
         'release_schedule':RELEASE_URL,'historical_release':REGISTRY['reference_release']['url'],
         **{k:DEFINITION_BASE+v['guid'] for k,v in DEFINITIONS.items()}}
 
@@ -129,34 +137,43 @@ def metadata(raws):
     return selected
 
 
-def parse(raw, at):
-    rows = strict_json(raw).get('pd',{}).get('timeseries')
-    if not isinstance(rows,list) or not 1<=len(rows)<=100000: raise ValueError('bounded original observations required')
+def parse(raws, at):
+    """raws = {response name: original bytes}, one for every entry of OBSERVATION_KEYS.  A row index is the row's
+    position inside its own response; `response` names that response."""
+    if not isinstance(raws,dict) or set(raws)!=set(OBSERVATION_KEYS): raise ValueError('complete original observation responses required')
     out = {key:{} for key in KEYS}
-    for index,row in enumerate(rows):
-        if not isinstance(row,dict) or row.get('keyid') not in out: raise ValueError('unexpected original series identity')
-        key = row['keyid']; observed = row.get('asofdate'); d=day(observed)
-        if d>clock(at).date(): raise ValueError('future observation')
-        if observed in out[key]: raise ValueError('duplicate original observation')
-        value=row.get('value')
-        if value in ('*','',None): amount=None
-        elif isinstance(value,str) and re.fullmatch(r'-?(?:0|[1-9]\d{0,14})',value):
-            amount=int(value)
-            if amount<0 and SERIES[key]['family'] not in ('net_outright_position','specific_issue_position'):
-                raise ValueError('negative financing or transaction amount')
-            if abs(amount)>(2**53-1)//100:raise ValueError('reported amount exceeds exact downstream integer bound')
-        else: raise ValueError('dealer value must be an exact signed integer or explicitly missing')
-        out[key][observed] = {'date':observed,'usd_mn':amount,'row_index':index,
-                             'source_value':value,'series_id':key,'seriesbreak':period(observed),
-                             'status':'suppressed' if value=='*' else 'missing' if amount is None else 'observed'}
+    for name,wanted in OBSERVATION_KEYS.items():
+        rows = strict_json(raws[name]).get('pd',{}).get('timeseries')
+        if not isinstance(rows,list) or not 1<=len(rows)<=100000: raise ValueError('bounded original observations required')
+        for index,row in enumerate(rows):
+            if not isinstance(row,dict) or row.get('keyid') not in wanted: raise ValueError('unexpected original series identity')
+            key = row['keyid']; observed = row.get('asofdate'); d=day(observed)
+            if d>clock(at).date(): raise ValueError('future observation')
+            if observed in out[key]: raise ValueError('duplicate original observation')
+            value=row.get('value')
+            if value in ('*','',None): amount=None
+            elif isinstance(value,str) and re.fullmatch(r'-?(?:0|[1-9]\d{0,14})',value):
+                amount=int(value)
+                if amount<0 and SERIES[key]['family'] not in ('net_outright_position','specific_issue_position'):
+                    raise ValueError('negative financing or transaction amount')
+                if abs(amount)>(2**53-1)//100:raise ValueError('reported amount exceeds exact downstream integer bound')
+            else: raise ValueError('dealer value must be an exact signed integer or explicitly missing')
+            out[key][observed] = {'date':observed,'usd_mn':amount,'row_index':index,'response':name,
+                                 'source_value':value,'series_id':key,'seriesbreak':period(observed),
+                                 'status':'suppressed' if value=='*' else 'missing' if amount is None else 'observed'}
     if any(not rows for rows in out.values()): raise ValueError('requested source series missing')
     return out
 
 
+def acquired(sources):
+    """The observations are as old as their oldest response."""
+    return min((sources[name]['acquired_at'] for name in OBSERVATION_KEYS), key=clock)
+
+
 def load(inputs, read):
-    if inputs.get('contract')!='dealer-original-inputs.v1' or set(inputs.get('sources',{}))!=set(URLS):
+    if inputs.get('contract')!=INPUTS or set(inputs.get('sources',{}))!=set(URLS):
         raise ValueError('complete original input set required')
     at=inputs['generated_at'];clock(at)
     raws={key:original(inputs['sources'][key],url,read,at) for key,url in URLS.items()}
     definitions=metadata(raws)
-    return parse(raws['observations'],at),definitions
+    return parse({name:raws[name] for name in OBSERVATION_KEYS},at),definitions

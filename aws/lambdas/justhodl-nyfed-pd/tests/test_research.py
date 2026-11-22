@@ -37,6 +37,12 @@ def observations(count=55):
                                 'value':str(1000+index*10+i)} for index,key in enumerate(n.KEYS) for i in range(count)]}}
 
 
+def parts(payload):
+    """One original response per request part, as the API answers them: only the series that part asked for."""
+    rows=payload['pd']['timeseries']
+    return {name:n.encoded({'pd':{'timeseries':[r for r in rows if r.get('keyid') in keys]}}) for name,keys in n.OBSERVATION_KEYS.items()}
+
+
 def fixture():
     defs=deepcopy(n.DEFINITIONS);raws={}
     for key in defs:
@@ -45,12 +51,12 @@ def fixture():
     reference['sha256']=hashlib.sha256(raws['historical_release']).hexdigest()
     raws.update(catalog=n.encoded({'pd':{'timeseries':[n.SERIES[k]['catalog'] for k in n.KEYS]}}),
                 breaks=n.encoded({'pd':{'seriesbreaks':[{'seriesbreak':k,'startdate':v['start'],'enddate':v['end']} for k,v in defs.items()]}}),
-                release_schedule=b'<p>Thursdays at approximately 4:15 with previous week statistics</p>',observations=n.encoded(observations()))
+                release_schedule=b'<p>Thursdays at approximately 4:15 with previous week statistics</p>',**parts(observations()))
     c=Storage()
     for k in s.LEGACY_KEYS:c.objects[k]=n.encoded({'old':k,'value':123})
     sources={key:{'url':n.URLS[key],'acquired_at':AT,
                  'evidence':capture(c,'fixture','fr2004',n.URLS[key].split('?')[0],raw,datetime.fromisoformat(AT))} for key,raw in raws.items()}
-    inputs={'contract':'dealer-original-inputs.v1','generated_at':AT,'sources':sources,'previous_output':None,'fails_context':None,'legacy_context':{}}
+    inputs={'contract':n.INPUTS,'generated_at':AT,'sources':sources,'previous_output':None,'fails_context':None,'legacy_context':{}}
     return c,defs,reference,raws,inputs
 
 
@@ -65,7 +71,7 @@ class DealerResearch(unittest.TestCase):
         p=observations(1)
         for row in p['pd']['timeseries']:
             if row['keyid'].endswith('NSP'):row['value']='-1' if row['keyid']=='PDSI2NSP' else '0'
-        parsed=n.parse(n.encoded(p),AT);key,label,ids='x','specific',['PDSI2NSP','PDSI3NSP']
+        parsed=n.parse(parts(p),AT);key,label,ids='x','specific',['PDSI2NSP','PDSI3NSP']
         g=m.group(key,label,ids,parsed,AT,AT)
         self.assertEqual(g['usd_mn'],-1);self.assertEqual(g['exact_usd_bn'],'-0.001')
         self.assertEqual(g['valuation_basis'],'original_issuance_par')
@@ -73,7 +79,7 @@ class DealerResearch(unittest.TestCase):
 
     def test_latest_suppression_and_gap_never_fall_back(self):
         p=observations();row=next(r for r in p['pd']['timeseries'] if r['keyid']=='PDSIRRA-UTSETTOT');row['value']='*'
-        g=m.group('x','x',['PDSIRRA-UTSETTOT','PDSIRRA-UTSTTOT'],n.parse(n.encoded(p),AT),AT,AT)
+        g=m.group('x','x',['PDSIRRA-UTSETTOT','PDSIRRA-UTSTTOT'],n.parse(parts(p),AT),AT,AT)
         self.assertEqual(g['as_of'],'2026-09-09');self.assertIsNone(g['usd_mn']);self.assertEqual(g['quality']['status'],'incomplete')
         self.assertEqual(g['components']['PDSIRRA-UTSETTOT']['status'],'suppressed')
 
@@ -93,7 +99,7 @@ class DealerResearch(unittest.TestCase):
             self.assertIsNone(row['unit']);self.assertIsNone(row['daily_average_b']);self.assertIsNone(row['weekly_b'])
 
     def test_old_scope_identity_is_not_inferred_from_current_catalog(self):
-        p=observations(130);parsed=n.parse(n.encoded(p),AT)
+        p=observations(130);parsed=n.parse(parts(p),AT)
         g=m.group('x','x',['PDSI2NSP','PDSI3NSP'],parsed,AT,AT)
         old=[r for r in g['history'] if r[2]!='SBN2024']
         self.assertTrue(old);self.assertTrue(all(r[1] is None for r in old))
@@ -123,14 +129,44 @@ class DealerResearch(unittest.TestCase):
     def test_invalid_original_values_duplicates_and_identity_rejected(self):
         for v in ('1.2','nan',False,1,'999999999999999'):
             p=observations(1);p['pd']['timeseries'][0]['value']=v
-            with self.assertRaises(ValueError):n.parse(n.encoded(p),AT)
+            with self.assertRaises(ValueError):n.parse(parts(p),AT)
         p=observations(1);p['pd']['timeseries'][-1]['value']='-1'
-        with self.assertRaises(ValueError):n.parse(n.encoded(p),AT)
+        with self.assertRaises(ValueError):n.parse(parts(p),AT)
         p=observations(1);p['pd']['timeseries'].append(p['pd']['timeseries'][0])
-        with self.assertRaises(ValueError):n.parse(n.encoded(p),AT)
+        with self.assertRaises(ValueError):n.parse(parts(p),AT)
         p=observations(1);p['pd']['timeseries'].pop()
-        with self.assertRaises(ValueError):n.parse(n.encoded(p),AT)
+        with self.assertRaises(ValueError):n.parse(parts(p),AT)
         with self.assertRaises(ValueError):n.strict_json(b'{"x":1,"x":2}')
+
+    def test_observations_are_asked_in_parts_the_api_still_answers(self):
+        # 2026-11-22: one request naming all 70 series answers 422 since 2026-11-12; 35 names answer, 40 do not (ops 6900)
+        names=[k for part in n.OBSERVATION_KEYS.values() for k in part]
+        self.assertEqual(sorted(names),sorted(n.KEYS));self.assertEqual(len(names),len(set(names)))
+        self.assertTrue(all(1<=len(part)<=14 for part in n.OBSERVATION_KEYS.values()))
+        self.assertTrue(all(len(url)<=300 and url.startswith(n.BASE+'get/') and url.endswith('.json') for url in n.OBSERVATION_URLS.values()))
+        self.assertEqual(len(set(n.OBSERVATION_URLS.values())),len(n.OBSERVATION_KEYS));self.assertTrue(set(n.OBSERVATION_URLS)<set(n.URLS))
+        self.assertNotIn('observations',n.URLS);self.assertFalse(hasattr(n,'DATA_URL'))
+        self.assertEqual({n.RESPONSE_OF[k] for k in n.OBSERVATION_KEYS['observations_2']},{'observations_2'})
+
+    def test_every_response_must_hold_exactly_the_series_it_was_asked_for(self):
+        good=parts(observations(3));parsed=n.parse(good,AT)
+        self.assertEqual(len(parsed),70);self.assertTrue(all(len(v)==3 for v in parsed.values()))
+        key=n.OBSERVATION_KEYS['observations_4'][0];row=parsed[key]['2026-09-09']
+        self.assertEqual(row['response'],'observations_4');self.assertEqual(row['row_index'],0)      # an index inside its own response
+        swapped=dict(good);swapped['observations_1'],swapped['observations_2']=good['observations_2'],good['observations_1']
+        with self.assertRaisesRegex(ValueError,'unexpected original series identity'):n.parse(swapped,AT)
+        for bad in ({k:v for k,v in good.items() if k!='observations_5'},{**good,'observations_6':good['observations_1']},n.encoded(observations(3)),None):
+            with self.assertRaisesRegex(ValueError,'complete original observation responses'):n.parse(bad,AT)
+        empty=dict(good);empty['observations_3']=n.encoded({'pd':{'timeseries':[]}})
+        with self.assertRaises(ValueError):n.parse(empty,AT)
+        sources={name:{'acquired_at':AT} for name in n.OBSERVATION_KEYS};sources['observations_4']={'acquired_at':'2026-09-19T10:59:58+00:00'}
+        self.assertEqual(n.acquired(sources),'2026-09-19T10:59:58+00:00')
+
+    def test_published_series_name_their_original_response(self):
+        out=original_result()
+        for key,row in out['native_series'].items():self.assertEqual(row['original_response'],n.RESPONSE_OF[key])
+        g=out['groups']['treasury_two_sided'];self.assertEqual({v['response'] for v in g['components'].values()},{n.RESPONSE_OF[k] for k in g['series_ids']})
+        self.assertEqual(out['version'],'4.1.0');self.assertEqual(set(out['sources']),set(n.URLS));self.assertEqual(out['source_generated_at'],AT)
 
     def test_definition_pdf_catalog_and_source_break_drift_rejected(self):
         _,defs,ref,raws,_=fixture()
@@ -143,11 +179,15 @@ class DealerResearch(unittest.TestCase):
     def test_original_request_hash_and_acquisition_clock_are_required(self):
         c,defs,ref,_,inputs=fixture();read=s.raw_reader(c,'fixture')
         with patch.dict(n.DEFINITIONS,defs,clear=True),patch.dict(n.REGISTRY,reference_release=ref):
-            bad=deepcopy(inputs);bad['sources']['observations']['url']+='?wrong=1'
+            bad=deepcopy(inputs);bad['sources']['observations_3']['url']+='?wrong=1'
             with self.assertRaises(ValueError):n.load(bad,read)
-            bad=deepcopy(inputs);bad['sources']['observations']['acquired_at']='2027-01-01T00:00:00Z'
+            bad=deepcopy(inputs);bad['sources']['observations_1']['acquired_at']='2027-01-01T00:00:00Z'
             with self.assertRaises(ValueError):n.load(bad,read)
-            key=inputs['sources']['observations']['evidence']['key'];c.objects[key]=gzip.compress(b'{}')
+            bad=deepcopy(inputs);bad['sources']['observations']=bad['sources'].pop('observations_5')
+            with self.assertRaises(ValueError):n.load(bad,read)
+            bad=deepcopy(inputs);bad['contract']='dealer-original-inputs.v1'
+            with self.assertRaises(ValueError):n.load(bad,read)
+            key=inputs['sources']['observations_2']['evidence']['key'];c.objects[key]=gzip.compress(b'{}')
             with self.assertRaises(ValueError):n.load(inputs,read)
 
     def test_expiry_is_from_original_acquisition_and_expected_release(self):
@@ -170,12 +210,13 @@ class DealerResearch(unittest.TestCase):
         c,defs,ref,_,inputs=fixture();read=s.raw_reader(c,'fixture')
         with patch.dict(n.DEFINITIONS,defs,clear=True),patch.dict(n.REGISTRY,reference_release=ref),patch.object(s,'acquire',side_effect=lambda c,b,k:inputs['sources'][k]),patch.object(s,'now',return_value=AT):
             s.run(c,'fixture');inputs['previous_output']=s.previous(read);inputs['generated_at']='2026-09-19T11:01:00Z'
-            rows=observations();rows['pd']['timeseries'][0]['value']='123'
-            inputs['sources']['observations']['evidence']=capture(c,'fixture','fr2004',n.DATA_URL,n.encoded(rows),datetime.fromisoformat(inputs['generated_at']))
-            inputs['sources']['observations']['acquired_at']=inputs['generated_at']
+            rows=observations();rows['pd']['timeseries'][0]['value']='123';first=n.RESPONSE_OF[rows['pd']['timeseries'][0]['keyid']]
+            inputs['sources'][first]['evidence']=capture(c,'fixture','fr2004',n.OBSERVATION_URLS[first],parts(rows)[first],datetime.fromisoformat(inputs['generated_at']))
+            inputs['sources'][first]['acquired_at']=inputs['generated_at']
             out=m.compile_research(inputs,read);self.assertEqual(out['revisions']['known_changed_values'],1)
+            self.assertEqual(out['source_generated_at'],AT)   # four responses are still from the first acquisition: the observations are as old as the oldest
             rows['pd']['timeseries'].pop(1)
-            inputs['sources']['observations']['evidence']=capture(c,'fixture','fr2004',n.DATA_URL,n.encoded(rows),datetime.fromisoformat(inputs['generated_at']))
+            inputs['sources'][first]['evidence']=capture(c,'fixture','fr2004',n.OBSERVATION_URLS[first],parts(rows)[first],datetime.fromisoformat(inputs['generated_at']))
             with self.assertRaisesRegex(ValueError,'dropped retained'):m.compile_research(inputs,read)
 
     def test_conditional_publication_rejects_concurrent_chain_and_old_clock(self):

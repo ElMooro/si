@@ -15,3 +15,22 @@ test('retained run requires matching bytes, current contract and generation cloc
 test('page uses a single immutable snapshot and pins the selected measurement',()=>{const html=fs.readFileSync(require.resolve('../primary-dealers.html'),'utf8'),js=fs.readFileSync(require.resolve('../jh-dealer-page.js'),'utf8');assert.match(html,/jh-dealer-research.js/);assert.ok(!html.includes('jh-page-ai'));assert.ok(!html.includes('data/history/nyfed-pd-corp.json'));assert.match(js,/Current pointer differs/);assert.match(js,/encodeURIComponent\(selected\)/);assert.match(js,/setInterval\(render,60000\)/);});
 
 test('older native observations keep their numbers with unverified historical scope',()=>{const p=packet(),r=p.native_series.PDSI2NSP;r.reviewed_catalog_period='SBN2024';r.history_scope_note='Earlier scopes have not been verified.';r.history[0][4]='SBN2022';const h=api.history(p,'series:PDSI2NSP').html;assert.match(h,/-10/);assert.match(h,/historical scope unverified/);assert.match(api.detail(p,'series:PDSI2NSP',now,false),/do not verify the historical mapping/);});
+
+test('a snapshot acquired in parts links every original response and says which one holds the series',()=>{
+  const p=packet(),r=p.native_series.PDSI2NSP;delete p.sources.observations;
+  for(let i=1;i<=5;i++)p.sources['observations_'+i]={evidence:{key:`data/evidence/fr2004/part${i}.bin.gz`}};
+  r.original_response='observations_3';
+  const html=api.detail(p,'series:PDSI2NSP',now,false);
+  for(let i=1;i<=5;i++)assert.ok(html.includes(`<a href="/data/evidence/fr2004/part${i}.bin.gz">Original observations ${i} of 5${i===3?' (this series)':''}</a>`),'part '+i);
+  assert.match(html,/Original observation row 1 of original response 3, catalog row 2/);
+  assert.ok(!html.includes('Complete original observations')&&!html.includes('Unavailable ·'));
+  p.groups.g={id:'g',label:'Group',usd_mn:0,as_of:'2026-09-09',valuation_basis:'original_issuance_par',quality:quality(),statistics:r.statistics,comparisons:{},history:[['2026-09-09',0,'SBN2024',true]],
+    components:{PDSI2NSP:{usd_mn:0,row_index:7,response:'observations_3',status:'observed'}}};
+  const g=api.detail(p,'group:g',now,false);
+  assert.match(g,/<td>7 · response 3<\/td>/);assert.match(g,/Original observations 5 of 5<\/a>/);assert.ok(!g.includes('(this series)'));
+});
+test('an older snapshot with one original response still links it as complete',()=>{
+  const p=packet(),html=api.detail(p,'series:PDSI2NSP',now,false);
+  assert.match(html,/<a href="\/data\/evidence\/fr2004\/original.bin.gz">Complete original observations<\/a>/);
+  assert.match(html,/Original observation row 1, catalog row 2/);
+});
