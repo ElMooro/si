@@ -97,6 +97,63 @@ Runs outside the schedule: `justhodl-ciss-stress` once, 15:33 UTC, desk-only (61
 * The older auxiliary packets (`data/ecb-hist/*.json`) are still written by their own engine; ciss.html no longer
   reads them unless the new document is missing.
 
+## Second round, same day (Khalid, 11:12 ET)
+
+Asked: the United States and China CISS; a history chart of every series in each Crisis-peaks set; the chart to open
+from a country's name as well as its number; more SovCISS countries if there are any; colour tags that move a country
+to the top; sorting both ways; anything else worth adding.
+
+### What the ECB has, checked before building (ops 6916)
+
+* A **daily SovCISS** exists for eleven governments (AT BE DE ES FI FR GR IE IT NL PT) and two euro-area aggregates.
+  There is no twelfth. Six more governments (CZ DK GB HU PL SE) had one in the ECB's **monthly** series, which it
+  stopped in April 2025. They are carried as ended history (`SOVM_<cc>`, group `sovciss_ended`): peaks, record and
+  chart, never a current reading, never coloured as stress.
+* The **CISS** (systemic stress, not sovereign) is daily for the euro area, ten member countries, the United States,
+  China and the United Kingdom. US, UK and euro area from January 1980; China from October 2006.
+* Quarterly budget balance, balance before interest and interest paid (GFS), four-quarter sums in percent of GDP.
+
+### What changed
+
+* **Engine** `justhodl-ciss-stress`, sovereign document **1.1.0** (`sovereign_desk.py`): 266 measures (was 176), ten
+  ECB requests beside the warehouse's (was seven), 22 named windows from the October 1987 crash (was 16 from 2001),
+  `world_ciss`, `SOVM_`, `DEF_` / `PRIM_` / `INT_`. The warehouse run and `aws/shared/ciss_*.py` are untouched.
+* **Page** `sovereign-desk.html` + `jh-sovereign-desk.js`:
+  * Desk: three tiles for the United States, China and the United Kingdom; a CISS-by-country table; a table of the six
+    ended SovCISS series; CDS and rating (from the site's world document, labelled as not ECB), budget balance and
+    interest paid beside each government; a "past week" line and an "outside the euro area" line in the opening read.
+  * A country's name opens the same chart as its number.
+  * Colour tags (six colours; the dot beside a country). A tagged country moves to the top of every table, leads the
+    columns of the crisis table and is drawn thick in its colour on the charts. Filters: all / tagged / one colour.
+    Kept in the browser under `jh.sovereign-desk.v1`; nothing is sent anywhere.
+  * Every column heading sorts, high to low first, low to high on the second click; a country with no reading in the
+    sorted column goes last either way.
+  * Crisis peaks: four sets (SovCISS by country · 10-year spreads to Germany · CISS by country · Euro area and
+    TARGET). Each same-unit set draws all its series over their whole history on one chart with the windows shaded, a
+    legend that switches lines on and off, and ranges 1Y / 5Y / 10Y / All; the mixed-unit set draws one small chart
+    per series. A cell opens that series' chart on the window with a year either side.
+
+### Proof
+
+* Dry run, ops 6913 (16:23 UTC): 266 measures, 30 countries, 58 of 58 measures equal to their warehouse rows.
+* One desk-only run of the deployed engine, ops 6914 (16:39 UTC, 90 s, disclosed as the second one-off run of the
+  day): document 1.1.0 published, replays, warehouse not touched.
+* Real browser on the live site, ops 6915 (16:57 UTC), **0 failed checks**: 14 tiles and all four tables equal the
+  document; Italy tagged red and Greece amber moved to the top of the governments table and Italy to the top of the
+  CISS table; sorting by CISS ran France-first then Netherlands-first under the two tagged rows; the tags were found
+  in the browser's storage and survived loading the page again on a phone; clicking "France" opened France SovCISS and
+  "United States" opened the US CISS since 1980; the four sets drew 18, 15 and 14 lines and 10 small charts; the cell
+  Italy / "Italy and Spain drawn in" read 0.9903 as the document does and opened Italy's chart on that window; US CISS
+  in the October 1987 window 0.7194; nothing wider than a 390 px screen; no page errors.
+* Tests: page 29, engine 41, node suite 5,153, deployment 1,233.
+
+### Taking the second round back
+
+Page: `git checkout 704fe810 -- sovereign-desk.html jh-sovereign-desk.js tests/sovereign-desk.test.js
+tests/fixtures/sovereign-desk.json.gz`. Engine, back to document 1.0.0: `git checkout 50ba4e92 --
+aws/lambdas/justhodl-ciss-stress`, then one desk-only run (ops 6914 with its version check set back to 1.0.0). Take
+the page back first: the second-round page needs document 1.1.0.
+
 ## Taking it back
 
 Button: see `docs/snapshots/chart-search-2026-11-10/README.md` (section 2026-11-22). Page: `git rm sovereign-desk.html
