@@ -109,6 +109,8 @@ def selftest():
     assert fmt("index", -0.00001) == "0.0000" and fmt("pct", None) == "—"
     assert fmt("index", 0.04225) == "0.0423" and fmt("bp", 16.75) == "16.8 bp" and fmt("eur_bn", 1307.451) == "€1,307.5 bn" and fmt("pct", 4.0) == "4.00%"
     assert script_of(b'<script src="/jh-sovereign-desk.js?v=abc123"></script>', "jh-sovereign-desk.js") == "/jh-sovereign-desk.js?v=abc123"
+    assert script_of(b'<script src="/assets/jh-workspaces.js?v=9f"></script>', "assets/jh-workspaces.js") == "/assets/jh-workspaces.js?v=9f"      # a script in a folder is named with its folder
+    assert script_of(b'<script src="/assets/jh-workspaces.js"></script>', "assets/jh-workspaces.js") == "/assets/jh-workspaces.js"
     now = datetime(2026, 11, 22, 15, tzinfo=timezone.utc)
     base = {"quality": {"status": "missing"}, "observation_period_end": "2026-11-20", "latest_date": "2026-11-20", "last_observed_value": 0.008, "last_observed_date": "2026-11-19"}
     assert lifecycle(base, now) == "blank"
@@ -144,7 +146,7 @@ def main():
                           "rail": b'sov: ["Sovereign stress' in fetch("/jh-chart-tvrail.js?probe=%d" % (stamp + attempt)),
                           "desk_page": b'data-view="dollar"' in desk_html,                             # the page of the fourth round: the Dollar shortage tab
                           "desk_script": b"function renderDollar(" in fetch(script_of(desk_html, "jh-sovereign-desk.js")),
-                          "dollar_desk": b"flows:ecb-dollar/AUX_EURUSD" in fetch(script_of(fetch("/dollar-indexes.html?nocache=%d" % stamp), "jh-workspaces.js")),
+                          "dollar_desk": b"flows:ecb-dollar/AUX_EURUSD" in fetch(script_of(fetch("/dollar-indexes.html?nocache=%d" % (stamp + attempt)), "assets/jh-workspaces.js")),    # the desks' bundle lives under /assets
                           "ciss_page": b'id="ciss-exact"' in ciss_html,
                           "ciss_script": b"verifiedMeasure" in fetch(script_of(ciss_html, "jh-ciss-research.js")),
                           "fiscal_page": b"yoyB(" in fetch("/sovereign.html?probe=%d" % (stamp + attempt))}
