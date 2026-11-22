@@ -549,7 +549,8 @@ class MacroData {
      of that document whose percentage change means something: swap lines, repos with foreign central banks, Treasuries in custody,
      the foreign repo pool and the TED spread.  The signed ones (the 13-week change in custody, SOFR against the rate on reserves,
      foreign banks net position with their offices abroad) are on the Sovereign desk tab only; DXY and the dollar indexes are
-     already on this desk as native FRED cards. ── */
+     already on this desk as native FRED cards.  The three ECB measures come first and carry the ECB titles Khalid added them
+     under (18:05 ET: they had been renamed and moved, and read to him as deleted). ── */
   static DOLLAR_CATALOG = [
     { cat: "DXY · rebuilt from FRED, and its six currencies", flag: "💵", items: [
       ["calc:dxy","DXY · U.S. Dollar Index, rebuilt from FRED's six exchange rates","index"], ["DEXUSEU","Euro · 57.6% of the DXY","USD per EUR"],
@@ -558,14 +559,14 @@ class MacroData {
       ["DEXSZUS","Swiss franc · 3.6% of the DXY","CHF per USD"]
     ]},
     { cat: "Dollar shortage · central-bank lending, official dollars and the euro side", flag: "💶", items: [
+      ["flows:ecb-dollar/AUX_EURUSD","EUR/USD reference rate · ECB, daily","USD per EUR"],
+      ["flows:ecb-dollar/AUX_FX_EA","Claims on euro-area residents in foreign currency · Eurosystem, weekly","EUR bn"],
+      ["flows:ecb-dollar/AUX_FX_NONEA","Claims on non-euro-area residents in foreign currency · Eurosystem, weekly","EUR bn"],
       ["flows:ecb-dollar/FED_SWAPS","Fed swap lines drawn by foreign central banks · weekly","USD bn"],
       ["flows:ecb-dollar/FED_FIMA","Fed repos with foreign central banks (FIMA) · weekly","USD bn"],
-      ["flows:ecb-dollar/AUX_FX_EA","Eurosystem foreign-currency lending to euro-area banks · weekly","EUR bn"],
-      ["flows:ecb-dollar/AUX_EURUSD","EUR/USD · ECB reference rate, daily","USD per EUR"],
       ["flows:ecb-dollar/FED_CUSTODY_UST","Treasuries in custody at the Fed for foreign central banks · weekly","USD bn"],
       ["flows:ecb-dollar/FED_FOREIGN_RRP","Foreign repo pool at the Fed · weekly","USD bn"],
-      ["flows:ecb-dollar/USD_TED","TED spread · daily, ended January 2022","bp"],
-      ["flows:ecb-dollar/AUX_FX_NONEA","Eurosystem foreign reserves other than gold · weekly","EUR bn"]
+      ["flows:ecb-dollar/USD_TED","TED spread · daily, ended January 2022","bp"]
     ]},
     { cat: "Fed dollar indexes · daily", flag: "🏦", items: [
       ["DTWEXBGS","Broad dollar index · nominal, daily","index"], ["DTWEXAFEGS","Dollar vs advanced foreign economies · nominal, daily","index"],

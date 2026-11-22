@@ -19,7 +19,7 @@ h1{font-size:20px;margin:0;letter-spacing:.5px}
 .gbtn small{opacity:.7;font-size:10px;margin-left:3px}
 .dcharts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:12px}
 .dchart{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
-.dchart .mt{font-size:13px;color:var(--dim)}.dchart .mt b{color:var(--tx);font-size:16px;margin-left:6px;float:none}
+.dchart .mt{font-size:13px;color:var(--dim)}.dchart .mt b{color:var(--tx);font-size:16px;margin-left:6px;float:none}.dchart .mt small{display:block;font-size:11px;color:var(--dim)}
 .dchart .mt[data-id]{cursor:pointer}.dchart .mt[data-id]:hover,.dchart .mt[data-id]:focus-visible{color:var(--tx);outline:none}
 .dcv{display:block;width:100%;height:220px}
 .dpart{margin:0 0 14px}.dph{font-size:13px;font-weight:600;margin:10px 0 6px}.dph small{display:block;font-size:11px;font-weight:400;color:var(--dim)}
@@ -109,7 +109,7 @@ th .hd{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:
 </div>
 <div id="sov-main"></div>
 <div class="foot">Measurements, not signals: a SovCISS, a spread or a balance says where a government's bond market stands against its own past; none of it is a forecast, a probability of default or a position size.
-SovCISS, CISS and CLIFS are the ECB's composite stress indicators (0 to 1); the ECB computes a CISS for the United States, China and the United Kingdom as well, and a SovCISS for eleven euro-area governments only. Spreads to Germany use the ECB's monthly 10-year convergence yields; the daily curve spread is all euro-area central governments minus the AAA-rated ones. CDS and ratings come from the site's world document and are not ECB data. The World tab's charts draw the histories the site holds for each country: monthly 10-year yields from the ECB or the OECD, 5-year CDS measured from DTCC public prints, and the table's own figures kept day by day; a country without one is named, not estimated. The Dollar shortage tab reads the Federal Reserve's and the ECB's dated measurements of a dollar shortage together: dollars lent by central banks (the Fed's swap lines and repos with foreign central banks, the Eurosystem's foreign-currency lending to its banks), the price of the dollar (DXY rebuilt from the Fed's H.10 rates, the Fed's dollar indexes, the ECB's euro reference rate), what foreign central banks keep at the Fed, and banks' dollar funding. The ECB's three are read from the ECB responses kept as they arrived; the Federal Reserve's from the site's own warehouse. A cross-currency basis is not shown: no free official source publishes one. Colour tags and sorting are kept in this browser.
+SovCISS, CISS and CLIFS are the ECB's composite stress indicators (0 to 1); the ECB computes a CISS for the United States, China and the United Kingdom as well, and a SovCISS for eleven euro-area governments only. Spreads to Germany use the ECB's monthly 10-year convergence yields; the daily curve spread is all euro-area central governments minus the AAA-rated ones. CDS and ratings come from the site's world document and are not ECB data. The World tab's charts draw the histories the site holds for each country: monthly 10-year yields from the ECB or the OECD, 5-year CDS measured from DTCC public prints, and the table's own figures kept day by day; a country without one is named, not estimated. The Dollar shortage tab opens with three ECB measurements under the ECB's own titles (the EUR/USD reference rate, claims on euro-area residents in foreign currency, claims on non-euro-area residents in foreign currency) and reads the Federal Reserve's dated measurements of a dollar shortage beside them: dollars lent by central banks (the Fed's swap lines and repos with foreign central banks, the Eurosystem's foreign-currency lending to its banks), the price of the dollar (DXY rebuilt from the Fed's H.10 rates, the Fed's dollar indexes, the ECB's euro reference rate), what foreign central banks keep at the Fed, and banks' dollar funding. The ECB's three are read from the ECB responses kept as they arrived; the Federal Reserve's from the site's own warehouse. A cross-currency basis is not shown: no free official source publishes one. Colour tags and sorting are kept in this browser.
 Engine justhodl-ciss-stress, daily 07:10 UTC, from ECB responses kept as they arrived. Related: <a href="/ciss.html" target="_blank" rel="noopener">CISS register</a> ·
 <a href="/euro-fragmentation.html" target="_blank" rel="noopener">euro fragmentation</a> · <a href="/cds.html" target="_blank" rel="noopener">CDS</a> · <a href="/bonds.html" target="_blank" rel="noopener">bonds</a>.</div>
 </div>
@@ -121,6 +121,6 @@ Engine justhodl-ciss-stress, daily 07:10 UTC, from ECB responses kept as they ar
   <div id="sov-cs"></div>
 </div></div>
 <div id="sov-pal" role="menu" aria-label="Tag colour"></div>
-<script src="/jh-sovereign-desk.js?v=20261122e"></script>
+<script src="/jh-sovereign-desk.js?v=20261122f"></script>
 <script src="/sidebar.js" defer></script>
 </body></html>

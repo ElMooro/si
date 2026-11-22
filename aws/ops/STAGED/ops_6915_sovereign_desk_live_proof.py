@@ -12,9 +12,11 @@ A real browser on justhodl.ai, judged against the documents the pages read:
   5. World and Sources: rows as the documents say; the World tab's chart draws every country of each of its four sets,
      "Only tagged" keeps to the tagged countries as they are tagged, a cell opens that country's history; a retained
      ECB response is fetched and its SHA-256 recomputed;
-  5c. the Dollar shortage tab: every measure of the document (the ECB's three and the Federal Reserve's twelve) in one
-     table, in its parts, equal to the document; each chart draws every observation; the windows table holds each
-     measure a shortage shows in; a cell, a row and a chart's name each open that measure's own chart;
+  5c. the Dollar shortage tab: the three ECB measures first, under the ECB's own titles, as tiles and as charts (Khalid
+     18:05 ET: "why did you deleted ... add them back"); then every measure of the document in one table, equal to the
+     document; each chart draws every observation; the windows table holds the low and high of each of the three and
+     each Federal Reserve line a shortage shows in; a tile, a cell, a row and a chart's name each open that measure's
+     own chart;
   6. the desk alone at 390 px: nothing wider than the screen; a deep link opens a chart; tags survive a reload;
   7. ciss.html: a readable headline with the exact value beside it, the reconciliation in words, current / blank /
      ended counts as the warehouse says, auxiliaries with their originals - and one checked in the browser;
@@ -40,7 +42,8 @@ UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chr
 UNITS = {"index": (4, "", ""), "pct": (2, "", "%"), "bp": (1, "", " bp"), "eur_bn": (1, "€", " bn"), "pct_gdp": (1, "", "%"), "usd": (4, "$", ""), "usd_bn": (1, "$", " bn"), "idx": (2, "", "")}
 SMALL = {"usd_bn": 3}           # an amount under ten is read to the million, unless it stands on a wide axis
 ECB3 = ["AUX_EURUSD", "AUX_FX_EA", "AUX_FX_NONEA"]
-DESK_FAMILY = ["FED_SWAPS", "FED_FIMA", "AUX_FX_EA", "AUX_EURUSD", "FED_CUSTODY_UST", "FED_FOREIGN_RRP", "USD_TED", "AUX_FX_NONEA"]      # the Dollar desk's "Dollar shortage" cards
+DESK_FAMILY = ["AUX_EURUSD", "AUX_FX_EA", "AUX_FX_NONEA", "FED_SWAPS", "FED_FIMA", "FED_CUSTODY_UST", "FED_FOREIGN_RRP", "USD_TED"]      # the Dollar desk's "Dollar shortage" cards, the three ECB measures first
+ECB_TITLES = ["EUR/USD reference rate", "Claims on euro-area residents in foreign currency", "Claims on non-euro-area residents in foreign currency"]
 CHART = r"""() => { const b = (id) => document.getElementById(id), ov = b('ws-overlay'), f = ov ? ov.querySelector('iframe') : null, btn = b('btn-sov'), prev = btn ? btn.previousElementSibling : null,
   next = btn ? btn.nextElementSibling : null, box = btn ? btn.getBoundingClientRect() : null, repo = b('btn-repo');
   return { btn: !!btn, prev: prev ? prev.id : null, next: next ? next.id : null, label: btn ? btn.textContent.trim() : null, title: btn ? btn.title : null,
@@ -163,8 +166,8 @@ def main():
                 served = {"engine": b"id=btn-sov" in fetch("/jh-chart-engine.js?probe=%d" % (stamp + attempt)),
                           "rail": b'sov: ["Sovereign stress' in fetch("/jh-chart-tvrail.js?probe=%d" % (stamp + attempt)),
                           "desk_page": b'data-view="dollar"' in desk_html,                             # the page of the fourth round: the Dollar shortage tab
-                          "desk_script": b"id=sov-dboard" in fetch(script_of(desk_html, "jh-sovereign-desk.js")),       # the script of the fifth round: every dollar measure in one table
-                          "dollar_desk": b"flows:ecb-dollar/FED_SWAPS" in fetch(script_of(fetch("/dollar-indexes.html?nocache=%d" % (stamp + attempt)), "assets/jh-workspaces.js")),    # the desks' bundle lives under /assets
+                          "desk_script": all(mark in fetch(script_of(desk_html, "jh-sovereign-desk.js")) for mark in (b"id=sov-dboard", b"id=sov-dtiles", b"DOLLAR_GLOSS")),       # the three ECB measures lead the tab again, above the table of every measure
+                          "dollar_desk": "Claims on non-euro-area residents in foreign currency · Eurosystem, weekly".encode() in fetch(script_of(fetch("/dollar-indexes.html?nocache=%d" % (stamp + attempt)), "assets/jh-workspaces.js")),    # the desks' bundle lives under /assets
                           "ciss_page": b'id="ciss-exact"' in ciss_html,
                           "ciss_script": b"verifiedMeasure" in fetch(script_of(ciss_html, "jh-ciss-research.js")),
                           "fiscal_page": b"yoyB(" in fetch("/sovereign.html?probe=%d" % (stamp + attempt))}
@@ -536,13 +539,20 @@ def main():
             r.section("5c. The Dollar shortage tab")
             fr.click("#sov-tabs .tab[data-view='dollar']")
             fr.wait_for_selector("canvas[data-dchart]", timeout=60000)
-            fr.wait_for_function("() => document.querySelectorAll('canvas[data-dchart]').length >= 15 && Array.from(document.querySelectorAll('canvas[data-dchart]')).every(c => +c.getAttribute('data-points') > 100) && !!document.querySelector('#sov-dsrc a[href*=\"ciss-dollar-shortage\"]')", timeout=60000)
-            DM, DSER, order = ds["measures"], ds["series"], ds["order"]
+            fr.wait_for_function("() => document.querySelectorAll('canvas[data-dchart]').length >= 15 && document.querySelectorAll('#sov-dtiles .tile').length === 3 && Array.from(document.querySelectorAll('canvas[data-dchart]')).every(c => +c.getAttribute('data-points') > 100) && !!document.querySelector('#sov-dsrc a[href*=\"ciss-dollar-shortage\"]')", timeout=60000)
+            DM, DSER = ds["measures"], ds["series"]
+            order = ECB3 + [i for i in ds["order"] if i not in ECB3]                                 # the page's order: the three ECB measures, then the Federal Reserve's as the document lists them
+            want_parts = [["ecb", 3]] + [[part["id"], len([i for i in part["ids"] if i not in ECB3])] for part in ds["parts"] if any(i not in ECB3 for i in part["ids"])]
+            dname = lambda m: m["label"] if m["id"] in ECB3 else m["short"]
             dv = lambda m, v=None, strip=False: fmt(dunit(m), m["value"] if v is None else v).replace(" bn" if strip else "\0", "").replace(" bp" if strip else "\0", "")
             dollar_state = lambda: fr.evaluate("""() => { const q = (s) => Array.from(document.querySelectorAll(s)), txt = (n) => n ? n.innerText.replace(/\\s+/g, ' ').trim() : '';
               const t = document.querySelector('table.dwin'), row = (tr) => tr ? Array.from(tr.children).map(txt) : [];
               const lit = (c) => { if (!c.width) return 0; const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i] > 200 && d[i + 1] > 150 && d[i + 2] < 90) n++; return n; };
+              const top = (sel) => { const e = document.querySelector(sel); return e ? Math.round(e.getBoundingClientRect().top + window.scrollY) : -1; };
               return { tab: txt(document.querySelector('#sov-tabs .tab.on')), read: q('#sov-dread p').map(txt),
+                tiles: q('#sov-dtiles .tile').map(x => [x.getAttribute('data-id'), txt(x.querySelector('.tl')), txt(x.querySelector('.tv'))]),
+                titles: q('.dchart .mt').map(e => [e.getAttribute('data-id'), txt(e)]),
+                tops: [top('#sov-dtiles'), top(".dpart[data-part='ecb']"), top('#sov-dboard'), top(".dpart[data-part='backstop']"), top('#sov-dwin')],
                 board: q('#sov-dboard tr.drow').map(tr => [tr.getAttribute('data-id')].concat(row(tr))), groups: q('#sov-dboard tr.grp').map(tr => tr.getAttribute('data-part')),
                 bars: Object.fromEntries(q('#sov-dboard tr.drow').map(tr => { const i = tr.querySelector('.pb i'); return [tr.getAttribute('data-id'), i ? i.className : null]; })),
                 parts: q('.dpart').map(d => [d.getAttribute('data-part'), d.querySelectorAll('canvas[data-dchart]').length]),
@@ -554,33 +564,43 @@ def main():
             k = dollar_state()
             for line in k["read"]:
                 r.log("  read: %s" % line)
+            r.log("the three ECB measures, tiles: %s" % " | ".join("%s = %s" % (x[1], x[2]) for x in k["tiles"]))
+            r.log("the three ECB measures, charts: %s | from the top of the page: tiles %d px, their charts %d px, the table %d px, the Federal Reserve's charts %d px, the windows table %d px" % (
+                " | ".join(x[1][:70] for x in k["titles"][:3]), k["tops"][0], k["tops"][1], k["tops"][2], k["tops"][3], k["tops"][4]))
             for row in k["board"]:
                 r.log("  %-16s %s" % (row[0], " | ".join(row[1:])))
             r.log("charts by part %s: %s" % (k["parts"], " | ".join("%s %d points, %d line pixels" % (x[0], x[1], x[2]) for x in k["charts"])))
-            ck(k["tab"] == "Dollar shortage" and [row[0] for row in k["board"]] == order and k["groups"] == [part["id"] for part in ds["parts"]], "the table of every measure: %s" % [row[0] for row in k["board"]])
-            ck(all(row[1].startswith(DM[row[0]]["short"]) and row[2] == dv(DM[row[0]]) for row in k["board"]), "a row of the table does not show its measure's name and value: %s" % [(row[0], row[1][:30], row[2]) for row in k["board"] if row[2] != dv(DM[row[0]])][:3])
-            ck(k["parts"] == [[part["id"], len(part["ids"])] for part in ds["parts"]] and [(x[0], x[1]) for x in k["charts"]] == [(i, len(DSER[i]["d"])) for i in order] and all(x[2] > 1500 for x in k["charts"]),
+            # the three Khalid added are there by the names he added them under, first on the tab: tiles, then charts, before anything of the Federal Reserve's
+            ck([x[0] for x in k["tiles"]] == ECB3 and [x[1] for x in k["tiles"]] == ECB_TITLES == [DM[i]["label"] for i in ECB3] and all(fmt(DM[i]["unit"], DM[i]["value"]) in v for i, _, v in k["tiles"]),
+               "the three ECB tiles: %s" % k["tiles"])
+            ck([x[0] for x in k["titles"][:3]] == ECB3 and all(x[1].startswith(t + " ") for x, t in zip(k["titles"][:3], ECB_TITLES)) and [(x[0], x[1]) for x in k["charts"][:3]] == [(i, len(DSER[i]["d"])) for i in ECB3]
+               and all(x[2] > 1500 for x in k["charts"][:3]), "the three ECB charts are not the first three charts under the ECB's titles: %s" % k["titles"][:3])
+            ck(0 < k["tops"][0] < k["tops"][1] < k["tops"][2] < k["tops"][3] < k["tops"][4], "the three ECB measures should come before the table and the Federal Reserve's charts: %s" % k["tops"])
+            ck(k["tab"] == "Dollar shortage" and [row[0] for row in k["board"]] == order and k["groups"] == [x[0] for x in want_parts], "the table of every measure: %s" % [row[0] for row in k["board"]])
+            ck(all(row[1].startswith(dname(DM[row[0]])) and row[2] == dv(DM[row[0]]) for row in k["board"]), "a row of the table does not show its measure's name and value: %s" % [(row[0], row[1][:30], row[2]) for row in k["board"] if row[2] != dv(DM[row[0]])][:3])
+            ck(k["parts"] == want_parts and [(x[0], x[1]) for x in k["charts"]] == [(i, len(DSER[i]["d"])) for i in order] and all(x[2] > 1500 for x in k["charts"]),
                "each chart should draw every observation of its series: %s" % k["charts"])
             swaps, lend, eur, dxy, res, c13 = DM["FED_SWAPS"], DM["AUX_FX_EA"], DM["AUX_EURUSD"], DM["USD_DXY"], DM["AUX_FX_NONEA"], DM["FED_CUSTODY_13W"]
-            ck(len(k["read"]) == 6 and fmt("usd_bn", swaps["value"]) in k["read"][0] and fmt("usd_bn", swaps["high"][0]) in k["read"][0] and fmt("eur_bn", lend["value"]) in k["read"][0] and fmt("eur_bn", lend["high"][0]) in k["read"][0]
-               and fmt("idx", dxy["value"]) in k["read"][1] and fmt("index", eur["value"]) in k["read"][1] and fmt("usd_bn", DM["FED_CUSTODY_UST"]["value"]) in k["read"][2] and fmt("usd_bn", c13["low"][0]) in k["read"][2]
-               and fmt("bp", DM["USD_SOFR_IOR"]["high"][0]) in k["read"][3] and fmt("usd_bn", DM["H8_NET_DUE"]["low"][0]) in k["read"][3] and fmt("eur_bn", res["value"]) in k["read"][4] and k["read"][5].startswith("Not here: a cross-currency basis"),
+            ck(len(k["read"]) == 8 and k["read"][0].startswith("The EUR/USD reference rate is " + fmt("index", eur["value"])) and k["read"][1].startswith("Claims on euro-area residents in foreign currency") and fmt("eur_bn", lend["value"]) in k["read"][1]
+               and fmt("eur_bn", lend["high"][0]) in k["read"][1] and k["read"][2].startswith("Claims on non-euro-area residents in foreign currency are " + fmt("eur_bn", res["value"]))
+               and fmt("usd_bn", swaps["value"]) in k["read"][3] and fmt("usd_bn", swaps["high"][0]) in k["read"][3] and fmt("idx", dxy["value"]) in k["read"][4] and fmt("usd_bn", DM["FED_CUSTODY_UST"]["value"]) in k["read"][5]
+               and fmt("usd_bn", c13["low"][0]) in k["read"][5] and fmt("bp", DM["USD_SOFR_IOR"]["high"][0]) in k["read"][6] and fmt("usd_bn", DM["H8_NET_DUE"]["low"][0]) in k["read"][6] and k["read"][7].startswith("Not here: a cross-currency basis"),
                "the opening lines of the Dollar shortage tab")
-            # the reserves item has one name on this tab, and the way each line is placed is said in words
             place = {row[0]: row[8] for row in k["board"]}
             r.log("placed: %s | bars %s" % (json.dumps(place, ensure_ascii=False)[:700], json.dumps(k["bars"])))
-            ck("Eurosystem foreign reserves other than gold" in k["all"] and "Foreign-currency claims abroad" not in k["all"] and "claims abroad" not in k["all"].lower().replace("loans abroad", ""), "the reserves item is not under one name")
+            ck(all(k["all"].count(t) >= 3 for t in ECB_TITLES) and "Foreign-currency claims abroad" not in k["all"], "each of the three should be named as the ECB names it in its tile, its chart and its row: %s" % [k["all"].count(t) for t in ECB_TITLES])
             ck(all(place[i].endswith("% of its record") for i in ("FED_SWAPS", "FED_FIMA", "AUX_FX_EA")) and place["USD_DXY"] == "higher than %d%% of its readings" % int(dxy["pctile"]) and place["AUX_EURUSD"] == "lower than %d%% of its readings" % int(100 - eur["pctile"])
                and place["USD_TED"] == "ended at its source" and k["bars"]["FED_SWAPS"] is not None and all(k["bars"][i] is None for i in order if dside(DM[i]) is None or DM[i]["status"] == "ended"),
                "how far each line stands toward a shortage: %s" % json.dumps(place, ensure_ascii=False)[:400])
-            cols = [(DM[i], dside(DM[i])) for i in order if dside(DM[i])]
-            eps = [e["id"] for e in ds["episodes"] if any(e["id"] in m["peaks"] for m, _ in cols)]
+            cols = [(DM[i], end, end == dside(DM[i])) for i in order for end in (("lo", "hi") if i in ECB3 else ((dside(DM[i]),) if dside(DM[i]) else ()))]
+            inside = [i for i in order if i in ECB3 or dside(DM[i])]
+            eps = [e["id"] for e in ds["episodes"] if any(e["id"] in m["peaks"] for m, _, _ in cols)]
             g = k["rows"].get("gfc2008") or []
-            want_g = [dv(m, m["peaks"]["gfc2008"][end][0], True) if "gfc2008" in m["peaks"] else "—" for m, end in cols]
+            want_g = [dv(m, m["peaks"]["gfc2008"][end][0], True) if "gfc2008" in m["peaks"] else "—" for m, end, _ in cols]
             r.log("windows: %d rows, %d columns under %s | Lehman row %s | now %s | record %s" % (len(k["rows"]), len(k["heads"]), k["groupheads"], g[1:], k["now"][1:], k["record"][1:]))
-            ck(list(k["rows"]) == eps and g[1:] == want_g and len(k["heads"]) == len(cols) == len(k["marked"]) == 11, "the windows table: %s against %s" % (g[1:], want_g))
-            ck(k["record"][1:] == [dv(m, (m["high"] if end == "hi" else m["low"])[0], True) for m, end in cols] and all(k["now"][1 + n].startswith(dv(m, None, True)) for n, (m, end) in enumerate(cols)) and not k["bad"] and k["ox"] <= 1,
-               "record / now rows, broken text %s, overflow %s" % (k["bad"][:3], k["ox"]))
+            ck(list(k["rows"]) == eps and g[1:] == want_g and len(k["heads"]) == len(cols) == 15 and len(k["marked"]) == sum(1 for c in cols if c[2]) == 11, "the windows table: %s against %s" % (g[1:], want_g))
+            ck(k["record"][1:] == [dv(m, (m["high"] if end == "hi" else m["low"])[0], True) for m, end, _ in cols] and len(k["now"]) == 1 + len(inside) and all(k["now"][1 + n].startswith(dv(DM[i], None, True)) for n, i in enumerate(inside))
+               and not k["bad"] and k["ox"] <= 1, "record / now rows, broken text %s, overflow %s" % (k["bad"][:3], k["ox"]))
             ck(all(DM[i]["key"] in k["src"] for i in order) and "The document" in k["src"] and k["fred"] == sum(len(DM[i]["series"]) for i in order if DM[i].get("source") == "fred"), "each number's source is not named: %d FRED links | %s" % (k["fred"], k["src"][:200]))
             fr.click("#sov-drg [data-dyears='5']")
             fr.wait_for_timeout(600)
@@ -602,6 +622,12 @@ def main():
             r.log("the swap lines' high in the COVID window opens: %s | ranges %s | %d line pixels | links %s" % (cc["title"], rg, cc["amber"], links))
             ck(cc["on"] and cc["title"] == swaps["label"] and any("COVID" in x and x.endswith("*") for x in rg) and cc["amber"] > 300 and "https://fred.stlouisfed.org/series/SWPT" in links and not any("ecb.europa.eu" in x for x in links),
                "a Dollar shortage cell did not open the Federal Reserve measure's chart around the window")
+            fr.press("body", "Escape")
+            fr.click("#sov-dtiles .tile[data-id='AUX_FX_NONEA']")
+            fr.wait_for_timeout(1000)
+            cc = fr.evaluate(CANVAS)
+            r.log("the tile of the non-euro-area claims opens: %s | %s | %d line pixels" % (cc["title"], cc["stat"][:110], cc["amber"]))
+            ck(cc["on"] and cc["title"] == ECB_TITLES[2] and cc["amber"] > 1000, "the tile of the claims on non-euro-area residents did not open its chart")
             fr.press("body", "Escape")
             fr.click("#sov-dboard tr.drow[data-id='USD_TED'] td.nm")
             fr.wait_for_timeout(1000)
@@ -789,7 +815,8 @@ def main():
                 shown = float(str(row["v"]).replace(",", ""))
                 ck(row["state"] == "ready" and abs(shown - ds["measures"][mid]["value"]) <= (0.051 if abs(shown) >= 1000 else 0.0051) and row["asof"] == ds["measures"][mid]["date"] and all(agree.values()) and row["line"] >= 1 and not row["bad"],
                    "the %s card: state %s, value %s, changes %s against %s" % (mid, row["state"], row["v"], row["ch"], want))
-            page.click("#macro-body .macro-item[data-symbol='%s'] .mi-title" % ids[0])
+            ck(all(by.get("flows:ecb-dollar/" + i) and by["flows:ecb-dollar/" + i]["title"].startswith(t) for i, t in zip(ECB3, ECB_TITLES)), "the three ECB cards are not under the ECB's titles: %s" % [(by.get("flows:ecb-dollar/" + i) or {}).get("title") for i in ECB3])
+            page.click("#macro-body .macro-item[data-symbol='flows:ecb-dollar/FED_SWAPS'] .mi-title")
             page.wait_for_selector("#macro-focus-chart", state="visible", timeout=30000)
             page.wait_for_timeout(700)
             f35 = page.evaluate(P35.FOCUS)

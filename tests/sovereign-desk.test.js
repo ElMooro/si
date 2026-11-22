@@ -452,6 +452,8 @@ test('the page draws the World chart with the same controls as Crisis peaks and 
 });
 
 // ---- the fourth and fifth rounds, 2026-11-22: a Dollar shortage tab - the ECB's three, then the Federal Reserve's lines beside them ----
+// (18:05 ET, Khalid: "why did you deleted: Claims on non-euro-area residents in foreign currency, Claims on euro-area residents in foreign
+// currency, EUR/USD reference rate charts? add them back" - they had been renamed and moved; they lead the tab again under the ECB's titles)
 // FX.dollar is the document the engine (dollar_shortage 1.1.0) compiled in its dry run (ops 6925), daily series cut to
 // their last 400 readings and most weekly ones to 60 (series_n keeps the true counts); FX.dollar_old is the 1.0.0 document.
 const DS = FX.dollar, DO = FX.dollar_old, DM = DS.measures;
@@ -475,9 +477,9 @@ test('the dollar-shortage document keeps the desk\'s three ECB measurements figu
   const ea = DS.series.AUX_FX_EA;
   assert.equal(Math.max(...ea.v), 248.854);
   assert.equal(ea.d[ea.v.indexOf(248.854)], '2008-12-05');
-  // the reserves item is named as what it is, once
+  // the three keep the ECB's titles; what the reserves item is stands beside its title, not in place of it
+  assert.deepEqual(ECB3.map(id => DM[id].label), ['EUR/USD reference rate', 'Claims on euro-area residents in foreign currency', 'Claims on non-euro-area residents in foreign currency']);
   assert.equal(DM.AUX_FX_NONEA.short, 'Eurosystem foreign reserves other than gold');
-  assert.equal(DM.AUX_FX_NONEA.label, 'Claims on non-euro-area residents in foreign currency');
   assert.ok(/IMF/.test(DM.AUX_FX_NONEA.what) && /does not measure dollars lent/.test(DM.AUX_FX_NONEA.what) && DM.AUX_FX_NONEA.worse === null && DM.AUX_FX_NONEA.part === 'reserves');
 });
 
@@ -532,13 +534,20 @@ test('amounts are written to the precision they are read at', () => {
 
 test('the Dollar shortage tab reads the document in its parts, the old document as three, and the desk\'s own until either arrives', () => {
   const full = desk.dollarData(DS, D, { series: {} });
-  assert.deepEqual([full.full, full.named, full.ids, full.episodes.length, full.errors], [true, true, DS.order, 22, {}]);
-  assert.deepEqual(full.parts.map(p => [p.id, p.ids.length]), [['backstop', 3], ['price', 5], ['official', 3], ['funding', 3], ['reserves', 1]]);
+  const PAGE = ECB3.concat(DS.order.filter(id => !ECB3.includes(id)));                         // the three first, then the Federal Reserve's in the document's order
+  assert.deepEqual([full.full, full.named, full.ids, full.episodes.length, full.errors], [true, true, PAGE, 22, {}]);
+  assert.deepEqual(full.parts.map(p => [p.id, p.ids]), [['ecb', ECB3], ['backstop', ['FED_SWAPS', 'FED_FIMA']], ['price', ['USD_DXY', 'USD_BROAD', 'USD_AFE', 'USD_EME']],
+    ['official', ['FED_CUSTODY_13W', 'FED_CUSTODY_UST', 'FED_FOREIGN_RRP']], ['funding', ['USD_SOFR_IOR', 'USD_TED', 'H8_NET_DUE']]]);       // no part is left holding only what moved up
+  assert.equal(full.parts[0].name, 'The three ECB measures');
+  assert.ok(full.parts[1].note.endsWith('Claims on euro-area residents in foreign currency is among the three ECB measures above.'), full.parts[1].note);
+  assert.ok(full.parts[2].note.endsWith('EUR/USD reference rate is among the three ECB measures above.'), full.parts[2].note);
+  assert.ok(!/among the three/.test(full.parts[3].note));
+  assert.equal(full.measures.AUX_FX_EA.part, 'backstop');                                     // the document's own field is untouched: lending is still placed by its share of its record
   assert.equal(full.measures.FED_SWAPS, DM.FED_SWAPS);
   assert.equal(full.series.AUX_EURUSD, DS.series.AUX_EURUSD);
   // the document from before it named its parts: the three, under the names the page now uses
   const old = desk.dollarData(DO, D, null);
-  assert.deepEqual([DO.version, old.full, old.named, old.ids, old.parts.length, old.parts[0].id], ['1.0.0', true, false, ECB3, 1, 'ecb']);
+  assert.deepEqual([DO.version, old.full, old.named, old.ids, old.parts.length, old.parts[0].id, old.parts[0].name], ['1.0.0', true, false, ECB3, 1, 'ecb', 'The three ECB measures']);
   assert.deepEqual(ECB3.map(id => [old.measures[id].short, old.measures[id].worse]), [['EUR/USD', 'lower'], ['Eurosystem foreign-currency lending to euro-area banks', 'higher'], ['Eurosystem foreign reserves other than gold', null]]);
   assert.equal(DO.measures.AUX_FX_NONEA.short, 'Foreign-currency claims abroad');             // the fixture is untouched by that
   for (const missing of [null, { loading: true }, { error: 'HTTP 404' }, { contract: 'something-else', measures: {}, series: {} }]) {
@@ -552,7 +561,7 @@ test('the Dollar shortage tab reads the document in its parts, the old document 
   assert.deepEqual(desk.dollarData(null, null, null).ids, []);
   // a part whose measures are all missing is not shown; a missing measure costs only itself
   const thin = desk.dollarData({ ...DS, measures: { AUX_FX_EA: DM.AUX_FX_EA, USD_DXY: DM.USD_DXY } }, D, null);
-  assert.deepEqual(thin.parts.map(p => [p.id, p.ids]), [['backstop', ['AUX_FX_EA']], ['price', ['USD_DXY']]]);
+  assert.deepEqual(thin.parts.map(p => [p.id, p.ids]), [['ecb', ['AUX_FX_EA']], ['price', ['USD_DXY']]]);
 });
 
 test('each measure says which way a shortage moves it, and how far it stands that way', () => {
@@ -560,6 +569,10 @@ test('each measure says which way a shortage moves it, and how far it stands tha
   assert.equal(desk.dollarSide(null), null);
   assert.equal(desk.dollarName(DM.USD_DXY), 'DXY, rebuilt from the Fed\'s H.10 rates');
   assert.equal(desk.dollarName({ label: 'A label' }), 'A label');
+  // the three are called what the ECB calls them, on either document and on the desk's own; a few words beside say what each is
+  for (const src of [DM, DO.measures, M]) assert.deepEqual(ECB3.map(id => desk.dollarName(src[id])), ['EUR/USD reference rate', 'Claims on euro-area residents in foreign currency', 'Claims on non-euro-area residents in foreign currency']);
+  assert.deepEqual(ECB3.map(id => desk.dollarGloss(DM[id])), ['US dollars for one euro', 'what the Eurosystem lends euro-area banks in foreign currency', 'the Eurosystem\'s foreign reserves other than gold']);
+  assert.deepEqual([desk.dollarGloss(DM.FED_SWAPS), desk.dollarGloss(null), desk.dollarName(null)], ['', '', '']);
   // a lending line by its share of its record: $0.146 bn against $583.135 bn, not "higher than most of its idle weeks"
   near(desk.dollarPlace(DM.FED_SWAPS), 0.146 / 583.135 * 100, 1e-9, 'swap lines');
   assert.equal(desk.dollarPlaceText(DM.FED_SWAPS), 'under 0.1% of its record');
@@ -581,59 +594,66 @@ test('each measure says which way a shortage moves it, and how far it stands tha
   assert.equal(desk.dollarPlace(desk.dollarData(DO, D, null).measures.AUX_FX_EA), DO.measures.AUX_FX_EA.pctile);
 });
 
-test('the Dollar shortage tab opens in words made of the measures\' own numbers', () => {
+test('the Dollar shortage tab opens in words made of the measures\' own numbers, the three ECB measures first', () => {
   const lines = desk.dollarRead(desk.dollarData(DS, D, null)), lend = DM.AUX_FX_EA, eur = DM.AUX_EURUSD, res = DM.AUX_FX_NONEA;
-  assert.equal(lines.length, 6);
-  assert.ok(lines[0].startsWith('Dollars lent by central banks. The Federal Reserve\'s swap lines are drawn for $0.146 bn in the week to 18 Nov 2026 ('), lines[0]);
-  assert.ok(lines[0].includes('They have stood above $100 bn at 4 separate peaks: $583.1 bn on 17 Dec 2008, $448.9 bn on 27 May 2020, $282.9 bn on 22 Apr 2009, $109.1 bn on 15 Feb 2012.'), lines[0]);
-  assert.ok(lines[0].includes('Its repos with foreign central banks stand at $0.001 bn; their record is $60.0 bn on 22 Mar 2023.'), lines[0]);
-  assert.ok(lines[0].includes('The Eurosystem\'s foreign-currency lending to euro-area banks is ' + desk.fmt('eur_bn', lend.value) + ' in the week to ' + desk.fmtDate(lend.date) + ' — ' + desk.standing(lend)), lines[0]);
-  assert.ok(lines[0].endsWith('It has stood above €100 bn at 4 separate peaks: €248.9 bn on 5 Dec 2008, €153.8 bn on 8 May 2020, €142.1 bn on 10 Apr 2009, €100.6 bn on 10 Feb 2012.'), lines[0]);
-  assert.ok(lines[1].startsWith('The price of the dollar. DXY, rebuilt from the Federal Reserve\'s H.10 rates, is ' + desk.fmt('idx', DM.USD_DXY.value) + ' on ' + desk.fmtDate(DM.USD_DXY.date) + ': '), lines[1]);
-  assert.ok(lines[1].includes('EUR/USD, the ECB\'s reference rate, is ' + desk.fmt('index', eur.value) + ' on ' + desk.fmtDate(eur.date) + ': ') && lines[1].includes('highest 1.5990 on 15 Jul 2008, lowest 0.8252 on 26 Oct 2000'), lines[1]);
-  assert.ok(lines[2].startsWith('Foreign official dollars. Foreign central banks keep ' + desk.fmt('usd_bn', DM.FED_CUSTODY_UST.value) + ' of Treasuries in custody at the Federal Reserve'), lines[2]);
-  assert.ok(lines[2].includes('Over 13 weeks that is ' + desk.fmtChange('usd_bn', DM.FED_CUSTODY_13W.value, true) + '; the largest 13-week fall on record is −$163.7 bn in the week to 12 Mar 2014.'), lines[2]);
-  assert.ok(lines[3].startsWith('Banks\' dollar funding. SOFR is ') && lines[3].includes('the record is 315.0 bp on 17 Sep 2019.') && lines[3].includes('the lowest reading is −$615.4 bn on 28 May 2008.')
-    && lines[3].endsWith('The TED spread ended on 21 Jan 2022; its record is 458.0 bp on 10 Oct 2008.'), lines[3]);
-  assert.ok(lines[4].startsWith('The Eurosystem\'s foreign reserves other than gold are ' + desk.fmt('eur_bn', res.value)) && lines[4].includes(desk.standing(res)) && lines[4].endsWith('It is not a gauge of dollars lent.'), lines[4]);
-  assert.ok(lines[5].startsWith('Not here: a cross-currency basis'));
+  assert.equal(lines.length, 8);
+  assert.ok(lines[0].startsWith('The EUR/USD reference rate is ' + desk.fmt('index', eur.value) + ' on ' + desk.fmtDate(eur.date) + ': ') && lines[0].includes('highest 1.5990 on 15 Jul 2008, lowest 0.8252 on 26 Oct 2000'), lines[0]);
+  assert.ok(lines[1].startsWith('Claims on euro-area residents in foreign currency — what the Eurosystem lends its banks in foreign currency — are ' + desk.fmt('eur_bn', lend.value) + ' in the week to ' + desk.fmtDate(lend.date) + ' — ' + desk.standing(lend)), lines[1]);
+  assert.ok(lines[1].includes(desk.fmtChange('eur_bn', lend.change['1w']) + ' over a week, ' + desk.fmtChange('eur_bn', lend.change['12m']) + ' over a year'), lines[1]);
+  assert.ok(lines[1].endsWith('They have stood above €100 bn at 4 separate peaks: €248.9 bn on 5 Dec 2008, €153.8 bn on 8 May 2020, €142.1 bn on 10 Apr 2009, €100.6 bn on 10 Feb 2012.'), lines[1]);
+  assert.ok(lines[2].startsWith('Claims on non-euro-area residents in foreign currency are ' + desk.fmt('eur_bn', res.value)) && lines[2].includes(desk.standing(res)) && lines[2].includes('foreign reserves other than gold')
+    && lines[2].endsWith('It is not a gauge of dollars lent.'), lines[2]);
+  assert.ok(lines[3].startsWith('Dollars lent by the Federal Reserve. The Federal Reserve\'s swap lines are drawn for $0.146 bn in the week to 18 Nov 2026 ('), lines[3]);
+  assert.ok(lines[3].includes('They have stood above $100 bn at 4 separate peaks: $583.1 bn on 17 Dec 2008, $448.9 bn on 27 May 2020, $282.9 bn on 22 Apr 2009, $109.1 bn on 15 Feb 2012.'), lines[3]);
+  assert.ok(lines[3].endsWith('Its repos with foreign central banks stand at $0.001 bn; their record is $60.0 bn on 22 Mar 2023.'), lines[3]);
+  assert.ok(lines[4].startsWith('The price of the dollar. DXY, rebuilt from the Federal Reserve\'s H.10 rates, is ' + desk.fmt('idx', DM.USD_DXY.value) + ' on ' + desk.fmtDate(DM.USD_DXY.date) + ': '), lines[4]);
+  assert.ok(lines[5].startsWith('Foreign official dollars. Foreign central banks keep ' + desk.fmt('usd_bn', DM.FED_CUSTODY_UST.value) + ' of Treasuries in custody at the Federal Reserve'), lines[5]);
+  assert.ok(lines[5].includes('Over 13 weeks that is ' + desk.fmtChange('usd_bn', DM.FED_CUSTODY_13W.value, true) + '; the largest 13-week fall on record is −$163.7 bn in the week to 12 Mar 2014.'), lines[5]);
+  assert.ok(lines[6].startsWith('Banks\' dollar funding. SOFR is ') && lines[6].includes('the record is 315.0 bp on 17 Sep 2019.') && lines[6].includes('the lowest reading is −$615.4 bn on 28 May 2008.')
+    && lines[6].endsWith('The TED spread ended on 21 Jan 2022; its record is 458.0 bp on 10 Oct 2008.'), lines[6]);
+  assert.ok(lines[7].startsWith('Not here: a cross-currency basis'));
   assert.ok(!lines.join(' ').match(/NaN|undefined|null/));
   // SOFR under the rate on reserves is said so; a US office that is owed says so
   const under = desk.dollarRead({ measures: { USD_SOFR_IOR: { ...DM.USD_SOFR_IOR, value: -4 }, H8_NET_DUE: { ...DM.H8_NET_DUE, value: -590.194 } } });
   assert.ok(under[0].includes('SOFR is 4.0 bp below the rate') && under[0].includes('are owed a net $590.2 bn by their offices abroad'), under[0]);
-  // the old document: the three lines as before, nothing claimed about what is not there
-  const old = desk.dollarRead(desk.dollarData(DO, D, null));
-  assert.equal(old.length, 3);
-  assert.ok(old[0].startsWith('Foreign-currency lending to euro-area banks is ') && old[1].startsWith('EUR/USD, the ECB\'s reference rate, is ') && old[2].startsWith('The Eurosystem\'s foreign reserves other than gold are '), old.join(' | '));
+  // the old document and the desk's own: the same three lines, nothing claimed about what is not there
+  for (const dd of [desk.dollarData(DO, D, null), desk.dollarData(null, D, null)]) {
+    const three = desk.dollarRead(dd);
+    assert.equal(three.length, 3);
+    assert.ok(three[0].startsWith('The EUR/USD reference rate is ') && three[1].startsWith('Claims on euro-area residents in foreign currency ') && three[2].startsWith('Claims on non-euro-area residents in foreign currency are '), three.join(' | '));
+  }
   // a series that never stood above 100 says nothing about peaks; a missing measure costs only its line
   const quiet = { ...lend, tops: [[61.288, '2009-08-14']] };
   assert.ok(!desk.dollarRead({ measures: { AUX_FX_EA: quiet } })[0].includes('stood above'));
   assert.equal(desk.dollarRead({ measures: { AUX_EURUSD: eur } }).length, 1);
 });
 
-test('inside each named window: each measure a shortage shows in, at the end it shows in', () => {
+test('inside each named window: the low and high of each of the three, and each Federal Reserve line at the end a shortage shows in', () => {
   const w = desk.dollarWindows(desk.dollarData(DS, D, null));
-  assert.deepEqual(w.cols.map(c => [c.m.id, c.end]), [['FED_SWAPS', 'hi'], ['FED_FIMA', 'hi'], ['AUX_FX_EA', 'hi'], ['USD_DXY', 'hi'], ['USD_BROAD', 'hi'], ['USD_AFE', 'hi'], ['USD_EME', 'hi'],
-    ['AUX_EURUSD', 'lo'], ['FED_CUSTODY_13W', 'lo'], ['USD_SOFR_IOR', 'hi'], ['USD_TED', 'hi']]);
-  assert.deepEqual(w.groups.map(g => [g.id, g.span]), [['backstop', 3], ['price', 5], ['official', 1], ['funding', 2]]);          // the reserves part has no column
-  assert.deepEqual(w.left.map(m => m.id), ['FED_CUSTODY_UST', 'FED_FOREIGN_RRP', 'H8_NET_DUE', 'AUX_FX_NONEA']);
+  assert.deepEqual(w.cols.map(c => [c.m.id, c.end, c.marked]), [['AUX_EURUSD', 'lo', true], ['AUX_EURUSD', 'hi', false], ['AUX_FX_EA', 'lo', false], ['AUX_FX_EA', 'hi', true],
+    ['AUX_FX_NONEA', 'lo', false], ['AUX_FX_NONEA', 'hi', false],
+    ['FED_SWAPS', 'hi', true], ['FED_FIMA', 'hi', true], ['USD_DXY', 'hi', true], ['USD_BROAD', 'hi', true], ['USD_AFE', 'hi', true], ['USD_EME', 'hi', true], ['FED_CUSTODY_13W', 'lo', true], ['USD_SOFR_IOR', 'hi', true], ['USD_TED', 'hi', true]]);
+  assert.deepEqual(w.groups.map(g => [g.id, g.span]), [['ecb', 6], ['backstop', 2], ['price', 4], ['official', 1], ['funding', 2]]);
+  assert.deepEqual(w.left.map(m => m.id), ['FED_CUSTODY_UST', 'FED_FOREIGN_RRP', 'H8_NET_DUE']);                                 // all three of the ECB's are in the table
+  assert.deepEqual(w.now.map(n => [n.m.id, n.span]).slice(0, 4), [['AUX_EURUSD', 2], ['AUX_FX_EA', 2], ['AUX_FX_NONEA', 2], ['FED_SWAPS', 1]]);
+  assert.equal(w.now.reduce((n, x) => n + x.span, 0), w.cols.length);
   assert.equal(w.groups.reduce((n, g) => n + g.span, 0), w.cols.length);
   for (const id of w.cols.map(c => c.m.id)) assert.ok(desk.DOLLAR_COL[id], id + ' has a column heading');
   assert.equal(w.rows.length, 19);                                                           // nothing here begins before January 1999: no reading in 1987, 1992 or 1998
   assert.equal(w.rows[0].ep.id, 'sept2001');
-  const row = id => w.rows.find(r => r.ep.id === id), col = id => w.cols.findIndex(c => c.m.id === id);
+  const row = id => w.rows.find(r => r.ep.id === id), col = (id, end) => w.cols.findIndex(c => c.m.id === id && (!end || c.end === end));
+  assert.deepEqual(row('gfc2008').cells.slice(0, 6), [[1.246, '2008-10-27'], DM.AUX_EURUSD.peaks.gfc2008.hi, DM.AUX_FX_EA.peaks.gfc2008.lo, [248.854, '2008-12-05'], DM.AUX_FX_NONEA.peaks.gfc2008.lo, DM.AUX_FX_NONEA.peaks.gfc2008.hi]);
   assert.deepEqual(row('gfc2008').cells[col('FED_SWAPS')], [583.135, '2008-12-17']);
-  assert.deepEqual(row('gfc2008').cells[col('AUX_FX_EA')], [248.854, '2008-12-05']);
-  assert.deepEqual(row('gfc2008').cells[col('AUX_EURUSD')], [1.246, '2008-10-27']);
   assert.deepEqual(row('gfc2008').cells[col('USD_TED')], [458, '2008-10-10']);
   assert.equal(row('gfc2008').cells[col('FED_FIMA')], null);                                 // the line did not exist yet
-  assert.deepEqual(row('covid2020').cells[col('AUX_FX_EA')], [150.104, '2020-04-24']);
+  assert.deepEqual(row('covid2020').cells[col('AUX_FX_EA', 'hi')], [150.104, '2020-04-24']);
   assert.equal(row('covid2020').cells[col('FED_SWAPS')][0], 438.953);
   assert.equal(row('covid2020').cells[col('FED_CUSTODY_13W')][0], DM.FED_CUSTODY_13W.peaks.covid2020.lo[0]);
   assert.deepEqual(row('banks2023').cells[col('FED_FIMA')], [60, '2023-03-22']);
-  assert.deepEqual(row('gilts2022').cells[col('AUX_EURUSD')], [0.9565, '2022-09-28']);       // the euro below parity
-  assert.deepEqual(w.record[col('AUX_FX_EA')], DM.AUX_FX_EA.high);
-  assert.deepEqual(w.record[col('AUX_EURUSD')], DM.AUX_EURUSD.low);
+  assert.deepEqual(row('gilts2022').cells[col('AUX_EURUSD', 'lo')], [0.9565, '2022-09-28']);  // the euro below parity
+  for (const r of w.rows) for (const i of [0, 2, 4]) if (r.cells[i]) assert.ok(r.cells[i][0] <= r.cells[i + 1][0]);
+  assert.deepEqual([w.record[col('AUX_FX_EA', 'lo')], w.record[col('AUX_FX_EA', 'hi')]], [DM.AUX_FX_EA.low, DM.AUX_FX_EA.high]);
+  assert.deepEqual(w.record[col('AUX_EURUSD', 'lo')], DM.AUX_EURUSD.low);
   // how dark a cell is: how far toward the measure's own record in that direction
   assert.equal(desk.dollarShare(DM.FED_SWAPS, 'hi', 583.135), 1);
   assert.equal(desk.dollarShare(DM.FED_SWAPS, 'hi', DM.FED_SWAPS.low[0]), 0);
@@ -646,9 +666,12 @@ test('inside each named window: each measure a shortage shows in, at the end it 
   assert.equal(desk.dollarShare(DM.FED_CUSTODY_13W, 'lo', -163.729), 1);
   near(desk.dollarShare(DM.USD_SOFR_IOR, 'hi', 44), 44 / 315, 1e-9, 'SOFR over the rate on reserves in March 2020');
   assert.equal(desk.dollarShare(DM.USD_SOFR_IOR, 'hi', -10), 0);
-  // the old document: the euro's low and lending's high
-  const old = desk.dollarWindows(desk.dollarData(DO, D, null));
-  assert.deepEqual([old.cols.map(c => [c.m.id, c.end]), old.left.map(m => m.id), old.rows.length], [[['AUX_EURUSD', 'lo'], ['AUX_FX_EA', 'hi']], ['AUX_FX_NONEA'], 19]);
+  // the old document and the desk's own: the three as they were in the fourth round - low and high of each
+  for (const dd of [desk.dollarData(DO, D, null), desk.dollarData(null, D, null)]) {
+    const old = desk.dollarWindows(dd);
+    assert.deepEqual([old.cols.map(c => [c.m.id, c.end, c.marked]), old.left, old.rows.length],
+      [[['AUX_EURUSD', 'lo', true], ['AUX_EURUSD', 'hi', false], ['AUX_FX_EA', 'lo', false], ['AUX_FX_EA', 'hi', true], ['AUX_FX_NONEA', 'lo', false], ['AUX_FX_NONEA', 'hi', false]], [], 19]);
+  }
 });
 
 test('a Federal Reserve daily series is drawn as one line; the world\'s sparse prints are not joined across their gaps', () => {
@@ -662,18 +685,25 @@ test('the page has the Dollar shortage tab, and the Dollar desk carries its line
   assert.ok(/<button class="tab" data-view="dollar">Dollar shortage<\/button>/.test(html));
   assert.ok(html.indexOf('data-view="world"') < html.indexOf('data-view="dollar"') && html.indexOf('data-view="dollar"') < html.indexOf('data-view="sources"'));
   for (const hook of ['/data/ciss-dollar-shortage.json', 'data-dchart=', 'data-dyears=', 'data-dtip=', 'function renderDollar(', 'VIEWS.indexOf(tab) >= 0', 'if (floor >= 0 && lo < 0) lo = 0', 'id=sov-dboard', 'id=sov-dwin', 'id=sov-dread',
-    'id=sov-dsrc', 'class=dpart', 'https://fred.stlouisfed.org/series/', 'wanted = want; needDollar();']) assert.ok(js.includes(hook), hook);
+    'id=sov-dsrc', 'class=dpart', 'https://fred.stlouisfed.org/series/', 'wanted = want; needDollar();', 'id=sov-dtiles', 'The three ECB measures · click one for its own chart']) assert.ok(js.includes(hook), hook);
+  // the three ECB measures are drawn before anything of the Federal Reserve's: tiles, then their charts, then the table
+  assert.ok(js.indexOf('id=sov-dtiles') < js.indexOf('if (first) html += chartsOf(first);') && js.indexOf('if (first) html += chartsOf(first);') < js.indexOf('id=sov-dboard') && js.indexOf('id=sov-dboard') < js.indexOf('others.map(chartsOf)'));
   for (const css of ['.dcharts{', '.dcv{', 'table.dwin th.mk', 'table.dboard tr.grp td', '.dpart{', '.dph{']) assert.ok(html.includes(css), css);
   assert.ok(html.includes('A cross-currency basis is not shown: no free official source publishes one.'));
   assert.ok(!js.includes('Foreign-currency claims abroad') && !pro.includes('foreign-currency claims abroad'), 'the reserves item has one name');
-  const family = ['FED_SWAPS', 'FED_FIMA', 'AUX_FX_EA', 'AUX_EURUSD', 'FED_CUSTODY_UST', 'FED_FOREIGN_RRP', 'USD_TED', 'AUX_FX_NONEA'];
+  const family = ['AUX_EURUSD', 'AUX_FX_EA', 'AUX_FX_NONEA', 'FED_SWAPS', 'FED_FIMA', 'FED_CUSTODY_UST', 'FED_FOREIGN_RRP', 'USD_TED'];
   for (const text of [pro, bundle]) {
     assert.ok(text.includes('"ecb-dollar": { url: "/data/ciss-dollar-shortage.json"'), 'the Dollar desk reads the same document');
     assert.ok(text.includes('"/sovereign-desk.html?view=dollar&m=" + encodeURIComponent(field)'), 'a card opens its chart on the Sovereign desk');
     for (const id of family) assert.ok(text.includes('["flows:ecb-dollar/' + id + '",'), id + ' is on the Dollar desk');
     for (const id of ['FED_CUSTODY_13W', 'USD_SOFR_IOR', 'H8_NET_DUE', 'USD_DXY']) assert.ok(!text.includes('flows:ecb-dollar/' + id), id + ' is not a card: a percentage change of it would mislead, or the desk has it natively');
     assert.ok(text.includes('{ cat: "Dollar shortage · central-bank lending, official dollars and the euro side"'));
-    assert.ok(text.includes('["flows:ecb-dollar/AUX_FX_NONEA","Eurosystem foreign reserves other than gold · weekly","EUR bn"]'));
+    // the three come first on the Dollar desk too, under the ECB's titles
+    assert.ok(text.includes('["flows:ecb-dollar/AUX_EURUSD","EUR/USD reference rate · ECB, daily","USD per EUR"]'));
+    assert.ok(text.includes('["flows:ecb-dollar/AUX_FX_EA","Claims on euro-area residents in foreign currency · Eurosystem, weekly","EUR bn"]'));
+    assert.ok(text.includes('["flows:ecb-dollar/AUX_FX_NONEA","Claims on non-euro-area residents in foreign currency · Eurosystem, weekly","EUR bn"]'));
+    const at = family.map(id => text.indexOf('["flows:ecb-dollar/' + id + '",'));
+    assert.deepEqual(at, at.slice().sort((a, b) => a - b), 'the family is in this order');
   }
   for (const id of family) assert.ok(DM[id] && DS.series[id], id + ' is in the document the cards read');
   assert.ok(/static feedChart\(symbol\)/.test(pro) && pro.includes('if (this.calcSpec(symbol) || this.feedChart(symbol)) return this.chartSeries(symbol);'));
