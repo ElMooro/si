@@ -71,7 +71,7 @@ instead of stopping.
 |---|---|---|
 | Dry run against live originals, nothing written | 6913 (second run) | 176 measures, 30 countries, no errors; all 58 measures with a fresh warehouse row equal it; replay agrees; 119 KB + 372 KB gzip |
 | First compile by the deployed engine (one desk-only invoke, disclosed) | 6914, 15:34 UTC | published; receipt names the documents; warehouse untouched; 61 s |
-| Real browser on the live site | 6915 | see the report |
+| Real browser on the live site (re-runnable) | 6915, 16:02 UTC | 0 failed checks: button after Repo, mouse click opens the desk; 11 tiles and 11 board rows equal the document; chart, ranges, pointer; crisis cells in all three sets; world 44 rows; a retained ECB response re-hashed; 0 px overflow at 390 px; CISS page headline, 58 current / 2 blank / 28 ended, an auxiliary verified in the browser; sovereign.html renders |
 
 Tests: engine 37 (24 new); `tests/sovereign-desk.test.js` 21 on the real documents
 (`tests/fixtures/sovereign-desk.json.gz`); node suite 5,145; deployment gate 1,233.
@@ -80,6 +80,13 @@ Numbers on 2026-11-22 (ECB data to 2026-11-19): euro-area SovCISS 0.0112, lower 
 (record 0.7514, 29 Nov 2011). France 0.1739, Belgium 0.1613, Greece 0.1007 … Portugal 0.0038. All issuers minus AAA
 at 10 years 59.8 bp (record 194.8 bp, 23 Jul 2012). 10-year spreads to Germany, October: France 147 bp, Italy 126,
 Greece 99, Belgium 96. TARGET owed by central banks in deficit €1,307 bn (record €1,592 bn, Sep 2022).
+
+The first pass of ops 6915 (15:50 UTC) failed four checks: two were the proof's own rounding (Python rounds the binary
+value, a browser the shortest decimal — 0.17015 is 0.1702 on the page), one counted the hidden chart pane's chips with
+the view's, and one was real: the Sources view was 13 px wider than a 390 px screen (long ECB keys now wrap).
+
+Runs outside the schedule: `justhodl-ciss-stress` once, 15:33 UTC, desk-only (61 s). Scheduled checks: 2026-11-23
+08:05 UTC (first scheduled run with the desk compile), 2026-11-24 15:30 UTC (cost).
 
 ## Left as it is, and why
 
