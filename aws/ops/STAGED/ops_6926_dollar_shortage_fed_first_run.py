@@ -6,7 +6,7 @@ justhodl-ciss-stress (dollar_shortage.py 1.1.0) now adds twelve Federal Reserve 
 data/ciss-dollar-shortage.json.  Its next scheduled run is tomorrow 07:10 UTC, so until then the Sovereign desk's
 "Dollar shortage" tab would have only the ECB's three.  This invokes the engine ONCE outside its schedule with
 {"dollar_only": true}: no request goes to the ECB; the engine reads the desk document already published and the three
-ECB responses it names, asks the site's own series resolver for 19 series one at a time (the same requests ops 6925
+ECB responses it names, asks the site's own series resolver for 18 series one at a time (the same requests ops 6925
 made in its dry run), and writes two objects - the series it read and the document.  Disclosed to Khalid.
 
   1. Guard: the deployed package must hold this checkout's dollar_shortage.py, world_history.py, sovereign_desk.py and
@@ -161,8 +161,8 @@ def main():
         fails += found
         if doc.get("ecb") != ["AUX_EURUSD", "AUX_FX_EA", "AUX_FX_NONEA"] or len(doc["series"]["AUX_EURUSD"]["d"]) < 6500:
             fails.append("the three ECB measures, with the reference rate for every day")
-        if len(doc["measures"]) != 15 or doc.get("errors") != {} or doc["coverage"].get("status") != "measured" or sorted(doc["order"]) != sorted(doc["measures"]) or result.get("series_asked") != 19:
-            fails.append("fifteen measures without an error, from 19 series asked for: %d measures, errors %s, asked %s" % (len(doc["measures"]), json.dumps(doc.get("errors"))[:300], result.get("series_asked")))
+        if len(doc["measures"]) != 15 or doc.get("errors") != {} or doc["coverage"].get("status") != "measured" or sorted(doc["order"]) != sorted(doc["measures"]) or result.get("series_asked") != len(dollar.FRED_IDS):
+            fails.append("fifteen measures without an error, from 18 series asked for: %d measures, errors %s, asked %s" % (len(doc["measures"]), json.dumps(doc.get("errors"))[:300], result.get("series_asked")))
         dry = json.loads(gzip.decompress(base64.b64decode((ROOT / "aws" / "ops" / "reports" / "latest" / "ops_6925_fixture.md").read_text())))
         differs = against_dry_run(doc, dry)
         r.log("the twelve Federal Reserve measures against the dry run of %s: %d differences %s" % (dry["generated_at"][:16], len(differs), differs[:4]))
@@ -170,7 +170,7 @@ def main():
         state = json.loads(get(dollar.STATE)[0])
         r.log("kept series: %d, read at %s" % (len(state.get("fred") or {}), sorted({v["read_at"][:16] for v in state["fred"].values()})))
         if state.get("contract") != dollar.STATE_CONTRACT or sorted(state["fred"]) != sorted(dollar.FRED_IDS):
-            fails.append("the kept series are not the 19 the document stands on")
+            fails.append("the kept series are not the 18 the document stands on")
         try:
             req = urllib.request.Request(WORKER + "/" + dollar.CURRENT + "?t=%d" % time.time(), headers={"Origin": "https://justhodl.ai", "User-Agent": "jh-ops-probe"})
             with urllib.request.urlopen(req, timeout=60) as resp2:

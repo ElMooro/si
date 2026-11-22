@@ -7,10 +7,10 @@ other".
 dollar_shortage.py 1.1.0 keeps the three ECB measurements exactly as before (read again from the retained ECB
 responses the desk document names; no request to the ECB) and adds twelve measures from the Federal Reserve's series
 that ops 6923 and ops 6924 found in the site's own warehouse: swap lines, repos with foreign central banks, DXY
-rebuilt from the H.10 rates, the Fed's three dollar indexes, custody holdings, the foreign repo pool, SOFR against the
+rebuilt from the H.10 rates, the Fed's three dollar indexes, Treasuries in custody and their 13-week change, the foreign repo pool, SOFR against the
 rate on reserves, the TED spread, and foreign banks' net position with their offices abroad.
 
-This runs the module exactly as the Lambda would - the same 19 requests to the site's resolver, one at a time with a
+This runs the module exactly as the Lambda would - the same 18 requests to the site's resolver, one at a time with a
 pause - except that both writes (the kept series and the document) stay in memory.  It then runs it a second time to
 show that nothing is asked for twice in a day.  It can be run again at any time.
 
@@ -39,8 +39,8 @@ KNOWN = (
     ("H8_NET_DUE", lambda m: m["low"] == [-615.423, "2008-05-28"], "foreign banks' US offices were owed $615 bn by their offices abroad in May 2008"),
     ("USD_DXY", lambda m: 70 < m["low"][0] < 75 and m["low"][1].startswith("2008") and 118 < m["high"][0] < 122 and m["high"][1][:4] in ("2001", "2002"), "DXY's low was near 71 in 2008 and its high near 120 in 2001-02"),
     ("USD_BROAD", lambda m: m["start"] == "2006-01-02", "the broad dollar index begins on 2 January 2006"),
-    ("FED_CUSTODY_UST", lambda m: m["value"] > 2000 and m["low"][0] > 1000 and m["start"].startswith("2007"), "Treasuries in custody are above $2,000 bn and the line has no reading below $1,000 bn since it began in 2007"),
-    ("FED_CUSTODY_ALL", lambda m: m["low"][0] > 1500 and m["start"].startswith("2007"), "all securities in custody: no reading below $1,500 bn since the line began in 2007"),
+    ("FED_CUSTODY_UST", lambda m: m["value"] > 2000 and m["low"][0] > 1000 and m["start"].startswith("2007") and m["worse"] is None, "Treasuries in custody are above $2,000 bn and the line has no reading below $1,000 bn since it began in 2007"),
+    ("FED_CUSTODY_13W", lambda m: m["peaks"]["covid2020"]["lo"][0] < -100 and m["start"].startswith("2007-10") and m["worse"] == "lower", "foreign central banks' Treasuries in custody fell by more than $100 bn over 13 weeks inside the COVID window"),
     ("FED_FIMA", lambda m: m["start"].startswith("2020"), "the repo line with foreign central banks begins in 2020"),
     ("FED_SWAPS", lambda m: m["start"].startswith("2007-12"), "the swap line begins with its first drawing in December 2007"),
 )
@@ -74,7 +74,7 @@ def biggest_moves(d, v, count=3):
 def selftest():
     assert biggest_moves(["a", "b", "c", "d"], [1.0, 2.0, 12.0, 5.0], 2) == [(10.0, "c", 2.0, 12.0), (-7.0, "d", 12.0, 5.0)]
     import dollar_shortage as dollar
-    assert dollar.VERSION == "1.1.0" and len(dollar.US) == 12 and len(dollar.FRED_IDS) == 19 and [s[0] for s in dollar.SERIES] == list(ECB)
+    assert dollar.VERSION == "1.1.0" and len(dollar.US) == 12 and len(dollar.FRED_IDS) == 18 and [s[0] for s in dollar.SERIES] == list(ECB)
     assert {name for name, _, _ in KNOWN} <= {spec["id"] for spec in dollar.US}
 
 
@@ -118,7 +118,7 @@ def main():
         ck(overlay.writes == [dollar.STATE, dollar.CURRENT] and doc["contract"] == dollar.CONTRACT and doc["version"] == "1.1.0", "contract, version or writes: %s" % overlay.writes)
         body = dict(doc)
         ck(body.pop("sha256", None) == model.digest(body), "the document does not carry its own digest")
-        ck(len(asked) == 19 and out["series_asked"] == 19, "19 series were to be asked for, %d were" % len(asked))
+        ck(len(asked) == 18 and out["series_asked"] == 18, "18 series were to be asked for, %d were" % len(asked))
         ck(doc["errors"] == {} and doc["coverage"]["status"] == "measured", "errors: %s" % json.dumps(doc["errors"])[:400])
         ck(doc["coverage"]["measures"] == 15 and doc["coverage"]["fed"] == 12 and doc["coverage"]["ecb"] == 3, "coverage: %s" % doc["coverage"])
 
@@ -166,10 +166,15 @@ def main():
         swaps = dict(zip(doc["series"]["FED_SWAPS"]["d"], doc["series"]["FED_SWAPS"]["v"]))
         r.log("swap lines through March-May 2020: %s" % " | ".join("%s %s" % (d, swaps[d]) for d in sorted(swaps) if "2020-03-04" <= d <= "2020-06-03"))
         cust = dict(zip(doc["series"]["FED_CUSTODY_UST"]["d"], doc["series"]["FED_CUSTODY_UST"]["v"]))
+        c13 = doc["series"]["FED_CUSTODY_13W"]
+        r.log("the 13-week change of Treasuries in custody, its ten lowest readings: %s" % " | ".join("%s on %s" % (v, d) for v, d in sorted(zip(c13["v"], c13["d"]))[:10]))
+        whole = dict(zip(c13["d"], c13["v"]))
+        ck(all(abs(whole[d] - (cust[d] - cust[e])) < 0.0015 for d, e in (("2020-04-08", "2020-01-08"), (c13["d"][-1], sorted(cust)[-14]))), "the 13-week change is not the level less the level 13 weeks earlier")
         pool = dict(zip(doc["series"]["FED_FOREIGN_RRP"]["d"], doc["series"]["FED_FOREIGN_RRP"]["v"]))
         r.log("March 2020, Treasuries in custody and the foreign repo pool: %s" % " | ".join("%s %s / %s" % (d, cust[d], pool.get(d)) for d in sorted(cust) if "2020-02-26" <= d <= "2020-04-29"))
 
         r.section("4. A second run in the same day asks for nothing")
+        asked_first = list(asked)
         asked.clear()
         before = len(overlay.writes)
         again = dollar.run(overlay, LIVE, store, budget_seconds=60, fetch=fetch, now=datetime.fromisoformat(doc["generated_at"]) + timedelta(hours=8))
@@ -178,7 +183,7 @@ def main():
 
         blob = base64.b64encode(gzip.compress(json.dumps(doc, separators=(",", ":")).encode(), 9)).decode()
         Path(ROOT / "aws" / "ops" / "reports" / "latest" / "ops_6925_fixture.md").write_text(blob + "\n")
-        r.kv(failed_checks=len(fails), measures=len(doc["measures"]), observations=doc["coverage"]["observations"], bytes=len(raw), gzip=len(gzip.compress(raw, 6)), seconds=round(secs, 1), requests=19)
+        r.kv(failed_checks=len(fails), measures=len(doc["measures"]), observations=doc["coverage"]["observations"], bytes=len(raw), gzip=len(gzip.compress(raw, 6)), seconds=round(secs, 1), requests=len(asked_first))
         if fails:
             raise SystemExit(1)
         r.ok("the dollar-shortage document compiles with 3 ECB and 12 Federal Reserve measures; nothing was written")

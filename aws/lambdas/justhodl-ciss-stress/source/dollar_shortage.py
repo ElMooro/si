@@ -7,7 +7,8 @@ module gathers them, in five parts, each with its whole history:
              banks (H.4.1), and the Eurosystem's foreign-currency lending to euro-area banks (ECB)
   price      the price of the dollar: DXY rebuilt from the Federal Reserve's H.10 rates, the Fed's broad, advanced-
              economy and emerging-market dollar indexes, and the ECB's euro reference rate
-  official   what foreign central banks keep at the Federal Reserve: securities in custody, the foreign repo pool
+  official   what foreign central banks keep at the Federal Reserve: Treasuries in custody and their 13-week change,
+             the foreign repo pool
   funding    banks' dollar funding: SOFR against the rate the Federal Reserve pays on reserves, the TED spread until
              it ended, and what foreign banks' US offices owe their offices abroad (H.8)
   reserves   the Eurosystem's own foreign reserves other than gold (not a gauge of dollars lent)
@@ -24,7 +25,7 @@ Two kinds of source, kept apart:
 
 Nothing here is a forecast, a probability or a position size.  compile_dollar() is pure.
 """
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 import hashlib
 import json
@@ -59,7 +60,7 @@ ABOUT = {
 PARTS = (
     ('backstop', 'Dollars lent by central banks', 'What the Federal Reserve has lent to foreign central banks, and the Eurosystem to its own banks. These rise in a dollar shortage.'),
     ('price', 'The price of the dollar', 'A dollar shortage bids the dollar up against other currencies.'),
-    ('official', 'Foreign official dollars at the Federal Reserve', 'What foreign central banks keep at the Federal Reserve. Securities in custody fall when they sell or pledge them to raise dollars.'),
+    ('official', 'Foreign official dollars at the Federal Reserve', 'What foreign central banks keep at the Federal Reserve. Their Treasuries in custody fall when they sell them to raise dollars.'),
     ('funding', 'Banks\' dollar funding', 'What dollars cost overnight against what the Federal Reserve pays on reserves, and what foreign banks\' US offices owe their offices abroad. '
                                            'The TED spread ended in 2022 and is kept for its history.'),
     ('reserves', 'The Eurosystem\'s own foreign reserves', 'Shown because it sits beside the lending item on the same statement; it is not a gauge of a dollar shortage.'),
@@ -95,12 +96,15 @@ US = (
     {'id': 'USD_EME', 'part': 'price', 'fred': ('DTWEXEMEGS',), 'unit': 'idx', 'places': 'usd', 'freq': 'D', 'allow': 16, 'worse': 'higher', 'release': H10,
      'label': 'Nominal US dollar index against emerging market economies', 'short': 'Dollar against emerging markets',
      'what': 'The Federal Reserve\'s trade-weighted dollar against emerging-market trading partners; where a dollar shortage usually bites first.'},
-    {'id': 'FED_CUSTODY_UST', 'lead': True, 'part': 'official', 'fred': ('WMTSECL1',), 'scale': Decimal('0.001'), 'unit': 'usd_bn', 'places': 'eur_bn', 'freq': 'W', 'allow': 21, 'worse': 'lower', 'release': H41,
+    {'id': 'FED_CUSTODY_13W', 'lead': True, 'part': 'official', 'fred': ('WMTSECL1',), 'scale': Decimal('0.001'), 'calc': 'change13', 'unit': 'usd_bn', 'places': 'eur_bn', 'freq': 'W', 'allow': 21,
+     'worse': 'lower', 'release': H41,
+     'label': 'US Treasury securities held in custody at the Federal Reserve for foreign official and international accounts: change over 13 weeks', 'short': 'Treasuries in custody: 13-week change',
+     'what': 'How much the Treasuries that foreign central banks keep at the Federal Reserve have risen or fallen over the last 13 weeks. A large fall is foreign central banks '
+             'selling Treasuries, which they do to raise dollars; the level itself has long trends of its own.'},
+    {'id': 'FED_CUSTODY_UST', 'lead': True, 'part': 'official', 'fred': ('WMTSECL1',), 'scale': Decimal('0.001'), 'unit': 'usd_bn', 'places': 'eur_bn', 'freq': 'W', 'allow': 21, 'worse': None, 'release': H41,
      'label': 'US Treasury securities held in custody at the Federal Reserve for foreign official and international accounts', 'short': 'Treasuries in custody for foreign central banks',
-     'what': 'Treasuries that foreign central banks keep at the Federal Reserve. They fall when those central banks sell Treasuries to raise dollars.'},
-    {'id': 'FED_CUSTODY_ALL', 'lead': True, 'part': 'official', 'fred': ('WSEFINTL1',), 'scale': Decimal('0.001'), 'unit': 'usd_bn', 'places': 'eur_bn', 'freq': 'W', 'allow': 21, 'worse': 'lower', 'release': H41,
-     'label': 'Securities held in custody at the Federal Reserve for foreign official and international accounts', 'short': 'All securities in custody',
-     'what': 'Treasuries, agency debt and mortgage-backed securities held in custody for foreign official and international accounts.'},
+     'what': 'Treasuries that foreign central banks keep at the Federal Reserve. The level rose for years and has been falling since 2021 for reasons of its own, '
+             'so the page takes no side on it; the 13-week change beside it is the line to read.'},
     {'id': 'FED_FOREIGN_RRP', 'part': 'official', 'fred': ('WLRRAFOIAL',), 'scale': Decimal('0.001'), 'unit': 'usd_bn', 'places': 'eur_bn', 'freq': 'W', 'allow': 21, 'worse': None, 'release': H41,
      'label': 'Federal Reserve reverse repurchase agreements with foreign official and international accounts', 'short': 'Foreign repo pool at the Fed',
      'what': 'Cash that foreign central banks leave overnight at the Federal Reserve. In March 2020 it rose while their Treasuries in custody fell: they sold securities and held the dollars.'},
@@ -142,6 +146,17 @@ def spread_obs(sofr, iorb, ioer):
     return [(day, (value - paid[day]) * 100) for day, value in sofr if day in paid]
 
 
+def change_obs(obs, weeks):
+    """Each reading less the reading exactly that many weeks earlier; a week with no reading that far back has no figure."""
+    index = dict(obs)
+    out = []
+    for day, value in obs:
+        earlier = index.get((date.fromisoformat(day) - timedelta(days=7 * weeks)).isoformat())
+        if earlier is not None:
+            out.append((day, value - earlier))
+    return out
+
+
 def us_obs(spec, kept, today):
     """A US measure's observations from the kept series, or None when a series it needs is not there."""
     parts = []
@@ -160,6 +175,8 @@ def us_obs(spec, kept, today):
     if spec.get('lead'):
         first = next((i for i, (_, value) in enumerate(obs) if value > 0), len(obs))
         obs = obs[first:]
+    if spec.get('calc') == 'change13':
+        obs = change_obs(obs, 13)
     return obs
 
 
@@ -232,6 +249,7 @@ def compile_dollar(desk_doc, read, generated_at, kept=None, errors=None):
                             'worse': 'the direction a dollar shortage moves the series in; none where the page takes no side',
                             'USD_DXY': '50.14348112 x EURUSD^-0.576 x USDJPY^0.136 x GBPUSD^-0.119 x USDCAD^0.091 x USDSEK^0.042 x USDCHF^0.036 on H.10 rates',
                             'start': 'an H.4.1 line begins at its first reading above zero: FRED fills the weeks before the line was printed with zeros',
+                            'FED_CUSTODY_13W': 'the Wednesday level less the Wednesday level 13 weeks (91 days) earlier',
                             'absent': 'a cross-currency basis is not here: no free official source publishes one'},
             'coverage': {'measures': len(measures), 'observations': sum(len(s['d']) for s in series.values()), 'ecb': len(SERIES), 'fed': len(measures) - len(SERIES),
                          'errors': len(issues), 'status': 'degraded' if issues else 'measured'},

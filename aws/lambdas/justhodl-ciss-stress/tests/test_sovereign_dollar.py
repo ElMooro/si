@@ -29,8 +29,7 @@ FED = {
     'DTWEXBGS': [['2026-11-12', 122.1], ['2026-11-13', 122.6503]],
     'DTWEXAFEGS': [['2026-11-12', 116.0], ['2026-11-13', 116.236]],
     'DTWEXEMEGS': [['2026-11-12', 130.5], ['2026-11-13', 130.8877]],
-    'WMTSECL1': [['2026-10-28', 0.0], ['2026-11-04', 0.0], ['2026-11-11', 2550000.0], ['2026-11-18', 2544011.0]],
-    'WSEFINTL1': [['2026-11-11', 2820000.0], ['2026-11-18', 2813231.0]],
+    'WMTSECL1': [['2026-07-29', 0.0], ['2026-08-05', 0.0], ['2026-08-12', 2700000.0], ['2026-08-19', 2710000.0], ['2026-11-04', 2560000.0], ['2026-11-11', 2550000.0], ['2026-11-18', 2544011.0]],
     'WLRRAFOIAL': [['2026-11-11', 310000.0], ['2026-11-18', 316712.0]],
     'SOFR': [['2021-07-27', 0.05], ['2021-07-28', 0.05], ['2021-07-29', 0.05], ['2026-11-19', 3.91]],
     'IOER': [['2021-07-27', 0.15], ['2021-07-28', 0.15], ['2021-07-29', 9.99]],                             # a value after its last day is not used
@@ -179,7 +178,7 @@ class FederalReserve(unittest.TestCase):
         self.assertEqual([(p['id'], p['ids']) for p in out['parts']], [
             ('backstop', ['FED_SWAPS', 'FED_FIMA', 'AUX_FX_EA']),
             ('price', ['USD_DXY', 'USD_BROAD', 'USD_AFE', 'USD_EME', 'AUX_EURUSD']),
-            ('official', ['FED_CUSTODY_UST', 'FED_CUSTODY_ALL', 'FED_FOREIGN_RRP']),
+            ('official', ['FED_CUSTODY_13W', 'FED_CUSTODY_UST', 'FED_FOREIGN_RRP']),
             ('funding', ['USD_SOFR_IOR', 'USD_TED', 'H8_NET_DUE']),
             ('reserves', ['AUX_FX_NONEA'])])
         self.assertEqual(out['order'], [mid for p in out['parts'] for mid in p['ids']])
@@ -201,11 +200,15 @@ class FederalReserve(unittest.TestCase):
         self.assertEqual((M['FED_SWAPS']['value'], M['FED_SWAPS']['date'], M['FED_SWAPS']['unit'], M['FED_SWAPS']['freq']), (0.146, '2026-11-18', 'usd_bn', 'W'))
         self.assertEqual(out['series']['FED_SWAPS'], {'d': ['2026-11-04', '2026-11-11', '2026-11-18'], 'v': [0.15, 0.12, 0.146]})
         self.assertEqual(M['FED_SWAPS']['change']['1w'], 0.026)
-        self.assertEqual((M['FED_FIMA']['value'], M['FED_CUSTODY_UST']['value'], M['FED_CUSTODY_ALL']['value'], M['FED_FOREIGN_RRP']['value']), (0.001, 2544.011, 2813.231, 316.712))
-        self.assertEqual((M['FED_CUSTODY_UST']['worse'], M['FED_FOREIGN_RRP']['worse'], M['FED_SWAPS']['worse']), ('lower', None, 'higher'))
+        self.assertEqual((M['FED_FIMA']['value'], M['FED_CUSTODY_UST']['value'], M['FED_FOREIGN_RRP']['value']), (0.001, 2544.011, 316.712))
+        self.assertEqual((M['FED_CUSTODY_UST']['worse'], M['FED_CUSTODY_13W']['worse'], M['FED_FOREIGN_RRP']['worse'], M['FED_SWAPS']['worse']), (None, 'lower', None, 'higher'))
         # FRED's zeros from before the Federal Reserve printed a line are not readings; a zero after its first reading is
-        self.assertEqual(out['series']['FED_CUSTODY_UST'], {'d': ['2026-11-11', '2026-11-18'], 'v': [2550.0, 2544.011]})
-        self.assertEqual((M['FED_CUSTODY_UST']['low'], M['FED_CUSTODY_UST']['start']), ([2544.011, '2026-11-18'], '2026-11-11'))
+        self.assertEqual(out['series']['FED_CUSTODY_UST'], {'d': ['2026-08-12', '2026-08-19', '2026-11-04', '2026-11-11', '2026-11-18'], 'v': [2700.0, 2710.0, 2560.0, 2550.0, 2544.011]})
+        self.assertEqual((M['FED_CUSTODY_UST']['low'], M['FED_CUSTODY_UST']['start']), ([2544.011, '2026-11-18'], '2026-08-12'))
+        # the 13-week change: each Wednesday less the Wednesday 91 days earlier, and only where that Wednesday has a reading
+        self.assertEqual(out['series']['FED_CUSTODY_13W'], {'d': ['2026-11-11', '2026-11-18'], 'v': [-150.0, -165.989]})
+        self.assertEqual((M['FED_CUSTODY_13W']['value'], M['FED_CUSTODY_13W']['unit'], M['FED_CUSTODY_13W']['key'], M['FED_CUSTODY_13W']['low']), (-165.989, 'usd_bn', 'fred:WMTSECL1', [-165.989, '2026-11-18']))
+        self.assertEqual(dollar.change_obs([('2026-01-07', Decimal(5)), ('2026-01-14', Decimal(7)), ('2026-01-28', Decimal(4))], 1), [('2026-01-14', Decimal(2))])
         self.assertEqual(out['series']['FED_FIMA'], {'d': ['2026-11-04', '2026-11-11', '2026-11-18'], 'v': [0.002, 0.0, 0.001]})
         self.assertIn('start', out['definitions'])
         self.assertEqual(M['H8_NET_DUE']['value'], 885.647)                                        # H.8 is in billions already
@@ -264,8 +267,8 @@ class Refresh(unittest.TestCase):
         calls, pauses, state = [], [], {'contract': dollar.STATE_CONTRACT, 'fred': {}}
         errors, asked = dollar.refresh(state, datetime.fromisoformat(LATER), resolver(calls=calls), time.monotonic() + 60, sleep=pauses.append)
         self.assertEqual(calls, ['fred:' + sid for sid in dollar.FRED_IDS])
-        self.assertEqual((len(set(calls)), asked, errors), (19, 19, {}))
-        self.assertEqual(pauses, [0.5] * 18)
+        self.assertEqual((len(set(calls)), asked, errors), (18, 18, {}))
+        self.assertEqual(pauses, [0.5] * 17)
         self.assertEqual(state['fred']['SWPT']['obs'], [['2026-11-04', '150.0'], ['2026-11-11', '120.0'], ['2026-11-18', '146.0']])
         self.assertEqual(state['fred']['TEDRATE']['obs'][0][0], '2008-10-10')                      # nothing from before 1999 is kept
         self.assertEqual(sorted(state['fred']['SWPT']), ['bytes', 'obs', 'read_at', 'sha256', 'via'])
@@ -281,7 +284,7 @@ class Refresh(unittest.TestCase):
         state = {'contract': dollar.STATE_CONTRACT, 'fred': kept(table)}
         calls = []
         dollar.refresh(state, start + timedelta(days=8), resolver(table, calls=calls), time.monotonic() + 60, sleep=lambda s: None)
-        self.assertEqual(len(calls), 19)                                                           # a week on, the ended two are looked at again
+        self.assertEqual(len(calls), 18)                                                           # a week on, the ended two are looked at again
         self.assertTrue(dollar.due(None, start) and dollar.due({'obs': [], 'read_at': LATER}, start))
         self.assertFalse(dollar.due({'obs': [['2026-11-18', '1']], 'read_at': LATER}, start + timedelta(hours=19)))
 
@@ -313,7 +316,7 @@ class Publication(unittest.TestCase):
         s3.puts.clear()
         out = self.run_it(s3)
         self.assertEqual(s3.puts, [dollar.STATE, dollar.CURRENT])
-        self.assertEqual((out['published'], out['generated_at'], out['desk_generated_at'], out['series_asked']), (True, LATER, base.NOW, 19))
+        self.assertEqual((out['published'], out['generated_at'], out['desk_generated_at'], out['series_asked']), (True, LATER, base.NOW, 18))
         self.assertEqual(out['coverage']['measures'], 15)
         self.assertEqual(out['latest']['AUX_EURUSD'], [1.099, '2026-11-20'])
         self.assertEqual(out['latest']['FED_SWAPS'], [0.146, '2026-11-18'])
@@ -350,10 +353,10 @@ class Publication(unittest.TestCase):
         self.assertEqual(written['errors']['FED_SWAPS'], 'NOT_HELD: SWPT')
         s3.objects[dollar.STATE] = b'not json'                                                     # a state that cannot be read: everything is asked for again
         out = self.run_it(s3)
-        self.assertEqual((out['series_asked'], out['coverage']['measures']), (19, 15))
+        self.assertEqual((out['series_asked'], out['coverage']['measures']), (18, 15))
         self.assertIn('UNREADABLE', json.loads(s3.objects[dollar.CURRENT])['errors']['state'])
         s3.objects[dollar.STATE] = model.encoded({'contract': 'something-else', 'fred': {}})
-        self.assertEqual(self.run_it(s3)['series_asked'], 19)
+        self.assertEqual(self.run_it(s3)['series_asked'], 18)
 
     def test_nothing_is_written_without_the_desk_document_or_when_a_figure_differs(self):
         empty = base.MemoryS3()
