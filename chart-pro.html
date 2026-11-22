@@ -6453,10 +6453,12 @@ class MacroData {
     // (data/etf-creations/<TICKER>.json; metrics flow, flow_5d, flow_20d, shares, nav, net_assets; default flow_5d)
     "etfc": { url: field => "/data/etf-creations/" + String(field).split(".")[0].replace(/[^A-Z0-9]/g, "") + ".json", rows: () => [],
       obs: (p, field) => { const metric = String(field).split(".")[1] || "flow_5d"; const s = (p.series || {})[metric]; return s && Array.isArray(p.d) ? p.d.map((d, i) => [d, s[i]]) : []; }, date: "d", label: "issuer tape · etf-true-flows" },
-    // flows:ecb-dollar/<measure id>: the CISS engine's dollar-shortage document (data/ciss-dollar-shortage.json) - the euro's ECB reference
-    // rate and the Eurosystem's two foreign-currency claims, every observation, read from ECB responses kept as they arrived.  These are
-    // levels, not flows; the adapter is only the way a site document reaches a card.  Their chart is on the Sovereign desk (feed.chart).
-    "ecb-dollar": { url: "/data/ciss-dollar-shortage.json", rows: () => [], obs: (p, field) => { const s = (p.series || {})[field]; return s && s.d && s.v ? s.d.map((d, i) => [d, s.v[i]]) : []; }, date: "d", label: "ECB · CISS engine",
+    // flows:ecb-dollar/<measure id>: the CISS engine's dollar-shortage document (data/ciss-dollar-shortage.json) - the ECB's three
+    // (the euro's reference rate and the Eurosystem's two foreign-currency items, read from ECB responses kept as they arrived) and
+    // the Federal Reserve's lines beside them (swap lines, repos with foreign central banks, custody, the foreign repo pool, the TED
+    // spread), every observation.  These are levels, not flows; the adapter is only the way a site document reaches a card.  Their
+    // chart is on the Sovereign desk (feed.chart).
+    "ecb-dollar": { url: "/data/ciss-dollar-shortage.json", rows: () => [], obs: (p, field) => { const s = (p.series || {})[field]; return s && s.d && s.v ? s.d.map((d, i) => [d, s.v[i]]) : []; }, date: "d", label: "ECB and Federal Reserve · CISS engine",
       chart: field => "/sovereign-desk.html?view=dollar&m=" + encodeURIComponent(field) },
     "crypto-etf": { url: "/data/crypto-etf-flows-history.json", rows: p => p.series, date: "date", label: "Polygon fund flows" },
     "crypto-exchange": { url: "/data/crypto-exchange-flows-history.json", rows: p => p.series, date: "date", label: "CoinMetrics / CryptoQuant" },
@@ -6472,7 +6474,12 @@ class MacroData {
      itself a change (see isChangeSeries).  calc:dxy is worked out in the browser (see fetchCalc).
      2026-11-22 (Khalid: "add these 3 ... under their own tab called dollar shortage and also add it to the dxy tab"): the family
      "Dollar shortage" holds the three ECB measurements of the Sovereign desk tab of that name, read from the same document
-     through the flows: adapter (FLOW_FEEDS "ecb-dollar"); they are levels and their chart opens on the Sovereign desk. ── */
+     through the flows: adapter (FLOW_FEEDS "ecb-dollar"); they are levels and their chart opens on the Sovereign desk.
+     Later that day (Khalid: "add whatever dollar shortage metrics such as dxy or other") the family gained the Federal Reserve lines
+     of that document whose percentage change means something: swap lines, repos with foreign central banks, Treasuries in custody,
+     the foreign repo pool and the TED spread.  The signed ones (the 13-week change in custody, SOFR against the rate on reserves,
+     foreign banks net position with their offices abroad) are on the Sovereign desk tab only; DXY and the dollar indexes are
+     already on this desk as native FRED cards. ── */
   static DOLLAR_CATALOG = [
     { cat: "DXY · rebuilt from FRED, and its six currencies", flag: "💵", items: [
       ["calc:dxy","DXY · U.S. Dollar Index, rebuilt from FRED's six exchange rates","index"], ["DEXUSEU","Euro · 57.6% of the DXY","USD per EUR"],
@@ -6480,10 +6487,15 @@ class MacroData {
       ["DEXCAUS","Canadian dollar · 9.1% of the DXY","CAD per USD"], ["DEXSDUS","Swedish krona · 4.2% of the DXY","SEK per USD"],
       ["DEXSZUS","Swiss franc · 3.6% of the DXY","CHF per USD"]
     ]},
-    { cat: "Dollar shortage · the euro side, from the ECB", flag: "💶", items: [
-      ["flows:ecb-dollar/AUX_EURUSD","EUR/USD · ECB reference rate, daily","USD per EUR"],
+    { cat: "Dollar shortage · central-bank lending, official dollars and the euro side", flag: "💶", items: [
+      ["flows:ecb-dollar/FED_SWAPS","Fed swap lines drawn by foreign central banks · weekly","USD bn"],
+      ["flows:ecb-dollar/FED_FIMA","Fed repos with foreign central banks (FIMA) · weekly","USD bn"],
       ["flows:ecb-dollar/AUX_FX_EA","Eurosystem foreign-currency lending to euro-area banks · weekly","EUR bn"],
-      ["flows:ecb-dollar/AUX_FX_NONEA","Eurosystem foreign-currency claims abroad · weekly","EUR bn"]
+      ["flows:ecb-dollar/AUX_EURUSD","EUR/USD · ECB reference rate, daily","USD per EUR"],
+      ["flows:ecb-dollar/FED_CUSTODY_UST","Treasuries in custody at the Fed for foreign central banks · weekly","USD bn"],
+      ["flows:ecb-dollar/FED_FOREIGN_RRP","Foreign repo pool at the Fed · weekly","USD bn"],
+      ["flows:ecb-dollar/USD_TED","TED spread · daily, ended January 2022","bp"],
+      ["flows:ecb-dollar/AUX_FX_NONEA","Eurosystem foreign reserves other than gold · weekly","EUR bn"]
     ]},
     { cat: "Fed dollar indexes · daily", flag: "🏦", items: [
       ["DTWEXBGS","Broad dollar index · nominal, daily","index"], ["DTWEXAFEGS","Dollar vs advanced foreign economies · nominal, daily","index"],

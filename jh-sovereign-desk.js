@@ -22,7 +22,9 @@
     bp: { d: 1, pre: "", suf: " bp", chg: " bp" },
     eur_bn: { d: 1, pre: "€", suf: " bn", chg: " bn" },
     pct_gdp: { d: 1, pre: "", suf: "%", chg: " pp" },
-    usd: { d: 4, pre: "$", suf: "", chg: "" }
+    usd: { d: 4, pre: "$", suf: "", chg: "" },
+    usd_bn: { d: 1, small: 3, pre: "$", suf: " bn", chg: " bn" },      /* a facility that is hardly used is read to the million */
+    idx: { d: 2, pre: "", suf: "", chg: "" }
   };
   var RANGES = [["1Y", 1], ["5Y", 5], ["10Y", 10], ["All", 0]];
   var SPAN = { D: "last 12 months", W: "last 2 years", M: "last 5 years", Q: "last 10 years" };   /* what a tile's small line covers */
@@ -49,15 +51,18 @@
   function esc(t) { return String(t == null ? "" : t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
   function fixed(v, d) { return Math.abs(v).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }); }
 
-  function fmt(unit, v) {
+  function places(u, v, wide) { return u.small && !wide && v !== 0 && Math.abs(v) < 10 ? u.small : u.d; }
+  /* wide: the number stands on an axis that spans tens or more, so it is not read to the million */
+  function fmt(unit, v, wide) {
     if (!isNum(v)) return "—";
-    var u = UNITS[unit] || UNITS.index;
-    return (v < 0 && +v.toFixed(u.d) !== 0 ? "−" : "") + u.pre + fixed(v, u.d) + u.suf;
+    var u = UNITS[unit] || UNITS.index, d = places(u, v, wide);
+    return (v < 0 && +v.toFixed(d) !== 0 ? "−" : "") + u.pre + fixed(v, d) + u.suf;
   }
-  function fmtChange(unit, v) {
+  /* wide: the level this is a change of is tens or more, so the change is not read to the million either */
+  function fmtChange(unit, v, wide) {
     if (!isNum(v)) return "—";
-    var u = UNITS[unit] || UNITS.index, flat = +v.toFixed(u.d) === 0;
-    return (flat ? "" : v > 0 ? "+" : "−") + fixed(v, u.d) + u.chg;
+    var u = UNITS[unit] || UNITS.index, d = places(u, v, wide), flat = +v.toFixed(d) === 0;
+    return (flat ? "" : v > 0 ? "+" : "−") + fixed(v, d) + u.chg;
   }
   function fmtDate(iso) { return iso ? +iso.slice(8, 10) + " " + MONTHS[+iso.slice(5, 7) - 1] + " " + iso.slice(0, 4) : "—"; }
   /* the period a reading stands for: a day, a month or a quarter */
@@ -263,7 +268,7 @@
 
   var GAP = 45;           /* days of silence after which a traded or reported daily series is not joined by a line */
   /* the longest silence a line is drawn across: none for the ECB's and the OECD's regular series, GAP days for the World tab's daily ones */
-  function gapOf(m) { return m && m.source && m.freq === "D" ? GAP : 0; }
+  function gapOf(m) { return m && m.source && m.source !== "fred" && m.freq === "D" ? GAP : 0; }      /* the Federal Reserve's daily series have no such holes */
   var LEAD = "#35d0e0";   /* the first series of a set on a chart of many: a colour no tag uses */
   /* a line's colour on a chart of many: the country's tag if it has one, else its place in the palette */
   function lineColour(i, tag) {
@@ -318,47 +323,123 @@
     return flipped ? !base : base;
   }
 
-  /* ---- Dollar shortage: the euro's reference rate and the Eurosystem's two foreign-currency claims ---- */
-  var DOLLAR = ["AUX_EURUSD", "AUX_FX_EA", "AUX_FX_NONEA"];
-  var DOLLAR_SHORT = { AUX_EURUSD: "EUR/USD", AUX_FX_EA: "Foreign-currency lending to euro-area banks", AUX_FX_NONEA: "Foreign-currency claims abroad" };
-  var DOLLAR_COL = { AUX_EURUSD: "EUR/USD", AUX_FX_EA: "Lending to banks", AUX_FX_NONEA: "Claims abroad" };
-  /* the three measures and their histories: from the dollar-shortage document (every observation) or, while that has not
-     arrived, from the desk's own two documents (the reference rate is then one reading a week) */
+  /* ---- Dollar shortage: dollars lent by central banks, the price of the dollar, official dollars, banks' funding ---- */
+  var DOLLAR = ["AUX_EURUSD", "AUX_FX_EA", "AUX_FX_NONEA"];       /* the ECB's three; the Federal Reserve's come with the document */
+  /* the ECB's three while the document is the one from before it named its parts, or has not arrived */
+  var DOLLAR_ECB = { AUX_EURUSD: { short: "EUR/USD", worse: "lower" }, AUX_FX_EA: { short: "Eurosystem foreign-currency lending to euro-area banks", worse: "higher" },
+                     AUX_FX_NONEA: { short: "Eurosystem foreign reserves other than gold", worse: null } };
+  /* column headings of the windows table */
+  var DOLLAR_COL = { FED_SWAPS: "Fed swaps", FED_FIMA: "Fed repos", AUX_FX_EA: "ECB lending", USD_DXY: "DXY", USD_BROAD: "Broad", USD_AFE: "Advanced", USD_EME: "Emerging", AUX_EURUSD: "EUR/USD",
+                     FED_CUSTODY_13W: "Custody, 13 wk", FED_CUSTODY_UST: "Treasuries", FED_FOREIGN_RRP: "Repo pool", USD_SOFR_IOR: "SOFR − IOR", USD_TED: "TED", H8_NET_DUE: "Net due", AUX_FX_NONEA: "Reserves" };
+  /* every measure of the tab, in its parts, with its history: from the dollar-shortage document (every observation) or,
+     while that has not arrived, the ECB's three from the desk's own two documents (the reference rate is then weekly) */
   function dollarData(ds, deskDoc, hist) {
     var full = !!(ds && ds.contract === "ciss-dollar-shortage.v1" && ds.measures && ds.series);
-    var M = full ? ds.measures : (deskDoc && deskDoc.measures) || {}, S = full ? ds.series : (hist && hist.series) || {};
-    return { ids: DOLLAR.filter(function (id) { return M[id]; }), measures: M, series: S, full: full, episodes: (full ? ds.episodes : deskDoc && deskDoc.episodes) || [] };
+    var src = full ? ds.measures : (deskDoc && deskDoc.measures) || {}, S = full ? ds.series : (hist && hist.series) || {};
+    var named = full && Array.isArray(ds.parts) && ds.parts.length > 0, M = {};
+    var parts = (named ? ds.parts : [{ id: "ecb", name: "The euro side, from the ECB", note: "", ids: DOLLAR }]).map(function (p) {
+      return { id: p.id, name: p.name, note: p.note || "", ids: (p.ids || []).filter(function (id) { return src[id]; }) }; }).filter(function (p) { return p.ids.length; });
+    var ids = [].concat.apply([], parts.map(function (p) { return p.ids; }));
+    ids.forEach(function (id) {
+      var m = src[id], e = DOLLAR_ECB[id], c = {};
+      if (named || !e) { M[id] = m; return; }
+      Object.keys(m).forEach(function (k) { c[k] = m[k]; }); c.short = e.short; c.worse = e.worse; M[id] = c;
+    });
+    return { ids: ids, parts: parts, measures: M, series: S, full: full, named: named, episodes: (full ? ds.episodes : deskDoc && deskDoc.episodes) || [], errors: (full && ds.errors) || {} };
   }
-  /* the end of a window that a dollar shortage shows in: the euro's low, lending's high; null where the page takes no side */
-  function dollarSide(id) { return id === "AUX_EURUSD" ? "lo" : id === "AUX_FX_EA" ? "hi" : null; }
-  /* the opening lines, in words, from the measures' own numbers */
+  /* the end of a window that a dollar shortage shows in: "hi", "lo", or null where the page takes no side */
+  function dollarSide(m) { return !m ? null : m.worse === "higher" ? "hi" : m.worse === "lower" ? "lo" : null; }
+  function dollarName(m) { return (m && (m.short || m.label)) || ""; }
+  function dunit(m) { return m.unit === "usd" ? "index" : m.unit; }          /* the euro's rate reads as a rate, not as an amount of dollars */
+  /* 0..100: how far the reading stands toward a shortage; null where the page takes no side or the series has ended.
+     A lending line that is hardly drawn is higher than most of its own idle weeks, so it is placed by its share of its
+     record instead; every other measure by the share of its own readings it stands beyond. */
+  function dollarPlace(m) {
+    var s = dollarSide(m);
+    if (!s || !isNum(m.pctile) || m.status === "ended") return null;
+    if (m.part === "backstop") return m.high && m.high[0] > 0 ? Math.max(0, Math.min(100, m.value / m.high[0] * 100)) : null;
+    return s === "hi" ? m.pctile : 100 - m.pctile;
+  }
+  function dollarPlaceText(m) {
+    var p = dollarPlace(m);
+    if (p === null) return m.status === "ended" ? "ended at its source" : standing(m).replace(/ since \d{4}$/, "");
+    if (m.part === "backstop") return (p < 0.1 ? "under 0.1" : p < 10 ? p.toFixed(1) : String(Math.round(p))) + "% of its record";
+    return (dollarSide(m) === "hi" ? "higher than " : "lower than ") + Math.floor(p) + "% of its readings";
+  }
+  function dollarHeat(m) {
+    var p = dollarPlace(m);
+    if (p === null) return 0;
+    return m.part === "backstop" ? (p >= 50 ? 4 : p >= 25 ? 3 : p >= 10 ? 2 : 0) : p >= 95 ? 4 : p >= 85 ? 3 : p >= 70 ? 2 : p >= 50 ? 1 : 0;
+  }
+  function dwhen(m) { return (m.freq === "W" ? "in the week to " : "on ") + fmtDate(m.date); }
+  function dchange(m, k) { return fmtChange(dunit(m), m.change[k], Math.abs(m.value) >= 10); }
+  function dmoves(m, keys) { return keys.map(function (k) { return dchange(m, k) + " over a " + { "1w": "week", "1m": "month", "12m": "year" }[k]; }).join(", "); }
+  function dpeaks(m, floor, noun) {
+    var big = (m.tops || []).filter(function (x) { return x[0] >= floor; });
+    return big.length ? " " + noun + " stood above " + fmt(m.unit, floor, true).replace(".0 bn", " bn") + " " + (big.length === 1 ? "once" : "at " + big.length + " separate peaks") + ": "
+      + big.map(function (x) { return fmt(m.unit, x[0]) + " on " + fmtDate(x[1]); }).join(", ") + "." : "";
+  }
+  /* the opening lines, in words, from the measures' own numbers: one paragraph for each part that has a measure */
   function dollarRead(dd) {
-    var M = dd.measures, out = [], lend = M.AUX_FX_EA, eur = M.AUX_EURUSD, abroad = M.AUX_FX_NONEA;
-    function moves(m, keys) { return keys.map(function (k) { return fmtChange(m.unit, m.change[k]) + " over a " + { "1w": "week", "1m": "month", "12m": "year" }[k]; }).join(", "); }
-    if (lend) {
-      var big = (lend.tops || []).filter(function (x) { return x[0] >= 100; });
-      out.push("Foreign-currency lending to euro-area banks is " + fmt("eur_bn", lend.value) + " in the week to " + fmtDate(lend.date) + " — " + standing(lend) + "; " + moves(lend, ["1w", "12m"]) + "."
-        + (big.length ? " It has stood above €100 bn " + (big.length === 1 ? "once" : "at " + big.length + " separate peaks") + ": " + big.map(function (x) { return fmt("eur_bn", x[0]) + " on " + fmtDate(x[1]); }).join(", ") + "." : ""));
-    }
-    if (eur) out.push("EUR/USD, the ECB's reference rate, is " + fmt("index", eur.value) + " on " + fmtDate(eur.date) + ": " + moves(eur, ["1w", "1m", "12m"]) + "; " + standing(eur)
+    var M = dd.measures, out = [], line;
+    var swaps = M.FED_SWAPS, fima = M.FED_FIMA, lend = M.AUX_FX_EA, dxy = M.USD_DXY, broad = M.USD_BROAD, eme = M.USD_EME, eur = M.AUX_EURUSD;
+    var ust = M.FED_CUSTODY_UST, c13 = M.FED_CUSTODY_13W, pool = M.FED_FOREIGN_RRP, sofr = M.USD_SOFR_IOR, ted = M.USD_TED, due = M.H8_NET_DUE, res = M.AUX_FX_NONEA;
+    line = [];
+    if (swaps) line.push("The Federal Reserve's swap lines are drawn for " + fmt(swaps.unit, swaps.value) + " " + dwhen(swaps) + " (" + dmoves(swaps, ["1w", "12m"]) + ")." + dpeaks(swaps, 100, "They have"));
+    if (fima) line.push("Its repos with foreign central banks stand at " + fmt(fima.unit, fima.value) + "; their record is " + fmt(fima.unit, fima.high[0]) + " on " + fmtDate(fima.high[1]) + ".");
+    if (lend) line.push((swaps ? "The Eurosystem's foreign-currency lending" : "Foreign-currency lending") + " to euro-area banks is " + fmt(lend.unit, lend.value) + " " + dwhen(lend) + " — " + standing(lend) + "; " + dmoves(lend, ["1w", "12m"]) + "."
+      + dpeaks(lend, 100, "It has"));
+    if (line.length) out.push((swaps || fima ? "Dollars lent by central banks. " : "") + line.join(" "));
+    line = [];
+    if (dxy) line.push("DXY, rebuilt from the Federal Reserve's H.10 rates, is " + fmt("idx", dxy.value) + " on " + fmtDate(dxy.date) + ": " + dmoves(dxy, ["1w", "1m", "12m"]) + "; " + standing(dxy) + ".");
+    if (broad) line.push("The Fed's broad dollar index is " + fmt("idx", broad.value) + " (" + standing(broad) + ")" + (eme ? ", and its index against emerging markets " + fmt("idx", eme.value) + " (" + standing(eme) + ")" : "") + ".");
+    if (eur) line.push("EUR/USD, the ECB's reference rate, is " + fmt("index", eur.value) + " on " + fmtDate(eur.date) + ": " + dmoves(eur, ["1w", "1m", "12m"]) + "; " + standing(eur)
       + " (highest " + fmt("index", eur.high[0]) + " on " + fmtDate(eur.high[1]) + ", lowest " + fmt("index", eur.low[0]) + " on " + fmtDate(eur.low[1]) + ").");
-    if (abroad) out.push("The Eurosystem's foreign-currency claims abroad are " + fmt("eur_bn", abroad.value) + " in the week to " + fmtDate(abroad.date) + " — " + standing(abroad) + "; " + moves(abroad, ["1w", "12m"]) + ".");
+    if (line.length) out.push((dxy || broad ? "The price of the dollar. " : "") + line.join(" "));
+    line = [];
+    if (ust) line.push("Foreign central banks keep " + fmt(ust.unit, ust.value) + " of Treasuries in custody at the Federal Reserve " + dwhen(ust) + " (" + dmoves(ust, ["1w", "12m"]) + ").");
+    if (c13) line.push("Over 13 weeks that is " + fmtChange(c13.unit, c13.value, true) + "; the largest 13-week fall on record is " + fmt(c13.unit, c13.low[0]) + " in the week to " + fmtDate(c13.low[1]) + ".");
+    if (pool) line.push("Their repo pool at the Fed is " + fmt(pool.unit, pool.value) + " (" + dmoves(pool, ["1w", "12m"]) + ").");
+    if (line.length) out.push("Foreign official dollars. " + line.join(" "));
+    line = [];
+    if (sofr) line.push("SOFR is " + fmt("bp", Math.abs(sofr.value)) + (sofr.value < 0 ? " below" : " above") + " the rate the Federal Reserve pays on reserves on " + fmtDate(sofr.date) + "; the record is " + fmt("bp", sofr.high[0]) + " on " + fmtDate(sofr.high[1]) + ".");
+    if (due) line.push("Foreign banks' US offices " + (due.value < 0 ? "are owed a net " + fmt(due.unit, -due.value) + " by" : "owe a net " + fmt(due.unit, due.value) + " to") + " their offices abroad " + dwhen(due)
+      + "; the lowest reading is " + fmt(due.unit, due.low[0]) + " on " + fmtDate(due.low[1]) + ".");
+    if (ted) line.push("The TED spread " + (ted.status === "ended" ? "ended on " + fmtDate(ted.date) + "; its record is " : "is " + fmt("bp", ted.value) + "; its record is ") + fmt("bp", ted.high[0]) + " on " + fmtDate(ted.high[1]) + ".");
+    if (line.length) out.push("Banks' dollar funding. " + line.join(" "));
+    if (res) out.push("The Eurosystem's foreign reserves other than gold are " + fmt(res.unit, res.value) + " " + dwhen(res) + " — " + standing(res) + "; " + dmoves(res, ["1w", "12m"]) + "."
+      + " This is asset item 2 of its weekly statement, “claims on non-euro area residents denominated in foreign currency”: its position at the IMF and its deposits, securities and loans abroad. It is not a gauge of dollars lent.");
+    if (dd.named) out.push("Not here: a cross-currency basis, the market's own price of a dollar shortage. No free official source publishes one.");
     return out;
   }
-  /* one row per named window: the lowest and highest reading of each of the three inside it; windows before 1999 hold none */
+  /* one row per named window; one column for each measure a shortage shows in, at the end of the window it shows in.
+     Measures the page takes no side on are in the charts, not here. */
   function dollarWindows(dd) {
-    var cols = dd.ids.map(function (id) { return dd.measures[id]; });
+    var cols = [], groups = [], left = [];
+    dd.parts.forEach(function (p) {
+      var n = 0;
+      p.ids.forEach(function (id) { var m = dd.measures[id], s = dollarSide(m); if (s) { cols.push({ m: m, end: s }); n++; } else left.push(m); });
+      if (n) groups.push({ id: p.id, name: p.name, span: n });
+    });
     var rows = dd.episodes.map(function (ep) {
-      return { ep: ep, cells: cols.map(function (m) { var p = (m.peaks || {})[ep.id]; return p ? { lo: p.lo, hi: p.hi } : null; }) };
+      return { ep: ep, cells: cols.map(function (c) { var p = (c.m.peaks || {})[ep.id]; return p ? p[c.end] : null; }) };
     }).filter(function (r) { return r.cells.some(Boolean); });
-    return { cols: cols, rows: rows, now: cols.map(function (m) { return [m.value, m.date]; }), record: cols.map(function (m) { return { lo: m.low, hi: m.high }; }) };
+    return { cols: cols, groups: groups, rows: rows, left: left, record: cols.map(function (c) { return c.end === "hi" ? c.m.high : c.m.low; }) };
+  }
+  /* 0..1: how far a reading lies toward the measure's own record at the end a shortage shows in - counted from zero for a
+     measure that has stood on both sides of it (a change, a spread), otherwise from its opposite record */
+  function dollarShare(m, end, v) {
+    var lo = m.low && m.low[0], hi = m.high && m.high[0];
+    if (!isNum(v) || !isNum(lo) || !isNum(hi) || hi <= lo) return 0;
+    if (lo < 0 && hi > 0) return Math.max(0, Math.min(1, end === "hi" ? v / hi : v / lo));
+    return Math.max(0, Math.min(1, end === "hi" ? (v - lo) / (hi - lo) : (hi - v) / (hi - lo)));
   }
 
   var api = { fmt: fmt, fmtChange: fmtChange, fmtDate: fmtDate, when: when, age: age, worseUp: worseUp, heat: heat, standing: standing, record: record, sparkPath: sparkPath,
               board: board, commonWhen: commonWhen, read: read, crisis: crisis, side: side, windowOf: windowOf, visible: visible, around: around, bands: bands, ecbPage: ecbPage,
               dataPath: dataPath, world: world, ckey: ckey, joinWorld: joinWorld, tagRank: tagRank, arrange: arrange, nextSort: nextSort, orderIds: orderIds, lineColour: lineColour,
               worldCols: worldCols, worldIds: worldIds, worldPick: worldPick, lineShown: lineShown, gapOf: gapOf, GAP: GAP,
-              dollarData: dollarData, dollarSide: dollarSide, dollarRead: dollarRead, dollarWindows: dollarWindows, DOLLAR: DOLLAR,
+              dollarData: dollarData, dollarSide: dollarSide, dollarName: dollarName, dollarPlace: dollarPlace, dollarPlaceText: dollarPlaceText, dollarHeat: dollarHeat, dollarRead: dollarRead, dollarWindows: dollarWindows, dollarShare: dollarShare, DOLLAR: DOLLAR, DOLLAR_COL: DOLLAR_COL,
               SETS: SETS, RANGES: RANGES, ALLOW: ALLOW, TAGS: TAGS };
   root.JHSovereignDesk = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
@@ -374,10 +455,11 @@
   var KEY = "jh.sovereign-desk.v1", prefs = { tags: {}, sort: {}, show: "all" };
   try { var kept = JSON.parse(root.localStorage.getItem(KEY) || "null"); if (kept && typeof kept === "object") { prefs.tags = kept.tags || {}; prefs.sort = kept.sort || {}; prefs.show = kept.show || "all"; if (kept.lines === "tagged") over.mode = "tagged"; } } catch (e) { /* a browser that keeps nothing still works */ }
   function save() { prefs.lines = over.mode === "tagged" ? "tagged" : "all"; try { root.localStorage.setItem(KEY, JSON.stringify(prefs)); } catch (e) { /* kept for this visit only */ } }
-  function meas(id) { return (D && D.measures[id]) || (WH && WH.measures && WH.measures[id]) || null; }
+  function meas(id) { return (D && D.measures[id]) || (DS && DS.measures && DS.measures[id]) || (WH && WH.measures && WH.measures[id]) || null; }
   function everyDay(id) { return DS && DS.series && DS.series[id] ? DS.series[id] : null; }        /* the dollar-shortage document keeps every observation */
   function seriesOf(id) { return everyDay(id) || (H && H.series && H.series[id]) || (WH && WH.series && WH.series[id]) || null; }
 
+  var DD = null, wanted = null;      /* the Dollar tab's measures as last rendered; a chart asked for by link before its document arrived */
   function getJson(path) {
     return fetch(path, { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); });
   }
@@ -386,7 +468,12 @@
     getJson("/data/ciss-sovereign-history.json").then(function (h) { H = h; then(); }).catch(function () { H = { series: {} }; then(); });
   }
   function cls(m, v) { var w = worseUp(m); return w === null || !isNum(v) || v === 0 ? "" : (v > 0) === w ? "up" : "dn"; }
-  function oldNote(m) { if (m.status === "ended") return ""; var a = age(m, today); return a.old ? " <span class=old>" + a.days + " days old</span>" : ""; }
+  function oldNote(m) {
+    if (m.status === "ended") return "";
+    var a = age(m, today);
+    if (m.source === "fred") return m.status === "late" ? " <span class=old>" + a.days + " days old</span>" : "";      /* its own release rhythm: H.10 comes a week in arrears */
+    return a.old ? " <span class=old>" + a.days + " days old</span>" : "";
+  }
   function spark(m, w, h) { var p = sparkPath(m.spark, w, h); return p ? "<svg class=sp viewBox='0 0 " + w + " " + h + "' width=" + w + " height=" + h + " aria-hidden=true><path d='" + p + "'/></svg>" : ""; }
   function chg(m, k) { var v = m.change[k]; return "<span class='" + cls(m, v) + "'>" + k + " " + fmtChange(m.unit, v) + "</span>"; }
   function tagColour(key) { var i = tagRank(prefs.tags, key); return i < 0 ? null : TAGS[i][1]; }
@@ -592,7 +679,7 @@
     });
     if (!opt.mini) {
       g.strokeStyle = "#1e242c"; g.fillStyle = "#8b949e"; g.lineWidth = 1; g.textAlign = "right";
-      for (var k = 0; k <= 4; k++) { var v = lo + (hi - lo) * k / 4, y = Y(v); g.beginPath(); g.moveTo(L, y); g.lineTo(wpx - R, y); g.stroke(); g.fillText(fmt(opt.unit, v).replace(" bp", "").replace(" bn", ""), L - 6, y + 4); }
+      for (var k = 0; k <= 4; k++) { var v = lo + (hi - lo) * k / 4, y = Y(v); g.beginPath(); g.moveTo(L, y); g.lineTo(wpx - R, y); g.stroke(); g.fillText(fmt(opt.unit, v, hi - lo >= 10).replace(" bp", "").replace(" bn", ""), L - 6, y + 4); }
       g.textAlign = "center";
       var y0 = +firstIso.slice(0, 4), y1 = +lastIso.slice(0, 4), step = Math.max(1, Math.ceil((y1 - y0 + 1) / Math.max(2, Math.floor((wpx - L - R) / 60))));
       for (var yr = y0 + 1; yr <= y1; yr += step) { var xx = X(dayNum(yr + "-01-01")); if (xx > L + 14 && xx < wpx - R - 14) g.fillText(String(yr), xx, hpx - 7); }
@@ -702,7 +789,12 @@
     var ep = epId && D.episodes.filter(function (e) { return e.id === epId; })[0];
     chart.id = id; chart.years = 0; chart.ep = ep ? ep.id : null; chart.span = ep ? around(ep) : null;
     $("sov-ct").textContent = m.label;
-    var links = [], own = !!m.source;          /* a measure of the World tab names its own source */
+    var links = [], fed = m.source === "fred", own = !!m.source && !fed;          /* a measure of the World tab names its own source; so does one from the Federal Reserve */
+    var dm = DS && DS.measures && DS.measures[id], end = dollarSide(dm) || side(m);                /* the end of a window the Dollar tab reads this measure by, where it takes a side */
+    if (fed) {
+      (m.series || []).forEach(function (sid) { links.push("<a href='https://fred.stlouisfed.org/series/" + encodeURIComponent(sid) + "' target=_blank rel=noopener>" + esc(sid) + " at FRED</a>"); });
+      links.push(link("data/ciss-dollar-shortage.json", "the dollar-shortage document"));
+    }
     if (own) {
       if (m.source === "ecb" && ecbPage(m)) links.push("<a href='" + esc(ecbPage(m)) + "' target=_blank rel=noopener>the series at the ECB</a>");
       if (m.source === "oecd") links.push("<a href='https://fred.stlouisfed.org/series/" + encodeURIComponent(String(m.key).split(":").pop()) + "' target=_blank rel=noopener>the series at FRED</a>");
@@ -710,21 +802,22 @@
       if (m.source === "reported") links.push(link("data/global-sovereign.json", "today's world document"));
       links.push(link("data/ciss-sovereign-world.json", "the stored histories"));
     }
-    if (!own && m.key && ecbPage(m)) links.push("<a href='" + esc(ecbPage(m)) + "' target=_blank rel=noopener>the series at the ECB</a>");
+    if (!own && !fed && m.key && ecbPage(m)) links.push("<a href='" + esc(ecbPage(m)) + "' target=_blank rel=noopener>the series at the ECB</a>");
     if (m.evidence) links.push(link(m.evidence.key, "the response it was read from (.gz)"));
     if (!own && m.key && /^(CISS|CLIFS)\./.test(m.key)) links.push("<a href='/ciss.html?series=" + encodeURIComponent(m.key) + "' target=_blank rel=noopener>in the CISS register</a>");
-    $("sov-cm").innerHTML = "<b>" + fmt(m.unit, m.value) + "</b> · " + when(m) + (m.status === "ended" ? " · <span class=old>the ECB stopped this series; this is its last reading</span>" : oldNote(m))
+    $("sov-cm").innerHTML = "<b>" + fmt(m.unit, m.value) + "</b> · " + when(m) + (m.status === "ended" ? " · <span class=old>" + (fed ? "this series ended at its source" : "the ECB stopped this series") + "; this is its last reading</span>" : oldNote(m))
       + (m.blank_after ? " · the ECB's " + esc(m.blank_after) + " row is blank" : "") + " · " + esc(standing(m)) + "<br>"
-      + (own ? esc(m.source_label) : (m.key ? "<code>" + esc(m.key) + "</code>" : esc(m.derived || "")) + (m.exact && m.key ? " · source value " + esc(m.exact) : "")) + "<br>" + links.filter(Boolean).join(" · ");
-    var peaks = (D.episodes || []).map(function (e) { var p = (m.peaks || {})[e.id]; return p ? [e, p[side(m)]] : null; }).filter(Boolean);
+      + (own || fed ? esc(m.source_label) : (m.key ? "<code>" + esc(m.key) + "</code>" : esc(m.derived || "")) + (m.exact && m.key ? " · source value " + esc(m.exact) : "")) + "<br>" + links.filter(Boolean).join(" · ")
+      + (dm && dm.what ? "<br><span class=wh>" + esc(dm.what) + "</span>" : "");
+    var peaks = (D.episodes || []).map(function (e) { var p = (m.peaks || {})[e.id]; return p ? [e, p[end]] : null; }).filter(Boolean);
     $("sov-cs").innerHTML = "<div class=stat>History from " + fmtDate(m.start) + " · " + m.n.toLocaleString("en-US") + " observations · high " + fmt(m.unit, m.high[0]) + " on " + fmtDate(m.high[1]) + " · low " + fmt(m.unit, m.low[0]) + " on "
       + fmtDate(m.low[1]) + " · mean " + fmt(m.unit, m.mean) + (m.freq === "D" && !own && !everyDay(m.id) ? "<span id=sov-wk class=wk> · the line is the last reading of each week; highs and lows are from every day</span>" : "")
       + (m.source === "dtcc" ? " · one point for each day the name traded; days more than " + GAP + " apart are not joined" : "") + (m.source === "reported" ? " · as the provider showed it each day, unchecked" : "") + "</div>"
-      + (peaks.length ? "<div class=sec>" + (side(m) === "lo" ? "Lowest" : "Highest") + " reading inside each named window (shaded on the chart) · click one to look around it</div><div class=chips>" + peaks.map(function (p) {
+      + (peaks.length ? "<div class=sec>" + (end === "lo" ? "Lowest" : "Highest") + " reading inside each named window (shaded on the chart) · click one to look around it</div><div class=chips>" + peaks.map(function (p) {
         return "<span class='chip" + (p[0].id === chart.ep ? " cur" : "") + "' data-chart-ep='" + esc(p[0].id) + "' tabindex=0 role=button>" + esc(p[0].name) + " <b>" + fmt(m.unit, p[1][0]) + "</b> " + fmtDate(p[1][1]) + "</span>"; }).join("") + "</div>" : "");
     rangeButtons();
     $("sov-ovl").classList.add("on");
-    if (own || everyDay(id)) drawChart(); else needHistory(function () { if (chart.id) drawChart(); });
+    if (own || fed || everyDay(id)) drawChart(); else needHistory(function () { if (chart.id) drawChart(); });
   }
   function closeChart() { $("sov-ovl").classList.remove("on"); chart.id = null; $("sov-tip").style.display = "none"; }
 
@@ -778,63 +871,103 @@
     if (DS) return;
     DS = { loading: true };
     getJson("/data/ciss-dollar-shortage.json").then(function (d) { if (d.contract !== "ciss-dollar-shortage.v1" || !d.measures || !d.series) throw new Error("unexpected document"); DS = d; })
-      .catch(function (e) { DS = { error: e.message }; }).then(function () { if (view === "dollar") render(); if (chart.id && everyDay(chart.id)) { var wk = $("sov-wk"); if (wk) wk.parentNode.removeChild(wk); drawChart(); } });
+      .catch(function (e) { DS = { error: e.message }; }).then(function () {
+        if (view === "dollar") render();
+        if (chart.id && everyDay(chart.id)) { var wk = $("sov-wk"); if (wk) wk.parentNode.removeChild(wk); drawChart(); }
+        if (wanted) { var id = wanted; wanted = null; if (meas(id)) openChart(id); }
+      });
+  }
+  function dcls(m, v) { var sd = dollarSide(m); return !sd || !isNum(v) || v === 0 ? "" : (v > 0) === (sd === "hi") ? "up" : "dn"; }
+  function dstate(m) { return m.status === "ended" ? " <span class=old>ended</span>" : oldNote(m); }
+  function dsource(m) {
+    if (m.source === "fred") return (m.series || []).map(function (sid) { return "<a href='https://fred.stlouisfed.org/series/" + encodeURIComponent(sid) + "' target=_blank rel=noopener>" + esc(sid) + " at FRED</a>"; }).join(" · ");
+    return (ecbPage(m) ? "<a href='" + esc(ecbPage(m)) + "' target=_blank rel=noopener>the series at the ECB</a>" : "") + (m.evidence ? " · " + link(m.evidence.key, "the response it was read from (.gz)") : "");
   }
   function renderDollar() {
     needDollar();
-    var dd = dollarData(DS, D, H);
-    if (!dd.ids.length) { $("sov-main").innerHTML = "<p class=note>The euro's reference rate and the Eurosystem's foreign-currency claims are not in this run's documents; see Sources.</p>"; return; }
-    var M = dd.measures, w = dollarWindows(dd);
+    var dd = DD = dollarData(DS, D, H);
+    if (!dd.ids.length) { $("sov-main").innerHTML = "<p class=note>The dollar-shortage measures are not in this run's documents; see Sources.</p>"; return; }
+    var M = dd.measures, w = dollarWindows(dd), fed = dd.ids.some(function (id) { return M[id].source === "fred"; });
     var html = "<div class=read id=sov-dread>" + dollarRead(dd).map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("") + "</div>"
-      + "<p class=note>Three ECB measurements read side by side. In a dollar shortage the euro falls against the dollar and euro-area banks borrow dollars from the Eurosystem, which shows as a jump in its foreign-currency claims on euro-area residents. "
-      + "Measurements, not a forecast.</p>"
-      + "<div class=sec>The three measures · click one for its own chart</div><div class=tiles id=sov-dtiles>" + dd.ids.map(function (id) { return tile(M[id]); }).join("") + "</div>"
-      + "<div class=sec>Their whole history · named windows shaded</div><div class=ctrl id=sov-drg>" + RANGES.map(function (r) { return "<button class='gbtn" + (r[1] === dyears ? " on" : "") + "' data-dyears='" + r[1] + "'>" + r[0] + "</button>"; }).join("") + "</div>"
-      + "<div class=dcharts>" + dd.ids.map(function (id) { var m = M[id];
-          return "<div class=dchart><div class=mt>" + esc(DOLLAR_SHORT[id]) + " <b>" + fmt(m.unit, m.value) + "</b> <span class=td>" + when(m) + oldNote(m) + "</span></div>"
-            + "<div class=cvbox><canvas class=dcv data-dchart='" + esc(id) + "'></canvas><div class=tip data-dtip='" + esc(id) + "'></div></div>"
-            + "<p class=note>" + esc(m.what || m.label) + "</p></div>"; }).join("") + "</div>";
-    html += "<div class=sec>Inside each named window · the lowest and the highest reading · click a cell for the chart around it</div>"
-      + "<p class=note>A dollar shortage shows in the euro's low and in lending's high; those two columns are marked. The reference rate is read from every day, the two claims from every week.</p>"
-      + "<div class=scroll><table class='board dwin'><thead><tr><th class=l>Window</th>" + w.cols.map(function (m) {
-          var s = dollarSide(m.id); return "<th class='" + (s === "lo" ? "mk" : "") + "' title='" + esc(m.label) + "'>" + esc(DOLLAR_COL[m.id]) + "<small>low</small></th><th class='" + (s === "hi" ? "mk" : "") + "' title='" + esc(m.label) + "'>" + esc(DOLLAR_COL[m.id]) + "<small>high</small></th>"; }).join("") + "</tr></thead><tbody>";
-    function pair(m, c, ep) {
-      if (!c) return "<td class=nil>—</td><td class=nil>—</td>";
-      var s = dollarSide(m.id), share = m.high && m.high[0] ? Math.max(0, Math.min(1, c.hi[0] / m.high[0])) : 0;
-      function td(x, side) {
-        return "<td class='c" + (s === side ? " mk" : "") + "' data-id='" + esc(m.id) + "'" + (ep ? " data-ep='" + esc(ep.id) + "'" : "") + (m.id === "AUX_FX_EA" && side === "hi" ? " style='background:rgba(224,122,106," + (share * 0.55).toFixed(2) + ")'" : "")
-          + " title='" + esc(fmtDate(x[1])) + "'>" + fmt(m.unit === "usd" ? "index" : m.unit, x[0]).replace(" bn", "") + "</td>"; }
-      return td(c.lo, "lo") + td(c.hi, "hi");
+      + "<p class=note>" + (fed ? "Each line is a dated measurement from the Federal Reserve or the ECB. " : "Three ECB measurements read side by side. ")
+      + "In a dollar shortage banks abroad cannot borrow dollars in the market: central banks lend them instead, the dollar rises, and foreign central banks sell or pledge what they hold in the United States. "
+      + "“A shortage shows as” is the direction a shortage has moved a line in before. The bar is how far the reading stands that way: for the three lending lines its share of the line's record, for the others the share of the line's own readings it stands beyond. "
+      + "Measurements, not a forecast.</p>";
+    /* every measure in one table */
+    html += "<div class=sec>Every measure · click a row for its own chart</div><div class=scroll><table class='board dboard' id=sov-dboard><thead><tr><th class=l>Measure</th><th>Now</th><th class=l>As of</th><th>1 week</th><th>1 month</th><th>12 months</th>"
+      + "<th class=l>A shortage shows as</th><th class=l>How far that way</th><th class=l>Record</th></tr></thead><tbody>";
+    dd.parts.forEach(function (p) {
+      html += "<tr class=grp data-part='" + esc(p.id) + "'><td class=l colspan=9>" + esc(p.name) + (p.note ? "<small>" + esc(p.note) + "</small>" : "") + "</td></tr>";
+      p.ids.forEach(function (id) {
+        var m = M[id], sd = dollarSide(m), place = dollarPlace(m), ended = m.status === "ended", rec = sd === "lo" ? m.low : m.high;
+        function ch(k) { return "<td class='" + (ended ? "nil" : dcls(m, m.change[k])) + "'>" + (ended ? "—" : dchange(m, k)) + "</td>"; }
+        html += "<tr class=drow data-id='" + esc(id) + "' tabindex=0 role=button title='" + esc(m.label) + "'><td class='l nm'>" + esc(dollarName(m)) + "<small>" + esc(m.source === "fred" ? "Federal Reserve" : "ECB") + " · " + (m.freq === "D" ? "daily" : "weekly") + "</small></td>"
+          + "<td><b>" + fmt(dunit(m), m.value) + "</b></td><td class=l>" + when(m) + dstate(m) + "</td>" + ch("1w") + ch("1m") + ch("12m")
+          + "<td class=l>" + (sd === "hi" ? "a rise ▲" : sd === "lo" ? "a fall ▼" : "<span class=nil>no side taken</span>") + "</td>"
+          + "<td class=l title='" + esc(standing(m)) + "'>" + (place === null ? "" : "<span class=pb><i class='h" + dollarHeat(m) + "' style='width:" + Math.max(2, place).toFixed(0) + "%'></i></span> ")
+            + "<span class='pt" + (ended ? " nil" : "") + "'>" + esc(dollarPlaceText(m)) + "</span></td>"
+          + "<td class=l>" + (sd ? (sd === "lo" ? "low " : "high ") + fmt(dunit(m), rec[0]) + " <span class=old>" + MONTHS[+rec[1].slice(5, 7) - 1] + " " + rec[1].slice(0, 4) + "</span>"
+                                 : fmt(dunit(m), m.low[0]) + " to " + fmt(dunit(m), m.high[0])) + "</td></tr>";
+      });
+    });
+    html += "</tbody></table></div>";
+    /* the whole history of each, part by part */
+    html += "<div class=sec>Their whole history · named windows shaded · click a name for the larger chart</div><div class=ctrl id=sov-drg>" + RANGES.map(function (r) {
+      return "<button class='gbtn" + (r[1] === dyears ? " on" : "") + "' data-dyears='" + r[1] + "'>" + r[0] + "</button>"; }).join("") + "</div>";
+    dd.parts.forEach(function (p) {
+      html += "<div class=dpart data-part='" + esc(p.id) + "'><div class=dph>" + esc(p.name) + (p.note ? "<small>" + esc(p.note) + "</small>" : "") + "</div><div class=dcharts>" + p.ids.map(function (id) {
+        var m = M[id];
+        return "<div class=dchart><div class=mt data-id='" + esc(id) + "' tabindex=0 role=button title='" + esc(m.label) + "'>" + esc(dollarName(m)) + " <b>" + fmt(dunit(m), m.value) + "</b> <span class=td>" + when(m) + dstate(m) + "</span></div>"
+          + "<div class=cvbox><canvas class=dcv data-dchart='" + esc(id) + "'></canvas><div class=tip data-dtip='" + esc(id) + "'></div></div>"
+          + "<p class=note>" + esc(m.what || m.label) + "</p></div>"; }).join("") + "</div></div>";
+    });
+    /* inside each named window */
+    html += "<div class=sec>Inside each named window · click a cell for the chart around it</div>"
+      + "<p class=note>For each measure a shortage shows in, the end of the window it shows in: the highest lending, the highest dollar, the lowest euro, the largest fall in custody holdings. "
+      + "The darker a cell, the nearer that reading lies to the measure's own record in that direction."
+      + (w.left.length ? " Not in this table, because the page takes no side on them: " + w.left.map(function (m) { return esc(dollarName(m)); }).join("; ") + "." : "") + "</p>"
+      + "<div class=scroll><table class='board dwin' id=sov-dwin><thead><tr><th class=l rowspan=2>Window</th>" + w.groups.map(function (g) { return "<th class='c grp' colspan=" + g.span + ">" + esc(g.name) + "</th>"; }).join("") + "</tr><tr>"
+      + w.cols.map(function (c) { return "<th class=mk title='" + esc(c.m.label) + "'>" + esc(DOLLAR_COL[c.m.id] || dollarName(c.m)) + "<small>" + (c.end === "lo" ? "low" : "high") + "</small></th>"; }).join("") + "</tr></thead><tbody>";
+    function cellOf(c, x, ep, plain) {
+      if (!x) return "<td class=nil>—</td>";
+      return "<td class='c" + (plain ? "" : " mk") + "' data-id='" + esc(c.m.id) + "'" + (ep ? " data-ep='" + esc(ep.id) + "'" : "") + (plain ? "" : " style='background:rgba(224,122,106," + (dollarShare(c.m, c.end, x[0]) * 0.55).toFixed(2) + ")'")
+        + " title='" + esc(fmtDate(x[1])) + "'>" + fmt(dunit(c.m), x[0]).replace(" bn", "").replace(" bp", "") + "</td>";
     }
     w.rows.forEach(function (r) {
-      html += "<tr data-ep='" + esc(r.ep.id) + "'><td class='l nm'>" + esc(r.ep.name) + "<small>" + fmtDate(r.ep.from) + " – " + fmtDate(r.ep.to) + "</small></td>" + r.cells.map(function (c, i) { return pair(w.cols[i], c, r.ep); }).join("") + "</tr>";
+      html += "<tr data-ep='" + esc(r.ep.id) + "'><td class='l nm'>" + esc(r.ep.name) + "<small>" + fmtDate(r.ep.from) + " – " + fmtDate(r.ep.to) + "</small></td>" + r.cells.map(function (x, i) { return cellOf(w.cols[i], x, r.ep); }).join("") + "</tr>";
     });
-    html += "<tr class=nowrow><td class='l nm'>Now<small>each at its latest date</small></td>" + w.cols.map(function (m) { return "<td class=c colspan=2 data-id='" + esc(m.id) + "' style='text-align:center'>" + fmt(m.unit === "usd" ? "index" : m.unit, m.value).replace(" bn", "") + " <span class=old>" + when(m) + "</span></td>"; }).join("") + "</tr>";
-    html += "<tr class=recrow><td class='l nm'>Record<small>whole history</small></td>" + w.cols.map(function (m, i) { return pair(m, w.record[i], null); }).join("") + "</tr></tbody></table></div>";
+    html += "<tr class=nowrow><td class='l nm'>Now<small>each at its latest date</small></td>" + w.cols.map(function (c) { return "<td class=c data-id='" + esc(c.m.id) + "' title='" + esc(when(c.m)) + "'>"
+      + fmt(dunit(c.m), c.m.value).replace(" bn", "").replace(" bp", "") + (c.m.status === "ended" ? " <span class=old>ended</span>" : "") + "</td>"; }).join("") + "</tr>";
+    html += "<tr class=recrow><td class='l nm'>Record<small>whole history</small></td>" + w.cols.map(function (c, i) { return cellOf(c, w.record[i], null, true); }).join("") + "</tr></tbody></table></div>";
+    /* where each number comes from */
+    var bad = Object.keys(dd.errors);
     html += "<div class=sec>Where each number comes from</div><p class=note id=sov-dsrc>" + dd.ids.map(function (id) { var m = M[id];
-      return "<b>" + esc(m.label) + "</b> · <code>" + esc(m.key) + "</code> · since " + fmtDate(m.start) + ", " + m.n.toLocaleString("en-US") + " observations · <a href='" + esc(ecbPage(m)) + "' target=_blank rel=noopener>the series at the ECB</a>"
-        + (m.evidence ? " · " + link(m.evidence.key, "the response it was read from (.gz)") : ""); }).join("<br>")
-      + "<br>Each is checked against that response on the <a href='/ciss.html' target=_blank rel=noopener>CISS register</a>. "
-      + (dd.full ? link("data/ciss-dollar-shortage.json", "The document") + " · compiled " + esc(String(DS.generated_at).slice(0, 16).replace("T", " ")) + " UTC from the ECB responses the desk document names."
-                 : "<span class=old>The complete daily history has not arrived" + (DS && DS.error ? " (" + esc(DS.error) + ")" : "") + "; the reference rate is drawn from one reading a week.</span>")
-      + " The same three are on the <a href='/dollar-indexes.html' target=_blank rel=noopener>Dollar desk</a>.</p>";
+      return "<b>" + esc(m.label) + "</b> · <code>" + esc(m.key) + "</code> · since " + fmtDate(m.start) + ", " + m.n.toLocaleString("en-US") + " observations · " + dsource(m)
+        + (m.source === "fred" && m.read_at ? " · read from the site's warehouse " + esc(String(m.read_at).slice(0, 16).replace("T", " ")) + " UTC" : ""); }).join("<br>")
+      + "<br>The ECB's three are checked against their responses on the <a href='/ciss.html' target=_blank rel=noopener>CISS register</a>."
+      + (fed ? " A Federal Reserve line begins at its first reading above zero: FRED fills the weeks before the line was printed with zeros. DXY is ICE's formula on the Federal Reserve's H.10 noon rates, so it runs a week behind the market's own print." : "") + " "
+      + (dd.full ? link("data/ciss-dollar-shortage.json", "The document") + " · compiled " + esc(String(DS.generated_at).slice(0, 16).replace("T", " ")) + " UTC."
+                 : "<span class=old>The complete history has not arrived" + (DS && DS.error ? " (" + esc(DS.error) + ")" : "") + "; the reference rate is drawn from one reading a week.</span>")
+      + (bad.length ? "<br><span class=old>Not available in this run: " + bad.map(function (k) { return esc(k + " — " + dd.errors[k]); }).join("; ") + "</span>" : "")
+      + " The backstops, the official holdings and the euro side are also on the <a href='/dollar-indexes.html' target=_blank rel=noopener>Dollar desk</a>.</p>";
     $("sov-main").innerHTML = html;
     if (dd.full) drawDollar(); else needHistory(function () { if (view === "dollar") drawDollar(); });
   }
   function drawDollar() {
-    var dd = dollarData(DS, D, H); dgeo = {};
+    var dd = DD = dollarData(DS, D, H); dgeo = {};
     doc.querySelectorAll("canvas[data-dchart]").forEach(function (cv) {
       var id = cv.getAttribute("data-dchart"), m = dd.measures[id];
-      dgeo[id] = plot(cv, [{ colour: "#F0B429", width: 1.3, pts: points(dd.series[id], dyears) }], { unit: m.unit === "usd" ? "index" : m.unit, episodes: dd.episodes, empty: dd.series[id] ? "Not enough history in this range." : "No history for this measure." });
+      dgeo[id] = plot(cv, [{ colour: "#F0B429", width: 1.3, pts: points(dd.series[id], dyears), ended: m.status === "ended" }],
+        { unit: dunit(m), episodes: dd.episodes, empty: dd.series[id] ? (m.status === "ended" ? "This series ended on " + fmtDate(m.date) + "; pick a longer range." : "Not enough history in this range.") : "No history for this measure." });
       cv.setAttribute("data-points", dgeo[id] ? dgeo[id].lines[0].pts.length : 0);
     });
   }
   function hoverDollar(ev) {
-    var cv = ev.target, id = cv.getAttribute("data-dchart"), geo = dgeo[id], tip = doc.querySelector("[data-dtip='" + id + "']"); if (!geo || !tip) return;
+    var cv = ev.target, id = cv.getAttribute("data-dchart"), geo = dgeo[id], tip = doc.querySelector("[data-dtip='" + id + "']"); if (!geo || !tip || !DD) return;
     var box = cv.getBoundingClientRect(), px = (ev.touches ? ev.touches[0].clientX : ev.clientX) - box.left;
-    var best = nearest(geo.lines[0].pts, geo.x0 + (px - geo.L) / (geo.w - geo.L - geo.R) * (geo.x1 - geo.x0)), m = meas(id), ep = windowOf(D.episodes, best[2]);
+    var best = nearest(geo.lines[0].pts, geo.x0 + (px - geo.L) / (geo.w - geo.L - geo.R) * (geo.x1 - geo.x0)), m = DD.measures[id], ep = windowOf(D.episodes, best[2]);
     tip.style.display = "block"; tip.style.left = Math.min(geo.w - 170, Math.max(4, geo.X(best[0]) + 10)) + "px"; tip.style.top = Math.max(4, geo.Y(best[1]) - 34) + "px";
-    tip.innerHTML = "<b>" + fmt(m.unit === "usd" ? "index" : m.unit, best[1]) + "</b> " + fmtDate(best[2]) + (ep ? "<br>" + esc(ep.name) : "");
+    tip.innerHTML = "<b>" + fmt(dunit(m), best[1]) + "</b> " + fmtDate(best[2]) + (ep ? "<br>" + esc(ep.name) : "");
   }
 
   function renderSources() {
@@ -935,6 +1068,7 @@
     render();
     var want = params.get("m");
     if (want && d.measures[want]) openChart(want);
+    else if (want && /^[A-Z0-9_]{3,40}$/.test(want)) { wanted = want; needDollar(); }                 /* a Federal Reserve measure: its document is read first */
     getJson("/data/global-sovereign.json").then(function (w) { W = w; WJ = joinWorld(w); render(); }).catch(function (e) { W = { error: e.message }; if (view === "world") render(); });
   }).catch(function (e) {
     $("sov-asof").textContent = "The sovereign-stress document could not be read: " + e.message;

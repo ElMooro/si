@@ -33,8 +33,8 @@ function block(src, head) {
 const catalog = name => Function('return ' + block(html, '  static ' + name + ' = ').replace('  static ' + name + ' = ', ''))();
 const member = name => block(html, '  static ' + name);
 
-// the dollar desk: 95 FRED series in 8 families, and since 2026-11-22 the three ECB measurements of the "Dollar shortage" family
-const DESKS = { dollar: ['DOLLAR_CATALOG', 98, 9], soma: ['SOMA_CATALOG', 222, 25], bofa: ['BOFA_CATALOG', 192, 16] };
+// the dollar desk: 95 FRED series in 8 families, and since 2026-11-22 the "Dollar shortage" family: three ECB measurements and five Federal Reserve lines
+const DESKS = { dollar: ['DOLLAR_CATALOG', 103, 9], soma: ['SOMA_CATALOG', 222, 25], bofa: ['BOFA_CATALOG', 192, 16] };
 
 test('each desk holds every series once', () => {
   for (const [desk, [name, n, families]] of Object.entries(DESKS)) {
@@ -45,7 +45,7 @@ test('each desk holds every series once', () => {
     assert.equal(new Set(ids).size, n, desk + ' has a series twice');
     assert.equal(new Set(cats.map(c => c.cat)).size, families, desk + ' has a family name twice');
     for (const c of cats) for (const it of c.items) {
-      assert.ok(/^(calc:[a-z]+|[A-Z0-9]+|flows:ecb-dollar\/AUX_[A-Z_]+)$/.test(it[0]), desk + ' id ' + it[0]);
+      assert.ok(/^(calc:[a-z]+|[A-Z0-9]+|flows:ecb-dollar\/(AUX|FED|USD)_[A-Z0-9_]+)$/.test(it[0]), desk + ' id ' + it[0]);
       assert.equal(it[0].startsWith('flows:'), desk === 'dollar' && c.cat.startsWith('Dollar shortage'), 'a site document feeds only the Dollar shortage family: ' + it[0]);
       assert.ok(it[1] && it[1].length <= 96 && it[2], desk + ' title / unit of ' + it[0]);
       assert.ok(!/[{}`]/.test(it[1] + c.cat), 'a brace in a title breaks the page generator: ' + it[0]);

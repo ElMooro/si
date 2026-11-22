@@ -12,8 +12,9 @@ A real browser on justhodl.ai, judged against the documents the pages read:
   5. World and Sources: rows as the documents say; the World tab's chart draws every country of each of its four sets,
      "Only tagged" keeps to the tagged countries as they are tagged, a cell opens that country's history; a retained
      ECB response is fetched and its SHA-256 recomputed;
-  5c. the Dollar shortage tab: the euro's reference rate and the Eurosystem's two foreign-currency claims equal their
-     document, each chart draws every observation, a cell opens the chart around its window;
+  5c. the Dollar shortage tab: every measure of the document (the ECB's three and the Federal Reserve's twelve) in one
+     table, in its parts, equal to the document; each chart draws every observation; the windows table holds each
+     measure a shortage shows in; a cell, a row and a chart's name each open that measure's own chart;
   6. the desk alone at 390 px: nothing wider than the screen; a deep link opens a chart; tags survive a reload;
   7. ciss.html: a readable headline with the exact value beside it, the reconciliation in words, current / blank /
      ended counts as the warehouse says, auxiliaries with their originals - and one checked in the browser;
@@ -36,7 +37,10 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "aws" / "ops"))
 BASE = "https://justhodl.ai"
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36 jh-ops-probe"
-UNITS = {"index": (4, "", ""), "pct": (2, "", "%"), "bp": (1, "", " bp"), "eur_bn": (1, "€", " bn"), "pct_gdp": (1, "", "%"), "usd": (4, "$", "")}
+UNITS = {"index": (4, "", ""), "pct": (2, "", "%"), "bp": (1, "", " bp"), "eur_bn": (1, "€", " bn"), "pct_gdp": (1, "", "%"), "usd": (4, "$", ""), "usd_bn": (1, "$", " bn"), "idx": (2, "", "")}
+SMALL = {"usd_bn": 3}           # an amount under ten is read to the million, unless it stands on a wide axis
+ECB3 = ["AUX_EURUSD", "AUX_FX_EA", "AUX_FX_NONEA"]
+DESK_FAMILY = ["FED_SWAPS", "FED_FIMA", "AUX_FX_EA", "AUX_EURUSD", "FED_CUSTODY_UST", "FED_FOREIGN_RRP", "USD_TED", "AUX_FX_NONEA"]      # the Dollar desk's "Dollar shortage" cards
 CHART = r"""() => { const b = (id) => document.getElementById(id), ov = b('ws-overlay'), f = ov ? ov.querySelector('iframe') : null, btn = b('btn-sov'), prev = btn ? btn.previousElementSibling : null,
   next = btn ? btn.nextElementSibling : null, box = btn ? btn.getBoundingClientRect() : null, repo = b('btn-repo');
   return { btn: !!btn, prev: prev ? prev.id : null, next: next ? next.id : null, label: btn ? btn.textContent.trim() : null, title: btn ? btn.title : null,
@@ -68,7 +72,7 @@ CISS = r"""() => { const g = (id) => { const n = document.getElementById(id); re
     main: document.querySelector('main').innerText, ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }; }"""
 
 
-def fmt(unit, v):
+def fmt(unit, v, wide=False):
     """The page's own formatting, written again here: jh-sovereign-desk.js fmt().
 
     A browser's toLocaleString rounds the shortest decimal of a float half away from zero (0.04225 -> 0.0423) where
@@ -76,8 +80,19 @@ def fmt(unit, v):
     if v is None:
         return "—"
     d, pre, suf = UNITS[unit]
+    if unit in SMALL and not wide and v != 0 and abs(v) < 10:
+        d = SMALL[unit]
     q = abs(Decimal(repr(float(v)))).quantize(Decimal(1).scaleb(-d), rounding=ROUND_HALF_UP)
     return ("−" if v < 0 and q != 0 else "") + pre + "{:,}".format(q) + suf
+
+
+def dside(m):
+    """The end of a window a dollar shortage shows a measure in: jh-sovereign-desk.js dollarSide()."""
+    return {"higher": "hi", "lower": "lo"}.get(m.get("worse"))
+
+
+def dunit(m):
+    return "index" if m["unit"] == "usd" else m["unit"]
 
 
 def lifecycle(row, now):
@@ -108,6 +123,9 @@ def selftest():
     assert fmt("index", 0.17391) == "0.1739" and fmt("eur_bn", -453.798) == "−€453.8 bn" and fmt("eur_bn", 1004.296) == "€1,004.3 bn" and fmt("bp", 59.81) == "59.8 bp"
     assert fmt("index", -0.00001) == "0.0000" and fmt("pct", None) == "—"
     assert fmt("index", 0.04225) == "0.0423" and fmt("bp", 16.75) == "16.8 bp" and fmt("eur_bn", 1307.451) == "€1,307.5 bn" and fmt("pct", 4.0) == "4.00%"
+    assert fmt("usd_bn", 0.146) == "$0.146 bn" and fmt("usd_bn", 2544.011) == "$2,544.0 bn" and fmt("usd_bn", 0.146, True) == "$0.1 bn" and fmt("usd_bn", 0) == "$0.0 bn" and fmt("usd_bn", -615.423) == "−$615.4 bn"
+    assert fmt("idx", 103.3578) == "103.36" and fmt("usd_bn", 60.0) == "$60.0 bn" and fmt("usd_bn", -42.16) == "−$42.2 bn"
+    assert dside({"worse": "higher"}) == "hi" and dside({"worse": "lower"}) == "lo" and dside({"worse": None}) is None and dunit({"unit": "usd"}) == "index" and dunit({"unit": "usd_bn"}) == "usd_bn"
     assert script_of(b'<script src="/jh-sovereign-desk.js?v=abc123"></script>', "jh-sovereign-desk.js") == "/jh-sovereign-desk.js?v=abc123"
     assert script_of(b'<script src="/assets/jh-workspaces.js?v=9f"></script>', "assets/jh-workspaces.js") == "/assets/jh-workspaces.js?v=9f"      # a script in a folder is named with its folder
     assert script_of(b'<script src="/assets/jh-workspaces.js"></script>', "assets/jh-workspaces.js") == "/assets/jh-workspaces.js"
@@ -145,8 +163,8 @@ def main():
                 served = {"engine": b"id=btn-sov" in fetch("/jh-chart-engine.js?probe=%d" % (stamp + attempt)),
                           "rail": b'sov: ["Sovereign stress' in fetch("/jh-chart-tvrail.js?probe=%d" % (stamp + attempt)),
                           "desk_page": b'data-view="dollar"' in desk_html,                             # the page of the fourth round: the Dollar shortage tab
-                          "desk_script": b"function renderDollar(" in fetch(script_of(desk_html, "jh-sovereign-desk.js")),
-                          "dollar_desk": b"flows:ecb-dollar/AUX_EURUSD" in fetch(script_of(fetch("/dollar-indexes.html?nocache=%d" % (stamp + attempt)), "assets/jh-workspaces.js")),    # the desks' bundle lives under /assets
+                          "desk_script": b"id=sov-dboard" in fetch(script_of(desk_html, "jh-sovereign-desk.js")),       # the script of the fifth round: every dollar measure in one table
+                          "dollar_desk": b"flows:ecb-dollar/FED_SWAPS" in fetch(script_of(fetch("/dollar-indexes.html?nocache=%d" % (stamp + attempt)), "assets/jh-workspaces.js")),    # the desks' bundle lives under /assets
                           "ciss_page": b'id="ciss-exact"' in ciss_html,
                           "ciss_script": b"verifiedMeasure" in fetch(script_of(ciss_html, "jh-ciss-research.js")),
                           "fiscal_page": b"yoyB(" in fetch("/sovereign.html?probe=%d" % (stamp + attempt))}
@@ -168,9 +186,18 @@ def main():
         wh = json.loads(fetch("/data/ciss-sovereign-world.json?probe=%d" % stamp))
         ds = json.loads(fetch("/data/ciss-dollar-shortage.json?probe=%d" % stamp))
         M = doc["measures"]
-        ck(ds.get("contract") == "ciss-dollar-shortage.v1" and ds.get("order") == ["AUX_EURUSD", "AUX_FX_EA", "AUX_FX_NONEA"] and ds["desk"]["generated_at"] == doc["generated_at"]
-           and all(ds["measures"][k]["value"] == M[k]["value"] and ds["measures"][k]["date"] == M[k]["date"] and len(ds["series"][k]["d"]) == M[k]["n"] for k in ds["order"]),
+        ck(ds.get("contract") == "ciss-dollar-shortage.v1" and ds.get("ecb") == ECB3 and ds["desk"]["generated_at"] == doc["generated_at"]
+           and all(ds["measures"][k]["value"] == M[k]["value"] and ds["measures"][k]["date"] == M[k]["date"] and len(ds["series"][k]["d"]) == M[k]["n"] for k in ECB3),
            "the dollar-shortage document does not stand on today's desk document")
+        fedm = [k for k in ds["order"] if ds["measures"][k].get("source") == "fred"]
+        r.log("dollar-shortage document %s, generated %s: %d measures (%d Federal Reserve) in %d parts, %d observations, errors %s" % (
+            ds.get("version"), ds["generated_at"][:19], len(ds["measures"]), len(fedm), len(ds.get("parts") or []), ds["coverage"]["observations"], json.dumps(ds.get("errors"))[:200]))
+        ck(ds.get("version", "") >= "1.1.0" and len(ds["measures"]) == 15 and len(fedm) == 12 and sorted(ds["order"]) == sorted(ds["measures"]) and ds["order"] == [i for part in ds["parts"] for i in part["ids"]]
+           and all(len(ds["series"][k]["d"]) == len(ds["series"][k]["v"]) == ds["measures"][k]["n"] and ds["series"][k]["d"][-1] == ds["measures"][k]["date"] and ds["series"][k]["v"][-1] == ds["measures"][k]["value"] for k in ds["order"])
+           and [k for k in ds["order"] if ds["measures"][k]["status"] != "current"] == ["USD_TED"] and all(i in ds["measures"] for i in DESK_FAMILY),
+           "the dollar-shortage document is not the fifteen measures it should be: %s" % ds["order"])
+        if ds.get("errors"):
+            r.warn("the dollar-shortage document names a source it could not read today (the series kept from before is used): %s" % json.dumps(ds["errors"])[:300])
         ck(wh.get("contract") == "sovereign-world.v1" and not wh.get("errors") and len(wh["countries"]) == len(world["countries"]), "the World tab's histories: contract, errors or countries (%s, %s, %d)" % (
             wh.get("contract"), json.dumps(wh.get("errors"))[:120], len(wh.get("countries") or [])))
         r.log("documents: desk %s, %d measures, %d countries, errors %s | history %d series | warehouse %s" % (
@@ -509,59 +536,89 @@ def main():
             r.section("5c. The Dollar shortage tab")
             fr.click("#sov-tabs .tab[data-view='dollar']")
             fr.wait_for_selector("canvas[data-dchart]", timeout=60000)
-            fr.wait_for_function("() => Array.from(document.querySelectorAll('canvas[data-dchart]')).every(c => +c.getAttribute('data-points') > 100) && !!document.querySelector('#sov-dsrc a[href*=\"ciss-dollar-shortage\"]')", timeout=60000)
-            DM, DSER = ds["measures"], ds["series"]
-            dv = lambda m: fmt("index" if m["unit"] == "usd" else m["unit"], m["value"])
+            fr.wait_for_function("() => document.querySelectorAll('canvas[data-dchart]').length >= 15 && Array.from(document.querySelectorAll('canvas[data-dchart]')).every(c => +c.getAttribute('data-points') > 100) && !!document.querySelector('#sov-dsrc a[href*=\"ciss-dollar-shortage\"]')", timeout=60000)
+            DM, DSER, order = ds["measures"], ds["series"], ds["order"]
+            dv = lambda m, v=None, strip=False: fmt(dunit(m), m["value"] if v is None else v).replace(" bn" if strip else "\0", "").replace(" bp" if strip else "\0", "")
             dollar_state = lambda: fr.evaluate("""() => { const q = (s) => Array.from(document.querySelectorAll(s)), txt = (n) => n ? n.innerText.replace(/\\s+/g, ' ').trim() : '';
               const t = document.querySelector('table.dwin'), row = (tr) => tr ? Array.from(tr.children).map(txt) : [];
               const lit = (c) => { if (!c.width) return 0; const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i] > 200 && d[i + 1] > 150 && d[i + 2] < 90) n++; return n; };
-              return { tab: txt(document.querySelector('#sov-tabs .tab.on')), read: q('#sov-dread p').map(txt), tiles: q('#sov-dtiles .tile').map(x => [x.getAttribute('data-id'), txt(x.querySelector('.tv'))]),
-                charts: q('canvas[data-dchart]').map(c => [c.getAttribute('data-dchart'), +c.getAttribute('data-points'), lit(c)]), heads: q('table.dwin thead th').map(txt),
+              return { tab: txt(document.querySelector('#sov-tabs .tab.on')), read: q('#sov-dread p').map(txt),
+                board: q('#sov-dboard tr.drow').map(tr => [tr.getAttribute('data-id')].concat(row(tr))), groups: q('#sov-dboard tr.grp').map(tr => tr.getAttribute('data-part')),
+                bars: Object.fromEntries(q('#sov-dboard tr.drow').map(tr => { const i = tr.querySelector('.pb i'); return [tr.getAttribute('data-id'), i ? i.className : null]; })),
+                parts: q('.dpart').map(d => [d.getAttribute('data-part'), d.querySelectorAll('canvas[data-dchart]').length]),
+                charts: q('canvas[data-dchart]').map(c => [c.getAttribute('data-dchart'), +c.getAttribute('data-points'), lit(c)]), heads: q('table.dwin thead tr:last-child th').map(txt), groupheads: q('table.dwin thead th.grp').map(txt),
                 rows: Object.fromEntries(q('table.dwin tbody tr[data-ep]').map(tr => [tr.getAttribute('data-ep'), row(tr)])), now: row(t.querySelector('tr.nowrow')), record: row(t.querySelector('tr.recrow')),
-                marked: q('table.dwin thead th.mk').map(txt), src: txt(document.getElementById('sov-dsrc')), bad: (document.getElementById('sov-main').innerText.match(/\\bNaN\\b|\\bundefined\\b|\\bnull\\b|Infinity/g) || []),
+                marked: q('table.dwin thead th.mk').map(txt), src: txt(document.getElementById('sov-dsrc')), fred: q('#sov-dsrc a[href*="fred.stlouisfed.org/series/"]').length,
+                all: document.getElementById('sov-main').innerText, bad: (document.getElementById('sov-main').innerText.match(/\\bNaN\\b|\\bundefined\\b|\\bnull\\b|Infinity/g) || []),
                 ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }; }""")
             k = dollar_state()
             for line in k["read"]:
                 r.log("  read: %s" % line)
-            r.log("tiles: %s" % " | ".join("%s %s" % (x[0], x[1]) for x in k["tiles"]))
-            r.log("charts: %s" % " | ".join("%s %d points, %d line pixels" % (x[0], x[1], x[2]) for x in k["charts"]))
-            ck(k["tab"] == "Dollar shortage" and [x[0] for x in k["tiles"]] == ds["order"] and all(fmt(DM[i]["unit"], DM[i]["value"]) in v for i, v in k["tiles"]), "the Dollar shortage tiles: %s" % k["tiles"])
-            ck([(x[0], x[1]) for x in k["charts"]] == [(i, len(DSER[i]["d"])) for i in ds["order"]] and all(x[2] > 1500 for x in k["charts"]) and k["charts"][0][1] > 6500,
+            for row in k["board"]:
+                r.log("  %-16s %s" % (row[0], " | ".join(row[1:])))
+            r.log("charts by part %s: %s" % (k["parts"], " | ".join("%s %d points, %d line pixels" % (x[0], x[1], x[2]) for x in k["charts"])))
+            ck(k["tab"] == "Dollar shortage" and [row[0] for row in k["board"]] == order and k["groups"] == [part["id"] for part in ds["parts"]], "the table of every measure: %s" % [row[0] for row in k["board"]])
+            ck(all(row[1].startswith(DM[row[0]]["short"]) and row[2] == dv(DM[row[0]]) for row in k["board"]), "a row of the table does not show its measure's name and value: %s" % [(row[0], row[1][:30], row[2]) for row in k["board"] if row[2] != dv(DM[row[0]])][:3])
+            ck(k["parts"] == [[part["id"], len(part["ids"])] for part in ds["parts"]] and [(x[0], x[1]) for x in k["charts"]] == [(i, len(DSER[i]["d"])) for i in order] and all(x[2] > 1500 for x in k["charts"]),
                "each chart should draw every observation of its series: %s" % k["charts"])
-            lend, eur = DM["AUX_FX_EA"], DM["AUX_EURUSD"]
-            ck(len(k["read"]) == 3 and fmt("eur_bn", lend["value"]) in k["read"][0] and fmt("eur_bn", lend["high"][0]) in k["read"][0] and fmt("index", eur["value"]) in k["read"][1]
-               and fmt("eur_bn", DM["AUX_FX_NONEA"]["value"]) in k["read"][2], "the opening lines of the Dollar shortage tab")
-            eps = [e["id"] for e in ds["episodes"] if any(e["id"] in DM[i]["peaks"] for i in ds["order"])]
+            swaps, lend, eur, dxy, res, c13 = DM["FED_SWAPS"], DM["AUX_FX_EA"], DM["AUX_EURUSD"], DM["USD_DXY"], DM["AUX_FX_NONEA"], DM["FED_CUSTODY_13W"]
+            ck(len(k["read"]) == 6 and fmt("usd_bn", swaps["value"]) in k["read"][0] and fmt("usd_bn", swaps["high"][0]) in k["read"][0] and fmt("eur_bn", lend["value"]) in k["read"][0] and fmt("eur_bn", lend["high"][0]) in k["read"][0]
+               and fmt("idx", dxy["value"]) in k["read"][1] and fmt("index", eur["value"]) in k["read"][1] and fmt("usd_bn", DM["FED_CUSTODY_UST"]["value"]) in k["read"][2] and fmt("usd_bn", c13["low"][0]) in k["read"][2]
+               and fmt("bp", DM["USD_SOFR_IOR"]["high"][0]) in k["read"][3] and fmt("usd_bn", DM["H8_NET_DUE"]["low"][0]) in k["read"][3] and fmt("eur_bn", res["value"]) in k["read"][4] and k["read"][5].startswith("Not here: a cross-currency basis"),
+               "the opening lines of the Dollar shortage tab")
+            # the reserves item has one name on this tab, and the way each line is placed is said in words
+            place = {row[0]: row[8] for row in k["board"]}
+            r.log("placed: %s | bars %s" % (json.dumps(place, ensure_ascii=False)[:700], json.dumps(k["bars"])))
+            ck("Eurosystem foreign reserves other than gold" in k["all"] and "Foreign-currency claims abroad" not in k["all"] and "claims abroad" not in k["all"].lower().replace("loans abroad", ""), "the reserves item is not under one name")
+            ck(all(place[i].endswith("% of its record") for i in ("FED_SWAPS", "FED_FIMA", "AUX_FX_EA")) and place["USD_DXY"] == "higher than %d%% of its readings" % int(dxy["pctile"]) and place["AUX_EURUSD"] == "lower than %d%% of its readings" % int(100 - eur["pctile"])
+               and place["USD_TED"] == "ended at its source" and k["bars"]["FED_SWAPS"] is not None and all(k["bars"][i] is None for i in order if dside(DM[i]) is None or DM[i]["status"] == "ended"),
+               "how far each line stands toward a shortage: %s" % json.dumps(place, ensure_ascii=False)[:400])
+            cols = [(DM[i], dside(DM[i])) for i in order if dside(DM[i])]
+            eps = [e["id"] for e in ds["episodes"] if any(e["id"] in m["peaks"] for m, _ in cols)]
             g = k["rows"].get("gfc2008") or []
-            want_g = [fmt("index", eur["peaks"]["gfc2008"]["lo"][0]), fmt("index", eur["peaks"]["gfc2008"]["hi"][0]), fmt("eur_bn", lend["peaks"]["gfc2008"]["lo"][0]).replace(" bn", ""), fmt("eur_bn", lend["peaks"]["gfc2008"]["hi"][0]).replace(" bn", "")]
-            r.log("windows: %d rows | Lehman row %s | now %s | record %s | marked columns %s" % (len(k["rows"]), g[1:5], k["now"][1:], k["record"][1:], k["marked"]))
-            ck(list(k["rows"]) == eps and g[1:5] == want_g and len(k["heads"]) == 7 and len(k["marked"]) == 2, "the windows table: %s against %s" % (g[1:5], want_g))
-            ck(k["record"][1:5] == [fmt("index", eur["low"][0]), fmt("index", eur["high"][0]), fmt("eur_bn", lend["low"][0]).replace(" bn", ""), fmt("eur_bn", lend["high"][0]).replace(" bn", "")]
-               and dv(eur) in k["now"][1] and not k["bad"] and k["ox"] <= 1, "record / now rows, broken text %s, overflow %s" % (k["bad"][:3], k["ox"]))
-            ck(all(DM[i]["key"] in k["src"] for i in ds["order"]) and "The document" in k["src"], "each number's source is not named: %s" % k["src"][:200])
+            want_g = [dv(m, m["peaks"]["gfc2008"][end][0], True) if "gfc2008" in m["peaks"] else "—" for m, end in cols]
+            r.log("windows: %d rows, %d columns under %s | Lehman row %s | now %s | record %s" % (len(k["rows"]), len(k["heads"]), k["groupheads"], g[1:], k["now"][1:], k["record"][1:]))
+            ck(list(k["rows"]) == eps and g[1:] == want_g and len(k["heads"]) == len(cols) == len(k["marked"]) == 11, "the windows table: %s against %s" % (g[1:], want_g))
+            ck(k["record"][1:] == [dv(m, (m["high"] if end == "hi" else m["low"])[0], True) for m, end in cols] and all(k["now"][1 + n].startswith(dv(m, None, True)) for n, (m, end) in enumerate(cols)) and not k["bad"] and k["ox"] <= 1,
+               "record / now rows, broken text %s, overflow %s" % (k["bad"][:3], k["ox"]))
+            ck(all(DM[i]["key"] in k["src"] for i in order) and "The document" in k["src"] and k["fred"] == sum(len(DM[i]["series"]) for i in order if DM[i].get("source") == "fred"), "each number's source is not named: %d FRED links | %s" % (k["fred"], k["src"][:200]))
             fr.click("#sov-drg [data-dyears='5']")
-            fr.wait_for_timeout(500)
+            fr.wait_for_timeout(600)
             five = [x[1] for x in dollar_state()["charts"]]
             fr.click("#sov-drg [data-dyears='0']")
-            fr.wait_for_timeout(400)
+            fr.wait_for_timeout(500)
             ck(all(0 < a < b for a, b in zip(five, [x[1] for x in k["charts"]])), "the 5Y range did not shorten the charts: %s" % five)
-            box = fr.evaluate("() => { const b = document.querySelector(\"canvas[data-dchart='AUX_FX_EA']\").getBoundingClientRect(); return [b.width, b.height]; }")
-            fr.hover("canvas[data-dchart='AUX_FX_EA']", position={"x": box[0] * 0.5, "y": box[1] * 0.5})
+            box = fr.evaluate("() => { const c = document.querySelector(\"canvas[data-dchart='FED_SWAPS']\"); c.scrollIntoView({ block: 'center' }); const b = c.getBoundingClientRect(); return [b.width, b.height]; }")
+            fr.hover("canvas[data-dchart='FED_SWAPS']", position={"x": box[0] * 0.5, "y": box[1] * 0.5})
             fr.wait_for_timeout(300)
-            tip = fr.evaluate("() => document.querySelector(\"[data-dtip='AUX_FX_EA']\").innerText.replace(/\\s+/g, ' ')")
-            r.log("five years: %s points | under the pointer on lending: %s" % (five, tip))
-            ck(tip.startswith("€") and re.search(r"\d{4}$|\d{4} ", tip + " "), "the pointer read-out on a Dollar shortage chart: %s" % tip)
-            fr.click("table.dwin tr[data-ep='covid2020'] td.mk[data-id='AUX_FX_EA']")
+            tip = fr.evaluate("() => document.querySelector(\"[data-dtip='FED_SWAPS']\").innerText.replace(/\\s+/g, ' ')")
+            r.log("five years: %s points | under the pointer on the swap lines: %s" % (five, tip))
+            ck(tip.startswith("$") and re.search(r"\d{4}$|\d{4} ", tip + " "), "the pointer read-out on a Dollar shortage chart: %s" % tip)
+            fr.click("table.dwin tr[data-ep='covid2020'] td.mk[data-id='FED_SWAPS']")
             fr.wait_for_timeout(1000)
             cc = fr.evaluate(CANVAS)
             rg = fr.evaluate("() => Array.from(document.querySelectorAll('#sov-rg .gbtn')).map(b => b.innerText + (b.classList.contains('on') ? '*' : ''))")
-            r.log("lending's high in the COVID window opens: %s | ranges %s | %d line pixels" % (cc["title"], rg, cc["amber"]))
-            ck(cc["on"] and cc["title"] == lend["label"] and any("COVID" in x and x.endswith("*") for x in rg) and cc["amber"] > 300, "a Dollar shortage cell did not open its chart around the window")
+            links = fr.evaluate("() => Array.from(document.querySelectorAll('#sov-cm a')).map(a => a.getAttribute('href'))")
+            r.log("the swap lines' high in the COVID window opens: %s | ranges %s | %d line pixels | links %s" % (cc["title"], rg, cc["amber"], links))
+            ck(cc["on"] and cc["title"] == swaps["label"] and any("COVID" in x and x.endswith("*") for x in rg) and cc["amber"] > 300 and "https://fred.stlouisfed.org/series/SWPT" in links and not any("ecb.europa.eu" in x for x in links),
+               "a Dollar shortage cell did not open the Federal Reserve measure's chart around the window")
             fr.press("body", "Escape")
-            fr.click("#sov-dtiles .tile[data-id='AUX_EURUSD']")
+            fr.click("#sov-dboard tr.drow[data-id='USD_TED'] td.nm")
             fr.wait_for_timeout(1000)
             cc = fr.evaluate(CANVAS)
-            r.log("the EUR/USD tile opens: %s | %s" % (cc["title"], cc["stat"][:150]))
+            r.log("the TED row opens: %s | %s | %d line pixels" % (cc["title"], cc["meta"][:150], cc["amber"]))
+            ck(cc["on"] and cc["title"] == DM["USD_TED"]["label"] and "ended at its source" in cc["meta"] and cc["amber"] > 1000, "the ended TED spread's own chart")
+            fr.press("body", "Escape")
+            fr.click(".dchart .mt[data-id='FED_CUSTODY_13W']")
+            fr.wait_for_timeout(1000)
+            cc = fr.evaluate(CANVAS)
+            r.log("the name over the custody chart opens: %s | %s" % (cc["title"], cc["stat"][:200]))
+            ck(cc["on"] and cc["title"] == c13["label"] and "Lowest reading inside each named window".lower() in cc["stat"].lower() and cc["amber"] > 1000, "a chart's name did not open the larger chart, or it reads the wrong end of the windows")
+            fr.press("body", "Escape")
+            fr.click("#sov-dboard tr.drow[data-id='AUX_EURUSD'] td.nm")
+            fr.wait_for_timeout(1000)
+            cc = fr.evaluate(CANVAS)
+            r.log("the EUR/USD row opens: %s | %s" % (cc["title"], cc["stat"][:150]))
             ck(cc["on"] and cc["title"] == eur["label"] and "last reading of each week" not in cc["stat"] and cc["amber"] > 1000, "the reference rate's own chart should draw every day")
             fr.press("body", "Escape")
 
@@ -612,6 +669,13 @@ def main():
             linked = [page.evaluate("() => document.querySelector('#sov-tabs .tab.on').innerText"), page.evaluate(CANVAS)["title"]]
             r.log("the link the Dollar desk's cards open (?view=dollar&m=AUX_FX_EA): tab %s, chart %s" % tuple(linked))
             ck(linked == ["Dollar shortage", ds["measures"]["AUX_FX_EA"]["label"]], "the link from the Dollar desk does not open the tab and the chart: %s" % linked)
+            page.goto("%s/sovereign-desk.html?view=dollar&m=FED_SWAPS&nocache=%d" % (BASE, stamp + 3), wait_until="domcontentloaded")
+            page.wait_for_selector("canvas[data-dchart]", timeout=90000)
+            page.wait_for_function("() => document.getElementById('sov-ovl').classList.contains('on')", timeout=30000)
+            page.wait_for_timeout(600)
+            linked = [page.evaluate("() => document.querySelector('#sov-tabs .tab.on').innerText"), page.evaluate(CANVAS)["title"], page.evaluate(CANVAS)["amber"]]
+            r.log("a Federal Reserve card's link (?view=dollar&m=FED_SWAPS): tab %s, chart %s, %d line pixels" % tuple(linked))
+            ck(linked[:2] == ["Dollar shortage", ds["measures"]["FED_SWAPS"]["label"]] and linked[2] > 300, "the link to a Federal Reserve measure does not open the tab and its chart: %s" % linked)
             r.log("wider than a 390 px screen by: %s | page errors %s" % (json.dumps(widths), perr[:2]))
             ck(all(v <= 1 for v in widths.values()) and not perr, "phone layout: %s %s" % (widths, perr[:2]))
             ctx.close()
@@ -691,7 +755,7 @@ def main():
             ck(not ferr and not f["loading"] and len(f["stats"]) >= 4, "sovereign.html: errors %s, loading %s, %d figures" % (ferr[:2], f["loading"], len(f["stats"])))
             ctx.close()
 
-            r.section("9. The Dollar desk carries the same three")
+            r.section("9. The Dollar desk carries the lines of the same document")
             spec35 = importlib.util.spec_from_file_location("ops6835", str(sorted(Path(__file__).resolve().parent.glob("ops_6835_*.py"))[0]))
             P35 = importlib.util.module_from_spec(spec35)
             spec35.loader.exec_module(P35)
@@ -702,7 +766,7 @@ def main():
             page.on("pageerror", lambda e: derr.append(str(e)[:200]))
             page.goto("%s/dollar-indexes.html?nocache=%d" % (BASE, stamp), wait_until="domcontentloaded")
             page.wait_for_selector("#macro-body .macro-item", timeout=90000)
-            ids = ["flows:ecb-dollar/" + i for i in ds["order"]]
+            ids = ["flows:ecb-dollar/" + i for i in DESK_FAMILY]
             for sid in ids:
                 page.evaluate("(s) => { const c = document.querySelector(`#macro-body .macro-item[data-symbol=\"${s}\"]`); if (c) c.scrollIntoView({ block: 'center' }); }", sid)
                 page.wait_for_timeout(400)
@@ -712,7 +776,8 @@ def main():
             by = {row["s"]: row for row in s35["rows"]}
             fam = page.evaluate("() => { const c = document.querySelector('#macro-body .macro-item[data-symbol=\"flows:ecb-dollar/AUX_EURUSD\"]'); const cat = c && c.closest('.macro-cat'); return cat ? cat.innerText.split('\\n').map(x => x.trim()).filter(x => /dollar shortage/i.test(x))[0] || '' : ''; }")
             r.log("%s | %d families, %d cards (catalog %d) | the family: %s" % (s35["title"], s35["cats"], len(s35["rows"]), s35["catalog"], fam))
-            ck(s35["catalog"] == 98 and s35["families"] == 9 and len(s35["rows"]) == 98 and "dollar shortage" in fam.lower(), "the Dollar desk: %d cards in %d families, family '%s'" % (len(s35["rows"]), s35["families"], fam))
+            ck(s35["catalog"] == 103 and s35["families"] == 9 and len(s35["rows"]) == 103 and "dollar shortage" in fam.lower() and [row["s"] for row in s35["rows"] if row["s"].startswith("flows:")] == ids,
+               "the Dollar desk: %d cards in %d families, family '%s'" % (len(s35["rows"]), s35["families"], fam))
             for sid in ids:
                 row, mid = by.get(sid), sid.split("/")[1]
                 if not ck(row is not None, "no card for %s" % sid):
@@ -722,9 +787,9 @@ def main():
                 r.log("  %-13s %s | %s as of %s | W %s M %s Q %s Y %s (own arithmetic %s) | strip %d, bears %d" % (mid, row["title"][:52], row["v"], row["asof"], row["ch"].get("W"), row["ch"].get("M"), row["ch"].get("Q"), row["ch"].get("Y"),
                       " ".join("%+.2f" % want[hz] if want[hz] is not None else "-" for hz in ("W", "M", "Q", "Y")), row["line"], row["bears"]))
                 shown = float(str(row["v"]).replace(",", ""))
-                ck(row["state"] == "ready" and abs(shown - ds["measures"][mid]["value"]) <= 0.0051 and row["asof"] == ds["measures"][mid]["date"] and all(agree.values()) and row["line"] >= 1 and not row["bad"],
+                ck(row["state"] == "ready" and abs(shown - ds["measures"][mid]["value"]) <= (0.051 if abs(shown) >= 1000 else 0.0051) and row["asof"] == ds["measures"][mid]["date"] and all(agree.values()) and row["line"] >= 1 and not row["bad"],
                    "the %s card: state %s, value %s, changes %s against %s" % (mid, row["state"], row["v"], row["ch"], want))
-            page.click("#macro-body .macro-item[data-symbol='%s'] .mi-title" % ids[1])
+            page.click("#macro-body .macro-item[data-symbol='%s'] .mi-title" % ids[0])
             page.wait_for_selector("#macro-focus-chart", state="visible", timeout=30000)
             page.wait_for_timeout(700)
             f35 = page.evaluate(P35.FOCUS)
@@ -732,7 +797,7 @@ def main():
             page.wait_for_timeout(500)
             opened = page.evaluate("() => window.__opened || []")
             r.log("full screen: %s | %s | its chart button opens %s | page errors %s" % (f35["title"], f35["latest"][:60], opened, derr[:2]))
-            ck(f35["big"] >= 1 and opened == ["/sovereign-desk.html?view=dollar&m=AUX_FX_EA"] and not derr, "the card's full screen or its chart link: %s %s %s" % (f35["big"], opened, derr[:2]))
+            ck(f35["big"] >= 1 and opened == ["/sovereign-desk.html?view=dollar&m=FED_SWAPS"] and not derr, "the card's full screen or its chart link: %s %s %s" % (f35["big"], opened, derr[:2]))
             ctx.close()
             browser.close()
 
