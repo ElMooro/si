@@ -810,7 +810,7 @@ def main():
         if fails:
             r.fail("%d checks failed: %s" % (len(fails), " | ".join(fails)[:1500]))
             sys.exit(1)
-        r.ok("the Sovereign button opens the desk; tiles, boards, tags, sorting, charts, crisis histories, the World chart (all and only tagged), the Dollar shortage tab and sources hold against the documents; the Dollar desk carries the same three; the CISS page reads plainly and checks its auxiliaries against their originals")
+        r.ok("the Sovereign button opens the desk; tiles, boards, tags, sorting, charts, crisis histories, the World chart (all and only tagged), the Dollar shortage tab and sources hold against the documents; the Dollar desk carries the lines of the same document; the CISS page reads plainly and checks its auxiliaries against their originals")
     sys.exit(0)
 
 

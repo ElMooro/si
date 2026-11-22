@@ -270,6 +270,117 @@ aws/lambdas/justhodl-ciss-stress/source/lambda_function.py aws/lambdas/justhodl-
 and `git rm aws/lambdas/justhodl-ciss-stress/source/dollar_shortage.py
 aws/lambdas/justhodl-ciss-stress/tests/test_sovereign_dollar.py`. The object it wrote simply stops being refreshed.
 
+## Fifth round, same day (Khalid, 16:20 ET): the reserves item verified again, and the Federal Reserve's dollar-shortage lines
+
+> "are you sure about Claims on non-euro-area residents in foreign currency and Foreign-currency claims abroad charts
+> and data? verify again and add whatever dollar shortage metrics such as dxy or other"
+
+### Verified first (ops 6923, read-only, 21:29 UTC)
+
+* "Claims on non-euro-area residents in foreign currency" and "Foreign-currency claims abroad" were **one series under
+  two labels**: the ECB's own title on the tile, the page's short name on the chart. That was the page's fault, not
+  the data's. It is `ILM.W.U2.C.A020000.U4.Z06`, asset item 2 of the Eurosystem's weekly financial statement.
+* A fresh pull from the ECB equalled the site's series on **1,455 of 1,455** observations, for item 2 and for item 3.
+* Item 2 equals its two sub-items (2.1 receivables from the IMF + 2.2 balances, securities and loans abroad) on all 47
+  weeks the ECB's portal carries the sub-items (largest difference 0.001 bn).
+* The ECB's own press release, "Consolidated financial statement of the Eurosystem as at 13 November 2026", prints
+  521,892 (item 2; 2.1 = 233,386, 2.2 = 288,507) and 20,193 (item 3), in EUR millions. The site shows €521.892 bn and
+  €20.193 bn.
+* The steps in its chart are real: +€121.4 bn in the week to 27 August 2021 is the IMF's general allocation of
+  special drawing rights (the ECB's statement of that week says so: liability item 9 rose by EUR 118.9 bn), +€38.8 bn
+  in the week to 28 August 2009 is the 2009 allocation, and seven of the fourteen largest weekly changes fall in the
+  first week after a quarter end, when the Eurosystem revalues.
+* So the numbers were right. What was wrong was the framing: about 45% of item 2 is the position at the IMF, so it is
+  the Eurosystem's **foreign reserves other than gold**, not a gauge of dollars lent. It now has that one name on the
+  tab, sits in a part of its own, and the page takes no side on it.
+
+### What the site already held (ops 6923, ops 6924 — read-only)
+
+All of the Federal Reserve's series asked for resolve from the site's own warehouse through its series resolver
+(`/series?id=fred:<ID>`): the six H.10 rates of the DXY, the three dollar indexes, `SWPT`, `H41RESPPALGTRFNWW`,
+`WMTSECL1`, `WLRRAFOIAL`, `SOFR`, `IORB`, `IOER`, `TEDRATE`, `NDFFRIW027NBOG`. No free official source publishes a
+cross-currency basis; the tab says so instead of approximating one.
+
+### What changed
+
+* Engine `justhodl-ciss-stress`, `dollar_shortage.py` **1.1.0** (`data/ciss-dollar-shortage.json`, contract unchanged).
+  The ECB's three are compiled exactly as before (retained ECB responses, refused unless every figure equals the desk
+  document). Beside them, twelve Federal Reserve measures in five parts:
+  * **Dollars lent by central banks** — swap lines drawn (`SWPT`), repos with foreign central banks / FIMA
+    (`H41RESPPALGTRFNWW`), and the Eurosystem's foreign-currency lending (ECB item 3).
+  * **The price of the dollar** — DXY rebuilt from the six H.10 rates with ICE's formula (the Dollar desk's
+    `calc:dxy`), the broad / advanced-economy / emerging-market dollar indexes, and the ECB's euro reference rate.
+  * **Foreign official dollars at the Fed** — Treasuries in custody (`WMTSECL1`), their 13-week change, and the
+    foreign repo pool (`WLRRAFOIAL`).
+  * **Banks' dollar funding** — SOFR minus the rate the Fed pays on reserves (IOER until 28 July 2021, IORB since),
+    the TED spread (ended January 2022, kept for its history), and foreign banks' US offices' net position with their
+    offices abroad (H.8, `NDFFRIW027NBOG`).
+  * **The Eurosystem's own foreign reserves** — ECB item 2.
+* Each series is asked for from the site's resolver one at a time with a pause, **at most once a day** (an ended
+  series once a week), and kept in `data/ciss-research/sovereign/dollar-state.json`. A failure there can never stop
+  the ECB part from being published; a series that cannot be read today is taken from what was kept and named in
+  `errors`. 18 requests on the first run, none on the next run within the day. No request goes to the ECB or to FRED.
+* Two things the dry runs caught and the engine now handles:
+  * FRED carries every H.4.1 line back to 18 December 2002 and fills the weeks before the Federal Reserve printed the
+    line with **zeros** (custody until June 2007, the foreign repo line until 2020). Those are not readings: a line
+    now begins at its first reading above zero.
+  * The **level** of Treasuries in custody rose for years and has been falling since 2021, so its place in its own
+    history says little about a shortage. The page takes no side on the level; the line to read is the 13-week
+    change. Its record fall (−$163.7 bn, week to 12 March 2014) was read at the time as a holder moving its securities
+    out of the Fed's custody, and the note says so.
+* Page (`sovereign-desk.html`, `jh-sovereign-desk.js`, `?v=20261122e`), Dollar shortage tab: one table of every
+  measure (now, 1 week / 1 month / 12 months, which way a shortage moves it, how far it stands that way, its record),
+  a chart of each over its whole history part by part, the windows table for the eleven measures a shortage shows in,
+  and each number's source. A lending line is placed by its share of its record ($0.146 bn of swaps is "under 0.1% of
+  its record", not "higher than 41% of its idle weeks"); every other line by the share of its own readings it stands
+  beyond. The document from before it named its parts, and the desk's own documents while it loads, still draw the
+  ECB's three. `?view=dollar&m=<id>` opens a Federal Reserve measure's chart once its document has arrived.
+* Dollar desk (`chart-pro.html`, bundle rebuilt): the family "Dollar shortage" holds eight cards from the same
+  document — swap lines, FIMA repos, Eurosystem lending, EUR/USD, Treasuries in custody, the foreign repo pool, the
+  TED spread, the Eurosystem's reserves — 103 series in 9 families. The three signed lines (13-week change, SOFR
+  against the rate on reserves, net due) are on the Sovereign desk only: a percentage change of them would mislead.
+  DXY and the dollar indexes were already there as native FRED cards.
+
+What the series say (22 November 2026): swap lines drawn $0.146 bn against a record $583.1 bn (17 Dec 2008); FIMA
+repos $0.001 bn against $60.0 bn (22 Mar 2023); Eurosystem lending €20.2 bn against €248.9 bn (5 Dec 2008). The Fed's
+swap lines and the ECB's lending peak in the same four episodes — December 2008, May 2020, April 2009, February 2012 —
+which is two central banks' books recording the same dollars. DXY rebuilt 103.36 (higher than 82% of its readings
+since 1999); the broad dollar index 122.65 (93% since 2006). Treasuries in custody $2,544 bn, −$42.2 bn over 13 weeks.
+SOFR 1.0 bp over the rate on reserves (record 315 bp, 17 Sep 2019).
+
+### Proof
+
+* Published figures the series were checked against: the ECB's weekly statement of 13 November 2026 (above); the
+  Fed's custody release of March 2014, reported at the time as a record one-week fall of $104 bn to $2.86 trillion —
+  the series has 2,959.932 → 2,855.397.
+* Dry run, ops 6925 (four runs, last 22:03 UTC): 0 failed checks; 18 requests, 22 s; a second run in the day asks for
+  nothing.
+* One dollar-only run of the deployed engine, ops 6926 (22:08 UTC, 15.2 s; the **fifth** disclosed one-off run of
+  this engine today): 15 measures, no errors, the ECB's three equal the desk document, the twelve equal the dry run,
+  nothing else touched.
+* Real browser on the live site, ops 6915 (22:32 UTC, page script `?v=256fbe32` as stamped), **0 failed checks**: the
+  tab's table lists the fifteen measures in the document's order and each row shows its measure's name and value;
+  fifteen charts drew every observation (987 / 346 / 1,455 / 6,988 / 5,250 / 5,231 / 5,231 / 7,141 / 999 / 1,012 /
+  1,249 / 2,156 / 5,656 / 1,454 / 1,455 points); the windows table has eleven columns and its Lehman row reads $583.1,
+  —, €248.9, 89.15, 106.02, 103.32, 110.12, 1.2460, $84.6, —, 458.0 as the measures do; the swap lines are placed
+  "under 0.1% of its record"; the reserves item appears under one name; a cell opened the swap lines' chart on the COVID
+  window with its FRED link and no ECB link; the ended TED row, a chart's name and the EUR/USD row each opened their
+  own chart; `?view=dollar&m=FED_SWAPS` opened the tab and the chart; nothing wider than a 390 px screen. On the Dollar
+  desk: 103 cards in 9 families, the eight cards of the family read their document's values with week / month /
+  quarter / year changes equal to the proof's own arithmetic, and the card's chart button opened
+  `/sovereign-desk.html?view=dollar&m=FED_SWAPS`.
+* Tests: page 44, desks 9, engine 82, node suite 5,168, deployment 1,233.
+
+### Taking the fifth round back
+
+Pages: `git checkout 79cc97b6 -- sovereign-desk.html jh-sovereign-desk.js chart-pro.html assets/jh-workspaces.js
+tests/sovereign-desk.test.js tests/fred-desks.test.js tests/fixtures/sovereign-desk.json.gz` (then
+`python scripts/build_workspaces.py`). Engine: `git checkout 6e4c1b67 --
+aws/lambdas/justhodl-ciss-stress/source/dollar_shortage.py aws/lambdas/justhodl-ciss-stress/source/lambda_function.py
+aws/lambdas/justhodl-ciss-stress/tests/test_sovereign_dollar.py aws/lambdas/justhodl-ciss-stress/tests/test_sovereign_desk.py`
+and deploy; the 1.0.0 document (the ECB's three) is written again on the next run, and the page of the fourth round
+reads either. The kept series (`data/ciss-research/sovereign/dollar-state.json`) simply stop being refreshed.
+
 ## Taking it back
 
 Button: see `docs/snapshots/chart-search-2026-11-10/README.md` (section 2026-11-22). Page: `git rm sovereign-desk.html
