@@ -173,8 +173,11 @@ def fold(state, head):
     return count
 
 
-def walk(read_json, head, known, limit=500, deadline=None):
-    """Publications before `head`, newest first, back to one already folded (generated_at <= known)."""
+def walk(read_json, head, known, limit=500, deadline=None, problems=None):
+    """Publications before `head`, newest first, back to one already folded (generated_at <= known).
+
+    The chain ends cleanly where a publication names no receipt or a receipt names no predecessor.  An object that
+    cannot be read also ends it; that is noted in `problems`, because the days before it are then not recovered."""
     out, doc, newer = [], head, head.get('generated_at') or ''
     while len(out) < limit and (deadline is None or time.monotonic() < deadline):
         receipt = (doc.get('publication_record') or {}).get('manifest_key')
@@ -185,7 +188,9 @@ def walk(read_json, head, known, limit=500, deadline=None):
             if not isinstance(prior, str) or not prior.startswith(RETAINED):
                 break
             doc = read_json(prior)
-        except Exception:                                   # noqa: BLE001 - the chain simply ends where an object cannot be read
+        except Exception as exc:                            # noqa: BLE001 - the chain ends where an object cannot be read
+            if problems is not None:
+                problems.append(str(getattr(exc, 'response', {}).get('Error', {}).get('Code') or type(exc).__name__))
             break
         if not isinstance(doc, dict) or not isinstance(doc.get('countries'), list) or not isinstance(doc.get('generated_at'), str):
             break
@@ -371,7 +376,10 @@ def run(client, bucket, budget_seconds=150, now=None, fetch=http_json, sleep=tim
         state = {'contract': STATE_CONTRACT, 'reported': {}, 'oecd': {}, 'last_publication': None}
 
     # the table's own figures: every publication since the last one folded, oldest first, then today's
-    earlier = walk(lambda key: get(key, note=False), table, state.get('last_publication'), deadline=t0 + budget_seconds * 0.4)
+    problems = []
+    earlier = walk(lambda key: get(key, note=False), table, state.get('last_publication'), deadline=t0 + budget_seconds * 0.4, problems=problems)
+    if problems:
+        errors['publications'] = 'CHAIN_UNREADABLE:%s - earlier days of the table\'s own figures were not recovered in this run' % problems[0]
     folded = sum(1 for head in reversed(earlier) if fold(state, head) is not None)
     fold(state, table)
     wanted = [row['country'] for row in table['countries'] if isinstance(row, dict) and isinstance(row.get('country'), str)]

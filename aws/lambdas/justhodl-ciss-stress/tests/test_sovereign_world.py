@@ -192,7 +192,13 @@ class Record(unittest.TestCase):
     def test_a_broken_or_foreign_chain_simply_ends(self):
         store, head = self.chain()
         del store[world.RETAINED + 'head1.bin']                                                 # an object that cannot be read
-        self.assertEqual([d['generated_at'][:10] for d in world.walk(store.__getitem__, head, None)], ['2026-11-20'])
+        problems = []
+        self.assertEqual([d['generated_at'][:10] for d in world.walk(store.__getitem__, head, None, problems=problems)], ['2026-11-20'])
+        self.assertEqual(problems, ['KeyError'])                                                # it is said, because the days before it are lost to this run
+        clean = []
+        full, top = self.chain()
+        self.assertEqual(len(world.walk(full.__getitem__, top, None, problems=clean)), 3)
+        self.assertEqual(clean, [])                                                             # the first publication ever kept ends the chain without complaint
         self.assertEqual(world.walk(store.__getitem__, publication('2026-11-21T18:16:00+00:00', []), None), [])     # no receipt named
         outside = publication('2026-11-21T18:16:00+00:00', [], 'data/elsewhere.json')
         self.assertEqual(world.walk({'data/elsewhere.json': {}}.__getitem__, outside, None), [])                     # only the engine's own kept objects are followed
@@ -408,6 +414,10 @@ class Run(unittest.TestCase):
         out = world.run(s3, 'b', budget_seconds=120, now=NOW, fetch=self.fetch([]), sleep=lambda x: None)
         self.assertEqual(out['publications_folded'], 3)
         self.assertIn('state', json.loads(s3.objects[world.CURRENT])['errors'])
+        denied = self.bucket()
+        del denied.objects[world.RETAINED + 'head-2026-11-20.bin']
+        world.run(denied, 'b', budget_seconds=120, now=NOW, fetch=self.fetch([]), sleep=lambda x: None)
+        self.assertEqual(json.loads(denied.objects[world.CURRENT])['errors'], {'publications': "CHAIN_UNREADABLE:NoSuchKey - earlier days of the table's own figures were not recovered in this run"})
         empty = MemoryS3()
         with self.assertRaises(StorageError):
             world.run(empty, 'b', now=NOW, fetch=self.fetch([]))
