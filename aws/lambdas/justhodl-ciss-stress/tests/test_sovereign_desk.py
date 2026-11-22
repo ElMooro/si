@@ -440,32 +440,51 @@ class Handler(unittest.TestCase):
     def test_the_desk_follows_the_warehouse_and_its_failure_is_reported_not_raised(self):
         from unittest.mock import patch
         m = self.load()
-        with patch.object(m, 'run', return_value={'published': True}) as warehouse, patch.object(m.sovereign_desk, 'run', return_value={'published': True, 'coverage': {}}) as compiled:
+        with patch.object(m, 'run', return_value={'published': True}) as warehouse, patch.object(m.sovereign_desk, 'run', return_value={'published': True, 'coverage': {}}) as compiled, \
+                patch.object(m.world_history, 'run', return_value={'published': True, 'sets': {}}) as world:
             body = json.loads(m.lambda_handler({}, self.context(900))['body'])
         warehouse.assert_called_once_with('S3', m.BUCKET, budget_seconds=480)
         compiled.assert_called_once_with('S3', m.BUCKET, m.store, budget_seconds=780)
-        self.assertEqual(body, {'published': True, 'sovereign': {'published': True, 'coverage': {}}})
-        with patch.object(m, 'run', return_value={'published': True}), patch.object(m.sovereign_desk, 'run', side_effect=ValueError('boom')):
+        world.assert_called_once_with('S3', m.BUCKET, budget_seconds=240)
+        self.assertEqual(body, {'published': True, 'sovereign': {'published': True, 'coverage': {}}, 'world': {'published': True, 'sets': {}}})
+        with patch.object(m, 'run', return_value={'published': True}), patch.object(m.sovereign_desk, 'run', side_effect=ValueError('boom')), \
+                patch.object(m.world_history, 'run', side_effect=KeyError('gone')):
             body = json.loads(m.lambda_handler({}, self.context(900))['body'])
-        self.assertEqual(body, {'published': True, 'sovereign': {'published': False, 'error': 'ValueError'}})
+        self.assertEqual(body, {'published': True, 'sovereign': {'published': False, 'error': 'ValueError'}, 'world': {'published': False, 'error': 'KeyError'}})
 
     def test_with_little_time_left_the_last_document_stays(self):
         from unittest.mock import patch
         m = self.load()
-        with patch.object(m, 'run', return_value={'published': True}), patch.object(m.sovereign_desk, 'run') as compiled:
+        with patch.object(m, 'run', return_value={'published': True}), patch.object(m.sovereign_desk, 'run') as compiled, patch.object(m.world_history, 'run', return_value={'published': True}) as world:
             body = json.loads(m.lambda_handler({}, self.context(120))['body'])
         compiled.assert_not_called()
         self.assertFalse(body['sovereign']['published'])
         self.assertIn('not enough time', body['sovereign']['reason'])
+        world.assert_called_once_with('S3', m.BUCKET, budget_seconds=80)                        # the World tab's histories need far less time
+        with patch.object(m, 'run', return_value={'published': True}), patch.object(m.world_history, 'run') as world:
+            body = json.loads(m.lambda_handler({}, self.context(50))['body'])
+        world.assert_not_called()
+        self.assertIn('not enough time', body['world']['reason'])
 
     def test_the_desk_can_be_recompiled_alone_without_collecting_the_warehouse_again(self):
         from unittest.mock import patch
         m = self.load()
-        with patch.object(m, 'run') as warehouse, patch.object(m.sovereign_desk, 'run', return_value={'published': True}) as compiled:
+        with patch.object(m, 'run') as warehouse, patch.object(m.sovereign_desk, 'run', return_value={'published': True}) as compiled, patch.object(m.world_history, 'run', return_value={'published': True}) as world:
             body = json.loads(m.lambda_handler({'sovereign_only': True}, self.context(900))['body'])
         warehouse.assert_not_called()
         compiled.assert_called_once()
-        self.assertEqual(body, {'sovereign': {'published': True}})
+        world.assert_called_once()                                                              # the World tab reads the desk's monthly yields, so it follows
+        self.assertEqual(body, {'sovereign': {'published': True}, 'world': {'published': True}})
+
+    def test_the_world_histories_can_be_compiled_alone_with_no_ecb_request(self):
+        from unittest.mock import patch
+        m = self.load()
+        with patch.object(m, 'run') as warehouse, patch.object(m.sovereign_desk, 'run') as compiled, patch.object(m.world_history, 'run', return_value={'published': True, 'sets': {'yield': 30}}) as world:
+            body = json.loads(m.lambda_handler({'world_only': True}, self.context(900))['body'])
+        warehouse.assert_not_called()
+        compiled.assert_not_called()
+        world.assert_called_once_with('S3', m.BUCKET, budget_seconds=240)
+        self.assertEqual(body, {'world': {'published': True, 'sets': {'yield': 30}}})
 
 
 if __name__ == '__main__':
