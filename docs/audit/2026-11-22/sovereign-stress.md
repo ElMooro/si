@@ -371,11 +371,43 @@ SOFR 1.0 bp over the rate on reserves (record 315 bp, 17 Sep 2019).
   `/sovereign-desk.html?view=dollar&m=FED_SWAPS`.
 * Tests: page 44, desks 9, engine 82, node suite 5,168, deployment 1,233.
 
+### Correction the same evening (Khalid, 18:05 ET): the three ECB measures lead the tab again
+
+> "why did you deleted: Claims on non-euro-area residents in foreign currency, Claims on euro-area residents in
+> foreign currency, EUR/USD reference rate charts? add them back to dollar shortage"
+
+Nothing had been deleted from the document or the page, but the fifth round had renamed all three ("EUR/USD",
+"Eurosystem foreign-currency lending to euro-area banks", "Eurosystem foreign reserves other than gold"), scattered
+them among the Federal Reserve's parts (third, eighth and last of fifteen), dropped their three tiles, and taken the
+non-euro-area claims out of the windows table. He had asked for a verification and for additions, not for his three
+to be renamed or moved; to him they were gone. Put right (commit b27b740b, page script `?v=20261122f`, pages only —
+no engine change, no engine run):
+
+* the tab opens with the three tiles and the three whole-history charts, in the order he added them, under the ECB's
+  own titles: EUR/USD reference rate, Claims on euro-area residents in foreign currency, Claims on non-euro-area
+  residents in foreign currency. What each one is ("what the Eurosystem lends euro-area banks in foreign currency",
+  "the Eurosystem's foreign reserves other than gold") now stands in small type beside the title, not in its place;
+* they are the first group of the table of every measure and the first three opening lines, by the same titles; the
+  Federal Reserve's lines follow in their parts, unchanged (a part that gave one of the three up says where it went);
+* the windows table gives the low and the high of each of the three again (six columns, as in the fourth round),
+  then one column for each Federal Reserve line a shortage shows in — fifteen columns;
+* the Dollar desk's family lists the three first again, titled the same way.
+
+Proof: real browser on the live site, ops 6915 (23:29 UTC, page script `?v=0d6a3a68` as stamped), **0 failed checks**
+— the three tiles read EUR/USD reference rate $1.0990, Claims on euro-area residents in foreign currency €20.2 bn and
+Claims on non-euro-area residents in foreign currency €521.9 bn; their three charts are the first three on the tab
+under those titles and drew 7,141 / 1,455 / 1,455 points; tiles, their charts, the table, the Federal Reserve's charts
+and the windows table follow in that order down the page (638 / 908 / 1,455 / 2,439 / 4,480 px); each title appears in
+its tile, its chart and its row; the Lehman row of the windows table reads 1.2460 / 1.4731, €85.5 / €248.9,
+€131.2 / €163.0 for the three; the tile of the non-euro-area claims opened its own chart; the Dollar desk's family
+lists the three first under the same titles; nothing wider than a 390 px screen. Tests: page 44, desks 9, node suite
+5,168, deployment 1,233.
+
 ### Taking the fifth round back
 
 Pages: `git checkout 79cc97b6 -- sovereign-desk.html jh-sovereign-desk.js chart-pro.html assets/jh-workspaces.js
 tests/sovereign-desk.test.js tests/fred-desks.test.js tests/fixtures/sovereign-desk.json.gz` (then
-`python scripts/build_workspaces.py`). Engine: `git checkout 6e4c1b67 --
+`python scripts/build_workspaces.py`; `9f2750e5` instead of `79cc97b6` takes back only the evening's correction). Engine: `git checkout 6e4c1b67 --
 aws/lambdas/justhodl-ciss-stress/source/dollar_shortage.py aws/lambdas/justhodl-ciss-stress/source/lambda_function.py
 aws/lambdas/justhodl-ciss-stress/tests/test_sovereign_dollar.py aws/lambdas/justhodl-ciss-stress/tests/test_sovereign_desk.py`
 and deploy; the 1.0.0 document (the ECB's three) is written again on the next run, and the page of the fourth round
