@@ -154,6 +154,66 @@ tests/fixtures/sovereign-desk.json.gz`. Engine, back to document 1.0.0: `git che
 aws/lambdas/justhodl-ciss-stress`, then one desk-only run (ops 6914 with its version check set back to 1.0.0). Take
 the page back first: the second-round page needs document 1.1.0.
 
+## Third round, same day (Khalid, 12:57 ET): a chart on the World tab
+
+Asked: "add a chart to world cds and yields and have it show all and also have it the chart show only the ones i
+tagged same as you have on crisis peak".
+
+### What history the site held, checked first (ops 6917, 6918 — read-only)
+
+The World tab's table is one day's figures for 44 governments (`data/global-sovereign.json`, as reported by World
+Government Bonds). It carried no history per country. What the site already keeps:
+
+* **10-year yields, monthly**: the ECB's statistic (already in the desk document) and the OECD's long-term rates in
+  the warehouse (FRED `IRLTLT01<cc>M156N`, through the series resolver) — 30 of the 44 countries, the United States
+  from 1953. Not held for Turkey, Brazil, Colombia, Vietnam, Peru, Indonesia, India, Thailand, the Philippines, Taiwan,
+  Hong Kong, Malaysia, China, Singapore (the OECD publishes no such series for them).
+* **5-year CDS**: what the CDS desk measures from DTCC public prints since September 2024 — 25 countries with two or
+  more prints, 12 of them trading almost every day; most developed sovereigns rarely print.
+* **The table's own figures**: the world engine keeps every publication it replaces, and each publication names the
+  receipt that names the one before it. Walking that chain gave 71 publications on 53 days from 26 September 2026:
+  a daily yield for all 44 countries and a daily CDS for 38.
+
+### What changed
+
+* **Engine** `justhodl-ciss-stress`: a new module `world_history.py` beside `sovereign_desk.py` publishes
+  `data/ciss-sovereign-world.json` (contract `sovereign-world.v1`, 137 series, about 122 KB compressed) after the
+  desk document. Four sets, each from one kind of source: `yield` (monthly, ECB or OECD — whichever reaches further
+  back and is still current; the source is named on each line), `cds` (DTCC, measured), `yield_reported` and
+  `cds_reported` (the table's own figures, day by day). It makes no ECB request. Its state
+  (`data/ciss-research/sovereign/world-state.json`) holds the day-by-day record and the monthly series, which are
+  asked for again only when a new month can be there. A failure leaves the last document and touches nothing else.
+  Event `{"world_only": true}` compiles it alone. The desk document and the warehouse are unchanged.
+* **Page**: the World tab opens with a chart of every country in the chosen set over its whole stored history, with
+  the controls of Crisis peaks (1Y / 5Y / 10Y / All; Show all / Only tagged / Hide all; a list of names that hide or
+  show a line). Crisis peaks and the World tab now share one description of that chart. "Only tagged" follows the
+  tags as they are made and is kept between visits; clearing the tags shows all again. A country's name, its yield
+  and its CDS in the table open that country's own history. Days a sovereign did not trade are not joined by a line
+  across more than 45 days. Countries with no stored history in a set are named; nothing is estimated for them.
+
+### Proof
+
+* Dry run, ops 6919 (18:24 UTC, final code): 137 series, 0 failed checks; a second run on what the first kept folds
+  one publication and asks the resolver for nothing.
+* One world-only run of the deployed engine, ops 6920 (18:33 UTC, 25 s, no ECB request; the third disclosed one-off
+  run of this engine today): document published, 82 reported series end on the table's figures of the day, every
+  series agrees with its measure, the warehouse and the desk document untouched.
+* Real browser on the live site, ops 6915 (18:46 UTC), **0 failed checks**: the four sets drew 30, 25, 44 and 38
+  countries; with Turkey and Japan tagged "Only tagged" drew Japan alone on the long yields (Turkey has none) and,
+  when the United States was tagged while it was on, Japan and the United States; carried to the other three sets it
+  drew the three tagged countries each time; Turkey's CDS figure opened "Turkey 5-year CDS, measured", Japan's yield
+  "Japan 10-year government yield, monthly"; nothing wider than a 390 px screen; everything of the earlier rounds
+  still holds.
+* Tests: page 35, engine 61, node suite 5,159, deployment 1,233.
+
+### Taking the third round back
+
+Page: `git checkout 3c0eadef -- sovereign-desk.html jh-sovereign-desk.js tests/sovereign-desk.test.js
+tests/fixtures/sovereign-desk.json.gz`. Engine: `git checkout 6b36db41 --
+aws/lambdas/justhodl-ciss-stress/source/lambda_function.py aws/lambdas/justhodl-ciss-stress/tests/test_sovereign_desk.py`
+and `git rm aws/lambdas/justhodl-ciss-stress/source/world_history.py
+aws/lambdas/justhodl-ciss-stress/tests/test_sovereign_world.py`. The two objects it wrote simply stop being refreshed.
+
 ## Taking it back
 
 Button: see `docs/snapshots/chart-search-2026-11-10/README.md` (section 2026-11-22). Page: `git rm sovereign-desk.html
