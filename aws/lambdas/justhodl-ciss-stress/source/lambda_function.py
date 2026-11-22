@@ -20,7 +20,7 @@ BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/ciss-stress.json"
 DESK_NEEDS = 150      # seconds the sovereign-stress desk document needs after the warehouse; with less it waits for the next run
 WORLD_NEEDS = 45      # seconds the World tab's histories need at the least
-DOLLAR_NEEDS = 30     # seconds the dollar-shortage document needs: three retained responses read twice, no request
+DOLLAR_NEEDS = 30     # seconds the dollar-shortage document needs at the least: three retained responses read twice
 
 
 def sovereign(context):
@@ -41,13 +41,14 @@ def sovereign(context):
 
 def dollar(context):
     """The dollar-shortage document (data/ciss-dollar-shortage.json): the euro's reference rate and the Eurosystem's two
-    foreign-currency claims with their whole histories, read again from the ECB responses the desk document names.
-    No request to the ECB.  A failure leaves the last document in place and touches nothing else."""
+    foreign-currency claims with their whole histories, read again from the ECB responses the desk document names (no
+    request to the ECB), beside the Federal Reserve's dollar series read from the site's own warehouse, each at most
+    once a day.  A failure leaves the last document in place and touches nothing else."""
     left = context.get_remaining_time_in_millis()/1000-20 if context else 300
     if left < DOLLAR_NEEDS:
         return {"published": False, "reason": "not enough time left; the last document stays"}
     try:
-        return dollar_shortage.run(S3, BUCKET, store)
+        return dollar_shortage.run(S3, BUCKET, store, budget_seconds=max(10, min(150, left-WORLD_NEEDS-30)))
     except Exception as exc:  # noqa: BLE001 - reported, never raised into the runs before it
         print("[dollar-shortage] not published: %s: %s" % (type(exc).__name__, str(exc)[:200]))
         return {"published": False, "error": type(exc).__name__}

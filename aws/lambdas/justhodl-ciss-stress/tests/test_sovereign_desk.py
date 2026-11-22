@@ -445,7 +445,7 @@ class Handler(unittest.TestCase):
             body = json.loads(m.lambda_handler({}, self.context(900))['body'])
         warehouse.assert_called_once_with('S3', m.BUCKET, budget_seconds=480)
         compiled.assert_called_once_with('S3', m.BUCKET, m.store, budget_seconds=780)
-        dollar.assert_called_once_with('S3', m.BUCKET, m.store)
+        dollar.assert_called_once_with('S3', m.BUCKET, m.store, budget_seconds=150)
         world.assert_called_once_with('S3', m.BUCKET, budget_seconds=240)
         self.assertEqual(body, {'published': True, 'sovereign': {'published': True, 'coverage': {}}, 'dollar': {'published': True, 'latest': {}}, 'world': {'published': True, 'sets': {}}})
         self.assertEqual(list(body), ['published', 'sovereign', 'dollar', 'world'])            # the dollar document reads the desk document, so it follows it
@@ -469,7 +469,7 @@ class Handler(unittest.TestCase):
             body = json.loads(m.lambda_handler({}, self.context(50))['body'])
         world.assert_not_called()
         self.assertIn('not enough time', body['world']['reason'])
-        dollar.assert_called_once()                                                             # thirty seconds are enough for it
+        dollar.assert_called_once_with('S3', m.BUCKET, m.store, budget_seconds=10)              # thirty seconds are enough for the ECB part; the warehouse's series wait
         with patch.object(m, 'run', return_value={'published': True}), patch.object(m.dollar_shortage, 'run') as dollar:
             body = json.loads(m.lambda_handler({}, self.context(40))['body'])
         dollar.assert_not_called()
@@ -508,7 +508,7 @@ class Handler(unittest.TestCase):
         warehouse.assert_not_called()
         compiled.assert_not_called()
         world.assert_not_called()
-        dollar.assert_called_once_with('S3', m.BUCKET, m.store)
+        dollar.assert_called_once_with('S3', m.BUCKET, m.store, budget_seconds=150)
         self.assertEqual(body, {'dollar': {'published': True, 'latest': {'AUX_EURUSD': [1.099, '2026-11-20']}}})
 
 
