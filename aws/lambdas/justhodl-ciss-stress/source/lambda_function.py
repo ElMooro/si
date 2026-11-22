@@ -36,6 +36,11 @@ def sovereign(context):
 
 
 def lambda_handler(event, context):
+    if isinstance(event, dict) and event.get("sovereign_only"):
+        # Recompile the desk document from the warehouse that is already published; the warehouse itself is not collected again.
+        result = {"sovereign": sovereign(context)}
+        print("[sovereign-desk] %s" % json.dumps(result["sovereign"], allow_nan=False)[:400])
+        return {"statusCode": 200, "body": json.dumps(result, allow_nan=False)}
     budget = min(480, max(5, context.get_remaining_time_in_millis()/1000-90)) if context else 480
     result = run(S3, BUCKET, budget_seconds=budget)
     result["sovereign"] = sovereign(context)
