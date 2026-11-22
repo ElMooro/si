@@ -8,5 +8,7 @@ from ciss_vintage_test_support import run
 if __name__=="__main__":
     run()
     suite=unittest.TestLoader().discover(str(shared/"tests"),pattern="test_ciss_source_*.py")
+    # the sovereign-stress desk document this engine also compiles (2026-11-22)
+    suite.addTests(unittest.TestLoader().discover(str(Path(__file__).resolve().parent),pattern="test_sovereign_*.py"))
     result=unittest.TextTestRunner(verbosity=2).run(suite)
     sys.exit(0 if result.wasSuccessful() else 1)
