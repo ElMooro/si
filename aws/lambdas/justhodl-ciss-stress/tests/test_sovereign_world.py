@@ -123,6 +123,8 @@ class Reading(unittest.TestCase):
         self.assertEqual(world.provider_day('3 May 2025'), '2025-05-03')
         for bad in ('31 February 2026', 'yesterday', '', None, '2026-11-21', '21 Nov 2026'):
             self.assertIsNone(world.provider_day(bad), bad)
+        self.assertEqual(world.spoken('2026-09-26'), '26 September 2026')
+        self.assertEqual(world.provider_day(world.spoken('2025-02-03')), '2025-02-03')
 
     def test_pairs_keep_one_reading_a_date_and_nothing_that_is_not_a_number(self):
         rows = [['2026-10-01', '4.5'], ['2026-09-01', 4.25], ['2026-10-01', '4.75'], ['2026-08-01', None], ['2026-07-01', '.'], ['bad', 1], ['2026-06-01', float('nan')],
@@ -273,7 +275,7 @@ class Compile(unittest.TestCase):
         self.assertNotIn('WC_GERMANY', M)                                                       # a single print
         reported = M['RY_TURKEY']
         self.assertEqual((reported['source'], reported['start'], reported['date'], reported['n'], reported['key']), ('reported', '2026-09-27', '2026-11-21', 56, world.TABLE))
-        self.assertIn('2026-09-27', reported['source_label'])
+        self.assertIn('kept by the site since 27 September 2026', reported['source_label'])
         self.assertEqual(S['RC_TURKEY']['v'][0], 240.0)
         self.assertEqual(M['RY_TURKEY']['status'], 'current')
 

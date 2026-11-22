@@ -55,8 +55,8 @@ SAME = {'czech republic': 'czechia', 'korea': 'south korea', 'republic of korea'
         'uk': 'united kingdom', 'turkiye': 'turkey'}
 MONTHS = {m: i + 1 for i, m in enumerate('January February March April May June July August September October November December'.split())}
 SETS = (
-    ('yield', 'WY_', '10-year yields', 'monthly averages, long history - ECB or OECD, named on each line', 'pct', 'M'),
-    ('cds', 'WC_', '5-year CDS, measured', 'measured by the site\'s CDS desk from DTCC public trade prints, since September 2024', 'bp', 'D'),
+    ('yield', 'WY_', '10-year yields', 'monthly averages over the longest history the site holds, from the ECB or the OECD (named on each line)', 'pct', 'M'),
+    ('cds', 'WC_', '5-year CDS, measured', 'measured by the site\'s CDS desk from DTCC public trade prints since September 2024, one point for each day the name traded', 'bp', 'D'),
     ('yield_reported', 'RY_', '10-year yields, as reported', 'the table\'s own figure, kept day by day', 'pct', 'D'),
     ('cds_reported', 'RC_', 'CDS, as reported', 'the table\'s own figure, kept day by day', 'bp', 'D'),
 )
@@ -87,6 +87,12 @@ def provider_day(text):
         except ValueError:
             return None
     return None
+
+
+def spoken(day):
+    """'2026-09-26' -> '26 September 2026'."""
+    d = date.fromisoformat(day)
+    return '%d %s %d' % (d.day, next(name for name, number in MONTHS.items() if number == d.month), d.year)
 
 
 def month_end(day):
@@ -268,7 +274,7 @@ def compile_world(table, desk_doc, desk_history, cds_packet, cds_history, state,
         for set_id, prefix, name, unit in (('yield_reported', 'RY_', 'y', 'pct'), ('cds_reported', 'RC_', 'c', 'bp')):
             obs = pairs(sorted((slot.get(name) or {}).items()), today=today)
             if obs:
-                ids[set_id] = add(set_id, prefix, country, unit, 'D', obs, 'reported', SOURCE['reported'] % obs[0][0], TABLE)
+                ids[set_id] = add(set_id, prefix, country, unit, 'D', obs, 'reported', SOURCE['reported'] % spoken(obs[0][0]), TABLE)
         ids = {k: v for k, v in ids.items() if v}
         for s in SETS:
             if s[0] not in ids:
@@ -283,7 +289,7 @@ def compile_world(table, desk_doc, desk_history, cds_packet, cds_history, state,
            'inputs': inputs or [], 'errors': issues,
            'coverage': {'countries': len(countries), 'measures': len(measures), 'by_source': counts, 'errors': len(issues), 'status': 'degraded' if issues else 'measured'},
            'definitions': {'yield': 'monthly average of the 10-year government benchmark yield, percent; the source is named on each line',
-                           'cds': 'median of the day\'s public 5-year CDS prints for the sovereign, basis points, on days it traded; a line joins the days with a measurement',
+                           'cds': 'the CDS desk\'s 5-year spread for the sovereign from the day\'s public prints, basis points, only on days it traded; nothing is filled in between',
                            'reported': 'the figure World Government Bonds showed on that day, unchecked; where two publications fell on one day the later is kept',
                            'missing': 'countries for which the site holds no stored history in that set; nothing is estimated for them'},
            'calls_eligible': False, 'sizing_eligible': False,
