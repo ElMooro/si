@@ -39,7 +39,7 @@ DESK = r"""() => { const q = (s) => Array.from(document.querySelectorAll(s)), tx
   return { asof: txt(document.getElementById('sov-asof')), read: q('.read p').map(txt),
     tiles: q('.tile').map(t => ({ id: t.getAttribute('data-id'), val: txt(t.querySelector('.tv')), date: txt(t.querySelector('.td')) })),
     board: tables[0] ? Array.from(tables[0].querySelectorAll('tbody tr')).map(tr => Array.from(tr.children).map(txt)) : [],
-    others: tables[1] ? tables[1].querySelectorAll('tbody tr').length : 0, chips: q('.chips .chip').length, parts: q('.part').length,
+    others: tables[1] ? tables[1].querySelectorAll('tbody tr').length : 0, chips: q('#sov-main .chips .chip').length, parts: q('.part').length,
     bad: (body.match(/\bNaN\b|\bundefined\b|\bnull\b|Infinity/g) || []), ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }; }"""
 CANVAS = r"""() => { const c = document.getElementById('sov-cv'); if (!c || !c.width) return { w: 0, amber: 0 }; const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0;
   for (let i = 0; i < d.length; i += 4) if (d[i] > 200 && d[i + 1] > 150 && d[i + 1] < 210 && d[i + 2] < 90 && d[i + 3] > 200) n++;
@@ -47,7 +47,7 @@ CANVAS = r"""() => { const c = document.getElementById('sov-cv'); if (!c || !c.w
     title: document.getElementById('sov-ct').innerText, stat: document.getElementById('sov-cs').innerText.replace(/\s+/g, ' ').slice(0, 260), tip: document.getElementById('sov-tip').style.display + ' ' + document.getElementById('sov-tip').innerText.replace(/\s+/g, ' ') }; }"""
 CRISIS = r"""() => { const t = document.querySelector('table.crisis'); const txt = (n) => n ? n.innerText.replace(/\s+/g, ' ').trim() : '';
   return { head: Array.from(t.querySelectorAll('thead th')).map(th => th.getAttribute('data-id')), rows: Array.from(t.querySelectorAll('tbody tr')).map(tr => Array.from(tr.children).map(txt)),
-    tops: Array.from(document.querySelectorAll('.chips .chip')).map(txt), ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }; }"""
+    tops: Array.from(document.querySelectorAll('#sov-main .chips .chip')).map(txt), ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }; }"""
 CISS = r"""() => { const g = (id) => { const n = document.getElementById(id); return n ? n.innerText.replace(/\s+/g, ' ').trim() : null; };
   const rows = Array.from(document.querySelectorAll('#ciss-table-body tr')).map(tr => Array.from(tr.children).map(c => c.innerText.replace(/\s+/g, ' ').trim()));
   return { read: g('ciss-read'), exact: g('ciss-exact'), rec: g('ciss-reconcile'), recd: g('ciss-reconcile-detail'), count: g('ciss-count'), rows: rows.length,
@@ -129,7 +129,7 @@ def main():
                 desk_html, ciss_html = fetch("/sovereign-desk.html?probe=%d" % (stamp + attempt)), fetch("/ciss.html?probe=%d" % (stamp + attempt))
                 served = {"engine": b"id=btn-sov" in fetch("/jh-chart-engine.js?probe=%d" % (stamp + attempt)),
                           "rail": b'sov: ["Sovereign stress' in fetch("/jh-chart-tvrail.js?probe=%d" % (stamp + attempt)),
-                          "desk_page": b'id="sov-main"' in desk_html,
+                          "desk_page": b'id="sov-main"' in desk_html and b"max-width:1000px;overflow-wrap:anywhere}" in desk_html,     # the page with long keys wrapping on a phone
                           "desk_script": b"function crisis(" in fetch(script_of(desk_html, "jh-sovereign-desk.js")),
                           "ciss_page": b'id="ciss-exact"' in ciss_html,
                           "ciss_script": b"verifiedMeasure" in fetch(script_of(ciss_html, "jh-ciss-research.js")),
@@ -383,13 +383,10 @@ def main():
             r.log("sovereign.html: %d summary figures, %d charts, %d characters, still loading: %s, errors %s" % (len(f["stats"]), f["svgs"], f["chars"], f["loading"], ferr[:2]))
             r.log("  %s" % " | ".join(f["stats"])[:900])
             try:
-                fiscal, coll, sf = (json.loads(fetch("/data/%s.json?probe=%d" % (k, stamp))) for k in ("sovereign-fiscal", "fed-collateral", "settlement-fails"))
-                tic = fiscal.get("tic") or {}
-                nulls = {"total.chg_12m_bn": (tic.get("total") or {}).get("chg_12m_bn"), "sec_lending.pctile": ((coll.get("securities_lending") or {}).get("stats") or {}).get("pctile"),
-                         "fails.headline": json.dumps(sf.get("headline"))[:200], "fails.signal": json.dumps(sf.get("signal"))[:120]}
-                r.log("  what the documents carry there: %s" % json.dumps(nulls)[:700])
+                sf = json.loads(fetch("/data/settlement-fails.json?probe=%d" % stamp))
+                r.log("  what stopped it: the fails document's headline carries %s" % json.dumps({k: (sf.get("headline") or {}).get(k) for k in ("combined_bn", "pctile")}))
             except Exception as e:  # noqa: BLE001
-                r.log("  documents: %s" % str(e)[:120])
+                r.log("  settlement-fails document: %s" % str(e)[:120])
             ck(not ferr and not f["loading"] and len(f["stats"]) >= 4, "sovereign.html: errors %s, loading %s, %d figures" % (ferr[:2], f["loading"], len(f["stats"])))
             ctx.close()
             browser.close()
