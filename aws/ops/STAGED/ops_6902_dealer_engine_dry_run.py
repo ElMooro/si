@@ -6,6 +6,10 @@ answers 422 (35 names in a request still answer, 40 do not).  The checkout asks 
 This runs dealer_research_store.run() exactly as the Lambda does - real sources, the real previous output and
 manifest read from the bucket - on a storage object that reads the bucket and keeps every write in memory.  Nothing
 reaches S3.  It then reads what would have been published and compares it with what is published now.
+
+First run (04:19 UTC): the engine completed and would publish the week of 2026-11-11; this op still went red because it
+expected both sides of Treasury financing, and the New York Fed has not published the reverse-repo side (Treasuries
+excluding TIPS) for the last two weeks.  That is the source, not the engine: the check now asks for what must hold.
 """
 from collections import Counter
 from datetime import datetime, timezone
@@ -148,14 +152,26 @@ def main():
         for key in ("PDSORA-UTSETTOT", "PDSORA-UTSTTOT", "PDSIRRA-UTSETTOT", "PDSIRRA-UTSTTOT"):
             by = {row[0]: row[1] for row in ser[key]["history"]}
             r.log("    %-18s %s" % (key, " | ".join("%s %s" % (w, by.get(w)) for w in weeks)))
-        ok = (result.get("published") is True and (after.get("as_of") or "") > (before.get("as_of") or "") and (at.get("quality") or {}).get("status") == "fresh"
-              and at.get("repo_out_b") is not None and len(ser) == 70)
+        # The source itself withholds a figure in some weeks ("*"): the engine then publishes no total that needs it.
+        # What must hold is that the run completes, the week moves on, and the repo side - published - is current.
+        groups = after.get("groups") or {}
+        for gid in ("treasury_repo", "treasury_reverse_repo"):
+            g = groups.get(gid) or {}
+            last = next((row for row in reversed(g.get("history") or []) if row[1] is not None), None)
+            r.log("  group %-22s %s: %s USD mn (%s; missing %s) | last complete week %s | latest source status of its parts: %s" % (
+                gid, g.get("as_of"), g.get("usd_mn"), (g.get("quality") or {}).get("status"), (g.get("quality") or {}).get("missing"), last[:2] if last else None,
+                {k: ser[k].get("source_status") for k in g.get("series_ids") or []}))
+        withheld = sorted(k for k, v in ser.items() if v.get("source_status") != "observed")
+        r.log("  series whose latest week the source did not publish: %d %s" % (len(withheld), withheld))
+        repo = groups.get("treasury_repo") or {}
+        ok = (result.get("published") is True and (after.get("as_of") or "") > (before.get("as_of") or "") and len(ser) == 70
+              and (repo.get("quality") or {}).get("status") == "fresh" and at.get("repo_out_b") is not None and repo.get("as_of") == after.get("as_of"))
         r.kv(published=result.get("published"), as_of_now=before.get("as_of"), as_of_after=after.get("as_of"), treasury_repo_out_b=at.get("repo_out_b"),
              treasury_status=(at.get("quality") or {}).get("status"), writes_to_s3=0, changed_values=rev.get("known_changed_values"))
         if ok:
             r.ok("dry run; nothing written - the checkout's engine completes and would publish the week of %s" % after.get("as_of"))
         else:
-            r.fail("the dry run does not produce a current Treasury financing figure")
+            r.fail("the dry run does not produce a current Treasury repo figure")
             sys.exit(1)
     sys.exit(0)
 
