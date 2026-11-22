@@ -167,12 +167,12 @@ def main():
         world = json.loads(fetch("/data/global-sovereign.json?probe=%d" % stamp))
         wh = json.loads(fetch("/data/ciss-sovereign-world.json?probe=%d" % stamp))
         ds = json.loads(fetch("/data/ciss-dollar-shortage.json?probe=%d" % stamp))
+        M = doc["measures"]
         ck(ds.get("contract") == "ciss-dollar-shortage.v1" and ds.get("order") == ["AUX_EURUSD", "AUX_FX_EA", "AUX_FX_NONEA"] and ds["desk"]["generated_at"] == doc["generated_at"]
            and all(ds["measures"][k]["value"] == M[k]["value"] and ds["measures"][k]["date"] == M[k]["date"] and len(ds["series"][k]["d"]) == M[k]["n"] for k in ds["order"]),
            "the dollar-shortage document does not stand on today's desk document")
         ck(wh.get("contract") == "sovereign-world.v1" and not wh.get("errors") and len(wh["countries"]) == len(world["countries"]), "the World tab's histories: contract, errors or countries (%s, %s, %d)" % (
             wh.get("contract"), json.dumps(wh.get("errors"))[:120], len(wh.get("countries") or [])))
-        M = doc["measures"]
         r.log("documents: desk %s, %d measures, %d countries, errors %s | history %d series | warehouse %s" % (
             doc["generated_at"][:19], len(M), len(doc["countries"]), json.dumps(doc["errors"]), len(hist["series"]), ware["generated_at"][:19]))
         ck(doc["contract"] == "ciss-sovereign.v1" and not doc["errors"] and doc["warehouse"]["manifest_key"] == ware["replay"]["manifest_key"], "the desk document: contract, errors or warehouse binding")
