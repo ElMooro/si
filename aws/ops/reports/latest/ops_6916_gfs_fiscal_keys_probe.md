@@ -1,0 +1,71 @@
+# ops 6916 - the ECB's deficit and interest series, percent of GDP (read-only), 2026-11-22T16:15+00:00
+
+**Status:** success  
+**Duration:** 243.3s  
+**Finished:** 2026-11-22T16:19:38+00:00  
+
+## Log
+- `16:15:37` Germany, quarterly, general government: 200, 569539 bytes, 2.8s, 820 series
+- `16:15:37` units: {'XDC': 348, 'XDC_R_B1GQ': 176, 'XDC_R_B1GQ_CY': 226, 'XDC_R_OTE': 60, 'XDC_R_GD': 10}
+- `16:15:37`   GFS.Q.N.DE.W0.S13.S1.C.C.D41._Z._Z._Z.XDC_R_B1GQ._Z.S.V.N._T | 2026-Q2 | 0.3585 | XDC_R_B1GQ | Government interest revenue, percent of GDP
+- `16:15:37`   GFS.Q.N.DE.W0.S13.S1.C.C.D41._Z._Z._Z.XDC_R_B1GQ_CY._Z.S.V.CY._T | 2026-Q2 | 0.3553 | XDC_R_B1GQ_CY | Government interest revenue, percent of GDP
+- `16:15:37`   GFS.Q.N.DE.W0.S13.S1.C.D.D41._Z._Z._T.XDC_R_B1GQ._Z.S.V.N._T | 2026-Q2 | 1.3184 | XDC_R_B1GQ | Government interest expenditure, percent of GDP
+- `16:15:37`   GFS.Q.N.DE.W0.S13.S1.C.D.D41._Z._Z._T.XDC_R_B1GQ_CY._Z.S.V.CY._T | 2026-Q2 | 1.1245 | XDC_R_B1GQ_CY | Government interest expenditure, percent of GDP
+- `16:15:37`   GFS.Q.N.DE.W0.S13.S1.C.N.GDXB9._Z._Z._Z.XDC_R_B1GQ._Z._X.V.N._T | 2026-Q2 | -0.8716 | XDC_R_B1GQ | Deficit-debt adjustment for Government (consolidated), percent of GDP
+- `16:15:37`   GFS.Q.N.DE.W0.S13.S1.C.N.GDXB9._Z._Z._Z.XDC_R_B1GQ_CY._Z._X.V.CY._T | 2026-Q2 | 0.4349 | XDC_R_B1GQ_CY | Deficit-debt adjustment for Government (consolidated), percent of GDP
+- `16:15:37`   GFS.Q.N.DE.W0.S13.S1.C.N.GDXN._Z._Z._Z.XDC_R_B1GQ._Z._X.V.N._T | 2026-Q2 | -0.8781 | XDC_R_B1GQ | Deficit-debt adjustment for Government - other adjustments not elsewhere included (consolidated), percent of GDP
+- `16:15:37`   GFS.Q.N.DE.W0.S13.S1.C.N.GDXN._Z._Z._Z.XDC_R_B1GQ_CY._Z._X.V.CY._T | 2026-Q2 | -0.0234 | XDC_R_B1GQ_CY | Deficit-debt adjustment for Government - other adjustments not elsewhere included (consolidated), percent of GDP
+- `16:15:37`   GFS.Q.N.DE.W0.S13.S1._Z.B.B9._Z._Z._Z.XDC_R_B1GQ._Z.S.V.N._T | 2026-Q2 | -2.8187 | XDC_R_B1GQ | Government deficit(-) or surplus(+), percent of GDP
+- `16:15:37`   GFS.Q.N.DE.W0.S13.S1._Z.B.B9._Z._Z._Z.XDC_R_B1GQ_CY._Z.S.V.CY._T | 2026-Q2 | -3.7001 | XDC_R_B1GQ_CY | Government deficit(-) or surplus(+), percent of GDP
+- `16:15:37`   GFS.Q.N.DE.W0.S13.S1._Z.B.B9P._Z._Z._Z.XDC_R_B1GQ._Z.S.V.N._T | 2026-Q2 | -1.5003 | XDC_R_B1GQ | Government primary deficit(-) or surplus(+), percent of GDP
+- `16:15:37`   GFS.Q.N.DE.W0.S13.S1._Z.B.B9P._Z._Z._Z.XDC_R_B1GQ_CY._Z.S.V.CY._T | 2026-Q2 | -2.5755 | XDC_R_B1GQ_CY | Government primary deficit(-) or surplus(+), percent of GDP
+- `16:15:37`   GFS.Q.Y.DE.W0.S13.S1.C.C.D41._Z._Z._Z.XDC_R_B1GQ._Z.S.V.N._T | 2015-Q2 |  | XDC_R_B1GQ |  Government interest revenue (seasonally adjusted) (as % of GDP)
+- `16:15:37`   GFS.Q.Y.DE.W0.S13.S1.C.C.D41._Z._Z._Z.XDC_R_B1GQ_CY._Z.S.V.CY._T | 2015-Q2 |  | XDC_R_B1GQ_CY |  Government interest revenue (seasonally adjusted) (as % of GDP)
+- `16:15:37`   GFS.Q.Y.DE.W0.S13.S1.C.D.D41._Z._Z._T.XDC_R_B1GQ._Z.S.V.N._T | 2015-Q2 |  | XDC_R_B1GQ |  Government interest expenditure (seasonally adjusted) (as % of GDP)
+- `16:15:37`   GFS.Q.Y.DE.W0.S13.S1.C.D.D41._Z._Z._T.XDC_R_B1GQ_CY._Z.S.V.CY._T | 2015-Q2 |  | XDC_R_B1GQ_CY |  Government interest expenditure (seasonally adjusted) (as % of GDP)
+- `16:15:37`   GFS.Q.Y.DE.W0.S13.S1._Z.B.B9._Z._Z._Z.XDC_R_B1GQ._Z.S.V.N._T | 2026-Q2 | -4.1479 | XDC_R_B1GQ | Government deficit(-) or surplus(+) (seasonally adjusted), percent of GDP
+- `16:15:37`   GFS.Q.Y.DE.W0.S13.S1._Z.B.B9._Z._Z._Z.XDC_R_B1GQ_CY._Z.S.V.CY._T | 2026-Q2 | -3.7663 | XDC_R_B1GQ_CY | Government deficit(-) or surplus(+) (seasonally adjusted), percent of GDP
+- `16:15:37`   GFS.Q.Y.DE.W0.S13.S1._Z.B.B9P._Z._Z._Z.XDC_R_B1GQ._Z.S.V.N._T | 2023-Q4 | -2.976270805218174 | XDC_R_B1GQ |  Government primary deficit(-) or surplus(+) (as % of GDP)
+- `16:15:37`   GFS.Q.Y.DE.W0.S13.S1._Z.B.B9P._Z._Z._Z.XDC_R_B1GQ_CY._Z.S.V.CY._T | 2023-Q4 | -2.464718671442021 | XDC_R_B1GQ_CY |  Government primary deficit(-) or surplus(+) (as % of GDP)
+- `16:15:37` 20 candidates in percent of GDP
+- `16:15:48`   ALL GFS/Q.N..W0.S13.S1.C.C.D41._Z._Z._Z.XDC_R_B1GQ._Z.S.V.N._T lastN=1 -> 200, 20096 bytes, 8.3s, 31 areas, periods 2022-Q3 .. 2026-Q2 | DE 0.3585 FR 0.1265 GR 0.2583 I9 0.335 IT 0.2641
+- `16:15:53`   ALL GFS/Q.N..W0.S13.S1.C.C.D41._Z._Z._Z.XDC_R_B1GQ._Z.S.V.N._T first=1 -> 200, 20028 bytes, 4.7s, 31 areas, periods 1999-Q1 .. 2002-Q1 | DE  FR 0.442 GR 0.562 I9 0.4216 IT 0.1402
+- `16:15:57`   ALL GFS/Q.N..W0.S13.S1.C.C.D41._Z._Z._Z.XDC_R_B1GQ_CY._Z.S.V.CY._T lastN=1 -> 200, 21117 bytes, 1.0s, 31 areas, periods 2022-Q3 .. 2026-Q2 | DE 0.3553 FR 0.1162 GR 0.4207 I9 0.3318 IT 0.2386
+- `16:16:01`   ALL GFS/Q.N..W0.S13.S1.C.C.D41._Z._Z._Z.XDC_R_B1GQ_CY._Z.S.V.CY._T first=1 -> 200, 21222 bytes, 2.3s, 31 areas, periods 1999-Q1 .. 2002-Q4 | DE  FR 0.477 GR 0.13022826453999786 I9 0.10411959530027447 IT 0.032945758246713294
+- `16:16:10`   ALL GFS/Q.N..W0.S13.S1.C.D.D41._Z._Z._T.XDC_R_B1GQ._Z.S.V.N._T lastN=1 -> 200, 20028 bytes, 6.7s, 31 areas, periods 2022-Q3 .. 2026-Q2 | DE 1.3184 FR 3.4289 GR 3.2279 I9 2.4348 IT 5.0127
+- `16:16:16`   ALL GFS/Q.N..W0.S13.S1.C.D.D41._Z._Z._T.XDC_R_B1GQ._Z.S.V.N._T first=1 -> 200, 19972 bytes, 4.7s, 31 areas, periods 1999-Q1 .. 2002-Q1 | DE  FR 3.209 GR 11.493 I9 3.6278 IT 7.169
+- `16:16:20`   ALL GFS/Q.N..W0.S13.S1.C.D.D41._Z._Z._T.XDC_R_B1GQ_CY._Z.S.V.CY._T lastN=1 -> 200, 21055 bytes, 1.2s, 31 areas, periods 2022-Q3 .. 2026-Q2 | DE 1.1245 FR 2.4102 GR 3.1417 I9 1.996 IT 3.9657
+- `16:16:23`   ALL GFS/Q.N..W0.S13.S1.C.D.D41._Z._Z._T.XDC_R_B1GQ_CY._Z.S.V.CY._T first=1 -> 200, 21185 bytes, 1.6s, 31 areas, periods 1999-Q1 .. 2002-Q4 | DE  FR 3.323 GR 2.6634033621282693 I9 0.8906484198458658 IT 1.703110730466616
+- `16:16:32`   ALL GFS/Q.N..W0.S13.S1.C.N.GDXB9._Z._Z._Z.XDC_R_B1GQ._Z._X.V.N._T lastN=1 -> 200, 22956 bytes, 6.2s, 31 areas, periods 2022-Q3 .. 2026-Q2 | DE -0.8716 FR 1.1751 GR 2.5065 I9 1.4197 IT 6.563
+- `16:16:39`   ALL GFS/Q.N..W0.S13.S1.C.N.GDXB9._Z._Z._Z.XDC_R_B1GQ._Z._X.V.N._T first=1 -> 200, 23075 bytes, 5.9s, 31 areas, periods 1999-Q1 .. 2002-Q1 | DE  FR -3.997 GR -8.103541197921874 I9 1.611873804242742 IT -3.0972
+- `16:16:43`   ALL GFS/Q.N..W0.S13.S1.C.N.GDXB9._Z._Z._Z.XDC_R_B1GQ_CY._Z._X.V.CY._T lastN=1 -> 200, 23979 bytes, 1.4s, 31 areas, periods 2022-Q3 .. 2026-Q2 | DE 0.4349 FR 0.8002 GR -1.7787 I9 1.2735 IT 2.9634
+- `16:16:47`   ALL GFS/Q.N..W0.S13.S1.C.N.GDXB9._Z._Z._Z.XDC_R_B1GQ_CY._Z._X.V.CY._T first=1 -> 200, 24181 bytes, 2.4s, 31 areas, periods 1999-Q1 .. 2002-Q4 | DE  FR 0.017 GR -1.919690140538402 I9 0.4102100707093062 IT -0.06804660184484043
+- `16:16:53`   ALL GFS/Q.N..W0.S13.S1.C.N.GDXN._Z._Z._Z.XDC_R_B1GQ._Z._X.V.N._T lastN=1 -> 200, 25644 bytes, 3.6s, 31 areas, periods 2022-Q3 .. 2026-Q2 | DE -0.8781 FR -0.0188 GR 8.0818 I9  IT 6.8091
+- `16:17:00`   ALL GFS/Q.N..W0.S13.S1.C.N.GDXN._Z._Z._Z.XDC_R_B1GQ._Z._X.V.N._T first=1 -> 200, 25688 bytes, 6.2s, 31 areas, periods 1999-Q1 .. 2002-Q1 | DE 3.987162925884063 FR -1.739 GR -8.211 I9 4.148004737581353 IT -3.8699
+- `16:17:07`   ALL GFS/Q.N..W0.S13.S1.C.N.GDXN._Z._Z._Z.XDC_R_B1GQ_CY._Z._X.V.CY._T lastN=1 -> 200, 26669 bytes, 4.0s, 31 areas, periods 2022-Q3 .. 2026-Q2 | DE -0.0234 FR 0.2465 GR 0.9222 I9  IT 2.0365
+- `16:17:12`   ALL GFS/Q.N..W0.S13.S1.C.N.GDXN._Z._Z._Z.XDC_R_B1GQ_CY._Z._X.V.CY._T first=1 -> 200, 26972 bytes, 3.7s, 31 areas, periods 1999-Q1 .. 2002-Q4 | DE 1.7738738427012946 FR -0.9357904892241078 GR 3.6453401669122067 I9 1.0253000406544148 IT 1.738996827836513
+- `16:17:19`   ALL GFS/Q.N..W0.S13.S1._Z.B.B9._Z._Z._Z.XDC_R_B1GQ._Z.S.V.N._T lastN=1 -> 200, 22347 bytes, 4.2s, 34 areas, periods 2014-Q2 .. 2026-Q2 | DE -2.8187 FR -6.6789 GR 4.7624 I9 -3.2591 IT -2.0208
+- `16:17:25`   ALL GFS/Q.N..W0.S13.S1._Z.B.B9._Z._Z._Z.XDC_R_B1GQ._Z.S.V.N._T first=1 -> 200, 22298 bytes, 5.3s, 34 areas, periods 1960-Q1 .. 2002-Q1 | DE  FR -6.659 GR -8.284 I9 -5.0786 IT -8.8729
+- `16:17:30`   ALL GFS/Q.N..W0.S13.S1._Z.B.B9._Z._Z._Z.XDC_R_B1GQ_CY._Z.S.V.CY._T lastN=1 -> 200, 21418 bytes, 1.4s, 31 areas, periods 2022-Q3 .. 2026-Q2 | DE -3.7001 FR -5.1066 GR 2.1327 I9 -3.2404 IT -2.9793
+- `16:17:33`   ALL GFS/Q.N..W0.S13.S1._Z.B.B9._Z._Z._Z.XDC_R_B1GQ_CY._Z.S.V.CY._T first=1 -> 200, 21543 bytes, 2.4s, 31 areas, periods 1999-Q1 .. 2002-Q4 | DE  FR -3.308 GR -1.919690140538402 I9 -1.262108140879496 IT -2.175318723599659
+- `16:17:40`   ALL GFS/Q.N..W0.S13.S1._Z.B.B9P._Z._Z._Z.XDC_R_B1GQ._Z.S.V.N._T lastN=1 -> 200, 22148 bytes, 3.4s, 31 areas, periods 2022-Q3 .. 2026-Q2 | DE -1.5003 FR -3.25 GR 7.9904 I9 -0.8243 IT 2.992
+- `16:17:43`   ALL GFS/Q.N..W0.S13.S1._Z.B.B9P._Z._Z._Z.XDC_R_B1GQ._Z.S.V.N._T first=1 -> 200, 22088 bytes, 2.2s, 31 areas, periods 1999-Q1 .. 2002-Q1 | DE  FR -3.451 GR 3.209 I9 -1.4508 IT -1.7039
+- `16:17:48`   ALL GFS/Q.N..W0.S13.S1._Z.B.B9P._Z._Z._Z.XDC_R_B1GQ_CY._Z.S.V.CY._T lastN=1 -> 200, 23179 bytes, 1.7s, 31 areas, periods 2022-Q3 .. 2026-Q2 | DE -2.5755 FR -2.6964 GR 5.2744 I9 -1.2444 IT 0.9865
+- `16:17:52`   ALL GFS/Q.N..W0.S13.S1._Z.B.B9P._Z._Z._Z.XDC_R_B1GQ_CY._Z.S.V.CY._T first=1 -> 200, 23300 bytes, 3.7s, 31 areas, periods 1999-Q1 .. 2002-Q4 | DE  FR 0.015 GR 0.7437132215898673 I9 -0.37145972103363023 IT -0.4722079931330432
+- `16:18:01`   ALL GFS/Q.Y..W0.S13.S1.C.C.D41._Z._Z._Z.XDC_R_B1GQ._Z.S.V.N._T lastN=1 -> 200, 18117 bytes, 6.2s, 28 areas, periods 2015-Q2 .. 2026-Q2 | DE  FR 0.1265 GR  IT 
+- `16:18:03`   ALL GFS/Q.Y..W0.S13.S1.C.C.D41._Z._Z._Z.XDC_R_B1GQ._Z.S.V.N._T first=1 -> 200, 18108 bytes, 0.8s, 28 areas, periods 1999-Q1 .. 1999-Q1 | DE  FR 0.442 GR  IT 
+- `16:18:13`   ALL GFS/Q.Y..W0.S13.S1.C.C.D41._Z._Z._Z.XDC_R_B1GQ_CY._Z.S.V.CY._T lastN=1 -> 200, 19047 bytes, 6.3s, 28 areas, periods 2015-Q2 .. 2026-Q2 | DE  FR 0.1162 GR  IT 
+- `16:18:19`   ALL GFS/Q.Y..W0.S13.S1.C.C.D41._Z._Z._Z.XDC_R_B1GQ_CY._Z.S.V.CY._T first=1 -> 200, 19080 bytes, 5.0s, 28 areas, periods 1999-Q1 .. 1999-Q4 | DE  FR 0.477 GR  IT 
+- `16:18:23`   ALL GFS/Q.Y..W0.S13.S1.C.D.D41._Z._Z._T.XDC_R_B1GQ._Z.S.V.N._T lastN=1 -> 200, 18060 bytes, 1.3s, 28 areas, periods 2015-Q2 .. 2026-Q2 | DE  FR 2.4929 GR  IT 
+- `16:18:29`   ALL GFS/Q.Y..W0.S13.S1.C.D.D41._Z._Z._T.XDC_R_B1GQ._Z.S.V.N._T first=1 -> 200, 18052 bytes, 5.3s, 28 areas, periods 1999-Q1 .. 1999-Q1 | DE  FR 3.209 GR  IT 
+- `16:18:38`   ALL GFS/Q.Y..W0.S13.S1.C.D.D41._Z._Z._T.XDC_R_B1GQ_CY._Z.S.V.CY._T lastN=1 -> 200, 18992 bytes, 6.2s, 28 areas, periods 2015-Q2 .. 2026-Q2 | DE  FR 2.3558 GR  IT 
+- `16:18:45`   ALL GFS/Q.Y..W0.S13.S1.C.D.D41._Z._Z._T.XDC_R_B1GQ_CY._Z.S.V.CY._T first=1 -> 200, 19021 bytes, 5.6s, 28 areas, periods 1999-Q1 .. 1999-Q4 | DE  FR 3.323 GR  IT 
+- `16:18:54`   ALL GFS/Q.Y..W0.S13.S1._Z.B.B9._Z._Z._Z.XDC_R_B1GQ._Z.S.V.N._T lastN=1 -> 200, 20537 bytes, 6.0s, 31 areas, periods 2001-Q4 .. 2026-Q2 | DE -4.1479 FR -5.1496 GR 2.2047 I9 -3.3114 IT -3.1945
+- `16:18:56`   ALL GFS/Q.Y..W0.S13.S1._Z.B.B9._Z._Z._Z.XDC_R_B1GQ._Z.S.V.N._T first=1 -> 200, 20504 bytes, 1.4s, 31 areas, periods 1999-Q1 .. 2002-Q1 | DE  FR -1.94 GR -7.5232 I9 -2.8437 IT -2.7124
+- `16:19:00`   ALL GFS/Q.Y..W0.S13.S1._Z.B.B9._Z._Z._Z.XDC_R_B1GQ_CY._Z.S.V.CY._T lastN=1 -> 200, 21561 bytes, 1.1s, 31 areas, periods 2002-Q3 .. 2026-Q2 | DE -3.7663 FR -5.0016 GR 1.8834 I9 -3.2151 IT -3.0198
+- `16:19:08`   ALL GFS/Q.Y..W0.S13.S1._Z.B.B9._Z._Z._Z.XDC_R_B1GQ_CY._Z.S.V.CY._T first=1 -> 200, 21707 bytes, 6.3s, 31 areas, periods 1999-Q1 .. 2002-Q4 | DE  FR -2.167 GR -6.024 I9 -2.7535 IT -1.7747
+- `16:19:17`   ALL GFS/Q.Y..W0.S13.S1._Z.B.B9P._Z._Z._Z.XDC_R_B1GQ._Z.S.V.N._T lastN=1 -> 200, 19240 bytes, 6.0s, 27 areas, periods 2002-Q1 .. 2026-Q2 | DE -2.976270805218174 FR -2.6567 GR 2.2698
+- `16:19:22`   ALL GFS/Q.Y..W0.S13.S1._Z.B.B9P._Z._Z._Z.XDC_R_B1GQ._Z.S.V.N._T first=1 -> 200, 19145 bytes, 4.2s, 27 areas, periods 1999-Q1 .. 2002-Q1 | DE  FR 1.268 GR 2.2698
+- `16:19:30`   ALL GFS/Q.Y..W0.S13.S1._Z.B.B9P._Z._Z._Z.XDC_R_B1GQ_CY._Z.S.V.CY._T lastN=1 -> 200, 18778 bytes, 5.6s, 25 areas, periods 2015-Q2 .. 2026-Q2 | DE -2.464718671442021 FR -2.6458
+- `16:19:37`   ALL GFS/Q.Y..W0.S13.S1._Z.B.B9P._Z._Z._Z.XDC_R_B1GQ_CY._Z.S.V.CY._T first=1 -> 200, 18720 bytes, 5.2s, 25 areas, periods 1999-Q1 .. 1999-Q4 | DE  FR 1.156
+- `16:19:38` ✅ read-only; nothing changed
