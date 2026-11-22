@@ -13,6 +13,7 @@ A real browser on justhodl.ai, judged against the documents the pages read:
 Nothing is written anywhere.
 """
 from datetime import datetime, timezone
+from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 import gzip
 import hashlib
@@ -55,11 +56,15 @@ CISS = r"""() => { const g = (id) => { const n = document.getElementById(id); re
 
 
 def fmt(unit, v):
-    """The page's own formatting, written again here: jh-sovereign-desk.js fmt()."""
+    """The page's own formatting, written again here: jh-sovereign-desk.js fmt().
+
+    A browser's toLocaleString rounds the shortest decimal of a float half away from zero (0.04225 -> 0.0423) where
+    Python's "%.4f" rounds the binary value (0.0422), so the number is rounded here as the browser rounds it."""
     if v is None:
         return "—"
     d, pre, suf = UNITS[unit]
-    return ("−" if v < 0 and round(v, d) != 0 else "") + pre + "{:,.{d}f}".format(abs(v), d=d) + suf
+    q = abs(Decimal(repr(float(v)))).quantize(Decimal(1).scaleb(-d), rounding=ROUND_HALF_UP)
+    return ("−" if v < 0 and q != 0 else "") + pre + "{:,}".format(q) + suf
 
 
 def lifecycle(row, now):
@@ -89,6 +94,7 @@ def fetch(path, timeout=90):
 def selftest():
     assert fmt("index", 0.17391) == "0.1739" and fmt("eur_bn", -453.798) == "−€453.8 bn" and fmt("eur_bn", 1004.296) == "€1,004.3 bn" and fmt("bp", 59.81) == "59.8 bp"
     assert fmt("index", -0.00001) == "0.0000" and fmt("pct", None) == "—"
+    assert fmt("index", 0.04225) == "0.0423" and fmt("bp", 16.75) == "16.8 bp" and fmt("eur_bn", 1307.451) == "€1,307.5 bn" and fmt("pct", 4.0) == "4.00%"
     assert script_of(b'<script src="/jh-sovereign-desk.js?v=abc123"></script>', "jh-sovereign-desk.js") == "/jh-sovereign-desk.js?v=abc123"
     now = datetime(2026, 11, 22, 15, tzinfo=timezone.utc)
     base = {"quality": {"status": "missing"}, "observation_period_end": "2026-11-20", "latest_date": "2026-11-20", "last_observed_value": 0.008, "last_observed_date": "2026-11-19"}
@@ -321,7 +327,7 @@ def main():
             c = page.evaluate(CISS)
             head = next(s for s in ware["series"] if s["key"] == "CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX")
             place = ("higher than %d" % int(head["pctile"])) if head["pctile"] >= 50 else ("lower than %d" % int(100 - head["pctile"]))
-            want_read = "ECB euro-area CISS: %.4f on %s — %s%% of its readings since %s." % (head["latest"], head["latest_date"], place, head["start_date"][:4])
+            want_read = "ECB euro-area CISS: %s on %s — %s%% of its readings since %s." % (fmt("index", head["latest"]), head["latest_date"], place, head["start_date"][:4])
             r.log("headline: %s" % c["read"])
             r.log("  %s" % c["exact"])
             r.log("reconciliation: %s | %s" % (c["rec"], c["recd"]))
