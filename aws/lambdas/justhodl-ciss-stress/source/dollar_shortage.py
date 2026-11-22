@@ -99,8 +99,8 @@ US = (
     {'id': 'FED_CUSTODY_13W', 'lead': True, 'part': 'official', 'fred': ('WMTSECL1',), 'scale': Decimal('0.001'), 'calc': 'change13', 'unit': 'usd_bn', 'places': 'eur_bn', 'freq': 'W', 'allow': 21,
      'worse': 'lower', 'release': H41,
      'label': 'US Treasury securities held in custody at the Federal Reserve for foreign official and international accounts: change over 13 weeks', 'short': 'Treasuries in custody: 13-week change',
-     'what': 'How much the Treasuries that foreign central banks keep at the Federal Reserve have risen or fallen over the last 13 weeks. A large fall is foreign central banks '
-             'selling Treasuries, which they do to raise dollars; the level itself has long trends of its own.'},
+     'what': 'How much the Treasuries that foreign central banks keep at the Federal Reserve have risen or fallen over the last 13 weeks. A large fall means they sold Treasuries, '
+             'as they do to raise dollars, or moved them out of the Fed\'s custody: the largest on record, in March 2014, was read at the time as a holder moving its securities, not as a shortage.'},
     {'id': 'FED_CUSTODY_UST', 'lead': True, 'part': 'official', 'fred': ('WMTSECL1',), 'scale': Decimal('0.001'), 'unit': 'usd_bn', 'places': 'eur_bn', 'freq': 'W', 'allow': 21, 'worse': None, 'release': H41,
      'label': 'US Treasury securities held in custody at the Federal Reserve for foreign official and international accounts', 'short': 'Treasuries in custody for foreign central banks',
      'what': 'Treasuries that foreign central banks keep at the Federal Reserve. The level rose for years and has been falling since 2021 for reasons of its own, '

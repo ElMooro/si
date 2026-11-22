@@ -168,6 +168,9 @@ def main():
         cust = dict(zip(doc["series"]["FED_CUSTODY_UST"]["d"], doc["series"]["FED_CUSTODY_UST"]["v"]))
         c13 = doc["series"]["FED_CUSTODY_13W"]
         r.log("the 13-week change of Treasuries in custody, its ten lowest readings: %s" % " | ".join("%s on %s" % (v, d) for v, d in sorted(zip(c13["v"], c13["d"]))[:10]))
+        # reported at the time (Bloomberg, 14 March 2014): Treasuries in custody fell by a record $104 bn to $2.86 trillion in the week to 12 March 2014
+        r.log("Treasuries in custody, 5 and 12 March 2014: %s -> %s" % (cust.get("2014-03-05"), cust.get("2014-03-12")))
+        ck(cust.get("2014-03-12") is not None and 2850 < cust["2014-03-12"] < 2860 and 103 < cust["2014-03-05"] - cust["2014-03-12"] < 106, "the week to 12 March 2014 is not the record fall the press reported from the same release")
         whole = dict(zip(c13["d"], c13["v"]))
         ck(all(abs(whole[d] - (cust[d] - cust[e])) < 0.0015 for d, e in (("2020-04-08", "2020-01-08"), (c13["d"][-1], sorted(cust)[-14]))), "the 13-week change is not the level less the level 13 weeks earlier")
         pool = dict(zip(doc["series"]["FED_FOREIGN_RRP"]["d"], doc["series"]["FED_FOREIGN_RRP"]["v"]))
