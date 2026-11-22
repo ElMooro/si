@@ -3,10 +3,14 @@
 A real browser on justhodl.ai, judged against the documents the pages read:
   1. chart.html: the Sovereign button sits right after Repo; a mouse click opens the desk in the chart's overlay;
   2. the Desk: every tile and every SovCISS cell equals the engine's document, ranked as the document ranks them;
+     the United States, China and the United Kingdom have their CISS; the six ended SovCISS countries are listed;
+     colour tags move a country to the top of every table and any column sorts both ways; a country's name opens
+     its chart;
   3. a chart opens, draws its history, changes range, answers the pointer;
-  4. Crisis peaks: cells equal the measures' own peaks, in all three sets;
+  4. Crisis peaks: every set draws all its series over their whole history; cells equal the measures' own peaks and
+     open that series' chart around the window;
   5. World and Sources: rows as the documents say; a retained ECB response is fetched and its SHA-256 recomputed;
-  6. the desk alone at 390 px: nothing wider than the screen; a deep link opens a chart;
+  6. the desk alone at 390 px: nothing wider than the screen; a deep link opens a chart; tags survive a reload;
   7. ciss.html: a readable headline with the exact value beside it, the reconciliation in words, current / blank /
      ended counts as the warehouse says, auxiliaries with their originals - and one checked in the browser;
   8. sovereign.html (the fiscal page that stopped on a null) renders.
@@ -35,19 +39,24 @@ CHART = r"""() => { const b = (id) => document.getElementById(id), ov = b('ws-ov
     box: box ? [Math.round(box.x), Math.round(box.y), Math.round(box.width), Math.round(box.height)] : null, repoPrev: repo && repo.previousElementSibling ? repo.previousElementSibling.id : null,
     overlay: ov ? ov.className : null, src: f ? f.getAttribute('src') : null, head: ov && ov.querySelector('.wshd span') ? ov.querySelector('.wshd span').textContent : null }; }"""
 DESK = r"""() => { const q = (s) => Array.from(document.querySelectorAll(s)), txt = (n) => n ? n.innerText.replace(/\s+/g, ' ').trim() : '', body = document.body.innerText;
-  const tables = q('table.board');
-  return { asof: txt(document.getElementById('sov-asof')), read: q('.read p').map(txt),
-    tiles: q('.tile').map(t => ({ id: t.getAttribute('data-id'), val: txt(t.querySelector('.tv')), date: txt(t.querySelector('.td')) })),
-    board: tables[0] ? Array.from(tables[0].querySelectorAll('tbody tr')).map(tr => Array.from(tr.children).map(txt)) : [],
-    others: tables[1] ? tables[1].querySelectorAll('tbody tr').length : 0, chips: q('#sov-main .chips .chip').length, parts: q('.part').length,
+  const tiles = (sel) => q(sel).map(t => ({ id: t.getAttribute('data-id'), val: txt(t.querySelector('.tv')), date: txt(t.querySelector('.td')) }));
+  const table = (id) => q(`table[data-table='${id}'] tbody tr`).map(tr => Array.from(tr.children).map(txt));
+  return { asof: txt(document.getElementById('sov-asof')), read: q('.read p').map(txt), tiles: tiles('.tiles:not(#sov-world-tiles) .tile'), world: tiles('#sov-world-tiles .tile'),
+    board: table('sovereign'), others: table('others'), ended: table('ended'), ciss: table('ciss'), heads: q("table[data-table='sovereign'] thead th").map(h => h.getAttribute('data-sort')), parts: q('.part').length,
     bad: (body.match(/\bNaN\b|\bundefined\b|\bnull\b|Infinity/g) || []), ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }; }"""
+ORDER = r"""(id) => Array.from(document.querySelectorAll(`table[data-table='${id}'] tbody tr`)).map(tr => tr.getAttribute('data-key'))"""
+PIXELS = r"""(sel) => { const c = document.querySelector(sel); if (!c || !c.width) return 0; const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0;
+  for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 150 && d[i] + d[i + 1] + d[i + 2] > 330) n++; return n; }"""
 CANVAS = r"""() => { const c = document.getElementById('sov-cv'); if (!c || !c.width) return { w: 0, amber: 0 }; const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0;
   for (let i = 0; i < d.length; i += 4) if (d[i] > 200 && d[i + 1] > 150 && d[i + 1] < 210 && d[i + 2] < 90 && d[i + 3] > 200) n++;
   return { w: c.width, h: c.height, amber: n, on: document.getElementById('sov-ovl').classList.contains('on'), meta: document.getElementById('sov-cm').innerText.replace(/\s+/g, ' '),
     title: document.getElementById('sov-ct').innerText, stat: document.getElementById('sov-cs').innerText.replace(/\s+/g, ' ').slice(0, 260), tip: document.getElementById('sov-tip').style.display + ' ' + document.getElementById('sov-tip').innerText.replace(/\s+/g, ' ') }; }"""
 CRISIS = r"""() => { const t = document.querySelector('table.crisis'); const txt = (n) => n ? n.innerText.replace(/\s+/g, ' ').trim() : '';
-  return { head: Array.from(t.querySelectorAll('thead th')).map(th => th.getAttribute('data-id')), rows: Array.from(t.querySelectorAll('tbody tr')).map(tr => Array.from(tr.children).map(txt)),
-    tops: Array.from(document.querySelectorAll('#sov-main .chips .chip')).map(txt), ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }; }"""
+  const row = (tr) => Array.from(tr.children).map(txt), ov = document.getElementById('sov-ov');
+  return { head: Array.from(t.querySelectorAll('thead th')).map(th => th.getAttribute('data-id')), eps: Array.from(t.querySelectorAll('tbody tr[data-ep]')).map(tr => tr.getAttribute('data-ep')),
+    rows: Object.fromEntries(Array.from(t.querySelectorAll('tbody tr[data-ep]')).map(tr => [tr.getAttribute('data-ep'), row(tr)])), now: row(t.querySelector('tr.nowrow')), record: row(t.querySelector('tr.recrow')),
+    tops: Array.from(document.querySelectorAll('#sov-main .chips.tops .chip')).map(txt), lines: ov ? +ov.getAttribute('data-lines') : null, legend: document.querySelectorAll('#sov-leg .lg').length,
+    minis: document.querySelectorAll('.mini').length, ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }; }"""
 CISS = r"""() => { const g = (id) => { const n = document.getElementById(id); return n ? n.innerText.replace(/\s+/g, ' ').trim() : null; };
   const rows = Array.from(document.querySelectorAll('#ciss-table-body tr')).map(tr => Array.from(tr.children).map(c => c.innerText.replace(/\s+/g, ' ').trim()));
   return { read: g('ciss-read'), exact: g('ciss-exact'), rec: g('ciss-reconcile'), recd: g('ciss-reconcile-detail'), count: g('ciss-count'), rows: rows.length,
@@ -129,8 +138,8 @@ def main():
                 desk_html, ciss_html = fetch("/sovereign-desk.html?probe=%d" % (stamp + attempt)), fetch("/ciss.html?probe=%d" % (stamp + attempt))
                 served = {"engine": b"id=btn-sov" in fetch("/jh-chart-engine.js?probe=%d" % (stamp + attempt)),
                           "rail": b'sov: ["Sovereign stress' in fetch("/jh-chart-tvrail.js?probe=%d" % (stamp + attempt)),
-                          "desk_page": b'id="sov-main"' in desk_html and b"max-width:1000px;overflow-wrap:anywhere}" in desk_html,     # the page with long keys wrapping on a phone
-                          "desk_script": b"function crisis(" in fetch(script_of(desk_html, "jh-sovereign-desk.js")),
+                          "desk_page": b'id="sov-pal"' in desk_html,                                   # the page of the second round: tags, sorting
+                          "desk_script": b"function arrange(" in fetch(script_of(desk_html, "jh-sovereign-desk.js")),
                           "ciss_page": b'id="ciss-exact"' in ciss_html,
                           "ciss_script": b"verifiedMeasure" in fetch(script_of(ciss_html, "jh-ciss-research.js")),
                           "fiscal_page": b"yoyB(" in fetch("/sovereign.html?probe=%d" % (stamp + attempt))}
@@ -153,6 +162,10 @@ def main():
         r.log("documents: desk %s, %d measures, %d countries, errors %s | history %d series | warehouse %s" % (
             doc["generated_at"][:19], len(M), len(doc["countries"]), json.dumps(doc["errors"]), len(hist["series"]), ware["generated_at"][:19]))
         ck(doc["contract"] == "ciss-sovereign.v1" and not doc["errors"] and doc["warehouse"]["manifest_key"] == ware["replay"]["manifest_key"], "the desk document: contract, errors or warehouse binding")
+        ck(doc.get("version", "") >= "1.1.0" and len(doc["episodes"]) == 22 and doc.get("world_ciss") == ["CISS_US", "CISS_CN", "CISS_GB"], "the desk document is not the extended one: version %s" % doc.get("version"))
+        names = {c["area"]: c["country"] for c in doc["countries"]}
+        key_of = lambda area: names[area].lower()
+        wj = {("czechia" if c["country"].lower() == "czech republic" else c["country"].lower()): c for c in world["countries"]}
 
         sync_playwright = A.ensure_playwright(r.log)
         with sync_playwright() as p:
@@ -210,30 +223,89 @@ def main():
 
             r.section("2. The Desk, inside the chart")
             fr.wait_for_selector(".tile", timeout=90000)
-            fr.wait_for_timeout(800)
+            fr.wait_for_function("() => /bp/.test((document.querySelector(\"table[data-table='sovereign'] tbody tr\") || {}).innerText || '') && document.querySelectorAll(\"table[data-table='sovereign'] tbody tr td\").length > 100", timeout=60000)
+            fr.wait_for_timeout(1500)                    # the world document (CDS, ratings) arrives after the first paint
+            fr.evaluate("() => { try { localStorage.removeItem('jh.sovereign-desk.v1'); } catch (e) {} }")
             d = fr.evaluate(DESK)
             r.log("as of: %s" % d["asof"])
             for line in d["read"]:
                 r.log("  read: %s" % line)
+            two = lambda t_: t_["val"].split(" ")[0] + (" " + t_["val"].split(" ")[1] if M[t_["id"]]["unit"] in ("bp", "eur_bn") else "")
             want_tiles = [(i, fmt(M[i]["unit"], M[i]["value"])) for i in doc["euro_area"]]
-            got_tiles = [(t["id"], t["val"].split(" ")[0] + (" " + t["val"].split(" ")[1] if M[t["id"]]["unit"] in ("bp", "eur_bn") else "")) for t in d["tiles"]]
-            r.log("tiles: %s" % " | ".join("%s %s (%s)" % (t["id"], t["val"], t["date"]) for t in d["tiles"])[:1400])
+            got_tiles = [(t_["id"], two(t_)) for t_ in d["tiles"]]
+            r.log("tiles: %s" % " | ".join("%s %s (%s)" % (t_["id"], t_["val"], t_["date"]) for t_ in d["tiles"])[:1400])
             ck(got_tiles == want_tiles, "tiles differ from the document: %s against %s" % (got_tiles[:4], want_tiles[:4]))
+            r.log("outside the euro area: %s" % " | ".join("%s %s" % (t_["id"], t_["val"]) for t_ in d["world"]))
+            ck([(t_["id"], two(t_)) for t_ in d["world"]] == [(i, fmt("index", M[i]["value"])) for i in doc["world_ciss"]], "the United States / China / United Kingdom CISS tiles differ from the document")
             rank = doc["cross_section"]["ranking"]
-            names = {c["area"]: c["country"] for c in doc["countries"]}
             want_board = [(names[x["area"]], fmt("index", M["SOV_" + x["area"]]["value"])) for x in rank]
             got_board = [(row[0], row[1].split(" ")[0]) for row in d["board"]]
             r.log("board: %s" % " | ".join("%s %s" % x for x in got_board))
             ck(got_board == want_board, "the board is not the document's ranking: %s against %s" % (got_board[:3], want_board[:3]))
+            col = {h: i for i, h in enumerate(d["heads"]) if h}
             fr_row = next((row for row in d["board"] if row[0] == "France"), None)
-            if fr_row:
+            if ck(fr_row is not None, "no row for France"):
                 r.log("France's row: %s" % " | ".join(fr_row))
-                ck(fmt("pct", M["Y10_FR"]["value"]) in fr_row[8] and fmt("bp", M["S10_FR"]["value"]) in fr_row[9] and fmt("eur_bn", M["TGT_FR"]["value"]) in fr_row[10] and fmt("pct_gdp", M["DEBT_FR"]["value"]) in fr_row[11],
-                   "France's yield, spread, TARGET or debt differ from the document")
-            ck(d["others"] == sum(1 for c in doc["countries"] if "sovciss" not in c["ids"] and (set(c["ids"]) & {"yield", "debt", "target"})), "the other-governments table has %d rows" % d["others"])
-            ck(d["parts"] == 6 and d["chips"] == sum(1 for c in doc["countries"] if "ciss" in c["ids"]), "contributions %d, country CISS chips %d" % (d["parts"], d["chips"]))
-            ck(not d["bad"] and d["ox"] <= 1, "broken text %s or overflow %s px" % (d["bad"][:4], d["ox"]))
-            ck(len(d["read"]) == 4 and fmt("index", M["EA_SOV_GDP"]["value"]) in d["read"][0], "the opening lines")
+                want_fr = {"ciss": fmt("index", M["CISS_FR"]["value"]), "yield": fmt("pct", M["Y10_FR"]["value"]), "spread": fmt("bp", M["S10_FR"]["value"]), "target": fmt("eur_bn", M["TGT_FR"]["value"]),
+                           "debt": fmt("pct_gdp", M["DEBT_FR"]["value"]), "deficit": fmt("pct_gdp", M["DEF_FR"]["value"]), "interest": fmt("pct_gdp", M["INT_FR"]["value"]), "clifs": fmt("index", M["CLIFS_FR"]["value"]),
+                           "cds": "{:,}".format(Decimal(repr(float(wj["france"]["cds_bp"]))).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)) + " bp", "rating": wj["france"]["rating"]}
+                off = {k: (fr_row[col[k]], v) for k, v in want_fr.items() if v not in fr_row[col[k]]}
+                ck(not off, "France's row differs from the documents: %s" % off)
+            ck(len(d["others"]) == sum(1 for c in doc["countries"] if "sovciss" not in c["ids"] and (set(c["ids"]) & {"yield", "debt", "target"})), "the other-governments table has %d rows" % len(d["others"]))
+            ended = sorted((c for c in doc["countries"] if "sovciss_ended" in c["ids"]), key=lambda c: -M[c["ids"]["sovciss_ended"]]["value"])
+            r.log("SovCISS the ECB stopped: %s" % " | ".join("%s %s" % (row[0], row[1]) for row in d["ended"]))
+            ck([(row[0], row[1]) for row in d["ended"]] == [(c["country"], fmt("index", M[c["ids"]["sovciss_ended"]]["value"])) for c in ended] and len(ended) == 6, "the ended-SovCISS table differs from the document")
+            ciss_rows = sorted((c for c in doc["countries"] if "ciss" in c["ids"]), key=lambda c: -M[c["ids"]["ciss"]]["value"])
+            r.log("CISS by country: %s" % " | ".join("%s %s (%s)" % (row[0], row[1], row[2]) for row in d["ciss"]))
+            ck([(row[0], row[1]) for row in d["ciss"]] == [(c["country"], fmt("index", M[c["ids"]["ciss"]]["value"])) for c in ciss_rows], "the CISS table differs from the document")
+            ck({"United States", "China", "United Kingdom"} <= {row[0] for row in d["ciss"]}, "the United States, China or the United Kingdom is missing from the CISS table")
+            ck(d["parts"] == 6 and not d["bad"] and d["ox"] <= 1, "contributions %d, broken text %s, overflow %s px" % (d["parts"], d["bad"][:4], d["ox"]))
+            ck(len(d["read"]) == 6 and fmt("index", M["EA_SOV_GDP"]["value"]) in d["read"][0] and fmt("index", M["CISS_US"]["value"]) in d["read"][5], "the opening lines")
+
+            r.section("2b. Tags and sorting")
+            base = fr.evaluate(ORDER, "sovereign")
+            for key, colour in (("italy", "red"), ("greece", "amber")):
+                fr.click("table[data-table='sovereign'] .tg[data-tag='%s']" % key)
+                fr.wait_for_selector("#sov-pal [data-colour='%s']" % colour, state="visible", timeout=10000)
+                fr.click("#sov-pal [data-colour='%s']" % colour)
+                fr.wait_for_timeout(300)
+            tagged = fr.evaluate(ORDER, "sovereign")
+            rest = [k for k in base if k not in ("greece", "italy")]
+            r.log("before: %s" % " ".join(base))
+            r.log("Italy tagged red, Greece amber: %s | CISS table starts %s" % (" ".join(tagged), fr.evaluate(ORDER, "ciss")[:2]))
+            ck(tagged == ["greece", "italy"] + rest and fr.evaluate(ORDER, "ciss")[0] == "italy", "tagged countries did not move to the top: %s" % tagged[:4])
+            cval = lambda key: next((M[c["ids"]["ciss"]]["value"] for c in doc["countries"] if c["country"].lower() == key and "ciss" in c["ids"]), None)
+            have, none = [k for k in rest if cval(k) is not None], [k for k in rest if cval(k) is None]
+            fr.click("table[data-table='sovereign'] th[data-sort='ciss']")
+            fr.wait_for_timeout(300)
+            down = fr.evaluate(ORDER, "sovereign")
+            fr.click("table[data-table='sovereign'] th[data-sort='ciss']")
+            fr.wait_for_timeout(300)
+            up = fr.evaluate(ORDER, "sovereign")
+            r.log("sorted by CISS, high to low: %s" % " ".join(down))
+            r.log("sorted by CISS, low to high: %s" % " ".join(up))
+            ck(down == ["greece", "italy"] + sorted(have, key=lambda k: -cval(k)) + none and up == ["greece", "italy"] + sorted(have, key=cval) + none, "sorting by CISS: %s / %s" % (down, up))
+            kept = fr.evaluate("() => { try { return localStorage.getItem('jh.sovereign-desk.v1'); } catch (e) { return 'no storage: ' + e.message; } }")
+            r.log("kept in the browser: %s" % kept)
+            ck(kept and '"italy":"red"' in kept and '"greece":"amber"' in kept, "the tags were not kept: %s" % kept)
+            fr.click("[data-show='tagged']")
+            fr.wait_for_timeout(300)
+            only = fr.evaluate(ORDER, "sovereign")
+            fr.click("[data-show='all']")
+            fr.wait_for_timeout(200)
+            ck(only == ["greece", "italy"], "showing only tagged countries: %s" % only)
+            fr.click("table[data-table='sovereign'] .cn[data-id='SOV_FR']")
+            fr.wait_for_function("(sel) => { const c = document.querySelector(sel); if (!c || !c.width) return false; const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i] > 200 && d[i + 1] > 150 && d[i + 2] < 90) n++; return n > 400; }", arg="#sov-cv", timeout=60000)
+            named = fr.evaluate("() => document.getElementById('sov-ct').innerText")
+            r.log("clicking the country name France opens: %s" % named)
+            ck(named == M["SOV_FR"]["label"], "the country name did not open France's SovCISS chart: %s" % named)
+            fr.press("body", "Escape")
+            fr.click("table[data-table='ciss'] .cn[data-id='CISS_US']")
+            fr.wait_for_timeout(900)
+            us = fr.evaluate(CANVAS)
+            r.log("clicking United States opens: %s | %s" % (us["title"], us["meta"][:110]))
+            ck(us["title"] == M["CISS_US"]["label"] and "1980" in us["meta"] and us["amber"] > 400, "the United States CISS chart")
+            fr.press("body", "Escape")
 
             r.section("3. A chart")
             fr.click(".tile[data-id='EA_SOV_GDP']")
@@ -255,35 +327,72 @@ def main():
             fr.wait_for_timeout(200)
             ck(not fr.evaluate("() => document.getElementById('sov-ovl').classList.contains('on')"), "Escape did not close the chart")
 
-            r.section("4. Crisis peaks")
+            r.section("4. Crisis peaks: every set with its history")
             fr.click("#sov-tabs .tab[data-view='crisis']")
             fr.wait_for_selector("table.crisis", timeout=30000)
-            for set_id, col, ep, side in (("sovciss", "SOV_IT", "italy2011", "hi"), ("spread", "S10_GR", "spain2012", "hi"), ("euro", "TGT_IT", "gilts2022", "lo")):
+            for set_id, col_id, ep, side in (("sovciss", "SOV_IT", "italy2011", "hi"), ("spread", "S10_GR", "spain2012", "hi"), ("ciss", "CISS_US", "crash1987", "hi"), ("euro", "TGT_IT", "gilts2022", "lo")):
                 fr.click("[data-set='%s']" % set_id)
-                fr.wait_for_timeout(300)
+                fr.wait_for_timeout(1200)
                 k = fr.evaluate(CRISIS)
-                idx = k["head"].index(col)
-                row_i = [e["id"] for e in doc["episodes"]].index(ep)
-                shown = k["rows"][row_i][idx]
-                want = fmt(M[col]["unit"], M[col]["peaks"][ep][side][0]).replace(" bp", "").replace(" bn", "")
-                r.log("  %-8s %d columns, %d rows | %s in '%s': page %s, document %s | now %s | overflow %s px" % (set_id, len(k["head"]) - 1, len(k["rows"]), col, doc["episodes"][row_i]["name"], shown, want, k["rows"][16][idx], k["ox"]))
-                ck(shown == want and len(k["rows"]) == 18 and k["rows"][16][0].startswith("Now") and k["ox"] <= 1, "crisis set %s: %s against %s" % (set_id, shown, want))
+                idx = k["head"].index(col_id)
+                shown = k["rows"][ep][idx]
+                want = fmt(M[col_id]["unit"], M[col_id]["peaks"][ep][side][0]).replace(" bp", "").replace(" bn", "")
+                cols = len(k["head"]) - 1
+                if k["lines"] is not None:
+                    drawn = fr.evaluate(PIXELS, "#sov-ov")
+                    r.log("  %-8s %d series, %d windows | one chart of all %d over their whole history (%d line pixels), legend %d | tagged first: %s" % (set_id, cols, len(k["eps"]), k["lines"], drawn, k["legend"], k["head"][1:4]))
+                    ck(k["lines"] == cols and k["legend"] == cols and drawn > 3000, "set %s: the history chart draws %s of %d series (%d pixels)" % (set_id, k["lines"], cols, drawn))
+                else:
+                    drawn = fr.evaluate("() => Array.from(document.querySelectorAll('canvas[data-mini]')).filter(c => { const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 150 && d[i] > 200) n++; return n > 30; }).length")
+                    r.log("  %-8s %d series in different units, %d windows | %d small history charts, %d drawn" % (set_id, cols, len(k["eps"]), k["minis"], drawn))
+                    ck(k["minis"] == cols and drawn == cols, "set %s: %d of %d small charts drawn" % (set_id, drawn, cols))
+                r.log("           %s in '%s': page %s, document %s | now %s | record %s | overflow %s px" % (col_id, ep, shown, want, k["now"][idx], k["record"][idx], k["ox"]))
+                ck(shown == want and k["now"][0].startswith("Now") and k["ox"] <= 1, "crisis set %s: %s against %s" % (set_id, shown, want))
                 if set_id == "sovciss":
-                    r.log("  highest readings by the data: %s" % " | ".join(k["tops"][:4]))
+                    ck(k["head"][1:4] == ["EA_SOV_GDP", "SOV_GR", "SOV_IT"], "tagged countries do not lead the columns after the euro area: %s" % k["head"][1:4])
+                    ck(set(k["eps"]) == {e["id"] for e in doc["episodes"] if any(e["id"] in M[i]["peaks"] for i in k["head"][1:])} and "crash1987" not in k["eps"], "the windows shown for SovCISS")
                     ck(len(k["tops"]) == len(M["EA_SOV_GDP"]["tops"]) and fmt("index", M["EA_SOV_GDP"]["tops"][0][0]) in k["tops"][0], "the list of highest readings")
+                    pl = k["head"].index("SOVM_PL")
+                    ck(k["now"][pl] == "—" and k["record"][pl] == fmt("index", M["SOVM_PL"]["high"][0]), "Poland's ended SovCISS: now %s, record %s" % (k["now"][pl], k["record"][pl]))
+                    fr.click("[data-olines='tagged']")
+                    fr.wait_for_timeout(400)
+                    ck(fr.evaluate(CRISIS)["lines"] == 3, "'Only tagged' should leave the euro area and the two tagged countries")
+                    fr.click("[data-olines='all']")
+                    fr.wait_for_timeout(300)
+                    fr.click("table.crisis tr[data-ep='italy2011'] td[data-id='SOV_IT']")
+                    fr.wait_for_timeout(1200)
+                    cc = fr.evaluate(CANVAS)
+                    rg = fr.evaluate("() => Array.from(document.querySelectorAll('#sov-rg .gbtn')).map(b => b.innerText + (b.classList.contains('on') ? '*' : ''))")
+                    r.log("           a cell opens %s | ranges %s | %d line pixels" % (cc["title"], rg, cc["amber"]))
+                    ck(cc["on"] and cc["title"] == M["SOV_IT"]["label"] and any("Italy and Spain drawn in" in x and x.endswith("*") for x in rg) and cc["amber"] > 300, "a crisis cell did not open its chart around the window")
+                    fr.click("#sov-rg [data-years='0']")
+                    fr.wait_for_timeout(400)
+                    ck(fr.evaluate(CANVAS)["amber"] != cc["amber"], "'All' did not redraw the whole history")
+                    fr.press("body", "Escape")
+            fr.click("#sov-tabs .tab[data-view='desk']")
+            fr.wait_for_selector("[data-cleartags]", timeout=10000)
+            fr.click("[data-cleartags]")
+            fr.wait_for_timeout(300)
+            cleared = fr.evaluate(ORDER, "sovereign")
+            r.log("tags cleared: %s" % " ".join(cleared[:4]))
+            painted = fr.evaluate("() => Array.from(document.querySelectorAll('#sov-main .tg')).filter(b => b.style.background).length")
+            plain = sorted((k for k in base if cval(k) is not None), key=cval) + [k for k in base if cval(k) is None]      # still sorted by CISS, low to high; no CISS goes last
+            ck(painted == 0 and cleared == plain, "tags were not cleared: %d dots still coloured, order %s against %s" % (painted, cleared[:4], plain[:4]))
+            back = fr.evaluate("() => { try { return localStorage.getItem('jh.sovereign-desk.v1'); } catch (e) { return ''; } }")
+            ck('"tags":{}' in (back or ""), "clearing the tags: %s" % back)
 
             r.section("5. World and Sources")
             fr.click("#sov-tabs .tab[data-view='world']")
-            fr.wait_for_selector("table.board tbody tr", timeout=60000)
+            fr.wait_for_selector("table[data-table='world'] tbody tr", timeout=60000)
             fr.wait_for_timeout(400)
-            w_rows = fr.evaluate("() => Array.from(document.querySelectorAll('table.board tbody tr')).map(tr => Array.from(tr.children).map(c => c.innerText.trim()))")
+            w_rows = fr.evaluate("() => Array.from(document.querySelectorAll(\"table[data-table='world'] tbody tr\")).map(tr => Array.from(tr.children).map(c => c.innerText.trim()))")
             top = max((c for c in world["countries"] if isinstance(c.get("cds_bp"), (int, float))), key=lambda c: c["cds_bp"])
             r.log("world: %d rows | first: %s" % (len(w_rows), " | ".join(w_rows[0])))
             ck(len(w_rows) == len(world["countries"]) and w_rows[0][0] == top["country"], "the world table: %d rows, first %s (widest CDS in the document: %s)" % (len(w_rows), w_rows[0][0], top["country"]))
             fr.click("#sov-tabs .tab[data-view='sources']")
             fr.wait_for_timeout(500)
-            src = fr.evaluate("() => ({ rows: document.querySelectorAll('table.board tbody tr').length, text: document.getElementById('sov-main').innerText.replace(/\\s+/g, ' ').slice(0, 1500), complete: document.getElementById('sov-main').innerText.includes('Nothing: every response arrived and compiled.'), links: Array.from(document.querySelectorAll('#sov-main a')).map(a => a.getAttribute('href')) })")
-            r.log("sources: %d rows, %d links, says every response arrived: %s | %s" % (src["rows"], len(src["links"]), src["complete"], src["text"][:420]))
+            src = fr.evaluate("() => ({ rows: document.querySelectorAll('table.board tbody tr').length, text: document.getElementById('sov-main').innerText.replace(/\\s+/g, ' ').slice(0, 420), complete: document.getElementById('sov-main').innerText.includes('Nothing: every response arrived and compiled.'), links: Array.from(document.querySelectorAll('#sov-main a')).map(a => a.getAttribute('href')) })")
+            r.log("sources: %d rows, %d links, says every response arrived: %s | %s" % (src["rows"], len(src["links"]), src["complete"], src["text"]))
             ck(src["rows"] == len(doc["sources"]) and src["complete"], "the sources view")
             curve = next(s for s in doc["sources"] if s["name"] == "curve")
             raw = gzip.decompress(fetch("/" + curve["evidence"]["key"], timeout=180))
@@ -306,10 +415,20 @@ def main():
             r.log("deep link ?m=SOV_FR: %s | %s" % (deep["title"], deep["meta"][:120]))
             ck(deep["title"] == M["SOV_FR"]["label"] and fmt("index", M["SOV_FR"]["value"]) in deep["meta"], "the deep link did not open France's chart")
             page.keyboard.press("Escape")
+            page.click("table[data-table='sovereign'] .tg[data-tag='portugal']")
+            page.wait_for_selector("#sov-pal [data-colour='green']", state="visible", timeout=10000)
+            page.click("#sov-pal [data-colour='green']")
+            page.wait_for_timeout(300)
+            page.goto("%s/sovereign-desk.html?nocache=%d" % (BASE, stamp + 1), wait_until="domcontentloaded")
+            page.wait_for_selector("table[data-table='sovereign'] tbody tr", timeout=90000)
+            page.wait_for_timeout(600)
+            again = page.evaluate(ORDER, "sovereign")
+            r.log("Portugal tagged, page loaded again: %s" % " ".join(again[:4]))
+            ck(again[0] == "portugal", "a tag did not survive loading the page again: %s" % again[:3])
             widths = {}
             for view in ("desk", "crisis", "world", "sources"):
                 page.click("#sov-tabs .tab[data-view='%s']" % view)
-                page.wait_for_timeout(900)
+                page.wait_for_timeout(1100)
                 widths[view] = page.evaluate("() => document.documentElement.scrollWidth - document.documentElement.clientWidth")
             r.log("wider than a 390 px screen by: %s | page errors %s" % (json.dumps(widths), perr[:2]))
             ck(all(v <= 1 for v in widths.values()) and not perr, "phone layout: %s %s" % (widths, perr[:2]))
@@ -396,11 +515,11 @@ def main():
                 r.log("favicon.ico: HTTP %s" % resp.status)
         except Exception as e:  # noqa: BLE001
             r.log("favicon.ico: %s (the one console 404 the first page of a browser session reports)" % str(e)[:60])
-        r.kv(failed_checks=len(fails), measures=len(M), tiles=len(d["tiles"]), board_rows=len(d["board"]), world_rows=len(w_rows), ciss_rows=c["rows"])
+        r.kv(failed_checks=len(fails), measures=len(M), tiles=len(d["tiles"]) + len(d["world"]), board_rows=len(d["board"]), ended_rows=len(d["ended"]), ciss_table_rows=len(d["ciss"]), world_rows=len(w_rows), ciss_rows=c["rows"])
         if fails:
             r.fail("%d checks failed: %s" % (len(fails), " | ".join(fails)[:1500]))
             sys.exit(1)
-        r.ok("the Sovereign button opens the desk; tiles, board, charts, crisis peaks, world and sources equal the documents; the CISS page reads plainly and checks its auxiliaries against their originals")
+        r.ok("the Sovereign button opens the desk; tiles, boards, tags, sorting, charts, crisis histories, world and sources hold against the documents; the CISS page reads plainly and checks its auxiliaries against their originals")
     sys.exit(0)
 
 
