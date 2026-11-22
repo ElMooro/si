@@ -434,6 +434,40 @@ function peelIndexRoutes(raw,file){
 // table at the top of the watchlist router (a spot pair of a banked coin under a crypto venue or INDEX -> the coin's own tape; CME bitcoin / ether futures), which also outranks the
 // native route; the engine opens the directory's X:<coin>USD ids on that tape and joins an outside daily series only when it is the same coin; the identity test re-applies the router
 // edit and keeps the native-route cases on a coin with no banked bars. Every edit is a before/after pair under tests/fixtures/chart-crypto-routes.
+// 2026-11-22: the Sovereign stress desk (button + click after Repo on the chart's bar, its rail entry, and the two cache-busts on chart.html
+// so a browser holding the old engine or rail fetches the new one) is peeled before every older peel.
+function peelSovDeskEngine(raw,file){
+ const AFTER='dcefd93abba4c5523277b7342d8b29a22b59d789904c671f8ace098c07674913';
+ const BEFORE='a61ccf2066f6fd2352bb4f71c22583094f65421101760f8ec2edb3f0e0b492cc';
+ const BTN="      \"<button class='wsico wsdesk' id=btn-sov title='Sovereign stress · SovCISS, spreads to Germany, TARGET, crisis peaks'><span class=g>Sov</span><span class=l>Sovereign</span></button>\"+\n";
+ const CLICK="    var bsov=document.getElementById(\"btn-sov\"); if(bsov) bsov.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace(\"sov\"); };\n";
+ if(file!=='jh-chart-engine.js'||hash(raw)!==AFTER)return raw;
+ assert.equal(raw.split(BTN).length,2,'jh-chart-engine.js Sovereign desk button');
+ assert.equal(raw.split(CLICK).length,2,'jh-chart-engine.js Sovereign desk click');
+ raw=raw.replace(BTN,'').replace(CLICK,'');
+ assert.equal(hash(raw),BEFORE,'jh-chart-engine.js');
+ return raw;
+}
+function peelSovDeskRail(raw,file){
+ const AFTER='2f47a463a82cc92badecd64fbc4e2957a26867ef17d90d244b5fc1fc7a38679d';
+ const BEFORE='eb7f074d2d5d80ea2a60801d9e0726849a6e430f73e8c911c7e613e14ba3633a';
+ const LINE="      sov: [\"Sovereign stress · SovCISS, spreads, TARGET, crisis peaks\", \"/sovereign-desk.html\"],\n";
+ if(file!=='jh-chart-tvrail.js'||hash(raw)!==AFTER)return raw;
+ assert.equal(raw.split(LINE).length,2,'jh-chart-tvrail.js Sovereign desk meta');
+ raw=raw.replace(LINE,'');
+ assert.equal(hash(raw),BEFORE,'jh-chart-tvrail.js');
+ return raw;
+}
+function peelSovDeskHtml(raw,file){
+ const AFTER='46a52f2ac304b333056d4b0a7b0ece2c5b91dbbab093e2864d896dfff450bbf2';
+ const BEFORE='ecd5c656a48d07fab61672114af310645c014e140e830f0d22a670f1c36199cf';
+ const PAIRS=[["&cds=20261015&marks=20261119&repo=20261121&sov=20261122&capit=20261105&ldr=20261105\"></script>","&cds=20261015&marks=20261119&repo=20261121&capit=20261105&ldr=20261105\"></script>"],
+              ["&fit=20261112&wick=20261112&repo=20261121&sov=20261122&ldr=20261105\"></script>","&fit=20261112&wick=20261112&repo=20261121&ldr=20261105\"></script>"]];
+ if(file!=='chart.html'||hash(raw)!==AFTER)return raw;
+ for(const [from,to] of PAIRS){assert.equal(raw.split(from).length,2,'chart.html Sovereign desk cache-bust');raw=raw.replace(from,to);}
+ assert.equal(hash(raw),BEFORE,'chart.html');
+ return raw;
+}
 // 2026-11-21: the Repo desk (button + click after CDS on the chart's bar, its rail entry, and the two cache-busts on chart.html
 // so a browser holding the old engine or rail fetches the new one) is peeled before every older peel.
 function peelRepoDeskEngine(raw,file){
@@ -559,7 +593,7 @@ function peelTabQuotes(raw,file){
  assert.equal(hash(raw),BEFORE,'jh-chart-engine.js');
  return raw;
 }
-function normalize(raw,file){raw=peelRepoDeskEngine(raw,file);raw=peelRepoDeskRail(raw,file);raw=peelRepoDeskHtml(raw,file);raw=peelCryptoRoutes(raw,file);raw=peelTabQuotes(raw,file);raw=peelVolDeskEngine(raw,file);raw=peelVolDeskRail(raw,file);raw=peelIndexRoutes(raw,file);raw=peelSpxCashWatch(raw,file);raw=peelSpxCashIdentityTest(raw,file);raw=peelMarkDesksHtml(raw,file);raw=peelMarkDesksRail(raw,file);raw=peelFredDesksEngine(raw,file);raw=peelFredDesksRail(raw,file);raw=peelCandleClarity(raw,file);raw=peelScreenFit(raw,file);raw=peelFlowsEngine(raw,file);raw=peelFlowsRail(raw,file);raw=peelFormingBar(raw,file);raw=peelCapitHtml(raw,file);raw=peelCapitRail(raw,file);raw=peelLeadersHtml(raw,file);raw=peelLeadersEngine(raw,file);raw=peelLeadersRail(raw,file);raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
+function normalize(raw,file){raw=peelSovDeskEngine(raw,file);raw=peelSovDeskRail(raw,file);raw=peelSovDeskHtml(raw,file);raw=peelRepoDeskEngine(raw,file);raw=peelRepoDeskRail(raw,file);raw=peelRepoDeskHtml(raw,file);raw=peelCryptoRoutes(raw,file);raw=peelTabQuotes(raw,file);raw=peelVolDeskEngine(raw,file);raw=peelVolDeskRail(raw,file);raw=peelIndexRoutes(raw,file);raw=peelSpxCashWatch(raw,file);raw=peelSpxCashIdentityTest(raw,file);raw=peelMarkDesksHtml(raw,file);raw=peelMarkDesksRail(raw,file);raw=peelFredDesksEngine(raw,file);raw=peelFredDesksRail(raw,file);raw=peelCandleClarity(raw,file);raw=peelScreenFit(raw,file);raw=peelFlowsEngine(raw,file);raw=peelFlowsRail(raw,file);raw=peelFormingBar(raw,file);raw=peelCapitHtml(raw,file);raw=peelCapitRail(raw,file);raw=peelLeadersHtml(raw,file);raw=peelLeadersEngine(raw,file);raw=peelLeadersRail(raw,file);raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
  if(digest===row.before_sha256||digest!==row.after_sha256)return raw;
  for(const e of [...row.replacements].reverse()){assert.equal(raw.split(e.after).length,2,file+': '+e.after.slice(0,60));raw=raw.replace(e.after,e.before);}
  assert.equal(hash(raw),row.before_sha256,file);assert.equal(raw,fs.readFileSync(path.join(R,row.before_path),'utf8'));return raw;
@@ -568,4 +602,4 @@ function normalize(raw,file){raw=peelRepoDeskEngine(raw,file);raw=peelRepoDeskRa
 const adaptations=require('../fixtures/chart-macro-line/test-adaptations.json');
 function normalizeLegacyTest(raw,file){const row=adaptations[file];if(!row||hash(raw)!==row.after_sha256)return raw;
  const old=fs.readFileSync(path.join(R,row.before_path),'utf8');assert.equal(hash(old),row.before_sha256,file);return old;}
-module.exports={normalize,normalizeLegacyTest,transition,adaptations,peelEvr,peelScreenFit,peelCandleClarity,peelRepoDeskEngine,peelRepoDeskRail,peelRepoDeskHtml};
+module.exports={normalize,normalizeLegacyTest,transition,adaptations,peelEvr,peelScreenFit,peelCandleClarity,peelRepoDeskEngine,peelRepoDeskRail,peelRepoDeskHtml,peelSovDeskEngine,peelSovDeskRail,peelSovDeskHtml};

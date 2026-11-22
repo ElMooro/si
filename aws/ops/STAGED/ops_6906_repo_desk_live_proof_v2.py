@@ -178,7 +178,7 @@ def main():
             page.wait_for_timeout(1200)
             c0 = page.evaluate(CHART)
             r.log("button: %s" % json.dumps(c0))
-            ck(c0["btn"] and c0["prev"] == "btn-cds" and c0["next"] == "btn-usd" and "Repo" in (c0["label"] or "") and "crisis spikes" in (c0["title"] or "") and c0["overlay"] == "", "the button: %s" % c0)
+            ck(c0["btn"] and c0["prev"] == "btn-cds" and c0["next"] in ("btn-usd", "btn-sov") and "Repo" in (c0["label"] or "") and "crisis spikes" in (c0["title"] or "") and c0["overlay"] == "", "the button: %s" % c0)
             page.mouse.move(700, 3)                     # the toolbar hides until the pointer reaches the top edge
             try:
                 page.wait_for_selector("#jh-ah-top.show", timeout=8000)

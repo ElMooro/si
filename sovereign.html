@@ -65,6 +65,11 @@ const fBN=v=>'$'+Math.round(v).toLocaleString()+'B';
 const fBN1=v=>'$'+v.toLocaleString(undefined,{maximumFractionDigits:1})+'B';
 const fTN=v=>'$'+v.toFixed(1)+'T';
 const fPC=v=>v.toFixed(2)+'%';
+// 2026-11-22: a figure a source did not publish is a null in the document; it is written as not available, it does not stop the page
+const isN=v=>typeof v==='number'&&isFinite(v);
+const yoyB=x=>isN(x.chg_12m_bn)?(x.chg_12m_bn>=0?'+':'')+x.chg_12m_bn.toFixed(0)+'B YoY':'YoY not available';
+const yoyC=x=>!isN(x.chg_12m_bn)?'var(--fg3)':x.chg_12m_bn>=0?'var(--green)':'var(--red)';
+const pctl=(v,tail)=>isN(v)?v.toFixed(0)+'%ile'+tail:'percentile not available';
 const CR_FIN=[['2008-09','2009-06','GFC'],['2020-02','2020-11','COVID'],['2022-01','2022-10','rate shock']];
 const CR_FAILS=[['2016-02','2016-04','settle crunch'],['2019-09','2019-10','repo spike'],['2020-02','2020-11','COVID'],['2022-01','2022-10','rate shock'],['2023-03','2023-05','SVB']];
 
@@ -142,14 +147,14 @@ document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='
   // headline reads + stat strip
   let strip='';
   const stat=(k,v,d,col)=>`<div class="stat"><div class="k">${k}</div><div class="v" style="color:${col||'var(--fg)'}">${v}</div><div class="d" style="color:${col||'var(--fg3)'}">${d}</div></div>`;
-  if(gt)strip+=stat('Foreign UST holdings',fBN(gt.latest),(gt.chg_12m_bn>=0?'+':'')+gt.chg_12m_bn.toFixed(0)+'B YoY',gt.chg_12m_bn>=0?'var(--green)':'var(--red)');
-  if(china)strip+=stat('China',fBN(china.latest),(china.chg_12m_bn>=0?'+':'')+china.chg_12m_bn.toFixed(0)+'B YoY',china.chg_12m_bn>=0?'var(--green)':'var(--red)');
-  if(japan)strip+=stat('Japan (largest)',fBN(japan.latest),(japan.chg_12m_bn>=0?'+':'')+japan.chg_12m_bn.toFixed(0)+'B YoY',japan.chg_12m_bn>=0?'var(--green)':'var(--red)');
+  if(gt)strip+=stat('Foreign UST holdings',fBN(gt.latest),yoyB(gt),yoyC(gt));
+  if(china)strip+=stat('China',fBN(china.latest),yoyB(china),yoyC(china));
+  if(japan)strip+=stat('Japan (largest)',fBN(japan.latest),yoyB(japan),yoyC(japan));
   if(ttm.length)strip+=stat('Deficit (TTM)',fBN(ttm[ttm.length-1][1]),'12-mo rolling','var(--amberw)');
   if(ds.total_debt_latest_tn)strip+=stat('Total debt',fTN(ds.total_debt_latest_tn),'to the penny','var(--fg)');
-  if(ds.implied_annual_interest_bn)strip+=stat('Interest expense',fBN(ds.implied_annual_interest_bn),(tib.length?'avg '+tib[tib.length-1][1].toFixed(2)+'%':'/yr est.'),'var(--amber)');
-  if(C&&C.securities_lending&&C.securities_lending.stats)strip+=stat('Fed sec-lending',fBN1(C.securities_lending.stats.latest_bn),C.securities_lending.stats.pctile.toFixed(0)+'%ile take-up','var(--cyan)');
-  if(F&&F.headline)strip+=stat('Treasury fails',fBN(F.headline.combined_bn),F.signal.regime+' \u00b7 '+F.headline.pctile.toFixed(0)+'%ile',{CALM:'var(--green)',ELEVATED:'var(--amberw)',STRESS:'var(--amber)',CRISIS:'var(--red)'}[F.signal.regime]||'var(--fg2)');
+  if(ds.implied_annual_interest_bn)strip+=stat('Interest expense',fBN(ds.implied_annual_interest_bn),(tib.length&&isN(tib[tib.length-1][1])?'avg '+tib[tib.length-1][1].toFixed(2)+'%':'/yr est.'),'var(--amber)');
+  if(C&&C.securities_lending&&C.securities_lending.stats&&isN(C.securities_lending.stats.latest_bn))strip+=stat('Fed sec-lending',fBN1(C.securities_lending.stats.latest_bn),pctl(C.securities_lending.stats.pctile,' take-up'),'var(--cyan)');
+  if(F&&F.headline&&isN(F.headline.combined_bn)){const reg=(F.signal&&F.signal.regime)||'';strip+=stat('Treasury fails',fBN(F.headline.combined_bn),(reg?reg+' \u00b7 ':'')+pctl(F.headline.pctile,''),{CALM:'var(--green)',ELEVATED:'var(--amberw)',STRESS:'var(--amber)',CRISIS:'var(--red)'}[reg]||'var(--fg2)');}
   document.getElementById('reads').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><span class="rb" style="font-family:var(--mono);font-weight:700;color:var(--gold)">SOVEREIGN DEMAND \u00b7 FISCAL \u00b7 DEBT SERVICE</span><span style="font-family:var(--mono);font-size:10px;color:var(--fg3)">${esc((D.generated_at||'').slice(0,16))}</span></div><div class="strip" style="margin-top:10px">${strip}</div><h2>The read</h2><ul class="dl">${reads.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
 
   let H='';

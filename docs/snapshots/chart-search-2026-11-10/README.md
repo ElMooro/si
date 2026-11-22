@@ -231,3 +231,22 @@ then delete the last test of `tests/repo-desk.test.js`, commit `[skip-ops]` and 
 `git checkout 720f7134 -- repo.html config/page-data-contracts.json` and `git rm jh-repo-desk.js tests/repo-desk.test.js
 tests/fixtures/repo-desk.json.gz`. The engines are independent of the page: `justhodl-ofr-stfm` keeps refreshing the
 OFR bank and `justhodl-repo` 3.0 keeps the wider board either way.
+
+## 2026-11-22: the chart's Sovereign button and the Sovereign stress desk
+
+Khalid: "now add an icon for sovereign stress: this engine should help: https://justhodl.ai/ciss.html". `jh-chart-engine.js`
+has one more button (`btn-sov`, right after Repo) and its click, `jh-chart-tvrail.js` one more entry (`sov` ->
+`/sovereign-desk.html`), and `chart.html` carries `&sov=20261122` on both script tags so a browser never pairs a new button
+with an old rail. The desk is a new page (`sovereign-desk.html`, `jh-sovereign-desk.js`) reading `data/ciss-sovereign.json`,
+which the CISS engine now compiles. The byte ledger peels the three chart files first (`peelSovDeskEngine`,
+`peelSovDeskRail`, `peelSovDeskHtml`), then the Repo desk's. Full record: `docs/audit/2026-11-22/sovereign-stress.md`.
+
+To take the button back (state before = 298fcf3d):
+
+```
+git checkout 298fcf3d -- jh-chart-engine.js jh-chart-tvrail.js chart.html tests/helpers/chart-macro-line-preservation.cjs tests/chart-crypto-routes.test.js
+```
+
+then delete the test "the chart has a Sovereign button that opens this desk" from `tests/sovereign-desk.test.js`, commit
+`[skip-ops]` and push. The page, the CISS page's repairs and the engine are independent of the button; the record above
+says how to take each back.

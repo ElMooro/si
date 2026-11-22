@@ -226,6 +226,7 @@
       bonds: ["Bonds & Yields", "/bonds.html"],
       cds: ["CDS · credit default swaps", "/cds.html"],
       repo: ["Repo · rates, venues, Fed facilities, crisis spikes", "/repo.html"],
+      sov: ["Sovereign stress · SovCISS, spreads, TARGET, crisis peaks", "/sovereign-desk.html"],
       dollar: ["Dollar indexes · DXY and FRED", "/dollar-indexes.html"],
       soma: ["Fed securities held outright", "/securities-held-outright.html"],
       bofa: ["ICE BofA indices", "/ice-bofa-indices.html"],
