@@ -26,17 +26,17 @@ LIVE = "justhodl-dashboard-live"
 
 
 class Overlay:
-    """Reads fall through to the bucket; writes stay here."""
+    """Reads fall through to the bucket once and are then kept, so every later read sees the same bytes; writes stay here."""
 
     def __init__(self, real):
-        self.real, self.mem, self.writes, self.reads = real, {}, [], []
+        self.real, self.mem, self.stamp, self.writes, self.reads = real, {}, {}, [], []
 
     def get_object(self, Bucket, Key, **kw):
-        if Key in self.mem:
-            return {"Body": io.BytesIO(self.mem[Key]), "LastModified": datetime.now(timezone.utc)}
-        obj = self.real.get_object(Bucket=LIVE, Key=Key)
-        self.reads.append(Key)
-        return {"Body": io.BytesIO(obj["Body"].read()), "LastModified": obj["LastModified"]}
+        if Key not in self.mem:
+            obj = self.real.get_object(Bucket=LIVE, Key=Key)           # a missing key raises the bucket's own error
+            self.reads.append(Key)
+            self.mem[Key], self.stamp[Key] = obj["Body"].read(), obj["LastModified"]
+        return {"Body": io.BytesIO(self.mem[Key]), "LastModified": self.stamp.get(Key) or datetime.now(timezone.utc)}
 
     def put_object(self, Bucket, Key, Body, **kw):
         self.mem[Key] = Body if isinstance(Body, bytes) else Body.encode()
@@ -135,9 +135,9 @@ def main():
         ck(doc["sets"][0]["n"] >= 28 and doc["sets"][1]["n"] >= 20, "long yields for %d countries, measured CDS for %d" % (doc["sets"][0]["n"], doc["sets"][1]["n"]))
         # an OECD series against the audit of ops 6917 (United States from April 1953)
         us = M.get("WY_UNITED_STATES")
-        ck(us and us["source"] == "oecd" and us["start"] == "1953-04-30" and us["freq"] == "M", "United States monthly yield: %s" % (us and (us["source"], us["start"])))
+        ck(us and us["source"] == "oecd" and us["start"] == "1953-04-30" and us["freq"] == "M", "United States monthly yield: %s" % ((us and (us["source"], us["start"])),))
         tr = M.get("WC_TURKEY")
-        ck(tr and tr["source"] == "dtcc" and tr["start"].startswith("2024-09") and tr["n"] > 400, "Turkey's measured CDS: %s" % (tr and (tr["source"], tr["start"], tr["n"])))
+        ck(tr and tr["source"] == "dtcc" and tr["start"].startswith("2024-09") and tr["n"] > 400, "Turkey's measured CDS: %s" % ((tr and (tr["source"], tr["start"], tr["n"])),))
         # the second compile of the same inputs, inside run(), already agreed; a second whole run must not ask the resolver again
         asked_before = len(asked)
         out2 = world.run(store, LIVE, budget_seconds=120, fetch=fetch)
