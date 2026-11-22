@@ -498,7 +498,8 @@ def lambda_handler(event, context):
 
     # 2026-11-22: at 06:10 UTC FRED refused every request for half a
     # minute, the discovery above got nothing, and the board lost this
-    # whole group (1,034 series, the policy rates among them).  A short
+    # whole group (1,028 series, the policy rates among them) and the six
+    # spreads built on it.  A short
     # discovery is asked again; if FRED still refuses, the group is
     # served from its bank (repo_sources.fred_group_inventory).
     _fred_how = "fred"

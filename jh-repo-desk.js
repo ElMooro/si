@@ -132,6 +132,7 @@
     { id: "aug2007", from: "2007-08-09", to: "2007-09-18", name: "August 2007 money-market freeze" },
     { id: "fails2003", from: "2003-06-20", to: "2003-11-28", name: "2003 Treasury fails episode" },
     { id: "sep2001", from: "2001-09-11", to: "2001-10-05", name: "September 11, 2001" },
+    { id: "y2k1999", from: "1999-12-27", to: "2000-01-05", name: "Year-end 1999 (Y2K)" },
     { id: "ltcm1998", from: "1998-08-17", to: "1998-10-30", name: "Russia default / LTCM" },
     { id: "oct1987", from: "1987-10-19", to: "1987-10-30", name: "October 1987 crash" }
   ];
@@ -261,8 +262,8 @@
       { id: "MMF-MMF_RP_OO-M", label: "… overnight / open", kind: "usd", every: "m" }
     ] },
     { key: "dealers", title: "Dealers — financing, securities lending, fails", blurb: "Primary dealers sit in the middle: borrowing cash against securities, lending it on, and failing to deliver when collateral is scarce. Weekly.", tiles: [
-      { feed: "pd.treasury.repo_out_b", label: "Dealer repo on Treasuries (cash borrowed)", kind: "usdb", every: "w", date: "pd.treasury.as_of", note: "Primary dealers' securities out, NY Fed weekly statistics" },
-      { feed: "pd.treasury.reverse_repo_in_b", label: "Dealer reverse repo on Treasuries (cash lent)", kind: "usdb", every: "w", date: "pd.treasury.as_of", note: "Securities in" },
+      { feed: "pd.treasury.repo_out_b", label: "Dealer repo on Treasuries (cash borrowed)", kind: "usdb", every: "w", date: "pd.treasury.repo_out_b_as_of", note: "Primary dealers' securities out, NY Fed weekly statistics" },
+      { feed: "pd.treasury.reverse_repo_in_b", label: "Dealer reverse repo on Treasuries (cash lent)", kind: "usdb", every: "w", date: "pd.treasury.reverse_repo_in_b_as_of", note: "Securities in. In a week the New York Fed withholds the figure, the last published week is shown under its own date" },
       { id: "NYPD-PD_SB_T_TOT-A", label: "Securities borrowed, Treasury", kind: "usd", every: "w" },
       { id: "NYPD-PD_SL_T_TOT-A", label: "Securities lent, Treasury", kind: "usd", every: "w" },
       { id: "NYPD-PD_AFtD_T-A", label: "Treasury fails to deliver", kind: "usd", every: "w", note: "$2.68 trillion in the week of 2008-10-22" },
@@ -306,6 +307,9 @@
 
   /* What the Crisis view measures.  `scale` turns the series' own unit into the unit shown. */
   var MEASURES = [
+    /* the two that reach back to February 1998: the New York Fed's primary-dealer survey rate, carried on by SOFR */
+    { id: "D_REPO_TARGET", short: "Repo − policy rate", unit: "bp", scale: 1, group: "Repo rates", min: 25 },
+    { id: "D_TARGET_REPO", short: "Policy rate − repo", unit: "bp", scale: 1, group: "Repo rates", min: 25 },
     { id: "D_SOFR_ADMIN", short: "SOFR − IOER/IORB", unit: "bp", scale: 1, group: "Repo rates", min: 5 },
     { id: "D_SOFR_TAIL", short: "SOFR tail", unit: "bp", scale: 1, group: "Repo rates", min: 5 },
     { id: "D_SOFR_EFFR", short: "SOFR − fed funds", unit: "bp", scale: 1, group: "Repo rates", min: 5 },
@@ -338,6 +342,24 @@
       cells[e.id] = peak ? { date: peak.date, value: peak.value, base: baselineBefore(dates, values, e.from, opt.window) } : null;
     });
     return { id: m.id, first: dates[0] || null, last: dates[dates.length - 1] || null, n: dates.length, spikes: found, cells: cells };
+  }
+
+  /* Dealers' Treasury financing out of the dealer engine's document (data/nyfed-primary-dealer.json).  In some weeks
+     the New York Fed withholds one side, and the engine then publishes no figure for it.  The desk shows each side
+     at its last published week under that week's own date, so a withheld week reads as an old number, not a blank. */
+  function dealerFinancing(doc) {
+    if (!doc || !doc.financing) return null;
+    var t = doc.financing.treasury || {}, groups = doc.groups || {}, out = { as_of: t.as_of || null };
+    [["repo_out_b", "treasury_repo"], ["reverse_repo_in_b", "treasury_reverse_repo"]].forEach(function (pair) {
+      var key = pair[0], v = t[key], when = t.as_of || null, hist = (groups[pair[1]] || {}).history || [];
+      if (!isNum(v)) {
+        when = null;
+        for (var i = hist.length - 1; i >= 0; i--) if (isNum(hist[i][1])) { v = hist[i][1] / 1000; when = hist[i][0]; break; }
+      }
+      out[key] = isNum(v) ? v : null;
+      out[key + "_as_of"] = when;
+    });
+    return { treasury: out };
   }
 
   /* ---------------------------------------------------------------- rendering */
@@ -433,7 +455,7 @@
       list = list.filter(function (x) { return x.read && x.read.n; });
       var h = "<div class='rd-sec'><h2>What each measure did in every funding crisis its history covers</h2>" +
         "<p>The highest reading inside each episode's dates, taken from the series itself. A dash means the series had not begun or had ended; the first date of each is under its name. " +
-        "No public daily repo rate reaches back before August 2014, so 2008 and earlier are read through fed funds against its target, the TED spread, settlement fails and the Fed's own operations.</p>" +
+        "The repo rate itself reaches back to February 1998: the New York Fed's primary-dealer survey rate for overnight Treasury repo (daily until February 2018), carried on by SOFR. It is shown against the Fed's policy rate both ways round, because a crisis prints on either side: <b>repo − policy rate</b> jumps when cash is scarce (September 2019, period-ends); <b>policy rate − repo</b> jumps when everyone wants Treasury collateral and repo collapses under the policy rate (August 2007, March and September 2008). October 1987 predates any public daily repo rate and is read through fed funds against its target and the TED spread.</p>" +
         "<div class='rd-scroll'><table class='rd-matrix'><thead><tr><th class='namecell'>Episode</th>" + list.map(function (x) {
           return "<th data-sid='" + esc(ctx.rows[x.m.id].sid) + "' data-id='" + esc(x.m.id) + "' class='rd-click' title=\"" + esc(ctx.rows[x.m.id].label || x.m.id) + "\">" + esc(x.m.short) + "<small>" + esc(x.m.group) + " · from " + esc((x.read.first || "").slice(0, 7)) + "</small></th>";
         }).join("") + "</tr></thead><tbody>";
@@ -466,7 +488,7 @@
   var api = {
     median: median, prevFromPct: prevFromPct, moveFromPct: moveFromPct, excessSeries: excessSeries, spikes: spikes, windowPeak: windowPeak,
     baselineBefore: baselineBefore, spacingDays: spacingDays, windowFor: windowFor, calendarTurn: calendarTurn, labelFor: labelFor, corridor: corridor,
-    ageDays: ageDays, isLate: isLate, usd: usd, fmtKind: fmtKind, tileMove: tileMove, fmtMeasure: fmtMeasure, readMeasure: readMeasure,
+    ageDays: ageDays, isLate: isLate, usd: usd, fmtKind: fmtKind, tileMove: tileMove, fmtMeasure: fmtMeasure, readMeasure: readMeasure, dealerFinancing: dealerFinancing,
     EPISODES: EPISODES, SECTIONS: SECTIONS, MEASURES: MEASURES, tileHtml: tileHtml, corridorSvg: corridorSvg, renderDesk: renderDesk, renderCrisis: renderCrisis
   };
   root.JHRepoDesk = api;

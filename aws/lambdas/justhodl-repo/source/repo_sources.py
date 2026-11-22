@@ -98,8 +98,8 @@ def bank_keys(s3, bucket):
 
 # ------------------------------------------------------------------ the FRED group's inventory
 # 2026-11-22: FRED refused every request for about half a minute during the 06:10 UTC run.  The engine asked its
-# discovery once, got nothing, and the board lost the whole FRED group - 1,034 series, the policy rates among them
-# (ops 6904, 6907, 6908; FRED answered normally ten minutes later).  A discovery that comes back short is now asked
+# discovery once, got nothing, and the board lost the whole FRED group - 1,028 series, the policy rates among them -
+# and the six spreads built on it (ops 6904, 6907, 6908; FRED answered normally ten minutes later).  A discovery that comes back short is now asked
 # again, and when FRED still refuses the group is served from its bank: every series ever discovered is banked.
 FRED_API = "https://api.stlouisfed.org/fred/"
 FRED_INVENTORY_KEY = "data/repo-state/fred-repo-inventory.json"

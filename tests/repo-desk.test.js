@@ -19,9 +19,9 @@ const H = (id) => FX.history[id];
 const near = (a, b, eps, msg) => assert.ok(Math.abs(a - b) <= (eps || 1e-6), `${msg || ''} ${a} vs ${b}`);
 const naiveMedian = (list) => { const a = list.filter((v) => typeof v === 'number' && isFinite(v)).sort((x, y) => x - y); const m = a.length >> 1; return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2; };
 
-test('the fixture is the rebuilt board: engine 3.0, 1,800 series, the venue data current', () => {
-  assert.equal(FX.board.engine_v, '3.0');
-  assert.equal(FX.board_ids.length, 1800);
+test('the fixture is the rebuilt board: engine 3.1, 1,803 series, the venue data current', () => {
+  assert.equal(FX.board.engine_v, '3.1');
+  assert.equal(FX.board_ids.length, 1803);
   assert.equal(FX.board.groups.length, 21);
   assert.ok(FX.rows['FNYR-SOFR-A'].last >= '2026-11-19' && FX.rows['REPO-TRIV1_AR_OO-P'].last >= '2026-11-18', 'the OFR-fed rows are past their August dates');
   assert.deepEqual(FX.board.groups.filter((g) => /Money market funds|securities borrowed/.test(g.name)).map((g) => [g.name, g.n]),
@@ -108,6 +108,63 @@ test('2008 is read through what has history: fed funds against target, the TED s
   assert.equal(ted.cells.ye2025, null, 'the TED spread ended in January 2022');
 });
 
+test('the repo rate before SOFR: the dealer survey rate carries repo against the policy rate back to February 1998', () => {
+  const gc = FX.rows.GC_SURVEY, up = H('D_REPO_TARGET'), down = H('D_TARGET_REPO');
+  assert.deepEqual([gc.first, gc.last, gc.n_obs, gc.group], ['1998-02-20', '2018-02-28', 4998, 'Reference rates & volumes']);
+  assert.equal(up.dates[0], '1998-02-20');
+  assert.equal(up.dates.length, FX.rows.D_REPO_TARGET.n_obs);
+  const at = (h, day) => h.values[h.dates.indexOf(day)];
+  // the days the two series were built for, each against the policy rate of its day
+  near(at(up, '2019-09-17'), 312.5, 1e-6, 'SOFR 5.25 against the middle of 2.00-2.25');
+  near(at(up, '2008-09-17'), -175, 1e-6, 'survey rate 0.25 against a 2.00 target');
+  near(at(down, '2008-09-17'), 175, 1e-6);
+  near(at(down, '1999-12-31'), 263, 1e-6, 'survey rate 2.87 against a 5.50 target');
+  near(at(down, '2007-08-20'), 104, 1e-6, 'survey rate 4.21 against a 5.25 target');
+  near(at(up, '2008-12-31'), -9.5, 1e-6, 'survey rate 0.03 against the middle of 0-0.25');
+  // one series is the mirror of the other, day for day
+  assert.deepEqual(down.dates, up.dates);
+  assert.ok(up.values.every((v, i) => v === -down.values[i]));
+  // the survey ended on 2018-02-28 and SOFR began on 2018-04-03: the weeks between are not filled in
+  assert.equal(up.dates[up.dates.indexOf('2018-02-28') + 1], '2018-04-03');
+  // each crisis prints on the side it belongs to
+  const peak = (h, id) => { const e = D.EPISODES.find((x) => x.id === id); return D.windowPeak(h.dates, h.values, e.from, e.to); };
+  assert.deepEqual([peak(up, 'sep2019').date, Math.round(peak(up, 'sep2019').value * 10) / 10], ['2019-09-17', 312.5]);
+  assert.deepEqual([peak(down, 'aug2007').date, Math.round(peak(down, 'aug2007').value)], ['2007-08-21', 309]);
+  assert.deepEqual([peak(down, 'y2k1999').date, Math.round(peak(down, 'y2k1999').value)], ['1999-12-30', 284]);
+  assert.deepEqual([peak(down, 'sep2001').date, Math.round(peak(down, 'sep2001').value)], ['2001-09-19', 210]);
+  assert.deepEqual([peak(down, 'bear2008').date, Math.round(peak(down, 'bear2008').value)], ['2008-03-19', 191]);
+  assert.deepEqual([peak(down, 'gfc2008').date, Math.round(peak(down, 'gfc2008').value)], ['2008-10-03', 189]);
+  assert.ok(peak(up, 'gfc2008').value < 60, 'in 2008 repo did not trade far above the policy rate: the stress was the other way');
+  // the data finds the same days without being told: the largest spikes of each side
+  const mUp = D.MEASURES.find((m) => m.id === 'D_REPO_TARGET'), mDown = D.MEASURES.find((m) => m.id === 'D_TARGET_REPO');
+  const topUp = D.readMeasure(mUp, up).spikes, topDown = D.readMeasure(mDown, down).spikes;
+  assert.equal(topUp[0].date, '2019-09-17');
+  assert.ok(topUp[0].excess > 290 && topUp[0].excess < 315);
+  const years = topDown.slice(0, 5).map((s) => s.date.slice(0, 7));
+  assert.ok(years.includes('2007-08') && years.includes('1999-12'), years.join(' '));
+  assert.ok(topDown.every((s) => s.value >= mDown.min) && topUp.every((s) => s.value >= mUp.min));
+  // a return to normal after months far below policy is not a squeeze: January 2009 (+16 bp) is not listed
+  assert.ok(!topUp.some((s) => s.date.startsWith('2009-01')), topUp.map((s) => s.date).join(' '));
+  assert.deepEqual(topUp.slice(0, 3).map((s) => [s.date, D.labelFor(s.date).name]), [['2019-09-17', 'September 2019 repo squeeze'], ['2019-01-02', 'Year-end 2018'], ['1998-12-15', '']]);
+  assert.deepEqual(D.labelFor('1999-12-30'), { kind: 'episode', id: 'y2k1999', name: 'Year-end 1999 (Y2K)' });
+});
+
+test('dealers\' Treasury financing: a side the New York Fed withholds is shown at its last published week', () => {
+  const real = D.dealerFinancing(FX.dealer).treasury;
+  assert.deepEqual(real, { as_of: '2026-11-11', repo_out_b: 3398.38, repo_out_b_as_of: '2026-11-11', reverse_repo_in_b: 3002.182, reverse_repo_in_b_as_of: '2026-10-28' });
+  assert.equal(FX.dealer.financing.treasury.reverse_repo_in_b, null, 'the engine publishes no figure for the withheld week');
+  assert.equal(D.isLate(real.reverse_repo_in_b_as_of, '2026-11-22', 'w'), true);
+  assert.equal(D.isLate(real.repo_out_b_as_of, '2026-11-22', 'w'), false);
+  // both sides published: each at the document's week
+  const both = D.dealerFinancing({ financing: { treasury: { as_of: '2026-10-28', repo_out_b: 3344.1, reverse_repo_in_b: 3001.4 } }, groups: {} }).treasury;
+  assert.deepEqual(both, { as_of: '2026-10-28', repo_out_b: 3344.1, repo_out_b_as_of: '2026-10-28', reverse_repo_in_b: 3001.4, reverse_repo_in_b_as_of: '2026-10-28' });
+  // never published and no history: no number and no date, so the tile says "not published"
+  const none = D.dealerFinancing({ financing: { treasury: { as_of: '2026-11-11', repo_out_b: null, reverse_repo_in_b: null } }, groups: { treasury_repo: { history: [['2026-11-11', null, 'SBN2024', false]] } } }).treasury;
+  assert.deepEqual([none.repo_out_b, none.repo_out_b_as_of, none.reverse_repo_in_b, none.reverse_repo_in_b_as_of], [null, null, null, null]);
+  assert.equal(D.dealerFinancing(null), null);
+  assert.equal(D.dealerFinancing({}), null);
+});
+
 test('spikes(): one episode per cluster, most extreme first, thresholds honoured', () => {
   const dates = [], values = [];
   for (let i = 0; i < 200; i++) { dates.push(new Date(Date.UTC(2024, 0, 1 + i)).toISOString().slice(0, 10)); values.push(2 + (i % 5) * 0.01); }
@@ -189,7 +246,7 @@ test('money and rates print in the units a desk reads', () => {
   assert.equal(D.fmtKind('usdm', FX.rows.WRESBAL.last_value), '$2.98T', 'reserves are published in millions');
   assert.equal(D.fmtKind('usdm', FX.rows.SWPT.last_value), '$146M');
   assert.equal(D.fmtKind('usdb', FX.rows.RRPONTSYD.last_value), '$401M', 'the ON RRP balance is published in billions');
-  assert.equal(D.fmtKind('usdb', FX.primary_dealer_financing.treasury.repo_out_b), '$3.34T');
+  assert.equal(D.fmtKind('usdb', D.dealerFinancing(FX.dealer).treasury.repo_out_b), '$3.40T');
   assert.equal(D.fmtKind('rate', 3.91), '3.91%');
   assert.equal(D.fmtKind('bp', 1), '+1.0 bp');
   assert.equal(D.fmtKind('bp', -12), '-12.0 bp');
@@ -213,7 +270,7 @@ test('a number older than its source\'s rhythm allows is marked, with its age', 
 test('the desk renders every aspect from the real feeds, each tile with its own date', () => {
   const made = {};
   const el = { set innerHTML(v) { made.html = v; }, get innerHTML() { return made.html; }, querySelectorAll() { return []; } };
-  const ctx = { rows: FX.rows, desk: FX.desk, pd: FX.primary_dealer_financing, today: '2026-11-21', open() {}, history() {} };
+  const ctx = { rows: FX.rows, desk: FX.desk, pd: D.dealerFinancing(FX.dealer), today: '2026-11-22', open() {}, history() {} };
   D.renderDesk(el, ctx);
   const html = made.html;
   for (const s of D.SECTIONS) assert.ok(html.includes(`data-sec='${s.key}'`), s.key);
@@ -221,8 +278,14 @@ test('the desk renders every aspect from the real feeds, each tile with its own 
   assert.equal(html.split("class='rd-tile").length - 1, D.SECTIONS.reduce((n, s) => n + s.tiles.length, 0));
   assert.equal(html.split('not published').length - 1, 0, 'no tile without a number on the real board');
   assert.ok(html.includes('>3.91%<') && html.includes('2026-11-19'));
-  assert.ok(html.includes('$3.34T') && html.includes('2026-10-28 · 24 days old'), 'dealer financing shown with its date and its age');
-  assert.ok(html.includes('2026-07-09 · 135 days old'), 'the haircuts say how old they are');
+  assert.ok(html.includes('$3.40T') && html.includes('2026-11-11'), 'dealers\' Treasury repo at the newest week');
+  assert.ok(html.includes('$3.00T') && html.includes('2026-10-28 · 25 days old'), 'the side the New York Fed withholds is shown at its last published week, with its age');
+  assert.ok(html.includes('2026-10-09') && !html.includes('2026-07-09'), 'the haircuts are at the newest monthly snapshot');
+  assert.ok(html.includes(FX.rows['DTCC-TREASURY-FAILS'].last) && FX.rows['DTCC-TREASURY-FAILS'].last >= '2026-11-20', 'DTCC daily fails are current');
+  // before the page change a withheld side was a blank tile
+  D.renderDesk(el, Object.assign({}, ctx, { pd: { treasury: FX.dealer.financing.treasury } }));
+  assert.equal(made.html.split('not published').length - 1, 1);
+  D.renderDesk(el, ctx);
   assert.ok(html.includes('The corridor') && html.includes('The calendar') && html.includes('What the stress score is made of'));
   // without the overnight feed the board still renders
   D.renderDesk(el, Object.assign({}, ctx, { desk: null }));
@@ -247,6 +310,10 @@ test('the crisis view builds its table from the histories: one row per episode, 
   assert.equal(html.split('<tr><td class=\'namecell\'>').length - 1, D.EPISODES.length);
   assert.ok(html.includes('+315 bp') && html.includes('+375 bp') && html.includes('$2,684B') && html.includes('+458 bp') && html.includes('$74.6B'));
   assert.ok(html.includes('September 2019 repo squeeze') && html.includes('Lehman / global financial crisis'));
+  // the two measures that reach back to 1998 lead the table, and the episodes before SOFR have numbers in them
+  assert.deepEqual(D.MEASURES.slice(0, 2).map((m) => m.id), ['D_REPO_TARGET', 'D_TARGET_REPO']);
+  assert.ok(html.includes('+313 bp') && html.includes('+309 bp') && html.includes('+284 bp') && html.includes('Year-end 1999 (Y2K)'));
+  assert.ok(html.includes('primary-dealer survey rate') && !html.includes('No public daily repo rate reaches back before August 2014'));
   // a measure whose history cannot be read drops out; the rest still render
   const partial = await D.renderCrisis(el, Object.assign({}, ctx, { history(sid) { return sid === 'TEDRATE' ? Promise.reject(new Error('x')) : Promise.resolve(FX.history[sid]); } }));
   assert.equal(partial.length, D.MEASURES.length - 1);

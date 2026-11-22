@@ -165,7 +165,7 @@ D% = vs previous observation · W/M/Q/Y% = vs the series' own value 7/30/91/365 
   <div id="spk"></div>
 </div></div>
 
-<script src="/jh-repo-desk.js?v=20261121a"></script>
+<script src="/jh-repo-desk.js?v=20261122a"></script>
 <script>
 "use strict";
 const fmt=(v,d=3)=>v==null?"—":(+v).toLocaleString(undefined,{maximumFractionDigits:d});
@@ -242,7 +242,7 @@ function renderTabs(){
 }
 /* what the Desk and Crisis views read: the board's rows by id, the overnight desk feed, the dealers' financing block */
 function deskCtx(){const byId={};rows.forEach(r=>{byId[r.id]=r;});
-  return{rows:byId,desk:DESK,pd:(PD&&PD.financing)||null,today:new Date().toISOString().slice(0,10),
+  return{rows:byId,desk:DESK,pd:JHRepoDesk.dealerFinancing(PD),today:new Date().toISOString().slice(0,10),
     open:(sid,id)=>{const rr=byId[id];window._cn=rr?rr.label:'';openChart(sid,id);},
     history:sid=>HCACHE[sid]?Promise.resolve(HCACHE[sid]):fetch('/data/repo-history/'+sid+'.json').then(r=>r.json()).then(h=>(HCACHE[sid]=h))};}
 
