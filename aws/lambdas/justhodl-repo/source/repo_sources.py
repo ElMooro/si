@@ -52,6 +52,34 @@ DTCC_PAGE = "https://www.dtcc.com/market-index-data/charts/daily-total-us-treasu
 DTCC_CLIENT = {"User-Agent": "Mozilla/5.0"}
 
 
+# ------------------------------------------------------------------ the engine's reads, fetches and writes
+def bank_io(s3, bucket, client="Mozilla/5.0 JustHodl research"):
+    """(read, fetch, put) for the routines below.  read() answers None only for a key that does not exist: any other
+    failure is raised, so a bad minute at S3 can never be mistaken for an empty bank."""
+    import gzip
+    import json
+    import urllib.request
+
+    def read(key):
+        try:
+            raw = s3.get_object(Bucket=bucket, Key=key)["Body"].read()
+        except Exception as e:  # noqa: BLE001
+            code = str((getattr(e, "response", None) or {}).get("Error", {}).get("Code", ""))
+            if code in ("NoSuchKey", "404") or "NoSuchKey" in str(e):
+                return None
+            raise
+        return json.loads(gzip.decompress(raw) if raw[:2] == b"\x1f\x8b" else raw)
+
+    def fetch(url):
+        with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": client}), timeout=60) as resp:
+            return resp.read()
+
+    def put(key, doc):
+        s3.put_object(Bucket=bucket, Key=key, Body=json.dumps(doc, separators=(",", ":")).encode(), ContentType="application/json")
+
+    return read, fetch, put
+
+
 # ------------------------------------------------------------------ workbooks, standard library only
 def _column(ref):
     n = 0

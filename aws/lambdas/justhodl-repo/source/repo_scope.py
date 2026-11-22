@@ -160,4 +160,29 @@ def derived_series(pairs):
     days = set().union(*[set(x) for x in legs]) if any(legs) else set()
     out.append(("D_FED_REPO", "Fed overnight repo operations, all collateral ($ billions a day): Treasury + agency + MBS",
                 {d: sum(x.get(d, 0.0) for x in legs) for d in days}, 1))
+    out.extend(repo_against_policy(pairs))
     return out
+
+
+def repo_against_policy(pairs):
+    """The overnight Treasury repo rate against the Fed's policy rate, February 1998 to today, both ways round.
+
+    The repo rate is the New York Fed's primary-dealer survey rate to 2018-02-28 (GC_SURVEY, the published proxy for
+    SOFR before SOFR existed) and SOFR from 2018-04-03.  The policy rate is the single fed funds target until
+    2008-12-15 and the middle of the target range since.  Two series, one the mirror of the other, because a crisis
+    prints on either side: repo far ABOVE policy when cash is scarce (September 2019, period-ends), repo far BELOW
+    policy when everyone wants Treasury collateral (August 2007, March and September 2008).
+    """
+    repo = dict(_first(pairs, "GC_SURVEY"))
+    if not repo:                                        # the survey rate is not banked: nothing here is older than SOFR
+        return []
+    repo.update(_first(pairs, "SOFR", "FNYR-SOFR-A"))
+    top, low = _first(pairs, "DFEDTARU"), _first(pairs, "DFEDTARL")
+    points = dict(_first(pairs, "DFEDTAR"))
+    points.update({d: (top[d] + low[d]) / 2.0 for d in top if d in low})
+    policy = _stepwise(sorted(points.items()), repo) if points else {}
+    above = {d: (repo[d] - policy[d]) * 100.0 for d in repo if d in policy}
+    return [("D_REPO_TARGET", "Overnight Treasury repo − fed funds target (bps): dealer-survey GC rate to February 2018, SOFR since; "
+             "the single target to December 2008, the middle of the range since. Positive = cash is scarce", above, 1),
+            ("D_TARGET_REPO", "Fed funds target − overnight Treasury repo (bps): how far repo fell under the policy rate. "
+             "Positive = Treasury collateral is scarce, the flight-to-safety print of 2007-08", {d: -v for d, v in above.items()}, 1)]

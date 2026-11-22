@@ -39,6 +39,9 @@ import boto3
 from history_writes import history_etags, put_history
 from repo_scope import (FUNDING_BUCKET, FUNDING_CORE, derived_series,
                          dtcc_banked, ofr_extras, refresh_due, stamp_day)
+from repo_sources import (DTCC_CLIENT, DTCC_FAILS_URLS, bank_io,
+                           bank_survey_rate, dtcc_fails, dtcc_url,
+                           refresh_haircuts, survey_scope)
 
 BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 s3 = boto3.client("s3", region_name="us-east-1")
@@ -200,6 +203,8 @@ def group_of(e):
         return "Rate percentiles (NY Fed)"
     if e.get("family") == "SRF":
         return "Standing Repo Facility"
+    if e.get("family") == "GCSURVEY":
+        return "Reference rates & volumes"
     return "Other"
 
 
@@ -783,10 +788,9 @@ def lambda_handler(event, context):
 
     # v2.0-D: DTCC daily Treasury fails -- attempt, honest skip
     dtcc_status = "skipped"
-    for _du in ("https://www.dtcc.com/charts/daily-total-us-treasury-"
-                 "trade-fails.json",
-                 "https://www.dtcc.com/-/media/Files/Downloads/Charts/"
-                 "daily-treasury-fails.csv"):
+    # 2026-11-22: the two addresses this loop tried answer 404 since DTCC
+    # moved its files; the live file is read further down (repo_sources)
+    for _du in ():
         try:
             with _ur2.urlopen(_ur2.Request(_du, headers={
                     "User-Agent": "JustHodl raafouis@gmail.com"}),
@@ -803,6 +807,27 @@ def lambda_handler(event, context):
         except Exception:
             continue
     print(f"[repo] dtcc: {dtcc_status}")
+
+    # 2026-11-22: two banks this engine keeps itself (repo_sources.py).
+    # The dealer survey rate - the daily repo rate from 1998 to 2018 - is
+    # banked once and read from the bank.  The haircut bank was parsed
+    # once, by an op, in August and never again; it is now kept level
+    # with the New York Fed's workbooks here.
+    _bread, _bfetch, _bput = bank_io(s3, BUCKET)
+    _own = {}
+    try:
+        _own["survey_rate"] = bank_survey_rate(_bread, _bfetch, _bput, now)
+        scope.append(survey_scope())
+    except Exception as _se:
+        _own["survey_rate"] = {"status": "error", "error":
+                                type(_se).__name__ + ": " + str(_se)[:80]}
+    try:
+        _own["haircuts"] = refresh_haircuts(
+            _bread, _bfetch, _bput, now, datetime.now(timezone.utc).date())
+    except Exception as _he:
+        _own["haircuts"] = {"status": "error", "error":
+                             type(_he).__name__ + ": " + str(_he)[:80]}
+    print(f"[repo] own sources: {json.dumps(_own)[:900]}")
 
     # v2.1: tri-party haircut monthly series (parsed by ops 4789)
     try:
@@ -1293,30 +1318,26 @@ def lambda_handler(event, context):
     # so OUR bank becomes the permanent history (ops 4802 backfills
     # via Wayback snapshots).
     diag['dtcc'] = {}
+    diag['own_sources'] = _own
     try:
         import urllib.request as _ur
-        _txt = _ur.urlopen(_ur.Request(
-            'https://www.dtcc.com/data/failsdata.csv',
-            headers={'User-Agent': 'Mozilla/5.0'}), timeout=45
-            ).read().decode('utf-8', 'replace')
-        _tsy, _agy = {}, {}
-        for _ln in _txt.splitlines():
-            if _ln.startswith('TRAILER') or _ln.startswith('Date'):
-                continue
-            _pc = _ln.split(',')
-            if len(_pc) < 3:
-                continue
-            import re as _re3
-            _dm = _re3.match(r'(\d{2})/(\d{2})/(\d{4})', _pc[0])
-            if not _dm:
-                continue
-            _ds = (_dm.group(3) + '-' + _dm.group(1) + '-'
-                    + _dm.group(2))
+        # 2026-11-22: DTCC moved the file to cms-prod.dtcc.com (the old
+        # address answers 404 since 2026-09-09); a request without a
+        # fresh `v` was served a week-old copy (repo_sources.py)
+        _tsy = _agy = _derr = None
+        for _dbase in DTCC_FAILS_URLS:
             try:
-                _tsy[_ds] = float(_pc[1])
-                _agy[_ds] = float(_pc[2])
-            except Exception:
-                continue
+                _txt = _ur.urlopen(_ur.Request(
+                    dtcc_url(_dbase, int(time.time() * 1000)),
+                    headers=DTCC_CLIENT), timeout=45
+                    ).read().decode('utf-8', 'replace')
+                _tsy, _agy = dtcc_fails(_txt)
+                diag['dtcc']['url'] = _dbase
+                break
+            except Exception as _due:
+                _derr = _due
+        if _tsy is None:
+            raise _derr
         diag['dtcc']['live_rows'] = len(_tsy)
         for _sid, _newd, _ttl in (
                 ('treasury', _tsy,
@@ -1339,7 +1360,7 @@ def lambda_handler(event, context):
                     Body=json.dumps({'id': 'DTCC-' + _sid.upper()
                                        + '-FAILS',
                         'title': _ttl, 'banked_at': now,
-                        'source': 'dtcc.com/data/failsdata.csv',
+                        'source': diag['dtcc']['url'],
                         'observations': [{'date': a, 'value': b}
                             for a, b in sorted(_m2.items())]},
                         separators=(',', ':')).encode(),
@@ -1580,7 +1601,7 @@ def lambda_handler(event, context):
     groups = {}
     for r in rows:
         groups.setdefault(r["group"], []).append(r)
-    out = {"as_of": now, "engine_v": "3.0", "diag": diag,
+    out = {"as_of": now, "engine_v": "3.1", "diag": diag,
             "note": ("barometer is a labeled heuristic: score = 50 + "
                      "10*mean(clipped z), components listed in full"),
             "counts": {"series": len(rows), "skipped": len(skipped),
@@ -1597,7 +1618,7 @@ def lambda_handler(event, context):
     s3.put_object(Bucket=BUCKET, Key="data/repo.json",
                    Body=json.dumps(out, separators=(",", ":")).encode(),
                    ContentType="application/json", CacheControl="no-cache")
-    res = {"ok": True, "v": "3.0", "ice": ice_added, "frepo": frepo_added, "series": len(rows), "skipped": len(skipped),
+    res = {"ok": True, "v": "3.1", "ice": ice_added, "frepo": frepo_added, "series": len(rows), "skipped": len(skipped),
             "history_written": hist_stats["written"], "history_unchanged": hist_stats["unchanged"],
             "barometer": score, "label": label,
             "secs": round(time.time() - t0, 1)}

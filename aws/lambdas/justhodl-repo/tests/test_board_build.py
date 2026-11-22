@@ -190,7 +190,7 @@ def test_the_board_build_end_to_end():
     bucket, wire = Bucket(seeded()), Wire()
     res, board = build(bucket, wire)
     rows = rows_of(board)
-    assert board["engine_v"] == "3.0" == res["v"] and res["ok"]
+    assert board["engine_v"] == "3.1" == res["v"] and res["ok"]
 
     # the refreshed OFR layout is read, names come from the OFR metadata
     sofr = rows["FNYR-SOFR-A"]
@@ -246,6 +246,10 @@ def test_the_board_build_end_to_end():
     assert dtcc["group"] == "DTCC daily settlement fails (FICC)" and dtcc["n_obs"] == 40 and "banked history" in dtcc["label"]
     assert board["diag"]["dtcc"].get("banked_only") is True and "404" in board["diag"]["dtcc"]["error"]
     assert "DTCC-AGENCY-FAILS" not in rows                                                         # never banked here: not offered
+    # the New York Fed's workbooks are not reachable here either: the reason is on the board, nothing is invented
+    own = board["diag"]["own_sources"]
+    assert own["survey_rate"]["status"] == "error" == own["haircuts"]["status"] and "404" in own["survey_rate"]["error"]
+    assert "GC_SURVEY" not in rows and "D_REPO_TARGET" not in rows and not any(k.startswith("data/warm/nyfed-research/") for k in bucket.puts)
 
     # counts add up and every row has its history file
     assert board["counts"]["series"] == len(rows) == board["counts"]["history_files"]
@@ -279,12 +283,96 @@ def test_without_the_ofr_names_call_the_bank_catalog_still_brings_the_extra_seri
     assert rows["MMF-MMF_RP_T_OO-M"]["label"] == ""                       # no name without the metadata call - the row is still there
 
 
+def test_the_board_reads_its_own_sources():
+    """2026-11-22: the dealer survey rate is banked and spans 1998 to SOFR; the haircut bank catches up with the New
+    York Fed's workbook; DTCC's moved file is read with a fresh `v` and merged into the banked history."""
+    import repo_sources as S
+    import test_repo_sources as T
+    old_book, new_book = T.triparty_book(T.OLD_DAYS, T.HEAD_OLD), T.triparty_book(T.NEW_DAYS, T.HEAD_NEW, shift=0.5)
+    full = S.haircut_series(S.triparty_rows(old_book), S.triparty_rows(new_book))
+    survey = T.survey_book()
+
+    class Own(Wire):
+        def __call__(self, req, timeout=None):
+            url = req.full_url if hasattr(req, "full_url") else str(req)
+            if url == S.SURVEY_URL:
+                self.calls.append(url)
+                return Answer(survey)
+            if url in (S.TRIPARTY_NOW, S.TRIPARTY_OLD):
+                self.calls.append(url)
+                return Answer(new_book if url == S.TRIPARTY_NOW else old_book)
+            if url.startswith(S.DTCC_FAILS_URLS[0] + "?v="):
+                self.calls.append(url)
+                assert req.get_header("User-agent") == "Mozilla/5.0"
+                return Answer(T.fails_file(DAYS).encode())
+            return Wire.__call__(self, req, timeout)
+
+    extra_obs = {"DFEDTAR": [("1998-01-02", 5.5)], "DFEDTARL": [(DAYS[0], 3.75)]}
+    extra_titles = {"DFEDTAR": "Federal Funds Target Rate (DISCONTINUED)", "DFEDTARL": "Federal Funds Target Range - Lower Limit"}
+    FRED_OBS.update(extra_obs)
+    FRED_TITLES.update(extra_titles)
+    try:
+        objects = seeded()
+        for key, doc in T.banked_from(full, "2025-05-09").items():
+            objects[key] = json.dumps(doc).encode()
+        bucket, wire = Bucket(objects), Own()
+        res, board = build(bucket, wire)
+        rows = rows_of(board)
+
+        def hist(sid):
+            h = json.loads(bucket.objects["data/repo-history/%s.json" % sid])
+            return dict(zip(h["dates"], h["values"]))
+
+        # 1. the repo rate before SOFR
+        gc = rows["GC_SURVEY"]
+        assert gc["group"] == "Reference rates & volumes" and gc["n_obs"] == 4100 and gc["first"] == "1998-02-20" and gc["tier"] == 1 and "survey rate" in gc["label"]
+        assert json.loads(bucket.objects[S.SURVEY_KEY])["final"] is True
+        above, below = hist("D_REPO_TARGET"), hist("D_TARGET_REPO")
+        assert round(above["1998-02-20"], 6) == -10.0 and round(below["1998-02-20"], 6) == 10.0            # 5.40 against the 5.50 target
+        assert round(above[SPIKE], 6) == 137.5                                                               # SOFR 5.25 against the middle of 3.75-4.00
+        assert min(above) == "1998-02-20" and max(above) == (TODAY - timedelta(days=1)).isoformat() and len(above) == 4100 + 81
+        assert rows["D_REPO_TARGET"]["group"] == "Derived stress indicators" == rows["D_TARGET_REPO"]["group"] and rows["D_REPO_TARGET"]["first"] == "1998-02-20"
+
+        # 2. the haircut bank caught up: two more months on every series, the ended asset class still there
+        own = board["diag"]["own_sources"]
+        assert own["survey_rate"] == {"status": "written", "n": 4100, "first": "1998-02-20", "last": gc["last"]}
+        assert own["haircuts"]["status"] == "written" and own["haircuts"]["observations_added"] == 2 * len(full) and own["haircuts"]["bank_newest_after"] == "2025-07-10"
+        eq = rows["HAIRCUT-equities--median_haircut"]
+        assert eq["group"] == "Tri-party haircuts (NY Fed monthly)" and eq["last"] == "2025-07-10" and eq["bucket"] == "median haircut"
+        assert rows["HAIRCUT-whole-loans--median_haircut"]["last"] == "2011-08-09"
+        assert sum(1 for i in rows if i.startswith("HAIRCUT-")) == len(full) + 1
+
+        # 3. DTCC's file at its new address, asked with a fresh v, merged over the banked days
+        dtcc = rows["DTCC-TREASURY-FAILS"]
+        assert dtcc["n_obs"] == 80 and dtcc["last"] == DAYS[-1] and "banked history" not in dtcc["label"] and dtcc["last_value"] == 2.0e10 + 79e8
+        assert board["diag"]["dtcc"]["url"] == S.DTCC_FAILS_URLS[0] and board["diag"]["dtcc"]["live_rows"] == 80 and "banked_only" not in board["diag"]["dtcc"]
+        assert rows["DTCC-AGENCY-FAILS"]["n_obs"] == 80
+        banked = json.loads(bucket.objects["data/warm/dtcc-fails/treasury.json"])
+        assert banked["source"] == S.DTCC_FAILS_URLS[0] and len(banked["observations"]) == 80
+        assert not any("www.dtcc.com" in u for u in wire.calls)                                           # the first address answered: the dead one is not asked
+
+        # a second run: the survey rate is read from the bank, the haircut source is asked and is level, nothing is rewritten
+        wire2 = Own()
+        _, board2 = build(bucket, wire2)
+        own2 = board2["diag"]["own_sources"]
+        assert own2["survey_rate"] == {"status": "banked", "n": 4100} and S.SURVEY_URL not in wire2.calls
+        assert own2["haircuts"]["status"] == "level" and own2["haircuts"]["written"] == 0 and wire2.calls.count(S.TRIPARTY_NOW) == 1 and S.TRIPARTY_OLD not in wire2.calls
+        assert board2["counts"]["history_written"] == 0, board2["counts"]
+    finally:
+        for k in extra_obs:
+            FRED_OBS.pop(k, None)
+            FRED_TITLES.pop(k, None)
+
+
 def test_the_engine_source_compiles_and_keeps_its_contact_lines_out_of_the_new_module():
     src = (HERE.parent / "source" / "lambda_function.py").read_text()
     compile(src, "lambda_function.py", "exec")
     scope = (HERE.parent / "source" / "repo_scope.py").read_text()
     assert "@" not in scope and "User-Agent" not in scope
-    assert '"engine_v": "3.0"' in src and "refresh_due(fid, pairs," in src and "derived_series(_pairs)" in src
+    assert '"engine_v": "3.1"' in src and "refresh_due(fid, pairs," in src and "derived_series(_pairs)" in src
+    own = (HERE.parent / "source" / "repo_sources.py").read_text()
+    assert "@" not in own and "refresh_haircuts(" in src and "bank_survey_rate(" in src and "dtcc_fails(_txt)" in src
+    assert "www.dtcc.com/data/failsdata.csv'" not in src                      # the dead address is no longer asked on its own
 
 
 def main():
