@@ -1,0 +1,541 @@
+# ops 6899 - the Repo desk's four open items, measured (read-only), 2026-11-22T03:52+00:00
+
+**Status:** success  
+**Duration:** 60.2s  
+**Finished:** 2026-11-22T03:53:35+00:00  
+
+## Data
+
+| pd_published_as_of | pd_refusals | survey_first | survey_last | survey_obs |
+|---|---|---|---|---|
+| 2026-10-28 | 2 | 1998-02-20 | 2018-02-28 | 4998 |
+
+## Log
+## 1. A daily repo rate before August 2014
+
+- `03:52:35` survey-rate workbook: 200, 88523 bytes, 0.6 s, xlsx/zip, last-modified None, sha256 0b2da5f73587dc12
+- `03:52:35`     sheet 'Sheet1': 5009 rows, widest 2 columns
+- `03:52:35`       [null, "Overnight Treasury GC Repo Primary Dealer Survey Rate (%)"]
+- `03:52:35`       [35846.0, 5.37]
+- `03:52:35`       [35849.0, 5.51]
+- `03:52:35`       [35850.0, 5.48]
+- `03:52:35`       [35851.0, 5.61]
+- `03:52:35`       [35852.0, 5.6]
+- `03:52:35`       [35853.0, 5.63]
+- `03:52:35`       ...
+- `03:52:35`       [43157.0, 1.35]
+- `03:52:35`       [43158.0, 1.36]
+- `03:52:35`       [43159.0, 1.4]
+- `03:52:35`     'Sheet1' as dates: 4998 observations, 1998-02-20 to 2018-02-28 | value range -0.010 to 6.600 | day gaps {1: 3897, 3: 881, 4: 162, 2: 55, 7: 1}
+- `03:52:35`       1998-10-08: 5.09
+- `03:52:35`       2001-09-11: None
+- `03:52:35`       2001-09-17: None
+- `03:52:35`       2007-08-20: 4.21
+- `03:52:35`       2008-03-17: 2.0
+- `03:52:35`       2008-09-15: 1.66
+- `03:52:35`       2008-09-17: 0.25
+- `03:52:35`       2008-09-30: 0.33
+- `03:52:35`       2008-12-31: 0.03
+- `03:52:35`       2014-08-22: 0.06
+- `03:52:35`       2016-12-30: 0.49
+- `03:52:35` NY Fed operations search.json?startDate=2008-09-12&endDate=2008-09-19: 400, 0 bytes, 0 operations
+- `03:52:36` NY Fed operations search.json?startDate=2001-09-10&endDate=2001-09-14: 400, 0 bytes, 0 operations
+- `03:52:36` NY Fed operations search.json?startDate=2000-07-01&endDate=2000-07-14: 400, 0 bytes, 0 operations
+- `03:52:36` board written 2026-11-21 20:46 | 0 rows | keys of a row None
+- `03:52:36` FRED-group series with 'repo' in the name that begin before 2014: 0
+## 2. Tri-party haircuts
+
+- `03:52:37` banked index written 2026-08-16 | built_at 2026-08-16T22:58:08.046659+00:00 | 81 series | entry keys ['id', 'title', 'n', 'first', 'last']
+- `03:52:42` banked series by newest date: {'2026-07-09': 73, '2015-01-12': 4, '2011-08-09': 4} | document shapes: {'id, observations, title': 81}
+- `03:52:42` sample entry {"id": "abs-investment-grade--collateral_share", "title": "Tri-party haircuts: ABS Investment Grade \u2014 collateral share", "n": 195, "first": "2010-05-11", "last": "2026-07-09"}
+- `03:52:42` sample document {"id": "abs-investment-grade--collateral_share", "title": "Tri-party haircuts: ABS Investment Grade \u2014 collateral share", "observations": "[195] [{\"date\": \"2010-05-11\", \"value\": 1.5}, {\"date\": \"2010-06-09\", \"value\": 1.5}] ... [{\"date\": \"2026-06-09\", \"value\": 0.6}, {\"date\": \"2026-07-09\", \"value\": 0.7}]"}
+- `03:52:42` all ids: abs-investment-grade--collateral_share, abs-investment-grade--collateral_value, abs-investment-grade--median_haircut, abs-investment-grade--top3_concentration, abs-non-investment-grade--collateral_share, abs-non-investment-grade--collateral_value, abs-non-investment-grade--median_haircut, abs-non-investment-grade--top3_concentration, agency-cmos--collateral_share, agency-cmos--collateral_value, agency-cmos--median_haircut, agency-cmos--top3_concentration, agency-debentures-strips--collateral_share, agency-debentures-strips--collateral_value, agency-debentures-strips--median_haircut, agency-debentures-strips--top3_concentration, agency-mbs--collateral_share, agency-mbs--collateral_value, agency-mbs--median_haircut, agency-mbs--top3_concentration, cdos--collateral_share, cdos--collateral_value, cdos--median_haircut, cdos--top3_concentration, cmo-private-label-investment-grade--collateral_share, cmo-private-label-investment-grade--collateral_value, cmo-private-label-investment-grade--median_haircut, cmo-private-label-investment-grade--top3_concentration, cmo-private-label-non-investment-grade--collateral_share, cmo-private-label-non-investment-grade--collateral_value, cmo-private-label-non-investment-grade--median_haircut, cmo-private-label-non-investment-grade--top3_concentration, corporates-investment-grade--collateral_share, corporates-investment-grade--collateral_value, corporates-investment-grade--median_haircut, corporates-investment-grade--top3_concentration, corporates-non-investment-grade--collateral_share, corporates-non-investment-grade--collateral_value, corporates-non-investment-grade--median_haircut, corporates-non-investment-grade--top3_concentration, equities--collateral_share, equities--collateral_value, equities--median_haircut, equities--top3_concentration, federal-reserve--collateral_share, federal-reserve--collateral_value, international-securities--collateral_share, international-securities--collateral_value, international-securities--median_haircut, international-securities--top3_concentration, money-market--collateral_share, money-market--collateral_value, money-market--median_haircut, money-market--top3_concentration, municipality-debt--collateral_share, municipality-debt--collateral_value, municipality-debt--median_haircut, municipality-debt--top3_concentration, number-of-observations--collateral_value, number-of-repos--collateral_value, other--collateral_share, other--collateral_value, sponsored-gc--collateral_share, sponsored-gc--collateral_value, total--collateral_value, total-fedwire-eligible--collateral_share, total-fedwire-eligible--collateral_value, total-non-fedwire-eligible--collateral_share, total-non-fedwire-eligible--collateral_value, us-treasuries-excluding-strips--collateral_share, us-treasuries-excluding-strips--collateral_value, us-treasuries-excluding-strips--median_haircut, us-treasuries-excluding-strips--top3_concentration, us-treasuries-strips--collateral_share, us-treasuries-strips--collateral_value, us-treasuries-strips--median_haircut, us-treasuries-strips--top3_concentration, whole-loans--collateral_share, whole-loans--collateral_value, whole-loans--median_haircut, whole-loans--top3_concentration
+- `03:52:42` all titles (first 30): Tri-party haircuts: ABS Investment Grade — collateral share | Tri-party haircuts: ABS Investment Grade — collateral value | Tri-party haircuts: ABS Investment Grade — median haircut | Tri-party haircuts: ABS Investment Grade — top3 concentration | Tri-party haircuts: ABS Non Investment Grade — collateral share | Tri-party haircuts: ABS Non Investment Grade — collateral value | Tri-party haircuts: ABS Non Investment Grade — median haircut | Tri-party haircuts: ABS Non Investment Grade — top3 concentration | Tri-party haircuts: Agency CMOs — collateral share | Tri-party haircuts: Agency CMOs — collateral value | Tri-party haircuts: Agency CMOs — median haircut | Tri-party haircuts: Agency CMOs — top3 concentration | Tri-party haircuts: Agency Debentures & Strips — collateral share | Tri-party haircuts: Agency Debentures & Strips — collateral value | Tri-party haircuts: Agency Debentures & Strips — median haircut | Tri-party haircuts: Agency Debentures & Strips — top3 concentration | Tri-party haircuts: Agency MBS — collateral share | Tri-party haircuts: Agency MBS — collateral value | Tri-party haircuts: Agency MBS — median haircut | Tri-party haircuts: Agency MBS — top3 concentration | Tri-party haircuts: CDOs — collateral share | Tri-party haircuts: CDOs — collateral value | Tri-party haircuts: CDOs — median haircut | Tri-party haircuts: CDOs — top3 concentration | Tri-party haircuts: CMO Private Label Investment Grade — collateral share | Tri-party haircuts: CMO Private Label Investment Grade — collateral value | Tri-party haircuts: CMO Private Label Investment Grade — median haircut | Tri-party haircuts: CMO Private Label Investment Grade — top3 concentration | Tri-party haircuts: CMO Private Label Non Investment Grade — collateral share | Tri-party haircuts: CMO Private Label Non Investment Grade — collateral value
+- `03:52:42` data/warm/nyfed-research/: folders ['data/warm/nyfed-research/datahub/', 'data/warm/nyfed-research/dfa/', 'data/warm/nyfed-research/haircuts-series/', 'data/warm/nyfed-research/haircuts/', 'data/warm/nyfed-research/hhdc/', 'data/warm/nyfed-research/sce/'] | files [('_last-check.json', 321, '2026-11-22'), ('_manifest.json', 119256, '2026-08-16')]
+- `03:52:42` /medialibrary/Research/Interactives/Data/tri-party-repo/tri-party-repo_data -> 200, 220750 bytes, 0.2 s, xlsx/zip, type application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, disposition attachment; filename="tri-party-repo_data.xlsx", last-modified None
+- `03:52:42`     sheet 'Cover Sheet': 8 rows, widest 15 columns
+- `03:52:42`       [null, null, null, "NEW YORK FED  ECONOMIC RESEARCH"]
+- `03:52:42`       [null, null, null, "https://www.newyorkfed.org/research"]
+- `03:52:42`       [null, null, null, "Tri-Party/GCF Repo Statistics", null, null, null, null, null, null, null, null, null, null]
+- `03:52:42`       [null, null, null, "Suggested citation:\n\n", null, null, null, null, null, null, null, null, null, null]
+- `03:52:42`       [null, null, null, "Federal Reserve Bank of New York, Tri-Party/GCF Repo\u00ae Statistics, https://newyorkfed.org/research/tri-party-repo.", null, null, null, null, null, null, null, null, null]
+- `03:52:42`       [null, null, null, "Source: Tri-party Repo Infrastructure Reform Task Force", null, null, null, null, null, null]
+- `03:52:42`       [null, null, null, "For any questions, please contact New York Fed Research Publications.", null, null, null, null, null, null]
+- `03:52:42`       [null, null, null, "Please refer to our Terms of Use.", null, null, null, null, null, null]
+- `03:52:42`     sheet 'volume_haircut_concentration': 532 rows, widest 12 columns
+- `03:52:42`       [null, null, null, "NEW YORK FED  ECONOMIC RESEARCH"]
+- `03:52:42`       [null, null, null, "https://www.newyorkfed.org/research"]
+- `03:52:42`       ["date", "group_id", "group_name", "collateral_value", "share_of_total", "top_3_concentration", "p10", "median", "p90", "fedwire", "num_obs", "margin_stdev"]
+- `03:52:42`       ["20241210", 1.0, "Agency CMOs", "76.14", "2.2", "38.4", "2.0", "3.0", "10.0", 1.0, 732.0, 4.625026742507233]
+- `03:52:42`       ["20241210", 2.0, "Agency Debentures & Strips", "34.99", "1.0", "26.6", "2.0", "2.0", "5.0", 1.0, 900.0, 1.769612881709842]
+- `03:52:42`       ["20241210", 3.0, "Agency MBS", "683.03", "19.9", "27.3", "2.0", "2.0", "3.0", 1.0, 2105.0, 0.6498878687118228]
+- `03:52:42`       ["20241210", 4.0, "US Treasuries Strips", "94.44", "2.7", "45.7", "1.9", "2.0", "2.4", 1.0, 931.0, 0.6756274861534354]
+- `03:52:42`       ["20241210", 5.0, "US Treasuries excluding Strips", "1512.44", "44.0", "28.3", "2.0", "2.0", "2.0", 1.0, 4945.0, 0.4395577568936703]
+- `03:52:42`       ["20241210", 6.0, "ABS Investment Grade", "20.28", "0.6", "47.3", "3.0", "7.0", "10.0", 0.0, 383.0, 2.796168834476524]
+- `03:52:42`       ...
+- `03:52:42`       ["20261009", 22.0, "Sponsored GC", "820.78", "19.4"]
+- `03:52:42`       ["20261009", 23.0, "Federal Reserve", "0.30", "0.0"]
+- `03:52:42`       ["20261009", 24.0, "Number of Observations", "17564.00"]
+- `03:52:42`       ["20261009", 25.0, "Number of Repos", "9122.00"]
+- `03:52:42`     sheet 'gcf_repo_total': 72 rows, widest 4 columns
+- `03:52:42`       [null, null, null, "NEW YORK FED  ECONOMIC RESEARCH"]
+- `03:52:42`       [null, null, null, "https://www.newyorkfed.org/research"]
+- `03:52:42`       ["date", "collateral_type", "value"]
+- `03:52:42`       ["20241210", "Gross Securities", "960.50"]
+- `03:52:42`       ["20241210", "Net Cash Borrowed", "366.40"]
+- `03:52:42`       ["20241210", "Net Securities Delivered", "480.20"]
+- `03:52:42`       ["20250110", "Gross Securities", "847.40"]
+- `03:52:42`       ["20250110", "Net Cash Borrowed", "331.60"]
+- `03:52:42`       ["20250110", "Net Securities Delivered", "423.60"]
+- `03:52:42`       ...
+- `03:52:42`       ["20260910", "Net Securities Delivered", "362.30"]
+- `03:52:42`       ["20261009", "Gross Securities", "881.30"]
+- `03:52:42`       ["20261009", "Net Cash Borrowed", "313.80"]
+- `03:52:42`       ["20261009", "Net Securities Delivered", "440.50"]
+- `03:52:42`     sheet 'gcf_repo_asset_classes': 72 rows, widest 6 columns
+- `03:52:42`       [null, null, null, "NEW YORK FED  ECONOMIC RESEARCH"]
+- `03:52:42`       [null, null, null, "https://www.newyorkfed.org/research"]
+- `03:52:42`       ["date", "collateral_type", "overnight", "overnight_share", "term", "term_share"]
+- `03:52:42`       ["20241210", "Agency (other than MBS)", "0.90", "0.3", "0.00", "0.0"]
+- `03:52:42`       ["20241210", "Agency MBS", "231.80", "66.5", "339.70", "55.5"]
+- `03:52:42`       ["20241210", "Treasury", "116.00", "33.3", "272.10", "44.5"]
+- `03:52:42`       ["20250110", "Agency (other than MBS)", "1.10", "0.4", "0.50", "0.1"]
+- `03:52:42`       ["20250110", "Agency MBS", "195.00", "65.2", "360.50", "65.7"]
+- `03:52:42`       ["20250110", "Treasury", "103.00", "34.4", "187.30", "34.2"]
+- `03:52:42`       ...
+- `03:52:42`       ["20260910", "Treasury", "64.40", "15.7", "136.20", "43.3"]
+- `03:52:42`       ["20261009", "Agency (other than MBS)", "3.00", "0.6", "0.00", "0.0"]
+- `03:52:42`       ["20261009", "Agency MBS", "368.00", "76.9", "261.60", "65.0"]
+- `03:52:42`       ["20261009", "Treasury", "107.70", "22.5", "141.00", "35.0"]
+- `03:52:42`     sheet 'gcf_repo_gcf_cusips': 210 rows, widest 6 columns
+- `03:52:42`       [null, null, null, "NEW YORK FED  ECONOMIC RESEARCH"]
+- `03:52:42`       [null, null, null, "https://www.newyorkfed.org/research"]
+- `03:52:42`       ["date", "collateral_type", "overnight", "overnight_share", "term", "term_share"]
+- `03:52:42`       ["20241210", "Agency (other than MBS)", "0.90", "0.3", "0.00", "0.0"]
+- `03:52:42`       ["20241210", "Agency MBS (FNMA & FHLMC Fixed Rate)", "212.70", "61.0", "264.20", "43.2"]
+- `03:52:42`       ["20241210", "FNMA & FHLMC ARMs", "3.80", "1.1", "0.30", "0.0"]
+- `03:52:42`       ["20241210", "GNMA (Fixed Rate)", "15.30", "4.4", "75.20", "12.3"]
+- `03:52:42`       ["20241210", "GNMA ARMs", "0.00", "0.0", "0.00", "0.0"]
+- `03:52:42`       ["20241210", "STRIPs", "0.00", "0.0", "0.00", "0.0"]
+- `03:52:42`       ...
+- `03:52:42`       ["20261009", "STRIPs", "5.00", "1.0", "0.30", "0.1"]
+- `03:52:42`       ["20261009", "TIPs", "0.00", "0.0", "0.00", "0.0"]
+- `03:52:42`       ["20261009", "Treasury (less than 10 Yrs.)", "0.00", "0.0", "0.00", "0.0"]
+- `03:52:42`       ["20261009", "Treasury (less than 30 Yrs.)", "102.70", "21.5", "140.70", "34.9"]
+- `03:52:42`     sheet 'triparty_gcf': 72 rows, widest 6 columns
+- `03:52:42`       [null, null, null, "NEW YORK FED  ECONOMIC RESEARCH"]
+- `03:52:42`       [null, null, null, "https://www.newyorkfed.org/research"]
+- `03:52:42`       ["date", "collateral_type", "TPR_value", "TPR_share", "GCF_value", "GCF_share"]
+- `03:52:42`       ["20241210", "Agency (other than MBS)", "34.99", "1.5", "0.90", "0.1"]
+- `03:52:42`       ["20241210", "Agency MBS", "759.17", "31.6", "571.50", "59.5"]
+- `03:52:42`       ["20241210", "Treasury", "1606.88", "66.9", "388.10", "40.4"]
+- `03:52:42`       ["20250110", "Agency (other than MBS)", "40.08", "1.7", "1.60", "0.2"]
+- `03:52:42`       ["20250110", "Agency MBS", "762.94", "31.8", "555.50", "65.6"]
+- `03:52:42`       ["20250110", "Treasury", "1594.98", "66.5", "290.30", "34.3"]
+- `03:52:42`       ...
+- `03:52:42`       ["20260910", "Treasury", "1710.22", "62.3", "200.60", "27.7"]
+- `03:52:42`       ["20261009", "Agency (other than MBS)", "62.32", "2.3", "3.00", "0.3"]
+- `03:52:42`       ["20261009", "Agency MBS", "867.71", "32.0", "629.60", "71.4"]
+- `03:52:42`       ["20261009", "Treasury", "1782.23", "65.7", "248.70", "28.2"]
+- `03:52:42` /medialibrary/Research/Interactives/Data/tri-party-repo/tri-party-repo-preNov25_data -> 200, 439002 bytes, 0.2 s, xlsx/zip, type application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, disposition attachment; filename="tri-party-repo-preNov25_data.xlsx", last-modified None
+- `03:52:42`     sheet 'Cover Sheet': 9 rows, widest 15 columns
+- `03:52:42`       [null, null, null, "NEW YORK FED  ECONOMIC RESEARCH", null, null, null, null, null, null, null]
+- `03:52:42`       [null, null, null, "https://www.newyorkfed.org/research"]
+- `03:52:42`       [null, null, null, "Tri-Party/GCF Repo Statistics", null, null, null, null, null, null, null, null, null, null]
+- `03:52:42`       [null, null, null, "(pre-November 2025: May 2010-Oct 2025 data)"]
+- `03:52:42`       [null, null, null, "Suggested citation:\n\n", null, null, null, null, null, null, null, null, null, null]
+- `03:52:42`       [null, null, null, "Federal Reserve Bank of New York, Tri-Party/GCF Repo\u00ae Statistics, https://newyorkfed.org/research/tri-party-repo.", null, null, null, null, null, null, null, null, null]
+- `03:52:42`       [null, null, null, "Source: Tri-party Repo Infrastructure Reform Task Force", null, null, null, null, null, null]
+- `03:52:42`       [null, null, null, "For any questions, please contact New York Fed Research Publications.", null, null, null, null, null, null]
+- `03:52:42`       [null, null, null, "Please refer to our Terms of Use.", null, null, null, null, null, null]
+- `03:52:42`     sheet 'volume_haircut_concentration': 3900 rows, widest 13 columns
+- `03:52:42`       [null, null, null, "NEW YORK FED  ECONOMIC RESEARCH", null, null, null, null, null, null, null]
+- `03:52:42`       [null, null, null, "https://www.newyorkfed.org/research"]
+- `03:52:42`       ["date", "group_id", "group_name", "collateral_value", "share_of_total", "top_3_concentration", "p1", "p10", "median", "p90", "fedwire", "num_obs", "margin_stdev"]
+- `03:52:42`       ["20100511", 1.0, "Agency CMOs", "131.92", "7.9", "46.1", "0.0", "2.0", "3.0", "5.0", 1.0, 638.0, 2.037842775442173]
+- `03:52:42`       ["20100511", 2.0, "Agency Debentures & Strips", "166.94", "10.0", "38.4", "0.0", "2.0", "2.0", "5.0", 1.0, 1439.0, 1.291824124142772]
+- `03:52:42`       ["20100511", 3.0, "Agency MBS", "509.26", "30.5", "47.2", "0.0", "2.0", "2.0", "3.0", 1.0, 1390.0, 1.017246300008063]
+- `03:52:42`       ["20100511", 4.0, "US Treasuries Strips", "43.33", "2.6", "49.2", "0.0", "2.0", "2.0", "2.0", 1.0, 169.0, 0.5624503611455994]
+- `03:52:42`       ["20100511", 5.0, "US Treasuries excluding Strips", "488.46", "29.3", "42.3", "0.0", "2.0", "2.0", "2.0", 1.0, 1594.0, 1.140115661075234]
+- `03:52:42`       ["20100511", 6.0, "ABS Investment Grade", "25.70", "1.5", "50.1", "0.0", "2.0", "5.0", "8.0", 0.0, 238.0, 3.105871864401442]
+- `03:52:42`       ...
+- `03:52:42`       ["20250409", 20.0, "Total Non-Fedwire-eligible", "563.86", "13.2", null, null, null, null, null, 0.0]
+- `03:52:42`       ["20250409", 0.0, "Total", "4283.18"]
+- `03:52:42`       ["20250409", 21.0, "Number of Observations", "17973.00"]
+- `03:52:42`       ["20250409", 22.0, "Number of Repos", "9432.00"]
+- `03:52:42`     sheet 'gcf_repo_total': 510 rows, widest 11 columns
+- `03:52:42`       [null, null, null, "NEW YORK FED  ECONOMIC RESEARCH", null, null, null, null, null, null, null]
+- `03:52:42`       [null, null, null, "https://www.newyorkfed.org/research"]
+- `03:52:42`       ["date", "collateral_type", "value"]
+- `03:52:42`       ["20110510", "Gross Securities", "801.66"]
+- `03:52:42`       ["20110510", "Net Cash Borrowed", "131.40"]
+- `03:52:42`       ["20110510", "Net Securities Delivered", "171.60"]
+- `03:52:42`       ["20110609", "Gross Securities", "780.70"]
+- `03:52:42`       ["20110609", "Net Cash Borrowed", "125.60"]
+- `03:52:42`       ["20110609", "Net Securities Delivered", "174.00"]
+- `03:52:42`       ...
+- `03:52:42`       ["20250409", "Net Securities Delivered", "506.10"]
+- `03:52:42`       ["20250509", "Gross Securities", "1113.60"]
+- `03:52:42`       ["20250509", "Net Cash Borrowed", "392.10"]
+- `03:52:42`       ["20250509", "Net Securities Delivered", "556.80"]
+- `03:52:42`     sheet 'gcf_repo_asset_classes': 510 rows, widest 11 columns
+- `03:52:42`       [null, null, null, "NEW YORK FED  ECONOMIC RESEARCH", null, null, null, null, null, null, null]
+- `03:52:42`       [null, null, null, "https://www.newyorkfed.org/research"]
+- `03:52:42`       ["date", "collateral_type", "overnight", "overnight_share", "term", "term_share"]
+- `03:52:42`       ["20110510", "Agency (other than MBS)", "39.40", "11.8", "48.60", "10.4"]
+- `03:52:42`       ["20110510", "Agency MBS", "103.56", "31.0", "193.50", "41.4"]
+- `03:52:42`       ["20110510", "Treasury", "191.10", "57.2", "225.50", "48.2"]
+- `03:52:42`       ["20110609", "Agency (other than MBS)", "27.20", "13.0", "54.20", "9.5"]
+- `03:52:42`       ["20110609", "Agency MBS", "67.10", "32.2", "248.70", "43.5"]
+- `03:52:42`       ["20110609", "Treasury", "114.40", "54.8", "269.10", "47.0"]
+- `03:52:42`       ...
+- `03:52:42`       ["20250409", "Treasury", "125.60", "32.3", "238.90", "38.3"]
+- `03:52:42`       ["20250509", "Agency (other than MBS)", "1.60", "0.4", "0.00", "0.0"]
+- `03:52:42`       ["20250509", "Agency MBS", "274.90", "68.7", "393.20", "55.1"]
+- `03:52:42`       ["20250509", "Treasury", "123.70", "30.9", "320.20", "44.9"]
+- `03:52:42`     sheet 'gcf_repo_gcf_cusips': 1317 rows, widest 11 columns
+- `03:52:42`       [null, null, null, "NEW YORK FED  ECONOMIC RESEARCH", null, null, null, null, null, null, null]
+- `03:52:42`       [null, null, null, "https://www.newyorkfed.org/research"]
+- `03:52:42`       ["date", "collateral_type", "overnight", "overnight_share", "term", "term_share"]
+- `03:52:42`       ["20130409", "Agency (other than MBS)", "24.00", "8.0", "11.30", "2.1"]
+- `03:52:42`       ["20130409", "Agency MBS (FNMA and FHLMC Fixed Rate)", "92.20", "30.9", "310.20", "57.3"]
+- `03:52:42`       ["20130409", "FNMA and FHLMC ARMs", "3.60", "1.2", "27.10", "5.0"]
+- `03:52:42`       ["20130409", "GNMA (Fixed Rate)", "28.50", "9.5", "35.80", "6.6"]
+- `03:52:42`       ["20130409", "GNMA ARMs", "0.00", "0.0", "0.00", "0.0"]
+- `03:52:42`       ["20130409", "STRIPs", "0.30", "0.1", "0.52", "0.1"]
+- `03:52:42`       ...
+- `03:52:42`       ["20250509", "STRIPs", "0.00", "0.0", "0.00", "0.0"]
+- `03:52:42`       ["20250509", "TIPs", "0.80", "0.2", "0.00", "0.0"]
+- `03:52:42`       ["20250509", "Treasury (less than 10 Yrs.)", "0.00", "0.0", "0.00", "0.0"]
+- `03:52:42`       ["20250509", "Treasury (less than 30 Yrs.)", "122.90", "30.7", "320.20", "44.9"]
+- `03:52:42`     sheet 'triparty_gcf': 546 rows, widest 11 columns
+- `03:52:42`       [null, null, null, "NEW YORK FED  ECONOMIC RESEARCH", null, null, null, null, null, null, null]
+- `03:52:42`       [null, null, null, "https://www.newyorkfed.org/research"]
+- `03:52:42`       ["date", "collateral_type", "TPR_value", "TPR_share", "GCF_value", "GCF_share"]
+- `03:52:42`       ["20100511", "Agency (other than MBS)", "166.94", "12.5"]
+- `03:52:42`       ["20100511", "Agency MBS", "641.18", "47.9"]
+- `03:52:42`       ["20100511", "Treasury", "531.79", "39.7"]
+- `03:52:42`       ["20100609", "Agency (other than MBS)", "163.67", "12.5"]
+- `03:52:42`       ["20100609", "Agency MBS", "610.37", "46.7"]
+- `03:52:42`       ["20100609", "Treasury", "533.75", "40.8"]
+- `03:52:42`       ...
+- `03:52:42`       ["20250409", "Treasury", "2480.88", "66.7", "364.50", "36.0"]
+- `03:52:42`       ["20250509", "Agency (other than MBS)", null, null, "1.60", "0.1"]
+- `03:52:42`       ["20250509", "Agency MBS", null, null, "668.10", "60.0"]
+- `03:52:42`       ["20250509", "Treasury", null, null, "443.90", "39.9"]
+- `03:52:42`     sheet 'daily_average': 206 rows, widest 11 columns
+- `03:52:42`       [null, null, null, "NEW YORK FED  ECONOMIC RESEARCH", null, null, null, null, null, null, null]
+- `03:52:42`       [null, null, null, "https://www.newyorkfed.org/research"]
+- `03:52:42`       ["date", "collateral_value"]
+- `03:52:42`       ["20080701", 2320190136087.549]
+- `03:52:42`       ["20080801", 2423005404542.986]
+- `03:52:42`       ["20080901", 2352183870518.173]
+- `03:52:42`       ["20081001", 2173507536540.59]
+- `03:52:42`       ["20081101", 2132329411443.464]
+- `03:52:42`       ["20081201", 2031312358493.036]
+- `03:52:42`       ...
+- `03:52:42`       ["20250201", 4343498369603.666]
+- `03:52:42`       ["20250301", 4608466479099.572]
+- `03:52:42`       ["20250401", 4645470450140.762]
+- `03:52:42`       ["20250501", 4770778002772.657]
+- `03:52:43` /medialibrary/Research/Interactives/Data/tri-party-repo/tri-party-repo_data.xlsx -> 200, 220750 bytes, 0.2 s, xlsx/zip, type application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, disposition attachment; filename="tri-party-repo_data.xlsx", last-modified None
+- `03:52:43`     sheet 'Cover Sheet': 8 rows, widest 15 columns
+- `03:52:43`       [null, null, null, "NEW YORK FED  ECONOMIC RESEARCH"]
+- `03:52:43`       [null, null, null, "https://www.newyorkfed.org/research"]
+- `03:52:43`       [null, null, null, "Tri-Party/GCF Repo Statistics", null, null, null, null, null, null, null, null, null, null]
+- `03:52:43`       [null, null, null, "Suggested citation:\n\n", null, null, null, null, null, null, null, null, null, null]
+- `03:52:43`       [null, null, null, "Federal Reserve Bank of New York, Tri-Party/GCF Repo\u00ae Statistics, https://newyorkfed.org/research/tri-party-repo.", null, null, null, null, null, null, null, null, null]
+- `03:52:43`       [null, null, null, "Source: Tri-party Repo Infrastructure Reform Task Force", null, null, null, null, null, null]
+- `03:52:43`       [null, null, null, "For any questions, please contact New York Fed Research Publications.", null, null, null, null, null, null]
+- `03:52:43`       [null, null, null, "Please refer to our Terms of Use.", null, null, null, null, null, null]
+- `03:52:43`     sheet 'volume_haircut_concentration': 532 rows, widest 12 columns
+- `03:52:43`       [null, null, null, "NEW YORK FED  ECONOMIC RESEARCH"]
+- `03:52:43`       [null, null, null, "https://www.newyorkfed.org/research"]
+- `03:52:43`       ["date", "group_id", "group_name", "collateral_value", "share_of_total", "top_3_concentration", "p10", "median", "p90", "fedwire", "num_obs", "margin_stdev"]
+- `03:52:43`       ["20241210", 1.0, "Agency CMOs", "76.14", "2.2", "38.4", "2.0", "3.0", "10.0", 1.0, 732.0, 4.625026742507233]
+- `03:52:43`       ["20241210", 2.0, "Agency Debentures & Strips", "34.99", "1.0", "26.6", "2.0", "2.0", "5.0", 1.0, 900.0, 1.769612881709842]
+- `03:52:43`       ["20241210", 3.0, "Agency MBS", "683.03", "19.9", "27.3", "2.0", "2.0", "3.0", 1.0, 2105.0, 0.6498878687118228]
+- `03:52:43`       ["20241210", 4.0, "US Treasuries Strips", "94.44", "2.7", "45.7", "1.9", "2.0", "2.4", 1.0, 931.0, 0.6756274861534354]
+- `03:52:43`       ["20241210", 5.0, "US Treasuries excluding Strips", "1512.44", "44.0", "28.3", "2.0", "2.0", "2.0", 1.0, 4945.0, 0.4395577568936703]
+- `03:52:43`       ["20241210", 6.0, "ABS Investment Grade", "20.28", "0.6", "47.3", "3.0", "7.0", "10.0", 0.0, 383.0, 2.796168834476524]
+- `03:52:43`       ...
+- `03:52:43`       ["20261009", 22.0, "Sponsored GC", "820.78", "19.4"]
+- `03:52:43`       ["20261009", 23.0, "Federal Reserve", "0.30", "0.0"]
+- `03:52:43`       ["20261009", 24.0, "Number of Observations", "17564.00"]
+- `03:52:43`       ["20261009", 25.0, "Number of Repos", "9122.00"]
+- `03:52:43`     sheet 'gcf_repo_total': 72 rows, widest 4 columns
+- `03:52:43`       [null, null, null, "NEW YORK FED  ECONOMIC RESEARCH"]
+- `03:52:43`       [null, null, null, "https://www.newyorkfed.org/research"]
+- `03:52:43`       ["date", "collateral_type", "value"]
+- `03:52:43`       ["20241210", "Gross Securities", "960.50"]
+- `03:52:43`       ["20241210", "Net Cash Borrowed", "366.40"]
+- `03:52:43`       ["20241210", "Net Securities Delivered", "480.20"]
+- `03:52:43`       ["20250110", "Gross Securities", "847.40"]
+- `03:52:43`       ["20250110", "Net Cash Borrowed", "331.60"]
+- `03:52:43`       ["20250110", "Net Securities Delivered", "423.60"]
+- `03:52:43`       ...
+- `03:52:43`       ["20260910", "Net Securities Delivered", "362.30"]
+- `03:52:43`       ["20261009", "Gross Securities", "881.30"]
+- `03:52:43`       ["20261009", "Net Cash Borrowed", "313.80"]
+- `03:52:43`       ["20261009", "Net Securities Delivered", "440.50"]
+- `03:52:43`     sheet 'gcf_repo_asset_classes': 72 rows, widest 6 columns
+- `03:52:43`       [null, null, null, "NEW YORK FED  ECONOMIC RESEARCH"]
+- `03:52:43`       [null, null, null, "https://www.newyorkfed.org/research"]
+- `03:52:43`       ["date", "collateral_type", "overnight", "overnight_share", "term", "term_share"]
+- `03:52:43`       ["20241210", "Agency (other than MBS)", "0.90", "0.3", "0.00", "0.0"]
+- `03:52:43`       ["20241210", "Agency MBS", "231.80", "66.5", "339.70", "55.5"]
+- `03:52:43`       ["20241210", "Treasury", "116.00", "33.3", "272.10", "44.5"]
+- `03:52:43`       ["20250110", "Agency (other than MBS)", "1.10", "0.4", "0.50", "0.1"]
+- `03:52:43`       ["20250110", "Agency MBS", "195.00", "65.2", "360.50", "65.7"]
+- `03:52:43`       ["20250110", "Treasury", "103.00", "34.4", "187.30", "34.2"]
+- `03:52:43`       ...
+- `03:52:43`       ["20260910", "Treasury", "64.40", "15.7", "136.20", "43.3"]
+- `03:52:43`       ["20261009", "Agency (other than MBS)", "3.00", "0.6", "0.00", "0.0"]
+- `03:52:43`       ["20261009", "Agency MBS", "368.00", "76.9", "261.60", "65.0"]
+- `03:52:43`       ["20261009", "Treasury", "107.70", "22.5", "141.00", "35.0"]
+- `03:52:43`     sheet 'gcf_repo_gcf_cusips': 210 rows, widest 6 columns
+- `03:52:43`       [null, null, null, "NEW YORK FED  ECONOMIC RESEARCH"]
+- `03:52:43`       [null, null, null, "https://www.newyorkfed.org/research"]
+- `03:52:43`       ["date", "collateral_type", "overnight", "overnight_share", "term", "term_share"]
+- `03:52:43`       ["20241210", "Agency (other than MBS)", "0.90", "0.3", "0.00", "0.0"]
+- `03:52:43`       ["20241210", "Agency MBS (FNMA & FHLMC Fixed Rate)", "212.70", "61.0", "264.20", "43.2"]
+- `03:52:43`       ["20241210", "FNMA & FHLMC ARMs", "3.80", "1.1", "0.30", "0.0"]
+- `03:52:43`       ["20241210", "GNMA (Fixed Rate)", "15.30", "4.4", "75.20", "12.3"]
+- `03:52:43`       ["20241210", "GNMA ARMs", "0.00", "0.0", "0.00", "0.0"]
+- `03:52:43`       ["20241210", "STRIPs", "0.00", "0.0", "0.00", "0.0"]
+- `03:52:43`       ...
+- `03:52:43`       ["20261009", "STRIPs", "5.00", "1.0", "0.30", "0.1"]
+- `03:52:43`       ["20261009", "TIPs", "0.00", "0.0", "0.00", "0.0"]
+- `03:52:43`       ["20261009", "Treasury (less than 10 Yrs.)", "0.00", "0.0", "0.00", "0.0"]
+- `03:52:43`       ["20261009", "Treasury (less than 30 Yrs.)", "102.70", "21.5", "140.70", "34.9"]
+- `03:52:43`     sheet 'triparty_gcf': 72 rows, widest 6 columns
+- `03:52:43`       [null, null, null, "NEW YORK FED  ECONOMIC RESEARCH"]
+- `03:52:43`       [null, null, null, "https://www.newyorkfed.org/research"]
+- `03:52:43`       ["date", "collateral_type", "TPR_value", "TPR_share", "GCF_value", "GCF_share"]
+- `03:52:43`       ["20241210", "Agency (other than MBS)", "34.99", "1.5", "0.90", "0.1"]
+- `03:52:43`       ["20241210", "Agency MBS", "759.17", "31.6", "571.50", "59.5"]
+- `03:52:43`       ["20241210", "Treasury", "1606.88", "66.9", "388.10", "40.4"]
+- `03:52:43`       ["20250110", "Agency (other than MBS)", "40.08", "1.7", "1.60", "0.2"]
+- `03:52:43`       ["20250110", "Agency MBS", "762.94", "31.8", "555.50", "65.6"]
+- `03:52:43`       ["20250110", "Treasury", "1594.98", "66.5", "290.30", "34.3"]
+- `03:52:43`       ...
+- `03:52:43`       ["20260910", "Treasury", "1710.22", "62.3", "200.60", "27.7"]
+- `03:52:43`       ["20261009", "Agency (other than MBS)", "62.32", "2.3", "3.00", "0.3"]
+- `03:52:43`       ["20261009", "Agency MBS", "867.71", "32.0", "629.60", "71.4"]
+- `03:52:43`       ["20261009", "Treasury", "1782.23", "65.7", "248.70", "28.2"]
+- `03:52:43` /medialibrary/Research/Interactives/Data/tri-party-repo/tri-party-repo_data.csv -> 200, 220750 bytes, 0.2 s, xlsx/zip, type application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, disposition attachment; filename="tri-party-repo_data.xlsx", last-modified None
+- `03:52:43`     sheet 'Cover Sheet': 8 rows, widest 15 columns
+- `03:52:43`       [null, null, null, "NEW YORK FED  ECONOMIC RESEARCH"]
+- `03:52:43`       [null, null, null, "https://www.newyorkfed.org/research"]
+- `03:52:43`       [null, null, null, "Tri-Party/GCF Repo Statistics", null, null, null, null, null, null, null, null, null, null]
+- `03:52:43`       [null, null, null, "Suggested citation:\n\n", null, null, null, null, null, null, null, null, null, null]
+- `03:52:43`       [null, null, null, "Federal Reserve Bank of New York, Tri-Party/GCF Repo\u00ae Statistics, https://newyorkfed.org/research/tri-party-repo.", null, null, null, null, null, null, null, null, null]
+- `03:52:43`       [null, null, null, "Source: Tri-party Repo Infrastructure Reform Task Force", null, null, null, null, null, null]
+- `03:52:43`       [null, null, null, "For any questions, please contact New York Fed Research Publications.", null, null, null, null, null, null]
+- `03:52:43`       [null, null, null, "Please refer to our Terms of Use.", null, null, null, null, null, null]
+- `03:52:43`     sheet 'volume_haircut_concentration': 532 rows, widest 12 columns
+- `03:52:43`       [null, null, null, "NEW YORK FED  ECONOMIC RESEARCH"]
+- `03:52:43`       [null, null, null, "https://www.newyorkfed.org/research"]
+- `03:52:43`       ["date", "group_id", "group_name", "collateral_value", "share_of_total", "top_3_concentration", "p10", "median", "p90", "fedwire", "num_obs", "margin_stdev"]
+- `03:52:43`       ["20241210", 1.0, "Agency CMOs", "76.14", "2.2", "38.4", "2.0", "3.0", "10.0", 1.0, 732.0, 4.625026742507233]
+- `03:52:43`       ["20241210", 2.0, "Agency Debentures & Strips", "34.99", "1.0", "26.6", "2.0", "2.0", "5.0", 1.0, 900.0, 1.769612881709842]
+- `03:52:43`       ["20241210", 3.0, "Agency MBS", "683.03", "19.9", "27.3", "2.0", "2.0", "3.0", 1.0, 2105.0, 0.6498878687118228]
+- `03:52:43`       ["20241210", 4.0, "US Treasuries Strips", "94.44", "2.7", "45.7", "1.9", "2.0", "2.4", 1.0, 931.0, 0.6756274861534354]
+- `03:52:43`       ["20241210", 5.0, "US Treasuries excluding Strips", "1512.44", "44.0", "28.3", "2.0", "2.0", "2.0", 1.0, 4945.0, 0.4395577568936703]
+- `03:52:43`       ["20241210", 6.0, "ABS Investment Grade", "20.28", "0.6", "47.3", "3.0", "7.0", "10.0", 0.0, 383.0, 2.796168834476524]
+- `03:52:43`       ...
+- `03:52:43`       ["20261009", 22.0, "Sponsored GC", "820.78", "19.4"]
+- `03:52:43`       ["20261009", 23.0, "Federal Reserve", "0.30", "0.0"]
+- `03:52:43`       ["20261009", 24.0, "Number of Observations", "17564.00"]
+- `03:52:43`       ["20261009", 25.0, "Number of Repos", "9122.00"]
+- `03:52:43`     sheet 'gcf_repo_total': 72 rows, widest 4 columns
+- `03:52:43`       [null, null, null, "NEW YORK FED  ECONOMIC RESEARCH"]
+- `03:52:43`       [null, null, null, "https://www.newyorkfed.org/research"]
+- `03:52:43`       ["date", "collateral_type", "value"]
+- `03:52:43`       ["20241210", "Gross Securities", "960.50"]
+- `03:52:43`       ["20241210", "Net Cash Borrowed", "366.40"]
+- `03:52:43`       ["20241210", "Net Securities Delivered", "480.20"]
+- `03:52:43`       ["20250110", "Gross Securities", "847.40"]
+- `03:52:43`       ["20250110", "Net Cash Borrowed", "331.60"]
+- `03:52:43`       ["20250110", "Net Securities Delivered", "423.60"]
+- `03:52:43`       ...
+- `03:52:43`       ["20260910", "Net Securities Delivered", "362.30"]
+- `03:52:43`       ["20261009", "Gross Securities", "881.30"]
+- `03:52:43`       ["20261009", "Net Cash Borrowed", "313.80"]
+- `03:52:43`       ["20261009", "Net Securities Delivered", "440.50"]
+- `03:52:43`     sheet 'gcf_repo_asset_classes': 72 rows, widest 6 columns
+- `03:52:43`       [null, null, null, "NEW YORK FED  ECONOMIC RESEARCH"]
+- `03:52:43`       [null, null, null, "https://www.newyorkfed.org/research"]
+- `03:52:43`       ["date", "collateral_type", "overnight", "overnight_share", "term", "term_share"]
+- `03:52:43`       ["20241210", "Agency (other than MBS)", "0.90", "0.3", "0.00", "0.0"]
+- `03:52:43`       ["20241210", "Agency MBS", "231.80", "66.5", "339.70", "55.5"]
+- `03:52:43`       ["20241210", "Treasury", "116.00", "33.3", "272.10", "44.5"]
+- `03:52:43`       ["20250110", "Agency (other than MBS)", "1.10", "0.4", "0.50", "0.1"]
+- `03:52:43`       ["20250110", "Agency MBS", "195.00", "65.2", "360.50", "65.7"]
+- `03:52:43`       ["20250110", "Treasury", "103.00", "34.4", "187.30", "34.2"]
+- `03:52:43`       ...
+- `03:52:43`       ["20260910", "Treasury", "64.40", "15.7", "136.20", "43.3"]
+- `03:52:43`       ["20261009", "Agency (other than MBS)", "3.00", "0.6", "0.00", "0.0"]
+- `03:52:43`       ["20261009", "Agency MBS", "368.00", "76.9", "261.60", "65.0"]
+- `03:52:43`       ["20261009", "Treasury", "107.70", "22.5", "141.00", "35.0"]
+- `03:52:43`     sheet 'gcf_repo_gcf_cusips': 210 rows, widest 6 columns
+- `03:52:43`       [null, null, null, "NEW YORK FED  ECONOMIC RESEARCH"]
+- `03:52:43`       [null, null, null, "https://www.newyorkfed.org/research"]
+- `03:52:43`       ["date", "collateral_type", "overnight", "overnight_share", "term", "term_share"]
+- `03:52:43`       ["20241210", "Agency (other than MBS)", "0.90", "0.3", "0.00", "0.0"]
+- `03:52:43`       ["20241210", "Agency MBS (FNMA & FHLMC Fixed Rate)", "212.70", "61.0", "264.20", "43.2"]
+- `03:52:43`       ["20241210", "FNMA & FHLMC ARMs", "3.80", "1.1", "0.30", "0.0"]
+- `03:52:43`       ["20241210", "GNMA (Fixed Rate)", "15.30", "4.4", "75.20", "12.3"]
+- `03:52:43`       ["20241210", "GNMA ARMs", "0.00", "0.0", "0.00", "0.0"]
+- `03:52:43`       ["20241210", "STRIPs", "0.00", "0.0", "0.00", "0.0"]
+- `03:52:43`       ...
+- `03:52:43`       ["20261009", "STRIPs", "5.00", "1.0", "0.30", "0.1"]
+- `03:52:43`       ["20261009", "TIPs", "0.00", "0.0", "0.00", "0.0"]
+- `03:52:43`       ["20261009", "Treasury (less than 10 Yrs.)", "0.00", "0.0", "0.00", "0.0"]
+- `03:52:43`       ["20261009", "Treasury (less than 30 Yrs.)", "102.70", "21.5", "140.70", "34.9"]
+- `03:52:43`     sheet 'triparty_gcf': 72 rows, widest 6 columns
+- `03:52:43`       [null, null, null, "NEW YORK FED  ECONOMIC RESEARCH"]
+- `03:52:43`       [null, null, null, "https://www.newyorkfed.org/research"]
+- `03:52:43`       ["date", "collateral_type", "TPR_value", "TPR_share", "GCF_value", "GCF_share"]
+- `03:52:43`       ["20241210", "Agency (other than MBS)", "34.99", "1.5", "0.90", "0.1"]
+- `03:52:43`       ["20241210", "Agency MBS", "759.17", "31.6", "571.50", "59.5"]
+- `03:52:43`       ["20241210", "Treasury", "1606.88", "66.9", "388.10", "40.4"]
+- `03:52:43`       ["20250110", "Agency (other than MBS)", "40.08", "1.7", "1.60", "0.2"]
+- `03:52:43`       ["20250110", "Agency MBS", "762.94", "31.8", "555.50", "65.6"]
+- `03:52:43`       ["20250110", "Treasury", "1594.98", "66.5", "290.30", "34.3"]
+- `03:52:43`       ...
+- `03:52:43`       ["20260910", "Treasury", "1710.22", "62.3", "200.60", "27.7"]
+- `03:52:43`       ["20261009", "Agency (other than MBS)", "62.32", "2.3", "3.00", "0.3"]
+- `03:52:43`       ["20261009", "Agency MBS", "867.71", "32.0", "629.60", "71.4"]
+- `03:52:43`       ["20261009", "Treasury", "1782.23", "65.7", "248.70", "28.2"]
+- `03:52:43` /medialibrary/media/banking/pdf/tpr_stats_historical.xlsx -> 200, 101160 bytes, 0.3 s, html, type text/html; charset=utf-8, disposition None, last-modified None
+- `03:52:43`     html title: FEDERAL RESERVE BANK of NEW YORK
+## 3. DTCC daily fails
+
+- `03:52:43` data/warm/dtcc-fails/treasury.json: written 2026-09-09 | 266 observations 2025-08-14 to 2026-09-08 | source dtcc.com/data/failsdata.csv
+- `03:52:43` data/warm/dtcc-fails/agency.json: written 2026-09-09 | 266 observations 2025-08-14 to 2026-09-08 | source dtcc.com/data/failsdata.csv
+- `03:52:44` /data/failsdata.csv -> 404, 0 bytes, -, type None | 
+- `03:52:44` /data/gcfindex.csv -> 404, 0 bytes, -, type None | 
+- `03:52:45` /data/gcfdata.csv -> 404, 0 bytes, -, type None | 
+- `03:52:45` /-/media/Files/Downloads/Charts/failsdata.csv -> 404, 0 bytes, -, type None | 
+- `03:52:46` /market-index-data/data/failsdata.csv -> 404, 0 bytes, -, type None | 
+- `03:52:46` /market-index-data/charts/daily-total-us-treasury-trade-fails -> 200, 250833 bytes, html, type text/html; charset=utf-8 | 
+- `03:52:46`     data-like references in the page source: 0 []
+- `03:52:46`     scripts: ['/_next/static/chunks/1148-4ddce886660d778a.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/158-55773f54bc89d560.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/2117-4cb659c72548864b.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/2330-dfb3d6bce3686798.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/2570-00c3257314d70b79.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/3425-1c2798ef2c261b8b.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/4000-a0ddfc7135f7f35d.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/4596-d1185d4ac4ba2f6d.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/6782-bf8daa67417f8236.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/7246-bc0165f44e2c5c87.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/7282-ad76fa0f79d3c9f7.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/8918-3a2ca1c301d39444.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/9882-c7773f058ad51d6d.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/app/%5B%5B...path%5D%5D/page-95ef698b4788ceec.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/app/error-18c4925a4bc62a34.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/app/global-error-4132879e4cb04dd1.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/app/layout-c78d4ab77075c543.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/chunk-framer-motion-da9ae19f9a41cd7a.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/fd9d1056-efbb5f4a710e7b0a.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/main-app-be3d940aef6bd3eb.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/polyfills-42372ed130431b0a.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/webpack-2cadafcaa84c76cf.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx']
+- `03:52:46` /market-index-data/charts/dtcc-gcf-repo-index -> 200, 248777 bytes, html, type text/html; charset=utf-8 | 
+- `03:52:46`     data-like references in the page source: 0 []
+- `03:52:46`     scripts: ['/_next/static/chunks/1148-4ddce886660d778a.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/158-55773f54bc89d560.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/2117-4cb659c72548864b.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/2330-dfb3d6bce3686798.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/2570-00c3257314d70b79.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/3425-1c2798ef2c261b8b.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/4000-a0ddfc7135f7f35d.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/4596-d1185d4ac4ba2f6d.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/6782-bf8daa67417f8236.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/7246-bc0165f44e2c5c87.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/7282-ad76fa0f79d3c9f7.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/8918-3a2ca1c301d39444.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/9882-c7773f058ad51d6d.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/app/%5B%5B...path%5D%5D/page-95ef698b4788ceec.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/app/error-18c4925a4bc62a34.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/app/global-error-4132879e4cb04dd1.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/app/layout-c78d4ab77075c543.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/chunk-framer-motion-da9ae19f9a41cd7a.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/fd9d1056-efbb5f4a710e7b0a.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/main-app-be3d940aef6bd3eb.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/polyfills-42372ed130431b0a.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/webpack-2cadafcaa84c76cf.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx']
+- `03:52:46` /charts/daily-total-us-treasury-trade-fails -> 200, 397271 bytes, html, type text/html; charset=utf-8 | 
+- `03:52:46`     data-like references in the page source: 23 ['https://files.dtcc.com/download/assets/Final-Index-Q1-2026.xlsx/0d5f35f0957b11f191e7c258faf12821\\', 'https://files.dtcc.com/download/assets/Final-Index-Q1-2026.xlsx/0d5f35f0957b11f191e7c258faf12821\\\\\\', 'https://files.dtcc.com/download/assets/Final-Index-Q2-2025_83A6D77EF1F34BE8BBC9546305D92B62.xlsx/f34a0992ceab11f0aa84824dba2f033c\\', 'https://files.dtcc.com/download/assets/Final-Index-Q2-2025_83A6D77EF1F34BE8BBC9546305D92B62.xlsx/f34a0992ceab11f0aa84824dba2f033c\\\\\\', 'https://files.dtcc.com/download/assets/Final-Index-Q2-2026.xlsx/0d600174957b11', 'https://files.dtcc.com/download/assets/Final-Index-Q2-2026.xlsx/0d600174957b11f1be0afe5809e33e04\\', 'https://files.dtcc.com/download/assets/Final-Index-Q2-2026.xlsx/0d600174957b11f1be0afe5809e33e04\\\\\\', 'https://files.dtcc.com/download/assets/Final-Index-Q3-2026.xlsx/bb956f30d92e11f1a6099a76ac91497a\\', 'https://files.dtcc.com/download/assets/Final-Index-Q3-2026.xlsx/bb956f30d92e11f1a6099a76ac91497a\\\\\\', 'https://files.dtcc.com/download/assets/Final-Single-Name-Q1-2026.xlsx/0d76c670957b11f1bb036a7a18072738\\', 'https://files.dtcc.com/download/assets/Final-Single-Name-Q1-2026.xlsx/0d76c670957b11f1bb036a7a18072738\\\\\\', 'https://files.dtcc.com/download/assets/Final-Single-Name-Q2-2025_412B08343F3D43DFA04FA3645606399F.xlsx/f7d2f230ceab11f0931632bd0f351ae2\\', 'https://files.dtcc.com/download/assets/Final-Single-Name-Q2-2025_412B08343F3D43DFA04FA3645606399F.xlsx/f7d2f230ceab11f0931632bd0f351ae2\\\\\\', 'https://files.dtcc.com/download/assets/Final-Single-Name-Q2-2026.xlsx/0db52cc6957b11f1ad9bc258faf12821\\', 'https://files.dtcc.com/download/assets/Final-Single-Name-Q2-2026.xlsx/0db52cc6957b11f1ad9bc258faf12821\\\\\\', 'https://files.dtcc.com/download/assets/Final-Single-Name-Q3-2025_A11397CE570943BABF8CB3199C72C0E3.xlsx/f9fa7196ceab11f086f70aec4933d5f6\\', 'https://files.dtcc.com/download/assets/Final-Single-Name-Q3-2025_A11397CE570943BABF8CB3199C72C0E3.xlsx/f9fa7196ceab11f086f70aec4933d5f6\\\\\\', 'https://files.dtcc.com/download/assets/Final-Single-Name-Q3-2026.xlsx/4c4df36cd92a11f1a657ba42506f920a\\', 'https://files.dtcc.com/download/assets/Final-Single-Name-Q3-2026.xlsx/4c4df36cd92a11f1a657ba42506f920a\\\\\\', 'https://files.dtcc.com/download/assets/Index-Roll-Report-06-Mar-26-through-28-Aug-26.xlsx/f64c6dd4a64011f1a1870af3a20fdeaf\\', 'https://files.dtcc.com/download/assets/Index-Roll-Report-06-Mar-26-through-28-Aug-26.xlsx/f64c6dd4a64011f1a1870af3a20fdeaf\\\\\\', 'https://files.dtcc.com/download/assets/Index-Roll-Report-07-Mar-25-through-29-Aug-25_6E78131713DD430FB70C4D2C3343E40E.xlsx/a2f12d7acead11f0aa84824dba2f033c\\', 'https://files.dtcc.com/download/assets/Index-Roll-Report-07-Mar-25-through-29-Aug-25_6E78131713DD430FB70C4D2C3343E40E.xlsx/a2f12d7acead11f0aa84824dba2f033c\\\\\\']
+- `03:52:46`     scripts: ['/_next/static/chunks/1148-4ddce886660d778a.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/158-55773f54bc89d560.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/2117-4cb659c72548864b.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/2330-dfb3d6bce3686798.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/2570-00c3257314d70b79.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/3425-1c2798ef2c261b8b.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/4000-a0ddfc7135f7f35d.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/4596-d1185d4ac4ba2f6d.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/6782-bf8daa67417f8236.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/7246-bc0165f44e2c5c87.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/7282-ad76fa0f79d3c9f7.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/8918-3a2ca1c301d39444.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/9882-c7773f058ad51d6d.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/app/%5B%5B...path%5D%5D/page-95ef698b4788ceec.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/app/error-18c4925a4bc62a34.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/app/global-error-4132879e4cb04dd1.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/app/layout-c78d4ab77075c543.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/chunk-framer-motion-da9ae19f9a41cd7a.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/fd9d1056-efbb5f4a710e7b0a.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/main-app-be3d940aef6bd3eb.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/polyfills-42372ed130431b0a.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx', '/_next/static/chunks/webpack-2cadafcaa84c76cf.js?dpl=dpl_DYoGvMbBfWZ9X9Fx1ZqEF9tQgvQx']
+- `03:52:46` installing playwright
+- `03:53:12` browser on /market-index-data/charts/daily-total-us-treasury-trade-fails: title 'Daily Total US Treasury Trade Fails | DTCC' | 30 data responses
+- `03:53:12`     200 fetch text/css 6445 bytes https://use.typekit.net/ilb8mvm.css?display=swap
+- `03:53:12`     200 fetch text/css 4738 bytes https://use.typekit.net/vxv0awr.css
+- `03:53:12`     200 fetch image/svg+xml 1294 bytes https://www.dtcc.com/api/svg-proxy?url=https%3A%2F%2Fcms-prod.dtcc.com%2Fcontentassets%2Fa67be6b1ff964b2f839d6e4587e7d48d%2Fdtcc-green-logo.svg
+- `03:53:12`     200 fetch text/x-component 246548 bytes https://www.dtcc.com/market-index-data?_rsc=mv1dr
+- `03:53:12`     200 fetch text/x-component 179385 bytes https://www.dtcc.com/market-index-data/charts/exchange-traded-funds?_rsc=mv1dr
+- `03:53:12`     200 fetch text/x-component 179080 bytes https://www.dtcc.com/market-index-data/charts/equity-trade-volume-insights?_rsc=mv1dr
+- `03:53:12`     200 fetch text/x-component 220517 bytes https://www.dtcc.com/support?_rsc=mv1dr
+- `03:53:12`     200 fetch text/html 427763 bytes https://www.dtcc.com/?_rsc=mv1dr
+- `03:53:12`     200 fetch text/x-component 178259 bytes https://www.dtcc.com/market-index-data/charts/dtcc-gcf-repo-index?_rsc=mv1dr
+- `03:53:12`     200 xhr application/json 5180 bytes https://cdn.cookielaw.org/consent/e2c5225c-ffbe-4e5a-961a-00cdcb8cd205/e2c5225c-ffbe-4e5a-961a-00cdcb8cd205.json
+- `03:53:12`         {"CookieSPAEnabled":false,"CookieSameSiteNoneEnabled":false,"CookieV2CSPEnabled":false,"MultiVariantTestingEnabled":false,"UseV2":true,"MobileSDK":false,"SkipGeolocation":false,"ScriptType":"PRODUCTION","Version":"202411.1.0","OptanonDataJSON":"e2c5225c-ffbe-4
+- `03:53:12`     200 xhr application/json 68 bytes https://geolocation.onetrust.com/cookieconsentpub/v1/geo/location
+- `03:53:12`         {"country":"US","state":"GA","stateName":"Georgia","continent":"NA"}
+- `03:53:12`     200 fetch text/x-component 179450 bytes https://www.dtcc.com/market-index-data/charts/membership?_rsc=mv1dr
+- `03:53:12`     200 fetch text/x-component 233528 bytes https://www.dtcc.com/products-and-services/asset-services/asset-services-performance-metrics?_rsc=mv1dr
+- `03:53:12`     200 fetch text/x-component 227835 bytes https://www.dtcc.com/products-and-services/asset-services/announcements-and-reports?_rsc=mv1dr
+- `03:53:12`     200 fetch text/x-component 179949 bytes https://www.dtcc.com/market-index-data/charts/previous-12-months-volume-for-gsd?_rsc=mv1dr
+- `03:53:12`     200 fetch text/x-component 179009 bytes https://www.dtcc.com/market-index-data/charts/previous-12-months-volume-for-mbs?_rsc=mv1dr
+- `03:53:12`     200 fetch text/x-component 206655 bytes https://www.dtcc.com/products-and-services?_rsc=mv1dr
+- `03:53:12`     200 fetch text/x-component 224413 bytes https://www.dtcc.com/products-and-services/clearing-settlement-services?_rsc=mv1dr
+- `03:53:12`     200 fetch text/x-component 218940 bytes https://www.dtcc.com/legal?_rsc=mv1dr
+- `03:53:12`     200 fetch text/x-component 187244 bytes https://www.dtcc.com/insights?_rsc=mv1dr
+- `03:53:12`     200 fetch text/x-component 177326 bytes https://www.dtcc.com/legal/important-notices?_rsc=mv1dr
+- `03:53:12`     200 fetch text/x-component 299470 bytes https://www.dtcc.com/about?_rsc=mv1dr
+- `03:53:12`     200 fetch text/x-component 247384 bytes https://www.dtcc.com/about/careers?_rsc=mv1dr
+- `03:53:12`     200 fetch application/json 189610 bytes https://cdn.cookielaw.org/consent/e2c5225c-ffbe-4e5a-961a-00cdcb8cd205/01919ac1-9a59-7f8f-94cb-b1ca0bb5fb19/en-us.json
+- `03:53:12`         {"DomainData":{"pclifeSpanYr":"Year","pclifeSpanYrs":"Years","pclifeSpanSecs":"A few seconds","pclifeSpanWk":"Week","pclifeSpanWks":"Weeks","pccontinueWithoutAcceptText":"Continue without Accepting","pccloseButtonType":"Icon","MainText":"Privacy Center","MainI
+- `03:53:12`     200 fetch application/json 63621 bytes https://cdn.cookielaw.org/scripttemplates/202411.1.0/assets/v2/otPcCenter.json
+- `03:53:12`          |         { |             "name": "otPcCenter", |             "html": "PGRpdiBpZD0ib25ldHJ1c3QtcGMtc2RrIiBjbGFzcz0ib3RQY0NlbnRlciBvdC1oaWRlIG90LWZhZGUtaW4iPjxkaXYgcm9sZT0iZGlhbG9nIiBhcmlhLW1vZGFsPSJ0cnVlIj48IS0tIENsb3NlIEJ1dHRvbiAtLT48ZGl2IGNsYXNzPSJvdC1wYy1oZWFkZX
+- `03:53:12`     200 fetch text/css 24745 bytes https://cdn.cookielaw.org/scripttemplates/202411.1.0/assets/otCommonStyles.css
+- `03:53:12`     200 fetch application/json 9661 bytes https://cdn.cookielaw.org/scripttemplates/202411.1.0/assets/otCenterRounded.json
+- `03:53:12`          |             { |                 "name": "otCenterRounded", |                 "html": "PGRpdiBpZD0ib25ldHJ1c3QtYmFubmVyLXNkayIgY2xhc3M9Im90Q2VudGVyUm91bmRlZCI+PGRpdiBjbGFzcz0ib3Qtc2RrLWNvbnRhaW5lciIgcm9sZT0iZGlhbG9nIj48ZGl2IGNsYXNzPSJvdC1zZGstcm93Ij48ZGl2IGlkPSJvb
+- `03:53:12`     200 fetch image/svg+xml 497 bytes https://cdn.cookielaw.org/logos/static/ot_guard_logo.svg
+- `03:53:12`     200 xhr text/csv 9947 bytes https://cms-prod.dtcc.com/data/failsdata.csv?v=1795319578498
+- `03:53:12`         Date,Treasury Fails Amount,Agency Fails Amount | 11/20/2025,20227803894.72,153384642.32  | 11/21/2025,32142092019.76,188280498.84  | 11/24/2025,22890404003.86,188723695.44  | 11/25/2025,22505466301.59,189475297.88  | 11/26/2025,35357207748.31,94429297.12  | 11/28/20
+- `03:53:12`     200 fetch application/json 31 bytes https://project-hummingbird-hummingbird-websocket-nodejs-de-112831.cloud.adobe.io/activation
+- `03:53:12`         {"status":"no_dialogues_found"}
+- `03:53:12`     links that look like a download: [["Market & Index Data", "https://www.dtcc.com/market-index-data"], ["Market & Index Data", "https://www.dtcc.com/market-index-data"], ["Market & Index Data", "https://www.dtcc.com/market-index-data"], ["Underwriting Data", "https://www.dtcc.com/market-index-data/charts/underwriting-data-report"], ["Underwriting Data", "https://www.dtcc.com/market-index-data/charts/underwriting-data-report"], ["Data Services", "https://www.dtcc.com/products-and-services/data-services"], ["Data Services", "https://www.dtcc.com/products-and-services/data-services"], ["Market & Index Data", "https://www.dtcc.com/market-index-data"], ["Market & Index Data", "https://www.dtcc.com/market-index-data"]]
+- `03:53:12`     page text: Skip to Content Products & Services Initiatives Insights & Events Legal & Regulatory About Search Search Support Login Home Market & Index Data Daily Total US Treasury Trade Fails Equities ETFs GCF Repo GSD Volume MBS Volume Principle & Income Sponsored Membership Structured Securities US Treasury Trade Fails Underwriting Data Daily Total US Treasury Trade Fails OVERVIEW Daily Total US Treasury Trade Fails This section provides daily aggregated data on U.S. Treasury trade fails, offering transparency into settlement efficiency within the Treasury market. Trade fails occur when a security is not delivered on the agreed settlement date, which can impact liquidity and market stability. By tracking these totals, market participants gain insights into operational performance and systemic risk trends. The data is updated daily and presented in clear charts to support analysis by dealers, regul
+- `03:53:27` browser on /market-index-data/charts/dtcc-gcf-repo-index: title 'GCF Repo Index® | DTCC' | 27 data responses
+- `03:53:27`     200 fetch text/css 6445 bytes https://use.typekit.net/ilb8mvm.css?display=swap
+- `03:53:27`     200 fetch text/css 4738 bytes https://use.typekit.net/vxv0awr.css
+- `03:53:27`     200 fetch image/svg+xml 1294 bytes https://www.dtcc.com/api/svg-proxy?url=https%3A%2F%2Fcms-prod.dtcc.com%2Fcontentassets%2Fa67be6b1ff964b2f839d6e4587e7d48d%2Fdtcc-green-logo.svg
+- `03:53:27`     200 fetch text/x-component 179385 bytes https://www.dtcc.com/market-index-data/charts/exchange-traded-funds?_rsc=w6bx2
+- `03:53:27`     200 fetch text/x-component 220517 bytes https://www.dtcc.com/support?_rsc=w6bx2
+- `03:53:27`     200 xhr application/json 5180 bytes https://cdn.cookielaw.org/consent/e2c5225c-ffbe-4e5a-961a-00cdcb8cd205/e2c5225c-ffbe-4e5a-961a-00cdcb8cd205.json
+- `03:53:27`         {"CookieSPAEnabled":false,"CookieSameSiteNoneEnabled":false,"CookieV2CSPEnabled":false,"MultiVariantTestingEnabled":false,"UseV2":true,"MobileSDK":false,"SkipGeolocation":false,"ScriptType":"PRODUCTION","Version":"202411.1.0","OptanonDataJSON":"e2c5225c-ffbe-4
+- `03:53:27`     200 fetch text/x-component 246548 bytes https://www.dtcc.com/market-index-data?_rsc=w6bx2
+- `03:53:27`     200 fetch text/html 427763 bytes https://www.dtcc.com/?_rsc=w6bx2
+- `03:53:27`     200 fetch text/x-component 179949 bytes https://www.dtcc.com/market-index-data/charts/previous-12-months-volume-for-gsd?_rsc=w6bx2
+- `03:53:27`     200 xhr application/json 68 bytes https://geolocation.onetrust.com/cookieconsentpub/v1/geo/location
+- `03:53:27`         {"country":"US","state":"GA","stateName":"Georgia","continent":"NA"}
+- `03:53:27`     200 fetch text/x-component 233528 bytes https://www.dtcc.com/products-and-services/asset-services/asset-services-performance-metrics?_rsc=w6bx2
+- `03:53:27`     200 fetch text/x-component 179450 bytes https://www.dtcc.com/market-index-data/charts/membership?_rsc=w6bx2
+- `03:53:27`     200 fetch text/x-component 179080 bytes https://www.dtcc.com/market-index-data/charts/equity-trade-volume-insights?_rsc=w6bx2
+- `03:53:27`     200 fetch text/x-component 179009 bytes https://www.dtcc.com/market-index-data/charts/previous-12-months-volume-for-mbs?_rsc=w6bx2
+- `03:53:27`     200 fetch text/x-component 227835 bytes https://www.dtcc.com/products-and-services/asset-services/announcements-and-reports?_rsc=w6bx2
+- `03:53:27`     200 fetch text/x-component 206655 bytes https://www.dtcc.com/products-and-services?_rsc=w6bx2
+- `03:53:27`     200 fetch text/x-component 187244 bytes https://www.dtcc.com/insights?_rsc=w6bx2
+- `03:53:27`     200 fetch text/x-component 218940 bytes https://www.dtcc.com/legal?_rsc=w6bx2
+- `03:53:27`     200 fetch text/x-component 299470 bytes https://www.dtcc.com/about?_rsc=w6bx2
+- `03:53:27`     200 fetch text/x-component 179963 bytes https://www.dtcc.com/market-index-data/charts/daily-total-us-treasury-trade-fails?_rsc=w6bx2
+- `03:53:27`     200 fetch application/json 189610 bytes https://cdn.cookielaw.org/consent/e2c5225c-ffbe-4e5a-961a-00cdcb8cd205/01919ac1-9a59-7f8f-94cb-b1ca0bb5fb19/en-us.json
+- `03:53:27`         {"DomainData":{"pclifeSpanYr":"Year","pclifeSpanYrs":"Years","pclifeSpanSecs":"A few seconds","pclifeSpanWk":"Week","pclifeSpanWks":"Weeks","pccontinueWithoutAcceptText":"Continue without Accepting","pccloseButtonType":"Icon","MainText":"Privacy Center","MainI
+- `03:53:27`     200 fetch application/json 9661 bytes https://cdn.cookielaw.org/scripttemplates/202411.1.0/assets/otCenterRounded.json
+- `03:53:27`          |             { |                 "name": "otCenterRounded", |                 "html": "PGRpdiBpZD0ib25ldHJ1c3QtYmFubmVyLXNkayIgY2xhc3M9Im90Q2VudGVyUm91bmRlZCI+PGRpdiBjbGFzcz0ib3Qtc2RrLWNvbnRhaW5lciIgcm9sZT0iZGlhbG9nIj48ZGl2IGNsYXNzPSJvdC1zZGstcm93Ij48ZGl2IGlkPSJvb
+- `03:53:27`     200 fetch application/json 63621 bytes https://cdn.cookielaw.org/scripttemplates/202411.1.0/assets/v2/otPcCenter.json
+- `03:53:27`          |         { |             "name": "otPcCenter", |             "html": "PGRpdiBpZD0ib25ldHJ1c3QtcGMtc2RrIiBjbGFzcz0ib3RQY0NlbnRlciBvdC1oaWRlIG90LWZhZGUtaW4iPjxkaXYgcm9sZT0iZGlhbG9nIiBhcmlhLW1vZGFsPSJ0cnVlIj48IS0tIENsb3NlIEJ1dHRvbiAtLT48ZGl2IGNsYXNzPSJvdC1wYy1oZWFkZX
+- `03:53:27`     200 fetch text/css 24745 bytes https://cdn.cookielaw.org/scripttemplates/202411.1.0/assets/otCommonStyles.css
+- `03:53:27`     200 fetch image/svg+xml 497 bytes https://cdn.cookielaw.org/logos/static/ot_guard_logo.svg
+- `03:53:27`     200 xhr text/csv 13454 bytes https://cms-prod.dtcc.com/data/gcfindex.csv?v=1795319593685
+- `03:53:27`         Date,MBS Total PAR Value,MBS Weighted Average,Treasury Total PAR Value,Treasury Weighted Average | 11/20/2025,70824000000,  3.955,45918000000,  3.944  | 11/21/2025,90552000000,  3.975,50478000000,  3.933  | 11/24/2025,117402000000,  4.033,56200000000,  3.994  | 11
+- `03:53:27`     200 fetch application/json 31 bytes https://project-hummingbird-hummingbird-websocket-nodejs-de-112831.cloud.adobe.io/activation
+- `03:53:27`         {"status":"no_dialogues_found"}
+- `03:53:27`     links that look like a download: [["Market & Index Data", "https://www.dtcc.com/market-index-data"], ["Market & Index Data", "https://www.dtcc.com/market-index-data"], ["Market & Index Data", "https://www.dtcc.com/market-index-data"], ["Underwriting Data", "https://www.dtcc.com/market-index-data/charts/underwriting-data-report"], ["Underwriting Data", "https://www.dtcc.com/market-index-data/charts/underwriting-data-report"], ["Data Services", "https://www.dtcc.com/products-and-services/data-services"], ["Data Services", "https://www.dtcc.com/products-and-services/data-services"], ["Market & Index Data", "https://www.dtcc.com/market-index-data"], ["Market & Index Data", "https://www.dtcc.com/market-index-data"]]
+- `03:53:27`     page text: Skip to Content Products & Services Initiatives Insights & Events Legal & Regulatory About Search Search Support Login Home Market & Index Data GCF Repo Index Chart A service offering of DTCC Solutions LLC Equities ETFs GCF Repo GSD Volume MBS Volume Principle & Income Sponsored Membership Structured Securities US Treasury Trade Fails Underwriting Data DTCC GCF Repo Index OVERVIEW GCF Repo Index Chart The DTCC GCF Repo Index® is a benchmark designed to enhance transparency in U.S. financing markets by tracking the average daily interest rate paid on the most actively traded General Collateral Finance (GCF) repurchase agreements. Products & Services Clearing & Settlement Services Trade Processing Solutions Digital Assets Asset Services Wealth & Investment Solutions Repository & Derivatives Services Data Services Consulting Services Insights & Events Insights Press Releases Events & Replay
+## 4. Dealer repo financing
+
+- `03:53:28` published document written 2026-11-06 21:36 | version 4.0.0 | generated_at 2026-11-06T21:36:37.326892+00:00 | source_generated_at 2026-11-06T21:36:36.034404+00:00 | as_of 2026-10-28 | quality {"counts": {"definition_unverified": 14, "fresh": 47, "incomplete": 9}, "status": "degraded", "total_series": 70}
+- `03:53:28` financing: as_of 2026-10-28 | repo_out_b None | reverse_repo_in_b None | quality {"acquired_at": "2026-11-06T21:36:36.034404+00:00", "actual_publication_time_verified": false, "holiday_adjustment_verified": false, "max_acquisition_age_hours": 192, "missing": ["source_definition_unresolved", "latest_report_suppressed_or_missing"], "next_expected_publication_date": "2026-11-12T21:
+- `03:53:28` financing.treasury: {"as_of": "2026-10-28", "gross_two_sided_b": 6340.986, "quality": {"acquired_at": "2026-11-06T21:36:36.034404+00:00", "actual_publication_time_verified": false, "holiday_adjustment_verified": false, "max_acquisition_age_hours": 192, "missing": [], "next_expected_publication_date": "2026-11-12T21:15:00+00:00", "normal_release_grace_hours": 24, "observation_date": "2026-10-28", "publication_date": null, "status": "fresh"}, "repo_out_b": 3339.623, "reverse_repo_in_b": 3001.363, "scope": "Treasury including TIPS", "source_group": "treasury_two_sided", "unit": "USD_bn"}
+- `03:53:28` log stream 2026-11-20 21:36: [dealer-research] unavailable: HTTPError || REPORT RequestId: 02f259b7-f50c-4777-85c5-2762a5d360a1	Duration: 2820.97 ms	Billed Duration: 3377 ms	Memory Size: 512 MB	Max Memory Used: 139 MB	Init Duration: 555.30 ms	
+XRAY TraceId: 1-6b00bd5a-7e55a1cf26563a72149f4442	SegmentId: 6d12754029a2e4ab	Sampled: tr
+- `03:53:29` log stream 2026-11-19 21:36: [dealer-research] unavailable: HTTPError || REPORT RequestId: 46bd00da-0a75-42d8-8780-fdefc241d5b5	Duration: 2727.34 ms	Billed Duration: 3269 ms	Memory Size: 512 MB	Max Memory Used: 139 MB	Init Duration: 541.08 ms	
+XRAY TraceId: 1-6aff6bda-0dc85c725ebed9c938d48661	SegmentId: 3c9b57daf5314758	Sampled: tr
+- `03:53:29` log stream 2026-11-13 21:36: [dealer-research] unavailable: HTTPError || REPORT RequestId: a13b3f88-0d73-44bc-8e32-fea6357c55de	Duration: 2839.89 ms	Billed Duration: 3334 ms	Memory Size: 512 MB	Max Memory Used: 139 MB	Init Duration: 493.99 ms	
+XRAY TraceId: 1-6af782da-7d0e34c0157ae77e3034a29c	SegmentId: 27066aa614fbbc58	Sampled: tr
+- `03:53:30` log stream 2026-11-12 21:36: [dealer-research] unavailable: HTTPError || REPORT RequestId: e64e8ed0-85a0-4151-a02c-f86c178b3451	Duration: 3272.79 ms	Billed Duration: 3772 ms	Memory Size: 512 MB	Max Memory Used: 139 MB	Init Duration: 498.56 ms	
+XRAY TraceId: 1-6af6315a-541f17151b2600317cc0630f	SegmentId: 850199fe756fe916	Sampled: tr
+- `03:53:30` log stream 2026-11-06 21:36: 
+- `03:53:31` log stream 2026-11-05 21:36: 
+- `03:53:31` log stream 2026-10-30 21:36: 
+- `03:53:32` log stream 2026-10-29 21:36: 
+- `03:53:33`   source catalog            200, 335616 bytes, 0.8 s, json | https://markets.newyorkfed.org/api/pd/list/timeseries.json
+- `03:53:33`   source breaks             200, 716 bytes, 0.1 s, json | https://markets.newyorkfed.org/api/pd/list/seriesbreaks.json
+- `03:53:33`   source observations       422, 0 bytes, 0.2 s, - | https://markets.newyorkfed.org/api/pd/get/PDFRN2NSP_PDPOSABS-TOT_PDPOSCS-TOT_PDPOSCSBND-BELG10_PDPOSCSBND-BELG
+- `03:53:33`   source release_schedule   200, 103111 bytes, 0.3 s, html | https://www.newyorkfed.org/markets/counterparties/primary-dealers-statistics
+- `03:53:33`   source historical_release 200, 169092 bytes, 0.2 s, text | https://www.newyorkfed.org/medialibrary/media/banking/reportingforms/primarystats/dealpdf.pdf
+- `03:53:34`   source SBN2013            200, 139774 bytes, 0.1 s, text | https://www.federalreserve.gov/apps/reportingforms/Download/DownloadAttachment?guid=f555fe11-e149-479b-8088-4e
+- `03:53:34`   source SBN2015            200, 365626 bytes, 0.1 s, text | https://www.federalreserve.gov/apps/reportingforms/Download/DownloadAttachment?guid=0ead3d17-ff78-4ffe-9c62-a5
+- `03:53:34`   source SBN2022            200, 377773 bytes, 0.1 s, text | https://www.federalreserve.gov/apps/reportingforms/Download/DownloadAttachment?guid=978610fa-a9ee-4a6c-ac90-80
+- `03:53:34`   source SBN2024            200, 353043 bytes, 0.1 s, text | https://www.federalreserve.gov/apps/reportingforms/Download/DownloadAttachment?guid=950ab256-b485-4586-99b0-b2
+- `03:53:34`   series breaks at the source: ['SBN2013', 'SBN2015', 'SBN2022', 'SBN2024', 'SBP2001', 'SBP2013'] | not in the engine's definitions: ['SBP2001', 'SBP2013']
+- `03:53:34`   catalog at the source: 1539 rows, 70 of the engine's 70 identities found
+- `03:53:35`   previous published output verifies: {"bytes": 2976882, "key": "data/dealer-research/outputs/cddfcc78cc581b6847d0989c8c8d4982000e920ae4e5427a50164d615e99fbfe.json", "sha256": "cddfcc78cc581b6847d0989c8c8d4982000e920ae4e5427a50164d615e99f
+- `03:53:35` acceptance checks that refuse today: 2
+- `03:53:35`   REFUSES: observations answers 422
+- `03:53:35`   REFUSES: observations do not parse: JSONDecodeError Expecting value: line 1 column 1 (char 0)
+- `03:53:35` ✅ read-only; nothing changed
