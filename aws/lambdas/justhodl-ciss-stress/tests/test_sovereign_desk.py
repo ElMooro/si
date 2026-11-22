@@ -441,50 +441,75 @@ class Handler(unittest.TestCase):
         from unittest.mock import patch
         m = self.load()
         with patch.object(m, 'run', return_value={'published': True}) as warehouse, patch.object(m.sovereign_desk, 'run', return_value={'published': True, 'coverage': {}}) as compiled, \
-                patch.object(m.world_history, 'run', return_value={'published': True, 'sets': {}}) as world:
+                patch.object(m.world_history, 'run', return_value={'published': True, 'sets': {}}) as world, patch.object(m.dollar_shortage, 'run', return_value={'published': True, 'latest': {}}) as dollar:
             body = json.loads(m.lambda_handler({}, self.context(900))['body'])
         warehouse.assert_called_once_with('S3', m.BUCKET, budget_seconds=480)
         compiled.assert_called_once_with('S3', m.BUCKET, m.store, budget_seconds=780)
+        dollar.assert_called_once_with('S3', m.BUCKET, m.store)
         world.assert_called_once_with('S3', m.BUCKET, budget_seconds=240)
-        self.assertEqual(body, {'published': True, 'sovereign': {'published': True, 'coverage': {}}, 'world': {'published': True, 'sets': {}}})
+        self.assertEqual(body, {'published': True, 'sovereign': {'published': True, 'coverage': {}}, 'dollar': {'published': True, 'latest': {}}, 'world': {'published': True, 'sets': {}}})
+        self.assertEqual(list(body), ['published', 'sovereign', 'dollar', 'world'])            # the dollar document reads the desk document, so it follows it
         with patch.object(m, 'run', return_value={'published': True}), patch.object(m.sovereign_desk, 'run', side_effect=ValueError('boom')), \
-                patch.object(m.world_history, 'run', side_effect=KeyError('gone')):
+                patch.object(m.world_history, 'run', side_effect=KeyError('gone')), patch.object(m.dollar_shortage, 'run', side_effect=ValueError('differs')):
             body = json.loads(m.lambda_handler({}, self.context(900))['body'])
-        self.assertEqual(body, {'published': True, 'sovereign': {'published': False, 'error': 'ValueError'}, 'world': {'published': False, 'error': 'KeyError'}})
+        self.assertEqual(body, {'published': True, 'sovereign': {'published': False, 'error': 'ValueError'}, 'dollar': {'published': False, 'error': 'ValueError'},
+                                'world': {'published': False, 'error': 'KeyError'}})
 
     def test_with_little_time_left_the_last_document_stays(self):
         from unittest.mock import patch
         m = self.load()
-        with patch.object(m, 'run', return_value={'published': True}), patch.object(m.sovereign_desk, 'run') as compiled, patch.object(m.world_history, 'run', return_value={'published': True}) as world:
+        with patch.object(m, 'run', return_value={'published': True}), patch.object(m.sovereign_desk, 'run') as compiled, patch.object(m.world_history, 'run', return_value={'published': True}) as world, \
+                patch.object(m.dollar_shortage, 'run', return_value={'published': True}):
             body = json.loads(m.lambda_handler({}, self.context(120))['body'])
         compiled.assert_not_called()
         self.assertFalse(body['sovereign']['published'])
         self.assertIn('not enough time', body['sovereign']['reason'])
         world.assert_called_once_with('S3', m.BUCKET, budget_seconds=80)                        # the World tab's histories need far less time
-        with patch.object(m, 'run', return_value={'published': True}), patch.object(m.world_history, 'run') as world:
+        with patch.object(m, 'run', return_value={'published': True}), patch.object(m.world_history, 'run') as world, patch.object(m.dollar_shortage, 'run', return_value={'published': True}) as dollar:
             body = json.loads(m.lambda_handler({}, self.context(50))['body'])
         world.assert_not_called()
         self.assertIn('not enough time', body['world']['reason'])
+        dollar.assert_called_once()                                                             # thirty seconds are enough for it
+        with patch.object(m, 'run', return_value={'published': True}), patch.object(m.dollar_shortage, 'run') as dollar:
+            body = json.loads(m.lambda_handler({}, self.context(40))['body'])
+        dollar.assert_not_called()
+        self.assertIn('not enough time', body['dollar']['reason'])
 
     def test_the_desk_can_be_recompiled_alone_without_collecting_the_warehouse_again(self):
         from unittest.mock import patch
         m = self.load()
-        with patch.object(m, 'run') as warehouse, patch.object(m.sovereign_desk, 'run', return_value={'published': True}) as compiled, patch.object(m.world_history, 'run', return_value={'published': True}) as world:
+        with patch.object(m, 'run') as warehouse, patch.object(m.sovereign_desk, 'run', return_value={'published': True}) as compiled, patch.object(m.world_history, 'run', return_value={'published': True}) as world, \
+                patch.object(m.dollar_shortage, 'run', return_value={'published': True}) as dollar:
             body = json.loads(m.lambda_handler({'sovereign_only': True}, self.context(900))['body'])
         warehouse.assert_not_called()
         compiled.assert_called_once()
+        dollar.assert_called_once()
         world.assert_called_once()                                                              # the World tab reads the desk's monthly yields, so it follows
-        self.assertEqual(body, {'sovereign': {'published': True}, 'world': {'published': True}})
+        self.assertEqual(body, {'sovereign': {'published': True}, 'dollar': {'published': True}, 'world': {'published': True}})
 
     def test_the_world_histories_can_be_compiled_alone_with_no_ecb_request(self):
         from unittest.mock import patch
         m = self.load()
-        with patch.object(m, 'run') as warehouse, patch.object(m.sovereign_desk, 'run') as compiled, patch.object(m.world_history, 'run', return_value={'published': True, 'sets': {'yield': 30}}) as world:
+        with patch.object(m, 'run') as warehouse, patch.object(m.sovereign_desk, 'run') as compiled, patch.object(m.world_history, 'run', return_value={'published': True, 'sets': {'yield': 30}}) as world, \
+                patch.object(m.dollar_shortage, 'run') as dollar:
             body = json.loads(m.lambda_handler({'world_only': True}, self.context(900))['body'])
         warehouse.assert_not_called()
         compiled.assert_not_called()
+        dollar.assert_not_called()
         world.assert_called_once_with('S3', m.BUCKET, budget_seconds=240)
         self.assertEqual(body, {'world': {'published': True, 'sets': {'yield': 30}}})
+
+    def test_the_dollar_shortage_document_can_be_compiled_alone_from_what_is_already_kept(self):
+        from unittest.mock import patch
+        m = self.load()
+        with patch.object(m, 'run') as warehouse, patch.object(m.sovereign_desk, 'run') as compiled, patch.object(m.world_history, 'run') as world, \
+                patch.object(m.dollar_shortage, 'run', return_value={'published': True, 'latest': {'AUX_EURUSD': [1.099, '2026-11-20']}}) as dollar:
+            body = json.loads(m.lambda_handler({'dollar_only': True}, self.context(900))['body'])
+        warehouse.assert_not_called()
+        compiled.assert_not_called()
+        world.assert_not_called()
+        dollar.assert_called_once_with('S3', m.BUCKET, m.store)
+        self.assertEqual(body, {'dollar': {'published': True, 'latest': {'AUX_EURUSD': [1.099, '2026-11-20']}}})
 
 
 if __name__ == '__main__':
