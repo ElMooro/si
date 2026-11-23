@@ -250,3 +250,14 @@ git checkout 298fcf3d -- jh-chart-engine.js jh-chart-tvrail.js chart.html tests/
 then delete the test "the chart has a Sovereign button that opens this desk" from `tests/sovereign-desk.test.js`, commit
 `[skip-ops]` and push. The page, the CISS page's repairs and the engine are independent of the button; the record above
 says how to take each back.
+
+## 2026-11-23: the chart's indicators close, hide and show
+
+Khalid: "some of them wont close and remove out of the chart and visible and invisible doesnt always work".
+`jh-chart-engine.js` carries 20 exact edits (Volume's eye, hide checks on VWAP NY and the candle pattern labels, windows
+that follow the price chart's zoom and share the room with it, no rebuild under a held button, panes and legend drawn
+before a slow benchmark, the retired studio store following the saved layout) and `chart.html` one (`&ind=20261123` on the
+engine's tag). The byte ledger peels both first (`peelIndicatorControls`, fixtures in
+`tests/fixtures/chart-indicator-controls/`), then the Sovereign desk's. `jh-chart-auction.js`, `jh-chart-sd-ui.js` and
+`jh-chart-evr.js` changed with them and are not ledgered. Full record and how to take it back (state before = 64aa2d70):
+`docs/audit/2026-11-23/chart-indicator-controls.md`.

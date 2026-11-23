@@ -1,0 +1,82 @@
+[
+ {
+  "before": "volOn=true, chartOnly=false,",
+  "after": "volOn=true, volHide=false, chartOnly=false,"
+ },
+ {
+  "before": "    volOn=true; vpOn=true;\n",
+  "after": "    volOn=!(lay&&lay.volOff===true); volHide=!!(lay&&lay.volHide===true); vpOn=true;\n"
+ },
+ {
+  "before": "    if(lay){ applySnap(INDS, lay.inds); applySnap(OSC, lay.osc); }\n",
+  "after": "    if(lay){ applySnap(INDS, lay.inds); applySnap(OSC, lay.osc); mirrorStudio(lay); }\n"
+ },
+ {
+  "before": "  function paintOsc(d){\n    try{ ensureChartUi(); }catch(eFs){}\n",
+  "after": "  function paintOsc(d){\n    try{ ensureChartUi(); }catch(eFs){}\n    if(paneHeld){ paneLate=true; return; }\n"
+ },
+ {
+  "before": "      if(!r || syncing) return;\n",
+  "after": "      if(!r || syncing || (c!==chart && oscCharts.indexOf(c)>=0)) return;\n"
+ },
+ {
+  "before": "var volShow=(volOn||tapeVol) && d.some(",
+  "after": "var volShow=(volOn||tapeVol) && !(typeof volHide!==\"undefined\"&&volHide) && d.some("
+ },
+ {
+  "before": "INDS.some(function(i){return i.id===\"vwap\"&&i.on;})",
+  "after": "INDS.some(function(i){return i.id===\"vwap\"&&i.on&&!i.hide;})"
+ },
+ {
+  "before": "      var bench=await loadBench(paintTf,current);\n      if(!current())return;\n      spyBars=bench;\n",
+  "after": "      /* 2026-11-23: while the benchmark is still downloading, the panes and the legend are drawn at once, so an eye or a cross answers\n         without waiting for it; they are drawn again when it lands. Where there is no timer (a bare test context) it waits as before. */\n      var benchWait=loadBench(paintTf,current), benchTick={}, bench=benchTick, benchTimer=typeof setTimeout===\"function\";\n      if(benchTimer) bench=await Promise.race([benchWait, new Promise(function(done){ setTimeout(function(){ done(benchTick); }, 0); })]);\n      if(bench===benchTick){\n        if(!current()){ Promise.resolve(benchWait).catch(function(){}); return; }\n        if(benchTimer){ try{ paintOsc(d); drawSVG(); paintPat(); renderLegend(); }catch(eEarly){} }\n        bench=await benchWait;\n      }\n      if(!current())return;\n      spyBars=bench;\n"
+ },
+ {
+  "before": "    box.style.display=volOn?\"flex\":\"none\";",
+  "after": "    box.style.display=(volOn&&!volHide)?\"flex\":\"none\";"
+ },
+ {
+  "before": "    if(!below.length){ if(wrap){ wrap.className=\"\"; wrap.innerHTML=\"\"; } return; }\n",
+  "after": "    if(!below.length){ if(wrap){ wrap.className=\"\"; wrap.innerHTML=\"\"; } afterPanes(wrap); return; }\n"
+ },
+ {
+  "before": "      bindSync(c); oscCharts.push(c);\n",
+  "after": "      bindSync(c); oscCharts.push(c);\n      try{ var padS=c.addLineSeries({lastValueVisible:false,priceLineVisible:false,crosshairMarkerVisible:false}); padS.setData((d||[]).map(function(b){ return {time:b.time}; })); oscSeries.push(padS); }catch(ePad){}\n"
+ },
+ {
+  "before": "      if(o.hide){ host.style.opacity=\"0.12\"; }\n",
+  "after": "      if(o.hide){ pane.dataset.hid=\"1\"; pane.classList.add(\"osc-hid\"); pane.style.height=\"auto\"; pane.style.minHeight=\"0\"; pane.style.flex=\"none\"; host.style.cssText=\"position:absolute;left:0;top:100%;width:100%;height:160px;visibility:hidden;pointer-events:none\"; }\n"
+ },
+ {
+  "before": "    if(window.jhInduxBindOsc) window.jhInduxBindOsc(wrap);\n    window.jhSaveLay=saveLay;\n  }\n",
+  "after": "    if(window.jhInduxBindOsc) window.jhInduxBindOsc(wrap);\n    afterPanes(wrap);\n    window.jhSaveLay=saveLay;\n  }\n"
+ },
+ {
+  "before": "  function ensureChartUi(){\n    try{ installChartPatches(); }catch(ePatch){}\n",
+  "after": "  /* 2026-11-23 · indicator controls. What makes a study close, hide and show every time:\n     - neither the legend nor an indicator window is rebuilt under a held button, so a press is never lost to a repaint\n     - Volume has a real eye (hide and show) beside its cross (remove), and a removed Volume stays removed\n     - an indicator placed on the price chart has the same eye as the rest\n     - a lit row in the Indicators list switches that study off (a hidden one is shown first)\n     - indicator windows share the room with the price chart and scroll when there are many, so each one stays in reach\n     - a new window follows the zoom of the price chart, bar for bar, in place of changing it\n     - the retired studio store follows the saved layout, so a reload cannot bring a closed study back */\n  var ctlInstalled=false, legendHeld=false, legendLate=null, paneHeld=false, paneLate=false, heldT=null;\n  function tapeWantsVolume(){ return INDS.some(function(i){ return i.id===\"voltape\"&&i.on; }); }\n  function volumeWanted(){ return volOn || tapeWantsVolume(); }\n  function mirrorStudio(lay){\n    try{\n      var raw=localStorage.getItem(\"jh-chart-ind-layout-v1\"); if(raw==null) return;\n      var st=JSON.parse(raw); if(!st||typeof st!==\"object\") return;\n      var changed=false;\n      Object.keys(st).forEach(function(id){\n        var row=st[id]; if(!row||typeof row!==\"object\"||row.on==null) return;\n        var live=INDS.filter(function(i){ return i.id===id; })[0], want;\n        if(live) want=!!live.on;\n        else if(lay&&lay.inds){ var kept=lay.inds.filter(function(x){ return x&&x.id===id; })[0]; want=!!(kept&&kept.on); }\n        else return;\n        if(!!row.on!==want){ row.on=want; changed=true; }\n      });\n      if(changed) localStorage.setItem(\"jh-chart-ind-layout-v1\", JSON.stringify(st));\n    }catch(eMs){}\n  }\n  function fitPanes(){\n    var wrap=document.getElementById(\"oscwrap\"), stage=document.getElementById(\"stage\");\n    if(!wrap||!stage||!stage.parentNode) return;\n    var panes=[].slice.call(wrap.querySelectorAll(\".osc\")), col=stage.parentNode, used=0, k;\n    function roomy(){ if(col.dataset&&col.dataset.jhShort===\"1\"){ stage.style.minHeight=\"\"; col.style.overflowY=\"\"; delete col.dataset.jhShort; } }\n    if(!panes.length){ wrap.style.maxHeight=\"\"; wrap.style.overflowY=\"\"; stage.style.paddingRight=\"\"; roomy(); return; }\n    for(k=0;k<col.children.length;k++){\n      var kid=col.children[k]; if(kid===stage||kid===wrap) continue;\n      var cs=window.getComputedStyle(kid); if(cs.display===\"none\"||cs.position===\"absolute\"||cs.position===\"fixed\") continue;\n      used+=kid.offsetHeight;\n    }\n    var avail=col.clientHeight-used;\n    if(!(avail>=410)){\n      /* a short column (a phone held upright): there is nothing to share. The price chart keeps 220 px and the column scrolls down to the windows. */\n      stage.style.minHeight=\"220px\"; col.style.overflowY=\"auto\"; if(col.dataset) col.dataset.jhShort=\"1\";\n      wrap.style.maxHeight=\"\"; wrap.style.overflowY=\"\"; stage.style.paddingRight=\"\";\n      panes.forEach(function(p){ p.style.flex=\"none\"; });\n      return;\n    }\n    roomy();\n    var room=Math.max(190, avail-Math.max(220, Math.round(avail*0.4)));\n    var fixed=0, soft=[];\n    [].forEach.call(wrap.children, function(el){\n      if(!el.classList||!el.classList.contains(\"osc\")){ fixed+=el.offsetHeight||0; return; }\n      if(el.dataset.hid===\"1\"){ fixed+=el.offsetHeight||24; return; }\n      if(!el.dataset.want) el.dataset.want=String(Math.round(parseFloat(el.style.height)||el.getBoundingClientRect().height||240));\n      var id=el.getAttribute(\"data-oid\"), o=OSC.filter(function(x){ return x.id===id; })[0];\n      if(o && o.externalPane!==true && !(o.h>=160)) soft.push(el);\n      else fixed+=Math.round(parseFloat(el.style.height)||+el.dataset.want);\n    });\n    if(soft.length){\n      var each=Math.floor((room-fixed)/soft.length);\n      soft.forEach(function(el){\n        var h=Math.max(160, Math.min(+el.dataset.want, each));\n        if(Math.round(parseFloat(el.style.height))!==h) el.style.height=h+\"px\";\n      });\n    }\n    panes.forEach(function(p){ p.style.flex=\"none\"; });\n    wrap.style.maxHeight=room+\"px\"; wrap.style.overflowY=\"auto\"; wrap.style.overflowX=\"hidden\";\n    var bar=wrap.offsetWidth-wrap.clientWidth;\n    stage.style.paddingRight=bar>0?bar+\"px\":\"\";\n  }\n  function paneNote(wrap){\n    if(!wrap) return;\n    var rest=OSC.filter(function(o){ return o.on && o.externalPane!==true; }).slice(6);\n    if(!rest.length) return;\n    var note=document.createElement(\"div\"); note.className=\"osc-more\";\n    note.innerHTML=\"<span>Six indicator windows fit under the chart. Switched on, not shown:</span>\"+rest.map(function(o){\n      return \"<button type=button data-more='\"+escHtml(o.id)+\"' title='Remove \"+escHtml(o.n)+\"'>\"+escHtml(o.n)+\" ×</button>\";\n    }).join(\"\");\n    note.onclick=function(ev){\n      var b=ev.target&&ev.target.closest?ev.target.closest(\"[data-more]\"):null; if(!b) return;\n      var o=OSC.filter(function(x){ return x.id===b.getAttribute(\"data-more\"); })[0]; if(!o) return;\n      o.on=false; o.hide=false; saveLay(); if(lastBars.length) paint(lastBars);\n    };\n    wrap.appendChild(note);\n  }\n  function afterPanes(wrap){\n    try{ paneNote(wrap); }catch(eN){}\n    try{ fitPanes(); }catch(eF){}\n    try{\n      var mr=chart.timeScale().getVisibleLogicalRange(), mw=0;\n      try{ mw=chart.priceScale(\"right\").width()||0; }catch(eW){}\n      oscCharts.forEach(function(x){\n        try{ if(mw>0) x.priceScale(\"right\").applyOptions({ minimumWidth:mw }); }catch(eP){}\n        try{ if(mr&&mr.from!=null&&mr.to!=null) x.timeScale().setVisibleLogicalRange(mr); }catch(eR){}\n      });\n    }catch(eA){}\n  }\n  function dressLegend(){\n    var host=document.getElementById(\"legend\"); if(!host) return;\n    var vr=host.querySelector(\".leg-row[data-kind=vol]\");\n    if(vr){\n      var ve=vr.querySelector(\"[data-act=eye]\");\n      if(volHide){ vr.classList.add(\"dim\"); if(ve){ ve.textContent=\"○\"; ve.title=\"Show Volume\"; } }\n      else if(ve) ve.title=\"Hide Volume\";\n    }\n    [].forEach.call(host.querySelectorAll(\".leg-row[data-kind=dock]\"), function(row){\n      if(row.querySelector(\"[data-act=eye]\")) return;\n      var o=OSC.filter(function(x){ return x.id===row.getAttribute(\"data-id\"); })[0];\n      var eye=document.createElement(\"button\");\n      eye.type=\"button\"; eye.className=\"leg-dock\"; eye.setAttribute(\"data-act\",\"eye\"); eye.title=\"Visibility\"; eye.textContent=o&&o.hide?\"○\":\"◉\";\n      row.insertBefore(eye, row.querySelector(\"[data-act=dn]\"));\n    });\n  }\n  function installIndicatorControls(){\n    if(ctlInstalled||typeof document===\"undefined\"||!document.head) return;\n    ctlInstalled=true;\n    var css=document.createElement(\"style\"); css.id=\"jh-ind-ctl-css\";\n    css.textContent=\"#oscwrap .osc-head .leg-ops{opacity:1}\"+\n      \"#oscwrap .osc.osc-hid{overflow:hidden}#oscwrap .osc.osc-hid .osc-n,#oscwrap .osc.osc-hid .osc-v{opacity:.45}\"+\n      \"#oscwrap .osc-more{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:5px 8px;font-size:11px;color:#b2b5be;border-top:1px solid #2a2e39;flex:none}\"+\n      \"#oscwrap .osc-more button{padding:1px 7px;border:1px solid #434651;border-radius:3px;color:#d1d4dc;font-size:11px}\"+\n      \"#oscwrap .osc-more button:hover{border-color:#f23645;color:#fff}\"+\n      \"#oscwrap{scrollbar-width:thin}#oscwrap::-webkit-scrollbar{width:8px}#oscwrap::-webkit-scrollbar-thumb{background:#434651;border-radius:4px}\"+\n      \"#legend .leg-dock[data-act=eye]{color:#787b86}\";\n    document.head.appendChild(css);\n    var innerLegend=renderLegend;\n    renderLegend=function(atTime){\n      if(legendHeld){ legendLate={at:atTime}; return; }\n      innerLegend(atTime);\n      try{ dressLegend(); }catch(eD){}\n    };\n    function letGo(){\n      if(!legendHeld&&!paneHeld) return;\n      clearTimeout(heldT);\n      setTimeout(function(){\n        legendHeld=false; paneHeld=false;\n        if(paneLate){ paneLate=false; try{ if(lastBars.length){ paintOsc(lastBars); drawSVG(); } }catch(eP){} }\n        if(legendLate){ var at=legendLate.at; legendLate=null; try{ renderLegend(at); }catch(eL){} }\n      }, 0);\n    }\n    function hold(pane){\n      return function(ev){\n        if(!(ev.target&&ev.target.closest&&ev.target.closest(\"button\"))) return;\n        if(pane) paneHeld=true; else legendHeld=true;\n        clearTimeout(heldT); heldT=setTimeout(letGo, 1500);\n      };\n    }\n    var legHost=document.getElementById(\"legend\"), paneHost=document.getElementById(\"oscwrap\");\n    if(paneHost) paneHost.addEventListener(\"pointerdown\", hold(true), true);\n    if(legHost){\n      legHost.addEventListener(\"pointerdown\", hold(false), true);\n      legHost.addEventListener(\"click\", function(ev){\n        var btn=ev.target&&ev.target.closest?ev.target.closest(\"[data-act]\"):null, row=btn?btn.closest(\".leg-row\"):null;\n        if(!btn||!row) return;\n        var kind=row.getAttribute(\"data-kind\"), act=btn.getAttribute(\"data-act\");\n        if(kind===\"vol\" && (act===\"eye\"||act===\"x\")){\n          ev.preventDefault(); ev.stopPropagation();\n          if(act===\"eye\") volHide=!volHide;\n          else {\n            var tapeOn=tapeWantsVolume();\n            volOn=false; volHide=tapeOn;\n            if(tapeOn) toast(\"Volume hidden. Volume Tape is still on, so its row stays; the eye brings the bars back.\");\n          }\n          try{ window.volOn=volOn; }catch(eV){}\n          saveLay();\n          if(lastBars.length) paint(lastBars); else renderLegend();\n        } else if(kind===\"dock\" && act===\"eye\"){\n          ev.preventDefault(); ev.stopPropagation();\n          var o=OSC.filter(function(x){ return x.id===row.getAttribute(\"data-id\"); })[0]; if(!o) return;\n          o.hide=!o.hide; saveLay();\n          if(lastBars.length) paint(lastBars);\n        }\n      }, true);\n    }\n    window.addEventListener(\"pointerup\", letGo, true);\n    window.addEventListener(\"pointercancel\", letGo, true);\n    document.addEventListener(\"click\", function(ev){\n      var t=ev.target; if(!t||!t.closest) return;\n      var b=t.closest(\"#indlist [data-add]\"); if(!b) return;\n      if(t.closest(\"[data-star]\")||t.closest(\"[data-help]\")) return;\n      var id=b.getAttribute(\"data-add\");\n      if(id===\"vol\"){\n        if(!volOn||volHide) return;\n        ev.preventDefault(); ev.stopPropagation();\n        volOn=false; volHide=false; try{ window.volOn=volOn; }catch(eV2){}\n      } else {\n        var item=(b.getAttribute(\"data-osc\")===\"1\"?OSC:INDS).filter(function(x){ return x.id===id; })[0];\n        if(!item||!item.on||item.hide) return;\n        ev.preventDefault(); ev.stopPropagation();\n        item.on=false; item.hide=false;\n      }\n      b.classList.remove(\"on\");\n      saveLay();\n      if(lastBars.length) paint(lastBars);\n    }, true);\n    try{\n      var box=document.getElementById(\"chart\"), boxRaf=0;\n      if(box && typeof ResizeObserver!==\"undefined\") new ResizeObserver(function(){\n        cancelAnimationFrame(boxRaf);\n        boxRaf=requestAnimationFrame(function(){ try{ if(lastBars.length){ refreshHiLoVP(); drawSVG(); paintPat(); paintVolTape(); } }catch(eB){} });\n      }).observe(box);\n    }catch(eRo){}\n    try{\n      var ow=document.getElementById(\"oscwrap\"), fitRaf=0;\n      var refit=function(){ cancelAnimationFrame(fitRaf); fitRaf=requestAnimationFrame(function(){ try{ fitPanes(); }catch(eFp){} }); };\n      if(ow && typeof MutationObserver!==\"undefined\") new MutationObserver(refit).observe(ow,{childList:true});\n      window.addEventListener(\"resize\", refit);\n    }catch(eMo){}\n  }\n  function ensureChartUi(){\n    try{ installChartPatches(); }catch(ePatch){}\n    try{ installIndicatorControls(); }catch(eCtl){}\n"
+ },
+ {
+  "before": "if(patInd&&patInd.on&&lastBars.length){",
+  "after": "if(patInd&&patInd.on&&!patInd.hide&&lastBars.length){"
+ },
+ {
+  "before": "var inVol=!!volOn && y > box.height * 0.74;",
+  "after": "var inVol=!!volOn && !volHide && y > box.height * 0.74;"
+ },
+ {
+  "before": "volOn:volOn, active:active, tf:tf,",
+  "after": "volOn:volumeWanted(), active:active, tf:tf,"
+ },
+ {
+  "before": "stayTool:stayTool,volOn:volOn,dark:dark,",
+  "after": "stayTool:stayTool,volOn:volOn,volOff:!volOn,volHide:volHide,dark:dark,"
+ },
+ {
+  "before": "inds:snap(INDS),osc:snap(OSC)});\n  }\n",
+  "after": "inds:snap(INDS),osc:snap(OSC)});\n    mirrorStudio(null);\n  }\n"
+ },
+ {
+  "before": "window.jhSetVol=function(v){ volOn=!!v; try{window.volOn=volOn;}catch(e){}",
+  "after": "window.jhSetVol=function(v){ volOn=!!v; if(volOn) volHide=false; try{window.volOn=volOn;}catch(e){}"
+ }
+]

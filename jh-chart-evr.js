@@ -42,7 +42,8 @@
   }
 
   function on(item) {
-    return !!(item && (item.on === 1 || item.on === true) && !item.hide);
+    /* 2026-11-23: on is on. A hidden pane used to count as off here, so it vanished with no way back; it now folds to its title row, where the eye shows it again. */
+    return !!(item && (item.on === 1 || item.on === true));
   }
 
   function points(n) {
@@ -96,18 +97,30 @@
       pane.className = "osc";
       pane.setAttribute("data-oid", ID);
       pane.style.height = "220px";
-      pane.innerHTML = "<div class=osc-head><span class=osc-n>Effort & Spread</span><span class=osc-v id=jh-eff-v></span><button type=button data-act=x title='Remove'>×</button></div><div class=osc-host id=jh-eff-host></div>";
+      pane.innerHTML = "<div class=osc-head><span class=osc-n>Effort & Spread</span><span class=osc-v id=jh-eff-v></span><button type=button data-act=eye title='Visibility'>\u25C9</button><button type=button data-act=x title='Remove'>×</button></div><div class=osc-host id=jh-eff-host></div>";
       wrap.appendChild(pane);
+      pane.querySelector("[data-act=eye]").onclick = function (ev) {
+        ev.preventDefault(); ev.stopPropagation();
+        item.hide = !item.hide;
+        try { if (window.jhSaveLay) window.jhSaveLay(); } catch (e) {}
+        draw();
+      };
       pane.querySelector("[data-act=x]").onclick = function (ev) {
         ev.preventDefault(); ev.stopPropagation();
-        item.on = 0;
+        item.on = 0; item.hide = false;
         try { if (window.jhSaveLay) window.jhSaveLay(); } catch (e) {}
         if (window.paint && window.lastBars && window.lastBars.length) window.paint(window.lastBars);
         else draw();
       };
     }
     var host = document.getElementById("jh-eff-host");
-    if (!host) return;
+    var hid = !!item.hide, eye = pane.querySelector("[data-act=eye]");
+    if (eye) eye.textContent = hid ? "\u25CB" : "\u25C9";
+    if (hid) { pane.dataset.hid = "1"; pane.style.height = "auto"; pane.style.minHeight = "0"; }
+    else { delete pane.dataset.hid; pane.style.height = "220px"; pane.style.minHeight = ""; }
+    if (pane.classList) pane.classList.toggle("osc-hid", hid);
+    if (host) host.style.display = hid ? "none" : "";
+    if (!host || hid) return;
     if (!chart) {
       chart = window.LightweightCharts.createChart(host, {
         layout: { background: { color: "transparent" }, textColor: "#787b86", fontFamily: "IBM Plex Mono, monospace", fontSize: 11 },

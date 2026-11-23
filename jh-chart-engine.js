@@ -263,7 +263,7 @@
   var replay={on:false,i:0,speed:1,timer:null,full:[]};
   var alerts=[], news=[], toastT=null, selDraw=null, paneCharts=[], paneSyms=[];
   var chart, chart2, chart3, chart4, oscSeries=[];
-  var lastSource="—", volOn=true, chartOnly=false, clipDraw=null, typeBuf="", typeT=null, favs=[], syncing=false;
+  var lastSource="—", volOn=true, volHide=false, chartOnly=false, clipDraw=null, typeBuf="", typeT=null, favs=[], syncing=false;
   var overlayMap={}, ghostPt=null, dragState=null, patternsOn=true, newsMarks=true, magnetMode=2;
   var dark=true, liveOn=true, liveT=null, dwinOn=false, miniOn=false, leftOn=false, dockTab="";
   var oscCharts=[], lastTest=null, screenFilt="", paper={cash:100000,positions:{},trades:[],realized:0};
@@ -2242,7 +2242,7 @@
     var lay=loadJSON(LAY_KEY,null);
     if(lay){ if(lay.gridOn!=null) gridOn=lay.gridOn; if(lay.magnet!=null) magnet=lay.magnet; if(lay.magnetMode!=null) magnetMode=lay.magnetMode; if(lay.kind && lay.kindV===3) kind=lay.kind; if(lay.tf) tf=lay.tf; if(lay.invert!=null) invert=lay.invert; if(lay.hiLo!=null) hiLo=lay.hiLo; if(lay.crossMode!=null) crossMode=lay.crossMode; if(lay.tzName) tzName=lay.tzName; if(lay.tzOff!=null) tzOff=lay.tzOff; if(lay.stayTool!=null) stayTool=lay.stayTool; if(lay.layout) layout=lay.layout; if(lay.dark!=null) dark=!!lay.dark; if(lay.liveOn!=null) liveOn=lay.liveOn; if(lay.dwinOn!=null) dwinOn=lay.dwinOn; if(lay.miniOn!=null) miniOn=lay.miniOn; if(lay.leftOn!=null) leftOn=lay.leftOn; }
     if(!lay) dark=true;
-    volOn=true; vpOn=true;
+    volOn=!(lay&&lay.volOff===true); volHide=!!(lay&&lay.volHide===true); vpOn=true;
     magnet=magnetMode>0;
     function applySnap(arr, snaps){
       if(!snaps||!snaps.length) return;
@@ -2265,7 +2265,7 @@
         if(i.id==="macd" && i.p && i.p2 && i.p3) i.n="MACD "+i.p+","+i.p2+","+i.p3;
       });
     }
-    if(lay){ applySnap(INDS, lay.inds); applySnap(OSC, lay.osc); }
+    if(lay){ applySnap(INDS, lay.inds); applySnap(OSC, lay.osc); mirrorStudio(lay); }
     try{
       var qs=new URLSearchParams(String(location.search||"").replace(/^\?/,""));
       var hs=new URLSearchParams(String(location.hash||"").replace(/^#/,""));
@@ -2320,7 +2320,7 @@
     if(!c || c.__jhSync) return;
     c.__jhSync=true;
     c.timeScale().subscribeVisibleLogicalRangeChange(function(r){
-      if(!r || syncing) return;
+      if(!r || syncing || (c!==chart && oscCharts.indexOf(c)>=0)) return;
       syncing=true;
       [chart, chart2, chart3, chart4].concat(oscCharts).forEach(function(x){
         if(x && x!==c) try{ x.timeScale().setVisibleLogicalRange(r); }catch(e){}
@@ -2557,7 +2557,7 @@
     wipe(); lastBars=d; try{window.lastBars=d;window.jhActive=active;window.INDS=INDS;window.OSC=OSC;window.paint=paint;window.lastSource=lastSource;window.volOn=volOn;var evidence=barEvidence.get(d);window.jhChartEvidence=evidence&&evidence.symbol===active&&evidence.interval===tf?evidence:null;}catch(e){}
     var p=pal();
     var tapeVol=INDS.some(function(i){ return i.id==="voltape"&&i.on; });
-    var volShow=(volOn||tapeVol) && d.some(function(bar){return reportedVolume(bar.volume)!==null;});
+    var volShow=(volOn||tapeVol) && !(typeof volHide!=="undefined"&&volHide) && d.some(function(bar){return reportedVolume(bar.volume)!==null;});
     lastVolShow=volShow;
     var dockN=0;
     try{
@@ -2616,7 +2616,7 @@
         } else {
           c.setData(display);
         }
-        try{if(window.jhNyVwap && window.INDS && INDS.some(function(i){return i.id==="vwap"&&i.on;})){var vw=window.jhNyVwap(display);if(vw&&vw.length){var vs=chart.addLineSeries({color:"#ff6d00",lineWidth:1,lastValueVisible:true,priceLineVisible:false,title:"VWAP NY"});vs.setData(vw);series.push(vs);}}}catch(e){}
+        try{if(window.jhNyVwap && window.INDS && INDS.some(function(i){return i.id==="vwap"&&i.on&&!i.hide;})){var vw=window.jhNyVwap(display);if(vw&&vw.length){var vs=chart.addLineSeries({color:"#ff6d00",lineWidth:1,lastValueVisible:true,priceLineVisible:false,title:"VWAP NY"});vs.setData(vw);series.push(vs);}}}catch(e){}
         try{
           var tapeK={livermore:1,wyckoff:1,accum:1,distrib:1,vsa:1,tape:1};
           var tapeOn=INDS.filter(function(i){ return i.on && !i.hide && tapeK[i.k]; });
@@ -3041,7 +3041,15 @@
     }
     try{ requestAnimationFrame(function(){ if(current()){ refreshHiLoVP(); try{ barReadout(null); }catch(eBr){} } }); }catch(eR){}
     try{
-      var bench=await loadBench(paintTf,current);
+      /* 2026-11-23: while the benchmark is still downloading, the panes and the legend are drawn at once, so an eye or a cross answers
+         without waiting for it; they are drawn again when it lands. Where there is no timer (a bare test context) it waits as before. */
+      var benchWait=loadBench(paintTf,current), benchTick={}, bench=benchTick, benchTimer=typeof setTimeout==="function";
+      if(benchTimer) bench=await Promise.race([benchWait, new Promise(function(done){ setTimeout(function(){ done(benchTick); }, 0); })]);
+      if(bench===benchTick){
+        if(!current()){ Promise.resolve(benchWait).catch(function(){}); return; }
+        if(benchTimer){ try{ paintOsc(d); drawSVG(); paintPat(); renderLegend(); }catch(eEarly){} }
+        bench=await benchWait;
+      }
       if(!current())return;
       spyBars=bench;
       if(window.jhInst && lastSpxDaily && lastSpxDaily.length>=50){
@@ -3227,7 +3235,7 @@
         if(lastBars.length) paint(lastBars);
       };
     }
-    box.style.display=volOn?"flex":"none";
+    box.style.display=(volOn&&!volHide)?"flex":"none";
     var hv=INDS.some(function(i){ return i.id==="hvn"&&i.on&&!i.hide; });
     var b1=document.getElementById("vol-vline");
     var b2=document.getElementById("vol-sr");
@@ -3237,6 +3245,7 @@
 
   function paintOsc(d){
     try{ ensureChartUi(); }catch(eFs){}
+    if(paneHeld){ paneLate=true; return; }
     studyVLines=[];
     collectPackV(lastSweepPack, "rgba(255,109,0,.8)");
     var wrap=document.getElementById("oscwrap");
@@ -3315,7 +3324,7 @@
     var below=[], docked=[];
     on.forEach(function(o){ if(oscPlace(o.id)==="chart"&&oscDockable(o.id)) docked.push(o); else below.push(o); });
     mountDockedOsc(d, docked);
-    if(!below.length){ if(wrap){ wrap.className=""; wrap.innerHTML=""; } return; }
+    if(!below.length){ if(wrap){ wrap.className=""; wrap.innerHTML=""; } afterPanes(wrap); return; }
     wrap.className="on"; wrap.innerHTML="";
     var p=pal();
     below.forEach(function(o, idx){
@@ -3433,6 +3442,7 @@
       head.querySelector("[data-act=x]").onclick=function(){ o.on=false; saveLay(); if(lastBars.length) paint(lastBars); };
       var c=LW.createChart(host,{ autoSize:true, layout:{background:{type:"solid",color:p.bg},textColor:p.text,fontFamily:MONO,fontSize:10}, grid:{vertLines:{color:p.grid},horzLines:{color:p.gridH||p.grid}}, timeScale:{ visible:idx===on.length-1, borderColor:p.border, ticksVisible:true }, rightPriceScale:{ borderColor:p.border, ticksVisible:true, entireTextOnly:true, minimumWidth:52 }, crosshair:xhairOpts(), handleScroll:false, handleScale:false });
       bindSync(c); oscCharts.push(c);
+      try{ var padS=c.addLineSeries({lastValueVisible:false,priceLineVisible:false,crosshairMarkerVisible:false}); padS.setData((d||[]).map(function(b){ return {time:b.time}; })); oscSeries.push(padS); }catch(ePad){}
       host.__jhChart=c;
       var vlSvg=document.createElementNS("http://www.w3.org/2000/svg","svg");
       vlSvg.setAttribute("class","osc-vlines");
@@ -3452,7 +3462,7 @@
       var col=o.c||ACC, per=o.p, railPts=null;
       function addO(fn, color){ railPts=fn||railPts; var s=c.addLineSeries({color:color||col,lineWidth:o.w||1,lastValueVisible:true,priceLineVisible:false,title:o.n,crosshairMarkerVisible:true,crosshairMarkerRadius:3}); s.setData(fn||[]); oscSeries.push(s); if(fn&&fn.length){ var lastv=fn[fn.length-1].value; var ve=head.querySelector(".osc-v"); if(ve&&lastv!=null) ve.textContent=(Math.abs(lastv)>=100?fmt(lastv):lastv.toFixed(2)); } }
       function bands(lo,hi){ try{ var s=c.addLineSeries({color:"rgba(242,54,69,.55)",lineWidth:1,lineStyle:2,lastValueVisible:true,priceLineVisible:false,title:"OB"}); s.setData((d||[]).map(function(b){return {time:b.time,value:hi};})); var s2=c.addLineSeries({color:"rgba(8,153,129,.55)",lineWidth:1,lineStyle:2,lastValueVisible:true,priceLineVisible:false,title:"OS"}); s2.setData((d||[]).map(function(b){return {time:b.time,value:lo};})); oscSeries.push(s,s2); }catch(e){} }
-      if(o.hide){ host.style.opacity="0.12"; }
+      if(o.hide){ pane.dataset.hid="1"; pane.classList.add("osc-hid"); pane.style.height="auto"; pane.style.minHeight="0"; pane.style.flex="none"; host.style.cssText="position:absolute;left:0;top:100%;width:100%;height:160px;visibility:hidden;pointer-events:none"; }
       if(o.id==="rsi"){
         var rs=rsi(d,per||14);
         addO(rs, col);
@@ -3824,6 +3834,7 @@ else if(o.id==="rvol"){
       if(lastTest && lastTest.equity && lastTest.equity.length && o.id==="macd"){ /* equity lives in test tab */ }
     });
     if(window.jhInduxBindOsc) window.jhInduxBindOsc(wrap);
+    afterPanes(wrap);
     window.jhSaveLay=saveLay;
   }
   function drawVP(d){
@@ -4539,8 +4550,217 @@ else if(o.id==="rvol"){
     return {markers:[], zones:[], lines:[], shapes:[], rails:rails, note:legend, legend:legend, legendPts:[{time:last.time, value:anchor}], vtimes:[]};
   }
 
+  /* 2026-11-23 · indicator controls. What makes a study close, hide and show every time:
+     - neither the legend nor an indicator window is rebuilt under a held button, so a press is never lost to a repaint
+     - Volume has a real eye (hide and show) beside its cross (remove), and a removed Volume stays removed
+     - an indicator placed on the price chart has the same eye as the rest
+     - a lit row in the Indicators list switches that study off (a hidden one is shown first)
+     - indicator windows share the room with the price chart and scroll when there are many, so each one stays in reach
+     - a new window follows the zoom of the price chart, bar for bar, in place of changing it
+     - the retired studio store follows the saved layout, so a reload cannot bring a closed study back */
+  var ctlInstalled=false, legendHeld=false, legendLate=null, paneHeld=false, paneLate=false, heldT=null;
+  function tapeWantsVolume(){ return INDS.some(function(i){ return i.id==="voltape"&&i.on; }); }
+  function volumeWanted(){ return volOn || tapeWantsVolume(); }
+  function mirrorStudio(lay){
+    try{
+      var raw=localStorage.getItem("jh-chart-ind-layout-v1"); if(raw==null) return;
+      var st=JSON.parse(raw); if(!st||typeof st!=="object") return;
+      var changed=false;
+      Object.keys(st).forEach(function(id){
+        var row=st[id]; if(!row||typeof row!=="object"||row.on==null) return;
+        var live=INDS.filter(function(i){ return i.id===id; })[0], want;
+        if(live) want=!!live.on;
+        else if(lay&&lay.inds){ var kept=lay.inds.filter(function(x){ return x&&x.id===id; })[0]; want=!!(kept&&kept.on); }
+        else return;
+        if(!!row.on!==want){ row.on=want; changed=true; }
+      });
+      if(changed) localStorage.setItem("jh-chart-ind-layout-v1", JSON.stringify(st));
+    }catch(eMs){}
+  }
+  function fitPanes(){
+    var wrap=document.getElementById("oscwrap"), stage=document.getElementById("stage");
+    if(!wrap||!stage||!stage.parentNode) return;
+    var panes=[].slice.call(wrap.querySelectorAll(".osc")), col=stage.parentNode, used=0, k;
+    function roomy(){ if(col.dataset&&col.dataset.jhShort==="1"){ stage.style.minHeight=""; col.style.overflowY=""; delete col.dataset.jhShort; } }
+    if(!panes.length){ wrap.style.maxHeight=""; wrap.style.overflowY=""; stage.style.paddingRight=""; roomy(); return; }
+    for(k=0;k<col.children.length;k++){
+      var kid=col.children[k]; if(kid===stage||kid===wrap) continue;
+      var cs=window.getComputedStyle(kid); if(cs.display==="none"||cs.position==="absolute"||cs.position==="fixed") continue;
+      used+=kid.offsetHeight;
+    }
+    var avail=col.clientHeight-used;
+    if(!(avail>=410)){
+      /* a short column (a phone held upright): there is nothing to share. The price chart keeps 220 px and the column scrolls down to the windows. */
+      stage.style.minHeight="220px"; col.style.overflowY="auto"; if(col.dataset) col.dataset.jhShort="1";
+      wrap.style.maxHeight=""; wrap.style.overflowY=""; stage.style.paddingRight="";
+      panes.forEach(function(p){ p.style.flex="none"; });
+      return;
+    }
+    roomy();
+    var room=Math.max(190, avail-Math.max(220, Math.round(avail*0.4)));
+    var fixed=0, soft=[];
+    [].forEach.call(wrap.children, function(el){
+      if(!el.classList||!el.classList.contains("osc")){ fixed+=el.offsetHeight||0; return; }
+      if(el.dataset.hid==="1"){ fixed+=el.offsetHeight||24; return; }
+      if(!el.dataset.want) el.dataset.want=String(Math.round(parseFloat(el.style.height)||el.getBoundingClientRect().height||240));
+      var id=el.getAttribute("data-oid"), o=OSC.filter(function(x){ return x.id===id; })[0];
+      if(o && o.externalPane!==true && !(o.h>=160)) soft.push(el);
+      else fixed+=Math.round(parseFloat(el.style.height)||+el.dataset.want);
+    });
+    if(soft.length){
+      var each=Math.floor((room-fixed)/soft.length);
+      soft.forEach(function(el){
+        var h=Math.max(160, Math.min(+el.dataset.want, each));
+        if(Math.round(parseFloat(el.style.height))!==h) el.style.height=h+"px";
+      });
+    }
+    panes.forEach(function(p){ p.style.flex="none"; });
+    wrap.style.maxHeight=room+"px"; wrap.style.overflowY="auto"; wrap.style.overflowX="hidden";
+    var bar=wrap.offsetWidth-wrap.clientWidth;
+    stage.style.paddingRight=bar>0?bar+"px":"";
+  }
+  function paneNote(wrap){
+    if(!wrap) return;
+    var rest=OSC.filter(function(o){ return o.on && o.externalPane!==true; }).slice(6);
+    if(!rest.length) return;
+    var note=document.createElement("div"); note.className="osc-more";
+    note.innerHTML="<span>Six indicator windows fit under the chart. Switched on, not shown:</span>"+rest.map(function(o){
+      return "<button type=button data-more='"+escHtml(o.id)+"' title='Remove "+escHtml(o.n)+"'>"+escHtml(o.n)+" ×</button>";
+    }).join("");
+    note.onclick=function(ev){
+      var b=ev.target&&ev.target.closest?ev.target.closest("[data-more]"):null; if(!b) return;
+      var o=OSC.filter(function(x){ return x.id===b.getAttribute("data-more"); })[0]; if(!o) return;
+      o.on=false; o.hide=false; saveLay(); if(lastBars.length) paint(lastBars);
+    };
+    wrap.appendChild(note);
+  }
+  function afterPanes(wrap){
+    try{ paneNote(wrap); }catch(eN){}
+    try{ fitPanes(); }catch(eF){}
+    try{
+      var mr=chart.timeScale().getVisibleLogicalRange(), mw=0;
+      try{ mw=chart.priceScale("right").width()||0; }catch(eW){}
+      oscCharts.forEach(function(x){
+        try{ if(mw>0) x.priceScale("right").applyOptions({ minimumWidth:mw }); }catch(eP){}
+        try{ if(mr&&mr.from!=null&&mr.to!=null) x.timeScale().setVisibleLogicalRange(mr); }catch(eR){}
+      });
+    }catch(eA){}
+  }
+  function dressLegend(){
+    var host=document.getElementById("legend"); if(!host) return;
+    var vr=host.querySelector(".leg-row[data-kind=vol]");
+    if(vr){
+      var ve=vr.querySelector("[data-act=eye]");
+      if(volHide){ vr.classList.add("dim"); if(ve){ ve.textContent="○"; ve.title="Show Volume"; } }
+      else if(ve) ve.title="Hide Volume";
+    }
+    [].forEach.call(host.querySelectorAll(".leg-row[data-kind=dock]"), function(row){
+      if(row.querySelector("[data-act=eye]")) return;
+      var o=OSC.filter(function(x){ return x.id===row.getAttribute("data-id"); })[0];
+      var eye=document.createElement("button");
+      eye.type="button"; eye.className="leg-dock"; eye.setAttribute("data-act","eye"); eye.title="Visibility"; eye.textContent=o&&o.hide?"○":"◉";
+      row.insertBefore(eye, row.querySelector("[data-act=dn]"));
+    });
+  }
+  function installIndicatorControls(){
+    if(ctlInstalled||typeof document==="undefined"||!document.head) return;
+    ctlInstalled=true;
+    var css=document.createElement("style"); css.id="jh-ind-ctl-css";
+    css.textContent="#oscwrap .osc-head .leg-ops{opacity:1}"+
+      "#oscwrap .osc.osc-hid{overflow:hidden}#oscwrap .osc.osc-hid .osc-n,#oscwrap .osc.osc-hid .osc-v{opacity:.45}"+
+      "#oscwrap .osc-more{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:5px 8px;font-size:11px;color:#b2b5be;border-top:1px solid #2a2e39;flex:none}"+
+      "#oscwrap .osc-more button{padding:1px 7px;border:1px solid #434651;border-radius:3px;color:#d1d4dc;font-size:11px}"+
+      "#oscwrap .osc-more button:hover{border-color:#f23645;color:#fff}"+
+      "#oscwrap{scrollbar-width:thin}#oscwrap::-webkit-scrollbar{width:8px}#oscwrap::-webkit-scrollbar-thumb{background:#434651;border-radius:4px}"+
+      "#legend .leg-dock[data-act=eye]{color:#787b86}";
+    document.head.appendChild(css);
+    var innerLegend=renderLegend;
+    renderLegend=function(atTime){
+      if(legendHeld){ legendLate={at:atTime}; return; }
+      innerLegend(atTime);
+      try{ dressLegend(); }catch(eD){}
+    };
+    function letGo(){
+      if(!legendHeld&&!paneHeld) return;
+      clearTimeout(heldT);
+      setTimeout(function(){
+        legendHeld=false; paneHeld=false;
+        if(paneLate){ paneLate=false; try{ if(lastBars.length){ paintOsc(lastBars); drawSVG(); } }catch(eP){} }
+        if(legendLate){ var at=legendLate.at; legendLate=null; try{ renderLegend(at); }catch(eL){} }
+      }, 0);
+    }
+    function hold(pane){
+      return function(ev){
+        if(!(ev.target&&ev.target.closest&&ev.target.closest("button"))) return;
+        if(pane) paneHeld=true; else legendHeld=true;
+        clearTimeout(heldT); heldT=setTimeout(letGo, 1500);
+      };
+    }
+    var legHost=document.getElementById("legend"), paneHost=document.getElementById("oscwrap");
+    if(paneHost) paneHost.addEventListener("pointerdown", hold(true), true);
+    if(legHost){
+      legHost.addEventListener("pointerdown", hold(false), true);
+      legHost.addEventListener("click", function(ev){
+        var btn=ev.target&&ev.target.closest?ev.target.closest("[data-act]"):null, row=btn?btn.closest(".leg-row"):null;
+        if(!btn||!row) return;
+        var kind=row.getAttribute("data-kind"), act=btn.getAttribute("data-act");
+        if(kind==="vol" && (act==="eye"||act==="x")){
+          ev.preventDefault(); ev.stopPropagation();
+          if(act==="eye") volHide=!volHide;
+          else {
+            var tapeOn=tapeWantsVolume();
+            volOn=false; volHide=tapeOn;
+            if(tapeOn) toast("Volume hidden. Volume Tape is still on, so its row stays; the eye brings the bars back.");
+          }
+          try{ window.volOn=volOn; }catch(eV){}
+          saveLay();
+          if(lastBars.length) paint(lastBars); else renderLegend();
+        } else if(kind==="dock" && act==="eye"){
+          ev.preventDefault(); ev.stopPropagation();
+          var o=OSC.filter(function(x){ return x.id===row.getAttribute("data-id"); })[0]; if(!o) return;
+          o.hide=!o.hide; saveLay();
+          if(lastBars.length) paint(lastBars);
+        }
+      }, true);
+    }
+    window.addEventListener("pointerup", letGo, true);
+    window.addEventListener("pointercancel", letGo, true);
+    document.addEventListener("click", function(ev){
+      var t=ev.target; if(!t||!t.closest) return;
+      var b=t.closest("#indlist [data-add]"); if(!b) return;
+      if(t.closest("[data-star]")||t.closest("[data-help]")) return;
+      var id=b.getAttribute("data-add");
+      if(id==="vol"){
+        if(!volOn||volHide) return;
+        ev.preventDefault(); ev.stopPropagation();
+        volOn=false; volHide=false; try{ window.volOn=volOn; }catch(eV2){}
+      } else {
+        var item=(b.getAttribute("data-osc")==="1"?OSC:INDS).filter(function(x){ return x.id===id; })[0];
+        if(!item||!item.on||item.hide) return;
+        ev.preventDefault(); ev.stopPropagation();
+        item.on=false; item.hide=false;
+      }
+      b.classList.remove("on");
+      saveLay();
+      if(lastBars.length) paint(lastBars);
+    }, true);
+    try{
+      var box=document.getElementById("chart"), boxRaf=0;
+      if(box && typeof ResizeObserver!=="undefined") new ResizeObserver(function(){
+        cancelAnimationFrame(boxRaf);
+        boxRaf=requestAnimationFrame(function(){ try{ if(lastBars.length){ refreshHiLoVP(); drawSVG(); paintPat(); paintVolTape(); } }catch(eB){} });
+      }).observe(box);
+    }catch(eRo){}
+    try{
+      var ow=document.getElementById("oscwrap"), fitRaf=0;
+      var refit=function(){ cancelAnimationFrame(fitRaf); fitRaf=requestAnimationFrame(function(){ try{ fitPanes(); }catch(eFp){} }); };
+      if(ow && typeof MutationObserver!=="undefined") new MutationObserver(refit).observe(ow,{childList:true});
+      window.addEventListener("resize", refit);
+    }catch(eMo){}
+  }
   function ensureChartUi(){
     try{ installChartPatches(); }catch(ePatch){}
+    try{ installIndicatorControls(); }catch(eCtl){}
     if(typeof document==="undefined"||!document.getElementById||!document.head) return;
     if(document.getElementById("jh-fs-css")) return;
     function chartFeedSource(sym){
@@ -4989,7 +5209,7 @@ else if(o.id==="rvol"){
       }
     }
     var patInd=INDS.find(function(x){return x.id==="pat";});
-    if(patInd&&patInd.on&&lastBars.length){
+    if(patInd&&patInd.on&&!patInd.hide&&lastBars.length){
       candlePatterns(lastBars).forEach(function(p){ var q=xy(p.time,p.price); if(q) parts.push(tx(q.x-10,q.y-8,"#546e7a",p.n)); });
     }
     if(newsMarks && news && news.length){
@@ -5033,7 +5253,7 @@ else if(o.id==="rvol"){
     if(lockDraw && tool!=="cursor" && tool!=="eraser" && tool!=="zoom") { toast("Drawings locked"); return; }
     var box=document.getElementById("chart").getBoundingClientRect();
     var x=ev.clientX-box.left, y=ev.clientY-box.top;
-    var inVol=!!volOn && y > box.height * 0.74;
+    var inVol=!!volOn && !volHide && y > box.height * 0.74;
     if(tool==="vline" || (inVol && ev.shiftKey)){
       var tLine=null;
       try{ tLine=chart.timeScale().coordinateToTime(x); }catch(eLn){}
@@ -5434,7 +5654,7 @@ else if(o.id==="rvol"){
     if(window.jhInduxLegend){
       window.jhInduxLegend({
         atTime:atTime, INDS:INDS, OSC:OSC, overlayMap:overlayMap, valAt:valAt,
-        fmt:fmt, fmtVol:fmtVol, lastBars:lastBars, volOn:volOn, active:active, tf:tf,
+        fmt:fmt, fmtVol:fmtVol, lastBars:lastBars, volOn:volumeWanted(), active:active, tf:tf,
         spec:spec, paint:paint, ACC:ACC, UP:UP, compare:compare, COLORS:COLORS,
         setVol:function(v){ volOn=!!v; try{window.volOn=volOn;}catch(e){} if(lastBars.length) paint(lastBars); saveLay(); }
       });
@@ -6744,7 +6964,8 @@ else if(o.id==="rvol"){
         return {id:i.id,on:!!i.on,hide:!!i.hide,p:i.p,p2:i.p2,p3:i.p3,ob:i.ob,os:i.os,mult:i.mult,c:i.c,c2:i.c2,c3:i.c3,w:i.w,h:i.h};
       });
     }
-    saveJSON(LAY_KEY,{kindV:3,gridOn:gridOn,watermark:watermark,magnet:magnet,magnetMode:magnetMode,layout:layout,kind:kind,tf:tf,invert:invert,hiLo:hiLo,crossMode:crossMode,tzName:tzName,tzOff:tzOff,stayTool:stayTool,volOn:volOn,dark:dark,liveOn:liveOn,dwinOn:dwinOn,miniOn:miniOn,leftOn:leftOn,inds:snap(INDS),osc:snap(OSC)});
+    saveJSON(LAY_KEY,{kindV:3,gridOn:gridOn,watermark:watermark,magnet:magnet,magnetMode:magnetMode,layout:layout,kind:kind,tf:tf,invert:invert,hiLo:hiLo,crossMode:crossMode,tzName:tzName,tzOff:tzOff,stayTool:stayTool,volOn:volOn,volOff:!volOn,volHide:volHide,dark:dark,liveOn:liveOn,dwinOn:dwinOn,miniOn:miniOn,leftOn:leftOn,inds:snap(INDS),osc:snap(OSC)});
+    mirrorStudio(null);
   }
   function openCtx(x,y,s){
     var el=document.getElementById("ctx");
@@ -7423,7 +7644,7 @@ else if(o.id==="rvol"){
   var zp=document.getElementById("z-plus"); if(zp) zp.onclick=function(){ zoomChart(1); };
   var zm=document.getElementById("z-minus"); if(zm) zm.onclick=function(){ zoomChart(-1); };
   window.jhShowInfo=showInfo;
-  window.jhSetVol=function(v){ volOn=!!v; try{window.volOn=volOn;}catch(e){} if(lastBars.length) paint(lastBars); saveLay(); };
+  window.jhSetVol=function(v){ volOn=!!v; if(volOn) volHide=false; try{window.volOn=volOn;}catch(e){} if(lastBars.length) paint(lastBars); saveLay(); };
   window.jhSaveLay=saveLay;
   try{ window.volOn=volOn; }catch(e){}
   window.jhRenderCorr=renderCorr;

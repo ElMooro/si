@@ -37,17 +37,33 @@
     return root.__jhSdShow;
   }
 
-  function enableStudy() {
-    var s = readShow();
-    var on = !!(s.demand || s.supply);
+  function study() {
     try {
       var inds = root.INDS || (root.window && root.window.INDS);
       if (inds && inds.length) {
-        for (var i = 0; i < inds.length; i++) {
-          if (inds[i] && inds[i].id === "sdmd") { inds[i].on = on; break; }
-        }
+        for (var i = 0; i < inds.length; i++) if (inds[i] && inds[i].id === "sdmd") return inds[i];
       }
     } catch (e) {}
+    return null;
+  }
+  /* The Demand and Supply buttons switch the Supply & Demand study on and off. */
+  function enableStudy() {
+    var s = readShow(), row = study();
+    if (row) { row.on = !!(s.demand || s.supply); if (row.on) row.hide = false; }
+    linked = !!row;
+  }
+  /* 2026-11-23: this used to run on every change to the page and push the buttons' state onto the study each time, so the
+     cross on the study's legend row put it straight back and the Indicators list could never switch it on. Now the buttons
+     set the study once when the page opens and when one is pressed; after that a change made anywhere else (the legend's
+     cross, the Indicators list) is what the buttons show. */
+  var linked = false;
+  function follow() {
+    var row = study();
+    if (!row) return;
+    if (!linked) { enableStudy(); return; }
+    var s = readShow(), want = !!(s.demand || s.supply), on = !!row.on;
+    if (on === want) return;
+    writeShow(on ? { demand: true, supply: true } : { demand: false, supply: false });
   }
 
   function sync() {
@@ -160,7 +176,7 @@
     css();
     injectRail();
     injectTfbar();
-    enableStudy();
+    follow();
     sync();
   }
 

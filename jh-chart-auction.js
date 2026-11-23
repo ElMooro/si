@@ -37,6 +37,23 @@
     if (!row) return id === "avwap" ? state.avwap : id === "vprof" ? state.vp : state.ref;
     return row.on === 1 || row.on === true;
   }
+  /* 2026-11-23: on and not hidden. The eye on the legend row hides these lines too; before, only the cross took them off. */
+  function studyShown(id) {
+    var INDS = window.INDS, row = INDS && INDS.filter(function (i) { return i && i.id === id; })[0];
+    if (!row) return !!studyOn(id);
+    return (row.on === 1 || row.on === true) && !row.hide;
+  }
+  /* The three chips follow the study rows: closing one from the legend or the Indicators list is what the chip sees next. */
+  function follow() {
+    var changed = false;
+    [["avwap", "avwap"], ["vp", "vprof"], ["ref", "reflevels"]].forEach(function (pair) {
+      var INDS = window.INDS, row = INDS && INDS.filter(function (i) { return i && i.id === pair[1]; })[0];
+      if (!row) return;
+      var on = row.on === 1 || row.on === true ? 1 : 0;
+      if ((state[pair[0]] ? 1 : 0) !== on) { state[pair[0]] = on; changed = true; }
+    });
+    if (changed) save();
+  }
   function isMain(el) {
     if (!el || !el.id) return false;
     return el.id === "host" || el.id === "chart";
@@ -158,6 +175,7 @@
   function draw() {
     wrapCreate();
     ensure();
+    follow();
     var chart = window.jhDeskChart || window.chart, series = window.jhDeskSeries || window.mainSeries, d = bars();
     if (!chart || !series || !d.length) return;
     var el = null;
@@ -198,7 +216,7 @@
       if (b) b.style.color = (pair[0] === "vp" ? studyOn("vprof") : pair[0] === "ref" ? studyOn("reflevels") : studyOn("avwap")) ? "#C9942E" : "#787b86";
     });
     var vis = visible(chart, d);
-    if (studyOn("avwap") && vis.length > 3) {
+    if (studyShown("avwap") && vis.length > 3) {
       var anchor = 0, low = Infinity, i;
       for (i = 0; i < vis.length - 2; i++) if (vis[i].low < low) { low = vis[i].low; anchor = i; }
       var from = d.indexOf(vis[anchor]); if (from < 0) from = Math.max(0, d.length - vis.length);
@@ -211,7 +229,7 @@
         line(host, px(series, last.l2), "#8a836f", "-2s", true);
       }
     }
-    if (studyOn("vprof")) {
+    if (studyShown("vprof")) {
       var prof = profile(vis);
       if (prof) {
         var span = prof.hi - prof.lo, w = 56;
@@ -232,7 +250,7 @@
         host.appendChild(note);
       }
     }
-    if (studyOn("reflevels")) {
+    if (studyShown("reflevels")) {
       var r = refs(d);
       line(host, px(series, r.pdh), "#E07A6A", "PDH", false);
       line(host, px(series, r.pdl), "#7d9a78", "PDL", false);
