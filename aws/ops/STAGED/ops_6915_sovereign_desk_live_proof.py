@@ -16,14 +16,16 @@ A real browser on justhodl.ai, judged against the documents the pages read:
      18:05 ET: "why did you deleted ... add them back"); then every measure of the document in one table, equal to the
      document; each chart draws every observation; the windows table holds the low and high of each of the three and
      each Federal Reserve line a shortage shows in; a tile, a cell, a row and a chart's name each open that measure's
-     own chart;
+     own chart; the charts of "The price of the dollar" and "Foreign official dollars at the Federal Reserve" open as
+     percent change from a year ago, by FRED's formula, recomputed here from the document (Khalid 20:07 ET), the Level
+     button brings the level back, and the larger chart opens in the same units;
   6. the desk alone at 390 px: nothing wider than the screen; a deep link opens a chart; tags survive a reload;
   7. ciss.html: a readable headline with the exact value beside it, the reconciliation in words, current / blank /
      ended counts as the warehouse says, auxiliaries with their originals - and one checked in the browser;
   8. sovereign.html (the fiscal page that stopped on a null) renders.
 Nothing is written anywhere.
 """
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 import gzip
@@ -39,7 +41,8 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "aws" / "ops"))
 BASE = "https://justhodl.ai"
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36 jh-ops-probe"
-UNITS = {"index": (4, "", ""), "pct": (2, "", "%"), "bp": (1, "", " bp"), "eur_bn": (1, "€", " bn"), "pct_gdp": (1, "", "%"), "usd": (4, "$", ""), "usd_bn": (1, "$", " bn"), "idx": (2, "", "")}
+UNITS = {"index": (4, "", ""), "pct": (2, "", "%"), "bp": (1, "", " bp"), "eur_bn": (1, "€", " bn"), "pct_gdp": (1, "", "%"), "usd": (4, "$", ""), "usd_bn": (1, "$", " bn"), "idx": (2, "", ""), "yoy": (1, "", "%")}
+YOY_PARTS = ("price", "official")          # the parts whose charts open as percent change from a year ago
 SMALL = {"usd_bn": 3}           # an amount under ten is read to the million, unless it stands on a wide axis
 ECB3 = ["AUX_EURUSD", "AUX_FX_EA", "AUX_FX_NONEA"]
 DESK_FAMILY = ["AUX_EURUSD", "AUX_FX_EA", "AUX_FX_NONEA", "FED_SWAPS", "FED_FIMA", "FED_CUSTODY_UST", "FED_FOREIGN_RRP", "USD_TED"]      # the Dollar desk's "Dollar shortage" cards, the three ECB measures first
@@ -89,6 +92,25 @@ def fmt(unit, v, wide=False):
     return ("−" if v < 0 and q != 0 else "") + pre + "{:,}".format(q) + suf
 
 
+def yoy(series):
+    """FRED's percent change from a year ago, written again here: ((x(t) / x(t - n_obs_per_yr)) - 1) * 100 with 260
+    observations a year for a daily series and 52 for a weekly one - on FRED's grid the same day of the week 52 weeks
+    (364 days) before.  [(date, percent)]; a day whose year-ago day has no reading has no figure."""
+    at = dict(zip(series["d"], series["v"]))
+    out = []
+    for d, x in zip(series["d"], series["v"]):
+        was = at.get((date.fromisoformat(d) - timedelta(days=364)).isoformat())
+        if x is not None and was not in (None, 0):
+            out.append((d, (x / was - 1) * 100))
+    return out
+
+
+def fmt_yoy(v):
+    """jh-sovereign-desk.js fmtChange("yoy", v): a sign, one decimal, a percent sign."""
+    q = Decimal(repr(float(v))).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+    return ("" if q == 0 else "+" if v > 0 else "−") + "%s%%" % abs(q)
+
+
 def dside(m):
     """The end of a window a dollar shortage shows a measure in: jh-sovereign-desk.js dollarSide()."""
     return {"higher": "hi", "lower": "lo"}.get(m.get("worse"))
@@ -128,6 +150,9 @@ def selftest():
     assert fmt("index", 0.04225) == "0.0423" and fmt("bp", 16.75) == "16.8 bp" and fmt("eur_bn", 1307.451) == "€1,307.5 bn" and fmt("pct", 4.0) == "4.00%"
     assert fmt("usd_bn", 0.146) == "$0.146 bn" and fmt("usd_bn", 2544.011) == "$2,544.0 bn" and fmt("usd_bn", 0.146, True) == "$0.1 bn" and fmt("usd_bn", 0) == "$0.0 bn" and fmt("usd_bn", -615.423) == "−$615.4 bn"
     assert fmt("idx", 103.3578) == "103.36" and fmt("usd_bn", 60.0) == "$60.0 bn" and fmt("usd_bn", -42.16) == "−$42.2 bn"
+    assert yoy({"d": ["2025-11-19", "2025-11-26", "2026-11-11", "2026-11-18"], "v": [2737.528, 2700.0, 2600.0, 2544.011]}) == [("2026-11-18", (2544.011 / 2737.528 - 1) * 100)]
+    assert yoy({"d": ["2025-01-01", "2025-12-31"], "v": [0.0, 5.0]}) == [] and yoy({"d": [], "v": []}) == []
+    assert fmt_yoy(-7.069) == "−7.1%" and fmt_yoy(4.0742) == "+4.1%" and fmt_yoy(0.04) == "0.0%" and fmt_yoy(12.65) == "+12.7%" and fmt("yoy", -13.6) == "−13.6%"
     assert dside({"worse": "higher"}) == "hi" and dside({"worse": "lower"}) == "lo" and dside({"worse": None}) is None and dunit({"unit": "usd"}) == "index" and dunit({"unit": "usd_bn"}) == "usd_bn"
     assert script_of(b'<script src="/jh-sovereign-desk.js?v=abc123"></script>', "jh-sovereign-desk.js") == "/jh-sovereign-desk.js?v=abc123"
     assert script_of(b'<script src="/assets/jh-workspaces.js?v=9f"></script>', "assets/jh-workspaces.js") == "/assets/jh-workspaces.js?v=9f"      # a script in a folder is named with its folder
@@ -166,7 +191,7 @@ def main():
                 served = {"engine": b"id=btn-sov" in fetch("/jh-chart-engine.js?probe=%d" % (stamp + attempt)),
                           "rail": b'sov: ["Sovereign stress' in fetch("/jh-chart-tvrail.js?probe=%d" % (stamp + attempt)),
                           "desk_page": b'data-view="dollar"' in desk_html,                             # the page of the fourth round: the Dollar shortage tab
-                          "desk_script": all(mark in fetch(script_of(desk_html, "jh-sovereign-desk.js")) for mark in (b"id=sov-dboard", b"id=sov-dtiles", b"DOLLAR_GLOSS")),       # the three ECB measures lead the tab again, above the table of every measure
+                          "desk_script": all(mark in fetch(script_of(desk_html, "jh-sovereign-desk.js")) for mark in (b"id=sov-dboard", b"id=sov-dtiles", b"DOLLAR_GLOSS", b"data-dunits=yoy")),       # the three ECB measures lead the tab again, above the table of every measure
                           "dollar_desk": "Claims on non-euro-area residents in foreign currency · Eurosystem, weekly".encode() in fetch(script_of(fetch("/dollar-indexes.html?nocache=%d" % (stamp + attempt)), "assets/jh-workspaces.js")),    # the desks' bundle lives under /assets
                           "ciss_page": b'id="ciss-exact"' in ciss_html,
                           "ciss_script": b"verifiedMeasure" in fetch(script_of(ciss_html, "jh-ciss-research.js")),
@@ -544,6 +569,9 @@ def main():
             order = ECB3 + [i for i in ds["order"] if i not in ECB3]                                 # the page's order: the three ECB measures, then the Federal Reserve's as the document lists them
             want_parts = [["ecb", 3]] + [[part["id"], len([i for i in part["ids"] if i not in ECB3])] for part in ds["parts"] if any(i not in ECB3 for i in part["ids"])]
             dname = lambda m: m["label"] if m["id"] in ECB3 else m["short"]
+            YOY = [i for i in order if i not in ECB3 and DM[i]["part"] in YOY_PARTS and DM[i]["low"][0] > 0]      # a line that has stood at or below zero keeps its own unit
+            ysr = {i: yoy(DSER[i]) for i in YOY}
+            npts = lambda i: len(ysr[i]) if i in YOY else len(DSER[i]["d"])
             dv = lambda m, v=None, strip=False: fmt(dunit(m), m["value"] if v is None else v).replace(" bn" if strip else "\0", "").replace(" bp" if strip else "\0", "")
             dollar_state = lambda: fr.evaluate("""() => { const q = (s) => Array.from(document.querySelectorAll(s)), txt = (n) => n ? n.innerText.replace(/\\s+/g, ' ').trim() : '';
               const t = document.querySelector('table.dwin'), row = (tr) => tr ? Array.from(tr.children).map(txt) : [];
@@ -556,7 +584,9 @@ def main():
                 board: q('#sov-dboard tr.drow').map(tr => [tr.getAttribute('data-id')].concat(row(tr))), groups: q('#sov-dboard tr.grp').map(tr => tr.getAttribute('data-part')),
                 bars: Object.fromEntries(q('#sov-dboard tr.drow').map(tr => { const i = tr.querySelector('.pb i'); return [tr.getAttribute('data-id'), i ? i.className : null]; })),
                 parts: q('.dpart').map(d => [d.getAttribute('data-part'), d.querySelectorAll('canvas[data-dchart]').length]),
-                charts: q('canvas[data-dchart]').map(c => [c.getAttribute('data-dchart'), +c.getAttribute('data-points'), lit(c)]), heads: q('table.dwin thead tr:last-child th').map(txt), groupheads: q('table.dwin thead th.grp').map(txt),
+                charts: q('canvas[data-dchart]').map(c => [c.getAttribute('data-dchart'), +c.getAttribute('data-points'), lit(c), c.getAttribute('data-units')]), heads: q('table.dwin thead tr:last-child th').map(txt), groupheads: q('table.dwin thead th.grp').map(txt),
+                punits: q('.dpart').map(d => [d.getAttribute('data-part'), d.getAttribute('data-units'), q(".dpart[data-part='" + d.getAttribute('data-part') + "'] [data-dunits].on").map(b => b.getAttribute('data-dunits')).join('')]),
+                cardheads: Object.fromEntries(q('.dchart .mt').map(e => [e.getAttribute('data-id'), txt(e)])),
                 rows: Object.fromEntries(q('table.dwin tbody tr[data-ep]').map(tr => [tr.getAttribute('data-ep'), row(tr)])), now: row(t.querySelector('tr.nowrow')), record: row(t.querySelector('tr.recrow')),
                 marked: q('table.dwin thead th.mk').map(txt), src: txt(document.getElementById('sov-dsrc')), fred: q('#sov-dsrc a[href*="fred.stlouisfed.org/series/"]').length,
                 all: document.getElementById('sov-main').innerText, bad: (document.getElementById('sov-main').innerText.match(/\\bNaN\\b|\\bundefined\\b|\\bnull\\b|Infinity/g) || []),
@@ -578,8 +608,19 @@ def main():
             ck(0 < k["tops"][0] < k["tops"][1] < k["tops"][2] < k["tops"][3] < k["tops"][4], "the three ECB measures should come before the table and the Federal Reserve's charts: %s" % k["tops"])
             ck(k["tab"] == "Dollar shortage" and [row[0] for row in k["board"]] == order and k["groups"] == [x[0] for x in want_parts], "the table of every measure: %s" % [row[0] for row in k["board"]])
             ck(all(row[1].startswith(dname(DM[row[0]])) and row[2] == dv(DM[row[0]]) for row in k["board"]), "a row of the table does not show its measure's name and value: %s" % [(row[0], row[1][:30], row[2]) for row in k["board"] if row[2] != dv(DM[row[0]])][:3])
-            ck(k["parts"] == want_parts and [(x[0], x[1]) for x in k["charts"]] == [(i, len(DSER[i]["d"])) for i in order] and all(x[2] > 1500 for x in k["charts"]),
+            ck(k["parts"] == want_parts and [(x[0], x[1]) for x in k["charts"]] == [(i, npts(i)) for i in order] and all(x[2] > 1500 for x in k["charts"]),
                "each chart should draw every observation of its series: %s" % k["charts"])
+            # the two parts Khalid named open as percent change from a year ago; every figure is recomputed here from the document by FRED's formula
+            for i in YOY:
+                lo, hi = min(ysr[i], key=lambda t: t[1]), max(ysr[i], key=lambda t: t[1])
+                turns = [d for (d0, a), (d, b) in zip(ysr[i], ysr[i][1:]) if (a > 0) != (b > 0)]
+                r.log("  year over year %-16s %s on %s (%d figures from %s) | lowest %s on %s, highest %s on %s | crossed zero %d times, last on %s | the card: %s" % (
+                    i, fmt_yoy(ysr[i][-1][1]), ysr[i][-1][0], len(ysr[i]), ysr[i][0][0], fmt_yoy(lo[1]), lo[0], fmt_yoy(hi[1]), hi[0], len(turns), turns[-1] if turns else "never", k["cardheads"][i][:110]))
+            ck(YOY == ["USD_DXY", "USD_BROAD", "USD_AFE", "USD_EME", "FED_CUSTODY_UST", "FED_FOREIGN_RRP"] and k["punits"] == [[pid, "yoy" if pid in YOY_PARTS else "level", "yoy" if pid in YOY_PARTS else ""] for pid, _ in want_parts],
+               "the price and the foreign official parts should open as percent change from a year ago, the others as they were: %s" % k["punits"])
+            ck(all(x[3] == ("yoy" if x[0] in YOY else "level") for x in k["charts"]) and all(ysr[i][-1][0] == DM[i]["date"] and (fmt_yoy(ysr[i][-1][1]) + " from a year ago") in k["cardheads"][i] for i in YOY)
+               and dv(DM["FED_CUSTODY_13W"]) in k["cardheads"]["FED_CUSTODY_13W"] and "Drawn as it is" in k["all"],
+               "a year-over-year chart does not show FRED's figure for the latest reading: %s" % {i: k["cardheads"][i][:80] for i in YOY})
             swaps, lend, eur, dxy, res, c13 = DM["FED_SWAPS"], DM["AUX_FX_EA"], DM["AUX_EURUSD"], DM["USD_DXY"], DM["AUX_FX_NONEA"], DM["FED_CUSTODY_13W"]
             ck(len(k["read"]) == 8 and k["read"][0].startswith("The EUR/USD reference rate is " + fmt("index", eur["value"])) and k["read"][1].startswith("Claims on euro-area residents in foreign currency") and fmt("eur_bn", lend["value"]) in k["read"][1]
                and fmt("eur_bn", lend["high"][0]) in k["read"][1] and k["read"][2].startswith("Claims on non-euro-area residents in foreign currency are " + fmt("eur_bn", res["value"]))
@@ -608,6 +649,34 @@ def main():
             fr.click("#sov-drg [data-dyears='0']")
             fr.wait_for_timeout(500)
             ck(all(0 < a < b for a, b in zip(five, [x[1] for x in k["charts"]])), "the 5Y range did not shorten the charts: %s" % five)
+            box = fr.evaluate("() => { const c = document.querySelector(\"canvas[data-dchart='USD_DXY']\"); c.scrollIntoView({ block: 'center' }); const b = c.getBoundingClientRect(); return [b.width, b.height]; }")
+            fr.hover("canvas[data-dchart='USD_DXY']", position={"x": box[0] * 0.6, "y": box[1] * 0.5})
+            fr.wait_for_timeout(300)
+            ytip = fr.evaluate("() => document.querySelector(\"[data-dtip='USD_DXY']\").innerText.replace(/\\s+/g, ' ')")
+            fr.click(".dpart[data-part='price'] [data-dunits='level']")
+            fr.wait_for_timeout(900)
+            lv = dollar_state()
+            fr.click(".dpart[data-part='price'] [data-dunits='yoy']")
+            fr.wait_for_timeout(900)
+            bk = dollar_state()
+            price = [i for i in YOY if DM[i]["part"] == "price"]
+            r.log("under the pointer on the DXY chart: %s | Level pressed on the price part: %s, DXY reads %s | pressed back: %s" % (
+                ytip, [(x[0], x[3], x[1]) for x in lv["charts"] if x[0] in price], lv["cardheads"]["USD_DXY"][:60], [(x[0], x[3], x[1]) for x in bk["charts"] if x[0] in price]))
+            ck("from a year ago" in ytip and re.match(r"^[+−]?\d", ytip), "the pointer read-out on a year-over-year chart: %s" % ytip)
+            ck(all(x[3] == "level" and x[1] == len(DSER[x[0]]["d"]) and x[2] > 1500 for x in lv["charts"] if x[0] in price) and dv(DM["USD_DXY"]) in lv["cardheads"]["USD_DXY"] and "from a year ago" not in lv["cardheads"]["USD_DXY"]
+               and all(x[3] == "yoy" for x in lv["charts"] if x[0] in YOY and x[0] not in price) and [(x[0], x[1], x[3]) for x in bk["charts"]] == [(x[0], x[1], x[3]) for x in k["charts"]],
+               "the Level button should bring the price part's levels back, leave the other part alone, and the first button restore the year-over-year charts")
+            fr.click(".dchart .mt[data-id='FED_CUSTODY_UST']")
+            fr.wait_for_timeout(1000)
+            cc = fr.evaluate(CANVAS)
+            big = fr.evaluate("() => { const c = document.getElementById('sov-cv'); return [c.getAttribute('data-units'), +c.getAttribute('data-points'), Array.from(document.querySelectorAll('#sov-rg [data-cunits].on')).map(b => b.getAttribute('data-cunits')).join('')]; }")
+            fr.click("#sov-rg [data-cunits='level']")
+            fr.wait_for_timeout(700)
+            big2 = fr.evaluate("() => { const c = document.getElementById('sov-cv'); return [c.getAttribute('data-units'), +c.getAttribute('data-points'), Array.from(document.querySelectorAll('#sov-rg [data-cunits].on')).map(b => b.getAttribute('data-cunits')).join('')]; }")
+            r.log("the larger chart opened from the year-over-year custody chart: %s | %s, %d line pixels | after Level: %s" % (cc["title"][:60], big, cc["amber"], big2))
+            ck(cc["on"] and cc["title"] == DM["FED_CUSTODY_UST"]["label"] and big == ["yoy", len(ysr["FED_CUSTODY_UST"]), "yoy"] and cc["amber"] > 1000 and big2 == ["level", len(DSER["FED_CUSTODY_UST"]["d"]), "level"],
+               "the larger chart should open in the units of the chart it was opened from and offer the level")
+            fr.press("body", "Escape")
             box = fr.evaluate("() => { const c = document.querySelector(\"canvas[data-dchart='FED_SWAPS']\"); c.scrollIntoView({ block: 'center' }); const b = c.getBoundingClientRect(); return [b.width, b.height]; }")
             fr.hover("canvas[data-dchart='FED_SWAPS']", position={"x": box[0] * 0.5, "y": box[1] * 0.5})
             fr.wait_for_timeout(300)

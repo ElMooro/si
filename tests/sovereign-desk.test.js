@@ -674,6 +674,52 @@ test('inside each named window: the low and high of each of the three, and each 
   }
 });
 
+// ---- 2026-11-22 20:07 ET, Khalid: "make all the charts in: The price of the dollar and all charts Foreign official dollars at the
+// Federal Reserve year over year percentage change just like in fred website so i can see trend reversal" ----
+test('percent change from a year ago is FRED\'s: against the reading 52 weeks before, the same day of the week', () => {
+  assert.equal(desk.YEAR_BACK, 364);                                                         // 260 weekdays for a daily series, 52 weeks for a weekly one: the same day
+  assert.equal(desk.isoBack('2026-11-13', 364), '2025-11-14');                               // a Friday against a Friday
+  assert.equal(desk.isoBack('2024-03-01', 364), '2023-03-03');                               // across a leap day
+  assert.equal(new Date('2026-11-13T00:00:00Z').getUTCDay(), new Date('2025-11-14T00:00:00Z').getUTCDay());
+  const wk = { d: ['2025-11-19', '2025-11-26', '2026-11-11', '2026-11-18'], v: [2737.528, 2700, 2600, 2544.011] }, y = desk.yoySeries(wk);
+  assert.deepEqual(y.d, ['2026-11-18']);                                                     // 11 November has no reading 364 days before it: no figure, as on FRED
+  near(y.v[0], (2544.011 / 2737.528 - 1) * 100, 1e-12, '((x(t) / x(t - 52)) - 1) * 100');
+  assert.deepEqual([y.level, y.prior], [[2544.011], [2737.528]]);
+  assert.equal(desk.fmtChange('yoy', y.v[0]), '−7.1%');
+  assert.deepEqual([desk.fmtChange('yoy', 4.0742), desk.fmtChange('yoy', 0.04), desk.fmt('yoy', -13.6)], ['+4.1%', '0.0%', '−13.6%']);
+  assert.deepEqual(desk.yoySeries({ d: ['2025-01-01', '2025-12-31'], v: [0, 5] }).d, []);    // nothing is divided by zero
+  assert.deepEqual(desk.yoySeries({ d: ['2025-01-01', '2025-12-31'], v: [5, null] }).d, []);
+  assert.deepEqual([desk.yoySeries(null).d, desk.yoySeries({}).v], [[], []]);
+  // on the document's own series: every figure is the level against the level 364 days before, and the last one is the latest reading's
+  for (const id of ['USD_DXY', 'USD_BROAD', 'USD_AFE', 'USD_EME', 'FED_CUSTODY_UST', 'FED_FOREIGN_RRP']) {
+    const x = DS.series[id], at = Object.fromEntries(x.d.map((d, i) => [d, x.v[i]])), ys = desk.yoySeries(x), n = ys.d.length;
+    assert.ok(n > 5 && n < x.d.length, id + ': ' + n + ' of ' + x.d.length);
+    assert.equal(ys.d[n - 1], DM[id].date, id + ' ends at the latest reading');
+    ys.d.forEach((d, i) => near(ys.v[i], (at[d] / at[desk.isoBack(d, 364)] - 1) * 100, 1e-12, id + ' ' + d));
+    assert.ok(desk.yoyOk(DM[id]), id);
+  }
+  near(desk.yoySeries(DS.series.FED_CUSTODY_UST).v.slice(-1)[0], (2544.011 / 2737.528 - 1) * 100, 1e-9, 'Treasuries in custody against a year before');
+  // a line that has stood at or below zero has no percent change worth drawing
+  for (const id of ['FED_CUSTODY_13W', 'USD_SOFR_IOR', 'H8_NET_DUE', 'FED_SWAPS', 'FED_FIMA']) assert.equal(desk.yoyOk(DM[id]), false, id);
+  assert.deepEqual([desk.yoyOk(null), desk.yoyOk({}), desk.yoyOk(DM.AUX_EURUSD)], [false, false, true]);
+});
+
+test('the two parts Khalid named open year over year; the level is one click away and nothing else changes', () => {
+  assert.deepEqual(desk.YOY_PARTS, ['price', 'official']);
+  for (const id of desk.YOY_PARTS) assert.ok(DS.parts.some(p => p.id === id), id + ' is a part of the document');
+  assert.deepEqual(DS.parts.map(p => desk.partUnits(p.id, {})), ['level', 'yoy', 'yoy', 'level', 'level']);
+  assert.deepEqual(['ecb', 'backstop', 'price', 'official', 'funding'].map(id => desk.partUnits(id, { price: 'level', funding: 'yoy', ecb: 'yoy' })), ['level', 'level', 'level', 'yoy', 'level']);
+  assert.equal(desk.partUnits('price', null), 'yoy');
+  assert.equal(desk.partUnits('official', { official: 'something' }), 'yoy');
+  const html = read('sovereign-desk.html'), js = read('jh-sovereign-desk.js');
+  for (const hook of ['function dollarPartHtml(', 'data-dunits=yoy', 'data-dunits=level', 'data-cunits=yoy', 'data-cunits=level', '% change from a year ago', 'zero: yoy', 'fill: yoy', 'prefs.units[pid]', 'kept.units',
+    'hit.getAttribute("data-units")', 'Drawn as it is:']) assert.ok(js.includes(hook), hook);
+  assert.ok(html.includes('.dun{'));
+  // the three ECB measures are still the first part, in the level, with their tiles
+  assert.ok(js.indexOf('id=sov-dtiles') < js.indexOf('if (first) html += chartsOf(first);'));
+  assert.equal(desk.partUnits('ecb', {}), 'level');
+});
+
 test('a Federal Reserve daily series is drawn as one line; the world\'s sparse prints are not joined across their gaps', () => {
   assert.equal(desk.gapOf(DM.USD_DXY), 0);
   assert.equal(desk.gapOf({ source: 'dtcc', freq: 'D' }), desk.GAP);

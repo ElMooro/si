@@ -24,7 +24,8 @@
     pct_gdp: { d: 1, pre: "", suf: "%", chg: " pp" },
     usd: { d: 4, pre: "$", suf: "", chg: "" },
     usd_bn: { d: 1, small: 3, pre: "$", suf: " bn", chg: " bn" },      /* a facility that is hardly used is read to the million */
-    idx: { d: 2, pre: "", suf: "", chg: "" }
+    idx: { d: 2, pre: "", suf: "", chg: "" },
+    yoy: { d: 1, pre: "", suf: "%", chg: "%" }                         /* percent change from a year ago */
   };
   var RANGES = [["1Y", 1], ["5Y", 5], ["10Y", 10], ["All", 0]];
   var SPAN = { D: "last 12 months", W: "last 2 years", M: "last 5 years", Q: "last 10 years" };   /* what a tile's small line covers */
@@ -442,6 +443,29 @@
     }).filter(function (r) { return r.cells.some(Boolean); });
     return { cols: cols, groups: groups, rows: rows, left: left, now: now, record: cols.map(function (c) { return c.end === "hi" ? c.m.high : c.m.low; }) };
   }
+  /* ---- percent change from a year ago, as FRED computes it ----
+     FRED: ((x(t) / x(t - n_obs_per_yr)) - 1) * 100, with 260 observations a year for a daily series (no values on
+     weekends) and 52 for a weekly one.  On FRED's own grid both are the same day of the week 52 weeks earlier, so this
+     looks up the reading exactly 364 days before; a day whose year-ago day has no reading (a holiday) has no figure,
+     as on FRED. */
+  var YEAR_BACK = 364;
+  var YOY_PARTS = ["price", "official"];        /* the parts whose charts open as percent change from a year ago (Khalid, 2026-11-22 20:07 ET) */
+  function isoBack(iso, days) { return new Date((dayNum(iso) - days) * DAY).toISOString().slice(0, 10); }
+  function yoySeries(series) {
+    var out = { d: [], v: [], level: [], prior: [] }, at = {}, i;
+    if (!series || !series.d) return out;
+    for (i = 0; i < series.d.length; i++) at[series.d[i]] = series.v[i];
+    for (i = 0; i < series.d.length; i++) {
+      var x = series.v[i], was = at[isoBack(series.d[i], YEAR_BACK)];
+      if (isNum(x) && isNum(was) && was !== 0) { out.d.push(series.d[i]); out.v.push((x / was - 1) * 100); out.level.push(x); out.prior.push(was); }
+    }
+    return out;
+  }
+  /* a percentage of a line that has stood at or below zero means nothing */
+  function yoyOk(m) { return !!(m && m.low && isNum(m.low[0]) && m.low[0] > 0); }
+  /* what a part's charts are drawn in: "yoy" for the two parts above unless the reader chose the level */
+  function partUnits(partId, chosen) { return YOY_PARTS.indexOf(partId) < 0 ? "level" : chosen && chosen[partId] === "level" ? "level" : "yoy"; }
+
   /* 0..1: how far a reading lies toward the measure's own record at the end a shortage shows in - counted from zero for a
      measure that has stood on both sides of it (a change, a spread), otherwise from its opposite record */
   function dollarShare(m, end, v) {
@@ -455,7 +479,7 @@
               board: board, commonWhen: commonWhen, read: read, crisis: crisis, side: side, windowOf: windowOf, visible: visible, around: around, bands: bands, ecbPage: ecbPage,
               dataPath: dataPath, world: world, ckey: ckey, joinWorld: joinWorld, tagRank: tagRank, arrange: arrange, nextSort: nextSort, orderIds: orderIds, lineColour: lineColour,
               worldCols: worldCols, worldIds: worldIds, worldPick: worldPick, lineShown: lineShown, gapOf: gapOf, GAP: GAP,
-              dollarData: dollarData, dollarSide: dollarSide, dollarName: dollarName, dollarGloss: dollarGloss, dollarPlace: dollarPlace, dollarPlaceText: dollarPlaceText, dollarHeat: dollarHeat, dollarRead: dollarRead, dollarWindows: dollarWindows, dollarShare: dollarShare, DOLLAR: DOLLAR, DOLLAR_COL: DOLLAR_COL,
+              dollarData: dollarData, dollarSide: dollarSide, dollarName: dollarName, dollarGloss: dollarGloss, dollarPlace: dollarPlace, dollarPlaceText: dollarPlaceText, dollarHeat: dollarHeat, dollarRead: dollarRead, dollarWindows: dollarWindows, dollarShare: dollarShare, DOLLAR: DOLLAR, DOLLAR_COL: DOLLAR_COL, yoySeries: yoySeries, yoyOk: yoyOk, partUnits: partUnits, isoBack: isoBack, YOY_PARTS: YOY_PARTS, YEAR_BACK: YEAR_BACK,
               SETS: SETS, RANGES: RANGES, ALLOW: ALLOW, TAGS: TAGS };
   root.JHSovereignDesk = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
@@ -466,10 +490,10 @@
   var $ = function (id) { return doc.getElementById(id); };
   var D = null, H = null, W = null, WJ = {}, WH = null, DS = null, view = "desk", setId = "sovciss", wset = "yield", dyears = 0, dgeo = {};
   var VIEWS = ["desk", "crisis", "world", "dollar", "sources"];
-  var chart = { id: null, years: 0, span: null, ep: null, geo: null }, over = { years: 0, mode: "all", flip: {}, geo: null };
+  var chart = { id: null, years: 0, span: null, ep: null, geo: null, units: "level" }, over = { years: 0, mode: "all", flip: {}, geo: null };
   var today = new Date().toISOString().slice(0, 10);
-  var KEY = "jh.sovereign-desk.v1", prefs = { tags: {}, sort: {}, show: "all" };
-  try { var kept = JSON.parse(root.localStorage.getItem(KEY) || "null"); if (kept && typeof kept === "object") { prefs.tags = kept.tags || {}; prefs.sort = kept.sort || {}; prefs.show = kept.show || "all"; if (kept.lines === "tagged") over.mode = "tagged"; } } catch (e) { /* a browser that keeps nothing still works */ }
+  var KEY = "jh.sovereign-desk.v1", prefs = { tags: {}, sort: {}, show: "all", units: {} };
+  try { var kept = JSON.parse(root.localStorage.getItem(KEY) || "null"); if (kept && typeof kept === "object") { prefs.tags = kept.tags || {}; prefs.sort = kept.sort || {}; prefs.show = kept.show || "all"; prefs.units = (kept.units && typeof kept.units === "object" && kept.units) || {}; if (kept.lines === "tagged") over.mode = "tagged"; } } catch (e) { /* a browser that keeps nothing still works */ }
   function save() { prefs.lines = over.mode === "tagged" ? "tagged" : "all"; try { root.localStorage.setItem(KEY, JSON.stringify(prefs)); } catch (e) { /* kept for this visit only */ } }
   function meas(id) { return (D && D.measures[id]) || (DS && DS.measures && DS.measures[id]) || (WH && WH.measures && WH.measures[id]) || null; }
   function everyDay(id) { return DS && DS.series && DS.series[id] ? DS.series[id] : null; }        /* the dollar-shortage document keeps every observation */
@@ -695,18 +719,27 @@
     });
     if (!opt.mini) {
       g.strokeStyle = "#1e242c"; g.fillStyle = "#8b949e"; g.lineWidth = 1; g.textAlign = "right";
-      for (var k = 0; k <= 4; k++) { var v = lo + (hi - lo) * k / 4, y = Y(v); g.beginPath(); g.moveTo(L, y); g.lineTo(wpx - R, y); g.stroke(); g.fillText(fmt(opt.unit, v, hi - lo >= 10).replace(" bp", "").replace(" bn", ""), L - 6, y + 4); }
+      var zy = opt.zero && lo < 0 && hi > 0 ? Y(0) : null;          /* a year-over-year chart names its zero line; a tick that would sit on it gives way */
+      for (var k = 0; k <= 4; k++) { var v = lo + (hi - lo) * k / 4, y = Y(v); g.beginPath(); g.moveTo(L, y); g.lineTo(wpx - R, y); g.stroke();
+        if (zy === null || Math.abs(y - zy) >= 11) g.fillText(fmt(opt.unit, v, hi - lo >= 10).replace(" bp", "").replace(" bn", ""), L - 6, y + 4); }
+      if (zy !== null) { g.fillStyle = "#c9d1d9"; g.fillText("0%", L - 6, zy + 4); g.fillStyle = "#8b949e"; }
       g.textAlign = "center";
       var y0 = +firstIso.slice(0, 4), y1 = +lastIso.slice(0, 4), step = Math.max(1, Math.ceil((y1 - y0 + 1) / Math.max(2, Math.floor((wpx - L - R) / 60))));
       for (var yr = y0 + 1; yr <= y1; yr += step) { var xx = X(dayNum(yr + "-01-01")); if (xx > L + 14 && xx < wpx - R - 14) g.fillText(String(yr), xx, hpx - 7); }
       if (y1 - y0 < 2) { g.fillText(fmtDate(firstIso), L + 34, hpx - 7); g.fillText(fmtDate(lastIso), wpx - R - 34, hpx - 7); }
     }
-    if (lo < 0 && hi > 0) { g.strokeStyle = "#3a4452"; g.lineWidth = 1; g.beginPath(); g.moveTo(L, Y(0)); g.lineTo(wpx - R, Y(0)); g.stroke(); }
+    if (lo < 0 && hi > 0) { g.strokeStyle = opt.zero ? "#aab4c0" : "#3a4452"; g.lineWidth = opt.zero ? 1.2 : 1; g.beginPath(); g.moveTo(L, Y(0)); g.lineTo(wpx - R, Y(0)); g.stroke(); }
     live.forEach(function (l) {
       g.globalAlpha = l.alpha || 1; g.strokeStyle = l.colour; g.lineWidth = l.width || 1.4; g.beginPath();
       var n = l.pts.length, gap = l.gap || Infinity;      /* days: two readings further apart than this are not joined */
       l.pts.forEach(function (p, i) { if (i && p[0] - l.pts[i - 1][0] <= gap) g.lineTo(X(p[0]), Y(p[1])); else g.moveTo(X(p[0]), Y(p[1])); });
       g.stroke();
+      if (l.fill) {          /* shaded to the zero line, so the side of zero the line is on reads at a glance */
+        var yz = Y(Math.max(lo, Math.min(hi, 0)));
+        g.globalAlpha = 0.13; g.fillStyle = l.colour; g.beginPath(); g.moveTo(X(l.pts[0][0]), yz);
+        l.pts.forEach(function (p) { g.lineTo(X(p[0]), Y(p[1])); });
+        g.lineTo(X(l.pts[n - 1][0]), yz); g.closePath(); g.fill(); g.globalAlpha = l.alpha || 1;
+      }
       if (l.gap) { g.fillStyle = l.colour; l.pts.forEach(function (p, i) {
         if ((i && p[0] - l.pts[i - 1][0] <= gap) || (i < n - 1 && l.pts[i + 1][0] - p[0] <= gap)) return;
         g.beginPath(); g.arc(X(p[0]), Y(p[1]), opt.mini ? 1.2 : 1.8, 0, 6.3); g.fill(); }); }
@@ -780,11 +813,14 @@
       return "<i style='background:" + x[0].colour + "'></i>" + esc(x[0].name) + " <b>" + fmt(x[0].unit, x[1][1]) + "</b>"; }).join("<br>") + (rows.length > 8 ? "<br>… and " + (rows.length - 8) + " lower" : "");
   }
 
+  function chartYoy() { return chart.units === "yoy" && yoyOk(meas(chart.id)); }
   function drawChart() {
-    var m = meas(chart.id), cv = $("sov-cv"), s = seriesOf(chart.id);
+    var m = meas(chart.id), cv = $("sov-cv"), s = seriesOf(chart.id), yoy = chartYoy();
     if (!m || (!s && !H)) { var g = cv.getContext("2d"); g.clearRect(0, 0, cv.width, cv.height); return; }
-    chart.geo = plot(cv, [{ colour: "#F0B429", width: 1.4, pts: s ? points(s, chart.years, chart.span) : [], ended: m.status === "ended", gap: gapOf(m) }],
-      { unit: m.unit, episodes: D.episodes, ep: chart.ep, empty: s ? "Not enough history in this range." : "No history for this measure." });
+    chart.yoy = yoy && s ? yoySeries(s) : null;
+    chart.geo = plot(cv, [{ colour: "#F0B429", width: 1.4, pts: s ? points(chart.yoy || s, chart.years, chart.span) : [], ended: m.status === "ended", gap: gapOf(m), fill: !!chart.yoy }],
+      { unit: chart.yoy ? "yoy" : m.unit, zero: !!chart.yoy, episodes: D.episodes, ep: chart.ep, empty: s ? "Not enough history in this range." : "No history for this measure." });
+    cv.setAttribute("data-units", chart.yoy ? "yoy" : "level"); cv.setAttribute("data-points", chart.geo ? chart.geo.lines[0].pts.length : 0);
   }
   function hoverChart(ev) {
     var geo = chart.geo, tip = $("sov-tip"); if (!geo) { tip.style.display = "none"; return; }
@@ -792,18 +828,23 @@
     var pts = geo.lines[0].pts, best = nearest(pts, geo.x0 + (px - geo.L) / (geo.w - geo.L - geo.R) * (geo.x1 - geo.x0));
     var m = meas(chart.id), ep = windowOf(D.episodes, best[2]);
     tip.style.display = "block"; tip.style.left = Math.min(geo.w - 170, Math.max(4, geo.X(best[0]) + 10)) + "px"; tip.style.top = Math.max(4, geo.Y(best[1]) - 34) + "px";
-    tip.innerHTML = "<b>" + fmt(m.unit, best[1]) + "</b> " + fmtDate(best[2]) + (ep ? "<br>" + esc(ep.name) : "");
+    var at = chart.yoy ? chart.yoy.d.indexOf(best[2]) : -1;
+    tip.innerHTML = (chart.yoy ? "<b>" + fmtChange("yoy", best[1]) + "</b> from a year ago · " + fmtDate(best[2]) + (at >= 0 ? "<br>" + fmt(dunit(m), chart.yoy.level[at]) + " against " + fmt(dunit(m), chart.yoy.prior[at]) : "")
+                               : "<b>" + fmt(m.unit, best[1]) + "</b> " + fmtDate(best[2])) + (ep ? "<br>" + esc(ep.name) : "");
   }
   function rangeButtons() {
     var ep = chart.ep && D.episodes.filter(function (e) { return e.id === chart.ep; })[0];
     $("sov-rg").innerHTML = RANGES.map(function (r) { return "<button class='gbtn" + (!chart.span && r[1] === chart.years ? " on" : "") + "' data-years='" + r[1] + "'>" + r[0] + "</button>"; }).join("")
-      + (ep ? "<button class='gbtn" + (chart.span ? " on" : "") + "' data-window=1>" + esc(ep.name) + " ± 1 year</button>" : "");
+      + (ep ? "<button class='gbtn" + (chart.span ? " on" : "") + "' data-window=1>" + esc(ep.name) + " ± 1 year</button>" : "")
+      /* a line of the dollar document that has always stood above zero can be read as FRED's percent change from a year ago */
+      + (DS && DS.measures && DS.measures[chart.id] && yoyOk(meas(chart.id)) ? "<span class=usep></span><button class='gbtn" + (chart.units === "yoy" ? " on" : "") + "' data-cunits=yoy>% change from a year ago</button>"
+        + "<button class='gbtn" + (chart.units === "yoy" ? "" : " on") + "' data-cunits=level>Level</button>" : "");
   }
   function link(key, text) { var p = dataPath(key); return p ? "<a href='" + esc(p) + "' target=_blank rel=noopener>" + esc(text) + "</a>" : ""; }
-  function openChart(id, epId) {
+  function openChart(id, epId, units) {
     var m = meas(id); if (!m) return;
     var ep = epId && D.episodes.filter(function (e) { return e.id === epId; })[0];
-    chart.id = id; chart.years = 0; chart.ep = ep ? ep.id : null; chart.span = ep ? around(ep) : null;
+    chart.id = id; chart.years = 0; chart.ep = ep ? ep.id : null; chart.span = ep ? around(ep) : null; chart.units = units === "yoy" && yoyOk(m) ? "yoy" : "level";
     $("sov-ct").textContent = m.label;
     var links = [], fed = m.source === "fred", own = !!m.source && !fed;          /* a measure of the World tab names its own source; so does one from the Federal Reserve */
     var dm = DS && DS.measures && DS.measures[id], end = dollarSide(dm) || side(m);                /* the end of a window the Dollar tab reads this measure by, where it takes a side */
@@ -899,20 +940,33 @@
     if (m.source === "fred") return (m.series || []).map(function (sid) { return "<a href='https://fred.stlouisfed.org/series/" + encodeURIComponent(sid) + "' target=_blank rel=noopener>" + esc(sid) + " at FRED</a>"; }).join(" · ");
     return (ecbPage(m) ? "<a href='" + esc(ecbPage(m)) + "' target=_blank rel=noopener>the series at the ECB</a>" : "") + (m.evidence ? " · " + link(m.evidence.key, "the response it was read from (.gz)") : "");
   }
+  var ycache = { src: null, by: {} };
+  function yoyOf(dd, id) { if (ycache.src !== dd.series) ycache = { src: dd.series, by: {} }; return ycache.by[id] || (ycache.by[id] = yoySeries(dd.series[id])); }
+  /* one part of the tab: its heading, the choice of units where the part has one, and a chart card for each measure */
+  function dollarPartHtml(dd, p) {
+    var M = dd.measures, choice = YOY_PARTS.indexOf(p.id) >= 0, units = partUnits(p.id, prefs.units);
+    return "<div class=dpart data-part='" + esc(p.id) + "' data-units='" + units + "'><div class=dph>" + esc(p.name) + (p.note ? "<small>" + esc(p.note) + "</small>" : "") + "</div>"
+      + (choice ? "<div class='ctrl dun'><button class='gbtn" + (units === "yoy" ? " on" : "") + "' data-dunits=yoy data-part='" + esc(p.id) + "'>% change from a year ago</button>"
+          + "<button class='gbtn" + (units === "yoy" ? "" : " on") + "' data-dunits=level data-part='" + esc(p.id) + "'>Level</button>"
+          + "<span class=note>" + (units === "yoy" ? "Each line is its percent change from the same day 52 weeks earlier, the way FRED computes “percent change from year ago”. Where a line crosses zero, its trend has turned."
+                                                   : "Each line is the level itself.") + "</span></div>" : "")
+      + "<div class=dcharts>" + p.ids.map(function (id) {
+        var m = M[id], gloss = dollarGloss(m), ys = units === "yoy" && yoyOk(m) && dd.series[id] ? yoyOf(dd, id) : null, n = ys ? ys.v.length : 0, yoy = n > 1;
+        return "<div class=dchart><div class=mt data-id='" + esc(id) + "'" + (yoy ? " data-units=yoy" : "") + " tabindex=0 role=button title='" + esc(m.label) + "'>" + esc(dollarName(m))
+          + (yoy ? " <b>" + fmtChange("yoy", ys.v[n - 1]) + "</b> <span class=td>from a year ago · " + fmtDate(ys.d[n - 1]) + dstate(m) + "</span><small>level " + fmt(dunit(m), ys.level[n - 1]) + ", a year before " + fmt(dunit(m), ys.prior[n - 1]) + "</small>"
+                 : " <b>" + fmt(dunit(m), m.value) + "</b> <span class=td>" + when(m) + dstate(m) + "</span>" + (gloss ? "<small>" + esc(gloss) + "</small>" : ""))
+          + "</div>"
+          + "<div class=cvbox><canvas class=dcv data-dchart='" + esc(id) + "' data-units='" + (yoy ? "yoy" : "level") + "'></canvas><div class=tip data-dtip='" + esc(id) + "'></div></div>"
+          + "<p class=note>" + esc(m.what || m.label) + (units === "yoy" && !yoy ? " <b>Drawn as it is:</b> this line is itself a change and has stood below zero, so a percent change of it from a year ago would mean nothing." : "") + "</p></div>"; }).join("")
+      + "</div></div>";
+  }
   function renderDollar() {
     needDollar();
     var dd = DD = dollarData(DS, D, H);
     if (!dd.ids.length) { $("sov-main").innerHTML = "<p class=note>The dollar-shortage measures are not in this run's documents; see Sources.</p>"; return; }
     var M = dd.measures, w = dollarWindows(dd), fed = dd.ids.some(function (id) { return M[id].source === "fred"; });
     var first = dd.parts[0].id === DOLLAR_PART.id ? dd.parts[0] : null, others = first ? dd.parts.slice(1) : dd.parts;
-    function chartsOf(p) {
-      return "<div class=dpart data-part='" + esc(p.id) + "'><div class=dph>" + esc(p.name) + (p.note ? "<small>" + esc(p.note) + "</small>" : "") + "</div><div class=dcharts>" + p.ids.map(function (id) {
-        var m = M[id], gloss = dollarGloss(m);
-        return "<div class=dchart><div class=mt data-id='" + esc(id) + "' tabindex=0 role=button title='" + esc(m.label) + "'>" + esc(dollarName(m)) + " <b>" + fmt(dunit(m), m.value) + "</b> <span class=td>" + when(m) + dstate(m) + "</span>"
-          + (gloss ? "<small>" + esc(gloss) + "</small>" : "") + "</div>"
-          + "<div class=cvbox><canvas class=dcv data-dchart='" + esc(id) + "'></canvas><div class=tip data-dtip='" + esc(id) + "'></div></div>"
-          + "<p class=note>" + esc(m.what || m.label) + "</p></div>"; }).join("") + "</div></div>";
-    }
+    function chartsOf(p) { return dollarPartHtml(dd, p); }
     var html = "<div class=read id=sov-dread>" + dollarRead(dd).map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("") + "</div>"
       + "<p class=note>" + (fed ? "The three ECB measures come first, as they were added; the Federal Reserve's lines follow. " : "Three ECB measurements read side by side. ")
       + "In a dollar shortage banks abroad cannot borrow dollars in the market: central banks lend them instead, the dollar rises, and foreign central banks sell or pledge what they hold in the United States. Measurements, not a forecast.</p>";
@@ -982,9 +1036,10 @@
   function drawDollar() {
     var dd = DD = dollarData(DS, D, H); dgeo = {};
     doc.querySelectorAll("canvas[data-dchart]").forEach(function (cv) {
-      var id = cv.getAttribute("data-dchart"), m = dd.measures[id];
-      dgeo[id] = plot(cv, [{ colour: "#F0B429", width: 1.3, pts: points(dd.series[id], dyears), ended: m.status === "ended" }],
-        { unit: dunit(m), episodes: dd.episodes, empty: dd.series[id] ? (m.status === "ended" ? "This series ended on " + fmtDate(m.date) + "; pick a longer range." : "Not enough history in this range.") : "No history for this measure." });
+      var id = cv.getAttribute("data-dchart"), m = dd.measures[id], yoy = cv.getAttribute("data-units") === "yoy" && !!dd.series[id];
+      dgeo[id] = plot(cv, [{ colour: "#F0B429", width: 1.3, pts: points(yoy ? yoyOf(dd, id) : dd.series[id], dyears), ended: m.status === "ended", fill: yoy }],
+        { unit: yoy ? "yoy" : dunit(m), zero: yoy, episodes: dd.episodes,
+          empty: dd.series[id] ? (m.status === "ended" ? "This series ended on " + fmtDate(m.date) + "; pick a longer range." : "Not enough history in this range.") : "No history for this measure." });
       cv.setAttribute("data-points", dgeo[id] ? dgeo[id].lines[0].pts.length : 0);
     });
   }
@@ -993,7 +1048,9 @@
     var box = cv.getBoundingClientRect(), px = (ev.touches ? ev.touches[0].clientX : ev.clientX) - box.left;
     var best = nearest(geo.lines[0].pts, geo.x0 + (px - geo.L) / (geo.w - geo.L - geo.R) * (geo.x1 - geo.x0)), m = DD.measures[id], ep = windowOf(D.episodes, best[2]);
     tip.style.display = "block"; tip.style.left = Math.min(geo.w - 170, Math.max(4, geo.X(best[0]) + 10)) + "px"; tip.style.top = Math.max(4, geo.Y(best[1]) - 34) + "px";
-    tip.innerHTML = "<b>" + fmt(dunit(m), best[1]) + "</b> " + fmtDate(best[2]) + (ep ? "<br>" + esc(ep.name) : "");
+    var ys = cv.getAttribute("data-units") === "yoy" ? yoyOf(DD, id) : null, at = ys ? ys.d.indexOf(best[2]) : -1;
+    tip.innerHTML = (ys ? "<b>" + fmtChange("yoy", best[1]) + "</b> from a year ago · " + fmtDate(best[2]) + (at >= 0 ? "<br>" + fmt(dunit(m), ys.level[at]) + " against " + fmt(dunit(m), ys.prior[at]) : "")
+                        : "<b>" + fmt(dunit(m), best[1]) + "</b> " + fmtDate(best[2])) + (ep ? "<br>" + esc(ep.name) : "");
   }
 
   function renderSources() {
@@ -1054,6 +1111,12 @@
     }
     if ((hit = t.closest && t.closest("[data-set]"))) { setId = hit.getAttribute("data-set"); over.flip = {}; render(); return; }
     if ((hit = t.closest && t.closest("[data-wset]"))) { wset = hit.getAttribute("data-wset"); over.flip = {}; render(); return; }
+    if ((hit = t.closest && t.closest("[data-dunits]"))) {          /* a part's charts as percent change from a year ago, or as the level: that part alone is drawn again */
+      var pid = hit.getAttribute("data-part"), el = hit.closest(".dpart"), part = DD && DD.parts.filter(function (x) { return x.id === pid; })[0];
+      prefs.units[pid] = hit.getAttribute("data-dunits") === "level" ? "level" : "yoy"; save();
+      if (el && part) { el.outerHTML = dollarPartHtml(DD, part); drawDollar(); } else render();
+      return;
+    }
     if ((hit = t.closest && t.closest("[data-dyears]"))) { dyears = +hit.getAttribute("data-dyears"); hit.parentNode.querySelectorAll("[data-dyears]").forEach(function (b) { b.classList.toggle("on", +b.getAttribute("data-dyears") === dyears); }); drawDollar(); return; }
     if ((hit = t.closest && t.closest("[data-oyears]"))) { over.years = +hit.getAttribute("data-oyears"); hit.parentNode.querySelectorAll("[data-oyears]").forEach(function (b) { b.classList.toggle("on", +b.getAttribute("data-oyears") === over.years); }); drawSet(); return; }
     if ((hit = t.closest && t.closest("[data-olines]"))) { over.mode = hit.getAttribute("data-olines"); over.flip = {}; save(); syncMany(); return; }
@@ -1061,11 +1124,12 @@
       var lid = hit.getAttribute("data-line"); if (over.flip[lid]) delete over.flip[lid]; else over.flip[lid] = 1;
       syncMany(); return;
     }
+    if ((hit = t.closest && t.closest("[data-cunits]"))) { chart.units = hit.getAttribute("data-cunits") === "yoy" ? "yoy" : "level"; rangeButtons(); drawChart(); return; }
     if ((hit = t.closest && t.closest("[data-years]"))) { chart.years = +hit.getAttribute("data-years"); chart.span = null; rangeButtons(); drawChart(); return; }
     if (t.closest && t.closest("[data-window]")) { var e0 = D.episodes.filter(function (e) { return e.id === chart.ep; })[0]; chart.span = around(e0); rangeButtons(); drawChart(); return; }
-    if ((hit = t.closest && t.closest("[data-chart-ep]"))) { openChart(chart.id, hit.getAttribute("data-chart-ep")); return; }
+    if ((hit = t.closest && t.closest("[data-chart-ep]"))) { openChart(chart.id, hit.getAttribute("data-chart-ep"), chart.units); return; }
     if (t.id === "sov-x" || t.id === "sov-ovl") { closeChart(); return; }
-    if ((hit = t.closest && t.closest("#sov-main [data-id]"))) openChart(hit.getAttribute("data-id"), hit.getAttribute("data-ep"));
+    if ((hit = t.closest && t.closest("#sov-main [data-id]"))) openChart(hit.getAttribute("data-id"), hit.getAttribute("data-ep"), hit.getAttribute("data-units"));      /* a chart drawn year over year opens that way */
   });
   doc.addEventListener("dblclick", function (ev) { var hit = ev.target.closest && ev.target.closest("#sov-leg [data-line]"); if (hit) openChart(hit.getAttribute("data-line")); });
   doc.addEventListener("keydown", function (ev) {
