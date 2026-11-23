@@ -213,9 +213,15 @@ def main():
 
         r.section("0. The live site serves the new build")
         served = False
+        js = css = ""
         for attempt in range(40):
-            js = fetch("%s/assets/jh-workspaces.js?nocache=%d" % (BASE, stamp + attempt))
-            css = fetch("%s/assets/jh-workspaces.css?nocache=%d" % (BASE, stamp + attempt))
+            try:
+                js = fetch("%s/assets/jh-workspaces.js?nocache=%d" % (BASE, stamp + attempt))
+                css = fetch("%s/assets/jh-workspaces.css?nocache=%d" % (BASE, stamp + attempt))
+            except Exception as exc:  # noqa: BLE001  (a read cut short while the site is being replaced: ask again)
+                r.log("try %d: %s" % (attempt + 1, str(exc)[:90]))
+                time.sleep(30)
+                continue
             served = all(k in js for k in ("static yoyHistory(", "static setAllViews(", "data-allview", "static paintFocusChart(")) and ".macro-view-btn.on" in css and ".macro-hist-zero" in css and "'% from a year ago' : '1996" not in js   # the second build: the range label stays
             if served:
                 break
