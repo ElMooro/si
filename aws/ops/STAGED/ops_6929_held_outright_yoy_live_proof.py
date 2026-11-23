@@ -338,7 +338,7 @@ def main():
                         diffs.append("%s (%s) should stay as it is and say why: view %s, code %s, '%s', buttons %s" % (sid, w["code"], x["view"], x["code"], x["line"], x["btn"]))
                     checked["kept"] += good
                     continue
-                if not (x["view"] == "yoy" and x["code"] == w["code"] and x["btn"] == "level yoy*p" and x["what"] == "% from a year ago" and x["zero"] == 1 and x["label"] == "percent change from a year ago since 1996"):
+                if not (x["view"] == "yoy" and x["code"] == w["code"] and x["btn"] == "level yoy*p" and x["what"] == "1996 → today" and x["zero"] == 1 and x["label"] == "percent change from a year ago since 1996"):
                     diffs.append("%s is not drawn year over year: view %s code %s buttons %s zero lines %s" % (sid, x["view"], x["code"], x["btn"], x["zero"]))
                     continue
                 m = LINE.match(x["line"] or "")
@@ -392,6 +392,9 @@ def main():
             for d_ in diffs[:14]:
                 r.log("  differs: " + d_)
             ck(not diffs, "%d differences between the page and this op's figures: %s" % (len(diffs), "; ".join(diffs[:5])))
+            heads = page.evaluate("() => [...document.querySelectorAll('#macro-body .macro-item .macro-hist-head')].map(h => { const k = [...h.children].map(e => Math.round(e.getBoundingClientRect().top + e.getBoundingClientRect().height / 2)); return Math.max(...k) - Math.min(...k) })")
+            r.log("the head of every strip (range, the two buttons, the legend) stands on one line: %d of %d" % (sum(1 for h in heads if h <= 6), len(heads)))
+            ck(len(heads) == 222 and all(h <= 6 for h in heads), "the head of a strip wraps onto a second line on %d cards" % sum(1 for h in heads if h > 6))
             for sid in SAMPLE:
                 w, x = mine.get(sid), by.get(sid)
                 if not w or not x or w["code"] not in ("ok", "below"):

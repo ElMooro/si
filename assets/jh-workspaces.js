@@ -2475,8 +2475,6 @@ class MacroData {
       group.outerHTML = this.viewButtons(drawn, st, 'view');
       if (held) { const on = card.querySelector('.macro-hist-head .macro-view-btn.on'); if (on) on.focus({ preventScroll: true }); }
     }
-    const what = card.querySelector('.macro-hist-what');
-    if (what) what.textContent = drawn === 'yoy' ? '% from a year ago' : '1996 → today';
     const line = card.querySelector('.macro-hist-yoy');
     if (line) { line.innerHTML = this.yoyLine(st, want, scale); line.hidden = !line.innerHTML; }
     // the Y box counts from the same calendar date a year back; say which print that is, beside the one FRED takes
