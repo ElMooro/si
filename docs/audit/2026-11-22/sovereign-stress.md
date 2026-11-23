@@ -403,6 +403,47 @@ its tile, its chart and its row; the Lehman row of the windows table reads 1.246
 lists the three first under the same titles; nothing wider than a 390 px screen. Tests: page 44, desks 9, node suite
 5,168, deployment 1,233.
 
+### Year over year (Khalid, 20:07 ET): the price and foreign-official charts as percent change from a year ago
+
+> "make all the charts in : The price of the dollar and all charts Foreign official dollars at the Federal Reserve
+> year over year percentage change just like in fred website so i can see trend reversal"
+
+Pages only (commit 574fa62a, page script `?v=20261123a`) — no engine change, no engine run; the figures are worked out
+in the browser from the document's own observations.
+
+* **The formula is FRED's own.** FRED's help page gives "Percent Change from Year Ago" as
+  ((x(t) / x(t − n_obs_per_yr)) − 1) × 100, with 260 observations a year for a daily series (no values on weekends)
+  and 52 for a weekly one. On FRED's grid both are the same day of the week 52 weeks earlier, so `yoySeries()` looks
+  up the reading exactly 364 days before; a day whose year-ago day has no reading (a holiday) has no figure, as on
+  FRED. One figure anyone can compare on FRED: `DTWEXBGS`, units "Percent Change from Year Ago", 13 November 2026 =
+  (122.6503 / 120.9666 − 1) × 100 = +1.39%. FRED's own graph could not be opened from the build sandbox, so that
+  comparison was not made here.
+* **The two parts open that way**: DXY rebuilt, the broad / advanced / emerging dollar indexes, Treasuries in custody
+  and the foreign repo pool — each on a labelled zero line and shaded to it, the card reading the latest figure with
+  the level and the level a year before, the pointer reading the same for any day.
+* **Nothing is taken away**: a Level button beside "% change from a year ago" on each of the two parts brings the
+  levels back (kept in the browser, `prefs.units`); the range buttons work on either. The three ECB measures, the
+  table of every measure and the windows table are untouched.
+* **One line stays as it is**: the 13-week change in custody is itself a change and has stood below zero, so a
+  percentage of it would mean nothing (the same rule as the "C" lines of the Fed-outright desk). Its card says so.
+* **The larger chart** opens in the units of the chart it was opened from and offers both, for any line of the dollar
+  document that has always stood above zero (so the ECB's three can be read year over year there too; they open in
+  the level).
+
+What they read on 22 November 2026: DXY +4.1% from a year ago (above zero since 3 June 2026), broad dollar +1.4%
+(crossed above zero on 6 November 2026), advanced economies +3.3%, emerging markets −0.4% (below zero since 20 August
+2025); Treasuries in custody −7.1% (below zero since 26 March 2025; the lowest on record was −10.2% on 8 July 2026, so
+the fall has been narrowing since), the foreign repo pool −2.9%.
+
+Proof: real browser on the live site, ops 6915 (01:31 UTC 23 November, page script `?v=184ebb1c` as stamped), **0
+failed checks** — the proof recomputes every year-over-year figure from the document in Python: the six charts drew
+6,617 / 4,907 / 4,872 / 4,872 / 960 / 1,197 figures and their cards read +4.1%, +1.4%, +3.3%, −0.4%, −7.1%, −2.9%; the
+13-week change kept its 999 readings in $ bn; Level on the price part brought back 6,988 / 5,250 / 5,231 / 5,231
+readings and left the other part alone, and the first button restored them; the larger chart opened from the custody
+chart drew 960 year-over-year figures and 1,012 levels after Level; the three ECB tiles and charts are still first;
+nothing wider than a 390 px screen. Tests: page 46, node suite 5,170, deployment 1,233. Take-back of only this:
+`git checkout b27b740b -- sovereign-desk.html jh-sovereign-desk.js tests/sovereign-desk.test.js`.
+
 ### Taking the fifth round back
 
 Pages: `git checkout 79cc97b6 -- sovereign-desk.html jh-sovereign-desk.js chart-pro.html assets/jh-workspaces.js
