@@ -169,3 +169,170 @@ test('three buttons beside 13F open the three desks', () => {
     assert.ok(fs.existsSync(path.join(ROOT, page.slice(1))), page);
   }
 });
+
+// ── percent change from a year ago on every chart of the held outright desk (2026-11-23) ──
+// Khalid: "on all the charts on: Fed securities held outright you should also add the option to view the chart on year to year
+// percentage change. add it to every single chart".  Real weekly histories and the runner's own Python figures (ops 6928).
+const zlib = require('node:zlib');
+const yfx = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(ROOT, 'tests/fixtures/held-outright-yoy.json.gz'))).toString('utf8'));
+const YOY_MEMBERS = ['dayOf(', 'isoOf(', 'packHistory(', 'historyAt(', 'fmtHist(', 'yoyDesk(', 'viewOf(', 'yoyHistory(', 'yoyState(', 'yoyScale(', 'yoyAt(', 'fmtYoy(', 'fmtExact(', 'yoyLine(',
+  'viewButtons(', 'historySvg(', 'turnsCaption(', 'histSlot('];
+function yoyEngine(from) {
+  const tags = new Set(catalog('SOMA_CATALOG').flatMap(c => c.items.filter(i => i[3] === 'C').map(i => 'FRED:' + i[0])));
+  const src = 'const UI = { esc: s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;") };\nclass M {\n  static HISTORY_FROM = ' + JSON.stringify(from || '1996-01-01') + ';\n' +
+    '  static YOY_BACK = 364;\n  static YOY_FENCE = 3;\n  static desk = "soma";\n  static state = { categories: [] };\n  static isChangeSeries(symbol) { return tags.has(String(symbol)); }\n' +
+    [block(html, '  static DESKS = ')].concat(YOY_MEMBERS.map(member)).map(m => /;\s*$/.test(m) || m.trim().endsWith('}') ? m : m + ';').join('\n') + '\n}\nreturn M;';
+  return Function('tags', src)(tags);
+}
+const histOf = (M, id) => M.packHistory(obsOf(yfx.series[id]));
+const TURNS = [{ name: '2008 financial crisis', top: { date: '2007-10-09', value: 1, move: -0.57, until: '2009-03-09' }, bottom: { date: '2009-03-09', value: 1, move: 4, until: '2020-02-19' } },
+  { name: 'COVID', top: { date: '2020-02-19', value: 1, move: -0.34, until: '2020-03-23' }, bottom: { date: '2020-03-23', value: 1, move: 1.1, until: '2022-01-03' } }];
+
+test('year over year: only the held outright desk offers it, and a chart opens as Level', () => {
+  const desks = Function('return ' + block(html, '  static DESKS = ').replace('  static DESKS = ', ''))();
+  assert.deepEqual(Object.keys(desks).filter(k => desks[k].yoy), ['soma']);
+  const M = yoyEngine();
+  assert.equal(M.viewOf({}), 'level', 'nothing chosen');
+  M.state.chartView = 'yoy';
+  assert.equal(M.viewOf({}), 'yoy', 'the desk switch');
+  assert.equal(M.viewOf({ view: 'level' }), 'level', 'a chart keeps its own choice against the desk');
+  M.state.chartView = undefined;
+  assert.equal(M.viewOf({ view: 'yoy' }), 'yoy', 'a chart on its own');
+  M.desk = 'macro';
+  assert.equal(M.viewOf({ view: 'yoy' }), 'level', 'a desk without the option never draws it');
+  assert.equal(M.histSlot({}), '<div class="macro-hist" title="Click for the full-screen history"><div class="macro-hist-head"><span>1996 → today</span><span class="macro-hist-lg"><i class="t"></i>top<i class="b"></i>bottom</span></div><div class="macro-hist-svg"><span class="macro-hist-wait">history…</span></div><div class="macro-hist-cap"></div></div>', 'the other desks keep their strip as it was');
+  M.desk = 'soma';
+  const slot = M.histSlot({});
+  assert.ok(/data-view="level" aria-pressed="true"/.test(slot) && /data-view="yoy" aria-pressed="false"/.test(slot) && slot.includes('macro-hist-yoy'), 'both buttons on the strip, Level on');
+});
+
+test('year over year: every figure is the runner\'s own, by FRED\'s formula', () => {
+  const M = yoyEngine();
+  let checked = 0;
+  for (const [id, f] of Object.entries(yfx.facts)) {
+    if (!f.yoy_n || /change/.test(f.cls)) continue;
+    const st = M.yoyState({ symbol: 'FRED:' + id }, histOf(M, 'FRED:' + id)), y = st.y, k = y.t.length - 1, sc = M.yoyScale(y);
+    assert.ok(st.ok, id);
+    assert.equal(y.t.length, f.yoy_n, id + ' figures');
+    assert.equal(M.isoOf(y.t[k]), f.yoy_last[0], id + ' last day');
+    assert.ok(Math.abs(y.v[k] - f.yoy_last[1]) < 1e-9, id + ' last ' + y.v[k] + ' vs ' + f.yoy_last[1]);
+    assert.equal(y.level[k], f.yoy_last[2], id + ' level');
+    assert.equal(y.base[k], f.yoy_last[3], id + ' year-ago print');
+    assert.equal(y.t[k] - y.baseDay[k], 364, id + ' the same weekday 52 weeks earlier');
+    assert.ok(Math.abs(sc.min - f.yoy_min[1]) < 1e-9 && M.isoOf(sc.minDay) === f.yoy_min[0], id + ' low');
+    assert.ok(Math.abs(sc.max - f.yoy_max[1]) < 1e-6 * Math.max(1, Math.abs(sc.max)) && M.isoOf(sc.maxDay) === f.yoy_max[0], id + ' high');
+    let crossings = 0, last = null;
+    for (let i = 1; i < y.t.length; i++) if ((y.v[i] > 0) !== (y.v[i - 1] > 0)) { crossings++; last = M.isoOf(y.t[i]); }
+    assert.equal(crossings, f.crossings, id + ' crossings of zero');
+    assert.equal(last, f.last_cross, id + ' last crossing');
+    for (let i = 0; i < y.t.length; i++) assert.ok(y.base[i] !== 0 && Number.isFinite(y.v[i]), id + ' a figure off a zero print');
+    checked++;
+  }
+  assert.equal(checked, 7);
+  // a weekly line with zero prints: no figure there, and none invented
+  const mbs = M.yoyHistory(histOf(M, 'FRED:WSHOMCB'));
+  assert.equal(mbs.t.length, 880);
+  assert.ok(M.isoOf(mbs.t[0]) > '2009-01-01', 'no figure while the year-ago print was zero: first ' + M.isoOf(mbs.t[0]));
+});
+
+test('year over year: the year is the Federal Reserve\'s own', () => {
+  // the H.4.1 prints "change from a year ago" beside the level: the level less its print 364 days earlier has to be that line
+  const M = yoyEngine(), y = M.yoyHistory(histOf(M, 'FRED:WSHOSHO')), fed = new Map(yfx.series['FRED:RESPPALGXCH52NWW']);
+  let weeks = 0;
+  for (let i = 0; i < y.t.length; i++) {
+    const printed = fed.get(M.isoOf(y.t[i]));
+    assert.ok(printed !== undefined, M.isoOf(y.t[i]));
+    assert.ok(Math.abs((y.level[i] - y.base[i]) - printed) <= 1.5, M.isoOf(y.t[i]) + ': ' + (y.level[i] - y.base[i]) + ' vs the H.4.1 ' + printed);
+    weeks++;
+  }
+  assert.equal(weeks, 1197);
+});
+
+test('year over year: a change, a line across zero or one that ended before 1996 is not made a percentage; a line below zero says what a plus means', () => {
+  const M = yoyEngine();
+  const change = M.yoyState({ symbol: 'FRED:RESPPALGXCH52NWW' }, histOf(M, 'FRED:RESPPALGXCH52NWW'));
+  assert.deepEqual([change.ok, change.code], [false, 'change']);
+  const weekly = histOf(M, 'FRED:RESPPALGXCH1NWW');
+  const crosses = M.yoyState({ symbol: 'FRED:NOT_TAGGED' }, weekly);
+  assert.deepEqual([crosses.ok, crosses.code], [false, 'crosses'], 'the same prints without the tag are caught by their sign');
+  const ended = M.yoyState({ symbol: 'FRED:RAGSOCID' }, histOf(M, 'FRED:RAGSOCID'));
+  assert.deepEqual([ended.ok, ended.code], [false, 'none']);
+  const below = M.yoyState({ symbol: 'FRED:WUDSHO' }, histOf(M, 'FRED:WUDSHO')), k = below.y.t.length - 1;
+  assert.deepEqual([below.ok, below.code], [true, 'below']);
+  assert.ok(below.y.level[k] < below.y.base[k] && below.y.base[k] < 0 && below.y.v[k] > 0, 'FRED\'s formula as it stands: a discount that grew reads plus');
+  assert.match(M.yoyLine(below, 'yoy', M.yoyScale(below.y)), /below zero: by FRED's formula a plus means it grew in size/);
+  assert.equal(M.yoyLine(change, 'yoy', null), 'Drawn as it is: this line is itself a change, so a percentage of it would mislead.');
+  assert.equal(M.yoyLine(change, 'level', null), '', 'nothing said while Level is what was asked for');
+  assert.match(M.viewButtons('level', change, 'view'), /class="macro-view-btn off" data-view="yoy" aria-pressed="false" aria-disabled="true"/);
+});
+
+test('year over year: the first year of the strip has its year-ago prints', () => {
+  const M = yoyEngine('2010-01-01'), hist = histOf(M, 'FRED:WSHOSHO'), y = M.yoyHistory(hist);
+  assert.equal(M.isoOf(hist.t[0]), '2010-01-06');
+  assert.ok(hist.lead.length >= 52 && hist.lead.length <= 58 && M.isoOf(hist.lead[0][0]) >= '2008-11-27', 'only the 400 days before the strip are kept: ' + hist.lead.length);
+  assert.equal(M.isoOf(y.t[0]), '2010-01-06', 'the first print of the strip already has a figure');
+  assert.equal(M.isoOf(y.baseDay[0]), '2009-01-07');
+  assert.equal(y.t.length, hist.t.length);
+  const whole = yoyEngine(), all = whole.yoyHistory(histOf(whole, 'FRED:WSHOSHO')), at = all.t.indexOf(y.t[0]);
+  assert.ok(Math.abs(all.v[at] - y.v[0]) < 1e-12, 'the same figure as on the whole history');
+});
+
+test('year over year: the scale takes in every figure unless a few stand far outside the rest', () => {
+  const M = yoyEngine();
+  const scaleOf = id => { const y = M.yoyHistory(histOf(M, id)); return Object.assign(M.yoyScale(y), { last: y.v[y.v.length - 1] }); };
+  const tsy = scaleOf('FRED:WSHOTSL');
+  assert.deepEqual([tsy.cutLo, tsy.cutHi, tsy.lo, tsy.hi], [false, false, tsy.min, tsy.max], 'Treasuries: nothing left out');
+  const mbs = scaleOf('FRED:WSHOMCB');
+  assert.ok(mbs.cutHi && !mbs.cutLo && mbs.max > 17000 && mbs.hi < 200 && mbs.lo === mbs.min, 'mortgage-backed securities started from almost nothing: ' + JSON.stringify(mbs));
+  const bills = scaleOf('FRED:WSHOBL');
+  assert.ok(bills.cutHi && bills.max > 16e6 && bills.hi === bills.last && bills.lo === -100, 'bills: the latest figure is never left off the scale: ' + JSON.stringify(bills));
+  for (const id of Object.keys(yfx.series)) {
+    const y = M.yoyHistory(histOf(M, id));
+    if (!y || y.t.length < 2) continue;
+    const sc = M.yoyScale(y), last = y.v[y.v.length - 1];
+    assert.ok(sc.lo <= 0 && sc.hi >= 0 && sc.lo <= last && sc.hi >= last && sc.lo >= Math.min(sc.min, 0) && sc.hi <= Math.max(sc.max, 0), id + ' ' + JSON.stringify(sc));
+    assert.equal(sc.cutHi, sc.max > sc.hi, id);
+    assert.equal(sc.cutLo, sc.min < sc.lo, id);
+  }
+  const few = M.yoyScale({ t: Int32Array.from([1, 2, 3]), v: Float64Array.from([-72, 900000, -100]) });
+  assert.deepEqual([few.cutHi, few.lo, few.hi], [false, -100, 900000], 'too few figures to call any of them far out');
+});
+
+test('year over year: the strip has a zero line, breaks where figures are missing and marks an edge it stops at; Level is drawn as before', () => {
+  const M = yoyEngine();
+  const draw = (id, big) => { const y = M.yoyHistory(histOf(M, id)); return M.historySvg(y, TURNS, { w: big ? 1200 : 360, h: big ? 520 : 132, units: '%', big, yoy: M.yoyScale(y) }); };
+  const count = (s, needle) => s.split(needle).length - 1;
+  const total = draw('FRED:WSHOSHO', false);
+  assert.ok(total.includes('aria-label="percent change from a year ago since 1996"') && total.includes('data-yoy="1197"'));
+  assert.equal(count(total, 'class="macro-hist-zero"'), 1);
+  assert.equal(count(total, 'class="macro-hist-line"'), 1, 'an unbroken weekly line is one run');
+  assert.ok(total.includes('>0%</text>'));
+  const bills = draw('FRED:WSHOBL', false);
+  assert.ok(count(bills, 'class="macro-hist-line"') >= 3, 'bills were zero for years: the line breaks instead of bridging them');
+  assert.ok(bills.includes('data-cut="hi"') && count(bills, 'class="macro-hist-cut"') === 1);
+  const big = draw('FRED:WSHOMCB', true);
+  assert.ok(/off the scale along this edge · high \+17,092% in 2010-01/.test(big) && /now −9\.0%/.test(big), 'the big chart prints what the scale leaves out and the latest figure');
+  assert.ok(big.includes('percent change from a year ago · dotted grey'));
+  for (const svg of [total, bills, big]) assert.ok(!/NaN|undefined|Infinity/.test(svg));
+  const level = M.historySvg(histOf(M, 'FRED:WSHOSHO'), TURNS, { w: 360, h: 132, units: '$M' });
+  assert.ok(level.includes('aria-label="history since 1996"') && !/macro-hist-zero|data-yoy|macro-hist-cut/.test(level));
+  assert.equal(count(level, 'class="macro-hist-line"'), 1);
+  assert.equal(M.turnsCaption(M.yoyHistory(histOf(M, 'FRED:WSHOMCB')), TURNS, '%', true), '2008 ▲— · COVID ▲−14.1% ▼−14.6%', 'no figure borrowed from the far side of a gap');
+});
+
+test('year over year: how a figure is written', () => {
+  const M = yoyEngine();
+  assert.deepEqual([0.04, -0.04, 3.349, -7.07, 197, 999.96, 17091.9, 16302100, -100, NaN].map(v => M.fmtYoy(v)),
+    ['0.0%', '0.0%', '+3.3%', '−7.1%', '+197.0%', '+1000.0%', '+17,092%', '+16,302,100%', '−100.0%', '—']);
+  const st = M.yoyState({ symbol: 'FRED:WSHOSHO' }, histOf(M, 'FRED:WSHOSHO'));
+  assert.equal(M.yoyLine(st, 'yoy', M.yoyScale(st.y)), '<b>+3.3%</b> from a year ago · 2026-11-18: 6,472,944 against 6,263,192 on 2025-11-19 · off the scale: high +277.8% in 2010-01');
+  assert.equal(M.yoyLine(st, 'level', null), '');
+});
+
+test('year over year: the generated bundle and stylesheet carry it', () => {
+  for (const name of ['static yoyHistory(', 'static yoyScale(', 'static setAllViews(', 'static paintFocusChart(', 'data-allview']) assert.ok(bundle.includes(name), 'bundle lacks ' + name + ' (run scripts/build_workspaces.py)');
+  assert.equal(block(bundle, '  static yoyHistory('), block(html, '  static yoyHistory('), 'bundle is older than chart-pro.html');
+  assert.equal(block(bundle, '  static historySvg('), block(html, '  static historySvg('), 'bundle is older than chart-pro.html');
+  const css = read('assets/jh-workspaces.css');
+  for (const rule of ['.macro-view-btn.on', '.macro-viewbar', '.macro-hist-zero', '.macro-hist-cut', '.macro-focus-view']) assert.ok(css.includes(rule), 'stylesheet lacks ' + rule);
+});

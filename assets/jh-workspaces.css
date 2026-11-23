@@ -299,6 +299,30 @@ body[data-chart-theme="light"] .macro-hist-lg, body[data-chart-theme="light"] .m
 .macro-hist-label { font:700 12px var(--font-sans); fill:var(--fg-0); }
 .macro-hist-sub { font:9.5px var(--font-mono); fill:var(--fg-3); }
 .macro-hist-legend { font:10px var(--font-mono); fill:var(--fg-4); }
+/* percent change from a year ago: the two buttons on a chart, the desk's switch, the zero line (2026-11-23) */
+.macro-view { display:inline-flex; flex:none; border:1px solid var(--border); border-radius:5px; overflow:hidden; }
+.macro-view-btn { appearance:none; -webkit-appearance:none; background:transparent; border:0; border-right:1px solid var(--border); color:var(--fg-3); font:600 9px/1 var(--font-mono); padding:4px 6px; cursor:pointer; white-space:nowrap; }
+.macro-view-btn:last-child { border-right:0; }
+.macro-view-btn:hover { color:var(--fg-0); }
+.macro-view-btn.on { background:var(--amber); color:#14110a; }
+.macro-view-btn.off { opacity:.45; cursor:help; }
+.macro-view-btn:focus-visible { outline:2px solid var(--amber); outline-offset:-2px; }
+.macro-hist-head.has-view { align-items:center; flex-wrap:wrap; row-gap:4px; }
+.macro-hist-what { white-space:nowrap; }
+.macro-hist-yoy { margin-top:4px; font:9.5px/1.5 var(--font-mono); color:var(--fg-2); min-width:0; overflow-wrap:anywhere; }
+.macro-hist-yoy b { color:var(--fg-0); font-weight:700; }
+.macro-hist-zero { stroke:var(--fg-2); stroke-width:1; vector-effect:non-scaling-stroke; }
+.macro-hist-zerolabel { font:9px var(--font-mono); fill:var(--fg-2); }
+.macro-hist-cut { stroke:var(--amber); stroke-width:1.5; stroke-dasharray:4 3; vector-effect:non-scaling-stroke; }
+.macro-hist-cutlabel { font:10px var(--font-mono); fill:var(--amber); }
+.macro-hist-pt { fill:var(--fg-1); }
+.macro-viewbar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:10px 12px; margin:0 0 14px; border:1px solid var(--border); border-radius:8px; background:var(--bg-1); }
+.macro-viewbar-k { font:700 10px/1 var(--font-mono); color:var(--fg-3); letter-spacing:.06em; }
+.macro-viewbar .macro-view-btn, .macro-focus-view .macro-view-btn { font-size:11px; padding:9px 12px; }
+.macro-viewbar-note { flex:1 1 320px; min-width:0; font:10.5px/1.5 var(--font-mono); color:var(--fg-3); }
+.macro-focus-view { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:0 0 10px; }
+.macro-focus-yoy { flex:1 1 320px; min-width:0; font:11.5px/1.5 var(--font-mono); color:var(--fg-2); overflow-wrap:anywhere; }
+.macro-focus-yoy b { color:var(--fg-0); font-weight:700; }
 .macro-focus { position:fixed; inset:0; z-index:10070; display:none; flex-direction:column; background:var(--bg); color:var(--fg-1); }
 .macro-focus.open { display:flex; }
 .macro-focus-head { display:flex; align-items:flex-start; gap:14px; padding:14px 20px 10px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
@@ -442,6 +466,7 @@ body.macro-focus-open { overflow:hidden; }
   .macro-focus-latest .v { font-size:18px; }
   .macro-sr .sr-logo, .macro-sr .sr-meta { display:none; }
   .macro-add-all select { max-width:100%; flex:1; }
+  .macro-item .macro-view-btn { font-size:10px; padding:7px 9px; }
 }
 /* ═══ HEATMAP ═══ */
 .heatmap-modal {

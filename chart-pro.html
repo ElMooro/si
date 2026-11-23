@@ -1305,6 +1305,30 @@ body[data-chart-theme="light"] .macro-hist-lg, body[data-chart-theme="light"] .m
 .macro-hist-label { font:700 12px var(--font-sans); fill:var(--fg-0); }
 .macro-hist-sub { font:9.5px var(--font-mono); fill:var(--fg-3); }
 .macro-hist-legend { font:10px var(--font-mono); fill:var(--fg-4); }
+/* percent change from a year ago: the two buttons on a chart, the desk's switch, the zero line (2026-11-23) */
+.macro-view { display:inline-flex; flex:none; border:1px solid var(--border); border-radius:5px; overflow:hidden; }
+.macro-view-btn { appearance:none; -webkit-appearance:none; background:transparent; border:0; border-right:1px solid var(--border); color:var(--fg-3); font:600 9px/1 var(--font-mono); padding:4px 6px; cursor:pointer; white-space:nowrap; }
+.macro-view-btn:last-child { border-right:0; }
+.macro-view-btn:hover { color:var(--fg-0); }
+.macro-view-btn.on { background:var(--amber); color:#14110a; }
+.macro-view-btn.off { opacity:.45; cursor:help; }
+.macro-view-btn:focus-visible { outline:2px solid var(--amber); outline-offset:-2px; }
+.macro-hist-head.has-view { align-items:center; flex-wrap:wrap; row-gap:4px; }
+.macro-hist-what { white-space:nowrap; }
+.macro-hist-yoy { margin-top:4px; font:9.5px/1.5 var(--font-mono); color:var(--fg-2); min-width:0; overflow-wrap:anywhere; }
+.macro-hist-yoy b { color:var(--fg-0); font-weight:700; }
+.macro-hist-zero { stroke:var(--fg-2); stroke-width:1; vector-effect:non-scaling-stroke; }
+.macro-hist-zerolabel { font:9px var(--font-mono); fill:var(--fg-2); }
+.macro-hist-cut { stroke:var(--amber); stroke-width:1.5; stroke-dasharray:4 3; vector-effect:non-scaling-stroke; }
+.macro-hist-cutlabel { font:10px var(--font-mono); fill:var(--amber); }
+.macro-hist-pt { fill:var(--fg-1); }
+.macro-viewbar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:10px 12px; margin:0 0 14px; border:1px solid var(--border); border-radius:8px; background:var(--bg-1); }
+.macro-viewbar-k { font:700 10px/1 var(--font-mono); color:var(--fg-3); letter-spacing:.06em; }
+.macro-viewbar .macro-view-btn, .macro-focus-view .macro-view-btn { font-size:11px; padding:9px 12px; }
+.macro-viewbar-note { flex:1 1 320px; min-width:0; font:10.5px/1.5 var(--font-mono); color:var(--fg-3); }
+.macro-focus-view { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:0 0 10px; }
+.macro-focus-yoy { flex:1 1 320px; min-width:0; font:11.5px/1.5 var(--font-mono); color:var(--fg-2); overflow-wrap:anywhere; }
+.macro-focus-yoy b { color:var(--fg-0); font-weight:700; }
 .macro-focus { position:fixed; inset:0; z-index:10070; display:none; flex-direction:column; background:var(--bg); color:var(--fg-1); }
 .macro-focus.open { display:flex; }
 .macro-focus-head { display:flex; align-items:flex-start; gap:14px; padding:14px 20px 10px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
@@ -1446,6 +1470,7 @@ body.macro-focus-open { overflow:hidden; }
   .macro-focus-latest .v { font-size:18px; }
   .macro-sr .sr-logo, .macro-sr .sr-meta { display:none; }
   .macro-add-all select { max-width:100%; flex:1; }
+  .macro-item .macro-view-btn { font-size:10px; padding:7px 9px; }
 }
 
 .chart-toolbar {
@@ -6865,7 +6890,7 @@ class MacroData {
     macro: { key: "jh_macro_workspace_v2", catalog: "CATALOG", title: "📈 Macro & Economic Data", reset: "Restore the original curated macro catalog?" },
     flows: { key: "jh_flows_workspace_v1", catalog: "FLOWS_CATALOG", title: "⇄ Inflows & outflows", reset: "Restore the original inflows & outflows catalog?" },
     dollar: { key: "jh_dollar_workspace_v1", catalog: "DOLLAR_CATALOG", title: "💵 Dollar indexes", reset: "Restore the original dollar index catalog?" },
-    soma: { key: "jh_soma_workspace_v1", catalog: "SOMA_CATALOG", title: "🏛 Fed securities held outright", reset: "Restore the original securities held outright catalog?" },
+    soma: { key: "jh_soma_workspace_v1", catalog: "SOMA_CATALOG", title: "🏛 Fed securities held outright", reset: "Restore the original securities held outright catalog?", yoy: true },
     bofa: { key: "jh_bofa_workspace_v1", catalog: "BOFA_CATALOG", title: "📉 ICE BofA indices", reset: "Restore the original ICE BofA catalog?" },
   };
   static desk = "macro";
@@ -6982,6 +7007,7 @@ class MacroData {
       version: 2,
       catalogRev: rev === this.CATALOG_REV ? this.CATALOG_REV : undefined,
       offered,
+      chartView: this.state && this.state.chartView === 'yoy' ? 'yoy' : undefined,   // how every chart of the desk is drawn; absent = level
       categories: cats.map((cat, ci) => ({
         id: String(cat.id || `category-${Date.now()}-${ci}`),
         cat: String(cat.cat || 'Untitled category'),
@@ -6994,6 +7020,7 @@ class MacroData {
           kind: String(item.kind || 'series'),
           provider: String(item.provider || String(item.symbol || '').split(':')[0] || 'data'),
           note: String(item.note || '').slice(0, 400),
+          view: item.view === 'yoy' || item.view === 'level' ? item.view : undefined,   // this chart's own choice; absent = as the desk
           danger: {
             type: String((item.danger || {}).type || 'none'),
             threshold: Number.isFinite(Number((item.danger || {}).threshold)) ? Number(item.danger.threshold) : null,
@@ -7060,7 +7087,7 @@ class MacroData {
           <div class="macro-changes">
             ${['D','W','M','Q','Y'].map(h => `<span class="macro-change na" data-horizon="${h}"><b>${h}</b>—</span>`).join('')}
           </div>
-          ${this.histSlot()}
+          ${this.histSlot(it)}
           <span class="macro-item-tools">
             <button class="macro-icon-btn" type="button" data-macro-action="compare-series" aria-label="Compare ${UI.esc(it.title)} on chart" title="Add to chart comparison">⇄</button>
             <button class="macro-drag-handle" type="button" draggable="true"
@@ -7090,7 +7117,7 @@ class MacroData {
         <div class="macro-grid" data-category-id="${UI.esc(cat.id)}">${items}</div>
       </div>`;
     }).join('') || `<div class="macro-empty-cat">No categories yet. Select + CATEGORY to create your first monitoring group.</div>`;
-    body.innerHTML = (this.desk === 'flows' ? this.sheetShell() : '') + html;
+    body.innerHTML = (this.desk === 'flows' ? this.sheetShell() : '') + (this.yoyDesk() ? this.viewBar() : '') + html;
     body.querySelectorAll('.macro-item').forEach(el => {
       el.addEventListener('click', e => {
         if (e.target.closest('button, .macro-note, textarea')) return;
@@ -7119,6 +7146,8 @@ class MacroData {
       if (action === 'remove-category') this.removeCategory(categoryId);
     }));
     this.wireNotes(body);
+    this.wireViews(body);
+    if (this.yoyDesk()) this.paintViewBar();
     this.wireFocus();
     this.wireReordering(body);
     this.hydrateMetrics();
@@ -7958,6 +7987,7 @@ class MacroData {
   static turnsPromise = null;
   static focusItem = null;
   static focusTrigger = null;
+  static focusCtx = null;
 
   static dayOf(date) { return Math.floor(Date.parse(String(date).slice(0, 10) + 'T00:00:00Z') / 86400000); }
   static isoOf(day) { return new Date(day * 86400000).toISOString().slice(0, 10); }
@@ -7966,7 +7996,10 @@ class MacroData {
     const rows = observations.filter(o => o.date >= this.HISTORY_FROM && Number.isFinite(o.value));
     const t = new Int32Array(rows.length), v = new Float64Array(rows.length);
     rows.forEach((o, i) => { t[i] = this.dayOf(o.date); v[i] = o.value; });
-    return { t, v };
+    // the prints of the 400 days before the strip begins: drawn nowhere, kept so the first year of the strip has its year-ago prints
+    const leadFrom = this.isoOf(this.dayOf(this.HISTORY_FROM) - 400);
+    const lead = observations.filter(o => o.date < this.HISTORY_FROM && o.date >= leadFrom && Number.isFinite(o.value)).map(o => [this.dayOf(o.date), o.value]);
+    return { t, v, lead };
   }
 
   static packBars(bars) {
@@ -7987,6 +8020,182 @@ class MacroData {
       if (hist.t[mid] <= day) lo = mid; else hi = mid - 1;
     }
     return { day: hist.t[lo], value: hist.v[lo] };
+  }
+
+  /* ── percent change from a year ago (2026-11-23) ──
+     Khalid: "on all the charts on: Fed securities held outright you should also add the option to view the chart on year to
+     year percentage change. add it to every single chart".  A desk whose DESKS entry carries yoy: true gets two buttons on
+     every chart - Level (as before, and still what a chart opens as) and YoY % - one switch for the whole desk, and the same
+     two buttons in the full-screen view.  The figure is FRED's "Percent Change from Year Ago", ((x(t) / x(t - a year)) - 1)
+     * 100, with FRED's year: 52 prints back for a weekly line and 260 for a daily one - the same weekday 364 days earlier -
+     and the same month a year earlier for a monthly, quarterly or annual one.  The H.4.1's own "change from a year ago"
+     lines equal the level less its print 364 days earlier on every week checked (ops 6928).  No figure where the year-ago
+     print is missing or zero.  A line that is itself a change, or that crosses zero, is not drawn as a percentage: its card
+     says so.  A line below zero throughout follows FRED's formula as it stands: a plus means it grew in size.
+     The scale takes in every figure unless a few stand far outside the rest (a line that started from almost nothing reads
+     millions of percent for a year): then it stops at the far-out fence - three interquartile ranges beyond the quartiles -
+     the line runs along the edge there, and the card prints the true high or low. */
+  static YOY_BACK = 364;
+  static YOY_FENCE = 3;
+
+  static yoyDesk() { return !!(this.DESKS[this.desk] && this.DESKS[this.desk].yoy); }
+  static viewOf(item) {
+    if (!this.yoyDesk()) return 'level';
+    if (item && (item.view === 'yoy' || item.view === 'level')) return item.view;
+    return this.state && this.state.chartView === 'yoy' ? 'yoy' : 'level';
+  }
+
+  static yoyHistory(hist) {
+    if (!hist || !hist.t || !hist.t.length) return null;
+    if (hist.yoy) return hist.yoy;
+    const n = hist.t.length, gaps = [];
+    for (let i = Math.max(1, n - 60); i < n; i++) gaps.push(hist.t[i] - hist.t[i - 1]);
+    gaps.sort((a, b) => a - b);
+    const gap = gaps.length ? gaps[gaps.length >> 1] : 0, byMonth = gap >= 20;
+    const key = byMonth ? day => { const d = new Date(day * 86400000); return d.getUTCFullYear() * 12 + d.getUTCMonth(); } : day => day;
+    const back = byMonth ? 12 : this.YOY_BACK, at = new Map();
+    (hist.lead || []).forEach(row => at.set(key(row[0]), row));
+    let above = 0, below = 0;
+    for (let i = 0; i < n; i++) {
+      at.set(key(hist.t[i]), [hist.t[i], hist.v[i]]);
+      if (hist.v[i] > 0) above++; else if (hist.v[i] < 0) below++;
+    }
+    const t = [], v = [], level = [], base = [], baseDay = [];
+    for (let i = 0; i < n; i++) {
+      const was = at.get(key(hist.t[i]) - back);
+      if (!was || !Number.isFinite(was[1]) || was[1] === 0) continue;
+      t.push(hist.t[i]); v.push((hist.v[i] / was[1] - 1) * 100); level.push(hist.v[i]); base.push(was[1]); baseDay.push(was[0]);
+    }
+    hist.yoy = { t: Int32Array.from(t), v: Float64Array.from(v), level, base, baseDay, gap, crosses: above > 0 && below > 0, below: below > 0 && above === 0 };
+    return hist.yoy;
+  }
+
+  static yoyState(item, hist) {
+    if (item && this.isChangeSeries(item.symbol)) return { ok: false, code: 'change', why: 'this line is itself a change, so a percentage of it would mislead' };
+    const y = this.yoyHistory(hist);
+    if (!y) return { ok: false, code: 'none', why: 'there are no prints on this strip' };
+    if (y.crosses) return { ok: false, code: 'crosses', why: 'this line crosses zero, so a percentage of it would mislead' };
+    if (y.t.length < 2) return { ok: false, code: 'short', why: 'no print has a year-ago print other than zero yet' };
+    return { ok: true, code: y.below ? 'below' : 'ok', why: y.below ? 'this line is below zero: by FRED\'s formula a plus means it grew in size' : '', y };
+  }
+
+  static yoyScale(y) {
+    const n = y.v.length, last = y.v[n - 1];
+    let min = Infinity, max = -Infinity, iMin = 0, iMax = 0;
+    for (let i = 0; i < n; i++) { if (y.v[i] < min) { min = y.v[i]; iMin = i; } if (y.v[i] > max) { max = y.v[i]; iMax = i; } }
+    let lo = min, hi = max;
+    if (n >= 12) {
+      const s = Float64Array.from(y.v).sort();
+      const q = p => { const k = (n - 1) * p, a = Math.floor(k), b = Math.min(a + 1, n - 1); return s[a] + (s[b] - s[a]) * (k - a); };
+      let q1 = q(0.25), q3 = q(0.75);
+      if (!(q3 > q1)) { q1 = q(0.1); q3 = q(0.9); }
+      if (q3 > q1) {
+        const fLo = q1 - this.YOY_FENCE * (q3 - q1), fHi = q3 + this.YOY_FENCE * (q3 - q1), span = fHi - fLo;
+        if (max > fHi + span) hi = fHi;
+        if (min < fLo - span) lo = fLo;
+      }
+    }
+    lo = Math.min(lo, 0, last); hi = Math.max(hi, 0, last);
+    return { lo, hi, min, max, minDay: y.t[iMin], maxDay: y.t[iMax], cutLo: min < lo, cutHi: max > hi };
+  }
+
+  static yoyAt(y, day) {
+    // the figure on that day, or on the print just before it - never one from the far side of a gap
+    const hit = this.historyAt(y, day);
+    return hit && day - hit.day <= Math.max(10, y.gap * 1.5) ? hit : null;
+  }
+
+  static fmtYoy(value) {
+    if (!Number.isFinite(value)) return '—';
+    const abs = Math.abs(value), s = abs >= 1000 ? Math.round(abs).toLocaleString('en-US') : abs.toFixed(1);
+    return (/^0\.0$/.test(s) ? '' : value > 0 ? '+' : '−') + s + '%';
+  }
+
+  static fmtExact(value) { return Number.isFinite(value) ? value.toLocaleString('en-US', { maximumFractionDigits: 3 }).replace(/^-/, '−') : '—'; }
+
+  /* the sentence under a chart drawn year over year: the figure, its two prints, and anything the scale leaves out */
+  static yoyLine(st, want, scale) {
+    if (!st || want !== 'yoy') return '';
+    if (!st.ok) return 'Drawn as it is: ' + UI.esc(st.why) + '.';
+    const y = st.y, k = y.t.length - 1;
+    return '<b>' + this.fmtYoy(y.v[k]) + '</b> from a year ago · ' + this.isoOf(y.t[k]) + ': ' + this.fmtExact(y.level[k]) + ' against ' + this.fmtExact(y.base[k]) + ' on ' + this.isoOf(y.baseDay[k]) +
+      (scale && scale.cutHi ? ' · off the scale: high ' + this.fmtYoy(scale.max) + ' in ' + this.isoOf(scale.maxDay).slice(0, 7) : '') +
+      (scale && scale.cutLo ? ' · off the scale: low ' + this.fmtYoy(scale.min) + ' in ' + this.isoOf(scale.minDay).slice(0, 7) : '') +
+      (st.code === 'below' ? ' · ' + UI.esc(st.why) : '');
+  }
+
+  static viewButtons(drawn, st, attr) {
+    const off = st && !st.ok;
+    const b = (k, text, title, dim) => '<button type="button" class="macro-view-btn' + (drawn === k ? ' on' : '') + (dim ? ' off' : '') + '" data-' + attr + '="' + k + '" aria-pressed="' + (drawn === k) + '"' + (dim ? ' aria-disabled="true"' : '') + ' title="' + UI.esc(title) + '">' + text + '</button>';
+    return '<span class="macro-view" role="group" aria-label="How this chart is drawn">' + b('level', 'Level', 'The line as it is printed') +
+      b('yoy', 'YoY %', off ? 'Not drawn as a percentage: ' + st.why : 'Percent change from a year ago, FRED\'s formula: against the print 52 weeks earlier', off) + '</span>';
+  }
+
+  static viewBar() {
+    const v = this.state && this.state.chartView === 'yoy' ? 'yoy' : 'level';
+    const b = (k, text, title) => '<button type="button" class="macro-view-btn' + (v === k ? ' on' : '') + '" data-allview="' + k + '" aria-pressed="' + (v === k) + '" title="' + title + '">' + text + '</button>';
+    return '<div class="macro-viewbar" id="macro-viewbar"><span class="macro-viewbar-k">ALL CHARTS</span><span class="macro-view" role="group" aria-label="How every chart on this desk is drawn">' +
+      b('level', 'Level', 'Every chart as its line is printed') + b('yoy', '% change from a year ago', 'Every chart as percent change from a year ago') + '</span>' +
+      '<span class="macro-viewbar-note">Percent change from a year ago is FRED\'s formula: this week against the same week a year earlier, 52 weeks back. Every chart also has its own Level / YoY % buttons. ' +
+      'The Y box on a card counts from the same calendar date instead, which for a weekly line is 53 weeks back, so the two can differ a little.<span id="macro-viewbar-own"></span></span></div>';
+  }
+
+  static paintViewBar() {
+    const bar = document.getElementById('macro-viewbar');
+    if (!bar) return;
+    const v = this.state && this.state.chartView === 'yoy' ? 'yoy' : 'level';
+    bar.querySelectorAll('[data-allview]').forEach(btn => { const on = btn.dataset.allview === v; btn.classList.toggle('on', on); btn.setAttribute('aria-pressed', String(on)); });
+    const own = this.state.categories.reduce((n, cat) => n + cat.items.filter(it => it.view === 'yoy' || it.view === 'level').length, 0);
+    const node = document.getElementById('macro-viewbar-own');
+    if (node) node.textContent = own ? ' ' + own + (own === 1 ? ' chart is' : ' charts are') + ' set on ' + (own === 1 ? 'its' : 'their') + ' own; either button here sets every chart again.' : '';
+  }
+
+  static wireViews(body) {
+    // one delegated listener, as for the notes: the head of a strip is painted again whenever its view changes
+    if (!body || body.__viewsWired) return;
+    body.__viewsWired = true;
+    body.addEventListener('click', e => {
+      const all = e.target.closest('.macro-view-btn[data-allview]'), one = e.target.closest('.macro-view-btn[data-view]');
+      if (!all && !one) return;
+      e.preventDefault(); e.stopPropagation();
+      if (all) { this.setAllViews(all.dataset.allview); return; }
+      const card = one.closest('.macro-item');
+      if (card) this.setView(card.dataset.seriesId, card.dataset.categoryId, one.dataset.view);
+    });
+  }
+
+  static setView(uid, categoryId, view) {
+    const found = this.findSeries(uid, categoryId);
+    if (!found || !this.yoyDesk() || (view !== 'yoy' && view !== 'level')) return;
+    const metric = this.metricCache.get(found.item.symbol);
+    if (view === 'yoy' && metric && metric.hist) {
+      const st = this.yoyState(found.item, metric.hist);
+      if (!st.ok) { jhToast('Drawn as it is: ' + st.why); return; }
+    }
+    const desk = this.state.chartView === 'yoy' ? 'yoy' : 'level';
+    found.item.view = view === desk ? undefined : view;     // back on the desk's setting = no choice of its own
+    this.save();
+    document.querySelectorAll('#macro-body .macro-item[data-series-id="' + found.item.uid + '"]').forEach(card => this.repaintStrip(card));
+    if (this.focusItem && this.focusItem.uid === found.item.uid) this.paintFocusChart();
+    this.paintViewBar();
+  }
+
+  static setAllViews(view) {
+    if (!this.yoyDesk() || (view !== 'yoy' && view !== 'level')) return;
+    this.state.chartView = view === 'yoy' ? 'yoy' : undefined;
+    this.state.categories.forEach(cat => cat.items.forEach(item => { item.view = undefined; }));
+    this.save();
+    document.querySelectorAll('#macro-body .macro-item[data-symbol]').forEach(card => this.repaintStrip(card));
+    if (this.focusItem) this.paintFocusChart();
+    this.paintViewBar();
+  }
+
+  static repaintStrip(card) {
+    const metric = this.metricCache.get(card.dataset.symbol);
+    if (card.dataset.metricState === 'ready' && metric) { this.paintStrip(card, metric); return; }
+    // not read yet: only the buttons move now, the strip follows when the history of the card arrives
+    const found = this.findSeries(card.dataset.seriesId, card.dataset.categoryId), want = found ? this.viewOf(found.item) : 'level';
+    card.querySelectorAll('.macro-view-btn[data-view]').forEach(btn => { const on = btn.dataset.view === want; btn.classList.toggle('on', on); btn.setAttribute('aria-pressed', String(on)); });
   }
 
   static marketTurns(closes) {
@@ -8061,30 +8270,35 @@ class MacroData {
   }
 
   static historySvg(hist, turns, opts) {
-    // opts: {w, h, units, big, spx}
-    const w = opts.w, h = opts.h, big = !!opts.big;
+    // opts: {w, h, units, big, spx, yoy}.  With opts.yoy (the scale from yoyScale) `hist` is the percent change from a year ago.
+    const w = opts.w, h = opts.h, big = !!opts.big, yoy = opts.yoy || null;
+    const F = yoy ? value => this.fmtYoy(value) : value => this.fmtHist(value, opts.units);
+    const AT = yoy ? day => this.yoyAt(hist, day) : day => this.historyAt(hist, day);
     const x0 = big ? 58 : 8, x1 = w - (big ? 16 : 8), y0 = big ? 64 : 10, y1 = h - (big ? 46 : 20);
     const t0 = this.dayOf(this.HISTORY_FROM);
     const today = Math.floor(Date.now() / 86400000);
     const t1 = Math.max(hist && hist.t.length ? hist.t[hist.t.length - 1] : today, today - 30);
     const X = day => x0 + (day - t0) / (t1 - t0) * (x1 - x0);
-    const parts = ['<svg class="macro-hist-chart' + (big ? ' big' : '') + '" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" role="img" aria-label="history since 1996">'];
+    const parts = ['<svg class="macro-hist-chart' + (big ? ' big' : '') + '" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" role="img" aria-label="' + (yoy ? 'percent change from a year ago since 1996' : 'history since 1996') + '"' + (yoy ? ' data-yoy="' + hist.t.length + '" data-lo="' + yoy.lo + '" data-hi="' + yoy.hi + '" data-cut="' + (yoy.cutLo ? 'lo' : '') + (yoy.cutHi ? 'hi' : '') + '"' : '') + '>'];
     if (!hist || hist.t.length < 2) {
       parts.push('<text x="' + (w / 2) + '" y="' + (h / 2) + '" class="macro-hist-empty" text-anchor="middle">' + (opts.ended ? 'ended ' + UI.esc(opts.ended) + ' · before this strip begins' : 'no history before today') + '</text></svg>');
       return parts.join('');
     }
     let vmin = Infinity, vmax = -Infinity;
     for (let i = 0; i < hist.v.length; i++) { if (hist.v[i] < vmin) vmin = hist.v[i]; if (hist.v[i] > vmax) vmax = hist.v[i]; }
+    if (yoy) { vmin = yoy.lo; vmax = yoy.hi; }
     if (vmax === vmin) vmax = vmin + 1;
     const pad = (vmax - vmin) * 0.06;
     vmin -= pad; vmax += pad;
-    const Y = value => y1 - (value - vmin) / (vmax - vmin) * (y1 - y0);
+    const Y = value => y1 - (Math.min(vmax, Math.max(vmin, value)) - vmin) / (vmax - vmin) * (y1 - y0);   // a figure off the scale runs along the edge
+    const yz = yoy ? Y(0) : null;
     // grid + axis (big view only)
     if (big) {
       for (let k = 0; k < 5; k++) {
         const value = vmin + (vmax - vmin) * k / 4, yy = Y(value).toFixed(1);
         parts.push('<line x1="' + x0 + '" x2="' + x1 + '" y1="' + yy + '" y2="' + yy + '" class="macro-hist-grid"/>');
-        parts.push('<text x="' + (x0 - 8) + '" y="' + (Number(yy) + 3.5).toFixed(1) + '" class="macro-hist-axis" text-anchor="end">' + this.fmtHist(value, opts.units) + '</text>');
+        if (yoy && Math.abs(Number(yy) - yz) < 13) continue;       // the 0% label stands here
+        parts.push('<text x="' + (x0 - 8) + '" y="' + (Number(yy) + 3.5).toFixed(1) + '" class="macro-hist-axis" text-anchor="end">' + F(value) + '</text>');
       }
       if (opts.spx && opts.spx.t.length > 1) {
         let smin = Infinity, smax = -Infinity;
@@ -8110,25 +8324,49 @@ class MacroData {
         parts.push('<line x1="' + xb.toFixed(1) + '" x2="' + xb.toFixed(1) + '" y1="' + (y0 + (big ? 2 : -6)) + '" y2="' + (y1 + 2) + '" class="macro-hist-bottom' + (ep.bottom.provisional ? ' provisional' : '') + '"><title>' + botTitle + '</title></line>');
       }
       if (big) {
-        const vt = this.historyAt(hist, this.dayOf(ep.top.date)), vb = ep.bottom ? this.historyAt(hist, this.dayOf(ep.bottom.date)) : null;
-        if (vt) parts.push('<circle cx="' + xt.toFixed(1) + '" cy="' + Y(vt.value).toFixed(1) + '" r="5" class="macro-hist-dot top"><title>' + UI.esc('at the ' + ep.name + ' top (' + ep.top.date + '): ' + this.fmtHist(vt.value, opts.units)) + '</title></circle>');
-        if (vb) parts.push('<circle cx="' + xb.toFixed(1) + '" cy="' + Y(vb.value).toFixed(1) + '" r="5" class="macro-hist-dot bottom"><title>' + UI.esc('at the ' + ep.name + ' bottom (' + ep.bottom.date + '): ' + this.fmtHist(vb.value, opts.units)) + '</title></circle>');
+        const vt = AT(this.dayOf(ep.top.date)), vb = ep.bottom ? AT(this.dayOf(ep.bottom.date)) : null;
+        if (vt) parts.push('<circle cx="' + xt.toFixed(1) + '" cy="' + Y(vt.value).toFixed(1) + '" r="5" class="macro-hist-dot top"><title>' + UI.esc('at the ' + ep.name + ' top (' + ep.top.date + '): ' + F(vt.value)) + '</title></circle>');
+        if (vb) parts.push('<circle cx="' + xb.toFixed(1) + '" cy="' + Y(vb.value).toFixed(1) + '" r="5" class="macro-hist-dot bottom"><title>' + UI.esc('at the ' + ep.name + ' bottom (' + ep.bottom.date + '): ' + F(vb.value)) + '</title></circle>');
         const cx = (xt + xb) / 2, ly = n % 2 === 0 ? y0 - 42 : y0 - 16;
         const anchor = cx < 90 ? 'start' : cx > x1 - 90 ? 'end' : 'middle';
         parts.push('<text x="' + cx.toFixed(1) + '" y="' + ly + '" class="macro-hist-label" text-anchor="' + anchor + '">' + UI.esc(ep.name) + '</text>');
-        parts.push('<text x="' + cx.toFixed(1) + '" y="' + (ly + 12) + '" class="macro-hist-sub" text-anchor="' + anchor + '">' + UI.esc('top ' + ep.top.date.slice(0, 7) + ' ' + (vt ? this.fmtHist(vt.value, opts.units) : '') + ' → bottom ' + (ep.bottom ? ep.bottom.date.slice(0, 7) + ' ' + (vb ? this.fmtHist(vb.value, opts.units) : '') : '…') + ' · S&P ' + (ep.top.move * 100).toFixed(0) + '%') + '</text>');
+        parts.push('<text x="' + cx.toFixed(1) + '" y="' + (ly + 12) + '" class="macro-hist-sub" text-anchor="' + anchor + '">' + UI.esc('top ' + ep.top.date.slice(0, 7) + ' ' + (vt ? F(vt.value) : '') + ' → bottom ' + (ep.bottom ? ep.bottom.date.slice(0, 7) + ' ' + (vb ? F(vb.value) : '') : '…') + ' · S&P ' + (ep.top.move * 100).toFixed(0) + '%') + '</text>');
       }
     });
     // the series
     const stride = Math.max(1, Math.floor(hist.t.length / (big ? 2400 : 720)));
-    const pts = [];
-    for (let i = 0; i < hist.t.length; i += stride) pts.push(X(hist.t[i]).toFixed(1) + ',' + Y(hist.v[i]).toFixed(1));
     const lastX = X(hist.t[hist.t.length - 1]).toFixed(1), lastY = Y(hist.v[hist.v.length - 1]).toFixed(1);
-    if (pts[pts.length - 1] !== lastX + ',' + lastY) pts.push(lastX + ',' + lastY);
-    parts.push('<polygon points="' + pts.join(' ') + ' ' + lastX + ',' + y1 + ' ' + pts[0].split(',')[0] + ',' + y1 + '" class="macro-hist-area"/>');
-    parts.push('<polyline points="' + pts.join(' ') + '" class="macro-hist-line"/>');
+    if (yoy) {
+      // the zero line, then one run of the line for every unbroken stretch of figures, each shaded to zero
+      const zy = yz.toFixed(1), far = Math.max(10, (hist.gap || 7) * 2.5), runs = [];
+      parts.push('<line x1="' + x0 + '" x2="' + x1 + '" y1="' + zy + '" y2="' + zy + '" class="macro-hist-zero"/>');
+      parts.push('<text x="' + (big ? x0 - 8 : x0 + 3) + '" y="' + (yz + (big ? 3.5 : yz - y0 > 14 ? -3 : 10)).toFixed(1) + '" class="macro-hist-zerolabel" text-anchor="' + (big ? 'end' : 'start') + '">0%</text>');
+      for (let i = 0; i < hist.t.length; i++) {
+        if (!runs.length || hist.t[i] - hist.t[i - 1] > far) runs.push([]);
+        runs[runs.length - 1].push(i);
+      }
+      runs.forEach(run => {
+        const pts = [];
+        for (let k = 0; k < run.length; k += stride) pts.push(X(hist.t[run[k]]).toFixed(1) + ',' + Y(hist.v[run[k]]).toFixed(1));
+        const end = X(hist.t[run[run.length - 1]]).toFixed(1) + ',' + Y(hist.v[run[run.length - 1]]).toFixed(1);
+        if (pts[pts.length - 1] !== end) pts.push(end);
+        if (pts.length < 2) { parts.push('<circle cx="' + end.split(',')[0] + '" cy="' + end.split(',')[1] + '" r="' + (big ? 2.2 : 1.6) + '" class="macro-hist-pt"/>'); return; }
+        parts.push('<polygon points="' + pts.join(' ') + ' ' + end.split(',')[0] + ',' + zy + ' ' + pts[0].split(',')[0] + ',' + zy + '" class="macro-hist-area"/>');
+        parts.push('<polyline points="' + pts.join(' ') + '" class="macro-hist-line"/>');
+      });
+      if (yoy.cutHi) parts.push('<line x1="' + x0 + '" x2="' + x1 + '" y1="' + (y0 + 0.8) + '" y2="' + (y0 + 0.8) + '" class="macro-hist-cut"/>');
+      if (yoy.cutLo) parts.push('<line x1="' + x0 + '" x2="' + x1 + '" y1="' + (y1 - 0.8) + '" y2="' + (y1 - 0.8) + '" class="macro-hist-cut"/>');
+      if (big && yoy.cutHi) parts.push('<text x="' + (x0 + 6) + '" y="' + (y0 + 14) + '" class="macro-hist-cutlabel">off the scale along this edge · high ' + F(yoy.max) + ' in ' + this.isoOf(yoy.maxDay).slice(0, 7) + '</text>');
+      if (big && yoy.cutLo) parts.push('<text x="' + (x0 + 6) + '" y="' + (y1 - 6) + '" class="macro-hist-cutlabel">off the scale along this edge · low ' + F(yoy.min) + ' in ' + this.isoOf(yoy.minDay).slice(0, 7) + '</text>');
+    } else {
+      const pts = [];
+      for (let i = 0; i < hist.t.length; i += stride) pts.push(X(hist.t[i]).toFixed(1) + ',' + Y(hist.v[i]).toFixed(1));
+      if (pts[pts.length - 1] !== lastX + ',' + lastY) pts.push(lastX + ',' + lastY);
+      parts.push('<polygon points="' + pts.join(' ') + ' ' + lastX + ',' + y1 + ' ' + pts[0].split(',')[0] + ',' + y1 + '" class="macro-hist-area"/>');
+      parts.push('<polyline points="' + pts.join(' ') + '" class="macro-hist-line"/>');
+    }
     parts.push('<circle cx="' + lastX + '" cy="' + lastY + '" r="' + (big ? 4.5 : 3.4) + '" class="macro-hist-now"/>');
-    if (big) parts.push('<text x="' + (Number(lastX) - 9).toFixed(1) + '" y="' + (Number(lastY) - 9).toFixed(1) + '" class="macro-hist-nowlabel" text-anchor="end">now ' + this.fmtHist(hist.v[hist.v.length - 1], opts.units) + '</text>');
+    if (big) parts.push('<text x="' + (Number(lastX) - 9).toFixed(1) + '" y="' + (Number(lastY) - 9).toFixed(1) + '" class="macro-hist-nowlabel" text-anchor="end">now ' + F(hist.v[hist.v.length - 1]) + '</text>');
     // year ticks
     const firstYear = 1996, lastYear = new Date(t1 * 86400000).getUTCFullYear();
     for (let yr = firstYear; yr <= lastYear; yr += big ? 2 : 4) {
@@ -8136,17 +8374,18 @@ class MacroData {
       if (day < t0 || day > t1) continue;
       parts.push('<text x="' + X(day).toFixed(1) + '" y="' + (h - (big ? 26 : 6)) + '" class="macro-hist-year" text-anchor="' + (yr === firstYear ? 'start' : 'middle') + '">' + yr + '</text>');
     }
-    if (big) parts.push('<text x="' + x0 + '" y="' + (h - 8) + '" class="macro-hist-legend">dotted grey = S&amp;P 500 (log, reference) · green = market top · red = market bottom · tint = the bear market · dots = this series on those days</text>');
+    if (big) parts.push('<text x="' + x0 + '" y="' + (h - 8) + '" class="macro-hist-legend">' + (yoy ? 'percent change from a year ago · ' : '') + 'dotted grey = S&amp;P 500 (log, reference) · green = market top · red = market bottom · tint = the bear market · dots = this series on those days</text>');
     parts.push('</svg>');
     return parts.join('');
   }
 
-  static turnsCaption(hist, turns, units) {
+  static turnsCaption(hist, turns, units, yoy) {
     if (!hist || !turns || !turns.length) return '';
+    const at = yoy ? day => this.yoyAt(hist, day) : day => this.historyAt(hist, day), f = yoy ? value => this.fmtYoy(value) : value => this.fmtHist(value, units);
     return turns.map(ep => {
-      const vt = this.historyAt(hist, this.dayOf(ep.top.date)), vb = ep.bottom ? this.historyAt(hist, this.dayOf(ep.bottom.date)) : null;
+      const vt = at(this.dayOf(ep.top.date)), vb = ep.bottom ? at(this.dayOf(ep.bottom.date)) : null;
       const short = { 'Dotcom': 'Dotcom', '2008 financial crisis': '2008', 'COVID': 'COVID', '2022 bear': '2022' }[ep.name] || ep.name;
-      return short + ' ▲' + (vt ? this.fmtHist(vt.value, units) : '—') + (vb ? ' ▼' + this.fmtHist(vb.value, units) : '');
+      return short + ' ▲' + (vt ? f(vt.value) : '—') + (vb ? ' ▼' + f(vb.value) : '');
     }).join(' · ');
   }
 
@@ -8160,14 +8399,46 @@ class MacroData {
     try {
       const [hist, turns] = await Promise.all([this.fetchHistory(card.dataset.symbol, metric), this.loadTurns()]);
       if (!card.isConnected) return;
-      host.innerHTML = this.historySvg(hist, turns, { w: 360, h: 132, units, ended: this.endedBefore(metric) });
       const cap = card.querySelector('.macro-hist-cap');
-      if (cap) cap.textContent = this.turnsCaption(hist, turns, units);
+      // a desk with the year-over-year option: the choice made on the card, or else on the desk; a line that cannot be a percentage stays as it is and says so
+      const want = found ? this.viewOf(found.item) : 'level', st = found && this.yoyDesk() ? this.yoyState(found.item, hist) : null;
+      const scale = st && st.ok && want === 'yoy' ? this.yoyScale(st.y) : null;
+      if (scale) {
+        host.innerHTML = this.historySvg(st.y, turns, { w: 360, h: 132, units: '%', yoy: scale });
+        if (cap) cap.textContent = this.turnsCaption(st.y, turns, '%', true);
+      } else {
+        host.innerHTML = this.historySvg(hist, turns, { w: 360, h: 132, units, ended: this.endedBefore(metric) });
+        if (cap) cap.textContent = this.turnsCaption(hist, turns, units);
+      }
+      if (st) this.paintView(card, metric, hist, st, want, scale);
       card.classList.add('has-hist');
     } catch (e) {
       if (!card.isConnected) return;
       host.innerHTML = '<span class="macro-hist-wait">history unavailable</span>';
       host.title = String(e && e.message || e);
+    }
+  }
+
+  /* the head of a strip on a desk with the year-over-year option: which button is on, what the strip shows, the sentence under it */
+  static paintView(card, metric, hist, st, want, scale) {
+    const drawn = scale ? 'yoy' : 'level';
+    card.dataset.view = drawn;
+    card.dataset.yoy = st.code;
+    const group = card.querySelector('.macro-hist-head .macro-view');
+    if (group) {
+      const held = group.contains(document.activeElement);       // the buttons are painted again: keep the keyboard where it was
+      group.outerHTML = this.viewButtons(drawn, st, 'view');
+      if (held) { const on = card.querySelector('.macro-hist-head .macro-view-btn.on'); if (on) on.focus({ preventScroll: true }); }
+    }
+    const what = card.querySelector('.macro-hist-what');
+    if (what) what.textContent = drawn === 'yoy' ? '% from a year ago' : '1996 → today';
+    const line = card.querySelector('.macro-hist-yoy');
+    if (line) { line.innerHTML = this.yoyLine(st, want, scale); line.hidden = !line.innerHTML; }
+    // the Y box counts from the same calendar date a year back; say which print that is, beside the one FRED takes
+    const box = card.querySelector('.macro-change[data-horizon="Y"]');
+    if (box && st.ok && metric && Number.isFinite(metric.changes && metric.changes.Y) && hist.t.length) {
+      const was = this.historyAt(hist, Math.floor(this.monthsBack(hist.t[hist.t.length - 1] * 86400000, 12) / 86400000)), k = st.y.t.length - 1;
+      if (was) box.title = 'Y: against ' + this.isoOf(was.day) + ', the last print on or before the same date a year earlier. YoY % is FRED\'s: against ' + this.isoOf(st.y.baseDay[k]) + ', 52 weeks before ' + this.isoOf(st.y.t[k]) + '.';
     }
   }
 
@@ -8291,16 +8562,34 @@ class MacroData {
           '<td class="n ' + (delta == null ? '' : delta >= 0 ? 'up' : 'down') + '">' + (delta == null ? '—' : (delta >= 0 ? '+' : '') + delta.toFixed(0) + '%') + '</td></tr>';
       }).join('');
       if (this.desk === 'flows') { document.getElementById('macro-focus-body').innerHTML = this.focusNumbersHtml(item, metric, hist, changes, rows); return; }
+      this.focusCtx = { item, metric, hist, turns, spx };
       document.getElementById('macro-focus-body').innerHTML =
-        '<div class="macro-focus-chart">' + this.historySvg(hist, turns, { w: 1200, h: 520, units: item.units, big: true, spx, ended: this.endedBefore(metric) }) + '</div>' +
+        (this.yoyDesk() ? '<div class="macro-focus-view" id="macro-focus-view"></div>' : '') + '<div class="macro-focus-chart" id="macro-focus-chartbox"></div>' +
         '<div class="macro-focus-grid"><div class="macro-focus-changes">' + changes + '</div>' +
         '<div class="macro-focus-table"><table><thead><tr><th>event</th><th>market top</th><th>this series</th><th>market bottom</th><th>this series</th><th>top → bottom</th></tr></thead><tbody>' +
         (rows || '<tr><td colspan="6">market turns unavailable right now</td></tr>') + '</tbody></table>' +
         '<div class="macro-focus-note-text">Turns = the S&amp;P 500\'s own, from its closes' + (this.turnsAsOf ? ' through ' + UI.esc(this.turnsAsOf) : '') + ': a top counts once the market then fell 25% or more; the bottom is the low of that fall. Green = top, red = bottom, tint = the bear market. The next one appears on its own.</div></div></div>';
+      this.paintFocusChart();
     } catch (e) {
       if (token !== this.focusToken) return;
       document.getElementById('macro-focus-body').innerHTML = '<div class="wl-empty">History unavailable: ' + UI.esc(String(e && e.message || e)) + '</div>';
     }
+  }
+
+  /* the big chart of the full-screen view: as the card behind it is drawn, with the same two buttons where the desk offers them */
+  static paintFocusChart() {
+    const ctx = this.focusCtx, box = document.getElementById('macro-focus-chartbox');
+    if (!ctx || !box || ctx.item !== this.focusItem) return;
+    const want = this.viewOf(ctx.item), st = this.yoyDesk() ? this.yoyState(ctx.item, ctx.hist) : null;
+    const scale = st && st.ok && want === 'yoy' ? this.yoyScale(st.y) : null;
+    box.innerHTML = scale
+      ? this.historySvg(st.y, ctx.turns, { w: 1200, h: 520, units: '%', big: true, spx: ctx.spx, yoy: scale })
+      : this.historySvg(ctx.hist, ctx.turns, { w: 1200, h: 520, units: ctx.item.units, big: true, spx: ctx.spx, ended: this.endedBefore(ctx.metric) });
+    const bar = document.getElementById('macro-focus-view');
+    if (!bar || !st) return;
+    box.dataset.view = scale ? 'yoy' : 'level';
+    bar.innerHTML = this.viewButtons(scale ? 'yoy' : 'level', st, 'view') + '<span class="macro-focus-yoy" id="macro-focus-yoy">' +
+      (this.yoyLine(st, want, scale) || (st.ok ? 'Level, as the line is printed. YoY % draws it as percent change from a year ago.' : 'Level only: ' + UI.esc(st.why) + '.')) + '</span>';
   }
 
   static spxHistory() {
@@ -8318,7 +8607,7 @@ class MacroData {
     document.body.classList.remove('macro-focus-open');
     if (document.getElementById('macro-modal').classList.contains('open')) document.getElementById('macro-modal').setAttribute('aria-hidden', 'false');
     const back = this.focusTrigger;
-    this.focusItem = null; this.focusTrigger = null;
+    this.focusItem = null; this.focusTrigger = null; this.focusCtx = null;
     if (back && back.isConnected) setTimeout(() => back.focus({ preventScroll: true }), 0);
   }
 
@@ -8330,6 +8619,8 @@ class MacroData {
     document.getElementById('macro-focus-chart').addEventListener('click', () => { const item = this.focusItem; if (!item) return; this.closeFocus(); this.chartSeries(item.symbol); this.close(); });
     document.getElementById('macro-focus-compare').addEventListener('click', () => { const item = this.focusItem; if (!item) return; this.compareSeries(item.symbol); if (!this.calcSpec(item.symbol) && !this.feedChart(item.symbol)) jhToast('Added to the chart comparison'); });
     root.addEventListener('click', e => {
+      const viewBtn = e.target.closest('.macro-view-btn[data-view]');
+      if (viewBtn && this.focusItem) { e.stopPropagation(); this.setView(this.focusItem.uid, this.focusCategory && this.focusCategory.id, viewBtn.dataset.view); return; }
       const note = e.target.closest('.macro-note');
       if (note && this.focusItem && !note.classList.contains('editing')) { e.stopPropagation(); this.editNote(note, this.focusItem.uid, this.focusCategory && this.focusCategory.id); }
     });
@@ -8475,8 +8766,13 @@ class MacroData {
   }
 
   /* ── the card: history in numbers where the strip was ── */
-  static histSlot() {
+  static histSlot(item) {
     if (this.desk === 'flows') return '<div class="macro-nums" title="Click for the full history in numbers"><span class="macro-nums-wait">history in numbers…</span></div>';
+    if (this.yoyDesk()) {
+      // Level and YoY % on every chart; the strip is drawn when the history of the card arrives (paintStrip)
+      return '<div class="macro-hist" title="Click for the full-screen history"><div class="macro-hist-head has-view"><span class="macro-hist-what">1996 → today</span>' + this.viewButtons(item ? this.viewOf(item) : 'level', null, 'view') +
+        '<span class="macro-hist-lg"><i class="t"></i>top<i class="b"></i>bottom</span></div><div class="macro-hist-svg"><span class="macro-hist-wait">history…</span></div><div class="macro-hist-cap"></div><div class="macro-hist-yoy" hidden></div></div>';
+    }
     return '<div class="macro-hist" title="Click for the full-screen history"><div class="macro-hist-head"><span>1996 → today</span><span class="macro-hist-lg"><i class="t"></i>top<i class="b"></i>bottom</span></div><div class="macro-hist-svg"><span class="macro-hist-wait">history…</span></div><div class="macro-hist-cap"></div></div>';
   }
 
