@@ -19,7 +19,7 @@ test('the byte ledger takes the change back out: engine and chart.html return to
  assert.equal(hash(ledger.peelIndicatorControls(html,'chart.html')),'46a52f2ac304b333056d4b0a7b0ece2c5b91dbbab093e2864d896dfff450bbf2');
  assert.ok(!before.includes('installIndicatorControls'),'nothing of the change is left in the predecessor');
  // a browser holding the old engine fetches this one: the tag sits before &ldr, which older gates require at the end
- assert.match(html,/jh-chart-engine\.js\?v=[^"]*&sov=20261122&ind=20261123&ldr=20261105"><\/script>/);
+ assert.match(html,/jh-chart-engine\.js\?v=[^"]*&sov=20261122&ind=20261123b&ldr=20261105"><\/script>/);
 });
 
 test('the eye hides what it could not: the VWAP NY line and the candle pattern labels',()=>{
@@ -27,6 +27,8 @@ test('the eye hides what it could not: the VWAP NY line and the candle pattern l
  assert.ok(!engine.includes('INDS.some(function(i){return i.id==="vwap"&&i.on;})'));
  assert.ok(engine.includes('if(patInd&&patInd.on&&!patInd.hide&&lastBars.length){'),'candle pattern labels are drawn only while the study is on and not hidden');
  assert.ok(!engine.includes('if(patInd&&patInd.on&&lastBars.length){'));
+ // found by the live sweep (ops 6930): the studio file draws its RS / beta markers whenever that study is on
+ assert.ok(engine.includes('if(window.jhRsReady && !INDS.some(function(i){ return i.id==="rs"&&i.hide; })){'),'the RS / beta markers are asked for only while that study is not hidden');
 });
 
 function painter(extra={}){

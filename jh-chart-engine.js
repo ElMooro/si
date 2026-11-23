@@ -2742,7 +2742,7 @@
               if(distMk&&distMk.length) mk=mk.concat(distMk);
             }catch(eDist){}
           }
-          if(window.jhRsReady){
+          if(window.jhRsReady && !INDS.some(function(i){ return i.id==="rs"&&i.hide; })){
             window.jhRsReady(display).then(function(rs){
               if(!current()) return;
               if(rs&&rs.length&&c.setMarkers){ try{ c.setMarkers(mk.concat(rs)); }catch(e2){} }

@@ -35,12 +35,13 @@ under the chart with its own Close button and no eye).
 | 16 | After closing Volume profile from the legend, its chip needed two presses | the chip kept its own switch |
 | 17 | A browser that once used the old indicator studio: studies closed since came back at every load, studies added since vanished 1.5 s after load | `jh-chart-studio.js` re-applies its own old snapshot; its panel no longer exists, so the snapshot could never be updated |
 | 18 | Effort & Spread had no eye | its own file drew a cross only |
+| 19 | RS / beta vs SPY: the eye dimmed its row and its markers stayed on the chart (found by the live sweep, ops 6930; the local chart had too few bars to show it at first) | the engine asked the studio file for its markers whenever the study was on, hidden or not |
 
 Not a fault, checked: a 12-pixel difference near the STRUCT chip after Ichimoku is text smoothing of a chip behind it.
 
 ## What changed
 
-`jh-chart-engine.js` (20 exact edits, ledgered):
+`jh-chart-engine.js` (21 exact edits, ledgered):
 
 - Volume: `volHide` beside `volOn`. The eye hides and shows (row stays, dimmed); the cross removes. Both are saved
   (`volHide`, `volOff`) and honoured at start-up. With Volume Tape on, the eye still wins; the cross then hides the
@@ -65,7 +66,10 @@ Not a fault, checked: a 12-pixel difference near the STRUCT chip after Ichimoku 
 `jh-chart-sd-ui.js`: the buttons set the study when the page opens and when pressed; a change made elsewhere is what
 the buttons then show.
 `jh-chart-evr.js`: an eye; hidden folds the window (it used to count as off).
-`chart.html`: `&ind=20261123` on the engine's tag so a browser holding the old engine fetches this one.
+- The RS / beta markers are asked for only while that study is not hidden (edit 21, second deploy).
+
+`chart.html`: `&ind=20261123b` on the engine's tag so a browser holding the old engine fetches this one
+(`&ind=20261123` for the first deploy, `b` for the second).
 
 `jh-chart-indux.js` (legend, list and settings) is unchanged; so is `jh-chart-studio.js`.
 

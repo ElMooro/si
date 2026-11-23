@@ -39,7 +39,11 @@ sys.path.insert(0, str(ROOT / "aws" / "ops"))
 
 BASE = "https://justhodl.ai"
 UA = {"User-Agent": "Mozilla/5.0 jh-ops"}
-SEED = "try{ if(!localStorage.getItem('jh-chart-v12-tv-layout')) localStorage.setItem('jh-chart-v12-tv-layout', JSON.stringify({kindV:3, liveOn:false})); }catch(e){}"
+SEED = "try{ if(!localStorage.getItem('jh-chart-v12-tv-layout')) localStorage.setItem('jh-chart-v12-tv-layout', JSON.stringify({kindV:3, liveOn:false})); }catch(e){}" + \
+    "document.addEventListener('DOMContentLoaded', function(){ var s = document.createElement('style'); s.textContent = '#toast{visibility:hidden!important}'; document.head.appendChild(s); });"
+# The live chart shows alert toasts of its own at the bottom centre every few minutes ("SSO: big weekly outflow ...");
+# one landing in a picture made 23 of the first sweep's steps differ.  In this op's browser they are not drawn.
+SAME = 12          # a picture is the same when at most this many pixels differ (label smoothing: 4 px on the live tape studies)
 READY = "() => window.lastBars && window.lastBars.length > 100 && window.paint && window.INDS && window.OSC && document.querySelector('#legend .leg-sym')"
 MAIN = "(window.jhDeskChart || (window.__charts || [])[0])"
 
@@ -113,7 +117,7 @@ class Cam:
 
     def __init__(self, page):
         from PIL import Image, ImageChops
-        self.page, self.Image, self.Chops, self.view = page, Image, ImageChops, None
+        self.page, self.Image, self.Chops, self.view, self.near = page, Image, ImageChops, None, []
 
     def park(self):
         vp = self.page.viewport_size
@@ -137,12 +141,12 @@ class Cam:
                 self.page.evaluate(HOLD, self.view)
                 self.page.wait_for_timeout(100)
             cur = self.grab()
-            if cur.size == prev.size and self.diff(cur, prev) is None:
+            if cur.size == prev.size and self.diff(cur, prev, exact=True) is None:
                 return cur
             prev = cur
         return prev
 
-    def diff(self, a, b, mask=None):
+    def diff(self, a, b, mask=None, exact=False):
         if a.size != b.size:
             return {"px": -1, "box": None, "size": [list(a.size), list(b.size)]}
         d = self.Chops.difference(a, b)
@@ -155,7 +159,11 @@ class Cam:
             return None
         red, green, blue = d.split()
         any_ = self.Chops.lighter(self.Chops.lighter(red, green), blue).point(lambda v: 255 if v else 0)
-        return {"px": any_.histogram()[255], "box": list(box)}
+        px = any_.histogram()[255]
+        if px <= SAME and not exact:
+            self.near.append(px)
+            return None
+        return {"px": px, "box": list(box)}
 
     def press(self, sid, osc, act, touch=False):
         page = self.page
@@ -249,6 +257,8 @@ def evidence(cam, row, shots, limit=8):
         d = row.get(key)
         if not d or not d.get("box") or not pics.get(a) or not pics.get(b) or pics[a].size != pics[b].size or len([k for k in shots if k.startswith("differs_")]) >= limit:
             continue
+        if key == "hidden_vs_before" and row.get("osc"):      # a folded window is meant to differ from no window: its title row is there
+            continue
         x0, y0, x1, y1 = d["box"]
         box = (max(0, x0 - 60), max(0, y0 - 60), min(pics[a].size[0], x1 + 60), min(pics[a].size[1], y1 + 60))
         left, right = pics[a].crop(box), pics[b].crop(box)
@@ -288,10 +298,15 @@ def verdict(r):
         out.append("no cross")
     if r.get("off", {}).get("on"):
         out.append("still on after the cross")
-    for key, what in (("view_after_add", "adding"), ("view_after_close", "closing")):
-        v0, v1 = r.get("view_before"), r.get(key)
-        if v0 and v1 and (abs(v1[0] - v0[0]) > 0.6 or abs(v1[1] - v0[1]) > 0.6):
-            out.append("%s it moves the chart (%s to %s)" % (what, [round(x, 1) for x in v0], [round(x, 1) for x in v1]))
+    v0, va, vc = r.get("view_before"), r.get("view_after_add"), r.get("view_after_close")
+    if v0 and va and (abs(va[0] - v0[0]) > 0.6 or abs(va[1] - v0[1]) > 0.6):
+        room = 0 <= va[0] - v0[0] <= 8 and 0 <= va[1] - v0[1] <= 8      # dates right of the last bar (the next earnings day, the session's range)
+        if room:
+            r["made_room"] = [round(va[0] - v0[0], 1), round(va[1] - v0[1], 1)]
+        else:
+            out.append("adding it moves the chart (%s to %s)" % ([round(x, 1) for x in v0], [round(x, 1) for x in va]))
+    if v0 and vc and (abs(vc[0] - v0[0]) > 0.6 or abs(vc[1] - v0[1]) > 0.6):
+        out.append("closing it leaves the chart moved (%s to %s)" % ([round(x, 1) for x in v0], [round(x, 1) for x in vc]))
     if r.get("off_vs_before") is not None:
         d = r["off_vs_before"]
         out.append("closed, something stays on the chart (%s px in %s)" % (d["px"], d.get("box") or d.get("size")))
@@ -391,6 +406,10 @@ def prove(r, ck, browser, base, route=None, shots=None, only=None, cache_wait=62
     for x in rows:
         if x["verdict"]:
             r.log("  %-12s %-26s %s" % (x["id"], x["n"][:26], " | ".join(x["verdict"])))
+    roomy = [(x["id"], x["made_room"]) for x in rows if x.get("made_room")]
+    if roomy:
+        r.log("made room on the right for dates past the last bar while on, and gave it back when closed: %s" % roomy)
+    r.log("pictures counted as the same with a few pixels of label smoothing apart (at most %d): %d comparisons, largest %s px" % (SAME, len(cam.near), max(cam.near) if cam.near else 0))
     ck(len(good) == len(rows), "%d of %d studies do not close, hide or show cleanly: %s" % (len(rows) - len(good), len(rows), ", ".join(x["id"] for x in rows if x["verdict"])[:400]))
     for sid in ("vwap", "pat", "avwap", "vprof", "reflevels", "sdmd", "rsi", "macd", "effspread"):
         x = next((y for y in rows if y["id"] == sid), None)
@@ -417,22 +436,27 @@ def prove(r, ck, browser, base, route=None, shots=None, only=None, cache_wait=62
     d1 = cam.diff(with_vol, hid)
     r.log("eye: %s; %s px of the picture changed (the volume bars)" % (v1, d1 and d1["px"]))
     ck(v1["row"] and v1["dim"] and v1["eye"] == "○" and v1["on"] and d1 and d1["px"] > 5000, "the eye on Volume does not hide it and keep its row: %s %s" % (v1, d1))
-    reload(page); v1r = page.evaluate(VOL)
-    r.log("after loading the page again: %s" % v1r)
-    ck(v1r["row"] and v1r["dim"], "a hidden Volume is not hidden after a reload: %s" % v1r)
     cam.press("vol", False, "eye"); shown = cam.settled(); v2 = page.evaluate(VOL)
     r.log("eye again: %s; against the chart before: %s" % (v2, cam.diff(with_vol, shown) or "the same picture"))
     ck(v2["row"] and not v2["dim"] and cam.diff(with_vol, shown) is None, "Volume shown again is not the picture it was: %s" % cam.diff(with_vol, shown))
+    cam.press("vol", False, "eye"); page.wait_for_timeout(600)
+    reload(page); v1r = page.evaluate(VOL)
+    r.log("hidden, then the page loaded again: %s (pictures are compared within one load only: the live page reads fresh bars each time)" % v1r)
+    ck(v1r["row"] and v1r["dim"], "a hidden Volume is not hidden after a reload: %s" % v1r)
+    hid2 = cam.settled()
     legend = page.evaluate(LEGEND)
     cam.press("vol", False, "x"); gone = cam.settled(); v3 = page.evaluate(VOL)
-    r.log("cross: %s; against the hidden picture, legend aside: %s" % (v3, cam.diff(hid, gone, legend) or "the same picture"))
-    ck((not v3["row"]) and not v3["on"] and cam.diff(hid, gone, legend) is None, "the cross on Volume does not remove it: %s" % v3)
+    r.log("cross: %s; against the hidden picture, legend aside: %s" % (v3, cam.diff(hid2, gone, legend) or "the same picture"))
+    ck((not v3["row"]) and not v3["on"] and cam.diff(hid2, gone, legend) is None, "the cross on Volume does not remove it: %s %s" % (v3, cam.diff(hid2, gone, legend)))
     reload(page); v3r = page.evaluate(VOL)
     r.log("after loading the page again: %s" % v3r)
     ck((not v3r["row"]) and not v3r["on"], "a removed Volume comes back after a reload: %s" % v3r)
+    none = cam.settled()
     page.evaluate(ADD, ["vol", False]); back = cam.settled(); v4 = page.evaluate(VOL)
-    r.log("Volume switched on from the Indicators list: %s; against the chart before: %s" % (v4, cam.diff(with_vol, back) or "the same picture"))
-    ck(v4["row"] and not v4["dim"] and cam.diff(with_vol, back) is None, "the list does not bring Volume back as it was: %s" % cam.diff(with_vol, back))
+    d4 = cam.diff(none, back)
+    r.log("Volume switched on from the Indicators list: %s; %s px of the picture changed (the bars are back)" % (v4, d4 and d4["px"]))
+    ck(v4["row"] and not v4["dim"] and d4 and d4["px"] > 5000, "the list does not bring Volume back: %s" % d4)
+    with_vol = cam.settled()             # the chart of this load, for what follows
 
     r.section("3. Indicator windows: the zoom, the room, bars in line, a hidden window, seven of them")
     L0 = page.evaluate(LAYOUT)
@@ -590,7 +614,7 @@ def main():
 
         r.section("0. The live site serves the new build")
         served, got = False, {}
-        want = {"chart.html": "&ind=20261123&ldr=20261105", "jh-chart-engine.js": "function installIndicatorControls(", "jh-chart-auction.js": "function studyShown(", "jh-chart-sd-ui.js": "function follow()", "jh-chart-evr.js": "data-act=eye title='Visibility'"}
+        want = {"chart.html": "&ind=20261123b&ldr=20261105", "jh-chart-engine.js": "if(window.jhRsReady && !INDS.some(", "jh-chart-auction.js": "function studyShown(", "jh-chart-sd-ui.js": "function follow()", "jh-chart-evr.js": "data-act=eye title='Visibility'"}
         for attempt in range(40):
             try:
                 got = {f: fetch("%s/%s?nocache=%d" % (BASE, f, stamp + attempt)) for f in want}
