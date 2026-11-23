@@ -36,12 +36,15 @@ under the chart with its own Close button and no eye).
 | 17 | A browser that once used the old indicator studio: studies closed since came back at every load, studies added since vanished 1.5 s after load | `jh-chart-studio.js` re-applies its own old snapshot; its panel no longer exists, so the snapshot could never be updated |
 | 18 | Effort & Spread had no eye | its own file drew a cross only |
 | 19 | RS / beta vs SPY: the eye dimmed its row and its markers stayed on the chart (found by the live sweep, ops 6930; the local chart had too few bars to show it at first) | the engine asked the studio file for its markers whenever the study was on, hidden or not |
+| 20 | A press that landed while a long chart was repainting, or that was held longer than a second and a half, was lost after all (live: NVDA daily has 6,990 bars and one repaint takes a second or two; reproduced on the local copy by holding 1.7 s, and by a 0.15 s press under a repaint that blocks the page 2.5 s) | the hold that keeps a pressed button in place (cause 15) was let go by a 1.5 s timer |
+| 21 | Opening Range, Earnings, News, Dividends, Splits, Insiders, Buybacks and AVWAP from earnings: for as long as the study's own download took, the study was on with no row in the legend, so nothing to hide or close it by (live: Opening Range, more than 1.5 s; local copy with the 5-minute bars answered after 3 s: no row, and its cross could not be pressed) | the legend was drawn at the end of the repaint only, after every download |
+| 22 | ... and the chart sat shifted (six bars for Opening Range) until that download answered | the zoom was put back at the end of the repaint only |
 
 Not a fault, checked: a 12-pixel difference near the STRUCT chip after Ichimoku is text smoothing of a chip behind it.
 
 ## What changed
 
-`jh-chart-engine.js` (21 exact edits, ledgered):
+`jh-chart-engine.js` (27 exact edits, ledgered):
 
 - Volume: `volHide` beside `volOn`. The eye hides and shows (row stays, dimmed); the cross removes. Both are saved
   (`volHide`, `volOff`) and honoured at start-up. With Volume Tape on, the eye still wins; the cross then hides the
@@ -67,9 +70,14 @@ Not a fault, checked: a 12-pixel difference near the STRUCT chip after Ichimoku 
 the buttons then show.
 `jh-chart-evr.js`: an eye; hidden folds the window (it used to count as off).
 - The RS / beta markers are asked for only while that study is not hidden (edit 21, second deploy).
+- A hold ends when the button comes up. It also ends at the next pointer move with no button down, when the window
+  loses focus, and after 12 s - for a release the page never hears of (third deploy).
+- `legendFirst()` inside the repaint: before the first download a study makes for itself (earnings calendar, dividends /
+  news / splits, insiders / buybacks, 5-minute bars), the zoom is put back and the legend is drawn, so the row with its
+  eye and cross is there at once. Once for a repaint; the usual legend at the end still follows (edits 22-27, third deploy).
 
 `chart.html`: `&ind=20261123b` on the engine's tag so a browser holding the old engine fetches this one
-(`&ind=20261123` for the first deploy, `b` for the second).
+(`&ind=20261123` for the first deploy, `b` for the second, `c` for the third).
 
 `jh-chart-indux.js` (legend, list and settings) is unchanged; so is `jh-chart-studio.js`.
 

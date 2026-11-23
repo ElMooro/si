@@ -2554,6 +2554,14 @@
     var chartToast=document.getElementById("toast");if(chartToast){clearTimeout(toastT);toastT=null;chartToast.textContent="";chartToast.className="";}
     var saved=null;
     try{ saved=chart.timeScale().getVisibleLogicalRange(); }catch(e){}
+    /* 2026-11-23: a study that needs a download of its own gets its legend row at once and the chart keeps its zoom while it waits.
+       Before, the row (and so its eye and its cross) appeared only when the download had answered, and the chart sat shifted until then. */
+    var legendDrawn=false;
+    function legendFirst(){
+      if(legendDrawn) return; legendDrawn=true;
+      try{ if(preserveView && saved && saved.from!=null && saved.to!=null && saved.to>saved.from+1) chart.timeScale().setVisibleLogicalRange(saved); }catch(eLv){}
+      try{ renderLegend(); }catch(eLf){}
+    }
     wipe(); lastBars=d; try{window.lastBars=d;window.jhActive=active;window.INDS=INDS;window.OSC=OSC;window.paint=paint;window.lastSource=lastSource;window.volOn=volOn;var evidence=barEvidence.get(d);window.jhChartEvidence=evidence&&evidence.symbol===active&&evidence.interval===tf?evidence:null;}catch(e){}
     var p=pal();
     var tapeVol=INDS.some(function(i){ return i.id==="voltape"&&i.on; });
@@ -2650,13 +2658,13 @@
           if(INDS.some(function(i){ return i.id==="struct"&&i.on&&!i.hide; })) mk=mk.concat(structureMarks(display));
           if(INDS.some(function(i){ return i.id==="rsidiv"&&i.on&&!i.hide; })) mk=mk.concat(rsiDivMarks(display, 14), macdDivMarks(display));
           if(INDS.some(function(i){ return i.id==="earn"&&i.on&&!i.hide; })){
-            try{ await loadCalendar(); }catch(e3){}
+            legendFirst(); try{ await loadCalendar(); }catch(e3){}
               if(!current())return;
             mk=mk.concat(eventMarks(display, active, calCache));
           }
           if(INDS.some(function(i){ return (i.id==="news"||i.id==="dvd"||i.id==="split")&&i.on&&!i.hide; })){
             try{
-              var dv=await loadDiv(active);
+              legendFirst(); var dv=await loadDiv(active);
               if(!current())return;
               if(INDS.some(function(i){ return i.id==="dvd"&&i.on&&!i.hide; })) mk=mk.concat(dvdMarks(display, dv));
               if(INDS.some(function(i){ return i.id==="news"&&i.on&&!i.hide; })) mk=mk.concat(newsMarks(display, dv));
@@ -2723,7 +2731,7 @@
           }
           if(INDS.some(function(i){ return (i.id==="ins"||i.id==="buyb")&&i.on&&!i.hide; }) && window.jhInst){
             try{
-              var hv=await loadInstHarvest();
+              legendFirst(); var hv=await loadInstHarvest();
               if(!current())return;
               if(INDS.some(function(i){ return i.id==="ins"&&i.on&&!i.hide; }) && hv.ins) mk=mk.concat(window.jhInst.insiderMarks(display, hv.ins, active));
               if(INDS.some(function(i){ return i.id==="buyb"&&i.on&&!i.hide; }) && hv.buyb) mk=mk.concat(window.jhInst.buybackMarks(display, hv.buyb, active));
@@ -2820,14 +2828,14 @@
       if(window.jhInst && INDS.some(function(i){ return (i.k==="or"||i.k==="ib"||i.k==="onhl")&&i.on; })){
         var intraSrc=d;
         if(!window.jhInst.isIntra(d)){
-          try{ intraSrc=await klines(active, "5m", true); }catch(e5){ intraSrc=[]; }
+          legendFirst(); try{ intraSrc=await klines(active, "5m", true); }catch(e5){ intraSrc=[]; }
               if(!current())return;
         }
         lastOrLv=window.jhInst.sessionLevels(intraSrc);
         lastOrPack=lastOrLv?window.jhInst.orZones(lastOrLv):null;
       }
       if(window.jhInst && INDS.some(function(i){ return i.k==="eavwap"&&i.on; })){
-        try{ await loadCalendar(); }catch(eAv){}
+        legendFirst(); try{ await loadCalendar(); }catch(eAv){}
               if(!current())return;
       }
       INDS.forEach(function(ind){
@@ -4693,7 +4701,9 @@ else if(o.id==="rvol"){
       return function(ev){
         if(!(ev.target&&ev.target.closest&&ev.target.closest("button"))) return;
         if(pane) paneHeld=true; else legendHeld=true;
-        clearTimeout(heldT); heldT=setTimeout(letGo, 1500);
+        // The hold ends when the button comes up.  The timer is only for a release the page never hears of; at 1.5 s it
+        // fired first on a long chart (6,990 daily bars repaint for a second or two) and the press was lost again.
+        clearTimeout(heldT); heldT=setTimeout(letGo, 12000);
       };
     }
     var legHost=document.getElementById("legend"), paneHost=document.getElementById("oscwrap");
@@ -4725,6 +4735,8 @@ else if(o.id==="rvol"){
     }
     window.addEventListener("pointerup", letGo, true);
     window.addEventListener("pointercancel", letGo, true);
+    window.addEventListener("blur", letGo);
+    document.addEventListener("pointermove", function(ev){ if((legendHeld||paneHeld) && ev.buttons===0) letGo(); }, true);
     document.addEventListener("click", function(ev){
       var t=ev.target; if(!t||!t.closest) return;
       var b=t.closest("#indlist [data-add]"); if(!b) return;

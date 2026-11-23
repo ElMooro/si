@@ -40,9 +40,13 @@ sys.path.insert(0, str(ROOT / "aws" / "ops"))
 BASE = "https://justhodl.ai"
 UA = {"User-Agent": "Mozilla/5.0 jh-ops"}
 SEED = "try{ if(!localStorage.getItem('jh-chart-v12-tv-layout')) localStorage.setItem('jh-chart-v12-tv-layout', JSON.stringify({kindV:3, liveOn:false})); }catch(e){}" + \
-    "document.addEventListener('DOMContentLoaded', function(){ var s = document.createElement('style'); s.textContent = '#toast{visibility:hidden!important}'; document.head.appendChild(s); });"
-# The live chart shows alert toasts of its own at the bottom centre every few minutes ("SSO: big weekly outflow ...");
-# one landing in a picture made 23 of the first sweep's steps differ.  In this op's browser they are not drawn.
+    "document.addEventListener('DOMContentLoaded', function(){ var s = document.createElement('style'); s.textContent = '#toast,#jhwl-toast{visibility:hidden!important}'; document.head.appendChild(s); });" + \
+    "(function(){ var f = window.fetch, n = 0; if (!f) return; window.__jhFlight = function(){ return n; }; window.fetch = function(){ n++; var p = f.apply(this, arguments), done = function(){ n--; }; p.then(done, done); return p; }; })();"
+# In a browser that has never seen them, the watchlist beside the chart announces each of its signal alerts once, in a
+# message at the bottom centre ("SSO: big weekly outflow ...", #jhwl-toast, 2.2 s each) during the first minutes after a
+# load; one landing in a picture made 23 steps of the first sweeps differ.  In this op's browser they are not drawn.
+# The page's downloads are counted (window.__jhFlight) so a picture of a study that fetches something of its own
+# (5-minute bars, the earnings calendar, news, insiders) is taken when the answer has landed.
 SAME = 12          # two pictures at most this many pixels apart count as the same; each such pair is counted, located and (the first few) pictured enlarged
 READY = "() => window.lastBars && window.lastBars.length > 100 && window.paint && window.INDS && window.OSC && document.querySelector('#legend .leg-sym')"
 MAIN = "(window.jhDeskChart || (window.__charts || [])[0])"
@@ -71,7 +75,7 @@ CLIP = """() => { const a = document.getElementById('stage').getBoundingClientRe
   const top = Math.max(0, Math.min(a.top, v.height ? v.top : a.top)), bottom = Math.min(innerHeight, Math.max(a.bottom, b.bottom)); return { x: Math.max(0, a.left), y: top, width: Math.min(innerWidth, a.right) - Math.max(0, a.left), height: bottom - top } }"""
 LEGEND = "() => { const r = document.getElementById('chart-readouts').getBoundingClientRect(), c = (" + CLIP + ")(); return [Math.floor(r.left - c.x), Math.floor(r.top - c.y), Math.ceil(r.right - c.x) + 2, Math.ceil(r.bottom - c.y) + 2] }"
 # the selected-bar readouts follow the pointer, and the three desk chips stay lit while their study is on but hidden: neither is a leftover
-READOUTS = "() => { const c = (" + CLIP + ")(); return ['ohlc', 'hud', 'toast', '__chips'].map(id => { const e = id === '__chips' ? (document.querySelector('.jh-desk [data-k]') || {}).parentElement : document.getElementById(id); if (!e) return null; let l = 1e9, t = 1e9, r = -1e9, b = -1e9; " + \
+READOUTS = "() => { const c = (" + CLIP + ")(); return ['ohlc', 'hud', 'toast', 'jhwl-toast', '__chips'].map(id => { const e = id === '__chips' ? (document.querySelector('.jh-desk [data-k]') || {}).parentElement : document.getElementById(id); if (!e) return null; let l = 1e9, t = 1e9, r = -1e9, b = -1e9; " + \
     "[e, ...e.querySelectorAll('*')].forEach(n => { const q = n.getBoundingClientRect(); if (!q.width || !q.height) return; l = Math.min(l, q.left); t = Math.min(t, q.top); r = Math.max(r, q.left + Math.max(q.width, n.scrollWidth)); b = Math.max(b, q.bottom) }); " + \
     "return r > l ? [Math.floor(l - c.x) - 4, Math.floor(t - c.y) - 4, Math.ceil(r - c.x) + 24, Math.ceil(b - c.y) + 4] : null }).filter(Boolean) }"
 RANGE = "() => { const c = " + MAIN + "; const r = c && c.timeScale().getVisibleLogicalRange(); return r ? [r.from, r.to] : null }"
@@ -117,7 +121,20 @@ class Cam:
 
     def __init__(self, page):
         from PIL import Image, ImageChops
-        self.page, self.Image, self.Chops, self.view, self.near, self.near_pics = page, Image, ImageChops, None, [], []
+        self.page, self.Image, self.Chops, self.view, self.near, self.near_pics, self.capped = page, Image, ImageChops, None, [], [], 0
+
+    def quiet(self, cap=6000):
+        """Wait until the page has no download out (two looks 150 ms apart), at most `cap` ms."""
+        waited, calm = 0, 0
+        while waited < cap:
+            n = self.page.evaluate("() => (window.__jhFlight ? window.__jhFlight() : 0)")
+            calm = calm + 1 if n == 0 else 0
+            if calm >= 2:
+                return waited
+            self.page.wait_for_timeout(150)
+            waited += 150
+        self.capped += 1
+        return waited
 
     def park(self):
         vp = self.page.viewport_size
@@ -219,7 +236,9 @@ def sweep_one(cam, s, base):
         return r, base
     r["in_list"] = True
     page.wait_for_timeout(500)
-    r["view_after_add"] = page.evaluate(RANGE)
+    r["view_after_add"] = page.evaluate(RANGE)          # half a second after switching on, whether its own download has answered or not
+    r["row_at_once"] = bool(page.evaluate(BTN, [sid, osc, "x"]))
+    cam.quiet()
     on = cam.settled()
     r["on"] = page.evaluate(STATE, [sid, osc])
     r["drawn"] = cam.diff(base, on)
@@ -307,15 +326,12 @@ def verdict(r):
         out.append("no cross")
     if r.get("off", {}).get("on"):
         out.append("still on after the cross")
-    v0, va, vc = r.get("view_before"), r.get("view_after_add"), r.get("view_after_close")
-    if v0 and va and (abs(va[0] - v0[0]) > 0.6 or abs(va[1] - v0[1]) > 0.6):
-        room = 0 <= va[0] - v0[0] <= 8 and 0 <= va[1] - v0[1] <= 8      # dates right of the last bar (the next earnings day, the session's range)
-        if room:
-            r["made_room"] = [round(va[0] - v0[0], 1), round(va[1] - v0[1], 1)]
-        else:
-            out.append("adding it moves the chart (%s to %s)" % ([round(x, 1) for x in v0], [round(x, 1) for x in va]))
-    if v0 and vc and (abs(vc[0] - v0[0]) > 0.6 or abs(vc[1] - v0[1]) > 0.6):
-        out.append("closing it leaves the chart moved (%s to %s)" % ([round(x, 1) for x in v0], [round(x, 1) for x in vc]))
+    for key, what in (("view_after_add", "adding"), ("view_after_close", "closing")):
+        v0, v1 = r.get("view_before"), r.get(key)
+        if v0 and v1 and (abs(v1[0] - v0[0]) > 0.6 or abs(v1[1] - v0[1]) > 0.6):
+            out.append("%s it moves the chart (%s to %s)" % (what, [round(x, 1) for x in v0], [round(x, 1) for x in v1]))
+    if r.get("in_list") and r.get("row_at_once") is False and r["id"] != "buyback":
+        out.append("half a second after switching it on there is no row or window to close it by")
     if r.get("off_vs_before") is not None:
         d = r["off_vs_before"]
         out.append("closed, something stays on the chart (%s px in %s)" % (d["px"], d.get("box") or d.get("size")))
@@ -417,9 +433,8 @@ def prove(r, ck, browser, base, route=None, shots=None, only=None, cache_wait=62
     for x in rows:
         if x["verdict"]:
             r.log("  %-12s %-26s %s" % (x["id"], x["n"][:26], " | ".join(x["verdict"])))
-    roomy = [(x["id"], x["made_room"]) for x in rows if x.get("made_room")]
-    if roomy:
-        r.log("made room on the right for dates past the last bar while on, and gave it back when closed: %s" % roomy)
+    r.log("half a second after switching on, the study's row or window (with its cross) was there for %d of %d; a download still out after 6 s when its picture was due: %d times" % (
+        sum(1 for x in rows if x.get("row_at_once")), sum(1 for x in rows if x.get("in_list")), cam.capped))
     r.log("pictures counted as the same although a few pixels apart (at most %d): %d comparisons%s" % (SAME, len(cam.near), "" if not cam.near else ", largest %d px; where: %s" % (
         max(n["px"] for n in cam.near), sorted({(n["px"], tuple(n["box"])) for n in cam.near})[:8])))
     for name, png in cam.near_pics:
@@ -628,7 +643,7 @@ def main():
 
         r.section("0. The live site serves the new build")
         served, got = False, {}
-        want = {"chart.html": "&ind=20261123b&ldr=20261105", "jh-chart-engine.js": "if(window.jhRsReady && !INDS.some(", "jh-chart-auction.js": "function studyShown(", "jh-chart-sd-ui.js": "function follow()", "jh-chart-evr.js": "data-act=eye title='Visibility'"}
+        want = {"chart.html": "&ind=20261123c&ldr=20261105", "jh-chart-engine.js": "function legendFirst(){", "jh-chart-auction.js": "function studyShown(", "jh-chart-sd-ui.js": "function follow()", "jh-chart-evr.js": "data-act=eye title='Visibility'"}
         for attempt in range(40):
             try:
                 got = {f: fetch("%s/%s?nocache=%d" % (BASE, f, stamp + attempt)) for f in want}

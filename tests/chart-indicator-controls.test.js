@@ -19,7 +19,7 @@ test('the byte ledger takes the change back out: engine and chart.html return to
  assert.equal(hash(ledger.peelIndicatorControls(html,'chart.html')),'46a52f2ac304b333056d4b0a7b0ece2c5b91dbbab093e2864d896dfff450bbf2');
  assert.ok(!before.includes('installIndicatorControls'),'nothing of the change is left in the predecessor');
  // a browser holding the old engine fetches this one: the tag sits before &ldr, which older gates require at the end
- assert.match(html,/jh-chart-engine\.js\?v=[^"]*&sov=20261122&ind=20261123b&ldr=20261105"><\/script>/);
+ assert.match(html,/jh-chart-engine\.js\?v=[^"]*&sov=20261122&ind=20261123c&ldr=20261105"><\/script>/);
 });
 
 test('the eye hides what it could not: the VWAP NY line and the candle pattern labels',()=>{
@@ -228,3 +228,53 @@ test('Effort & Spread has an eye; hidden, its window folds to its title row inst
  assert.ok(evr.includes('if (hid) { pane.dataset.hid = "1"; pane.style.height = "auto"; pane.style.minHeight = "0"; }'));
  assert.ok(evr.includes('item.on = 0; item.hide = false;'),'closing it clears the hidden flag');
 });
+
+// ---- found by the live sweep on justhodl.ai (ops 6930, NVDA daily, 6,990 bars) ----
+
+function controls(){
+ // installIndicatorControls with a clock that only moves when the test moves it
+ let now=0,seq=0;const timers=new Map(),inner=[],leg={},pane={},win={},doc={};
+ const host=store=>({addEventListener:(type,fn)=>{store[type]=fn;}});
+ const c=sandbox(['installIndicatorControls'],{setTimeout:(fn,ms)=>{timers.set(++seq,{at:now+(ms||0),fn});return seq;},clearTimeout:id=>{timers.delete(id);},
+  document:{head:{appendChild(){}},createElement:()=>({}),getElementById:id=>id==='legend'?host(leg):id==='oscwrap'?host(pane):null,addEventListener:(type,fn)=>{doc[type]=fn;}},dressLegend(){},paintOsc(){inner.push('panes');},drawSVG(){}});
+ c.window.addEventListener=(type,fn)=>{win[type]=fn;};
+ vm.runInContext('var ctlInstalled=false,legendHeld=false,legendLate=null,paneHeld=false,paneLate=false,heldT=null,lastBars=[1];var renderLegend=function(at){record(at);};',Object.assign(c,{record:at=>inner.push(at)}));
+ c.installIndicatorControls();
+ const advance=ms=>{now+=ms;for(let guard=0;guard<50;guard++){const due=[...timers].filter(([,t])=>t.at<=now).sort((a,b)=>a[1].at-b[1].at)[0];if(!due)break;timers.delete(due[0]);due[1].fn();}};
+ const button={target:{closest:sel=>sel==='button'?{}:null}};
+ return {c,inner,leg,pane,win,doc,advance,button};
+}
+
+test('a legend button held down for four seconds is still held: the legend is not rebuilt under it (a 1.5 s timer used to let go first)',()=>{
+ const h=controls();
+ h.leg.pointerdown(h.button);h.advance(4000);
+ h.c.renderLegend('while held');assert.deepEqual(h.inner,[],'no rebuild while the button is down - on a 6,990-bar chart a repaint alone takes longer than 1.5 s');
+ h.win.pointerup();h.advance(0);
+ assert.deepEqual(h.inner,['while held'],'the rebuild it was owed comes when the button is released, after the click');
+ h.c.renderLegend('after');assert.deepEqual(h.inner,['while held','after']);
+});
+
+test('a window button the same; and a release the page never heard of ends the hold at the next pointer move with no button down',()=>{
+ const h=controls();
+ h.pane.pointerdown(h.button);h.advance(4000);
+ assert.equal(vm.runInContext('paneHeld',h.c),true);
+ h.doc.pointermove({buttons:1});h.advance(0);assert.equal(vm.runInContext('paneHeld',h.c),true,'moving with the button down is still a hold');
+ h.doc.pointermove({buttons:0});h.advance(0);assert.equal(vm.runInContext('paneHeld',h.c),false,'the button is up: let go');
+ h.leg.pointerdown(h.button);h.win.blur();h.advance(0);assert.equal(vm.runInContext('legendHeld',h.c),false,'so does the window losing focus');
+ h.leg.pointerdown(h.button);h.advance(11000);assert.equal(vm.runInContext('legendHeld',h.c),true);
+ h.advance(1500);assert.equal(vm.runInContext('legendHeld',h.c),false,'and, last of all, twelve seconds');
+ h.leg.pointerdown({target:{closest:()=>null}});assert.equal(vm.runInContext('legendHeld',h.c),false,'a press on the legend that is not on a button holds nothing');
+});
+
+test('a study with a download of its own has its legend row, and the chart its zoom, before the download is asked for',()=>{
+ for(const line of ['            legendFirst(); try{ await loadCalendar(); }catch(e3){}','              legendFirst(); var dv=await loadDiv(active);','              legendFirst(); var hv=await loadInstHarvest();',
+  '          legendFirst(); try{ intraSrc=await klines(active, "5m", true); }catch(e5){ intraSrc=[]; }','        legendFirst(); try{ await loadCalendar(); }catch(eAv){}'])
+  assert.equal(engine.split(line).length,2,'once, on the line of the download: '+line.trim());
+ const at=engine.indexOf('    function legendFirst(){'),src=engine.slice(at,engine.indexOf('\n    }\n',at)+7);
+ assert.ok(at>engine.indexOf('  async function paint(d){')&&at<engine.indexOf('wipe(); lastBars=d;'),'it belongs to the repaint and is defined before the chart is wiped');
+ const run=(preserveView,saved)=>{const got=[];const c={preserveView,saved,legendDrawn:false,chart:{timeScale:()=>({setVisibleLogicalRange:r=>got.push(['zoom',r.from,r.to])})},renderLegend:()=>got.push(['legend'])};vm.createContext(c);vm.runInContext(src+'\nlegendFirst();legendFirst();',c);return got;};
+ assert.deepEqual(run(true,{from:6830,to:6995}),[['zoom',6830,6995],['legend']],'the zoom the chart had, then the legend - once for a repaint however many downloads it makes');
+ assert.deepEqual(run(false,{from:6830,to:6995}),[['legend']],'a new symbol has no zoom to keep');
+ assert.deepEqual(run(true,null),[['legend']]);
+});
+

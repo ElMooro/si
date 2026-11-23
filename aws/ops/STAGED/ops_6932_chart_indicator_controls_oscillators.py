@@ -36,7 +36,7 @@ def main():
             return bool(cond)
 
         r.section("0. The live site serves the new build")
-        served = "function installIndicatorControls(" in P.fetch(P.BASE + "/jh-chart-engine.js?nocache=6932") and "data-act=eye title=\'Visibility\'" in P.fetch(P.BASE + "/jh-chart-evr.js?nocache=6932")
+        served = "function legendFirst(){" in P.fetch(P.BASE + "/jh-chart-engine.js?nocache=6932c") and "data-act=eye title=\'Visibility\'" in P.fetch(P.BASE + "/jh-chart-evr.js?nocache=6932")
         r.log("engine and Effort & Spread file are the new build: %s" % served)
         if not served:
             r.fail("the served site is not the new build")

@@ -599,8 +599,8 @@ function peelTabQuotes(raw,file){
 // cache-bust on chart.html that makes a browser holding the old engine fetch this one. Peeled before every older peel.
 function peelIndicatorControls(raw,file){
  const plans={
-  'jh-chart-engine.js':{after:'926ae758e7e8661b762ff13b068584a33b4ff7c815943932998c6fb81510016c',before:'dcefd93abba4c5523277b7342d8b29a22b59d789904c671f8ace098c07674913',edits:'engine.edits.json'},
-  'chart.html':{after:'0cfa12f2bfe2cbbf483078b7de969db6daaae0b4ec655fa5ecb575041059accc',before:'46a52f2ac304b333056d4b0a7b0ece2c5b91dbbab093e2864d896dfff450bbf2',edits:'html.edits.json'}
+  'jh-chart-engine.js':{after:'5708b52846fa67ad33f6b51621a4919efb1dd56cbd618048fde1231aae9eaeff',before:'dcefd93abba4c5523277b7342d8b29a22b59d789904c671f8ace098c07674913',edits:'engine.edits.json'},
+  'chart.html':{after:'07772f8ce5990a0a84ddb60af1cd0ba3ae089a48e4bb7bb692ef6048e2fcc8c5',before:'46a52f2ac304b333056d4b0a7b0ece2c5b91dbbab093e2864d896dfff450bbf2',edits:'html.edits.json'}
  },plan=plans[file];
  if(!plan||hash(raw)!==plan.after)return raw;
  const edits=JSON.parse(fs.readFileSync(path.join(R,'tests/fixtures/chart-indicator-controls',plan.edits),'utf8'));
