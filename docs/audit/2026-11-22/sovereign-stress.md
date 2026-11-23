@@ -444,6 +444,23 @@ chart drew 960 year-over-year figures and 1,012 levels after Level; the three EC
 nothing wider than a 390 px screen. Tests: page 46, node suite 5,170, deployment 1,233. Take-back of only this:
 `git checkout b27b740b -- sovereign-desk.html jh-sovereign-desk.js tests/sovereign-desk.test.js`.
 
+### The first scheduled run, 23 November
+
+The engine's own 07:10 UTC run wrote all of it in one invocation, with no hand in it: warehouse 07:13:04, desk document
+07:14:22 (266 measures, 30 countries, errors {}), dollar-shortage document 07:15:01 (15 measures, 46,610 observations,
+errors {}; no series was asked for, all twelve Federal Reserve lines having been read at 22:08 UTC the evening before,
+inside the 20-hour rule). Ops 6915 again at 08:11 UTC, real browser on the live site: **0 failed checks**; the desk
+document is bound to the morning's warehouse run; ECB data to 19 November.
+
+Open, not changed (found while reading that report, Khalid's word awaited): the Dollar shortage tab now carries two
+"year ago" rules side by side. The table and the read take the engine's desk-wide rule (`change_over` in
+`sovereign_desk.py`: the reading on the same calendar date a year earlier, or the last one before it), which for a
+weekly series is 53 weeks back; the year-over-year charts take FRED's (52 weeks, 364 days). On 18 November the foreign
+repo pool is −$19.8 bn over a year in the table (−5.9%, against 12 Nov 2025) and −2.9% on its chart (−$9.4 bn, against
+19 Nov 2025); Treasuries in custody −$201.4 bn (−7.3%) against −7.1% (−$193.5 bn). Daily lines differ by one day
+(13 against 14 Nov 2025: DXY +4.4% against +4.1%). Each figure is right by its own rule and the proof checks each
+against its own; neither is mislabelled, but they do not agree with each other.
+
 ### Taking the fifth round back
 
 Pages: `git checkout 79cc97b6 -- sovereign-desk.html jh-sovereign-desk.js chart-pro.html assets/jh-workspaces.js
