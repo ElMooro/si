@@ -1,9 +1,14 @@
-"""ops 6933 - chart.html: the five oscillator windows ops 6932 flagged, swept again with pictures (read-only, re-runnable).
+"""ops 6933 - chart.html: the studies the live sweeps flagged, swept again with pictures (read-only, re-runnable).
 
-ops 6932 took 119 oscillators through on / hide / show / close on the live chart: 114 came back pixel for pixel; on
-MACD, CCI, Williams %R, MFI and Chaikin one step differed inside a box at the bottom centre of the column
-(about 460 to 590 px wide, 71 px tall).  This run takes those five and three neighbours through the same steps and,
-where a step differs, embeds the two pictures side by side so the difference can be seen and named.
+First use (21:22 UTC): the five oscillator windows ops 6932 flagged plus three neighbours.  Its side-by-side
+pictures named the cause: an alert toast of the chart's own at the bottom centre ("SSO: big weekly outflow ...")
+had landed in the pictures.  The proof no longer draws those toasts in its browser.
+
+Second use: the nine studies on the price chart that ops 6930 flagged for other reasons - the tape family
+(Livermore pivots, Accumulation, Distribution, VSA Tape, Tape / Wyckoff, Vol events: shown again, 4 px apart from
+the picture before hiding), RS / beta vs SPY (its markers stayed when hidden; repaired in the engine), Earnings and
+Opening Range (they add dates right of the last bar).  Pairs of pictures a few pixels apart are located and
+embedded enlarged twelve times, so the 4 px can be seen and named.
 
 Khalid 2026-11-23: "my indicators in my chart.html the indicators are good but some of them wont close and remove out
 of the chart and visible and invisible doesnt always work".
@@ -30,7 +35,7 @@ _spec.loader.exec_module(P)
 def main():
     from ops_report import report
     with report("ops_6933_chart_indicator_controls_recheck") as r:
-        r.heading("ops 6933 - chart.html: five flagged oscillator windows swept again, with pictures; real browser on the live site (read-only), %s" % datetime.now(timezone.utc).isoformat(timespec="minutes"))
+        r.heading("ops 6933 - chart.html: the studies the live sweeps flagged, swept again with pictures; real browser on the live site (read-only), %s" % datetime.now(timezone.utc).isoformat(timespec="minutes"))
         fails = []
 
         def ck(cond, msg):
@@ -40,7 +45,7 @@ def main():
             return bool(cond)
 
         r.section("0. The live site serves the new build")
-        served = "function installIndicatorControls(" in P.fetch(P.BASE + "/jh-chart-engine.js?nocache=6933") and "data-act=eye title=\'Visibility\'" in P.fetch(P.BASE + "/jh-chart-evr.js?nocache=6933")
+        served = "if(window.jhRsReady && !INDS.some(" in P.fetch(P.BASE + "/jh-chart-engine.js?nocache=6933b") and "data-act=eye title=\'Visibility\'" in P.fetch(P.BASE + "/jh-chart-evr.js?nocache=6933")
         r.log("engine and Effort & Spread file are the new build: %s" % served)
         if not served:
             r.fail("the served site is not the new build")
@@ -49,7 +54,7 @@ def main():
         with sync_playwright() as p:
             browser = P.launch(p, r.log)
             shots = {}
-            rows = P.prove(r, ck, browser, P.BASE, part="windows", shots=shots, only=["rsi", "macd", "cci", "willr", "mfi", "obv", "chaikin", "atr"])
+            rows = P.prove(r, ck, browser, P.BASE, part="sweep", shots=shots, only=["livermore", "accum", "distrib", "vsa", "tape", "volev", "rs", "earn", "or15", "sma20", "vwap"])
             browser.close()
         r.section("pictures of each step that differed (what it should be | what it was), jpeg, base64")
         import base64
@@ -60,12 +65,12 @@ def main():
             r.lines.extend(b64[i:i + 16000] for i in range(0, len(b64), 16000))
             r.lines.append("SHOT-END -->")
         good = sum(1 for x in rows if not x["verdict"])
-        r.kv(oscillators=len(rows), work_at_every_step=good, failed_checks=len(fails))
+        r.kv(studies=len(rows), work_at_every_step=good, failed_checks=len(fails))
         if fails:
             for f in fails:
                 r.fail(f)
             raise SystemExit(1)
-        r.ok("LIVE: %d of %d oscillator windows switch on, fold away, come back and close with the chart returning to the same picture" % (good, len(rows)))
+        r.ok("LIVE: %d of %d flagged studies switch on, hide, show and close with the chart returning to the same picture" % (good, len(rows)))
 
 
 if __name__ == "__main__":

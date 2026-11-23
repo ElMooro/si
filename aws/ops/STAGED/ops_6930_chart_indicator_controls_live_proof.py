@@ -43,7 +43,7 @@ SEED = "try{ if(!localStorage.getItem('jh-chart-v12-tv-layout')) localStorage.se
     "document.addEventListener('DOMContentLoaded', function(){ var s = document.createElement('style'); s.textContent = '#toast{visibility:hidden!important}'; document.head.appendChild(s); });"
 # The live chart shows alert toasts of its own at the bottom centre every few minutes ("SSO: big weekly outflow ...");
 # one landing in a picture made 23 of the first sweep's steps differ.  In this op's browser they are not drawn.
-SAME = 12          # a picture is the same when at most this many pixels differ (label smoothing: 4 px on the live tape studies)
+SAME = 12          # two pictures at most this many pixels apart count as the same; each such pair is counted, located and (the first few) pictured enlarged
 READY = "() => window.lastBars && window.lastBars.length > 100 && window.paint && window.INDS && window.OSC && document.querySelector('#legend .leg-sym')"
 MAIN = "(window.jhDeskChart || (window.__charts || [])[0])"
 
@@ -117,7 +117,7 @@ class Cam:
 
     def __init__(self, page):
         from PIL import Image, ImageChops
-        self.page, self.Image, self.Chops, self.view, self.near = page, Image, ImageChops, None, []
+        self.page, self.Image, self.Chops, self.view, self.near, self.near_pics = page, Image, ImageChops, None, [], []
 
     def park(self):
         vp = self.page.viewport_size
@@ -161,7 +161,16 @@ class Cam:
         any_ = self.Chops.lighter(self.Chops.lighter(red, green), blue).point(lambda v: 255 if v else 0)
         px = any_.histogram()[255]
         if px <= SAME and not exact:
-            self.near.append(px)
+            self.near.append({"px": px, "box": list(box)})
+            if len(self.near_pics) < 4:          # the few pixels, enlarged twelve times, the two pictures side by side
+                x0, y0, x1, y1 = box
+                crop = (max(0, x0 - 14), max(0, y0 - 14), min(a.size[0], x1 + 14), min(a.size[1], y1 + 14))
+                if (crop[2] - crop[0]) * (crop[3] - crop[1]) <= 120 * 120:
+                    left, right = (im.crop(crop).resize(((crop[2] - crop[0]) * 12, (crop[3] - crop[1]) * 12), self.Image.NEAREST) for im in (a, b))
+                    both = self.Image.new("RGB", (left.size[0] * 2 + 12, left.size[1]), "white")
+                    both.paste(left, (0, 0)); both.paste(right, (left.size[0] + 12, 0))
+                    buf = io.BytesIO(); both.save(buf, "PNG")
+                    self.near_pics.append(("near_%d_%dpx_at_%d_%d" % (len(self.near_pics) + 1, px, x0, y0), buf.getvalue()))
             return None
         return {"px": px, "box": list(box)}
 
@@ -377,6 +386,8 @@ def prove(r, ck, browser, base, route=None, shots=None, only=None, cache_wait=62
             continue
         if not only and s["osc"] != (part == "windows"):
             continue
+        if not only and part == "sweep":
+            continue
         if time.time() - t0 > budget:          # the run has an hour in all: what is left is named, not silently dropped
             unswept.append(s["id"])
             continue
@@ -409,7 +420,10 @@ def prove(r, ck, browser, base, route=None, shots=None, only=None, cache_wait=62
     roomy = [(x["id"], x["made_room"]) for x in rows if x.get("made_room")]
     if roomy:
         r.log("made room on the right for dates past the last bar while on, and gave it back when closed: %s" % roomy)
-    r.log("pictures counted as the same with a few pixels of label smoothing apart (at most %d): %d comparisons, largest %s px" % (SAME, len(cam.near), max(cam.near) if cam.near else 0))
+    r.log("pictures counted as the same although a few pixels apart (at most %d): %d comparisons%s" % (SAME, len(cam.near), "" if not cam.near else ", largest %d px; where: %s" % (
+        max(n["px"] for n in cam.near), sorted({(n["px"], tuple(n["box"])) for n in cam.near})[:8])))
+    for name, png in cam.near_pics:
+        shots[name] = png
     ck(len(good) == len(rows), "%d of %d studies do not close, hide or show cleanly: %s" % (len(rows) - len(good), len(rows), ", ".join(x["id"] for x in rows if x["verdict"])[:400]))
     for sid in ("vwap", "pat", "avwap", "vprof", "reflevels", "sdmd", "rsi", "macd", "effspread"):
         x = next((y for y in rows if y["id"] == sid), None)
@@ -425,7 +439,7 @@ def prove(r, ck, browser, base, route=None, shots=None, only=None, cache_wait=62
         page.evaluate("() => { const c = document.querySelector('#jh-buyback-pane button[aria-label=Close]'); if (c) c.click() }"); page.wait_for_timeout(1500); b2 = page.evaluate(bb)
         r.log("Buyback (a section under the chart with its own Close): on %s -> its Close -> %s" % (b1, b2))
         ck(b1["on"] and b1["shown"] and not b2["on"] and not b2["shown"], "Buyback does not close: %s %s" % (b1, b2))
-    if part == "windows":
+    if part in ("windows", "sweep"):
         ctx.close()
         return rows
     with_vol = cam.settled()

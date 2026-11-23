@@ -44,8 +44,18 @@ def main():
         sync_playwright = P.ensure_playwright(r.log)
         with sync_playwright() as p:
             browser = P.launch(p, r.log)
-            rows = P.prove(r, ck, browser, P.BASE, part="windows")
+            shots = {}
+            rows = P.prove(r, ck, browser, P.BASE, part="windows", shots=shots)
             browser.close()
+        if shots:
+            import base64
+            r.section("pictures: a step that differed (what it should be | what it was); pairs a few pixels apart, enlarged")
+            for k, img in shots.items():
+                r.log("%s: %d bytes" % (k, len(img)))
+                r.lines.append("<!-- SHOT %s %d bytes" % (k, len(img)))
+                b64 = base64.b64encode(img).decode("ascii")
+                r.lines.extend(b64[i:i + 16000] for i in range(0, len(b64), 16000))
+                r.lines.append("SHOT-END -->")
         good = sum(1 for x in rows if not x["verdict"])
         r.kv(oscillators=len(rows), work_at_every_step=good, failed_checks=len(fails))
         if fails:
