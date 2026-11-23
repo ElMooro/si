@@ -280,7 +280,7 @@ test('Leaders: the sheet takes the desk\'s copy of the feed, and reads it itself
   const desk = fs.readFileSync(path.join(root, 'jh-leaders.js'), 'utf8');
   assert.match(desk, /window\.JHLeadersDoc = d;/); assert.match(desk, /new CustomEvent\("jh:leaders-doc", \{ detail: d \}\)/);
   for (const name of Object.keys(kit.adapters)) if (!['leaders', 'wyckoff', 'capitulation', 'volatility', 'strength'].includes(name)) assert.equal(kit.adapters[name].share, undefined, name);
-  assert.equal(kit.version, '1.7.0');
+  assert.equal(kit.version, '1.8.0');
 });
 
 

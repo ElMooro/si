@@ -172,6 +172,11 @@
     var cols = COLS[tab](), q = view.q.trim().toLowerCase();
     var rows = all.filter(function (r) { return view.kind === 'all' || r.kind === view.kind; });
     if (q) rows = rows.filter(function (r) { return (r.ticker + ' ' + (r.name || '') + ' ' + (r.sector || '') + ' ' + (r.industry || '') + ' ' + (r.status || '') + ' ' + (r.mark || '')).toLowerCase().indexOf(q) >= 0; });
+    /* 2026-11-23, Khalid: "the leaders and largest market caps should show up first at the top of the engines". Until a column is
+       clicked, the board stands with the industry leaders first (largest first), then every other name by market value; the
+       scan's own order is one button away (the same switch as the tearsheet above, kept in the browser). Nothing is left out. */
+    var P = window.JHTearsheet && window.JHTearsheet.priority, arranged = !!(P && P.mode() === 'priority');
+    if (view.sort == null && arranged) rows = P.order(rows);
     if (view.sort != null && cols[view.sort]) {
       var c = cols[view.sort], dir = view.desc ? -1 : 1;
       rows = rows.slice().sort(function (a, b) {
@@ -188,6 +193,8 @@
       + '. Click a column to sort it, click it again to reverse. Click a row to open it on the chart with the marks on. \u201cNow\u201d is where the last close stands against the mark\u2019s own level.</p>'
       + '<div class="sc-bar">' + [['stock', 'STOCKS ' + num(counts.stock)], ['etf', 'ETFS ' + num(counts.etf)], ['all', 'ALL ' + num(all.length)]].map(function (b) {
         return '<button type="button" data-sc-kind="' + b[0] + '" aria-pressed="' + (view.kind === b[0] ? 'true' : 'false') + '">' + b[1] + '</button>'; }).join('')
+      + (P ? '<button type="button" data-sc-order="priority" aria-pressed="' + (arranged ? 'true' : 'false') + '" title="Industry leaders first, largest first, then every other name by market value. Nothing is left out.">LEADERS' + DOT + 'LARGEST FIRST</button>'
+        + '<button type="button" data-sc-order="engine" aria-pressed="' + (arranged ? 'false' : 'true') + '" title="The order the scan publishes.">THE SCAN\u2019S OWN ORDER</button>' : '')
       + '<input type="search" id="scan-q" placeholder="Filter: ticker, name, sector, status" aria-label="Filter the board" value="' + esc(view.q) + '">'
       + '<span class="sc-n">' + num(rows.length) + ' shown' + (rows.length > shown.length ? DOT + 'first ' + num(shown.length) + ' drawn' : '') + '</span></div>'
       + '<div class="sc-wrap"><table id="scan-board"><thead><tr>' + cols.map(function (c, i) {
@@ -206,10 +213,15 @@
     }
   }
 
+  /* the leaders landing, or the order changed on the tearsheet above: the board is arranged again (a column the reader chose stays) */
+  if (window.addEventListener) ['jh:leaders-index', 'jh:stock-order'].forEach(function (evt) {
+    window.addEventListener(evt, function () { if (last.tab && document.getElementById('scan-panel')) drawPanel(last.tab); });
+  });
   document.addEventListener('click', function (e) {
     var t = e.target, panel = t && t.closest ? t.closest('#scan-panel') : null;
     if (!panel) return;
-    var kind = t.closest('[data-sc-kind]'), col = t.closest('[data-sc-col]'), more = t.closest('[data-sc-all]'), row = t.closest('tr[data-t]');
+    var kind = t.closest('[data-sc-kind]'), col = t.closest('[data-sc-col]'), more = t.closest('[data-sc-all]'), row = t.closest('tr[data-t]'), order = t.closest('[data-sc-order]');
+    if (order) { view.sort = null; view.desc = false; if (window.JHTearsheet && window.JHTearsheet.priority) window.JHTearsheet.priority.set(order.getAttribute('data-sc-order')); drawPanel(last.tab); return; }
     if (kind) { view.kind = kind.getAttribute('data-sc-kind'); view.all = false; drawPanel(last.tab); return; }
     if (col) {
       var i = +col.getAttribute('data-sc-col');

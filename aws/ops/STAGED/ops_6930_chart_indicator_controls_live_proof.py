@@ -145,15 +145,17 @@ class Cam:
     def diff(self, a, b, mask=None):
         if a.size != b.size:
             return {"px": -1, "box": None, "size": [list(a.size), list(b.size)]}
-        d = self.Chops.difference(a, b).convert("L").point(lambda v: 255 if v else 0)
+        d = self.Chops.difference(a, b)
         for box in a.info.get("readouts", []) + b.info.get("readouts", []):
-            d.paste(0, box)
+            d.paste((0, 0, 0), box)
         if mask:
-            d.paste(0, tuple(mask))
-        box = d.getbbox()
+            d.paste((0, 0, 0), tuple(mask))
+        box = d.getbbox()                       # any channel, any amount
         if box is None:
             return None
-        return {"px": sum(1 for v in d.getdata() if v), "box": list(box)}
+        red, green, blue = d.split()
+        any_ = self.Chops.lighter(self.Chops.lighter(red, green), blue).point(lambda v: 255 if v else 0)
+        return {"px": any_.histogram()[255], "box": list(box)}
 
     def press(self, sid, osc, act, touch=False):
         page = self.page
@@ -303,22 +305,29 @@ def reload(page):
     settle(page)
 
 
-def prove(r, ck, browser, base, route=None, shots=None, only=None, cache_wait=62000):
-    """Every numbered part of the docstring.  `route` and `only` exist for the rehearsal against a local copy."""
+def prove(r, ck, browser, base, route=None, shots=None, only=None, cache_wait=62000, budget=2400, part="chart"):
+    """Every numbered part of the docstring.  `route` and `only` exist for the rehearsal against a local copy.
+    The sweep is run in two halves, each inside one run's hour: part "chart" = Volume and the studies drawn on the
+    price chart, then everything else here; part "windows" (ops 6932) = the oscillators and Buyback, and nothing else."""
     shots = {} if shots is None else shots
     ctx, page, errors = open_chart(browser, base, route)
     cam = Cam(page)
 
-    r.section("1. The sweep: every study in the Indicators list - on, hidden, shown, closed")
+    r.section("1. The sweep: %s - on, hidden, shown, closed" % ("every oscillator in the Indicators list" if part == "windows" else "Volume and every study drawn on the price chart"))
     studies = page.evaluate(STUDIES)
     cam.view = page.evaluate(RANGE)
     a, b = cam.settled(), cam.settled()
     r.log("NVDA daily, %d bars, auto refresh off; %d studies in the list (%d on the price chart, %d oscillators, Volume); the chart shows bars %s; two pictures of the untouched chart are identical: %s" % (
         page.evaluate("() => window.lastBars.length"), len(studies), sum(1 for s in studies if not s["osc"]) - 1, sum(1 for s in studies if s["osc"]), [round(x, 1) for x in cam.view], cam.diff(a, b) is None))
     ck(cam.diff(a, b) is None, "the untouched chart is not a steady picture: %s" % cam.diff(a, b))
-    base_pic, rows, t0 = a, [], time.time()
+    base_pic, rows, t0, unswept = a, [], time.time(), []
     for s in studies:
         if only and s["id"] not in only:
+            continue
+        if not only and s["osc"] != (part == "windows"):
+            continue
+        if time.time() - t0 > budget:          # the run has an hour in all: what is left is named, not silently dropped
+            unswept.append(s["id"])
             continue
         try:
             row, base_pic = sweep_one(cam, s, base_pic)
@@ -334,6 +343,9 @@ def prove(r, ck, browser, base, route=None, shots=None, only=None, cache_wait=62
         rows.append(row)
     good = [x for x in rows if not x["verdict"]]
     drew = [x for x in rows if x.get("drawn") is not None]
+    if unswept:
+        r.log("NOT SWEPT in this run (time): %d studies - %s" % (len(unswept), ", ".join(unswept)))
+    ck(not unswept, "%d studies were not swept in the time this run has" % len(unswept))
     r.log("%d studies taken through the four steps in %.0f s: %d work at every step; %d of them drew something on this chart (the rest had nothing to draw on a daily stock chart and still switched on, hid, showed and closed by their row)" % (
         len(rows), time.time() - t0, len(good), len(drew)))
     r.log("the eye was on screen without hovering on %d of %d; hidden then shown gave back the same picture on %d of %d that drew; closed gave back the chart before on %d of %d" % (
@@ -348,13 +360,18 @@ def prove(r, ck, browser, base, route=None, shots=None, only=None, cache_wait=62
         if x:
             r.log("  %-10s drew %s px | hidden: %s | shown again: %s | closed: %s" % (sid, (x.get("drawn") or {}).get("px"), "nothing left" if x.get("hidden_vs_before") is None or x["osc"] else x["hidden_vs_before"],
                                                                                   "same picture" if x.get("shown_vs_on") is None else x["shown_vs_on"], "chart as before" if x.get("off_vs_before") is None else x["off_vs_before"]))
+    if part != "windows":
+        r.log("the %d oscillators and Buyback are swept the same way by ops 6932 (one run has an hour)" % sum(1 for s in studies if s["osc"]))
     # Buyback: a text section with its own Close
     bb = "() => { const o = window.OSC.find(x => x.id === 'buyback') || {}; const el = document.getElementById('jh-buyback-pane'); return { on: !!o.on, shown: !!(el && el.style.display !== 'none' && el.children.length) } }"
-    if any(s["id"] == "buyback" for s in studies):
+    if part == "windows" and any(s["id"] == "buyback" for s in studies):
         page.evaluate(ADD, ["buyback", True]); page.wait_for_timeout(2500); b1 = page.evaluate(bb)
         page.evaluate("() => { const c = document.querySelector('#jh-buyback-pane button[aria-label=Close]'); if (c) c.click() }"); page.wait_for_timeout(1500); b2 = page.evaluate(bb)
         r.log("Buyback (a section under the chart with its own Close): on %s -> its Close -> %s" % (b1, b2))
         ck(b1["on"] and b1["shown"] and not b2["on"] and not b2["shown"], "Buyback does not close: %s %s" % (b1, b2))
+    if part == "windows":
+        ctx.close()
+        return rows
     with_vol = cam.settled()
 
     r.section("2. Volume: the eye hides and shows, the cross removes, each survives a reload")

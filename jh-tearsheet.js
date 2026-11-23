@@ -255,7 +255,11 @@
   function sheet(cols, units, o) { return Object.assign({ cols: cols, units: units }, o || {}); }
   function wholeOf(list, S, k, d, o) { return Object.assign({}, S, { rows: list, sort: k ? { k: k, d: d || -1 } : null }, o || {}); }
   function FL(list, row, S, k, d, o) {
-    var out = list.map(row);
+    var out = list.map(function (r, i) {
+      var x = row(r, i, list);
+      if (x && typeof x === 'object' && !x.__r) { try { Object.defineProperty(x, '__r', { value: r }); } catch (e) { /* a frozen row keeps the list's own place */ } }
+      return x;
+    });
     Object.defineProperty(out, 'full', { value: wholeOf((o && o.rows) || list, S, k, d, o) });
     return out;
   }
@@ -289,7 +293,102 @@
     fullLists(m).forEach(function (l) {
       if (!l.full && l.rows && l.rows.full) l.full = l.rows.full;
       if (!l.full && (l.rows || []).length) l.full = autoFull(l);
+      /* a card drawn row for row from its whole list (the strength sheet) learns which record each row came from, as FL teaches the rest */
+      var fr = l.full && l.full.rows, cr = l.rows || [];
+      if (fr && cr.length && cr.length === fr.length) cr.forEach(function (x, i) {
+        if (x && typeof x === 'object' && !x.__r) { try { Object.defineProperty(x, '__r', { value: fr[i] }); } catch (e) { /* a frozen row keeps its place */ } }
+      });
     });
+    return m;
+  }
+
+  /* -- which names come first (kit 1.8.0). Khalid 2026-11-23: "the leaders and largest market caps should show up first at the
+     top of the engines they get first priority. everything stay im talking view mode and how different stocks are arranged in
+     view". A list of stocks is arranged with the industry leaders first (the Leaders desk's own set: the five largest companies
+     of each industry), largest first, then every other name by market value, largest first; a name with no market value keeps
+     its place after them, in the desk's own order. Nothing leaves a list and no figure changes. The desk's own order is one
+     button away and the choice is kept in the browser. -- */
+  var PRIO_KEY = 'jh-stock-order', PRIO_CACHE = 'jh-leaders-index-v1', PRIO_DESKS = { leaders: 1, wyckoff: 1, capitulation: 1, volatility: 1, strength: 1 }, PRIO_HEAD = 15, PRIO_RANKED = /^(newest|latest|strongest|weakest|deepest|heaviest|longest|largest|most|least|widest|narrowest|best|worst|highest|lowest|biggest|top)\b/i, prioIndex = null, prioAsked = false;
+  function prioStore() { try { return typeof window !== 'undefined' ? window.localStorage : null; } catch (e) { return null; } }
+  function prioMode() { var s = prioStore(), v = null; try { v = s && s.getItem(PRIO_KEY); } catch (e) { v = null; } return v === 'engine' ? 'engine' : 'priority'; }
+  function prioEvent(name) { try { window.dispatchEvent(new CustomEvent(name)); } catch (e) { /* no window: nothing listens */ } }
+  function prioSet(mode) {
+    var s = prioStore();
+    try { if (s) s.setItem(PRIO_KEY, mode === 'engine' ? 'engine' : 'priority'); } catch (e) { /* private mode: the choice lasts for the page */ }
+    prioEvent('jh:stock-order');
+  }
+  function prioFromDoc(doc) {
+    var out = { as_of: (doc && doc.as_of) || null, cap: {} }, n = 0;
+    ((doc && doc.rows) || []).forEach(function (r) { if (r && r.ticker) { out.cap[String(r.ticker).toUpperCase()] = fin(r.mcap) ? r.mcap : 0; n++; } });
+    return n ? out : null;
+  }
+  /* the leaders: from the Leaders desk's feed when the page already holds it, else from the copy this browser kept (twenty hours at
+     most), else read once in the background; lists are arranged again when it lands */
+  function prioLeaders() {
+    if (typeof window === 'undefined') return prioIndex;
+    if (window.JHLeadersDoc && (!prioIndex || prioIndex.doc !== window.JHLeadersDoc)) { var live = prioFromDoc(window.JHLeadersDoc); if (live) { live.doc = window.JHLeadersDoc; prioIndex = live; } }
+    if (prioIndex) return prioIndex;
+    var s = prioStore(), kept = null;
+    try { kept = s && JSON.parse(s.getItem(PRIO_CACHE) || 'null'); } catch (e) { kept = null; }
+    var fresh = !!(kept && kept.cap && kept.saved && (Date.now() - kept.saved) < 72e6);
+    if (kept && kept.cap) prioIndex = kept;
+    if (!fresh && !prioAsked && typeof fetch === 'function') {
+      prioAsked = true;
+      fetch('/data/leaders.json').then(function (r) { return r.ok ? r.json() : null; }).then(function (doc) {
+        var idx = prioFromDoc(doc);
+        if (!idx) return;
+        idx.saved = Date.now(); prioIndex = idx;
+        try { if (s) s.setItem(PRIO_CACHE, JSON.stringify(idx)); } catch (e) { /* no room: read again on the next visit */ }
+        prioEvent('jh:leaders-index');
+      }).catch(function () { /* until it can be read the lists stand by market value alone */ });
+    }
+    return prioIndex;
+  }
+  function prioTicker(r) { var t = r && (r.ticker || r.t || r.symbol || r.sym); return typeof t === 'string' && t ? t.toUpperCase() : null; }
+  function prioCap(r) { var v = r ? (r.mcap != null ? r.mcap : r.market_cap != null ? r.market_cap : r.mc != null ? r.mc : r.cap) : null; return fin(v) && v > 0 ? v : null; }
+  function prioIsLeader(t, idx) { return !!(t && idx && idx.cap && Object.prototype.hasOwnProperty.call(idx.cap, t)); }
+  /* rows arranged: leaders (largest first), then the rest by market value, then names with none in their own order.
+     get = { ticker(row), cap(row) } for a table with its own record shape; idx = the leaders (a test passes its own) */
+  function prioOrder(rows, get, idx) {
+    idx = idx === undefined ? prioLeaders() : idx; get = get || {};
+    var tk = get.ticker || prioTicker, cp = get.cap || prioCap;
+    return (rows || []).map(function (r, i) {
+      var t = tk(r), c = cp(r), lead = prioIsLeader(t, idx);
+      if (c == null && lead && idx.cap[t] > 0) c = idx.cap[t];
+      return { r: r, i: i, g: lead ? 0 : c != null ? 1 : 2, c: c || 0 };
+    }).sort(function (a, b) { return (a.g - b.g) || (a.g < 2 ? b.c - a.c : 0) || (a.i - b.i); }).map(function (x) { return x.r; });
+  }
+  /* a model's lists of stocks arranged (mode 'priority') or put back as the desk built them (mode 'engine'); m.stockOrder says
+     which, or stays unset when the sheet lists no stock */
+  function prioModel(m, mode, idx) {
+    if (!m || m.hide) return m;
+    idx = idx === undefined ? prioLeaders() : idx;
+    var any = false, stock = function (r) { var t = prioTicker(r); return !!t && (prioCap(r) != null || prioIsLeader(t, idx)); };
+    var own = function (l) { return l.full ? (l.full.own || l.full) : null; }, seen = {};
+    /* a card whose title is a ranking (Strongest, Newest, Heaviest ...), or one of two lists that hold the same names, keeps what
+       it is about: its first fifteen by the desk's own ranking, and those fifteen are arranged - else every such card would show
+       the same largest names. A list that is a set of its own (under accumulation, volatility rising) is arranged whole. Opened
+       in full, every list is arranged whole; a click on a column ranks it by that column as before. */
+    var sig = function (l) { var f = own(l); return f && (f.rows || []).length > PRIO_HEAD ? (f.rows || []).map(function (r) { return prioTicker(r) || ''; }).sort().join(',') : null; };
+    fullLists(m).forEach(function (l) { var k = sig(l); if (k) seen[k] = (seen[k] || 0) + 1; });
+    var arrange = function (rows) {
+      var at = new Map();
+      prioOrder(rows.map(function (x) { return x.__r; }), null, idx).forEach(function (r, i) { if (!at.has(r)) at.set(r, i); });
+      return rows.map(function (x, i) { return { x: x, i: i, p: at.get(x.__r) }; }).sort(function (a, b) { return (a.p - b.p) || (a.i - b.i); }).map(function (o) { return o.x; });
+    };
+    fullLists(m).forEach(function (l) {
+      var full = own(l), card = l.ownRows || l.rows || [];
+      if (!full || !(full.rows || []).some(stock)) return;
+      any = true;
+      if (mode !== 'priority') { l.full = full; l.rows = card; return; }
+      l.full = Object.assign({}, full, { rows: prioOrder(full.rows, null, idx), sort: null, own: full });
+      if (card.length && card.every(function (x) { return x && x.__r; })) {
+        var k = sig(l), ranking = PRIO_RANKED.test(String(l.title || '')) || !!(k && seen[k] > 1 && card.length === (full.rows || []).length);
+        l.ownRows = card;
+        l.rows = ranking ? arrange(card.slice(0, PRIO_HEAD)).concat(card.slice(PRIO_HEAD)) : arrange(card);
+      }
+    });
+    if (any) m.stockOrder = mode === 'priority' ? 'priority' : 'engine';
     return m;
   }
 
@@ -321,6 +420,8 @@
       + '<button type="button" class="jts-btn" data-jts-act="link">COPY LINK</button><button type="button" class="jts-btn" data-jts-act="print">PRINT' + DOT + 'SAVE PDF</button></div></div>'
       + '<div class="jts-h" role="heading" aria-level="2">' + esc(m.title) + '</div><div class="jts-sub">' + esc(m.sub || '') + '</div>'
       + ((m.controls || []).length ? '<div class="jts-ctl">' + m.controls.map(function (c) { return '<button type="button" class="jts-btn" data-jts-ctl="' + esc(c.id) + '" aria-pressed="' + (c.on ? 'true' : 'false') + '">' + esc(c.label) + '</button>'; }).join('') + '</div>' : '')
+      + (m.stockOrder ? '<div class="jts-ctl jts-ord" data-jts-ord="' + m.stockOrder + '"><button type="button" class="jts-btn" data-jts-order="priority" aria-pressed="' + (m.stockOrder === 'priority' ? 'true' : 'false') + '" title="Every list: the industry leaders first, largest first, then every other name by market value. Nothing is left out.">LEADERS' + DOT + 'LARGEST FIRST</button>'
+        + '<button type="button" class="jts-btn" data-jts-order="engine" aria-pressed="' + (m.stockOrder === 'engine' ? 'true' : 'false') + '" title="Every list in the order this desk ranks it.">THE DESK\u2019S OWN ORDER</button><span class="jts-s" style="align-self:center">' + (m.stockOrder === 'priority' ? 'Each list of names starts with its largest. Nothing is left out; every figure is the desk\u2019s own.' : 'Each list in the order this desk ranks it.') + '</span></div>' : '')
       + '<div class="jts-score">' + (m.tiles || []).map(function (t) { return '<div class="jts-kpi"><div class="k">' + esc(t.k) + '</div><div class="v">' + t.v + '</div><div class="s">' + esc(t.s || '') + '</div></div>'; }).join('') + '</div>'
       + (ol ? fullHtml(m, ol, open, !!(el.clientWidth && el.clientWidth < 520))
         : ((m.cards || []).length ? '<div class="jts-cards">' + m.cards.map(function (c) {
@@ -1744,6 +1845,7 @@
     function paint() {
       try {
         var model = ad.build(docs, state);
+        if (PRIO_DESKS[name]) model = prioModel(model, prioMode());
         el.hidden = !!(model && model.hide);                 /* a tab with no sheet: the mount steps aside */
         if (el.hidden) { el.dataset.state = 'hidden'; return; }
         render(el, model);
@@ -1795,7 +1897,8 @@
       return false;
     }
     el.addEventListener('click', function (e) {
-      var c = e.target.closest('[data-jts-ctl]'), a = e.target.closest('[data-jts-act]');
+      var c = e.target.closest('[data-jts-ctl]'), a = e.target.closest('[data-jts-act]'), ord = e.target.closest('[data-jts-order]');
+      if (ord) { prioSet(ord.getAttribute('data-jts-order')); if (el.__open) el.__open.sort = null; paint(); return; }
       if (c) { state.fund = c.getAttribute('data-jts-ctl'); paint(); return; }
       if (!a) { press(e); return; }
       var act = a.getAttribute('data-jts-act');
@@ -1833,6 +1936,8 @@
       clearTimeout(typing);
       typing = setTimeout(body, 120);
     });
+    /* the leaders landing, or the order changed from another table on the page: the lists are arranged again */
+    if (PRIO_DESKS[name]) ['jh:leaders-index', 'jh:stock-order'].forEach(function (evt) { window.addEventListener(evt, function () { if (docs) paint(); }); });
     /* A desk with tabs tells its sheet which one is open: el.dispatchEvent(new CustomEvent('jts:set', { detail: { tab: 'sc' } })) */
     el.addEventListener('jts:set', function (e) {
       var patch = (e && e.detail) || {};
@@ -1858,7 +1963,7 @@
   }
 
   function boot() { Array.prototype.forEach.call(document.querySelectorAll('[data-jts]'), mount); }
-  var api = { version: '1.7.0', render: render, ring: ring, adapters: ADAPTERS, mount: mount, money: money, pct: pct, full: { rows: fullRows, csv: fullCsv, body: fullBody, html: fullHtml, page: FULL_PAGE, finish: finish, figure: figure } };
+  var api = { version: '1.8.0', priority: { order: prioOrder, model: prioModel, mode: prioMode, set: prioSet, leaders: prioLeaders, index: prioFromDoc, ticker: prioTicker, cap: prioCap, isLeader: prioIsLeader }, render: render, ring: ring, adapters: ADAPTERS, mount: mount, money: money, pct: pct, full: { rows: fullRows, csv: fullCsv, body: fullBody, html: fullHtml, page: FULL_PAGE, finish: finish, figure: figure } };
   if (typeof module === 'object' && module.exports) module.exports = api;   /* node: the adapters and the ring are pure, tests/tearsheet-kit.test.js */
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
   window.JHTearsheet = api;

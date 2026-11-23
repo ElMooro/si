@@ -282,6 +282,8 @@
 
   // ================================================================================================= the page
   var doc = null, ROWS = [], BY = {}, D = w.JHDesk, $ = function (id) { return w.document.getElementById(id); };
+  /* the leaders landing, or the order switched on the tearsheet above: the board and the table of rows are arranged again */
+  if (w.addEventListener) ["jh:leaders-index", "jh:stock-order"].forEach(function (evt) { w.addEventListener(evt, function () { if (doc) { try { draw("board"); draw("rows"); } catch (e) {} } }); });
   var S = { kind: "stock", size: "all", sector: "", q: "", view: "overview", show: "free", board: "most_volatile", chart: "vol", all: false, sort: { rows: { k: "hv21", d: -1 }, board: null, sec: null, size: null } };
   var HASH_KEYS = ["kind", "size", "sector", "q", "view", "show", "board", "chart"], DEFAULTS = { kind: "stock", size: "all", view: "overview", show: "free", board: "most_volatile", chart: "vol" };
 
@@ -291,7 +293,7 @@
     h.split("&").forEach(function (kv) {
       var i = kv.indexOf("="), k = kv.slice(0, i), v = decodeURIComponent(kv.slice(i + 1));
       if (HASH_KEYS.indexOf(k) >= 0) S[k] = v;
-      else if (k.indexOf("s_") === 0 && S.sort.hasOwnProperty(k.slice(2))) { var p = v.split(":"); S.sort[k.slice(2)] = { k: p[0], d: p[1] === "asc" ? 1 : -1 }; }
+      else if (k.indexOf("s_") === 0 && S.sort.hasOwnProperty(k.slice(2))) { var p = v.split(":"); S.sort[k.slice(2)] = { k: p[0], d: p[1] === "asc" ? 1 : -1 }; S.own = S.own || {}; S.own[k.slice(2)] = true; }
     });
   }
   function writeHash() {
@@ -307,27 +309,48 @@
     var h = c.cell(r);
     return h.indexOf('<td class="') === 0 ? '<td class="c-' + c.id + " " + h.slice(11) : '<td class="c-' + c.id + '"' + h.slice(3);
   }
-  function head(table, cols, numbered) {
-    var s = S.sort[table];
+  /* 2026-11-23, Khalid: "the leaders and largest market caps should show up first at the top of the engines". Until a column is
+     clicked, a board and the table of every row stand with the industry leaders first (largest first), then every other name by market value; the
+     desk's own ranking is one button away - the same switch as the tearsheet above, kept in the browser. Nothing is left out. */
+  function largestFirst(table) {
+    var P = w.JHTearsheet && w.JHTearsheet.priority;
+    if (!P || !(table === "rows" || table === "board")) return null;
+    return { P: P, on: P.mode() === "priority" && !(S.own && S.own[table]) };
+  }
+  function orderBar(table, L) {
+    if (!L) return "";
+    var chosen = !!(S.own && S.own[table]);
+    return '<div data-order-for="' + table + '" style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px">' +
+      '<button type="button" class="jh-chip' + (L.on ? " on" : "") + '" aria-pressed="' + (L.on ? "true" : "false") + '" data-stock-order="priority" title="Industry leaders first, largest first, then every other name by market value. Nothing is left out.">Leaders \u00b7 largest first</button>' +
+      '<button type="button" class="jh-chip' + (!L.on && !chosen ? " on" : "") + '" aria-pressed="' + (!L.on && !chosen ? "true" : "false") + '" data-stock-order="engine" title="The order this desk ranks the table in.">The desk\u2019s own order</button>' +
+      (chosen ? '<span class="jh-chip on" aria-hidden="true">Ranked by the column you clicked</span>' : "") + "</div>";
+  }
+  function head(table, cols, numbered, unranked) {
+    var s = unranked ? null : S.sort[table];
     return "<thead><tr>" + (numbered ? '<th class="sv-pos" title="position in the list on screen">#</th>' : "") + cols.map(function (c) {
       var on = s && s.k === c.id;
       return '<th scope="col" tabindex="0" data-sort="' + c.id + '" class="c-' + c.id + (c.type === "s" ? " txt" : "") + '"' + (on ? ' aria-sort="' + (s.d > 0 ? "ascending" : "descending") + '"' : "") + (c.tip ? ' title="' + esc(c.tip) + '"' : "") + ">" + esc(c.t) + "</th>";
     }).join("") + "</tr></thead>";
   }
   function paint(table, hostId, cols, rows, empty, cap, numbered) {
-    var s = S.sort[table], c = null;
+    var s = S.sort[table], c = null, L = largestFirst(table);
+    if (L && L.on) s = null;
     if (s) cols.forEach(function (x) { if (x.id === s.k) c = x; });
     if (s && !c && COLS[s.k]) c = COLS[s.k];
-    var sorted = c ? sortRows(rows, c, s.d) : rows, shown = cap ? sorted.slice(0, cap) : sorted;
-    $(hostId).innerHTML = '<table class="jh-tbl sv-tbl">' + head(table, cols, numbered) + "<tbody>" +
+    var sorted = L && L.on ? L.P.order(rows) : c ? sortRows(rows, c, s.d) : rows, shown = cap ? sorted.slice(0, cap) : sorted;
+    $(hostId).innerHTML = orderBar(table, L) + '<table class="jh-tbl sv-tbl">' + head(table, cols, numbered, L && L.on) + "<tbody>" +
       (shown.map(function (r, i) { return "<tr>" + (numbered ? '<td class="sv-pos">' + (i + 1) + "</td>" : "") + cols.map(function (x) { return cellOf(x, r); }).join("") + "</tr>"; }).join("") ||
         '<tr><td class="jh-load" colspan="' + (cols.length + (numbered ? 1 : 0)) + '">' + esc(empty) + "</td></tr>") + "</tbody></table>";
+    Array.prototype.forEach.call($(hostId).querySelectorAll("[data-stock-order]"), function (b) {
+      b.onclick = function () { S.own = S.own || {}; S.own[table] = false; if (L) L.P.set(b.getAttribute("data-stock-order")); draw(table); };
+    });
     Array.prototype.forEach.call($(hostId).querySelectorAll("th[data-sort]"), function (th) {
       function go() {
         var id = th.getAttribute("data-sort"), cdef = null;
         cols.forEach(function (x) { if (x.id === id) cdef = x; });
         if (!cdef) return;
-        S.sort[table] = nextSort(S.sort[table], cdef);
+        S.own = S.own || {}; S.own[table] = true;
+        S.sort[table] = nextSort(L && L.on ? null : S.sort[table], cdef);
         draw(table);
       }
       th.onclick = go;
@@ -364,7 +387,7 @@
         fint((u.reclassified || []).length) + " notes and preferreds left out")
     ].join("");
     Array.prototype.forEach.call($("kpis").querySelectorAll("[data-board]"), function (x) {
-      x.onclick = function () { S.board = x.getAttribute("data-board"); S.sort.board = null; draw("board"); $("boards").scrollIntoView({ behavior: "smooth", block: "start" }); };
+      x.onclick = function () { S.board = x.getAttribute("data-board"); S.sort.board = null; if (S.own) S.own.board = false; draw("board"); $("boards").scrollIntoView({ behavior: "smooth", block: "start" }); };
     });
     var ch = doc.changes || {};
     function list(xs) { return xs.slice(0, 12).map(tk).join(" "); }
@@ -432,7 +455,7 @@
 
   function drawBoard() {
     var def = boardDef(S.board), rows = boardRows(doc, BY, def[0]), floor = ffloor(doc.board_rule.min_mcap);
-    chips("board-chips", BOARDS.map(function (b) { return [b[0], b[1] + (b[0] === "pinned" ? " " + (doc.pinned || []).length : "")]; }), def[0], function (v) { S.board = v; S.sort.board = null; draw("board"); });
+    chips("board-chips", BOARDS.map(function (b) { return [b[0], b[1] + (b[0] === "pinned" ? " " + (doc.pinned || []).length : "")]; }), def[0], function (v) { S.board = v; S.sort.board = null; if (S.own) S.own.board = false; draw("board"); });
     if (!S.sort.board) S.sort.board = { k: def[2], d: def[3] };
     $("board-meta").textContent = def[0] === "pinned" ? rows.length + " stocks whose last 21 sessions fit inside " + doc.windows.pin_spread_m + "% " + MID + " measured, not ranked" :
       "the " + rows.length + " at this end among " + fint((doc.board_rule.population || {})[MEASURE[def[2]] || "hv21"]) + " ranked common stocks worth " + floor + " or more";

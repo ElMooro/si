@@ -15,6 +15,8 @@
   var MINUS = "−", DASH = "—", MID = "·", TIMES = "×";
   var $ = function (id) { return w.document.getElementById(id); };
   var V = null;                                                      // the view on screen
+  /* the leaders landing, or the order switched on the tearsheet above: the table of names is arranged again */
+  if (w.addEventListener) ["jh:leaders-index", "jh:stock-order"].forEach(function (evt) { w.addEventListener(evt, function () { try { if (V) drawNames(V); } catch (e) {} }); });
   var S = { kind: "stock", scope: "b1", out: "auto", rank: "all", show: "counted", sector: "", industry: "", q: "", view: "today", group: "sector", carried: "record", all: false,
             sort: { names: null, groups: null } };
   var HASH_KEYS = ["kind", "scope", "out", "rank", "show", "sector", "industry", "q", "view", "group", "carried"];
@@ -157,26 +159,47 @@
     });
   }
   function byX(a, b) { var x = a.x, y = b.x; return ((x == null) - (y == null)) || (x == null ? 0 : cmp(y, x)); }
-  function head(table, cols, numbered) {
-    var s = S.sort[table];
+  /* 2026-11-23, Khalid: "the leaders and largest market caps should show up first at the top of the engines". Until a column is
+     clicked, the table of names stands with the industry leaders first (largest first), then every other name by market value; the
+     desk's own ranking is one button away - the same switch as the tearsheet above, kept in the browser. Nothing is left out. */
+  function largestFirst(table) {
+    var P = w.JHTearsheet && w.JHTearsheet.priority;
+    if (!P || !(table === "names")) return null;
+    return { P: P, on: P.mode() === "priority" && !(S.own && S.own[table]) };
+  }
+  function orderBar(table, L) {
+    if (!L) return "";
+    var chosen = !!(S.own && S.own[table]);
+    return '<div data-order-for="' + table + '" style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px">' +
+      '<button type="button" class="jh-chip' + (L.on ? " on" : "") + '" aria-pressed="' + (L.on ? "true" : "false") + '" data-stock-order="priority" title="Industry leaders first, largest first, then every other name by market value. Nothing is left out.">Leaders \u00b7 largest first</button>' +
+      '<button type="button" class="jh-chip' + (!L.on && !chosen ? " on" : "") + '" aria-pressed="' + (!L.on && !chosen ? "true" : "false") + '" data-stock-order="engine" title="The order this desk ranks the table in.">The desk\u2019s own order</button>' +
+      (chosen ? '<span class="jh-chip on" aria-hidden="true">Ranked by the column you clicked</span>' : "") + "</div>";
+  }
+  function head(table, cols, numbered, unranked) {
+    var s = unranked ? null : S.sort[table];
     return "<thead><tr>" + (numbered ? '<th class="sx-pos" title="position in the list on screen">#</th>' : "") + cols.map(function (c) {
       var on = s && s.k === c.id;
       return '<th scope="col" tabindex="0" data-sort="' + c.id + '" class="c-' + c.id + (c.type === "s" ? " txt" : "") + '"' + (on ? ' aria-sort="' + (s.d > 0 ? "ascending" : "descending") + '"' : "") + (c.tip ? ' title="' + esc(c.tip) + '"' : "") + ">" + esc(c.t) + "</th>";
     }).join("") + "</tr></thead>";
   }
   function paint(table, hostId, cols, rows, empty, cap, numbered, redraw) {
-    var s = S.sort[table], c = null;
+    var s = S.sort[table], c = null, L = largestFirst(table);
+    if (L && L.on) s = null;
     if (s) cols.forEach(function (x) { if (x.id === s.k) c = x; });
     if (s && !c && table === "names" && COL[s.k]) c = COL[s.k];        // ranked by a column the view on screen does not show: the order holds
-    var sorted = c ? sortRows(rows, c, s.d, table === "names" ? byX : null) : rows, shown = cap ? sorted.slice(0, cap) : sorted;
-    $(hostId).innerHTML = '<table class="jh-tbl sx-tbl">' + head(table, cols, numbered) + "<tbody>" +
+    var sorted = L && L.on ? L.P.order(rows) : c ? sortRows(rows, c, s.d, table === "names" ? byX : null) : rows, shown = cap ? sorted.slice(0, cap) : sorted;
+    $(hostId).innerHTML = orderBar(table, L) + '<table class="jh-tbl sx-tbl">' + head(table, cols, numbered, L && L.on) + "<tbody>" +
       (shown.map(function (r, i) { return "<tr>" + (numbered ? '<td class="sx-pos">' + (i + 1) + "</td>" : "") + cols.map(function (x) { var h = x.cell(r); return h.indexOf('<td class="') === 0 ? '<td class="c-' + x.id + " " + h.slice(11) : '<td class="c-' + x.id + '"' + h.slice(3); }).join("") + "</tr>"; }).join("") ||
         '<tr><td class="jh-load" colspan="' + (cols.length + (numbered ? 1 : 0)) + '">' + esc(empty) + "</td></tr>") + "</tbody></table>";
+    Array.prototype.forEach.call($(hostId).querySelectorAll("[data-stock-order]"), function (b) {
+      b.onclick = function () { S.own = S.own || {}; S.own[table] = false; S.sort[table] = null; if (L) L.P.set(b.getAttribute("data-stock-order")); writeHash(); redraw(); };
+    });
     Array.prototype.forEach.call($(hostId).querySelectorAll("th[data-sort]"), function (th) {
       function go() {
-        var id = th.getAttribute("data-sort"), cur = S.sort[table], def = null;
+        var id = th.getAttribute("data-sort"), cur = L && L.on ? null : S.sort[table], def = null;
         cols.forEach(function (x) { if (x.id === id) def = x; });
         if (!def) return;
+        S.own = S.own || {}; S.own[table] = true;
         S.sort[table] = cur && cur.k === id ? { k: id, d: -cur.d } : { k: id, d: def.type === "s" ? 1 : -1 };
         writeHash();
         redraw();
@@ -372,7 +395,7 @@
     h.split("&").forEach(function (kv) {
       var i = kv.indexOf("="), k = kv.slice(0, i), val = decodeURIComponent(kv.slice(i + 1));
       if (HASH_KEYS.indexOf(k) >= 0) S[k] = val;
-      else if (k === "s_names" || k === "s_groups") { var p = val.split(":"); S.sort[k.slice(2)] = { k: p[0], d: p[1] === "asc" ? 1 : -1 }; }
+      else if (k === "s_names" || k === "s_groups") { var p = val.split(":"); S.sort[k.slice(2)] = { k: p[0], d: p[1] === "asc" ? 1 : -1 }; S.own = S.own || {}; S.own[k.slice(2)] = true; }
     });
   }
   function writeHash() {
@@ -387,7 +410,7 @@
     if (!d || !V) return false;
     S.kind = d.kind === "etf" ? "etf" : "stock";
     S.scope = S.kind === "etf" ? (d.scope === "all" ? "all" : "b1") : (["sp", "b10", "b1", "all"].indexOf(d.scope) >= 0 ? d.scope : "b1");
-    S.out = d.out || "all"; S.rank = "all"; S.show = "counted"; S.q = ""; S.sector = d.sector || ""; S.industry = d.industry || ""; S.all = false; S.sort.names = null;
+    S.out = d.out || "all"; S.rank = "all"; S.show = "counted"; S.q = ""; S.sector = d.sector || ""; S.industry = d.industry || ""; S.all = false; S.sort.names = null; if (S.own) S.own.names = false;
     var qi = $("names-q"); if (qi) qi.value = "";
     writeHash(); drawNames(V);
     var sec = $("names");
@@ -411,7 +434,7 @@
       pick(S.group === "class" ? { kind: "etf", scope: "b1", sector: name } : S.group === "industry" ? { kind: "stock", scope: "b1", industry: name } : { kind: "stock", scope: "b1", sector: name });
     });
     w.document.addEventListener("jts:pick", function (e) { if (e && e.detail && e.detail.desk === "strength") pick(e.detail); });
-    $("names-reset").onclick = function () { Object.keys(DEFAULTS).forEach(function (k) { S[k] = DEFAULTS[k]; }); S.sector = ""; S.industry = ""; S.q = ""; qi.value = ""; S.all = false; S.sort.names = null; writeHash(); if (V) { drawGroups(V); drawCarried(V); drawNames(V); } };
+    $("names-reset").onclick = function () { Object.keys(DEFAULTS).forEach(function (k) { S[k] = DEFAULTS[k]; }); S.sector = ""; S.industry = ""; S.q = ""; qi.value = ""; S.all = false; S.sort.names = null; if (S.own) S.own.names = false; writeHash(); if (V) { drawGroups(V); drawCarried(V); drawNames(V); } };
     $("names-csv").onclick = download;
   }
   function render(v) {

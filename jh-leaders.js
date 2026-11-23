@@ -471,6 +471,8 @@
             isector: "", imin: 0, iq: "", eview: "flows", erole: "all", ecurrent: false, eq: "",
             sort: { board: null, ind: { k: "rank", d: 1 }, lead: { k: "strength", d: -1 }, etf: { k: "flow21", d: -1 } } };
   var HASH_KEYS = ["board", "scope", "view", "sector", "industry", "rank", "q", "isector", "imin", "iq", "eview", "erole", "eq"];
+  /* the order switched on the tearsheet above: the two tables of names follow */
+  if (w.addEventListener) w.addEventListener("jh:stock-order", function () { if (doc) { try { draw("board"); draw("lead"); } catch (e) {} } });
 
   function readHash() {
     var h = String(w.location.hash || "").replace(/^#/, "");
@@ -482,6 +484,9 @@
       else if (k === "sig") S.sig = v ? v.split("|") : [];
       else if (/^s_(board|ind|lead|etf)$/.test(k)) { var p = v.split(":"); if (p[0]) S.sort[k.slice(2)] = { k: p[0], d: p[1] === "asc" ? 1 : -1 }; }
     });
+    /* a link that carries a ranking other than the view's own was ranked by hand: it keeps that ranking over "largest first" */
+    var own = viewSort(VIEW_SORT, S.view), now = S.sort.lead;
+    S.own = { board: !!S.sort.board, lead: !!(now && (!own || now.k !== own.k || now.d !== own.d)) };
   }
   function writeHash() {
     var out = [];
@@ -491,26 +496,47 @@
     try { w.history.replaceState(null, "", out.length ? "#" + out.join("&") : w.location.pathname + w.location.search); } catch (e) {}
   }
 
-  function head(table, cols) {
-    var s = S.sort[table];
+  function head(table, cols, unranked) {
+    var s = unranked ? null : S.sort[table];
     return "<thead><tr>" + cols.map(function (c) {
       var on = s && s.k === c.id;
       return '<th scope="col" tabindex="0" data-sort="' + c.id + '"' + (on ? ' aria-sort="' + (s.d < 0 ? "descending" : "ascending") + '"' : "") + (isLeft(c) ? ' class="txt"' : "") +
         ' title="' + esc((c.tip ? c.tip + " — " : "") + "click to sort, click again to reverse") + '">' + esc(c.t) + "</th>";
     }).join("") + "</tr></thead>";
   }
+  /* 2026-11-23, Khalid: "the leaders and largest market caps should show up first at the top of the engines". Until a column is
+     clicked, the two tables of names (what is printing, the leaders) stand largest first; the desk's own ranking is one button
+     away - the same switch as the tearsheet above, kept in the browser. Nothing is left out and no figure changes. */
+  function largestFirst(table) {
+    var P = w.JHTearsheet && w.JHTearsheet.priority;
+    if (!P || (table !== "lead" && table !== "board") || (table === "board" && S.scope === "etfs")) return null;
+    return { P: P, on: P.mode() === "priority" && !(S.own && S.own[table]) };
+  }
+  function orderBar(table, L) {
+    if (!L) return "";
+    var chosen = !!(S.own && S.own[table]);
+    return '<div class="ld-order" data-ld-order-for="' + table + '" style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px">' +
+      '<button type="button" class="jh-chip' + (L.on ? " on" : "") + '" aria-pressed="' + (L.on ? "true" : "false") + '" data-ld-order="priority" title="Largest company first. Nothing is left out.">Largest first</button>' +
+      '<button type="button" class="jh-chip' + (!L.on && !chosen ? " on" : "") + '" aria-pressed="' + (!L.on && !chosen ? "true" : "false") + '" data-ld-order="engine" title="The order this desk ranks the table in.">The desk\u2019s own order</button>' +
+      (chosen ? '<span class="jh-chip on" aria-hidden="true">Ranked by the column you clicked</span>' : "") + "</div>";
+  }
   function paint(table, hostId, cols, rows, empty, cap, cls) {
-    var s = S.sort[table], c = null;
+    var s = S.sort[table], c = null, L = largestFirst(table);
+    if (L && L.on) s = null;
     if (s) cols.forEach(function (x) { if (x.id === s.k) c = x; });
-    var sorted = c ? sortRows(rows, c, s.d) : rows, shown = cap && sorted.length > cap ? sorted.slice(0, cap) : sorted;
-    $(hostId).innerHTML = '<table class="jh-tbl ld-tbl' + (cls ? " " + cls : "") + '">' + head(table, cols) + "<tbody>" +
+    var sorted = L && L.on ? L.P.order(rows) : c ? sortRows(rows, c, s.d) : rows, shown = cap && sorted.length > cap ? sorted.slice(0, cap) : sorted;
+    $(hostId).innerHTML = orderBar(table, L) + '<table class="jh-tbl ld-tbl' + (cls ? " " + cls : "") + '">' + head(table, cols, L && L.on) + "<tbody>" +
       (shown.map(function (r) { return "<tr>" + cols.map(function (x) { return cellOf(x, r); }).join("") + "</tr>"; }).join("") || '<tr><td class="jh-load" colspan="' + cols.length + '">' + esc(empty) + "</td></tr>") + "</tbody></table>";
+    Array.prototype.forEach.call($(hostId).querySelectorAll("[data-ld-order]"), function (b) {
+      b.onclick = function () { S.own = S.own || {}; S.own[table] = false; if (L) L.P.set(b.getAttribute("data-ld-order")); draw(table); };
+    });
     var ths = $(hostId).querySelectorAll("th[data-sort]");
     Array.prototype.forEach.call(ths, function (th) {
       function go() {
         var id = th.getAttribute("data-sort"), cdef = null;
         cols.forEach(function (x) { if (x.id === id) cdef = x; });
         if (!cdef) return;
+        S.own = S.own || {}; S.own[table] = true;
         S.sort[table] = nextSort(S.sort[table], cdef);
         draw(table);
       }
@@ -564,7 +590,7 @@
       kpi("Climaxes · tight price", jump("buying_climax", n("buying_climax") + " buying", "amber") + " · " + jump("selling_climax", n("selling_climax") + " selling", "amber"), "climaxes inside 30 sessions<br>" + jump("tight", n("tight") + " tight bases", "amber"))
     ].join("");
     Array.prototype.forEach.call($("kpis").querySelectorAll("[data-board]"), function (x) {
-      x.onclick = function () { S.board = x.getAttribute("data-board"); S.scope = "leaders"; S.sort.board = null; draw("board"); $("printing").scrollIntoView({ behavior: "smooth", block: "start" }); };
+      x.onclick = function () { S.board = x.getAttribute("data-board"); S.scope = "leaders"; S.sort.board = null; if (S.own) S.own.board = false; draw("board"); $("printing").scrollIntoView({ behavior: "smooth", block: "start" }); };
     });
     var ch = doc.changes || {}, parts = [];
     function list(xs, cls) { return xs.slice(0, 24).map(function (x) { return tk(x.ticker) + " " + chip((SIG_SHORT[x.signal] || [x.signal.toLowerCase()])[0], cls); }).join(" "); }
@@ -581,7 +607,7 @@
     if (!S.board || boardDef(S.board)[0] !== S.board || (scope === "etfs" && S.board.indexOf("smart_") === 0)) S.board = null;      // an unknown board, or one a fund cannot print
     if (!S.board) { for (var i = 0; i < BOARDS.length; i++) if ((lists[BOARDS[i][0]] || []).length) { S.board = BOARDS[i][0]; break; } }
     if (!S.board) S.board = BOARDS[0][0];
-    chips("board-scope", [["leaders", "Leaders"], ["etfs", "Industry funds"]], scope, function (v) { S.scope = v; S.sort.board = null; draw("board"); });
+    chips("board-scope", [["leaders", "Leaders"], ["etfs", "Industry funds"]], scope, function (v) { S.scope = v; S.sort.board = null; if (S.own) S.own.board = false; draw("board"); });
     chips("board-chips", BOARDS.filter(function (b) { return scope !== "etfs" || b[0].indexOf("smart_") !== 0; }).map(function (b) { return [b[0], b[1] + " " + (lists[b[0]] || []).length, b[2]]; }), S.board, function (v) { S.board = v; S.sort.board = null; draw("board"); });
     var def = boardDef(S.board), rows = boardRows(doc, S.board, scope);
     LAST.board = paint("board", "board", defs(COLS, boardCols(S.board, scope)), rows, "Nothing is printing " + def[1].toLowerCase() + " in this scope today.");
@@ -609,7 +635,7 @@
     if (S.industry && !seenI[S.industry]) S.industry = "";
     options($("lead-sector"), sectors.sort(), S.sector, "All sectors");
     options($("lead-industry"), inds.sort(), S.industry, "All industries");
-    chips("lead-view", LEADER_VIEWS.map(function (v) { return [v[0], v[1]]; }), S.view, function (v) { S.view = v; S.sort.lead = viewSort(VIEW_SORT, v); draw("lead"); });
+    chips("lead-view", LEADER_VIEWS.map(function (v) { return [v[0], v[1]]; }), S.view, function (v) { S.view = v; S.sort.lead = viewSort(VIEW_SORT, v); if (S.own) S.own.lead = false; draw("lead"); });
     chips("lead-rank", RANKS, S.rank, function (v) { S.rank = v; draw("lead"); });
     var counts = {};
     doc.rows.forEach(function (r) { (r.signals || []).forEach(function (s) { counts[s] = (counts[s] || 0) + 1; }); });

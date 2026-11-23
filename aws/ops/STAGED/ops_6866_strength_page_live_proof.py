@@ -129,6 +129,20 @@ def reference(doc, today, labels):
     return {"mode": mode, "session": session, "carried": carried, "rows": rows, "spy": spy, "read": read, "rules": rules, "red": read["regime"] in ("dump", "down")}
 
 
+def own_order(browser):
+    """This proof compares lists with the desk's own ranking.  Since 2026-11-23 (kit 1.8.0) a list of stocks opens with
+    the leaders and the largest companies first; the desk's own order is the other position of the same switch, and
+    this proof selects it."""
+    make = browser.new_context
+
+    def new_context(*a, **k):
+        ctx = make(*a, **k)
+        ctx.add_init_script("try{ localStorage.setItem('jh-stock-order', 'engine') }catch(e){}")
+        return ctx
+    browser.new_context = new_context
+    return browser
+
+
 def scope_rows(ref, kind="stock", scope="b1", out="auto", rank="all", show="counted", q="", sector=""):
     """jh-strong-today.js rowFilter, in Python."""
     R = ref["rules"]
@@ -581,7 +595,7 @@ def main():
 
         sync_playwright = ensure_playwright(r.log)
         with sync_playwright() as p:
-            browser = launch(p, r.log)
+            browser = own_order(launch(p, r.log))
             prove(browser, r, ck, shots, BASE, int(time.time()), None, facts)
             browser.close()
         if facts:

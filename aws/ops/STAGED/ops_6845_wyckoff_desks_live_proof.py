@@ -59,6 +59,20 @@ def launch(p, log):
         return p.chromium.launch(headless=True)
 
 
+def own_order(browser):
+    """This proof compares lists with the desk's own ranking.  Since 2026-11-23 (kit 1.8.0) a list of stocks opens with
+    the leaders and the largest companies first; the desk's own order is the other position of the same switch, and
+    this proof selects it."""
+    make = browser.new_context
+
+    def new_context(*a, **k):
+        ctx = make(*a, **k)
+        ctx.add_init_script("try{ localStorage.setItem('jh-stock-order', 'engine') }catch(e){}")
+        return ctx
+    browser.new_context = new_context
+    return browser
+
+
 def get(path, stamp, as_json=True):
     raw = urllib.request.urlopen(urllib.request.Request("%s/%s%snocache=%d" % (BASE, path, "&" if "?" in path else "?", stamp), headers=UA), timeout=90).read()
     return json.loads(raw) if as_json else raw.decode("utf-8", "replace")
@@ -189,7 +203,7 @@ def main():
                 ck(s["total"] == E["spring"]["n"] and ("%d fired, %d forming, %d failed" % (f, g, x)) in s["title"], "%s: ring %s title %r, the book has %s" % (tag, s["total"], s["title"][:70], E["spring"]["parts"]))
 
         with sync_playwright() as p:
-            browser = launch(p, r.log)
+            browser = own_order(launch(p, r.log))
             # ---- 3. the Wyckoff desk, ten tabs, two widths
             for width in (1440, 390):
                 r.section("wyckoff-desk.html at %d px" % width)

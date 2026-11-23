@@ -57,6 +57,20 @@ def launch(p, log):
         return p.chromium.launch(headless=True)
 
 
+def own_order(browser):
+    """This proof compares lists with the desk's own ranking.  Since 2026-11-23 (kit 1.8.0) a list of stocks opens with
+    the leaders and the largest companies first; the desk's own order is the other position of the same switch, and
+    this proof selects it."""
+    make = browser.new_context
+
+    def new_context(*a, **k):
+        ctx = make(*a, **k)
+        ctx.add_init_script("try{ localStorage.setItem('jh-stock-order', 'engine') }catch(e){}")
+        return ctx
+    browser.new_context = new_context
+    return browser
+
+
 def money(v, signed=False):
     if v is None:
         return "—"
@@ -203,7 +217,7 @@ def main():
                    "the engine's own summary differs from the rows: %s" % json.dumps({x: S.get(x) for x in ("beating_m", "accumulation", "distribution", "smart_buying", "smart_selling", "mf21_net_usd")}))
 
         with sync_playwright() as p:
-            browser = launch(p, r.log)
+            browser = own_order(launch(p, r.log))
             for width in (1440, 390):
                 r.section("leaders.html at %d px" % width)
                 ctx = browser.new_context(viewport={"width": width, "height": 900}, device_scale_factor=1 if width == 1440 else 2, user_agent="Mozilla/5.0 (X11; Linux x86_64) jh-ops-probe Chrome")

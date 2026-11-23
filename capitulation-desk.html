@@ -175,9 +175,14 @@
   }
   function wire(id){
     document.querySelectorAll("#"+id+" th[data-sort]").forEach(function(th){
-      th.onclick=function(){ var k=th.getAttribute("data-sort"), s=SORT[id]; if(s.k===k) s.dir*=-1; else { s.k=k; s.dir=-1; } draw(); };
+      th.onclick=function(){ var k=th.getAttribute("data-sort"), s=SORT[id]; s.own=true; if(s.k===k) s.dir*=-1; else { s.k=k; s.dir=-1; } draw(); };
     });
   }
+  /* 2026-11-23, Khalid: "the leaders and largest market caps should show up first at the top of the engines". Until a column is
+     clicked, the industry leaders among the prints come first, largest first; every other print follows in the desk's own
+     order (this feed carries no market value). The same switch as the tearsheet above, kept in the browser. */
+  function leadersFirst(id){ var P=window.JHTearsheet&&window.JHTearsheet.priority; return P&&P.mode()==="priority"&&!SORT[id].own?P:null; }
+  ["jh:leaders-index","jh:stock-order"].forEach(function(evt){ window.addEventListener(evt,function(){ try{ if(DOC) draw(); }catch(e){} }); });
   var COLS=[["ticker","Ticker"],["name","Name"],["desk","Desk"],["date","Date","the session of the print"],["ret_pct","Ret","close-to-close return of the print session"],["vol_x","Vol ×","volume over the prior 50-session average"],
     ["range_x","Range ×","the bar's range over the ATR(14) of the bars before it"],["loc","Close","where the close sits in the bar's range (0 = at the low)"],["context","Context","DECLINE = sell-off already underway; SHOCK = the bar is the drop"],["score","Score","0-100"],
     ["dd20_pct","20d dd","the close vs the prior 20-session high"],["dd60_pct","60d dd","the close vs the prior 60-session high"],["bars_down","Down","down sessions in a row through the print"],["newlow","New low","60-session / 20-session low"],
@@ -251,11 +256,12 @@
     document.querySelectorAll("#window .jh-chip").forEach(function(b){ b.onclick=function(){ win=b.getAttribute("data-win"); draw(); }; });
   }
   function drawTable(){
-    var rows=pool().slice().sort(sorter("tbl"));
+    var rows=pool().slice().sort(sorter("tbl")), LF=leadersFirst("tbl");
+    if(LF) rows=LF.order(rows);
     var t=document.getElementById("tbl");
     t.innerHTML=head("tbl",COLS)+"<tbody>"+(rows.length?rows.map(row).join(""):'<tr><td colspan="24" class="jh-load">no capitulation print '+(desk==="ALL"?"on any desk":"on "+esc(LABEL[desk]||desk))+" in the "+(win==="LATEST"?"last five sessions":"last 60 sessions")+" — the crowd has not given up here</td></tr>")+"</tbody>";
     wire("tbl");
-    document.getElementById("prints-meta").textContent=rows.length+" print"+(rows.length===1?"":"s")+" · "+(desk==="ALL"?"every desk":(LABEL[desk]||desk))+" · "+(win==="LATEST"?"since "+(DOC.latest_cut||""):"60 sessions")+" · newest and highest score first unless sorted";
+    document.getElementById("prints-meta").textContent=rows.length+" print"+(rows.length===1?"":"s")+" · "+(desk==="ALL"?"every desk":(LABEL[desk]||desk))+" · "+(win==="LATEST"?"since "+(DOC.latest_cut||""):"60 sessions")+(LF?" · industry leaders first, largest first, then newest and highest score (the switch is on the tearsheet above)":" · newest and highest score first unless sorted");
   }
   var HOLD_COLS=[["ticker","Ticker"],["name","Name"],["desk","Desk"],["date","Date"],["ret_pct","Ret"],["vol_x","Vol ×"],["score","Score"],["context","Context"],["wy","Wyckoff"],["since","Since"],["undercut","Undercut"],["vol_after","Vol after"],["bounce","Bounce"],["now","Now"],["fleet","Evidence"],["last","Last"]];
   function drawFollow(){

@@ -65,6 +65,20 @@ def launch(p, log):
         return p.chromium.launch(headless=True)
 
 
+def own_order(browser):
+    """This proof compares lists with the desk's own ranking.  Since 2026-11-23 (kit 1.8.0) a list of stocks opens with
+    the leaders and the largest companies first; the desk's own order is the other position of the same switch, and
+    this proof selects it."""
+    make = browser.new_context
+
+    def new_context(*a, **k):
+        ctx = make(*a, **k)
+        ctx.add_init_script("try{ localStorage.setItem('jh-stock-order', 'engine') }catch(e){}")
+        return ctx
+    browser.new_context = new_context
+    return browser
+
+
 def get_feed(stamp):
     req = urllib.request.Request("%s/%s?nocache=%d" % (BASE, KEY, stamp), headers={"User-Agent": "Mozilla/5.0 jh-ops"})
     with urllib.request.urlopen(req, timeout=90) as rs:
@@ -145,7 +159,7 @@ def main():
 
         sync_playwright = ensure_playwright(r.log)
         with sync_playwright() as p:
-            browser = launch(p, r.log)
+            browser = own_order(launch(p, r.log))
             for width, height, mobile, limit, tag in ((1440, 900, False, 6, "1440"), (390, 844, True, 3, "390")):
                 r.section("the desk at %s px" % tag)
                 ctx = browser.new_context(viewport={"width": width, "height": height}, device_scale_factor=1, is_mobile=mobile, has_touch=mobile,

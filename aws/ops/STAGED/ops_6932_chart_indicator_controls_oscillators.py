@@ -1,0 +1,60 @@
+"""ops 6932 - chart.html: every oscillator window closes, hides and shows - live proof in a real browser (read-only,
+re-runnable).  The second half of ops 6930's sweep: one run has an hour, and the 215 studies need more than one.
+
+Khalid 2026-11-23: "my indicators in my chart.html the indicators are good but some of them wont close and remove out
+of the chart and visible and invisible doesnt always work".
+
+Each oscillator in the Indicators list is switched on from the list, hidden with its eye, shown again and closed with
+its cross, with a real pointer, on https://justhodl.ai/chart.html (NVDA, daily, a fresh browser with auto refresh off).
+After each step the chart column is photographed: hidden, the window must be folded to its title row; shown, it must be
+the picture it was; closed, the chart must be the chart before, pixel for pixel - the volume profile on the left
+included, which used to stay squashed; adding or closing must not move the zoom.  Buyback (a text section with its own
+Close) is checked on its own.  Nothing on the site changes.
+"""
+from datetime import datetime, timezone
+from pathlib import Path
+import importlib.util
+import sys
+
+ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT / "aws" / "ops"))
+_spec = importlib.util.spec_from_file_location("ops6930", str(Path(__file__).resolve().parent / "ops_6930_chart_indicator_controls_live_proof.py"))
+P = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(P)
+
+
+def main():
+    from ops_report import report
+    with report("ops_6932_chart_indicator_controls_oscillators") as r:
+        r.heading("ops 6932 - chart.html: every oscillator window closes, hides and shows; real browser on the live site (read-only), %s" % datetime.now(timezone.utc).isoformat(timespec="minutes"))
+        fails = []
+
+        def ck(cond, msg):
+            if not cond:
+                fails.append(msg)
+                r.log("FAIL: " + msg)
+            return bool(cond)
+
+        r.section("0. The live site serves the new build")
+        served = "function installIndicatorControls(" in P.fetch(P.BASE + "/jh-chart-engine.js?nocache=6932") and "data-act=eye title=\'Visibility\'" in P.fetch(P.BASE + "/jh-chart-evr.js?nocache=6932")
+        r.log("engine and Effort & Spread file are the new build: %s" % served)
+        if not served:
+            r.fail("the served site is not the new build")
+            raise SystemExit(1)
+        sync_playwright = P.ensure_playwright(r.log)
+        with sync_playwright() as p:
+            browser = P.launch(p, r.log)
+            rows = P.prove(r, ck, browser, P.BASE, part="windows")
+            browser.close()
+        good = sum(1 for x in rows if not x["verdict"])
+        r.kv(oscillators=len(rows), work_at_every_step=good, failed_checks=len(fails))
+        if fails:
+            for f in fails:
+                r.fail(f)
+            raise SystemExit(1)
+        r.ok("LIVE: %d of %d oscillator windows switch on, fold away, come back and close with the chart returning to the same picture" % (good, len(rows)))
+
+
+if __name__ == "__main__":
+    main()
+    sys.exit(0)

@@ -29,7 +29,7 @@ const WIDER = new Set(['wyckoff/broken', 'wyckoff/reclaimed']);
 test('every adapter and every scope is walked', () => {
   assert.deepEqual(Object.keys(SCOPES).sort(), Object.keys(kit.adapters).sort());
   assert.deepEqual(Object.keys(kit.adapters.wyckoff.tabs).sort(), ['accum', 'bc', 'bottom', 'capit', 'dist', 'sc', 'spread', 'spring']);
-  assert.equal(kit.version, '1.7.0');
+  assert.equal(kit.version, '1.8.0');
 });
 
 test('every list of every sheet opens in full, on typed columns over the adapter\'s own records', () => {

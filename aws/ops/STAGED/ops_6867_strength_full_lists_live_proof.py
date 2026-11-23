@@ -413,7 +413,7 @@ def main():
 
         sync_playwright = P.ensure_playwright(r.log)
         with sync_playwright() as p:
-            browser = P.launch(p, r.log)
+            browser = P.own_order(P.launch(p, r.log))   # the desk's own order: what this proof compares against (kit 1.8.0 opens on leaders first)
             prove(browser, r, ck, shots, BASE, int(time.time()), None, facts)
             browser.close()
         if facts:
