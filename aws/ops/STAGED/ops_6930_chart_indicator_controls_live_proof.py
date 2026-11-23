@@ -195,6 +195,7 @@ def sweep_one(cam, s, base):
     if sid == "vol":
         page.evaluate("() => window.jhSetVol(false)")
         base = cam.settled()
+    pics = [base]
     r["view_before"] = page.evaluate(RANGE)
     if not page.evaluate(ADD, [sid, osc]):
         r["in_list"] = False
@@ -232,10 +233,31 @@ def sweep_one(cam, s, base):
           if (id === 'vol') window.jhSetVol(false); else window.paint(window.lastBars) }""", [sid, osc])
         base = cam.settled()
         r["rebased"] = True
+    r["_pics"] = {"before": pics[0], "on": locals().get("on"), "hidden": locals().get("hid"), "shown": locals().get("shown"), "closed": off}
     if sid == "vol":
         page.evaluate("() => window.jhSetVol(true)")
         base = cam.settled()
     return r, base
+
+
+def evidence(cam, row, shots, limit=8):
+    """Where a step left a difference, the two pictures side by side around it (what it should be | what it was)."""
+    pics = row.pop("_pics", None) or {}
+    if not row.get("verdict"):
+        return
+    for key, a, b in (("shown_vs_on", "on", "shown"), ("off_vs_before", "before", "closed"), ("hidden_vs_before", "before", "hidden")):
+        d = row.get(key)
+        if not d or not d.get("box") or not pics.get(a) or not pics.get(b) or pics[a].size != pics[b].size or len([k for k in shots if k.startswith("differs_")]) >= limit:
+            continue
+        x0, y0, x1, y1 = d["box"]
+        box = (max(0, x0 - 60), max(0, y0 - 60), min(pics[a].size[0], x1 + 60), min(pics[a].size[1], y1 + 60))
+        left, right = pics[a].crop(box), pics[b].crop(box)
+        both = cam.Image.new("RGB", (left.size[0] * 2 + 12, left.size[1]), "white")
+        both.paste(left, (0, 0))
+        both.paste(right, (left.size[0] + 12, 0))
+        buf = io.BytesIO()
+        both.save(buf, "JPEG", quality=70)
+        shots["differs_%s_%s" % (row["id"], key)] = buf.getvalue()
 
 
 def verdict(r):
@@ -354,6 +376,7 @@ def prove(r, ck, browser, base, route=None, shots=None, only=None, cache_wait=62
             except Exception:  # noqa: BLE001
                 pass
         row["verdict"] = ["the page failed: " + row["error"]] if row.get("error") else verdict(row)
+        evidence(cam, row, shots)
         rows.append(row)
     good = [x for x in rows if not x["verdict"]]
     drew = [x for x in rows if x.get("drawn") is not None]
