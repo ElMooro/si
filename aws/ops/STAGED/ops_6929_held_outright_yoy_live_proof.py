@@ -216,7 +216,7 @@ def main():
         for attempt in range(40):
             js = fetch("%s/assets/jh-workspaces.js?nocache=%d" % (BASE, stamp + attempt))
             css = fetch("%s/assets/jh-workspaces.css?nocache=%d" % (BASE, stamp + attempt))
-            served = all(k in js for k in ("static yoyHistory(", "static setAllViews(", "data-allview", "static paintFocusChart(")) and ".macro-view-btn.on" in css and ".macro-hist-zero" in css
+            served = all(k in js for k in ("static yoyHistory(", "static setAllViews(", "data-allview", "static paintFocusChart(")) and ".macro-view-btn.on" in css and ".macro-hist-zero" in css and "'% from a year ago' : '1996" not in js   # the second build: the range label stays
             if served:
                 break
             time.sleep(30)
