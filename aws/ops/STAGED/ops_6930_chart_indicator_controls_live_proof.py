@@ -285,8 +285,15 @@ def open_chart(browser, base, route=None, phone=False, extra=""):
     page = ctx.new_page()
     errors = []
     page.on("pageerror", lambda e: errors.append(str(e)[:200]))
-    page.goto("%s/chart.html?s=NVDA&tf=1d%s" % (base, extra), wait_until="domcontentloaded")
-    settle(page)
+    for attempt in range(5):               # the edge was slow to answer for two minutes after a deploy: ask again
+        try:
+            page.goto("%s/chart.html?s=NVDA&tf=1d%s" % (base, extra), wait_until="domcontentloaded", timeout=60000)
+            settle(page)
+            break
+        except Exception:  # noqa: BLE001
+            if attempt == 4:
+                raise
+            page.wait_for_timeout(20000)
     return ctx, page, errors
 
 
@@ -301,8 +308,15 @@ def settle(page):
 
 
 def reload(page):
-    page.reload(wait_until="domcontentloaded")
-    settle(page)
+    for attempt in range(4):
+        try:
+            page.reload(wait_until="domcontentloaded", timeout=60000)
+            settle(page)
+            return
+        except Exception:  # noqa: BLE001
+            if attempt == 3:
+                raise
+            page.wait_for_timeout(15000)
 
 
 def prove(r, ck, browser, base, route=None, shots=None, only=None, cache_wait=62000, budget=2400, part="chart"):
