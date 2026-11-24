@@ -364,7 +364,8 @@ def aggregate(rs, windows):
            "n_distressed": sum(1 for r in rs if r["distressed"]),
            "stress": f(weighted_median([(r["stress"], r["value"]) for r in rs if r.get("stress") is not None]), 1), "n_stressed": len(stressed),
            "stressed_value_pct": f(100.0 * sum(r["value"] for r in stressed) / value, 1) if value > 0 else None,
-           "most_stressed": [[r["name"], r["stress"]] for r in sorted(stressed, key=lambda r: (-r["stress"], -r["value"]))[:3]], "win": {}}
+           # the names a reader is told: the largest borrowers among those under stress, not a $5M holding that happens to rank highest
+           "largest_stressed": [[r["name"], r["stress"]] for r in sorted(stressed, key=lambda r: (-r["value"], -r["stress"]))[:3]], "win": {}}
     for wkey in windows:
         have = [(r["win"][wkey]["d_bp"], r["value"], r) for r in rs if wkey in r["win"] and r["win"][wkey].get("d_bp") is not None]
         if not have:

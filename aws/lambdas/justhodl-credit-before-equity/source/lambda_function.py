@@ -314,7 +314,7 @@ def build(s3, now=None, log=print):
         words = C.window_words(wkey)
         if not ref:
             aim = {k: (a, t) for k, _, a, t in C.WINDOWS}.get(wkey)
-            when = C.available_from(as_of, sorted((have | set(mem)) - {as_of}), aim[0], aim[1]) if aim else None
+            when = C.available_from(as_of, sorted(have | set(mem) | {as_of}), aim[0], aim[1]) if aim else None          # today's own day is stored by this run
             window_meta[wkey] = {"words": words, "ref": None, "available_from": when,
                                  "why": ("The board's ledger holds no day %d days back yet, give or take %d; one will be from about %s." % (aim[0], aim[1], when)) if when else
                                         "The board's ledger holds no day near enough yet; it adds a day each run."}

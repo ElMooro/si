@@ -37,7 +37,8 @@ CUT_TICKERS = ["AAPL", "JPM", "F", "ORCL", "CHTR", "WHR", "PZZA", "BRK-B", "ET",
 CUT_ISSUERS = ["CLOUD SOFTWARE GROUP", "HUB INTERNATIONAL", "PETROLEOS MEXICANOS", "SAUDI ARABIAN OIL", "HILCORP ENERGY I", "LIFEPOINT HEALTH", "NISSAN MOTOR", "SOFTBANK GROUP", "ALTICE FRANCE",
                "PARAMOUNT SKYDANCE", "STAPLES", "MICHAELS", "STANDARD CHARTERED", "BNP PARIBAS", "MARS", "CHS COMMUNITY HEALTH SYSTEMS", "ASTON MARTIN CAPITAL HOLDINGS", "BURLINGTON NORTHERN SANTA",
                "PACIFICORP", "METROPOLITAN BANK", "PERSHING SQUARE HOLDINGS", "COX COMMUNICATIONS", "ELECTRONIC ARTS", "NORDSTROM", "CITGO PETROLEUM",
-               "APLD COMPUTECO 2", "GALAXY HELIOS DATA CENTERS II", "HUT 8 DC", "QTS CENTRAL ISSUER", "FLASH COMPUTE"]
+               "APLD COMPUTECO 2", "GALAXY HELIOS DATA CENTERS II", "HUT 8 DC", "QTS CENTRAL ISSUER", "FLASH COMPUTE", "PR RNO PROPERTY OWNER 1", "MERIDIAN ARC HOLDCO",
+               "BEACON POINT DC", "ZENITH ARC", "SOFTBANK"]
 
 
 class Body:
@@ -289,7 +290,7 @@ def main():
             for th in p["themes"]:
                 rs = [x for x in table if x["theme"] == th["key"]]
                 ok = th["n"] == len(rs) and sum(layer["n"] for layer in th["layers"]) == len(rs) and all((not x["ticker"]) or x["ticker"] in reviewed for x in rs) and \
-                    all(x["ticker"] or x["layer"] == "compute_vehicles" for x in rs)
+                    all(x["ticker"] or x["layer"] in ("compute_vehicles", "ai_backers") for x in rs)
                 r.log("check 7 theme %s: %d companies (%d listed), $%.1fB held, middle spread %s bp, stress %s, %d under stress holding %s%% of its value; %s -> %s" % (
                     th["name"], th["n"], th["n_listed"], th["value"] / 1e9, th["spread_bp"], th["stress"], th["n_stressed"], th["stressed_value_pct"],
                     {k: (v["d_bp"], v["d_pct"], v["wider"], v["tighter"]) for k, v in th["win"].items()}, "agree" if ok else "DIFFER"))
@@ -298,7 +299,7 @@ def main():
                 for layer in th["layers"]:
                     r.log("    %-30s %2d companies $%6.0fM spread %7s bp stress %5s under stress %d | 1M %s ytd %s | %s" % (
                         layer["name"], layer["n"], layer["value"] / 1e6, layer["spread_bp"], layer["stress"], layer["n_stressed"], (layer["win"].get("m1") or {}).get("d_bp"),
-                        (layer["win"].get("ytd") or {}).get("d_bp"), layer["most_stressed"]))
+                        (layer["win"].get("ytd") or {}).get("d_bp"), layer["largest_stressed"]))
                 for x in sorted(rs, key=lambda x: -(x["stress"] if x["stress"] is not None else -1)):
                     r.log("      %-6s %-34s %-20s %s $%5.0fM spread %7s ytd %7s (%s%%) 1M %6s cds %s 3M %s rank %s | stress %s | stock 1M %s%% ytd %s%%" % (
                         x["ticker"] or "", str(x["name"])[:34], x["layer"], x["book"], x["value"] / 1e6, x["spread_bp"], x["d_ytd"], x["pct_ytd"], x["d_m1"], x["cds_bp"], x["cds_d3m"], x["cds_rank"],

@@ -44,6 +44,8 @@ import lambda_function as L  # noqa: E402
 
 FIX = json.loads(gzip.decompress(open(os.path.join(ROOT, "tests", "fixtures", "credit-before-equity-warehouse.json.gz"), "rb").read()))
 NOW = datetime.fromisoformat(FIX["now"])
+STORED = {k[len(L.LEDGER_ROOT):-len(".json.gz")] for k in FIX["docs"] if k.startswith(L.LEDGER_ROOT)}        # the ledger days the cut carries, real and worked back
+BARE = {k: v for k, v in FIX["docs"].items() if not k.startswith(L.LEDGER_ROOT)}                             # the same warehouse before the board had a ledger
 
 
 class Body:
@@ -413,23 +415,25 @@ def a_late_desk_or_a_missing_one_is_said_not_hidden():
 
 @test
 def the_ledger_keeps_a_real_day_over_a_worked_back_one():
-    built, s3 = build()
-    days = [(s["as_of"], bool(s["derived_from"])) for s in built["snapshots"]]
     issues = FIX["docs"][L.BONDS_KEY]["issues"]
+    fresh, _ = build(BARE)                                              # no ledger yet: today's day, and the two reference days worked back
+    days = [(s["as_of"], bool(s["derived_from"])) for s in fresh["snapshots"]]
     assert days[0] == (issues["as_of"], False) and set(days[1:]) == {(issues["move_as_of"], True), (issues["ytd_as_of"], True)}
-    docs = copy.deepcopy(FIX["docs"])
+    built, s3 = build()                                                 # the cut's ledger: a day it already holds is never written again
+    assert {s["as_of"] for s in built["snapshots"]} == {issues["as_of"], issues["move_as_of"], issues["ytd_as_of"]} - STORED and "2026-11-16" in STORED
+    docs = copy.deepcopy(BARE)
     real = {"as_of": issues["move_as_of"], "derived_from": None, "n": 1, "bonds": {"zz": 123.4}}
     docs[L.LEDGER_ROOT + issues["move_as_of"] + ".json.gz"] = real
     again, _ = build(docs)
     assert [s["as_of"] for s in again["snapshots"] if s["derived_from"]] == [issues["ytd_as_of"]]          # the stored day is not overwritten
     assert again["payload"]["windows"]["m1"]["source"] == "the board's own ledger" and again["payload"]["windows"]["m1"]["n_bonds"] == 1
     assert built["payload"]["windows"]["w1"]["ref"] == "2026-11-16" and built["payload"]["windows"]["w1"]["source"] == "the board's own ledger"     # the cut carries a real ledger day
-    bare = {k: v for k, v in FIX["docs"].items() if not k.startswith(L.LEDGER_ROOT)}
-    empty = build(bare)[0]["payload"]["windows"]
+    empty = build(BARE)[0]["payload"]["windows"]
     assert empty["w1"]["ref"] is None and "ledger" in empty["w1"]["why"] and empty["m3"]["ref"] is None and empty["m1"]["ref"] == issues["move_as_of"]
     # a window that is not there yet says when it can be, and never names a worked-back day as the day the ledger began
     for w in (empty["w1"], empty["m3"], built["payload"]["windows"]["m3"]):
-        assert "began on" not in w["why"] and issues["ytd_as_of"] not in w["why"], w["why"]
+        assert "began on" not in w["why"] and issues["ytd_as_of"] not in w["why"] and w["available_from"] in w["why"], w["why"]
+    assert empty["w1"]["available_from"] == "2026-11-27"                # today's own day is four days back then: a week, give or take three
     m3 = built["payload"]["windows"]["m3"]
     assert m3["ref"] is None and m3["available_from"] > issues["as_of"] and m3["available_from"] in m3["why"], m3
 
@@ -460,7 +464,7 @@ def the_handler_writes_the_document_the_ledger_and_the_model_ledger_and_nothing_
     finally:
         L._s3 = keep
     issues = FIX["docs"][L.BONDS_KEY]["issues"]
-    want = {L.OUT_KEY, L.HIST_KEY} | {L.LEDGER_ROOT + d + ".json.gz" for d in (issues["as_of"], issues["move_as_of"], issues["ytd_as_of"])}
+    want = {L.OUT_KEY, L.HIST_KEY} | {L.LEDGER_ROOT + d + ".json.gz" for d in {issues["as_of"], issues["move_as_of"], issues["ytd_as_of"]} - STORED}
     assert set(s3.puts) == want, sorted(set(s3.puts) ^ want)
     doc = json.loads(s3.puts[L.OUT_KEY])
     assert doc["contract"] == "credit-before-equity.v2" and doc["version"] == "2.1.0" and out["statusCode"] == 200
@@ -482,7 +486,8 @@ def a_dry_run_builds_everything_and_writes_nothing():
         L._s3 = keep
     assert s3.puts == {} and out["dry_run"] is True and out["statusCode"] == 200
     assert out["companies"] == FIX["expected"]["coverage"]["companies"] and out["leads"] == FIX["expected"]["n_leads"] and out["windows"]["w1"] == "2026-11-16"
-    assert len(out["ledger_days"]) == 3 and out["bytes"] > 50000
+    issues = FIX["docs"][L.BONDS_KEY]["issues"]
+    assert len(out["ledger_days"]) == len({issues["as_of"], issues["move_as_of"], issues["ytd_as_of"]} - STORED) and out["bytes"] > 50000
 
 
 @test
@@ -586,8 +591,13 @@ def the_ai_stack_holds_the_reviewed_names_and_nothing_else():
     assert TH.theme_of("CRWV", "CoreWeave") == ("ai", "neocloud") and TH.theme_of("EQIX", "Equinix") == ("ai", "datacenter_reits")
     assert TH.theme_of(None, "APLD COMPUTECO 2 LLC") == ("ai", "compute_vehicles") and TH.theme_of(None, "GALAXY HELIOS DATA CENTERS II LLC") == ("ai", "compute_vehicles")
     assert TH.theme_of(None, "QTS CENTRAL ISSUER LLC") == ("ai", "compute_vehicles") and TH.theme_of(None, "HUT 8 DC LLC") == ("ai", "compute_vehicles")
+    for name in ("BEACON POINT DC LLC", "PR RNO PROPERTY OWNER 1 LLC", "SV RNO PROPERTY OWNER 1 LLC", "MERIDIAN ARC HOLDCO LLC"):          # reviewed by name: each is an AI data center's own borrower
+        assert TH.theme_of(None, name) == ("ai", "compute_vehicles"), name
+    assert TH.theme_of(None, "SOFTBANK GROUP CORP") == ("ai", "ai_backers") and TH.theme_of(None, "SOFTBANK CORP") == (None, None)       # the group, not the telephone company
+    assert TH.LAYER_ORDER[0] == "hyperscalers" and TH.LAYER_ORDER[-2:] == ["compute_vehicles", "ai_backers"] and set(TH.LAYER_ORDER) == set(TH.LAYER_WORDS)
     for ticker, name in (("AAPL", "Apple Inc."), ("ADP", "Automatic Data Processing, Inc."), ("JPM", "JPMorgan Chase & Co."), (None, "COMPUTER SCIENCES CORP"), (None, "PETROLEOS MEXICANOS"),
-                         (None, "COMPUTERSHARE US INC"), ("FDS", "FactSet Data Centers")):                 # a listed company is in the theme by its ticker only, never by a word in its name
+                         (None, "COMPUTERSHARE US INC"), ("FDS", "FactSet Data Centers"), (None, "ZENITH ARC LLC"), (None, "CLOUD SOFTWARE GROUP LLC"),
+                         (None, "CHILDRENS HOSPITAL/DC"), (None, "GALAXY PIPELINE ASSETS BIDCO LTD")):                 # a listed company is in the theme by its ticker only, never by a word in its name
         assert TH.theme_of(ticker, name) == (None, None), (ticker, name)
     every = [t for _, _, ts in TH._LAYERS for t in ts]
     assert len(every) == len(set(every)), sorted(t for t in set(every) if every.count(t) > 1)               # a ticker is in one layer only
@@ -596,7 +606,7 @@ def the_ai_stack_holds_the_reviewed_names_and_nothing_else():
     ai = [r for r in t if r["theme"] == "ai"]
     assert all(r["theme"] in (None, "ai") for r in t) and all((r["theme"] is None) == (r["layer"] is None) for r in t)
     assert {r["ticker"] for r in ai} >= {"ORCL", "INTC", "AMD", "META", "NVDA", "CRWV"}, sorted(r["ticker"] or r["name"] for r in ai)
-    assert any(r["layer"] == "compute_vehicles" and not r["ticker"] for r in ai)
+    assert any(r["layer"] == "compute_vehicles" and not r["ticker"] for r in ai) and all(r["ticker"] or r["layer"] in ("compute_vehicles", "ai_backers") for r in ai)
     assert len(p["themes"]) == 1
     th = p["themes"][0]
     assert th["key"] == "ai" and th["name"] == "AI stack" and th["n"] == len(ai) and th["n_listed"] == sum(1 for r in ai if r["ticker"]) and th["value"] == round(sum(r["value"] for r in ai), 0)
@@ -609,7 +619,8 @@ def the_ai_stack_holds_the_reviewed_names_and_nothing_else():
         assert layer["n_stressed"] == len(hot) and layer["stressed_value_pct"] == C.f(100.0 * sum(r["value"] for r in hot) / sum(r["value"] for r in rs), 1)
     have = [(r["d_ytd"], r["value"]) for r in ai if r["d_ytd"] is not None]
     assert th["win"]["ytd"]["d_bp"] == C.f(C.weighted_median(have), 1) and th["win"]["ytd"]["n"] == len(have)
-    assert th["most_stressed"][0][0] == max((r for r in ai if r["stress"] is not None), key=lambda r: (r["stress"], r["value"]))["name"]
+    hot = sorted((r for r in ai if r["stress"] is not None and r["stress"] >= C.STRESSED), key=lambda r: (-r["value"], -r["stress"]))
+    assert th["largest_stressed"] == [[r["name"], r["stress"]] for r in hot[:3]] and th["largest_stressed"][0][0] == "Oracle Corporation"     # named by size held, not by rank
     # the industries carry the same stress figures, and still hold every company
     for i in p["industries"]["all"]:
         rs = [r for r in t if r["industry"] == i["industry"] and r["n_bonds"]]
