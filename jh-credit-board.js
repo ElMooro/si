@@ -301,15 +301,14 @@
     var wide = view.filter(function (r) { return r.d_bp > 0; }).length;
     var w = windowList(doc).filter(function (x) { return x.key === state.win; })[0];
     function tile(label, big, sub) { return '<div class="cb-tile-h"><div class="cb-lbl">' + esc(label) + '</div><div class="cb-big">' + big + '</div><div class="cb-sub">' + sub + "</div></div>"; }
-    return '<div class="cb-hero">' +
+    return '<p class="cb-dates" data-jh-title="At a glance">Bond holdings of <b>' + esc(day(doc.as_of)) + "</b> · Treasury curve of " + esc(day((doc.curve || {}).as_of)) + " · stocks to " + esc(day(doc.stock_as_of)) +
+      " · CDS of " + esc(day((doc.cds || {}).as_of)) + " · published " + esc(stamp(doc.generated_at)) + '</p><div class="cb-hero">' +
       tile("Companies with bonds read", esc(count(cov.companies)), esc(count(cov.listed)) + " with a listed stock · " + esc(count(cov.unlisted)) + " credit only") +
       tile("Bonds with a spread", esc(count(cov.bonds_with_spread)), esc(money(cov.value_held)) + " held by the scanned funds") +
       tile("Leads", esc(String(down + up)), esc(String(down)) + " credit worse, stock not down · " + esc(String(up)) + " credit better, stock not up") +
       tile("Industries wider, " + (w ? w.short : ""), view.length ? esc(wide + " of " + view.length) : "Unavailable", w && w.ok ? "since " + esc(day(w.ref)) : "no reference day yet") +
       tile("Traded CDS levels", esc(count(cov.cds_priced)), esc(count(cov.cds_priced_tied)) + " tied to a listed stock · " + esc(count(cov.cds_no_level)) + " trade with no level") +
-      "</div>" +
-      '<p class="cb-dates">Bond holdings of <b>' + esc(day(doc.as_of)) + "</b> · Treasury curve of " + esc(day((doc.curve || {}).as_of)) + " · stocks to " + esc(day(doc.stock_as_of)) +
-      " · CDS of " + esc(day((doc.cds || {}).as_of)) + " · published " + esc(stamp(doc.generated_at)) + "</p>";
+      "</div>";
   }
 
   function controlsHtml(doc, state) {
@@ -328,22 +327,24 @@
     var nodes = view.filter(function (r) { return r.value > 0; }).map(function (r) { return { v: r.value, r: r }; });
     if (!nodes.length) return { html: '<p class="cb-empty">No industry has a spread for this book.</p>', view: view, scale: scale };
     var rects = squarify(nodes, 0, 0, W, H);
-    var html = '<div class="cb-map" style="height:' + H + 'px">' + rects.map(function (b) {
+    var html = '<p class="cb-cap" data-jh-title="Heat map">One tile an industry. Size: the market value of its bonds held by the scanned funds. Colour: ' +
+      esc({ bp: "its spread change in basis points", pct: "its spread change in percent", rel: "its spread change against the market's", level: "its spread level" }[state.measure] || "its spread change") +
+      '. Click a tile for its companies.</p><div class="cb-map" style="height:' + H + 'px">' + rects.map(function (b) {
       var r = b.node.r, big = b.w > 110 && b.h > 58, mid = b.w > 46 && b.h > 30, small = b.w < 110 || b.h < 50, c = colour(r.v, scale, state.measure, state.palette);
       var tip = r.industry + ": " + (isNum(r.v) ? measureText(r, state.measure) : "no reading") + " · spread " + bp(r.spread_bp) + " bp · " + r.n + " companies · " + money(r.value) + " held";
       var bw = Math.max(b.w - 2, 1), bh = Math.max(b.h - 2, 1), bx = Math.max(Math.min(b.x, W - bw - 2), 0), by = Math.max(Math.min(b.y, H - bh - 2), 0);      // a sliver is a pixel wide and stays inside the map
       return '<button type="button" class="cb-box' + (small ? " cb-sm" : "") + (mid ? "" : " cb-tiny") + (state.industry === r.industry ? " cb-on" : "") + '" data-ind="' + esc(r.industry) + '" title="' + esc(tip) + '" style="left:' + bx.toFixed(1) + "px;top:" + by.toFixed(1) +
         "px;width:" + bw.toFixed(1) + "px;height:" + bh.toFixed(1) + "px;background:" + c + '">' +
         (mid ? '<span class="cb-box-n">' + esc(r.industry) + "</span>" : "") +
-        (mid ? '<span class="cb-box-v">' + esc(isNum(r.v) ? measureText(r, state.measure) : "–") + "</span>" : "") +
+        (mid ? '<span class="cb-box-v">' + esc(isNum(r.v) ? (small ? measureText(r, state.measure).replace(" bp", "") : measureText(r, state.measure)) : "–") + "</span>" : "") +
         (big ? '<span class="cb-box-s">' + esc(bp(r.spread_bp)) + " bp · " + esc(String(r.n)) + " cos</span>" : "") + "</button>";
     }).join("") + "</div>";
     var p = PALETTES[state.palette] || PALETTES.rg;
     var ends = state.measure === "level" ? [bp(scale.lo) + " bp", "", bp(scale.hi) + " bp", "Tighter spread (safer)", "Wider spread (riskier)"] :
       [(state.measure === "pct" ? pct(-scale.hi, true) : bp(-scale.hi, true) + " bp"), "0", (state.measure === "pct" ? pct(scale.hi, true) : bp(scale.hi, true) + " bp"), "Tightening (safety)", "Widening (trouble)"];
     var grad = state.measure === "level" ? "linear-gradient(90deg," + mix(p.mid, p.bad, 0.1) + "," + p.bad + ")" : "linear-gradient(90deg," + p.good + "," + p.mid + "," + p.bad + ")";
-    html += '<div class="cb-legend" data-jh-title="Legend"><span>' + esc(ends[3]) + '</span><span class="cb-legend-n">' + esc(ends[0]) + '</span><i style="background:' + grad + '"></i><span class="cb-legend-n">' + esc(ends[2]) +
-      "</span><span>" + esc(ends[4]) + '</span><span class="cb-legend-size">Tile size: market value of the industry\'s bonds held by the scanned funds</span></div>';
+    html += '<div class="cb-legend"><span>' + esc(ends[3]) + '</span><span class="cb-legend-n">' + esc(ends[0]) + '</span><i style="background:' + grad + '"></i><span class="cb-legend-n">' + esc(ends[2]) +
+      "</span><span>" + esc(ends[4]) + "</span></div>";
     return { html: html, view: view, scale: scale };
   }
 
@@ -372,7 +373,7 @@
     function li(x) {
       return "<li><b>" + esc(x.ticker || "") + "</b> " + esc(x.name) + ' <span style="color:' + textColour(x.d, state.palette) + '">' + esc(bp(x.d, true)) + " bp</span> <span class=\"cb-dim\">to " + esc(bp(x.spread_bp)) + " bp</span></li>";
     }
-    return '<div class="cb-detail" data-jh-title="Industry detail"><div class="cb-detail-h"><h3>' + esc(r.industry) + '</h3><button type="button" data-show-ind="' + esc(r.industry) +
+    return '<div class="cb-detail"><div class="cb-detail-h"><h3>' + esc(r.industry) + '</h3><button type="button" data-show-ind="' + esc(r.industry) +
       '">Show its ' + esc(String(r.n)) + ' companies in the table</button><button type="button" data-ind="">Close</button></div>' +
       '<p class="cb-note">Middle company\'s change ' + esc(bp(r.d_bp, true)) + " bp (" + esc(pct(r.d_pct, true)) + ") from " + esc(bp(r.from_bp)) + " bp · spread now " + esc(bp(r.spread_bp)) + " bp · " +
       esc(String(r.wider == null ? "–" : r.wider)) + " wider by 5 bp or more, " + esc(String(r.tighter == null ? "–" : r.tighter)) + " tighter · " + esc(String(r.n_listed)) + " of " + esc(String(r.n)) +
@@ -430,7 +431,7 @@
     var w = windowList(doc).filter(function (x) { return x.key === state.win; })[0] || {};
     var relabel = { d: "Δ " + (w.short || ""), px_m1: "Stock 1M" };
     var inds = industriesIn(all);
-    var ctl = '<div class="cb-tctl" data-jh-title="Table controls">' +
+    var ctl = '<div class="cb-tctl">' +
       '<label>Search <input type="search" data-q value="' + esc(state.q) + '" placeholder="Company or ticker" autocomplete="off"></label>' +
       '<label>Industry <select data-industry><option value="">All industries</option>' + inds.map(function (i) { return '<option value="' + esc(i[0]) + '"' + (i[0] === state.industry ? " selected" : "") + ">" + esc(i[0]) + " (" + i[1] + ")</option>"; }).join("") + "</select></label>" +
       '<label>Sort by <select data-sortsel>' + COLUMNS.map(function (c) { return '<option value="' + esc(c[0]) + '"' + (c[0] === state.sort.key ? " selected" : "") + ">" + esc(relabel[c[0]] || c[1]) + "</option>"; }).join("") + "</select></label>" +
@@ -460,7 +461,7 @@
       shown = page.length;
     }
     if (!total) body = '<tr><td colspan="' + COLUMNS.length + '" class="cb-empty">No company matches.</td></tr>';
-    var foot = '<p class="cb-note" data-jh-title="Rows shown">' + shown.toLocaleString("en-US") + " of " + total.toLocaleString("en-US") + " companies shown" + (total < all.length ? " (" + all.length.toLocaleString("en-US") + " on the board)" : "") +
+    var foot = '<p class="cb-note">' + shown.toLocaleString("en-US") + " of " + total.toLocaleString("en-US") + " companies shown" + (total < all.length ? " (" + all.length.toLocaleString("en-US") + " on the board)" : "") +
       (w.ok ? " · Δ is the spread change since " + esc(day(w.ref)) + ", in basis points; Past book, Δ % and Stock are for the month" : "") + ".</p>" +
       (!state.group && shown < total ? '<div class="cb-pager"><button type="button" data-more="200">Show 200 more</button><button type="button" data-more="all">Show all ' + total.toLocaleString("en-US") + "</button></div>" : "");
     return ctl + '<div class="cb-scroll" tabindex="0" role="region" aria-label="Every company; scroll sideways for all columns"><table class="cb-table" data-jh-nosort>' + headHtml(COLUMNS, state.sort, "sort", relabel) + "<tbody>" + body + "</tbody></table></div>" + foot;
@@ -474,7 +475,7 @@
     rows = sortRows(rows, state.cdsSort.key, state.cdsSort.dir);
     var nRows = rows.length;
     if (!state.cdsAll) rows = rows.slice(0, 40);
-    var ctl = '<div class="cb-tctl" data-jh-title="CDS controls"><label>Sector <select data-cds-sector><option value="">All sectors</option>' + Object.keys(sectors).sort().map(function (s) {
+    var ctl = '<div class="cb-tctl"><label>Sector <select data-cds-sector><option value="">All sectors</option>' + Object.keys(sectors).sort().map(function (s) {
       return '<option value="' + esc(s) + '"' + (s === state.cdsSector ? " selected" : "") + ">" + esc(s) + "</option>"; }).join("") + "</select></label>" +
       '<label>Sort by <select data-cds-sortsel>' + CDS_COLUMNS.map(function (k) { return '<option value="' + k[0] + '"' + (k[0] === state.cdsSort.key ? " selected" : "") + ">" + esc(k[1]) + "</option>"; }).join("") + "</select></label>" +
       '<button type="button" class="cb-dir" data-cds-dir aria-label="CDS sort direction">' + (state.cdsSort.dir === "asc" ? "Ascending ▲" : "Descending ▼") + "</button>" +

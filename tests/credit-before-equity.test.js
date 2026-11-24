@@ -221,7 +221,8 @@ test('the heat map draws the document\'s industries: one tile each, sized by val
   assert.doesNotMatch(m.html, /class="cb-map"[^>]*data-jh-title/, 'a titled map gets a section badge drawn on its tiles');
   assert.match(m.html, /Tightening \(safety\)/);
   assert.match(m.html, /Widening \(trouble\)/);
-  assert.match(m.html, /Tile size: market value of the industry&#39;s bonds held|Tile size: market value of the industry's bonds held/);
+  assert.match(m.html, /One tile an industry\. Size: the market value of its bonds held by the scanned funds\. Colour: its spread change in basis points/);
+  assert.match(B.mapHtml(DOC, state({ measure: 'level' }), 1200).html, /Colour: its spread level/);
 });
 
 test('a widening spread is the trouble colour, a tightening one the safety colour, louder the further it moved', () => {

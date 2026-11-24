@@ -21,10 +21,11 @@ h3{font-size:14px;margin:0 0 4px}h4{font-size:12px;margin:8px 0 4px;color:var(--
 #evidence details summary{margin-top:2px}.cb-checks{margin:6px 0 4px;padding-left:18px;font-size:12px;color:var(--text-dim)}.cb-mark{font-family:ui-monospace,Menlo,monospace;color:var(--text-mute)}
 .cb-note{font-size:11.5px;color:var(--text-mute);margin:6px 0;line-height:1.6}.cb-warn{font-size:12px;color:var(--accent)}.cb-dim{color:var(--text-faint);font-weight:400}
 .cb-empty{color:var(--text-mute);font-size:12.5px;padding:10px 0}
+#newview:not([hidden]){display:contents}
 .cb-hero{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(215px,100%),1fr));gap:10px}
 .cb-tile-h{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:12px 13px}
 .cb-lbl{font-size:12px;color:var(--text-dim);margin-bottom:3px}.cb-big{font-size:21px;font-weight:600;font-family:ui-monospace,Menlo,monospace}.cb-sub{font-size:11px;color:var(--text-mute);margin-top:2px}
-.cb-dates{font-size:11.5px;color:var(--text-mute);margin:10px 0 0}.cb-dates b{color:var(--text-dim)}
+.cb-dates{font-size:11.5px;color:var(--text-mute);margin:0 0 9px}.cb-dates b{color:var(--text-dim)}
 #controls{display:flex;flex-wrap:wrap;gap:10px 18px;margin:16px 0 12px}
 .cb-ctl{display:flex;align-items:center;gap:7px;min-width:0;max-width:100%}.cb-ctl-l{font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.7px;white-space:nowrap}
 .cb-seg{display:flex;border:1px solid var(--border2);border-radius:8px;overflow-x:auto;max-width:100%}
@@ -38,7 +39,7 @@ h3{font-size:14px;margin:0 0 4px}h4{font-size:12px;margin:8px 0 4px;color:var(--
 .cb-box-s{font-size:10.5px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cb-box.cb-sm{padding:3px 4px}.cb-box.cb-tiny{padding:0}.cb-sm .cb-box-n{font-size:10px}.cb-sm .cb-box-v{font-size:11px;overflow:hidden;text-overflow:clip}
 .cb-legend{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--text-mute);margin:8px 0 0}
-.cb-legend i{display:inline-block;width:170px;height:9px;border-radius:5px}.cb-legend-n{font-family:ui-monospace,Menlo,monospace;color:var(--text-dim)}.cb-legend-size{margin-left:auto}
+.cb-legend i{display:inline-block;width:170px;height:9px;border-radius:5px}.cb-legend-n{font-family:ui-monospace,Menlo,monospace;color:var(--text-dim)}.cb-cap{font-size:11.5px;color:var(--text-mute);margin:0 0 7px}
 #rank{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(360px,100%),1fr));gap:12px;margin-top:14px}
 .cb-rank{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:13px 14px;min-width:0}
 .cb-rank-row{display:grid;grid-template-columns:18px minmax(90px,1.25fr) minmax(40px,1fr) 78px 92px;align-items:center;gap:8px;width:100%;background:none;border:0;border-top:1px solid var(--border);color:var(--text);
@@ -72,7 +73,7 @@ details summary{cursor:pointer;font-size:12.5px;color:var(--text-dim);margin-top
 .textcard{font-size:12.5px;color:var(--text-dim)}.textcard p{margin:6px 0}
 .foot{color:var(--text-mute);font-size:10.5px;margin-top:22px}
 a{color:var(--accent)}a:focus-visible,button:focus-visible,.cb-scroll:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-@media (max-width:640px){.cb-rank-row{grid-template-columns:16px minmax(80px,1fr) 70px;}.cb-rank-bar,.cb-rank-s{display:none}.cb-legend-size{margin-left:0}.cb-rules{grid-template-columns:1fr}.cb-tctl input[type=search]{width:150px}}
+@media (max-width:640px){.cb-rank-row{grid-template-columns:16px minmax(80px,1fr) 70px;}.cb-rank-bar,.cb-rank-s{display:none}.cb-rules{grid-template-columns:1fr}.cb-tctl input[type=search]{width:150px}}
 </style>
 </head>
 <body>
@@ -88,40 +89,56 @@ a{color:var(--accent)}a:focus-visible,button:focus-visible,.cb-scroll:focus-visi
 <section class="card" id="evidence" aria-labelledby="evidence-title" aria-live="polite"><h2 id="evidence-title">Evidence status</h2><p>Loading the published engine packet. Source freshness has not been verified.</p></section>
 
 <div id="newview">
-<div id="hero" data-jh-title="At a glance"></div>
+<section id="s-glance"><div id="hero"></div></section>
 
+<section id="s-industries">
 <h2 class="sec">Industries — where spreads are widening and where they are holding</h2>
-<div id="controls" data-jh-title="Heat map controls"></div>
+<div id="controls"></div>
 <div id="map"></div>
-<div id="rank" data-jh-title="Widening most and least"></div>
+<div id="rank"></div>
 <div id="mapdetail"></div>
+</section>
 
+<section id="s-leads">
 <h2 class="sec">Leads — credit moved, the stock has not</h2>
 <div id="leads"></div>
+</section>
 
+<section id="s-companies">
 <h2 class="sec">Every company — sort by any column, either way</h2>
 <div id="table"></div>
+</section>
 
+<section id="s-cds">
 <h2 class="sec">Company CDS — credit default swaps that trade</h2>
 <div id="cds"></div>
+</section>
 
+<section id="s-method">
 <h2 class="sec">Method</h2>
 <div class="card textcard" id="method"></div>
+</section>
 
+<section id="s-coverage">
 <h2 class="sec">Coverage and how names were tied</h2>
 <div class="card textcard" id="coverage"></div>
+</section>
 
+<section id="s-gaps">
 <h2 class="sec">Declared gaps</h2>
 <div class="card textcard" id="gaps"></div>
+</section>
 </div>
 
-<div id="prevview" hidden>
+<section id="prevview" hidden>
 <h2 class="sec">Previous view — the 26-name structural model board</h2>
 <div id="prev"></div>
-</div>
+</section>
 
+<section id="s-links">
 <h2 class="sec">Cross-links</h2>
 <div class="card textcard">Every bond: <a href="/corpbonds.html">Corp Bonds</a> · Traded CDS: <a href="/cds.html">CDS Desk</a> · Structural model: <a href="/cds-monitor.html">CDS Monitor</a> · Index-level: <a href="/credit-desk.html">Credit Desk</a> · Short positioning: <a href="/squeeze.html">Squeeze</a></div>
+</section>
 
 <div class="foot" id="foot"></div>
 </div>

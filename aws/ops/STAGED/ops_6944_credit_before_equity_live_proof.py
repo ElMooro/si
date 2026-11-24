@@ -49,7 +49,7 @@ BOXES = r"""() => { const map = document.querySelector('.cb-map'); if (!map) ret
   for (let i = 0; i < out.length; i++) { const a = out[i]; if (a.x < -1.6 || a.y < -1.6 || a.x + a.w > mb.width + 1.6 || a.y + a.h > mb.height + 1.6) out_of++;
     for (let j = i + 1; j < out.length; j++) { const b = out[j]; if (Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x) > 1.2 && Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y) > 1.2) over++; } }
   return { boxes: out, over: over, out_of: out_of, map: [Math.round(mb.width), Math.round(mb.height)], ox: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-    badges_in_map: map.querySelectorAll('.jh-secbadge').length, bad: (document.getElementById('board').innerText.match(/\bNaN\b|\bundefined\b|\bnull\b|Infinity/g) || []) }; }"""
+    badges_in_map: map.querySelectorAll('.jh-secbadge').length, floating: document.querySelectorAll('#board .jh-secbadge.float').length, bad: (document.getElementById('board').innerText.match(/\bNaN\b|\bundefined\b|\bnull\b|Infinity/g) || []) }; }"""
 COL = r"""([sel, n]) => Array.from(document.querySelectorAll(sel + ' tbody tr:not(.cb-grp)')).map(tr => tr.children[n] ? tr.children[n].innerText.replace(/\s+/g, ' ').trim() : null)"""
 
 
@@ -154,7 +154,7 @@ def browse(new_page, url, doc, ck, shots, log, phone_page=None):
         ck(g is not None and len(g["boxes"]) == len(want), "%s: %s tiles for %d industries" % (what, g and len(g["boxes"]), len(want)))
         ck(g["over"] == 0 and g["out_of"] == 0, "%s: %d tiles overlap, %d leave the map" % (what, g["over"], g["out_of"]))
         ck(not g["bad"], "%s: the page prints %s" % (what, g["bad"][:3]))
-        ck(g["badges_in_map"] == 0, "%s: a section badge sits on the map" % what)
+        ck(g["badges_in_map"] == 0 and g["floating"] == 0, "%s: %d section badges on the map, %d floating with no heading" % (what, g["badges_in_map"], g["floating"]))
         wrong, n = [], 0
         for b in g["boxes"]:
             i = want.get(b["ind"])
@@ -183,9 +183,12 @@ def browse(new_page, url, doc, ck, shots, log, phone_page=None):
     cw, cc = rgb(by_ind[widest[1]]["bg"]), rgb(by_ind[calmest[1]]["bg"])
     ck(cw[0] - max(cw[1], cw[2]) >= cc[0] - max(cc[1], cc[2]), "the industry widening most (%s) is not the reddest tile: %s vs %s %s" % (widest[1], cw, calmest[1], cc))
     log("heat map: %d tiles, map %s px; widening most %s %+.1f bp drawn rgb%s; widening least %s %+.1f bp drawn rgb%s" % (len(g["boxes"]), g["map"], widest[1], widest[0], cw, calmest[1], calmest[0], cc))
+    def bring(sel):
+        """Bring an element under the site's top bar, so a picture shows it whole."""
+        page.evaluate("(s) => { const e = document.querySelector(s); window.scrollTo(0, e.getBoundingClientRect().top + window.scrollY - 56); }", sel)
+        page.wait_for_timeout(350)
     shots["1-top"] = page.screenshot(type="jpeg", quality=72)
-    page.locator("#controls").scroll_into_view_if_needed()
-    page.wait_for_timeout(300)
+    bring("#s-industries")
     shots["2-heat-map"] = page.screenshot(type="jpeg", quality=72)
 
     rank = page.evaluate("() => Array.from(document.querySelectorAll('#rank .cb-rank')).map(r => Array.from(r.querySelectorAll('.cb-rank-row')).map(x => [x.dataset.ind, x.querySelector('.cb-rank-v').textContent]))")
@@ -206,6 +209,7 @@ def browse(new_page, url, doc, ck, shots, log, phone_page=None):
             head = page.locator("#table th").nth(6).inner_text()
             ck({"w1": "1W", "m3": "3M", "ytd": "YTD"}[wkey] in head, "the table's change column did not follow the window: %s" % head)
             if wkey == "w1":
+                bring("#s-industries")
                 shots["3-one-week"] = page.screenshot(type="jpeg", quality=72)
         else:
             ck(btn.is_disabled() and bool(btn.get_attribute("title")), "%s has no reference day and is not offered as unavailable with its reason" % wkey)
@@ -233,6 +237,7 @@ def browse(new_page, url, doc, ck, shots, log, phone_page=None):
     detail = page.locator("#mapdetail").inner_text()
     n_ind = sum(1 for r in table if r["industry"] == widest[1])
     ck("Show its %d companies in the table" % n_ind in detail and "Widened most" in detail, "the detail of %s does not offer its %d companies: %s" % (widest[1], n_ind, detail[:160]))
+    bring("#rank")
     shots["4-industry-detail"] = page.screenshot(type="jpeg", quality=72)
     page.click("#mapdetail button[data-show-ind]")
     page.wait_for_timeout(400)
@@ -295,14 +300,12 @@ def browse(new_page, url, doc, ck, shots, log, phone_page=None):
     # leads
     n_cards = page.locator(".cb-lead").count()
     ck(n_cards == min(8, n_down) + min(8, n_up), "the leads show %d cards for %d down / %d up" % (n_cards, n_down, n_up))
-    page.locator("#leads").scroll_into_view_if_needed()
-    page.wait_for_timeout(300)
+    bring("#leads")
     shots["7-leads"] = page.screenshot(type="jpeg", quality=72)
 
     # company CDS
     priced = doc["cds"]["priced"]
-    page.locator("#cds").scroll_into_view_if_needed()
-    page.wait_for_timeout(300)
+    bring("#cds")
     m = [figure(x) for x in page.evaluate(COL, ["#cds", 7])]
     ck(len(m) == min(40, len(priced)) and is_sorted(m, True), "the CDS table does not open on the widest one-month change: %s" % m[:4])
     shots["8-company-cds"] = page.screenshot(type="jpeg", quality=72)
@@ -403,8 +406,8 @@ def main():
             try:
                 html = fetch("/credit-before-equity.html?probe=%d" % (stamp + attempt))
                 tag = re.search(rb'<script src="(/jh-credit-board\.js\?v=[0-9a-f]{8})"', html)          # the build stamps each script with its content hash
-                served = {"page": b'id="newview"' in html and b'id="viewtoggle"' in html and bool(tag),
-                          "script": bool(tag) and all(mark in fetch(tag.group(1).decode() + "&probe=%d" % (stamp + attempt)) for mark in (b"jh-reskin-skip", b"JHCreditBoard", b"data-jh-nosort")),
+                served = {"page": b'id="newview"' in html and b'id="viewtoggle"' in html and b'id="s-industries"' in html and bool(tag),
+                          "script": bool(tag) and all(mark in fetch(tag.group(1).decode() + "&probe=%d" % (stamp + attempt)) for mark in (b"jh-reskin-skip", b"JHCreditBoard", b"data-jh-nosort", b"cb-cap")),
                           "document": json.loads(fetch("/data/credit-before-equity.json?probe=%d" % (stamp + attempt))).get("contract") == "credit-before-equity.v2"}
             except Exception as e:  # noqa: BLE001
                 served = {"error": str(e)[:80]}
