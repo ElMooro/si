@@ -123,6 +123,8 @@ and says "none today" when nothing is (before, an empty list printed an empty li
 - **The first engine's turn rule calls a one-point crossing "bottoming / recovering"** (XLRE, −15 to −14). Left as it is.
 - **The Polygon daily bank holds pre-split bars as they traded** until it re-pulls them. This engine and the Leaders engine
   rebase; any other reader of those files should be checked.
+- **The site's section badges** (`jh-sections.js`, baked into every page) are placed on top of any big block that has no
+  heading. This page now gives them headings; a page that draws its own canvas of blocks may have the same stray badges.
 - **The site build's re-skin** (`scripts/reskin_site.py`) turns every cool hue in a served page into the site's amber.
   TradingView's green is a teal: on the first deploy rising tiles were drawn amber. Found by the live proof, fixed the same
   hour (data colours live in the script, which carries the build's opt-out; a deployment test holds it). Other pages that
@@ -135,22 +137,36 @@ and says "none today" when nothing is (before, an empty list printed an empty li
 | 6935 | 15:18 | audit of 1.0.0 and of the warehouse (read-only) | the findings above |
 | 6936 | 15:49, 16:27 | 2.0.0 built on the runner, nothing written; its figures against arithmetic written in the op, FMP's own history, the Fed's H.10 and CoinMarketCap | 293 of 293; 0 failed checks; 1,280 anchor closes on 212 funds within 0.051% of a second provider |
 | 6937 | 16:11 | first light: deployed package = checkout, a dry run inside Lambda, one publication (a one-off run outside the schedule), read back | 293 instruments, 0 problems |
-| 6938 | 17:22, then after the colour fix | the published document against the warehouse's raw bars file by file; a real browser on justhodl.ai | see below |
+| 6938 | 17:22, 17:55, 18:20 | the published document against the warehouse's raw bars file by file; a real browser on justhodl.ai | final run: 0 failed checks (below) |
 
-ops 6938, first run (17:22 UTC): **2,049 anchors on 293 instruments looked up in the warehouse's own files, 0 do not
-agree**; every last close is the warehouse's (216 funds on a forming bar, each inside that session's range); 293 tiles,
-none over another; every number on a tile is the document's; lists are the document's; 216 of 216 funds live, each held to
-the quote; previous view intact; phone; the chart button opened the map with a real click and a tile opened QQQ. It
-failed four checks, all one cause: the colours (above). Second run: recorded in the report
-`aws/ops/reports/latest/ops_6938_risk_map_live_proof.md`.
+ops 6938 ran three times on the live site, read-only each time:
+
+- **17:22 UTC**: every figure passed (2,049 anchors on 293 instruments looked up in the warehouse's own files, 0 do not
+  agree; every last close is the warehouse's; lists, live quotes, previous view, phone, the chart button). It failed four
+  checks, all one cause: the colours. The build's re-skin had turned the tiles' green into amber. Fixed (above).
+- **17:55 UTC**: 0 failed checks. Its picture of the map inside the chart showed one of the site's section badges sitting
+  on the "US stocks" heading; on a phone the same script would have put seven on the map. Fixed: class headings and tiles
+  are buttons, which that script passes over, and the blocks around the map carry a heading for the badge.
+- **18:20 UTC, final: 0 failed checks.** 2,049 anchors on 293 instruments are the warehouse's own bars, 0 do not agree;
+  the page's own check agrees on all 2,049; 293 tiles, none over another, none outside the map; every number on a tile is
+  the document's; colour by state (green minus red): booming 117..145, rising 50..77, flat 4, falling −94..−53, destroyed
+  −188..−149, so no rising tile is as bright as a booming one; the booming list is VIX, ZR, VVIX, VIXY, BTAL, UAE, XLV, PHO
+  and the destroyed list is 100 rows, both the document's; 1D view: 0 tiles differ from the document; 216 of 216 funds
+  live, each held to the quote the page was given; 9 section badges on the page, 0 on the map; previous view: 38 cells in
+  seven sleeves, one click; phone: 293 tiles, no sideways scroll; chart.html: the Risk Map button between Heat and
+  Auction opened the map with a real click (293 tiles inside) and a tile opened QQQ's chart. Report and six pictures:
+  `aws/ops/reports/latest/ops_6938_risk_map_live_proof.md`.
+
+Not yet seen: the first scheduled run of 2.0.0 (21:00 UTC), which is the first to carry `turns_since` and the corrected
+turn names. ops 6938 is read-only and can be run again after it.
 
 Tests: `aws/lambdas/justhodl-regime-map/tests/run_tests.py` (27, on a cut of the real warehouse taken by the runner),
-`tests/risk-map-page.test.js` (20), `tests/deployment/test_risk_map_engine.py`; the node suite 5,226 and the deployment
+`tests/risk-map-page.test.js` (21), `tests/deployment/test_risk_map_engine.py`; the node suite 5,228 and the deployment
 gate 1,239 pass.
 
 ## To take it back
 
-- **The page only** (keep the engine): press "Previous view", or `git revert 973f4a9f 152624ed` and push.
+- **The page only** (keep the engine): press "Previous view", or `git revert 634ce82f 973f4a9f 152624ed` and push.
 - **The chart button only**: the three peels in `tests/helpers/chart-macro-line-preservation.cjs` are the exact bytes.
 - **The engine**: the first engine is the tree before commit `1d838d72`
   (`git checkout 1d838d72~1 -- aws/lambdas/justhodl-regime-map`), then
