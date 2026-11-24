@@ -16,8 +16,8 @@ actually booming and whats destroyed is actually destroyed"):
   * windows by the calendar (risk_math.py): 1.0.0 counted bars, so a coin's "six months" was 126 days.
   * a split the bank still holds unadjusted is rebased before anything is measured (leaders_tape.py, the leaders
     engine's file, byte for byte).
-  * BOOMING and DESTROYED are held to the plain record (up or down over one and three months, on the right side of
-    both averages); every row is checked against itself before publication; the two lists hold only instruments in
+  * BOOMING and DESTROYED are held to the plain record (up or down over one and three months, by 5% or more over
+    one of them, on the right side of both averages); every row is checked against itself before publication; the two lists hold only instruments in
     that state - 1.0.0 listed its six highest and six lowest scores whatever they were.
 
 What 1.0.0 published is still published under the same names, for the same 38 instruments and by the same regime
@@ -625,7 +625,7 @@ def build(s3, now=None, prev=None, log=print):
         "rules": {
             "windows": "Every change is measured by the calendar from the last close on or before the same day one week, one, three, six or twelve months earlier (or the last close of the previous year); the day's change from the close before.",
             "score": "score = 220 x (0.45 x three months + 0.30 x six months + 0.25 x one month, as decimals) + 25 x trend, held to -100..+100; trend runs from -1 to +1 on three tests: the close above its 50-day average, above its 200-day average, the 50 above the 200.",
-            "state": "BOOMING at +45 or more, RISK-ON at +15, NEUTRAL above -15, RISK-OFF above -45, DESTROYED below. BOOMING also needs one and three months both up and the close above both averages; DESTROYED needs both down and the close below both. A score that fails those tests is shown one state in, with the reason.",
+            "state": "BOOMING at +45 or more, RISK-ON at +15, NEUTRAL above -15, RISK-OFF above -45, DESTROYED below. BOOMING also needs one month and three months both up, one of them by 5% or more, and the close above both averages; DESTROYED needs both down, one of them by 5% or more, and the close below both. A score that fails those tests is shown one state in, with the reason.",
             "unusual": "How many of its own usual moves a change is: the log change divided by (the standard deviation of its last 252 daily log changes x the square root of the bars in the window).",
             "currencies": "A currency tile is the currency against the dollar: green means the currency rose.",
             "left_out": "A fund trading under $250,000 a day, an instrument with under 130 daily bars or no bar for a week, and any row that fails its own arithmetic are left out and named.",

@@ -11,9 +11,14 @@ Score and state:
            its 200-bar average, the 50 above the 200.  This is the first engine's formula, unchanged.
   state  = BOOMING at 45 or more, RISK-ON at 15, NEUTRAL above -15, RISK-OFF above -45, DESTROYED below.
   A score alone can call something booming that has turned down, so two states are also held to the plain record:
-    BOOMING   needs the last month and the last three months both up, and the close above both averages
-    DESTROYED needs the last month and the last three months both down, and the close below both averages
+    BOOMING   needs the last month and the last three months both up, one of them by MATERIAL percent or more, and
+              the close above both averages
+    DESTROYED needs the last month and the last three months both down, one of them by MATERIAL percent or more,
+              and the close below both averages
   otherwise the state is the next one in (RISK-ON, RISK-OFF) and `held` says which test was not met.
+  (Dry run, ops 6936, 2026-11-24: by the score and the direction alone a biotech fund up 1.1% in three months was
+  "booming" on the strength of its half-year. A size test in units of the instrument's own usual move was tried and
+  refused: it said the VIX, up 76% in three months, was not booming. The plain percent is the test.)
 """
 from datetime import date, timedelta
 import math
@@ -24,6 +29,7 @@ MONTHS = {"m": 1, "q": 3, "h": 6, "y": 12}
 ANCHOR_SLACK_DAYS = 10          # an anchor further than this before the day asked for is a hole in the history, not a close
 MIN_BARS = 130                  # the first engine's floor: under this there is no score
 BOOM, ON, OFF, BUST = 45, 15, -15, -45
+MATERIAL = 5.0                  # percent: a booming / destroyed instrument has moved at least this much in a month or in three
 STATES = ("DESTROYED", "RISK-OFF", "NEUTRAL", "RISK-ON", "BOOMING")
 PLAIN = {"BOOMING": "Booming", "RISK-ON": "Rising", "NEUTRAL": "Flat", "RISK-OFF": "Falling", "DESTROYED": "Destroyed"}
 SIGMA_BARS, SIGMA_MIN = 252, 60
@@ -150,11 +156,13 @@ def held_state(score, r1m, r3m, last, ma50, ma200):
     state = state_of(score)
     if state == "BOOMING":
         missing = [text for ok, text in ((r1m > 0, "the last month is down"), (r3m > 0, "the last three months are down"),
+                                         (max(r1m, r3m) >= MATERIAL or r1m <= 0 or r3m <= 0, "neither the month nor the three months is up %g%%" % MATERIAL),
                                          (last > ma50, "the close is under its 50-day average"), (last > ma200, "the close is under its 200-day average")) if not ok]
         if missing:
             return "RISK-ON", "scores as booming (%+d) but %s" % (score, " and ".join(missing))
     elif state == "DESTROYED":
         missing = [text for ok, text in ((r1m < 0, "the last month is up"), (r3m < 0, "the last three months are up"),
+                                         (min(r1m, r3m) <= -MATERIAL or r1m >= 0 or r3m >= 0, "neither the month nor the three months is down %g%%" % MATERIAL),
                                          (last < ma50, "the close is above its 50-day average"), (last < ma200, "the close is above its 200-day average")) if not ok]
         if missing:
             return "RISK-OFF", "scores as destroyed (%+d) but %s" % (score, " and ".join(missing))
@@ -210,9 +218,11 @@ def check(row):
             bad.append("%s anchor %s is not before the last bar %s" % (k, ad, row["d"]))
         if abs(pct(ac, row["c"]) - row["r"][k]) > 0.011:
             bad.append("%s change %s is not the close over its anchor (%.4f)" % (k, row["r"][k], pct(ac, row["c"])))
-    if row["state"] == "BOOMING" and not (row["score"] >= BOOM and row["r"]["m"] > 0 and row["r"]["q"] > 0 and row["c"] > row["ma50"] and row["c"] > row["ma200"]):
+    if row["state"] == "BOOMING" and not (row["score"] >= BOOM and row["r"]["m"] > 0 and row["r"]["q"] > 0 and max(row["r"]["m"], row["r"]["q"]) >= MATERIAL - 0.005
+                                          and row["c"] > row["ma50"] and row["c"] > row["ma200"]):
         bad.append("called booming against the record")
-    if row["state"] == "DESTROYED" and not (row["score"] <= BUST and row["r"]["m"] < 0 and row["r"]["q"] < 0 and row["c"] < row["ma50"] and row["c"] < row["ma200"]):
+    if row["state"] == "DESTROYED" and not (row["score"] <= BUST and row["r"]["m"] < 0 and row["r"]["q"] < 0 and min(row["r"]["m"], row["r"]["q"]) <= -MATERIAL + 0.005
+                                            and row["c"] < row["ma50"] and row["c"] < row["ma200"]):
         bad.append("called destroyed against the record")
     if row["state"] != row["raw_state"] and not row["held"]:
         bad.append("state differs from the score's with no reason given")

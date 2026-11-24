@@ -64,14 +64,14 @@ def own_target(last_iso, window):
 def own_state(score, r1m, r3m, v50, v200):
     """The state by the published rule, from the published score and record."""
     if score >= 45:
-        return "BOOMING" if (r1m > 0 and r3m > 0 and v50 > 0 and v200 > 0) else "RISK-ON"
+        return "BOOMING" if (r1m > 0 and r3m > 0 and max(r1m, r3m) >= 5 and v50 > 0 and v200 > 0) else "RISK-ON"
     if score >= 15:
         return "RISK-ON"
     if score > -15:
         return "NEUTRAL"
     if score > -45:
         return "RISK-OFF"
-    return "DESTROYED" if (r1m < 0 and r3m < 0 and v50 < 0 and v200 < 0) else "RISK-OFF"
+    return "DESTROYED" if (r1m < 0 and r3m < 0 and min(r1m, r3m) <= -5 and v50 < 0 and v200 < 0) else "RISK-OFF"
 
 
 def own_score(r1m, r3m, r6m, v50, v200, ma50_over_200):
@@ -83,6 +83,7 @@ def own_score(r1m, r3m, r6m, v50, v200, ma50_over_200):
 def selftest():
     assert own_months_back(date(2026, 3, 31), 1) == date(2026, 2, 28) and own_target("2026-11-24", "q") == "2026-08-24" and own_target("2026-01-05", "ytd") == "2025-12-31"
     assert own_state(60, 1, 5, 2, 3) == "BOOMING" and own_state(60, -1, 5, 2, 3) == "RISK-ON" and own_state(-60, -1, -5, -2, -3) == "DESTROYED" and own_state(-60, 1, -5, -2, -3) == "RISK-OFF"
+    assert own_state(60, 3.4, 1.1, 2, 3) == "RISK-ON" and own_state(60, 5, 1.1, 2, 3) == "BOOMING" and own_state(-60, -4.9, -4.9, -2, -3) == "RISK-OFF"
     assert own_state(44, 1, 1, 1, 1) == "RISK-ON" and own_state(-15, 0, 0, 0, 0) == "RISK-OFF" and own_state(-14, 0, 0, 0, 0) == "NEUTRAL"
     assert round(own_score(10, 20, 30, 1, 1, True)) == round(2.2 * (9 + 9 + 2.5) + 25)
 
@@ -95,11 +96,33 @@ def main():
     import lambda_function as L
     import risk_math as M
     import risk_universe as U
-    s3 = boto3.client("s3", region_name="us-east-1", config=Config(retries={"max_attempts": 4, "mode": "standard"}, max_pool_connections=64))
+    real = boto3.client("s3", region_name="us-east-1", config=Config(retries={"max_attempts": 4, "mode": "standard"}, max_pool_connections=64))
+
+    class Recorder:
+        """The S3 client handed to the engine: every object it reads is kept, so the fixture is cut from the very
+        bytes this build saw (the forming-bar file is rewritten every five minutes)."""
+        def __init__(self):
+            self.seen, self.listed = {}, {}
+
+        def get_object(self, Bucket, Key):
+            raw = real.get_object(Bucket=Bucket, Key=Key)["Body"].read()
+            self.seen[Key] = raw
+            import io
+            return {"Body": io.BytesIO(raw)}
+
+        def list_objects_v2(self, **kw):
+            out = real.list_objects_v2(**kw)
+            self.listed.setdefault(kw.get("Prefix"), []).extend(o["Key"] for o in out.get("Contents") or [])
+            return out
+
+        def doc(self, key):
+            raw = self.seen.get(key)
+            return None if raw is None else json.loads(gzip.decompress(raw) if raw[:2] == b"\x1f\x8b" else raw)
+    s3 = Recorder()
 
     def get(key):
         try:
-            raw = s3.get_object(Bucket=L.BUCKET, Key=key)["Body"].read()
+            raw = real.get_object(Bucket=L.BUCKET, Key=key)["Body"].read()
             return json.loads(gzip.decompress(raw) if raw[:2] == b"\x1f\x8b" else raw)
         except Exception:  # noqa: BLE001
             return None
@@ -174,9 +197,9 @@ def main():
             r.log("    %-6s %-30s -> %s: %s (month %+.2f%%, 3 months %+.2f%%, vs 50-day %+.2f%%, vs 200-day %+.2f%%)" % (t["t"], t["n"][:30], t["state"], t["held"], t["r"]["m"], t["r"]["q"], t["v50"], t["v200"]))
         for t in tiles:
             if t["state"] == "BOOMING":
-                ck(t["score"] >= 45 and t["r"]["m"] > 0 and t["r"]["q"] > 0 and t["v50"] > 0 and t["v200"] > 0, "%s is called BOOMING against its record" % t["t"])
+                ck(t["score"] >= 45 and t["r"]["m"] > 0 and t["r"]["q"] > 0 and max(t["r"]["m"], t["r"]["q"]) >= 5 and t["v50"] > 0 and t["v200"] > 0, "%s is called BOOMING against its record" % t["t"])
             if t["state"] == "DESTROYED":
-                ck(t["score"] <= -45 and t["r"]["m"] < 0 and t["r"]["q"] < 0 and t["v50"] < 0 and t["v200"] < 0, "%s is called DESTROYED against its record" % t["t"])
+                ck(t["score"] <= -45 and t["r"]["m"] < 0 and t["r"]["q"] < 0 and min(t["r"]["m"], t["r"]["q"]) <= -5 and t["v50"] < 0 and t["v200"] < 0, "%s is called DESTROYED against its record" % t["t"])
         ck(set(m["booming"]) == {t["t"] for t in tiles if t["state"] == "BOOMING"}, "the booming list is not exactly the instruments in that state")
         ck(set(m["destroyed"]) == {t["t"] for t in tiles if t["state"] == "DESTROYED"}, "the destroyed list is not exactly the instruments in that state")
         ck(all(x["state"] == "BOOMING" for x in doc["booming"]) and all(x["state"] == "DESTROYED" for x in doc["destroyed"]), "a first-map list holds an instrument in another state")
@@ -216,7 +239,7 @@ def main():
         with ThreadPoolExecutor(max_workers=32) as pool:
             fmp = dict(pool.map(fmp_closes, funds))
         compared = worst = 0
-        absent, off, short = [], [], []
+        absent, off, short, stale_fmp = [], [], [], []
         for t in funds:
             have = fmp.get(t["t"]) or {}
             if not have:
@@ -229,26 +252,34 @@ def main():
                     short.append("%s %s %s" % (t["t"], k, d))
                     continue
                 compared += 1
-                diff = abs(float(f) / c - 1) * 100
+                ratio = float(f) / c
+                factors = [1.0 / float(e["factor"]) for e in t.get("splits") or [] if d < e["date"]]
+                if any(abs(ratio / x - 1) * 100 <= 0.6 for x in factors):
+                    stale_fmp.append("%s %s %s: this engine %.4f (split-adjusted), FMP's bank %.4f = %.4g times it, the split's own factor" % (t["t"], k, d, c, float(f), ratio))
+                    continue
+                diff = abs(ratio - 1) * 100
                 worst = max(worst, diff)
                 if diff > 0.6:
                     off.append("%s %s %s: bank %.4f, FMP %.4f (%.2f%%)" % (t["t"], k, d, c, float(f), diff))
         r.log("%d funds; %d closes compared on the same dates; largest difference %.3f%%; beyond 0.6%%: %d" % (len(funds), compared, worst, len(off)))
         for line in off[:40]:
             r.log("    " + line)
+        r.log("closes where FMP's bank still holds the price from before a split this engine rebased (%d) - FMP's file is merged day by day and its older rows are never re-adjusted:" % len(stale_fmp))
+        for line in stale_fmp[:24]:
+            r.log("    " + line)
         r.log("funds FMP holds no history for: %s" % (absent or "none"))
         r.log("dates FMP has no row for (%d): %s" % (len(short), short[:20]))
         ck(compared >= 0.8 * 6 * (len(funds) - len(absent)), "too few closes could be compared with FMP: %d" % compared)
         split_funds = [t["t"] for t in funds if t.get("splits")]
         r.log("funds with a split rebased here, and how they compare: %s" % [(tk, max([float(fmp[tk].get(v[0]) or 0) / v[1] for k, v in by_t[tk]["a"].items() if k != "d" and fmp.get(tk, {}).get(v[0])] or [0])) for tk in split_funds])
-        ck(len(off) <= 0.02 * max(1, compared), "%d of %d closes differ from FMP's by more than 0.6%%" % (len(off), compared))
+        ck(not off, "%d of %d closes differ from FMP's by more than 0.6%% for no split: %s" % (len(off), compared, off[:6]))
 
         # ------------------------------------------------------------ 6. coins and currencies beside another source
         r.section("6. Coins beside CoinMarketCap; currencies beside the Federal Reserve's H.10")
         listing = None
         try:
-            keys = sorted(o["Key"] for o in s3.list_objects_v2(Bucket=L.BUCKET, Prefix=L.CMC_ROOT).get("Contents") or [])
-            ld = get(keys[-1]) if keys else None
+            keys = sorted(s3.listed.get(L.CMC_ROOT) or [])
+            ld = s3.doc(keys[-1]) if keys else None
             data = ld.get("data") if isinstance(ld, dict) else ld
             listing = data.get("data") if isinstance(data, dict) and "data" in data else data
             r.log("CoinMarketCap listing %s" % keys[-1][len(L.CMC_ROOT):])
@@ -302,27 +333,32 @@ def main():
         want_funds = sorted(set(U.legacy_tickers()) - set(U.LEGACY_COINS) | set(FIXTURE_FUNDS))
         bank = {}
         for tk in want_funds:
-            d = get(L.bank_key(tk)) or {}
+            d = s3.doc(L.bank_key(tk)) or {}
             bank[tk] = [[x[0]] + [None if v is None else float("%.7g" % v) for v in x[1:6]] for x in (d.get("rows") or [])[-470:] if isinstance(x, list) and len(x) >= 6]
-        first = min(datetime.fromtimestamp(v[0][0] / 1000, tz=timezone.utc).date().isoformat() for v in bank.values() if v)
         splits = {}
-        for month in L.months_between(first, doc["as_of"]["bank_last_session"]):
-            d = get(L.SPLITS_ROOT + month + ".json.gz")
+        for key in sorted(k for k in s3.seen if k.startswith(L.SPLITS_ROOT)):
+            d = s3.doc(key)
             rows = d if isinstance(d, list) else (d or {}).get("results") or []
-            keep = [{k: x.get(k) for k in ("ticker", "execution_date", "split_from", "split_to")} for x in rows if isinstance(x, dict) and str(x.get("ticker")).upper() in bank]
-            splits[month] = keep
-        today = get(L.TODAY_KEY) or {}
-        coins = {c: {"symbol": c, "source": (get(L.COIN_ROOT + c + ".json.gz") or {}).get("source"), "rows": [[x[0]] + [float("%.7g" % v) for v in x[1:6]] for x in ((get(L.COIN_ROOT + c + ".json.gz") or {}).get("rows") or [])[-820:]]} for c in FIXTURE_COINS}
+            splits[key[len(L.SPLITS_ROOT):-len(".json.gz")]] = [{k: x.get(k) for k in ("ticker", "execution_date", "split_from", "split_to")} for x in rows if isinstance(x, dict) and str(x.get("ticker")).upper() in bank]
+        today = s3.doc(L.TODAY_KEY) or {}
+        coins = {}
+        for c in FIXTURE_COINS:
+            d = s3.doc(L.COIN_ROOT + c + ".json.gz") or {}
+            coins[c] = {"symbol": c, "source": d.get("source"), "rows": [[x[0]] + [float("%.7g" % v) for v in x[1:6]] for x in (d.get("rows") or [])[-820:]]}
         fmp_fix = {}
         for sym in FIXTURE_FMP:
-            d = get(L.fmp_key(sym))
+            d = s3.doc(L.fmp_key(sym))
             rows = d if isinstance(d, list) else (d or {}).get("rows") or (d or {}).get("historical") or []
             fmp_fix[sym] = sorted(({"date": str(x.get("date"))[:10], "close": x.get("close")} for x in rows if isinstance(x, dict)), key=lambda x: x["date"])[-640:]
+        cmc_key = sorted(s3.listed.get(L.CMC_ROOT) or [""])[-1]
         cmc_fix = [{"symbol": c.get("symbol"), "name": c.get("name"), "cmc_rank": c.get("cmc_rank"), "tags": (c.get("tags") or [])[:8], "quote": {"USD": {"market_cap": ((c.get("quote") or {}).get("USD") or {}).get("market_cap")}}} for c in (listing or [])[:80]]
+        r.log("the engine read %d objects; the cut keeps %d funds, %d coins, %d price-bank series, %d split files, the forming-bar file as of %s and the first 80 rows of %s" % (
+            len(s3.seen), len(bank), len(coins), len(fmp_fix), len(splits), today.get("as_of"), cmc_key[len(L.CMC_ROOT):]))
         fixture = {"cut_at": now.isoformat(timespec="seconds"), "bank": bank, "splits": splits,
                    "today": {"session": today.get("session"), "as_of": today.get("as_of"), "rows": {k: v for k, v in (today.get("rows") or {}).items() if k in bank}},
-                   "coins": coins, "fmp": fmp_fix, "cmc": cmc_fix, "prev": prev,
-                   "expect": {"regime": doc["regime"], "ranked": doc["ranked"], "tiles": {tk: by_t[tk] for tk in list(bank) + list(FIXTURE_COINS) + ["EUR", "JPY", "CHF", "MXN", "DXY", "VIX", "KC"] if tk in by_t}}}
+                   "coins": coins, "fmp": fmp_fix, "cmc": cmc_fix, "cmc_day": cmc_key[len(L.CMC_ROOT):-len(".json.gz")], "prev": prev,
+                   "expect": {"regime": doc["regime"], "ranked": doc["ranked"], "booming": doc["booming"], "destroyed": doc["destroyed"], "transitions": doc["transitions"],
+                              "tiles": {tk: by_t[tk] for tk in list(bank) + list(FIXTURE_COINS) + ["EUR", "JPY", "CHF", "MXN", "DXY", "VIX", "KC"] if tk in by_t}}}
         for name, obj in (("document", doc), ("warehouse-cut", fixture)):
             raw = gzip.compress(json.dumps(obj, separators=(",", ":")).encode(), 9)
             b64 = base64.b64encode(raw).decode("ascii")
