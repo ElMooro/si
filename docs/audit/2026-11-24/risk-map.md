@@ -157,8 +157,10 @@ ops 6938 ran three times on the live site, read-only each time:
   Auction opened the map with a real click (293 tiles inside) and a tile opened QQQ's chart. Report and six pictures:
   `aws/ops/reports/latest/ops_6938_risk_map_live_proof.md`.
 
-Not yet seen: the first scheduled run of 2.0.0 (21:00 UTC), which is the first to carry `turns_since` and the corrected
-turn names. ops 6938 is read-only and can be run again after it.
+- **21:11 UTC, after the first scheduled run of 2.0.0: 0 failed checks.** The schedule ran the engine at 21:00:48 UTC with
+  nobody touching it; the document carries `turns_since` (turns measured from the 16:11 UTC first-light run) and the
+  corrected turn names. ops 6938, read-only, run again: 293 of 293 instruments, 2,049 anchors on the warehouse's own bars
+  with 0 that do not agree, 8 booming and 98 destroyed, each by the rule and drawn as such.
 
 Tests: `aws/lambdas/justhodl-regime-map/tests/run_tests.py` (27, on a cut of the real warehouse taken by the runner),
 `tests/risk-map-page.test.js` (21), `tests/deployment/test_risk_map_engine.py`; the node suite 5,228 and the deployment
