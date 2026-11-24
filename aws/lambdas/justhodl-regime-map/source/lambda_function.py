@@ -58,6 +58,8 @@ FUND_BARS = 420                 # sessions read back: a year for the longest win
 SERIES_DAYS = 800               # calendar days of a coin / currency / futures / index history kept
 MIN_DOLLAR_VOLUME = 250_000.0   # a fund trading under this a day (20 sessions) is left out: its closes are not a market
 STALE_DAYS = 7                  # an instrument with no bar for longer than this behind its kind's newest is left out
+WAREHOUSE_LATE_DAYS = 5         # a whole kind whose newest bar is older than this at the run is said so: the map is dated, never silently old
+KIND_WORDS = {"fund": "funds", "coin": "coins", "fx": "currencies", "fut": "futures", "idx": "indexes"}
 FORMING_BAND = (0.56, 1.8)      # a forming bar outside this multiple of the last close is a split in progress or a bad print: not used
 JUMP_WINDOW = 130               # bars: an unexplained one-day move inside it keeps a row out of BOOMING / DESTROYED
 JUMP_LIMIT = {"fx": 0.12, "fut": 0.35, "idx": 0.35}       # |one-day change| past this is not believed for these kinds
@@ -285,8 +287,20 @@ def group_stats(tiles):
             "best": best and best["t"], "worst": worst and worst["t"]}
 
 
+def reference(prev, now):
+    """The snapshot a run is compared with: the last run of an earlier UTC day. A second run on the same day is compared with
+    what the first one was compared with, so running the engine again by hand never hides the day's turns. Pure."""
+    prev = prev or {}
+    base = prev.get("base")
+    if str(prev.get("generated_at") or "")[:10] == now.date().isoformat() and isinstance(base, dict) and base.get("generated_at"):
+        return base
+    return prev
+
+
 def turns(now_states, prev_states, names):
-    """What changed state, or moved 18 points, since the run before: the first engine's rule. Pure."""
+    """What changed state, or moved 18 points, since the run it is compared with. The first engine's rule, except its last line:
+    that called every change it had no other name for WEAKENING, whichever way it went (a rise of 17 points from NEUTRAL to
+    RISK-ON was "weakening"). A change with no other name is now named by its direction. Pure."""
     rank = {s: i for i, s in enumerate(M.STATES)}
     out = []
     for key, cur in now_states.items():
@@ -309,7 +323,7 @@ def turns(now_states, prev_states, names):
             kind = "FLIPPED RISK-ON"
         elif p.get("risk_on", 0) >= 0 > cur["risk_on"]:
             kind = "FLIPPED RISK-OFF"
-        elif d_ro >= 18:
+        elif cr > pr or (cr == pr and d_ro > 0):
             kind = "STRENGTHENING"
         else:
             kind = "WEAKENING"
@@ -524,6 +538,10 @@ def build(s3, now=None, prev=None, log=print):
     for m in members:
         if m["t"] in series and series[m["t"]]:
             newest[m["kind"]] = max(newest.get(m["kind"], ""), series[m["t"]][-1][0])
+    for kind, last in sorted(newest.items()):
+        age = (now.date() - date.fromisoformat(last)).days
+        if age > WAREHOUSE_LATE_DAYS:
+            notes.append("the newest bar of the %s is %s, %d days before this run: the warehouse has not been fed" % (KIND_WORDS.get(kind, kind), last, age))
     tiles, faults = [], []
     for m in members:
         s = series.get(m["t"])
@@ -573,7 +591,7 @@ def build(s3, now=None, prev=None, log=print):
         sleeves[s].sort(key=lambda x: -x["risk_on"])
     ranked.sort(key=lambda x: -x["risk_on"])
     regime = legacy_regime(lookup)
-    prev = prev or {}
+    prev = reference(prev, now)
     transitions = turns({i["ticker"]: i for i in ranked}, prev.get("states"), {i["ticker"]: {"name": i["name"], "sleeve": i["sleeve"]} for i in ranked})
     prev_label = prev.get("label")
 
@@ -603,6 +621,7 @@ def build(s3, now=None, prev=None, log=print):
         "prev_regime": prev_label,
         "transitions": transitions[:14],
         "n_transitions": len(transitions),
+        "turns_since": prev.get("generated_at"),
         "booming": [x for x in ranked if x["state"] == "BOOMING"][:6],
         "destroyed": list(reversed([x for x in ranked if x["state"] == "DESTROYED"]))[:6],
         "strongest": ranked[:6],
@@ -649,11 +668,20 @@ def build(s3, now=None, prev=None, log=print):
     return payload
 
 
-def snapshot(payload):
-    """What the next run compares against. Pure."""
-    return {"generated_at": payload["generated_at"], "label": payload["regime"]["label"],
+SNAPSHOT_KEYS = ("generated_at", "label", "states", "tiles")
+
+
+def snapshot(payload, prev=None):
+    """What the next run compares against, with the last run of an earlier UTC day kept beside it as `base` (see reference). Pure."""
+    snap = {"generated_at": payload["generated_at"], "label": payload["regime"]["label"],
             "states": {i["ticker"]: {"risk_on": i["risk_on"], "state": i["state"]} for i in payload["ranked"]},
             "tiles": {t["t"]: {"risk_on": t["score"], "state": t["state"]} for t in payload["map"]["tiles"]}}
+    prev = prev or {}
+    same_day = str(prev.get("generated_at") or "")[:10] == payload["generated_at"][:10]
+    base = prev.get("base") if same_day else {k: prev[k] for k in SNAPSHOT_KEYS if k in prev}
+    if isinstance(base, dict) and base.get("generated_at"):
+        snap["base"] = {k: base[k] for k in SNAPSHOT_KEYS if k in base}
+    return snap
 
 
 def lambda_handler(event=None, context=None):
@@ -664,12 +692,12 @@ def lambda_handler(event=None, context=None):
         m = payload["map"]
         return {"statusCode": 200, "dry_run": True, "regime": payload["regime"]["label"], "cross_asset": payload["cross_asset"]["label"],
                 "tiles": m["n"], "universe": m["n_universe"], "booming": m["booming"], "destroyed": m["destroyed"], "left_out": m["left_out"]}
-    try:
-        s3.put_object(Bucket=BUCKET, Key=PREV_KEY, Body=json.dumps(snapshot(payload)).encode(), ContentType="application/json")
-    except Exception as exc:  # noqa: BLE001
-        print("[regime-map] the snapshot for the next run was not written: %s" % type(exc).__name__)
     body = json.dumps(payload, separators=(",", ":")).encode()
     s3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=body, ContentType="application/json", CacheControl="public, max-age=900")
+    try:
+        s3.put_object(Bucket=BUCKET, Key=PREV_KEY, Body=json.dumps(snapshot(payload, prev), separators=(",", ":")).encode(), ContentType="application/json")
+    except Exception as exc:  # noqa: BLE001
+        print("[regime-map] the snapshot for the next run was not written: %s" % type(exc).__name__)
     r, m = payload["regime"], payload["map"]
     print("[regime-map %s] %d of %d instruments | regime=%s | eq %+.1f crypto %+.1f breadth %d%% conc %+.1f | cross-asset=%s | booming %d destroyed %d left out %d | %d bytes | %ss" % (
         VERSION, m["n"], m["n_universe"], r["label"], r["equity_avg"], r["crypto_avg"], r["equity_breadth_pct"], r["concentration_spread_3m"],

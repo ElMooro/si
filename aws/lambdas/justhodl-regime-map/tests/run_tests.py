@@ -396,6 +396,24 @@ def an_instrument_behind_its_kind_is_dated_and_a_stale_one_left_out():
 
 
 @test
+def a_warehouse_that_stopped_being_fed_is_said_so():
+    assert not any("has not been fed" in n for n in DOC["notes"])
+    old, _ = build(now=NOW + timedelta(days=9))
+    said = [n for n in old["notes"] if "has not been fed" in n]
+    assert len(said) == len(old["map"]["counts"]) == 5 and all(w in " ".join(said) for w in ("funds", "coins", "currencies", "futures", "indexes")), said
+    assert [(t["t"], t["c"], t["d"]) for t in old["map"]["tiles"]] == [(t["t"], t["c"], t["d"]) for t in DOC["map"]["tiles"]]     # dated as they are, never moved up
+    newest = {k: DOC["as_of"][k] for k in ("fund", "coin", "fx", "fut", "idx")}
+    oldest = date.fromisoformat(min(newest.values()))
+
+    def at(days):
+        return datetime.combine(oldest + timedelta(days=days), NOW.timetz())
+    edge, _ = build(now=at(L.WAREHOUSE_LATE_DAYS))                  # five days (a long weekend and a holiday) is not a broken feed
+    assert not any("has not been fed" in n for n in edge["notes"])
+    over, _ = build(now=at(L.WAREHOUSE_LATE_DAYS + 1))
+    assert len([n for n in over["notes"] if "has not been fed" in n]) == sum(1 for v in newest.values() if v == oldest.isoformat())
+
+
+@test
 def an_unbelievable_move_is_not_called():
     def spike(fix):
         rows = fix["fmp"]["EURUSD"]
@@ -433,20 +451,72 @@ def too_little_read_is_never_published():
 
 
 @test
-def turns_follow_the_first_engines_rule():
-    names = {"A": {"name": "a"}, "B": {"name": "b"}, "C": {"name": "c"}, "D": {"name": "d"}, "E": {"name": "e"}}
+def turns_follow_the_first_engines_rule_and_are_named_by_their_direction():
+    names = {k: {"name": k.lower()} for k in "ABCDEFGHIJ"}
     now = {"A": {"risk_on": 50, "state": "BOOMING"}, "B": {"risk_on": -50, "state": "DESTROYED"}, "C": {"risk_on": 5, "state": "NEUTRAL"},
-           "D": {"risk_on": 20, "state": "RISK-ON"}, "E": {"risk_on": 3, "state": "NEUTRAL"}}
+           "D": {"risk_on": 20, "state": "RISK-ON"}, "E": {"risk_on": 3, "state": "NEUTRAL"},
+           "F": {"risk_on": 18, "state": "RISK-ON"}, "G": {"risk_on": 20, "state": "RISK-ON"}, "H": {"risk_on": -52, "state": "RISK-OFF"},
+           "I": {"risk_on": 50, "state": "RISK-ON"}, "J": {"risk_on": 39, "state": "RISK-ON"}}
     prev = {"A": {"risk_on": 20, "state": "RISK-ON"}, "B": {"risk_on": -20, "state": "RISK-OFF"}, "C": {"risk_on": -30, "state": "RISK-OFF"},
-            "D": {"risk_on": 21, "state": "RISK-ON"}, "E": {"risk_on": 30, "state": "RISK-ON"}}
+            "D": {"risk_on": 21, "state": "RISK-ON"}, "E": {"risk_on": 30, "state": "RISK-ON"},
+            "F": {"risk_on": 1, "state": "NEUTRAL"}, "G": {"risk_on": 40, "state": "RISK-ON"}, "H": {"risk_on": -50, "state": "DESTROYED"},
+            "I": {"risk_on": 50, "state": "BOOMING"}, "J": {"risk_on": 20, "state": "RISK-ON"}}
     got = {x["ticker"]: x["kind"] for x in L.turns(now, prev, names)}
-    assert got == {"A": "ACCELERATING", "B": "CAPITULATING", "C": "BOTTOMING / RECOVERING", "E": "ROLLING OVER"}, got
+    # F is the first engine's mistake: up 17 points, from NEUTRAL to RISK-ON, it called WEAKENING. H and I change state on the record
+    # alone (a month that stopped falling; a month that stopped rising), the score barely moving.
+    assert got == {"A": "ACCELERATING", "B": "CAPITULATING", "C": "BOTTOMING / RECOVERING", "E": "ROLLING OVER", "F": "STRENGTHENING",
+                   "G": "WEAKENING", "H": "STRENGTHENING", "I": "WEAKENING", "J": "STRENGTHENING"}, got
     assert L.turns(now, None, names) == [] and L.turns(now, {}, names) == []
-    assert DOC["map"]["n_transitions"] == 0 or all(set(x) >= {"ticker", "name", "from", "to", "delta", "kind"} for x in DOC["map"]["transitions"])
+    # No name ever contradicts the direction: every state a score can carry, against every other.
+    up, down = {"BOTTOMING / RECOVERING", "ACCELERATING", "FLIPPED RISK-ON", "STRENGTHENING"}, {"ROLLING OVER", "CAPITULATING", "FLIPPED RISK-OFF", "WEAKENING"}
+    rank = {s: i for i, s in enumerate(M.STATES)}
+
+    def may_be(score):
+        st = M.state_of(score)
+        return [st, "RISK-ON"] if st == "BOOMING" else [st, "RISK-OFF"] if st == "DESTROYED" else [st]
+    seen, n = set(), 0
+    for a in range(-100, 101, 3):
+        for b in range(-100, 101, 7):
+            for sa in may_be(a):
+                for sb in may_be(b):
+                    for x in L.turns({"X": {"risk_on": b, "state": sb}}, {"X": {"risk_on": a, "state": sa}}, {"X": {"name": "x"}}):
+                        rose = rank[sb] > rank[sa] or (rank[sb] == rank[sa] and b > a)
+                        fell = rank[sb] < rank[sa] or (rank[sb] == rank[sa] and b < a)
+                        assert (x["kind"] in up and rose) or (x["kind"] in down and fell), (a, sa, b, sb, x["kind"])
+                        seen.add(x["kind"])
+                        n += 1
+    assert seen == up | down and n > 3000, (seen, n)
+    assert all(set(x) >= {"ticker", "name", "from", "to", "delta", "kind"} for x in DOC["map"]["transitions"])
+
+
+@test
+def a_run_is_compared_with_the_last_run_of_an_earlier_day():
     snap = L.snapshot(DOC)
     assert set(snap) == {"generated_at", "label", "states", "tiles"} and set(snap["states"]) == {x["ticker"] for x in DOC["ranked"]} and len(snap["tiles"]) == DOC["map"]["n"]
-    again, _ = build(prev=snap)
+    assert DOC["turns_since"] == L.reference(FIX["prev"], NOW).get("generated_at")
+    again, _ = build(prev=snap)                                   # the same day, nothing older kept: compared with the run before
     assert again["transitions"] == [] and again["map"]["transitions"] == [] and again["regime_changed"] is False and again["prev_regime"] == DOC["regime"]["label"]
+    assert again["turns_since"] == DOC["generated_at"]
+    # Yesterday's last run, whatever day the fixture was cut: one of the first map's instruments was somewhere else then.
+    was = {"generated_at": (NOW - timedelta(days=1)).isoformat(), "label": "MIXED / ROTATIONAL", "states": json.loads(json.dumps(snap["states"])),
+           "tiles": json.loads(json.dumps(snap["tiles"])), "base": {"generated_at": "2026-01-01T21:00:00+00:00", "label": "x", "states": {}, "tiles": {}}}
+    was["states"]["SPY"] = was["tiles"]["SPY"] = {"risk_on": 60, "state": "BOOMING"}
+    first, _ = build(prev=was)
+    assert first["turns_since"] == was["generated_at"] and first["prev_regime"] == "MIXED / ROTATIONAL" and first["regime_changed"] is True
+    assert [x["ticker"] for x in first["transitions"]] == ["SPY"] and [x["ticker"] for x in first["map"]["transitions"]] == ["SPY"] and first["transitions"][0]["from"] == "BOOMING"
+    # The handler's snapshot keeps yesterday's beside today's (never what yesterday itself was compared with) ...
+    kept = L.snapshot(first, was)
+    assert kept["base"] == {k: was[k] for k in L.SNAPSHOT_KEYS} and kept["generated_at"] == first["generated_at"]
+    # ... so a second run today is still compared with yesterday's, and a third carries it on.
+    second, _ = build(prev=kept)
+    assert second["turns_since"] == was["generated_at"] and second["transitions"] == first["transitions"] and second["map"]["transitions"] == first["map"]["transitions"]
+    assert second["prev_regime"] == first["prev_regime"] and second["regime_changed"] is True
+    assert L.snapshot(second, kept)["base"] == kept["base"]
+    # The next day, today's last run is what the run is compared with, and it becomes the kept one.
+    tomorrow = NOW + timedelta(days=1)
+    assert L.reference(kept, tomorrow) is kept and L.reference(kept, NOW) == kept["base"] and L.reference(snap, NOW) is snap and L.reference(None, NOW) == {}
+    rolled = L.snapshot(dict(DOC, generated_at=tomorrow.isoformat()), kept)
+    assert rolled["base"]["generated_at"] == kept["generated_at"] and "base" not in rolled["base"] and rolled["base"]["tiles"] == kept["tiles"]
 
 
 @test
@@ -497,6 +567,10 @@ def the_handler_writes_the_feed_and_the_snapshot_and_a_dry_run_writes_nothing():
     assert out["statusCode"] == 200 and json.loads(out["body"])["regime"] == DOC["regime"]["label"] and set(s3.puts) == {L.OUT_KEY, L.PREV_KEY}
     feed, snap = json.loads(s3.puts[L.OUT_KEY]), json.loads(s3.puts[L.PREV_KEY])
     assert feed["contract"] == "risk-map.v2" and feed["map"]["n"] == DOC["map"]["n"] and snap["label"] == feed["regime"]["label"] and len(snap["states"]) == 38
+    ref = L.reference(FIX["prev"], datetime.fromisoformat(feed["generated_at"]))
+    assert feed["turns_since"] == ref.get("generated_at") and snap["generated_at"] == feed["generated_at"]
+    assert snap.get("base", {}).get("generated_at") in (FIX["prev"]["generated_at"], (FIX["prev"].get("base") or {}).get("generated_at"))
+    assert list(s3.puts) == [L.OUT_KEY, L.PREV_KEY]                # the feed first: a snapshot is never ahead of what was published
     assert len(s3.puts[L.OUT_KEY]) < 400_000
 
 

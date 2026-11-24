@@ -161,6 +161,21 @@ def main():
         r.log("first-map lists by 2.0.0: booming %s | destroyed %s | strongest %s | weakest %s" % (
             [x["ticker"] for x in doc["booming"]], [x["ticker"] for x in doc["destroyed"]], [x["ticker"] for x in doc["strongest"]], [x["ticker"] for x in doc["weakest"]]))
         ck(len(doc["ranked"]) == 38, "the first map's instruments: %d of 38" % len(doc["ranked"]))
+        # Turns: this op's own reading of each one's direction against the name the engine gave it.
+        rank = {"DESTROYED": 0, "RISK-OFF": 1, "NEUTRAL": 2, "RISK-ON": 3, "BOOMING": 4}
+        up, down = {"BOTTOMING / RECOVERING", "ACCELERATING", "FLIPPED RISK-ON", "STRENGTHENING"}, {"ROLLING OVER", "CAPITULATING", "FLIPPED RISK-OFF", "WEAKENING"}
+        ref = L.reference(prev, now)
+        ck(doc.get("turns_since") == ref.get("generated_at"), "the run the turns are measured from: %s" % doc.get("turns_since"))
+        for x in doc["transitions"] + m["transitions"]:
+            a, b = rank[x["from"]], rank[x["to"]]
+            rose, fell = b > a or (b == a and x["delta"] > 0), b < a or (b == a and x["delta"] < 0)
+            ck((x["kind"] in up and rose) or (x["kind"] in down and fell), "%s is called %s but went %s -> %s (%+d)" % (x["ticker"], x["kind"], x["from"], x["to"], x["delta"]))
+        r.log("turns since the run of %s: %d on the first map %s | %d on the whole map %s" % (
+            str(doc.get("turns_since"))[:16], doc["n_transitions"], [(x["ticker"], x["from"], x["to"], x["delta"], x["kind"]) for x in doc["transitions"]],
+            m["n_transitions"], [(x["ticker"], x["from"], x["to"], x["delta"], x["kind"]) for x in m["transitions"][:12]]))
+        snap = L.snapshot(doc, prev)
+        r.log("the snapshot the next run would be compared with: %d first-map states, %d tiles, kept beside it %s" % (
+            len(snap["states"]), len(snap["tiles"]), (snap.get("base") or {}).get("generated_at") or "nothing (no run of an earlier day is on record yet)"))
         need = ["booming", "destroyed", "elapsed_s", "engine", "generated_at", "n_instruments", "n_transitions", "ok", "prev_regime", "ranked", "regime", "regime_changed", "sleeves", "thesis", "transitions", "version", "windows"]
         ck(all(k in doc for k in need), "a key the feed's contract requires is missing: %s" % [k for k in need if k not in doc])
         ck(set(doc["sleeves"]) == set(live.get("sleeves") or doc["sleeves"]), "sleeve names changed: %s" % sorted(doc["sleeves"]))
