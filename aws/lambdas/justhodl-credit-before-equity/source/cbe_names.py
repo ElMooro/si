@@ -153,7 +153,8 @@ ALIASES = {
     "SMURFIT KAPPA TREASURY": "SW", "METHANEX US OPERATIONS": "MEOH", "BUNGE FINANCE": "BG", "AMCOR FLEXIBLES NORTH AMERICA": "AMCR", "COTY HFC PRESTIGE PRODUCTS": "COTY",
     "DISH DBS": "ECHO", "DISH NETWORK": "ECHO", "SEAWORLD PARKS ENTERTAINMENT": "PRKS", "UNITED WHOLESALE MORTGAGE": "UWMC", "AMN HEALTHCARE": "AMN", "JEFFERIES GROUP": "JEF",
     "SUBURBAN PROPANE PARTNERS SUBU": "SPH", "MARKEL GROUP": "MKL", "LAZARD GROUP": "LAZ", "VERTIV GROUP": "VRT", "RB GLOBAL HOLDINGS": "RBA",
-    "ANGLOGOLD ASHANTI HOLDINGS": "AU", "ARCOS DORADOS": "ARCO", "BLOCK FINANCIAL": "HRB", "SMURFIT KAPPA ACQUISITIONS": "SW", "COMPASS GROUP": None, "VIKING CRUISES": "VIK", "MIDAMERICAN ENERGY": None, "ONCOR ELECTRIC DELIVERY": None, "PARAMOUNT GLOBAL": None, "PARAMOUNT SKYDANCE": None,
+    "ANGLOGOLD ASHANTI HOLDINGS": "AU", "ARCOS DORADOS": "ARCO", "BLOCK FINANCIAL": "HRB", "SMURFIT KAPPA ACQUISITIONS": "SW", "COMPASS GROUP": None,
+    "ARBOR REALTY SR": "ABR", "CONDUENT BUSINESS SERVICES": "CNDT", "PAYSAFE FINANCE": "PSFE", "OI EUROPEAN GROUP": "OI", "CSN RESOURCES": "SID", "VIKING CRUISES": "VIK", "MIDAMERICAN ENERGY": None, "ONCOR ELECTRIC DELIVERY": None, "PARAMOUNT GLOBAL": None, "PARAMOUNT SKYDANCE": None,
 }
 
 # Listed companies the factor book does not hold (found by ops 6941): the engine ties to them only while the price bank still has a current bar.
@@ -169,6 +170,7 @@ def clean_issuer(raw):
     """The issuer as the fund file prints it, without the placement and coupon notes that follow the name."""
     s = re.sub(r"\s+", " ", str(raw or "").upper()).strip()
     s = re.sub(r"\(.*?(\)|$)", " ", s).replace("/THE", " ")
+    s = s.split(" / ")[0]                                   # co-issuers ("X LP / X FINANCE CORP"): the first is the company
     for _ in range(3):
         t = TAIL.sub("", s)
         if t == s:
