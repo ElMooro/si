@@ -133,8 +133,11 @@ def selftest():
     got = problems(doc)
     assert not any("X" in g for g in got) and any("no instrument in the asset class" in g for g in got) and any("first map's instruments" in g for g in got), got
     lie = json.loads(json.dumps(doc))
-    lie["map"]["tiles"][0]["r"]["q"] = 1.0
-    assert any("not the close over its anchor" in g for g in problems(lie)) and any("BOOMING against" in g or "the rule gives" in g for g in problems(lie))
+    lie["map"]["tiles"][0]["r"]["q"] = -1.0
+    assert any("not the close over its anchor" in g for g in problems(lie)) and any("BOOMING against" in g for g in problems(lie)) and any("the rule gives" in g for g in problems(lie))
+    late = json.loads(json.dumps(doc))
+    late["map"]["tiles"][0]["a"]["q"][0] = "2026-08-10"
+    assert any("anchor 2026-08-10 for a window that starts 2026-08-24" in g for g in problems(late))
 
 
 def main():
