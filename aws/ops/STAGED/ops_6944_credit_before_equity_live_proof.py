@@ -1,4 +1,4 @@
-"""ops 6944 - Credit Before Equity 2.0: the warehouse's own bonds and bars, then a real browser on the live site.
+"""ops 6944 - Credit Before Equity (2.0 and 2.1): the warehouse's own bonds and bars, then a real browser on the live site.
 
 Khalid 2026-11-24: "i want you to expand it to cover as many companies as possible and it should have a heatmap that shows
 industries with biggest corp spread widening which signal trouble and ones with lowes which signals safety also you i should be
@@ -16,9 +16,17 @@ Read-only: no engine is invoked and nothing is written. Three parts, each with a
      the Sort by list, the direction button, by industry both ways, grouped by industry), the search, the company CDS table
      sorted both ways, and the previous view one click away and back.
   3. A phone.
+  4. (2.1) Khalid 2026-11-24, later: "ai companies and oracle are under enormous stress why arent they showing". Every
+     stress rank is worked again from the published table; then, in the browser: the stress view opens on the document's
+     most stressed companies, the summary's link opens the AI stack's companies and only they, the list sorts both ways,
+     a layer narrows it, the heat map of the theme draws one tile a company with the document's figure and colour, Oracle's
+     tile says its rank and why it is not a lead, the industry map comes back as it was, and the notes under the leads
+     name any lead that was not called. On a 2.0 document this part only checks that the page says the view is not
+     published yet.
 
 Safe to run again.
 """
+from bisect import bisect_left, bisect_right
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
@@ -44,12 +52,13 @@ LEADS = ("CREDIT_LEADS_DOWN", "CREDIT_LEADS_UP")
 
 BOXES = r"""() => { const map = document.querySelector('.cb-map'); if (!map) return null; const mb = map.getBoundingClientRect();
   const out = Array.from(map.querySelectorAll('.cb-box')).map(e => { const b = e.getBoundingClientRect(), n = e.querySelector('.cb-box-n'), v = e.querySelector('.cb-box-v');
-    return { ind: e.dataset.ind, x: b.left - mb.left, y: b.top - mb.top, w: b.width, h: b.height, bg: getComputedStyle(e).backgroundColor, name: n ? n.textContent : null, val: v ? v.textContent : null, title: e.title, tag: e.tagName }; });
+    return { ind: e.dataset.ind, co: e.dataset.co, x: b.left - mb.left, y: b.top - mb.top, w: b.width, h: b.height, bg: getComputedStyle(e).backgroundColor, name: n ? n.textContent : null, val: v ? v.textContent : null, title: e.title, tag: e.tagName }; });
   let over = 0, out_of = 0;
   for (let i = 0; i < out.length; i++) { const a = out[i]; if (a.x < -1.6 || a.y < -1.6 || a.x + a.w > mb.width + 1.6 || a.y + a.h > mb.height + 1.6) out_of++;
     for (let j = i + 1; j < out.length; j++) { const b = out[j]; if (Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x) > 1.2 && Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y) > 1.2) over++; } }
   return { boxes: out, over: over, out_of: out_of, map: [Math.round(mb.width), Math.round(mb.height)], ox: document.documentElement.scrollWidth - document.documentElement.clientWidth,
     badges_in_map: map.querySelectorAll('.jh-secbadge').length, floating: document.querySelectorAll('#board .jh-secbadge.float').length, bad: (document.getElementById('board').innerText.match(/\bNaN\b|\bundefined\b|\bnull\b|Infinity/g) || []) }; }"""
+ROWS = r"""(sel) => Array.from(document.querySelectorAll(sel + ' tbody tr')).map(tr => Array.from(tr.children).map(td => td.innerText.replace(/\s+/g, ' ').trim()))"""
 COL = r"""([sel, n]) => Array.from(document.querySelectorAll(sel + ' tbody tr:not(.cb-grp)')).map(tr => tr.children[n] ? tr.children[n].innerText.replace(/\s+/g, ' ').trim() : null)"""
 
 
@@ -138,7 +147,8 @@ def browse(new_page, url, doc, ck, shots, log, phone_page=None):
 
     ev = page.locator("#evidence").inner_text()
     log("evidence on the page: %s" % " | ".join(x.strip() for x in ev.splitlines() if x.strip())[:420])
-    ck("RECONCILED" in ev and "counts reconcile with the rows (8 checks)" in ev, "the evidence status is not RECONCILED: %s" % ev[:200])
+    n_checks = 8 + ((1 + len(doc.get("themes") or [])) if "stress" in doc else 0)          # 2.1 reconciles the stress count and each theme as well
+    ck("RECONCILED" in ev and "counts reconcile with the rows (%d checks)" % n_checks in ev, "the evidence status is not RECONCILED with %d checks: %s" % (n_checks, ev[:200]))
     ck("does not verify that the bond, CDS and price sources are fresh" in ev, "the evidence status no longer says what it does not verify")
     hero = page.locator("#hero").inner_text()
     cov = doc["coverage"]
@@ -361,6 +371,195 @@ def browse(new_page, url, doc, ck, shots, log, phone_page=None):
         ck(not perr, "the page threw on a phone: %s" % perr[:3])
 
 
+def browse_stress(new_page, url, doc, ck, shots, log):
+    """Part 4 (2.1): the credit stress view, the AI stack and its heat map, in a real browser, against the document."""
+    cols = doc["issuers"]["cols"]
+    table = [dict(zip(cols, r)) for r in doc["issuers"]["rows"]]
+    names = doc["names"]
+    page, errors = new_page()
+    page.goto(url, wait_until="domcontentloaded", timeout=90000)
+    page.wait_for_selector(".cb-box", timeout=90000)
+    page.wait_for_timeout(2500)
+    if "stress" not in doc:
+        said = page.locator("#stress").inner_text()
+        ck("appear when the 2.1 engine has published" in said, "on a 2.0 document the stress view does not say it is not published yet: %s" % said[:160])
+        log("the document is %s: the stress view says it is not published yet" % doc.get("version"))
+        return
+
+    def bring(sel):
+        page.evaluate("(s) => { const e = document.querySelector(s); window.scrollTo(0, e.getBoundingClientRect().top + window.scrollY - 56); }", sel)
+        page.wait_for_timeout(350)
+
+    def rows():
+        return page.evaluate(ROWS, "#stress table.cb-stress")
+
+    def by_stress(rs):
+        return sorted(rs, key=lambda x: (x["stress"] is None, -(x["stress"] or 0.0)))            # a stable sort, like the page's: ties keep the document's order
+
+    st, at = doc["stress"], doc["stress"]["stressed_at"]
+    ai = doc["themes"][0]
+    mine = [x for x in table if x["theme"] == ai["key"]]
+    words = {layer["key"]: layer["name"] for layer in ai["layers"]}
+    by_id = {x["id"]: x for x in table}
+    orcl = next((x for x in table if x["ticker"] == "ORCL"), None)
+
+    # the summary names them
+    hero = page.locator("#hero").inner_text()
+    ck("Under credit stress" in hero and "\n%d\n" % st["n_stressed_listed"] in hero.replace("\r", ""), "the summary does not say %d listed companies are under stress" % st["n_stressed_listed"])
+    ck("%s, %d companies" % (ai["name"], ai["n"]) in hero and "%d under stress" % ai["n_stressed"] in hero, "the summary does not carry the %s line (%d companies, %d under stress)" % (ai["name"], ai["n"], ai["n_stressed"]))
+
+    # the ranked list as it opens: companies with $50M or more held, most stressed first
+    want = by_stress([x for x in table if x["stress"] is not None and x["value"] >= 50e6])
+    got = rows()
+    wrong = []
+    for i, (cells, x) in enumerate(zip(got, want)):
+        if not cells[0].startswith("%d " % (i + 1)) or str(x["name"]) not in cells[0]:
+            wrong.append("row %d is %s, the document's is %s" % (i + 1, cells[0][:40], x["name"]))
+        elif abs((figure(cells[1]) or -1) - x["stress"]) > 0.051 or not shown(x["spread_bp"], cells[4]) or (x["d_ytd"] is not None and not shown(x["d_ytd"], cells[6])):
+            wrong.append("%s shows stress %s spread %s year %s, the document says %s %s %s" % (x["name"], cells[1], cells[4], cells[6], x["stress"], x["spread_bp"], x["d_ytd"]))
+    ck(len(got) == min(25, len(want)) and not wrong, "the stress view does not open on the document's most stressed companies (%d rows): %s" % (len(got), wrong[:3]))
+    ck(page.locator("#stress-ranked h3").inner_text().replace("§", "").strip().endswith("Every company, most stressed first"), "the ranked list has lost its heading")
+    log("stress view: opens on %d of %d companies with $50M or more held; first %s" % (len(got), len(want), " | ".join("%s %s" % (x["ticker"] or x["name"][:18], x["stress"]) for x in want[:8])))
+    if orcl is not None:
+        place = next((i + 1 for i, x in enumerate(want) if x["ticker"] == "ORCL"), None)
+        log("Oracle in the document: spread %s bp, %s bp in the month, %s bp (%s%%) since %s, CDS %s bp (%s in three months), stock %s%% in the month, stress %s (level %s, year %s, month %s), signal %s; place %s of %d" % (
+            orcl["spread_bp"], orcl["d_m1"], orcl["d_ytd"], orcl["pct_ytd"], st["long_ref"], orcl["cds_bp"], orcl["cds_d3m"], orcl["px_m1"], orcl["stress"], orcl["rk_level"], orcl["rk_year"], orcl["rk_month"],
+            orcl["signal"], place, len(want)))
+        if place is not None and place <= 25:
+            ck(any(" ORCL " in " " + c[0] + " " for c in got), "Oracle is place %d by stress and is not in the list the page opens on" % place)
+    bring("#s-stress")
+    shots["11-credit-stress"] = page.screenshot(type="jpeg", quality=72)
+
+    # the theme, read as one line and by layer
+    card = page.locator("#theme-%s" % ai["key"]).inner_text()
+    ck("%d companies" % ai["n"] in card and "%d under stress" % ai["n_stressed"] in card and all(layer["name"] in card for layer in ai["layers"]),
+       "the %s card does not carry its %d companies, %d under stress and its %d layers" % (ai["name"], ai["n"], ai["n_stressed"], len(ai["layers"])))
+    lay = page.evaluate(ROWS, "#theme-%s table" % ai["key"])
+    ck([c[0] for c in lay] == [layer["name"] for layer in ai["layers"]] and [figure(c[1]) for c in lay] == [float(layer["n"]) for layer in ai["layers"]] and
+       all(shown(layer["spread_bp"], c[3]) for c, layer in zip(lay, ai["layers"])), "the layers on the page are not the document's: %s" % [c[:4] for c in lay][:3])
+
+    # opened from the summary: its companies and only they
+    page.evaluate("() => window.scrollTo(0, 0)")
+    page.click("#hero button[data-st-theme='%s']" % ai["key"])
+    page.wait_for_timeout(600)
+    got = rows()
+    want_ai = by_stress(mine)
+    ck(len(got) == len(mine) and page.get_attribute("#stress .cb-tctl button[data-st-theme='%s']" % ai["key"], "aria-pressed") == "true", "opening the %s shows %d rows for its %d companies" % (ai["name"], len(got), len(mine)))
+    ck([figure(c[1]) for c in got] == [x["stress"] for x in want_ai] and all(str(x["name"]) in c[0] for c, x in zip(got, want_ai)), "the %s's companies are not in the document's order of stress" % ai["name"])
+    ck([c[15] for c in got] == [words[x["layer"]] for x in want_ai], "the layer shown for a company is not the document's")
+    ck(page.evaluate("() => Math.abs(document.querySelector('#s-stress').getBoundingClientRect().top) < 200"), "the summary's link did not bring the stress view into sight")
+    if orcl is not None and orcl["theme"] == ai["key"]:
+        ck(any(" ORCL " in " " + c[0] + " " for c in got), "Oracle is in the theme and not in its list")
+    bring("#stress-ranked")
+    shots["12-ai-stack-companies"] = page.screenshot(type="jpeg", quality=72)
+    log("%s: %d companies listed, most stressed first: %s" % (ai["name"], len(got), " | ".join("%s %s" % (x["ticker"] or x["name"][:16], x["stress"]) for x in want_ai[:10])))
+
+    # sorted by the year's widening in percent, both ways
+    page.click("#stress th button[data-st-sort=pct_ytd]")
+    page.wait_for_timeout(300)
+    down = [figure(c[7]) for c in rows()]
+    page.click("#stress th button[data-st-sort=pct_ytd]")
+    page.wait_for_timeout(300)
+    up = [figure(c[7]) for c in rows()]
+    have = [x["pct_ytd"] for x in mine if x["pct_ytd"] is not None]
+    ck(is_sorted(down, True) and is_sorted(up, False) and have and abs(down[0] - max(have)) < 0.051 and abs(up[0] - min(have)) < 0.051,
+       "a click on the year's change in percent does not sort both ways: %s .. / %s .." % (down[:3], up[:3]))
+    page.click("#stress th button[data-st-sort=stress]")
+    page.wait_for_timeout(300)
+
+    # one layer, then every company again
+    layer = max(ai["layers"], key=lambda x: x["n"])
+    page.click("#theme-%s button[data-st-layer='%s']" % (ai["key"], layer["key"]))
+    page.wait_for_timeout(400)
+    got = rows()
+    ck(len(got) == layer["n"] and {c[15] for c in got} == {layer["name"]}, "the layer %s shows %d rows for its %d companies" % (layer["name"], len(got), layer["n"]))
+    page.click("#stress .cb-tctl button[data-st-theme='']")
+    page.wait_for_timeout(400)
+    ck(len(rows()) == min(25, len(want)), "Every company does not bring the whole list back")
+
+    # the heat map of the theme: one tile a company, the year to date in percent
+    page.click("#theme-%s button[data-scope='%s']" % (ai["key"], ai["key"]))
+    page.wait_for_timeout(900)
+    g = page.evaluate(BOXES)
+    live = [x for x in mine if x["n_bonds"] and x["value"] > 0]
+    ck(g is not None and len(g["boxes"]) == len(live) and g["over"] == 0 and g["out_of"] == 0 and not g["bad"] and g["floating"] == 0,
+       "the %s map: %s tiles for %d companies, %s overlap, %s leave the map, %s floating badges" % (ai["name"], g and len(g["boxes"]), len(live), g and g["over"], g and g["out_of"], g and g["floating"]))
+    long = st["long"] or doc["primary"]
+    ck(page.get_attribute("#controls button[data-scope='%s']" % ai["key"], "aria-pressed") == "true" and page.get_attribute("#controls button[data-win=%s]" % long, "aria-pressed") == "true" and
+       page.get_attribute("#controls button[data-measure=pct]", "aria-pressed") == "true", "the map of the theme does not open on the long window in percent")
+    wrong, red = [], 0
+    for b in g["boxes"]:
+        x = by_id.get(b["co"])
+        if x is None:
+            wrong.append("%s is not a company of the document" % b["co"])
+            continue
+        said = b["title"].split(": ", 1)[1].split(" · ")[0]
+        v = x["pct_" + long]
+        if v is None:
+            if said != "no reading":
+                wrong.append("%s has no reading and shows %s" % (x["name"], said))
+            continue
+        if abs((figure(said) or 1e9) - v) > 0.051:
+            wrong.append("%s shows %s, the document says %s" % (x["name"], said, v))
+        c = rgb(b["bg"])
+        if c and abs(v) >= 15:
+            if v > 0 and not (c[0] > c[1] + 15 and c[0] > c[2] + 10):
+                wrong.append("%s widened %s%% and is drawn %s" % (x["name"], v, c))
+            if v < 0 and not (c[1] > c[0] + 8):
+                wrong.append("%s tightened %s%% and is drawn %s" % (x["name"], v, c))
+            red += v > 0
+    ck(not wrong, "the %s map: %s" % (ai["name"], wrong[:4]))
+    bring("#s-industries")
+    shots["13-ai-heat-map"] = page.screenshot(type="jpeg", quality=72)
+    log("%s heat map: %d tiles, %d of them a widening of 15%% or more since %s and drawn the trouble colour" % (ai["name"], len(g["boxes"]), red, st["long_ref"]))
+
+    # one company: Oracle's tile, coloured by stress, and what the page says of it
+    if orcl is not None and orcl["theme"] == ai["key"]:
+        page.click("#controls button[data-measure=stress]")
+        page.wait_for_timeout(400)
+        tile = page.get_attribute(".cb-box[data-co='%s']" % orcl["id"], "title")
+        ck("stress rank %s of 100" % fixed(orcl["stress"], 1) in (tile or ""), "Oracle's tile does not say its stress rank: %s" % tile)
+        page.click(".cb-box[data-co='%s']" % orcl["id"])
+        page.wait_for_timeout(400)
+        detail = page.locator("#mapdetail").inner_text()
+        ck("Stress rank %s of 100 in its book" % fixed(orcl["stress"], 1) in detail and "Show it in the table" in detail, "Oracle's detail does not carry its stress rank: %s" % detail[:200])
+        if orcl["signal"] == "NONE" and orcl["direction"] == "DETERIORATING" and orcl["px_m1"] is not None:
+            ck("Not a lead: credit is worse and the stock already fell" in detail, "Oracle's detail does not say why it is not a lead: %s" % detail[-220:])
+        bring("#map")
+        shots["14-oracle"] = page.screenshot(type="jpeg", quality=72)
+        log("Oracle on the page: %s" % " | ".join(x.strip() for x in detail.splitlines() if x.strip())[:900])
+        page.click("#mapdetail button[data-show-co]")
+        page.wait_for_timeout(500)
+        hits = [x for x in table if "orcl" in str(x["name"]).lower() or "orcl" in str(x["ticker"] or "").lower()]
+        cells = page.evaluate(ROWS, "#table")
+        ck(page.locator("#table input[data-q]").input_value() == "ORCL" and len(cells) == len(hits) and abs((figure(cells[0][10]) or -1) - orcl["stress"]) < 0.051,
+           "Show it in the table does not narrow the table to Oracle with its stress rank: %s" % [c[:11] for c in cells][:2])
+
+    # back to the industries: the map and its settings are what they were
+    page.click("#controls button[data-scope=industries]")
+    page.wait_for_timeout(600)
+    n_ind = sum(1 for i in doc["industries"]["all"] if (i.get("value") or 0) > 0)
+    ck(page.locator(".cb-box[data-ind]").count() == n_ind and page.locator(".cb-box[data-co]").count() == 0 and page.get_attribute("#controls button[data-win=%s]" % doc["primary"], "aria-pressed") == "true" and
+       page.get_attribute("#controls button[data-measure=bp]", "aria-pressed") == "true", "the industry map did not come back as it was (%d tiles for %d industries)" % (page.locator(".cb-box[data-ind]").count(), n_ind))
+    page.click("#controls button[data-measure=stress]")
+    page.wait_for_timeout(400)
+    g = page.evaluate(BOXES)
+    share = {i["industry"]: i["stressed_value_pct"] for i in doc["industries"]["all"]}
+    ck(all(abs((figure(b["title"].split(": ", 1)[1].split("%")[0]) or 0.0) - (share[b["ind"]] or 0.0)) < 0.051 for b in g["boxes"]), "colour by stress does not show each industry's share under stress")
+    page.click("#controls button[data-measure=bp]")
+    page.wait_for_timeout(300)
+
+    # under the leads: what was not called, and where a company goes whose stock already moved
+    clash = [x for x in names if x.get("credit_conflict")]
+    notes = page.locator("#leadnotes").inner_text()
+    ck(all(x["ticker"] in notes for x in clash) and ("Not called" in notes) == bool(clash) and "credit stress view" in notes, "the notes under the leads do not name the %d leads held back: %s" % (len(clash), notes[:200]))
+    widths = page.evaluate("() => Array.from(document.querySelectorAll('#leads > .cb-leadcol')).map(e => Math.round(e.getBoundingClientRect().width))")
+    ck(len(widths) == 2 and min(widths) >= 500, "the two lead columns are squeezed: %s" % widths)
+    log("leads: %d held back because a liquid CDS says the opposite of the bonds (%s); the two columns are %s px wide" % (len(clash), [x["ticker"] for x in clash], widths))
+    log("page errors (stress pass): %d %s" % (len(errors), errors[:3]))
+    ck(not errors, "the page threw in the stress pass: %s" % errors[:3])
+
+
 def fetch(path, timeout=90):
     req = urllib.request.Request(BASE + path, headers={"User-Agent": UA, "Cache-Control": "no-cache"})
     with urllib.request.urlopen(req, timeout=timeout) as resp:
@@ -391,7 +590,7 @@ def main():
         return parse(s3.get_object(Bucket=LIVE, Key=key)["Body"].read())
 
     with report("ops_6944_credit_before_equity_live_proof") as r:
-        r.heading("ops 6944 - Credit Before Equity 2.0: the warehouse's bonds and bars, and a real browser on the live site (read-only), %s" % now.isoformat(timespec="minutes"))
+        r.heading("ops 6944 - Credit Before Equity: the warehouse's bonds and bars, and a real browser on the live site (read-only), %s" % now.isoformat(timespec="minutes"))
 
         def ck(cond, msg):
             if cond:
@@ -406,8 +605,8 @@ def main():
             try:
                 html = fetch("/credit-before-equity.html?probe=%d" % (stamp + attempt))
                 tag = re.search(rb'<script src="(/jh-credit-board\.js\?v=[0-9a-f]{8})"', html)          # the build stamps each script with its content hash
-                served = {"page": b'id="newview"' in html and b'id="viewtoggle"' in html and b'id="s-industries"' in html and bool(tag),
-                          "script": bool(tag) and all(mark in fetch(tag.group(1).decode() + "&probe=%d" % (stamp + attempt)) for mark in (b"jh-reskin-skip", b"JHCreditBoard", b"data-jh-nosort", b"cb-cap")),
+                served = {"page": b'id="newview"' in html and b'id="viewtoggle"' in html and b'id="s-industries"' in html and b'id="s-stress"' in html and b'id="leadnotes"' in html and bool(tag),
+                          "script": bool(tag) and all(mark in fetch(tag.group(1).decode() + "&probe=%d" % (stamp + attempt)) for mark in (b"jh-reskin-skip", b"JHCreditBoard", b"data-jh-nosort", b"cb-cap", b"cb-stress", b"mapState")),
                           "document": json.loads(fetch("/data/credit-before-equity.json?probe=%d" % (stamp + attempt))).get("contract") == "credit-before-equity.v2"}
             except Exception as e:  # noqa: BLE001
                 served = {"error": str(e)[:80]}
@@ -431,7 +630,32 @@ def main():
             doc.get("contract"), doc.get("version"), doc.get("generated_at"), doc.get("as_of"), doc.get("stock_as_of"), doc["cds"].get("as_of"), cov["companies"], cov["listed"], len(leads), cov["cds_priced"],
             {k: v.get("ref") for k, v in doc["windows"].items()}))
         r.log("degraded: %s" % doc["degraded"])
-        ck(doc["version"] == "2.0.0" and not doc["degraded"], "the document is not a clean 2.0.0 run: %s %s" % (doc["version"], doc["degraded"]))
+        ck(doc["version"] in ("2.0.0", "2.1.0") and not doc["degraded"], "the document is not a clean 2.0 or 2.1 run: %s %s" % (doc["version"], doc["degraded"]))
+        if "stress" in doc:                                  # 2.1: every rank worked again here, the theme against its rows
+            st, wrong_rk = doc["stress"], 0
+            for book in ("ig", "hy", "em"):
+                rs = [x for x in table if x["book"] == book]
+                src = {"rk_level": "spread_bp", "rk_year": "pct_" + (st["long"] or "ytd"), "rk_month": "d_m1"}
+                pools = {rk: sorted(x[c] for x in rs if x[c] is not None) if (rk != "rk_year" or st["long"]) else [] for rk, c in src.items()}
+                for x in rs:
+                    mine_rk = {}
+                    for rk, pool in pools.items():
+                        v = x[src[rk]] if (rk != "rk_year" or st["long"]) else None
+                        mine_rk[rk] = None if v is None or len(pool) < 2 else round(100.0 * (bisect_left(pool, v) + bisect_right(pool, v) - 1) / 2.0 / (len(pool) - 1), 1)
+                    moved = [mine_rk[k] for k in ("rk_year", "rk_month") if mine_rk[k] is not None]
+                    stress = round((mine_rk["rk_level"] + sum(moved)) / (1 + len(moved)), 1) if mine_rk["rk_level"] is not None and moved else None
+                    wrong_rk += [x["rk_level"], x["rk_year"], x["rk_month"], x["stress"]] != [mine_rk["rk_level"], mine_rk["rk_year"], mine_rk["rk_month"], stress]
+            hot = [x for x in table if x["stress"] is not None and x["stress"] >= st["stressed_at"]]
+            ck(wrong_rk == 0 and st["n_stressed"] == len(hot) and st["n_stressed_listed"] == sum(1 for x in hot if x["ticker"]), "the stress ranks are not the rows': %d differ, %d at %s or more for %s declared" % (
+                wrong_rk, len(hot), st["stressed_at"], st["n_stressed"]))
+            for th in doc["themes"]:
+                rs = [x for x in table if x["theme"] == th["key"]]
+                big = sorted([x for x in rs if x["stress"] is not None and x["stress"] >= st["stressed_at"]], key=lambda x: (-x["value"], -x["stress"]))
+                ck(th["n"] == len(rs) and sum(layer["n"] for layer in th["layers"]) == len(rs) and th["n_stressed"] == len(big) and th["largest_stressed"] == [[x["name"], x["stress"]] for x in big[:3]],
+                   "the theme %s is not its rows: %s declared, %d rows" % (th["name"], th["n"], len(rs)))
+                r.log("stress: every rank worked again here, %d differ; %d at %s or more (%d listed) | %s: %d companies, %d under stress holding %s%% of its bond value, largest %s" % (
+                    wrong_rk, len(hot), st["stressed_at"], st["n_stressed_listed"], th["name"], th["n"], th["n_stressed"], th["stressed_value_pct"], th["largest_stressed"]))
+            ck(all(x.get("cds_says") != "contradicts" for x in leads), "a lead stands although a liquid CDS says the opposite of the bonds")
         ck(doc["n_names"] == len(names) and doc["n_leads"] == len(leads) and doc["leads"] == leads[:20] and doc["n_awaiting_history"] == sum(1 for x in names if x["signal"] == "INSUFFICIENT_HISTORY"),
            "the document's counts are not its rows")
         ck(cov["companies"] == len(table) and cov["listed"] == sum(1 for x in table if x["ticker"]) and all(len(row) == len(cols) for row in doc["issuers"]["rows"]), "the coverage counts are not the company rows")
@@ -533,6 +757,8 @@ def main():
                 page.on("pageerror", lambda e: errors.append(str(e)[:200]))
                 return page, errors
             browse(new_page, BASE + "/credit-before-equity.html?probe=%d" % stamp, doc, ck, shots, r.log, phone_page=lambda: new_page(True))
+            r.section("4. The credit stress view and the AI stack in a real browser")
+            browse_stress(new_page, BASE + "/credit-before-equity.html?probe=%d" % stamp, doc, ck, shots, r.log)
             browser.close()
 
         r.section("screenshots (jpeg, base64)")
@@ -546,8 +772,13 @@ def main():
             r.fail(f)
         if fails:
             sys.exit(1)
-        r.ok("LIVE: %d companies (%d with a listed stock) from the bond desk's own bonds, %d industries on one heat map with the document's figures and colours, the table sorted every way the page offers, %d company CDS levels, the previous view one click away" % (
-            cov["companies"], cov["listed"], len(doc["industries"]["all"]), cov["cds_priced"]))
+        stress_said = ""
+        if "stress" in doc:
+            th = doc["themes"][0]
+            stress_said = "; the stress view lists %d companies at %s or more (%d listed) and the %s's %d companies, %d of them under stress" % (
+                doc["stress"]["n_stressed"], doc["stress"]["stressed_at"], doc["stress"]["n_stressed_listed"], th["name"], th["n"], th["n_stressed"])
+        r.ok("LIVE %s: %d companies (%d with a listed stock) from the bond desk's own bonds, %d industries on one heat map with the document's figures and colours, the table sorted every way the page offers, %d company CDS levels, the previous view one click away%s" % (
+            doc["version"], cov["companies"], cov["listed"], len(doc["industries"]["all"]), cov["cds_priced"], stress_said))
 
 
 if __name__ == "__main__":

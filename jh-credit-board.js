@@ -5,6 +5,11 @@
  * map of spread changes, the two ranked lists (widening most / widening least), the leads, the sortable table of every
  * company, the company CDS table, and the previous 26-name model board one click away.
  *
+ * Since the 2.1 engine: the credit stress view (who stands widest and has widened most in its own book, whatever the stock
+ * did), the AI stack theme (one line, its layers, its companies, and the heat map drawn one tile a company), a Stress
+ * column in the table, and a note naming any lead that was not called because the bonds and a traded CDS disagree. On a
+ * 2.0 document none of that is published yet and the board says so instead of drawing it.
+ *
  * jh-reskin-skip: on this board a colour is a measurement. The site build's re-skin (scripts/reskin_site.py) turns every
  * cool hue into amber; red for a widening spread and green for a tightening one must stay what they are. Every data colour
  * lives in this file and nowhere else; the page's own chrome is written in the site's warm palette.
@@ -21,7 +26,10 @@
   var WIN_COL = { w1: "d_w1", m1: "d_m1", m3: "d_m3", ytd: "d_ytd" };
   var WIN_SHORT = { w1: "1W", m1: "1M", m3: "3M", ytd: "YTD" };
   var BOOK_SHORT = { ig: "IG", hy: "HY", em: "EM" };
-  var MEASURES = [["bp", "Change, bp"], ["pct", "Change, %"], ["rel", "Against the market"], ["level", "Spread level"]];
+  var WIN_PCT = { w1: "pct_w1", m1: "pct_m1", m3: "pct_m3", ytd: "pct_ytd" };
+  var MEASURES = [["bp", "Change, bp"], ["pct", "Change, %"], ["rel", "Against the market"], ["level", "Spread level"], ["stress", "Stress"]];
+  var HELD = [[0, "Any size"], [10e6, "$10M or more"], [50e6, "$50M or more"], [250e6, "$250M or more"], [1e9, "$1B or more"]];
+  var HELD_FIRST = 50e6;      // the stress view opens on companies with this much held: under it, a single small bond decides the rank
   var LEADS = ["CREDIT_LEADS_DOWN", "CREDIT_LEADS_UP"];
   var DATA_URL = "https://justhodl.ai/data/credit-before-equity.json";
 
@@ -70,6 +78,16 @@
 
   // ------------------------------------------------------------------------------------------------ the document
   function isV2(doc) { return isObj(doc) && doc.contract === "credit-before-equity.v2" && isObj(doc.issuers) && Array.isArray(doc.issuers.rows); }
+
+  /* The 2.1 engine adds a stress rank a company and themes (the AI stack). A 2.0 document has neither. */
+  function hasStress(doc) { return isV2(doc) && isObj(doc.stress) && Array.isArray(doc.themes) && (doc.issuers.cols || []).indexOf("stress") >= 0; }
+  function stressedAt(doc) { return hasStress(doc) && isNum(doc.stress.stressed_at) ? doc.stress.stressed_at : 80; }
+  function themeOf(doc, key) { return hasStress(doc) ? doc.themes.filter(function (t) { return isObj(t) && t.key === key; })[0] || null : null; }
+  function layerWords(doc) {
+    var o = {};
+    (hasStress(doc) ? doc.themes : []).forEach(function (t) { (isObj(t) && Array.isArray(t.layers) ? t.layers : []).forEach(function (l) { if (isObj(l)) o[l.key] = l.name; }); });
+    return o;
+  }
 
   /* Every company of the board as an object; the columnar table is turned once and kept on the document. */
   function table(doc) {
@@ -123,6 +141,16 @@
       var all = isObj(doc.industries) && Array.isArray(doc.industries.all) ? doc.industries.all : null;
       var inInd = all ? all.reduce(function (s, i) { return s + (isCount(i.n) ? i.n : 0); }, 0) : null;
       check("Industries hold every company", all ? inInd === t.length : null, all ? inInd + " in " + all.length + " industries, " + t.length + " companies" : "industries not published");
+      if (hasStress(doc)) {
+        var at = stressedAt(doc), hot = t.filter(function (x) { return isNum(x.stress) && x.stress >= at; }).length;
+        check("Companies under stress counted", isCount(doc.stress.n_stressed) ? doc.stress.n_stressed === hot : null, isCount(doc.stress.n_stressed) ? doc.stress.n_stressed + " declared, " + hot + " rows at " + at + " or more" : "count not published");
+        doc.themes.filter(isObj).forEach(function (th) {
+          var mine = t.filter(function (x) { return x.theme === th.key; }).length, inLayers = (Array.isArray(th.layers) ? th.layers : []).reduce(function (s2, l) { return s2 + (isCount(l.n) ? l.n : 0); }, 0);
+          check("Theme " + th.name + " holds its companies", isCount(th.n) ? th.n === mine && inLayers === mine : null, isCount(th.n) ? th.n + " declared, " + inLayers + " in its layers, " + mine + " rows" : "count not published");
+        });
+      } else {
+        notes.push("The stress ranks and the AI stack are not in this document (version " + (typeof doc.version === "string" ? doc.version : "?") + "); they appear when the 2.1 engine has published.");
+      }
       windowList(doc).forEach(function (w) { if (!w.ok) notes.push(w.words + ": not available yet. " + (w.why || "")); });
     } else {
       notes.push("This is the engine's first document (26 names, a structural model). The board of every company appears when the 2.0 engine has published.");
@@ -162,20 +190,54 @@
     var market = opt.measure === "rel" ? marketChange(doc, opt.win, opt.book) : null;
     return rows.filter(isObj).map(function (r) {
       var w = isObj(r.win) && isObj(r.win[opt.win]) ? r.win[opt.win] : null;
-      var o = { industry: r.industry, n: r.n, n_listed: r.n_listed, value: r.value, spread_bp: r.spread_bp, n_distressed: r.n_distressed,
+      var o = { kind: "industry", key: r.industry, label: r.industry, industry: r.industry, n: r.n, n_listed: r.n_listed, value: r.value, spread_bp: r.spread_bp, n_distressed: r.n_distressed,
                 d_bp: w ? w.d_bp : null, d_pct: w ? w.d_pct : null, from_bp: w ? w.from_bp : null, n_win: w ? w.n : null, wider: w ? w.wider : null, tighter: w ? w.tighter : null,
-                widest: w ? w.widest : null, tightest: w ? w.tightest : null };
-      o.v = opt.measure === "level" ? o.spread_bp : opt.measure === "pct" ? o.d_pct : opt.measure === "rel" ? (isNum(o.d_bp) && isNum(market) ? Math.round((o.d_bp - market) * 10) / 10 : null) : o.d_bp;
+                widest: w ? w.widest : null, tightest: w ? w.tightest : null, stress: isNum(r.stress) ? r.stress : null, n_stressed: isCount(r.n_stressed) ? r.n_stressed : null,
+                stressed_pct: isNum(r.stressed_value_pct) ? r.stressed_value_pct : null };
+      o.v = opt.measure === "level" ? o.spread_bp : opt.measure === "pct" ? o.d_pct : opt.measure === "stress" ? o.stressed_pct :
+        opt.measure === "rel" ? (isNum(o.d_bp) && isNum(market) ? Math.round((o.d_bp - market) * 10) / 10 : null) : o.d_bp;
       return o;
     });
   }
 
+  /* The map's rows when it shows a theme: one a company of the theme, shaped like an industry row so the map, the two lists and
+     the scale read both the same way. "Against the market" is against the company's own book. */
+  function themeView(doc, opt) {
+    if (!hasStress(doc)) return [];
+    var col = WIN_COL[opt.win], pcol = WIN_PCT[opt.win], market = {};
+    return table(doc).filter(function (r) { return r.theme === opt.scope && r.n_bonds && (!opt.book || opt.book === "all" || r.book === opt.book); }).map(function (r) {
+      var o = { kind: "company", key: r.id, label: r.ticker || r.name, name: r.name, ticker: r.ticker, layer: r.layer, book: r.book, n: r.n_bonds, value: r.value, spread_bp: r.spread_bp,
+                d_bp: isNum(r[col]) ? r[col] : null, d_pct: isNum(r[pcol]) ? r[pcol] : null, stress: isNum(r.stress) ? r.stress : null, row: r };
+      if (opt.measure === "rel" && !(r.book in market)) market[r.book] = marketChange(doc, opt.win, r.book);
+      o.v = opt.measure === "level" ? o.spread_bp : opt.measure === "pct" ? o.d_pct : opt.measure === "stress" ? o.stress :
+        opt.measure === "rel" ? (isNum(o.d_bp) && isNum(market[r.book]) ? Math.round((o.d_bp - market[r.book]) * 10) / 10 : null) : o.d_bp;
+      return o;
+    });
+  }
+  function mapView(doc, state) { return state.scope && state.scope !== "industries" ? themeView(doc, state) : industryView(doc, state); }
+  /* The map of a theme keeps its own window and measure (it opens on the long window in percent, where a theme's build-up shows);
+     the industry map's, which the table follows and the browser remembers, are left as the reader set them. */
+  function mapState(state) {
+    if (!state.scope || state.scope === "industries") return state;
+    var o = Object.create(state);
+    o.win = state.thWin || state.win;
+    o.measure = state.thMeasure || state.measure;
+    return o;
+  }
+
   /* The figure at which the colour is full: the largest move on the map, never under a floor, so a quiet week is not painted loud. */
   function scaleOf(view, measure) {
-    var vals = view.map(function (r) { return r.v; }).filter(isNum).map(Math.abs);
+    var vals = view.map(function (r) { return r.v; }).filter(isNum).map(Math.abs), companies = view.length > 0 && view[0].kind === "company";
+    if (measure === "stress") return { lo: 0, hi: companies ? 100 : Math.max(10, vals.length ? Math.max.apply(null, vals) : 0) };
     if (measure === "level") return { lo: Math.min.apply(null, vals.concat([Infinity])), hi: Math.max.apply(null, vals.concat([0])) };
-    var floor = measure === "pct" ? 5 : 10;
-    return { lo: 0, hi: Math.max(floor, vals.length ? Math.max.apply(null, vals) : 0) };
+    var floor = measure === "pct" ? 5 : 10, top = vals.length ? Math.max.apply(null, vals) : 0;
+    if (companies && vals.length >= 10) {
+      /* One company of a theme can move ten times as far as the rest (a high-yield name among investment-grade ones); the colour
+         is full at the ninth-decile move instead, so the others are not all painted the same pale shade. */
+      var sorted = vals.slice().sort(function (a, b) { return a - b; }), p90 = sorted[Math.floor(0.9 * (sorted.length - 1))];
+      if (p90 < top) return { lo: 0, hi: Math.max(floor, p90), capped: true };
+    }
+    return { lo: 0, hi: Math.max(floor, top) };
   }
   function mix(a, b, t) {
     function ch(h, i) { return parseInt(h.slice(1 + 2 * i, 3 + 2 * i), 16); }
@@ -187,7 +249,7 @@
   function colour(v, scale, measure, palette) {
     var p = PALETTES[palette] || PALETTES.rg;
     if (!isNum(v)) return p.none;
-    if (measure === "level") {
+    if (measure === "level" || measure === "stress") {
       var span = scale.hi - scale.lo;
       return mix(p.mid, p.bad, span > 0 ? clamp((v - scale.lo) / span, 0, 1) * 0.9 + 0.1 : 0.5);
     }
@@ -244,6 +306,8 @@
       if (f.signal === "leads" && LEADS.indexOf(r.signal) < 0) return false;
       if (f.signal === "cds" && !isNum(r.cds_bp)) return false;
       if (f.signal === "distressed" && !r.distressed) return false;
+      if (f.signal === "stressed" && !(isNum(r.stress) && r.stress >= (isNum(f.at) ? f.at : 80))) return false;
+      if (f.signal === "ai" && r.theme !== "ai") return false;
       if (q && String(r.name || "").toLowerCase().indexOf(q) < 0 && String(r.ticker || "").toLowerCase().indexOf(q) < 0) return false;
       return true;
     });
@@ -255,6 +319,27 @@
     return rows.map(function (r) { var o = Object.create(r); o.d = r[col]; return o; });
   }
 
+  /* The stress view's rows: every company with a rank that passes the filters, carrying its spread as a multiple of its book's
+     middle company (xbook) and the group it is shown under (its industry, or its layer when a theme is chosen). */
+  function stressRows(doc, f) {
+    if (!hasStress(doc)) return [];
+    var mid = isObj(doc.stress.book_spread_bp) ? doc.stress.book_spread_bp : {}, layers = layerWords(doc);
+    return table(doc).filter(function (r) {
+      if (!isNum(r.stress) && !f.theme) return false;
+      if (f.theme && r.theme !== f.theme) return false;
+      if (f.layer && r.layer !== f.layer) return false;
+      if (f.book && f.book !== "all" && r.book !== f.book) return false;
+      if (f.listed && !r.ticker) return false;
+      if (isNum(f.held) && f.held > 0 && !(r.value >= f.held)) return false;
+      return true;
+    }).map(function (r) {
+      var o = Object.create(r);
+      o.xbook = isNum(r.spread_bp) && isNum(mid[r.book]) && mid[r.book] > 0 ? Math.round(r.spread_bp / mid[r.book] * 10) / 10 : null;
+      o.grp = f.theme ? (layers[r.layer] || r.layer || "") : (r.industry || "");
+      return o;
+    });
+  }
+
   function industriesIn(rows) {
     var seen = {};
     rows.forEach(function (r) { if (r.industry) seen[r.industry] = (seen[r.industry] || 0) + 1; });
@@ -264,8 +349,13 @@
   // ------------------------------------------------------------------------------------------------ drawing
   var COLUMNS = [
     ["name", "Company", "l"], ["industry", "Industry", "l"], ["book", "Book", "l"], ["n_bonds", "Bonds", "r"], ["value", "Held", "r"], ["spread_bp", "Spread", "r"], ["d", "Δ", "r"],
-    ["x_m1", "Past book", "r"], ["pct_m1", "Δ %", "r"], ["d_ytd", "YTD Δ", "r"], ["cds_bp", "CDS", "r"], ["cds_d1m", "CDS 1M", "r"], ["px_m1", "Stock", "r"],
+    ["x_m1", "Past book", "r"], ["pct_m1", "Δ %", "r"], ["d_ytd", "YTD Δ", "r"], ["stress", "Stress", "r"], ["cds_bp", "CDS", "r"], ["cds_d1m", "CDS 1M", "r"], ["px_m1", "Stock", "r"],
     ["direction", "Credit", "l"], ["signal", "Signal", "l"]
+  ];
+  var STRESS_COLUMNS = [
+    ["name", "Company", "l"], ["stress", "Stress", "r"], ["book", "Book", "l"], ["value", "Held", "r"], ["spread_bp", "Spread", "r"], ["xbook", "× book", "r"], ["d_ytd", "YTD Δ", "r"],
+    ["pct_ytd", "YTD Δ %", "r"], ["d_m1", "1M Δ", "r"], ["d_w1", "1W Δ", "r"], ["cds_bp", "CDS", "r"], ["cds_d3m", "CDS 3M", "r"], ["cds_rank", "CDS 1Y rank", "r"], ["px_m1", "Stock 1M", "r"],
+    ["px_ytd", "Stock YTD", "r"], ["grp", "Industry", "l"]
   ];
   var CDS_COLUMNS = [
     ["name", "Reference entity", "l"], ["ticker", "Ticker", "l"], ["sector", "Sector", "l"], ["region", "Region", "l"], ["spread_bp", "Level", "r"], ["d1d", "1D", "r"], ["d1w", "1W", "r"],
@@ -308,41 +398,76 @@
       tile("Leads", esc(String(down + up)), esc(String(down)) + " credit worse, stock not down · " + esc(String(up)) + " credit better, stock not up") +
       tile("Industries wider, " + (w ? w.short : ""), view.length ? esc(wide + " of " + view.length) : "Unavailable", w && w.ok ? "since " + esc(day(w.ref)) : "no reference day yet") +
       tile("Traded CDS levels", esc(count(cov.cds_priced)), esc(count(cov.cds_priced_tied)) + " tied to a listed stock · " + esc(count(cov.cds_no_level)) + " trade with no level") +
-      "</div>";
+      stressTiles(doc, tile) + "</div>";
+  }
+
+  /* The two tiles the 2.1 engine adds: who is under stress whatever the stock did, and the AI stack read as one line. */
+  function stressTiles(doc, tile) {
+    if (!hasStress(doc)) return "";
+    var at = stressedAt(doc), st = doc.stress, long = windowList(doc).filter(function (x) { return x.key === st.long; })[0];
+    var top = sortRows(table(doc).filter(function (r) { return r.ticker && isNum(r.stress) && r.stress >= at && r.value >= HELD_FIRST; }), "stress", "desc").slice(0, 3);
+    var h = tile("Under credit stress", esc(count(st.n_stressed_listed)), "listed companies at " + esc(String(at)) + " or more of 100 in their own book" +
+      (top.length ? " · highest: " + top.map(function (r) { return "<b>" + esc(r.ticker) + "</b> " + esc(fixed(r.stress, 1)); }).join(", ") : "") +
+      ' · <button type="button" class="cb-link" data-st-theme="" data-goto="s-stress">see them</button>');
+    doc.themes.filter(isObj).forEach(function (t) {
+      var lg = long && isObj(t.win) && isObj(t.win[st.long]) ? t.win[st.long] : null, most = (Array.isArray(t.largest_stressed) ? t.largest_stressed : []).filter(Array.isArray);
+      h += tile(t.name + ", " + count(t.n) + " companies", esc(bp(t.spread_bp)) + " bp", (lg && isNum(lg.d_bp) ? "middle spread " + esc(bp(lg.d_bp, true)) + " bp since " + esc(day(long.ref)) + " · " : "") +
+        esc(count(t.n_stressed)) + " under stress" + (most.length ? ": " + most.map(function (m) { return esc(shortName(m[0])); }).join(", ") : "") +
+        ' · <button type="button" class="cb-link" data-st-theme="' + esc(t.key) + '" data-goto="s-stress">open it</button>');
+    });
+    return h;
+  }
+  /* A company's name without its legal tail, for a line that lists several. */
+  function shortName(name) {
+    return String(name || "").replace(/,? (Inc\.?|Corp\.?|Corporation|Company|Co\.|Ltd\.?|LLC|L\.P\.|plc|N\.V\.|S\.A\.)( Class [A-Z] Common Stock)?$/i, "").replace(/ (LLC|INC|CORP|LTD|PLC)$/, "");
   }
 
   function controlsHtml(doc, state) {
     var wins = windowList(doc).map(function (w) { return [w.key, w.short, w.ok ? "" : (w.why || "Not available yet")]; });
     var books = [["all", "All"], ["ig", "Investment grade"], ["hy", "High yield"], ["em", "Emerging"]];
-    return seg("win", wins, state.win, "Since") + seg("book", books, state.book, "Book") + seg("measure", MEASURES, state.measure, "Colour by") +
-      seg("palette", [["rg", "Red / green"], ["cb", "Orange / blue"]], state.palette, "Colours");
+    var has = hasStress(doc), measures = MEASURES.map(function (m) { return [m[0], m[1], m[0] === "stress" && !has ? "Appears when the 2.1 engine has published" : ""]; });
+    var scopes = has ? [["industries", "Industries"]].concat(doc.themes.filter(isObj).map(function (t) { return [t.key, t.name]; })) : null;
+    return (scopes ? seg("scope", scopes, state.scope || "industries", "Map of") : "") + seg("win", wins, state.win, "Since") + seg("book", books, state.book, "Book") +
+      seg("measure", measures, state.measure, "Colour by") + seg("palette", [["rg", "Red / green"], ["cb", "Orange / blue"]], state.palette, "Colours");
   }
 
+  /* An industry's stress figure is the share of its bond value in companies under stress; a company's is its own rank. */
   function measureText(r, measure) {
+    if (measure === "stress") return !isNum(r.v) ? "–" : r.kind === "company" ? fixed(r.v, 1) : pct(r.v);
     return measure === "level" ? bp(r.v) + " bp" : measure === "pct" ? pct(r.v, true) : bp(r.v, true) + " bp";
   }
 
   function mapHtml(doc, state, width) {
-    var view = industryView(doc, state), scale = scaleOf(view, state.measure), W = Math.max(280, Math.floor(width)), H = W < 560 ? 520 : 440;
+    var theme = state.scope && state.scope !== "industries" ? themeOf(doc, state.scope) : null, layers = theme ? layerWords(doc) : {};
+    var view = mapView(doc, state), scale = scaleOf(view, state.measure), W = Math.max(280, Math.floor(width)), H = W < 560 ? 520 : 440;
     var nodes = view.filter(function (r) { return r.value > 0; }).map(function (r) { return { v: r.value, r: r }; });
-    if (!nodes.length) return { html: '<p class="cb-empty">No industry has a spread for this book.</p>', view: view, scale: scale };
+    if (!nodes.length) return { html: '<p class="cb-empty">' + (theme ? "No company of the " + esc(theme.name) + " has a spread in this book." : "No industry has a spread for this book.") + "</p>", view: view, scale: scale };
     var rects = squarify(nodes, 0, 0, W, H);
-    var html = '<p class="cb-cap" data-jh-title="Heat map">One tile an industry. Size: the market value of its bonds held by the scanned funds. Colour: ' +
-      esc({ bp: "its spread change in basis points", pct: "its spread change in percent", rel: "its spread change against the market's", level: "its spread level" }[state.measure] || "its spread change") +
-      '. Click a tile for its companies.</p><div class="cb-map" style="height:' + H + 'px">' + rects.map(function (b) {
+    var what = theme ? { bp: "its spread change in basis points", pct: "its spread change in percent", rel: "its spread change against its own book's", level: "its spread level",
+                         stress: "its stress rank in its own book, 0 to 100" } :
+      { bp: "its spread change in basis points", pct: "its spread change in percent", rel: "its spread change against the market's", level: "its spread level",
+        stress: "the share of its bond value that is in companies under stress" };
+    var html = '<p class="cb-cap" data-jh-title="Heat map">' + (theme ? "One tile a company of the " + esc(theme.name) + ". Size: the market value of its bonds held by the scanned funds. Colour: " :
+      "One tile an industry. Size: the market value of its bonds held by the scanned funds. Colour: ") + esc(what[state.measure] || "its spread change") +
+      (theme ? ". Click a tile for the company." : ". Click a tile for its companies.") + '</p><div class="cb-map" style="height:' + H + 'px">' + rects.map(function (b) {
       var r = b.node.r, big = b.w > 110 && b.h > 58, mid = b.w > 46 && b.h > 30, small = b.w < 110 || b.h < 50, c = colour(r.v, scale, state.measure, state.palette);
-      var tip = r.industry + ": " + (isNum(r.v) ? measureText(r, state.measure) : "no reading") + " · spread " + bp(r.spread_bp) + " bp · " + r.n + " companies · " + money(r.value) + " held";
+      var said = isNum(r.v) ? (state.measure === "stress" ? (theme ? "stress rank " + fixed(r.v, 1) + " of 100" : pct(r.v) + " of its bond value in companies under stress") : measureText(r, state.measure)) : "no reading";
+      var tip = theme ? (r.ticker ? r.ticker + " " : "") + r.name + ": " + said + " · spread " + bp(r.spread_bp) + " bp · " + (layers[r.layer] || "") + " · " + money(r.value) + " held" :
+        r.industry + ": " + said + " · spread " + bp(r.spread_bp) + " bp · " + r.n + " companies · " + money(r.value) + " held";
       var bw = Math.max(b.w - 2, 1), bh = Math.max(b.h - 2, 1), bx = Math.max(Math.min(b.x, W - bw - 2), 0), by = Math.max(Math.min(b.y, H - bh - 2), 0);      // a sliver is a pixel wide and stays inside the map
-      return '<button type="button" class="cb-box' + (small ? " cb-sm" : "") + (mid ? "" : " cb-tiny") + (state.industry === r.industry ? " cb-on" : "") + '" data-ind="' + esc(r.industry) + '" title="' + esc(tip) + '" style="left:' + bx.toFixed(1) + "px;top:" + by.toFixed(1) +
+      var on = theme ? state.pick === r.key : state.industry === r.industry;
+      return '<button type="button" class="cb-box' + (small ? " cb-sm" : "") + (mid ? "" : " cb-tiny") + (on ? " cb-on" : "") + '" ' + (theme ? 'data-co="' + esc(r.key) + '"' : 'data-ind="' + esc(r.industry) + '"') +
+        ' title="' + esc(tip) + '" style="left:' + bx.toFixed(1) + "px;top:" + by.toFixed(1) +
         "px;width:" + bw.toFixed(1) + "px;height:" + bh.toFixed(1) + "px;background:" + c + '">' +
-        (mid ? '<span class="cb-box-n">' + esc(r.industry) + "</span>" : "") +
+        (mid ? '<span class="cb-box-n">' + esc(r.label) + "</span>" : "") +
         (mid ? '<span class="cb-box-v">' + esc(isNum(r.v) ? (small ? measureText(r, state.measure).replace(" bp", "") : measureText(r, state.measure)) : "–") + "</span>" : "") +
-        (big ? '<span class="cb-box-s">' + esc(bp(r.spread_bp)) + " bp · " + esc(String(r.n)) + " cos</span>" : "") + "</button>";
+        (big ? '<span class="cb-box-s">' + esc(bp(r.spread_bp)) + " bp · " + (theme ? esc(layers[r.layer] || "") : esc(String(r.n)) + " cos") + "</span>" : "") + "</button>";
     }).join("") + "</div>";
-    var p = PALETTES[state.palette] || PALETTES.rg;
+    var p = PALETTES[state.palette] || PALETTES.rg, most = scale.capped ? " or more" : "";
     var ends = state.measure === "level" ? [bp(scale.lo) + " bp", "", bp(scale.hi) + " bp", "Tighter spread (safer)", "Wider spread (riskier)"] :
-      [(state.measure === "pct" ? pct(-scale.hi, true) : bp(-scale.hi, true) + " bp"), "0", (state.measure === "pct" ? pct(scale.hi, true) : bp(scale.hi, true) + " bp"), "Tightening (safety)", "Widening (trouble)"];
-    var grad = state.measure === "level" ? "linear-gradient(90deg," + mix(p.mid, p.bad, 0.1) + "," + p.bad + ")" : "linear-gradient(90deg," + p.good + "," + p.mid + "," + p.bad + ")";
+      state.measure === "stress" ? (theme ? ["0", "", "100", "Calm for its book", "Most stressed of its book"] : ["0%", "", pct(scale.hi), "None of it under stress", "Most of it under stress"]) :
+      [(state.measure === "pct" ? pct(-scale.hi, true) : bp(-scale.hi, true) + " bp") + most, "0", (state.measure === "pct" ? pct(scale.hi, true) : bp(scale.hi, true) + " bp") + most, "Tightening (safety)", "Widening (trouble)"];
+    var grad = state.measure === "level" || state.measure === "stress" ? "linear-gradient(90deg," + mix(p.mid, p.bad, 0.1) + "," + p.bad + ")" : "linear-gradient(90deg," + p.good + "," + p.mid + "," + p.bad + ")";
     html += '<div class="cb-legend"><span>' + esc(ends[3]) + '</span><span class="cb-legend-n">' + esc(ends[0]) + '</span><i style="background:' + grad + '"></i><span class="cb-legend-n">' + esc(ends[2]) +
       "</span><span>" + esc(ends[4]) + "</span></div>";
     return { html: html, view: view, scale: scale };
@@ -351,21 +476,57 @@
   function rankHtml(view, state, scale) {
     var have = view.filter(function (r) { return isNum(r.v); });
     if (!have.length) return "";
-    var level = state.measure === "level";
-    var top = sortRows(have, "v", "desc").slice(0, 6), bottom = sortRows(have, "v", "asc").slice(0, 6);
+    var co = have[0].kind === "company", level = state.measure === "level" || state.measure === "stress", k = co ? 8 : 6, who = co ? "companies of the theme" : "industries";
+    var top = sortRows(have, "v", "desc").slice(0, k), bottom = sortRows(have, "v", "asc").slice(0, k);
     function list(title, sub, rows) {
       return '<div class="cb-rank"><h3>' + esc(title) + '</h3><p class="cb-note">' + esc(sub) + "</p>" + rows.map(function (r, i) {
         var share = level ? clamp((r.v - scale.lo) / ((scale.hi - scale.lo) || 1), 0.02, 1) : clamp(Math.abs(r.v) / (scale.hi || 1), 0.02, 1);
-        return '<button type="button" class="cb-rank-row" data-ind="' + esc(r.industry) + '"><span class="cb-rank-i">' + (i + 1) + '</span><span class="cb-rank-n">' + esc(r.industry) +
+        return '<button type="button" class="cb-rank-row" ' + (co ? 'data-co="' + esc(r.key) + '"' : 'data-ind="' + esc(r.industry) + '"') + '><span class="cb-rank-i">' + (i + 1) + '</span><span class="cb-rank-n">' +
+          (co && r.ticker ? "<b>" + esc(r.ticker) + "</b> " + esc(shortName(r.name)) : esc(r.label)) +
           '</span><span class="cb-rank-bar"><i style="width:' + (share * 100).toFixed(0) + "%;background:" + colour(r.v, scale, state.measure, state.palette) + '"></i></span><span class="cb-rank-v" style="color:' +
-          (level ? "" : textColour(r.v, state.palette)) + '">' + esc(measureText(r, state.measure)) + '</span><span class="cb-rank-s">' + esc(bp(r.spread_bp)) + " bp · " + esc(String(r.n)) + "</span></button>";
+          (level ? "" : textColour(r.v, state.palette)) + '">' + esc(measureText(r, state.measure)) + '</span><span class="cb-rank-s">' + esc(bp(r.spread_bp)) + " bp" + (co ? "" : " · " + esc(String(r.n))) + "</span></button>";
       }).join("") + "</div>";
     }
-    return list(level ? "Widest spreads — trouble" : "Widening most — trouble", level ? "The industries the bond market charges most." : "The industries whose spreads moved out the most.", top) +
-      list(level ? "Tightest spreads — safety" : "Widening least or tightening — safety", level ? "The industries the bond market charges least." : "The industries whose spreads held or came in.", bottom);
+    var words = state.measure === "level" ? ["Widest spreads — trouble", "The " + who + " the bond market charges most.", "Tightest spreads — safety", "The " + who + " the bond market charges least."] :
+      state.measure === "stress" ? ["Most stress — trouble", co ? "The companies of the theme that stand highest in their own book." : "The industries with the largest share of their bond value in companies under stress.",
+                                    "Least stress — safety", co ? "The companies of the theme that stand lowest in their own book." : "The industries with the smallest share under stress."] :
+      ["Widening most — trouble", "The " + who + " whose spreads moved out the most.", "Widening least or tightening — safety", "The " + who + " whose spreads held or came in."];
+    return list(words[0], words[1], top) + list(words[2], words[3], bottom);
+  }
+
+  /* Why a company is or is not a lead, in a sentence: the question the stress view was added to answer. */
+  function verdict(r) {
+    if (LEADS.indexOf(r.signal) >= 0) return SIGNAL_WORDS[r.signal] + ": credit moved past its book and the stock has not followed.";
+    if (!r.ticker) return "No listed stock is tied to it, so there is no lead to call.";
+    if (r.direction === "DETERIORATING" && isNum(r.px_m1)) return "Not a lead: credit is worse and the stock already fell " + pct(Math.abs(r.px_m1)) + " in the month. A lead is credit moving while the stock has not.";
+    if (r.direction === "IMPROVING" && isNum(r.px_m1)) return "Not a lead: credit is better and the stock already rose " + pct(Math.abs(r.px_m1)) + " in the month, or a traded CDS says the opposite.";
+    if (r.direction === "FLAT") return "Not a lead: over the month its spread did not move past its book by enough. What stands out is the level and the year, which is what the stress rank reads.";
+    return "No lead.";
+  }
+
+  function companyDetailHtml(doc, state, view) {
+    var o = view.filter(function (x) { return x.key === state.pick; })[0];
+    if (!o) return "";
+    var r = o.row, layers = layerWords(doc), st = doc.stress || {}, mid = isObj(st.book_spread_bp) ? st.book_spread_bp[r.book] : null, wins = windowList(doc).filter(function (w) { return w.ok; });
+    function d(v) { return '<span style="color:' + textColour(v, state.palette) + '">' + esc(bp(v, true)) + " bp</span>"; }
+    var moves = wins.filter(function (w) { return isNum(r[WIN_COL[w.key]]); }).map(function (w) {
+      return esc(w.short) + " " + d(r[WIN_COL[w.key]]) + (isNum(r[WIN_PCT[w.key]]) ? " (" + esc(pct(r[WIN_PCT[w.key]], true)) + ")" : ""); }).join(" · ");
+    return '<div class="cb-detail"><div class="cb-detail-h"><h3>' + (r.ticker ? "<b>" + esc(r.ticker) + "</b> " : "") + esc(r.name) + '</h3><button type="button" data-show-co="' + esc(r.ticker || r.name) +
+      '">Show it in the table</button><button type="button" data-co="">Close</button></div>' +
+      '<p class="cb-note">' + esc(layers[r.layer] || "") + " · " + esc({ ig: "investment grade", hy: "high yield", em: "emerging markets" }[r.book] || r.book || "") + " · " + esc(String(r.n_bonds)) + (r.n_bonds === 1 ? " bond" : " bonds") +
+      " · " + esc(money(r.value)) + " held</p>" +
+      '<ul class="cb-facts"><li>Spread <b>' + esc(bp(r.spread_bp)) + " bp</b>" + (isNum(mid) && mid > 0 && isNum(r.spread_bp) ? ", " + esc(fixed(r.spread_bp / mid, 1)) + " times the middle company of its book (" + esc(bp(mid)) + " bp)" : "") + "</li>" +
+      (moves ? "<li>Spread change: " + moves + "</li>" : "") +
+      (isNum(r.cds_bp) ? "<li>Traded CDS " + esc(bp(r.cds_bp)) + " bp" + (isNum(r.cds_d1m) ? ", " + d(r.cds_d1m) + " in a month" : "") + (isNum(r.cds_d3m) ? ", " + d(r.cds_d3m) + " in three" : "") +
+        (isNum(r.cds_rank) ? ", at " + esc(rangePct(r.cds_rank)) + " of its year's range" : "") + "</li>" : "<li>No traded CDS level is printed for it.</li>") +
+      (r.ticker ? "<li>Stock " + (isNum(r.px_m1) ? esc(pct(r.px_m1, true)) + " in the month" : "no month reading") + (isNum(r.px_ytd) ? ", " + esc(pct(r.px_ytd, true)) + " this year" : "") + "</li>" : "") +
+      "<li>Stress rank <b>" + (isNum(r.stress) ? esc(fixed(r.stress, 1)) : "–") + "</b> of 100 in its book" + (isNum(r.stress) ? ": level " + esc(isNum(r.rk_level) ? fixed(r.rk_level, 1) : "–") + ", year " +
+        esc(isNum(r.rk_year) ? fixed(r.rk_year, 1) : "–") + ", month " + esc(isNum(r.rk_month) ? fixed(r.rk_month, 1) : "–") : "") + "</li>" +
+      "<li>" + esc(verdict(r)) + "</li></ul></div>";
   }
 
   function detailHtml(doc, state, view) {
+    if (view.length && view[0].kind === "company") return companyDetailHtml(doc, state, view);
     var r = view.filter(function (x) { return x.industry === state.industry; })[0];
     if (!r) return "";
     var rows = withWindow(filterRows(table(doc), { industry: r.industry, book: state.book }), state.win).filter(function (x) { return isNum(x.d); });
@@ -377,7 +538,8 @@
       '">Show its ' + esc(String(r.n)) + ' companies in the table</button><button type="button" data-ind="">Close</button></div>' +
       '<p class="cb-note">Middle company\'s change ' + esc(bp(r.d_bp, true)) + " bp (" + esc(pct(r.d_pct, true)) + ") from " + esc(bp(r.from_bp)) + " bp · spread now " + esc(bp(r.spread_bp)) + " bp · " +
       esc(String(r.wider == null ? "–" : r.wider)) + " wider by 5 bp or more, " + esc(String(r.tighter == null ? "–" : r.tighter)) + " tighter · " + esc(String(r.n_listed)) + " of " + esc(String(r.n)) +
-      " with a listed stock · " + esc(String(r.n_distressed || 0)) + " distressed (1,000 bp or more) · " + esc(money(r.value)) + ' held</p><div class="cb-detail-cols"><div><h4>Widened most</h4><ol>' +
+      " with a listed stock · " + esc(String(r.n_distressed || 0)) + " distressed (1,000 bp or more)" +
+      (isCount(r.n_stressed) ? " · " + r.n_stressed + " under stress holding " + esc(pct(r.stressed_pct)) + " of its bond value" : "") + " · " + esc(money(r.value)) + ' held</p><div class="cb-detail-cols"><div><h4>Widened most</h4><ol>' +
       widest.map(li).join("") + "</ol></div><div><h4>Tightened most</h4><ol>" + tightest.map(li).join("") + "</ol></div></div></div>";
   }
 
@@ -401,6 +563,14 @@
       col("CREDIT_LEADS_UP", "Credit better, stock has not risen", "The bond market marked the company up past its book; the stock is not up 3% or more.");
   }
 
+  /* Under the two columns: any lead that was not called because the two credit markets disagree, and where a company goes whose stock already moved. */
+  function leadNotesHtml(doc) {
+    var clash = (isObj(doc) && Array.isArray(doc.names) ? doc.names : []).filter(function (x) { return isObj(x) && x.credit_conflict === true; });
+    return (clash.length ? '<p class="cb-note">Not called, because the bonds and a liquid traded CDS point opposite ways: ' + clash.map(function (x) {
+        return "<b>" + esc(x.ticker) + "</b> (bonds " + esc(bp(x.d_spread_bp, true)) + " bp, CDS " + esc(bp(x.cds_d1m, true)) + " bp in the month)"; }).join("; ") + ".</p>" : "") +
+      (hasStress(doc) ? '<p class="cb-note">A company whose stock already fell with its credit is not a lead and is not listed here. It is in the <button type="button" class="cb-link" data-goto="s-stress">credit stress view</button>, which does not look at the stock.</p>' : "");
+  }
+
   function cell(col, r, state) {
     var k = col[0], v = r[k];
     if (k === "name") return '<td class="l"><b>' + esc(r.ticker || "") + "</b>" + (r.ticker ? " " : "") + esc(r.name) + (r.ticker ? "" : ' <span class="cb-dim">no listed stock</span>') + (r.distressed ? ' <span class="cb-tag">distressed</span>' : "") + "</td>";
@@ -410,11 +580,24 @@
     if (k === "value") return '<td class="r">' + esc(money(v)) + "</td>";
     if (k === "spread_bp" || k === "cds_bp") return '<td class="r">' + esc(bp(v)) + "</td>";
     if (k === "d" || k === "x_m1" || k === "d_ytd" || k === "cds_d1m") return '<td class="r" style="color:' + textColour(v, state.palette) + '">' + esc(bp(v, true)) + "</td>";
-    if (k === "pct_m1") return '<td class="r" style="color:' + textColour(v, state.palette) + '">' + esc(pct(v, true)) + "</td>";
+    if (k === "pct_m1" || k === "pct_ytd") return '<td class="r" style="color:' + textColour(v, state.palette) + '">' + esc(pct(v, true)) + "</td>";
+    if (k === "stress") return stressCell(r, state);
     if (k === "px_m1") return '<td class="r" style="color:' + textColour(isNum(v) ? -v : null, state.palette) + '">' + esc(pct(v, true)) + "</td>";
     if (k === "direction") return '<td class="l" style="color:' + textColour(v === "DETERIORATING" ? 1 : v === "IMPROVING" ? -1 : null, state.palette) + '">' + esc(DIR_WORDS[v] || "–") + "</td>";
     if (k === "signal") return '<td class="l">' + (LEADS.indexOf(v) >= 0 ? '<b style="color:' + textColour(v === "CREDIT_LEADS_DOWN" ? 1 : -1, state.palette) + '">' + esc(SIGNAL_WORDS[v]) + "</b>" : esc(r.ticker ? (SIGNAL_WORDS[v] || "–") : "–")) + "</td>";
     return '<td class="l">' + esc(v == null ? "–" : String(v)) + "</td>";
+  }
+
+  /* A place in a range, in whole percent - except just under the top, where rounding would say 100 of something that is not. */
+  function rangePct(v) { return !isNum(v) ? "–" : (v >= 99.5 && v < 100 ? fixed(v, 1) : fixed(v, 0)) + "%"; }
+
+  /* The rank with a bar its length; the three standings it is the average of are the cell's title. */
+  function stressCell(r, state) {
+    var v = r.stress, p = PALETTES[state.palette] || PALETTES.rg, at = isNum(state.at) ? state.at : 80;
+    if (!isNum(v)) return '<td class="r">–</td>';
+    function n(x) { return isNum(x) ? fixed(x, 1) : "–"; }
+    return '<td class="r" title="' + esc("In its own book: level " + n(r.rk_level) + ", year " + n(r.rk_year) + ", month " + n(r.rk_month)) + '"><span class="cb-sbar"><i style="width:' + clamp(v, 2, 100).toFixed(0) + "%;background:" +
+      colour(v, { lo: 0, hi: 100 }, "stress", state.palette) + '"></i></span><span' + (v >= at ? ' style="color:' + p.badText + ';font-weight:700"' : "") + ">" + esc(fixed(v, 1)) + "</span></td>";
   }
 
   function headHtml(cols, sort, attr, relabel) {
@@ -427,7 +610,7 @@
 
   function tableHtml(doc, state) {
     var all = withWindow(table(doc), state.win);
-    var rows = filterRows(all, { q: state.q, industry: state.industry, book: state.book, listed: state.listed, signal: state.signal });
+    var rows = filterRows(all, { q: state.q, industry: state.industry, book: state.book, listed: state.listed, signal: state.signal, at: state.at });
     var w = windowList(doc).filter(function (x) { return x.key === state.win; })[0] || {};
     var relabel = { d: "Δ " + (w.short || ""), px_m1: "Stock 1M" };
     var inds = industriesIn(all);
@@ -436,7 +619,7 @@
       '<label>Industry <select data-industry><option value="">All industries</option>' + inds.map(function (i) { return '<option value="' + esc(i[0]) + '"' + (i[0] === state.industry ? " selected" : "") + ">" + esc(i[0]) + " (" + i[1] + ")</option>"; }).join("") + "</select></label>" +
       '<label>Sort by <select data-sortsel>' + COLUMNS.map(function (c) { return '<option value="' + esc(c[0]) + '"' + (c[0] === state.sort.key ? " selected" : "") + ">" + esc(relabel[c[0]] || c[1]) + "</option>"; }).join("") + "</select></label>" +
       '<button type="button" class="cb-dir" data-dir aria-label="Sort direction">' + (state.sort.dir === "asc" ? "Ascending ▲" : "Descending ▼") + "</button>" +
-      '<label>Show <select data-signal>' + [["", "Every company"], ["leads", "Leads only"], ["cds", "With a traded CDS"], ["distressed", "Distressed"]].map(function (o) {
+      '<label>Show <select data-signal>' + [["", "Every company"], ["leads", "Leads only"], ["cds", "With a traded CDS"], ["distressed", "Distressed"]].concat(hasStress(doc) ? [["stressed", "Under stress"], ["ai", "AI stack"]] : []).map(function (o) {
         return '<option value="' + o[0] + '"' + (o[0] === state.signal ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") + "</select></label>" +
       '<label class="cb-chk"><input type="checkbox" data-listed' + (state.listed ? " checked" : "") + "> Listed stocks only</label>" +
       '<label class="cb-chk"><input type="checkbox" data-group' + (state.group ? " checked" : "") + "> Group by industry</label></div>";
@@ -465,6 +648,78 @@
       (w.ok ? " · Δ is the spread change since " + esc(day(w.ref)) + ", in basis points; Past book, Δ % and Stock are for the month" : "") + ".</p>" +
       (!state.group && shown < total ? '<div class="cb-pager"><button type="button" data-more="200">Show 200 more</button><button type="button" data-more="all">Show all ' + total.toLocaleString("en-US") + "</button></div>" : "");
     return ctl + '<div class="cb-scroll" tabindex="0" role="region" aria-label="Every company; scroll sideways for all columns"><table class="cb-table" data-jh-nosort>' + headHtml(COLUMNS, state.sort, "sort", relabel) + "<tbody>" + body + "</tbody></table></div>" + foot;
+  }
+
+  /* A theme read as one line, with a row for each of its layers. */
+  function themeHtml(doc, state) {
+    var st = doc.stress, long = windowList(doc).filter(function (x) { return x.key === st.long; })[0], month = windowList(doc).filter(function (x) { return x.key === (doc.primary || "m1"); })[0];
+    function d(v) { return '<span style="color:' + textColour(v, state.palette) + '">' + esc(bp(v, true)) + " bp</span>"; }
+    function win(t, key) { return isObj(t.win) && isObj(t.win[key]) ? t.win[key] : {}; }
+    function most(t, k) { return (Array.isArray(t.largest_stressed) ? t.largest_stressed : []).filter(Array.isArray).slice(0, k).map(function (m) { return esc(shortName(m[0])) + " " + esc(isNum(m[1]) ? fixed(m[1], 1) : "–"); }).join(", "); }
+    return doc.themes.filter(isObj).map(function (t) {
+      var m1 = win(t, "m1"), lg = long ? win(t, st.long) : {}, layers = Array.isArray(t.layers) ? t.layers.filter(isObj) : [];
+      var line = "<b>" + esc(count(t.n)) + " companies</b>, " + esc(count(t.n_listed)) + " with a listed stock · " + esc(money(t.value)) + " held · middle spread <b>" + esc(bp(t.spread_bp)) + " bp</b>" +
+        (isNum(m1.d_bp) ? " · " + d(m1.d_bp) + " in " + esc(month && month.ok ? "the month" : "1M") : "") +
+        (isNum(lg.d_bp) ? " · " + d(lg.d_bp) + (isNum(lg.d_pct) ? " (" + esc(pct(lg.d_pct, true)) + ")" : "") + " since " + esc(day(long.ref)) + ", " + esc(String(lg.wider)) + " of " + esc(String(lg.n)) + " wider by 5 bp or more" : "") +
+        " · <b>" + esc(count(t.n_stressed)) + " under stress</b>" + (isNum(t.stressed_value_pct) ? " holding " + esc(pct(t.stressed_value_pct)) + " of its bond value" : "") + (most(t, 3) ? ": " + most(t, 3) : "");
+      var body = layers.map(function (l) {
+        var a = win(l, "m1"), b = long ? win(l, st.long) : {}, on = state.stTheme === t.key && state.stLayer === l.key;
+        return '<tr' + (on ? ' class="cb-row-on"' : "") + '><td class="l"><button type="button" class="cb-link" data-st-theme="' + esc(t.key) + '" data-st-layer="' + esc(l.key) + '">' + esc(l.name) + '</button></td><td class="r">' + esc(count(l.n)) +
+          '</td><td class="r">' + esc(money(l.value)) + '</td><td class="r">' + esc(bp(l.spread_bp)) + '</td><td class="r" style="color:' + textColour(a.d_bp, state.palette) + '">' + esc(bp(a.d_bp, true)) +
+          '</td><td class="r" style="color:' + textColour(b.d_bp, state.palette) + '">' + esc(bp(b.d_bp, true)) + '</td><td class="r" style="color:' + textColour(b.d_pct, state.palette) + '">' + esc(pct(b.d_pct, true)) + "</td>" +
+          stressCell({ stress: l.stress }, state).replace(/ title="[^"]*"/, "") + '<td class="r">' + esc(count(l.n_stressed)) + '</td><td class="l">' + (most(l, 2) || '<span class="cb-dim">none at ' + esc(String(stressedAt(doc))) + " or more</span>") + "</td></tr>";
+      }).join("");
+      return '<div class="cb-theme" id="theme-' + esc(t.key) + '"><div class="cb-theme-h"><h3>' + esc(t.name) + '</h3><button type="button" data-st-theme="' + esc(t.key) + '">' + (state.stTheme === t.key && !state.stLayer ? "Showing" : "Show") + " its " + esc(count(t.n)) +
+        ' companies below</button><button type="button" data-scope="' + esc(t.key) + '" data-goto="s-industries">See it on the heat map</button></div><p class="cb-theme-l">' + line + '</p><p class="cb-note">' +
+        esc(typeof t.note === "string" ? t.note : "") + '</p><div class="cb-scroll" tabindex="0" role="region" aria-label="' + esc(t.name) + ' by layer; scroll sideways for all columns"><table class="cb-table cb-layers" data-jh-nosort><thead><tr>' +
+        '<th class="l">Layer</th><th class="r">Companies</th><th class="r">Held</th><th class="r">Spread</th><th class="r">1M Δ</th><th class="r">' + esc(long ? long.short : "YTD") + ' Δ</th><th class="r">' + esc(long ? long.short : "YTD") +
+        ' Δ %</th><th class="r">Stress, middle</th><th class="r">Under stress</th><th class="l">Largest under stress</th></tr></thead><tbody>' + body + "</tbody></table></div></div>";
+    }).join("");
+  }
+
+  /* Who the bond market is most worried about, whatever the stock did. */
+  function stressHtml(doc, state) {
+    if (!isV2(doc)) return "";
+    if (!hasStress(doc)) {
+      return '<p class="cb-empty">The stress ranks and the AI stack appear when the 2.1 engine has published. This document is version ' + esc(typeof doc.version === "string" ? doc.version : "?") + ".</p>";
+    }
+    var st = doc.stress, at = stressedAt(doc), theme = state.stTheme ? themeOf(doc, state.stTheme) : null, long = windowList(doc).filter(function (x) { return x.key === st.long; })[0];
+    var rows = stressRows(doc, { theme: theme ? theme.key : "", layer: theme ? state.stLayer : "", book: state.stBook, listed: state.stListed, held: state.stHeld });
+    var sorted = sortRows(rows, state.stSort.key, state.stSort.dir), page = sorted.slice(0, state.stLimit), mid = isObj(st.book_spread_bp) ? st.book_spread_bp : {};
+    var intro = '<p class="cb-cap">Who the bond market is most worried about, whatever the stock did. A company\'s stress rank is the average of where it stands in its own book (investment grade, high yield, emerging markets) on three things: ' +
+      "how wide its spread is, how far it has widened " + (long ? "since " + esc(day(long.ref)) : "over the long window") + " as a share of where it started, and how far it widened in the month. 0 to 100; " + esc(String(at)) +
+      " or more is shown as under stress. The leads ask a different question: whether the stock has noticed.</p>";
+    var relabel = theme ? { grp: "Layer" } : {};
+    var ctl = '<div class="cb-tctl">' + seg("st-theme", [["", "Every company"]].concat(doc.themes.filter(isObj).map(function (t) { return [t.key, t.name]; })), theme ? theme.key : "", "Show") +
+      (theme ? '<label>Layer <select data-st-layersel><option value="">All layers</option>' + (Array.isArray(theme.layers) ? theme.layers : []).filter(isObj).map(function (l) {
+        return '<option value="' + esc(l.key) + '"' + (l.key === state.stLayer ? " selected" : "") + ">" + esc(l.name) + " (" + esc(String(l.n)) + ")</option>"; }).join("") + "</select></label>" : "") +
+      '<label>Book <select data-st-book>' + [["all", "All books"], ["ig", "Investment grade"], ["hy", "High yield"], ["em", "Emerging"]].map(function (o) {
+        return '<option value="' + o[0] + '"' + (o[0] === state.stBook ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") + "</select></label>" +
+      '<label>Bonds held <select data-st-held>' + HELD.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === state.stHeld ? " selected" : "") + ">" + esc(o[1]) + "</option>"; }).join("") + "</select></label>" +
+      '<label>Sort by <select data-st-sortsel>' + STRESS_COLUMNS.map(function (c) { return '<option value="' + esc(c[0]) + '"' + (c[0] === state.stSort.key ? " selected" : "") + ">" + esc(relabel[c[0]] || c[1]) + "</option>"; }).join("") + "</select></label>" +
+      '<button type="button" class="cb-dir" data-st-dir aria-label="Stress sort direction">' + (state.stSort.dir === "asc" ? "Ascending ▲" : "Descending ▼") + "</button>" +
+      '<label class="cb-chk"><input type="checkbox" data-st-listed' + (state.stListed ? " checked" : "") + "> Listed stocks only</label></div>";
+    var body = page.map(function (r, i) {
+      return "<tr>" + STRESS_COLUMNS.map(function (c) {
+        var k = c[0], v = r[k];
+        if (k === "name") return '<td class="l"><span class="cb-dim">' + (i + 1) + "</span> <b>" + esc(r.ticker || "") + "</b>" + (r.ticker ? " " : "") + esc(r.name) + (r.ticker ? "" : ' <span class="cb-dim">no listed stock</span>') +
+          (r.distressed ? ' <span class="cb-tag">distressed</span>' : "") + (!theme && r.theme ? ' <span class="cb-tag">' + esc((themeOf(doc, r.theme) || {}).name || r.theme) + "</span>" : "") + "</td>";
+        if (k === "xbook") return '<td class="r">' + (isNum(v) ? esc(fixed(v, 1)) + "×" : "–") + "</td>";
+        if (k === "d_m1" || k === "d_w1" || k === "cds_d3m") return '<td class="r" style="color:' + textColour(v, state.palette) + '">' + esc(bp(v, true)) + "</td>";
+        if (k === "cds_rank") return '<td class="r">' + esc(rangePct(v)) + "</td>";
+        if (k === "px_ytd") return '<td class="r" style="color:' + textColour(isNum(v) ? -v : null, state.palette) + '">' + esc(pct(v, true)) + "</td>";
+        if (k === "grp") return '<td class="l">' + esc(v || "–") + "</td>";
+        return cell(c, r, state);
+      }).join("") + "</tr>";
+    }).join("") || '<tr><td colspan="' + STRESS_COLUMNS.length + '" class="cb-empty">No company matches.</td></tr>';
+    var foot = '<p class="cb-note">' + page.length.toLocaleString("en-US") + " of " + rows.length.toLocaleString("en-US") + " companies shown" + (theme ? " (the " + esc(theme.name) + (state.stLayer ? ", one layer" : "") + ")" : "") +
+      " · × book is the spread as a multiple of the middle company of its book (" + ["ig", "hy", "em"].filter(function (b) { return isNum(mid[b]); }).map(function (b) { return BOOK_SHORT[b] + " " + bp(mid[b]) + " bp"; }).join(", ") +
+      ") · CDS 1Y rank is where today's level sits in its year's range · Stock 1M and YTD are the stock, not the bonds · hover a rank for its three parts.</p>" +
+      (page.length < rows.length ? '<div class="cb-pager"><button type="button" data-st-more="25">Show 25 more</button><button type="button" data-st-more="all">Show all ' + rows.length.toLocaleString("en-US") + "</button></div>" : "");
+    var title = theme ? "The " + theme.name + (state.stLayer && layerWords(doc)[state.stLayer] ? ", " + layerWords(doc)[state.stLayer] : "") + ": its companies" : "Every company, most stressed first";
+    return intro + themeHtml(doc, state) + '<div class="cb-ranked" id="stress-ranked"><h3>' + esc(title) + "</h3>" + ctl +
+      '<div class="cb-scroll" tabindex="0" role="region" aria-label="Credit stress; scroll sideways for all columns"><table class="cb-table cb-stress" data-jh-nosort>' +
+      headHtml(STRESS_COLUMNS, state.stSort, "st-sort", relabel) + "<tbody>" + body + "</tbody></table></div>" + foot + "</div>";
   }
 
   function cdsHtml(doc, state) {
@@ -520,12 +775,13 @@
   }
 
   function methodHtml(doc) {
-    var rules = isObj(doc.rules) ? doc.rules : {}, order = ["spread", "company", "change", "industry", "credit_moved", "stock_has_not_followed", "cds", "left_out"];
-    var words = { spread: "Spread", company: "Company", change: "Change", industry: "Industry", credit_moved: "Credit moved", stock_has_not_followed: "Stock has not followed", cds: "Traded CDS", left_out: "Left out" };
+    var rules = isObj(doc.rules) ? doc.rules : {}, order = ["spread", "company", "change", "industry", "credit_moved", "stock_has_not_followed", "no_lead_when_credit_disagrees", "stress", "theme", "cds", "left_out"];
+    var words = { spread: "Spread", company: "Company", change: "Change", industry: "Industry", credit_moved: "Credit moved", stock_has_not_followed: "Stock has not followed", cds: "Traded CDS", left_out: "Left out",
+                  no_lead_when_credit_disagrees: "When credit disagrees", stress: "Stress rank", theme: "Theme" };
     var h = "<p>" + esc(typeof doc.method === "string" ? doc.method : "Method unavailable.") + "</p><dl class=\"cb-rules\">" + order.filter(function (k) { return typeof rules[k] === "string"; }).map(function (k) {
       return "<dt>" + esc(words[k]) + "</dt><dd>" + esc(rules[k]) + "</dd>"; }).join("") + "</dl>";
     var wins = windowList(doc);
-    h += '<p class="cb-note">Reference days: ' + wins.map(function (w) { return esc(w.short) + " – " + (w.ok ? esc(day(w.ref)) + " (" + w.days + " days; " + esc(w.source || "") + ")" : "not available yet"); }).join(" · ") + "</p>";
+    h += '<p class="cb-note">Reference days: ' + wins.map(function (w) { return esc(w.short) + " – " + (w.ok ? esc(day(w.ref)) + " (" + w.days + " days; " + esc(w.source || "") + ")" : "not available yet" + (w.why ? " (" + esc(w.why) + ")" : "")); }).join(" · ") + "</p>";
     return h;
   }
 
@@ -555,7 +811,8 @@
     var win = ok(kept.win) ? kept.win : ok(doc.primary) ? doc.primary : (wins.filter(function (w) { return w.ok; })[0] || {}).key || "m1";
     return { win: win, book: ["all", "ig", "hy", "em"].indexOf(kept.book) >= 0 ? kept.book : "all", measure: MEASURES.some(function (m) { return m[0] === kept.measure; }) ? kept.measure : "bp",
              palette: PALETTES[kept.palette] ? kept.palette : "rg", industry: "", q: "", listed: false, signal: "", group: false, open: {}, limit: 100, sort: { key: "d", dir: "desc" },
-             cdsSort: { key: "d1m", dir: "desc" }, cdsSector: "", cdsLiquid: false, cdsListed: false, cdsAll: false, allLeads: false, view: "new" };
+             cdsSort: { key: "d1m", dir: "desc" }, cdsSector: "", cdsLiquid: false, cdsListed: false, cdsAll: false, allLeads: false, view: "new",
+             scope: "industries", pick: "", thWin: hasStress(doc) && ok(doc.stress.long) ? doc.stress.long : win, thMeasure: "pct", at: stressedAt(doc), stTheme: "", stLayer: "", stBook: "all", stHeld: HELD_FIRST, stListed: false, stSort: { key: "stress", dir: "desc" }, stLimit: 25 };
   }
 
   function mount(host, doc, opt) {
@@ -564,13 +821,16 @@
     function $(id) { return host.querySelector("#" + id); }
     var v2 = isV2(doc), state = firstState(doc || {}, load(store));
     if (!v2) state.view = "previous";
+    if (state.measure === "stress" && !hasStress(doc)) state.measure = "bp";          // a kept choice the document cannot draw yet
     $("evidence").innerHTML = evidenceHtml(doc);
+    function drawStress() { var box = $("stress"); if (box) box.innerHTML = stressHtml(doc, state); }
+    function jump(d) { var el = d.goto ? host.querySelector("#" + d.goto) : null; if (el && el.scrollIntoView) el.scrollIntoView({ block: "start" }); }
 
     function drawMap() {
-      var box = $("map"), m = mapHtml(doc, state, box.clientWidth || host.clientWidth || 900);
+      var box = $("map"), ms = mapState(state), m = mapHtml(doc, ms, box.clientWidth || host.clientWidth || 900);
       box.innerHTML = m.html;
-      $("rank").innerHTML = rankHtml(m.view, state, m.scale);
-      $("mapdetail").innerHTML = detailHtml(doc, state, m.view);
+      $("rank").innerHTML = rankHtml(m.view, ms, m.scale);
+      $("mapdetail").innerHTML = detailHtml(doc, ms, m.view);
     }
     function draw(what) {
       var toggle = $("viewtoggle");
@@ -582,8 +842,11 @@
       if (state.view === "previous") { $("prev").innerHTML = previousHtml(doc); return; }
       if (!what || what === "all") {
         $("hero").innerHTML = heroHtml(doc, state);
-        $("controls").innerHTML = controlsHtml(doc, state);
+        $("controls").innerHTML = controlsHtml(doc, mapState(state));
         $("leads").innerHTML = leadsHtml(doc, state);
+        var notes = $("leadnotes");
+        if (notes) notes.innerHTML = leadNotesHtml(doc);
+        drawStress();
         $("cds").innerHTML = cdsHtml(doc, state);
         $("method").innerHTML = methodHtml(doc);
         $("coverage").innerHTML = coverageHtml(doc);
@@ -593,21 +856,34 @@
       if (!what || what === "all" || what === "map" || what === "table") $("table").innerHTML = tableHtml(doc, state);
       if (what === "cds") $("cds").innerHTML = cdsHtml(doc, state);
       if (what === "leads") $("leads").innerHTML = leadsHtml(doc, state);
+      if (what === "stress") drawStress();
     }
 
     function flip(sort, key) {
       if (sort.key === key) sort.dir = sort.dir === "asc" ? "desc" : "asc";
-      else { sort.key = key; sort.dir = (key === "name" || key === "industry" || key === "sector" || key === "ticker" || key === "region") ? "asc" : "desc"; }
+      else { sort.key = key; sort.dir = (key === "name" || key === "industry" || key === "sector" || key === "ticker" || key === "region" || key === "grp" || key === "book") ? "asc" : "desc"; }
     }
     host.addEventListener("click", function (ev) {
       var t = ev.target.closest ? ev.target.closest("button") : null;
       if (!t || !host.contains(t)) return;
       var d = t.dataset;
       if (t.id === "viewtoggle") { state.view = state.view === "new" ? "previous" : "new"; draw("all"); return; }
+      var onTheme = state.scope && state.scope !== "industries";
+      if (d.win && onTheme) { state.thWin = d.win; draw("all"); return; }
+      if (d.measure && onTheme) { state.thMeasure = d.measure; draw("all"); return; }
       if (d.win) { state.win = d.win; save(store, state); draw("all"); return; }
       if (d.book) { state.book = d.book; state.industry = ""; save(store, state); draw("all"); return; }
       if (d.measure) { state.measure = d.measure; save(store, state); draw("all"); return; }
       if (d.palette) { state.palette = d.palette; save(store, state); draw("all"); return; }
+      if (d.scope) { state.scope = d.scope; state.pick = ""; draw("all"); jump(d); return; }
+      if ("co" in d) { state.pick = state.pick === d.co ? "" : d.co; drawMap(); return; }
+      if ("showCo" in d) { state.q = d.showCo; state.industry = ""; state.signal = ""; state.listed = false; state.group = false; state.limit = 100; draw("map"); var tc = $("table"); if (tc && tc.scrollIntoView) tc.scrollIntoView({ block: "start" }); return; }
+      if ("stLayer" in d) { state.stTheme = d.stTheme || state.stTheme; state.stLayer = state.stLayer === d.stLayer ? "" : d.stLayer; state.stHeld = 0; state.stLimit = 100; drawStress(); return; }
+      if ("stTheme" in d) { state.stTheme = d.stTheme; state.stLayer = ""; state.stHeld = d.stTheme ? 0 : HELD_FIRST; state.stLimit = d.stTheme ? 100 : 25; drawStress(); jump(d); return; }
+      if (d.stSort) { flip(state.stSort, d.stSort); drawStress(); return; }
+      if ("stDir" in d) { state.stSort.dir = state.stSort.dir === "asc" ? "desc" : "asc"; drawStress(); return; }
+      if (d.stMore) { state.stLimit = d.stMore === "all" ? 1e9 : state.stLimit + 25; drawStress(); return; }
+      if (d.goto) { jump(d); return; }
       if ("showInd" in d) { state.industry = d.showInd; state.group = false; state.limit = 100; draw("map"); var tb = $("table"); if (tb && tb.scrollIntoView) tb.scrollIntoView({ block: "start" }); return; }
       if ("ind" in d) { state.industry = state.industry === d.ind ? "" : d.ind; draw("map"); return; }
       if (d.sort) { flip(state.sort, d.sort); draw("table"); return; }
@@ -630,6 +906,11 @@
       else if ("cdsSortsel" in d) { state.cdsSort.key = t.value; draw("cds"); }
       else if ("cdsLiquid" in d) { state.cdsLiquid = t.checked; draw("cds"); }
       else if ("cdsListed" in d) { state.cdsListed = t.checked; draw("cds"); }
+      else if ("stLayersel" in d) { state.stLayer = t.value; drawStress(); }
+      else if ("stBook" in d) { state.stBook = t.value; state.stLimit = state.stTheme ? 100 : 25; drawStress(); }
+      else if ("stHeld" in d) { state.stHeld = Number(t.value) || 0; state.stLimit = state.stTheme ? 100 : 25; drawStress(); }
+      else if ("stSortsel" in d) { state.stSort.key = t.value; drawStress(); }
+      else if ("stListed" in d) { state.stListed = t.checked; drawStress(); }
     });
     var typing = null;
     host.addEventListener("input", function (ev) {
@@ -674,5 +955,7 @@
     windowList: windowList, evidence: evidence, weightedMedian: weightedMedian, marketChange: marketChange, industryView: industryView, scaleOf: scaleOf, colour: colour, textColour: textColour, mix: mix,
     squarify: squarify, sortRows: sortRows, filterRows: filterRows, withWindow: withWindow, industriesIn: industriesIn, evidenceHtml: evidenceHtml, heroHtml: heroHtml, controlsHtml: controlsHtml,
     mapHtml: mapHtml, rankHtml: rankHtml, detailHtml: detailHtml, leadsHtml: leadsHtml, tableHtml: tableHtml, cdsHtml: cdsHtml, previousHtml: previousHtml, methodHtml: methodHtml,
-    coverageHtml: coverageHtml, firstState: firstState, mount: mount, start: start };
+    coverageHtml: coverageHtml, firstState: firstState, mount: mount, start: start,
+    STRESS_COLUMNS: STRESS_COLUMNS, HELD_FIRST: HELD_FIRST, hasStress: hasStress, stressedAt: stressedAt, themeOf: themeOf, layerWords: layerWords, themeView: themeView, mapView: mapView,
+    stressRows: stressRows, stressHtml: stressHtml, leadNotesHtml: leadNotesHtml, mapState: mapState, themeHtml: themeHtml, stressTiles: stressTiles, companyDetailHtml: companyDetailHtml, verdict: verdict, shortName: shortName };
 })(typeof window !== "undefined" ? window : globalThis);

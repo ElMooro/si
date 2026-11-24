@@ -134,6 +134,8 @@ The warehouse only; no provider is asked for anything. Same schedule, once a day
   grouped into 20 industries; the search; Show all (2,946 rows); the CDS table by one-month change and by level both ways;
   the previous view (26 names) and back; a phone with no sideways scroll; no page error. Report and ten pictures:
   `aws/ops/reports/latest/ops_6944_credit_before_equity_live_proof.md`.
+- **The schedule's own run**, 22:35:41 UTC: the document the 22:35 rule published, judged by ops 6944 again (22:52 UTC,
+  read-only): 2.0.0, not degraded, **0 failed checks**.
 - **Tests**: the engine's 26 offline tests on a cut of the real warehouse the runner took (the engine reproduces what the
   runner published from it, figure for figure); 23 page tests on the same document; 6 deployment tests; the repository's
   suites (5,238 node tests, 1,245 deployment tests).

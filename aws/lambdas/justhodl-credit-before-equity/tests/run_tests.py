@@ -488,6 +488,7 @@ def a_dry_run_builds_everything_and_writes_nothing():
     assert out["companies"] == FIX["expected"]["coverage"]["companies"] and out["leads"] == FIX["expected"]["n_leads"] and out["windows"]["w1"] == "2026-11-16"
     issues = FIX["docs"][L.BONDS_KEY]["issues"]
     assert len(out["ledger_days"]) == len({issues["as_of"], issues["move_as_of"], issues["ytd_as_of"]} - STORED) and out["bytes"] > 50000
+    assert out["version"] == "2.1.0" and out["stressed"] == FIX["expected"]["stress"]["n_stressed"] and out["themes"] == {"ai": FIX["expected"]["themes"][0]["n"]}
 
 
 @test
