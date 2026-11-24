@@ -5,155 +5,133 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Credit Before Equity · JustHodl.AI</title>
 <style>
-:root{--bg:#0a0e14;--panel:#10151d;--border:#1c2330;--accent:#F0B429;--pos:#6fce8a;--neg:#E07A6A;--neu:#e8e8e8;--text:#e6ecf3;--text-dim:#8b96a8;--text-mute:#5b6479}
+:root{--bg:#0C0B09;--panel:#12110C;--panel2:#17150E;--border:#2B2820;--border2:#3A3628;--accent:#F0B429;--text:#e8e2d4;--text-dim:#b5ad99;--text-mute:#8a836f;--text-faint:#6a6455}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif;line-height:1.5}
-.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
-h1{font-size:22px;margin:0 0 2px}.sub{color:var(--text-dim);font-size:13px;margin-bottom:18px}
-.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
-.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-mute);margin:26px 0 10px;font-weight:600;border-bottom:1px solid var(--border);padding-bottom:6px}
+.wrap{max-width:1320px;margin:0 auto;padding:22px 18px 60px}
+h1{font-size:22px;margin:0 0 2px}.sub{color:var(--text-dim);font-size:13px;margin-bottom:14px;max-width:980px}
+h2.sec{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text-mute);margin:28px 0 10px;font-weight:600;border-bottom:1px solid var(--border);padding-bottom:6px}
+h3{font-size:14px;margin:0 0 4px}h4{font-size:12px;margin:8px 0 4px;color:var(--text-dim)}
 .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(230px,100%),1fr));gap:12px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
+#viewtoggle{background:var(--panel2);color:var(--text);border:1px solid var(--border2);border-radius:8px;padding:8px 13px;font-size:12.5px;cursor:pointer;white-space:nowrap}
+#viewtoggle[aria-pressed=true]{border-color:var(--accent);color:var(--accent)}
 #evidence{margin-bottom:14px;border-left:4px solid var(--accent);overflow-wrap:anywhere}
 #evidence h2{font-size:16px;margin:0 0 6px}#evidence p{margin:6px 0}
-.issuer-scroll{overflow-x:auto;max-width:100%}a:focus-visible,.issuer-scroll:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-.row{overflow-wrap:anywhere}
-.tile{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:12px 13px}
-.tile .lbl{font-size:12px;color:var(--text-dim);margin-bottom:3px}
-.big{font-size:20px;font-weight:600;font-family:ui-monospace,Menlo,monospace}
-.pill{display:inline-block;border:1px solid var(--border);border-radius:20px;padding:2px 9px;font-size:10.5px;font-family:ui-monospace,Menlo,monospace;margin-right:5px}
-.row{border:1px solid var(--border);border-radius:11px;padding:11px 13px;margin:9px 0;background:rgba(255,255,255,.015)}
-.row .head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
-.row .nm{font-size:15px;font-weight:600}
-.row .meta{font-size:11.5px;color:var(--text-mute);font-family:ui-monospace,Menlo,monospace;margin-top:5px}
-table{width:100%;border-collapse:collapse;font-family:ui-monospace,Menlo,monospace;font-size:12px}
-th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--border)}
-th{color:var(--text-mute);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px}
+.cb-state{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;border:1px solid var(--border2);border-radius:5px;padding:1px 6px;margin-right:4px;color:var(--accent)}
+#evidence details summary{margin-top:2px}.cb-checks{margin:6px 0 4px;padding-left:18px;font-size:12px;color:var(--text-dim)}.cb-mark{font-family:ui-monospace,Menlo,monospace;color:var(--text-mute)}
+.cb-note{font-size:11.5px;color:var(--text-mute);margin:6px 0;line-height:1.6}.cb-warn{font-size:12px;color:var(--accent)}.cb-dim{color:var(--text-faint);font-weight:400}
+.cb-empty{color:var(--text-mute);font-size:12.5px;padding:10px 0}
+.cb-hero{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(215px,100%),1fr));gap:10px}
+.cb-tile-h{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:12px 13px}
+.cb-lbl{font-size:12px;color:var(--text-dim);margin-bottom:3px}.cb-big{font-size:21px;font-weight:600;font-family:ui-monospace,Menlo,monospace}.cb-sub{font-size:11px;color:var(--text-mute);margin-top:2px}
+.cb-dates{font-size:11.5px;color:var(--text-mute);margin:10px 0 0}.cb-dates b{color:var(--text-dim)}
+#controls{display:flex;flex-wrap:wrap;gap:10px 18px;margin:16px 0 12px}
+.cb-ctl{display:flex;align-items:center;gap:7px;min-width:0;max-width:100%}.cb-ctl-l{font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.7px;white-space:nowrap}
+.cb-seg{display:flex;border:1px solid var(--border2);border-radius:8px;overflow-x:auto;max-width:100%}
+.cb-seg button{background:var(--panel);color:var(--text-dim);border:0;border-right:1px solid var(--border2);padding:6px 11px;font-size:12px;cursor:pointer;white-space:nowrap}
+.cb-seg button:last-child{border-right:0}.cb-seg button[aria-pressed=true]{background:var(--accent);color:#0C0B09;font-weight:600}.cb-seg button:disabled{color:var(--text-faint);cursor:not-allowed}
+.cb-map{position:relative;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.cb-box{position:absolute;border:0;border-radius:3px;margin:1px;padding:6px 7px;color:#fff;text-align:left;cursor:pointer;overflow:hidden;display:flex;flex-direction:column;gap:1px;font-family:inherit}
+.cb-box:hover,.cb-box:focus-visible{outline:2px solid #fff;outline-offset:-2px;z-index:2}.cb-box.cb-on{outline:2px solid var(--accent);outline-offset:-2px;z-index:3}
+.cb-box-n{font-size:12px;font-weight:600;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cb-box-v{font-size:15px;font-weight:700;font-family:ui-monospace,Menlo,monospace;line-height:1.25;white-space:nowrap}
+.cb-box-s{font-size:10.5px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cb-box.cb-sm{padding:3px 4px}.cb-box.cb-tiny{padding:0}.cb-sm .cb-box-n{font-size:10px}.cb-sm .cb-box-v{font-size:11px;overflow:hidden;text-overflow:clip}
+.cb-legend{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--text-mute);margin:8px 0 0}
+.cb-legend i{display:inline-block;width:170px;height:9px;border-radius:5px}.cb-legend-n{font-family:ui-monospace,Menlo,monospace;color:var(--text-dim)}.cb-legend-size{margin-left:auto}
+#rank{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(360px,100%),1fr));gap:12px;margin-top:14px}
+.cb-rank{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:13px 14px;min-width:0}
+.cb-rank-row{display:grid;grid-template-columns:18px minmax(90px,1.25fr) minmax(40px,1fr) 78px 92px;align-items:center;gap:8px;width:100%;background:none;border:0;border-top:1px solid var(--border);color:var(--text);
+ padding:6px 0;font-size:12.5px;text-align:left;cursor:pointer;font-family:inherit}
+.cb-rank-row:hover{background:var(--panel2)}.cb-rank-i{color:var(--text-faint);font-family:ui-monospace,Menlo,monospace;font-size:11px}
+.cb-rank-n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cb-rank-bar{height:8px;background:var(--panel2);border-radius:4px;overflow:hidden}.cb-rank-bar i{display:block;height:100%;border-radius:4px}
+.cb-rank-v{font-family:ui-monospace,Menlo,monospace;font-weight:600;text-align:right;white-space:nowrap}.cb-rank-s{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:var(--text-mute);text-align:right;white-space:nowrap}
+.cb-detail{background:var(--panel);border:1px solid var(--border2);border-radius:11px;padding:13px 14px;margin-top:12px}
+.cb-detail-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.cb-detail-h h3{margin:0 auto 0 0;font-size:15px}
+.cb-detail-h button,.cb-pager button,.cb-more,.cb-dir{background:var(--panel2);color:var(--text);border:1px solid var(--border2);border-radius:7px;padding:5px 10px;font-size:12px;cursor:pointer}
+.cb-detail-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:6px 22px}.cb-detail ol{margin:0;padding-left:20px;font-size:12.5px}
+#leads{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(380px,100%),1fr));gap:12px}
+.cb-leadcol{min-width:0}.cb-lead{border:1px solid var(--border);border-radius:10px;padding:9px 12px;margin:8px 0;background:var(--panel);overflow-wrap:anywhere}
+.cb-lead-h{font-size:13.5px}.cb-lead-b{font-size:11.5px;color:var(--text-dim);font-family:ui-monospace,Menlo,monospace;margin-top:3px}
+.cb-tctl{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:0 0 10px;font-size:12px;color:var(--text-dim)}
+.cb-tctl label{display:flex;align-items:center;gap:6px;min-width:0}.cb-tctl select,.cb-tctl input[type=search]{background:var(--panel2);color:var(--text);border:1px solid var(--border2);border-radius:7px;padding:5px 8px;font-size:12px;max-width:100%}
+.cb-tctl input[type=search]{width:190px}.cb-chk{cursor:pointer}
+.cb-scroll{overflow-x:auto;max-width:100%;border:1px solid var(--border);border-radius:10px;background:var(--panel)}
+.cb-table{width:100%;border-collapse:collapse;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;white-space:nowrap}
+.cb-table th,.cb-table td{padding:6px 9px;border-bottom:1px solid var(--border)}.cb-table td.r,.cb-table th.r{text-align:right}.cb-table td.l,.cb-table th.l{text-align:left}
+.cb-table th{position:sticky;top:0;background:var(--panel2);z-index:1}
+.cb-table th button{background:none;border:0;color:var(--text-mute);font:inherit;font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;cursor:pointer;padding:0}
+.cb-table th[aria-sort=ascending] button,.cb-table th[aria-sort=descending] button{color:var(--accent)}
+.cb-table tbody tr:hover{background:var(--panel2)}.cb-table td:first-child{white-space:normal;min-width:230px;max-width:340px;font-family:ui-sans-serif,system-ui,sans-serif}
+.cb-grp td{background:var(--panel2);font-family:ui-sans-serif,system-ui,sans-serif;white-space:normal}
+.cb-link{background:none;border:0;color:var(--text-dim);font:inherit;cursor:pointer;padding:0;text-decoration:underline dotted;text-underline-offset:3px}
+.cb-tag{font-size:10px;border:1px solid var(--border2);border-radius:4px;padding:0 4px;color:var(--accent)}
+.cb-pager{display:flex;gap:8px;margin:8px 0}
+.cb-rules{display:grid;grid-template-columns:max-content 1fr;gap:5px 14px;font-size:12px;color:var(--text-dim);margin:8px 0}.cb-rules dt{color:var(--text);font-weight:600}.cb-rules dd{margin:0}
+details summary{cursor:pointer;font-size:12.5px;color:var(--text-dim);margin-top:8px}
+.textcard{font-size:12.5px;color:var(--text-dim)}.textcard p{margin:6px 0}
 .foot{color:var(--text-mute);font-size:10.5px;margin-top:22px}
-.note{font-size:11.5px;color:var(--text-mute);margin-top:8px;line-height:1.6}
-a{color:var(--accent)}
+a{color:var(--accent)}a:focus-visible,button:focus-visible,.cb-scroll:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:640px){.cb-rank-row{grid-template-columns:16px minmax(80px,1fr) 70px;}.cb-rank-bar,.cb-rank-s{display:none}.cb-legend-size{margin-left:0}.cb-rules{grid-template-columns:1fr}.cb-tctl input[type=search]{width:150px}}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="wrap" id="board">
+<div class="top">
+<div>
 <h1>🏦 Credit Before Equity</h1>
-<div class="sub">The bond desk reprices a company's risk before the equity desk does — credit analysts read covenants, maturity walls and cash flow, and they move on balance-sheet facts weeks before those facts reach an earnings headline. This board measures each issuer's credit <em>direction</em> against its own ledger and crosses it with the stock. A signal fires only when credit moves and the equity hasn't noticed. Daily 22:35 UTC.</div>
+<div class="sub">The bond desk reprices a company's risk before the equity desk does — credit analysts read covenants, maturity walls and cash flow, and they move on balance-sheet facts weeks before those facts reach an earnings headline. This board reads the spread of every company's bonds over Treasuries and its traded CDS, measures each one against its own ledger and its own book, and crosses it with the stock. A signal fires only when credit moves and the equity hasn't noticed. Daily 22:35 UTC.</div>
+</div>
+<button type="button" id="viewtoggle" aria-pressed="false" hidden>Previous view</button>
+</div>
 
 <section class="card" id="evidence" aria-labelledby="evidence-title" aria-live="polite"><h2 id="evidence-title">Evidence status</h2><p>Loading the published engine packet. Source freshness has not been verified.</p></section>
-<div class="card" id="hero"><span class="mono" style="color:var(--text-mute)">LOADING…</span></div>
 
-<div class="sec">⚡ Leads — credit moved, equity didn't</div>
+<div id="newview">
+<div id="hero" data-jh-title="At a glance"></div>
+
+<h2 class="sec">Industries — where spreads are widening and where they are holding</h2>
+<div id="controls" data-jh-title="Heat map controls"></div>
+<div id="map"></div>
+<div id="rank" data-jh-title="Widening most and least"></div>
+<div id="mapdetail"></div>
+
+<h2 class="sec">Leads — credit moved, the stock has not</h2>
 <div id="leads"></div>
 
-<div class="sec">📋 All Issuers</div>
-<div class="card issuer-scroll" tabindex="0" role="region" aria-label="All issuers; scroll horizontally for all columns"><table id="tbl"><thead><tr>
-<th>Ticker</th><th>Name</th><th>DD</th><th>ΔDD</th><th>CDS bp</th><th>ΔCDS</th><th>ΔPrice</th><th>Credit</th><th>Signal</th></tr></thead><tbody id="tb"></tbody></table></div>
+<h2 class="sec">Every company — sort by any column, either way</h2>
+<div id="table"></div>
 
-<div class="sec">Method</div>
-<div class="card mono" style="font-size:12px;color:var(--text-dim)" id="method"></div>
+<h2 class="sec">Company CDS — credit default swaps that trade</h2>
+<div id="cds"></div>
 
-<div class="sec">Declared Gaps</div>
-<div class="card mono" style="font-size:12px;color:var(--text-dim)" id="gaps"></div>
+<h2 class="sec">Method</h2>
+<div class="card textcard" id="method"></div>
 
-<div class="sec">Cross-links</div>
-<div class="card mono" style="font-size:12.5px;color:var(--text-dim)">Structural model: <a href="/cds-monitor.html">CDS Monitor</a> · Index-level: <a href="/credit-stress.html">Credit Stress</a> · Short positioning: <a href="/squeeze.html">Squeeze</a></div>
+<h2 class="sec">Coverage and how names were tied</h2>
+<div class="card textcard" id="coverage"></div>
+
+<h2 class="sec">Declared gaps</h2>
+<div class="card textcard" id="gaps"></div>
+</div>
+
+<div id="prevview" hidden>
+<h2 class="sec">Previous view — the 26-name structural model board</h2>
+<div id="prev"></div>
+</div>
+
+<h2 class="sec">Cross-links</h2>
+<div class="card textcard">Every bond: <a href="/corpbonds.html">Corp Bonds</a> · Traded CDS: <a href="/cds.html">CDS Desk</a> · Structural model: <a href="/cds-monitor.html">CDS Monitor</a> · Index-level: <a href="/credit-desk.html">Credit Desk</a> · Short positioning: <a href="/squeeze.html">Squeeze</a></div>
 
 <div class="foot" id="foot"></div>
 </div>
 <script src="/jh-nav-drawer.js" defer></script>
+<script src="/jh-credit-board.js?v=20261124a"></script>
 <script>
-(async function(){
-try{
-var POS='#6fce8a',NEG='#E07A6A',MUT='#5b6479',ACC='#F0B429',NEU='#e8e8e8';
-var esc=function(v){return String(v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
-var text=function(v){return typeof v==='string'&&v.trim()?esc(v):'Unavailable';};
-var finite=function(v){return typeof v==='number'&&Number.isFinite(v);};
-var count=function(v){return Number.isSafeInteger(v)&&v>=0;};
-var row=function(v){return v&&typeof v==='object'&&!Array.isArray(v);};
-var strings=function(v){return Array.isArray(v)&&v.every(function(x){return typeof x==='string'&&x.trim();});};
-var r=await fetch('https://justhodl.ai/data/credit-before-equity.json?t='+Date.now());
-if(!r.ok)throw new Error('HTTP '+r.status);
-var d=await r.json();
-if(!row(d))throw new Error('Expected an engine packet object');
-var rows=Array.isArray(d.names)?d.names.filter(row):[];
-var leads=Array.isArray(d.leads)?d.leads.filter(row):[];
-var issues=[];
-['n_leads','n_names','n_awaiting_history'].forEach(function(k){if(!count(d[k]))issues.push(k+' is unavailable or invalid.');});
-['names','leads'].forEach(function(k){if(!Array.isArray(d[k])||!d[k].every(row))issues.push(k+' is unavailable or contains invalid rows.');});
-['degraded','gaps'].forEach(function(k){if(!strings(d[k]))issues.push(k+' declaration is unavailable or invalid.');});
-if(count(d.n_names)&&Array.isArray(d.names)&&d.n_names!==d.names.length)issues.push('Issuer count does not match the supplied rows.');
-if(count(d.n_leads)&&Array.isArray(d.leads)&&Math.min(d.n_leads,20)!==d.leads.length)issues.push('Lead count does not match the supplied preview (maximum 20).');
-if(count(d.n_names)&&((count(d.n_leads)&&d.n_leads>d.n_names)||(count(d.n_awaiting_history)&&d.n_awaiting_history>d.n_names)))issues.push('Summary counts exceed the reported issuer count.');
-// Reconcile published categories only; never derive a signal from measurements.
-var isLead=function(x){return x.signal==='CREDIT_LEADS_UP'||x.signal==='CREDIT_LEADS_DOWN';};
-if(count(d.n_names)&&count(d.n_leads)&&count(d.n_awaiting_history)&&d.n_leads+d.n_awaiting_history>d.n_names)issues.push('Lead and awaiting-history counts together exceed the reported issuer count.');
-if(Array.isArray(d.names)&&d.names.every(row)){
- var reportedLeads=rows.filter(isLead);
- var reportedAwaiting=rows.filter(function(x){return x.signal==='INSUFFICIENT_HISTORY';});
- if(rows.some(function(x){return !isLead(x)&&x.signal!=='NONE'&&x.signal!=='INSUFFICIENT_HISTORY';}))issues.push('Unrecognized issuer signal; category counts cannot be fully reconciled.');
- if(count(d.n_leads)&&d.n_leads!==reportedLeads.length)issues.push('Lead count does not match the supplied issuer signals.');
- if(count(d.n_awaiting_history)&&d.n_awaiting_history!==reportedAwaiting.length)issues.push('Awaiting-history count does not match the supplied issuer signals.');
- if(Array.isArray(d.leads)&&d.leads.every(row)&&(leads.length!==Math.min(reportedLeads.length,20)||leads.some(function(x,i){var expected=reportedLeads[i];return !expected||x.ticker!==expected.ticker||x.signal!==expected.signal;})))issues.push('Lead preview does not match the first 20 supplied issuer lead signals.');
-}
-var numericFields=['distance_to_default','d_distance_to_default','synthetic_cds_bp','d_synthetic_cds_bp','d_price_pct','default_prob_5y_pct'];
-if(rows.concat(leads).some(function(x){return typeof x.ticker!=='string'||!x.ticker.trim()||typeof x.signal!=='string'||!x.signal.trim()||numericFields.some(function(k){return x[k]!=null&&!finite(x[k]);});}))issues.push('Some issuer fields are unavailable or invalid; supplied rows are retained.');
-var flat=row(d.thresholds)?d.thresholds.equity_flat_band_pct:null;
-if(!finite(flat)||flat<0)issues.push('Equity flat-band threshold is unavailable or invalid.');
-var clock=typeof d.generated_at==='string'&&Number.isFinite(Date.parse(d.generated_at));
-if(!clock)issues.push('Packet generation time is unavailable or invalid.');
-var degraded=strings(d.degraded)&&d.degraded.length>0;
-var state=degraded?'Degraded evidence':issues.length?'Incomplete packet':'Published packet received';
-var notes=(strings(d.degraded)?d.degraded:[]).concat(issues);
-document.getElementById('evidence').innerHTML='<h2 id="evidence-title">Evidence status: '+state+'</h2>'
-+(notes.length?'<ul>'+notes.map(function(v){return '<li>'+esc(v)+'</li>';}).join('')+'</ul>':'<p>No degradation declared by the engine. This is not independent source verification.</p>')
-+'<p>Packet generated: '+(clock?esc(d.generated_at):'Unavailable')+'. This is the engine output time, not the observation time of its credit or equity inputs. Input source clocks and source freshness are not supplied by this packet.</p>'
-+'<p>Counts and signals below are reported by the engine. '+(degraded||issues.length?'Incomplete evidence must not be read as an absence of credit leads.':'')+'</p>';
-var num=function(v,dp,unit){return finite(v)?v.toFixed(dp==null?2:dp)+(unit||''):'Unavailable';};
-var countText=function(v){return count(v)?String(v):'Unavailable';};
-var sign=function(v){return finite(v)&&v>0?'+':'';};
-var sgCol=function(s){if(s==='CREDIT_LEADS_DOWN')return NEG;if(s==='CREDIT_LEADS_UP')return POS;if(s==='INSUFFICIENT_HISTORY')return MUT;return NEU;};
-var cdCol=function(c){return c==='IMPROVING'?POS:(c==='DETERIORATING'?NEG:MUT);};
-
-document.getElementById('hero').innerHTML='<div class="grid">'
-+'<div class="tile"><div class="lbl">Leads firing</div><div class="big" style="color:'+(count(d.n_leads)&&d.n_leads>0?ACC:MUT)+'">'+countText(d.n_leads)+'</div><div class="note">credit moved, equity flat or opposite</div></div>'
-+'<div class="tile"><div class="lbl">Issuers tracked</div><div class="big">'+countText(d.n_names)+'</div><div class="note">corporates + banks from the structural model</div></div>'
-+'<div class="tile"><div class="lbl">Awaiting history</div><div class="big" style="color:'+MUT+'">'+countText(d.n_awaiting_history)+'</div><div class="note">need a 2nd observation — ledger accretes daily</div></div>'
-+'<div class="tile"><div class="lbl">Flat band</div><div class="big">'+(finite(flat)&&flat>=0?'±'+flat+'%':'Unavailable')+'</div><div class="note">what counts as "equity hasn\'t noticed"</div></div>'
-+'</div>';
-
-var empty=degraded?'Lead evidence unavailable or degraded; an empty result does not establish an absence of credit leads.'
-:issues.length?'Lead evidence unavailable or incomplete; an empty result does not establish an absence of credit leads.'
-:d.n_names===0?'No issuers reported in this packet; no lead conclusion is available.'
-:d.n_awaiting_history>0?'No leads reported in this packet; '+d.n_awaiting_history+' issuers await history. This does not establish agreement across every issuer.'
-:'No leads reported by the engine for the '+d.n_names+' tracked issuers in this packet. Source freshness is unverified.';
-document.getElementById('leads').innerHTML=leads.length?leads.map(function(x){
-return '<div class="row"><div class="head"><span class="nm">'+text(x.ticker)+' <span style="color:'+MUT+';font-weight:400;font-size:13px">'+text(x.name)+'</span> '
-+'<span class="pill" style="color:'+sgCol(x.signal)+';border-color:'+sgCol(x.signal)+'">'+text(typeof x.signal==='string'?x.signal.replace(/_/g,' '):null)+'</span></span>'
-+'<span class="mono" style="color:'+cdCol(x.credit_direction)+'">credit '+text(x.credit_direction)+'</span></div>'
-+'<div class="meta">DD '+num(x.distance_to_default)+' ('+sign(x.d_distance_to_default)+num(x.d_distance_to_default)+')'
-+' · CDS '+num(x.synthetic_cds_bp,1,'bp')+' ('+sign(x.d_synthetic_cds_bp)+num(x.d_synthetic_cds_bp,1)+')'
-+' · price '+sign(x.d_price_pct)+num(x.d_price_pct,2,'%')
-+' · 5y PD '+num(x.default_prob_5y_pct,2,'%')
-+' · regime '+text(x.regime)+' · vs '+text(x.prior_obs_date)+'</div></div>';}).join('')
-:'<div class="card"><span class="mono" style="color:'+MUT+';font-size:12px">'+esc(empty)+'</span></div>';
-
-document.getElementById('tb').innerHTML=rows.map(function(x){
-return '<tr><td style="color:'+ACC+'">'+text(x.ticker)+'</td><td>'+text(typeof x.name==='string'?x.name.slice(0,26):null)+'</td>'
-+'<td>'+num(x.distance_to_default)+'</td><td style="color:'+(finite(x.d_distance_to_default)&&x.d_distance_to_default>0?POS:(finite(x.d_distance_to_default)&&x.d_distance_to_default<0?NEG:MUT))+'">'+sign(x.d_distance_to_default)+num(x.d_distance_to_default)+'</td>'
-+'<td>'+num(x.synthetic_cds_bp,1)+'</td><td style="color:'+(finite(x.d_synthetic_cds_bp)&&x.d_synthetic_cds_bp<0?POS:(finite(x.d_synthetic_cds_bp)&&x.d_synthetic_cds_bp>0?NEG:MUT))+'">'+sign(x.d_synthetic_cds_bp)+num(x.d_synthetic_cds_bp,1)+'</td>'
-+'<td style="color:'+(finite(x.d_price_pct)&&x.d_price_pct>0?POS:(finite(x.d_price_pct)&&x.d_price_pct<0?NEG:MUT))+'">'+sign(x.d_price_pct)+num(x.d_price_pct,2,'%')+'</td>'
-+'<td style="color:'+cdCol(x.credit_direction)+'">'+text(x.credit_direction)+'</td>'
-+'<td style="color:'+sgCol(x.signal)+'">'+text(typeof x.signal==='string'?x.signal.replace(/_/g,' '):null)+'</td></tr>';}).join('');
-
-if(leads.length)document.getElementById('leads').insertAdjacentHTML('beforeend','<p class="note">Showing '+leads.length+' supplied leads; engine total '+countText(d.n_leads)+'. The engine caps this preview at 20; all supplied issuer rows remain below.</p>');
-document.getElementById('method').textContent=typeof d.method==='string'?d.method:'Method unavailable';
-document.getElementById('gaps').innerHTML=(strings(d.gaps)?(d.gaps.length?d.gaps.map(function(g){return '• '+esc(g);}).join('<br>'):'No gaps declared by the engine.'):'Gap declaration unavailable.')
-+(degraded?('<br><span style="color:'+NEG+'">Degraded: '+d.degraded.map(esc).join(' · ')+'</span>'):'');
-document.getElementById('foot').textContent='Feed data/credit-before-equity.json · '+(typeof d.attribution==='string'?d.attribution:'Attribution unavailable')+' · v'+(typeof d.version==='string'?d.version:'Unavailable')+' · generated '+(clock?d.generated_at:'Unavailable');
- }catch(e){console.error(e);
-document.getElementById('evidence').innerHTML='<h2 id="evidence-title">Evidence unavailable</h2><p>'+esc(e.message)+'. No conclusion about credit leads is available. Source freshness is unverified.</p>';
-document.getElementById('hero').textContent='Summary unavailable';
-document.getElementById('leads').textContent='Lead evidence unavailable';
-}
+(function(){
+  var host=document.getElementById('board');
+  if(window.JHCreditBoard){window.JHCreditBoard.start(host);}
+  else{document.getElementById('evidence').innerHTML='<h2 id="evidence-title">Evidence status</h2><p>The board script did not load. Nothing is shown rather than something stale.</p>';}
 })();
 </script>
 <script src="/sidebar.js" defer></script>

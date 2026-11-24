@@ -421,7 +421,10 @@ def the_ledger_keeps_a_real_day_over_a_worked_back_one():
     again, _ = build(docs)
     assert [s["as_of"] for s in again["snapshots"] if s["derived_from"]] == [issues["ytd_as_of"]]          # the stored day is not overwritten
     assert again["payload"]["windows"]["m1"]["source"] == "the board's own ledger" and again["payload"]["windows"]["m1"]["n_bonds"] == 1
-    assert again["payload"]["windows"]["w1"]["ref"] is None and "ledger" in again["payload"]["windows"]["w1"]["why"]
+    assert built["payload"]["windows"]["w1"]["ref"] == "2026-11-16" and built["payload"]["windows"]["w1"]["source"] == "the board's own ledger"     # the cut carries a real ledger day
+    bare = {k: v for k, v in FIX["docs"].items() if not k.startswith(L.LEDGER_ROOT)}
+    empty = build(bare)[0]["payload"]["windows"]
+    assert empty["w1"]["ref"] is None and "ledger" in empty["w1"]["why"] and empty["m3"]["ref"] is None and empty["m1"]["ref"] == issues["move_as_of"]
 
 
 @test
@@ -429,6 +432,7 @@ def a_week_appears_once_the_ledger_holds_one():
     issues = FIX["docs"][L.BONDS_KEY]["issues"]
     first = build()[0]
     docs = copy.deepcopy(FIX["docs"])
+    assert L.LEDGER_ROOT + "2026-11-16.json.gz" in docs                 # replaced here by a day exactly 7 bp tighter on every bond
     week = {"as_of": "2026-11-16", "derived_from": None, "n": 0, "bonds": {k: v - 7.0 for k, v in first["snapshots"][0]["bonds"].items()}}
     docs[L.LEDGER_ROOT + "2026-11-16.json.gz"] = week
     p = build(docs)[0]["payload"]
@@ -458,6 +462,20 @@ def the_handler_writes_the_document_the_ledger_and_the_model_ledger_and_nothing_
     hist = json.loads(s3.puts[L.HIST_KEY])
     assert all(len(v) <= L.HIST_KEEP for v in hist["obs"].values()) and "updated_at" in hist
     assert json.loads(json.dumps(doc)) == doc and "NaN" not in json.dumps(doc["thresholds"])
+
+
+@test
+def a_dry_run_builds_everything_and_writes_nothing():
+    s3 = MemS3()
+    keep = L._s3
+    try:
+        L._s3 = lambda: s3
+        out = with_cut(lambda: L.lambda_handler({"dry_run": True}, None))
+    finally:
+        L._s3 = keep
+    assert s3.puts == {} and out["dry_run"] is True and out["statusCode"] == 200
+    assert out["companies"] == FIX["expected"]["coverage"]["companies"] and out["leads"] == FIX["expected"]["n_leads"] and out["windows"]["w1"] == "2026-11-16"
+    assert len(out["ledger_days"]) == 3 and out["bytes"] > 50000
 
 
 @test

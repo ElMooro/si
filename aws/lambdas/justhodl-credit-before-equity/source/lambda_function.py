@@ -485,6 +485,11 @@ def lambda_handler(event=None, context=None):
     now = datetime.now(timezone.utc)
     built = build(s3, now)
     payload = built["payload"]
+    if isinstance(event, dict) and event.get("dry_run"):          # the whole build inside Lambda, nothing written
+        cov = payload["coverage"]
+        return {"statusCode": 200, "dry_run": True, "as_of": payload["as_of"], "companies": cov["companies"], "listed": cov["listed"], "names": payload["n_names"], "leads": payload["n_leads"],
+                "cds_levels": cov["cds_priced"], "windows": {k: v.get("ref") for k, v in payload["windows"].items()}, "degraded": payload["degraded"],
+                "ledger_days": [s["as_of"] for s in built["snapshots"]], "bytes": len(json.dumps(payload, separators=(",", ":"), default=str))}
     for snap in built["snapshots"]:
         put_json(s3, LEDGER_ROOT + snap["as_of"] + ".json.gz", snap, gz=True)
     size = put_json(s3, OUT_KEY, payload)
