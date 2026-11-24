@@ -576,7 +576,16 @@ test('the heat map can be drawn one tile a company of the AI stack, by any measu
     }
   }
   const s = state({ scope: 'ai', measure: 'stress' }), m = B.mapHtml(DOC, s, 1200);
-  assert.deepEqual([m.scale.lo, m.scale.hi], [0, 100]);
+  assert.deepEqual([m.scale.lo, m.scale.hi, m.scale.mid], [0, 100, 50]);
+  // a rank has a middle: the middle company of a book is neutral, the calmest the safety colour, the most stressed the trouble colour
+  const [hot, calm, even] = [B.colour(99.6, m.scale, 'stress', 'rg'), B.colour(12, m.scale, 'stress', 'rg'), B.colour(50, m.scale, 'stress', 'rg')].map(rgb);
+  assert.ok(hot[0] > hot[1] + 100 && calm[1] > calm[0] + 40 && B.colour(50, m.scale, 'stress', 'rg') === B.PALETTES.rg.mid, JSON.stringify([hot, calm, even]));
+  assert.ok(rgb(B.colour(60, m.scale, 'stress', 'rg'))[0] < rgb(B.colour(85, m.scale, 'stress', 'rg'))[0], 'the further past the middle, the louder');
+  assert.match(m.html, /Calmest of its book/);
+  // an industry's share under stress has no middle: one hue from none to the most
+  const ind = B.scaleOf(B.industryView(DOC, { win: 'm1', book: 'all', measure: 'stress' }), 'stress');
+  assert.equal(ind.mid, undefined);
+  assert.ok(rgb(B.colour(ind.hi, ind, 'stress', 'rg'))[0] > rgb(B.colour(0, ind, 'stress', 'rg'))[0] + 80);
   assert.match(m.html, /One tile a company of the AI stack\. Size: the market value of its bonds held by the scanned funds\. Colour: its stress rank in its own book, 0 to 100\. Click a tile for the company\./);
   assert.match(m.html, /Most stressed of its book/);
   const o = T.find(r => r.ticker === 'ORCL');

@@ -144,6 +144,98 @@ What the board said at first light (bond holdings of 2026-11-23): in the month s
 wider; Energy widened most (+20.9 bp) and Communications least (-0.1 bp). In the week since 2026-11-16 all 20 are wider,
 from Consumer non-cyclical (+4.9 bp) to Basic industry (+28.8 bp) among the classified industries.
 
+## 2.1.0, the same evening - credit stress and the AI stack
+
+Khalid, 17:51 ET: "ai companies and oracle are under enormous stress why arent they showing. i know re showing high stress
+their cds".
+
+### Why they were not showing
+
+They were on the board, and nothing pointed at them.
+
+1. **A lead needs the stock not to have followed.** Oracle's bonds were marked down hard (spread 327.6 bp, +51.6 bp in the
+   month, +49.0 past its book) and its stock had already fallen 13% in the month, so the board - correctly, by its own rule -
+   called no lead. The page had nowhere else to say "this credit is in trouble".
+2. **The heat map shows the middle company of an industry.** Technology's middle company moved +2.8 bp over 196 companies.
+   Meta sits in Communications and Amazon in Consumer cyclical; there was no AI group at all.
+3. **The stress built over the year, not the month.** The table opened on the month's change over all 2,946 companies.
+   Meta +69 bp, Broadcom +63 bp, Nvidia +48 bp, Amazon +40 bp since the year began, and close to flat in the month.
+
+### What was added (beside what was there; nothing renamed, moved or removed)
+
+**Engine 2.1.0**, contract still `credit-before-equity.v2`; every 2.0 key is published and the 25 columns of 2.0 keep their
+places, with the new ones after them.
+
+- **A stress rank for every company**, 0 to 100: the average of where it stands *in its own book* (investment grade, high
+  yield, emerging markets) on three things - how wide its spread is, how far it has widened since the year began as a share
+  of where it started, and how far it widened in the month. It does not look at the stock. 80 or more is "under stress".
+  Published with its three parts (`rk_level`, `rk_year`, `rk_month`), and per industry: how many companies are under stress
+  and what share of the industry's bond value they hold.
+- **The AI stack theme** (`cbe_themes.py`): the layers and tickers of your AI infrastructure stack engine
+  (`justhodl-ai-infra-stack`, `LAYERS` - its keys, its own layer names, its seeds; a deployment test holds this copy to that
+  list, so a ticker added there is on the credit board the same day), and four layers that engine has no place for:
+  hyperscalers (MSFT, GOOGL, AMZN, META, ORCL), server makers (DELL, HPE), the financing vehicles of AI data centers, and
+  SoftBank Group. Published as one line for the theme and one a layer.
+- **No lead when the two credit markets disagree.** AMD was a "credit better" lead: its bonds tightened 16.9 bp while its
+  liquid CDS widened 38.3 bp. Such a company is now no lead and is named under the leads.
+- **A window that is not there yet says when it can be.** The 3-month reason read "the ledger began on 2025-12-31", a
+  worked-back day. It now reads "one will be from about 2027-01-08".
+
+**Page.** A section *Credit stress* between the heat map and the leads: the AI stack as one line and by layer, and every
+company ranked by stress (Show: every company / AI stack; layer; book; bonds held; sortable by every column either way).
+Two tiles in the summary (how many listed companies are under stress and the three highest; the AI stack) that jump to it.
+On the heat map: *Map of - Industries / AI stack* (one tile a company of the theme, sized by bonds held) and *Colour by -
+Stress*. A Stress column in the table of every company and two more choices in its Show list. Under the leads: any lead
+that was not called, and where a company goes whose stock already moved. Every section that was there is where it was, in
+the order it had; the industry map is still what the board opens on, with the window and measure the browser remembers.
+
+### Decisions taken for you
+
+- **Three parts, averaged, inside the company's own book.** A high-yield spread is not compared with an investment-grade
+  one. The month is one of the three so that a name still getting worse ranks above one that has stopped; the cost is that
+  a company whose widening happened earlier in the year and has paused ranks in the middle (see the hyperscalers below).
+- **The stress list opens on companies with $50M or more of bonds held** by the scanned funds, where the rank rests on more
+  than one small bond. The control is on the page (any size, $10M, $50M, $250M, $1B). Opening the AI stack shows all of it.
+- **Named in the summary and on the theme's line: the largest borrowers under stress**, not the highest rank - a $7M
+  holding that ranks 99 is not the news.
+- **AI data center financing vehicles, by name.** In by what the name says (... COMPUTE LLC, ... COMPUTECO, ... DATA
+  CENTERS), or by review, each with who stands behind it: QTS (Blackstone); Hut 8's River Bend (`HUT 8 DC`) and Beacon Point
+  (`BEACON POINT DC`, $4.25B of notes, June 2026); Fleet Data Centers / Tract Capital in Storey County, Nevada (`PR RNO
+  PROPERTY OWNER 1`, $4.585B, May 2026; `SV RNO PROPERTY OWNER 1`, $3.8B, February 2026); the Next Frontier and Fluidstack
+  venture in Indiana (`MERIDIAN ARC HOLDCO`, $5.7B, April 2026). Read in the law firms' notices of each offering (Cahill,
+  Latham, Cooley).
+- **SoftBank Group is in the theme** as "AI backers": its borrowing funds its AI holdings. Say the word and it comes out
+  (one line in `cbe_themes.py`).
+- **The map of the AI stack opens on the year to date in percent** - where the build-up shows - and keeps that apart from
+  the industry map's own window and measure, which the table follows and the browser remembers.
+
+### What the board says (bond holdings of 2026-11-23)
+
+- **Oracle is the most stressed of the 537 companies with $50M or more held: 99.6.** Its spread, 327.6 bp, is the widest of
+  the 648 listed investment-grade companies and 3.3 times the middle one (98.2 bp); +149 bp since the year began (+84%),
+  +51.6 bp in the month, +21.1 bp in the week. Traded CDS 329.8 bp, +108 bp in three months, at 99.6% of its year's range.
+  Stock -13% in the month, -42% this year.
+- **The AI stack**: 66 companies (48 listed), $9.3B of bonds held, middle spread 151.9 bp, +37.3 bp since the year began
+  (+44.8%), 36 of 48 wider by 5 bp or more. **9 under stress, holding 24.0% of its bond value**: Oracle 99.6, Beacon Point DC
+  99.1, PR RNO Property Owner 89.5, Hut 8 DC 89.0, Intel 86.8, SV RNO Property Owner 85.7, CoreWeave 85.6 (spread 1,083 bp,
+  CDS 1,136 bp), SoftBank Group 83.0, Galaxy Helios 81.7.
+- **The hyperscalers and the chip makers are not under stress by this rank, and the page says why.** Their spreads roughly
+  doubled this year - Nvidia +105%, Broadcom +99%, Meta +83%, Amazon +76%, Alphabet +64%, each in the top 3% of its book
+  for the year - but from a low start: Amazon 98.6 bp and Alphabet 96.1 bp are at the investment-grade middle, Microsoft
+  66.2 bp is under it, and the month was flat or tighter. Ranks: Meta 68.5, Broadcom 59.4, Alphabet 54.0, Nvidia 53.8,
+  Amazon 50.8, Microsoft 36.5. The CDS of the five that doubled sit at 92% to 98% of their year's range (Microsoft's at
+  74%). Sorting the list by *YTD change %* puts them at the top; the heat map of the theme, which opens on that measure,
+  draws them red.
+
+### Found, and not changed
+
+- `ZENITH ARC LLC` (high yield, Technology, $78M held, 861 bp) is probably another AI data center vehicle. I could not
+  confirm who stands behind it, so it is not in the theme.
+- The factor book ties `Space Exploration Technologies Corp.` to a ticker `SPCX`; it ranks 7th by stress (275.7 bp,
+  investment grade) on bonds with no year-start reading. Left as the book has it.
+- A company with a very small holding can rank very high on one bond (Beacon Point DC, $7M held, 99.1). The size control
+  and the Held column are there for that; nothing is hidden.
+
 ## To take it back
 
 Revert the commit that deployed 2.0.0: the engine and the page return to 1.0.0 and the next 22:35 UTC run publishes the 26-name

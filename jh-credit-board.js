@@ -228,7 +228,9 @@
   /* The figure at which the colour is full: the largest move on the map, never under a floor, so a quiet week is not painted loud. */
   function scaleOf(view, measure) {
     var vals = view.map(function (r) { return r.v; }).filter(isNum).map(Math.abs), companies = view.length > 0 && view[0].kind === "company";
-    if (measure === "stress") return { lo: 0, hi: companies ? 100 : Math.max(10, vals.length ? Math.max.apply(null, vals) : 0) };
+    /* A company's rank has a middle - 50 is the middle company of its book - so it is drawn from calm through neutral to stressed.
+       An industry's share under stress has none: it runs one hue from nothing to the most. */
+    if (measure === "stress") return companies ? { lo: 0, hi: 100, mid: 50 } : { lo: 0, hi: Math.max(10, vals.length ? Math.max.apply(null, vals) : 0) };
     if (measure === "level") return { lo: Math.min.apply(null, vals.concat([Infinity])), hi: Math.max.apply(null, vals.concat([0])) };
     var floor = measure === "pct" ? 5 : 10, top = vals.length ? Math.max.apply(null, vals) : 0;
     if (companies && vals.length >= 10) {
@@ -249,6 +251,10 @@
   function colour(v, scale, measure, palette) {
     var p = PALETTES[palette] || PALETTES.rg;
     if (!isNum(v)) return p.none;
+    if (measure === "stress" && isNum(scale.mid)) {
+      var half = Math.max(scale.hi - scale.mid, scale.mid - scale.lo) || 1, far = clamp(Math.abs(v - scale.mid) / half, 0, 1);
+      return mix(p.mid, v > scale.mid ? p.bad : p.good, v === scale.mid ? 0 : 0.18 + 0.82 * far);
+    }
     if (measure === "level" || measure === "stress") {
       var span = scale.hi - scale.lo;
       return mix(p.mid, p.bad, span > 0 ? clamp((v - scale.lo) / span, 0, 1) * 0.9 + 0.1 : 0.5);
@@ -465,9 +471,9 @@
     }).join("") + "</div>";
     var p = PALETTES[state.palette] || PALETTES.rg, most = scale.capped ? " or more" : "";
     var ends = state.measure === "level" ? [bp(scale.lo) + " bp", "", bp(scale.hi) + " bp", "Tighter spread (safer)", "Wider spread (riskier)"] :
-      state.measure === "stress" ? (theme ? ["0", "", "100", "Calm for its book", "Most stressed of its book"] : ["0%", "", pct(scale.hi), "None of it under stress", "Most of it under stress"]) :
+      state.measure === "stress" ? (theme ? ["0", "50", "100", "Calmest of its book", "Most stressed of its book"] : ["0%", "", pct(scale.hi), "None of it under stress", "Most of it under stress"]) :
       [(state.measure === "pct" ? pct(-scale.hi, true) : bp(-scale.hi, true) + " bp") + most, "0", (state.measure === "pct" ? pct(scale.hi, true) : bp(scale.hi, true) + " bp") + most, "Tightening (safety)", "Widening (trouble)"];
-    var grad = state.measure === "level" || state.measure === "stress" ? "linear-gradient(90deg," + mix(p.mid, p.bad, 0.1) + "," + p.bad + ")" : "linear-gradient(90deg," + p.good + "," + p.mid + "," + p.bad + ")";
+    var grad = state.measure === "level" || (state.measure === "stress" && !theme) ? "linear-gradient(90deg," + mix(p.mid, p.bad, 0.1) + "," + p.bad + ")" : "linear-gradient(90deg," + p.good + "," + p.mid + "," + p.bad + ")";
     html += '<div class="cb-legend"><span>' + esc(ends[3]) + '</span><span class="cb-legend-n">' + esc(ends[0]) + '</span><i style="background:' + grad + '"></i><span class="cb-legend-n">' + esc(ends[2]) +
       "</span><span>" + esc(ends[4]) + "</span></div>";
     return { html: html, view: view, scale: scale };

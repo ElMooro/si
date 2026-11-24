@@ -519,6 +519,17 @@ def browse_stress(new_page, url, doc, ck, shots, log):
         page.wait_for_timeout(400)
         tile = page.get_attribute(".cb-box[data-co='%s']" % orcl["id"], "title")
         ck("stress rank %s of 100" % fixed(orcl["stress"], 1) in (tile or ""), "Oracle's tile does not say its stress rank: %s" % tile)
+        g = page.evaluate(BOXES)                               # a rank is drawn from calm through neutral to stressed: 50 is the middle company of a book
+        off = []
+        for b in g["boxes"]:
+            x, c = by_id.get(b["co"]), rgb(b["bg"])
+            if x is None or c is None or x["stress"] is None:
+                continue
+            if x["stress"] >= 80 and not (c[0] > c[1] + 60 and c[0] > c[2] + 40):
+                off.append("%s ranks %s and is drawn %s" % (x["name"], x["stress"], c))
+            if x["stress"] <= 25 and not (c[1] > c[0] + 8):
+                off.append("%s ranks %s and is drawn %s" % (x["name"], x["stress"], c))
+        ck(not off, "the stress map's colours do not follow the ranks: %s" % off[:4])
         page.click(".cb-box[data-co='%s']" % orcl["id"])
         page.wait_for_timeout(400)
         detail = page.locator("#mapdetail").inner_text()
@@ -599,14 +610,14 @@ def main():
             r.warn("CHECK FAILED: " + msg)
             return False
 
-        r.section("0. The live site serves the new files and the engine's 2.0 document")
+        r.section("0. The live site serves the new files and the engine's document")
         served = {}
         for attempt in range(60):
             try:
                 html = fetch("/credit-before-equity.html?probe=%d" % (stamp + attempt))
                 tag = re.search(rb'<script src="(/jh-credit-board\.js\?v=[0-9a-f]{8})"', html)          # the build stamps each script with its content hash
                 served = {"page": b'id="newview"' in html and b'id="viewtoggle"' in html and b'id="s-industries"' in html and b'id="s-stress"' in html and b'id="leadnotes"' in html and bool(tag),
-                          "script": bool(tag) and all(mark in fetch(tag.group(1).decode() + "&probe=%d" % (stamp + attempt)) for mark in (b"jh-reskin-skip", b"JHCreditBoard", b"data-jh-nosort", b"cb-cap", b"cb-stress", b"mapState")),
+                          "script": bool(tag) and all(mark in fetch(tag.group(1).decode() + "&probe=%d" % (stamp + attempt)) for mark in (b"jh-reskin-skip", b"JHCreditBoard", b"data-jh-nosort", b"cb-cap", b"cb-stress", b"mapState", b"Calmest of its book")),
                           "document": json.loads(fetch("/data/credit-before-equity.json?probe=%d" % (stamp + attempt))).get("contract") == "credit-before-equity.v2"}
             except Exception as e:  # noqa: BLE001
                 served = {"error": str(e)[:80]}
@@ -615,7 +626,7 @@ def main():
             time.sleep(20)
         r.log("served after %d tries: %s" % (attempt + 1, json.dumps(served)))
         if not (served and all(v is True for v in served.values())):
-            r.fail("the live site does not serve Credit Before Equity 2.0 yet; nothing was judged")
+            r.fail("the live site does not serve this checkout's Credit Before Equity page yet; nothing was judged")
             sys.exit(1)
 
         r.section("1. The published document against itself and against the warehouse")
