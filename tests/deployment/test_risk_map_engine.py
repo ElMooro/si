@@ -62,3 +62,18 @@ def test_the_risk_map_still_publishes_the_first_engines_feed_once_a_day():
 def test_the_risk_map_suite_passes():
     out = subprocess.run([sys.executable, str(ENGINE / "tests" / "run_tests.py")], capture_output=True, text=True, timeout=300)
     assert out.returncode == 0, (out.stdout[-3000:] + out.stderr[-2000:])
+
+
+def test_the_site_builds_reskin_cannot_change_what_a_colour_on_the_map_means():
+    """ops 6938, 2026-11-24: the build's re-skin drew rising tiles amber on the first deploy. The script that owns every data
+    colour carries the opt-out; the page's own frame is written in colours the re-skin leaves as they are."""
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import reskin_site
+    script = (ROOT / "jh-risk-map.js").read_text(encoding="utf-8")
+    page = (ROOT / "regime-map.html").read_text(encoding="utf-8")
+    assert "jh-reskin-skip" in script, "the build would re-colour the tiles"
+    assert reskin_site.reskin_text("a{color:#089981}") != "a{color:#089981}" and reskin_site.reskin_text("a{color:#3b82f6}") != "a{color:#3b82f6}", "the re-skin no longer touches these: the opt-out can go"
+    assert "jh-chart-engine.js" in reskin_site.SKIP_NAMES and "jh-chart-tvrail.js" in reskin_site.SKIP_NAMES and "chart.html" in reskin_site.SKIP_NAMES
+    assert "jh-reskin-skip" not in page, "the previous view is re-skinned with the rest of the site, as it always was"
+    frame = page[page.index("/* ---------- the heat map (2026-11-24) ----------"):page.index("/* ---------- the previous view")]
+    assert reskin_site.reskin_text(frame) == frame, "the heat map's frame would look different on the site than in this file"

@@ -9,6 +9,10 @@
  *     over the same anchor closes. It moves the percentages, never a state.
  *
  * Pure functions are exported for node tests (module.exports) and the browser (window.JHRiskMap).
+ *
+ * jh-reskin-skip: on this map a colour is a measurement. The site build's re-skin (scripts/reskin_site.py) turns every cool
+ * hue into the site's amber, and on 2026-11-24 it drew rising tiles amber and the blue palette amber too. Every colour that
+ * carries meaning is therefore defined in this file, which the re-skin leaves alone; the page's own frame takes the site's.
  */
 (function (root, factory) {
   var api = factory(root);
@@ -35,8 +39,8 @@
   var UNUSUAL_FULL = 2.5;              // a move 2.5 times the instrument's own usual move is the full colour
   var SPLIT_BAND = [0.56, 1.8];        // a live price outside this multiple of the engine's close is a split or a bad print: ignored
   var PALETTES = {
-    rg: { name: "Red and green", neg: "#f23645", pos: "#089981", mid: "#363a45", none: "#20242e" },
-    cb: { name: "Orange and blue", neg: "#e8623a", pos: "#3b82f6", mid: "#363a45", none: "#20242e" }
+    rg: { name: "Red and green", neg: "#f23645", pos: "#089981", mid: "#363a45", none: "#20242e", up: "#2bb89f", dn: "#f7525f" },
+    cb: { name: "Orange and blue", neg: "#e8623a", pos: "#3b82f6", mid: "#363a45", none: "#20242e", up: "#6aa8ff", dn: "#f08c5a" }
   };
   var PROXY = "https://justhodl-data-proxy.raafouis.workers.dev";
   var STORE = "jh-risk-map.v1";
@@ -404,6 +408,8 @@
       h += "<label class=rm-chk title='Funds only: the regular session price from Polygon, 15 minutes delayed'><input type=checkbox id=rm-livebox" + (S.live ? " checked" : "") + "> live prices</label>";
       $("rm-bar").innerHTML = h;
       host.dataset.palette = S.palette;
+      host.style.setProperty("--rm-up", PALETTES[S.palette].up);          // the colour of a rising and of a falling number, by the palette
+      host.style.setProperty("--rm-dn", PALETTES[S.palette].dn);
     }
     function chips() {
       var h = "<button type=button data-cls='' class='" + (!S.cls ? "on" : "") + "'>All <em>" + m.n + "</em></button>";

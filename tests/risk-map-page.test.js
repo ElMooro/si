@@ -348,7 +348,7 @@ test('chart.html: a Risk Map button next to Heat opens the map in the chart\'s o
   assert.equal(tags.length, 2);
   for (const t of tags) assert.ok(t.includes('&repo=20261121&rmap=20261124&sov=20261122'), t.slice(0, 60));
   // the page a workspace opens is the page as it is served: same cache tag on its script
-  assert.ok(HTML.includes('<script src="/jh-risk-map.js?v=20261124a"></script>'));
+  assert.ok(/<script src="\/jh-risk-map\.js\?v=2026112[4-9][a-z]"><\/script>/.test(HTML));
   // the byte ledger takes the change back out
   assert.equal(hash(ledger.peelRiskMapEngine(engine, 'jh-chart-engine.js')), '5708b52846fa67ad33f6b51621a4919efb1dd56cbd618048fde1231aae9eaeff');
   assert.equal(hash(ledger.peelRiskMapRail(rail, 'jh-chart-tvrail.js')), '2f47a463a82cc92badecd64fbc4e2957a26867ef17d90d244b5fc1fc7a38679d');
@@ -378,4 +378,18 @@ test('the home dashboard\'s Risk Map card names what is in the state across the 
   old.booming = old.strongest.slice(0, 2);
   const was = draw(old);
   assert.ok(was.includes('BOOMING ' + old.booming[0].ticker) && !/ of \d+/.test(was));
+});
+
+test('a colour that carries meaning is never re-skinned by the site build', () => {
+  // 2026-11-24, found by the live proof (ops 6938): scripts/reskin_site.py turns every cool hue in a served file into the site's
+  // amber, so the first deploy drew rising tiles amber and the blue palette amber. Every data colour lives in the script, which
+  // carries the build's opt-out; the page (and with it the previous view) is re-skinned as it always was.
+  assert.ok(JS.includes('jh-reskin-skip'));
+  assert.ok(!HTML.includes('jh-reskin-skip'));
+  for (const pal of Object.values(M.PALETTES)) for (const k of ['neg', 'pos', 'mid', 'none', 'up', 'dn']) assert.match(pal[k], /^#[0-9a-f]{6}$/);
+  const heat = HTML.slice(HTML.indexOf('/* ---------- the heat map (2026-11-24) ----------'), HTML.indexOf('/* ---------- the previous view'));
+  assert.ok(heat.length > 3000);
+  for (const pal of Object.values(M.PALETTES)) for (const k of ['neg', 'pos', 'up', 'dn']) assert.ok(!heat.toLowerCase().includes(pal[k]), 'a data colour is written in the page: ' + pal[k]);
+  assert.ok(JS.includes('host.style.setProperty("--rm-up", PALETTES[S.palette].up)') && JS.includes('host.style.setProperty("--rm-dn", PALETTES[S.palette].dn)'));
+  assert.ok(!/\[data-palette/.test(HTML));
 });
