@@ -229,8 +229,10 @@ def main():
         served = {}
         for attempt in range(60):
             try:
-                served = {"page": b"jh-risk-map.js?v=20261124b" in fetch("/regime-map.html?probe=%d" % (stamp + attempt)),
-                          "script": b"jh-reskin-skip" in fetch("/jh-risk-map.js?v=20261124b&probe=%d" % (stamp + attempt)),      # the second deploy: data colours exempt from the build's re-skin
+                page_html = fetch("/regime-map.html?probe=%d" % (stamp + attempt))
+                tag = re.search(rb'<script src="(/jh-risk-map\.js\?v=[0-9a-f]{8})"', page_html)       # the build stamps each script with its content hash
+                served = {"page": b'id="rm-v-classic"' in page_html and b"--rm-acc" in page_html and bool(tag),
+                          "script": bool(tag) and b"jh-reskin-skip" in fetch(tag.group(1).decode() + "&probe=%d" % (stamp + attempt)),      # the second deploy: data colours exempt from the build's re-skin
                           "engine": b"id=btn-rmap" in fetch("/jh-chart-engine.js?probe=%d" % (stamp + attempt)),
                           "rail": b'riskmap: ["Risk Map' in fetch("/jh-chart-tvrail.js?probe=%d" % (stamp + attempt)),
                           "chart": fetch("/chart.html?probe=%d" % (stamp + attempt)).count(b"&rmap=20261124") == 2}
