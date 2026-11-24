@@ -276,6 +276,10 @@ def main():
                 if sym in CUT_TICKERS or sym.replace(".", "-") in CUT_TICKERS:
                     doc = parse(body)
                     docs[key] = {"rows": [[row[0]] + [round(v, 4) if isinstance(v, float) else v for v in row[1:6]] for row in (doc.get("rows") or [])[-(L.BARS + 45):]]}
+            elif key.startswith(L.LEDGER_ROOT):
+                snap = parse(body)                                   # a ledger day the build read, kept for the cut's own bonds
+                mine = {b.get("k") for b in cut_bonds}
+                docs[key] = {**snap, "bonds": {k: v for k, v in (snap.get("bonds") or {}).items() if k in mine}}
             elif key.startswith(L.SPLITS_ROOT):
                 doc = parse(body)
                 rows_ = doc if isinstance(doc, list) else (doc.get("results") or [])
