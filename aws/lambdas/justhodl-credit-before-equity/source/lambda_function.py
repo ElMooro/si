@@ -1,4 +1,4 @@
-"""justhodl-credit-before-equity 2.0.0 - the bond desk reprices a company before the equity desk does.
+"""justhodl-credit-before-equity 2.1.0 - the bond desk reprices a company before the equity desk does.
 
 1.0 read a structural default model for 26 hand-listed issuers - a model computed from each company's own stock - and
 compared each day with the day before. 2.0 reads what the credit market itself prints, for every company it can:
@@ -11,9 +11,13 @@ compared each day with the day before. 2.0 reads what the credit market itself p
   model     the 1.0 structural model (data/cds-monitor.json), kept for its 26 names and said to be a model
 
 A company's spread change is crossed with its stock over the same days. A signal fires only when credit moved past its
-own book and the stock has not followed (cbe_core). Each day's spreads are kept by the bond desk's own bond key under
-credit/cbe-spreads/, so the one-week and three-month comparisons build from the board's own ledger; the bond desk's
-change since its previous holdings date and since the year's start seed the first two reference days.
+own book and the stock has not followed (cbe_core). Since 2.1 every company also has a stress rank that does not look at
+the stock (how wide it is for its book, how far it widened over the year and the month), and a theme (cbe_themes: the AI
+stack) groups companies the bond market's own sectors keep apart.
+
+Each day's spreads are kept by the bond desk's own bond key under credit/cbe-spreads/, so the one-week and three-month
+comparisons build from the board's own ledger; the bond desk's change since its previous holdings date and since the
+year's start seed the first two reference days.
 
 The warehouse only: no provider is asked for anything. Output data/credit-before-equity.json (contract
 credit-before-equity.v2 - every 1.0 key is still there). Daily 22:35 UTC.
@@ -266,7 +270,8 @@ def model_rows(model_doc, hist, today, last_close):
 
 # ---------------------------------------------------------------------------------------------------------- the build
 ISSUER_COLS = ["id", "ticker", "name", "industry", "book", "country", "n_bonds", "value", "yield_pct", "dur", "spread_bp", "d_w1", "d_m1", "x_m1", "pct_m1", "n_m1", "d_m3", "d_ytd",
-               "cds_bp", "cds_d1m", "px_m1", "direction", "signal", "distressed", "tie"]
+               "cds_bp", "cds_d1m", "px_m1", "direction", "signal", "distressed", "tie",
+               "pct_ytd", "stress", "rk_level", "rk_year", "rk_month", "theme", "layer", "cds_d3m", "cds_rank", "px_ytd", "pct_w1", "pct_m3"]          # added by 2.1: always after the 2.0 columns
 
 
 def build(s3, now=None, log=print):
@@ -308,7 +313,11 @@ def build(s3, now=None, log=print):
     for wkey, ref in windows.items():
         words = C.window_words(wkey)
         if not ref:
-            window_meta[wkey] = {"words": words, "ref": None, "why": "The board's ledger holds no day near enough yet; it began on %s and adds a day each run." % (min(have) if have else as_of)}
+            aim = {k: (a, t) for k, _, a, t in C.WINDOWS}.get(wkey)
+            when = C.available_from(as_of, sorted((have | set(mem)) - {as_of}), aim[0], aim[1]) if aim else None
+            window_meta[wkey] = {"words": words, "ref": None, "available_from": when,
+                                 "why": ("The board's ledger holds no day %d days back yet, give or take %d; one will be from about %s." % (aim[0], aim[1], when)) if when else
+                                        "The board's ledger holds no day near enough yet; it adds a day each run."}
             continue
         snap = mem.get(ref)
         if snap is None:
@@ -334,6 +343,7 @@ def build(s3, now=None, log=print):
     rows, ties = C.companies(points, matcher, snaps, windows)
     medians = C.book_medians(rows, windows)
     C.add_excess(rows, medians)
+    long = C.add_stress(rows, windows, as_of)
     n_spread = sum(1 for r in rows if r["spread_bp"] is not None)
     n_listed = sum(1 for r in rows if r["ticker"])
     if n_spread < MIN_COMPANIES or n_listed < MIN_LISTED:
@@ -385,6 +395,9 @@ def build(s3, now=None, log=print):
         agrees = None
         if basis == "bond spreads" and cds_dir in ("WIDER", "TIGHTER") and direction in ("DETERIORATING", "IMPROVING"):
             agrees = "confirms" if (cds_dir == "WIDER") == (direction == "DETERIORATING") else "contradicts"
+        conflict = agrees == "contradicts" and signal in C.LEADS
+        if conflict:
+            signal = "NONE"                 # the bonds say one thing and a liquid CDS the other: the two credit markets disagree, no lead is called
         row = {"ticker": tk, "name": (co or {}).get("name") or (mod or {}).get("name") or (r or {}).get("name"),
                "group": (mod or {}).get("group") or ("banks" if (r or {}).get("industry") == "Banking" else "corporates"),
                "industry": (r or {}).get("industry"), "book": (r or {}).get("book"),
@@ -397,12 +410,13 @@ def build(s3, now=None, log=print):
                "price": round(cl[last_day], 4) if cl else None, "price_date": last_day, "d_price_pct": d_px, "d_price_w1": px.get("w1"), "d_price_m3": px.get("m3"), "d_price_ytd": px.get("ytd"),
                "credit_direction": direction if direction in ("DETERIORATING", "IMPROVING") else None, "credit_state": direction,
                "equity_flat": d_px is not None and abs(d_px) <= C.FLAT_BAND_PCT, "equity_state": state, "signal": signal, "signal_basis": basis,
-               "distressed": True if (r or {}).get("distressed") else None}
+               "distressed": True if (r or {}).get("distressed") else None, "credit_conflict": True if conflict else None,
+               "stress": (r or {}).get("stress"), "theme": (r or {}).get("theme"), "layer": (r or {}).get("layer")}
         if mod:
             row.update({k: v for k, v in mod.items() if k not in ("name", "group")})
         names.append({k: v for k, v in row.items() if v is not None or k in ("ticker", "name", "signal", "credit_direction", "d_price_pct")})
         if r is not None:
-            r["_px"], r["_signal"], r["_direction"] = d_px if basis == "bond spreads" else px.get(C.PRIMARY), signal, direction
+            r["_px"], r["_signal"], r["_direction"], r["_px_ytd"] = d_px if basis == "bond spreads" else px.get(C.PRIMARY), signal, direction, px.get("ytd")
     names.sort(key=lambda x: (ORDER.get(x["signal"], 9), -abs(x.get("x_spread_bp") or x.get("cds_d1m") or 0), x["ticker"]))
     leads = [x for x in names if x["signal"] in C.LEADS]
     awaiting = [x for x in names if x["signal"] == "INSUFFICIENT_HISTORY"]
@@ -415,7 +429,9 @@ def build(s3, now=None, log=print):
         direction = r.get("_direction") if r["ticker"] else C.credit_direction(m1)[0]
         issuers.append([r["id"], r["ticker"], r["name"], r["industry"], r["book"], r["country"], r["n_bonds"], int(r["value"]), r["yield_pct"], r["dur"], r["spread_bp"],
                         (win.get("w1") or {}).get("d_bp"), m1.get("d_bp"), m1.get("x_bp"), m1.get("d_pct"), m1.get("n"), (win.get("m3") or {}).get("d_bp"), (win.get("ytd") or {}).get("d_bp"),
-                        (cds or {}).get("spread_bp"), (cds or {}).get("d1m"), r.get("_px"), direction, r.get("_signal"), 1 if r["distressed"] else 0, r["tie"]])
+                        (cds or {}).get("spread_bp"), (cds or {}).get("d1m"), r.get("_px"), direction, r.get("_signal"), 1 if r["distressed"] else 0, r["tie"],
+                        (win.get("ytd") or {}).get("d_pct"), r.get("stress"), r.get("rk_level"), r.get("rk_year"), r.get("rk_month"), r.get("theme"), r.get("layer"),
+                        (cds or {}).get("d3m"), (cds or {}).get("rank_1y"), r.get("_px_ytd"), (win.get("w1") or {}).get("d_pct"), (win.get("m3") or {}).get("d_pct")])
 
     for c in cds_priced:
         cl = closes.get(c["ticker"]) if c["ticker"] else None
@@ -460,6 +476,10 @@ def build(s3, now=None, log=print):
         "names": names, "leads": leads[:20],
         "issuers": {"cols": ISSUER_COLS, "rows": issuers},
         "industries": {"all": C.industries(rows, windows), **{b: C.industries(rows, windows, b) for b in ("ig", "hy", "em")}},
+        "themes": C.themes(rows, windows),
+        "stress": {"long": long, "long_ref": windows.get(long) if long else None, "stressed_at": C.STRESSED, "book_spread_bp": C.book_levels(rows),
+                   "n_stressed": sum(1 for r in rows if r.get("stress") is not None and r["stress"] >= C.STRESSED),
+                   "n_stressed_listed": sum(1 for r in rows if r["ticker"] and r.get("stress") is not None and r["stress"] >= C.STRESSED)},
         "cds": {"as_of": cds_as_of, "generated_at": (cds_doc or {}).get("generated_at"), "source": (cds_doc or {}).get("source"), "priced": cds_priced, "no_level": cds_bare},
         "windows": window_meta, "primary": C.PRIMARY, "books": C.BOOK_WORDS,
         "coverage": coverage,
@@ -470,8 +490,9 @@ def build(s3, now=None, log=print):
         "method": ("Each company's credit is the spread of its US-dollar bonds over the Treasury par curve, from the corporate bonds desk's daily fund holdings, weighted by the market value "
                    "held. Its change is measured on the same bonds at both dates and compared with the change of its own book (investment grade, high yield, emerging markets). The stock is "
                    "the split-repaired close from the reference day to the newest close. A lead fires only when credit moved past its book and the stock has not followed. A traded CDS "
-                   "level, where the CDS desk prints one, is shown beside it and says whether it confirms. The 1.0 structural default model is kept for its own names and is a model, "
-                   "not a market price."),
+                   "level, where the CDS desk prints one, is shown beside it and says whether it confirms; when it says the opposite, no lead is called. Apart from the leads, every company "
+                   "has a stress rank - where it stands in its own book on how wide its spread is and how far it widened over the year and the month - which does not look at the stock. "
+                   "The 1.0 structural default model is kept for its own names and is a model, not a market price."),
         "attribution": "bond spreads from justhodl-corp-bonds (iShares and SPDR daily holdings) over the Treasury par curve; traded CDS from justhodl-cds-desk (DTCC public prints); "
                        "closes from the Polygon EOD bank; structural model from justhodl-cds-monitor (CreditGrades)",
         "estimate_type": "bond spreads over Treasuries and traded CDS where a row carries them (spread_bp, cds_bp); the fields distance_to_default and synthetic_cds_bp are a structural "

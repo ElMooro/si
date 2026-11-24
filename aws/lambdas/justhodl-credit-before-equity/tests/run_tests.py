@@ -8,7 +8,8 @@ from it; the engine must reproduce it here, figure for figure.
 
 Checked besides: the curve and the duration-matched maturity, the windows, the rule (every branch), how issuer names are
 tied to listed companies and the ties that must be refused, the publication guards, the ledger, the handler, and that the
-engine asks no provider for anything. No network, no AWS.
+engine asks no provider for anything. Since 2.1: the stress rank (worked again here from the published table), the AI
+stack theme and its layers, and that no lead is called when the bonds and a liquid CDS disagree. No network, no AWS.
 
 Run: python3 aws/lambdas/justhodl-credit-before-equity/tests/run_tests.py
 """
@@ -38,6 +39,7 @@ if "boto3" not in sys.modules:
 import bank_enrich  # noqa: E402
 import cbe_core as C  # noqa: E402
 import cbe_names as N  # noqa: E402
+import cbe_themes as TH  # noqa: E402
 import lambda_function as L  # noqa: E402
 
 FIX = json.loads(gzip.decompress(open(os.path.join(ROOT, "tests", "fixtures", "credit-before-equity-warehouse.json.gz"), "rb").read()))
@@ -425,6 +427,11 @@ def the_ledger_keeps_a_real_day_over_a_worked_back_one():
     bare = {k: v for k, v in FIX["docs"].items() if not k.startswith(L.LEDGER_ROOT)}
     empty = build(bare)[0]["payload"]["windows"]
     assert empty["w1"]["ref"] is None and "ledger" in empty["w1"]["why"] and empty["m3"]["ref"] is None and empty["m1"]["ref"] == issues["move_as_of"]
+    # a window that is not there yet says when it can be, and never names a worked-back day as the day the ledger began
+    for w in (empty["w1"], empty["m3"], built["payload"]["windows"]["m3"]):
+        assert "began on" not in w["why"] and issues["ytd_as_of"] not in w["why"], w["why"]
+    m3 = built["payload"]["windows"]["m3"]
+    assert m3["ref"] is None and m3["available_from"] > issues["as_of"] and m3["available_from"] in m3["why"], m3
 
 
 @test
@@ -456,7 +463,7 @@ def the_handler_writes_the_document_the_ledger_and_the_model_ledger_and_nothing_
     want = {L.OUT_KEY, L.HIST_KEY} | {L.LEDGER_ROOT + d + ".json.gz" for d in (issues["as_of"], issues["move_as_of"], issues["ytd_as_of"])}
     assert set(s3.puts) == want, sorted(set(s3.puts) ^ want)
     doc = json.loads(s3.puts[L.OUT_KEY])
-    assert doc["contract"] == "credit-before-equity.v2" and doc["version"] == "2.0.0" and out["statusCode"] == 200
+    assert doc["contract"] == "credit-before-equity.v2" and doc["version"] == "2.1.0" and out["statusCode"] == 200
     snap = json.loads(gzip.decompress(s3.puts[L.LEDGER_ROOT + issues["as_of"] + ".json.gz"]))
     assert snap["derived_from"] is None and snap["n"] == len(snap["bonds"]) > 500
     hist = json.loads(s3.puts[L.HIST_KEY])
@@ -480,7 +487,7 @@ def a_dry_run_builds_everything_and_writes_nothing():
 
 @test
 def the_engine_asks_no_provider_for_anything():
-    for name in ("lambda_function.py", "cbe_core.py", "cbe_names.py"):
+    for name in ("lambda_function.py", "cbe_core.py", "cbe_names.py", "cbe_themes.py"):
         text = open(os.path.join(SRC, name), encoding="utf-8").read()
         for word in ("urllib", "requests", "http.client", "financialmodelingprep", "polygon.io", "api_key", "apikey", "ssm"):
             assert word not in text.lower().replace("polygon eod bank", ""), (name, word)
@@ -502,6 +509,139 @@ def a_class_share_ticker_is_read_from_the_price_bank_under_its_dotted_name():
     p = build()[0]["payload"]
     brk = next(x for x in p["names"] if x["ticker"] == "BRK-B")
     assert brk["price"] > 100 and brk["d_price_pct"] is not None and brk["spread_bp"] is not None, brk
+
+
+def _table(p):
+    cols = p["issuers"]["cols"]
+    return [dict(zip(cols, r)) for r in p["issuers"]["rows"]]
+
+
+def _standing(mine, others):
+    """Where `mine` stands among `others` (which holds it), 0..100, ties sharing the middle - worked the long way round."""
+    below = sum(1 for v in others if v < mine)
+    same = sum(1 for v in others if v == mine)
+    return round(100.0 * (below + (same - 1) / 2.0) / (len(others) - 1), 1)
+
+
+@test
+def a_window_that_is_not_there_yet_says_when_it_can_be():
+    # a stored day 12 days back: three months (91 days, give or take 21) is first met 58 days on; one week is already met
+    assert C.available_from("2026-11-20", ["2026-11-08"], 91, 21) == "2027-01-17"
+    assert C.available_from("2026-11-20", ["2026-11-08", "2026-10-30"], 91, 21) == "2027-01-08"
+    assert C.available_from("2026-11-20", ["2025-12-31"], 91, 21) is None          # already too old to ever be three months back
+    assert C.available_from("2026-11-20", [], 7, 3) is None
+
+
+@test
+def standings_share_the_middle_of_a_tie_and_one_value_has_none():
+    assert C.standings([("a", 1.0), ("b", 2.0), ("c", 2.0), ("d", 3.0)]) == {"a": 0.0, "b": 50.0, "c": 50.0, "d": 100.0}
+    assert C.standings([("a", 5.0), ("b", 7.0), ("c", 9.0)]) == {"a": 0.0, "b": 50.0, "c": 100.0}
+    assert C.standings([("a", 5.0)]) == {} and C.standings([]) == {}
+    assert C.long_window({"ytd": "2025-12-31", "m3": None}, "2026-11-20") == "ytd"
+    assert C.long_window({"ytd": "2025-12-31", "m3": "2025-10-20"}, "2026-01-20") == "m3"          # a young year is not a long window
+    assert C.long_window({"ytd": "2025-12-31", "m3": None}, "2026-01-20") is None
+
+
+@test
+def the_stress_rank_is_where_a_company_stands_in_its_own_book():
+    p = build()[0]["payload"]
+    t = _table(p)
+    assert p["stress"]["long"] == "ytd" and p["stress"]["long_ref"] == p["windows"]["ytd"]["ref"] and p["stress"]["stressed_at"] == C.STRESSED
+    seen = 0
+    for book in ("ig", "hy", "em"):
+        rs = [r for r in t if r["book"] == book]
+        level = [r["spread_bp"] for r in rs if r["spread_bp"] is not None]
+        year = [r["pct_ytd"] for r in rs if r["pct_ytd"] is not None]
+        month = [r["d_m1"] for r in rs if r["d_m1"] is not None]
+        if level:
+            mid = sorted(level)
+            n = len(mid)
+            assert p["stress"]["book_spread_bp"][book] == round(mid[n // 2] if n % 2 else (mid[n // 2 - 1] + mid[n // 2]) / 2.0, 1)
+        for r in rs:
+            want = [None, None, None]
+            if r["spread_bp"] is not None and len(level) > 1:
+                want[0] = _standing(r["spread_bp"], level)
+            if r["pct_ytd"] is not None and len(year) > 1:
+                want[1] = _standing(r["pct_ytd"], year)
+            if r["d_m1"] is not None and len(month) > 1:
+                want[2] = _standing(r["d_m1"], month)
+            assert [r["rk_level"], r["rk_year"], r["rk_month"]] == want, (r["id"], [r["rk_level"], r["rk_year"], r["rk_month"]], want)
+            moved = [x for x in want[1:] if x is not None]
+            stress = round((want[0] + sum(moved)) / (1 + len(moved)), 1) if want[0] is not None and moved else None
+            assert r["stress"] == stress, (r["id"], r["stress"], stress)
+            seen += stress is not None
+    assert seen > 40, seen
+    hot = [r for r in t if r["stress"] is not None and r["stress"] >= C.STRESSED]
+    assert p["stress"]["n_stressed"] == len(hot) > 0 and p["stress"]["n_stressed_listed"] == sum(1 for r in hot if r["ticker"])
+    # the stress rank never looks at the stock: Oracle's bonds are marked down hard and its stock already fell, so it is no lead and it is under stress
+    orcl = next(r for r in t if r["ticker"] == "ORCL")
+    assert orcl["stress"] >= C.STRESSED and orcl["signal"] == "NONE" and orcl["px_m1"] <= -C.FLAT_BAND_PCT, orcl
+    listed = {x["ticker"]: x for x in p["names"]}
+    assert listed["ORCL"]["stress"] == orcl["stress"] and listed["ORCL"]["theme"] == "ai" and listed["ORCL"]["layer"] == "hyperscalers"
+
+
+@test
+def the_ai_stack_holds_the_reviewed_names_and_nothing_else():
+    assert TH.theme_of("ORCL", "Oracle Corporation") == ("ai", "hyperscalers") and TH.theme_of("NVDA", "NVIDIA") == ("ai", "silicon") and TH.theme_of("DELL", "Dell") == ("ai", "servers")
+    assert TH.theme_of("CRWV", "CoreWeave") == ("ai", "neocloud") and TH.theme_of("EQIX", "Equinix") == ("ai", "datacenter_reits")
+    assert TH.theme_of(None, "APLD COMPUTECO 2 LLC") == ("ai", "compute_vehicles") and TH.theme_of(None, "GALAXY HELIOS DATA CENTERS II LLC") == ("ai", "compute_vehicles")
+    assert TH.theme_of(None, "QTS CENTRAL ISSUER LLC") == ("ai", "compute_vehicles") and TH.theme_of(None, "HUT 8 DC LLC") == ("ai", "compute_vehicles")
+    for ticker, name in (("AAPL", "Apple Inc."), ("ADP", "Automatic Data Processing, Inc."), ("JPM", "JPMorgan Chase & Co."), (None, "COMPUTER SCIENCES CORP"), (None, "PETROLEOS MEXICANOS"),
+                         (None, "COMPUTERSHARE US INC"), ("FDS", "FactSet Data Centers")):                 # a listed company is in the theme by its ticker only, never by a word in its name
+        assert TH.theme_of(ticker, name) == (None, None), (ticker, name)
+    every = [t for _, _, ts in TH._LAYERS for t in ts]
+    assert len(every) == len(set(every)), sorted(t for t in set(every) if every.count(t) > 1)               # a ticker is in one layer only
+    p = build()[0]["payload"]
+    t = _table(p)
+    ai = [r for r in t if r["theme"] == "ai"]
+    assert all(r["theme"] in (None, "ai") for r in t) and all((r["theme"] is None) == (r["layer"] is None) for r in t)
+    assert {r["ticker"] for r in ai} >= {"ORCL", "INTC", "AMD", "META", "NVDA", "CRWV"}, sorted(r["ticker"] or r["name"] for r in ai)
+    assert any(r["layer"] == "compute_vehicles" and not r["ticker"] for r in ai)
+    assert len(p["themes"]) == 1
+    th = p["themes"][0]
+    assert th["key"] == "ai" and th["name"] == "AI stack" and th["n"] == len(ai) and th["n_listed"] == sum(1 for r in ai if r["ticker"]) and th["value"] == round(sum(r["value"] for r in ai), 0)
+    assert sum(layer["n"] for layer in th["layers"]) == th["n"] and [layer["key"] for layer in th["layers"]] == [k for k in TH.LAYER_ORDER if any(r["layer"] == k for r in ai)]
+    for layer in th["layers"]:
+        rs = [r for r in ai if r["layer"] == layer["key"]]
+        assert layer["n"] == len(rs) and layer["name"] == TH.LAYER_WORDS[layer["key"]] and layer["value"] == round(sum(r["value"] for r in rs), 0)
+        assert layer["spread_bp"] == C.f(C.weighted_median([(r["spread_bp"], r["value"]) for r in rs if r["spread_bp"] is not None]), 1)
+        hot = [r for r in rs if r["stress"] is not None and r["stress"] >= C.STRESSED]
+        assert layer["n_stressed"] == len(hot) and layer["stressed_value_pct"] == C.f(100.0 * sum(r["value"] for r in hot) / sum(r["value"] for r in rs), 1)
+    have = [(r["d_ytd"], r["value"]) for r in ai if r["d_ytd"] is not None]
+    assert th["win"]["ytd"]["d_bp"] == C.f(C.weighted_median(have), 1) and th["win"]["ytd"]["n"] == len(have)
+    assert th["most_stressed"][0][0] == max((r for r in ai if r["stress"] is not None), key=lambda r: (r["stress"], r["value"]))["name"]
+    # the industries carry the same stress figures, and still hold every company
+    for i in p["industries"]["all"]:
+        rs = [r for r in t if r["industry"] == i["industry"] and r["n_bonds"]]
+        assert i["n"] == len(rs) and i["n_stressed"] == sum(1 for r in rs if r["stress"] is not None and r["stress"] >= C.STRESSED), i["industry"]
+
+
+@test
+def no_lead_is_called_when_the_bonds_and_a_liquid_cds_disagree():
+    base = build()[0]["payload"]
+    assert all(not (x["signal"] in C.LEADS and x.get("cds_says") == "contradicts") for x in base["names"])
+    lead = next(x for x in base["names"] if x["signal"] in C.LEADS and x.get("signal_basis") == "bond spreads")
+    worse = lead["signal"] == "CREDIT_LEADS_DOWN"
+    docs = copy.deepcopy(FIX["docs"])
+    for g in docs[L.CDS_KEY]["groups"].values():                       # whatever the desk printed for it is replaced by one liquid row that says the opposite
+        for kind in ("rows", "unpriced", "dormant"):
+            g[kind] = [x for x in g.get(kind) or [] if N.issuer_key(x.get("name") or "")[0] != N.issuer_key(lead["name"])[0]]
+    docs[L.CDS_KEY]["groups"]["us_corp"]["rows"].append({"name": lead["name"], "sector": "Test", "ccy": "USD", "spread_bp": 300.0, "chg_1m_bp": -90.0 if worse else 90.0, "chg_3m_bp": None,
+                                                         "last_date": base["cds"]["as_of"], "liquid": True, "trades_30d": 999999})
+    p = build(docs)[0]["payload"]
+    x = next(y for y in p["names"] if y["ticker"] == lead["ticker"])
+    assert x["cds_says"] == "contradicts" and x["signal"] == "NONE" and x["credit_conflict"] is True and x["credit_state"] == lead["credit_state"], x
+    assert p["n_leads"] == base["n_leads"] - 1 and lead["ticker"] not in [y["ticker"] for y in p["leads"]]
+    row = next(r for r in _table(p) if r["ticker"] == lead["ticker"])
+    assert row["signal"] == "NONE" and row["direction"] == lead["credit_state"]
+    # a thin CDS has no say, and one that agrees keeps the lead
+    thin = copy.deepcopy(docs)
+    thin[L.CDS_KEY]["groups"]["us_corp"]["rows"][-1]["liquid"] = False
+    assert next(y for y in build(thin)[0]["payload"]["names"] if y["ticker"] == lead["ticker"])["signal"] == lead["signal"]
+    agree = copy.deepcopy(docs)
+    agree[L.CDS_KEY]["groups"]["us_corp"]["rows"][-1]["chg_1m_bp"] = 90.0 if worse else -90.0
+    y = next(y for y in build(agree)[0]["payload"]["names"] if y["ticker"] == lead["ticker"])
+    assert y["signal"] == lead["signal"] and y["cds_says"] == "confirms" and "credit_conflict" not in y
 
 
 def main():

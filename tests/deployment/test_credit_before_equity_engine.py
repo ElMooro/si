@@ -1,4 +1,4 @@
-"""justhodl-credit-before-equity (2.0.0): the things a deploy of ANY engine must not be able to break.
+"""justhodl-credit-before-equity (2.1.0): the things a deploy of ANY engine must not be able to break.
 
   * it reads the warehouse and nothing else - no provider URL, no key, no invoke;
   * its split rules are the leaders engine's file, byte for byte;
@@ -6,8 +6,11 @@
   * it still publishes every key the first engine published, because the stock screener, the invest engine and the
     equity donor inputs read it - and it runs once a day, after the corporate bonds desk;
   * its own suite passes (the real warehouse cut of ops 6942 rebuilt figure for figure);
-  * the site build cannot re-colour its page: a widening spread stays the trouble colour.
+  * the site build cannot re-colour its page: a widening spread stays the trouble colour;
+  * (2.1) its AI stack theme is the AI infrastructure stack engine's own layers and tickers - a name added there is on the
+    credit board the same day - with the three layers the credit board adds, and the 2.1 columns come after the 2.0 ones.
 """
+import ast
 import hashlib
 import json
 import subprocess
@@ -18,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[2]
 ENGINE = ROOT / "aws" / "lambdas" / "justhodl-credit-before-equity"
 SRC = ENGINE / "source"
 TEXT = (SRC / "lambda_function.py").read_text(encoding="utf-8")
-ALL = "".join((SRC / n).read_text(encoding="utf-8") for n in ("lambda_function.py", "cbe_core.py", "cbe_names.py"))
+ALL = "".join((SRC / n).read_text(encoding="utf-8") for n in ("lambda_function.py", "cbe_core.py", "cbe_names.py", "cbe_themes.py"))
 CONFIG = json.loads((ENGINE / "config.json").read_text(encoding="utf-8"))
 
 
@@ -83,3 +86,35 @@ def test_the_site_builds_reskin_cannot_change_what_a_colour_on_the_credit_board_
     assert "jh-reskin-skip" not in page
     style = page[page.index("<style>"):page.index("</style>")]
     assert reskin_site.reskin_text(style) == style, "the page's frame would look different on the site than in this file"
+
+
+def _literal(path, name):
+    """The value a module assigns to `name` at its top level, read without importing the module."""
+    for node in ast.parse(path.read_text(encoding="utf-8")).body:
+        if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == name for t in node.targets):
+            return ast.literal_eval(node.value)
+    raise AssertionError("%s assigns no %s" % (path.name, name))
+
+
+def test_the_credit_boards_ai_stack_is_the_stack_engines_own_layers():
+    theirs = _literal(ROOT / "aws/lambdas/justhodl-ai-infra-stack/source/lambda_function.py", "LAYERS")
+    mine = _literal(SRC / "cbe_themes.py", "AI_STACK")
+    assert [(k, label, list(seeds)) for k, label, _, seeds, _ in theirs] == [(k, label, list(seeds)) for k, label, seeds in mine], \
+        "cbe_themes.AI_STACK must be the AI infrastructure stack engine's LAYERS (key, label, seeds), in its order: a ticker added to one is added to the other"
+    stack = {t for _, _, seeds in mine for t in seeds}
+    added = _literal(SRC / "cbe_themes.py", "HYPERSCALERS")[2] + _literal(SRC / "cbe_themes.py", "SERVERS")[2]
+    assert not stack & set(added), "a layer the credit board adds may not take a ticker the stack engine already places: %s" % sorted(stack & set(added))
+    assert set(_literal(SRC / "cbe_themes.py", "HYPERSCALERS")[2]) >= {"MSFT", "GOOGL", "AMZN", "META", "ORCL"}
+
+
+def test_the_2_1_columns_come_after_the_2_0_columns_and_nothing_was_taken_away():
+    cols = _literal(SRC / "lambda_function.py", "ISSUER_COLS")
+    assert cols[:25] == ["id", "ticker", "name", "industry", "book", "country", "n_bonds", "value", "yield_pct", "dur", "spread_bp", "d_w1", "d_m1", "x_m1", "pct_m1", "n_m1", "d_m3", "d_ytd",
+                         "cds_bp", "cds_d1m", "px_m1", "direction", "signal", "distressed", "tie"], "the 2.0 columns keep their names and their order"
+    assert cols[25:] == ["pct_ytd", "stress", "rk_level", "rk_year", "rk_month", "theme", "layer", "cds_d3m", "cds_rank", "px_ytd", "pct_w1", "pct_m3"] and len(set(cols)) == len(cols)
+    core = (SRC / "cbe_core.py").read_text(encoding="utf-8")
+    assert 'VERSION = "2.1.0"' in core and 'CONTRACT = "credit-before-equity.v2"' in core, "2.1 adds to the v2 contract; it does not break it"
+    build = TEXT[TEXT.index("def build("):TEXT.index("def lambda_handler(")]
+    for key in ('"themes":', '"stress":', '"industries":', '"issuers":', '"leads":', '"names":', '"cds":', '"windows":', '"rules":'):
+        assert key in build, "the document must carry %s" % key
+    assert 'signal = "NONE"' in build and "conflict" in build, "no lead is called when the bonds and a liquid CDS disagree"

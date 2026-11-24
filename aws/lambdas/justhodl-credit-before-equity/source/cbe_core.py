@@ -13,14 +13,19 @@ of the iShares investment-grade, high-yield and emerging-market corporate books)
               value held - a distressed name cannot carry an industry by itself.
   signal      credit moved by more than its own book (investment grade, high yield, emerging) and the stock has not
               followed.
+  stress      where a company stands in its own book on three things, averaged: how wide its spread is, how far it has
+              widened over the long window (the year to date) as a share of where it started, and how far it widened in
+              the month. 0 to 100; it says nothing about the stock. A lead asks whether the stock has noticed; stress
+              asks only what the bond market thinks.
 """
 from collections import Counter, defaultdict
 from datetime import date
 import math
 
 import cbe_names as N
+import cbe_themes as TH
 
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 CONTRACT = "credit-before-equity.v2"
 
 BOOKS = {"US IG": "ig", "US HY": "hy", "EM corporate": "em", "EM HY": "em"}       # the US-dollar corporate books that are read
@@ -46,6 +51,8 @@ CDS_MOVE_REL = 0.10        # ... and this share of its level
 CDS_BELIEVABLE_BP = 5000.0 # past this a "spread" is a points-upfront quote turned into a running one: shown as points, not ranked
 MIN_MATCHED = 1            # bonds seen at both dates
 LEADS = ("CREDIT_LEADS_DOWN", "CREDIT_LEADS_UP")
+LONG_MIN_DAYS = 60         # the long window is the year to date once it is this long; before that, three months
+STRESSED = 80.0            # a stress rank from here up is "under stress" on the board
 
 NOT_COMPANIES = ("government", "local", "sovereign", "supranational", "treasur", "agenc", "covered", "securitized", "abs", "cmbs", "mbs", "cash", "derivative", "municipal")
 INDUSTRY_WORDS = {
@@ -308,9 +315,11 @@ def companies(points, matcher, snapshots, windows):
             "country": g["country"].most_common(1)[0][0] or None, "n_bonds": len(pts), "n_spread": len(good), "n_issuers": len(g["keys"]),
             "value": round(sum(p["v"] for p in pts), 0), "yield_pct": f(wavg([(p["y"], p["v"]) for p in good]), 2), "dur": f(wavg([(p["dur"], p["v"]) for p in good]), 2),
             "spread_bp": f(wavg([(p["s"], p["v"]) for p in good]), 1), "tie": sorted(g["how"])[0] if co else "untied", "win": {},
+            "theme": None, "layer": None,
             "n_limit": sum(1 for p in pts if p["why"] == "yield at the file's limit"),
         }
         row["distressed"] = bool(row["spread_bp"] is not None and row["spread_bp"] >= DISTRESSED_BP) or (row["n_limit"] > 0 and not good)
+        row["theme"], row["layer"] = TH.theme_of(row["ticker"], row["name"])
         for wkey, ref in windows.items():
             snap = snapshots.get(ref) if ref else None
             if not snap:
@@ -346,32 +355,135 @@ def add_excess(rows, medians):
             w["x_bp"] = f(w["d_bp"] - m, 1) if m is not None and w.get("d_bp") is not None else None
 
 
+def aggregate(rs, windows):
+    """What the board says of a group of companies: its middle spread and change by market value held, and its stress."""
+    value = sum(r["value"] for r in rs)
+    stressed = [r for r in rs if r.get("stress") is not None and r["stress"] >= STRESSED]
+    row = {"n": len(rs), "n_listed": sum(1 for r in rs if r["ticker"]), "value": round(value, 0),
+           "spread_bp": f(weighted_median([(r["spread_bp"], r["value"]) for r in rs if r["spread_bp"] is not None]), 1),
+           "n_distressed": sum(1 for r in rs if r["distressed"]),
+           "stress": f(weighted_median([(r["stress"], r["value"]) for r in rs if r.get("stress") is not None]), 1), "n_stressed": len(stressed),
+           "stressed_value_pct": f(100.0 * sum(r["value"] for r in stressed) / value, 1) if value > 0 else None,
+           "most_stressed": [[r["name"], r["stress"]] for r in sorted(stressed, key=lambda r: (-r["stress"], -r["value"]))[:3]], "win": {}}
+    for wkey in windows:
+        have = [(r["win"][wkey]["d_bp"], r["value"], r) for r in rs if wkey in r["win"] and r["win"][wkey].get("d_bp") is not None]
+        if not have:
+            continue
+        d = weighted_median([(x, v) for x, v, _ in have])
+        was = weighted_median([(r["win"][wkey]["from_bp"], v) for _, v, r in have if r["win"][wkey].get("from_bp") is not None])
+        wider = sum(1 for x, _, _ in have if x >= 5.0)
+        tighter = sum(1 for x, _, _ in have if x <= -5.0)
+        worst = max(have, key=lambda t: t[0])[2]
+        best = min(have, key=lambda t: t[0])[2]
+        row["win"][wkey] = {"d_bp": f(d, 1), "from_bp": f(was, 1), "d_pct": f(100.0 * d / was, 1) if was and was >= 10.0 else None, "n": len(have),
+                            "wider": wider, "tighter": tighter, "widest": [worst["name"], worst["win"][wkey]["d_bp"]], "tightest": [best["name"], best["win"][wkey]["d_bp"]]}
+    return row
+
+
 def industries(rows, windows, book=None):
     """The heat map's rows: one per industry, for all books or one of them."""
     per = defaultdict(list)
     for r in rows:
         if r.get("industry") and (book is None or r["book"] == book) and r["n_bonds"]:
             per[r["industry"]].append(r)
-    out = []
-    for name, rs in per.items():
-        row = {"industry": name, "n": len(rs), "n_listed": sum(1 for r in rs if r["ticker"]), "value": round(sum(r["value"] for r in rs), 0),
-               "spread_bp": f(weighted_median([(r["spread_bp"], r["value"]) for r in rs if r["spread_bp"] is not None]), 1),
-               "n_distressed": sum(1 for r in rs if r["distressed"]), "win": {}}
-        for wkey in windows:
-            have = [(r["win"][wkey]["d_bp"], r["value"], r) for r in rs if wkey in r["win"] and r["win"][wkey].get("d_bp") is not None]
-            if not have:
-                continue
-            d = weighted_median([(x, v) for x, v, _ in have])
-            was = weighted_median([(r["win"][wkey]["from_bp"], v) for _, v, r in have if r["win"][wkey].get("from_bp") is not None])
-            wider = sum(1 for x, _, _ in have if x >= 5.0)
-            tighter = sum(1 for x, _, _ in have if x <= -5.0)
-            worst = max(have, key=lambda t: t[0])[2]
-            best = min(have, key=lambda t: t[0])[2]
-            row["win"][wkey] = {"d_bp": f(d, 1), "from_bp": f(was, 1), "d_pct": f(100.0 * d / was, 1) if was and was >= 10.0 else None, "n": len(have),
-                                "wider": wider, "tighter": tighter, "widest": [worst["name"], worst["win"][wkey]["d_bp"]], "tightest": [best["name"], best["win"][wkey]["d_bp"]]}
-        out.append(row)
+    out = [{"industry": name, **aggregate(rs, windows)} for name, rs in per.items()]
     out.sort(key=lambda r: (-(r["value"] or 0), r["industry"]))
     return out
+
+
+def themes(rows, windows):
+    """One row a theme (cbe_themes), with a row for each of its layers that has a company on the board."""
+    out = []
+    for key, meta in TH.THEMES.items():
+        rs = [r for r in rows if r.get("theme") == key]
+        if not rs:
+            continue
+        row = {"key": key, "name": meta["name"], "note": meta["note"], **aggregate(rs, windows), "layers": []}
+        for layer in TH.LAYER_ORDER:
+            ls = [r for r in rs if r.get("layer") == layer]
+            if ls:
+                row["layers"].append({"key": layer, "name": TH.LAYER_WORDS[layer], **aggregate(ls, windows)})
+        out.append(row)
+    return out
+
+
+# ------------------------------------------------------------------------------------------------------- stress
+def long_window(windows, as_of):
+    """The window that stands for the build-up: the year to date once it is LONG_MIN_DAYS long, else three months, else none."""
+    for key in ("ytd", "m3"):
+        ref = windows.get(key)
+        if ref and days_between(ref, as_of) >= LONG_MIN_DAYS:
+            return key
+    return None
+
+
+def standings(pairs):
+    """{id: 0..100} - where each value stands among the others, ties sharing the middle of their places. One value has no standing."""
+    vals = sorted(v for _, v in pairs)
+    n = len(vals)
+    if n < 2:
+        return {}
+    out = {}
+    for ident, v in pairs:
+        lo = hi = None
+        a, b = 0, n
+        while a < b:                                   # first place of v
+            m = (a + b) // 2
+            if vals[m] < v:
+                a = m + 1
+            else:
+                b = m
+        lo = a
+        a, b = lo, n
+        while a < b:                                   # one past its last place
+            m = (a + b) // 2
+            if vals[m] <= v:
+                a = m + 1
+            else:
+                b = m
+        hi = a
+        out[ident] = round(100.0 * (lo + hi - 1) / 2.0 / (n - 1), 1)
+    return out
+
+
+def add_stress(rows, windows, as_of):
+    """Give every company its three standings inside its own book and their average. Returns the long window used."""
+    long = long_window(windows, as_of)
+    for book in sorted({r["book"] for r in rows}):
+        rs = [r for r in rows if r["book"] == book]
+        level = standings([(r["id"], r["spread_bp"]) for r in rs if r["spread_bp"] is not None])
+        year = standings([(r["id"], r["win"][long]["d_pct"]) for r in rs if long and long in r["win"] and r["win"][long].get("d_pct") is not None])
+        month = standings([(r["id"], r["win"][PRIMARY]["d_bp"]) for r in rs if PRIMARY in r["win"] and r["win"][PRIMARY].get("d_bp") is not None])
+        for r in rs:
+            r["rk_level"], r["rk_year"], r["rk_month"] = level.get(r["id"]), year.get(r["id"]), month.get(r["id"])
+            moved = [x for x in (r["rk_year"], r["rk_month"]) if x is not None]
+            r["stress"] = round((r["rk_level"] + sum(moved)) / (1 + len(moved)), 1) if r["rk_level"] is not None and moved else None
+    return long
+
+
+def book_levels(rows):
+    """{book: the middle company's spread} - what a company's own spread is a multiple of."""
+    out = {}
+    for book in sorted({r["book"] for r in rows}):
+        vals = sorted(r["spread_bp"] for r in rows if r["book"] == book and r["spread_bp"] is not None)
+        if vals:
+            n = len(vals)
+            out[book] = f(vals[n // 2] if n % 2 else (vals[n // 2 - 1] + vals[n // 2]) / 2.0, 1)
+    return out
+
+
+def available_from(as_of, days, aim, tol):
+    """The first holdings day on which a stored day will be `aim` days back, give or take `tol`; None when no stored day can be."""
+    best = None
+    for d in days:
+        back = days_between(d, as_of)
+        if back > aim + tol:
+            continue                                   # already too old: it will never be near enough again
+        need = max((aim - tol) - back, 1)
+        day = date.fromordinal(date.fromisoformat(as_of).toordinal() + need).isoformat()
+        if best is None or day < best:
+            best = day
+    return best
 
 
 # ------------------------------------------------------------------------------------------------------- the stock
@@ -470,6 +582,9 @@ RULES = {
     "industry": "The fund file's sector. Its change is the middle company's change, each company weighted by market value held.",
     "credit_moved": "A company's spread moved, and moved past its own book's change (investment grade, high yield, emerging markets) by at least %g bp and at least %g%% of the spread it started from, its own spread having moved %g bp or more the same way. A spread that only widened less than its book has held up; it has not improved." % (MOVE_FLOOR_BP, MOVE_REL * 100, OWN_MOVE_BP),
     "stock_has_not_followed": "From the reference day's close to the newest close the stock is not %g%% or more in the direction credit points." % FLAT_BAND_PCT,
+    "stress": "A company's stress rank is the average of where it stands in its own book (investment grade, high yield, emerging markets) on three things: how wide its spread is, how far it has widened over the long window as a share of where it started, and how far it widened in the month. 0 to 100; %g or more is shown as under stress. It does not look at the stock." % STRESSED,
+    "no_lead_when_credit_disagrees": "When a liquid traded CDS moved the opposite way to the bonds over the month, the two credit markets disagree and no lead is called.",
+    "theme": "A theme is a reviewed list of companies across industries. The AI stack is the AI infrastructure stack engine's layers and tickers, with the hyperscalers, the server makers and the financing vehicles of AI computing sites.",
     "cds": "A traded CDS level is the CDS desk's (DTCC public prints). It moves when its one-month change is past %g bp and %g%% of its level, and only a liquid name is read. A level past %g bp is a points-upfront quote turned into a running spread: it is shown in points and not ranked." % (CDS_MOVE_BP, CDS_MOVE_REL * 100, CDS_BELIEVABLE_BP),
     "left_out": "Bonds not in US dollars, floating-rate and convertible bonds, bonds under a year to run, bonds whose yield the fund file does not print, prints at its limit or prints at zero or less (priced to an early call), and government or local-authority issuers.",
 }

@@ -1,4 +1,4 @@
-"""ops 6942 - DRY RUN of Credit Before Equity 2.0.0 on the real warehouse. Nothing is invoked and nothing is written.
+"""ops 6942 - DRY RUN of Credit Before Equity (the engine's source as committed) on the real warehouse. Nothing is invoked and nothing is written.
 
 The engine's own build() runs on the runner against the live bucket with its writes left out, and what it would publish is
 checked here by arithmetic that does not use the engine's:
@@ -8,11 +8,16 @@ checked here by arithmetic that does not use the engine's:
   3  the counts the page will reconcile (names, leads, awaiting) and that every lead's stock has not followed
   4  every tie made by a rule (not an exact name, not the reviewed list) printed for review, and the largest untied issuers
   5  the listed companies the factor book does not hold but the price bank does
+  6  (2.1) every company's stress rank worked again from the published table: where it stands in its own book on spread
+     level, the long window's change and the month's change, and their average
+  7  (2.1) the AI stack theme: its count against the rows, every listed member a ticker of the reviewed lists, its lines
+  8  (2.1) no lead where a liquid CDS says the opposite of the bonds
 
 It also cuts a small warehouse (a few dozen companies: their bonds, CDS rows, price files, the curve) with what the engine
 publishes from exactly that cut, for the offline tests, and says how many earlier versions of the bond desk's document the
 bucket still holds (a real one-week comparison could be built from them).
 """
+from bisect import bisect_left, bisect_right
 from datetime import date, datetime, timezone
 from pathlib import Path
 import base64
@@ -27,10 +32,12 @@ sys.path[:0] = [str(ROOT / "aws" / "ops"), str(ROOT / "aws" / "shared"), str(ROO
 LIVE = "justhodl-dashboard-live"
 TEN = {"1M": 1 / 12, "2M": 2 / 12, "3M": 0.25, "4M": 4 / 12, "6M": 0.5, "1Y": 1.0, "2Y": 2.0, "3Y": 3.0, "5Y": 5.0, "7Y": 7.0, "10Y": 10.0, "20Y": 20.0, "30Y": 30.0}
 CUT_TICKERS = ["AAPL", "JPM", "F", "ORCL", "CHTR", "WHR", "PZZA", "BRK-B", "ET", "T", "BA", "INTC", "AAL", "ECHO", "MLCO", "BHC", "PRGO", "ADT", "KBR", "STC", "DUK", "XOM", "GS", "HCA", "OXY",
-               "TROX", "IHRT", "AMD", "LKQ", "PRI", "SGRY", "MATV", "CVS", "KSS", "CAR", "DCH", "XRX", "HSBC", "SMFG", "RIO", "BUD", "TEVA", "CNC", "PCG", "NEE"]
+               "TROX", "IHRT", "AMD", "LKQ", "PRI", "SGRY", "MATV", "CVS", "KSS", "CAR", "DCH", "XRX", "HSBC", "SMFG", "RIO", "BUD", "TEVA", "CNC", "PCG", "NEE",
+               "META", "NVDA", "AVGO", "MSFT", "CRWV", "DELL", "CORZ", "EQIX", "VST"]                       # 2.1: the AI stack theme needs its own names in the cut
 CUT_ISSUERS = ["CLOUD SOFTWARE GROUP", "HUB INTERNATIONAL", "PETROLEOS MEXICANOS", "SAUDI ARABIAN OIL", "HILCORP ENERGY I", "LIFEPOINT HEALTH", "NISSAN MOTOR", "SOFTBANK GROUP", "ALTICE FRANCE",
                "PARAMOUNT SKYDANCE", "STAPLES", "MICHAELS", "STANDARD CHARTERED", "BNP PARIBAS", "MARS", "CHS COMMUNITY HEALTH SYSTEMS", "ASTON MARTIN CAPITAL HOLDINGS", "BURLINGTON NORTHERN SANTA",
-               "PACIFICORP", "METROPOLITAN BANK", "PERSHING SQUARE HOLDINGS", "COX COMMUNICATIONS", "ELECTRONIC ARTS", "NORDSTROM", "CITGO PETROLEUM"]
+               "PACIFICORP", "METROPOLITAN BANK", "PERSHING SQUARE HOLDINGS", "COX COMMUNICATIONS", "ELECTRONIC ARTS", "NORDSTROM", "CITGO PETROLEUM",
+               "APLD COMPUTECO 2", "GALAXY HELIOS DATA CENTERS II", "HUT 8 DC", "QTS CENTRAL ISSUER", "FLASH COMPUTE"]
 
 
 class Body:
@@ -137,7 +144,7 @@ def main():
     now = datetime.now(timezone.utc)
 
     with report("ops_6942_credit_before_equity_dry_run") as r:
-        r.heading("ops 6942 - Credit Before Equity 2.0.0 dry run on the real warehouse (nothing written), %s" % now.isoformat(timespec="minutes"))
+        r.heading("ops 6942 - Credit Before Equity %s dry run on the real warehouse (nothing written), %s" % (C.VERSION, now.isoformat(timespec="minutes")))
         rec = Recorder(real)
         logs = []
         built = L.build(rec, now, log=logs.append)
@@ -242,6 +249,70 @@ def main():
             r.log("bond desk document: %d versions kept in the bucket, %s .. %s; by day %s" % (len(vers), stamps[0] if stamps else None, stamps[-1] if stamps else None, sorted({s[:10] for s in stamps})[-40:]))
         except Exception as e:  # noqa: BLE001
             r.log("bond desk document versions: could not be listed (%s)" % type(e).__name__)
+
+        # 6 the stress rank, worked again from the published table
+        if "stress" in p:
+            import cbe_themes as TH
+            st = p["stress"]
+            r.log("stress: %s" % json.dumps(st))
+            wrong = 0
+            for book in ("ig", "hy", "em"):
+                rs = [x for x in table if x["book"] == book]
+                pools = {"rk_level": sorted(x["spread_bp"] for x in rs if x["spread_bp"] is not None),
+                         "rk_year": sorted(x["pct_" + st["long"]] for x in rs if st["long"] and x["pct_" + st["long"]] is not None),
+                         "rk_month": sorted(x["d_m1"] for x in rs if x["d_m1"] is not None)}
+                src = {"rk_level": "spread_bp", "rk_year": "pct_" + (st["long"] or "ytd"), "rk_month": "d_m1"}
+                for x in rs:
+                    mine = {}
+                    for rk, pool in pools.items():
+                        v = x[src[rk]] if (rk != "rk_year" or st["long"]) else None
+                        mine[rk] = None if v is None or len(pool) < 2 else round(100.0 * (bisect_left(pool, v) + bisect_right(pool, v) - 1) / 2.0 / (len(pool) - 1), 1)
+                    moved = [mine[k] for k in ("rk_year", "rk_month") if mine[k] is not None]
+                    stress = round((mine["rk_level"] + sum(moved)) / (1 + len(moved)), 1) if mine["rk_level"] is not None and moved else None
+                    if [x["rk_level"], x["rk_year"], x["rk_month"], x["stress"]] != [mine["rk_level"], mine["rk_year"], mine["rk_month"], stress]:
+                        wrong += 1
+                r.log("check 6 book %s: %d companies, %d with a level, %d with the long window's change, %d with the month's" % (book, len(rs), len(pools["rk_level"]), len(pools["rk_year"]), len(pools["rk_month"])))
+            hot = [x for x in table if x["stress"] is not None and x["stress"] >= st["stressed_at"]]
+            ok = wrong == 0 and st["n_stressed"] == len(hot) and st["n_stressed_listed"] == sum(1 for x in hot if x["ticker"])
+            r.log("check 6 every company's stress rank by own arithmetic: %d differ; %d at %s or more (%d listed) -> %s" % (wrong, len(hot), st["stressed_at"], sum(1 for x in hot if x["ticker"]), "agree" if ok else "DIFFER"))
+            if not ok:
+                bad.append("stress ranks")
+            big = sorted([x for x in table if x["stress"] is not None and x["value"] >= 50e6], key=lambda x: (-x["stress"], -x["value"]))
+            r.log("most stressed of the %d companies with $50M or more held:" % len(big))
+            for i, x in enumerate(big[:30]):
+                r.log("  %2d %-6s %-38s %s %-22s $%5.0fM spread %7s ytd %7s (%s%%) 1M %6s cds %s 3M %s | stress %5s (level %s, year %s, month %s) stock 1M %s%% %s" % (
+                    i + 1, x["ticker"] or "", str(x["name"])[:38], x["book"], str(x["industry"])[:22], x["value"] / 1e6, x["spread_bp"], x["d_ytd"], x["pct_ytd"], x["d_m1"], x["cds_bp"], x["cds_d3m"],
+                    x["stress"], x["rk_level"], x["rk_year"], x["rk_month"], x["px_m1"], x["theme"] or ""))
+
+            # 7 the AI stack
+            reviewed = {t for _, _, ts in TH._LAYERS for t in ts}
+            for th in p["themes"]:
+                rs = [x for x in table if x["theme"] == th["key"]]
+                ok = th["n"] == len(rs) and sum(layer["n"] for layer in th["layers"]) == len(rs) and all((not x["ticker"]) or x["ticker"] in reviewed for x in rs) and \
+                    all(x["ticker"] or x["layer"] == "compute_vehicles" for x in rs)
+                r.log("check 7 theme %s: %d companies (%d listed), $%.1fB held, middle spread %s bp, stress %s, %d under stress holding %s%% of its value; %s -> %s" % (
+                    th["name"], th["n"], th["n_listed"], th["value"] / 1e9, th["spread_bp"], th["stress"], th["n_stressed"], th["stressed_value_pct"],
+                    {k: (v["d_bp"], v["d_pct"], v["wider"], v["tighter"]) for k, v in th["win"].items()}, "agree" if ok else "DIFFER"))
+                if not ok:
+                    bad.append("theme %s" % th["key"])
+                for layer in th["layers"]:
+                    r.log("    %-30s %2d companies $%6.0fM spread %7s bp stress %5s under stress %d | 1M %s ytd %s | %s" % (
+                        layer["name"], layer["n"], layer["value"] / 1e6, layer["spread_bp"], layer["stress"], layer["n_stressed"], (layer["win"].get("m1") or {}).get("d_bp"),
+                        (layer["win"].get("ytd") or {}).get("d_bp"), layer["most_stressed"]))
+                for x in sorted(rs, key=lambda x: -(x["stress"] if x["stress"] is not None else -1)):
+                    r.log("      %-6s %-34s %-20s %s $%5.0fM spread %7s ytd %7s (%s%%) 1M %6s cds %s 3M %s rank %s | stress %s | stock 1M %s%% ytd %s%%" % (
+                        x["ticker"] or "", str(x["name"])[:34], x["layer"], x["book"], x["value"] / 1e6, x["spread_bp"], x["d_ytd"], x["pct_ytd"], x["d_m1"], x["cds_bp"], x["cds_d3m"], x["cds_rank"],
+                        x["stress"], x["px_m1"], x["px_ytd"]))
+            maybe = [x for x in table if not x["theme"] and not x["ticker"] and any(w in " " + str(x["name"]).upper() + " " for w in (" DATA ", " DIGITAL ", " CLOUD ", " AI ", " GPU ", " HOSTING ", " COLOCATION "))]
+            r.log("for review - issuers with no listed stock whose name suggests computing, not in the theme (%d): %s" % (len(maybe), "; ".join("%s ($%.0fM, %s bp)" % (x["name"], x["value"] / 1e6, x["spread_bp"]) for x in sorted(maybe, key=lambda x: -x["value"])[:40])))
+
+            # 8 the two credit markets
+            clash = [x for x in names if x.get("credit_conflict")]
+            ok = all(x.get("cds_says") != "contradicts" for x in leads) and all(x["signal"] == "NONE" and x.get("cds_says") == "contradicts" for x in clash)
+            r.log("check 8 no lead where a liquid CDS says the opposite of the bonds: %d names held back %s -> %s" % (
+                len(clash), [(x["ticker"], x.get("d_spread_bp"), x.get("cds_d1m"), x.get("d_price_pct")) for x in clash], "agree" if ok else "DIFFER"))
+            if not ok:
+                bad.append("leads against the CDS")
 
         # the cut for the offline tests: a small warehouse and what the engine publishes from exactly that
         keys = {k for k, t in key_ticker.items() if t in CUT_TICKERS} | set(CUT_ISSUERS)
