@@ -473,16 +473,21 @@ def build(s3, now=None, prev=None, log=print):
     except Exception as exc:  # noqa: BLE001
         notes.append("CoinMarketCap listing not read (%s): coins ordered by a fixed list, no market value" % type(exc).__name__)
     coin_keys = []
-    tok = None
-    while True:
-        kw = {"Bucket": BUCKET, "Prefix": COIN_ROOT}
-        if tok:
-            kw["ContinuationToken"] = tok
-        page = s3.list_objects_v2(**kw)
-        coin_keys += [o["Key"] for o in page.get("Contents") or [] if o["Key"].endswith(".json.gz")]
-        tok = page.get("NextContinuationToken")
-        if not tok:
-            break
+    try:
+        tok = None
+        while True:
+            kw = {"Bucket": BUCKET, "Prefix": COIN_ROOT}
+            if tok:
+                kw["ContinuationToken"] = tok
+            page = s3.list_objects_v2(**kw)
+            coin_keys += [o["Key"] for o in page.get("Contents") or [] if o["Key"].endswith(".json.gz")]
+            tok = page.get("NextContinuationToken")
+            if not tok:
+                break
+    except Exception as exc:  # noqa: BLE001
+        notes.append("the coin folder could not be listed (%s): the fixed list of coins was read by name" % type(exc).__name__)
+    if not coin_keys:
+        coin_keys = [COIN_ROOT + c + ".json.gz" for c in dict.fromkeys(U.COIN_FALLBACK + U.LEGACY_COINS)]
 
     def read_coin(key):
         doc, _ = optional(s3, key)

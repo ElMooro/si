@@ -353,6 +353,13 @@ def coins_come_from_the_banked_bars_by_market_value():
     doc, _ = build(lambda fix: fix.__setitem__("cmc", None))
     assert all("mc" not in t for t in doc["map"]["tiles"] if t["k"] == "coin") and {"BTC", "ETH", "SOL"} <= {t["t"] for t in doc["map"]["tiles"]}
 
+    class NoListing(FakeS3):
+        def list_objects_v2(self, **kw):
+            raise PermissionError("AccessDenied")
+    doc = L.build(NoListing(warehouse().objects), now=NOW, prev=None, log=lambda *_: None)
+    got = [t["t"] for t in doc["map"]["tiles"] if t["k"] == "coin"]
+    assert set(got) == {"BTC", "ETH", "SOL", "XRP", "DOGE", "ADA"} and got[0] == "BTC" and any("fixed list" in n for n in doc["notes"]), "a folder that cannot be listed costs the market values, not the coins"
+
 
 @test
 def a_currency_tile_is_the_currency_against_the_dollar():
