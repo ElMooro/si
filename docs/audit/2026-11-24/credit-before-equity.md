@@ -32,7 +32,7 @@ The warehouse only; no provider is asked for anything. Same schedule, once a day
   of the iShares investment-grade, high-yield and emerging-market corporate books) becomes a spread: its yield minus the
   Treasury par yield at the bond's duration-matched maturity. 14,283 bonds on the first run.
 - **A company** is the bonds of every legal issuer tied to one listed stock, weighted by the market value the funds hold; an
-  issuer with no listed stock is kept as credit only. 2,946 companies on the first run: 1,085 tied to a listed stock (73.8% of
+  issuer with no listed stock is kept as credit only. 2,946 companies on the first run: 1,085 tied to a listed stock (73.9% of
   the market value read), 1,861 credit only. The first engine had 26.
 - **A change** is measured on the same bonds at both dates. Reference days: one week and three months from the board's own
   ledger (`credit/cbe-spreads/<holdings day>.json.gz`, one small file a day, every bond's spread); one month and the year's
@@ -55,7 +55,8 @@ The warehouse only; no provider is asked for anything. Same schedule, once a day
 - **How names are tied** (`cbe_names.py`). A wrong tie would cross one company's credit with another company's stock, so the
   ladder is short: the exact name once legal forms are set aside; the same once HOLDINGS / GROUP / PARTNERS are set aside; a
   name the fund file cut at 34 characters that begins exactly one company's name; the company's name followed only by
-  financing-vehicle words; and a reviewed list of 620 names (subsidiaries that borrow in their own name). A rule never ties a
+  financing-vehicle words; and a reviewed list of 623 names (subsidiaries that borrow in their own name; 31 of them are
+  names deliberately left untied). A rule never ties a
   bank-like issuer to a non-financial company, nor a foreign issuer to an American company of the same name. Every tie made
   by a rule is published in the document (`match.by_rule`, 78 on the first run) and listed on the page.
 
@@ -104,7 +105,7 @@ The warehouse only; no provider is asked for anything. Same schedule, once a day
   (`aws/shared/equity_donor_inputs.py`). For the 26 model names that is still what the model fields are; for the other
   companies the record now carries real spreads. Changing that one line redeploys eight engines, so it was left for your word.
 - **`justhodl-invest` still reads the model's day-over-day change** (`d_distance_to_default`, weight 0.06) and so reads
-  nothing for the 1,060 companies that have a real spread and no model.
+  nothing for the 1,058 companies that have a real spread and no model.
 - **The CDS desk prints some levels that are hard to believe**: AT&T at 7 bp, Goodyear down 161 bp in a month while its bonds
   widened 260 bp, Ford's one-day change larger than its level. The board shows them as the desk prints them and reads a CDS
   only when it is liquid.
@@ -119,9 +120,27 @@ The warehouse only; no provider is asked for anything. Same schedule, once a day
   out; four companies' spreads worked again from the raw bonds and the curve agree to the tenth of a basis point (AAPL 57.9,
   CHTR 279.8, JPM 84.2, WHR 652.4); three industries' changes agree; ten reconciliation checks pass.
 - **Ledger**, ops 6943 (20:35 UTC): 13 holdings days written, each read back the same.
+- **First light**, ops 6945 (21:16 UTC): the deployed package is this checkout's, byte for byte; one dry run inside Lambda
+  (20.8 s, 261 MB of 2,048 MB, nothing written), then one publication: 2,946 companies (1,085 listed), 48 leads (20 credit
+  worse with the stock not down, 28 credit better with the stock not up), 203 CDS levels; ten read-back checks pass; the
+  ledger holds 15 days; the site serves the document. Both invokes were by hand, outside the 22:35 UTC schedule.
+- **Live proof**, ops 6944 (21:38 UTC, read-only, can be run again): **0 failed checks.** Five companies' spreads and their
+  one-week changes worked again from the bond desk's raw bonds, the curve and the ledger day agree (AAPL 57.9 bp, +4.4 in the
+  week; JPM 84.2, +7.0; CHTR 279.8, +19.1; WHR 652.4, +60.2; XOM 63.7, +4.8); all 201 industry-book-window changes are the
+  middle company by value; 15 stock changes are two closes of the price bank; all 203 CDS levels are the CDS desk's. A real
+  browser on justhodl.ai: evidence RECONCILED; 20 tiles with the document's figures, Energy (+20.9 bp, widest) drawn
+  rgb(242, 54, 69) and Communications (-0.1 bp) rgb(46, 75, 80) - red and green, not the site's amber; the one-week, book
+  and measure controls; the table sorted by its header, the Sort by list, the direction button, by industry both ways and
+  grouped into 20 industries; the search; Show all (2,946 rows); the CDS table by one-month change and by level both ways;
+  the previous view (26 names) and back; a phone with no sideways scroll; no page error. Report and ten pictures:
+  `aws/ops/reports/latest/ops_6944_credit_before_equity_live_proof.md`.
 - **Tests**: the engine's 26 offline tests on a cut of the real warehouse the runner took (the engine reproduces what the
   runner published from it, figure for figure); 23 page tests on the same document; 6 deployment tests; the repository's
   suites (5,238 node tests, 1,245 deployment tests).
+
+What the board said at first light (bond holdings of 2026-11-23): in the month since 2026-10-30, 19 of 20 industries are
+wider; Energy widened most (+20.9 bp) and Communications least (-0.1 bp). In the week since 2026-11-16 all 20 are wider,
+from Consumer non-cyclical (+4.9 bp) to Basic industry (+28.8 bp) among the classified industries.
 
 ## To take it back
 
