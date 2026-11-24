@@ -224,14 +224,12 @@ def main():
 
         # ------------------------------------------------------------------ 3. the factor book: every fund
         r.section("3. The factor book: every fund, by size")
-        book, bwhen = get("data/warm/factor-book/matrix/index.json.gz")
-        rows = book if isinstance(book, list) else (book or {}).get("rows") or (book or {}).get("symbols") or []
-        if isinstance(book, dict) and not rows:
-            r.log("factor book index keys: %s" % list(book.keys())[:20])
-            cols, data = book.get("columns") or book.get("fields"), book.get("data") or book.get("matrix")
-            if cols and data:
-                rows = [dict(zip(cols, row)) for row in data]
-        r.log("factor book index written %s, %d rows; keys of a row: %s" % (bwhen.isoformat(timespec="minutes") if hasattr(bwhen, "isoformat") else bwhen, len(rows), sorted(rows[0].keys())[:60] if rows else None))
+        import bank_enrich
+        idx, bwhen = get("data/warm/factor-book/matrix/index.json.gz")
+        r.log("factor book index written %s; %d symbols; columns: %s" % (bwhen.isoformat(timespec="minutes") if hasattr(bwhen, "isoformat") else bwhen, len((idx or {}).get("symbols") or []), " ".join((idx or {}).get("columns") or [])[:2400]))
+        r.log("identity columns: %s" % sorted(((idx or {}).get("identity") or {}).keys()))
+        rows = bank_enrich.rows(fields=["mcap", "dollar_vol_20d", "ipo_date", "exchange", "price", "ret_1d", "ret_21d", "ret_63d", "ret_126d", "ret_252d", "security_type", "expense_ratio", "aum", "asset_class", "category"])
+        r.log("%d rows read; keys of a row: %s" % (len(rows), sorted(rows[0].keys()) if rows else None))
         etfs = [x for x in rows if isinstance(x, dict) and x.get("is_etf")]
         by_t = {str(x.get("symbol") or "").upper(): x for x in rows if isinstance(x, dict)}
         r.log("funds in the book: %d; with a market value: %d; with dollar volume: %d" % (len(etfs), sum(1 for x in etfs if x.get("mcap")), sum(1 for x in etfs if x.get("dollar_vol_20d"))))
