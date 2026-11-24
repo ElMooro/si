@@ -53,6 +53,7 @@ TILES = r"""() => { const map = document.getElementById('rm-map'), mb = map.getB
     for (let j = i + 1; j < out.length; j++) { const b = out[j]; if (Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x) > 0.6 && Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y) > 0.6) over++; } }
   return { tiles: out, over: over, out_of: out_of, map: [Math.round(mb.width), Math.round(mb.height)], vw: innerWidth, ox: document.documentElement.scrollWidth - document.documentElement.clientWidth,
     classes: Array.from(map.querySelectorAll('.rm-ch b')).map(e => e.textContent), groups: map.querySelectorAll('.rm-gh').length,
+    badges: document.querySelectorAll('.jh-secbadge').length, badges_in_map: map.querySelectorAll('.jh-secbadge').length, tag: (map.querySelector('.rm-t') || {}).tagName,
     bad: (document.getElementById('rm-app').innerText.match(/\bNaN\b|\bundefined\b|\bnull\b|Infinity/g) || []) }; }"""
 ROWS = r"""(sel) => Array.from(document.querySelectorAll(sel)).map(tr => Array.from(tr.children).map(td => td.innerText.replace(/\s+/g, ' ').trim()))"""
 CHART = r"""() => { const b = (id) => document.getElementById(id), btn = b('btn-rmap'), ov = b('ws-overlay'), f = ov ? ov.querySelector('iframe') : null;
@@ -232,7 +233,7 @@ def main():
                 page_html = fetch("/regime-map.html?probe=%d" % (stamp + attempt))
                 tag = re.search(rb'<script src="(/jh-risk-map\.js\?v=[0-9a-f]{8})"', page_html)       # the build stamps each script with its content hash
                 served = {"page": b'id="rm-v-classic"' in page_html and b"--rm-acc" in page_html and bool(tag),
-                          "script": bool(tag) and b"jh-reskin-skip" in fetch(tag.group(1).decode() + "&probe=%d" % (stamp + attempt)),      # the second deploy: data colours exempt from the build's re-skin
+                          "script": bool(tag) and all(mark in fetch(tag.group(1).decode() + "&probe=%d" % (stamp + attempt)) for mark in (b"jh-reskin-skip", b"tabindex=-1 class='rm-t")),      # the third deploy: data colours exempt from the build's re-skin; tiles are buttons
                           "engine": b"id=btn-rmap" in fetch("/jh-chart-engine.js?probe=%d" % (stamp + attempt)),
                           "rail": b'riskmap: ["Risk Map' in fetch("/jh-chart-tvrail.js?probe=%d" % (stamp + attempt)),
                           "chart": fetch("/chart.html?probe=%d" % (stamp + attempt)).count(b"&rmap=20261124") == 2}
@@ -438,6 +439,15 @@ def main():
             page.click("#rm-v-map")
             page.wait_for_timeout(400)
             ck(page.evaluate("() => !document.getElementById('rm-app').hidden && document.getElementById('wrap').hidden && document.querySelectorAll('.rm-t').length") == m["n"], "back from the previous view")
+            # the site's section badges (jh-sections.js, baked into every page) must sit in headings, never on the map
+            page.click(".rm-chips [data-cls='vol']")                    # five wide tiles: the likeliest place for a stray one
+            page.wait_for_timeout(4500)
+            gv = page.evaluate(TILES)
+            page.click(".rm-chips [data-cls='']")
+            page.wait_for_timeout(1500)
+            gb = page.evaluate(TILES)
+            r.log("section badges on the page: %d, on the map: %d (in the Volatility view: %d); a tile is a %s" % (gb["badges"], gb["badges_in_map"], gv["badges_in_map"], gb["tag"]))
+            ck(gb["badges_in_map"] == 0 and gv["badges_in_map"] == 0 and gb["tag"] == "BUTTON" and len(gv["tiles"]) == m["stats"]["classes"]["vol"]["n"] and len(gb["tiles"]) == m["n"] and gb["over"] == 0, "a section badge sits on the map")
             r.log("page errors: %d %s" % (len(errors), errors[:3]))
             ck(not errors, "the page threw: %s" % errors[:3])
             ctx.close()
@@ -447,10 +457,10 @@ def main():
             page = ctx.new_page()
             page.goto("%s/regime-map.html?nocache=%d" % (BASE, stamp + 1), wait_until="domcontentloaded")
             page.wait_for_selector("#rm-app[data-ready='1']", timeout=90000)
-            page.wait_for_timeout(800)
+            page.wait_for_timeout(4500)
             gp = page.evaluate(TILES)
             r.log("phone: map %s in a %d px window, %d tiles, %d over another, sideways scroll %d px, %d with their name on" % (gp["map"], gp["vw"], len(gp["tiles"]), gp["over"], gp["ox"], sum(1 for x in gp["tiles"] if x["name"])))
-            ck(len(gp["tiles"]) == m["n"] and gp["over"] == 0 and gp["out_of"] == 0 and gp["ox"] <= 1 and sum(1 for x in gp["tiles"] if x["name"]) >= 0.75 * m["n"], "the phone view")
+            ck(len(gp["tiles"]) == m["n"] and gp["over"] == 0 and gp["out_of"] == 0 and gp["ox"] <= 1 and sum(1 for x in gp["tiles"] if x["name"]) >= 0.75 * m["n"] and gp["badges_in_map"] == 0, "the phone view: %s" % {k: gp[k] for k in ("over", "out_of", "ox", "badges_in_map")})
             page.evaluate("() => document.getElementById('rm-map').scrollIntoView()")
             page.wait_for_timeout(300)
             page.tap(".rm-t[data-t='SPY']")

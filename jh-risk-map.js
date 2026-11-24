@@ -356,7 +356,7 @@
     host.innerHTML =
       "<div class=rm-banner id=rm-banner></div>" +
       "<div class=rm-bar id=rm-bar></div>" +
-      "<div class=rm-chips id=rm-chips></div>" +
+      "<div class=rm-chips id=rm-chips data-jh-title></div>" +
       "<div class=rm-map id=rm-map role=img></div>" +
       "<div class=rm-legend id=rm-legend></div>" +
       "<div class=rm-below id=rm-below></div>" +
@@ -375,10 +375,10 @@
         return "<span>" + KINDS[k] + " <b>" + esc(a[k]) + "</b>" + (k === "fund" && a.funds_forming ? " (today, still forming at " + esc(fmtClock(a.funds_forming_as_of).slice(11)) + ")" : "") + "</span>";
       }).join("");
       var h = "<div class=rm-b-two>" +
-        "<div class=rm-b-box><div class=rm-b-k>Across every asset class</div><div class=rm-b-l>" + esc(x.label || "–") + "</div><div class=rm-b-s>" + esc(x.summary || "") + "</div></div>" +
-        "<div class=rm-b-box><div class=rm-b-k>US stocks: broad, narrow or bifurcated</div><div class=rm-b-l>" + esc(r.label || "–") + "</div><div class=rm-b-s>" + esc(r.summary || "") +
+        "<div class=rm-b-box><div class=rm-b-k data-jh-title>Across every asset class</div><div class=rm-b-l>" + esc(x.label || "–") + "</div><div class=rm-b-s>" + esc(x.summary || "") + "</div></div>" +
+        "<div class=rm-b-box><div class=rm-b-k data-jh-title>US stocks: broad, narrow or bifurcated</div><div class=rm-b-l>" + esc(r.label || "–") + "</div><div class=rm-b-s>" + esc(r.summary || "") +
         (doc.regime_changed && doc.turns_since ? " <b>Changed from " + esc(doc.prev_regime) + ".</b>" : "") + "</div></div></div>";
-      h += "<div class=rm-b-count><b>" + m.n + "</b> instruments in " + m.classes.length + " asset classes: <b class=rm-up>" + st.BOOMING + " booming</b>, " + st["RISK-ON"] + " rising, " + st.NEUTRAL + " flat, " +
+      h += "<div class=rm-b-count data-jh-title><b>" + m.n + "</b> instruments in " + m.classes.length + " asset classes: <b class=rm-up>" + st.BOOMING + " booming</b>, " + st["RISK-ON"] + " rising, " + st.NEUTRAL + " flat, " +
         st["RISK-OFF"] + " falling, <b class=rm-dn>" + st.DESTROYED + " getting destroyed</b>.</div>";
       h += "<div class=rm-b-dates>Last bar: " + dates + "<span>Engine run <b>" + esc(fmtClock(doc.generated_at)) + "</b></span><span id=rm-live-badge></span></div>";
       if (check.bad.length) h += "<div class=rm-warn><b>This document fails its own arithmetic in " + check.bad.length + " place" + (check.bad.length > 1 ? "s" : "") + ".</b> " + esc(check.bad.slice(0, 4).join("; ")) + "</div>";
@@ -432,15 +432,16 @@
       mapEl.style.height = H + "px";
       lay.classes.forEach(function (c) {
         var st = (m.stats && m.stats.classes && m.stats.classes[c.id]) || {};
-        h += "<div class=rm-cls style='left:" + c.x.toFixed(1) + "px;top:" + c.y.toFixed(1) + "px;width:" + c.w.toFixed(1) + "px;height:" + c.h.toFixed(1) + "px'>";
-        if (c.head) h += "<button type=button class=rm-ch data-cls=" + c.id + " title='" + (S.cls ? "Back to every asset class" : "Show only " + esc(c.name)) + "'><b>" + esc(c.name) + "</b><span>" +
+        // The site's section badges (jh-sections.js) label any big block element they find. A class frame or a wide tile would get one
+        // on top of it, so nothing inside the map is a block: headings and tiles are buttons, which that script passes over.
+        if (c.head) h += "<button type=button class=rm-ch data-cls=" + c.id + " style='left:" + (c.x + 3).toFixed(1) + "px;top:" + (c.y + 2).toFixed(1) + "px;width:" + (c.w - 6).toFixed(1) + "px' title='" + (S.cls ? "Back to every asset class" : "Show only " + esc(c.name)) + "'><b>" + esc(c.name) + "</b><span>" +
           (st.n || 0) + " · score " + fmtScore(st.score) + " · " + (st.rising_pct == null ? "–" : st.rising_pct + "% rising") + "</span></button>";
-        h += "</div>";
+
         c.groups.forEach(function (g) {
           if (g.head) h += "<div class=rm-gh style='left:" + (g.x + 1).toFixed(1) + "px;top:" + (g.y + 1).toFixed(1) + "px;width:" + (g.w - 2).toFixed(1) + "px'>" + esc(g.name) + "</div>";
           g.tiles.forEach(function (r) {
             var t = byT[r.t], w = r.w - 1, hh = r.h - 1, l = lv(t), lab = labelOf(t, S.mode, l), tx = tileText(w, hh, t.t, lab.length < 6 ? "000000" : lab), tn = tone(t, S.mode, S.norm, l);
-            h += "<div class='rm-t" + (t.role === "haven" ? " rm-haven" : "") + (tn == null ? " rm-none" : "") + (t.state === "BOOMING" ? " rm-boom" : t.state === "DESTROYED" ? " rm-bust" : "") +
+            h += "<button type=button tabindex=-1 class='rm-t" + (t.role === "haven" ? " rm-haven" : "") + (tn == null ? " rm-none" : "") + (t.state === "BOOMING" ? " rm-boom" : t.state === "DESTROYED" ? " rm-bust" : "") +
               "' data-t='" + esc(t.t) + "' style='left:" + r.x.toFixed(1) + "px;top:" + r.y.toFixed(1) + "px;width:" + w.toFixed(1) + "px;height:" + hh.toFixed(1) + "px;background:" + fill(tn, S.mode, S.palette) + "'>";
             if (tx.fs) {
               h += "<b style='font-size:" + tx.fs + "px'>" + esc(t.t) + "</b>";
@@ -448,7 +449,7 @@
               if (tx.three) h += "<i>" + esc(S.mode === "state" ? PLAIN[t.state] : t.n) + "</i>";
             }
             if (t.late) h += "<u title='A bar behind'></u>";
-            h += "</div>";
+            h += "</button>";
           });
         });
       });
@@ -543,12 +544,12 @@
       }
       h += "</section>";
       // the whole table
-      h += "<details class=rm-all><summary>Every instrument as a table <em>" + m.n + "</em></summary><div class=rm-scroll><table id=rm-table><thead><tr>" +
+      h += "<details class=rm-all><summary data-jh-title>Every instrument as a table <em>" + m.n + "</em></summary><div class=rm-scroll><table id=rm-table><thead><tr>" +
         [["t", "Ticker"], ["n", "Name"], ["cls", "Class"], ["state", "State"], ["score", "Score"]].concat(WINDOWS.map(function (w) { return ["r." + w.id, w.label]; })).concat([["d", "Last bar"]])
           .map(function (c) { return "<th data-sort='" + c[0] + "'>" + c[1] + "</th>"; }).join("") + "</tr></thead><tbody></tbody></table></div></details>";
       // the rule
       var ru = doc.rules || {};
-      h += "<details class=rm-rules><summary>How it is measured, and where the prices come from</summary>" +
+      h += "<details class=rm-rules><summary data-jh-title>How it is measured, and where the prices come from</summary>" +
         ["windows", "score", "state", "unusual", "currencies", "left_out"].filter(function (k) { return ru[k]; }).map(function (k) { return "<p>" + esc(ru[k]) + "</p>"; }).join("") +
         (doc.cross_asset && doc.cross_asset.rule ? "<p>" + esc(doc.cross_asset.rule) + "</p>" : "") +
         "<p>Prices: " + (doc.sources || []).map(function (s) { return esc(s.what) + " – " + esc(s.note); }).join("; ") + ". All read from the JustHodl warehouse; nothing is fetched from a provider by the engine.</p>" +

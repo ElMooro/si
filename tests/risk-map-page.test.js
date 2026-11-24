@@ -393,3 +393,16 @@ test('a colour that carries meaning is never re-skinned by the site build', () =
   assert.ok(JS.includes('host.style.setProperty("--rm-up", PALETTES[S.palette].up)') && JS.includes('host.style.setProperty("--rm-dn", PALETTES[S.palette].dn)'));
   assert.ok(!/\[data-palette/.test(HTML));
 });
+
+test('nothing inside the map is a block the site\'s section badges would label', () => {
+  // jh-sections.js (baked into every page at deploy) puts a numbered badge on any big block element, on top of it when it has no
+  // heading. On a phone it took the asset classes for the page's sections; in a small class a wide tile would have carried one.
+  // It passes over buttons, so class headings and tiles are buttons, and the blocks around the map carry a heading for it.
+  assert.ok(JS.includes("<button type=button tabindex=-1 class='rm-t"));
+  assert.ok(JS.includes('"<button type=button class=rm-ch data-cls="'));
+  assert.ok(!JS.includes('class=rm-cls') && !HTML.includes('.rm-cls'));
+  const sections = fs.readFileSync(path.join(R, 'jh-sections.js'), 'utf8');
+  assert.ok(/if \(c\.matches\("h1,h2,h3,h4,h5,h6,p,label,button,/.test(sections), 'the badge script no longer passes over buttons: look at the map again');
+  assert.ok(sections.includes('[data-jh-title]'));
+  for (const s of ['id=rm-chips data-jh-title', 'class=rm-b-k data-jh-title', 'class=rm-b-count data-jh-title', '<summary data-jh-title>']) assert.ok(JS.includes(s), s);
+});
