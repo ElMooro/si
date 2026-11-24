@@ -5434,6 +5434,7 @@ else if(o.id==="rvol"){
       "<button class='wsico wsdesk' id=btn-macro title='Macro & Economic Data'><span class=g>📈</span><span class=l>Macro</span></button>"+
       "<button class='wsico wsdesk' id=btn-flows title='Inflows & outflows'><span class=g>⇄</span><span class=l>Flows</span></button>"+
       "<button class='wsico wsdesk' id=btn-heat title='Universe Heatmap'><span class=g>▦</span><span class=l>Heat</span></button>"+
+      "<button class='wsico wsdesk' id=btn-rmap title='Risk Map · what is booming and what is getting destroyed, across every asset class'><span class=g>🗺</span><span class=l>Risk Map</span></button>"+
       "<button class='wsico wsdesk' id=btn-auc title='Treasury Auctions'><span class=g>Auc</span><span class=l>Auction</span></button>"+
       "<button class='wsico wsdesk' id=btn-corm title='Correlation Matrix'><span class=g>▣</span><span class=l>Corr</span></button>"+
       "<button class='wsico wsdesk' id=btn-etf title='ETF Desk'><span class=g>Ⓔ</span><span class=l>ETF</span></button>"+
@@ -5500,6 +5501,7 @@ else if(o.id==="rvol"){
     var bmac=document.getElementById("btn-macro"); if(bmac) bmac.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("macro"); };
     var bflw=document.getElementById("btn-flows"); if(bflw) bflw.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("flows"); };
     var bht=document.getElementById("btn-heat"); if(bht) bht.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("heat"); };
+    var brm=document.getElementById("btn-rmap"); if(brm) brm.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("riskmap"); };
     var bauc=document.getElementById("btn-auc"); if(bauc) bauc.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("auction"); };
     var bcm=document.getElementById("btn-corm"); if(bcm) bcm.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("corr"); };
     var betf=document.getElementById("btn-etf"); if(betf) betf.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("etf"); };

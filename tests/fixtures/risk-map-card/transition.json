@@ -1,0 +1,33 @@
+{
+ "description": "Risk Map card (2026-11-24, engine 2.0.0): the home dashboard's card names what is BOOMING and DESTROYED across the whole map, with the count, and says 'none today' when nothing is; the website-research-status manifest records those two replacements and the new page hash.",
+ "sources": {
+  "tests/fixtures/website-research-status/imports-preservation.json": {
+   "before_sha256": "588122d1fa930d50e0b0dbcc6352606b4cfcc8341d5fc59e025971d522caa1ae",
+   "after_sha256": "639305e0c8fed0d6b7391bc8908fd86cebeae735181db21a509c180ec28da534",
+   "edits": [
+    [
+     "      \"predecessor\": \"tests/fixtures/website-research-status/pre513-imports/classic-dashboard.html.txt\",\n      \"previous_sha256\": \"d9749bfd4909f014d51f1478da1605bdd8833ace2dc8c00da65c109006fe8f5c\",\n      \"sha256\": \"93b2eb55e64b5a03b3fe4aaf66971c4928df098ec1278283b877edcaa8a86f2c\",\n      \"bytes\": 164029,\n      \"additional_replacements\": [\n        [",
+     "      \"predecessor\": \"tests/fixtures/website-research-status/pre513-imports/classic-dashboard.html.txt\",\n      \"previous_sha256\": \"d9749bfd4909f014d51f1478da1605bdd8833ace2dc8c00da65c109006fe8f5c\",\n      \"sha256\": \"bb1d4294cfb8a4b076385f33799540a09a7298f2e510ac552c0498f3e6a2b9b4\",\n      \"bytes\": 164813,\n      \"additional_replacements\": [\n        ["
+    ],
+    [
+     "          \"<a class=\\\"tool\\\" href=\\\"/risk.html\\\">\",\n          \"<a class=\\\"tool\\\" href=\\\"/risk-sizer.html\\\">\"\n        ]\n      ]",
+     "          \"<a class=\\\"tool\\\" href=\\\"/risk.html\\\">\",\n          \"<a class=\\\"tool\\\" href=\\\"/risk-sizer.html\\\">\"\n        ],\n        [\n          \"   function chips(a){return (a||[]).slice(0,5).map(function(x){return '<span style=\\\"font-family:monospace;font-size:11px;margin-right:8px;color:'+tx(x.risk_on)+'\\\">'+x.ticker+' '+(x.risk_on>0?'+':'')+x.risk_on+'</span>';}).join('');}\\n\",\n          \"   function chips(a){return (a||[]).slice(0,5).map(function(x){return '<span style=\\\"font-family:monospace;font-size:11px;margin-right:8px;color:'+tx(x.risk_on)+'\\\">'+x.ticker+' '+(x.risk_on>0?'+':'')+x.risk_on+'</span>';}).join('')||'<span style=\\\"font-size:11px;color:#536074\\\">none today</span>';}\\n   /* 2026-11-24: the map covers every asset class; the card names what is in the state across all of it (the first map's 38 when the document carries no more) */\\n   var all=d.map&&d.map.tiles&&d.map.tiles.length?(function(){var by={};d.map.tiles.forEach(function(t){by[t.t]=t;});function pick(keys){return (keys||[]).filter(function(k){return by[k];}).map(function(k){return {ticker:k,risk_on:by[k].score};});}return {b:pick(d.map.booming),x:pick(d.map.destroyed)};})():null;\\n   var boom=all?all.b:(d.booming||[]), bust=all?all.x:(d.destroyed||[]);\\n   function count(a){return all?'<span style=\\\"color:#536074;font-family:monospace;font-size:10.5px;margin-right:8px\\\">'+a.length+' of '+d.map.n+'</span>':'';}\\n\"\n        ],\n        [\n          \"     +'<div style=\\\"font-size:11px\\\"><span style=\\\"color:#3fd68c;font-weight:600\\\">BOOMING </span>'+chips(d.booming)+'</div>'\\n     +'<div style=\\\"font-size:11px;margin-top:4px\\\"><span style=\\\"color:#ff5c6c;font-weight:600\\\">DESTROYED </span>'+chips(d.destroyed)+'</div>';\",\n          \"     +'<div style=\\\"font-size:11px\\\"><span style=\\\"color:#3fd68c;font-weight:600\\\">BOOMING </span>'+count(boom)+chips(boom)+'</div>'\\n     +'<div style=\\\"font-size:11px;margin-top:4px\\\"><span style=\\\"color:#ff5c6c;font-weight:600\\\">DESTROYED </span>'+count(bust)+chips(bust)+'</div>';\"\n        ]\n      ]"
+    ]
+   ]
+  },
+  "classic-dashboard.html": {
+   "before_sha256": "93b2eb55e64b5a03b3fe4aaf66971c4928df098ec1278283b877edcaa8a86f2c",
+   "after_sha256": "bb1d4294cfb8a4b076385f33799540a09a7298f2e510ac552c0498f3e6a2b9b4",
+   "edits": [
+    [
+     "   function chips(a){return (a||[]).slice(0,5).map(function(x){return '<span style=\"font-family:monospace;font-size:11px;margin-right:8px;color:'+tx(x.risk_on)+'\">'+x.ticker+' '+(x.risk_on>0?'+':'')+x.risk_on+'</span>';}).join('');}\n",
+     "   function chips(a){return (a||[]).slice(0,5).map(function(x){return '<span style=\"font-family:monospace;font-size:11px;margin-right:8px;color:'+tx(x.risk_on)+'\">'+x.ticker+' '+(x.risk_on>0?'+':'')+x.risk_on+'</span>';}).join('')||'<span style=\"font-size:11px;color:#536074\">none today</span>';}\n   /* 2026-11-24: the map covers every asset class; the card names what is in the state across all of it (the first map's 38 when the document carries no more) */\n   var all=d.map&&d.map.tiles&&d.map.tiles.length?(function(){var by={};d.map.tiles.forEach(function(t){by[t.t]=t;});function pick(keys){return (keys||[]).filter(function(k){return by[k];}).map(function(k){return {ticker:k,risk_on:by[k].score};});}return {b:pick(d.map.booming),x:pick(d.map.destroyed)};})():null;\n   var boom=all?all.b:(d.booming||[]), bust=all?all.x:(d.destroyed||[]);\n   function count(a){return all?'<span style=\"color:#536074;font-family:monospace;font-size:10.5px;margin-right:8px\">'+a.length+' of '+d.map.n+'</span>':'';}\n"
+    ],
+    [
+     "     +'<div style=\"font-size:11px\"><span style=\"color:#3fd68c;font-weight:600\">BOOMING </span>'+chips(d.booming)+'</div>'\n     +'<div style=\"font-size:11px;margin-top:4px\"><span style=\"color:#ff5c6c;font-weight:600\">DESTROYED </span>'+chips(d.destroyed)+'</div>';",
+     "     +'<div style=\"font-size:11px\"><span style=\"color:#3fd68c;font-weight:600\">BOOMING </span>'+count(boom)+chips(boom)+'</div>'\n     +'<div style=\"font-size:11px;margin-top:4px\"><span style=\"color:#ff5c6c;font-weight:600\">DESTROYED </span>'+count(bust)+chips(bust)+'</div>';"
+    ]
+   ]
+  }
+ }
+}

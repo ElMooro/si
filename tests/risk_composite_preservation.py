@@ -14,6 +14,9 @@ def preceding_source(path, text):
     path = Path(path)
     if not path.is_absolute():
         path = ROOT / path
+    # a later release (the Risk Map card, 2026-11-24) is reversed first
+    from risk_map_card_preservation import preceding_source as before_card
+    text = before_card(path, text)
     plans = json.loads((ROOT/'tests/fixtures/risk-composite/transition.json').read_text(encoding='utf-8'))['sources']
     relative = path.relative_to(ROOT).as_posix()
     if relative not in plans:

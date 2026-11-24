@@ -14,9 +14,10 @@ const flush=async(n=12)=>{for(let i=0;i<n;i++)await Promise.resolve();};
 function sandbox(names,extra={}){const c={window:{},JSON,Object,Math,Array,String,Number,parseFloat,...extra};vm.createContext(c);vm.runInContext(names.map(n=>{assert.ok(named[n],'engine function '+n);return named[n];}).join('\n'),c);return c;}
 
 test('the byte ledger takes the change back out: engine and chart.html return to the files before it',()=>{
- const before=ledger.peelIndicatorControls(engine,'jh-chart-engine.js');
+ // the Risk Map button (2026-11-24) is a later change: peeled first
+ const before=ledger.peelIndicatorControls(ledger.peelRiskMapEngine(engine,'jh-chart-engine.js'),'jh-chart-engine.js');
  assert.equal(hash(before),'dcefd93abba4c5523277b7342d8b29a22b59d789904c671f8ace098c07674913');
- assert.equal(hash(ledger.peelIndicatorControls(html,'chart.html')),'46a52f2ac304b333056d4b0a7b0ece2c5b91dbbab093e2864d896dfff450bbf2');
+ assert.equal(hash(ledger.peelIndicatorControls(ledger.peelRiskMapHtml(html,'chart.html'),'chart.html')),'46a52f2ac304b333056d4b0a7b0ece2c5b91dbbab093e2864d896dfff450bbf2');
  assert.ok(!before.includes('installIndicatorControls'),'nothing of the change is left in the predecessor');
  // a browser holding the old engine fetches this one: the tag sits before &ldr, which older gates require at the end
  assert.match(html,/jh-chart-engine\.js\?v=[^"]*&sov=20261122&ind=20261123c&ldr=20261105"><\/script>/);

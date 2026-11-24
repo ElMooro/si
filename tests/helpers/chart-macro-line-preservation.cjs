@@ -608,7 +608,40 @@ function peelIndicatorControls(raw,file){
  assert.equal(hash(raw),plan.before,file);
  return raw;
 }
-function normalize(raw,file){raw=peelIndicatorControls(raw,file);raw=peelSovDeskEngine(raw,file);raw=peelSovDeskRail(raw,file);raw=peelSovDeskHtml(raw,file);raw=peelRepoDeskEngine(raw,file);raw=peelRepoDeskRail(raw,file);raw=peelRepoDeskHtml(raw,file);raw=peelCryptoRoutes(raw,file);raw=peelTabQuotes(raw,file);raw=peelVolDeskEngine(raw,file);raw=peelVolDeskRail(raw,file);raw=peelIndexRoutes(raw,file);raw=peelSpxCashWatch(raw,file);raw=peelSpxCashIdentityTest(raw,file);raw=peelMarkDesksHtml(raw,file);raw=peelMarkDesksRail(raw,file);raw=peelFredDesksEngine(raw,file);raw=peelFredDesksRail(raw,file);raw=peelCandleClarity(raw,file);raw=peelScreenFit(raw,file);raw=peelFlowsEngine(raw,file);raw=peelFlowsRail(raw,file);raw=peelFormingBar(raw,file);raw=peelCapitHtml(raw,file);raw=peelCapitRail(raw,file);raw=peelLeadersHtml(raw,file);raw=peelLeadersEngine(raw,file);raw=peelLeadersRail(raw,file);raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
+// 2026-11-24: the Risk Map (button + click after Heat on the chart's bar, its rail entry, and the two cache-busts on chart.html so a
+// browser holding the old engine or rail fetches the new one) is peeled before every older peel.
+function peelRiskMapEngine(raw,file){
+ const AFTER='b0d05901fb3d5da6ca799d18fc9dcfb7eda187d5e7bf9caa6cdea9b100135ee5';
+ const BEFORE='5708b52846fa67ad33f6b51621a4919efb1dd56cbd618048fde1231aae9eaeff';
+ const BTN="      \"<button class='wsico wsdesk' id=btn-rmap title='Risk Map · what is booming and what is getting destroyed, across every asset class'><span class=g>🗺</span><span class=l>Risk Map</span></button>\"+\n";
+ const CLICK="    var brm=document.getElementById(\"btn-rmap\"); if(brm) brm.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace(\"riskmap\"); };\n";
+ if(file!=='jh-chart-engine.js'||hash(raw)!==AFTER)return raw;
+ assert.equal(raw.split(BTN).length,2,'jh-chart-engine.js Risk Map button');
+ assert.equal(raw.split(CLICK).length,2,'jh-chart-engine.js Risk Map click');
+ raw=raw.replace(BTN,'').replace(CLICK,'');
+ assert.equal(hash(raw),BEFORE,'jh-chart-engine.js');
+ return raw;
+}
+function peelRiskMapRail(raw,file){
+ const AFTER='75dbbbc868c849e03e4aa48158acd97371af51156b62ea1d648ce80540d793c6';
+ const BEFORE='2f47a463a82cc92badecd64fbc4e2957a26867ef17d90d244b5fc1fc7a38679d';
+ const LINE="      riskmap: [\"Risk Map · booming vs getting destroyed, every asset class\", \"/regime-map.html?v=20261124a\"],\n";
+ if(file!=='jh-chart-tvrail.js'||hash(raw)!==AFTER)return raw;
+ assert.equal(raw.split(LINE).length,2,'jh-chart-tvrail.js Risk Map meta');
+ raw=raw.replace(LINE,'');
+ assert.equal(hash(raw),BEFORE,'jh-chart-tvrail.js');
+ return raw;
+}
+function peelRiskMapHtml(raw,file){
+ const AFTER='96f17815e4e76284763617ea0572bef73fa019e4198b5c3aa0959b528835f62f';
+ const BEFORE='07772f8ce5990a0a84ddb60af1cd0ba3ae089a48e4bb7bb692ef6048e2fcc8c5';
+ const PAIRS=[["&repo=20261121&rmap=20261124&sov=20261122&capit=20261105&ldr=20261105\"></script>", "&repo=20261121&sov=20261122&capit=20261105&ldr=20261105\"></script>"], ["&repo=20261121&rmap=20261124&sov=20261122&ind=20261123c&ldr=20261105\"></script>", "&repo=20261121&sov=20261122&ind=20261123c&ldr=20261105\"></script>"]];
+ if(file!=='chart.html'||hash(raw)!==AFTER)return raw;
+ for(const [from,to] of PAIRS){assert.equal(raw.split(from).length,2,'chart.html Risk Map cache-bust');raw=raw.replace(from,to);}
+ assert.equal(hash(raw),BEFORE,'chart.html');
+ return raw;
+}
+function normalize(raw,file){raw=peelRiskMapEngine(raw,file);raw=peelRiskMapRail(raw,file);raw=peelRiskMapHtml(raw,file);raw=peelIndicatorControls(raw,file);raw=peelSovDeskEngine(raw,file);raw=peelSovDeskRail(raw,file);raw=peelSovDeskHtml(raw,file);raw=peelRepoDeskEngine(raw,file);raw=peelRepoDeskRail(raw,file);raw=peelRepoDeskHtml(raw,file);raw=peelCryptoRoutes(raw,file);raw=peelTabQuotes(raw,file);raw=peelVolDeskEngine(raw,file);raw=peelVolDeskRail(raw,file);raw=peelIndexRoutes(raw,file);raw=peelSpxCashWatch(raw,file);raw=peelSpxCashIdentityTest(raw,file);raw=peelMarkDesksHtml(raw,file);raw=peelMarkDesksRail(raw,file);raw=peelFredDesksEngine(raw,file);raw=peelFredDesksRail(raw,file);raw=peelCandleClarity(raw,file);raw=peelScreenFit(raw,file);raw=peelFlowsEngine(raw,file);raw=peelFlowsRail(raw,file);raw=peelFormingBar(raw,file);raw=peelCapitHtml(raw,file);raw=peelCapitRail(raw,file);raw=peelLeadersHtml(raw,file);raw=peelLeadersEngine(raw,file);raw=peelLeadersRail(raw,file);raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
  if(digest===row.before_sha256||digest!==row.after_sha256)return raw;
  for(const e of [...row.replacements].reverse()){assert.equal(raw.split(e.after).length,2,file+': '+e.after.slice(0,60));raw=raw.replace(e.after,e.before);}
  assert.equal(hash(raw),row.before_sha256,file);assert.equal(raw,fs.readFileSync(path.join(R,row.before_path),'utf8'));return raw;
@@ -617,4 +650,4 @@ function normalize(raw,file){raw=peelIndicatorControls(raw,file);raw=peelSovDesk
 const adaptations=require('../fixtures/chart-macro-line/test-adaptations.json');
 function normalizeLegacyTest(raw,file){const row=adaptations[file];if(!row||hash(raw)!==row.after_sha256)return raw;
  const old=fs.readFileSync(path.join(R,row.before_path),'utf8');assert.equal(hash(old),row.before_sha256,file);return old;}
-module.exports={normalize,normalizeLegacyTest,transition,adaptations,peelEvr,peelScreenFit,peelCandleClarity,peelRepoDeskEngine,peelRepoDeskRail,peelRepoDeskHtml,peelSovDeskEngine,peelSovDeskRail,peelSovDeskHtml,peelIndicatorControls};
+module.exports={normalize,normalizeLegacyTest,transition,adaptations,peelEvr,peelScreenFit,peelCandleClarity,peelRepoDeskEngine,peelRepoDeskRail,peelRepoDeskHtml,peelSovDeskEngine,peelSovDeskRail,peelSovDeskHtml,peelIndicatorControls,peelRiskMapEngine,peelRiskMapRail,peelRiskMapHtml};

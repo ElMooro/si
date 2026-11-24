@@ -219,6 +219,7 @@
       macro: ["Macro & Economic Data", "/macro-economic-data.html"],
       flows: ["Inflows & outflows", "/inflows-outflows.html"],
       heat: ["Universe Heatmap", "/universe-heatmap.html?v=20261014b"],
+      riskmap: ["Risk Map · booming vs getting destroyed, every asset class", "/regime-map.html?v=20261124a"],
       auction: ["Treasury Auctions", "/auctions.html"],
       corr: ["Correlation Matrix · ALERT", "/correlation.html"],
       etf: ["ETF Desk", "/etf.html"],

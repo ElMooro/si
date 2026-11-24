@@ -3021,13 +3021,17 @@ setInterval(loadAll, 5 * 60 * 1000);  // 5-min auto-refresh
  gj("data/regime-map.json").then(function(d){
    var el=document.getElementById("risk-map-card"); if(!el||!d||!d.ok)return;
    var r=d.regime, c=RC[r.label]||"#7c8ba0";
-   function chips(a){return (a||[]).slice(0,5).map(function(x){return '<span style="font-family:monospace;font-size:11px;margin-right:8px;color:'+tx(x.risk_on)+'">'+x.ticker+' '+(x.risk_on>0?'+':'')+x.risk_on+'</span>';}).join('');}
+   function chips(a){return (a||[]).slice(0,5).map(function(x){return '<span style="font-family:monospace;font-size:11px;margin-right:8px;color:'+tx(x.risk_on)+'">'+x.ticker+' '+(x.risk_on>0?'+':'')+x.risk_on+'</span>';}).join('')||'<span style="font-size:11px;color:#536074">none today</span>';}
+   /* 2026-11-24: the map covers every asset class; the card names what is in the state across all of it (the first map's 38 when the document carries no more) */
+   var all=d.map&&d.map.tiles&&d.map.tiles.length?(function(){var by={};d.map.tiles.forEach(function(t){by[t.t]=t;});function pick(keys){return (keys||[]).filter(function(k){return by[k];}).map(function(k){return {ticker:k,risk_on:by[k].score};});}return {b:pick(d.map.booming),x:pick(d.map.destroyed)};})():null;
+   var boom=all?all.b:(d.booming||[]), bust=all?all.x:(d.destroyed||[]);
+   function count(a){return all?'<span style="color:#536074;font-family:monospace;font-size:10.5px;margin-right:8px">'+a.length+' of '+d.map.n+'</span>':'';}
    el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:7px">'
      +'<div><span style="font-size:10px;letter-spacing:.05em;color:#7c8ba0">RISK MAP</span> <b style="color:'+c+';font-size:15px;margin-left:5px">'+r.label+'</b> <span style="font-size:10.5px;color:#536074;font-family:monospace">eq '+(r.equity_avg>0?'+':'')+r.equity_avg+' · crypto '+(r.crypto_avg>0?'+':'')+r.crypto_avg+' · breadth '+r.equity_breadth_pct+'%</span></div>'
      +'<a href="/regime-map.html" style="font-size:11px;color:#46c8ff;text-decoration:none">full board &rarr;</a></div>'
      +'<div style="font-size:12px;color:#aebccd;margin-bottom:8px;line-height:1.45">'+r.summary+'</div>'
-     +'<div style="font-size:11px"><span style="color:#3fd68c;font-weight:600">BOOMING </span>'+chips(d.booming)+'</div>'
-     +'<div style="font-size:11px;margin-top:4px"><span style="color:#ff5c6c;font-weight:600">DESTROYED </span>'+chips(d.destroyed)+'</div>';
+     +'<div style="font-size:11px"><span style="color:#3fd68c;font-weight:600">BOOMING </span>'+count(boom)+chips(boom)+'</div>'
+     +'<div style="font-size:11px;margin-top:4px"><span style="color:#ff5c6c;font-weight:600">DESTROYED </span>'+count(bust)+chips(bust)+'</div>';
  });
 })();
 </script>
