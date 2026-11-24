@@ -45,7 +45,9 @@ def main():
         with sync_playwright() as p:
             browser = P.launch(p, r.log)
             shots = {}
-            rows = P.prove(r, ck, browser, P.BASE, part="windows", shots=shots)
+            # 119 windows took 2,264 s on the live chart (6,990 bars; each picture waits for the page's downloads to land):
+            # this part does nothing after the sweep but Buyback, so it may use 48 of the run's 60 minutes
+            rows = P.prove(r, ck, browser, P.BASE, part="windows", shots=shots, budget=2900)
             browser.close()
         if shots:
             import base64
