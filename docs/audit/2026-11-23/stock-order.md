@@ -65,7 +65,10 @@ the Leaders desk's value and the other names keep the desk's order.
   every arranged list on 14 sheets, the same records each once, the same row objects on the cards, the desk's own
   order back exactly. Node suite 5,204; deployment 1,233.
 - Live: ops 6931 (`aws/ops/STAGED/ops_6931_stock_order_live_proof.py`), re-runnable, read-only; it reads
-  `data/leaders.json` itself as the yardstick.
+  `data/leaders.json` itself as the yardstick. **2026-11-23 20:16 UTC, success, 0 failed checks**: 12 sheets, 95
+  lists, 55,293 rows in the order the rule gives against 665 leaders of 143 industries (as of 2026-11-20); the
+  switch to the desk's own order and back holds across a reload; the desk tables follow it; the same order when the
+  desk is opened from the chart's Leaders button; a phone.
 
 ## To take it back
 

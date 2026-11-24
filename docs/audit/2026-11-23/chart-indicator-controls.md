@@ -96,14 +96,42 @@ the buttons then show.
   With a window open it had none; it now keeps 220 px. The toolbar itself was not touched.
 - The AVWAP / VP / PDH-OR chips sit behind the volume tape strip at the bottom left of the chart.
 - Buyback has only its own Close.
+- In a browser that has never opened the chart, the watchlist announces every signal alert it holds, one message at a
+  time at the bottom centre, for the first minutes. A returning browser has seen them and stays quiet.
+- On the phone the price chart with no window open measured 59 to 110 px, depending on how the toolbar wraps.
 
 ## Proof
 
-- Local: the sweep above; `tests/chart-indicator-controls.test.js` (17 tests; each fails on the files as they
-  were); node suite 5,196; deployment 1,233.
-- Live: ops 6930 (`aws/ops/STAGED/ops_6930_chart_indicator_controls_live_proof.py`), re-runnable, read-only: the same
-  sweep on justhodl.ai in a real browser, plus Volume, windows, the list, presses under a repaint, the benchmark wait,
-  Supply & Demand, the chips, the studio snapshot and a phone.
+- Local: the sweep above; `tests/chart-indicator-controls.test.js` (20 tests; each fails on the files as they
+  were); node suite 5,207; deployment 1,233.
+- Live: justhodl.ai in a real browser (headless Chrome on the runner, a real pointer), NVDA daily, 6,990 bars, the
+  third deploy (`459b4a59`). All three ops are read-only and re-runnable; every study in the Indicators list is
+  covered, 215 of 215.
+  - **ops 6930**, 2026-11-23 23:44 UTC, success, 0 failed checks. Volume and the 95 studies drawn on the price chart:
+    96 of 96 switch on, hide, show and close, the chart back to the same picture each time; the eye on screen
+    without hovering on 96 of 96; the row there half a second after switching on for 96 of 96. Volume: the eye hides
+    and shows, the cross removes, each still so after a reload. Three windows: zoom [6830, 6995] unchanged, price
+    chart 380 of 950 px (40%), the same bar at x = 1272.3 on the chart and in all three windows, buttons at opacity 1.
+    A hidden window is 22 px. Seven on: six shown, the area scrolls, the seventh named with a cross. A lit row in
+    the list switches the study off. A press held while the chart repaints is kept, on the legend and on a window.
+    With the S&P 500 history stale the eye answers in 78 ms. Supply & Demand, the VP chip, a planted studio
+    snapshot, a phone (touch only): as designed.
+  - **ops 6932**, 2026-11-24 01:08 UTC, success, 0 failed checks. The 119 oscillators: 118 switch on, fold away,
+    come back and close by their own eye and cross with the chart back to the same picture; Buyback closes by its own
+    Close.
+  - **ops 6933**, 2026-11-24 00:29 UTC, success: the eleven studies earlier sweeps had flagged, 11 of 11.
+- How the live proof got there (each run's report is in git history under `aws/ops/reports/latest/`):
+  1. The first run was cancelled at the 60-minute limit: one study takes about 15 s on 6,990 bars. The sweep was split
+     in two ops.
+  2. The next runs flagged up to 23 studies. Three things were the proof's own: a message at the bottom centre in the
+     pictures (the watchlist's toast, `#jhwl-toast`: in a browser that has never seen them, each signal alert is
+     announced once during the first minutes); pictures compared across a page load (the live page reads fresh bars,
+     and during the session the last bar had moved); a picture taken while a study's download was still out.
+  3. Four were faults of the page that the local copy could not show (causes 19 to 22). Each was then reproduced
+     locally - by delaying a download 3 s, by holding a press 1.7 s, by blocking the page 2.5 s - repaired and
+     tested before the last runs.
+- Counted as the same picture, and shown enlarged in the ops 6930 report: 4 px at the rounded corner of the readout
+  panel at the top left (x 369, y 71 to 140), smoothed a hair differently on 7 of the sweep's comparisons (five a study, 96 studies).
 
 ## To take it back
 
