@@ -331,7 +331,18 @@ def main():
                         r.log("    listings: %d coins; keys %s" % (len(data), sorted(data[0].keys())[:30]))
                         q = (data[0].get("quote") or {}).get("USD") or {}
                         r.log("    first row quote keys: %s" % sorted(q.keys()))
-                        r.log("    top 60 by rank: %s" % " ".join("%s:%s" % (c.get("symbol"), ("%.1fB" % (((c.get("quote") or {}).get("USD") or {}).get("market_cap") or 0) / 1e9)) for c in data[:60]))
+                        def usd(c):
+                            return (c.get("quote") or {}).get("USD") or {}
+
+                        def num(v):
+                            try:
+                                return float(v)
+                            except (TypeError, ValueError):
+                                return 0.0
+                        r.log("    types: market_cap %s, percent_change_24h %s, price %s; last_updated %s" % (type(q.get("market_cap")).__name__, type(q.get("percent_change_24h")).__name__, type(q.get("price")).__name__, q.get("last_updated")))
+                        r.log("    top 120 by rank, symbol:market value $B:24h%%:7d%%:30d%%:90d%% - %s" % " ".join("%s:%.1f:%+.1f:%+.1f:%+.1f:%+.1f" % (
+                            c.get("symbol"), num(usd(c).get("market_cap")) / 1e9, num(usd(c).get("percent_change_24h")), num(usd(c).get("percent_change_7d")), num(usd(c).get("percent_change_30d")), num(usd(c).get("percent_change_90d"))) for c in data[:120]))
+                        r.log("    tags of the first rows: %s" % [(c.get("symbol"), (c.get("tags") or [])[:6]) for c in data[:12]])
                     else:
                         r.log("    listings shape: %s" % (str(doc)[:300]))
 
