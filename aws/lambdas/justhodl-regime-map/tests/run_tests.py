@@ -85,7 +85,7 @@ def warehouse(change=None):
     for sym, rows in fix["fmp"].items():
         objs[L.fmp_key(sym)] = gz(rows)
     if fix.get("cmc"):
-        objs[L.CMC_ROOT + (fix.get("cmc_day") or "2026-11-23") + ".json.gz"] = gz({"data": fix["cmc"]})
+        objs[L.CMC_ROOT + fix["cmc_day"] + ".json.gz"] = gz({"data": fix["cmc"]})
     return FakeS3(objs)
 
 

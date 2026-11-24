@@ -46,7 +46,7 @@ def test_the_risk_map_reads_the_keys_their_engines_write():
 
 
 def test_the_risk_map_still_publishes_the_first_engines_feed_once_a_day():
-    contract = json.loads((ROOT / "config" / "engine-contracts.json").read_text(encoding="utf-8"))["data/regime-map.json"]
+    contract = json.loads((ROOT / "config" / "engine-contracts.json").read_text(encoding="utf-8"))["contracts"]["data/regime-map.json"]
     for key in contract["required_keys"]:
         assert '"%s"' % key in TEXT, "the feed's contract requires %r" % key
     for consumer_reads in ('"regime": regime', '"sleeves": sleeves', '"ranked": ranked', '"booming":', '"destroyed":', '"regime_changed":', '"transitions": transitions[:14]'):
