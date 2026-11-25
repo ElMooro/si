@@ -55,6 +55,7 @@ QUOTE_CONFIRM_TOL_PCT = 0.35  # quoted spread vs disseminated upfront agreement 
 STALE_MAX_DAYS = 10           # a level older than this (calendar days) is not shown as current
 AGED_MAX_DAYS = 45            # ... but up to this age it is still shown as the name's level, with its date and the word "aged"
 DISTRESS_ANCHOR_BP = 1000.0   # a print past the model's reach is carried at the ceiling for a name already this wide, or when two prints of the day say so
+UNIFORM_MIN_NAMES = 4         # the same coupon, expiry and upfront on this many names in one day is a portfolio booked at one flat price, not a level
 SPIKE_LOG = 2.0               # a level this far (log, about 7x) from the name's own middle ...
 SPIKE_MAX_DAYS = 3            # ... for at most this many priced days, after which the name is back where it was, was never the name's level
 POINTS_QUOTE_TOL = 0.75       # a "spread" within this many points of the print's own upfront (cash plus accrued) is points upfront
@@ -1256,12 +1257,22 @@ def quote_status(trade, rate_pct):
     return "soft"
 
 
+def _quote_fit(trade, rate_pct):
+    """How far (points of notional) the print's cash is from what its quoted spread costs, under its coupon or the nearest standard one."""
+    q, up, notional = trade.get("quoted_bp"), trade.get("upfront"), trade.get("notional")
+    if q is None or up is None or not notional:
+        return float("inf")
+    cash, d = abs(up) / notional * 100.0, date.fromisoformat(trade["date"])
+    coupons = [trade["coupon_bp"]] if trade.get("coupon_bp") else list(STANDARD_COUPONS_BP)
+    return min(abs(abs(clean_upfront_pct(q, c, trade["tenor"], rate_pct, _rec(trade)) - accrued_pct(c, d)) - cash) for c in coupons)
+
+
 def candidate_spreads(trade, rate_pct, anchor_bp=None):
     """(spread_bp, branch) candidates for a derived print; [] when nothing can be derived.
 
     Quoted spreads are used only when confirmed by the print's own upfront, or (unconfirmed) when they sit within
     SOFT_QUOTE_GATE_LOG of the entity's anchor; otherwise the print falls through to upfront-derived branches."""
-    if trade.get("package"):
+    if trade.get("package") or trade.get("uniform"):
         return []
     if trade["kind"] == "index":
         index_quote(trade, rate_pct)
@@ -1281,8 +1292,9 @@ def candidate_spreads(trade, rate_pct, anchor_bp=None):
     if trade["quoted_bp"] is not None:
         st = quote_status(trade, rate_pct)
         repaired = bool(trade.get("quote_how"))      # a quote whose unit was repaired is never believed with nothing beside it
-        if st == "confirmed" and not trade.get("coupon_bp") and anchor_bp is not None and _log_dist(trade["quoted_bp"], anchor_bp) > JUMP_LOG:
-            st = "soft"       # "confirmed" only under a coupon the print does not state, and far from the name's own level: not confirmed
+        if (st == "confirmed" and not trade.get("coupon_bp") and anchor_bp is not None and _log_dist(trade["quoted_bp"], anchor_bp) > JUMP_LOG
+                and _quote_fit(trade, rate_pct) > QUOTE_CONFIRM_TOL_PCT):
+            st = "soft"       # "confirmed" only loosely, under a coupon the print does not state, and far from the name's own level
         if st == "confirmed" or (st == "soft" and ((anchor_bp is None and not repaired) or (anchor_bp is not None and _log_dist(trade["quoted_bp"], anchor_bp) <= SOFT_QUOTE_GATE_LOG))):
             return [(trade["quoted_bp"], "quoted")]
         # a soft quote that contradicts the anchor is not a quote.  Fall through to the upfront when the
@@ -1368,6 +1380,21 @@ def aggregate_day(trades, emap, rate_pct, anchors=None):
         slot = by_entity.setdefault(norm, {"kind": t["kind"], "raw": (m or {}).get("raw") or t["name_raw"], "trades": [], "ccy": {}})
         slot["trades"].append(t)
         slot["ccy"][t["ccy"]] = slot["ccy"].get(t["ccy"], 0) + 1
+    # a portfolio booked at one flat price: the same coupon, expiry and upfront on several names the same day says nothing about any
+    # one of them (2026-09-21: sixteen prints each on CSX, Northrop, Allstate and Quest at the upfront of a 52 bp name, while CSX
+    # traded at 15).  Those prints are counted and left out of every name's level.
+    sig_names = {}
+    for norm, slot in by_entity.items():
+        for t in slot["trades"]:
+            t.pop("uniform", None)
+            if t["quoted_bp"] is None and t["price"] is None and t["upfront"] is not None and t["notional"] and not t["capped"] and not t.get("package"):
+                sig_names.setdefault((t["coupon_bp"], t["expiry"], round(t["upfront"] / t["notional"] * 100.0, 3)), set()).add(norm[len(SUB):] if norm.startswith(SUB) else norm)
+    flat = {sig for sig, names in sig_names.items() if len(names) >= UNIFORM_MIN_NAMES}
+    if flat:
+        for slot in by_entity.values():
+            for t in slot["trades"]:
+                if t["quoted_bp"] is None and t["price"] is None and t["upfront"] is not None and t["notional"] and not t["capped"] and (t["coupon_bp"], t["expiry"], round(t["upfront"] / t["notional"] * 100.0, 3)) in flat:
+                    t["uniform"] = True
     entities = {}
     for norm, slot in by_entity.items():
         entities[norm] = _measure(slot["trades"], rate_pct, anchors.get(norm))
@@ -1401,7 +1428,7 @@ def day_anchor(trades, rate_pct, trailing_anchor):
     if isinstance(trailing_anchor, (tuple, list)):
         trail_src = trailing_anchor[2] if len(trailing_anchor) > 2 and trailing_anchor[2] else "trailing"
         trailing_anchor, trail_q = trailing_anchor[0], trailing_anchor[1]
-    five = [t for t in trades if t["bucket"] == "5Y" and not t.get("package")]
+    five = [t for t in trades if t["bucket"] == "5Y" and not t.get("package") and not t.get("uniform")]
     quoted, soft = [], []
     for t in five:
         cands = candidate_spreads(t, rate_pct, trailing_anchor)
@@ -1449,7 +1476,7 @@ def day_anchor(trades, rate_pct, trailing_anchor):
     # curve shape: with one coupon, the wrong branch reflects the curve around the coupon and inverts its slope
     all_derived = []
     for t in trades:
-        if t.get("package") or t["quoted_bp"] is not None or t["price"] is not None or t["kind"] == "index":
+        if t.get("package") or t.get("uniform") or t["quoted_bp"] is not None or t["price"] is not None or t["kind"] == "index":
             continue
         cands = candidate_spreads(t, rate_pct)
         if len(cands) == 2:
@@ -1530,7 +1557,7 @@ def _measure(trades, rate_pct, anchor_bp, index=False):
     quoted_only, points = [], []
     notional_mm, capped, cleared = 0.0, 0, 0
     for t in trades:
-        if t.get("package"):
+        if t.get("package") or t.get("uniform"):
             basis_counts["package"] += 1
             s, basis = None, "package"
         else:
@@ -1571,7 +1598,7 @@ def _measure(trades, rate_pct, anchor_bp, index=False):
         anchor_src, anchor_q = "near_coupon", "bracketed"
     cand = {}
     for t in five:
-        if t.get("package") or t["quoted_bp"] is not None or t["price"] is not None:
+        if t.get("package") or t.get("uniform") or t["quoted_bp"] is not None or t["price"] is not None:
             continue
         cs = candidate_spreads(t, rate_pct)
         if len(cs) == 2:
@@ -1889,7 +1916,7 @@ def unconfirmed_days(rows):
         if d in bad:
             i += 1
             continue
-        prev = [sv for dd, sv in conf[-6:] if _days_between(dd, d) <= 180]
+        prev = [sv for dd, sv in conf[-6:] if _days_between(dd, d) <= 400]     # a sovereign may print a dozen times a year
         if len(prev) >= 3 and _log_dist(r["s"], statistics.median(prev)) > SPIKE_LOG:
             mid = statistics.median(prev)
             j = i
@@ -2299,6 +2326,9 @@ def build_packet(bank, as_of_iso, generated_at, run_meta=None, extras=None):
         "ceiling_rule": "a distressed name is quoted in points upfront; a running equivalent past %d bp measures the recovery assumed, not the name, so the level is carried at %d bp and read in points (a print of %d points or more that the %d%% recovery cannot reach is carried the same way)" % (
             SPREAD_CEILING_BP, SPREAD_CEILING_BP, DISTRESS_POINTS, RECOVERY_SENIOR * 100),
         "quote_rule": "a quoted spread is believed when the print's own upfront confirms it, or when it sits near the name's own level; a quote that equals the print's own upfront in points is points upfront, not a spread; a quote past %d bp is a unit the notation got wrong and is read in the unit a credit can trade at, then believed only next to the name's own level" % QUOTE_ABSURD_BP,
+        "spike_rule": "a level about seven times away from the name's own middle for at most %d priced days, after which the name prints where it was, was never its level: those days are listed as unconfirmed, whatever their size" % SPIKE_MAX_DAYS,
+        "uniform_rule": "the same coupon, expiry and upfront on %d or more names in one day is a portfolio booked at one flat price: those prints are counted and left out of every name's level" % UNIFORM_MIN_NAMES,
+        "netted_rule": "a print quoted like a points quote the same name printed that day is points upfront too, even when its own cash is netted against another leg; one print past the model's reach is carried at the ceiling only for a name already past %d bp or when a second print of the day says the same" % DISTRESS_ANCHOR_BP,
         "listing_rule": "a company is tied to its listed stock by the credit board's reviewed tie, else by the same name in the worldwide listings: home exchange first, and a name whose swaps trade in euros, sterling or francs only to a European listing, in yen only to a Japanese one",
         "product_rule": "every new trade of the credit file is counted by product; index, sovereign and corporate single names get a level, commercial-mortgage indices are shown in points upfront, options by strike, the rest as activity",
     })
