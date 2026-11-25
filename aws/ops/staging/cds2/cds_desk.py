@@ -54,6 +54,7 @@ SOFT_QUOTE_GATE_LOG = 0.5     # unconfirmed quoted prints must sit within this l
 QUOTE_CONFIRM_TOL_PCT = 0.35  # quoted spread vs disseminated upfront agreement (|diff| in % notional) to call a quote confirmed
 STALE_MAX_DAYS = 10           # a level older than this (calendar days) is not shown as current
 AGED_MAX_DAYS = 45            # ... but up to this age it is still shown as the name's level, with its date and the word "aged"
+POINTS_QUOTE_TOL = 0.75       # a "spread" within this many points of the print's own upfront (cash plus accrued) is points upfront
 QUOTE_ABSURD_BP = 30000.0     # a "quoted spread" past this is a unit the notation got wrong (57 written under the decimal notation is 570,000)
 SPREAD_CEILING_BP = 10000.0   # a distressed name is quoted in points upfront; past this its running equivalent only measures the recovery assumed
 DISTRESS_POINTS = 40.0        # points upfront no below-coupon print can reach: beyond the model's reach they still say "above the ceiling"
@@ -878,6 +879,7 @@ PRODUCT_WORDS = {
     "index": "Index CDS", "tranche": "Index tranches", "option": "Index options", "sov": "Sovereign single names",
     "corp": "Corporate single names, senior", "sub": "Corporate single names, subordinated", "single_other": "Other single names (loans, bills, no seniority given)",
     "trs": "Total return swaps", "basket": "Baskets", "other": "Other credit contracts"}
+WORDED_CLASSES = ("single_other", "trs", "basket", "other")      # counted under the product name the file gives them
 PRODUCT_ORDER = ("index", "option", "tranche", "corp", "sov", "sub", "single_other", "trs", "basket", "other")
 
 
@@ -955,23 +957,28 @@ def points_quote(trade):
     """-> (points upfront, coupon bp | None) when the print's "spread" is really its points upfront, else None.
 
     A dealer platform files a distressed name's quote - 49 points - in the spread field.  The print gives itself away:
-    the quote less the cash it disseminates is exactly the accrued coupon (0.13 points on a 1% coupon 48 days into the
-    quarter, 0.82 on a 5% coupon 60 days in).  1.6 read such prints as 49 bp and put Hertz at 49 bp for a day."""
+    the quote is the cash it disseminates plus the accrued coupon (0.13 points on a 1% coupon 48 days into the quarter,
+    0.82 on a 5% coupon 60 days in), to within the rounding of the quote.  Read as a spread the same number could not be
+    that cash under any coupon a credit trades on: 49 bp on a 5% coupon is 20 points the other way.  1.6 read such
+    prints as 49 bp - "confirmed" by a 10% coupon nobody quoted - and put Hertz at 49 bp for a day."""
     q, up, notional = trade.get("quoted_bp"), trade.get("upfront"), trade.get("notional")
     if q is None or up is None or not notional or trade.get("kind") == "index":
         return None
     cash = abs(up) / notional * 100.0
-    gap = q - cash
-    if q < 3.0 or q > 100.0 or cash < 2.0 or not (-0.05 <= gap <= 2.6):
+    if q < MIN_QUOTE_BP or q > 100.0 or cash < 2.0:
         return None
     d = date.fromisoformat(trade["date"])
-    days = (d - prev_imm(d)).days + 1
-    if trade.get("coupon_bp"):
-        return (q, trade["coupon_bp"]) if abs(gap - accrued_pct(trade["coupon_bp"], d)) <= 0.12 else None
-    for c in (100.0, 500.0, 1000.0, 25.0):
-        if abs(gap - c / 1e4 * days / 360.0 * 100.0) <= 0.06:
-            return q, c
-    return (q, None) if gap <= 0.02 else None      # the cash is the quote to the cent: points, on a coupon the print does not say
+    own = trade.get("coupon_bp")
+    best = None
+    for c in ([own] if own else []) + [100.0, 500.0, 1000.0, 25.0]:
+        miss = abs(q - (cash + accrued_pct(c, d)))
+        if best is None or miss < best[0] - 1e-9:
+            best = (miss, c)
+    if best[0] > POINTS_QUOTE_TOL:
+        return None
+    if own:
+        return q, own                               # the contract's own coupon converts it
+    return (q, best[1]) if best[0] <= 0.06 else (q, None)    # the accrual names the coupon only when it fits to the cent
 
 
 def normalize_trade(row, source):
@@ -1090,6 +1097,8 @@ def print_record(row):
         fam = under or None
     elif cls == "option":
         fam = OPTION_UNDERLIER.get((ccy, coupon_bp))
+    elif cls in WORDED_CLASSES:
+        fam = fisn_tail(fisn)[:48] or None      # no index behind it: the product as the file itself names it
     amts = (row.get("Other payment amount") or "").split(";")
     types = (row.get("Other payment type") or "").split(";")
     up = _f(amts[types.index("UFRO")]) if "UFRO" in types and len(amts) > types.index("UFRO") else None
@@ -1123,7 +1132,7 @@ def census_day(records):
         c[2] += eur
         c[3] += 0 if r["ccy"] in ("USD", "EUR") else 1
         c[4] += 1 if r["capped"] else 0
-        if r["cls"] in ("index", "tranche", "option"):
+        if r["cls"] in ("index", "tranche", "option") + WORDED_CLASSES:
             f = fam.setdefault("%s|%s" % (r["cls"], r["fam"] or "not named"), [0, 0.0, 0.0])
             f[0] += 1
             f[1] += usd
@@ -1765,12 +1774,16 @@ def anchors_from_bank(bank, as_of_iso, lookback_days=7, external=None):
         # the other side is not a plausible continuation. It stays inferred, and if it cannot discriminate
         # the latest branches, index co-movement still gets its turn.
         old = [(d, row) for d, row in rows if start_long <= d < as_of_iso and row.get("s") is not None and (row.get("aq") == "firm" or row.get("q"))]
-        if old:
-            out[name] = (statistics.median([row["s"] for d, row in old[-5:]]), "firm", "trailing_long")
+        latest_cd = next((row.get("cd") for d, row in reversed(rows) if d < as_of_iso and row.get("cd")), None)
+        anchor_firm = statistics.median([row["s"] for d, row in old[-5:]]) if old else None
+        # 2.0: an old firm level that cannot tell the name's latest two branches apart no longer ends the search.  It used to:
+        # a name quoted at 400 that had since tightened to 250 was held between its branches for a year (the dry run lost
+        # Grifols and NEXT that way), and the evidence below - its own newer levels, its index, its bonds - was never asked.
+        if anchor_firm is not None and (not latest_cd or _median_branch_picks(anchor_firm, latest_cd)):
+            out[name] = (anchor_firm, "firm", "trailing_long")
             continue
         old_inf = [(d, row) for d, row in rows if start_long <= d < as_of_iso and row.get("s") is not None]
         anchor_inf = statistics.median([row["s"] for d, row in old_inf[-5:]]) if old_inf else None
-        latest_cd = next((row.get("cd") for d, row in reversed(rows) if d < as_of_iso and row.get("cd")), None)
         if anchor_inf is not None and _median_branch_picks(anchor_inf, latest_cd):
             out[name] = (anchor_inf, "inferred", "trailing_long")
             continue
@@ -1778,15 +1791,21 @@ def anchors_from_bank(bank, as_of_iso, lookback_days=7, external=None):
         grp = classify_entity(info.get("kind"), key, info.get("ccy") or {})["group"]
         cm = _comove_anchor(series, series_map.get("IDX:" + COMOVE_INDEX.get(grp, "CDX.NA.IG")), start_comove, as_of_iso)
         ext = (external or {}).get(key)
-        if ext and ext[0]:
+        ext_ok = bool(ext and ext[0])
+        if ext_ok and (not latest_cd or _median_branch_picks(float(ext[0]), latest_cd)):
             # the same issuer's credit read somewhere else (its bonds, or a sovereign reference quote) outranks a statistical
-            # co-movement; like every inferred anchor it may only choose between far-apart branches
+            # co-movement when it can tell the branches apart; like every inferred anchor it only chooses between far-apart ones
             out[name] = (float(ext[0]), "inferred", ext[1])
             continue
         if cm:
             out[name] = (cm[0], "inferred", "comove")
             continue
-        if anchor_inf is not None:
+        # nothing discriminates the stored branches: the day's own prints may still differ from them, so the best is kept
+        if anchor_firm is not None:
+            out[name] = (anchor_firm, "firm", "trailing_long")
+        elif ext_ok:
+            out[name] = (float(ext[0]), "inferred", ext[1])
+        elif anchor_inf is not None:
             out[name] = (anchor_inf, "inferred", "trailing_long")
     for key, ext in (external or {}).items():
         if key not in series_map and key not in out and ext and ext[0]:
@@ -2260,7 +2279,7 @@ def products_block(bank, as_of_iso):
         fams = []
         for k, v in sorted(fam.items(), key=lambda kv: -kv[1][0]):
             c, name = k.split("|", 1)
-            label = (INDEX_FAMILIES.get(name) or {}).get("label") or (STRUCTURED_FAMILIES.get(name) or (None,))[0] or name.title()
+            label = (INDEX_FAMILIES.get(name) or {}).get("label") or (STRUCTURED_FAMILIES.get(name) or (None,))[0] or (name if c in WORDED_CLASSES else name.title())
             measured = "level" if (c == "index" and name in INDEX_FAMILIES) else "points upfront" if (c == "index" and name in STRUCTURED_FAMILIES) else "strikes" if c == "option" else "activity"
             fams.append({"cls": c, "family": name, "label": label, "n": v[0], "usd_mm": round(v[1], 1), "eur_mm": round(v[2], 1), "measured": measured})
         return {"days": len(days), "first": days[0] if days else None, "last": days[-1] if days else None, "n": sum(v[0] for v in cls.values()),
