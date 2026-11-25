@@ -25,7 +25,9 @@
   var WINDOWS = ["w1", "m1", "m3", "ytd"];
   var WIN_COL = { w1: "d_w1", m1: "d_m1", m3: "d_m3", ytd: "d_ytd" };
   var WIN_SHORT = { w1: "1W", m1: "1M", m3: "3M", ytd: "YTD" };
-  var BOOK_SHORT = { ig: "IG", hy: "HY", em: "EM" };
+  var BOOK_SHORT = { ig: "IG", hy: "HY", em: "EM", xig: "Non-$ IG", xhy: "Non-$ HY" };
+  var BOOK_ORDER = ["ig", "hy", "em", "xig", "xhy"];
+  var BOOK_PICK = { ig: "Investment grade", hy: "High yield", em: "Emerging", xig: "Non-dollar IG", xhy: "Non-dollar HY" };
   var WIN_PCT = { w1: "pct_w1", m1: "pct_m1", m3: "pct_m3", ytd: "pct_ytd" };
   var MEASURES = [["bp", "Change, bp"], ["pct", "Change, %"], ["rel", "Against the market"], ["level", "Spread level"], ["stress", "Stress"]];
   var HELD = [[0, "Any size"], [10e6, "$10M or more"], [50e6, "$50M or more"], [250e6, "$250M or more"], [1e9, "$1B or more"]];
@@ -34,6 +36,8 @@
   var DATA_URL = "https://justhodl.ai/data/credit-before-equity.json";
 
   // ------------------------------------------------------------------------------------------------ small things
+  /* jh-credit-sheet.js (the distressed switch, every column, the company sheet, the evidence): present on the page, absent in an older cache. */
+  function sheet() { return root.JHCreditSheet || null; }
   function esc(s) {
     return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
@@ -102,6 +106,12 @@
     });
     Object.defineProperty(doc, "__table", { value: out, enumerable: false });
     return out;
+  }
+
+  /* The books a document holds companies in, as choices: the three dollar books always, the non-dollar ones once the engine reads them. */
+  function bookOptions(doc, allWord) {
+    var words = isObj(doc) && isObj(doc.books) ? doc.books : {}, by = isObj(doc) && isObj(doc.coverage) && isObj(doc.coverage.by_book) ? doc.coverage.by_book : null;
+    return [["all", allWord]].concat(BOOK_ORDER.filter(function (k) { return k === "ig" || k === "hy" || k === "em" || (words[k] && (!by || by[k] > 0)); }).map(function (k) { return [k, BOOK_PICK[k]]; }));
   }
 
   function windowList(doc) {
@@ -314,6 +324,7 @@
       if (f.signal === "distressed" && !r.distressed) return false;
       if (f.signal === "stressed" && !(isNum(r.stress) && r.stress >= (isNum(f.at) ? f.at : 80))) return false;
       if (f.signal === "ai" && r.theme !== "ai") return false;
+      if (f.cell && r.cell !== f.cell) return false;
       if (q && String(r.name || "").toLowerCase().indexOf(q) < 0 && String(r.ticker || "").toLowerCase().indexOf(q) < 0) return false;
       return true;
     });
@@ -331,7 +342,8 @@
     if (!hasStress(doc)) return [];
     var mid = isObj(doc.stress.book_spread_bp) ? doc.stress.book_spread_bp : {}, layers = layerWords(doc);
     return table(doc).filter(function (r) {
-      if (!isNum(r.stress) && !f.theme) return false;
+      if (!isNum(r.stress) && !f.theme && !f.distressed) return false;
+      if (f.distressed && !r.distressed) return false;
       if (f.theme && r.theme !== f.theme) return false;
       if (f.layer && r.layer !== f.layer) return false;
       if (f.book && f.book !== "all" && r.book !== f.book) return false;
@@ -355,11 +367,11 @@
   // ------------------------------------------------------------------------------------------------ drawing
   var COLUMNS = [
     ["name", "Company", "l"], ["industry", "Industry", "l"], ["book", "Book", "l"], ["n_bonds", "Bonds", "r"], ["value", "Held", "r"], ["spread_bp", "Spread", "r"], ["d", "Δ", "r"],
-    ["x_m1", "Past book", "r"], ["pct_m1", "Δ %", "r"], ["d_ytd", "YTD Δ", "r"], ["stress", "Stress", "r"], ["cds_bp", "CDS", "r"], ["cds_d1m", "CDS 1M", "r"], ["px_m1", "Stock", "r"],
+    ["x_m1", "Past book", "r"], ["pct_m1", "Δ %", "r"], ["d_ytd", "YTD Δ", "r"], ["stress", "Stress", "r"], ["risk_3m", "Fall risk 3M", "r"], ["cds_bp", "CDS", "r"], ["cds_d1m", "CDS 1M", "r"], ["px_m1", "Stock", "r"],
     ["direction", "Credit", "l"], ["signal", "Signal", "l"]
   ];
-  var STRESS_COLUMNS = [
-    ["name", "Company", "l"], ["stress", "Stress", "r"], ["book", "Book", "l"], ["value", "Held", "r"], ["spread_bp", "Spread", "r"], ["xbook", "× book", "r"], ["d_ytd", "YTD Δ", "r"],
+  var JHSTRESS, STRESS_COLUMNS = JHSTRESS = [
+    ["name", "Company", "l"], ["stress", "Stress", "r"], ["risk_3m", "Fall risk 3M", "r"], ["book", "Book", "l"], ["value", "Held", "r"], ["spread_bp", "Spread", "r"], ["xbook", "× book", "r"], ["d_ytd", "YTD Δ", "r"],
     ["pct_ytd", "YTD Δ %", "r"], ["d_m1", "1M Δ", "r"], ["d_w1", "1W Δ", "r"], ["cds_bp", "CDS", "r"], ["cds_d3m", "CDS 3M", "r"], ["cds_rank", "CDS 1Y rank", "r"], ["px_m1", "Stock 1M", "r"],
     ["px_ytd", "Stock YTD", "r"], ["grp", "Industry", "l"]
   ];
@@ -404,7 +416,7 @@
       tile("Leads", esc(String(down + up)), esc(String(down)) + " credit worse, stock not down · " + esc(String(up)) + " credit better, stock not up") +
       tile("Industries wider, " + (w ? w.short : ""), view.length ? esc(wide + " of " + view.length) : "Unavailable", w && w.ok ? "since " + esc(day(w.ref)) : "no reference day yet") +
       tile("Traded CDS levels", esc(count(cov.cds_priced)), esc(count(cov.cds_priced_tied)) + " tied to a listed stock · " + esc(count(cov.cds_no_level)) + " trade with no level") +
-      stressTiles(doc, tile) + "</div>";
+      stressTiles(doc, tile) + (sheet() ? sheet().distressTile(doc) + sheet().riskTile(doc) : "") + "</div>";
   }
 
   /* The two tiles the 2.1 engine adds: who is under stress whatever the stock did, and the AI stack read as one line. */
@@ -430,7 +442,7 @@
 
   function controlsHtml(doc, state) {
     var wins = windowList(doc).map(function (w) { return [w.key, w.short, w.ok ? "" : (w.why || "Not available yet")]; });
-    var books = [["all", "All"], ["ig", "Investment grade"], ["hy", "High yield"], ["em", "Emerging"]];
+    var books = bookOptions(doc, "All");
     var has = hasStress(doc), measures = MEASURES.map(function (m) { return [m[0], m[1], m[0] === "stress" && !has ? "Appears when the 2.1 engine has published" : ""]; });
     var scopes = has ? [["industries", "Industries"]].concat(doc.themes.filter(isObj).map(function (t) { return [t.key, t.name]; })) : null;
     return (scopes ? seg("scope", scopes, state.scope || "industries", "Map of") : "") + seg("win", wins, state.win, "Since") + seg("book", books, state.book, "Book") +
@@ -517,7 +529,8 @@
     function d(v) { return '<span style="color:' + textColour(v, state.palette) + '">' + esc(bp(v, true)) + " bp</span>"; }
     var moves = wins.filter(function (w) { return isNum(r[WIN_COL[w.key]]); }).map(function (w) {
       return esc(w.short) + " " + d(r[WIN_COL[w.key]]) + (isNum(r[WIN_PCT[w.key]]) ? " (" + esc(pct(r[WIN_PCT[w.key]], true)) + ")" : ""); }).join(" · ");
-    return '<div class="cb-detail"><div class="cb-detail-h"><h3>' + (r.ticker ? "<b>" + esc(r.ticker) + "</b> " : "") + esc(r.name) + '</h3><button type="button" data-show-co="' + esc(r.ticker || r.name) +
+    return '<div class="cb-detail"><div class="cb-detail-h"><h3>' + (r.ticker ? "<b>" + esc(r.ticker) + "</b> " : "") + esc(r.name) + '</h3>' +
+      (sheet() && r.id ? '<button type="button" data-sheet="' + esc(r.id) + '">Open everything on it</button>' : "") + '<button type="button" data-show-co="' + esc(r.ticker || r.name) +
       '">Show it in the table</button><button type="button" data-co="">Close</button></div>' +
       '<p class="cb-note">' + esc(layers[r.layer] || "") + " · " + esc({ ig: "investment grade", hy: "high yield", em: "emerging markets" }[r.book] || r.book || "") + " · " + esc(String(r.n_bonds)) + (r.n_bonds === 1 ? " bond" : " bonds") +
       " · " + esc(money(r.value)) + " held</p>" +
@@ -538,7 +551,7 @@
     var rows = withWindow(filterRows(table(doc), { industry: r.industry, book: state.book }), state.win).filter(function (x) { return isNum(x.d); });
     var widest = sortRows(rows, "d", "desc").slice(0, 6), tightest = sortRows(rows, "d", "asc").slice(0, 6);
     function li(x) {
-      return "<li><b>" + esc(x.ticker || "") + "</b> " + esc(x.name) + ' <span style="color:' + textColour(x.d, state.palette) + '">' + esc(bp(x.d, true)) + " bp</span> <span class=\"cb-dim\">to " + esc(bp(x.spread_bp)) + " bp</span></li>";
+      return "<li>" + nameHtml(x) + ' <span style="color:' + textColour(x.d, state.palette) + '">' + esc(bp(x.d, true)) + " bp</span> <span class=\"cb-dim\">to " + esc(bp(x.spread_bp)) + " bp</span></li>";
     }
     return '<div class="cb-detail"><div class="cb-detail-h"><h3>' + esc(r.industry) + '</h3><button type="button" data-show-ind="' + esc(r.industry) +
       '">Show its ' + esc(String(r.n)) + ' companies in the table</button><button type="button" data-ind="">Close</button></div>' +
@@ -557,7 +570,7 @@
         "Spread " + bp(x.spread_bp) + " bp, " + bp(x.d_spread_bp, true) + " bp since " + day(ref) + " (" + bp(x.x_spread_bp, true) + " past its book; the bar was " + bp(x.bar_bp) + ")";
       var stock = "Stock " + pct(x.d_price_pct, true) + (x.equity_state === "opposite" ? " — moving the other way" : " — has not followed");
       var cds = !basis && isNum(x.cds_bp) ? " · CDS " + bp(x.cds_bp) + " bp" + (isNum(x.cds_d1m) ? " (" + bp(x.cds_d1m, true) + " in a month" + (x.cds_says ? ", " + x.cds_says : "") + ")" : "") : "";
-      return '<div class="cb-lead"><div class="cb-lead-h"><b>' + esc(x.ticker) + "</b> " + esc(x.name) + ' <span class="cb-dim">' + esc(x.industry || "") + (x.book ? " · " + esc(BOOK_SHORT[x.book] || x.book) : "") +
+      return '<div class="cb-lead"><div class="cb-lead-h">' + nameHtml({ id: sheet() ? sheet().idOf(doc, x.ticker, x.name) : "", ticker: x.ticker, name: x.name }) + ' <span class="cb-dim">' + esc(x.industry || "") + (x.book ? " · " + esc(BOOK_SHORT[x.book] || x.book) : "") +
         (isCount(x.n_matched) ? " · " + x.n_matched + (x.n_matched === 1 ? " bond" : " bonds") : "") + '</span></div><div class="cb-lead-b">' + esc(credit) + esc(cds) + '</div><div class="cb-lead-b">' + esc(stock) + "</div></div>";
     }
     function col(sig, title, sub) {
@@ -577,9 +590,15 @@
       (hasStress(doc) ? '<p class="cb-note">A company whose stock already fell with its credit is not a lead and is not listed here. It is in the <button type="button" class="cb-link" data-goto="s-stress">credit stress view</button>, which does not look at the stock.</p>' : "");
   }
 
+  /* A company's name; with the sheet loaded it is the control that opens everything the engine holds for it. */
+  function nameHtml(r) {
+    var inner = "<b>" + esc(r.ticker || "") + "</b>" + (r.ticker ? " " : "") + esc(r.name);
+    return sheet() && r.id ? sheet().nameButton(r, inner) : inner;
+  }
+
   function cell(col, r, state) {
     var k = col[0], v = r[k];
-    if (k === "name") return '<td class="l"><b>' + esc(r.ticker || "") + "</b>" + (r.ticker ? " " : "") + esc(r.name) + (r.ticker ? "" : ' <span class="cb-dim">no listed stock</span>') + (r.distressed ? ' <span class="cb-tag">distressed</span>' : "") + "</td>";
+    if (k === "name") return '<td class="l">' + nameHtml(r) + (r.ticker ? "" : ' <span class="cb-dim">no listed stock</span>') + (r.distressed ? ' <span class="cb-tag">distressed</span>' : "") + "</td>";
     if (k === "industry") return '<td class="l"><button type="button" class="cb-link" data-show-ind="' + esc(v || "") + '">' + esc(v || "–") + "</button></td>";
     if (k === "book") return '<td class="l">' + esc(BOOK_SHORT[v] || v || "–") + "</td>";
     if (k === "n_bonds") return '<td class="r">' + esc(isNum(v) ? String(v) : "–") + "</td>";
@@ -588,6 +607,8 @@
     if (k === "d" || k === "x_m1" || k === "d_ytd" || k === "cds_d1m") return '<td class="r" style="color:' + textColour(v, state.palette) + '">' + esc(bp(v, true)) + "</td>";
     if (k === "pct_m1" || k === "pct_ytd") return '<td class="r" style="color:' + textColour(v, state.palette) + '">' + esc(pct(v, true)) + "</td>";
     if (k === "stress") return stressCell(r, state);
+    if (k === "risk_3m") return '<td class="r" title="How often a stock whose bonds traded this wide, and that had been moving this much, was at some point 20% or more under where it started inside three months"' +
+      (isNum(v) && v >= 100 / 3 ? ' style="font-weight:700;color:' + (PALETTES[state.palette] || PALETTES.rg).badText + '"' : "") + ">" + esc(isNum(v) ? pct(v) : "–") + "</td>";
     if (k === "px_m1") return '<td class="r" style="color:' + textColour(isNum(v) ? -v : null, state.palette) + '">' + esc(pct(v, true)) + "</td>";
     if (k === "direction") return '<td class="l" style="color:' + textColour(v === "DETERIORATING" ? 1 : v === "IMPROVING" ? -1 : null, state.palette) + '">' + esc(DIR_WORDS[v] || "–") + "</td>";
     if (k === "signal") return '<td class="l">' + (LEADS.indexOf(v) >= 0 ? '<b style="color:' + textColour(v === "CREDIT_LEADS_DOWN" ? 1 : -1, state.palette) + '">' + esc(SIGNAL_WORDS[v]) + "</b>" : esc(r.ticker ? (SIGNAL_WORDS[v] || "–") : "–")) + "</td>";
@@ -614,13 +635,24 @@
     }).join("") + "</tr></thead>";
   }
 
+  /* The table's columns: the board's sixteen, or every column the engine publishes. */
+  function tableColumns(doc, state) {
+    var has = isV2(doc) ? (doc.issuers.cols || []) : [];
+    if (state.cols !== "all" || !sheet()) return COLUMNS.filter(function (c) { return c[0] !== "risk_3m" || has.indexOf("risk_3m") >= 0; });
+    return sheet().allColumns(doc).map(function (f) { return [f[0], f[1], sheet().align(f[2]), f]; });
+  }
+
   function tableHtml(doc, state) {
+    var COLUMNS = tableColumns(doc, state), wide = COLUMNS.length && COLUMNS[0].length > 3;
+    function cellOf(c, r) { return wide && c[0] !== "name" && c[0] !== "stress" && c[0] !== "industry" ? sheet().fieldCell(c[3], r, { palette: state.palette, doc: doc }) : cell(c, r, state); }
     var all = withWindow(table(doc), state.win);
-    var rows = filterRows(all, { q: state.q, industry: state.industry, book: state.book, listed: state.listed, signal: state.signal, at: state.at });
+    var rows = filterRows(all, { q: state.q, industry: state.industry, book: state.book, listed: state.listed, signal: state.signal, at: state.at, cell: state.cell });
     var w = windowList(doc).filter(function (x) { return x.key === state.win; })[0] || {};
     var relabel = { d: "Δ " + (w.short || ""), px_m1: "Stock 1M" };
     var inds = industriesIn(all);
-    var ctl = '<div class="cb-tctl">' +
+    var ctl = '<div class="cb-tctl">' + (sheet() ? sheet().distressButton(doc, !!state.distress, "table") : "") +
+      (state.cell && sheet() ? '<button type="button" class="cb-distress" data-cell="' + esc(state.cell) + '" aria-pressed="true" title="Showing only this cell of the two questions. Click to show every company again."><span>' +
+        esc(sheet().CELL_WORDS[state.cell] || state.cell) + "</span><b>×</b></button>" : "") +
       '<label>Search <input type="search" data-q value="' + esc(state.q) + '" placeholder="Company or ticker" autocomplete="off"></label>' +
       '<label>Industry <select data-industry><option value="">All industries</option>' + inds.map(function (i) { return '<option value="' + esc(i[0]) + '"' + (i[0] === state.industry ? " selected" : "") + ">" + esc(i[0]) + " (" + i[1] + ")</option>"; }).join("") + "</select></label>" +
       '<label>Sort by <select data-sortsel>' + COLUMNS.map(function (c) { return '<option value="' + esc(c[0]) + '"' + (c[0] === state.sort.key ? " selected" : "") + ">" + esc(relabel[c[0]] || c[1]) + "</option>"; }).join("") + "</select></label>" +
@@ -628,7 +660,9 @@
       '<label>Show <select data-signal>' + [["", "Every company"], ["leads", "Leads only"], ["cds", "With a traded CDS"], ["distressed", "Distressed"]].concat(hasStress(doc) ? [["stressed", "Under stress"], ["ai", "AI stack"]] : []).map(function (o) {
         return '<option value="' + o[0] + '"' + (o[0] === state.signal ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") + "</select></label>" +
       '<label class="cb-chk"><input type="checkbox" data-listed' + (state.listed ? " checked" : "") + "> Listed stocks only</label>" +
-      '<label class="cb-chk"><input type="checkbox" data-group' + (state.group ? " checked" : "") + "> Group by industry</label></div>";
+      '<label class="cb-chk"><input type="checkbox" data-group' + (state.group ? " checked" : "") + "> Group by industry</label>" +
+      (sheet() ? seg("cols", [["std", "The board's columns"], ["all", "Every column (" + sheet().allColumns(doc).length + ")"]], state.cols === "all" ? "all" : "std", "Columns") +
+        '<button type="button" class="cb-dir" data-csv="companies" title="Every column the engine publishes, for the companies shown">Download as a file</button>' : "") + "</div>";
     var body = "", shown = 0, total = rows.length;
     if (state.group) {
       var meta = {};
@@ -642,16 +676,17 @@
         var cut = state.open[g.industry] ? inner : inner.slice(0, 8);
         body += '<tr class="cb-grp"><td colspan="' + COLUMNS.length + '"><b>' + esc(g.industry) + "</b> · " + g.n + " companies · middle change <span style=\"color:" + textColour(m.d_bp, state.palette) + '">' +
           esc(bp(m.d_bp, true)) + " bp</span> · spread " + esc(bp(m.spread_bp)) + " bp" + (inner.length > cut.length ? ' <button type="button" class="cb-link" data-open="' + esc(g.industry) + '">show all ' + inner.length + "</button>" : "") + "</td></tr>";
-        cut.forEach(function (r) { body += "<tr>" + COLUMNS.map(function (c) { return cell(c, r, state); }).join("") + "</tr>"; shown++; });
+        cut.forEach(function (r) { body += "<tr>" + COLUMNS.map(function (c) { return cellOf(c, r); }).join("") + "</tr>"; shown++; });
       });
     } else {
       var sorted = sortRows(rows, state.sort.key, state.sort.dir), page = sorted.slice(0, state.limit);
-      page.forEach(function (r) { body += "<tr>" + COLUMNS.map(function (c) { return cell(c, r, state); }).join("") + "</tr>"; });
+      page.forEach(function (r) { body += "<tr>" + COLUMNS.map(function (c) { return cellOf(c, r); }).join("") + "</tr>"; });
       shown = page.length;
     }
     if (!total) body = '<tr><td colspan="' + COLUMNS.length + '" class="cb-empty">No company matches.</td></tr>';
     var foot = '<p class="cb-note">' + shown.toLocaleString("en-US") + " of " + total.toLocaleString("en-US") + " companies shown" + (total < all.length ? " (" + all.length.toLocaleString("en-US") + " on the board)" : "") +
-      (w.ok ? " · Δ is the spread change since " + esc(day(w.ref)) + ", in basis points; Past book, Δ % and Stock are for the month" : "") + ".</p>" +
+      (w.ok ? " · Δ is the spread change since " + esc(day(w.ref)) + ", in basis points; Past book, Δ % and Stock are for the month" : "") +
+      (sheet() ? " · a company's name opens everything the engine holds for it" : "") + ".</p>" +
       (!state.group && shown < total ? '<div class="cb-pager"><button type="button" data-more="200">Show 200 more</button><button type="button" data-more="all">Show all ' + total.toLocaleString("en-US") + "</button></div>" : "");
     return ctl + '<div class="cb-scroll" tabindex="0" role="region" aria-label="Every company; scroll sideways for all columns"><table class="cb-table" data-jh-nosort>' + headHtml(COLUMNS, state.sort, "sort", relabel) + "<tbody>" + body + "</tbody></table></div>" + foot;
   }
@@ -690,16 +725,18 @@
       return '<p class="cb-empty">The stress ranks and the AI stack appear when the 2.1 engine has published. This document is version ' + esc(typeof doc.version === "string" ? doc.version : "?") + ".</p>";
     }
     var st = doc.stress, at = stressedAt(doc), theme = state.stTheme ? themeOf(doc, state.stTheme) : null, long = windowList(doc).filter(function (x) { return x.key === st.long; })[0];
-    var rows = stressRows(doc, { theme: theme ? theme.key : "", layer: theme ? state.stLayer : "", book: state.stBook, listed: state.stListed, held: state.stHeld });
+    var rows = stressRows(doc, { theme: theme ? theme.key : "", layer: theme ? state.stLayer : "", book: state.stBook, listed: state.stListed, held: state.stHeld, distressed: !!state.stDistress });
     var sorted = sortRows(rows, state.stSort.key, state.stSort.dir), page = sorted.slice(0, state.stLimit), mid = isObj(st.book_spread_bp) ? st.book_spread_bp : {};
-    var intro = '<p class="cb-cap">Who the bond market is most worried about, whatever the stock did. A company\'s stress rank is the average of where it stands in its own book (investment grade, high yield, emerging markets) on three things: ' +
+    var STRESS_COLUMNS = (doc.issuers.cols || []).indexOf("risk_3m") >= 0 ? JHSTRESS : JHSTRESS.filter(function (c) { return c[0] !== "risk_3m"; });
+    var intro = '<p class="cb-cap">Who the bond market is most worried about, whatever the stock did. A company\'s stress rank is the average of where it stands in its own book (investment grade, high yield, emerging markets' +
+      (bookOptions(doc, "").length > 4 ? ", and the two non-dollar books" : "") + ") on three things: " +
       "how wide its spread is, how far it has widened " + (long ? "since " + esc(day(long.ref)) : "over the long window") + " as a share of where it started, and how far it widened in the month. 0 to 100; " + esc(String(at)) +
       " or more is shown as under stress. The leads ask a different question: whether the stock has noticed.</p>";
     var relabel = theme ? { grp: "Layer" } : {};
-    var ctl = '<div class="cb-tctl">' + seg("st-theme", [["", "Every company"]].concat(doc.themes.filter(isObj).map(function (t) { return [t.key, t.name]; })), theme ? theme.key : "", "Show") +
+    var ctl = '<div class="cb-tctl">' + (sheet() ? sheet().distressButton(doc, !!state.stDistress, "stress") : "") + seg("st-theme", [["", "Every company"]].concat(doc.themes.filter(isObj).map(function (t) { return [t.key, t.name]; })), theme ? theme.key : "", "Show") +
       (theme ? '<label>Layer <select data-st-layersel><option value="">All layers</option>' + (Array.isArray(theme.layers) ? theme.layers : []).filter(isObj).map(function (l) {
         return '<option value="' + esc(l.key) + '"' + (l.key === state.stLayer ? " selected" : "") + ">" + esc(l.name) + " (" + esc(String(l.n)) + ")</option>"; }).join("") + "</select></label>" : "") +
-      '<label>Book <select data-st-book>' + [["all", "All books"], ["ig", "Investment grade"], ["hy", "High yield"], ["em", "Emerging"]].map(function (o) {
+      '<label>Book <select data-st-book>' + bookOptions(doc, "All books").map(function (o) {
         return '<option value="' + o[0] + '"' + (o[0] === state.stBook ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") + "</select></label>" +
       '<label>Bonds held <select data-st-held>' + HELD.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === state.stHeld ? " selected" : "") + ">" + esc(o[1]) + "</option>"; }).join("") + "</select></label>" +
       '<label>Sort by <select data-st-sortsel>' + STRESS_COLUMNS.map(function (c) { return '<option value="' + esc(c[0]) + '"' + (c[0] === state.stSort.key ? " selected" : "") + ">" + esc(relabel[c[0]] || c[1]) + "</option>"; }).join("") + "</select></label>" +
@@ -708,7 +745,7 @@
     var body = page.map(function (r, i) {
       return "<tr>" + STRESS_COLUMNS.map(function (c) {
         var k = c[0], v = r[k];
-        if (k === "name") return '<td class="l"><span class="cb-dim">' + (i + 1) + "</span> <b>" + esc(r.ticker || "") + "</b>" + (r.ticker ? " " : "") + esc(r.name) + (r.ticker ? "" : ' <span class="cb-dim">no listed stock</span>') +
+        if (k === "name") return '<td class="l"><span class="cb-dim">' + (i + 1) + "</span> " + nameHtml(r) + (r.ticker ? "" : ' <span class="cb-dim">no listed stock</span>') +
           (r.distressed ? ' <span class="cb-tag">distressed</span>' : "") + (!theme && r.theme ? ' <span class="cb-tag">' + esc((themeOf(doc, r.theme) || {}).name || r.theme) + "</span>" : "") + "</td>";
         if (k === "xbook") return '<td class="r">' + (isNum(v) ? esc(fixed(v, 1)) + "×" : "–") + "</td>";
         if (k === "d_m1" || k === "d_w1" || k === "cds_d3m") return '<td class="r" style="color:' + textColour(v, state.palette) + '">' + esc(bp(v, true)) + "</td>";
@@ -719,10 +756,11 @@
       }).join("") + "</tr>";
     }).join("") || '<tr><td colspan="' + STRESS_COLUMNS.length + '" class="cb-empty">No company matches.</td></tr>';
     var foot = '<p class="cb-note">' + page.length.toLocaleString("en-US") + " of " + rows.length.toLocaleString("en-US") + " companies shown" + (theme ? " (the " + esc(theme.name) + (state.stLayer ? ", one layer" : "") + ")" : "") +
-      " · × book is the spread as a multiple of the middle company of its book (" + ["ig", "hy", "em"].filter(function (b) { return isNum(mid[b]); }).map(function (b) { return BOOK_SHORT[b] + " " + bp(mid[b]) + " bp"; }).join(", ") +
+      " · × book is the spread as a multiple of the middle company of its book (" + BOOK_ORDER.filter(function (b) { return isNum(mid[b]); }).map(function (b) { return BOOK_SHORT[b] + " " + bp(mid[b]) + " bp"; }).join(", ") +
       ") · CDS 1Y rank is where today's level sits in its year's range · Stock 1M and YTD are the stock, not the bonds · hover a rank for its three parts.</p>" +
       (page.length < rows.length ? '<div class="cb-pager"><button type="button" data-st-more="25">Show 25 more</button><button type="button" data-st-more="all">Show all ' + rows.length.toLocaleString("en-US") + "</button></div>" : "");
-    var title = theme ? "The " + theme.name + (state.stLayer && layerWords(doc)[state.stLayer] ? ", " + layerWords(doc)[state.stLayer] : "") + ": its companies" : "Every company, most stressed first";
+    var title = state.stDistress ? "The distressed companies" + (theme ? " of the " + theme.name : "") + ", widest spread first" :
+      theme ? "The " + theme.name + (state.stLayer && layerWords(doc)[state.stLayer] ? ", " + layerWords(doc)[state.stLayer] : "") + ": its companies" : "Every company, most stressed first";
     return intro + themeHtml(doc, state) + '<div class="cb-ranked" id="stress-ranked"><h3>' + esc(title) + "</h3>" + ctl +
       '<div class="cb-scroll" tabindex="0" role="region" aria-label="Credit stress; scroll sideways for all columns"><table class="cb-table cb-stress" data-jh-nosort>' +
       headHtml(STRESS_COLUMNS, state.stSort, "st-sort", relabel) + "<tbody>" + body + "</tbody></table></div>" + foot + "</div>";
@@ -746,7 +784,10 @@
       return "<tr>" + CDS_COLUMNS.map(function (k) {
         var v = x[k[0]];
         if (k[0] === "name") return '<td class="l">' + esc(x.name) + (x.liquid ? "" : ' <span class="cb-dim">thin</span>') + "</td>";
-        if (k[0] === "ticker") return '<td class="l"><b>' + esc(v || "") + "</b>" + (v ? "" : '<span class="cb-dim">–</span>') + "</td>";
+        if (k[0] === "ticker") {
+          var sid = v && sheet() ? sheet().idOf(doc, v, "") : "";
+          return '<td class="l">' + (sid ? sheet().nameButton({ id: sid }, "<b>" + esc(v) + "</b>") : "<b>" + esc(v || "") + "</b>") + (v ? "" : '<span class="cb-dim">–</span>') + "</td>";
+        }
         if (k[0] === "spread_bp") return '<td class="r">' + (x.believable === false ? esc(isNum(x.points_upfront) ? fixed(x.points_upfront, 1) + " pts upfront" : "quoted in points") : esc(bp(v)) + " bp") + "</td>";
         if (k[0] === "d1d" || k[0] === "d1w" || k[0] === "d1m" || k[0] === "d3m") return '<td class="r" style="color:' + textColour(v, state.palette) + '">' + esc(bp(v, true)) + "</td>";
         if (k[0] === "rank_1y") return '<td class="r">' + esc(isNum(v) ? fixed(v, 0) + "%" : "–") + "</td>";
@@ -781,11 +822,19 @@
   }
 
   function methodHtml(doc) {
-    var rules = isObj(doc.rules) ? doc.rules : {}, order = ["spread", "company", "change", "industry", "credit_moved", "stock_has_not_followed", "no_lead_when_credit_disagrees", "stress", "theme", "cds", "left_out"];
+    var rules = isObj(doc.rules) ? doc.rules : {}, order = ["spread", "company", "change", "industry", "credit_moved", "stock_has_not_followed", "no_lead_when_credit_disagrees", "stress", "theme", "cds", "left_out",
+                                                           "other_currency", "bond_facts", "implied_default", "two_questions", "record", "chance_of_a_fall"];
     var words = { spread: "Spread", company: "Company", change: "Change", industry: "Industry", credit_moved: "Credit moved", stock_has_not_followed: "Stock has not followed", cds: "Traded CDS", left_out: "Left out",
-                  no_lead_when_credit_disagrees: "When credit disagrees", stress: "Stress rank", theme: "Theme" };
+                  no_lead_when_credit_disagrees: "When credit disagrees", stress: "Stress rank", theme: "Theme", other_currency: "Another currency", bond_facts: "Bond facts",
+                  implied_default: "Implied default", two_questions: "The two questions", record: "The record", chance_of_a_fall: "Chance of a fall" };
+    Object.keys(rules).forEach(function (k) { if (order.indexOf(k) < 0) order.push(k); });          // a rule the engine adds later is shown under its own key
     var h = "<p>" + esc(typeof doc.method === "string" ? doc.method : "Method unavailable.") + "</p><dl class=\"cb-rules\">" + order.filter(function (k) { return typeof rules[k] === "string"; }).map(function (k) {
-      return "<dt>" + esc(words[k]) + "</dt><dd>" + esc(rules[k]) + "</dd>"; }).join("") + "</dl>";
+      return "<dt>" + esc(words[k] || k) + "</dt><dd>" + esc(rules[k]) + "</dd>"; }).join("") + "</dl>";
+    var th = isObj(doc.thresholds) ? doc.thresholds : null;
+    if (th) h += '<p class="cb-note">The numbers the rules use: ' + Object.keys(th).map(function (k) { return esc(k.replace(/_/g, " ")) + " " + esc(String(th[k])); }).join(" · ") + ".</p>";
+    var curves = isObj(doc.curve) && isObj(doc.curve.other) ? doc.curve.other : null;
+    if (curves && Object.keys(curves).length) h += '<p class="cb-note">Government curves for the other currencies: ' + Object.keys(curves).map(function (c) {
+      return esc(c) + " – " + esc(isObj(curves[c]) && typeof curves[c].words === "string" ? curves[c].words : "") + " (" + esc(day(isObj(curves[c]) ? curves[c].as_of : null)) + ")"; }).join(" · ") + ".</p>";
     var wins = windowList(doc);
     h += '<p class="cb-note">Reference days: ' + wins.map(function (w) { return esc(w.short) + " – " + (w.ok ? esc(day(w.ref)) + " (" + w.days + " days; " + esc(w.source || "") + ")" : "not available yet" + (w.why ? " (" + esc(w.why) + ")" : "")); }).join(" · ") + "</p>";
     return h;
@@ -793,9 +842,12 @@
 
   function coverageHtml(doc) {
     var cov = isObj(doc.coverage) ? doc.coverage : {}, m = isObj(doc.match) ? doc.match : {}, left = isObj(cov.bonds_left_out) ? cov.bonds_left_out : {}, ties = isObj(cov.ties) ? cov.ties : {};
-    var h = "<p>" + esc(count(cov.bonds_read)) + " US-dollar corporate bonds read, " + esc(count(cov.bonds_with_spread)) + " with a spread. Left out: " + Object.keys(left).map(function (k) { return esc(k) + " " + esc(count(left[k])); }).join("; ") + ".</p>" +
+    var other = isCount(cov.bonds_not_usd) && cov.bonds_not_usd > 0, byBook = isObj(cov.by_book) ? cov.by_book : null, words = isObj(doc.books) ? doc.books : {};
+    var h = "<p>" + esc(count(cov.bonds_read)) + (other ? " corporate bonds read, " : " US-dollar corporate bonds read, ") + esc(count(cov.bonds_with_spread)) + " with a spread" +
+      (other ? " (" + esc(count(cov.bonds_not_usd)) + " of them in euros, sterling, Canadian or Australian dollars, each against its own government's yields)" : "") + ". Left out: " + Object.keys(left).map(function (k) { return esc(k) + " " + esc(count(left[k])); }).join("; ") + ".</p>" +
       "<p>" + esc(count(cov.companies)) + " companies; " + esc(count(cov.listed)) + " tied to a listed stock, holding " + esc(isNum(cov.value_tied_pct) ? fixed(cov.value_tied_pct, 1) + "%" : "Unavailable") +
-      " of the market value read. How issuer names were tied: " + Object.keys(ties).map(function (k) { return esc(k) + " " + esc(count(ties[k])); }).join(", ") + ".</p>";
+      " of the market value read. How issuer names were tied: " + Object.keys(ties).map(function (k) { return esc(k) + " " + esc(count(ties[k])); }).join(", ") + ".</p>" +
+      (byBook ? "<p>By book: " + BOOK_ORDER.filter(function (k) { return isCount(byBook[k]) && byBook[k] > 0; }).map(function (k) { return esc(String(words[k] || k).toLowerCase()) + " " + esc(count(byBook[k])); }).join(", ") + ".</p>" : "");
     var rule = Array.isArray(m.by_rule) ? m.by_rule : [], un = Array.isArray(m.largest_untied) ? m.largest_untied : [];
     if (rule.length) h += '<details><summary data-jh-title="Ties made by a rule">' + rule.length + ' ties made by a naming rule (each one is listed)</summary><p class="cb-note">' + rule.map(function (t) {
       return esc(t.issuer) + " → " + esc(t.ticker) + " " + esc(t.company) + " (" + esc(t.how) + ")"; }).join(" · ") + "</p></details>";
@@ -815,10 +867,11 @@
   function firstState(doc, kept) {
     var wins = windowList(doc), ok = function (k) { return wins.some(function (w) { return w.key === k && w.ok; }); };
     var win = ok(kept.win) ? kept.win : ok(doc.primary) ? doc.primary : (wins.filter(function (w) { return w.ok; })[0] || {}).key || "m1";
-    return { win: win, book: ["all", "ig", "hy", "em"].indexOf(kept.book) >= 0 ? kept.book : "all", measure: MEASURES.some(function (m) { return m[0] === kept.measure; }) ? kept.measure : "bp",
+    return { win: win, book: bookOptions(doc, "All").some(function (o) { return o[0] === kept.book; }) ? kept.book : "all", measure: MEASURES.some(function (m) { return m[0] === kept.measure; }) ? kept.measure : "bp",
              palette: PALETTES[kept.palette] ? kept.palette : "rg", industry: "", q: "", listed: false, signal: "", group: false, open: {}, limit: 100, sort: { key: "d", dir: "desc" },
              cdsSort: { key: "d1m", dir: "desc" }, cdsSector: "", cdsLiquid: false, cdsListed: false, cdsAll: false, allLeads: false, view: "new",
-             scope: "industries", pick: "", thWin: hasStress(doc) && ok(doc.stress.long) ? doc.stress.long : win, thMeasure: "pct", at: stressedAt(doc), stTheme: "", stLayer: "", stBook: "all", stHeld: HELD_FIRST, stListed: false, stSort: { key: "stress", dir: "desc" }, stLimit: 25 };
+             scope: "industries", pick: "", thWin: hasStress(doc) && ok(doc.stress.long) ? doc.stress.long : win, thMeasure: "pct", at: stressedAt(doc), stTheme: "", stLayer: "", stBook: "all", stHeld: HELD_FIRST, stListed: false, stSort: { key: "stress", dir: "desc" }, stLimit: 25,
+             distress: false, stDistress: false, cell: "", cols: "std", sheet: "", bondSort: { key: "maturity", dir: "asc" }, dataOpen: {}, evHorizon: "h1", evGroup: "cells" };
   }
 
   function mount(host, doc, opt) {
@@ -831,6 +884,62 @@
     $("evidence").innerHTML = evidenceHtml(doc);
     function drawStress() { var box = $("stress"); if (box) box.innerHTML = stressHtml(doc, state); }
     function jump(d) { var el = d.goto ? host.querySelector("#" + d.goto) : null; if (el && el.scrollIntoView) el.scrollIntoView({ block: "start" }); }
+
+    // ---- what jh-credit-sheet.js draws: the company sheet, what the stock did next, the whole document
+    var S = sheet(), extra = { bonds: null, history: null }, asked = {}, opener = null;
+    function ctx() {
+      var bonds = !isObj(doc.bonds) ? "unpublished" : extra.bonds === null ? "loading" : extra.bonds === false ? "error" : S.bondsOf(extra.bonds, state.sheet);
+      var hist = !isObj(doc.history) ? null : extra.history === null ? "loading" : extra.history === false ? "error" : extra.history;
+      return { palette: state.palette, bonds: bonds, bondSort: state.bondSort, history: hist };
+    }
+    function drawSheet() {
+      var box = $("sheet");
+      if (!box || !S) return;
+      if (!state.sheet) { box.hidden = true; box.innerHTML = ""; return; }
+      var keep = box.querySelector(".cb-sheet-in"), at = keep ? keep.scrollTop : 0;
+      box.innerHTML = '<button type="button" class="cb-sheet-back" data-sheet-close aria-label="Close the company sheet"></button>' + S.sheetHtml(doc, state.sheet, ctx());
+      box.hidden = false;
+      var now = box.querySelector(".cb-sheet-in");
+      if (now && at) now.scrollTop = at;
+    }
+    /* A document the engine publishes beside the main one (its bonds, its history): asked for once, when first needed. */
+    function need(what) {
+      var meta = isObj(doc[what]) ? doc[what] : null;
+      if (!S || !meta || typeof meta.key !== "string" || asked[what] || !root.fetch) return;
+      asked[what] = true;
+      root.fetch(S.BASE + meta.key + "?t=" + encodeURIComponent(String(doc.generated_at || ""))).then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      }).then(function (j) { extra[what] = j; }, function () { extra[what] = false; }).then(function () { if (state.sheet) drawSheet(); });
+    }
+    function openSheet(id, from) {
+      if (!S || !id) return;
+      state.sheet = id; opener = from || null; state.bondSort = { key: "maturity", dir: "asc" };
+      drawSheet(); need("bonds"); need("history");
+      var box = $("sheet"), close = box ? box.querySelector(".cb-sheet-h button[data-sheet-close]:last-child") : null, pane = box ? box.querySelector(".cb-sheet-in") : null;
+      if (pane) pane.scrollTop = 0;
+      if (close && close.focus) close.focus();
+    }
+    function closeSheet() {
+      state.sheet = ""; drawSheet();
+      if (opener && opener.focus && host.contains(opener)) opener.focus();
+      opener = null;
+    }
+    function download(name, text) {
+      try {
+        var a = D.createElement("a"), url = root.URL.createObjectURL(new root.Blob([text], { type: "text/csv;charset=utf-8" }));
+        a.href = url; a.download = name; a.style.display = "none"; host.appendChild(a); a.click(); host.removeChild(a);
+        setTimeout(function () { root.URL.revokeObjectURL(url); }, 4000);
+      } catch (e) { /* a browser that cannot save a file: the table itself is still on the page */ }
+    }
+    function tableRows() {
+      return sortRows(filterRows(withWindow(table(doc), state.win), { q: state.q, industry: state.industry, book: state.book, listed: state.listed, signal: state.signal, at: state.at, cell: state.cell }), state.sort.key, state.sort.dir);
+    }
+    function drawExtras() {
+      var nx = $("next"), dt = $("data");
+      if (S && nx && S.nextHtml) nx.innerHTML = S.nextHtml(doc, state);
+      if (S && dt && S.dataHtml) dt.innerHTML = S.dataHtml(doc, state);
+    }
 
     function drawMap() {
       var box = $("map"), ms = mapState(state), m = mapHtml(doc, ms, box.clientWidth || host.clientWidth || 900);
@@ -856,6 +965,7 @@
         $("cds").innerHTML = cdsHtml(doc, state);
         $("method").innerHTML = methodHtml(doc);
         $("coverage").innerHTML = coverageHtml(doc);
+        drawExtras();
         $("gaps").innerHTML = (Array.isArray(doc.gaps) ? doc.gaps : []).filter(function (g) { return typeof g === "string"; }).map(function (g) { return "<p>" + esc(g) + "</p>"; }).join("") || "<p>None declared.</p>";
       }
       if (!what || what === "all" || what === "map") drawMap();
@@ -863,6 +973,8 @@
       if (what === "cds") $("cds").innerHTML = cdsHtml(doc, state);
       if (what === "leads") $("leads").innerHTML = leadsHtml(doc, state);
       if (what === "stress") drawStress();
+      if (what === "extras") drawExtras();
+      if (state.sheet && (!what || what === "all")) drawSheet();
     }
 
     function flip(sort, key) {
@@ -874,6 +986,40 @@
       if (!t || !host.contains(t)) return;
       var d = t.dataset;
       if (t.id === "viewtoggle") { state.view = state.view === "new" ? "previous" : "new"; draw("all"); return; }
+      if ("sheetClose" in d) { closeSheet(); if (!("showCo" in d)) return; }
+      if ("sheet" in d) { openSheet(d.sheet, t); return; }
+      if (d.bondSort) {
+        flip(state.bondSort, d.bondSort); drawSheet();
+        var again = host.querySelector('#sheet button[data-bond-sort="' + d.bondSort + '"]');
+        if (again && again.focus) again.focus();          // the header that was clicked was redrawn: the focus goes to its successor
+        return;
+      }
+      if (d.csv === "bonds" && S && extra.bonds) { download("credit-before-equity-bonds-" + String(state.sheet).replace(/[^A-Za-z0-9]+/g, "-") + "-" + String(doc.as_of || "") + ".csv", S.csvText(extra.bonds.cols, extra.bonds.rows.filter(function (r) { return r[extra.bonds.cols.indexOf("co")] === state.sheet; }))); return; }
+      if (d.csv === "companies" && S) { download("credit-before-equity-companies-" + String(doc.as_of || "") + ".csv", S.csvText(doc.issuers.cols, tableRows())); return; }
+      if (d.distress === "table") {
+        if (!state.distress) {
+          state.kept = { signal: state.signal, sort: { key: state.sort.key, dir: state.sort.dir }, group: state.group, industry: state.industry, q: state.q, listed: state.listed, limit: state.limit };
+          state.signal = "distressed"; state.sort = { key: "spread_bp", dir: "desc" }; state.group = false; state.industry = ""; state.q = ""; state.listed = false; state.limit = 1e9; state.distress = true;
+        } else if (!d.goto) {
+          var k = state.kept || {};
+          state.signal = k.signal || ""; state.sort = k.sort || { key: "d", dir: "desc" }; state.group = !!k.group; state.industry = k.industry || ""; state.q = k.q || ""; state.listed = !!k.listed; state.limit = k.limit || 100; state.distress = false;
+        }
+        draw("map"); jump(d); return;
+      }
+      if (d.distress === "stress") {
+        if (!state.stDistress) { state.stKept = { held: state.stHeld, sort: { key: state.stSort.key, dir: state.stSort.dir }, limit: state.stLimit }; state.stHeld = 0; state.stSort = { key: "spread_bp", dir: "desc" }; state.stLimit = 1e9; state.stDistress = true; }
+        else { var sk = state.stKept || {}; state.stHeld = isNum(sk.held) ? sk.held : HELD_FIRST; state.stSort = sk.sort || { key: "stress", dir: "desc" }; state.stLimit = sk.limit || 25; state.stDistress = false; }
+        drawStress(); return;
+      }
+      if (d.cols) {
+        state.cols = d.cols === "all" ? "all" : "std";
+        var keys = tableColumns(doc, state).map(function (c) { return c[0]; });
+        if (keys.indexOf(state.sort.key) < 0) state.sort.key = state.cols === "all" ? (WIN_COL[state.win] || "spread_bp") : "d";
+        draw("table"); return;
+      }
+      if (d.cell) { state.cell = state.cell === d.cell ? "" : d.cell; state.limit = 100; state.listed = state.cell ? true : state.listed; draw("table"); draw("extras"); if (state.cell) jump(d); return; }
+      if (d.risk) { state.signal = ""; state.cell = ""; state.distress = false; state.industry = ""; state.q = ""; state.group = false; state.listed = true; state.sort = { key: "risk_3m", dir: "desc" }; state.limit = 100; draw("map"); jump(d); return; }
+      if (S && S.click && S.click(d, state, doc)) { draw("extras"); return; }
       var onTheme = state.scope && state.scope !== "industries";
       if (d.win && onTheme) { state.thWin = d.win; draw("all"); return; }
       if (d.measure && onTheme) { state.thMeasure = d.measure; draw("all"); return; }
@@ -905,7 +1051,7 @@
       var t = ev.target, d = t.dataset || {};
       if ("industry" in d) { state.industry = t.value; state.limit = 100; draw("map"); }
       else if ("sortsel" in d) { state.sort.key = t.value; draw("table"); }
-      else if ("signal" in d) { state.signal = t.value; state.limit = 100; draw("table"); }
+      else if ("signal" in d) { state.signal = t.value; state.limit = 100; state.distress = t.value === "distressed" && state.distress; draw("table"); }
       else if ("listed" in d) { state.listed = t.checked; draw("table"); }
       else if ("group" in d) { state.group = t.checked; state.open = {}; draw("table"); }
       else if ("cdsSector" in d) { state.cdsSector = t.value; draw("cds"); }
@@ -932,6 +1078,25 @@
         if (again) { again.focus(); try { again.setSelectionRange(at, at); } catch (e) { /* not every input type keeps a caret */ } }
       }, 180);
     });
+    D.addEventListener("keydown", function (ev) { if (ev.key === "Escape" && state.sheet) { closeSheet(); } });          // on the document: a redraw can leave the focus on the page itself
+    /* The sheet's chart: the month under the pointer, read out beside the legend. */
+    host.addEventListener("mousemove", function (ev) {
+      var hit = ev.target && ev.target.classList && ev.target.classList.contains("cb-hit") ? ev.target : null;
+      if (!hit) return;
+      var box = hit.closest(".cb-chartbox"), g = JSON.parse(hit.getAttribute("data-chart")), pts = JSON.parse(box.getAttribute("data-series")), rect = hit.getBoundingClientRect();
+      var i = clamp(Math.round((ev.clientX - rect.left) / (rect.width || 1) * (pts.length - 1)), 0, pts.length - 1), p = pts[i], hover = box.querySelector(".cb-hover"), tip = box.querySelector(".cb-tip");
+      var x = g.L + (g.W - g.L - g.R) * (pts.length > 1 ? i / (pts.length - 1) : 0.5);
+      hover.removeAttribute("hidden");
+      hover.querySelector("line").setAttribute("x1", x); hover.querySelector("line").setAttribute("x2", x);
+      var dot = hover.querySelector("circle");
+      if (isNum(p[1])) { dot.setAttribute("cx", x); dot.setAttribute("cy", g.T + (g.H - g.T - g.B) * (1 - (p[1] - g.lo) / (g.hi - g.lo))); dot.removeAttribute("visibility"); } else dot.setAttribute("visibility", "hidden");
+      tip.textContent = day(p[0]) + ": " + (isNum(p[1]) ? bp(p[1]) + " bp" : "no reading") + (isNum(p[2]) ? " · its book " + bp(p[2]) + " bp" : "");
+    });
+    host.addEventListener("mouseout", function (ev) {
+      if (!(ev.target && ev.target.classList && ev.target.classList.contains("cb-hit"))) return;
+      var box = ev.target.closest(".cb-chartbox");
+      box.querySelector(".cb-hover").setAttribute("hidden", ""); box.querySelector(".cb-tip").textContent = "";
+    });
     var sizing = null, last = 0;
     if (root.addEventListener) root.addEventListener("resize", function () {
       clearTimeout(sizing);
@@ -941,7 +1106,7 @@
     last = $("map") ? $("map").clientWidth : 0;
     var foot = $("foot");
     if (foot) foot.textContent = "Feed data/credit-before-equity.json · " + (typeof (doc || {}).attribution === "string" ? doc.attribution : "Attribution unavailable") + " · v" + (typeof (doc || {}).version === "string" ? doc.version : "?");
-    return { state: state, draw: draw };
+    return { state: state, draw: draw, openSheet: openSheet, closeSheet: closeSheet };
   }
 
   function start(host) {
@@ -963,5 +1128,6 @@
     mapHtml: mapHtml, rankHtml: rankHtml, detailHtml: detailHtml, leadsHtml: leadsHtml, tableHtml: tableHtml, cdsHtml: cdsHtml, previousHtml: previousHtml, methodHtml: methodHtml,
     coverageHtml: coverageHtml, firstState: firstState, mount: mount, start: start,
     STRESS_COLUMNS: STRESS_COLUMNS, HELD_FIRST: HELD_FIRST, hasStress: hasStress, stressedAt: stressedAt, themeOf: themeOf, layerWords: layerWords, themeView: themeView, mapView: mapView,
-    stressRows: stressRows, stressHtml: stressHtml, leadNotesHtml: leadNotesHtml, mapState: mapState, themeHtml: themeHtml, stressTiles: stressTiles, companyDetailHtml: companyDetailHtml, verdict: verdict, shortName: shortName };
+    stressRows: stressRows, stressHtml: stressHtml, leadNotesHtml: leadNotesHtml, mapState: mapState, themeHtml: themeHtml, stressTiles: stressTiles, companyDetailHtml: companyDetailHtml, verdict: verdict, shortName: shortName,
+    headHtml: headHtml, cell: cell, seg: seg, bookOptions: bookOptions, BOOK_ORDER: BOOK_ORDER, count: count, stamp: stamp, nameHtml: nameHtml, tableColumns: tableColumns, LEADS: LEADS, SIGNAL_WORDS: SIGNAL_WORDS, DIR_WORDS: DIR_WORDS, BOOK_SHORT: BOOK_SHORT, DATA_URL: DATA_URL };
 })(typeof window !== "undefined" ? window : globalThis);

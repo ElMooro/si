@@ -3,11 +3,13 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory": 2048,
-  "timeout": 300,
-  "architectures": ["x86_64"],
+  "memory": 3008,
+  "timeout": 900,
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Credit before equity: each company's bond spread over Treasuries and traded CDS crossed with its stock; industry spread changes; a stress rank per company; the AI stack; a lead only when credit moved and the stock has not. Reads the warehouse only.",
+  "description": "Credit before equity: each company's bond spread and traded CDS crossed with its stock; a stress rank; the AI stack; a lead when credit moved and the stock has not; the chance of a fall its reading has meant, from the board's own history. Warehouse only.",
   "environment": {},
   "schedule": {
     "rule_name": "justhodl-credit-before-equity-daily",

@@ -9,7 +9,12 @@ from it; the engine must reproduce it here, figure for figure.
 Checked besides: the curve and the duration-matched maturity, the windows, the rule (every branch), how issuer names are
 tied to listed companies and the ties that must be refused, the publication guards, the ledger, the handler, and that the
 engine asks no provider for anything. Since 2.1: the stress rank (worked again here from the published table), the AI
-stack theme and its layers, and that no lead is called when the bonds and a liquid CDS disagree. No network, no AWS.
+stack theme and its layers, and that no lead is called when the bonds and a liquid CDS disagree. Since 3.0: the bond
+facts, the nine cells, bonds in another currency (and that a dollar company stays read in dollars), the bond document
+(every bond, no identifier), the study's tape (entry a session late; a delisted stock counted at its last print), the
+evidence on a sample of the real history reproduced figure for figure and on a made-up history with one true thing in it,
+the walk-forward check (no look-ahead), the board rebuilt at the cut's month-ends, the chance of a fall, when the study
+is redone, and the scoring of the board's own calls. No network, no AWS.
 
 Run: python3 aws/lambdas/justhodl-credit-before-equity/tests/run_tests.py
 """
@@ -39,6 +44,7 @@ if "boto3" not in sys.modules:
 import bank_enrich  # noqa: E402
 import cbe_core as C  # noqa: E402
 import cbe_names as N  # noqa: E402
+import cbe_study as S  # noqa: E402
 import cbe_themes as TH  # noqa: E402
 import lambda_function as L  # noqa: E402
 
@@ -90,9 +96,20 @@ def with_cut(fn):
         L.MIN_BONDS, L.MIN_COMPANIES, L.MIN_LISTED = keep[1]
 
 
-def build(docs=None, now=NOW):
+def build(docs=None, now=NOW, evidence="the cut's"):
     s3 = MemS3(docs)
-    return with_cut(lambda: L.build(s3, now, log=lambda *_: None)), s3
+    ev = (docs if docs is not None else FIX["docs"]).get(L.EVIDENCE_KEY) if evidence == "the cut's" else evidence
+    return with_cut(lambda: L.build(s3, now, log=lambda *_: None, evidence=ev)), s3
+
+
+def handle(event, s3, context=None):
+    """The handler on a bucket held in memory, with the cut's book, guards and clock."""
+    keep = L._s3, L._now
+    try:
+        L._s3, L._now = (lambda: s3), (lambda: NOW)
+        return with_cut(lambda: L.lambda_handler(event, context))
+    finally:
+        L._s3, L._now = keep
 
 
 def plain(x):
@@ -206,7 +223,7 @@ def an_industry_is_the_middle_company_by_value_not_the_average():
         assert abs(d - ind["win"]["m1"]["d_bp"]) < 0.06, (ind["industry"], d, ind["win"]["m1"])
         assert ind["win"]["m1"]["n"] == len(have) and ind["n"] >= len(have)
     assert sum(i["n"] for i in p["industries"]["all"]) == len(table)
-    for book in ("ig", "hy", "em"):
+    for book in C.BOOK_WORDS:
         assert sum(i["n"] for i in p["industries"][book]) == sum(1 for x in table if x["book"] == book)
 
 
@@ -426,16 +443,20 @@ def the_ledger_keeps_a_real_day_over_a_worked_back_one():
     docs[L.LEDGER_ROOT + issues["move_as_of"] + ".json.gz"] = real
     again, _ = build(docs)
     assert [s["as_of"] for s in again["snapshots"] if s["derived_from"]] == [issues["ytd_as_of"]]          # the stored day is not overwritten
-    assert again["payload"]["windows"]["m1"]["source"] == "the board's own ledger" and again["payload"]["windows"]["m1"]["n_bonds"] == 1
+    m1 = again["payload"]["windows"]["m1"]
+    # ... and what it holds is never replaced: since 3.0 a bond the stored day does NOT hold is worked back beside it, and said
+    assert m1["source"].startswith("the board's own ledger; %d bonds it did not hold that day are worked back" % m1["n_worked_back"]) and m1["n_bonds"] == 1 + m1["n_worked_back"] > 1000
     assert built["payload"]["windows"]["w1"]["ref"] == "2026-11-16" and built["payload"]["windows"]["w1"]["source"] == "the board's own ledger"     # the cut carries a real ledger day
     empty = build(BARE)[0]["payload"]["windows"]
     assert empty["w1"]["ref"] is None and "ledger" in empty["w1"]["why"] and empty["m3"]["ref"] is None and empty["m1"]["ref"] == issues["move_as_of"]
     # a window that is not there yet says when it can be, and never names a worked-back day as the day the ledger began
-    for w in (empty["w1"], empty["m3"], built["payload"]["windows"]["m3"]):
+    for w in (empty["w1"], empty["m3"]):
         assert "began on" not in w["why"] and issues["ytd_as_of"] not in w["why"] and w["available_from"] in w["why"], w["why"]
     assert empty["w1"]["available_from"] == "2026-11-27"                # today's own day is four days back then: a week, give or take three
+    # since the month-ends were kept (ops 6950) the ledger reaches back years: three months is a real day, and so are the month and the year
     m3 = built["payload"]["windows"]["m3"]
-    assert m3["ref"] is None and m3["available_from"] > issues["as_of"] and m3["available_from"] in m3["why"], m3
+    assert m3["ref"] == "2026-08-31" and m3["source"] == "the board's own ledger" and m3["n_worked_back"] == 0 and "why" not in m3, m3
+    assert built["payload"]["windows"]["ytd"]["ref"] == issues["ytd_as_of"] and built["payload"]["windows"]["ytd"]["source"].startswith("the board's own ledger")
 
 
 @test
@@ -457,48 +478,55 @@ def a_week_appears_once_the_ledger_holds_one():
 @test
 def the_handler_writes_the_document_the_ledger_and_the_model_ledger_and_nothing_else():
     s3 = MemS3()
-    keep = L._s3
-    try:
-        L._s3 = lambda: s3
-        out = with_cut(lambda: L.lambda_handler({}, None))
-    finally:
-        L._s3 = keep
+    out = handle({}, s3)
     issues = FIX["docs"][L.BONDS_KEY]["issues"]
     want = {L.OUT_KEY, L.HIST_KEY} | {L.LEDGER_ROOT + d + ".json.gz" for d in {issues["as_of"], issues["move_as_of"], issues["ytd_as_of"]} - STORED}
+    # since 3.0: every bond under its company, the day's holdings (so that the history grows), the day's calls as they were said, and the track of earlier calls
+    want |= {L.BONDS_OUT_KEY, L.HOLD_ROOT + issues["as_of"] + ".json.gz", L.CALLS_ROOT + issues["as_of"] + ".json.gz", L.TRACK_KEY}
     assert set(s3.puts) == want, sorted(set(s3.puts) ^ want)
     doc = json.loads(s3.puts[L.OUT_KEY])
-    assert doc["contract"] == "credit-before-equity.v2" and doc["version"] == "2.1.0" and out["statusCode"] == 200
+    assert doc["contract"] == "credit-before-equity.v2" and doc["version"] == "3.0.0" and out["statusCode"] == 200
     snap = json.loads(gzip.decompress(s3.puts[L.LEDGER_ROOT + issues["as_of"] + ".json.gz"]))
     assert snap["derived_from"] is None and snap["n"] == len(snap["bonds"]) > 500
     hist = json.loads(s3.puts[L.HIST_KEY])
     assert all(len(v) <= L.HIST_KEEP for v in hist["obs"].values()) and "updated_at" in hist
     assert json.loads(json.dumps(doc)) == doc and "NaN" not in json.dumps(doc["thresholds"])
+    # the evidence was not due (no month has finished since it was written): it is read, published inside the document, and not rewritten
+    assert doc["evidence"]["readings"] and doc["track"]["calls_kept"] == 1 and doc["track"]["last_call"] == issues["as_of"]
+    assert json.loads(s3.puts[L.BONDS_OUT_KEY]) == FIX["expected_bonds"]
+    held = json.loads(gzip.decompress(s3.puts[L.HOLD_ROOT + issues["as_of"] + ".json.gz"]))
+    assert held["cols"] == L.HOLD_COLS and len(held["rows"]) == FIX["expected_holdings_rows"] > 1000
+    # a second run the same day changes nothing it should not: the same keys, and the track is not written again
+    again = MemS3({**FIX["docs"], **{k: (json.loads(gzip.decompress(v)) if k.endswith(".gz") else json.loads(v)) for k, v in s3.puts.items()}})
+    handle({}, again)
+    assert L.TRACK_KEY not in again.puts and L.EVIDENCE_KEY not in again.puts and L.OUT_KEY in again.puts
 
 
 @test
 def a_dry_run_builds_everything_and_writes_nothing():
     s3 = MemS3()
-    keep = L._s3
-    try:
-        L._s3 = lambda: s3
-        out = with_cut(lambda: L.lambda_handler({"dry_run": True}, None))
-    finally:
-        L._s3 = keep
+    out = handle({"dry_run": True}, s3)
     assert s3.puts == {} and out["dry_run"] is True and out["statusCode"] == 200
     assert out["companies"] == FIX["expected"]["coverage"]["companies"] and out["leads"] == FIX["expected"]["n_leads"] and out["windows"]["w1"] == "2026-11-16"
     issues = FIX["docs"][L.BONDS_KEY]["issues"]
     assert len(out["ledger_days"]) == len({issues["as_of"], issues["move_as_of"], issues["ytd_as_of"]} - STORED) and out["bytes"] > 50000
-    assert out["version"] == "2.1.0" and out["stressed"] == FIX["expected"]["stress"]["n_stressed"] and out["themes"] == {"ai": FIX["expected"]["themes"][0]["n"]}
+    assert out["version"] == "3.0.0" and out["stressed"] == FIX["expected"]["stress"]["n_stressed"] and out["themes"] == {"ai": FIX["expected"]["themes"][0]["n"]}
+    assert out["evidence"] is True and out["study_due"] is None and out["forecasts"] == FIX["expected"]["risk"]["n"] and out["calls"] == len(FIX["expected_calls"]["rows"])
+    # even with the evidence due, a dry run does not start the study
+    docs = {k: v for k, v in FIX["docs"].items() if k != L.EVIDENCE_KEY}
+    bare = MemS3(docs)
+    out = handle({"dry_run": True}, bare)
+    assert bare.puts == {} and out["evidence"] is False and "never been written" in out["study_due"] and out["forecasts"] is None
 
 
 @test
 def the_engine_asks_no_provider_for_anything():
-    for name in ("lambda_function.py", "cbe_core.py", "cbe_names.py", "cbe_themes.py"):
+    for name in ("lambda_function.py", "cbe_core.py", "cbe_names.py", "cbe_themes.py", "cbe_study.py"):
         text = open(os.path.join(SRC, name), encoding="utf-8").read()
         for word in ("urllib", "requests", "http.client", "financialmodelingprep", "polygon.io", "api_key", "apikey", "ssm"):
             assert word not in text.lower().replace("polygon eod bank", ""), (name, word)
     _, s3 = build()
-    roots = (L.BONDS_KEY, L.CDS_KEY, L.MODEL_KEY, L.PAR_KEY, L.HIST_KEY, L.EOD_ROOT, L.SPLITS_ROOT, L.LEDGER_ROOT)
+    roots = (L.BONDS_KEY, L.CDS_KEY, L.MODEL_KEY, L.PAR_KEY, L.HIST_KEY, L.EOD_ROOT, L.SPLITS_ROOT, L.LEDGER_ROOT, L.YIELDS_ROOT)          # all of them the warehouse's own
     assert all(k.startswith(roots) for k in s3.gets), [k for k in s3.gets if not k.startswith(roots)][:5]
 
 
@@ -554,7 +582,7 @@ def the_stress_rank_is_where_a_company_stands_in_its_own_book():
     t = _table(p)
     assert p["stress"]["long"] == "ytd" and p["stress"]["long_ref"] == p["windows"]["ytd"]["ref"] and p["stress"]["stressed_at"] == C.STRESSED
     seen = 0
-    for book in ("ig", "hy", "em"):
+    for book in C.BOOK_WORDS:
         rs = [r for r in t if r["book"] == book]
         level = [r["spread_bp"] for r in rs if r["spread_bp"] is not None]
         year = [r["pct_ytd"] for r in rs if r["pct_ytd"] is not None]
@@ -654,6 +682,407 @@ def no_lead_is_called_when_the_bonds_and_a_liquid_cds_disagree():
     agree[L.CDS_KEY]["groups"]["us_corp"]["rows"][-1]["chg_1m_bp"] = 90.0 if worse else -90.0
     y = next(y for y in build(agree)[0]["payload"]["names"] if y["ticker"] == lead["ticker"])
     assert y["signal"] == lead["signal"] and y["cds_says"] == "confirms" and "credit_conflict" not in y
+
+
+# ------------------------------------------------------------------------------------------------------ 3.0
+PANEL = json.loads(gzip.decompress(open(os.path.join(ROOT, "tests", "fixtures", "credit-before-equity-panel.json.gz"), "rb").read()))
+
+
+def _days(n, start="2026-01-02"):
+    from datetime import date, timedelta
+    out, d = [], date.fromisoformat(start)
+    while len(out) < n:
+        if d.weekday() < 5:
+            out.append(d.isoformat())
+        d += timedelta(days=1)
+    return out
+
+
+@test
+def a_companys_bond_facts_are_read_off_its_own_bonds():
+    pts = [{"v": 100.0, "yrs": 1.0, "c": 4.0, "y": 6.0, "px": 98.0, "s": 150.0, "t": 1.0}, {"v": 300.0, "yrs": 9.0, "c": 5.0, "y": 7.0, "px": 80.0, "s": 250.0, "t": 8.0},
+           {"v": 100.0, "yrs": None, "c": None, "y": None, "px": None, "s": None, "t": None}]
+    f = C.bond_facts(pts)
+    assert f["wam"] == 7.0 and f["due2y"] == 25.0 and f["coupon"] == 4.75 and f["px"] == 84.5 and f["px_min"] == 80.0, f
+    assert f["step_bp"] == 200.0 and f["s_short"] == 150.0 and f["s_long"] == 250.0 and f["curve_bp"] == 100.0, f
+    # near bonds wider than far ones: the figure goes below zero, which is the worry about the next few years
+    pts[0]["s"], pts[1]["s"] = 900.0, 400.0
+    assert C.bond_facts(pts)["curve_bp"] == -500.0
+    empty = C.bond_facts([{"v": 0.0, "yrs": None, "c": None, "y": None, "px": None, "s": None, "t": None}])
+    assert empty["due2y"] is None and empty["px_min"] is None and empty["curve_bp"] is None
+    # on the real cut: Oracle's facts by other arithmetic
+    issues = FIX["docs"][L.BONDS_KEY]["issues"]
+    mine = [b for b in issues["bonds"] if b.get("ccy") == "USD" and b.get("book") in C.BOOKS and not b.get("left") and MATCHER.match(N.issuer_key(b["issuer"])[0])[0] and
+            MATCHER.match(N.issuer_key(b["issuer"])[0])[0]["symbol"] == "ORCL"]
+    orcl = next(r for r in _table(FIX["expected"]) if r["ticker"] == "ORCL")
+    held = sum(float(b["demand"]) for b in mine)
+    soon = sum(float(b["demand"]) for b in mine if C.days_between(issues["as_of"], b["maturity"][:10]) / 365.25 <= 2.0)
+    assert len(mine) == orcl["n_bonds"] and abs(100.0 * soon / held - orcl["due2y"]) < 0.06 and orcl["px_min"] == round(min(b["price"] for b in mine), 1)
+
+
+@test
+def the_two_questions_make_nine_cells_and_a_spread_reads_as_a_chance_of_default():
+    assert C.cell_of("DETERIORATING", -5.0) == "worse/down" and C.cell_of("DETERIORATING", 0.0) == "worse/flat" and C.cell_of("DETERIORATING", 3.0) == "worse/up"
+    assert C.cell_of("FLAT", -3.0) == "flat/down" and C.cell_of("FLAT", 2.99) == "flat/flat" and C.cell_of("IMPROVING", 9.0) == "better/up"
+    assert C.cell_of(None, 1.0) is None and C.cell_of("FLAT", None) is None and set(C.CELLS) == {a + "/" + b for a in ("worse", "flat", "better") for b in ("down", "flat", "up")}
+    # the leads are four of the nine: credit moved and the stock is not past the band the same way
+    for cell in C.CELLS:
+        credit, stock = cell.split("/")
+        direction = {"worse": "DETERIORATING", "flat": "FLAT", "better": "IMPROVING"}[credit]
+        px = {"down": -5.0, "flat": 0.0, "up": 5.0}[stock]
+        lead = C.signal_of(direction, px)[0] in C.LEADS
+        assert lead == (cell in ("worse/flat", "worse/up", "better/flat", "better/down")), cell
+    assert C.implied_default(600.0) == round(100.0 * (1.0 - math.exp(-0.06 / 0.6)), 1) and C.implied_default(0.0) is None and C.implied_default(None) is None
+    assert C.implied_default(600.0, 5.0) > C.implied_default(600.0) and C.implied_default(1e6) == 100.0
+    p = FIX["expected"]
+    t = _table(p)
+    assert sum(p["matrix"]["cells"].values()) == p["matrix"]["n"] == sum(1 for x in p["names"] if x.get("cell")) and all(r["cell"] in C.CELLS for r in t if r["cell"])
+    assert all(r["pd_1y"] == C.implied_default(r["spread_bp"]) and r["pd_5y"] == C.implied_default(r["spread_bp"], 5.0) for r in t)
+
+
+@test
+def a_bond_in_another_currency_is_read_against_its_own_government_and_kept_in_its_own_book():
+    par = {"2026-11-23": {"2Y": 4.0, "10Y": 4.5, "30Y": 5.0}}
+    bund = {"EUR": {"2026-11-23": {"2Y": 2.0, "10Y": 3.0, "30Y": 3.5}}}
+    usd = {"k": "a", "issuer": "ACME CORP", "sector": "Technology", "country": "United States", "ccy": "USD", "book": "US IG", "rate": 6.0, "dur": 9.0, "demand": 100.0, "maturity": "2037-11-23", "coupon": 5.0, "price": 95.0}
+    eur = {**usd, "k": "b", "ccy": "EUR", "book": "Euro IG", "rate": 4.6, "demand": 300.0}
+    chf = {**usd, "k": "c", "ccy": "CHF", "book": "International"}
+    conv = {**usd, "k": "d", "ccy": "EUR", "book": "Convertible"}
+    pts, counts, days = C.bond_points([usd, eur, chf, conv], "2026-11-23", par, {}, bund)
+    by = {q["k"]: q for q in pts}
+    t = by["b"]["t"]
+    assert by["a"]["book"] == "ig" and by["b"]["book"] == "xig" and by["b"]["ccy"] == "EUR" and set(by) == {"a", "b"}
+    assert by["b"]["s"] == round((4.6 - C.par_yield(bund["EUR"]["2026-11-23"], t)) * 100.0, 1) and by["a"]["s"] == round((6.0 - C.par_yield(par["2026-11-23"], by["a"]["t"])) * 100.0, 1)
+    assert counts["not in US dollars"] == 1 and counts["floating-rate, convertible or another book"] == 1 and counts["of them not in US dollars"] == 1 and days["other"] == {"EUR": "2026-11-23"}
+    # without the curve every such bond is left out, as before 3.0
+    assert {q["k"] for q in C.bond_points([usd, eur], "2026-11-23", par, {})[0]} == {"a"}
+    # a company with dollar bonds is read in dollars, as it always was, however much it has borrowed in euros: its euro bonds stay listed under it and out of its figures
+    rows, _ = C.companies(pts, MATCHER, {}, {})
+    assert len(rows) == 1 and rows[0]["ccy"] == "USD" and rows[0]["book"] == "ig" and rows[0]["spread_bp"] == by["a"]["s"] and rows[0]["n_bonds"] == 1 and rows[0]["n_spread"] == 1 and rows[0]["n_other"] == 1
+    assert rows[0]["value"] == 100.0 and {q["co"] for q in pts} == {rows[0]["id"]}
+    # a company with no dollar bond is read in the currency the funds hold most of
+    gbp = {**eur, "k": "e", "ccy": "GBP", "book": "International", "demand": 50.0}
+    gilt = {**bund, "GBP": {"2026-11-23": {"5Y": 4.0, "10Y": 4.4, "20Y": 4.8}}}
+    pts, _, _ = C.bond_points([eur, gbp], "2026-11-23", par, {}, gilt)
+    rows, _ = C.companies(pts, MATCHER, {}, {})
+    assert rows[0]["ccy"] == "EUR" and rows[0]["book"] == "xig" and rows[0]["n_bonds"] == 1 and rows[0]["n_other"] == 1 and rows[0]["spread_bp"] == by["b"]["s"]
+    # on the real cut: the non-dollar companies have their own books, a stress rank inside them, and no chance of a fall
+    p = FIX["expected"]
+    t = _table(p)
+    other = [r for r in t if r["book"] in ("xig", "xhy")]
+    assert len(other) >= 5 and all(r["ccy"] in L.CURVE_FILES for r in other) and all(r["risk_3m"] is None for r in other) and p["coverage"]["bonds_not_usd"] > 100
+    assert p["coverage"]["by_book"] == {b: sum(1 for r in t if r["book"] == b) for b in C.BOOK_WORDS} and set(p["curve"]["other"]) == set(L.CURVE_FILES)
+    assert set(p["industries"]) == {"all"} | set(C.BOOK_WORDS) and any("own government" in g for g in p["gaps"])
+    # and one of them by other arithmetic, from the raw bonds and the banked curve
+    issues = FIX["docs"][L.BONDS_KEY]["issues"]
+    r = max((x for x in other if not x["ticker"] and x["spread_bp"] is not None), key=lambda x: x["value"])
+    slug = L.CURVE_FILES[r["ccy"]]
+    row = {tenor: next(o["value"] for o in FIX["docs"][L.YIELDS_ROOT + f + ".json"]["observations"] if o["date"] == p["curve"]["other"][r["ccy"]]["as_of"]) for tenor, f in slug.items()}
+    num = den = 0.0
+    for b in issues["bonds"]:
+        if b.get("left") or b.get("ccy") != r["ccy"] or N.issuer_key(b["issuer"])[0] != r["id"][2:] or not C.GRADE.get(b.get("book")):
+            continue
+        y, dur = b.get("rate"), b.get("dur")
+        if not isinstance(y, (int, float)) or not isinstance(dur, (int, float)) or not 0 < y < C.YIELD_CAP or dur < C.MIN_DUR:
+            continue
+        tenor = C.tenor_of(dur, y, C.days_between(issues["as_of"], b["maturity"][:10]) / 365.25 if b.get("maturity") else None)
+        num += round((y - C.par_yield(row, tenor)) * 100.0, 1) * float(b["demand"])
+        den += float(b["demand"])
+    assert abs(num / den - r["spread_bp"]) < 0.06, (r["name"], num / den, r["spread_bp"])
+
+
+@test
+def a_bond_the_ledger_did_not_hold_is_worked_back_from_the_bond_desks_own_change():
+    p = FIX["expected"]
+    issues = FIX["docs"][L.BONDS_KEY]["issues"]
+    month = p["windows"]["m1"]
+    assert month["ref"] == issues["move_as_of"] and month["n_worked_back"] > 0 and "worked back" in month["source"]
+    t = _table(p)
+    assert any(r["book"] in ("xig", "xhy") and r["d_m1"] is not None for r in t)                 # the non-dollar companies have a month's change on their first day
+    # a real ledger figure is never replaced: only bonds the ledger's day does not hold are filled
+    docs = copy.deepcopy(FIX["docs"])
+    key = L.LEDGER_ROOT + month["ref"] + ".json.gz"
+    held = docs[key]["bonds"]
+    one = next(k for k in held)
+    held[one] = held[one] - 500.0
+    again = build(docs)[0]
+    pt = {b["k"]: b for b in issues["bonds"]}[one]
+    row = next(r for r in again["bonds"]["rows"] if r[2] == pt["coupon"] and r[3] == pt["maturity"][:10] and r[10] is not None and r[10] > 400)
+    assert row is not None
+
+
+@test
+def every_bond_is_published_under_its_company_and_no_identifier_is():
+    built = build()[0]
+    doc, p = built["bonds"], built["payload"]
+    assert doc == FIX["expected_bonds"] and doc["cols"] == L.BOND_COLS and "k" not in doc["cols"] and p["bonds"] == {"key": L.BONDS_OUT_KEY, "n": len(doc["rows"]), "cols": L.BOND_COLS}
+    per = {}
+    for r in doc["rows"]:
+        per[r[0]] = per.get(r[0], 0) + 1
+    t = _table(p)
+    assert per == {r["id"]: r["n_bonds"] + (r["n_other"] or 0) for r in t}
+    keys = {b["k"] for b in FIX["docs"][L.BONDS_KEY]["issues"]["bonds"]}
+    assert not any(isinstance(v, str) and v in keys for r in doc["rows"] for v in r)             # the bond desk's key is not republished either
+    # a company's spread is its published bonds' spreads, weighted by the value published beside them
+    col = {c: i for i, c in enumerate(doc["cols"])}
+    for tk in ("ORCL", "JPM", "CHTR"):
+        r = next(x for x in t if x["ticker"] == tk)
+        mine = [b for b in doc["rows"] if b[0] == r["id"] and b[col["spread_bp"]] is not None and b[col["ccy"]] == r["ccy"]]
+        got = sum(b[col["spread_bp"]] * b[col["value"]] for b in mine) / sum(b[col["value"]] for b in mine)
+        assert len(mine) == r["n_spread"] and abs(got - r["spread_bp"]) < 0.06, (tk, got, r["spread_bp"])
+
+
+@test
+def the_tape_enters_one_session_late_and_a_stock_that_stopped_trading_leaves_at_its_last_print():
+    days = _days(120)
+    market = {d: 100.0 + i for i, d in enumerate(days)}
+    tape = S.Tape(market)
+    assert tape.window(days[10], 21) == (days[11], days[32]) and tape.window(days[110], 21) == (None, None)
+    stock = {d: 50.0 for d in days}
+    stock[days[11]], stock[days[32]] = 40.0, 44.0
+    assert tape.forward(stock, days[10], 21) == (10.0, False)                                    # from the close AFTER the holdings day, not the day's own
+    assert tape.forward(market, days[10], 21)[0] == round(100.0 * (132.0 / 111.0 - 1.0), 2)
+    gone = {d: 50.0 for d in days[:20]}
+    gone[days[19]] = 5.0
+    assert tape.forward(gone, days[10], 21) == (-90.0, True)                                     # delisted inside the horizon: counted, at its last print
+    assert tape.forward(gone, days[30], 21) == (None, False) and tape.forward({}, days[10], 21) == (None, False)
+    dip = dict(stock)
+    dip[days[20]] = 30.0
+    assert tape.worst(dip, days[10], 21) == -25.0 and tape.worst(stock, days[10], 21) == 0.0 and tape.worst(stock, days[110], 21) is None
+    flat = {d: 10.0 for d in days}
+    wavy = {d: 10.0 * (1.02 if i % 2 else 1.0) for i, d in enumerate(days)}
+    assert tape.volatility(flat, days[100]) == 0.0 and 25.0 < tape.volatility(wavy, days[100]) < 40.0 and tape.volatility({d: 10.0 for d in days[:20]}, days[19]) is None
+    assert S.month_ends(["2026-08-31", "2026-09-29", "2026-09-30", "2026-10-30", "2026-11-05", "2026-11-24"], "2026-11-25") == ["2026-08-31", "2026-09-30", "2026-10-30"]
+
+
+def _made_panel(months=40, per=120, seed=7):
+    """A made-up history with one true thing in it: the wider a company's bonds, the more often its stock falls; nothing tells direction."""
+    import random
+    rnd = random.Random(seed)
+    from datetime import date
+    rows, y, m = [], 2022, 1
+    for _ in range(months):
+        day = date(y, m, 28).isoformat()
+        for i in range(per):
+            band = i % 6
+            spread = (50, 150, 300, 550, 850, 1500)[band]
+            fell = rnd.random() < (0.05, 0.10, 0.20, 0.35, 0.45, 0.60)[band]
+            r3 = rnd.gauss(0.0, 8.0 + 4.0 * band)
+            rows.append({"day": day, "t": "S%03d" % i, "book": "hy" if band > 1 else "ig", "ind": "Energy" if i % 2 else "Technology", "s": float(spread), "stress": 15.0 * band + 5.0,
+                         "sig": "CREDIT_LEADS_DOWN" if i % 10 == 0 else "NONE", "cell": "worse/flat" if i % 10 == 0 else "flat/flat", "dist": 1 if band == 5 else 0, "vol": 20.0 + 10.0 * (i % 3) + band,
+                         "r1": rnd.gauss(0.0, 5.0), "m1": 0.5, "e1": None, "dd1": -25.0 if fell and rnd.random() < 0.3 else -3.0, "r3": r3, "m3": 1.0, "e3": None,
+                         "dd3": -30.0 if fell else -5.0, "end1": 0, "end3": 0})
+        m += 1
+        if m > 12:
+            y, m = y + 1, 1
+    for r in rows:
+        r["e1"], r["e3"] = round(r["r1"] - r["m1"], 2), round(r["r3"] - r["m3"], 2)
+    return rows
+
+
+@test
+def the_evidence_finds_what_is_there_and_does_not_find_what_is_not():
+    ev = S.evidence(_made_panel())
+    level = {x["key"]: x for x in ev["readings"] if x["group"] == "level"}
+    fell = [level["level:%d" % i]["h3"]["fell_big"] for i in range(6)]
+    assert fell == sorted(fell) and fell[0] < 10 and fell[5] > 50, fell
+    assert level["level:5"]["h3"]["t_fell"] > 5 and level["level:0"]["h3"]["t_fell"] < -5                 # far from the board's own rate, both ways
+    assert level["distressed"]["h3"]["n"] == level["level:5"]["h3"]["n"]
+    # direction: the leads were dealt at random, and the record says so
+    lead = next(x for x in ev["readings"] if x["key"] == "signal:CREDIT_LEADS_DOWN")
+    assert abs(lead["h1"]["t"]) < 3 and abs(lead["h3"]["t"]) < 3 and ev["direction"]["past_three"] == 0 and "none tells" in ev["direction"]["words"]
+    # the board against itself is nothing, by construction
+    assert ev["board"]["h3"]["mean"] == 0.0 and ev["board"]["h1"]["mean"] == 0.0
+    # the risk table is the plain share, and a thin cell is left empty
+    rows = S.prepare(_made_panel())
+    band3 = [r for r in rows if r["band"] == 3]
+    assert ev["risk"]["h3"]["3"]["fell"] == round(100.0 * sum(1 for r in band3 if r["dd3"] <= -20.0) / len(band3), 1) and ev["risk"]["h3"]["3"]["n"] == len(band3)
+    assert S.chance({3: {"n": 500, "fell": 30.0, "thirds": [None, {"n": 200, "fell": 44.0}, None]}}, 3, 1) == (44.0, "band and volatility")
+    assert S.chance({3: {"n": 500, "fell": 30.0, "thirds": [None, {"n": 200, "fell": 44.0}, None]}}, 3, 0) == (30.0, "band") and S.chance({}, 3, 0) == (None, None)
+    # with a true edge planted in one cell, the record finds it past the bar
+    planted = _made_panel()
+    for r in planted:
+        if r["cell"] == "worse/flat":
+            r["r1"] -= 4.0
+            r["e1"] = round(r["r1"] - r["m1"], 2)
+    found = next(x for x in S.evidence(planted)["readings"] if x["key"] == "cell:worse/flat")
+    assert found["h1"]["mean"] < -3.0 and found["h1"]["t"] < -5.0
+
+
+@test
+def the_walk_forward_check_forecasts_a_month_only_from_months_whose_outcome_was_known():
+    rows = S.prepare(_made_panel())
+    chk = S.walk_forward(rows, "3")
+    days = sorted({r["day"] for r in rows})
+    assert chk["first"] == days[S.MIN_TRAIN_MONTHS + 3] and chk["last"] == days[-1] and chk["months"] == len(days) - S.MIN_TRAIN_MONTHS - 3
+    assert all(abs(b["said"] - b["happened"]) < 6.0 for b in chk["buckets"]) and chk["auc"] > 65.0 and chk["skill"] > 5.0, chk
+    # what happens AFTER a month cannot change what was said for it: turn every later outcome upside down and the first scored month's forecast stands
+    first = chk["first"]
+    said = S.walk_forward([r for r in rows if r["day"] <= first], "3")
+    flipped = [dict(r) for r in rows]
+    for r in flipped:
+        if r["day"] > days[S.MIN_TRAIN_MONTHS - 1]:
+            r["dd3"] = -5.0 if r["dd3"] <= -20.0 and r["day"] != first else r["dd3"]
+    assert said is None or said["first"] == first                                               # (too few rows for a table on one month alone: None)
+    a = S.walk_forward([r for r in rows if r["day"] <= first] * 6, "3")
+    b = S.walk_forward([r for r in flipped if r["day"] <= first] * 6, "3")
+    assert a and b and [(x["n"], x["said"]) for x in a["buckets"]] == [(x["n"], x["said"]) for x in b["buckets"]]
+    # a stock with no volatility reading is counted once, in its band
+    for r in rows[:500]:
+        r["vt"] = None
+    counts_n = sum(c["n"] for c in S.risk_table(rows, "3").values())
+    assert counts_n == sum(1 for r in rows if r["dd3"] is not None)
+    assert S.walk_forward(rows[:300], "3") is None                                              # too little to check: said, not invented
+
+
+@test
+def the_evidence_on_a_sample_of_the_real_history_is_reproduced_figure_for_figure():
+    panel, cds = S.from_table(PANEL["table"]), S.from_table(PANEL["cds"])
+    assert len(panel) > 5000 and len({r["day"] for r in panel}) >= 60 and len(cds) > 1000
+    got = S.evidence(panel, cds)
+    assert plain(got) == plain(PANEL["evidence"])
+    # and, by other arithmetic, on the real rows: a lead down against the board's average stock the next month
+    by = {}
+    for r in panel:
+        by.setdefault(r["day"], []).append(r)
+    total = n = 0.0
+    for rows in by.values():
+        have = [r["r1"] for r in rows if r["r1"] is not None]
+        if len(have) < S.MIN_UNIVERSE:
+            continue
+        avg = sum(have) / len(have)
+        for r in rows:
+            if r["sig"] == "CREDIT_LEADS_DOWN" and r["r1"] is not None:
+                total += round(r["r1"] - avg, 2)
+                n += 1
+    lead = next(x for x in got["readings"] if x["key"] == "signal:CREDIT_LEADS_DOWN")["h1"]
+    assert n == lead["n"] and abs(total / n - lead["mean"]) < 0.006
+
+
+@test
+def the_board_at_each_kept_month_end_is_rebuilt_with_the_engines_own_arithmetic():
+    s3 = MemS3()
+    built = with_cut(lambda: L.build_panel(s3, NOW, log=lambda *_: None))
+    want = FIX["panel"]
+    assert built["history"]["dates"] == want["month_ends"] and len(want["month_ends"]) >= 6 and plain(S.to_table(built["panel"])) == plain(want["table"])
+    assert built["history"]["books"] == want["history"]["books"] and len(built["history"]["companies"]) == want["history"]["n"]
+    assert not any(k.startswith(("data/credit", "credit/cbe-calls")) for k in s3.puts) and s3.puts == {}
+    # a month the feed served without its yields is not a month of the study, and it is said
+    docs = copy.deepcopy(FIX["docs"])
+    day = want["month_ends"][3]
+    doc = docs[L.HOLD_ROOT + day + ".json.gz"]
+    at = doc["cols"].index("rate")
+    for row in doc["rows"][: int(len(doc["rows"]) * 0.7)]:
+        row[at] = None
+    again = with_cut(lambda: L.build_panel(MemS3(docs), NOW, log=lambda *_: None))
+    assert day not in again["history"]["dates"] and again["meta"]["skipped"][0][0] == day
+    # each row is the reading as it stood that month-end, by the live rule
+    row = next(r for r in built["panel"] if r["dir"] in ("DETERIORATING", "IMPROVING") and r["px1"] is not None)
+    assert row["sig"] == C.signal_of(row["dir"], row["px1"])[0] and row["cell"] == C.cell_of(row["dir"], row["px1"])
+    # the days kept since (this month's daily holdings) are not month-ends until the month is over
+    docs = copy.deepcopy(FIX["docs"])
+    docs[L.HOLD_ROOT + "2026-11-20.json.gz"] = docs[L.HOLD_ROOT + want["month_ends"][-1] + ".json.gz"]
+    assert with_cut(lambda: L.build_panel(MemS3(docs), NOW, log=lambda *_: None))["history"]["dates"] == want["month_ends"]
+
+
+@test
+def a_listed_companys_chance_of_a_fall_is_the_evidences_own_table_for_its_band_and_its_volatility():
+    built = build()[0]
+    p, ev = built["payload"], FIX["docs"][L.EVIDENCE_KEY]
+    t = _table(p)
+    cuts = p["risk"]["vol_cuts"]
+    seen = 0
+    for r in t:
+        if r["risk_3m"] is None:
+            continue
+        band = S.band_of(r["spread_bp"])
+        third = None if r["vol"] is None else 0 if r["vol"] < cuts[0] else 1 if r["vol"] < cuts[1] else 2
+        for key, name in (("h1", "risk_1m"), ("h3", "risk_3m")):
+            cell = ev["risk"][key][str(band)]
+            sub = cell["thirds"][third] if third is not None else None
+            assert r[name] == (sub["fell"] if sub else cell["fell"]), (r["id"], name)
+        level = next(x for x in ev["readings"] if x["key"] == "level:%d" % band)["h3"]
+        assert r["band"] == band and (r["lo_3m"], r["hi_3m"]) == (level["p10"], level["p90"]) and r["ticker"] and r["book"] in C.DOLLAR_BOOKS
+        seen += 1
+    assert seen == p["risk"]["n"] > 40 and p["risk"]["one_in_three"] == sum(1 for r in t if (r["risk_3m"] or 0) >= 100.0 / 3.0)
+    assert p["evidence"] == ev and p["history"] == ev["history"]
+    # the day's calls are those chances as they were said, with the close they were said at
+    calls = built["calls"]
+    assert calls == FIX["expected_calls"] and calls["cols"] == L.CALL_COLS and len(calls["rows"]) == seen
+    c = dict(zip(calls["cols"], next(x for x in calls["rows"] if x[0] == "ORCL")))
+    orcl = next(r for r in t if r["ticker"] == "ORCL")
+    assert c["risk_3m"] == orcl["risk_3m"] and c["s"] == orcl["spread_bp"] and c["close"] == next(x for x in p["names"] if x["ticker"] == "ORCL")["price"]
+    # without the evidence the board is the board, and gives no chance to anyone
+    bare = build(evidence=None)[0]
+    assert bare["payload"]["evidence"] is None and bare["payload"]["risk"] is None and bare["calls"]["rows"] == [] and all(r["risk_3m"] is None for r in _table(bare["payload"]))
+    assert [r[:37] for r in bare["payload"]["issuers"]["rows"]] == [r[:37] for r in p["issuers"]["rows"]]          # and nothing that was there depends on it
+
+
+@test
+def the_evidence_is_redone_when_a_month_has_finished_and_only_then():
+    ev = {"version": L.VERSION, "readings": [1], "last": "2026-10-30", "stocks_to": "2026-11-24"}
+    held = ["2026-09-30", "2026-10-30", "2026-11-23", "2026-11-24"]
+    assert L.study_due(ev, held, "2026-11-25") is None
+    assert "never been written" in L.study_due(None, held, "2026-11-25") and "engine 2.1.0" in L.study_due({**ev, "version": "2.1.0"}, held, "2026-11-25")
+    assert "2026-11-24" in L.study_due(ev, held, "2026-12-01") and "calendar month" in L.study_due({**ev, "last": "2026-11-24"}, held, "2026-12-01")
+    # in the handler: due and with the time for it, the study runs on the kept month-ends and both documents are written
+    docs = {k: v for k, v in FIX["docs"].items() if k != L.EVIDENCE_KEY}
+    s3 = MemS3(docs)
+    out = handle({}, s3)
+    wrote = json.loads(s3.puts[L.EVIDENCE_KEY])
+    assert json.loads(out["body"])["study"] is True and wrote["month_ends"] == len(FIX["panel"]["month_ends"]) and wrote["version"] == L.VERSION and wrote["caveats"] and wrote["history"]["key"] == L.HISTORY_OUT_KEY
+    hist = json.loads(s3.puts[L.HISTORY_OUT_KEY])
+    assert hist["dates"] == FIX["panel"]["month_ends"] and all(len(v) == len(hist["dates"]) for v in hist["companies"].values()) and set(hist["books"]) == set(C.BOOK_WORDS)
+    assert json.loads(s3.puts[L.OUT_KEY])["evidence"]["month_ends"] == wrote["month_ends"]
+    # due, but the run has too little time left: the board is published with what it had, and says so
+    short = MemS3(docs)
+    handle({}, short, SimpleNamespace(get_remaining_time_in_millis=lambda: 120000))
+    doc = json.loads(short.puts[L.OUT_KEY])
+    assert L.EVIDENCE_KEY not in short.puts and doc["evidence"] is None and any("was not redone" in d for d in doc["degraded"])
+    # the study failing does not take the board down with it
+    broken = MemS3({k: v for k, v in docs.items() if not k.startswith(L.HOLD_ROOT)})
+    handle({}, broken)
+    doc = json.loads(broken.puts[L.OUT_KEY])
+    assert L.EVIDENCE_KEY not in broken.puts and any("could not be redone" in d for d in doc["degraded"]) and doc["coverage"]["companies"] == FIX["expected"]["coverage"]["companies"]
+
+
+@test
+def a_days_calls_are_scored_once_their_time_is_up_and_only_once():
+    days = _days(90)
+    tape = S.Tape({d: 100.0 for d in days})
+    calls = {"cols": L.CALL_COLS, "rows": [["AAA", 10.0, 300.0, 2, 2, 60.0, 9.0, 30.0, None, "NONE"], ["BBB", 10.0, 60.0, 0, 0, 20.0, 1.0, 5.0, None, "NONE"], ["CCC", 10.0, 60.0, 0, 0, 20.0, None, None, None, "NONE"],
+                                           ["GONE", 10.0, 60.0, 0, 0, 20.0, 1.0, 5.0, None, "NONE"]]}
+    s3 = MemS3({L.CALLS_ROOT + days[2] + ".json.gz": calls, L.CALLS_ROOT + days[60] + ".json.gz": calls})
+    closes = {"AAA": {d: (7.0 if i == 15 else 10.0) for i, d in enumerate(days)}, "BBB": {d: 10.0 for d in days}, "CCC": {d: 10.0 for d in days}}
+    track = L.score_calls(s3, None, closes, tape, log=lambda *_: None)
+    assert set(track["days"]["h1"]) == {days[2], days[60]} and set(track["days"]["h3"]) == {days[2]}             # the later day's three months are not up
+    d1 = track["days"]["h1"][days[2]]
+    assert d1["n"] == 2 and d1["skipped"] == 2 and d1["buckets"] == [[1, 1.0, 0], [1, 9.0, 1], [0, 0.0, 0], [0, 0.0, 0]], d1
+    assert track["days"]["h3"][days[2]]["buckets"] == [[1, 5.0, 0], [0, 0.0, 0], [1, 30.0, 1], [0, 0.0, 0]]
+    again = L.score_calls(s3, json.loads(json.dumps(track)), closes, tape, log=lambda *_: None)
+    assert again == track
+    summary = L.track_summary(track, [days[2], days[60]], tape)
+    h3 = summary["horizons"][1]
+    assert summary["calls_kept"] == 2 and h3["days_scored"] == 1 and h3["stocks_scored"] == 2 and h3["buckets"][-1] == {"from": 18, "to": 35, "n": 1, "said": 30.0, "happened": 100.0}
+    assert h3["next_due"] == {"call_day": days[60], "sessions_left": 60 + S.SKIP + 63 - 89}
+    assert L.track_summary(None, [], tape)["horizons"][0]["buckets"] == []
+
+
+@test
+def the_traded_cds_is_read_week_by_week_and_only_where_it_printed():
+    days = _days(60)
+    tape = S.Tape({d: 100.0 + i for i, d in enumerate(days)})
+    stock = {d: 20.0 + 0.1 * i for i, d in enumerate(days)}
+    prints = [[d, 100.0 + i] for i, d in enumerate(days) if i < 30 or i > 44]                     # it did not print for three weeks
+    rows = S.cds_panel({"AAA": prints, "THIN": prints[:5], "NOPX": prints}, {"AAA": stock, "THIN": stock}, tape)
+    assert {r["t"] for r in rows} == {"AAA"} and all(S.to_table(rows, S.CDS_PANEL_COLS)["cols"] == S.CDS_PANEL_COLS for _ in [0])
+    seen = [r["day"] for r in rows]
+    assert days[59] in seen and days[34] not in seen and days[39] not in seen and days[44] not in seen and days[49] not in seen and days[54] in seen
+    r = next(x for x in rows if x["day"] == days[24])
+    assert r["d"] == 5.0 and r["s"] == 124.0 and r["p"] == round(100.0 * 5.0 / 119.0, 1) and r["px"] == round(100.0 * (stock[days[24]] / stock[days[19]] - 1.0), 2)
+    assert r["rw1"] == round(100.0 * (stock[days[30]] / stock[days[25]] - 1.0), 2) and next(x for x in rows if x["day"] == days[59])["rw1"] is None
+    ev = S.cds_evidence(S.from_table(PANEL["cds"]))
+    assert ev == PANEL["evidence"]["cds"] and [x["key"] for x in ev["readings"]][:2] == ["wider", "wider/up"] and ev["name_weeks"] == len(PANEL["cds"]["rows"])
 
 
 def main():

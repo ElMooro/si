@@ -1,12 +1,17 @@
 'use strict';
 // The Credit Before Equity page (credit-before-equity.html + jh-credit-board.js) on the document the runner built with engine
-// 2.1.0 from a cut of the real warehouse (ops 6942, 2026-11-24).
+// 3.0.0 from a cut of the real warehouse (ops 6942, 2026-11-25).
 // Khalid 2026-11-24: "expand it to cover as many companies as possible and it should have a heatmap that shows industries with
 // biggest corp spread widening which signal trouble and ones with lowes which signals safety also ... sort them by industry and
 // sort them ascending and descending and also add companies CDS credit default swaps".
 // Khalid 2026-11-24, later: "ai companies and oracle are under enormous stress why arent they showing" - they were on the board
 // and nothing pointed at them: a lead needs the stock NOT to have followed, and Oracle's stock already fell. Hence the credit
 // stress view (it does not look at the stock), the AI stack theme, and the Stress column; nothing that was there was moved.
+// Khalid 2026-11-25: "i like it you should add an icon that would sort distrissed. also you should increase the coverage to include
+// a lot more companies and think of different ways and addition to improve this engine so that it can predict what would happen to
+// the stock of these companies. also make sure all the data from the engines is viewable in the iux" - hence the distressed switch,
+// every published column in the table and as a file, the company sheet (every figure, every bond, its history), the board's own
+// record of what stocks did next, the chance of a fall that record supports, and the whole document, browsable.
 // The page measures nothing; these tests hold what it draws to the document, and hold its evidence status to the truth: a count
 // the engine did not publish is never shown as zero, a document that contradicts itself is said to, and the page never claims the
 // sources are fresh.
@@ -18,6 +23,8 @@ const zlib = require('node:zlib');
 
 const R = path.resolve(__dirname, '..');
 const B = (require(path.join(R, 'jh-credit-board.js')), globalThis.JHCreditBoard);
+const S = (require(path.join(R, 'jh-credit-sheet.js')), globalThis.JHCreditSheet);
+const SHEET_JS = fs.readFileSync(path.join(R, 'jh-credit-sheet.js'), 'utf8');
 const FIX = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(R, 'tests/fixtures/credit-before-equity-warehouse.json.gz'))));
 const HTML = fs.readFileSync(path.join(R, 'credit-before-equity.html'), 'utf8');
 const JS = fs.readFileSync(path.join(R, 'jh-credit-board.js'), 'utf8');
@@ -33,8 +40,21 @@ const cells = (html, n) => [...html.slice(html.indexOf('<tbody>')).matchAll(/<tr
 const figure = s => (s === '–' || s == null) ? null : Number(String(s).replace('−', '-').replace(/[+,%]|bp|\s/g, ''));
 
 // the same document as the 2.0 engine published it: no stress ranks, no themes, the 25 columns of 2.0
-const doc20 = () => {
+const SC = k => B.STRESS_COLUMNS.findIndex(c => c[0] === k);          // a stress-table cell by its column, not by where the column happens to stand
+// the same document as the 2.1 engine published it: the 37 columns, no bond facts, no record, no chance, the three dollar books
+const doc21 = () => {
   const d = doc();
+  for (const k of ['matrix', 'bonds', 'evidence', 'history', 'risk', 'track']) delete d[k];
+  d.version = '2.1.0';
+  d.issuers.cols = d.issuers.cols.slice(0, 37);
+  d.issuers.rows = d.issuers.rows.map(r => r.slice(0, 37));
+  d.books = { ig: d.books.ig, hy: d.books.hy, em: d.books.em };
+  delete d.coverage.by_book; delete d.coverage.bonds_not_usd; delete d.coverage.by_currency;
+  d.names.forEach(x => { for (const k of ['cell', 'pd_1y', 'wam', 'due2y', 'step_bp', 'bond_px', 'curve_bp', 'vol', 'risk_1m', 'risk_3m']) delete x[k]; });
+  return d;
+};
+const doc20 = () => {
+  const d = doc21();
   delete d.stress; delete d.themes;
   d.version = '2.0.0';
   d.issuers.cols = d.issuers.cols.slice(0, 25);
@@ -46,9 +66,10 @@ const doc20 = () => {
 const AI = DOC.themes[0];
 const AT = DOC.stress.stressed_at;
 
-test('the fixture is the engine\'s 2.1 document: companies, industries, windows, CDS, the model names, stress and the AI stack', () => {
+test('the fixture is the engine\'s 3.0 document: companies, industries, windows, CDS, the model names, stress, the AI stack, the record', () => {
   assert.equal(DOC.contract, 'credit-before-equity.v2');
-  assert.equal(DOC.version, '2.1.0');
+  assert.equal(DOC.version, '3.0.0');
+  assert.ok(S && DOC.evidence.readings.length >= 20 && DOC.matrix.n > 30 && DOC.risk.n > 40 && FIX.expected_bonds.rows.length > 1000 && T.some(r => r.book === 'xig'));
   assert.ok(B.isV2(DOC) && B.hasStress(DOC) && B.isV2(doc20()) && !B.hasStress(doc20()));
   assert.equal(AI.key, 'ai');
   assert.ok(T.filter(r => r.theme === 'ai').length >= 12 && T.some(r => r.ticker === 'ORCL' && r.stress >= AT));
@@ -170,12 +191,13 @@ test('the table is sorted by industry, either way, and by any column inside a gr
   assert.match(up, /aria-sort="ascending"><button type="button" data-sort="industry">Industry ▲/);
   assert.match(down, /aria-sort="descending"><button type="button" data-sort="industry">Industry ▼/);
   const grouped = B.tableHtml(DOC, state({ group: true, sort: { key: 'd', dir: 'desc' } }));
-  const heads = [...grouped.matchAll(/<tr class="cb-grp"><td colspan="16"><b>(.*?)<\/b>/g)].map(m => m[1]);
+  const GRP = () => new RegExp('<tr class="cb-grp"><td colspan="' + B.tableColumns(DOC, state()).length + '"><b>(.*?)<\\/b>', 'g');
+  const heads = [...grouped.matchAll(GRP())].map(m => m[1]);
   const view = Object.fromEntries(B.industryView(DOC, { win: 'm1', book: 'all', measure: 'bp' }).map(r => [r.industry, r.d_bp]));
   assert.equal(heads.length, new Set(T.map(r => r.industry)).size);
   const order = heads.map(h => view[h.replace(/&amp;/g, '&')]).filter(v => v != null);
   assert.deepEqual(order, order.slice().sort((x, y) => y - x), 'groups run from the industry widening most to the one widening least');
-  const flipped = [...B.tableHtml(DOC, state({ group: true, sort: { key: 'd', dir: 'asc' } })).matchAll(/<tr class="cb-grp"><td colspan="16"><b>(.*?)<\/b>/g)].map(m => view[m[1].replace(/&amp;/g, '&')]).filter(v => v != null);
+  const flipped = [...B.tableHtml(DOC, state({ group: true, sort: { key: 'd', dir: 'asc' } })).matchAll(GRP())].map(m => view[m[1].replace(/&amp;/g, '&')]).filter(v => v != null);
   assert.deepEqual(flipped, order.slice().reverse());
 });
 
@@ -412,9 +434,11 @@ test('the page keeps what it had and loads the board: the original sentence, the
   }
   // the stress view was added between two sections; every section that was there is still there, in the order it had
   const order = [...HTML.matchAll(/<section[^>]* id="(s-[a-z]+)"/g)].map(m => m[1]);
-  assert.deepEqual(order, ['s-glance', 's-industries', 's-stress', 's-leads', 's-companies', 's-cds', 's-method', 's-coverage', 's-gaps', 's-links']);
+  // (3.0) the record was added after the leads it is the record of, and the whole document after the gaps: nothing that was there moved
+  assert.deepEqual(order, ['s-glance', 's-industries', 's-stress', 's-leads', 's-next', 's-companies', 's-cds', 's-method', 's-coverage', 's-gaps', 's-data', 's-links']);
+  assert.deepEqual(order.filter(x => x !== 's-next' && x !== 's-data'), ['s-glance', 's-industries', 's-stress', 's-leads', 's-companies', 's-cds', 's-method', 's-coverage', 's-gaps', 's-links']);
   assert.ok(HTML.includes('<h2 class="sec">Industries — where spreads are widening and where they are holding</h2>') && HTML.includes('<h2 class="sec">Leads — credit moved, the stock has not</h2>'));
-  assert.deepEqual(B.COLUMNS.filter(c => c[0] !== 'stress').map(c => c[0]), ['name', 'industry', 'book', 'n_bonds', 'value', 'spread_bp', 'd', 'x_m1', 'pct_m1', 'd_ytd', 'cds_bp', 'cds_d1m', 'px_m1', 'direction', 'signal']);
+  assert.deepEqual(B.COLUMNS.filter(c => c[0] !== 'stress' && c[0] !== 'risk_3m').map(c => c[0]), ['name', 'industry', 'book', 'n_bonds', 'value', 'spread_bp', 'd', 'x_m1', 'pct_m1', 'd_ytd', 'cds_bp', 'cds_d1m', 'px_m1', 'direction', 'signal']);
   assert.match(HTML, /<script src="\/jh-credit-board\.js\?v=\d+[a-z]"><\/script>/);
   assert.match(HTML, /<script src="\/jh-nav-drawer\.js" defer><\/script>/);
   assert.match(HTML, /<script src="\/sidebar\.js" defer><\/script>/);
@@ -459,16 +483,17 @@ test('the stress view ranks companies by stress in their own book, highest first
     const r = want[i];
     assert.ok(cells[0].includes(r.name.replace(/&/g, '&amp;')) && cells[0].startsWith(String(i + 1) + ' '), cells[0]);
     assert.equal(figure(cells[1]), Number(r.stress.toFixed(1)));
-    assert.equal(cells[4], B.bp(r.spread_bp));
-    assert.equal(cells[5], (Math.round(r.spread_bp / DOC.stress.book_spread_bp[r.book] * 10) / 10).toFixed(1) + '×');
-    assert.equal(cells[6], B.bp(r.d_ytd, true));
-    assert.equal(cells[15], r.industry.replace(/&/g, '&amp;'));
+    assert.equal(cells[SC('spread_bp')], B.bp(r.spread_bp));
+    assert.equal(cells[SC('xbook')], (Math.round(r.spread_bp / DOC.stress.book_spread_bp[r.book] * 10) / 10).toFixed(1) + '×');
+    assert.equal(cells[SC('d_ytd')], B.bp(r.d_ytd, true));
+    assert.equal(cells[SC('grp')], r.industry.replace(/&/g, '&amp;'));
   });
   assert.equal(got.length ? want[0].ticker : 'ORCL', 'ORCL', 'Oracle stands highest of the companies with $50M or more held');
   assert.match(html, /whatever the stock did/);
   assert.match(html, /The leads ask a different question: whether the stock has noticed\./);
   assert.match(html, /since Dec 31, 2025 as a share of where it started/);
-  assert.match(html, /× book is the spread as a multiple of the middle company of its book \(IG [\d.]+ bp, HY [\d.]+ bp, EM [\d.]+ bp\)/);
+  assert.match(html, /× book is the spread as a multiple of the middle company of its book \(IG [\d.]+ bp, HY [\d.]+ bp, EM [\d.]+ bp, Non-\$ IG [\d.]+ bp, Non-\$ HY [\d.]+ bp\)/);
+  assert.match(html, /in its own book \(investment grade, high yield, emerging markets, and the two non-dollar books\)/);
   assert.match(html, /<option value="50000000" selected>\$50M or more<\/option>/);
   assert.match(html, /data-st-theme="" aria-pressed="true">Every company</);
   assert.match(html, /class="cb-table cb-stress" data-jh-nosort/);
@@ -492,7 +517,7 @@ test('the stress view sorts by every column either way and keeps to its filters'
   assert.ok(B.stressRows(DOC, { held: 0, book: 'hy' }).every(r => r.book === 'hy') && B.stressRows(DOC, { held: 0, listed: true }).every(r => r.ticker));
   const up = stressTable(B.stressHtml(DOC, state({ stHeld: 0, stLimit: 1e9, stSort: { key: 'stress', dir: 'asc' } }))).map(c => figure(c[1]));
   assert.deepEqual(up, up.slice().sort((a, b) => a - b));
-  const wide = stressTable(B.stressHtml(DOC, state({ stHeld: 0, stLimit: 1e9, stSort: { key: 'pct_ytd', dir: 'desc' } }))).map(c => figure(c[7])).filter(v => v != null);
+  const wide = stressTable(B.stressHtml(DOC, state({ stHeld: 0, stLimit: 1e9, stSort: { key: 'pct_ytd', dir: 'desc' } }))).map(c => figure(c[SC('pct_ytd')])).filter(v => v != null);
   assert.deepEqual(wide, wide.slice().sort((a, b) => b - a));
   const paged = B.stressHtml(DOC, state({ stHeld: 0, stLimit: 10 }));
   assert.equal(stressTable(paged).length, 10);
@@ -541,15 +566,15 @@ test('the AI stack reads as one line, by layer, and opens into its companies', (
   assert.equal(got.length, mine.length);
   const words = B.layerWords(DOC);
   const byStress = mine.slice().sort((a, b) => (b.stress == null ? -1 : b.stress) - (a.stress == null ? -1 : a.stress));
-  got.forEach((c, i) => { assert.ok(c[0].includes(byStress[i].name.replace(/&/g, '&amp;')), c[0]); assert.equal(c[15], words[byStress[i].layer].replace(/&/g, '&amp;')); });
+  got.forEach((c, i) => { assert.ok(c[0].includes(byStress[i].name.replace(/&/g, '&amp;')), c[0]); assert.equal(c[SC('grp')], words[byStress[i].layer].replace(/&/g, '&amp;')); });
   assert.match(open, /data-st-theme="ai" aria-pressed="true">AI stack</);
   assert.match(open, /data-st-sort="grp">Layer</);
   assert.match(open, /<select data-st-layersel><option value="">All layers<\/option>/);
   const one = stressTable(B.stressHtml(DOC, state({ stTheme: 'ai', stLayer: 'hyperscalers', stHeld: 0, stLimit: 100 })));
-  assert.deepEqual(one.map(c => c[15]), mine.filter(r => r.layer === 'hyperscalers').map(() => 'Hyperscalers'));
+  assert.deepEqual(one.map(c => c[SC('grp')]), mine.filter(r => r.layer === 'hyperscalers').map(() => 'Hyperscalers'));
   assert.ok(one.some(c => c[0].includes('Oracle')));
   // in the list of every company, a member of the theme is tagged
-  assert.match(B.stressHtml(DOC, state({ stHeld: 0, stLimit: 1e9 })), /Oracle Corporation <span class="cb-tag">AI stack<\/span>/);
+  assert.match(B.stressHtml(DOC, state({ stHeld: 0, stLimit: 1e9 })), /Oracle Corporation<\/button> <span class="cb-tag">AI stack<\/span>/);
   assert.equal(B.filterRows(T, { signal: 'ai' }).length, mine.length);
   assert.equal(B.filterRows(T, { signal: 'stressed', at: AT }).length, T.filter(r => r.stress >= AT).length);
 });
@@ -665,7 +690,7 @@ test('the summary names who is under stress and the AI stack, and the table carr
   assert.equal(hot.length, T.filter(r => r.stress >= AT).length);
   const method = B.methodHtml(DOC);
   for (const word of ['Stress rank', 'When credit disagrees', 'Theme']) assert.ok(method.includes('<dt>' + word + '</dt>'), word);
-  assert.match(method, /3M – not available yet \(The board&#39;s ledger holds no day 91 days back yet, give or take 21; one will be from about 2027-01-08\.\)/);
+  assert.match(method, /3M – Aug 31, 2026 \(84 days; the board&#39;s own ledger\)/);          // since the month-ends were kept (ops 6950), three months is a real day
   assert.equal(B.shortName('CoreWeave, Inc. Class A Common Stock'), 'CoreWeave');
   assert.equal(B.shortName('Oracle Corporation'), 'Oracle');
   assert.equal(B.shortName('GALAXY HELIOS DATA CENTERS II LLC'), 'GALAXY HELIOS DATA CENTERS II');
@@ -692,4 +717,376 @@ test('on a 2.0 document the board draws what it has and says the stress view is 
   assert.equal(B.leadNotesHtml(d), '');
   assert.deepEqual(B.themeView(d, { scope: 'ai', win: 'm1', book: 'all', measure: 'bp' }), []);
   assert.deepEqual(B.stressRows(d, { held: 0 }), []);
+});
+
+// ------------------------------------------------------------------------------------------------ 3.0
+const BONDS = FIX.expected_bonds;
+const EV = DOC.evidence;
+const text = html => html.replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/\s+/g, ' ');
+const ORCL = T.find(r => r.ticker === 'ORCL');
+
+test('the distressed switch: one click shows only the distressed companies, widest spread first', () => {
+  const dist = T.filter(r => r.distressed);
+  assert.ok(dist.length >= 5 && S.distressed(DOC).length === dist.length);
+  const off = B.tableHtml(DOC, state());
+  assert.ok(off.includes('<button type="button" class="cb-distress" data-distress="table" aria-pressed="false"'));
+  assert.ok(off.includes('<svg class="cb-ico"') && off.includes('<span>Distressed</span><b>' + dist.length + '</b>'), 'the switch carries the icon, the word and the count');
+  // what the click sets: the filter, the widest first, every one of them on the page
+  const on = B.tableHtml(DOC, state({ distress: true, signal: 'distressed', sort: { key: 'spread_bp', dir: 'desc' }, limit: 1e9 }));
+  assert.ok(on.includes('data-distress="table" aria-pressed="true"'));
+  const rows = rowsOf(on);
+  assert.equal(rows.length, dist.length);
+  const spreads = rows.map(c => figure(c[5])).filter(v => v != null);
+  assert.deepEqual(spreads, spreads.slice().sort((a, b) => b - a));
+  assert.ok(rows.every(c => c[0].includes('distressed')));
+  // the same switch in the stress view, where a distressed company with no rank is still shown
+  const st = B.stressHtml(DOC, state({ stDistress: true, stHeld: 0, stLimit: 1e9, stSort: { key: 'spread_bp', dir: 'desc' } }));
+  assert.ok(st.includes('data-distress="stress" aria-pressed="true"') && st.includes('<h3>The distressed companies, widest spread first</h3>'));
+  assert.equal(stressTable(st).length, dist.length);
+  assert.equal(B.stressRows(DOC, { held: 0, distressed: true }).length, dist.length);
+  // and at the top of the page
+  const tile = S.distressTile(DOC);
+  assert.ok(tile.includes('<div class="cb-big">' + dist.length + '</div>') && tile.includes('data-distress="table" data-goto="s-companies"') && B.heroHtml(DOC, state()).includes(tile));
+  assert.match(text(tile), new RegExp(dist.filter(r => r.ticker).length + ' with a listed stock'));
+  // the click itself is in the board's script: it keeps what the table showed, and a second click puts it back
+  assert.match(JS, /if \(d\.distress === "table"\)[\s\S]{0,400}state\.kept = \{[\s\S]{0,700}state\.signal = "distressed"; state\.sort = \{ key: "spread_bp", dir: "desc" \}/);
+  assert.match(JS, /state\.signal = k\.signal \|\| ""; state\.sort = k\.sort/);
+});
+
+test('every column the engine publishes is in the table when asked for, sortable either way, with a label and a description', () => {
+  const cols = S.allColumns(DOC);
+  assert.deepEqual(cols.map(c => c[0]).sort(), DOC.issuers.cols.slice().sort());
+  assert.ok(cols.every(c => S.FIELD[c[0]] && c[1].length > 1 && c[4].length >= 15 && c[4] !== c[1]), 'each has a label and says what it is');
+  const html = B.tableHtml(DOC, state({ cols: 'all', sort: { key: 'spread_bp', dir: 'desc' } }));
+  assert.equal((html.match(/<th /g) || []).length, DOC.issuers.cols.length);
+  assert.match(html, new RegExp('data-cols="all" aria-pressed="true">Every column \\(' + DOC.issuers.cols.length + '\\)<'));
+  for (const [key] of cols) {
+    assert.ok(html.includes('data-sort="' + key + '"') && html.includes('<option value="' + key + '"'), key);
+    const up = B.sortRows(T, key, 'asc').map(r => r[key]).filter(v => v != null && v !== ''), down = B.sortRows(T, key, 'desc').map(r => r[key]).filter(v => v != null && v !== '');
+    assert.deepEqual(down, up.slice().reverse().sort((a, b) => (typeof a === 'string' ? String(b).localeCompare(String(a)) : b - a)), key);
+  }
+  // a row of the wide table is the document's row, figure for figure
+  const wide = B.tableHtml(DOC, state({ cols: 'all', q: 'ORCL', sort: { key: 'spread_bp', dir: 'desc' } }));
+  const cellsOf = rowsOf(wide)[0];
+  cols.forEach((f, i) => {
+    if (f[0] === 'name' || f[0] === 'stress' || f[0] === 'industry') return;
+    assert.equal(cellsOf[i].replace(/&amp;/g, '&'), S.shown(f, ORCL[f[0]], { palette: 'rg', doc: DOC }).text, f[0]);
+  });
+  // a column the engine adds later is shown under its own key rather than hidden
+  const d = doc();
+  d.issuers.cols.push('brand_new');
+  d.issuers.rows.forEach(r => r.push(7));
+  assert.ok(S.allColumns(d).some(c => c[0] === 'brand_new' && c[1] === 'brand_new') && B.tableHtml(d, state({ cols: 'all' })).includes('data-sort="brand_new"'));
+  // the board's own columns are still the table it opens on
+  assert.equal(B.tableColumns(DOC, state()).length, B.COLUMNS.length);
+  assert.equal(B.tableColumns(doc21(), state()).length, B.COLUMNS.length - 1, 'a document with no chance of a fall gets no column of dashes');
+});
+
+test('the table as a file carries the published keys and the published values, untouched', () => {
+  const csv = S.csvText(DOC.issuers.cols, T);
+  const lines = csv.trim().split('\r\n');
+  assert.equal(lines[0], DOC.issuers.cols.join(','));
+  assert.equal(lines.length, T.length + 1);
+  const at = DOC.issuers.cols.indexOf('spread_bp');
+  const row = lines.find(l => l.startsWith('T:ORCL,ORCL,'));
+  assert.ok(row && row.split(',').includes(String(ORCL.spread_bp)));
+  assert.equal(S.csvText(['a', 'b'], [{ a: 'x,y', b: 'he said "no"' }, { a: null, b: 2 }]), 'a,b\r\n"x,y","he said ""no"""\r\n,2\r\n');
+  assert.equal(S.csvText(BONDS.cols, BONDS.rows.slice(0, 2)).split('\r\n')[0], BONDS.cols.join(','));
+  assert.ok(B.tableHtml(DOC, state()).includes('data-csv="companies"') && at > 0);
+});
+
+test('a company\'s sheet shows every figure the engine holds for it, each one explained', () => {
+  const html = S.sheetHtml(DOC, 'T:ORCL', { palette: 'rg', bonds: S.bondsOf(BONDS, 'T:ORCL'), history: null });
+  const said = text(html);
+  for (const f of S.allColumns(DOC)) {
+    assert.ok(html.includes('<span class="cb-key">' + f[0] + '</span>'), f[0] + ' is not on the sheet');
+    assert.ok(said.includes(f[4].replace(/\s+/g, ' ')), 'the description of ' + f[0]);
+  }
+  assert.match(html, /<h3 id="sheet-title"><b>ORCL<\/b> Oracle Corporation<\/h3>/);
+  assert.ok(html.includes('data-sheet-close') && html.includes('href="/chart.html?symbol=ORCL"'));
+  assert.ok(said.includes(B.verdict(ORCL)));
+  assert.match(said, new RegExp('Spread ' + B.bp(ORCL.spread_bp) + ' bp'));
+  assert.match(said, /under stress/);
+  // its listed-stock row and its CDS row: whatever the engine published beside the table
+  const nm = DOC.names.find(x => x.ticker === 'ORCL');
+  assert.ok(html.includes('id="sheet-stock"') && said.includes(String(nm.price)) && said.includes(nm.price_date));
+  const cds = DOC.cds.priced.find(c => c.ticker === 'ORCL');
+  if (cds) assert.ok(html.includes('id="sheet-cds"') && said.includes(String(cds.spread_bp)));
+  // a company with no listed stock, and an id that is not on the board
+  const loner = T.find(r => !r.ticker && r.spread_bp != null);
+  const lone = text(S.sheetHtml(DOC, loner.id, { palette: 'rg', bonds: S.bondsOf(BONDS, loner.id), history: null }));
+  assert.match(lone, /no listed stock tied/);
+  assert.match(lone, /No listed stock is tied to it, so the board has no stock to measure\./);
+  assert.match(S.sheetHtml(DOC, 'T:NOPE', {}), /The document holds no company under T:NOPE\./);
+  // every name on the page opens a sheet
+  assert.ok(B.tableHtml(DOC, state({ q: 'ORCL' })).includes('data-sheet="T:ORCL"') && B.stressHtml(DOC, state()).includes('data-sheet="T:ORCL"'));
+  const lead = DOC.names.find(x => LEADS.includes(x.signal));
+  assert.ok(B.leadsHtml(DOC, state({ allLeads: true })).includes('data-sheet="' + S.idOf(DOC, lead.ticker, lead.name) + '"'));
+  assert.equal(S.idOf(DOC, 'ORCL'), 'T:ORCL');
+  assert.equal(S.idOf(DOC, '', loner.name), loner.id);
+});
+
+test('its bonds: every one the engine read, sortable either way, and no identifier of a bond', () => {
+  const mine = S.bondsOf(BONDS, 'T:ORCL');
+  assert.equal(mine.length, ORCL.n_bonds + (ORCL.n_other || 0));
+  const html = S.bondsHtml(mine, { key: 'maturity', dir: 'asc' }, { palette: 'rg' });
+  assert.equal(rowsOf(html).length, mine.length);
+  const dates = rowsOf(html).map(c => c[2]);
+  assert.equal(dates[0], B.day(mine.map(b => b.maturity).sort()[0]));
+  for (const [key] of S.BOND_FIELDS) {
+    const down = S.bondsHtml(mine, { key, dir: 'desc' }, { palette: 'rg' });
+    assert.ok(down.includes('aria-sort="descending"><button type="button" data-bond-sort="' + key + '"'), key);
+  }
+  const wide = rowsOf(S.bondsHtml(mine, { key: 'spread_bp', dir: 'desc' }, { palette: 'rg' })).map(c => figure(c[7])).filter(v => v != null);
+  assert.deepEqual(wide, wide.slice().sort((a, b) => b - a));
+  assert.ok(wide.length === ORCL.n_spread);
+  // the spread of the company is its bonds' spreads weighted by the value beside them: the sheet can be checked by hand
+  const priced = mine.filter(b => b.spread_bp != null);
+  const avg = priced.reduce((s, b) => s + b.spread_bp * b.value, 0) / priced.reduce((s, b) => s + b.value, 0);
+  assert.ok(Math.abs(avg - ORCL.spread_bp) < 0.06);
+  assert.match(html, /The identifiers of the bonds are not republished\./);
+  assert.ok(!BONDS.cols.includes('k') && !BONDS.cols.includes('isin') && !BONDS.cols.includes('cusip'));
+  assert.match(html, /data-csv="bonds"/);
+  // the states it can be in are each said
+  assert.match(S.bondsHtml('loading'), /Loading its bonds\./);
+  assert.match(S.bondsHtml('unpublished'), /not published yet/);
+  assert.match(S.bondsHtml('error'), /could not be loaded\. Nothing is shown rather than something stale\./);
+  assert.match(S.bondsHtml([]), /lists no bond under this company/);
+  assert.equal(S.bondsOf({ cols: ['x'], rows: [] }, 'T:ORCL'), null);
+});
+
+test('its history: the spread at each kept month-end beside its book, closed by today\'s reading', () => {
+  const dates = ['2026-08-31', '2026-09-30', '2026-10-30'];
+  const history = { dates, companies: { 'T:ORCL': [150, null, 269.4] }, books: { ig: [90, 95, 101] } };
+  const pts = S.historyOf(history, ORCL, DOC);
+  assert.deepEqual(pts.map(p => [p.d, p.v, p.b]), [['2026-08-31', 150, 90], ['2026-09-30', null, 95], ['2026-10-30', 269.4, 101], [DOC.as_of, ORCL.spread_bp, DOC.stress.book_spread_bp.ig]]);
+  const html = S.chartHtml(pts, ORCL, { palette: 'rg' });
+  assert.ok(html.includes('stroke="' + S.SERIES.co + '"') && html.includes('stroke="' + S.SERIES.book + '"'), 'two lines, in the two validated colours');
+  assert.match(html, /role="img" aria-label="ORCL: spread at each month-end, beside the middle company of its book"/);
+  assert.match(text(html), /ORCL, spread in basis points Middle company of investment grade/);
+  assert.match(html, new RegExp('>' + B.bp(ORCL.spread_bp) + ' bp</text>'), 'the last point is labelled with its value');
+  assert.match(html, /<details class="cb-figures"><summary[^>]*>The 4 month-ends as figures<\/summary>/);
+  assert.match(text(html), new RegExp(B.day(DOC.as_of) + " today's holdings"));
+  assert.equal((html.match(/M[\d.]+ [\d.]+/g) || []).length >= 3, true, 'a month with no reading breaks the line rather than being drawn through');
+  assert.equal(S.historyOf(history, T.find(r => r.ticker === 'JPM'), DOC), null);
+  assert.match(S.chartHtml([{ d: '2026-10-30', v: 100, b: null }], ORCL, {}), /fewer than two month-ends/);
+  assert.deepEqual(S.niceTicks(60, 290), [0, 100, 200, 300]);
+  assert.deepEqual(S.niceTicks(812, 1340), [800, 1000, 1200, 1400]);
+  // the two colours are in the script the site build leaves alone, never in the page
+  assert.match(SHEET_JS, /jh-reskin-skip/);
+  assert.ok(!HTML.includes(S.SERIES.co) && !HTML.includes(S.SERIES.book));
+  const sheet = S.sheetHtml(DOC, 'T:ORCL', { palette: 'rg', bonds: 'loading', history: 'loading' });
+  assert.match(sheet, /Loading its history\./);
+  assert.match(S.sheetHtml(DOC, 'T:ORCL', { bonds: 'loading', history: history }), /class="cb-chart"/);
+});
+
+test('what the stock did next: the record is the engine\'s, figure for figure, and says what it does not show', () => {
+  const html = B.firstState && S.nextHtml(DOC, state());
+  const said = text(html);
+  assert.match(said, new RegExp('At each of ' + EV.month_ends + ' month-ends from ' + B.day(EV.first) + ' to ' + B.day(EV.last)));
+  assert.ok(said.includes(EV.company_months.toLocaleString('en-US') + ' company-months of ' + EV.companies.toLocaleString('en-US') + ' companies'));
+  // direction: the board's own leads, with their record and how sure it is - whatever that record is
+  assert.ok(said.includes(EV.direction.words));
+  assert.ok(said.includes('A lead down (credit worse, the stock has not fallen): over the next month its stocks did ' + B.pct(EV.direction.lead_down.mean, true)));
+  assert.ok(said.includes('How sure: ' + String(EV.direction.lead_down.t.toFixed(1)).replace('-', '−')));
+  assert.match(said, /The leads are kept as they were/);
+  // the size of the move: the share that fell, band by band, is the evidence's table
+  for (const b of EV.risk.bands) {
+    const c = EV.risk.h3[String(b.i)];
+    if (!c) continue;
+    assert.ok(said.includes(b.words), b.words);
+    assert.ok(html.includes('<b>' + B.pct(c.fell) + '</b> <span class="cb-dim">of ' + c.n.toLocaleString('en-US') + '</span>'), b.words);
+    c.thirds.forEach(t => { if (t) assert.ok(html.includes('title="' + t.n.toLocaleString('en-US') + ' company-months">' + B.pct(t.fell) + '</td>')); });
+  }
+  assert.match(html, /Too few company-months to say/);
+  // the check: said beside happened, as published
+  for (const b of EV.check.h3.buckets) assert.ok(html.includes('<td class="r">' + B.pct(b.said) + '</td><td class="r"><b>' + B.pct(b.happened) + '</b></td>'));
+  assert.ok(said.includes('the table had given the faller the higher chance ' + B.pct(EV.check.h3.auc) + ' of the time (a coin: 50%)'));
+  assert.match(said, /built only on earlier months whose outcome was already known that day/);
+  // the record, reading by reading, over either horizon
+  for (const g of EV.groups) {
+    for (const hk of ['h1', 'h3']) {
+      const tbl = S.nextHtml(DOC, state({ evGroup: g.key, evHorizon: hk }));
+      const part = tbl.slice(tbl.indexOf('id="next-record"'));
+      for (const x of EV.readings.filter(r => r.group === g.key)) {
+        assert.ok(part.includes('<td class="l">' + B.esc(x.words) + '</td><td class="r">' + (x[hk].n || 0).toLocaleString('en-US') + '</td>'), x.key + ' ' + hk);
+      }
+      assert.ok(part.includes('data-ev-group="' + g.key + '" aria-pressed="true"') && part.includes('data-ev-horizon="' + hk + '" aria-pressed="true"'));
+    }
+  }
+  // what it cannot see is on the page, not in a footnote somewhere else
+  for (const c of EV.caveats) assert.ok(said.includes(c.replace(/\s+/g, ' ')), c.slice(0, 40));
+  assert.match(said, /delisted is not in the history at all/);
+  // nothing on it promises
+  assert.doesNotMatch(said, /will (fall|rise|outperform|underperform)|guarantee|predicts that|sure to/i);
+  // the traded CDS, week by week
+  for (const x of EV.cds.readings) assert.ok(html.includes('<td class="l">' + x.words + '</td>'), x.key);
+  assert.ok(said.includes(EV.cds.name_weeks.toLocaleString('en-US') + ' name-weeks'));
+});
+
+test('a figure in the record is bold only past the bar, and a cell of the nine is coloured only past two', () => {
+  const d = doc();
+  const x = d.evidence.readings.find(r => r.key === 'cell:worse/flat');
+  x.h1.t = -4.2; x.h1.mean = -3.1;
+  const html = S.nextHtml(d, state({ evGroup: 'cells', evHorizon: 'h1' }));
+  assert.ok(html.includes('<td class="r" style="font-weight:700;color:var(--text)">−4.2</td>'));
+  const quiet = S.nextHtml(DOC, state({ evGroup: 'cells', evHorizon: 'h1' }));
+  const sure = DOC.evidence.readings.filter(r => r.group === 'cells' && Math.abs(r.h1.t) >= 3).length;
+  assert.equal((quiet.slice(quiet.indexOf('id="next-record"'), quiet.indexOf('id="next-cds"')).match(/font-weight:700;color:var\(--text\)">[−\d.]+<\/td>/g) || []).filter((_, i) => i % 1 === 0).length >= sure, true);
+  // the nine cells: today's counts are the document's, and a cell with nothing sure behind it is the neutral colour
+  const mx = S.matrixHtml(DOC, state(), EV);
+  for (const [key, n] of Object.entries(DOC.matrix.cells)) assert.ok(mx.includes('data-cell="' + key + '"') && mx.includes('<span class="cb-mx-v">' + n + '</span>'), key);
+  const neutral = B.colour(0, { hi: 2 }, 'bp', 'rg');
+  for (const m of mx.matchAll(/data-cell="([^"]+)"[^>]*style="background:(#[0-9a-f]{6})"/g)) {
+    const rec = EV.readings.find(r => r.key === 'cell:' + m[1]);
+    if (Math.abs(rec.h1.t) < 2) assert.equal(m[2], neutral, m[1] + ' is coloured with nothing sure behind it');
+  }
+  const loud = S.matrixHtml(d, state(), d.evidence);
+  assert.notEqual(loud.match(/data-cell="worse\/flat"[^>]*style="background:(#[0-9a-f]{6})"/)[1], neutral);
+  // a cell filters the table to its companies
+  assert.equal(B.filterRows(T, { cell: 'flat/down' }).length, T.filter(r => r.cell === 'flat/down').length);
+  assert.match(B.tableHtml(DOC, state({ cell: 'flat/down' })), /data-cell="flat\/down" aria-pressed="true"/);
+});
+
+test('a company\'s chance of a fall is the record\'s own table for its spread and its volatility, said as a record', () => {
+  assert.ok(typeof ORCL.risk_3m === 'number');
+  const band = EV.risk.h3[String(ORCL.band)], cuts = DOC.risk.vol_cuts, third = ORCL.vol < cuts[0] ? 0 : ORCL.vol < cuts[1] ? 1 : 2;
+  assert.equal(ORCL.risk_3m, (band.thirds[third] || band).fell);
+  const said = text(S.outlookHtml(DOC, ORCL, { palette: 'rg' }));
+  assert.ok(said.includes('Stocks whose bonds traded this wide (' + EV.risk.bands[ORCL.band].words + ') and whose own volatility stood in the ' + EV.risk.thirds[third] + ': ' + B.pct(ORCL.risk_3m) +
+    ' were at some point 20% or more under where they started inside three months (the whole board: ' + B.pct(EV.board.h3.fell_big) + ')'));
+  assert.ok(said.includes('one in ten did worse than ' + B.pct(ORCL.lo_3m, true) + ' and one in ten better than ' + B.pct(ORCL.hi_3m, true)));
+  const cell = EV.readings.find(r => r.key === 'cell:' + ORCL.cell);
+  assert.ok(said.includes('Which way: its reading today, ' + cell.words.toLowerCase() + ', has ' + (Math.abs(cell.h1.t) >= 3 ? 'told' : 'not told') + ' the direction: ' + B.pct(cell.h1.mean, true)));
+  for (const key of S.readingsOf(DOC, ORCL)) assert.ok(EV.readings.some(r => r.key === key), key + ' is not a reading the engine measured');
+  assert.deepEqual(S.readingsOf(DOC, ORCL).map(k => k.split(':')[0]), ['level', 'cell', 'stress', 'book']);
+  // in the tables: the column, bold from one in three up; and the tile at the top
+  const row = rowsOf(B.tableHtml(DOC, state({ q: 'ORCL' })))[0];
+  assert.equal(row[B.COLUMNS.findIndex(c => c[0] === 'risk_3m')], B.pct(ORCL.risk_3m));
+  const top = B.sortRows(T.filter(r => typeof r.risk_3m === 'number'), 'risk_3m', 'desc')[0];
+  assert.ok(B.tableHtml(DOC, state({ q: top.ticker })).includes('font-weight:700;color:' + B.PALETTES.rg.badText + '">' + B.pct(top.risk_3m)) === (top.risk_3m >= 100 / 3));
+  const tile = S.riskTile(DOC);
+  assert.ok(tile.includes('<div class="cb-big">' + DOC.risk.one_in_three + '</div>') && tile.includes('data-risk="1" data-goto="s-companies"') && tile.includes('data-goto="s-next"'));
+  assert.equal(DOC.risk.one_in_three, T.filter(r => r.risk_3m >= 100 / 3).length);
+  // a company read in another currency is given none, and the sheet says why
+  const other = T.find(r => r.book === 'xig' && r.ticker) || T.find(r => r.book === 'xig');
+  assert.equal(other.risk_3m, null);
+  if (other.ticker) assert.match(text(S.outlookHtml(DOC, other, {})), /Its bonds are not in dollars, and the history the chances come from holds dollar bonds only: no chance is given\./);
+  assert.match(text(S.fieldCell(S.FIELD.risk_3m, { risk_3m: null }, {})), /–/);
+  assert.match(S.FIELD.risk_3m[4], /A record, not a promise\./);
+});
+
+test('the board\'s own calls are kept and scored: said beside happened, or when the first is due', () => {
+  const waiting = { calls_kept: 3, first_call: '2026-11-25', last_call: '2026-11-27', horizons: [
+    { key: 'h1', words: '1 month', sessions: 21, days_scored: 0, stocks_scored: 0, buckets: [], next_due: { call_day: '2026-11-25', sessions_left: 19 } },
+    { key: 'h3', words: '3 months', sessions: 63, days_scored: 0, stocks_scored: 0, buckets: [], next_due: { call_day: '2026-11-25', sessions_left: 61 } }] };
+  const d = doc();
+  d.track = waiting;
+  const a = text(S.trackHtml(d));
+  assert.match(a, /3 days of calls kept, from Nov 25, 2026\./);
+  assert.match(a, /Over 1 month: none scored yet; the first \(Nov 25, 2026\) is due in 19 sessions\./);
+  d.track.horizons[0] = { key: 'h1', words: '1 month', sessions: 21, days_scored: 2, stocks_scored: 2100, buckets: [{ from: 0, to: 8, n: 1900, said: 2.1, happened: 2.6 }, { from: 8, to: 18, n: 200, said: 10.4, happened: 9.0 }], next_due: null };
+  const b = S.trackHtml(d);
+  assert.match(text(b), /Over 1 month: 2 days scored, 2,100 stocks\./);
+  assert.ok(b.includes('<td class="r">2.1%</td><td class="r"><b>2.6%</b></td>') && b.includes("<h4>The board's own calls over 1 month</h4>"));
+  const none = doc();
+  none.track = { calls_kept: 0, first_call: null, last_call: null, horizons: [] };
+  assert.match(text(S.trackHtml(none)), /No day of calls is kept yet; the first is kept the next time the engine publishes\./);
+  delete none.track;
+  assert.equal(S.trackHtml(none), '');
+});
+
+test('the whole document is on the page: every key it publishes, with what it is and where it is drawn', () => {
+  const d = doc();
+  d.track = { calls_kept: 0, first_call: null, last_call: null, horizons: [] };
+  const html = S.dataHtml(d, state());
+  for (const key of Object.keys(d)) {
+    assert.ok(S.DOC_KEYS[key], key + ' is published with no description on the page');
+    assert.ok(html.includes('<summary data-jh-title="' + key + '"><b>' + key + '</b> — ' + B.esc(S.DOC_KEYS[key][0])), key);
+  }
+  for (const file of ['data/credit-before-equity.json', DOC.bonds.key, DOC.history.key]) assert.ok(html.includes('href="https://justhodl.ai/' + file + '"'), file);
+  // every column, with how many companies have it
+  for (const f of S.allColumns(d)) assert.ok(html.includes('<span class="cb-key">' + f[0] + '</span>'), f[0]);
+  assert.ok(html.includes('<td class="r">' + T.filter(r => r.spread_bp != null).length.toLocaleString('en-US') + '</td>'));
+  // a list of rows is a table that opens whole; an object is shown key by key; nothing is cut off silently
+  const cds = S.nodeHtml(d.cds.priced, 'cds.priced', state(), 1);
+  assert.equal(rowsOf(cds).length, 25);
+  assert.ok(cds.includes('data-data-open="cds.priced">Show all ' + d.cds.priced.length + '</button>'));
+  const st = state();
+  assert.equal(S.click({ dataOpen: 'cds.priced' }, st), true);
+  assert.equal(rowsOf(S.nodeHtml(d.cds.priced, 'cds.priced', st, 1)).length, d.cds.priced.length);
+  assert.ok(S.dataHtml(d, st).includes('<details open><summary data-jh-title="cds">'));
+  assert.match(S.nodeHtml(null, 'x', st, 0), /not published/);
+  assert.match(S.nodeHtml({ a: { b: { c: { d: { e: 1 } } } } }, 'x', st, 0), /\{&quot;e&quot;:1\}/);
+  // a key the engine adds later is shown, not dropped
+  d.something_new = { a: 1 };
+  assert.ok(S.dataHtml(d, state()).includes('<b>something_new</b> — Published by the engine; this page has no description for it yet.'));
+  assert.equal(S.dataHtml(null, state()), '<p>The document could not be read.</p>');
+});
+
+test('the books: a company read in another currency has its own book, on the map, in the table and in the stress view', () => {
+  const opts = B.bookOptions(DOC, 'All').map(o => o[0]);
+  assert.deepEqual(opts, ['all', 'ig', 'hy', 'em', 'xig', 'xhy']);
+  assert.deepEqual(B.bookOptions(doc21(), 'All').map(o => o[0]), ['all', 'ig', 'hy', 'em']);
+  const ctl = B.controlsHtml(DOC, state());
+  assert.ok(ctl.includes('data-book="xig" aria-pressed="false">Non-dollar IG<') && ctl.includes('data-book="xhy"'));
+  const xig = T.filter(r => r.book === 'xig');
+  assert.equal(rowsOf(B.tableHtml(DOC, state({ book: 'xig', limit: 1e9 }))).length, xig.length);
+  assert.ok(xig.length >= 5 && xig.every(r => r.ccy && r.ccy !== 'USD'));
+  assert.equal(B.mapHtml(DOC, state({ book: 'xig' }), 1200).view.length, DOC.industries.xig.length);
+  assert.equal(B.stressRows(DOC, { held: 0, book: 'xig' }).length, xig.filter(r => typeof r.stress === 'number').length);
+  assert.equal(B.firstState(DOC, { book: 'xig' }).book, 'xig');
+  assert.equal(B.firstState(doc21(), { book: 'xig' }).book, 'all');
+  // a company with dollar bonds is read in dollars, in the dollar book it always stood in
+  assert.ok(T.filter(r => ['ig', 'hy', 'em'].includes(r.book)).every(r => r.ccy === 'USD'));
+  assert.match(text(B.coverageHtml(DOC)), new RegExp(DOC.coverage.bonds_not_usd.toLocaleString('en-US') + " of them in euros, sterling, Canadian or Australian dollars, each against its own government's yields"));
+  assert.match(text(B.coverageHtml(DOC)), /By book: investment grade \d+, high yield \d+, emerging markets \d+, non-dollar investment grade \d+/);
+  const sheet = text(S.sheetHtml(DOC, xig[0].id, { bonds: 'loading', history: null }));
+  assert.match(sheet, new RegExp('over ' + xig[0].ccy + ' government yields'));
+});
+
+test('on a 2.1 document everything that was there still draws, and what 3.0 adds says it is not published yet', () => {
+  const d = doc21();
+  assert.ok(B.isV2(d) && B.hasStress(d));
+  assert.equal(B.evidence(d).state, 'RECONCILED');
+  const st = B.firstState(d, {});
+  assert.match(S.nextHtml(d, st), /measured by engine 3\.0 on the board's own month-ends\. This document \(version 2\.1\.0\) does not carry it yet\./);
+  const sheet = S.sheetHtml(d, 'T:ORCL', { palette: 'rg', bonds: 'unpublished', history: null });
+  assert.match(sheet, /The bond-by-bond document is not published yet/);
+  assert.match(sheet, /The month-by-month history is not published yet/);
+  assert.match(sheet, /this document does not carry it yet/);
+  assert.doesNotMatch(sheet, /Implied default|Bond price|Chance of a 20% fall/);
+  assert.equal(S.riskTile(d), '');
+  assert.ok(S.distressTile(d).includes('data-distress="table"'));
+  assert.equal(S.allColumns(d).length, 37);
+  const table = B.tableHtml(d, st);
+  assert.doesNotMatch(table, /Fall risk 3M/);
+  assert.match(table, /data-distress="table"/);
+  assert.doesNotMatch(B.stressHtml(d, st), /Fall risk 3M/);
+  assert.ok(Object.keys(d).every(k => S.DOC_KEYS[k]));
+  assert.match(S.dataHtml(d, st), /<b>issuers\.cols<\/b> — the 37 columns/);
+});
+
+test('the page carries the sheet, the two new sections and the second script, and opens the sheet as a dialog', () => {
+  for (const id of ['next', 'data', 'sheet']) assert.ok(HTML.includes('id="' + id + '"'), id);
+  assert.match(HTML, /<div id="sheet" class="cb-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" data-jh-chrome hidden><\/div>/);
+  assert.match(HTML, /<script src="\/jh-credit-board\.js\?v=\d+[a-z]"><\/script>\s*<script src="\/jh-credit-sheet\.js\?v=\d+[a-z]"><\/script>/);
+  assert.ok(HTML.indexOf('/jh-credit-sheet.js') < HTML.indexOf('JHCreditBoard.start'));
+  assert.ok(HTML.includes('<h2 class="sec">What the stock did next — the board\'s own record, month-end by month-end</h2>'));
+  assert.ok(HTML.includes('<h2 class="sec">Everything the engine published — every key, every column, the files</h2>'));
+  // the sheet closes on Escape wherever the focus is, and gives the focus back to what opened it
+  assert.match(JS, /D\.addEventListener\("keydown", function \(ev\) \{ if \(ev\.key === "Escape" && state\.sheet\) \{ closeSheet\(\); \} \}\);/);
+  assert.match(JS, /if \(opener && opener\.focus && host\.contains\(opener\)\) opener\.focus\(\);/);
+  // the documents beside the main one are asked for once, from the engine's own keys, and a failure is said
+  assert.match(JS, /root\.fetch\(S\.BASE \+ meta\.key \+ "\?t=" \+ encodeURIComponent\(String\(doc\.generated_at \|\| ""\)\)\)/);
+  assert.match(JS, /function \(\) \{ extra\[what\] = false; \}/);
+  assert.equal(S.BASE, 'https://justhodl.ai/');
+  // without the second script the board is the board it was
+  const keep = globalThis.JHCreditSheet;
+  try {
+    globalThis.JHCreditSheet = null;
+    const bare = B.tableHtml(DOC, state({ q: 'ORCL' }));
+    assert.ok(!bare.includes('data-sheet=') && !bare.includes('data-distress') && bare.includes('<b>ORCL</b> Oracle Corporation'));
+    assert.ok(!B.heroHtml(DOC, state()).includes('Fall risk'));
+  } finally { globalThis.JHCreditSheet = keep; }
 });
