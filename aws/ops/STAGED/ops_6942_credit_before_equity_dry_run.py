@@ -394,7 +394,7 @@ def main():
         import re
         ident = re.compile(r"^(?:[A-Z]{2}[A-Z0-9]{9}[0-9]|[0-9A-Z]{8}[0-9])$")
         leaks = sum(1 for row in bdoc["rows"] for v in row if isinstance(v, str) and ident.match(v))
-        wrong = [x["id"] for x in table if per.get(x["id"], 0) != x["n_bonds"]]
+        wrong = [x["id"] for x in table if per.get(x["id"], 0) != x["n_bonds"] + (x["n_other"] or 0)]
         ok = not wrong and not leaks and "k" not in bcols and "isin" not in bcols and "cusip" not in bcols and len(per) == len(table)
         braw = json.dumps(bdoc, separators=(",", ":")).encode()
         r.log("check 10 the bond document: %d rows under %d companies (%d bytes, %d gzipped); companies whose bonds are not all there: %d %s; cells shaped like an identifier: %d -> %s" % (

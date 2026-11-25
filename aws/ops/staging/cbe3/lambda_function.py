@@ -873,9 +873,13 @@ def build(s3, now=None, log=print, evidence=None):
     return {"payload": payload, "snapshots": snapshots, "hist": hist, "bonds": bonds_doc_out, "calls": calls, "holdings": holdings, "closes": closes, "tape": tape}
 
 
+def _now():
+    return datetime.now(timezone.utc)
+
+
 def lambda_handler(event=None, context=None):
     s3 = _s3()
-    now = datetime.now(timezone.utc)
+    now = _now()
     today = now.date().isoformat()
     dry = isinstance(event, dict) and bool(event.get("dry_run"))
     notes = []

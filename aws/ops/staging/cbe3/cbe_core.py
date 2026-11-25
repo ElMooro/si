@@ -327,17 +327,23 @@ def companies(points, matcher, snapshots, windows):
                      "how": how if co else "untied", "why": None if co else how, "value": round(value, 0), "bonds": len(e["points"])})
     rows = []
     for ident, g in groups.items():
-        pts = g["points"]
-        priced = [p for p in pts if p["s"] is not None]
-        # a company with bonds in dollars and in another currency is read in the one the funds hold more of: the two spreads
-        # are over different governments and are not averaged together. Its other bonds stay listed under it.
-        dollar = sum(p["v"] or 1.0 for p in priced if p.get("ccy", "USD") == "USD")
-        foreign = sum(p["v"] or 1.0 for p in priced if p.get("ccy", "USD") != "USD")
-        home = (lambda p: p.get("ccy", "USD") == "USD") if dollar >= foreign else (lambda p: p.get("ccy", "USD") != "USD")
-        good = [p for p in priced if home(p)]
+        every = g["points"]
+        # A company is read in ONE currency: a spread over Bunds and a spread over Treasuries are not averaged together.
+        # A company with dollar bonds is read in dollars, exactly as it was before the board read any other currency; only a
+        # company with no dollar bond is read in another one - the one the funds hold most of. Its bonds in any other currency
+        # stay listed under it (the bond document) and are counted in n_other; every figure on its row is about the bonds it is read in.
+        held, held_priced = Counter(), Counter()
+        for p in every:
+            held[p.get("ccy", "USD")] += p["v"] or 1.0
+            if p["s"] is not None:
+                held_priced[p.get("ccy", "USD")] += p["v"] or 1.0
+        pool = held_priced or held
+        home = "USD" if "USD" in pool else pool.most_common(1)[0][0]
+        pts = [p for p in every if p.get("ccy", "USD") == home]
+        good = [p for p in pts if p["s"] is not None]
         co = g["company"]
         book = Counter()
-        for p in (good or pts):
+        for p in pts:
             book[p["book"]] += p["v"] or 1.0
         fund_sector = g["sector"].most_common(1)[0][0]
         row = {
@@ -348,13 +354,12 @@ def companies(points, matcher, snapshots, windows):
             "spread_bp": f(wavg([(p["s"], p["v"]) for p in good]), 1), "tie": sorted(g["how"])[0] if co else "untied", "win": {},
             "theme": None, "layer": None,
             "n_limit": sum(1 for p in pts if p["why"] == "yield at the file's limit"),
-            "ccy": Counter(p.get("ccy", "USD") for p in good).most_common(1)[0][0] if good else (pts[0].get("ccy", "USD") if pts else None),
-            "n_other": len(priced) - len(good),
+            "ccy": home, "n_other": len(every) - len(pts),
         }
         row["distressed"] = bool(row["spread_bp"] is not None and row["spread_bp"] >= DISTRESSED_BP) or (row["n_limit"] > 0 and not good)
         row["theme"], row["layer"] = TH.theme_of(row["ticker"], row["name"])
         row.update(bond_facts(pts, good))
-        for p in pts:
+        for p in every:
             p["co"] = ident
         for wkey, ref in windows.items():
             snap = snapshots.get(ref) if ref else None
