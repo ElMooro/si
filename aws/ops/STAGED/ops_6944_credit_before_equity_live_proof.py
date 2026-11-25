@@ -967,9 +967,23 @@ def main():
                 x["ticker"], str(x["name"])[:32], str(x.get("industry"))[:20], x.get("spread_bp"), x.get("d_spread_bp") or 0, ref, x.get("x_spread_bp") or 0, x.get("bar_bp"), x.get("d_price_pct") or 0, x["signal"]))
 
         desk = get(L.CDS_KEY)
-        desk_rows = {x["name"]: x for g in ("us_corp", "global_corp") for x in ((desk.get("groups") or {}).get(g) or {}).get("rows") or []}
-        wrong = [c["name"] for c in doc["cds"]["priced"] if c["name"] not in desk_rows or abs((desk_rows[c["name"]].get("spread_bp") or 0) - c["spread_bp"]) > 0.06]
-        ck(not wrong and len(doc["cds"]["priced"]) == sum(1 for x in desk_rows.values() if isinstance(x.get("spread_bp"), (int, float))), "the CDS levels are not the CDS desk's: %s" % wrong[:4])
+        # The desk can carry two lines under one name (two reference entities it shows alike), so a line is matched to a line,
+        # one for one, and never looked up by its name alone.
+        desk_lines = [x for g in ("us_corp", "global_corp") for x in ((desk.get("groups") or {}).get(g) or {}).get("rows") or [] if isinstance(x.get("spread_bp"), (int, float))]
+        left = {}
+        for x in desk_lines:
+            left.setdefault(x["name"], []).append(x["spread_bp"])
+        twice = {n: sorted(v) for n, v in left.items() if len(v) > 1}
+        wrong = []
+        for c in doc["cds"]["priced"]:
+            mine = [v for v in left.get(c["name"], []) if abs(v - c["spread_bp"]) <= 0.06]
+            if mine:
+                left[c["name"]].remove(mine[0])
+            else:
+                wrong.append(c["name"])
+        ck(not wrong and len(doc["cds"]["priced"]) == len(desk_lines), "the CDS levels are not the CDS desk's: %s (%d on the board, %d on the desk)" % (wrong[:4], len(doc["cds"]["priced"]), len(desk_lines)))
+        for n, v in sorted(twice.items()):
+            r.log("  the CDS desk carries %d lines named %s (%s bp); the board carries each, and reads a company's own CDS from the line that trades more" % (len(v), n, ", ".join("%.1f" % q for q in v)))
         r.log("CDS: %d levels, each the CDS desk's own (%s); %d tied to a listed stock; %d trade with no level" % (len(doc["cds"]["priced"]), desk.get("as_of"), cov["cds_priced_tied"], len(doc["cds"]["no_level"])))
 
         bonds_site, history_site = None, None
