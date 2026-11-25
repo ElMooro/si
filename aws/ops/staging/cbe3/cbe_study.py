@@ -195,6 +195,15 @@ def cds_panel(series, closes, tape):
     return rows
 
 
+def month_ends(days, today):
+    """The kept days that close a month: the last kept day of every calendar month before the month `today` is in."""
+    last = {}
+    for d in sorted(days):
+        if d[:7] < today[:7]:
+            last[d[:7]] = d
+    return [last[m] for m in sorted(last)]
+
+
 def to_table(panel, cols=None):
     cols = cols or PANEL_COLS
     return {"cols": cols, "rows": [[r.get(c) for c in cols] for r in panel]}
@@ -283,3 +292,346 @@ def quantile_edges(values, k):
 
 def bucket_of(v, edges):
     return None if v is None else bisect_right(edges, v)
+
+
+# ------------------------------------------------------------------------------------------------------- the evidence
+LEVEL_BANDS = ((0, 100), (100, 200), (200, 400), (400, 700), (700, 1000), (1000, None))     # spread over Treasuries, basis points
+STRESS_BANDS = ((0, 20), (20, 40), (40, 60), (60, 80), (80, 90), (90, 100.01))
+BIG = 20.0                  # a fall, a lag or a lead of this many percent is a big move
+MIN_UNIVERSE = 50           # a month's "average stock of the board" needs this many stocks
+MIN_TAIL_MONTH = 15         # a month counts toward a reading's tail test when the reading holds this many companies
+MIN_CELL = 150              # a risk cell with fewer company-months than this borrows its band's figure
+MIN_TRAIN_MONTHS = 24       # the walk-forward check forecasts a month only from this many earlier, finished months
+THIRD_WORDS = ("calm third", "middle third", "volatile third")
+
+
+def band_of(spread_bp):
+    """The index of the level band a spread falls in."""
+    if spread_bp is None:
+        return None
+    for i, (lo, hi) in enumerate(LEVEL_BANDS):
+        if spread_bp >= lo and (hi is None or spread_bp < hi):
+            return i
+    return None
+
+
+def band_words(i):
+    lo, hi = LEVEL_BANDS[i]
+    return ("under %d bp" % hi) if lo == 0 else ("%s bp or more" % format(lo, ",")) if hi is None else ("%d to %s bp" % (lo, format(hi, ",")))
+
+
+def thirds(values):
+    """The two cuts that split a set of figures into thirds; None under 30 figures."""
+    xs = sorted(v for v in values if v is not None)
+    return (xs[len(xs) // 3], xs[2 * len(xs) // 3]) if len(xs) >= 30 else None
+
+
+def third_of(v, cuts):
+    return None if v is None or cuts is None else 0 if v < cuts[0] else 1 if v < cuts[1] else 2
+
+
+def prepare(panel):
+    """Add to every row what the evidence reads: its return less the board's average stock that month (u1, u3), less the
+    middle stock of its industry (i1, i3), its level band, and the third its own volatility stood in that month. In place."""
+    by = defaultdict(list)
+    for r in panel:
+        by[r["day"]].append(r)
+    for day, rows in by.items():
+        cuts = thirds([r.get("vol") for r in rows])
+        for r in rows:
+            r["band"], r["vt"] = band_of(r.get("s")), third_of(r.get("vol"), cuts)
+        for k in ("1", "3"):
+            xs = [r["r" + k] for r in rows if r.get("r" + k) is not None]
+            m = sum(xs) / len(xs) if len(xs) >= MIN_UNIVERSE else None
+            for r in rows:
+                r["u" + k] = round(r["r" + k] - m, 2) if m is not None and r.get("r" + k) is not None else None
+    with_industry(panel)
+    return panel
+
+
+def pctl(xs, p):
+    xs = sorted(xs)
+    return xs[min(len(xs) - 1, max(0, int(round(p * (len(xs) - 1)))))] if xs else None
+
+
+def _share(flags):
+    return 100.0 * sum(1 for x in flags if x) / len(flags) if flags else None
+
+
+def summary(rows, k, universe=None):
+    """What the stocks of a set of company-months did over one horizon (k "1" or "3"), against the board's average stock.
+
+    mean / median / p10 / p90: the return less the board's average stock that month, percent. lag_big / beat_big: the share that
+    ended 20% or more behind / ahead of it. fell_big: the share whose stock was at some point 20% or more under where it started.
+    t: the month-by-month average of the mean over its standard error. t_fell: the same for the share that fell, less the
+    whole board's share that month - how sure the difference from the board is. vs_market: the mean against SPY instead.
+    """
+    u = [r["u" + k] for r in rows if r.get("u" + k) is not None]
+    if not u:
+        return {"n": 0}
+    months = defaultdict(list)
+    for r in rows:
+        if r.get("u" + k) is not None:
+            months[r["day"]].append(r)
+    monthly = [mean([r["u" + k] for r in rs]) for _, rs in sorted(months.items()) if len(rs) >= MIN_BUCKET_MONTH]
+    dd = [r["dd" + k] for r in rows if r.get("dd" + k) is not None]
+    out = {"n": len(u), "months": len(months), "mean": r2(mean(u)), "median": r2(median(u)), "p10": r2(pctl(u, 0.10), 1), "p90": r2(pctl(u, 0.90), 1),
+           "lag_big": r2(_share([x <= -BIG for x in u]), 1), "beat_big": r2(_share([x >= BIG for x in u]), 1), "fell_big": r2(_share([x <= -BIG for x in dd]), 1),
+           "t": r2(t_stat(monthly)), "months_counted": len(monthly),
+           "vs_market": r2(mean([r["e" + k] for r in rows if r.get("e" + k) is not None])), "vs_industry": r2(mean([r["i" + k] for r in rows if r.get("i" + k) is not None])),
+           "ended": sum(1 for r in rows if r.get("end" + k))}
+    if universe is not None:
+        diffs = []
+        for day, rs in sorted(months.items()):
+            mine = [r["dd" + k] <= -BIG for r in rs if r.get("dd" + k) is not None]
+            every = universe.get((day, k))
+            if len(mine) >= MIN_TAIL_MONTH and every is not None:
+                diffs.append(_share(mine) - every)
+        out["t_fell"], out["fell_vs_board"] = r2(t_stat(diffs)), r2(mean(diffs), 1)
+    return out
+
+
+def fell_by_month(panel):
+    """{(month-end, horizon): the share of the whole board whose stock fell 20% at some point} - what a reading's own share is set against."""
+    out = {}
+    by = defaultdict(list)
+    for r in panel:
+        by[r["day"]].append(r)
+    for day, rows in by.items():
+        for k in ("1", "3"):
+            flags = [r["dd" + k] <= -BIG for r in rows if r.get("dd" + k) is not None]
+            if len(flags) >= MIN_UNIVERSE:
+                out[(day, k)] = _share(flags)
+    return out
+
+
+def reading_keys(r):
+    """The measured readings a company-month (or a company today) falls under, as keys."""
+    keys = ["book:" + r["book"]] if r.get("book") else []
+    if r.get("cell"):
+        keys.append("cell:" + r["cell"])
+    if r.get("sig") in C.LEADS:
+        keys.append("signal:" + r["sig"])
+    b = r.get("band") if "band" in r else band_of(r.get("s"))
+    if b is not None:
+        keys.append("level:%d" % b)
+    if r.get("stress") is not None:
+        for lo, hi in STRESS_BANDS:
+            if lo <= r["stress"] < hi:
+                keys.append("stress:%g-%g" % (lo, min(hi, 100)))
+    if r.get("dist"):
+        keys.append("distressed")
+    return keys
+
+
+READING_GROUPS = (("level", "By how wide the spread is"), ("cells", "By what credit and the stock just did"), ("signals", "The board's leads"), ("stress", "By stress rank"), ("book", "By book"))
+
+
+def reading_words(key):
+    kind, _, rest = key.partition(":")
+    if kind == "cell":
+        return C.CELLS.get(rest, rest)
+    if kind == "signal":
+        return {"CREDIT_LEADS_DOWN": "Lead: credit worse, the stock has not fallen", "CREDIT_LEADS_UP": "Lead: credit better, the stock has not risen"}.get(rest, rest)
+    if kind == "level":
+        return "Spread " + band_words(int(rest))
+    if kind == "stress":
+        return "Stress rank " + rest.replace("-", " to ")
+    if kind == "book":
+        return C.BOOK_WORDS.get(rest, rest)
+    return "Distressed (1,000 bp or more)" if key == "distressed" else key
+
+
+def reading_group(key):
+    kind = key.partition(":")[0]
+    return {"cell": "cells", "signal": "signals", "level": "level", "stress": "stress", "book": "book", "distressed": "level"}.get(kind, kind)
+
+
+def risk_table(rows, k="3"):
+    """The chance that a stock falls 20% at some point inside the horizon, by how wide its bonds trade and by the third its own
+    volatility stands in: {band: {"n", "fell", "thirds": [{"n", "fell"} or None x3]}}. A thin cell is left empty: its band's figure stands."""
+    out = {}
+    for b in range(len(LEVEL_BANDS)):
+        mine = [r for r in rows if r.get("band") == b and r.get("dd" + k) is not None]
+        if not mine:
+            continue
+        cell = {"n": len(mine), "fell": r2(_share([r["dd" + k] <= -BIG for r in mine]), 1), "thirds": []}
+        for t in range(3):
+            sub = [r for r in mine if r.get("vt") == t]
+            cell["thirds"].append({"n": len(sub), "fell": r2(_share([r["dd" + k] <= -BIG for r in sub]), 1)} if len(sub) >= MIN_CELL else None)
+        out[b] = cell
+    return out
+
+
+def chance(table, band, third):
+    """(the chance from the risk table for a band and a volatility third, what it rests on): the cell when it is thick enough, else the band."""
+    cell = (table or {}).get(band) if band is not None else None
+    if not cell:
+        return None, None
+    sub = cell["thirds"][third] if third is not None and third < len(cell["thirds"]) else None
+    return (sub["fell"], "band and volatility") if sub else (cell["fell"], "band")
+
+
+CHECK_EDGES = (0, 8, 18, 35, 101)          # the forecast, in four bands, for setting what was said beside what happened
+
+
+def _table_from(counts):
+    """A risk table from running counts {(band, third or None): [n, fell]} - the same figures risk_table() gives."""
+    out = {}
+    for b in range(len(LEVEL_BANDS)):
+        n, fell = counts.get((b, None), (0, 0))
+        if not n:
+            continue
+        cell = {"n": n, "fell": r2(100.0 * fell / n, 1), "thirds": []}
+        for t in range(3):
+            tn, tf = counts.get((b, t), (0, 0))
+            cell["thirds"].append({"n": tn, "fell": r2(100.0 * tf / tn, 1)} if tn >= MIN_CELL else None)
+        out[b] = cell
+    return out
+
+
+def walk_forward(panel, k="3"):
+    """The risk table tried the only honest way: each month's chances come from a table built on earlier months whose outcome was
+    already known that day, and are then set beside what happened. Returns the calibration (said / happened, by how high the
+    chance said was), and how often a stock that went on to fall had been given a higher chance than one that did not (auc)."""
+    days = sorted({r["day"] for r in panel})
+    lag = {"1": 2, "3": 4}[k]                     # month-ends that must pass before a month's outcome is known
+    by = defaultdict(list)
+    for r in panel:
+        if r.get("dd" + k) is not None and r.get("band") is not None:
+            by[r["day"]].append(r)
+    counts, added, scored = defaultdict(lambda: [0, 0]), 0, []
+    for i, day in enumerate(days):
+        known = max(0, i - lag + 1)               # the months whose outcome was known on this day
+        while added < known:
+            for r in by.get(days[added], ()):
+                fell = 1 if r["dd" + k] <= -BIG else 0
+                counts[(r["band"], None)][0] += 1                          # the band, whatever the stock's own volatility
+                counts[(r["band"], None)][1] += fell
+                if r.get("vt") is not None:                                # and the band's cell for its volatility third
+                    counts[(r["band"], r["vt"])][0] += 1
+                    counts[(r["band"], r["vt"])][1] += fell
+            added += 1
+        if known < MIN_TRAIN_MONTHS:
+            continue
+        table = _table_from(counts)
+        for r in by.get(day, ()):
+            p, _ = chance(table, r["band"], r.get("vt"))
+            if p is not None:
+                scored.append((p, r["dd" + k] <= -BIG, day))
+    if len(scored) < 500:
+        return None
+    buckets = []
+    for lo, hi in zip(CHECK_EDGES, CHECK_EDGES[1:]):
+        mine = [x for x in scored if lo <= x[0] < hi]
+        if mine:
+            buckets.append({"from": lo, "to": min(hi, 100), "n": len(mine), "said": r2(mean([x[0] for x in mine]), 1), "happened": r2(_share([x[1] for x in mine]), 1)})
+    # how often the faller had the higher chance: the rank statistic, ties counting half
+    order = sorted(scored, key=lambda x: x[0])
+    rank_sum, i, n = 0.0, 0, len(order)
+    while i < n:
+        j = i
+        while j + 1 < n and order[j + 1][0] == order[i][0]:
+            j += 1
+        rank_sum += ((i + j) / 2.0 + 1.0) * sum(1 for x in order[i:j + 1] if x[1])
+        i = j + 1
+    pos = sum(1 for x in scored if x[1])
+    neg = n - pos
+    auc = (rank_sum - pos * (pos + 1) / 2.0) / (pos * neg) if pos and neg else None
+    base = _share([x[1] for x in scored])
+    brier = mean([((x[0] / 100.0) - (1.0 if x[1] else 0.0)) ** 2 for x in scored])
+    flat = mean([((base / 100.0) - (1.0 if x[1] else 0.0)) ** 2 for x in scored])
+    return {"n": n, "months": len({x[2] for x in scored}), "first": min(x[2] for x in scored), "last": max(x[2] for x in scored), "fell": r2(base, 1), "buckets": buckets,
+            "auc": r2(100.0 * auc, 1) if auc is not None else None, "skill": r2(100.0 * (1.0 - brier / flat), 1) if flat else None, "train_months": MIN_TRAIN_MONTHS}
+
+
+def evidence(panel, cds_panel_rows=None):
+    """Everything the board measured about what stocks did after each kind of reading. The panel is read, never changed in meaning."""
+    prepare(panel)
+    days = sorted({r["day"] for r in panel})
+    universe = fell_by_month(panel)
+    done = {k: sorted({r["day"] for r in panel if r.get("u" + k) is not None}) for k in ("1", "3")}
+    buckets = defaultdict(list)
+    for r in panel:
+        for key in reading_keys(r):
+            buckets[key].append(r)
+    readings = []
+    for key in sorted(buckets, key=lambda x: (reading_group(x), x != "distressed", x)):
+        rows = buckets[key]
+        readings.append({"key": key, "group": reading_group(key), "words": reading_words(key), "h1": summary(rows, "1", universe), "h3": summary(rows, "3", universe)})
+    order = {"level": [("level:%d" % i) for i in range(len(LEVEL_BANDS))] + ["distressed"], "cells": ["cell:" + c for c in C.CELLS],
+             "signals": ["signal:CREDIT_LEADS_DOWN", "signal:CREDIT_LEADS_UP"], "stress": ["stress:%g-%g" % (lo, min(hi, 100)) for lo, hi in STRESS_BANDS], "book": ["book:ig", "book:hy", "book:em"]}
+    rank = {key: (gi, i) for gi, (g, _) in enumerate(READING_GROUPS) for i, key in enumerate(order[g])}
+    readings.sort(key=lambda x: rank.get(x["key"], (9, 0)))
+    risk = {"h1": risk_table(panel, "1"), "h3": risk_table(panel, "3")}
+    out = {
+        "first": days[0] if days else None, "last": days[-1] if days else None, "month_ends": len(days), "company_months": len(panel), "companies": len({r["t"] for r in panel}),
+        "horizons": [{"key": key, "words": words, "sessions": n, "k": key[1:], "months": len(done[key[1:]]), "last_scored": done[key[1:]][-1] if done[key[1:]] else None} for key, words, n in HORIZONS],
+        "big": BIG, "entry": "the close one session after the holdings day", "groups": [{"key": g, "words": w} for g, w in READING_GROUPS],
+        "board": {"h1": summary(panel, "1"), "h3": summary(panel, "3")},
+        "readings": readings,
+        "risk": {"bands": [{"i": i, "words": band_words(i), "from": lo, "to": hi} for i, (lo, hi) in enumerate(LEVEL_BANDS)], "thirds": list(THIRD_WORDS), "min_cell": MIN_CELL,
+                 "h1": {str(b): v for b, v in risk["h1"].items()}, "h3": {str(b): v for b, v in risk["h3"].items()}},
+        "check": {"h1": walk_forward(panel, "1"), "h3": walk_forward(panel, "3")},
+        "stress_bands": [[lo, min(hi, 100)] for lo, hi in STRESS_BANDS],
+    }
+    out["direction"] = direction_verdict(out)
+    if cds_panel_rows is not None:
+        out["cds"] = cds_evidence(cds_panel_rows)
+    return out
+
+
+def direction_verdict(ev):
+    """Whether any reading that looks at what credit just did tells the direction of the stock, in a sentence that the figures back."""
+    tested = [x for x in ev["readings"] if x["group"] in ("cells", "signals")]
+    sure = [x for x in tested for h in ("h1", "h3") if (x[h].get("t") is not None and abs(x[h]["t"]) >= 3.0)]
+    down = next((x for x in ev["readings"] if x["key"] == "signal:CREDIT_LEADS_DOWN"), None)
+    up = next((x for x in ev["readings"] if x["key"] == "signal:CREDIT_LEADS_UP"), None)
+    return {"tested": len(tested) * 2, "past_three": len(sure), "bar": 3.0,
+            "words": ("Of the %d readings of what credit and the stock just did, tried over one month and over three, %s the stock's direction with a margin past chance (3 standard errors, the bar for "
+                      "%d tries at once)." % (len(tested), "none tells" if not sure else "%d tell" % len(sure), len(tested) * 2)),
+            "lead_down": (down or {}).get("h1"), "lead_up": (up or {}).get("h1")}
+
+
+def cds_evidence(rows):
+    """What the stock did after a week in which its traded CDS moved: the board's CDS rule (10 bp and 10% of its level), week by week."""
+    by = defaultdict(list)
+    for r in rows:
+        by[r["day"]].append(r)
+    for day, rs in by.items():
+        for key, _, _ in CDS_HORIZONS:
+            xs = [r["r" + key] for r in rs if r.get("r" + key) is not None]
+            m = sum(xs) / len(xs) if len(xs) >= 15 else None
+            for r in rs:
+                r["u" + key] = round(r["r" + key] - m, 2) if m is not None and r.get("r" + key) is not None else None
+
+    def wider(r):
+        return r["d"] >= C.CDS_MOVE_BP and r["p"] >= 100.0 * C.CDS_MOVE_REL
+
+    def tighter(r):
+        return r["d"] <= -C.CDS_MOVE_BP and r["p"] <= -100.0 * C.CDS_MOVE_REL
+
+    def stock(r):
+        return None if r.get("px") is None else "down" if r["px"] <= -C.FLAT_BAND_PCT else "up" if r["px"] >= C.FLAT_BAND_PCT else "flat"
+
+    tests = [("wider", "CDS wider over the week", wider), ("wider/up", "CDS wider, stock rose", lambda r: wider(r) and stock(r) == "up"), ("wider/flat", "CDS wider, stock flat", lambda r: wider(r) and stock(r) == "flat"),
+             ("wider/down", "CDS wider, stock already fell", lambda r: wider(r) and stock(r) == "down"), ("tighter", "CDS tighter over the week", tighter),
+             ("tighter/down", "CDS tighter, stock fell", lambda r: tighter(r) and stock(r) == "down"), ("tighter/flat", "CDS tighter, stock flat", lambda r: tighter(r) and stock(r) == "flat"),
+             ("tighter/up", "CDS tighter, stock already rose", lambda r: tighter(r) and stock(r) == "up")]
+    out = []
+    for key, words, test in tests:
+        mine = [r for r in rows if test(r)]
+        row = {"key": key, "words": words}
+        for hk, _, _ in CDS_HORIZONS:
+            u = [r["u" + hk] for r in mine if r.get("u" + hk) is not None]
+            weeks = defaultdict(list)
+            for r in mine:
+                if r.get("u" + hk) is not None:
+                    weeks[r["day"]].append(r["u" + hk])
+            weekly = [mean(v) for _, v in sorted(weeks.items()) if len(v) >= 3]
+            row[hk] = {"n": len(u), "weeks": len(weekly), "mean": r2(mean(u)), "median": r2(median(u)), "t": r2(t_stat(weekly))}
+        out.append(row)
+    weeks = sorted(by)
+    return {"first": weeks[0] if weeks else None, "last": weeks[-1] if weeks else None, "weeks": len(weeks), "names": len({r["t"] for r in rows}), "name_weeks": len(rows),
+            "horizons": [{"key": k, "words": w, "sessions": n} for k, w, n in CDS_HORIZONS], "readings": out,
+            "rule": "wider or tighter by %g bp and by %g%% of its level over five sessions" % (C.CDS_MOVE_BP, 100.0 * C.CDS_MOVE_REL)}

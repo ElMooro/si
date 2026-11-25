@@ -29,7 +29,14 @@ VERSION = "3.0.0"
 CONTRACT = "credit-before-equity.v2"
 
 BOOKS = {"US IG": "ig", "US HY": "hy", "EM corporate": "em", "EM HY": "em"}       # the US-dollar corporate books that are read
-BOOK_WORDS = {"ig": "Investment grade", "hy": "High yield", "em": "Emerging markets"}
+# bonds in another currency (3.0): read against that currency's own government curve, and kept in books of their own -
+# a spread over Bunds is not a spread over Treasuries, so a company is never ranked against the other kind
+GRADE = {"US IG": "ig", "Euro IG": "ig", "International": "ig", "US HY": "hy", "Euro HY": "hy", "US + intl HY": "hy"}
+FOREIGN_BOOK = {"ig": "xig", "hy": "xhy"}
+CURVE_WORDS = {"USD": "the Treasury par curve", "EUR": "German Bund yields at 2, 10 and 30 years", "GBP": "UK gilt par yields at 5, 10 and 20 years",
+               "CAD": "Government of Canada benchmark yields at 2, 5, 10 and 30 years", "AUD": "Australian government yields at 2, 3, 5 and 10 years"}
+BOOK_WORDS = {"ig": "Investment grade", "hy": "High yield", "em": "Emerging markets", "xig": "Non-dollar investment grade", "xhy": "Non-dollar high yield"}
+DOLLAR_BOOKS = ("ig", "hy", "em")
 YIELD_FLOOR, YIELD_CAP = -4.99, 49.99      # the fund file prints -5 and 50 where it stops calculating: not yields
 MIN_DUR = 1.0                              # years: inside a year of redemption a yield is the calendar, not the credit
 DISTRESSED_BP = 1000.0
@@ -152,29 +159,42 @@ def industry_of(fund_sector, company=None, issuer_key=""):
     return coarse
 
 
-def bond_points(bonds, as_of, par_rows, refs):
+def bond_points(bonds, as_of, par_rows, refs, curves=None):
     """Every bond the board reads, with its spread today and at each derived reference.
 
     refs: {field of the bond holding the yield change: reference date}, e.g. {"chg": "2026-10-30", "chg_y": "2025-12-31"}.
-    Returns (points, counts, par dates). A point: {k, issuer, sector, country, book, v, y, dur, t, s, ref: {date: spread}, why}.
+    curves: {currency: {day: {maturity: yield}}} - the government curve of each other currency the board can read; a bond in a
+    currency with no curve here is left out, as every such bond was before 3.0.
+    Returns (points, counts, par dates). A point: {k, issuer, sector, country, book, ccy, v, y, dur, t, s, ref: {date: spread}, why}.
     """
     row_now, par_now = par_on(par_rows, as_of)
     ref_rows = {d: par_on(par_rows, d) for d in set(refs.values()) if d}
+    other = {}
+    for ccy, rows in (curves or {}).items():
+        now_row, now_day = par_on(rows, as_of)
+        if now_row is not None:
+            other[ccy] = {"now": now_row, "day": now_day, "refs": {d: par_on(rows, d) for d in set(refs.values()) if d}}
     out, counts = [], Counter()
     for b in bonds or []:
         if not isinstance(b, dict) or b.get("left"):
             continue
-        if b.get("ccy") != "USD":
-            counts["not in US dollars"] += 1
-            continue
-        book = BOOKS.get(b.get("book"))
+        ccy = b.get("ccy")
+        if ccy != "USD":
+            grade = GRADE.get(b.get("book"))
+            if ccy not in other or not grade:
+                counts["not in US dollars"] += 1 if ccy not in other else 0
+                counts["floating-rate, convertible or another book"] += 1 if ccy in other else 0
+                continue
+            book, curve_now, curve_refs = FOREIGN_BOOK[grade], other[ccy]["now"], other[ccy]["refs"]
+        else:
+            book, curve_now, curve_refs = BOOKS.get(b.get("book")), row_now, ref_rows
         if not book:
             counts["floating-rate, convertible or another book"] += 1
             continue
         if industry_of(b.get("sector")) is None:
             counts["not a company (government, agency, local authority)"] += 1
             continue
-        p = {"k": b.get("k"), "issuer": b.get("issuer") or "", "sector": b.get("sector") or "", "country": b.get("country") or "", "book": book,
+        p = {"k": b.get("k"), "issuer": b.get("issuer") or "", "sector": b.get("sector") or "", "country": b.get("country") or "", "book": book, "ccy": ccy,
              "v": float(b.get("demand") or 0.0), "y": b.get("rate"), "dur": b.get("dur"), "t": None, "s": None, "ref": {}, "why": None,
              "c": b.get("coupon") if isinstance(b.get("coupon"), (int, float)) else None, "m": str(b.get("maturity"))[:10] if b.get("maturity") else None,
              "px": b.get("price") if isinstance(b.get("price"), (int, float)) and b.get("price") > 0 else None, "yrs": None}
@@ -191,7 +211,7 @@ def bond_points(bonds, as_of, par_rows, refs):
             p["why"] = "priced to an early call"
         elif not isinstance(dur, (int, float)) or dur < MIN_DUR:
             p["why"] = "under a year to run"
-        elif row_now is None:
+        elif curve_now is None:
             p["why"] = "no Treasury curve for the day"
         counts["read"] += 1
         if p["why"]:
@@ -200,11 +220,12 @@ def bond_points(bonds, as_of, par_rows, refs):
             continue
         t = tenor_of(dur, y, p["yrs"])
         p["t"] = round(t, 3)
-        p["s"] = round((y - par_yield(row_now, t)) * 100.0, 1)
+        p["s"] = round((y - par_yield(curve_now, t)) * 100.0, 1)
         counts["with a spread"] += 1
+        counts["of them not in US dollars"] += 1 if ccy != "USD" else 0
         for field, ref in refs.items():
             chg = b.get(field)
-            row, _ = ref_rows.get(ref) or (None, None)
+            row, _ = curve_refs.get(ref) or (None, None)
             if not ref or row is None or not isinstance(chg, (int, float)):
                 continue
             y0 = y - chg
@@ -213,7 +234,7 @@ def bond_points(bonds, as_of, par_rows, refs):
             t0 = min(t + max(days_between(ref, as_of), 0) / 365.25, 30.0)
             p["ref"][ref] = round((y0 - par_yield(row, t0)) * 100.0, 1)
         out.append(p)
-    return out, counts, {"as_of": par_now, **{d: v[1] for d, v in ref_rows.items()}}
+    return out, counts, {"as_of": par_now, **{d: v[1] for d, v in ref_rows.items()}, "other": {c: v["day"] for c, v in other.items()}}
 
 
 def snapshot_of(points, day, derived_from=None):
@@ -307,10 +328,16 @@ def companies(points, matcher, snapshots, windows):
     rows = []
     for ident, g in groups.items():
         pts = g["points"]
-        good = [p for p in pts if p["s"] is not None]
+        priced = [p for p in pts if p["s"] is not None]
+        # a company with bonds in dollars and in another currency is read in the one the funds hold more of: the two spreads
+        # are over different governments and are not averaged together. Its other bonds stay listed under it.
+        dollar = sum(p["v"] or 1.0 for p in priced if p.get("ccy", "USD") == "USD")
+        foreign = sum(p["v"] or 1.0 for p in priced if p.get("ccy", "USD") != "USD")
+        home = (lambda p: p.get("ccy", "USD") == "USD") if dollar >= foreign else (lambda p: p.get("ccy", "USD") != "USD")
+        good = [p for p in priced if home(p)]
         co = g["company"]
         book = Counter()
-        for p in pts:
+        for p in (good or pts):
             book[p["book"]] += p["v"] or 1.0
         fund_sector = g["sector"].most_common(1)[0][0]
         row = {
@@ -321,10 +348,12 @@ def companies(points, matcher, snapshots, windows):
             "spread_bp": f(wavg([(p["s"], p["v"]) for p in good]), 1), "tie": sorted(g["how"])[0] if co else "untied", "win": {},
             "theme": None, "layer": None,
             "n_limit": sum(1 for p in pts if p["why"] == "yield at the file's limit"),
+            "ccy": Counter(p.get("ccy", "USD") for p in good).most_common(1)[0][0] if good else (pts[0].get("ccy", "USD") if pts else None),
+            "n_other": len(priced) - len(good),
         }
         row["distressed"] = bool(row["spread_bp"] is not None and row["spread_bp"] >= DISTRESSED_BP) or (row["n_limit"] > 0 and not good)
         row["theme"], row["layer"] = TH.theme_of(row["ticker"], row["name"])
-        row.update(bond_facts(pts))
+        row.update(bond_facts(pts, good))
         for p in pts:
             p["co"] = ident
         for wkey, ref in windows.items():
@@ -342,7 +371,7 @@ def companies(points, matcher, snapshots, windows):
     return rows, ties
 
 
-def bond_facts(pts):
+def bond_facts(pts, good=None):
     """What a company's own bonds say besides the spread - the things a credit analyst reads off the debt itself.
 
       wam        years to maturity, weighted by market value held
@@ -356,7 +385,7 @@ def bond_facts(pts):
     """
     dated = [(p["yrs"], p["v"]) for p in pts if p.get("yrs") is not None and p["yrs"] > 0 and p["v"] > 0]
     total = sum(v for _, v in dated)
-    good = [p for p in pts if p["s"] is not None]
+    good = [p for p in pts if p["s"] is not None] if good is None else good
     short = wavg([(p["s"], p["v"]) for p in good if p["t"] is not None and p["t"] <= CURVE_SHORT_Y])
     far = wavg([(p["s"], p["v"]) for p in good if p["t"] is not None and p["t"] >= CURVE_LONG_Y])
     prices = [p["px"] for p in pts if p.get("px") is not None]
