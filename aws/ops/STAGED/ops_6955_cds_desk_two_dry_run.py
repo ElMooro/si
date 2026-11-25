@@ -227,6 +227,19 @@ def main(write=False, name=NAME):
         r.log("  outside the United States: %s" % [l for l in listed if l[2] not in ("NYSE", "NASDAQ", "AMEX", "OTC")][:60])
         r.log("  a listing that names another company than the credit board's tie: %s" % [(x["name"], x.get("ticker"), x["listing"]["symbol"], x["listing"]["name"]) for k, (g, kind, x) in new_rows.items()
                                                                                          if x.get("listing") and x.get("ticker") and x["listing"]["exchange"] in ("NYSE", "NASDAQ") and x["listing"]["symbol"] != x["ticker"]][:30])
+        # second pass (after the first dry run's findings): what the tightened rules give
+        away = [(x["name"], x.get("ccy"), x["listing"]["symbol"], x["listing"]["country"]) for k, (g, kind, x) in new_rows.items() if x.get("listing") and not C.listing_allowed(x["listing"], x.get("ccy"))]
+        r.log("  a listing outside the part of the world its swaps' currency says: %d %s" % (len(away), away[:12]))
+        ceil = [(x["name"], g, x.get("points_upfront"), x["last_date"], x["status"]) for k, (g, kind, x) in new_rows.items() if kind == "rows" and x.get("at_ceiling")]
+        r.log("levels carried at the %d bp ceiling and read in points: %s" % (C.SPREAD_CEILING_BP, ceil))
+        r.log("widest levels under the ceiling: %s" % sorted([(x["spread_bp"], x["name"][:28], x.get("points_upfront")) for k, (g, kind, x) in new_rows.items() if kind == "rows" and not x.get("at_ceiling")], reverse=True)[:8])
+        r.log("indices not printed in ten days (shown aged, with their date): %s" % [(i["key"], i["last_date"], i["stale_days"]) for i in packet["indices"] if i.get("status") == "aged"])
+        for f in packet["options"]["families"]:
+            r.log("options %s: off the ladder %s | expiry not given %s | expired in the window %s" % (f["family"], [(x["strike"], x["n"]) for x in f.get("off_ladder") or []], f.get("expiry_not_given"),
+                                                                                                    [(e["expiry"], e["n"]) for e in f["expiries"] if e.get("expired")]))
+        r.log("options on another underlier (counted, not drawn): %s of %s" % (packet["options"].get("n_other_underlier"), packet["options"].get("n_all")))
+        big = {c["cls"]: (c["n"], c["usd_mm"], c.get("eur_mm")) for c in pr["windows"]["30d"]["classes"]}
+        r.log("products 30d after the notional cap: %s" % big)
         r.log("tape: %s names, %s prints of the last %d days" % ((tape or {}).get("n_names"), (tape or {}).get("n_prints"), L.TAPE_DAYS))
         r.log("history: %d names%s" % (len((history or {}).get("names") or {}), ", %d with unconfirmed days set apart" % sum(1 for v in ((history or {}).get("names") or {}).values() if v.get("unconfirmed"))))
         banned = [w for w in ("forecast", "predict") if w in json.dumps({k: v for k, v in packet.items() if k != "groups"}).lower()]

@@ -54,6 +54,12 @@ SOFT_QUOTE_GATE_LOG = 0.5     # unconfirmed quoted prints must sit within this l
 QUOTE_CONFIRM_TOL_PCT = 0.35  # quoted spread vs disseminated upfront agreement (|diff| in % notional) to call a quote confirmed
 STALE_MAX_DAYS = 10           # a level older than this (calendar days) is not shown as current
 AGED_MAX_DAYS = 45            # ... but up to this age it is still shown as the name's level, with its date and the word "aged"
+SPREAD_CEILING_BP = 10000.0   # a distressed name is quoted in points upfront; past this its running equivalent only measures the recovery assumed
+DISTRESS_POINTS = 40.0        # points upfront no below-coupon print can reach: beyond the model's reach they still say "above the ceiling"
+OPTION_EXPIRY_MAX_DAYS = 760  # index options run months, not years: a longer "expiry" is the index's own maturity, the option's was not given
+OPTION_LADDER_SPREAD = (0.55, 2.6)   # a spread strike is drawn when it is within these multiples of the index level
+OPTION_LADDER_PRICE = 20.0           # a price strike when it is within this many points of it
+MAX_PRINT_NOTIONAL = 5e10     # a single print above 50 billion is a mis-filed field: it is counted as a print, its size is left out
 NEAR_COUPON_LOG = 0.20        # two branches this close (about 22%) bracket the level: the name trades at its coupon
 JUMP_LOG = 0.90               # a day this far (log) from the name's own recent middle needs a second day or strong evidence
 CONFIRM_LOG = 0.35            # ... a later day within this distance confirms it
@@ -715,15 +721,29 @@ CORP_ALIASES = {normalize_name(k): normalize_name(v) for k, v in CORP_ALIASES.it
 
 
 _LISTING_LEGAL = re.compile(r"\b(SE|SPA|S P A|ASA|AB|OYJ|ABP|KGAA|BV|B V|SARL|S A R L|GMBH|AKTIENGESELLSCHAFT|SOCIETE ANONYME|SOCIEDAD ANONIMA|SOCIETA PER AZIONI|"
-                            r"S A B DE C V|SAB DE CV|TBK|BHD|BERHAD|KK|K K|PJSC|OJSC|PT|AS|A S|PUBLIC|TRUST|& CO|AND CO|DE|DAC|PTY|PTE|CLASS [A-C]|COMMON STOCK|ORDINARY SHARES)\b")
+                            r"S A B DE C V|SAB DE CV|TBK|BHD|BERHAD|KK|K K|PJSC|OJSC|PT|DAC|PTY|PTE|CLASS [A-C]|COMMON STOCK|ORDINARY SHARES)\b")
+_LISTING_TAIL = re.compile(r"( PUBLIC| TRUST| A S| AS| & CO| AND CO)+$")     # legal words only where a name ends: "Public Power" keeps its first word
+LISTING_DENY = frozenset({"ROGERS"})        # reviewed: the tape's Rogers Group, Inc. is not the listed Rogers Corporation
+EUROPE = frozenset("GB FR DE IT ES NL BE LU IE PT AT FI SE DK NO CH GR PL CZ HU JE GG IM MT CY IS LI MC".split())
+# a swap in euros, sterling or francs is on a European company, one in yen on a Japanese one: a listing elsewhere under the
+# same name is another company (the audit found EDP in Tokyo, Continental in Taipei, Siemens Limited in Mumbai)
+LISTING_HOME = {"EUR": EUROPE, "GBP": EUROPE, "CHF": EUROPE, "JPY": frozenset({"JP"})}
 
 
 def listing_key(name):
     """A company name as the worldwide listings write it and as the tape writes it, reduced to the same key."""
     n = normalize_name(name)
     n = _LISTING_LEGAL.sub(" ", n)
+    n = re.sub(r"\s+", " ", n).strip()
+    n = _LISTING_TAIL.sub("", n)
     n = n.replace(" & ", " AND ")
     return re.sub(r"\s+", " ", n).strip()
+
+
+def listing_allowed(row, ccy):
+    """May this listing stand for a name whose swaps trade in ccy?"""
+    home = LISTING_HOME.get(ccy or "")
+    return home is None or (row.get("country") or "") in home
 
 
 MAJOR_EXCHANGES = ("NYSE", "NASDAQ", "LSE", "JPX", "XETRA", "PAR", "HKSE", "TSX", "ASX", "SIX", "MIL", "AMS", "BME", "STO", "CPH", "OSL", "HEL", "BRU",
@@ -1056,8 +1076,9 @@ def census_day(records):
     for r in records:
         if r.get("how"):
             how[r["how"]] = how.get(r["how"], 0) + 1
-        usd = (r["notional"] or 0) / 1e6 if r["ccy"] == "USD" else 0.0
-        eur = (r["notional"] or 0) / 1e6 if r["ccy"] == "EUR" else 0.0
+        size = r["notional"] if (r["notional"] or 0) <= MAX_PRINT_NOTIONAL else 0     # 1e14 on one basket print is a mis-filed field
+        usd = (size or 0) / 1e6 if r["ccy"] == "USD" else 0.0
+        eur = (size or 0) / 1e6 if r["ccy"] == "EUR" else 0.0
         c = cls.setdefault(r["cls"], [0, 0.0, 0.0, 0, 0])
         c[0] += 1
         c[1] += usd
@@ -1072,7 +1093,7 @@ def census_day(records):
         if r["cls"] == "index" and r["fam"] in STRUCTURED_FAMILIES and r["points"] is not None and r["expiry"]:
             struct.setdefault("%s|%s" % (r["fam"], r["expiry"]), []).append((r["points"], r["capped"], usd, r["coupon_bp"]))
         if r["cls"] == "option" and r.get("strike") is not None and r["fam"]:
-            opt.append([r["fam"], r["expiry"], r["strike"], r["strike_kind"], round((r["notional"] or 0) / 1e6, 1), 1 if r["capped"] else 0, r["ccy"]])
+            opt.append([r["fam"], r["expiry"], r["strike"], r["strike_kind"], round((size or 0) / 1e6, 1), 1 if r["capped"] else 0, r["ccy"]])
     out_struct = {}
     for k, v in struct.items():
         free = [p for p, cap, _, _ in v if not cap] or [p for p, _, _, _ in v]
@@ -1212,6 +1233,12 @@ def candidate_spreads(trade, rate_pct, anchor_bp=None):
     # disseminated cash = clean - accrued  (buyer pays clean, receives accrued back at the first coupon)
     s_hi = solve_spread_bp(cash_pct + acc, trade["coupon_bp"], trade["tenor"], rate_pct, _rec(trade))        # buyer pays -> spread > coupon
     s_lo = solve_spread_bp(-cash_pct + acc, trade["coupon_bp"], trade["tenor"], rate_pct, _rec(trade))       # seller pays -> spread < coupon
+    if cash_pct + acc >= DISTRESS_POINTS and (s_hi is None or s_hi > SPREAD_CEILING_BP):
+        # more points than the assumed recovery allows (or nearly): the print still says the name is past the ceiling.  It is carried
+        # at the ceiling and read in points - 58 points and 63 points are not 36,000 bp and "no level"
+        s_hi = SPREAD_CEILING_BP
+    elif s_hi is not None and s_hi > SPREAD_CEILING_BP:
+        s_hi = SPREAD_CEILING_BP
     if s_hi is not None and s_hi > 0.5:
         out.append((s_hi, "above_coupon"))
     if s_lo is not None and s_lo > 0.5:
@@ -1806,7 +1833,7 @@ def measure_entity(norm, series, as_of_iso):
         "range_bp": [last.get("lo"), last.get("hi")], "n_last": last["n"], "n_priced_last": last.get("np"),
         "quoted_last": last.get("q"), "ambiguous_last": last.get("amb"), "capped_share": last.get("cap"),
         "cleared_share": last.get("cs"), "notional_mm_last": last.get("nm"), "anchor_source": last.get("as"), "sign_evidence": last.get("aq"), "points_upfront": last.get("pts"),
-        "quote_style": "points" if (last.get("pts") is not None) else "spread",
+        "quote_style": "points" if (last.get("pts") is not None) else "spread", "at_ceiling": bool((last["s"] or 0) >= SPREAD_CEILING_BP),
         "chg_1d_bp": _change(last["s"], prev), "chg_1w_bp": _change(last["s"], w1), "chg_1m_bp": _change(last["s"], m1), "chg_3m_bp": _change(last["s"], m3),
         "z_90d": z, "pct_rank_1y": _pct_rank(hist, last["s"]), "hi_1y_bp": round(max(hist + [last["s"]]), 1), "lo_1y_bp": round(min(hist + [last["s"]]), 1),
         "n_days_priced_1y": len(priced), "trades_30d": n30, "days_active_30d": days30,
@@ -1878,7 +1905,10 @@ def describe_entity(name, m, group_median=None):
     if m is None or m["spread_bp"] is None:
         return "No priced 5Y prints in the window."
     if m.get("points_upfront") is not None:
-        bits = ["%s 5Y protection last printed at ~%.0f points upfront (%.0fbp running-equivalent) on %s" % (name, m["points_upfront"], m["spread_bp"], m["last_date"])]
+        if m.get("at_ceiling"):
+            bits = ["%s 5Y protection last printed at ~%.0f points upfront (past the %.0fbp ceiling: read the points) on %s" % (name, m["points_upfront"], SPREAD_CEILING_BP, m["last_date"])]
+        else:
+            bits = ["%s 5Y protection last printed at ~%.0f points upfront (%.0fbp running-equivalent) on %s" % (name, m["points_upfront"], m["spread_bp"], m["last_date"])]
     else:
         bits = ["%s 5Y protection last printed at %.0fbp on %s" % (name, m["spread_bp"], m["last_date"])]
     if m["n_last"]:
@@ -2075,6 +2105,8 @@ def build_packet(bank, as_of_iso, generated_at, run_meta=None, extras=None):
         indices.append({"key": fam, "name": info["label"], "group": info["group"], "quote": info["quote"], "coupon_bp": info["coupon_bp"],
                         "since": "1.6" if fam in INDEX_FAMILIES_1_6 else "2.0",
                         "price": last.get("px"), "expiry": last.get("exp"), **m,
+                        # an index that has not printed for more than ten days is shown with its date, never as today's level
+                        "status": "current" if m["stale_days"] <= STALE_MAX_DAYS else "aged",
                         "read": describe_entity(info["label"], m)})
     # breadth across all liquid single names
     liquid_rows = [r for g in out_groups.values() for r in g["rows"] if r["liquid"]]
@@ -2129,6 +2161,9 @@ def build_packet(bank, as_of_iso, generated_at, run_meta=None, extras=None):
         "aged_rule": "a level %d to %d days old is still shown as the name's level, with its date and the word aged; it is never counted as liquid" % (STALE_MAX_DAYS + 1, AGED_MAX_DAYS),
         "bond_anchor_rule": "a name with no anchor of its own may take the sign from the same company's bonds (spread over governments, from the credit board) or, for a sovereign, a reference quote - only between far-apart branches, and it stays inferred",
         "subordinated_rule": "subordinated, junior and mezzanine single names are priced with %.0f%% recovery and kept apart from the senior name" % (RECOVERY_SUB * 100),
+        "ceiling_rule": "a distressed name is quoted in points upfront; a running equivalent past %d bp measures the recovery assumed, not the name, so the level is carried at %d bp and read in points (a print of %d points or more that the %d%% recovery cannot reach is carried the same way)" % (
+            SPREAD_CEILING_BP, SPREAD_CEILING_BP, DISTRESS_POINTS, RECOVERY_SENIOR * 100),
+        "listing_rule": "a company is tied to its listed stock by the credit board's reviewed tie, else by the same name in the worldwide listings: home exchange first, and a name whose swaps trade in euros, sterling or francs only to a European listing, in yen only to a Japanese one",
         "product_rule": "every new trade of the credit file is counted by product; index, sovereign and corporate single names get a level, commercial-mortgage indices are shown in points upfront, options by strike, the rest as activity",
     })
     packet["method"]["sign_rule"] = packet["method"]["sign_rule"] + " > the company's own bonds or a sovereign reference quote (far-apart branches only)"
@@ -2226,6 +2261,8 @@ def options_block(bank, as_of_iso, indices):
             f["n"] += 1
             f["mm"] += mm
             f["capped"] += capped
+            if expiry and _days_between(d, expiry) > OPTION_EXPIRY_MAX_DAYS:
+                expiry = ""           # the file carried the index's maturity where the option's expiry belongs
             e = f["exp"].setdefault(expiry or "", [0, 0.0])
             e[0] += 1
             e[1] += mm
@@ -2244,16 +2281,30 @@ def options_block(bank, as_of_iso, indices):
             kinds[kind] = kinds.get(kind, 0.0) + v[1]
         main = max(kinds, key=kinds.get) if kinds else None
         level = idx.get("price") if main == "price" else idx.get("spread_bp")
-        ladder = sorted([{"strike": k, "n": v[0], "notional_mm": round(v[1], 1)} for (kind, k), v in f["k"].items() if kind == main], key=lambda r: r["strike"])
+        every = sorted([{"strike": k, "n": v[0], "notional_mm": round(v[1], 1)} for (kind, k), v in f["k"].items() if kind == main], key=lambda r: r["strike"])
+
+        def on_ladder(k):
+            if level is None or not level:
+                return True
+            if main == "price":
+                return abs(k - level) <= OPTION_LADDER_PRICE
+            return OPTION_LADDER_SPREAD[0] <= k / level <= OPTION_LADDER_SPREAD[1]
+        ladder = [r for r in every if on_ladder(r["strike"])]
+        # a strike several times the index level is an option on another index sharing the currency and coupon: listed, not drawn
+        off = [r for r in every if not on_ladder(r["strike"])] + sorted(
+            [{"strike": k, "n": v[0], "notional_mm": round(v[1], 1), "kind": kind} for (kind, k), v in f["k"].items() if kind != main], key=lambda r: r["strike"])
         wide = sum(r["notional_mm"] for r in ladder if level is not None and ((r["strike"] > level) if main == "spread" else (r["strike"] < level)))
         tot = sum(r["notional_mm"] for r in ladder) or None
         out.append({"family": fam, "label": (INDEX_FAMILIES.get(fam) or {}).get("label") or fam, "ccy": f["ccy"], "n": f["n"], "notional_mm": round(f["mm"], 1), "capped_n": f["capped"],
-                    "strike_kind": main, "index_level": level, "ladder": ladder,
+                    "strike_kind": main, "index_level": level, "ladder": ladder, "off_ladder": off,
                     "share_struck_wider_pct": round(100.0 * wide / tot, 1) if (tot and level is not None) else None,
-                    "expiries": sorted([{"expiry": e, "n": v[0], "notional_mm": round(v[1], 1)} for e, v in f["exp"].items()], key=lambda r: r["expiry"]),
+                    "expiries": sorted([{"expiry": e, "n": v[0], "notional_mm": round(v[1], 1), "expired": bool(e and e <= as_of_iso)} for e, v in f["exp"].items() if e], key=lambda r: r["expiry"]),
+                    "expiry_not_given": {"n": f["exp"][""][0], "notional_mm": round(f["exp"][""][1], 1)} if "" in f["exp"] else None,
                     "daily": [[d, v[0], round(v[1], 1)] for d, v in sorted(f["days"].items())]})
+    n_all = sum(((census[d].get("cls") or {}).get("option") or [0])[0] for d in days)
     return {"available": bool(census), "days": len(days), "first": days[0] if days else None, "last": days[-1] if days else None, "families": out,
             "n": sum(f["n"] for f in out), "notional_mm": round(sum(f["notional_mm"] for f in out), 1),
+            "n_all": n_all, "n_other_underlier": max(0, n_all - sum(f["n"] for f in out)),
             "note": "the public file gives an option's strike, expiry and size but not whether it is a payer or a receiver, nor the index it is on by name: the index is read from the currency and the coupon (dollars at 500 bp is CDX HY, at 100 bp CDX IG; euros at 500 bp iTraxx Crossover, at 100 bp iTraxx Europe). Struck wider means a strike on the weaker-credit side of today's level"}
 
 

@@ -511,15 +511,17 @@ def load_listings(bank, as_of, force=False, log=None):
         age = None
     if not force and age is not None and 0 <= age < LISTED_MAX_AGE_DAYS and kept.get("names") is not None:
         return kept["names"], "kept: matched %s (%d names)" % (kept.get("as_of"), len(kept["names"]))
-    want = {}
+    want, ccy_of = {}, {}
     for key, info in (bank.get("meta") or {}).items():
         if (info or {}).get("kind") not in ("corp", "sub"):
             continue
         base = key[len(cds_desk.SUB):] if key.startswith(cds_desk.SUB) else key
         if base in cds_desk.SOVEREIGNS:
             continue
+        votes = (info or {}).get("ccy") or {}
+        ccy_of[key] = max(votes.items(), key=lambda kv: kv[1])[0] if votes else ""
         for cand in {cds_desk.listing_key(base), cds_desk.listing_key((info or {}).get("raw") or "")}:
-            if len(cand) >= 3:
+            if len(cand) >= 3 and cand not in cds_desk.LISTING_DENY:
                 want.setdefault(cand, []).append(key)
     files = {}
     for page in s3.get_paginator("list_objects_v2").paginate(Bucket=BUCKET, Prefix=PROFILE_PREFIX):
@@ -549,11 +551,18 @@ def load_listings(bank, as_of, force=False, log=None):
                     vol = 0.0
                 row = {"symbol": x.get("symbol"), "exchange": x.get("exchange"), "country": x.get("country"), "currency": x.get("currency"),
                        "name": x.get("companyName"), "adr": x.get("isAdr") == "true", "volume": vol, "sector": x.get("sector") or None}
-                if k not in best or cds_desk.listing_rank(row) > cds_desk.listing_rank(best[k]):
-                    best[k] = row
+                # the best listing anywhere, and the best one in each home region a swap's currency can ask for
+                for zone in ["any"] + [c for c, home in cds_desk.LISTING_HOME.items() if row["country"] in home]:
+                    slot = best.setdefault(k, {})
+                    if zone not in slot or cds_desk.listing_rank(row) > cds_desk.listing_rank(slot[zone]):
+                        slot[zone] = row
     names = {}
-    for k, row in best.items():
+    for k, slot in best.items():
         for key in want[k]:
+            ccy = ccy_of.get(key) or ""
+            row = slot.get(ccy) if ccy in cds_desk.LISTING_HOME else slot.get("any")
+            if row is None:
+                continue          # a listing under this name exists, but not where a swap in this currency says the company is
             names[key] = {"symbol": row["symbol"], "exchange": row["exchange"], "country": row["country"], "currency": row["currency"], "name": row["name"],
                           "sector": row["sector"], "how": "same name as the listing"}
     bank["listed"] = {"as_of": as_of, "profiles_of": day, "rows_read": n_rows, "names": names}
@@ -615,7 +624,10 @@ def publish(bank, as_of, run_meta, par_rows=None, today_docs=None):
     except Exception as exc:
         listings, beside["listings"] = (bank.get("listed") or {}).get("names") or {}, "error %s: %s" % (type(exc).__name__, exc)
     for key, row in listings.items():
-        ties.setdefault(key, {})["listing"] = row
+        t = ties.setdefault(key, {})
+        if t.get("ticker") and row["symbol"].split(".")[0] != t["ticker"] and cds_desk.listing_key(row["name"]) != cds_desk.listing_key(t.get("company") or ""):
+            continue      # the credit board's reviewed tie names another company than the one this name matched: the tie stands
+        t["listing"] = row
     packet = cds_desk.build_packet(bank, as_of, now, run_meta, extras={"ties": ties, "reference": reference})
     packet["beside"] = {"status": beside, "ties_key": CBE_KEY, "reference_key": SOV_REF_KEY, "listings_prefix": PROFILE_PREFIX,
                         "note": "a listed company and its bonds come from the credit board, a home listing from the FMP bank's company profiles, a sovereign reference quote from the Global Sovereign desk: all read from this warehouse"}
