@@ -171,6 +171,14 @@ their 37 columns keep their places, with 32 new ones after them.
   reproduced figure for figure; a made-up history with one true thing in it, which the study finds; a walk-forward that
   cannot look ahead); 46 page tests; 9 deployment tests, one failing if anything the engine publishes has no place on the
   page; the repository's suites (5,261 node tests, 1,248 deployment tests).
+- **The first scheduled run, on its own** (22:35:41 UTC, nothing invoked by hand): 3.0.0 published, nothing degraded,
+  bonds, stocks and CDS of 2026-11-24; 4,182 companies (1,107 listed), 52 leads, 135 distressed, and 402 company CDS
+  levels - the first read of the CDS desk's 2.0 document (244 tied to a listed stock; 200 more trade with no level).
+  The live proof at 22:51 UTC failed one check, "the heat map, hy: the page prints ['Infinity']". Ops 6959 (read-only)
+  read the page in a real browser, every book and every colour: the text is **Infinity Natural Resources, Inc. (INR)**,
+  a company in the high-yield table, and its name inside two quoted lists in *Every figure*. No figure on the page is
+  broken; the check was wrong. It now matches the word only where a number would be (ops 6944, and the CDS desk's
+  ops 6957, which carried the same pattern). Run again at 22:57 UTC on the live site: **0 failed checks**.
 
 ## Cost
 
