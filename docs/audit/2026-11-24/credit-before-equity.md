@@ -236,7 +236,40 @@ the order it had; the industry map is still what the board opens on, with the wi
 - A company with a very small holding can rank very high on one bond (Beacon Point DC, $7M held, 99.1). The size control
   and the Held column are there for that; nothing is hidden.
 
+### Proof (2.1)
+
+- **Dry runs on the real warehouse**, ops 6942 (23:08 and 23:21 UTC, read-only): the 2.1 build on the runner with its writes
+  left out. Every company's stress rank worked again from the published table by arithmetic that is not the engine's: 0 of
+  2,946 differ. The theme's count is its rows; every listed member is a ticker of the reviewed lists; one lead (AMD) held
+  back because its CDS says the opposite of its bonds. The four spread checks and three industry checks of 2.0 still agree.
+- **Going live**, ops 6946 (23:50 UTC): the deployed package is this checkout's, byte for byte, `cbe_themes.py` among its
+  files; one dry run inside Lambda (17.6 s, 267 MB of 2,048 MB, nothing written), then one publication at 23:51:08 UTC
+  (16.2 s, 284 MB): 2,946 companies, 304 under stress (67 listed), the AI stack's 66 companies, 47 leads; 17 read-back checks
+  pass (the 2.0 columns where they were, the stress counts are the rows, Oracle in the theme, under stress and not a lead,
+  every 1.0 key still there); the site serves the document. **Both invokes were by hand**, outside the 22:35 UTC schedule,
+  which had already run today on 2.0 and is untouched.
+- **Live proof**, ops 6944 (23:53 UTC, and again at 00:06 UTC after the colour correction below; read-only, can be run
+  again): **0 failed checks.** Everything the 2.0 proof checked, again (20 industry tiles, the table sorted every way, the
+  CDS table, the previous view, a phone), and for 2.1, in a real browser on justhodl.ai: the stress view opens on the
+  document's 25 most stressed of the 537 companies with $50M or more held, Oracle first (99.6); the summary's link opens the
+  AI stack's 66 companies and only they, in the document's order; the list sorts both ways on the year's change; a layer
+  narrows it (17 vehicles); the heat map of the theme draws 66 tiles, each with the document's figure, 27 of them a widening
+  of 15% or more since the year began and drawn red; Oracle's tile says its rank and its detail says why it is not a lead;
+  the industry map comes back with the window and measure it had; the notes under the leads name AMD; no page error.
+  Report and 14 pictures: `aws/ops/reports/latest/ops_6944_credit_before_equity_live_proof.md`.
+- **Corrected after the first live look**: on the map of the theme coloured by stress, a rank of 50 - the middle company of
+  a book - was drawn in the trouble colour's hue, which made every tile look troubled. A rank is now drawn from the calmest
+  of a book (safety colour) through the middle (neutral) to the most stressed (trouble colour).
+- **Tests**: the engine's 31 offline tests on a new cut of the real warehouse (88 companies, 17 of them in the theme); 32
+  page tests on the same document, one of them the 2.0 document to prove the page still draws it; 8 deployment tests, one
+  holding the theme to your AI infrastructure stack engine's list; the repository's suites (5,247 node tests, 1,247
+  deployment tests).
+
 ## To take it back
+
+Only 2.1: revert the two commits of 2026-11-24 23:42 and 23:57 UTC (`8c79cf4d`, `9143d48c`); the engine and the page return
+to 2.0.0 and the next 22:35 UTC run publishes the 2.0 document. The page draws a 2.0 document as it did.
+
 
 Revert the commit that deployed 2.0.0: the engine and the page return to 1.0.0 and the next 22:35 UTC run publishes the 26-name
 document again. The ledger under `credit/cbe-spreads/` is small (184 KB a day) and can stay; nothing else reads it.
