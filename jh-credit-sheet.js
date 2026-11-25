@@ -547,7 +547,7 @@
     var skip = (doc.issuers.cols || []).concat(["d_spread_bp", "x_spread_bp", "from_spread_bp", "d_spread_w1", "d_spread_m3", "d_spread_ytd", "cds_d1w", "cds_d1m", "cds_d3m", "cds_bp", "cds_last",
       "d_price_w1", "d_price_m3", "d_price_ytd", "credit_direction", "bond_px", "n_bonds", "readings"]);
     return '<div class="cb-sheet-in"><div class="cb-sheet-h"><h3 id="sheet-title">' + (r.ticker ? "<b>" + esc(r.ticker) + "</b> " : "") + esc(r.name) + '</h3>' +
-      (r.ticker ? '<a class="cb-sheet-a" href="/chart.html?symbol=' + encodeURIComponent(r.ticker) + '">Chart</a>' : "") + '<button type="button" data-show-co="' + esc(r.ticker || r.name) + '" data-sheet-close>Show it in the table</button>' +
+      (r.ticker ? '<a class="cb-sheet-a" data-t="' + esc(r.ticker) + '" href="/chart.html?symbol=' + encodeURIComponent(r.ticker) + '">Chart</a>' : "") + '<button type="button" data-show-co="' + esc(r.ticker || r.name) + '" data-sheet-close>Show it in the table</button>' +
       '<button type="button" data-sheet-close>Close</button></div>' +
       '<p class="cb-note">' + esc(r.industry || "") + " · " + esc((BOOK_WORDS[r.book] || r.book || "").toLowerCase()) + (r.country ? " · " + esc(r.country) : "") + " · " + esc(String(r.n_bonds)) + (r.n_bonds === 1 ? " bond" : " bonds") + " · " + esc(money(r.value)) +
       " held" + (r.ticker ? "" : " · no listed stock tied") + "</p>" + (tags ? "<p>" + tags + "</p>" : "") + '<div class="cb-kpis">' + kpis + "</div>" +

@@ -1090,3 +1090,76 @@ test('the page carries the sheet, the two new sections and the second script, an
     assert.ok(!B.heroHtml(DOC, state()).includes('Fall risk'));
   } finally { globalThis.JHCreditSheet = keep; }
 });
+
+// ---------------------------------------------------------------------------------------------------------------------
+// The board on the chart (Khalid 2026-11-25: "now make sure this have an icon on chart.html")
+// ---------------------------------------------------------------------------------------------------------------------
+const crypto = require('node:crypto');
+const sha = s => crypto.createHash('sha256').update(s).digest('hex');
+const CHART_ENGINE = fs.readFileSync(path.join(R, 'jh-chart-engine.js'), 'utf8');
+const CHART_RAIL = fs.readFileSync(path.join(R, 'jh-chart-tvrail.js'), 'utf8');
+const CHART_HTML = fs.readFileSync(path.join(R, 'chart.html'), 'utf8');
+const chartLedger = require('./helpers/chart-macro-line-preservation.cjs');
+
+test('the chart has a Credit button between Bonds and CDS, and it opens this board in the chart\'s workspace', () => {
+  const iBnd = CHART_ENGINE.indexOf('id=btn-bnd '), mine = CHART_ENGINE.indexOf('id=btn-cbe '), iCds = CHART_ENGINE.indexOf('id=btn-cds ');
+  assert.ok(iBnd > 0 && mine > iBnd && iCds > mine);
+  assert.equal(CHART_ENGINE.split('id=btn-cbe ').length, 2, 'one button');
+  assert.equal(CHART_ENGINE.slice(iBnd, mine).split('<button').length, 2, 'nothing but the Bonds button\'s own tail before it');
+  assert.equal(CHART_ENGINE.slice(mine, iCds).split('<button').length, 2, 'and CDS is the next button');
+  assert.ok(CHART_ENGINE.includes("<button class='wsico wsdesk' id=btn-cbe title='Credit Before Equity · company bond spreads, CDS, stress and the fall risk they carry'><span class=g>Cr</span><span class=l>Credit</span></button>"));
+  assert.ok(CHART_ENGINE.includes('var bcbe=document.getElementById("btn-cbe"); if(bcbe) bcbe.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("credit"); };'));
+  // every desk that was on the bar is still on it, once, in the order it had
+  const ids = [...CHART_ENGINE.matchAll(/<button class='wsico wsdesk' id=(btn-[a-z0-9]+) /g)].map(m => m[1]);
+  assert.deepEqual(ids.slice(0, 18), ['btn-macro', 'btn-flows', 'btn-heat', 'btn-rmap', 'btn-auc', 'btn-corm', 'btn-etf', 'btn-str', 'btn-bnd', 'btn-cbe', 'btn-cds', 'btn-repo', 'btn-sov', 'btn-usd', 'btn-soma', 'btn-bofa', 'btn-13f', 'btn-ldr']);
+  assert.equal(new Set(ids).size, ids.length);
+  // the workspace entry: a name, this page, between Bonds and CDS; no other entry was touched
+  const m = CHART_RAIL.match(/\n {6}credit: \["([^"]+)", "([^"]+)"\],\n/);
+  assert.ok(m, 'the rail knows the workspace');
+  assert.equal(m[2], '/credit-before-equity.html');
+  assert.match(m[1], /^Credit Before Equity · /);
+  assert.ok(fs.existsSync(path.join(R, m[2].slice(1))), 'the page it opens exists');
+  assert.ok(CHART_RAIL.indexOf('      bonds: [') < CHART_RAIL.indexOf('      credit: [') && CHART_RAIL.indexOf('      credit: [') < CHART_RAIL.indexOf('      cds: ['));
+  assert.ok(CHART_RAIL.includes('      cds: ["CDS · credit default swaps", "/cds.html"],'));
+  // a browser holding the old engine or the old rail fetches the new one: both tags carry the mark, and the older marks are where they were
+  const tags = CHART_HTML.match(/<script src="\/jh-chart-(?:engine|tvrail)\.js\?[^"]+"><\/script>/g);
+  assert.equal(tags.length, 2);
+  for (const t of tags) { assert.ok(t.includes('&cds=20261015&cbe=20261125&'), t.slice(0, 60)); assert.ok(t.includes('&repo=20261121&rmap=20261124&sov=20261122'), t.slice(0, 60)); assert.ok(t.endsWith('&ldr=20261105"></script>')); }
+  assert.equal(CHART_HTML.split('&cbe=20261125').length, 3);
+});
+
+test('the chart\'s byte ledger takes the button back out: engine, rail and chart.html return to the files before it', () => {
+  const e0 = chartLedger.peelCreditBoardEngine(CHART_ENGINE, 'jh-chart-engine.js'), r0 = chartLedger.peelCreditBoardRail(CHART_RAIL, 'jh-chart-tvrail.js'), h0 = chartLedger.peelCreditBoardHtml(CHART_HTML, 'chart.html');
+  assert.equal(sha(e0), 'b0d05901fb3d5da6ca799d18fc9dcfb7eda187d5e7bf9caa6cdea9b100135ee5');
+  assert.equal(sha(r0), '75dbbbc868c849e03e4aa48158acd97371af51156b62ea1d648ce80540d793c6');
+  assert.equal(sha(h0), '96f17815e4e76284763617ea0572bef73fa019e4198b5c3aa0959b528835f62f');
+  assert.ok(!e0.includes('btn-cbe') && !r0.includes('credit-before-equity') && !h0.includes('&cbe='));
+  // a file that is not the one after this change is handed back untouched (an older or a newer file is some other peel's business)
+  assert.equal(chartLedger.peelCreditBoardEngine(e0, 'jh-chart-engine.js'), e0);
+  assert.equal(chartLedger.peelCreditBoardRail(CHART_RAIL, 'jh-chart-engine.js'), CHART_RAIL);
+  // and it is the first peel of the whole ledger, so every older gate still reads its own predecessor
+  assert.match(fs.readFileSync(path.join(R, 'tests/helpers/chart-macro-line-preservation.cjs'), 'utf8'), /function normalize\(raw,file\)\{raw=peelCreditBoardEngine\(raw,file\);raw=peelCreditBoardRail\(raw,file\);raw=peelCreditBoardHtml\(raw,file\);raw=peelRiskMapEngine\(raw,file\);/);
+});
+
+test('inside the chart\'s workspace a sheet\'s Chart link loads the company in the chart behind it; anywhere else it is a link', () => {
+  const sheet = S.sheetHtml(DOC, 'T:ORCL', { palette: 'rg', bonds: 'loading', history: null });
+  assert.match(sheet, /<a class="cb-sheet-a" data-t="ORCL" href="\/chart\.html\?symbol=ORCL">Chart<\/a>/);
+  const loner = T.find(r => !r.ticker);
+  assert.ok(!S.sheetHtml(DOC, loner.id, { bonds: 'loading', history: null }).includes('cb-sheet-a'), 'a company with no listed stock has no chart to open');
+  // under the chart: the symbol goes to the chart's own opener (which closes the workspace) and the link's address is not followed
+  const opened = [];
+  const chart = { jhOpenSymbol: s => opened.push(s) };
+  assert.equal(B.chartHandoff({ top: chart }, 'ORCL'), true);
+  assert.equal(B.chartHandoff({ top: chart }, 'BRK.B'), true);
+  assert.deepEqual(opened, ['ORCL', 'BRK.B']);
+  // the page by itself, a frame under some other page, no symbol, a parent it may not read: the link stands
+  const alone = {}; alone.top = alone; alone.jhOpenSymbol = () => { throw new Error('the page must not call itself'); };
+  assert.equal(B.chartHandoff(alone, 'ORCL'), false);
+  assert.equal(B.chartHandoff({ top: {} }, 'ORCL'), false);
+  assert.equal(B.chartHandoff({ top: chart }, ''), false);
+  assert.equal(B.chartHandoff({ get top() { throw new Error('another origin'); } }, 'ORCL'), false);
+  assert.equal(B.chartHandoff(null, 'ORCL'), false);
+  assert.deepEqual(opened, ['ORCL', 'BRK.B']);
+  // the board's own click handler is where it is used: the default is cancelled only when the chart took the symbol
+  assert.match(JS, /var link = ev\.target\.closest \? ev\.target\.closest\("a\.cb-sheet-a"\) : null;\n {6}if \(link && host\.contains\(link\)\) \{ if \(chartHandoff\(root, link\.getAttribute\("data-t"\)\)\) ev\.preventDefault\(\); return; \}/);
+});

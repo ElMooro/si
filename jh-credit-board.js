@@ -874,6 +874,17 @@
              distress: false, stDistress: false, cell: "", cols: "std", sheet: "", bondSort: { key: "maturity", dir: "asc" }, dataOpen: {}, evHorizon: "h1", evGroup: "cells" };
   }
 
+  // chart.html opens this page inside its workspace (the Credit button, 2026-11-25). There the sheet's Chart link loads the
+  // company in the chart behind the workspace and closes it, as the leaders and volatility desks do; on the page by itself,
+  // or under a page that is not the chart, the link stays an ordinary link.
+  function chartHandoff(win, sym) {
+    try {
+      var top = win && win.top;
+      if (sym && top && top !== win && typeof top.jhOpenSymbol === "function") { top.jhOpenSymbol(sym); return true; }
+    } catch (e) { /* another origin above this page: the link's own address stands */ }
+    return false;
+  }
+
   function mount(host, doc, opt) {
     opt = opt || {};
     var D = host.ownerDocument, store = opt.store || (function () { try { return root.localStorage; } catch (e) { return null; } })() || { getItem: function () { return null; }, setItem: function () {} };
@@ -982,6 +993,8 @@
       else { sort.key = key; sort.dir = (key === "name" || key === "industry" || key === "sector" || key === "ticker" || key === "region" || key === "grp" || key === "book") ? "asc" : "desc"; }
     }
     host.addEventListener("click", function (ev) {
+      var link = ev.target.closest ? ev.target.closest("a.cb-sheet-a") : null;
+      if (link && host.contains(link)) { if (chartHandoff(root, link.getAttribute("data-t"))) ev.preventDefault(); return; }
       var t = ev.target.closest ? ev.target.closest("button") : null;
       if (!t || !host.contains(t)) return;
       var d = t.dataset;
@@ -1129,5 +1142,5 @@
     coverageHtml: coverageHtml, firstState: firstState, mount: mount, start: start,
     STRESS_COLUMNS: STRESS_COLUMNS, HELD_FIRST: HELD_FIRST, hasStress: hasStress, stressedAt: stressedAt, themeOf: themeOf, layerWords: layerWords, themeView: themeView, mapView: mapView,
     stressRows: stressRows, stressHtml: stressHtml, leadNotesHtml: leadNotesHtml, mapState: mapState, themeHtml: themeHtml, stressTiles: stressTiles, companyDetailHtml: companyDetailHtml, verdict: verdict, shortName: shortName,
-    headHtml: headHtml, cell: cell, seg: seg, bookOptions: bookOptions, BOOK_ORDER: BOOK_ORDER, count: count, stamp: stamp, nameHtml: nameHtml, tableColumns: tableColumns, LEADS: LEADS, SIGNAL_WORDS: SIGNAL_WORDS, DIR_WORDS: DIR_WORDS, BOOK_SHORT: BOOK_SHORT, DATA_URL: DATA_URL };
+    headHtml: headHtml, cell: cell, seg: seg, bookOptions: bookOptions, BOOK_ORDER: BOOK_ORDER, count: count, stamp: stamp, nameHtml: nameHtml, tableColumns: tableColumns, LEADS: LEADS, SIGNAL_WORDS: SIGNAL_WORDS, DIR_WORDS: DIR_WORDS, BOOK_SHORT: BOOK_SHORT, DATA_URL: DATA_URL, chartHandoff: chartHandoff };
 })(typeof window !== "undefined" ? window : globalThis);

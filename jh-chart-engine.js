@@ -5440,6 +5440,7 @@ else if(o.id==="rvol"){
       "<button class='wsico wsdesk' id=btn-etf title='ETF Desk'><span class=g>Ⓔ</span><span class=l>ETF</span></button>"+
       "<button class='wsico wsdesk' id=btn-str title='Strength vs S&P 500'><span class=g>▲</span><span class=l>Strong</span></button>"+
       "<button class='wsico wsdesk' id=btn-bnd title='Bonds & Yields'><span class=g>🏛</span><span class=l>Bonds</span></button>"+
+      "<button class='wsico wsdesk' id=btn-cbe title='Credit Before Equity · company bond spreads, CDS, stress and the fall risk they carry'><span class=g>Cr</span><span class=l>Credit</span></button>"+
       "<button class='wsico wsdesk' id=btn-cds title='Credit default swaps'><span class=g>CDS</span><span class=l>CDS</span></button>"+
       "<button class='wsico wsdesk' id=btn-repo title='Repo · rates, venues, Fed facilities, crisis spikes'><span class=g>Rp</span><span class=l>Repo</span></button>"+
       "<button class='wsico wsdesk' id=btn-sov title='Sovereign stress · SovCISS, spreads to Germany, TARGET, crisis peaks'><span class=g>Sov</span><span class=l>Sovereign</span></button>"+
@@ -5507,6 +5508,7 @@ else if(o.id==="rvol"){
     var betf=document.getElementById("btn-etf"); if(betf) betf.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("etf"); };
     var bstr=document.getElementById("btn-str"); if(bstr) bstr.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("strong"); };
     var bbnd=document.getElementById("btn-bnd"); if(bbnd) bbnd.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("bonds"); };
+    var bcbe=document.getElementById("btn-cbe"); if(bcbe) bcbe.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("credit"); };
     var bcds=document.getElementById("btn-cds"); if(bcds) bcds.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("cds"); };
     var brepo=document.getElementById("btn-repo"); if(brepo) brepo.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("repo"); };
     var bsov=document.getElementById("btn-sov"); if(bsov) bsov.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("sov"); };

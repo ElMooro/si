@@ -641,7 +641,40 @@ function peelRiskMapHtml(raw,file){
  assert.equal(hash(raw),BEFORE,'chart.html');
  return raw;
 }
-function normalize(raw,file){raw=peelRiskMapEngine(raw,file);raw=peelRiskMapRail(raw,file);raw=peelRiskMapHtml(raw,file);raw=peelIndicatorControls(raw,file);raw=peelSovDeskEngine(raw,file);raw=peelSovDeskRail(raw,file);raw=peelSovDeskHtml(raw,file);raw=peelRepoDeskEngine(raw,file);raw=peelRepoDeskRail(raw,file);raw=peelRepoDeskHtml(raw,file);raw=peelCryptoRoutes(raw,file);raw=peelTabQuotes(raw,file);raw=peelVolDeskEngine(raw,file);raw=peelVolDeskRail(raw,file);raw=peelIndexRoutes(raw,file);raw=peelSpxCashWatch(raw,file);raw=peelSpxCashIdentityTest(raw,file);raw=peelMarkDesksHtml(raw,file);raw=peelMarkDesksRail(raw,file);raw=peelFredDesksEngine(raw,file);raw=peelFredDesksRail(raw,file);raw=peelCandleClarity(raw,file);raw=peelScreenFit(raw,file);raw=peelFlowsEngine(raw,file);raw=peelFlowsRail(raw,file);raw=peelFormingBar(raw,file);raw=peelCapitHtml(raw,file);raw=peelCapitRail(raw,file);raw=peelLeadersHtml(raw,file);raw=peelLeadersEngine(raw,file);raw=peelLeadersRail(raw,file);raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
+// 2026-11-25: the Credit Before Equity button (button + click right after Bonds on the chart's bar, its rail entry, and the two
+// cache-busts on chart.html so a browser holding the old engine or rail fetches the new one) is peeled before every older peel.
+function peelCreditBoardEngine(raw,file){
+ const AFTER='094ff82407fd6b3a28ec423ad2ab71532224029df6ab0a5cc72bbedb2a82f486';
+ const BEFORE='b0d05901fb3d5da6ca799d18fc9dcfb7eda187d5e7bf9caa6cdea9b100135ee5';
+ const BTN="      \"<button class='wsico wsdesk' id=btn-cbe title='Credit Before Equity · company bond spreads, CDS, stress and the fall risk they carry'><span class=g>Cr</span><span class=l>Credit</span></button>\"+\n";
+ const CLICK="    var bcbe=document.getElementById(\"btn-cbe\"); if(bcbe) bcbe.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace(\"credit\"); };\n";
+ if(file!=='jh-chart-engine.js'||hash(raw)!==AFTER)return raw;
+ assert.equal(raw.split(BTN).length,2,'jh-chart-engine.js Credit Before Equity button');
+ assert.equal(raw.split(CLICK).length,2,'jh-chart-engine.js Credit Before Equity click');
+ raw=raw.replace(BTN,'').replace(CLICK,'');
+ assert.equal(hash(raw),BEFORE,'jh-chart-engine.js');
+ return raw;
+}
+function peelCreditBoardRail(raw,file){
+ const AFTER='05f865f3572218e7cd8ff2c35641296e3406807b3815cbc9a900b99840987f10';
+ const BEFORE='75dbbbc868c849e03e4aa48158acd97371af51156b62ea1d648ce80540d793c6';
+ const LINE="      credit: [\"Credit Before Equity · company bond spreads, CDS, stress, fall risk\", \"/credit-before-equity.html\"],\n";
+ if(file!=='jh-chart-tvrail.js'||hash(raw)!==AFTER)return raw;
+ assert.equal(raw.split(LINE).length,2,'jh-chart-tvrail.js Credit Before Equity meta');
+ raw=raw.replace(LINE,'');
+ assert.equal(hash(raw),BEFORE,'jh-chart-tvrail.js');
+ return raw;
+}
+function peelCreditBoardHtml(raw,file){
+ const AFTER='fbf73726719c926e12f1026ef0e1196e437920a97cd85084d91489b0729db752';
+ const BEFORE='96f17815e4e76284763617ea0572bef73fa019e4198b5c3aa0959b528835f62f';
+ const PAIRS=[["&heat=20261014b&cds=20261015&cbe=20261125&marks=20261119&repo=20261121", "&heat=20261014b&cds=20261015&marks=20261119&repo=20261121"], ["&auc=20261014&cds=20261015&cbe=20261125&us10y=20261021c", "&auc=20261014&cds=20261015&us10y=20261021c"]];
+ if(file!=='chart.html'||hash(raw)!==AFTER)return raw;
+ for(const [from,to] of PAIRS){assert.equal(raw.split(from).length,2,'chart.html Credit Before Equity cache-bust');raw=raw.replace(from,to);}
+ assert.equal(hash(raw),BEFORE,'chart.html');
+ return raw;
+}
+function normalize(raw,file){raw=peelCreditBoardEngine(raw,file);raw=peelCreditBoardRail(raw,file);raw=peelCreditBoardHtml(raw,file);raw=peelRiskMapEngine(raw,file);raw=peelRiskMapRail(raw,file);raw=peelRiskMapHtml(raw,file);raw=peelIndicatorControls(raw,file);raw=peelSovDeskEngine(raw,file);raw=peelSovDeskRail(raw,file);raw=peelSovDeskHtml(raw,file);raw=peelRepoDeskEngine(raw,file);raw=peelRepoDeskRail(raw,file);raw=peelRepoDeskHtml(raw,file);raw=peelCryptoRoutes(raw,file);raw=peelTabQuotes(raw,file);raw=peelVolDeskEngine(raw,file);raw=peelVolDeskRail(raw,file);raw=peelIndexRoutes(raw,file);raw=peelSpxCashWatch(raw,file);raw=peelSpxCashIdentityTest(raw,file);raw=peelMarkDesksHtml(raw,file);raw=peelMarkDesksRail(raw,file);raw=peelFredDesksEngine(raw,file);raw=peelFredDesksRail(raw,file);raw=peelCandleClarity(raw,file);raw=peelScreenFit(raw,file);raw=peelFlowsEngine(raw,file);raw=peelFlowsRail(raw,file);raw=peelFormingBar(raw,file);raw=peelCapitHtml(raw,file);raw=peelCapitRail(raw,file);raw=peelLeadersHtml(raw,file);raw=peelLeadersEngine(raw,file);raw=peelLeadersRail(raw,file);raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
  if(digest===row.before_sha256||digest!==row.after_sha256)return raw;
  for(const e of [...row.replacements].reverse()){assert.equal(raw.split(e.after).length,2,file+': '+e.after.slice(0,60));raw=raw.replace(e.after,e.before);}
  assert.equal(hash(raw),row.before_sha256,file);assert.equal(raw,fs.readFileSync(path.join(R,row.before_path),'utf8'));return raw;
@@ -650,4 +683,4 @@ function normalize(raw,file){raw=peelRiskMapEngine(raw,file);raw=peelRiskMapRail
 const adaptations=require('../fixtures/chart-macro-line/test-adaptations.json');
 function normalizeLegacyTest(raw,file){const row=adaptations[file];if(!row||hash(raw)!==row.after_sha256)return raw;
  const old=fs.readFileSync(path.join(R,row.before_path),'utf8');assert.equal(hash(old),row.before_sha256,file);return old;}
-module.exports={normalize,normalizeLegacyTest,transition,adaptations,peelEvr,peelScreenFit,peelCandleClarity,peelRepoDeskEngine,peelRepoDeskRail,peelRepoDeskHtml,peelSovDeskEngine,peelSovDeskRail,peelSovDeskHtml,peelIndicatorControls,peelRiskMapEngine,peelRiskMapRail,peelRiskMapHtml};
+module.exports={normalize,normalizeLegacyTest,transition,adaptations,peelEvr,peelScreenFit,peelCandleClarity,peelRepoDeskEngine,peelRepoDeskRail,peelRepoDeskHtml,peelSovDeskEngine,peelSovDeskRail,peelSovDeskHtml,peelIndicatorControls,peelRiskMapEngine,peelRiskMapRail,peelRiskMapHtml,peelCreditBoardEngine,peelCreditBoardRail,peelCreditBoardHtml};

@@ -261,3 +261,26 @@ engine's tag). The byte ledger peels both first (`peelIndicatorControls`, fixtur
 `tests/fixtures/chart-indicator-controls/`), then the Sovereign desk's. `jh-chart-auction.js`, `jh-chart-sd-ui.js` and
 `jh-chart-evr.js` changed with them and are not ledgered. Full record and how to take it back (state before = 64aa2d70):
 `docs/audit/2026-11-23/chart-indicator-controls.md`.
+
+## 2026-11-25: the chart's Credit button (Credit Before Equity)
+
+Khalid, after Credit Before Equity 3.0.0 ran on its own: "now make sure this have an icon on chart.html". The bar had Bonds
+and CDS but nothing for the credit board. `jh-chart-engine.js` has one more button (`btn-cbe`, "Cr Credit", right after
+Bonds and before CDS) and its click, `jh-chart-tvrail.js` one more entry (`credit` -> `/credit-before-equity.html`), and
+`chart.html` carries `&cbe=20261125` on both script tags so a browser never pairs a new button with an old rail. The byte
+ledger peels the three chart files first (`peelCreditBoardEngine`, `peelCreditBoardRail`, `peelCreditBoardHtml`), then the
+Risk Map's. On the board itself (`jh-credit-board.js` `chartHandoff`, `jh-credit-sheet.js` `data-t` on the link): inside the
+chart's workspace a company sheet's Chart link loads the company in the chart behind and closes the workspace, as the
+leaders and volatility desks do; on the page by itself it is the ordinary link it was. No engine was touched or run.
+Live proof: ops 6960 (read-only, re-runnable). Record: `docs/audit/2026-11-25/credit-before-equity.md`, "On the chart".
+
+To take the button back (state before = 4e715c60):
+
+```
+git checkout 4e715c60 -- jh-chart-engine.js jh-chart-tvrail.js chart.html tests/helpers/chart-macro-line-preservation.cjs tests/chart-crypto-routes.test.js tests/chart-indicator-controls.test.js tests/risk-map-page.test.js
+```
+
+then delete the two tests "the chart has a Credit button between Bonds and CDS ..." and "the chart's byte ledger takes the
+button back out ..." from `tests/credit-before-equity.test.js`, commit `[skip-ops]` and push. The hand-off on the board
+(`jh-credit-board.js`, `jh-credit-sheet.js`, `credit-before-equity.html`) does nothing without the button and can stay; to
+take it back too, add those three files to the checkout and delete the third test ("inside the chart's workspace ...").

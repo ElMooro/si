@@ -225,6 +225,7 @@
       etf: ["ETF Desk", "/etf.html"],
       strong: ["Strength vs S&P 500", "/strong.html"],
       bonds: ["Bonds & Yields", "/bonds.html"],
+      credit: ["Credit Before Equity · company bond spreads, CDS, stress, fall risk", "/credit-before-equity.html"],
       cds: ["CDS · credit default swaps", "/cds.html"],
       repo: ["Repo · rates, venues, Fed facilities, crisis spikes", "/repo.html"],
       sov: ["Sovereign stress · SovCISS, spreads, TARGET, crisis peaks", "/sovereign-desk.html"],

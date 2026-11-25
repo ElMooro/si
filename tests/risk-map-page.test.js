@@ -350,10 +350,12 @@ test('chart.html: a Risk Map button next to Heat opens the map in the chart\'s o
   // the page a workspace opens is the page as it is served: same cache tag on its script
   assert.ok(/<script src="\/jh-risk-map\.js\?v=2026112[4-9][a-z]"><\/script>/.test(HTML));
   // the byte ledger takes the change back out
-  assert.equal(hash(ledger.peelRiskMapEngine(engine, 'jh-chart-engine.js')), '5708b52846fa67ad33f6b51621a4919efb1dd56cbd618048fde1231aae9eaeff');
-  assert.equal(hash(ledger.peelRiskMapRail(rail, 'jh-chart-tvrail.js')), '2f47a463a82cc92badecd64fbc4e2957a26867ef17d90d244b5fc1fc7a38679d');
-  assert.equal(hash(ledger.peelRiskMapHtml(chart, 'chart.html')), '07772f8ce5990a0a84ddb60af1cd0ba3ae089a48e4bb7bb692ef6048e2fcc8c5');
-  assert.ok(!ledger.peelRiskMapEngine(engine, 'jh-chart-engine.js').includes('btn-rmap'));
+  // the Credit Before Equity button (2026-11-25) is a later change: peeled first
+  const engine0 = ledger.peelCreditBoardEngine(engine, 'jh-chart-engine.js'), rail0 = ledger.peelCreditBoardRail(rail, 'jh-chart-tvrail.js'), chart0 = ledger.peelCreditBoardHtml(chart, 'chart.html');
+  assert.equal(hash(ledger.peelRiskMapEngine(engine0, 'jh-chart-engine.js')), '5708b52846fa67ad33f6b51621a4919efb1dd56cbd618048fde1231aae9eaeff');
+  assert.equal(hash(ledger.peelRiskMapRail(rail0, 'jh-chart-tvrail.js')), '2f47a463a82cc92badecd64fbc4e2957a26867ef17d90d244b5fc1fc7a38679d');
+  assert.equal(hash(ledger.peelRiskMapHtml(chart0, 'chart.html')), '07772f8ce5990a0a84ddb60af1cd0ba3ae089a48e4bb7bb692ef6048e2fcc8c5');
+  assert.ok(!ledger.peelRiskMapEngine(engine0, 'jh-chart-engine.js').includes('btn-rmap'));
 });
 
 test('the home dashboard\'s Risk Map card names what is in the state across the whole map, and says so when nothing is', () => {

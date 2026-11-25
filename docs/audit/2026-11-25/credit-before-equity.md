@@ -180,6 +180,27 @@ their 37 columns keep their places, with 32 new ones after them.
   broken; the check was wrong. It now matches the word only where a number would be (ops 6944, and the CDS desk's
   ops 6957, which carried the same pattern). Run again at 22:57 UTC on the live site: **0 failed checks**.
 
+## On the chart (2026-11-25, evening)
+
+Khalid, after the first scheduled run: "now make sure this have an icon on chart.html".
+
+- **Audit first.** The chart's bar had 31 desk buttons, among them Bonds and CDS; the credit board was the only credit desk
+  with none. CDS already had its button (`btn-cds`, added 2026-10-15), so nothing was needed there.
+- **What changed.** One button, **Cr Credit** (`btn-cbe`), between Bonds and CDS; a click opens this board in the chart's
+  workspace, with "Open page" to the page itself. Nothing on the bar was renamed, moved or removed: the other 31 buttons are
+  in the order they had. Files: `jh-chart-engine.js` (the button and its click), `jh-chart-tvrail.js` (the workspace entry),
+  `chart.html` (`&cbe=20261125` on the two script tags).
+- **Found while doing it.** Inside the workspace, a company sheet's *Chart* link would have loaded a second chart inside the
+  workspace. It now hands the company to the chart behind and closes the workspace, as the leaders and volatility desks do
+  (`chartHandoff` in `jh-credit-board.js`; the link carries `data-t`). On the page by itself the link is what it was.
+- **Not touched.** The engine, its schedule, the document, the CDS desk. Nothing was invoked; the change costs nothing to run.
+- **Tests.** Three page tests (the button's place and wording, every other button in its order, the workspace entry, the two
+  cache tags; the byte ledger returns the three chart files to their bytes before; the hand-off under the chart, by itself,
+  under another page, with no symbol, under a page it may not read). The three older gates that chain the ledger by hand
+  (`risk-map-page`, `chart-indicator-controls`, `chart-crypto-routes`) take this change off first.
+- **Proof.** Ops 6960 (read-only, can be run again), a real browser on justhodl.ai: see the line added below when it has run.
+- **To take it back.** `docs/snapshots/chart-search-2026-11-10/README.md`, "2026-11-25: the chart's Credit button".
+
 ## Cost
 
 One run a day, about 21 s at 3,008 MB (a tenth of a cent); about 170 s on the day after a month ends. The two one-off
