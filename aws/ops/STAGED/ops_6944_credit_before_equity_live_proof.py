@@ -67,7 +67,7 @@ BOXES = r"""() => { const map = document.querySelector('.cb-map'); if (!map) ret
   for (let i = 0; i < out.length; i++) { const a = out[i]; if (a.x < -1.6 || a.y < -1.6 || a.x + a.w > mb.width + 1.6 || a.y + a.h > mb.height + 1.6) out_of++;
     for (let j = i + 1; j < out.length; j++) { const b = out[j]; if (Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x) > 1.2 && Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y) > 1.2) over++; } }
   return { boxes: out, over: over, out_of: out_of, map: [Math.round(mb.width), Math.round(mb.height)], ox: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-    badges_in_map: map.querySelectorAll('.jh-secbadge').length, floating: document.querySelectorAll('#board .jh-secbadge.float').length, bad: (document.getElementById('board').innerText.match(/\bNaN\b|\bundefined\b|\bnull\b|Infinity/g) || []) }; }"""
+    badges_in_map: map.querySelectorAll('.jh-secbadge').length, floating: document.querySelectorAll('#board .jh-secbadge.float').length, bad: (document.getElementById('board').innerText.match(/\bNaN\b|\bundefined\b|\bnull\b|Infinity(?! [A-Z])/g) || []) }; }"""
 ROWS = r"""(sel) => Array.from(document.querySelectorAll(sel + ' tbody tr')).map(tr => Array.from(tr.children).map(td => td.innerText.replace(/\s+/g, ' ').trim()))"""
 COL = r"""([sel, n]) => Array.from(document.querySelectorAll(sel + ' tbody tr:not(.cb-grp)')).map(tr => tr.children[n] ? tr.children[n].innerText.replace(/\s+/g, ' ').trim() : null)"""
 

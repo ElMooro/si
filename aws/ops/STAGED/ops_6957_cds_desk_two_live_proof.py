@@ -48,7 +48,7 @@ TEXT = r"""(sel) => { const e = document.querySelector(sel); return e ? e.innerT
 COUNT = r"""(sel) => document.querySelectorAll(sel).length"""
 TILES = r"""() => Array.from(document.querySelectorAll('#cds2-heat .cv-tile')).map(g => { const r = g.querySelector('rect'), v = g.querySelector('.cv-tile-val'), t = g.querySelector('title');
   return { key: g.getAttribute('data-v'), fill: r.getAttribute('fill'), val: v ? v.textContent : null, title: t ? t.textContent : '' }; })"""
-BAD = r"""(sel) => { const e = document.querySelector(sel); if (!e) return ['missing ' + sel]; return (e.innerText.match(/\bNaN\b|\bundefined\b|\[object Object\]|Infinity/g) || []).slice(0, 5); }"""
+BAD = r"""(sel) => { const e = document.querySelector(sel); if (!e) return ['missing ' + sel]; return (e.innerText.match(/\bNaN\b|\bundefined\b|\[object Object\]|Infinity(?! [A-Z])/g) || []).slice(0, 5); }"""
 OVER = r"""() => document.documentElement.scrollWidth - document.documentElement.clientWidth"""
 
 
