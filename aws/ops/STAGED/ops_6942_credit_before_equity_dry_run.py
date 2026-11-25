@@ -510,7 +510,8 @@ def main():
         n13 = 0
         for x in foreign[:3]:
             key = x["id"][2:]
-            mine_b = [b for b in issues["bonds"] if not b.get("left") and b.get("ccy") == x["ccy"] and C.GRADE.get(b.get("book")) and N.issuer_key(b.get("issuer") or "")[0] == key]
+            mine_b = [b for b in issues["bonds"] if not b.get("left") and b.get("ccy") == x["ccy"] and C.GRADE.get(b.get("book")) and N.issuer_key(b.get("issuer") or "")[0] == key and
+                      C.industry_of(b.get("sector")) is not None]             # a covered bond is not the company's own credit: the board leaves it out, and so does this
             mine, n = own_spread(mine_b, curves_seen[x["ccy"]], issues["as_of"])
             ok = mine is not None and abs(mine - x["spread_bp"]) <= 0.6
             n13 += 1 if ok else 0

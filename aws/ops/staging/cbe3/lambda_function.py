@@ -847,14 +847,18 @@ def build(s3, now=None, log=print, evidence=None):
         "degraded": degraded, "gaps": gaps, "rules": C.RULES,
         "thresholds": {"move_floor_bp": C.MOVE_FLOOR_BP, "move_rel": C.MOVE_REL, "own_move_bp": C.OWN_MOVE_BP, "equity_flat_band_pct": C.FLAT_BAND_PCT, "cds_move_bp": C.CDS_MOVE_BP,
                        "cds_move_rel": C.CDS_MOVE_REL, "min_duration_years": C.MIN_DUR, "distressed_bp": C.DISTRESSED_BP, "min_dd_move": MIN_DD_MOVE, "min_cds_move_bp": MIN_CDS_MOVE_BP},
-        "method": ("Each company's credit is the spread of its US-dollar bonds over the Treasury par curve, from the corporate bonds desk's daily fund holdings, weighted by the market value "
+        "method": ("Each company's credit is the spread of its bonds over the Treasury par curve, from the corporate bonds desk's daily fund holdings, weighted by the market value "
                    "held. Its change is measured on the same bonds at both dates and compared with the change of its own book (investment grade, high yield, emerging markets). The stock is "
                    "the split-repaired close from the reference day to the newest close. A lead fires only when credit moved past its book and the stock has not followed. A traded CDS "
                    "level, where the CDS desk prints one, is shown beside it and says whether it confirms; when it says the opposite, no lead is called. Apart from the leads, every company "
                    "has a stress rank - where it stands in its own book on how wide its spread is and how far it widened over the year and the month - which does not look at the stock. "
-                   "The 1.0 structural default model is kept for its own names and is a model, not a market price."),
+                   "The 1.0 structural default model is kept for its own names and is a model, not a market price. Since 3.0 the board also measures itself: it is rebuilt at "
+                   "every kept month-end and each reading is set beside what the stock did next. That record says what a reading has and has not meant, and gives each listed "
+                   "company the chance of a fall its spread and its own volatility have meant. Bonds in euros, sterling, Canadian and Australian dollars are read against their "
+                   "own governments' yields, in books of their own."),
         "attribution": "bond spreads from justhodl-corp-bonds (iShares and SPDR daily holdings) over the Treasury par curve; traded CDS from justhodl-cds-desk (DTCC public prints); "
-                       "closes from the Polygon EOD bank; structural model from justhodl-cds-monitor (CreditGrades)",
+                       "closes from the Polygon EOD bank; structural model from justhodl-cds-monitor (CreditGrades); other governments' yields from the warehouse's official-yields "
+                       "lane (Bundesbank, Bank of England, Bank of Canada, Reserve Bank of Australia)",
         "estimate_type": "bond spreads over Treasuries and traded CDS where a row carries them (spread_bp, cds_bp); the fields distance_to_default and synthetic_cds_bp are a structural "
                          "default model, not a traded quote",
     }
