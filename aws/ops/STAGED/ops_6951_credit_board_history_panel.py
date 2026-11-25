@@ -118,7 +118,16 @@ def main():
         except Exception as e:
             r.warn("the curve look failed: %s" % str(e)[:160])
 
-        embed(r, "cbe-panel", gzip.compress(json.dumps({"meta": meta, "table": S.to_table(panel)}, separators=(",", ":")).encode(), 9))
+        r.section("The traded CDS, week by week")
+        cds = L.build_cds_panel(s3, now=now, log=r.log)
+        cp = cds["panel"]
+        r.log("meta: %s" % json.dumps(cds["meta"]))
+        weeks = sorted({x["day"] for x in cp})
+        r.log("weeks: %d (%s .. %s); rows a week: min %d, middle %d, max %d" % (len(weeks), weeks[0], weeks[-1], min(Counter(x["day"] for x in cp).values()),
+                                                                             sorted(Counter(x["day"] for x in cp).values())[len(weeks) // 2], max(Counter(x["day"] for x in cp).values())))
+
+        embed(r, "cbe-panel", gzip.compress(json.dumps({"meta": meta, "table": S.to_table(panel), "cds": {"meta": cds["meta"], "names": cds["names"], "table": S.to_table(cp, S.CDS_PANEL_COLS)}},
+                                                       separators=(",", ":")).encode(), 9))
         r.kv(month_ends=len(per), rows=len(panel), with_next_month=len(full), companies=len(by_t))
         r.ok("PANEL BUILT: %d rows over %d month-ends; nothing was invoked or written" % (len(panel), len(per)))
 

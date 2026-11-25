@@ -18,7 +18,7 @@ one that has since been delisted is not in the panel - which leaves out the bank
 credit reading) and the take-overs (among the best). Five years is one credit cycle at most.
 """
 from collections import defaultdict
-from bisect import bisect_right
+from bisect import bisect_left, bisect_right
 import math
 
 import cbe_core as C
@@ -27,8 +27,15 @@ HORIZONS = (("h1", "1 month", 21), ("h3", "3 months", 63))
 SKIP = 1                    # sessions between the holdings day and the entry
 MIN_BUCKET_MONTH = 5        # a month counts toward a reading's month-by-month average when it holds this many companies
 MIN_FIT_MONTHS = 24         # the walk-forward model predicts a month only from this many earlier months
-PANEL_COLS = ["day", "t", "book", "ind", "v", "n", "s", "d1", "x1", "p1", "d3", "dy", "py", "stress", "rl", "ry", "rm", "dir", "px1", "px3", "sig", "cell", "dist",
-              "due2y", "step", "curve", "pxb", "r1", "m1", "e1", "r3", "m3", "e3", "end1", "end3"]
+VOL_SESSIONS = 63           # the stock's own volatility is read over this many sessions before the reading
+PANEL_COLS = ["day", "t", "book", "ind", "v", "n", "s", "d1", "x1", "p1", "d3", "x3", "dy", "py", "stress", "rl", "ry", "rm", "dir", "px1", "px3", "sig", "cell", "dist",
+              "due2y", "step", "curve", "pxb", "vol", "r1", "m1", "e1", "dd1", "r3", "m3", "e3", "dd3", "end1", "end3"]
+
+# the traded CDS, week by week
+CDS_STEP = 5                # sessions between two observations of a CDS
+CDS_HORIZONS = (("w1", "1 week", 5), ("w2", "2 weeks", 10), ("m1", "1 month", 21))
+CDS_MIN_PRINTS = 20         # a name with fewer prints than this is not studied
+CDS_PANEL_COLS = ["day", "t", "s", "d", "p", "px", "rw1", "ew1", "rw2", "ew2", "rm1", "em1"]
 
 
 class Tape:
@@ -86,6 +93,31 @@ class Tape:
             return round(100.0 * (closes[last] / a - 1.0), 2), True
         return None, False
 
+    def volatility(self, closes, day, n=VOL_SESSIONS):
+        """The stock's own volatility before `day`: the standard deviation of its last n daily changes, as a yearly percent. None under 40 changes."""
+        if not closes:
+            return None
+        days = self.days_of(closes)
+        i = bisect_right(days, day)
+        window = [closes[d] for d in days[max(0, i - n - 1):i]]
+        moves = [math.log(b / a) for a, b in zip(window, window[1:]) if a > 0 and b > 0]
+        if len(moves) < 40:
+            return None
+        m = sum(moves) / len(moves)
+        return round(100.0 * math.sqrt(sum((x - m) ** 2 for x in moves) / (len(moves) - 1)) * math.sqrt(252.0), 1)
+
+    def worst(self, closes, day, n, skip=SKIP):
+        """The stock's lowest close inside the horizon against its entry close, in percent (0 when it never closed under it). None with no entry print."""
+        entry, exit_ = self.window(day, n, skip)
+        if entry is None or not closes:
+            return None
+        a, used = self.close_on(closes, entry, slack=5)
+        if a is None or a <= 0:
+            return None
+        days = self.days_of(closes)
+        inside = [closes[d] for d in days[bisect_left(days, used):bisect_right(days, exit_)]]
+        return round(100.0 * (min(inside) / a - 1.0), 2) if inside else None
+
     def change(self, closes, a, b):
         """Return % between the last close on or before `a` and the last on or before `b` (each inside 6 days)."""
         x, _ = self.close_on(closes, a, slack=6)
@@ -113,21 +145,59 @@ def panel_rows(day, windows, rows, closes, tape):
         direction, _ = C.credit_direction(m1)
         signal, _ = C.signal_of(direction, px1)
         row = {"day": day, "t": tk, "book": r["book"], "ind": r.get("industry"), "v": r.get("value"), "n": r.get("n_bonds"), "s": r["spread_bp"],
-               "d1": m1.get("d_bp"), "x1": m1.get("x_bp"), "p1": m1.get("d_pct"), "d3": m3.get("d_bp"), "dy": ytd.get("d_bp"), "py": ytd.get("d_pct"),
+               "d1": m1.get("d_bp"), "x1": m1.get("x_bp"), "p1": m1.get("d_pct"), "d3": m3.get("d_bp"), "x3": m3.get("x_bp"), "dy": ytd.get("d_bp"), "py": ytd.get("d_pct"),
                "stress": r.get("stress"), "rl": r.get("rk_level"), "ry": r.get("rk_year"), "rm": r.get("rk_month"), "dir": direction, "px1": px1, "px3": px3,
                "sig": signal, "cell": C.cell_of(direction, px1), "dist": 1 if r.get("distressed") else 0,
-               "due2y": r.get("due2y"), "step": r.get("step_bp"), "curve": r.get("curve_bp"), "pxb": r.get("px")}
+               "due2y": r.get("due2y"), "step": r.get("step_bp"), "curve": r.get("curve_bp"), "pxb": r.get("px"), "vol": tape.volatility(cl, day)}
         for key, _, n in HORIZONS:
             ret, ended = tape.forward(cl, day, n)
             k = key[1:]
             row["r" + k], row["m" + k], row["end" + k] = ret, market[key], 1 if ended else 0
             row["e" + k] = round(ret - market[key], 2) if ret is not None and market[key] is not None else None
+            row["dd" + k] = tape.worst(cl, day, n) if ret is not None else None
         out.append(row)
     return out
 
 
-def to_table(panel):
-    return {"cols": PANEL_COLS, "rows": [[r.get(c) for c in PANEL_COLS] for r in panel]}
+def cds_panel(series, closes, tape):
+    """The traded CDS of each tied name, one row a week: what the CDS did over the week, what the stock did the same week, and
+    what the stock did afterwards.
+
+    series: {ticker: [[day, spread in bp], ...]} - the CDS desk's prints. A week counts when the CDS printed inside it and inside
+    the week before it; the weeks are the same for every name (every fifth session, counted back from the newest)."""
+    sessions = tape.days
+    last = len(sessions) - 1
+    rows = []
+    for tk in sorted(series):
+        cl = closes.get(tk)
+        pts = sorted((p[0], float(p[1])) for p in series[tk] or [] if isinstance(p, (list, tuple)) and len(p) >= 2 and isinstance(p[1], (int, float)) and 0 < p[1] <= C.CDS_BELIEVABLE_BP)
+        if not cl or len(pts) < CDS_MIN_PRINTS:
+            continue
+        days = [p[0] for p in pts]
+
+        def level(i):                       # the last print inside the week that ends at session i
+            j = bisect_right(days, sessions[i]) - 1
+            return pts[j][1] if j >= 0 and i - CDS_STEP >= 0 and days[j] > sessions[i - CDS_STEP] else None
+
+        first = bisect_left(sessions, days[0])
+        i = last - ((last - first) // CDS_STEP) * CDS_STEP
+        while i <= last:
+            a = level(i - CDS_STEP) if i - CDS_STEP >= 0 else None
+            b = level(i)
+            if a is not None and b is not None:
+                row = {"day": sessions[i], "t": tk, "s": round(b, 1), "d": round(b - a, 1), "p": round(100.0 * (b - a) / a, 1), "px": tape.change(cl, sessions[i - CDS_STEP], sessions[i])}
+                for key, _, n in CDS_HORIZONS:
+                    ret, _ = tape.forward(cl, sessions[i], n)
+                    mkt, _ = tape.forward(tape.market, sessions[i], n)
+                    row["r" + key], row["e" + key] = ret, (round(ret - mkt, 2) if ret is not None and mkt is not None else None)
+                rows.append(row)
+            i += CDS_STEP
+    return rows
+
+
+def to_table(panel, cols=None):
+    cols = cols or PANEL_COLS
+    return {"cols": cols, "rows": [[r.get(c) for c in cols] for r in panel]}
 
 
 def from_table(table):

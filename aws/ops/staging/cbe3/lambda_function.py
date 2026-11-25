@@ -48,6 +48,7 @@ OUT_KEY = "data/credit-before-equity.json"
 BONDS_OUT_KEY = "data/credit-before-equity-bonds.json"      # every bond the board read, under its company: opened by the page when a company is opened
 HIST_KEY = "credit/credit-before-equity-history.json"      # the 1.0 model ledger, still kept
 LEDGER_ROOT = "credit/cbe-spreads/"                         # one file a holdings day: every bond's spread
+CDS_HIST_KEY = "data/cds-desk-history.json"                 # the CDS desk's daily level of every name it prints
 HOLD_ROOT = "credit/cbe-holdings/"                          # one file a month-end: the bond desk's dated holdings (ops 6950, then this engine)
 EOD_ROOT = "data/warm/polygon-full/eod/"
 SPLITS_ROOT = "data/warm/polygon-bank/splits/"
@@ -248,8 +249,8 @@ def build_panel(s3, now=None, log=print, first=None):
         doc = get_json(s3, HOLD_ROOT + day + ".json.gz")
         bonds = [dict(zip(doc["cols"], r)) for r in doc.get("rows") or []]
         points, counts, par_days = C.bond_points(bonds, day, par_rows, {})
-        if par_days.get("as_of") is None or counts["with a spread"] < MIN_BONDS // 2:
-            skipped.append((day, "no Treasury curve" if par_days.get("as_of") is None else "%d bonds with a spread" % counts["with a spread"]))
+        if par_days.get("as_of") is None or counts["with a spread"] < max(MIN_BONDS // 2, 0.6 * counts["read"]):       # a month the feed served without its yields is not a month of the study
+            skipped.append((day, "no Treasury curve" if par_days.get("as_of") is None else "%d of %d bonds with a spread" % (counts["with a spread"], counts["read"])))
             continue
         snaps[day] = C.snapshot_of(points, day)["bonds"]
         windows = C.pick_windows(day, [d for d in snaps if d < day])
@@ -279,6 +280,37 @@ def build_panel(s3, now=None, log=print, first=None):
     return {"panel": panel, "history": {"dates": kept, "companies": {i: [v.get(d) for d in kept] for i, v in spreads.items()}, "names": names},
             "meta": {"month_ends": kept, "skipped": skipped, "listed_ever": len(tickers), "no_price_file": len(no_file), "first_session": tape.days[0], "last_session": tape.days[-1],
                      "built_at": now.isoformat(timespec="seconds")}}
+
+
+def build_cds_panel(s3, now=None, log=print):
+    """Every traded CDS the board ties to a listed stock, week by week, and what the stock did afterwards. Writes nothing."""
+    now = now or datetime.now(timezone.utc)
+    today = now.date().isoformat()
+    desk = get_json(s3, CDS_KEY)
+    hist = (get_json(s3, CDS_HIST_KEY).get("names")) or {}
+    listed = listed_companies(bank_enrich.rows(fields=list(BOOK_FIELDS)) or [])
+    known = {r["symbol"] for r in listed}
+    matcher = N.Matcher(listed + [x for x in N.EXTRA_LISTED if x["symbol"] not in known])
+    series, names = {}, {}
+    for group, foreign in (("us_corp", False), ("global_corp", True)):
+        blk = (desk.get("groups") or {}).get(group) or {}
+        for kind in ("rows", "unpriced", "dormant"):
+            for x in blk.get(kind) or []:
+                if not isinstance(x, dict) or not x.get("name") or not x.get("key"):
+                    continue
+                key, _ = N.issuer_key(x["name"])
+                co, _ = matcher.match(key, False, None, foreign=foreign)
+                pts = (hist.get(x["key"]) or {}).get("points") or []
+                if co and len(pts) > len(series.get(co["symbol"]) or []):        # two contracts on one company: the one that prints most
+                    series[co["symbol"]], names[co["symbol"]] = pts, x["name"]
+    first = min((p[0][0] for p in series.values() if p), default=today)
+    closes, _, _ = read_closes(s3, set(series) | {"SPY"}, first, today, bars_back=None)
+    if not closes.get("SPY"):
+        raise RuntimeError("the price bank holds no SPY: the study has no market to measure against")
+    tape = S.Tape(closes["SPY"])
+    panel = S.cds_panel(series, closes, tape)
+    log("[cbe study] traded CDS: %d names tied to a listed stock, %d with enough prints; %d name-weeks from %s" % (len(series), len({r["t"] for r in panel}), len(panel), min((r["day"] for r in panel), default="-")))
+    return {"panel": panel, "names": names, "meta": {"tied": len(series), "studied": len({r["t"] for r in panel}), "first_print": first, "built_at": now.isoformat(timespec="seconds")}}
 
 
 def listed_companies(rows):
