@@ -199,9 +199,10 @@ def bond_points(bonds, as_of, par_rows, refs, curves=None):
              "c": b.get("coupon") if isinstance(b.get("coupon"), (int, float)) else None, "m": str(b.get("maturity"))[:10] if b.get("maturity") else None,
              "px": b.get("price") if isinstance(b.get("price"), (int, float)) and b.get("price") > 0 else None, "yrs": None}
         try:
-            p["yrs"] = round(days_between(as_of, p["m"]) / 365.25, 2) if p["m"] else None
+            left = days_between(as_of, p["m"]) / 365.25 if p["m"] else None        # exact: the matched maturity is read from this, as it always was
         except (TypeError, ValueError):
-            p["yrs"] = None
+            left = None
+        p["yrs"] = round(left, 2) if left is not None else None
         y, dur = b.get("rate"), b.get("dur")
         if not isinstance(y, (int, float)):
             p["why"] = "no yield printed"
@@ -218,7 +219,7 @@ def bond_points(bonds, as_of, par_rows, refs, curves=None):
             counts[p["why"]] += 1
             out.append(p)
             continue
-        t = tenor_of(dur, y, p["yrs"])
+        t = tenor_of(dur, y, left)
         p["t"] = round(t, 3)
         p["s"] = round((y - par_yield(curve_now, t)) * 100.0, 1)
         counts["with a spread"] += 1
@@ -303,12 +304,19 @@ def companies(points, matcher, snapshots, windows):
         key, cut = N.issuer_key(p["issuer"])
         if not key:
             continue
-        e = by_key.setdefault(key, {"cut": False, "sector": Counter(), "country": Counter(), "raw": Counter(), "points": []})
-        e["cut"] = e["cut"] or cut
-        e["sector"][p["sector"]] += p["v"] or 1.0
-        e["country"][p["country"]] += p["v"] or 1.0
-        e["raw"][N.clean_issuer(p["issuer"])] += p["v"] or 1.0
+        e = by_key.setdefault(key, {"cut": False, "sector": Counter(), "country": Counter(), "raw": Counter(), "points": [], "any": {"cut": False, "sector": Counter(), "country": Counter(), "raw": Counter()}})
+        # What an issuer IS - its sector, its country, the name it goes by, whether the file cut its name short - is read off
+        # its dollar bonds when it has any, exactly as before the board read another currency; only an issuer with no dollar
+        # bond is described by the bonds it has. So a company that was on the dollar board is tied and classed as it was.
+        for side in ((e,) if p.get("ccy", "USD") == "USD" else ()) + (e["any"],):
+            side["cut"] = side["cut"] or cut
+            side["sector"][p["sector"]] += p["v"] or 1.0
+            side["country"][p["country"]] += p["v"] or 1.0
+            side["raw"][N.clean_issuer(p["issuer"])] += p["v"] or 1.0
         e["points"].append(p)
+    for e in by_key.values():
+        if not e["sector"]:
+            e.update({k: e["any"][k] for k in ("cut", "sector", "country", "raw")})
     groups, ties = {}, []
     for key, e in by_key.items():
         sector = e["sector"].most_common(1)[0][0]
@@ -329,9 +337,10 @@ def companies(points, matcher, snapshots, windows):
     for ident, g in groups.items():
         every = g["points"]
         # A company is read in ONE currency: a spread over Bunds and a spread over Treasuries are not averaged together.
-        # A company with dollar bonds is read in dollars, exactly as it was before the board read any other currency; only a
-        # company with no dollar bond is read in another one - the one the funds hold most of. Its bonds in any other currency
-        # stay listed under it (the bond document) and are counted in n_other; every figure on its row is about the bonds it is read in.
+        # A company with a dollar bond that has a spread is read in dollars, exactly as it was before the board read any other
+        # currency; only a company with none is read in another one - the one the funds hold most of (so a company whose one
+        # dollar bond could never be read gains a spread). Its bonds in any other currency stay listed under it (the bond
+        # document) and are counted in n_other; every figure on its row is about the bonds it is read in.
         held, held_priced = Counter(), Counter()
         for p in every:
             held[p.get("ccy", "USD")] += p["v"] or 1.0
@@ -679,7 +688,7 @@ RULES = {
     "theme": "A theme is a reviewed list of companies across industries. The AI stack is the AI infrastructure stack engine's layers and tickers, with the hyperscalers, the server makers and the financing vehicles of AI computing sites.",
     "cds": "A traded CDS level is the CDS desk's (DTCC public prints). It moves when its one-month change is past %g bp and %g%% of its level, and only a liquid name is read. A level past %g bp is a points-upfront quote turned into a running spread: it is shown in points and not ranked." % (CDS_MOVE_BP, CDS_MOVE_REL * 100, CDS_BELIEVABLE_BP),
     "left_out": "Floating-rate and convertible bonds, bonds in a currency with no government curve in the warehouse, bonds under a year to run, bonds whose yield the fund file does not print, prints at its limit or prints at zero or less (priced to an early call), and government, local-authority and covered-bond issues.",
-    "other_currency": "A bond in euros, sterling, Canadian or Australian dollars is read against its own government's yields, and its company sits in a non-dollar book. A company with any dollar bond is read in dollars, in the dollar book it always stood in; its bonds in another currency are listed under it and are in none of its figures. A dollar spread and a non-dollar spread are never ranked against each other.",
+    "other_currency": "A bond in euros, sterling, Canadian or Australian dollars is read against its own government's yields, and its company sits in a non-dollar book. A company with a dollar bond the board can read is read in dollars, in the dollar book it always stood in; its bonds in another currency are listed under it and are in none of its figures. A dollar spread and a non-dollar spread are never ranked against each other.",
     "bond_facts": "Read off the company's own bonds, weighted by value held: the average years to maturity, the share coming due inside %g years, the coupon it pays, its yield today less that coupon (what refinancing would add), the price of its bonds per 100 of face, and the spread of its far bonds (%g years or more) less its near ones (%g or less)." % (WALL_Y, CURVE_LONG_Y, CURVE_SHORT_Y),
     "implied_default": "The chance of default a spread prices if a default pays %g cents on the dollar: 1 - exp(-spread x years / (1 - recovery)). A ceiling - a spread also pays for illiquidity and for risk - and not a forecast." % (RECOVERY * 100),
     "two_questions": "Every listed company stands in one of nine cells: what credit did past its book over the month (worse, unmoved, better) and what the stock did over the same days (fell, flat, rose, at %g%%). The two leads are four of the nine." % FLAT_BAND_PCT,
