@@ -72,7 +72,45 @@ def rows_of(packet):
     return out
 
 
-def main(write=False, name=NAME):
+def gate(C, packet, tape, history):
+    """What no CDS document may say, whatever the tape held: each line is a defect the audit and the dry runs found."""
+    bad = []
+    rows = [(g, x) for g, blk in packet["groups"].items() for x in blk["rows"]]
+    every = [(g, x) for g, blk in packet["groups"].items() for kind in ("rows", "unpriced", "dormant", "quiet") for x in blk.get(kind) or []]
+    by = {x["key"]: x for g, x in rows}
+    for key, lo, hi in (("AT & T", 60, 250), ("EXPEDIA", 45, 250)):
+        if key not in by or not lo < by[key]["spread_bp"] < hi:
+            bad.append("%s reads %s" % (key, by.get(key, {}).get("spread_bp")))
+    if "AT&T" in by:
+        bad.append("AT&T is on the desk under two keys")
+    low = [(x["name"], x["spread_bp"]) for g, x in rows if g != "sovereign" and x["spread_bp"] < 8]
+    if low:
+        bad.append("a company under 8 bp (the misread coupon): %s" % low[:5])
+    if any(x["spread_bp"] > C.SPREAD_CEILING_BP for g, x in rows):
+        bad.append("a level past the ceiling")
+    wild = [(k, p) for k, v in ((history or {}).get("names") or {}).items() for p in (v.get("points") or []) if p[1] > C.SPREAD_CEILING_BP]
+    if wild:
+        bad.append("history days past the ceiling (a quote in the wrong unit): %d, e.g. %s" % (len(wild), wild[:4]))
+    for g, blk in packet["groups"].items():
+        names = [x["name"] for x in blk["rows"]]
+        if len(set(names)) != len(names):
+            bad.append("%s carries a name twice" % g)
+    away = [(x["name"], x["listing"]["symbol"]) for g, x in every if x.get("listing") and not C.listing_allowed(x["listing"], x.get("ccy"))]
+    if away:
+        bad.append("a listing outside its swaps' part of the world: %s" % away[:5])
+    if sum(blk["n_priced"] for blk in packet["groups"].values()) < 380 or len(packet["indices"]) < 12:
+        bad.append("coverage fell: %s names with a level, %d indices" % (sum(blk["n_priced"] for blk in packet["groups"].values()), len(packet["indices"])))
+    if any(c["usd_mm"] > 5e6 for w in packet["products"]["windows"].values() for c in w["classes"]):
+        bad.append("a product class worth trillions (a mis-filed notional)")
+    if not tape or not tape.get("names") or "AT & T" not in tape["names"]:
+        bad.append("no tape of prints")
+    return bad
+
+
+KEPT = "data/warm/cds/before-2.0/"          # the 1.6 bank, document and history, copied here before the first 2.0 write
+
+
+def main(write=False, name=NAME, after=None):
     import boto3
     from ops_report import report
     import cds_desk as C
@@ -172,8 +210,29 @@ def main(write=False, name=NAME):
         # ------------------------------------------------------------------------------ the document
         r.section("3. The document it gives, beside today's")
         as_of = bank["days"][-1]
+        if write:
+            # how to take it back: the 1.6 bank, document and history are copied aside before anything replaces them (never deleted)
+            for key in (L.BANK_KEY, L.PACKET_KEY, L.HISTORY_KEY):
+                dest = KEPT + key.rsplit("/", 1)[-1]
+                try:
+                    s3.head_object(Bucket=LIVE, Key=dest)
+                    r.log("kept before: %s already holds the 1.6 copy" % dest)
+                except Exception:  # noqa: BLE001
+                    s3.copy_object(Bucket=LIVE, Key=dest, CopySource={"Bucket": LIVE, "Key": key})
+                    r.log("kept before: %s -> %s" % (key, dest))
+        # built in memory first and held to the gate below; only a document that passes is written
+        L.DRY = True
         out = L.publish(bank, as_of, {"action": "rebuild-ops", "files": len(log), "last_file": last, "by": name}, par_rows=par_rows, today_docs=docs)
         packet, tape, history = L.LAST.get("packet"), L.LAST.get("tape"), L.LAST.get("history")
+        refused = gate(C, packet, tape, history)
+        r.log("the gate a document must pass before it is written: %s" % ("passed" if not refused else refused))
+        if write:
+            if refused:
+                r.fail("the document did not pass the gate: nothing but the day files of prints was written")
+                raise SystemExit(1)
+            L.DRY = False
+            out = L.publish(bank, as_of, {"action": "rebuild-ops", "files": len(log), "last_file": last, "by": name}, par_rows=par_rows, today_docs=docs)
+            packet, tape, history = L.LAST.get("packet"), L.LAST.get("tape"), L.LAST.get("history")
         r.log("publish: %s" % json.dumps({k: out.get(k) for k in ("as_of", "dry_run", "packet_bytes", "bank_bytes_gz", "history_bytes", "tape_bytes", "beside", "n_priced", "n_unpriced", "products")})[:1500])
         for g in C.GROUPS:
             b, o = packet["groups"][g], (old_packet.get("groups") or {}).get(g) or {}
@@ -241,6 +300,9 @@ def main(write=False, name=NAME):
         big = {c["cls"]: (c["n"], c["usd_mm"], c.get("eur_mm")) for c in pr["windows"]["30d"]["classes"]}
         r.log("products 30d after the notional cap: %s" % big)
         r.log("tape: %s names, %s prints of the last %d days" % ((tape or {}).get("n_names"), (tape or {}).get("n_prints"), L.TAPE_DAYS))
+        r.log("quotes read as points or with their unit repaired, in the tape's 30 days: %s" % dict(Counter(row[-1] for v in ((tape or {}).get("names") or {}).values() for row in v if row[-1])))
+        hz = ((history or {}).get("names") or {}).get("HERTZ") or {}
+        r.log("Hertz, the lowest days of its record (49 bp for a day in 1.6): %s | names cut in the tape document: %s" % (sorted(hz.get("points") or [], key=lambda p: p[1])[:3], len((tape or {}).get("cut") or {})))
         r.log("history: %d names%s" % (len((history or {}).get("names") or {}), ", %d with unconfirmed days set apart" % sum(1 for v in ((history or {}).get("names") or {}).values() if v.get("unconfirmed"))))
         banned = [w for w in ("forecast", "predict") if w in json.dumps({k: v for k, v in packet.items() if k != "groups"}).lower()]
         r.log("the document's own words (outside names) keep the desk's doctrine: %s" % ("yes" if not banned else banned))
@@ -256,6 +318,8 @@ def main(write=False, name=NAME):
             embed(r, "cds-history-2", blob)
         r.kv(file_days=len(log), series=len(bank["series"]), with_a_level=sum(packet["groups"][g]["n_priced"] for g in C.GROUPS), with_a_level_today=sum((old_packet["groups"].get(g) or {}).get("n_priced") or 0 for g in C.GROUPS),
              indices=len(packet["indices"]), listed=len(listed), written=write, seconds=round(time.time() - t0))
+        if after:
+            after(r, packet)
         if write:
             r.ok("CDS DESK %s WRITTEN from the public tape: bank, document, history, tape of prints and %d day files" % (C.VERSION, kept["n"]))
         else:

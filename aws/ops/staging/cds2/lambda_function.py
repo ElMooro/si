@@ -52,9 +52,9 @@ SOV_REF_KEY = "data/global-sovereign.json"        # the Global Sovereign desk: a
 PROFILE_PREFIX = "data/warm/fmp-bank/profile-bulk/"   # the FMP bank: listed companies worldwide
 LISTED_MAX_AGE_DAYS = 7
 TAPE_DAYS = 30
-TAPE_MAX_PER_NAME = 60
+TAPE_MAX_PER_NAME = 400     # prints kept for one name in the tape document; a name that printed more is said so on the page
 TRADE_COLS = ("id", "source", "kind", "date", "expiry", "tenor", "bucket", "upi", "name_raw", "ccy", "notional", "capped", "coupon_bp", "upfront", "cleared",
-              "platform", "package", "index_family", "quoted_bp", "quoted_raw", "price", "coupon_how", "rec")
+              "platform", "package", "index_family", "quoted_bp", "quoted_raw", "price", "coupon_how", "rec", "quote_how")
 RECORD_COLS = ("date", "cls", "fam", "ccy", "notional", "capped", "how", "coupon_bp", "expiry", "points", "strike", "strike_kind")
 DRY = False            # set by the handler for {"dry_run": true}: every write is skipped
 LAST = {}              # what the last publish built (packet, history, tape) - read by the dry run and by ops
@@ -583,8 +583,8 @@ def build_tape(bank, as_of, par_rows, today_docs=None):
     except Exception:  # pragma: no cover - the tape is an enrichment
         pass
     emap = bank.get("entity_map") or {}
-    cols = ["date", "tenor", "expiry", "ccy", "notional_mm", "capped", "coupon_bp", "coupon_how", "upfront_pct", "quoted_bp", "above_bp", "below_bp", "cleared", "platform", "package", "source"]
-    names, seen = {}, set()
+    cols = ["date", "tenor", "expiry", "ccy", "notional_mm", "capped", "coupon_bp", "coupon_how", "upfront_pct", "quoted_bp", "above_bp", "below_bp", "cleared", "platform", "package", "source", "quote_as"]
+    names, seen, cut = {}, set(), {}
     for day in sorted(docs):
         for t in trades_of(docs[day] or {}):
             if t.get("kind") not in ("sov", "corp", "sub") or t.get("date", "") <= start or t.get("id") in seen:
@@ -596,14 +596,18 @@ def build_tape(bank, as_of, par_rows, today_docs=None):
                 continue
             key = (cds_desk.SUB + norm) if t["kind"] == "sub" else norm
             cands = dict((b, round(v, 1)) for v, b in cds_desk.candidate_spreads(dict(t), rate_for(t["date"], par_rows)))
+            # how the file's "spread" was read: points upfront filed as a spread, or a unit the notation got wrong
+            quote_as = "points" if cds_desk.points_quote(t) else t.get("quote_how")
             up = round(t["upfront"] / t["notional"] * 100.0, 3) if t.get("upfront") is not None and t.get("notional") else None
             names.setdefault(key, []).append([t["date"], t.get("tenor"), t.get("expiry"), t.get("ccy"), round((t.get("notional") or 0) / 1e6, 2), 1 if t.get("capped") else 0,
                                               t.get("coupon_bp"), t.get("coupon_how"), up, cands.get("quoted", t.get("quoted_bp")), cands.get("above_coupon"), cands.get("below_coupon"),
-                                              1 if t.get("cleared") else 0, t.get("platform"), 1 if t.get("package") else 0, t.get("source")])
+                                              1 if t.get("cleared") else 0, t.get("platform"), 1 if t.get("package") else 0, t.get("source"), quote_as])
     for key in names:
+        if len(names[key]) > TAPE_MAX_PER_NAME:
+            cut[key] = len(names[key])        # said on the page: the newest prints of a name that printed more than the document carries
         names[key] = sorted(names[key], key=lambda r: (r[0], r[1] or 0))[-TAPE_MAX_PER_NAME:]
     return {"engine": "justhodl-cds-desk", "version": cds_desk.VERSION, "as_of": as_of, "first": start, "cols": cols, "n_names": len(names),
-            "n_prints": sum(len(v) for v in names.values()), "names": names,
+            "n_prints": sum(len(v) for v in names.values()), "names": names, "max_per_name": TAPE_MAX_PER_NAME, "cut": cut,
             "note": "every single-name print of the last %d days as disseminated, with the level it gives if the protection was paid for above the coupon and below it; the reference obligation's identifier is not kept" % TAPE_DAYS}
 
 

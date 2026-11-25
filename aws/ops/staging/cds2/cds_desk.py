@@ -54,6 +54,7 @@ SOFT_QUOTE_GATE_LOG = 0.5     # unconfirmed quoted prints must sit within this l
 QUOTE_CONFIRM_TOL_PCT = 0.35  # quoted spread vs disseminated upfront agreement (|diff| in % notional) to call a quote confirmed
 STALE_MAX_DAYS = 10           # a level older than this (calendar days) is not shown as current
 AGED_MAX_DAYS = 45            # ... but up to this age it is still shown as the name's level, with its date and the word "aged"
+QUOTE_ABSURD_BP = 30000.0     # a "quoted spread" past this is a unit the notation got wrong (57 written under the decimal notation is 570,000)
 SPREAD_CEILING_BP = 10000.0   # a distressed name is quoted in points upfront; past this its running equivalent only measures the recovery assumed
 DISTRESS_POINTS = 40.0        # points upfront no below-coupon print can reach: beyond the model's reach they still say "above the ceiling"
 OPTION_EXPIRY_MAX_DAYS = 760  # index options run months, not years: a longer "expiry" is the index's own maturity, the option's was not given
@@ -927,17 +928,50 @@ def read_dissemination_zip(zip_bytes):
     return out
 
 
-def _quoted_bp(row):
+def quoted_bp_of(row):
+    """-> (spread in bp | None, how).  how is None when the notation is taken as written, else the repair.
+
+    One platform writes "57" under the decimal notation (570,000 bp) and "0.49" under basis points (half a basis point).
+    A value no credit trades at is read in the one unit that gives a level a credit can trade at; such a repaired quote is
+    never believed on its own - only next to the name's own level (candidate_spreads)."""
     raw, notation = _f(row.get("Spread-Leg 1")), (row.get("Spread notation-Leg 1") or "").strip()
     if raw is None or raw <= 0:
+        return None, None
+    v = raw if notation == "4" else raw * 1e4 if notation == "3" else raw * 100.0 if notation == "2" else None
+    if v is None:
+        return None, None
+    if v > QUOTE_ABSURD_BP:
+        return (raw, "bp_under_decimal") if MIN_QUOTE_BP <= raw <= SPREAD_CEILING_BP else (None, None)
+    if v < 1.0 and notation == "4":
+        return (raw * 100.0, "percent_under_bp") if MIN_QUOTE_BP <= raw * 100.0 <= SPREAD_CEILING_BP else (v, None)
+    return v, None
+
+
+def _quoted_bp(row):
+    return quoted_bp_of(row)[0]
+
+
+def points_quote(trade):
+    """-> (points upfront, coupon bp | None) when the print's "spread" is really its points upfront, else None.
+
+    A dealer platform files a distressed name's quote - 49 points - in the spread field.  The print gives itself away:
+    the quote less the cash it disseminates is exactly the accrued coupon (0.13 points on a 1% coupon 48 days into the
+    quarter, 0.82 on a 5% coupon 60 days in).  1.6 read such prints as 49 bp and put Hertz at 49 bp for a day."""
+    q, up, notional = trade.get("quoted_bp"), trade.get("upfront"), trade.get("notional")
+    if q is None or up is None or not notional or trade.get("kind") == "index":
         return None
-    if notation == "4":
-        return raw
-    if notation == "3":
-        return raw * 1e4
-    if notation == "2":
-        return raw * 100.0
-    return None
+    cash = abs(up) / notional * 100.0
+    gap = q - cash
+    if q < 3.0 or q > 100.0 or cash < 2.0 or not (-0.05 <= gap <= 2.6):
+        return None
+    d = date.fromisoformat(trade["date"])
+    days = (d - prev_imm(d)).days + 1
+    if trade.get("coupon_bp"):
+        return (q, trade["coupon_bp"]) if abs(gap - accrued_pct(trade["coupon_bp"], d)) <= 0.12 else None
+    for c in (100.0, 500.0, 1000.0, 25.0):
+        if abs(gap - c / 1e4 * days / 360.0 * 100.0) <= 0.06:
+            return q, c
+    return (q, None) if gap <= 0.02 else None      # the cash is the quote to the cent: points, on a coupon the print does not say
 
 
 def normalize_trade(row, source):
@@ -967,7 +1001,7 @@ def normalize_trade(row, source):
     upfront = None
     if "UFRO" in types:
         upfront = _f(amts[types.index("UFRO")]) if len(amts) > types.index("UFRO") else None
-    quoted = _quoted_bp(row)
+    quoted, quote_how = quoted_bp_of(row)
     index_family = None
     if kind == "index":
         index_family = (row.get("UPI Underlier Name") or "").strip().upper()
@@ -984,6 +1018,8 @@ def normalize_trade(row, source):
            "index_family": index_family, "quoted_bp": quoted, "price": None}
     if coupon_how not in (None, "fraction"):
         out["coupon_how"] = coupon_how      # percent / bp / bespoke: kept so the page can say how the coupon was written
+    if quote_how:
+        out["quote_how"] = quote_how        # the quote's unit was repaired: believed only next to the name's own level
     if kind == "sub":
         out["rec"] = RECOVERY_SUB
     return out
@@ -1063,6 +1099,8 @@ def print_record(row):
     if cls == "option":
         k = _f(row.get("Strike Price"))
         k = k * 1e4 if (k is not None and 0 < k < 1) else k
+        if k is not None and fam in ("CDX.NA.HY", "CDX.EM") and 6000.0 < k < 13000.0:
+            k = k / 100.0                    # a price strike written as a share of par (0.94) or in hundredths (9400): 94.00
         if k is not None and k >= 10.0:      # under 10 is not a strike in spread or in price: a mis-filed field
             rec["strike"] = round(k, 2)
             rec["strike_kind"] = "price" if (fam in ("CDX.NA.HY", "CDX.EM") and 60.0 < k < 130.0) else "spread"
@@ -1189,8 +1227,10 @@ def quote_status(trade, rate_pct):
         return "reject"
     if trade["kind"] == "index":
         return "confirmed"
-    if q < MIN_QUOTE_BP:
+    if q < MIN_QUOTE_BP or q > SPREAD_CEILING_BP:
         return "reject"
+    if points_quote(trade):
+        return "points"
     up, notional = trade.get("upfront"), trade.get("notional")
     if up is not None and notional:
         cash_pct = abs(up) / notional * 100.0
@@ -1213,9 +1253,20 @@ def candidate_spreads(trade, rate_pct, anchor_bp=None):
         return []
     if trade["kind"] == "index":
         index_quote(trade, rate_pct)
+    pq = points_quote(trade)
+    if pq:
+        # the "spread" is points upfront, paid for the protection: one side of the coupon, no sign to guess
+        pts, cpn = pq
+        if cpn is None:
+            return [(SPREAD_CEILING_BP, "above_coupon")] if pts >= DISTRESS_POINTS else []
+        s_pts = solve_spread_bp(pts, cpn, trade["tenor"], rate_pct, _rec(trade))
+        if pts >= DISTRESS_POINTS and (s_pts is None or s_pts > SPREAD_CEILING_BP):
+            s_pts = SPREAD_CEILING_BP
+        return [(min(s_pts, SPREAD_CEILING_BP), "above_coupon")] if s_pts and s_pts > 0.5 else []
     if trade["quoted_bp"] is not None:
         st = quote_status(trade, rate_pct)
-        if st == "confirmed" or (st == "soft" and (anchor_bp is None or _log_dist(trade["quoted_bp"], anchor_bp) <= SOFT_QUOTE_GATE_LOG)):
+        repaired = bool(trade.get("quote_how"))      # a quote whose unit was repaired is never believed with nothing beside it
+        if st == "confirmed" or (st == "soft" and ((anchor_bp is None and not repaired) or (anchor_bp is not None and _log_dist(trade["quoted_bp"], anchor_bp) <= SOFT_QUOTE_GATE_LOG))):
             return [(trade["quoted_bp"], "quoted")]
         # a soft quote that contradicts the anchor is not a quote.  Fall through to the upfront when the
         # print carries one (the cap is a usable notional).  A bare coupon with no cash still returns [].
@@ -1449,7 +1500,9 @@ def _measure(trades, rate_pct, anchor_bp, index=False):
                 spreads.append(s)
                 if basis in ("quoted", "price"):
                     quoted_only.append(s)
-                if t["coupon_bp"] and s > t["coupon_bp"] and t["upfront"] is not None and t["notional"]:
+                if points_quote(t):
+                    points.append(round(points_quote(t)[0], 2))
+                elif t["coupon_bp"] and s > t["coupon_bp"] and t["upfront"] is not None and t["notional"]:
                     points.append(round(t["upfront"] / t["notional"] * 100.0 + accrued_pct(t["coupon_bp"], date.fromisoformat(t["date"])), 2))
                 elif t["price"] is not None:
                     points.append(round(100.0 - t["price"], 2))
@@ -2163,6 +2216,7 @@ def build_packet(bank, as_of_iso, generated_at, run_meta=None, extras=None):
         "subordinated_rule": "subordinated, junior and mezzanine single names are priced with %.0f%% recovery and kept apart from the senior name" % (RECOVERY_SUB * 100),
         "ceiling_rule": "a distressed name is quoted in points upfront; a running equivalent past %d bp measures the recovery assumed, not the name, so the level is carried at %d bp and read in points (a print of %d points or more that the %d%% recovery cannot reach is carried the same way)" % (
             SPREAD_CEILING_BP, SPREAD_CEILING_BP, DISTRESS_POINTS, RECOVERY_SENIOR * 100),
+        "quote_rule": "a quoted spread is believed when the print's own upfront confirms it, or when it sits near the name's own level; a quote that equals the print's own upfront in points is points upfront, not a spread; a quote past %d bp is a unit the notation got wrong and is read in the unit a credit can trade at, then believed only next to the name's own level" % QUOTE_ABSURD_BP,
         "listing_rule": "a company is tied to its listed stock by the credit board's reviewed tie, else by the same name in the worldwide listings: home exchange first, and a name whose swaps trade in euros, sterling or francs only to a European listing, in yen only to a Japanese one",
         "product_rule": "every new trade of the credit file is counted by product; index, sovereign and corporate single names get a level, commercial-mortgage indices are shown in points upfront, options by strike, the rest as activity",
     })
