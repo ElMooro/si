@@ -54,6 +54,9 @@ SOFT_QUOTE_GATE_LOG = 0.5     # unconfirmed quoted prints must sit within this l
 QUOTE_CONFIRM_TOL_PCT = 0.35  # quoted spread vs disseminated upfront agreement (|diff| in % notional) to call a quote confirmed
 STALE_MAX_DAYS = 10           # a level older than this (calendar days) is not shown as current
 AGED_MAX_DAYS = 45            # ... but up to this age it is still shown as the name's level, with its date and the word "aged"
+DISTRESS_ANCHOR_BP = 1000.0   # a print past the model's reach is carried at the ceiling for a name already this wide, or when two prints of the day say so
+SPIKE_LOG = 2.0               # a level this far (log, about 7x) from the name's own middle ...
+SPIKE_MAX_DAYS = 3            # ... for at most this many priced days, after which the name is back where it was, was never the name's level
 POINTS_QUOTE_TOL = 0.75       # a "spread" within this many points of the print's own upfront (cash plus accrued) is points upfront
 QUOTE_ABSURD_BP = 30000.0     # a "quoted spread" past this is a unit the notation got wrong (57 written under the decimal notation is 570,000)
 SPREAD_CEILING_BP = 10000.0   # a distressed name is quoted in points upfront; past this its running equivalent only measures the recovery assumed
@@ -1262,19 +1265,24 @@ def candidate_spreads(trade, rate_pct, anchor_bp=None):
         return []
     if trade["kind"] == "index":
         index_quote(trade, rate_pct)
-    pq = points_quote(trade)
+    pq = points_quote(trade) or trade.get("points_as")      # points_as: set for the day by mark_day (a print quoted with a recognised points quote)
+    distressed = bool(trade.get("day_distress")) or (anchor_bp is not None and anchor_bp >= DISTRESS_ANCHOR_BP)
     if pq:
         # the "spread" is points upfront, paid for the protection: one side of the coupon, no sign to guess
         pts, cpn = pq
         if cpn is None:
-            return [(SPREAD_CEILING_BP, "above_coupon")] if pts >= DISTRESS_POINTS else []
+            return [(SPREAD_CEILING_BP, "above_coupon")] if (pts >= DISTRESS_POINTS and distressed) else []
         s_pts = solve_spread_bp(pts, cpn, trade["tenor"], rate_pct, _rec(trade))
-        if pts >= DISTRESS_POINTS and (s_pts is None or s_pts > SPREAD_CEILING_BP):
+        if s_pts is None and not (pts >= DISTRESS_POINTS and distressed):
+            return []
+        if s_pts is None or s_pts > SPREAD_CEILING_BP:
             s_pts = SPREAD_CEILING_BP
         return [(min(s_pts, SPREAD_CEILING_BP), "above_coupon")] if s_pts and s_pts > 0.5 else []
     if trade["quoted_bp"] is not None:
         st = quote_status(trade, rate_pct)
         repaired = bool(trade.get("quote_how"))      # a quote whose unit was repaired is never believed with nothing beside it
+        if st == "confirmed" and not trade.get("coupon_bp") and anchor_bp is not None and _log_dist(trade["quoted_bp"], anchor_bp) > JUMP_LOG:
+            st = "soft"       # "confirmed" only under a coupon the print does not state, and far from the name's own level: not confirmed
         if st == "confirmed" or (st == "soft" and ((anchor_bp is None and not repaired) or (anchor_bp is not None and _log_dist(trade["quoted_bp"], anchor_bp) <= SOFT_QUOTE_GATE_LOG))):
             return [(trade["quoted_bp"], "quoted")]
         # a soft quote that contradicts the anchor is not a quote.  Fall through to the upfront when the
@@ -1293,12 +1301,14 @@ def candidate_spreads(trade, rate_pct, anchor_bp=None):
     # disseminated cash = clean - accrued  (buyer pays clean, receives accrued back at the first coupon)
     s_hi = solve_spread_bp(cash_pct + acc, trade["coupon_bp"], trade["tenor"], rate_pct, _rec(trade))        # buyer pays -> spread > coupon
     s_lo = solve_spread_bp(-cash_pct + acc, trade["coupon_bp"], trade["tenor"], rate_pct, _rec(trade))       # seller pays -> spread < coupon
-    if cash_pct + acc >= DISTRESS_POINTS and (s_hi is None or s_hi > SPREAD_CEILING_BP):
-        # more points than the assumed recovery allows (or nearly): the print still says the name is past the ceiling.  It is carried
-        # at the ceiling and read in points - 58 points and 63 points are not 36,000 bp and "no level"
+    if s_hi is None and cash_pct + acc >= DISTRESS_POINTS and distressed:
+        # more points than the assumed recovery allows: for a name already wide (or when two prints of the day say the same)
+        # the print still says the name is past the ceiling.  It is carried at the ceiling and read in points - 63 points is not
+        # "no level".  For a healthy name the same number is a mis-filed amount and stays out (Toyota, one print, 2025-11-14)
         s_hi = SPREAD_CEILING_BP
     elif s_hi is not None and s_hi > SPREAD_CEILING_BP:
-        s_hi = SPREAD_CEILING_BP
+        # a short contract reaches five figures on a few points; a long one only on an amount a healthy name never pays
+        s_hi = SPREAD_CEILING_BP if (distressed or trade["tenor"] < 2.0) else None
     if s_hi is not None and s_hi > 0.5:
         out.append((s_hi, "above_coupon"))
     if s_lo is not None and s_lo > 0.5:
@@ -1484,7 +1494,35 @@ def day_anchor(trades, rate_pct, trailing_anchor):
     return None, None, None
 
 
+def mark_day(trades):
+    """What one print cannot know about itself, read from the entity's other prints of the day.
+
+    points_as: a dealer platform files points upfront in the spread field; most of its prints say so themselves (the quote
+    is their cash plus the accrued coupon), but a leg whose cash is netted against another does not - same quote, other
+    cash.  A print quoted like a recognised points quote of the day is points too (Hertz, 2026-04-20: six prints at "49").
+    day_distress: two prints of the day beyond the model's reach are a distressed name, one alone may be a mis-filed amount."""
+    recognised = [pq for pq in (points_quote(t) for t in trades) if pq]
+    beyond = 0
+    for t in trades:
+        t.pop("points_as", None)
+        t.pop("day_distress", None)
+        if t.get("upfront") is not None and t.get("notional") and not t.get("package"):
+            if abs(t["upfront"]) / t["notional"] * 100.0 >= DISTRESS_POINTS:
+                beyond += 1
+    for t in trades:
+        if beyond >= 2:
+            t["day_distress"] = True
+        q = t.get("quoted_bp")
+        if recognised and q is not None and t.get("kind") != "index" and not points_quote(t):
+            near = min(recognised, key=lambda pq: abs(pq[0] - q))
+            if abs(near[0] - q) <= 1.5:
+                t["points_as"] = (q, near[1])
+    return trades
+
+
 def _measure(trades, rate_pct, anchor_bp, index=False):
+    if not index:
+        mark_day(trades)
     five = [t for t in trades if t["bucket"] == "5Y"]
     anchor, anchor_src, anchor_q = day_anchor(trades, rate_pct, anchor_bp)
     spreads, basis_counts, by_bucket = [], {"quoted": 0, "price": 0, "derived": 0, "bracketed": 0, "ambiguous": 0, "none": 0, "package": 0}, {}
@@ -1509,8 +1547,8 @@ def _measure(trades, rate_pct, anchor_bp, index=False):
                 spreads.append(s)
                 if basis in ("quoted", "price"):
                     quoted_only.append(s)
-                if points_quote(t):
-                    points.append(round(points_quote(t)[0], 2))
+                if points_quote(t) or t.get("points_as"):
+                    points.append(round((points_quote(t) or t["points_as"])[0], 2))
                 elif t["coupon_bp"] and s > t["coupon_bp"] and t["upfront"] is not None and t["notional"]:
                     points.append(round(t["upfront"] / t["notional"] * 100.0 + accrued_pct(t["coupon_bp"], date.fromisoformat(t["date"])), 2))
                 elif t["price"] is not None:
@@ -1842,6 +1880,31 @@ def unconfirmed_days(rows):
             good.append((d, r["s"]))
         else:
             bad.add(d)
+    # a spike that came back: up to SPIKE_MAX_DAYS priced days about seven times away from the name's own middle, after which the
+    # name prints where it was.  Strong or repeated, those days were never its level (South Africa at 5,224 bp for two days between
+    # 121 and 121; Heidelberg Materials at 1,250 for three; Hertz at 49).  The newest days are left alone until later days can say.
+    conf, i = [], 0
+    while i < len(priced):
+        d, r = priced[i]
+        if d in bad:
+            i += 1
+            continue
+        prev = [sv for dd, sv in conf[-6:] if _days_between(dd, d) <= 180]
+        if len(prev) >= 3 and _log_dist(r["s"], statistics.median(prev)) > SPIKE_LOG:
+            mid = statistics.median(prev)
+            j = i
+            while j < len(priced) and (priced[j][0] in bad or _log_dist(priced[j][1]["s"], mid) > SPIKE_LOG):
+                j += 1
+            run = [(priced[k][0], priced[k][1]["s"]) for k in range(i, j) if priced[k][0] not in bad]
+            after = [r2["s"] for d2, r2 in priced[j:j + 3] if d2 not in bad]
+            if len(run) <= SPIKE_MAX_DAYS and len(after) >= 2 and _log_dist(statistics.median(after), mid) <= JUMP_LOG:
+                bad.update(dd for dd, sv in run)
+            else:
+                conf.extend(run)          # a longer stay, or one the tape has not yet followed: it stands, all of it
+            i = j
+            continue
+        conf.append((d, r["s"]))
+        i += 1
     return bad
 
 

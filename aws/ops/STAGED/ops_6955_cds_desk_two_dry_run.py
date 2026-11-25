@@ -104,7 +104,23 @@ def gate(C, packet, tape, history):
         bad.append("a product class worth trillions (a mis-filed notional)")
     if not tape or not tape.get("names") or "AT & T" not in tape["names"]:
         bad.append("no tape of prints")
+    stray = strays(history)
+    if len(stray) > 10:
+        bad.append("days an eighth or eight times the name's own middle: %d, e.g. %s" % (len(stray), stray[:6]))
     return bad
+
+
+def strays(history):
+    """History days at an eighth, or eight times, the middle of the name's six days before (the charts' spikes)."""
+    out = []
+    for k, v in ((history or {}).get("names") or {}).items():
+        p = v.get("points") or []
+        for i in range(3, len(p)):
+            w = sorted(x[1] for x in p[max(0, i - 6):i])
+            mid = w[len(w) // 2]
+            if (mid > 800 and p[i][1] < mid / 8) or (mid < 150 and p[i][1] > mid * 8):
+                out.append((k, p[i][0], p[i][1], round(mid)))
+    return out
 
 
 KEPT = "data/warm/cds/before-2.0/"          # the 1.6 bank, document and history, copied here before the first 2.0 write
@@ -303,6 +319,7 @@ def main(write=False, name=NAME, after=None):
         r.log("quotes read as points or with their unit repaired, in the tape's 30 days: %s" % dict(Counter(row[-1] for v in ((tape or {}).get("names") or {}).values() for row in v if row[-1])))
         hz = ((history or {}).get("names") or {}).get("HERTZ") or {}
         r.log("Hertz, the lowest days of its record (49 bp for a day in 1.6): %s | names cut in the tape document: %s" % (sorted(hz.get("points") or [], key=lambda p: p[1])[:3], len((tape or {}).get("cut") or {})))
+        r.log("history days an eighth or eight times the name's own middle (the audit's bank had these as levels): %s" % strays(history))
         r.log("history: %d names%s" % (len((history or {}).get("names") or {}), ", %d with unconfirmed days set apart" % sum(1 for v in ((history or {}).get("names") or {}).values() if v.get("unconfirmed"))))
         banned = [w for w in ("forecast", "predict") if w in json.dumps({k: v for k, v in packet.items() if k != "groups"}).lower()]
         r.log("the document's own words (outside names) keep the desk's doctrine: %s" % ("yes" if not banned else banned))

@@ -584,7 +584,7 @@ def build_tape(bank, as_of, par_rows, today_docs=None):
         pass
     emap = bank.get("entity_map") or {}
     cols = ["date", "tenor", "expiry", "ccy", "notional_mm", "capped", "coupon_bp", "coupon_how", "upfront_pct", "quoted_bp", "above_bp", "below_bp", "cleared", "platform", "package", "source", "quote_as"]
-    names, seen, cut = {}, set(), {}
+    names, seen, cut, picked, by_day = {}, set(), {}, [], {}
     for day in sorted(docs):
         for t in trades_of(docs[day] or {}):
             if t.get("kind") not in ("sov", "corp", "sub") or t.get("date", "") <= start or t.get("id") in seen:
@@ -595,13 +595,19 @@ def build_tape(bank, as_of, par_rows, today_docs=None):
             if not norm:
                 continue
             key = (cds_desk.SUB + norm) if t["kind"] == "sub" else norm
-            cands = dict((b, round(v, 1)) for v, b in cds_desk.candidate_spreads(dict(t), rate_for(t["date"], par_rows)))
-            # how the file's "spread" was read: points upfront filed as a spread, or a unit the notation got wrong
-            quote_as = "points" if cds_desk.points_quote(t) else t.get("quote_how")
-            up = round(t["upfront"] / t["notional"] * 100.0, 3) if t.get("upfront") is not None and t.get("notional") else None
-            names.setdefault(key, []).append([t["date"], t.get("tenor"), t.get("expiry"), t.get("ccy"), round((t.get("notional") or 0) / 1e6, 2), 1 if t.get("capped") else 0,
-                                              t.get("coupon_bp"), t.get("coupon_how"), up, cands.get("quoted", t.get("quoted_bp")), cands.get("above_coupon"), cands.get("below_coupon"),
-                                              1 if t.get("cleared") else 0, t.get("platform"), 1 if t.get("package") else 0, t.get("source"), quote_as])
+            t = dict(t)
+            picked.append((key, t))
+            by_day.setdefault((key, t["date"]), []).append(t)
+    for group in by_day.values():
+        cds_desk.mark_day(group)          # the day-level facts the engine itself measures with: a leg quoted like a points quote, a distressed day
+    for key, t in picked:
+        cands = dict((b, round(v, 1)) for v, b in cds_desk.candidate_spreads(dict(t), rate_for(t["date"], par_rows)))
+        # how the file's "spread" was read: points upfront filed as a spread, or a unit the notation got wrong
+        quote_as = "points" if (cds_desk.points_quote(t) or t.get("points_as")) else t.get("quote_how")
+        up = round(t["upfront"] / t["notional"] * 100.0, 3) if t.get("upfront") is not None and t.get("notional") else None
+        names.setdefault(key, []).append([t["date"], t.get("tenor"), t.get("expiry"), t.get("ccy"), round((t.get("notional") or 0) / 1e6, 2), 1 if t.get("capped") else 0,
+                                          t.get("coupon_bp"), t.get("coupon_how"), up, cands.get("quoted", t.get("quoted_bp")), cands.get("above_coupon"), cands.get("below_coupon"),
+                                          1 if t.get("cleared") else 0, t.get("platform"), 1 if t.get("package") else 0, t.get("source"), quote_as])
     for key in names:
         if len(names[key]) > TAPE_MAX_PER_NAME:
             cut[key] = len(names[key])        # said on the page: the newest prints of a name that printed more than the document carries
