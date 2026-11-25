@@ -15,6 +15,16 @@ Actions
     {"action": "daily"}                               latest available file date (walks back <= 5 days)
     {"action": "backfill", "start": "YYYY-MM-DD", "end": "YYYY-MM-DD"}   sequential file dates, bank carried
     {"action": "rebuild", "start": ..., "end": ...}   same, but starts from an empty bank
+    any of them with "dry_run": true                  the same work in memory; nothing is written anywhere
+
+Since 2.0 (Khalid 2026-11-25: audit and improve; more companies, every asset class, sovereigns, listed companies worldwide):
+    * every new trade of the file is counted by product (cds_desk.print_record / census_day), and the day's prints are kept
+      in the warehouse (data/warm/cds/prints/<file day>.json.gz, no identifier of the underlying) so the desk can be
+      measured again without asking DTCC;
+    * a name is tied to its listed company and its own bonds from the credit board's document, to its home listing from
+      the FMP bank's company profiles, and a sovereign to the Global Sovereign desk's reference quote: all three are the
+      warehouse's own documents, read from S3;
+    * the prints behind every single-name level of the last 30 days are published (data/cds-desk-tape.json).
 """
 import gzip
 import io
@@ -35,6 +45,20 @@ BUCKET = os.environ.get("S3_BUCKET", "justhodl-dashboard-live")
 PACKET_KEY = os.environ.get("PACKET_KEY", "data/cds-desk.json")
 BANK_KEY = os.environ.get("BANK_KEY", "data/warm/cds/bank.json.gz")
 HISTORY_KEY = os.environ.get("HISTORY_KEY", "data/cds-desk-history.json")
+TAPE_KEY = os.environ.get("TAPE_KEY", "data/cds-desk-tape.json")
+PRINTS_PREFIX = "data/warm/cds/prints/"
+CBE_KEY = "data/credit-before-equity.json"        # the credit board: a CDS name's listed company and its own bonds
+SOV_REF_KEY = "data/global-sovereign.json"        # the Global Sovereign desk: a reference CDS quote per country
+PROFILE_PREFIX = "data/warm/fmp-bank/profile-bulk/"   # the FMP bank: listed companies worldwide
+LISTED_MAX_AGE_DAYS = 7
+TAPE_DAYS = 30
+TAPE_MAX_PER_NAME = 400     # prints kept for one name in the tape document; a name that printed more is said so on the page
+TRADE_COLS = ("id", "source", "kind", "date", "expiry", "tenor", "bucket", "upi", "name_raw", "ccy", "notional", "capped", "coupon_bp", "upfront", "cleared",
+              "platform", "package", "index_family", "quoted_bp", "quoted_raw", "price", "coupon_how", "rec", "quote_how")
+RECORD_COLS = ("date", "cls", "fam", "ccy", "notional", "capped", "how", "coupon_bp", "expiry", "points", "strike", "strike_kind")
+DRY = False            # set by the handler for {"dry_run": true}: every write is skipped
+LAST = {}              # what the last publish built (packet, history, tape) - read by the dry run and by ops
+DAY_RECORDS = {}       # file day -> census records of that file (every new trade, by product)
 LONG_SRC_PREFIX = "data/warm/cds/long-src/"
 LONG_SOURCES = {
     # free, keyless, full-history credit records (see cds_long_context docstring)
@@ -91,13 +115,20 @@ def _get_json(key, default=None):
     return json.loads(body)
 
 
+def _put_object(**kw):
+    """Every write of the engine goes through here, so a dry run writes nothing."""
+    if DRY:
+        return None
+    return s3.put_object(**kw)
+
+
 def _put_json(key, obj, gz=False, cache="no-cache"):
     body = json.dumps(obj, separators=(",", ":"), default=str).encode()
     kw = {"Bucket": BUCKET, "Key": key, "ContentType": "application/json", "CacheControl": cache}
     if gz:
         body = gzip.compress(body)
         kw["ContentEncoding"] = "gzip"
-    s3.put_object(Body=body, **kw)
+    _put_object(Body=body, **kw)
     return len(body)
 
 
@@ -130,9 +161,10 @@ def fetch_zip(source, day_iso, retries=2):
 
 
 def load_day_trades(day_iso):
-    """Normalised trades from both repositories for one file date; None when neither file exists."""
+    """Normalised trades from both repositories for one file date; None when neither file exists.
+    Every new trade of the file is also kept as a census record (DAY_RECORDS[day_iso])."""
     found = False
-    trades = []
+    trades, records = [], []
     for source in ("sec", "cftc"):
         raw = fetch_zip(source, day_iso)
         if raw is None:
@@ -142,7 +174,29 @@ def load_day_trades(day_iso):
             t = cds_desk.normalize_trade(row, source)
             if t:
                 trades.append(t)
+            rec = cds_desk.print_record(row)
+            if rec:
+                records.append(rec)
+    if found:
+        DAY_RECORDS[day_iso] = records
     return trades if found else None
+
+
+def prints_doc(file_day, trades, records):
+    """The day's file as the desk read it, columnar: enough to measure the day again from the warehouse alone."""
+    return {"file_day": file_day, "version": cds_desk.VERSION, "trade_cols": list(TRADE_COLS), "trades": [[t.get(c) for c in TRADE_COLS] for t in trades],
+            "record_cols": list(RECORD_COLS), "records": [[r.get(c) for c in RECORD_COLS] for r in records]}
+
+
+def trades_of(doc):
+    cols = doc.get("trade_cols") or []
+    return [dict(zip(cols, row)) for row in doc.get("trades") or []]
+
+
+def keep_prints(file_day, trades):
+    if trades is None:
+        return 0
+    return _put_json(PRINTS_PREFIX + file_day + ".json.gz", prints_doc(file_day, trades, DAY_RECORDS.get(file_day) or []), gz=True, cache="max-age=31536000")
 
 
 # ----------------------------------------------------------------------------- rates
@@ -167,27 +221,37 @@ def rate_for(day_iso, par_rows):
 
 
 # ----------------------------------------------------------------------------- core
-def process_file_date(bank, file_day, cur_trades, prev_day, prev_trades, par_rows):
-    """Finalise prev_day (prev + late prints in cur) and write file_day preliminarily."""
+def process_file_date(bank, file_day, cur_trades, prev_day, prev_trades, par_rows, external=None):
+    """Finalise prev_day (prev + late prints in cur) and write file_day preliminarily.
+    external: {series key: (bp, "bonds" | "reference")} - sign evidence from outside the tape (see external_anchors)."""
     emap = cds_desk.entity_map(cur_trades, bank.get("entity_map") or {})
     done = []
     if prev_day and prev_trades is not None:
         ts = [t for t in prev_trades + cur_trades if t["date"] == prev_day]
         if ts:
-            agg = cds_desk.aggregate_day(ts, emap, rate_for(prev_day, par_rows), cds_desk.anchors_from_bank(bank, prev_day))
+            agg = cds_desk.aggregate_day(ts, emap, rate_for(prev_day, par_rows), cds_desk.anchors_from_bank(bank, prev_day, external=external))
             cds_desk.update_bank(bank, prev_day, agg, emap)
             done.append((prev_day, len(ts), "final"))
     ts = [t for t in cur_trades if t["date"] == file_day]
     if ts:
-        agg = cds_desk.aggregate_day(ts, emap, rate_for(file_day, par_rows), cds_desk.anchors_from_bank(bank, file_day))
+        agg = cds_desk.aggregate_day(ts, emap, rate_for(file_day, par_rows), cds_desk.anchors_from_bank(bank, file_day, external=external))
         cds_desk.update_bank(bank, file_day, agg, emap)
         done.append((file_day, len(ts), "preliminary"))
     bank["entity_map"] = emap
+    # the census: every new trade by product, per execution day (the previous day is final once today's file is in)
+    rec_prev, rec_cur = DAY_RECORDS.get(prev_day) or [], DAY_RECORDS.get(file_day) or []
+    for day, recs in ((prev_day, rec_prev + rec_cur), (file_day, rec_cur)):
+        mine = [r for r in recs if r["date"] == day] if day else []
+        if mine:
+            bank.setdefault("census", {})[day] = cds_desk.census_day(mine)
+    for old in [d for d in DAY_RECORDS if d not in (file_day, prev_day)]:
+        del DAY_RECORDS[old]
     return done
 
 
-def run_range(bank, start_iso, end_iso, par_rows, started):
-    """Walk file dates start..end sequentially; returns (log, last_day, exhausted_budget)."""
+def run_range(bank, start_iso, end_iso, par_rows, started, external=None):
+    """Walk file dates start..end sequentially; returns (log, last_day, exhausted_budget).
+    external: a dict, or a function of the file day returning one (sign evidence from outside the tape)."""
     log = []
     prev_day, prev_trades = None, None
     d = date.fromisoformat(start_iso)
@@ -209,7 +273,8 @@ def run_range(bank, start_iso, end_iso, par_rows, started):
         if cur is None:
             d += timedelta(days=1)
             continue
-        done = process_file_date(bank, day_iso, cur, prev_day, prev_trades, par_rows)
+        done = process_file_date(bank, day_iso, cur, prev_day, prev_trades, par_rows, external=external(day_iso) if callable(external) else external)
+        keep_prints(day_iso, cur)
         log.append({"file": day_iso, "trades": len(cur), "written": done})
         prev_day, prev_trades = day_iso, cur
         last = day_iso
@@ -245,7 +310,7 @@ def load_long_sources(min_rows=100, sources=None, json_mode=False):
                     raise ValueError("non-JSON response (%d bytes)" % len(txt))
             elif txt.count("\n") < min_rows or txt.lstrip().startswith("<"):
                 raise ValueError("short or non-CSV response (%d bytes)" % len(txt))
-            s3.put_object(Bucket=BUCKET, Key=key, Body=gzip.compress(txt.encode()), ContentType="application/json" if json_mode else "text/csv", ContentEncoding="gzip")
+            _put_object(Bucket=BUCKET, Key=key, Body=gzip.compress(txt.encode()), ContentType="application/json" if json_mode else "text/csv", ContentEncoding="gzip")
             texts[name], status[name] = txt, "live"
         except Exception as exc:  # pragma: no cover - network
             try:
@@ -307,20 +372,20 @@ def attach_layers(packet, as_of, now):
         if sup:
             bs = packet["bank_sovereign"]
             bs["source_status"] = st.get("ecb_sup_s13")
-            s3.put_object(Bucket=BUCKET, Key=ECB_SUP_WARM + "src/sup_s13_e0010.csv", Body=texts["ecb_sup_s13"].encode(), ContentType="text/csv", CacheControl="max-age=300")
+            _put_object(Bucket=BUCKET, Key=ECB_SUP_WARM + "src/sup_s13_e0010.csv", Body=texts["ecb_sup_s13"].encode(), ContentType="text/csv", CacheControl="max-age=300")
             catalog = []
             for iso3, rec in bs["by_iso3"].items():
                 sid = "EA_BANKS_TO_%s" % iso3
                 body = json.dumps({"id": sid, "label": "Euro-area banks' exposure to %s general government" % iso3, "unit": "EUR bn", "freq": "half-yearly",
                                    "slug": "ecb-sup", "generated_at": now, "points": rec["history"]}, separators=(",", ":")).encode()
-                s3.put_object(Bucket=BUCKET, Key=ECB_SUP_WARM + "series/%s.json.gz" % sid, Body=gzip.compress(body), ContentType="application/json", ContentEncoding="gzip", CacheControl="max-age=300")
+                _put_object(Bucket=BUCKET, Key=ECB_SUP_WARM + "series/%s.json.gz" % sid, Body=gzip.compress(body), ContentType="application/json", ContentEncoding="gzip", CacheControl="max-age=300")
                 catalog.append(sid)
             state = {"slug": "ecb-sup", "as_of": bs["period_end"], "generated_at": now, "catalog": catalog, "n_series": len(catalog),
                      "status": "COMPLETE-maintaining", "version": cds_risk_layers.VERSION, "engine": "justhodl-cds-desk",
                      "hot": PACKET_KEY, "hot_block": "bank_sovereign", "page": "/cds.html#bank-sovereign",
                      "source_files": [{"name": "sup_s13_e0010.csv", "url": cds_risk_layers.ECB_SUP_URL, "bytes": len(texts["ecb_sup_s13"]), "status": st.get("ecb_sup_s13")}]}
-            s3.put_object(Bucket=BUCKET, Key=ECB_SUP_WARM + "state.json", Body=json.dumps(state).encode(), ContentType="application/json", CacheControl="no-cache")
-            s3.put_object(Bucket=BUCKET, Key=ECB_SUP_WARM + "_last-check.json", Body=json.dumps({"checked_at": now}).encode(), ContentType="application/json", CacheControl="no-cache")
+            _put_object(Bucket=BUCKET, Key=ECB_SUP_WARM + "state.json", Body=json.dumps(state).encode(), ContentType="application/json", CacheControl="no-cache")
+            _put_object(Bucket=BUCKET, Key=ECB_SUP_WARM + "_last-check.json", Body=json.dumps({"checked_at": now}).encode(), ContentType="application/json", CacheControl="no-cache")
             for rec in bs["by_iso3"].values():
                 rec["history"] = rec["history"][-6:]
         status["ecb_sup"] = "ok: %d sovereigns, %s" % (n, (packet.get("bank_sovereign") or {}).get("period"))
@@ -350,10 +415,232 @@ def attach_layers(packet, as_of, now):
     return status
 
 
-def publish(bank, as_of, run_meta):
+# ----------------------------------------------------------------------------- what stands beside a name (2.0)
+def _series_names(bank):
+    """{series key: display name} for every single name the bank holds."""
+    out = {}
+    for norm, info in (bank.get("meta") or {}).items():
+        if (info or {}).get("kind") == "index":
+            continue
+        base = norm[len(cds_desk.SUB):] if norm.startswith(cds_desk.SUB) else norm
+        out[norm] = cds_desk.display_name(base, (info or {}).get("raw"))
+    return out
+
+
+def load_ties(bank, board=None):
+    """{series key: {ticker, company, bond_bp, bond_book, bond_as_of, stock_1m_pct}} from the credit board's document: the
+    listed company it tied the CDS name to, and that company's own bond spread over governments."""
+    board = board if board is not None else _get_json(CBE_KEY, None)
+    if not isinstance(board, dict) or not isinstance(board.get("issuers"), dict):
+        return {}, "the credit board's document is not there"
+    cols = board["issuers"].get("cols") or []
+    ci = {k: i for i, k in enumerate(cols)}
+    if not {"id", "ticker", "name", "spread_bp", "book"} <= set(ci):
+        return {}, "the credit board's document has no issuer table this engine can read"
+    rows = board["issuers"].get("rows") or []
+    by_ticker = {r[ci["ticker"]]: r for r in rows if r[ci["ticker"]]}
+    by_id = {r[ci["id"]]: r for r in rows}
+    named = {str(c.get("name")).upper(): c for c in ((board.get("cds") or {}).get("priced") or []) + ((board.get("cds") or {}).get("no_level") or []) if c.get("name")}
+    out = {}
+    for key, name in _series_names(bank).items():
+        base = key[len(cds_desk.SUB):] if key.startswith(cds_desk.SUB) else key
+        b = named.get(str(name).upper()) or {}
+        ticker = b.get("ticker")
+        row = by_ticker.get(ticker) if ticker else by_id.get("I:" + base)
+        if not ticker and row is None:
+            continue
+        t = {"board_id": row[ci["id"]]} if row is not None else {}
+        if ticker:
+            t.update(ticker=ticker, company=b.get("company"))
+        if row is not None and isinstance(row[ci["spread_bp"]], (int, float)):
+            t.update(bond_bp=row[ci["spread_bp"]], bond_book=row[ci["book"]], bond_as_of=board.get("as_of"), company=t.get("company") or row[ci["name"]])
+            if "px_m1" in ci and isinstance(row[ci["px_m1"]], (int, float)):
+                t["stock_1m_pct"] = row[ci["px_m1"]]
+        out[key] = t
+    return out, "ok: %d names tied, %d with a bond spread (credit board of %s)" % (len(out), sum(1 for t in out.values() if t.get("bond_bp") is not None), board.get("as_of"))
+
+
+_REF_NAMES = {"south korea": "korea", "czech republic": "czechia", "united states": "united states", "hong kong": "hong kong"}
+
+
+def load_reference(doc=None):
+    """{iso3: {cds_bp, date, source}} - the Global Sovereign desk's 5-year CDS quote per country.  Not a print: a quote the
+    sibling engine reads from worldgovernmentbonds.com, shown beside a sovereign and never in place of a traded level."""
+    doc = doc if doc is not None else _get_json(SOV_REF_KEY, None)
+    if not isinstance(doc, dict):
+        return {}, "the Global Sovereign desk's document is not there"
+    by_name = {}
+    for norm, (disp, region, iso3, tier) in cds_desk.SOVEREIGNS.items():
+        if iso3:
+            by_name.setdefault(disp.lower(), iso3)
+    out = {}
+    for c in doc.get("countries") or []:
+        if not isinstance(c, dict) or not isinstance(c.get("cds_bp"), (int, float)):
+            continue
+        name = str(c.get("country") or "").lower()
+        iso3 = by_name.get(name) or by_name.get(_REF_NAMES.get(name, ""))
+        if iso3:
+            out[iso3] = {"cds_bp": float(c["cds_bp"]), "date": c.get("as_of"), "source": "Global Sovereign desk (worldgovernmentbonds.com quote)", "rating": c.get("rating")}
+    return out, "ok: %d sovereigns with a reference quote (document of %s)" % (len(out), str(doc.get("generated_at"))[:10])
+
+
+def external_anchors(bank, ties, reference):
+    """{series key: (bp, source)} - sign evidence from outside the tape: a company's own bonds, a sovereign's reference quote.
+    A subordinated name takes none: its senior bonds say nothing about which side of the coupon a subordinated swap trades."""
+    out = {}
+    for key, t in ties.items():
+        if not key.startswith(cds_desk.SUB) and isinstance(t.get("bond_bp"), (int, float)) and t["bond_bp"] > 0:
+            out[key] = (t["bond_bp"], "bonds")
+    canon = {}
+    for norm, (disp, region, iso3, tier) in cds_desk.SOVEREIGNS.items():
+        if iso3:
+            canon.setdefault(iso3, cds_desk.SOV_CANON.get(norm, norm))
+    for iso3, ref in reference.items():
+        if iso3 in canon:
+            out[canon[iso3]] = (ref["cds_bp"], "reference")
+    return out
+
+
+def load_listings(bank, as_of, force=False, log=None):
+    """{series key: {symbol, exchange, country, currency, name, how}} - the home listing of a corporate name, matched by
+    name against the FMP bank's company profiles (every exchange).  Kept in the bank and matched again once a week."""
+    kept = bank.get("listed") or {}
+    try:
+        age = (date.fromisoformat(as_of) - date.fromisoformat(str(kept.get("as_of")))).days
+    except ValueError:
+        age = None
+    if not force and age is not None and 0 <= age < LISTED_MAX_AGE_DAYS and kept.get("names") is not None:
+        return kept["names"], "kept: matched %s (%d names)" % (kept.get("as_of"), len(kept["names"]))
+    want, ccy_of = {}, {}
+    for key, info in (bank.get("meta") or {}).items():
+        if (info or {}).get("kind") not in ("corp", "sub"):
+            continue
+        base = key[len(cds_desk.SUB):] if key.startswith(cds_desk.SUB) else key
+        if base in cds_desk.SOVEREIGNS:
+            continue
+        votes = (info or {}).get("ccy") or {}
+        ccy_of[key] = max(votes.items(), key=lambda kv: kv[1])[0] if votes else ""
+        for cand in {cds_desk.listing_key(base), cds_desk.listing_key((info or {}).get("raw") or "")}:
+            if len(cand) >= 3 and cand not in cds_desk.LISTING_DENY:
+                want.setdefault(cand, []).append(key)
+    files = {}
+    for page in s3.get_paginator("list_objects_v2").paginate(Bucket=BUCKET, Prefix=PROFILE_PREFIX):
+        for o in page.get("Contents") or []:
+            day = o["Key"].rsplit("/", 1)[-1].split(".")[0]
+            if len(day) == 10:
+                files.setdefault(day, []).append(o["Key"])
+    if not files:
+        return kept.get("names") or {}, "no company profiles in the FMP bank"
+    n_parts = max(len(v) for v in files.values())
+    day = max(d for d, v in files.items() if len(v) == n_parts)      # the newest day with every part
+    best, n_rows = {}, 0
+    import csv
+    for key in sorted(files[day]):
+        body = s3.get_object(Bucket=BUCKET, Key=key)["Body"]
+        with gzip.GzipFile(fileobj=body) as gzf:
+            for x in csv.DictReader(io.TextIOWrapper(gzf, encoding="utf-8", errors="replace", newline="")):
+                n_rows += 1
+                if x.get("isEtf") == "true" or x.get("isFund") == "true" or x.get("isActivelyTrading") == "false":
+                    continue
+                k = cds_desk.listing_key(x.get("companyName") or "")
+                if k not in want:
+                    continue
+                try:
+                    vol = float(x.get("averageVolume") or 0) * float(x.get("price") or 0)
+                except ValueError:
+                    vol = 0.0
+                row = {"symbol": x.get("symbol"), "exchange": x.get("exchange"), "country": x.get("country"), "currency": x.get("currency"),
+                       "name": x.get("companyName"), "adr": x.get("isAdr") == "true", "volume": vol, "sector": x.get("sector") or None}
+                # the best listing anywhere, and the best one in each home region a swap's currency can ask for
+                for zone in ["any"] + [c for c, home in cds_desk.LISTING_HOME.items() if row["country"] in home]:
+                    slot = best.setdefault(k, {})
+                    if zone not in slot or cds_desk.listing_rank(row) > cds_desk.listing_rank(slot[zone]):
+                        slot[zone] = row
+    names = {}
+    for k, slot in best.items():
+        for key in want[k]:
+            ccy = ccy_of.get(key) or ""
+            row = slot.get(ccy) if ccy in cds_desk.LISTING_HOME else slot.get("any")
+            if row is None:
+                continue          # a listing under this name exists, but not where a swap in this currency says the company is
+            names[key] = {"symbol": row["symbol"], "exchange": row["exchange"], "country": row["country"], "currency": row["currency"], "name": row["name"],
+                          "sector": row["sector"], "how": "same name as the listing"}
+    bank["listed"] = {"as_of": as_of, "profiles_of": day, "rows_read": n_rows, "names": names}
+    return names, "matched: %d of %d corporate names have a listing (FMP bank profiles of %s, %d rows)" % (len(names), len({k for v in want.values() for k in v}), day, n_rows)
+
+
+def build_tape(bank, as_of, par_rows, today_docs=None):
+    """The prints behind the single-name levels of the last TAPE_DAYS days, by series key - read from the day files the
+    engine keeps in the warehouse (today_docs: files of this run that may not be written yet)."""
+    start = (date.fromisoformat(as_of) - timedelta(days=TAPE_DAYS)).isoformat()
+    docs = dict(today_docs or {})
+    try:
+        for page in s3.get_paginator("list_objects_v2").paginate(Bucket=BUCKET, Prefix=PRINTS_PREFIX):
+            for o in page.get("Contents") or []:
+                day = o["Key"].rsplit("/", 1)[-1].split(".")[0]
+                if day >= start and day not in docs:
+                    docs[day] = _get_json(o["Key"], None)
+    except Exception:  # pragma: no cover - the tape is an enrichment
+        pass
+    emap = bank.get("entity_map") or {}
+    cols = ["date", "tenor", "expiry", "ccy", "notional_mm", "capped", "coupon_bp", "coupon_how", "upfront_pct", "quoted_bp", "above_bp", "below_bp", "cleared", "platform", "package", "source", "quote_as"]
+    names, seen, cut, picked, by_day = {}, set(), {}, [], {}
+    for day in sorted(docs):
+        for t in trades_of(docs[day] or {}):
+            if t.get("kind") not in ("sov", "corp", "sub") or t.get("date", "") <= start or t.get("id") in seen:
+                continue
+            seen.add(t.get("id"))
+            m = emap.get(t.get("upi"))
+            norm = m["norm"] if m else (cds_desk.canonical_norm(cds_desk.normalize_name(t.get("name_raw") or "")) if cds_desk.entityish(t.get("name_raw") or "") else None)
+            if not norm:
+                continue
+            key = (cds_desk.SUB + norm) if t["kind"] == "sub" else norm
+            t = dict(t)
+            picked.append((key, t))
+            by_day.setdefault((key, t["date"]), []).append(t)
+    for group in by_day.values():
+        cds_desk.mark_day(group)          # the day-level facts the engine itself measures with: a leg quoted like a points quote, a distressed day
+    for key, t in picked:
+        cands = dict((b, round(v, 1)) for v, b in cds_desk.candidate_spreads(dict(t), rate_for(t["date"], par_rows)))
+        # how the file's "spread" was read: points upfront filed as a spread, or a unit the notation got wrong
+        quote_as = "points" if (cds_desk.points_quote(t) or t.get("points_as")) else t.get("quote_how")
+        up = round(t["upfront"] / t["notional"] * 100.0, 3) if t.get("upfront") is not None and t.get("notional") else None
+        names.setdefault(key, []).append([t["date"], t.get("tenor"), t.get("expiry"), t.get("ccy"), round((t.get("notional") or 0) / 1e6, 2), 1 if t.get("capped") else 0,
+                                          t.get("coupon_bp"), t.get("coupon_how"), up, cands.get("quoted", t.get("quoted_bp")), cands.get("above_coupon"), cands.get("below_coupon"),
+                                          1 if t.get("cleared") else 0, t.get("platform"), 1 if t.get("package") else 0, t.get("source"), quote_as])
+    for key in names:
+        if len(names[key]) > TAPE_MAX_PER_NAME:
+            cut[key] = len(names[key])        # said on the page: the newest prints of a name that printed more than the document carries
+        names[key] = sorted(names[key], key=lambda r: (r[0], r[1] or 0))[-TAPE_MAX_PER_NAME:]
+    return {"engine": "justhodl-cds-desk", "version": cds_desk.VERSION, "as_of": as_of, "first": start, "cols": cols, "n_names": len(names),
+            "n_prints": sum(len(v) for v in names.values()), "names": names, "max_per_name": TAPE_MAX_PER_NAME, "cut": cut,
+            "note": "every single-name print of the last %d days as disseminated, with the level it gives if the protection was paid for above the coupon and below it; the reference obligation's identifier is not kept" % TAPE_DAYS}
+
+
+def publish(bank, as_of, run_meta, par_rows=None, today_docs=None):
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     cds_desk.prune_bank(bank, as_of)
-    packet = cds_desk.build_packet(bank, as_of, now, run_meta)
+    beside = {}
+    try:
+        ties, beside["ties"] = load_ties(bank)
+    except Exception as exc:  # what stands beside a name is an enrichment; the desk publishes without it
+        ties, beside["ties"] = {}, "error %s: %s" % (type(exc).__name__, exc)
+    try:
+        reference, beside["reference"] = load_reference()
+    except Exception as exc:
+        reference, beside["reference"] = {}, "error %s: %s" % (type(exc).__name__, exc)
+    try:
+        listings, beside["listings"] = load_listings(bank, as_of, force=bool((run_meta or {}).get("refresh_listings")))
+    except Exception as exc:
+        listings, beside["listings"] = (bank.get("listed") or {}).get("names") or {}, "error %s: %s" % (type(exc).__name__, exc)
+    for key, row in listings.items():
+        t = ties.setdefault(key, {})
+        if t.get("ticker") and row["symbol"].split(".")[0] != t["ticker"] and cds_desk.listing_key(row["name"]) != cds_desk.listing_key(t.get("company") or ""):
+            continue      # the credit board's reviewed tie names another company than the one this name matched: the tie stands
+        t["listing"] = row
+    packet = cds_desk.build_packet(bank, as_of, now, run_meta, extras={"ties": ties, "reference": reference})
+    packet["beside"] = {"status": beside, "ties_key": CBE_KEY, "reference_key": SOV_REF_KEY, "listings_prefix": PROFILE_PREFIX,
+                        "note": "a listed company and its bonds come from the credit board, a home listing from the FMP bank's company profiles, a sovereign reference quote from the Global Sovereign desk: all read from this warehouse"}
     try:
         imf, imf_status = load_fundamentals()
         n_fund = cds_long_context.attach_fundamentals(packet, imf, as_of)
@@ -388,19 +675,43 @@ def publish(bank, as_of, run_meta):
                              "sources": long_status}
     except Exception as exc:  # the desk must still publish if the long-context sources misbehave
         packet["history"] = {"key": HISTORY_KEY, "error": "%s: %s" % (type(exc).__name__, exc), "sources": long_status}
+    tape, tape_bytes = None, None
+    try:
+        tape = build_tape(bank, as_of, par_rows if par_rows is not None else par_curve(), today_docs)
+        tape["generated_at"] = now
+        tape_bytes = _put_json(TAPE_KEY, tape, cache="public, max-age=900")
+        packet["tape"] = {"key": TAPE_KEY, "days": TAPE_DAYS, "names": tape["n_names"], "prints": tape["n_prints"], "cols": tape["cols"]}
+    except Exception as exc:  # the tape is an enrichment
+        packet["tape"] = {"key": TAPE_KEY, "error": "%s: %s" % (type(exc).__name__, exc)}
     bank_bytes = _put_json(BANK_KEY, bank, gz=True)
     packet_bytes = _put_json(PACKET_KEY, packet, cache="public, max-age=900")
-    return {"packet_bytes": packet_bytes, "bank_bytes_gz": bank_bytes, "history_bytes": history_bytes, "as_of": as_of,
+    LAST.clear()
+    LAST.update(packet=packet, tape=tape, history=locals().get("history"))
+    return {"packet_bytes": packet_bytes, "bank_bytes_gz": bank_bytes, "history_bytes": history_bytes, "tape_bytes": tape_bytes, "as_of": as_of, "beside": beside, "dry_run": DRY,
+            "n_priced": {g: v["n_priced"] for g, v in packet["groups"].items()}, "n_unpriced": {g: v["n_unpriced"] for g, v in packet["groups"].items()},
+            "products": {c["cls"]: c["n"] for c in (((packet.get("products") or {}).get("windows") or {}).get("5d") or {}).get("classes") or []},
             "n_liquid": {g: v["n_liquid"] for g, v in packet["groups"].items()}, "n_tracked": {g: v["n_tracked"] for g, v in packet["groups"].items()},
             "sovereign_coverage": packet["groups"]["sovereign"].get("coverage"), "n_indices": len(packet["indices"]), "n_fundamentals": n_fund, "n_ecb_stress": n_stress, "layers": layer_status,
             "cross_reference": {k: v for k, v in ((packet.get("cross_reference") or {}).get("systemic_stress") or {}).items() if k != "checks"},
             "breadth": packet["breadth"], "history": {k: v for k, v in packet["history"].items() if k in ("names", "long_series", "sources", "error", "cdx_ig_vs_2006")}}
 
 
+def _external_now(bank):
+    """Sign evidence from outside the tape as it stands today; an error leaves the desk with the tape's own evidence."""
+    try:
+        ties, _ = load_ties(bank)
+        reference, _ = load_reference()
+        return external_anchors(bank, ties, reference)
+    except Exception:  # pragma: no cover - enrichment
+        return {}
+
+
 def lambda_handler(event, context=None):
+    global DRY
     started = time.time()
     event = event or {}
     action = str(event.get("action") or "daily")
+    DRY = bool(event.get("dry_run"))
     today = datetime.now(timezone.utc).date()
     par_rows = par_curve()
     if action == "rebuild":
@@ -412,12 +723,12 @@ def lambda_handler(event, context=None):
     if action in ("backfill", "rebuild"):
         start_iso = str(event.get("start") or FIRST_PUBLIC_DAY)
         end_iso = str(event.get("end") or today.isoformat())
-        log, last, exhausted = run_range(bank, start_iso, end_iso, par_rows, started)
+        log, last, exhausted = run_range(bank, start_iso, end_iso, par_rows, started)   # history is measured on the tape's own evidence
         as_of = (bank.get("days") or [None])[-1]
         if as_of is None:
             return {"ok": False, "action": action, "error": "no files found in range", "start": start_iso, "end": end_iso}
         out = publish(bank, as_of, {"action": action, "start": start_iso, "end": end_iso, "files": len(log), "last_file": last,
-                                    "budget_exhausted": exhausted, "aliases_merged": len(merged), "elapsed_s": round(time.time() - started, 1)})
+                                    "budget_exhausted": exhausted, "aliases_merged": len(merged), "elapsed_s": round(time.time() - started, 1)}, par_rows=par_rows)
         out.update(ok=True, action=action, files=len(log), last_file=last, budget_exhausted=exhausted,
                    next_start=((date.fromisoformat(last) + timedelta(days=1)).isoformat() if (exhausted and last) else None))
         return out
@@ -435,9 +746,15 @@ def lambda_handler(event, context=None):
             prev_day, prev_trades = probe.isoformat(), tr
             break
         probe -= timedelta(days=1)
-    done = process_file_date(bank, file_day, cur, prev_day, prev_trades, par_rows)
+    today_docs = {file_day: prints_doc(file_day, cur, DAY_RECORDS.get(file_day) or [])}
+    if prev_day and prev_trades is not None:
+        today_docs[prev_day] = prints_doc(prev_day, prev_trades, DAY_RECORDS.get(prev_day) or [])
+    done = process_file_date(bank, file_day, cur, prev_day, prev_trades, par_rows, external=_external_now(bank))
+    keep_prints(file_day, cur)
+    if prev_day and prev_trades is not None:
+        keep_prints(prev_day, prev_trades)
     as_of = (bank.get("days") or [file_day])[-1]
     out = publish(bank, as_of, {"action": "daily", "file": file_day, "prev_file": prev_day, "written": done, "aliases_merged": len(merged),
-                                "elapsed_s": round(time.time() - started, 1)})
+                                "refresh_listings": bool(event.get("refresh_listings")), "elapsed_s": round(time.time() - started, 1)}, par_rows=par_rows, today_docs=today_docs)
     out.update(ok=True, action="daily", file=file_day, written=done)
     return out

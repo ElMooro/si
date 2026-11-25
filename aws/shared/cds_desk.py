@@ -33,11 +33,15 @@ import statistics
 import zipfile
 from datetime import date, datetime, timedelta
 
-VERSION = "1.6.0"
+VERSION = "2.0.0"
 RECOVERY_SENIOR = 0.40
+RECOVERY_SUB = 0.20                   # subordinated, junior and mezzanine single names (ISDA standard for subordinated debt)
 SWAP_PROXY_OFFSET_PCT = 0.75          # 5Y Treasury par minus this = flat discount rate for the model
 DEFAULT_RATE_PCT = 4.25               # used only when no par curve is available (recorded in packet)
 STANDARD_COUPONS_BP = (25.0, 100.0, 500.0, 1000.0)
+# every running coupon a credit derivative trades with: the four single-name standards, the 300 bp Europe used, and the
+# coupons of the commercial-mortgage and municipal indices (50 / 150 / 200 / 300 / 750)
+COUPON_GRID_BP = (25.0, 50.0, 100.0, 150.0, 200.0, 300.0, 500.0, 750.0, 1000.0)
 TENOR_BUCKETS = (("1Y", 0.0, 1.75), ("3Y", 1.75, 4.0), ("5Y", 4.0, 6.0), ("7Y", 6.0, 8.5), ("10Y", 8.5, 40.0))
 FIVE_YEAR = ("5Y", 4.0, 6.0)
 LIQUID_MIN_TRADES_30D = 10
@@ -49,13 +53,33 @@ MIN_QUOTE_BP = 5.0            # a single-name "quoted" spread below this is a mi
 SOFT_QUOTE_GATE_LOG = 0.5     # unconfirmed quoted prints must sit within this log-distance of the trailing anchor
 QUOTE_CONFIRM_TOL_PCT = 0.35  # quoted spread vs disseminated upfront agreement (|diff| in % notional) to call a quote confirmed
 STALE_MAX_DAYS = 10           # a level older than this (calendar days) is not shown as current
+AGED_MAX_DAYS = 45            # ... but up to this age it is still shown as the name's level, with its date and the word "aged"
+DISTRESS_ANCHOR_BP = 1000.0   # a print past the model's reach is carried at the ceiling for a name already this wide, or when two prints of the day say so
+UNIFORM_MIN_NAMES = 4         # the same coupon, expiry and upfront on this many names in one day is a portfolio booked at one flat price, not a level
+SPIKE_LOG = 2.0               # a level this far (log, about 7x) from the name's own middle ...
+SPIKE_MAX_DAYS = 3            # ... for at most this many priced days, after which the name is back where it was, was never the name's level
+POINTS_QUOTE_TOL = 0.75       # a "spread" within this many points of the print's own upfront (cash plus accrued) is points upfront
+QUOTE_ABSURD_BP = 30000.0     # a "quoted spread" past this is a unit the notation got wrong (57 written under the decimal notation is 570,000)
+SPREAD_CEILING_BP = 10000.0   # a distressed name is quoted in points upfront; past this its running equivalent only measures the recovery assumed
+DISTRESS_POINTS = 40.0        # points upfront no below-coupon print can reach: beyond the model's reach they still say "above the ceiling"
+OPTION_EXPIRY_MAX_DAYS = 760  # index options run months, not years: a longer "expiry" is the index's own maturity, the option's was not given
+OPTION_LADDER_SPREAD = (0.55, 2.6)   # a spread strike is drawn when it is within these multiples of the index level
+OPTION_LADDER_PRICE = 20.0           # a price strike when it is within this many points of it
+MAX_PRINT_NOTIONAL = 5e10     # a single print above 50 billion is a mis-filed field: it is counted as a print, its size is left out
+NEAR_COUPON_LOG = 0.20        # two branches this close (about 22%) bracket the level: the name trades at its coupon
+JUMP_LOG = 0.90               # a day this far (log) from the name's own recent middle needs a second day or strong evidence
+CONFIRM_LOG = 0.35            # ... a later day within this distance confirms it
+CONFIRM_PRINTS = 3            # ... or this many priced prints on the day itself, or two quoted ones
 LONG_ANCHOR_DAYS = 365        # a name's own earlier resolved level may still pick a branch when the two branches are far apart
 TRAILING_COUPON_DAYS = 90     # window for the trailing two-coupon intersection
 COMOVE_DAYS = 150             # window for the index co-movement sign test
 COMOVE_MIN_PAIRS = 20         # consecutive-day pairs needed for the co-movement test
 COMOVE_MIN_CORR = 0.30        # the true branch must co-move with its index at least this much; the other must not co-move (<= 0)
 BRANCH_FAR_LOG = 1.0          # branches further apart than this (log) let an old anchor discriminate
-COMOVE_INDEX = {"sovereign": "CDX.EM", "us_corp": "CDX.NA.IG", "global_corp": "ITRAXX EUROPE"}
+COMOVE_INDEX = {"sovereign": "CDX.EM", "us_corp": "CDX.NA.IG", "global_corp": "ITRAXX EUROPE", "sub": "ITRAXX EUROPE SUB FINANCIALS"}
+FAR_ONLY_SOURCES = ("trailing_long", "comove", "bonds", "reference")   # anchors that may only choose between far-apart branches
+GROUPS = ("sovereign", "us_corp", "global_corp", "sub")
+SUB = "SUB:"                          # series key prefix of a subordinated single name
 INDEX_FAMILIES = {
     "CDX.NA.IG": {"label": "CDX IG", "coupon_bp": 100, "quote": "spread", "group": "US corporates"},
     "CDX.NA.HY": {"label": "CDX HY", "coupon_bp": 500, "quote": "price", "group": "US corporates"},
@@ -63,7 +87,23 @@ INDEX_FAMILIES = {
     "ITRAXX EUROPE": {"label": "iTraxx Main", "coupon_bp": 100, "quote": "spread", "group": "Europe"},
     "ITRAXX EUROPE CROSSOVER": {"label": "iTraxx Xover", "coupon_bp": 500, "quote": "spread", "group": "Europe"},
     "ITRAXX EUROPE SENIOR FINANCIALS": {"label": "iTraxx Sr Fin", "coupon_bp": 100, "quote": "spread", "group": "Europe"},
+    # 2.0: every index family that prints in the public file with a 5-year contract
+    "ITRAXX EUROPE SUB FINANCIALS": {"label": "iTraxx Sub Fin", "coupon_bp": 100, "quote": "spread", "group": "Europe"},
+    "CDX.FINANCIALS": {"label": "CDX Financials", "coupon_bp": 100, "quote": "spread", "group": "US corporates"},
+    "CDX.EM.HY": {"label": "CDX EM HY", "coupon_bp": 100, "quote": "price", "group": "EM sovereigns"},
+    "ITRAXX ASIA EX-JAPAN IG": {"label": "iTraxx Asia ex-Japan", "coupon_bp": 100, "quote": "spread", "group": "Asia-Pacific"},
+    "ITRAXX JAPAN": {"label": "iTraxx Japan", "coupon_bp": 100, "quote": "spread", "group": "Asia-Pacific"},
+    "ITRAXX AUSTRALIA": {"label": "iTraxx Australia", "coupon_bp": 100, "quote": "spread", "group": "Asia-Pacific"},
 }
+INDEX_FAMILIES_1_6 = ("CDX.NA.IG", "CDX.NA.HY", "CDX.EM", "ITRAXX EUROPE", "ITRAXX EUROPE CROSSOVER", "ITRAXX EUROPE SENIOR FINANCIALS")
+# Indices whose contracts run to the legal final of the bonds under them (decades), so there is no 5-year point and no
+# conventional spread: commercial mortgages by rating tier, and municipals.  Measured as points upfront per series.
+STRUCTURED_FAMILIES = {
+    "CMBX.NA.AAA": ("CMBX AAA", "Commercial mortgages"), "CMBX.NA.AS": ("CMBX AS", "Commercial mortgages"),
+    "CMBX.NA.AA": ("CMBX AA", "Commercial mortgages"), "CMBX.NA.A": ("CMBX A", "Commercial mortgages"),
+    "CMBX.NA.BBB-": ("CMBX BBB-", "Commercial mortgages"), "CMBX.NA.BB": ("CMBX BB", "Commercial mortgages"),
+}
+OPTION_UNDERLIER = {("USD", 500.0): "CDX.NA.HY", ("USD", 100.0): "CDX.NA.IG", ("EUR", 500.0): "ITRAXX EUROPE CROSSOVER", ("EUR", 100.0): "ITRAXX EUROPE"}
 
 # ----------------------------------------------------------------------------- reference tables
 # Normalised-name -> (display, region).  Normalisation: upper, punctuation stripped, legal suffixes removed.
@@ -686,9 +726,57 @@ DISPLAY_OVERRIDES = _norm_keys(DISPLAY_OVERRIDES)
 CORP_ALIASES = {normalize_name(k): normalize_name(v) for k, v in CORP_ALIASES.items()}
 
 
+_LISTING_LEGAL = re.compile(r"\b(SE|SPA|S P A|ASA|AB|OYJ|ABP|KGAA|BV|B V|SARL|S A R L|GMBH|AKTIENGESELLSCHAFT|SOCIETE ANONYME|SOCIEDAD ANONIMA|SOCIETA PER AZIONI|"
+                            r"S A B DE C V|SAB DE CV|TBK|BHD|BERHAD|KK|K K|PJSC|OJSC|PT|DAC|PTY|PTE|CLASS [A-C]|COMMON STOCK|ORDINARY SHARES)\b")
+_LISTING_TAIL = re.compile(r"( PUBLIC| TRUST| A S| AS| & CO| AND CO)+$")     # legal words only where a name ends: "Public Power" keeps its first word
+LISTING_DENY = frozenset({"ROGERS"})        # reviewed: the tape's Rogers Group, Inc. is not the listed Rogers Corporation
+EUROPE = frozenset("GB FR DE IT ES NL BE LU IE PT AT FI SE DK NO CH GR PL CZ HU JE GG IM MT CY IS LI MC".split())
+# a swap in euros, sterling or francs is on a European company, one in yen on a Japanese one: a listing elsewhere under the
+# same name is another company (the audit found EDP in Tokyo, Continental in Taipei, Siemens Limited in Mumbai)
+LISTING_HOME = {"EUR": EUROPE, "GBP": EUROPE, "CHF": EUROPE, "JPY": frozenset({"JP"})}
+
+
+def listing_key(name):
+    """A company name as the worldwide listings write it and as the tape writes it, reduced to the same key."""
+    n = normalize_name(name)
+    n = _LISTING_LEGAL.sub(" ", n)
+    n = re.sub(r"\s+", " ", n).strip()
+    n = _LISTING_TAIL.sub("", n)
+    n = n.replace(" & ", " AND ")
+    return re.sub(r"\s+", " ", n).strip()
+
+
+def listing_allowed(row, ccy):
+    """May this listing stand for a name whose swaps trade in ccy?"""
+    home = LISTING_HOME.get(ccy or "")
+    return home is None or (row.get("country") or "") in home
+
+
+MAJOR_EXCHANGES = ("NYSE", "NASDAQ", "LSE", "JPX", "XETRA", "PAR", "HKSE", "TSX", "ASX", "SIX", "MIL", "AMS", "BME", "STO", "CPH", "OSL", "HEL", "BRU",
+                   "KSC", "TAI", "SHH", "SHZ", "NSE", "BSE", "SAO", "MEX", "JNB", "SES", "TLV", "IST", "WSE", "SAU", "SET", "JKT", "KLS", "NZE", "AMEX")
+HOME_EXCHANGES = {"US": ("NYSE", "NASDAQ", "AMEX"), "GB": ("LSE",), "DE": ("XETRA", "FSX"), "FR": ("PAR",), "JP": ("JPX",), "HK": ("HKSE",), "CA": ("TSX", "TSXV"),
+                  "AU": ("ASX",), "CH": ("SIX",), "IT": ("MIL",), "ES": ("BME",), "NL": ("AMS",), "SE": ("STO",), "DK": ("CPH",), "NO": ("OSL",), "FI": ("HEL",),
+                  "BE": ("BRU",), "IN": ("NSE", "BSE"), "KR": ("KSC", "KOE"), "TW": ("TAI", "TWO"), "CN": ("SHH", "SHZ", "HKSE"), "BR": ("SAO",), "MX": ("MEX",),
+                  "ZA": ("JNB",), "SG": ("SES",), "IL": ("TLV",), "TR": ("IST",), "PL": ("WSE",), "SA": ("SAU",), "TH": ("SET",), "ID": ("JKT",), "MY": ("KLS",),
+                  "NZ": ("NZE",), "IE": ("LSE", "NYSE", "NASDAQ"), "LU": ("PAR", "AMS", "XETRA", "NYSE"), "BM": ("NYSE", "NASDAQ", "HKSE", "LSE"), "KY": ("HKSE", "NYSE", "NASDAQ")}
+
+
+def listing_rank(row):
+    """Which of several listings of one company is the one to show: its home exchange, then a major exchange, not a
+    depositary receipt, not over the counter, then the more traded."""
+    ex, country = row.get("exchange") or "", row.get("country") or ""
+    return (1 if ex in HOME_EXCHANGES.get(country, ()) else 0, 1 if ex in MAJOR_EXCHANGES else 0, 0 if row.get("adr") else 1, 0 if ex == "OTC" else 1, row.get("volume") or 0.0)
+
+
 def entityish(name):
     n = (name or "").strip()
     return len(n) > 4 and not _ENTITYISH_BAD.search(n)
+
+
+# company names the tape writes in capitals: these words stay in capitals when a name is put in title case (2.0)
+_ACRONYMS = frozenset("BNP UBS ING RWE BMW SAP AXA ABB BAE BT EDF ENI EON HSBC BBVA ABN AMRO KBC DNB SEB NN AIG IBM GE GM UPS BP BHP LVMH ENEL RELX WPP ITV BASF VW MTN "
+                      "ASML SES TDC TUI UCB OMV KPN ASM STM NXP CNH CRH DSM EQT III II IV VI SFR NRG PNC TJX ADT MGM AMC CCO CSC DXC HP NCR MBIA USG XPO ZF FCA "
+                      "CMA CGM EDP REN RCI LKQ BAT SSE GKN ICI BBC RBS TSB ABI AMD CDW KKR PPL PSEG DTE AEP FMC HSBC SMBC MUFG NTT KDDI JFE NEC TDK ANZ NAB CBA QBE".split())
 
 
 def display_name(norm, raw):
@@ -700,7 +788,7 @@ def display_name(norm, raw):
     if raw.isupper() or raw.islower():
         words = []
         for w in raw.title().split():
-            words.append(w.upper() if w.upper() in ("LLC", "LP", "L.P.", "PLC", "AG", "SE", "NV", "N.V.", "SA", "S.A.", "AB", "USA", "AT&T", "PG&E", "HCA", "AES", "APA", "RTX", "CSX", "EQT", "HP", "IBM", "MGM", "CVS", "KB", "SM") else w)
+            words.append(w.upper() if w.upper().strip(",.") in _ACRONYMS or w.upper() in ("LLC", "LP", "L.P.", "PLC", "AG", "SE", "NV", "N.V.", "SA", "S.A.", "AB", "USA", "AT&T", "PG&E", "HCA", "AES", "APA", "RTX", "CSX", "EQT", "HP", "IBM", "MGM", "CVS", "KB", "SM") else w)
         raw = " ".join(words)
     return raw
 
@@ -771,6 +859,66 @@ def price_to_spread_bp(price, coupon_bp, tenor_years, rate_pct, recovery=RECOVER
     return solve_spread_bp(100.0 - price, coupon_bp, tenor_years, rate_pct, recovery)
 
 
+# ----------------------------------------------------------------------------- what a print is
+def coupon_bp_of(raw):
+    """Fixed rate -> (running coupon in bp | None, how it was written).
+
+    The field is a fraction by rule (0.01 = 100 bp) but one platform writes percent (1 = 100 bp) and a few rows carry
+    basis points.  The reading that lands on a coupon the market trades with wins: fraction first, then percent, then
+    bp.  A value on none of them is kept as a fraction when it is below 1 (a bespoke coupon) and is unreadable above."""
+    v = _f(raw)
+    if v is None or v <= 0:
+        return None, None
+    for scale, how in ((1e4, "fraction"), (100.0, "percent"), (1.0, "bp")):
+        c = v * scale
+        for g in COUPON_GRID_BP:
+            if abs(c - g) < 1e-6 * max(g, 1.0):
+                return g, how
+    if v < 1:
+        return round(v * 1e4, 4), "bespoke"
+    return None, "unreadable"
+
+
+PRODUCT_WORDS = {
+    "index": "Index CDS", "tranche": "Index tranches", "option": "Index options", "sov": "Sovereign single names",
+    "corp": "Corporate single names, senior", "sub": "Corporate single names, subordinated", "single_other": "Other single names (loans, bills, no seniority given)",
+    "trs": "Total return swaps", "basket": "Baskets", "other": "Other credit contracts"}
+WORDED_CLASSES = ("single_other", "trs", "basket", "other")      # counted under the product name the file gives them
+PRODUCT_ORDER = ("index", "option", "tranche", "corp", "sov", "sub", "single_other", "trs", "basket", "other")
+
+
+def fisn_tail(fisn):
+    f = (fisn or "").strip()
+    return f.rsplit("/", 1)[-1].strip() if "/" in f else f
+
+
+def product_of(fisn):
+    """The product a FISN names: index / tranche / option / sov / corp / sub / single_other / trs / basket / other."""
+    u = " %s " % fisn_tail(fisn).upper()
+    if " TRA " in u or "TRANCHE" in u:
+        return "tranche"
+    if " SWT " in u or " OP " in u or "SWPS" in u or "SWAPTION" in u:
+        return "option"
+    if "TRTN" in u:
+        return "trs"
+    if "BSKT" in u or "BASKET" in u:
+        return "basket"
+    if " IDX " in u:
+        return "index"
+    if " SN " in u:
+        t = u.rstrip()
+        if " CDS " not in u:
+            return "single_other"
+        if t.endswith(" SOV SN SR"):
+            return "sov"
+        if t.endswith(" CORP SN SR"):
+            return "corp"
+        if t.endswith((" CORP SN SUB", " CORP SN JR", " CORP SN MZ")):
+            return "sub"
+        return "single_other"
+    return "other"
+
+
 # ----------------------------------------------------------------------------- parsing
 def read_dissemination_zip(zip_bytes):
     """Return the price-forming new trades (Action NEWT, Event TRAD) as dicts."""
@@ -786,17 +934,55 @@ def read_dissemination_zip(zip_bytes):
     return out
 
 
-def _quoted_bp(row):
+def quoted_bp_of(row):
+    """-> (spread in bp | None, how).  how is None when the notation is taken as written, else the repair.
+
+    One platform writes "57" under the decimal notation (570,000 bp) and "0.49" under basis points (half a basis point).
+    A value no credit trades at is read in the one unit that gives a level a credit can trade at; such a repaired quote is
+    never believed on its own - only next to the name's own level (candidate_spreads)."""
     raw, notation = _f(row.get("Spread-Leg 1")), (row.get("Spread notation-Leg 1") or "").strip()
     if raw is None or raw <= 0:
+        return None, None
+    v = raw if notation == "4" else raw * 1e4 if notation == "3" else raw * 100.0 if notation == "2" else None
+    if v is None:
+        return None, None
+    if v > QUOTE_ABSURD_BP:
+        return (raw, "bp_under_decimal") if MIN_QUOTE_BP <= raw <= SPREAD_CEILING_BP else (None, None)
+    if v < 1.0 and notation == "4":
+        return (raw * 100.0, "percent_under_bp") if MIN_QUOTE_BP <= raw * 100.0 <= SPREAD_CEILING_BP else (v, None)
+    return v, None
+
+
+def _quoted_bp(row):
+    return quoted_bp_of(row)[0]
+
+
+def points_quote(trade):
+    """-> (points upfront, coupon bp | None) when the print's "spread" is really its points upfront, else None.
+
+    A dealer platform files a distressed name's quote - 49 points - in the spread field.  The print gives itself away:
+    the quote is the cash it disseminates plus the accrued coupon (0.13 points on a 1% coupon 48 days into the quarter,
+    0.82 on a 5% coupon 60 days in), to within the rounding of the quote.  Read as a spread the same number could not be
+    that cash under any coupon a credit trades on: 49 bp on a 5% coupon is 20 points the other way.  1.6 read such
+    prints as 49 bp - "confirmed" by a 10% coupon nobody quoted - and put Hertz at 49 bp for a day."""
+    q, up, notional = trade.get("quoted_bp"), trade.get("upfront"), trade.get("notional")
+    if q is None or up is None or not notional or trade.get("kind") == "index":
         return None
-    if notation == "4":
-        return raw
-    if notation == "3":
-        return raw * 1e4
-    if notation == "2":
-        return raw * 100.0
-    return None
+    cash = abs(up) / notional * 100.0
+    if q < MIN_QUOTE_BP or q > 100.0 or cash < 2.0:
+        return None
+    d = date.fromisoformat(trade["date"])
+    own = trade.get("coupon_bp")
+    best = None
+    for c in ([own] if own else []) + [100.0, 500.0, 1000.0, 25.0]:
+        miss = abs(q - (cash + accrued_pct(c, d)))
+        if best is None or miss < best[0] - 1e-9:
+            best = (miss, c)
+    if best[0] > POINTS_QUOTE_TOL:
+        return None
+    if own:
+        return q, own                               # the contract's own coupon converts it
+    return (q, best[1]) if best[0] <= 0.06 else (q, None)    # the accrual names the coupon only when it fits to the cent
 
 
 def normalize_trade(row, source):
@@ -806,14 +992,9 @@ def normalize_trade(row, source):
         return None
     if (row.get("Action type") or "NEWT") != "NEWT" or (row.get("Event type") or "TRAD") != "TRAD":
         return None  # amendments, terminations, novations and compressions are not price-forming
-    if fisn.endswith("Sov SN Sr"):
-        kind = "sov"
-    elif fisn.endswith("Corp SN Sr"):
-        kind = "corp"
-    elif "Idx" in fisn and "Tranche" not in fisn:
-        kind = "index"
-    else:
-        return None
+    kind = product_of(fisn)
+    if kind not in ("sov", "corp", "sub", "index"):
+        return None  # tranches, options, total return swaps, baskets and the rest are counted (print_record), not priced here
     exec_ts = row.get("Execution Timestamp") or ""
     try:
         d = date.fromisoformat(exec_ts[:10])
@@ -825,14 +1006,13 @@ def normalize_trade(row, source):
         return None
     notional_raw = row.get("Notional amount-Leg 1") or ""
     notional = _f(notional_raw)
-    coupon = _f(row.get("Fixed rate-Leg 1"))
-    coupon_bp = coupon * 1e4 if coupon is not None and coupon < 1 else coupon
+    coupon_bp, coupon_how = coupon_bp_of(row.get("Fixed rate-Leg 1"))
     amts = (row.get("Other payment amount") or "").split(";")
     types = (row.get("Other payment type") or "").split(";")
     upfront = None
     if "UFRO" in types:
         upfront = _f(amts[types.index("UFRO")]) if len(amts) > types.index("UFRO") else None
-    quoted = _quoted_bp(row)
+    quoted, quote_how = quoted_bp_of(row)
     index_family = None
     if kind == "index":
         index_family = (row.get("UPI Underlier Name") or "").strip().upper()
@@ -845,8 +1025,15 @@ def normalize_trade(row, source):
         # CDX HY.  The interpretation is settled per print in index_quote() using the upfront cash when available.
         return {**_base(row, source, kind, d, expiry, tenor, notional, notional_raw, coupon_bp, upfront),
                 "index_family": index_family, "quoted_raw": quoted, "quoted_bp": None, "price": None}
-    return {**_base(row, source, kind, d, expiry, tenor, notional, notional_raw, coupon_bp, upfront),
-            "index_family": index_family, "quoted_bp": quoted, "price": None}
+    out = {**_base(row, source, kind, d, expiry, tenor, notional, notional_raw, coupon_bp, upfront),
+           "index_family": index_family, "quoted_bp": quoted, "price": None}
+    if coupon_how not in (None, "fraction"):
+        out["coupon_how"] = coupon_how      # percent / bp / bespoke: kept so the page can say how the coupon was written
+    if quote_how:
+        out["quote_how"] = quote_how        # the quote's unit was repaired: believed only next to the name's own level
+    if kind == "sub":
+        out["rec"] = RECOVERY_SUB
+    return out
 
 
 def _base(row, source, kind, d, expiry, tenor, notional, notional_raw, coupon_bp, upfront):
@@ -859,6 +1046,10 @@ def _base(row, source, kind, d, expiry, tenor, notional, notional_raw, coupon_bp
         "cleared": (row.get("Cleared") or "").strip() == "I", "platform": (row.get("Platform identifier") or "").strip(),
         "package": (row.get("Package indicator") or "").strip().upper() in ("TRUE", "Y", "1"),
     }
+
+
+def _rec(trade):
+    return trade.get("rec") or RECOVERY_SENIOR
 
 
 def index_quote(trade, rate_pct):
@@ -874,7 +1065,7 @@ def index_quote(trade, rate_pct):
         d = date.fromisoformat(trade["date"])
         cash = trade["upfront"] / trade["notional"] * 100.0
         acc = accrued_pct(c, d)
-        as_spread = abs(abs(clean_upfront_pct(v, c, trade["tenor"], rate_pct) - acc) - cash)
+        as_spread = abs(abs(clean_upfront_pct(v, c, trade["tenor"], rate_pct, _rec(trade)) - acc) - cash)
         as_price = abs(abs((100.0 - v) - acc) - cash)
         choice = "price" if as_price < as_spread else "spread"
     if choice is None:
@@ -887,6 +1078,79 @@ def index_quote(trade, rate_pct):
     else:
         trade["quoted_bp"] = v
     return trade
+
+
+def print_record(row):
+    """Any new trade of the credit file -> a compact record for the product census.  No identifier of the underlying."""
+    if row.get("Action type") != "NEWT" or row.get("Event type") != "TRAD":
+        return None
+    exec_ts = row.get("Execution Timestamp") or ""
+    try:
+        d = date.fromisoformat(exec_ts[:10])
+    except ValueError:
+        return None
+    fisn = (row.get("UPI FISN") or "").strip()
+    cls = product_of(fisn)
+    ccy = (row.get("Notional currency-Leg 1") or "").strip()
+    notional_raw = (row.get("Notional amount-Leg 1") or "").strip()
+    notional = _f(notional_raw)
+    coupon_bp, _ = coupon_bp_of(row.get("Fixed rate-Leg 1"))
+    under = (row.get("UPI Underlier Name") or "").strip().upper()
+    fam = None
+    if cls in ("index", "tranche"):
+        fam = under or None
+    elif cls == "option":
+        fam = OPTION_UNDERLIER.get((ccy, coupon_bp))
+    elif cls in WORDED_CLASSES:
+        fam = fisn_tail(fisn)[:48] or None      # no index behind it: the product as the file itself names it
+    amts = (row.get("Other payment amount") or "").split(";")
+    types = (row.get("Other payment type") or "").split(";")
+    up = _f(amts[types.index("UFRO")]) if "UFRO" in types and len(amts) > types.index("UFRO") else None
+    rec = {"date": d.isoformat(), "cls": cls, "fam": fam, "ccy": ccy, "notional": notional, "capped": notional_raw.endswith("+"), "how": _ if cls in ("sov", "corp", "sub") else None,
+           "coupon_bp": coupon_bp, "expiry": (row.get("Expiration Date") or "")[:10] or None,
+           "points": round(abs(up) / notional * 100.0, 3) if up is not None and notional else None}
+    if cls == "option":
+        k = _f(row.get("Strike Price"))
+        k = k * 1e4 if (k is not None and 0 < k < 1) else k
+        if k is not None and fam in ("CDX.NA.HY", "CDX.EM") and 6000.0 < k < 13000.0:
+            k = k / 100.0                    # a price strike written as a share of par (0.94) or in hundredths (9400): 94.00
+        if k is not None and k >= 10.0:      # under 10 is not a strike in spread or in price: a mis-filed field
+            rec["strike"] = round(k, 2)
+            rec["strike_kind"] = "price" if (fam in ("CDX.NA.HY", "CDX.EM") and 60.0 < k < 130.0) else "spread"
+    return rec
+
+
+def census_day(records):
+    """One execution day's new trades by product: counts and notional by class and by index family, the series of the
+    commercial-mortgage indices in points upfront, and the option strikes."""
+    cls, fam, struct, opt, how = {}, {}, {}, [], {}
+    for r in records:
+        if r.get("how"):
+            how[r["how"]] = how.get(r["how"], 0) + 1
+        size = r["notional"] if (r["notional"] or 0) <= MAX_PRINT_NOTIONAL else 0     # 1e14 on one basket print is a mis-filed field
+        usd = (size or 0) / 1e6 if r["ccy"] == "USD" else 0.0
+        eur = (size or 0) / 1e6 if r["ccy"] == "EUR" else 0.0
+        c = cls.setdefault(r["cls"], [0, 0.0, 0.0, 0, 0])
+        c[0] += 1
+        c[1] += usd
+        c[2] += eur
+        c[3] += 0 if r["ccy"] in ("USD", "EUR") else 1
+        c[4] += 1 if r["capped"] else 0
+        if r["cls"] in ("index", "tranche", "option") + WORDED_CLASSES:
+            f = fam.setdefault("%s|%s" % (r["cls"], r["fam"] or "not named"), [0, 0.0, 0.0])
+            f[0] += 1
+            f[1] += usd
+            f[2] += eur
+        if r["cls"] == "index" and r["fam"] in STRUCTURED_FAMILIES and r["points"] is not None and r["expiry"]:
+            struct.setdefault("%s|%s" % (r["fam"], r["expiry"]), []).append((r["points"], r["capped"], usd, r["coupon_bp"]))
+        if r["cls"] == "option" and r.get("strike") is not None and r["fam"]:
+            opt.append([r["fam"], r["expiry"], r["strike"], r["strike_kind"], round((size or 0) / 1e6, 1), 1 if r["capped"] else 0, r["ccy"]])
+    out_struct = {}
+    for k, v in struct.items():
+        free = [p for p, cap, _, _ in v if not cap] or [p for p, _, _, _ in v]
+        out_struct[k] = [len(v), round(statistics.median(free), 2), round(sum(u for _, _, u, _ in v), 1), v[0][3]]
+    return {"cls": {k: [v[0], round(v[1], 1), round(v[2], 1), v[3], v[4]] for k, v in cls.items()},
+            "fam": {k: [v[0], round(v[1], 1), round(v[2], 1)] for k, v in fam.items()}, "str": out_struct, "opt": opt, "how": how}
 
 
 # ----------------------------------------------------------------------------- entity identity
@@ -925,7 +1189,12 @@ def entity_map(trades, prior_map=None):
             continue
         if entityish(t["name_raw"]):
             votes.setdefault(t["upi"], {}).setdefault(canonical_norm(normalize_name(t["name_raw"])), [0, t["name_raw"]])[0] += 1
-    out = dict(prior_map or {})
+    out = {}
+    for upi, e in (prior_map or {}).items():
+        e = dict(e)
+        if e.get("norm"):
+            e["norm"] = canonical_norm(normalize_name(e["norm"]))      # a map kept from an older version may hold "AT&T" beside "AT & T"
+        out[upi] = e
     for upi, names in votes.items():
         norm, (n, raw) = max(names.items(), key=lambda kv: kv[1][0])
         prior = out.get(upi)
@@ -948,6 +1217,9 @@ def _looks_sovereign(norm):
 
 def classify_entity(kind, norm, ccy_votes):
     ccy = max(ccy_votes.items(), key=lambda kv: kv[1])[0] if ccy_votes else ""
+    if kind == "sub" or norm.startswith(SUB):
+        base = norm[len(SUB):] if norm.startswith(SUB) else norm
+        return {"group": "sub", "sector": _sector_of(base), "ccy": ccy, "region": "US" if (ccy == "USD" and base not in NON_US_USD_CORPS) else "Global"}
     if norm in SOVEREIGNS or (kind == "sov" and _looks_sovereign(norm)):
         disp, region, iso3, tier = SOVEREIGNS.get(norm, (None, "other", None, None))
         return {"group": "sovereign", "region": region, "tier": tier, "iso3": iso3, "ccy": ccy}
@@ -968,8 +1240,10 @@ def quote_status(trade, rate_pct):
         return "reject"
     if trade["kind"] == "index":
         return "confirmed"
-    if q < MIN_QUOTE_BP:
+    if q < MIN_QUOTE_BP or q > SPREAD_CEILING_BP:
         return "reject"
+    if points_quote(trade):
+        return "points"
     up, notional = trade.get("upfront"), trade.get("notional")
     if up is not None and notional:
         cash_pct = abs(up) / notional * 100.0
@@ -977,10 +1251,20 @@ def quote_status(trade, rate_pct):
             d = date.fromisoformat(trade["date"])
             coupons = [trade["coupon_bp"]] if trade.get("coupon_bp") else list(STANDARD_COUPONS_BP)
             for c in coupons:
-                expected = clean_upfront_pct(q, c, trade["tenor"], rate_pct) - accrued_pct(c, d)
+                expected = clean_upfront_pct(q, c, trade["tenor"], rate_pct, _rec(trade)) - accrued_pct(c, d)
                 if abs(abs(expected) - cash_pct) <= max(QUOTE_CONFIRM_TOL_PCT, 0.15 * abs(expected)):
                     return "confirmed"
     return "soft"
+
+
+def _quote_fit(trade, rate_pct):
+    """How far (points of notional) the print's cash is from what its quoted spread costs, under its coupon or the nearest standard one."""
+    q, up, notional = trade.get("quoted_bp"), trade.get("upfront"), trade.get("notional")
+    if q is None or up is None or not notional:
+        return float("inf")
+    cash, d = abs(up) / notional * 100.0, date.fromisoformat(trade["date"])
+    coupons = [trade["coupon_bp"]] if trade.get("coupon_bp") else list(STANDARD_COUPONS_BP)
+    return min(abs(abs(clean_upfront_pct(q, c, trade["tenor"], rate_pct, _rec(trade)) - accrued_pct(c, d)) - cash) for c in coupons)
 
 
 def candidate_spreads(trade, rate_pct, anchor_bp=None):
@@ -988,18 +1272,35 @@ def candidate_spreads(trade, rate_pct, anchor_bp=None):
 
     Quoted spreads are used only when confirmed by the print's own upfront, or (unconfirmed) when they sit within
     SOFT_QUOTE_GATE_LOG of the entity's anchor; otherwise the print falls through to upfront-derived branches."""
-    if trade.get("package"):
+    if trade.get("package") or trade.get("uniform"):
         return []
     if trade["kind"] == "index":
         index_quote(trade, rate_pct)
+    pq = points_quote(trade) or trade.get("points_as")      # points_as: set for the day by mark_day (a print quoted with a recognised points quote)
+    distressed = bool(trade.get("day_distress")) or (anchor_bp is not None and anchor_bp >= DISTRESS_ANCHOR_BP)
+    if pq:
+        # the "spread" is points upfront, paid for the protection: one side of the coupon, no sign to guess
+        pts, cpn = pq
+        if cpn is None:
+            return [(SPREAD_CEILING_BP, "above_coupon")] if (pts >= DISTRESS_POINTS and distressed) else []
+        s_pts = solve_spread_bp(pts, cpn, trade["tenor"], rate_pct, _rec(trade))
+        if s_pts is None and not (pts >= DISTRESS_POINTS and distressed):
+            return []
+        if s_pts is None or s_pts > SPREAD_CEILING_BP:
+            s_pts = SPREAD_CEILING_BP
+        return [(min(s_pts, SPREAD_CEILING_BP), "above_coupon")] if s_pts and s_pts > 0.5 else []
     if trade["quoted_bp"] is not None:
         st = quote_status(trade, rate_pct)
-        if st == "confirmed" or (st == "soft" and (anchor_bp is None or _log_dist(trade["quoted_bp"], anchor_bp) <= SOFT_QUOTE_GATE_LOG)):
+        repaired = bool(trade.get("quote_how"))      # a quote whose unit was repaired is never believed with nothing beside it
+        if (st == "confirmed" and not trade.get("coupon_bp") and anchor_bp is not None and _log_dist(trade["quoted_bp"], anchor_bp) > JUMP_LOG
+                and _quote_fit(trade, rate_pct) > QUOTE_CONFIRM_TOL_PCT):
+            st = "soft"       # "confirmed" only loosely, under a coupon the print does not state, and far from the name's own level
+        if st == "confirmed" or (st == "soft" and ((anchor_bp is None and not repaired) or (anchor_bp is not None and _log_dist(trade["quoted_bp"], anchor_bp) <= SOFT_QUOTE_GATE_LOG))):
             return [(trade["quoted_bp"], "quoted")]
         # a soft quote that contradicts the anchor is not a quote.  Fall through to the upfront when the
         # print carries one (the cap is a usable notional).  A bare coupon with no cash still returns [].
     if trade["price"] is not None and trade["coupon_bp"]:
-        s = price_to_spread_bp(trade["price"], trade["coupon_bp"], trade["tenor"], rate_pct)
+        s = price_to_spread_bp(trade["price"], trade["coupon_bp"], trade["tenor"], rate_pct, _rec(trade))
         return [(s, "price")] if s else []
     if trade["upfront"] is None or not trade["notional"] or not trade["coupon_bp"]:
         return []
@@ -1010,8 +1311,16 @@ def candidate_spreads(trade, rate_pct, anchor_bp=None):
     acc = accrued_pct(trade["coupon_bp"], d)
     out = []
     # disseminated cash = clean - accrued  (buyer pays clean, receives accrued back at the first coupon)
-    s_hi = solve_spread_bp(cash_pct + acc, trade["coupon_bp"], trade["tenor"], rate_pct)        # buyer pays -> spread > coupon
-    s_lo = solve_spread_bp(-cash_pct + acc, trade["coupon_bp"], trade["tenor"], rate_pct)       # seller pays -> spread < coupon
+    s_hi = solve_spread_bp(cash_pct + acc, trade["coupon_bp"], trade["tenor"], rate_pct, _rec(trade))        # buyer pays -> spread > coupon
+    s_lo = solve_spread_bp(-cash_pct + acc, trade["coupon_bp"], trade["tenor"], rate_pct, _rec(trade))       # seller pays -> spread < coupon
+    if s_hi is None and cash_pct + acc >= DISTRESS_POINTS and distressed:
+        # more points than the assumed recovery allows: for a name already wide (or when two prints of the day say the same)
+        # the print still says the name is past the ceiling.  It is carried at the ceiling and read in points - 63 points is not
+        # "no level".  For a healthy name the same number is a mis-filed amount and stays out (Toyota, one print, 2025-11-14)
+        s_hi = SPREAD_CEILING_BP
+    elif s_hi is not None and s_hi > SPREAD_CEILING_BP:
+        # a short contract reaches five figures on a few points; a long one only on an amount a healthy name never pays
+        s_hi = SPREAD_CEILING_BP if (distressed or trade["tenor"] < 2.0) else None
     if s_hi is not None and s_hi > 0.5:
         out.append((s_hi, "above_coupon"))
     if s_lo is not None and s_lo > 0.5:
@@ -1029,14 +1338,18 @@ def resolve_spread(trade, rate_pct, anchor_bp=None, far_only=False):
         return round(cands[0][0], 2), cands[0][1]
     if len(cands) == 1:
         return round(cands[0][0], 2), "derived"
+    near = _log_dist(cands[0][0], cands[1][0]) <= NEAR_COUPON_LOG
     if anchor_bp is None:
-        return None, "ambiguous"
+        return (round(math.sqrt(cands[0][0] * cands[1][0]), 2), "bracketed") if near else (None, "ambiguous")
     best = min(cands, key=lambda c: abs(math.log(max(c[0], 0.5) / max(anchor_bp, 0.5))))
     other = max(cands, key=lambda c: abs(math.log(max(c[0], 0.5) / max(anchor_bp, 0.5))))
     # require the anchor to actually discriminate: the nearer branch within 35% in log terms, or, when the two branches
     # sit far apart (e.g. 20bp vs 190bp on a 100bp coupon), the nearer within 70% and the other at least BRANCH_FAR_LOG further
     d_best = _log_dist(best[0], anchor_bp)
     d_other = _log_dist(other[0], anchor_bp)
+    if near and (far_only or d_best > 0.35 or (d_other - d_best) < 0.6 * _log_dist(cands[0][0], cands[1][0])):
+        # the name trades at its coupon: whichever side paid, the level lies between the two branches
+        return round(math.sqrt(cands[0][0] * cands[1][0]), 2), "bracketed"
     if d_best > 0.35 and not (d_best <= 0.7 and d_other - d_best >= BRANCH_FAR_LOG):
         return None, "ambiguous"
     if far_only and (d_other - d_best < BRANCH_FAR_LOG or d_best > 0.7):
@@ -1059,12 +1372,29 @@ def aggregate_day(trades, emap, rate_pct, anchors=None):
             slot["trades"].append(t)
             continue
         m = emap.get(t["upi"])
-        norm = m["norm"] if m else (normalize_name(t["name_raw"]) if entityish(t["name_raw"]) else None)
+        norm = m["norm"] if m else (canonical_norm(normalize_name(t["name_raw"])) if entityish(t["name_raw"]) else None)
         if not norm:
             continue
+        if t["kind"] == "sub":
+            norm = SUB + norm
         slot = by_entity.setdefault(norm, {"kind": t["kind"], "raw": (m or {}).get("raw") or t["name_raw"], "trades": [], "ccy": {}})
         slot["trades"].append(t)
         slot["ccy"][t["ccy"]] = slot["ccy"].get(t["ccy"], 0) + 1
+    # a portfolio booked at one flat price: the same coupon, expiry and upfront on several names the same day says nothing about any
+    # one of them (2026-09-21: sixteen prints each on CSX, Northrop, Allstate and Quest at the upfront of a 52 bp name, while CSX
+    # traded at 15).  Those prints are counted and left out of every name's level.
+    sig_names = {}
+    for norm, slot in by_entity.items():
+        for t in slot["trades"]:
+            t.pop("uniform", None)
+            if t["quoted_bp"] is None and t["price"] is None and t["upfront"] is not None and t["notional"] and not t["capped"] and not t.get("package"):
+                sig_names.setdefault((t["coupon_bp"], t["expiry"], round(t["upfront"] / t["notional"] * 100.0, 3)), set()).add(norm[len(SUB):] if norm.startswith(SUB) else norm)
+    flat = {sig for sig, names in sig_names.items() if len(names) >= UNIFORM_MIN_NAMES}
+    if flat:
+        for slot in by_entity.values():
+            for t in slot["trades"]:
+                if t["quoted_bp"] is None and t["price"] is None and t["upfront"] is not None and t["notional"] and not t["capped"] and (t["coupon_bp"], t["expiry"], round(t["upfront"] / t["notional"] * 100.0, 3)) in flat:
+                    t["uniform"] = True
     entities = {}
     for norm, slot in by_entity.items():
         entities[norm] = _measure(slot["trades"], rate_pct, anchors.get(norm))
@@ -1098,7 +1428,7 @@ def day_anchor(trades, rate_pct, trailing_anchor):
     if isinstance(trailing_anchor, (tuple, list)):
         trail_src = trailing_anchor[2] if len(trailing_anchor) > 2 and trailing_anchor[2] else "trailing"
         trailing_anchor, trail_q = trailing_anchor[0], trailing_anchor[1]
-    five = [t for t in trades if t["bucket"] == "5Y" and not t.get("package")]
+    five = [t for t in trades if t["bucket"] == "5Y" and not t.get("package") and not t.get("uniform")]
     quoted, soft = [], []
     for t in five:
         cands = candidate_spreads(t, rate_pct, trailing_anchor)
@@ -1146,7 +1476,7 @@ def day_anchor(trades, rate_pct, trailing_anchor):
     # curve shape: with one coupon, the wrong branch reflects the curve around the coupon and inverts its slope
     all_derived = []
     for t in trades:
-        if t.get("package") or t["quoted_bp"] is not None or t["price"] is not None or t["kind"] == "index":
+        if t.get("package") or t.get("uniform") or t["quoted_bp"] is not None or t["price"] is not None or t["kind"] == "index":
             continue
         cands = candidate_spreads(t, rate_pct)
         if len(cands) == 2:
@@ -1191,19 +1521,50 @@ def day_anchor(trades, rate_pct, trailing_anchor):
     return None, None, None
 
 
+def mark_day(trades):
+    """What one print cannot know about itself, read from the entity's other prints of the day.
+
+    points_as: a dealer platform files points upfront in the spread field; most of its prints say so themselves (the quote
+    is their cash plus the accrued coupon), but a leg whose cash is netted against another does not - same quote, other
+    cash.  A print quoted like a recognised points quote of the day is points too (Hertz, 2026-04-20: six prints at "49").
+    day_distress: two prints of the day beyond the model's reach are a distressed name, one alone may be a mis-filed amount."""
+    recognised = [pq for pq in (points_quote(t) for t in trades) if pq]
+    beyond = 0
+    for t in trades:
+        t.pop("points_as", None)
+        t.pop("day_distress", None)
+        if t.get("upfront") is not None and t.get("notional") and not t.get("package"):
+            if abs(t["upfront"]) / t["notional"] * 100.0 >= DISTRESS_POINTS:
+                beyond += 1
+    for t in trades:
+        if beyond >= 2:
+            t["day_distress"] = True
+        q = t.get("quoted_bp")
+        if recognised and q is not None and t.get("kind") != "index" and not points_quote(t):
+            near = min(recognised, key=lambda pq: abs(pq[0] - q))
+            if abs(near[0] - q) <= 1.5:
+                t["points_as"] = (q, near[1])
+    return trades
+
+
 def _measure(trades, rate_pct, anchor_bp, index=False):
+    if not index:
+        mark_day(trades)
     five = [t for t in trades if t["bucket"] == "5Y"]
     anchor, anchor_src, anchor_q = day_anchor(trades, rate_pct, anchor_bp)
-    spreads, basis_counts, by_bucket = [], {"quoted": 0, "price": 0, "derived": 0, "ambiguous": 0, "none": 0, "package": 0}, {}
+    spreads, basis_counts, by_bucket = [], {"quoted": 0, "price": 0, "derived": 0, "bracketed": 0, "ambiguous": 0, "none": 0, "package": 0}, {}
+    bracketed_5y = 0
     quoted_only, points = [], []
     notional_mm, capped, cleared = 0.0, 0, 0
     for t in trades:
-        if t.get("package"):
+        if t.get("package") or t.get("uniform"):
             basis_counts["package"] += 1
             s, basis = None, "package"
         else:
-            s, basis = resolve_spread(t, rate_pct, anchor, far_only=anchor_src in ("trailing_long", "comove"))
+            s, basis = resolve_spread(t, rate_pct, anchor, far_only=anchor_src in FAR_ONLY_SOURCES)
             basis_counts[basis] += 1
+            if basis == "bracketed" and t["bucket"] == "5Y":
+                bracketed_5y += 1
         if s is not None and (basis in ("quoted", "price") or t["bucket"] == "5Y" or len(candidate_spreads(t, rate_pct)) == 1):
             # off-the-run tenors only enter the curve when their own print fixes the sign: the 5Y anchor cannot
             # disambiguate a 1Y upfront (a 60bp 1Y and a 160bp 1Y are both "near" a 140bp 5Y)
@@ -1213,7 +1574,9 @@ def _measure(trades, rate_pct, anchor_bp, index=False):
                 spreads.append(s)
                 if basis in ("quoted", "price"):
                     quoted_only.append(s)
-                if t["coupon_bp"] and s > t["coupon_bp"] and t["upfront"] is not None and t["notional"]:
+                if points_quote(t) or t.get("points_as"):
+                    points.append(round((points_quote(t) or t["points_as"])[0], 2))
+                elif t["coupon_bp"] and s > t["coupon_bp"] and t["upfront"] is not None and t["notional"]:
                     points.append(round(t["upfront"] / t["notional"] * 100.0 + accrued_pct(t["coupon_bp"], date.fromisoformat(t["date"])), 2))
                 elif t["price"] is not None:
                     points.append(round(100.0 - t["price"], 2))
@@ -1225,13 +1588,17 @@ def _measure(trades, rate_pct, anchor_bp, index=False):
         spread_basis = "quoted"
     elif quoted_only and spreads:
         spread_basis = "mixed"
+    elif spreads and bracketed_5y == len(spreads):
+        spread_basis = "bracketed"
     elif spreads:
         spread_basis = "derived"
     else:
         spread_basis = None
+    if spread_basis == "bracketed" and anchor_src in (None,) + FAR_ONLY_SOURCES:
+        anchor_src, anchor_q = "near_coupon", "bracketed"
     cand = {}
     for t in five:
-        if t.get("package") or t["quoted_bp"] is not None or t["price"] is not None:
+        if t.get("package") or t.get("uniform") or t["quoted_bp"] is not None or t["price"] is not None:
             continue
         cs = candidate_spreads(t, rate_pct)
         if len(cs) == 2:
@@ -1307,7 +1674,7 @@ def merge_aliases(bank):
     for key in sorted(series):
         if key.startswith("IDX:"):
             continue
-        ck = canonical_norm(normalize_name(key))
+        ck = (SUB + canonical_norm(normalize_name(key[len(SUB):]))) if key.startswith(SUB) else canonical_norm(normalize_name(key))
         if ck == key:
             continue
         target = series.setdefault(ck, {})
@@ -1322,8 +1689,9 @@ def merge_aliases(bank):
             m["ccy"][c] = m["ccy"].get(c, 0) + n
         merged.append((key, ck))
     for upi, e in (bank.get("entity_map") or {}).items():
-        if e.get("norm") and canonical_norm(e["norm"]) != e["norm"]:
-            e["norm"] = canonical_norm(e["norm"])
+        if e.get("norm"):
+            # the spelling the desk writes today, not only the alias table: an older map held "AT&T" beside "AT & T"
+            e["norm"] = canonical_norm(normalize_name(e["norm"]))
     return merged
 
 
@@ -1337,6 +1705,10 @@ def prune_bank(bank, as_of_iso, keep_days=2000):
         if not series[key]:
             del series[key]
     bank["days"] = [d for d in (bank.get("days") or []) if d >= cutoff]
+    opt_cut = (date.fromisoformat(as_of_iso) - timedelta(days=45)).isoformat()
+    for d, c in (bank.get("census") or {}).items():
+        if d < opt_cut and c.get("opt"):
+            c["opt"] = []          # the strike ladder looks back thirty days; counts by class and family are kept for every day
     return bank
 
 
@@ -1414,7 +1786,7 @@ def _median_branch_picks(anchor_bp, cd):
     return False
 
 
-def anchors_from_bank(bank, as_of_iso, lookback_days=7):
+def anchors_from_bank(bank, as_of_iso, lookback_days=7, external=None):
     """Trailing anchor per entity/index -> (anchor_bp, quality, source).
 
     Evidence order: median of the last <=5 priced days in the last 7 days (source 'trailing') >
@@ -1435,6 +1807,12 @@ def anchors_from_bank(bank, as_of_iso, lookback_days=7):
         window = [row for d, row in rows if start <= d < as_of_iso]
         priced = [row for row in window if row.get("s") is not None][-5:]
         name = key[4:] if key.startswith("IDX:") else key
+        if priced and not key.startswith("IDX:"):
+            before = [row["s"] for d, row in rows if d < start and row.get("s") is not None][-6:]
+            if len(before) >= 3:
+                mid = statistics.median(before)
+                priced = [row for row in priced if _log_dist(row["s"], mid) <= JUMP_LOG or _strong_day(row)
+                          or any(o is not row and _log_dist(o["s"], row["s"]) <= CONFIRM_LOG for o in priced)]
         if priced:
             q = "firm" if any(row.get("aq") == "firm" or row.get("q") for row in priced) else "inferred"
             out[name] = (statistics.median([row["s"] for row in priced]), q, "trailing")
@@ -1461,24 +1839,100 @@ def anchors_from_bank(bank, as_of_iso, lookback_days=7):
         # the other side is not a plausible continuation. It stays inferred, and if it cannot discriminate
         # the latest branches, index co-movement still gets its turn.
         old = [(d, row) for d, row in rows if start_long <= d < as_of_iso and row.get("s") is not None and (row.get("aq") == "firm" or row.get("q"))]
-        if old:
-            out[name] = (statistics.median([row["s"] for d, row in old[-5:]]), "firm", "trailing_long")
+        latest_cd = next((row.get("cd") for d, row in reversed(rows) if d < as_of_iso and row.get("cd")), None)
+        anchor_firm = statistics.median([row["s"] for d, row in old[-5:]]) if old else None
+        # 2.0: an old firm level that cannot tell the name's latest two branches apart no longer ends the search.  It used to:
+        # a name quoted at 400 that had since tightened to 250 was held between its branches for a year (the dry run lost
+        # Grifols and NEXT that way), and the evidence below - its own newer levels, its index, its bonds - was never asked.
+        if anchor_firm is not None and (not latest_cd or _median_branch_picks(anchor_firm, latest_cd)):
+            out[name] = (anchor_firm, "firm", "trailing_long")
             continue
         old_inf = [(d, row) for d, row in rows if start_long <= d < as_of_iso and row.get("s") is not None]
         anchor_inf = statistics.median([row["s"] for d, row in old_inf[-5:]]) if old_inf else None
-        latest_cd = next((row.get("cd") for d, row in reversed(rows) if d < as_of_iso and row.get("cd")), None)
         if anchor_inf is not None and _median_branch_picks(anchor_inf, latest_cd):
             out[name] = (anchor_inf, "inferred", "trailing_long")
             continue
         info = meta.get(key) or {}
         grp = classify_entity(info.get("kind"), key, info.get("ccy") or {})["group"]
         cm = _comove_anchor(series, series_map.get("IDX:" + COMOVE_INDEX.get(grp, "CDX.NA.IG")), start_comove, as_of_iso)
+        ext = (external or {}).get(key)
+        ext_ok = bool(ext and ext[0])
+        if ext_ok and (not latest_cd or _median_branch_picks(float(ext[0]), latest_cd)):
+            # the same issuer's credit read somewhere else (its bonds, or a sovereign reference quote) outranks a statistical
+            # co-movement when it can tell the branches apart; like every inferred anchor it only chooses between far-apart ones
+            out[name] = (float(ext[0]), "inferred", ext[1])
+            continue
         if cm:
             out[name] = (cm[0], "inferred", "comove")
             continue
-        if anchor_inf is not None:
+        # nothing discriminates the stored branches: the day's own prints may still differ from them, so the best is kept
+        if anchor_firm is not None:
+            out[name] = (anchor_firm, "firm", "trailing_long")
+        elif ext_ok:
+            out[name] = (float(ext[0]), "inferred", ext[1])
+        elif anchor_inf is not None:
             out[name] = (anchor_inf, "inferred", "trailing_long")
+    for key, ext in (external or {}).items():
+        if key not in series_map and key not in out and ext and ext[0]:
+            out[key] = (float(ext[0]), "inferred", ext[1])     # a name printing for the first time
     return out
+
+
+def _days_between(a_iso, b_iso):
+    return (date.fromisoformat(b_iso) - date.fromisoformat(a_iso)).days
+
+
+def _strong_day(row):
+    """A day that needs no second opinion: several priced prints, or two quoted ones."""
+    return (row.get("np") or 0) >= CONFIRM_PRINTS or (row.get("q") or 0) >= 2
+
+
+def unconfirmed_days(rows):
+    """Priced days that are not confirmed, from [(day, row)] in date order.
+
+    A level more than JUMP_LOG (log) from the middle of the name's previous six confirmed levels is a jump.  A jump
+    stands when the day itself is strong (CONFIRM_PRINTS priced prints, or two quoted) or a priced day in the next three,
+    within three weeks, lands within CONFIRM_LOG of it.  Otherwise it is one print the tape has not repeated: it is kept,
+    shown as unconfirmed, and never used as the name's level or as an anchor."""
+    priced = [(d, r) for d, r in rows if r.get("s") is not None]
+    bad, good = set(), []
+    for i, (d, r) in enumerate(priced):
+        prev = [sv for dd, sv in good[-6:] if _days_between(dd, d) <= 180]
+        ok = True
+        if len(prev) >= 3 and _log_dist(r["s"], statistics.median(prev)) > JUMP_LOG and not _strong_day(r):
+            # repeated by a priced day just after it, or just before it (the second day of a move is confirmed by the first)
+            ok = (any(_log_dist(r2["s"], r["s"]) <= CONFIRM_LOG for d2, r2 in priced[i + 1:i + 4] if _days_between(d, d2) <= 21)
+                  or any(_log_dist(r0["s"], r["s"]) <= CONFIRM_LOG for d0, r0 in priced[max(0, i - 3):i] if _days_between(d0, d) <= 21))
+        if ok:
+            good.append((d, r["s"]))
+        else:
+            bad.add(d)
+    # a spike that came back: up to SPIKE_MAX_DAYS priced days about seven times away from the name's own middle, after which the
+    # name prints where it was.  Strong or repeated, those days were never its level (South Africa at 5,224 bp for two days between
+    # 121 and 121; Heidelberg Materials at 1,250 for three; Hertz at 49).  The newest days are left alone until later days can say.
+    conf, i = [], 0
+    while i < len(priced):
+        d, r = priced[i]
+        if d in bad:
+            i += 1
+            continue
+        prev = [sv for dd, sv in conf[-6:] if _days_between(dd, d) <= 400]     # a sovereign may print a dozen times a year
+        if len(prev) >= 3 and _log_dist(r["s"], statistics.median(prev)) > SPIKE_LOG:
+            mid = statistics.median(prev)
+            j = i
+            while j < len(priced) and (priced[j][0] in bad or _log_dist(priced[j][1]["s"], mid) > SPIKE_LOG):
+                j += 1
+            run = [(priced[k][0], priced[k][1]["s"]) for k in range(i, j) if priced[k][0] not in bad]
+            after = [r2["s"] for d2, r2 in priced[j:j + 3] if d2 not in bad]
+            if len(run) <= SPIKE_MAX_DAYS and len(after) >= 2 and _log_dist(statistics.median(after), mid) <= JUMP_LOG:
+                bad.update(dd for dd, sv in run)
+            else:
+                conf.extend(run)          # a longer stay, or one the tape has not yet followed: it stands, all of it
+            i = j
+            continue
+        conf.append((d, r["s"]))
+        i += 1
+    return bad
 
 
 def _series_points(series, end_iso, n_days):
@@ -1511,10 +1965,12 @@ def _value_on_or_before(points, target_iso, tol_days=None):
 
 def measure_entity(norm, series, as_of_iso):
     pts = _series_points(series, as_of_iso, 370)
-    priced = [(d, r) for d, r in pts if r.get("s") is not None]
+    bad = unconfirmed_days(_series_points(series, as_of_iso, 560))
+    priced = [(d, r) for d, r in pts if r.get("s") is not None and d not in bad]
     if not priced:
         return None
     last_d, last = priced[-1]
+    odd = [(d, r) for d, r in pts if d in bad and d > last_d]
     as_of = date.fromisoformat(as_of_iso)
     last30 = [(d, r) for d, r in pts if d > (as_of - timedelta(days=30)).isoformat()]
     hist = [r["s"] for d, r in priced[:-1]]
@@ -1539,12 +1995,24 @@ def measure_entity(norm, series, as_of_iso):
         "range_bp": [last.get("lo"), last.get("hi")], "n_last": last["n"], "n_priced_last": last.get("np"),
         "quoted_last": last.get("q"), "ambiguous_last": last.get("amb"), "capped_share": last.get("cap"),
         "cleared_share": last.get("cs"), "notional_mm_last": last.get("nm"), "anchor_source": last.get("as"), "sign_evidence": last.get("aq"), "points_upfront": last.get("pts"),
-        "quote_style": "points" if (last.get("pts") is not None) else "spread",
+        "quote_style": "points" if (last.get("pts") is not None) else "spread", "at_ceiling": bool((last["s"] or 0) >= SPREAD_CEILING_BP),
         "chg_1d_bp": _change(last["s"], prev), "chg_1w_bp": _change(last["s"], w1), "chg_1m_bp": _change(last["s"], m1), "chg_3m_bp": _change(last["s"], m3),
         "z_90d": z, "pct_rank_1y": _pct_rank(hist, last["s"]), "hi_1y_bp": round(max(hist + [last["s"]]), 1), "lo_1y_bp": round(min(hist + [last["s"]]), 1),
         "n_days_priced_1y": len(priced), "trades_30d": n30, "days_active_30d": days30,
         "curve_last": last.get("cv") or {}, "spark": spark, "sign_sources_20d": sign_sources,
+        "bracket_bp": _bracket_of(last) if last.get("sb") == "bracketed" else None,
+        "n_unconfirmed_1y": sum(1 for d, r in pts if d in bad),
+        "unconfirmed": {"date": odd[-1][0], "spread_bp": odd[-1][1]["s"], "n_priced": odd[-1][1].get("np"), "basis": odd[-1][1].get("sb")} if odd else None,
     }
+
+
+def _bracket_of(row):
+    """[lower branch, upper branch] of a day whose level is the middle of two close branches."""
+    cd = row.get("cd") or {}
+    if not cd:
+        return None
+    pair = cd.get("100") or next(iter(cd.values()))
+    return [round(min(pair), 1), round(max(pair), 1)]
 
 
 def activity(series, as_of_iso):
@@ -1599,7 +2067,10 @@ def describe_entity(name, m, group_median=None):
     if m is None or m["spread_bp"] is None:
         return "No priced 5Y prints in the window."
     if m.get("points_upfront") is not None:
-        bits = ["%s 5Y protection last printed at ~%.0f points upfront (%.0fbp running-equivalent) on %s" % (name, m["points_upfront"], m["spread_bp"], m["last_date"])]
+        if m.get("at_ceiling"):
+            bits = ["%s 5Y protection last printed at ~%.0f points upfront (past the %.0fbp ceiling: read the points) on %s" % (name, m["points_upfront"], SPREAD_CEILING_BP, m["last_date"])]
+        else:
+            bits = ["%s 5Y protection last printed at ~%.0f points upfront (%.0fbp running-equivalent) on %s" % (name, m["points_upfront"], m["spread_bp"], m["last_date"])]
     else:
         bits = ["%s 5Y protection last printed at %.0fbp on %s" % (name, m["spread_bp"], m["last_date"])]
     if m["n_last"]:
@@ -1658,11 +2129,16 @@ def _agg_bucket(rows, field, label):
 MIN_UNPRICED_PRINTS_30D = 3   # an active-but-unpriced name needs at least this many prints in 30 days to be listed
 
 
-def build_packet(bank, as_of_iso, generated_at, run_meta=None):
+def build_packet(bank, as_of_iso, generated_at, run_meta=None, extras=None):
+    """extras (optional, read by the engine from the warehouse): {"ties": {series key: {ticker, company, bond_bp, ...}},
+    "reference": {iso3: {cds_bp, date, source}}} - a listed company and its own bonds beside a name, and a reference
+    quote beside a sovereign the tape does not price."""
+    extras = extras or {}
+    ties, reference = extras.get("ties") or {}, extras.get("reference") or {}
     meta = bank.get("meta") or {}
     series = bank.get("series") or {}
-    groups = {"sovereign": [], "us_corp": [], "global_corp": []}
-    all_rows, unpriced, dormant = [], {}, {}
+    groups = {g: [] for g in GROUPS}
+    all_rows, unpriced, dormant, quiet, n_older = [], {}, {}, {}, {}
     for norm, s in series.items():
         if norm.startswith("IDX:"):
             continue
@@ -1670,7 +2146,20 @@ def build_packet(bank, as_of_iso, generated_at, run_meta=None):
         m = measure_entity(norm, s, as_of_iso)
         cls = classify_entity(info.get("kind"), norm, info.get("ccy") or {})
         act = activity(s, as_of_iso)
-        base = {"key": norm, "name": display_name(norm, info.get("raw")), **{k: v for k, v in cls.items() if k != "group"}}
+        base_norm = norm[len(SUB):] if norm.startswith(SUB) else norm
+        base = {"key": norm, "name": display_name(base_norm, info.get("raw")), **{k: v for k, v in cls.items() if k != "group"}}
+        tie = ties.get(norm) or ties.get(base_norm)
+        if tie:
+            base.update({k: tie.get(k) for k in ("ticker", "company", "listing", "bond_bp", "bond_book", "bond_as_of", "stock_1m_pct") if tie.get(k) is not None})
+        if m is None and act["trades_30d"] < MIN_UNPRICED_PRINTS_30D and not (cls["group"] == "sovereign" and act["last_date"]):
+            # never priced and quiet: it used to be left off the desk.  Listed with its last print when that is within a year.
+            year = _series_points(s, as_of_iso, 365)
+            if year:
+                quiet.setdefault(cls["group"], []).append({**base, "status": "quiet", "last_date": year[-1][0], "prints_1y": sum(r.get("n") or 0 for d, r in year),
+                                                           "days_1y": len(year), "why": "fewer than %d prints in 30 days and never priced" % MIN_UNPRICED_PRINTS_30D})
+            else:
+                n_older[cls["group"]] = n_older.get(cls["group"], 0) + 1
+            continue
         if m is None:
             if act["trades_30d"] >= MIN_UNPRICED_PRINTS_30D:
                 unpriced.setdefault(cls["group"], []).append({**base, **act, "last_spread_bp": None, "last_priced_date": None, "status": "unpriced",
@@ -1679,8 +2168,10 @@ def build_packet(bank, as_of_iso, generated_at, run_meta=None):
                 dormant.setdefault(cls["group"], []).append({**base, **act, "last_spread_bp": None, "last_priced_date": None, "status": "quiet",
                                                              "why": "fewer than %d prints in 30 days and never priced" % MIN_UNPRICED_PRINTS_30D})
             continue
-        if m["stale_days"] > STALE_MAX_DAYS:
-            # the name still trades, but nothing in the last STALE_MAX_DAYS days could be priced: list it, do not show an old level as current
+        unresolved_since = any(d > m["last_date"] and (r.get("amb") or 0) > 0 and (r.get("n5") or 0) > 0 for d, r in s.items())
+        if m["stale_days"] > AGED_MAX_DAYS or (m["stale_days"] > STALE_MAX_DAYS and unresolved_since):
+            # nothing recent could be priced (or 5Y prints since carry a sign nothing resolves): list it with its last dated
+            # level, not as a level.  A name that simply has not printed 5Y for a few weeks keeps its level, marked aged (below).
             entry = {**base, **act, "last_spread_bp": m["spread_bp"], "last_priced_date": m["last_date"], "last_points_upfront": m.get("points_upfront")}
             if act["trades_30d"] >= MIN_UNPRICED_PRINTS_30D:
                 unpriced.setdefault(cls["group"], []).append({**entry, "status": "unpriced", "why": "last priced %s at %.0fbp; every print since carries an unresolved upfront sign" % (m["last_date"], m["spread_bp"])})
@@ -1691,8 +2182,16 @@ def build_packet(bank, as_of_iso, generated_at, run_meta=None):
         m["slope_1y5y_bp"] = round(cv["5Y"] - cv["1Y"], 1) if cv.get("5Y") is not None and cv.get("1Y") is not None else None
         row = {**base, "group": cls["group"], **m, "liquid": liquid(m)}
         row["status"] = "liquid" if row["liquid"] else "thin"
+        if m["stale_days"] > STALE_MAX_DAYS:
+            # a level between STALE_MAX_DAYS and AGED_MAX_DAYS old: still the name's level, shown with its date, never counted as liquid
+            row["liquid"], row["status"] = False, "aged"
+            row["chg_1d_bp"] = None
+        elif m.get("spread_basis") == "bracketed":
+            row["status"] = "bracketed" if not row["liquid"] else row["status"]
         if not row["liquid"]:
             row["spark"] = _weekly(row["spark"])
+        if row.get("bond_bp") is not None and row.get("spread_bp") is not None:
+            row["basis_bp"] = round(row["spread_bp"] - row["bond_bp"], 1)     # CDS less the company's own bonds over governments
         all_rows.append(row)
     for row in all_rows:
         groups[row["group"]].append(row)
@@ -1708,8 +2207,12 @@ def build_packet(bank, as_of_iso, generated_at, run_meta=None):
         wid = sum(1 for c in chg if c > 0)
         unp = sorted(unpriced.get(g, []), key=lambda r: -r["trades_30d"])
         dor = sorted(dormant.get(g, []), key=lambda r: (r.get("last_date") or ""), reverse=True)
+        qui = sorted(quiet.get(g, []), key=lambda r: (r.get("last_date") or ""), reverse=True)
         out_groups[g] = {
             "n_liquid": len(liq), "n_tracked": len(rows) + len(unp) + len(dor), "n_priced": len(rows), "n_unpriced": len(unp), "n_dormant": len(dor),
+            "n_quiet": len(qui), "n_older": n_older.get(g, 0), "n_aged": sum(1 for r in rows if r["status"] == "aged"),
+            "n_bracketed": sum(1 for r in rows if r.get("spread_basis") == "bracketed"), "n_tied": sum(1 for r in rows + unp if r.get("ticker")),
+            "n_unconfirmed": sum(1 for r in rows if r.get("unconfirmed")),
             "median_bp": round(med, 1) if med is not None else None, "median_bp_all": round(med_all, 1) if med_all is not None else None,
             "median_chg_1d_bp": round(statistics.median(chg), 1) if chg else None,
             "share_wider_1d": round(wid / len(chg), 2) if chg else None,
@@ -1719,8 +2222,9 @@ def build_packet(bank, as_of_iso, generated_at, run_meta=None):
             "rows": rows,
             "unpriced": unp,
             "dormant": dor,
+            "quiet": qui,
         }
-        if g in ("us_corp", "global_corp"):
+        if g in ("us_corp", "global_corp", "sub"):
             out_groups[g]["sectors"] = _agg_bucket(rows + unp, "sector", "sector")
         if g == "sovereign":
             out_groups[g]["regions"] = _agg_bucket(rows + unp + dor, "region", "region")
@@ -1736,6 +2240,9 @@ def build_packet(bank, as_of_iso, generated_at, run_meta=None):
                 ck = SOV_CANON.get(norm, norm)
                 kind, r = seen.get(ck, (None, None))
                 e = {"name": disp, "iso3": iso3, "region": region, "tier": tier, "key": ck if r else None, "status": (r or {}).get("status") or "not_in_tape"}
+                ref = reference.get(iso3) if iso3 else None
+                if ref and ref.get("cds_bp") is not None:
+                    e.update(ref_bp=ref["cds_bp"], ref_date=ref.get("date"), ref_source=ref.get("source"))
                 if r:
                     e.update(spread_bp=r.get("spread_bp") if kind == "row" else None, chg_1d_bp=r.get("chg_1d_bp") if kind == "row" else None,
                              last_date=r.get("last_date"), last_spread_bp=r.get("last_spread_bp") if kind != "row" else None,
@@ -1744,7 +2251,8 @@ def build_packet(bank, as_of_iso, generated_at, run_meta=None):
                 universe.append(e)
             out_groups[g]["universe"] = universe
             out_groups[g]["coverage"] = {"known": len(universe), "in_tape": sum(1 for e in universe if e["status"] != "not_in_tape"),
-                                         "priced": sum(1 for e in universe if e["status"] in ("liquid", "thin")),
+                                         "priced": sum(1 for e in universe if e["status"] in ("liquid", "thin", "aged", "bracketed")),
+                                         "reference_only": sum(1 for e in universe if e["status"] not in ("liquid", "thin", "aged", "bracketed") and e.get("ref_bp") is not None),
                                          "unpriced": sum(1 for e in universe if e["status"] == "unpriced"),
                                          "dormant": sum(1 for e in universe if e["status"] in ("dormant", "quiet"))}
     indices = []
@@ -1757,7 +2265,10 @@ def build_packet(bank, as_of_iso, generated_at, run_meta=None):
             continue
         last = s.get(m["last_date"]) or {}
         indices.append({"key": fam, "name": info["label"], "group": info["group"], "quote": info["quote"], "coupon_bp": info["coupon_bp"],
+                        "since": "1.6" if fam in INDEX_FAMILIES_1_6 else "2.0",
                         "price": last.get("px"), "expiry": last.get("exp"), **m,
+                        # an index that has not printed for more than ten days is shown with its date, never as today's level
+                        "status": "current" if m["stale_days"] <= STALE_MAX_DAYS else "aged",
                         "read": describe_entity(info["label"], m)})
     # breadth across all liquid single names
     liquid_rows = [r for g in out_groups.values() for r in g["rows"] if r["liquid"]]
@@ -1800,6 +2311,179 @@ def build_packet(bank, as_of_iso, generated_at, run_meta=None):
         "decision": {"call": None, "sizing_eligible": False, "basis": "descriptive measurements of public prints only"},
         "breadth": breadth, "term": term, "wides_1y": wides, "tights_1y": tights,
         "activity": {"days": 120, "columns": ["date", "prints", "priced_prints", "notional_5y_mm", "names_priced"], "rows": tape_activity(series, as_of_iso)}, "groups": out_groups, "indices": indices,
+        "products": products_block(bank, as_of_iso), "structured": structured_block(bank, as_of_iso),
+        "options": options_block(bank, as_of_iso, {i["key"]: i for i in indices}),
+        "quality": quality_block(bank, as_of_iso, out_groups),
         "run": run_meta or {},
     }
+    packet["method"].update({
+        "coupon_rule": "the running coupon is read as a fraction, then as percent, then as basis points, whichever lands on a coupon the market trades with (%s bp); one platform writes 1 for a 100 bp coupon" % ", ".join("%g" % c for c in COUPON_GRID_BP),
+        "bracket_rule": "when the two feasible branches are within %.0f%% of each other the name trades at its coupon: the level is their geometric middle and both are shown" % (100 * (math.exp(NEAR_COUPON_LOG) - 1)),
+        "confirm_rule": "a day more than %.1fx from the middle of the name's previous six levels stands only with %d priced prints or two quoted that day, or a later day within %.0f%% of it; otherwise it is shown as unconfirmed and is neither the level nor an anchor" % (math.exp(JUMP_LOG), CONFIRM_PRINTS, 100 * (math.exp(CONFIRM_LOG) - 1)),
+        "aged_rule": "a level %d to %d days old is still shown as the name's level, with its date and the word aged; it is never counted as liquid" % (STALE_MAX_DAYS + 1, AGED_MAX_DAYS),
+        "bond_anchor_rule": "a name with no anchor of its own may take the sign from the same company's bonds (spread over governments, from the credit board) or, for a sovereign, a reference quote - only between far-apart branches, and it stays inferred",
+        "subordinated_rule": "subordinated, junior and mezzanine single names are priced with %.0f%% recovery and kept apart from the senior name" % (RECOVERY_SUB * 100),
+        "ceiling_rule": "a distressed name is quoted in points upfront; a running equivalent past %d bp measures the recovery assumed, not the name, so the level is carried at %d bp and read in points (a print of %d points or more that the %d%% recovery cannot reach is carried the same way)" % (
+            SPREAD_CEILING_BP, SPREAD_CEILING_BP, DISTRESS_POINTS, RECOVERY_SENIOR * 100),
+        "quote_rule": "a quoted spread is believed when the print's own upfront confirms it, or when it sits near the name's own level; a quote that equals the print's own upfront in points is points upfront, not a spread; a quote past %d bp is a unit the notation got wrong and is read in the unit a credit can trade at, then believed only next to the name's own level" % QUOTE_ABSURD_BP,
+        "spike_rule": "a level about seven times away from the name's own middle for at most %d priced days, after which the name prints where it was, was never its level: those days are listed as unconfirmed, whatever their size" % SPIKE_MAX_DAYS,
+        "uniform_rule": "the same coupon, expiry and upfront on %d or more names in one day is a portfolio booked at one flat price: those prints are counted and left out of every name's level" % UNIFORM_MIN_NAMES,
+        "netted_rule": "a print quoted like a points quote the same name printed that day is points upfront too, even when its own cash is netted against another leg; one print past the model's reach is carried at the ceiling only for a name already past %d bp or when a second print of the day says the same" % DISTRESS_ANCHOR_BP,
+        "listing_rule": "a company is tied to its listed stock by the credit board's reviewed tie, else by the same name in the worldwide listings: home exchange first, and a name whose swaps trade in euros, sterling or francs only to a European listing, in yen only to a Japanese one",
+        "product_rule": "every new trade of the credit file is counted by product; index, sovereign and corporate single names get a level, commercial-mortgage indices are shown in points upfront, options by strike, the rest as activity",
+    })
+    packet["method"]["sign_rule"] = packet["method"]["sign_rule"] + " > the company's own bonds or a sovereign reference quote (far-apart branches only)"
     return packet
+
+
+CLASS_MEASURE = {"index": "a level for each family", "option": "strikes and activity; whether a print is a payer or a receiver is not disseminated",
+                 "tranche": "activity; attachment points are not disseminated", "corp": "a level for each name", "sov": "a level for each name",
+                 "sub": "a level for each name, at 20% recovery", "single_other": "activity", "trs": "activity", "basket": "activity", "other": "activity"}
+
+
+def _census_days(bank, as_of_iso, n=None, calendar_days=None):
+    census = bank.get("census") or {}
+    days = sorted(d for d in census if d <= as_of_iso and sum(v[0] for v in (census[d].get("cls") or {}).values()) >= 50)   # weekend files hold a handful of late prints
+    if calendar_days is not None:
+        start = (date.fromisoformat(as_of_iso) - timedelta(days=calendar_days)).isoformat()
+        days = [d for d in days if d > start]
+    return days[-n:] if n else days
+
+
+def products_block(bank, as_of_iso):
+    """Every product of the credit file: prints and notional by class and by index family, over the last day, five
+    days and thirty days, and the daily count of each class."""
+    census = bank.get("census") or {}
+    if not census:
+        return {"available": False, "why": "the product census starts with engine 2.0; no day has been counted yet"}
+
+    def window(days):
+        cls, fam = {}, {}
+        for d in days:
+            for k, v in (census[d].get("cls") or {}).items():
+                c = cls.setdefault(k, [0, 0.0, 0.0, 0, 0])
+                for i in range(5):
+                    c[i] += v[i]
+            for k, v in (census[d].get("fam") or {}).items():
+                f = fam.setdefault(k, [0, 0.0, 0.0])
+                for i in range(3):
+                    f[i] += v[i]
+        total = sum(v[0] for v in cls.values()) or 1
+        fams = []
+        for k, v in sorted(fam.items(), key=lambda kv: -kv[1][0]):
+            c, name = k.split("|", 1)
+            label = (INDEX_FAMILIES.get(name) or {}).get("label") or (STRUCTURED_FAMILIES.get(name) or (None,))[0] or (name if c in WORDED_CLASSES else name.title())
+            measured = "level" if (c == "index" and name in INDEX_FAMILIES) else "points upfront" if (c == "index" and name in STRUCTURED_FAMILIES) else "strikes" if c == "option" else "activity"
+            fams.append({"cls": c, "family": name, "label": label, "n": v[0], "usd_mm": round(v[1], 1), "eur_mm": round(v[2], 1), "measured": measured})
+        return {"days": len(days), "first": days[0] if days else None, "last": days[-1] if days else None, "n": sum(v[0] for v in cls.values()),
+                "classes": [{"cls": k, "words": PRODUCT_WORDS[k], "n": cls[k][0], "share_pct": round(100.0 * cls[k][0] / total, 1), "usd_mm": round(cls[k][1], 1), "eur_mm": round(cls[k][2], 1),
+                             "other_ccy_n": cls[k][3], "capped_n": cls[k][4], "measured": CLASS_MEASURE[k]} for k in PRODUCT_ORDER if k in cls],
+                "families": fams}
+
+    days = _census_days(bank, as_of_iso)
+    daily = [[d] + [((census[d].get("cls") or {}).get(k) or [0])[0] for k in PRODUCT_ORDER] for d in _census_days(bank, as_of_iso, calendar_days=120)]
+    return {"available": True, "first_day": days[0] if days else None, "n_days": len(days),
+            "windows": {"1d": window(days[-1:]), "5d": window(days[-5:]), "30d": window(_census_days(bank, as_of_iso, calendar_days=30))},
+            "daily": {"columns": ["date"] + list(PRODUCT_ORDER), "rows": daily},
+            "note": "counts of new trades as disseminated; a block trade's notional is capped in the public file, so notional is a floor; notional in currencies other than dollars and euros is counted as prints only"}
+
+
+def structured_block(bank, as_of_iso):
+    """The commercial-mortgage indices by rating tier and series, in points upfront."""
+    census = bank.get("census") or {}
+    days = _census_days(bank, as_of_iso, calendar_days=120)
+    acc = {}
+    for d in days:
+        for k, v in (census[d].get("str") or {}).items():
+            acc.setdefault(k, []).append((d, v))
+    month = (date.fromisoformat(as_of_iso) - timedelta(days=30)).isoformat()
+    rows = []
+    for k, pts in acc.items():
+        fam, expiry = k.split("|", 1)
+        last_d, last = pts[-1]
+        m30 = [(d, v) for d, v in pts if d > month]
+        if not m30:
+            continue
+        prev = [v[1] for d, v in pts if d <= month]
+        rows.append({"family": fam, "label": STRUCTURED_FAMILIES[fam][0], "asset": STRUCTURED_FAMILIES[fam][1], "final": expiry, "coupon_bp": last[3],
+                     "points": last[1], "price_if_paid_for_protection": round(100.0 - last[1], 2), "last_date": last_d, "n_last": last[0],
+                     "n_30d": sum(v[0] for d, v in m30), "usd_mm_30d": round(sum(v[2] for d, v in m30), 1),
+                     "points_1m_ago": prev[-1] if prev else None, "chg_1m_points": round(last[1] - prev[-1], 2) if prev else None,
+                     "spark": [[d, v[1]] for d, v in pts][-40:]})
+    order = list(STRUCTURED_FAMILIES)
+    rows.sort(key=lambda r: (order.index(r["family"]), r["final"]))
+    return {"available": bool(census), "rows": rows, "n_series": len(rows),
+            "note": "a commercial-mortgage index runs to the legal final of the bonds under it, so there is no 5-year spread; each series is shown as the middle upfront payment in points of notional. Who paid it is not disseminated: for the lower tiers the side taking protection pays, and 100 less the points is the price"}
+
+
+def options_block(bank, as_of_iso, indices):
+    """Options on the indices over the last thirty days: how much traded, to which expiries and at which strikes."""
+    census = bank.get("census") or {}
+    days = _census_days(bank, as_of_iso, calendar_days=30)
+    fams = {}
+    for d in days:
+        for fam, expiry, strike, kind, mm, capped, ccy in (census[d].get("opt") or []):
+            f = fams.setdefault(fam, {"n": 0, "mm": 0.0, "capped": 0, "ccy": ccy, "exp": {}, "k": {}, "days": {}})
+            f["n"] += 1
+            f["mm"] += mm
+            f["capped"] += capped
+            if expiry and _days_between(d, expiry) > OPTION_EXPIRY_MAX_DAYS:
+                expiry = ""           # the file carried the index's maturity where the option's expiry belongs
+            e = f["exp"].setdefault(expiry or "", [0, 0.0])
+            e[0] += 1
+            e[1] += mm
+            step = 1.0 if kind == "price" else (2.5 if strike < 150 else 12.5)
+            kk = f["k"].setdefault((kind, round(round(strike / step) * step, 2)), [0, 0.0])
+            kk[0] += 1
+            kk[1] += mm
+            dd = f["days"].setdefault(d, [0, 0.0])
+            dd[0] += 1
+            dd[1] += mm
+    out = []
+    for fam, f in sorted(fams.items(), key=lambda kv: -kv[1]["mm"]):
+        idx = indices.get(fam) or {}
+        kinds = {}
+        for (kind, strike), v in f["k"].items():
+            kinds[kind] = kinds.get(kind, 0.0) + v[1]
+        main = max(kinds, key=kinds.get) if kinds else None
+        level = idx.get("price") if main == "price" else idx.get("spread_bp")
+        every = sorted([{"strike": k, "n": v[0], "notional_mm": round(v[1], 1)} for (kind, k), v in f["k"].items() if kind == main], key=lambda r: r["strike"])
+
+        def on_ladder(k):
+            if level is None or not level:
+                return True
+            if main == "price":
+                return abs(k - level) <= OPTION_LADDER_PRICE
+            return OPTION_LADDER_SPREAD[0] <= k / level <= OPTION_LADDER_SPREAD[1]
+        ladder = [r for r in every if on_ladder(r["strike"])]
+        # a strike several times the index level is an option on another index sharing the currency and coupon: listed, not drawn
+        off = [r for r in every if not on_ladder(r["strike"])] + sorted(
+            [{"strike": k, "n": v[0], "notional_mm": round(v[1], 1), "kind": kind} for (kind, k), v in f["k"].items() if kind != main], key=lambda r: r["strike"])
+        wide = sum(r["notional_mm"] for r in ladder if level is not None and ((r["strike"] > level) if main == "spread" else (r["strike"] < level)))
+        tot = sum(r["notional_mm"] for r in ladder) or None
+        out.append({"family": fam, "label": (INDEX_FAMILIES.get(fam) or {}).get("label") or fam, "ccy": f["ccy"], "n": f["n"], "notional_mm": round(f["mm"], 1), "capped_n": f["capped"],
+                    "strike_kind": main, "index_level": level, "ladder": ladder, "off_ladder": off,
+                    "share_struck_wider_pct": round(100.0 * wide / tot, 1) if (tot and level is not None) else None,
+                    "expiries": sorted([{"expiry": e, "n": v[0], "notional_mm": round(v[1], 1), "expired": bool(e and e <= as_of_iso)} for e, v in f["exp"].items() if e], key=lambda r: r["expiry"]),
+                    "expiry_not_given": {"n": f["exp"][""][0], "notional_mm": round(f["exp"][""][1], 1)} if "" in f["exp"] else None,
+                    "daily": [[d, v[0], round(v[1], 1)] for d, v in sorted(f["days"].items())]})
+    n_all = sum(((census[d].get("cls") or {}).get("option") or [0])[0] for d in days)
+    return {"available": bool(census), "days": len(days), "first": days[0] if days else None, "last": days[-1] if days else None, "families": out,
+            "n": sum(f["n"] for f in out), "notional_mm": round(sum(f["notional_mm"] for f in out), 1),
+            "n_all": n_all, "n_other_underlier": max(0, n_all - sum(f["n"] for f in out)),
+            "note": "the public file gives an option's strike, expiry and size but not whether it is a payer or a receiver, nor the index it is on by name: the index is read from the currency and the coupon (dollars at 500 bp is CDX HY, at 100 bp CDX IG; euros at 500 bp iTraxx Crossover, at 100 bp iTraxx Europe). Struck wider means a strike on the weaker-credit side of today's level"}
+
+
+def quality_block(bank, as_of_iso, out_groups):
+    """What the desk repaired or held back, so nothing is silently different from the file."""
+    census = bank.get("census") or {}
+    days = _census_days(bank, as_of_iso, calendar_days=30)
+    how = {}
+    for d in days:
+        for k, v in (census[d].get("how") or {}).items():
+            how[k] = how.get(k, 0) + v
+    return {"window_days": 30, "coupon_written_as": how,
+            "unconfirmed_now": [{"key": r["key"], "name": r["name"], "group": g, "level_bp": r["spread_bp"], "level_date": r["last_date"], **r["unconfirmed"]}
+                                for g, blk in out_groups.items() for r in blk["rows"] if r.get("unconfirmed")],
+            "n_bracketed": sum(blk["n_bracketed"] for blk in out_groups.values()), "n_aged": sum(blk["n_aged"] for blk in out_groups.values()),
+            "n_quiet": sum(blk["n_quiet"] for blk in out_groups.values()), "n_older": sum(blk["n_older"] for blk in out_groups.values())}

@@ -89,13 +89,15 @@ tr:hover td{background:rgba(255,255,255,.015);}
 @keyframes rot{from{transform:rotate(0);}to{transform:rotate(360deg);}}
 .seg-btn.cds-chip{padding:4px 9px;} .seg-btn.cds-chip:hover{color:var(--text);border-color:var(--border-hi);} .seg-btn.cds-chip.active{color:var(--info);border-color:var(--info);background:rgba(34,211,238,.08);}
 .cds-map-country:hover{stroke:#e6ecf3;stroke-width:1.2;}
+/* a phone: a wide table scrolls inside its own panel instead of widening the whole page (found 2026-11-25: the page was 545 px wide on a 390 px screen) */
+@media(max-width:720px){#cdsdesk-root .panel{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}#cdsdesk-root{max-width:100%;overflow-x:hidden}}
 .intro{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px 22px;margin-bottom:18px;} .intro h2{margin:0 0 6px 0;font-size:15px;font-weight:600;} .intro p{margin:0;color:var(--text-dim);font-size:12.5px;}
 
 </style>
 </head>
 <body>
 <header>
-  <h1>🛡 CDS DESK <span class="badge">v1.6</span></h1>
+  <h1>🛡 CDS DESK <span class="badge" id="cds-badge">v2.0</span></h1>
   <div class="header-meta">
     <span id="ts" class="t-mute">loading...</span>
     <a href="/intelligence/#cds" class="nav-back">intelligence</a>
@@ -106,10 +108,12 @@ tr:hover td{background:rgba(255,255,255,.015);}
   <div class="intro">
     <h2>Credit default swaps from the public tape</h2>
     <p>Sovereign, U.S. corporate and global corporate 5Y CDS measured from the real-time trade reports U.S. swap dealers must disseminate (DTCC public price files). Every name in the tape is listed — priced, "either / or" (upfront sign undisclosed) or dormant — plus every known sovereign issuer that has not printed. Click a region, tier or sector chip to filter, any column header to sort, any name or country for its record drawn against free credit records since 2006. Around the tape sit the free risk layers: ESMA consensus ratings and the rating tape, IMF reserve adequacy and private debt, the ECB / EBA bank–sovereign nexus, OFR Form PF hedge-fund books, the NY Fed corporate-credit distress index and FDIC bank-level fragility. Descriptive measurements only; no call, no sizing.</p>
+    <p style="margin-top:8px"><b style="color:var(--text)">New in 2.0.</b> Every product of the credit file is read, not only senior single names: twelve index families, subordinated bank and corporate names, index options by strike and expiry, tranches and the commercial-mortgage indices. A coupon the file writes as "1" is one percent (it had been read as one basis point, which put AT&amp;T at 7 bp). A level up to 45 days old stays on the desk with its date; a quiet name is listed instead of dropped; a company is tied to its listed stock anywhere in the world and to its own bonds; a sovereign with no print carries a reference quote, marked ≈. Start with the picture at the top, click any name for everything the desk holds on it down to the prints, and open the last section for every key the engine published.</p>
   </div>
   <div id="cdsdesk-root" data-engine="justhodl-cds-desk" data-auto="1"></div>
 </main>
-<script src="/jh-cds-desk.js?v=20261009-11"></script>
+<script src="/jh-cds-views.js?v=20261125a"></script>
+<script src="/jh-cds-desk.js?v=20261125a"></script>
 <script>
 (function(){
   var ts=document.getElementById('ts');

@@ -68,9 +68,14 @@ def test_pricer_round_trip_and_calibrated_sign():
 
 
 def test_filters_keep_senior_single_names_and_indices_only():
-    assert C.normalize_trade(row(**{"UPI FISN": "NA/CDS Corp SN Sub"}), "sec") is None
-    assert C.normalize_trade(row(**{"UPI FISN": "NA/CDS Corp SN Mz"}), "sec") is None
+    # 2.0: subordinated and mezzanine names are read, as their own kind at 20% recovery; tranches are still never priced,
+    # whichever way the file spells them ("Idx Tra" is how DTCC writes it - 1.6 looked for "Tranche" and read them as index prints)
+    assert C.normalize_trade(row(**{"UPI FISN": "NA/CDS Corp SN Sub"}), "sec")["kind"] == "sub"
+    assert C.normalize_trade(row(**{"UPI FISN": "NA/CDS Corp SN Mz"}), "sec")["rec"] == C.RECOVERY_SUB
     assert C.normalize_trade(row(**{"UPI FISN": "NA/CDS Corp Idx Tranche"}), "cftc") is None
+    assert C.normalize_trade(row(**{"UPI FISN": "NA/CDS Corp Idx Tra", "UPI Underlier Name": "CDX.NA.IG"}), "cftc") is None
+    assert C.normalize_trade(row(**{"UPI FISN": "NA/CDS Idx Swt", "UPI Underlier Name": "NA/CDS Corp Idx"}), "cftc") is None
+    assert C.normalize_trade(row(**{"UPI FISN": "NA/CDS Sov SN Jr"}), "sec") is None
     assert C.normalize_trade(row(**{"Event type": "NOVA"}), "sec") is None
     assert C.normalize_trade(row(**{"UPI FISN": "NA/CDS Corp SN Sr"}), "sec")["kind"] == "corp"
     assert C.normalize_trade(row(), "sec")["kind"] == "sov"
@@ -465,7 +470,7 @@ def test_v160_risk_layers_attach_and_stay_descriptive():
     """v1.6.0: IMF ARA/GDD, ECB SUP bank→sovereign, EBA home bias, ESMA ratings, OFR Form PF and the U.S. credit block
     attach to sovereign universe entries + rows without touching the doctrine fields."""
     import cds_risk_layers as RL
-    assert RL.VERSION == C.VERSION == "1.6.0"
+    assert RL.VERSION == "1.6.0" and C.VERSION == "2.0.0"   # the layers are unchanged by 2.0
     pk = {"groups": {"sovereign": {"universe": [{"key": "ITA", "iso3": "ITA"}, {"key": "TUR", "iso3": "TUR"}, {"key": "USA", "iso3": "USA"}],
                                    "rows": [{"key": "ITA"}], "unpriced": [{"key": "TUR"}], "dormant": []}},
           "decision": {"call": None, "sizing_eligible": False}}
@@ -585,6 +590,493 @@ def test_inferred_own_level_signs_a_later_far_branch():
     cands = C.candidate_spreads(close, RATE)
     if len(cands) == 2 and abs(C.math.log(cands[0][0] / cands[1][0])) < C.BRANCH_FAR_LOG:
         assert C.resolve_spread(close, RATE, 17.59, far_only=True)[0] is None
+
+
+# ----------------------------------------------------------------------------------------------------- 2.0
+def _bank():
+    return {"version": C.VERSION, "series": {}, "meta": {}, "entity_map": {}, "days": []}
+
+
+def _run(bank, day, rows_, anchors=None, external=None):
+    ts = [t for t in (C.normalize_trade(r, "sec") for r in rows_) if t]
+    emap = C.entity_map(ts, bank.get("entity_map") or {})
+    agg = C.aggregate_day(ts, emap, RATE, anchors if anchors is not None else C.anchors_from_bank(bank, day, external=external))
+    C.update_bank(bank, day, agg, emap)
+    return agg
+
+
+CORP = {"UPI FISN": "NA/CDS Corp SN Sr", "Underlying Asset Name": "AT&T Inc.", "Unique Product Identifier": "QZATT0000001"}
+WEEKDAYS = ["2026-10-%02d" % d for d in range(1, 31) if C.date(2026, 10, d).weekday() < 5]
+
+
+def test_v200_a_coupon_written_in_percent_is_one_hundred_basis_points():
+    """The audit's root cause: one platform writes a 1% coupon as "1".  1.6 read 1 bp, found one feasible branch and
+    published AT&T at 7 bp.  The reading that lands on a coupon the market trades with wins."""
+    assert C.coupon_bp_of("0.01") == (100.0, "fraction") and C.coupon_bp_of("1") == (100.0, "percent") and C.coupon_bp_of("5") == (500.0, "percent")
+    assert C.coupon_bp_of("0.05") == (500.0, "fraction") and C.coupon_bp_of("100") == (100.0, "bp") and C.coupon_bp_of("0.0025") == (25.0, "fraction")
+    assert C.coupon_bp_of("0.04485") == (448.5, "bespoke") and C.coupon_bp_of("7") == (None, "unreadable") and C.coupon_bp_of("") == (None, None)
+    # the real print: T CDS USD SR 5.25Y D14, 2026-11-19, $13,833.75 on $5M, coupon "1"
+    t = C.normalize_trade(row(**dict(CORP, **{"Underlying Asset Name": "T CDS USD SR 5.25Y D14", "Fixed rate-Leg 1": "1", "Other payment type": "UFRO",
+                                              "Other payment amount": "13833.75480", "Notional amount-Leg 1": "5,000,000+", "Execution Timestamp": "2026-11-19T13:27:00Z"})), "sec")
+    assert t["coupon_bp"] == 100.0 and t["coupon_how"] == "percent"
+    cands = C.candidate_spreads(t, RATE)
+    assert len(cands) == 2 and all(85 < v < 115 for v, b in cands), cands      # 1.6: one branch, 6.9 bp
+    assert C.resolve_spread(t, RATE)[1] == "bracketed" and 95 < C.resolve_spread(t, RATE)[0] < 105
+
+
+def test_v200_one_entity_keeps_one_key_whatever_an_older_map_held():
+    """The audit: AT&T was on the desk twice.  The map kept "AT&T" from an older spelling rule beside today's "AT & T"."""
+    bank = _bank()
+    bank["entity_map"] = {"QZATT0000001": {"norm": "AT&T", "raw": "AT&T Inc.", "votes": 800}}
+    bank["series"] = {"AT&T": {"2026-10-01": {"n": 2, "n5": 2, "np": 2, "s": 99.0, "sb": "quoted", "q": 2, "amb": 0, "nm": 10.0}},
+                      "AT & T": {"2026-09-30": {"n": 2, "n5": 2, "np": 2, "s": 98.0, "sb": "quoted", "q": 2, "amb": 0, "nm": 10.0}}}
+    bank["meta"] = {"AT&T": {"kind": "corp", "raw": "AT&T Inc.", "ccy": {"USD": 2}}, "AT & T": {"kind": "corp", "raw": "AT&T Inc.", "ccy": {"USD": 2}}}
+    assert C.merge_aliases(bank) == [("AT&T", "AT & T")]
+    assert bank["entity_map"]["QZATT0000001"]["norm"] == "AT & T" and sorted(bank["series"]) == ["AT & T"]
+    _run(bank, "2026-10-02", [quoted_row(100, **CORP, **{"Execution Timestamp": "2026-10-02T13:00:00Z"}) for _ in range(2)])
+    assert sorted(bank["series"]) == ["AT & T"], "the day's prints must land on the one key"
+    packet = C.build_packet(bank, "2026-10-02", "2026-10-03T00:00:00Z")
+    assert [r["name"] for r in packet["groups"]["us_corp"]["rows"]] == ["AT&T"]
+
+
+def test_v200_an_unrepeated_jump_is_neither_the_level_nor_an_anchor():
+    bank = _bank()
+    for day in WEEKDAYS[:12]:
+        _run(bank, day, [quoted_row(95, **CORP, **{"Execution Timestamp": day + "T13:00:00Z"}) for _ in range(2)])
+    key = "AT & T"
+    bank["series"][key][WEEKDAYS[12]] = {"n": 1, "n5": 1, "np": 1, "s": 7.08, "sb": "derived", "q": 0, "amb": 0, "nm": 5.0, "as": "single_branch", "aq": "firm"}
+    bank["days"].append(WEEKDAYS[12])
+    assert C.unconfirmed_days(sorted(bank["series"][key].items())) == {WEEKDAYS[12]}
+    m = C.measure_entity(key, bank["series"][key], WEEKDAYS[12])
+    assert m["spread_bp"] == 95.0 and m["last_date"] == WEEKDAYS[11] and m["unconfirmed"]["spread_bp"] == 7.08 and m["n_unconfirmed_1y"] == 1
+    assert C.anchors_from_bank(bank, WEEKDAYS[13])[key][0] == 95.0, "the anchor must not follow one unrepeated print"
+    # a second day near it makes it real: a name that has truly repriced is not held back
+    bank["series"][key][WEEKDAYS[13]] = {"n": 1, "n5": 1, "np": 1, "s": 7.5, "sb": "derived", "q": 0, "amb": 0, "nm": 5.0}
+    assert C.unconfirmed_days(sorted(bank["series"][key].items())) == set()
+    assert C.measure_entity(key, bank["series"][key], WEEKDAYS[13])["spread_bp"] == 7.5
+    # and a day with three priced prints stands by itself
+    bank["series"][key][WEEKDAYS[14]] = {"n": 3, "n5": 3, "np": 3, "s": 400.0, "sb": "derived", "q": 0, "amb": 0, "nm": 15.0}
+    assert WEEKDAYS[14] not in C.unconfirmed_days(sorted(bank["series"][key].items()))
+
+
+def test_v200_a_name_trading_at_its_coupon_gets_the_middle_of_its_two_branches():
+    t = C.normalize_trade(derived_row(104, coupon_bp=100.0, **CORP), "sec")
+    cands = sorted(v for v, b in C.candidate_spreads(t, RATE))
+    assert len(cands) == 2 and C.math.log(cands[1] / cands[0]) < C.NEAR_COUPON_LOG
+    s, basis = C.resolve_spread(t, RATE)
+    assert basis == "bracketed" and cands[0] < s < cands[1]
+    far = C.normalize_trade(derived_row(160, coupon_bp=100.0, **CORP), "sec")
+    assert C.resolve_spread(far, RATE) == (None, "ambiguous"), "far-apart branches stay either / or"
+    bank = _bank()
+    agg = _run(bank, "2026-10-07", [derived_row(104, coupon_bp=100.0, **CORP) for _ in range(2)], anchors={})
+    m = agg["entities"]["AT & T"]
+    assert m["spread_basis"] == "bracketed" and m["anchor_source"] == "near_coupon" and m["anchor_quality"] == "bracketed"
+    row_ = C.build_packet(bank, "2026-10-07", "2026-10-08T00:00:00Z")["groups"]["us_corp"]["rows"][0]
+    assert row_["status"] == "bracketed" and row_["bracket_bp"][0] < row_["spread_bp"] < row_["bracket_bp"][1] and row_["sign_evidence"] == "bracketed"
+
+
+def test_v200_a_companys_own_bonds_may_pick_between_far_branches_only():
+    bank = _bank()
+    day = "2026-10-07"
+    hy = dict(CORP, **{"Underlying Asset Name": "MGM Resorts International", "Unique Product Identifier": "QZMGM0000001"})
+    agg = _run(bank, day, [derived_row(250, coupon_bp=500.0, day=day, **hy) for _ in range(2)], external={"MGM RESORTS INTERNATIONAL": (162.3, "bonds")})
+    m = agg["entities"]["MGM RESORTS INTERNATIONAL"]
+    assert abs(m["spread_5y"] - 250) < 2 and m["anchor_source"] == "bonds" and m["anchor_quality"] == "inferred", m
+    # branches that are not far apart: the bonds do not choose (150 against 60 around a 100 coupon, bonds at 95)
+    ig = dict(CORP, **{"Underlying Asset Name": "HSBC Holdings plc", "Unique Product Identifier": "QZHSBC000001"})
+    bank2 = _bank()
+    agg2 = _run(bank2, day, [derived_row(150, coupon_bp=100.0, day=day, **ig) for _ in range(2)], external={"HSBC": (95.0, "bonds")})
+    assert agg2["entities"]["HSBC"]["spread_5y"] is None and agg2["entities"]["HSBC"]["basis"]["ambiguous"] == 2
+    # the name's own recent level always outranks them
+    bank3 = _bank()
+    _run(bank3, "2026-10-06", [quoted_row(700, **hy, **{"Execution Timestamp": "2026-10-06T13:00:00Z"}) for _ in range(2)])
+    assert C.anchors_from_bank(bank3, day, external={"MGM RESORTS INTERNATIONAL": (162.3, "bonds")})["MGM RESORTS INTERNATIONAL"][2] == "trailing"
+
+
+def test_v200_subordinated_names_are_their_own_series_at_twenty_percent_recovery():
+    bank = _bank()
+    sub = {"UPI FISN": "NA/CDS Corp SN Sub", "Underlying Asset Name": "BNP PARIBAS", "Unique Product Identifier": "QZBNPSUB0001", "Notional currency-Leg 1": "EUR"}
+    sen = {"UPI FISN": "NA/CDS Corp SN Sr", "Underlying Asset Name": "BNP PARIBAS", "Unique Product Identifier": "QZBNPSEN0001", "Notional currency-Leg 1": "EUR"}
+    day = "2026-10-07"
+    _run(bank, day, [quoted_row(120, **sub) for _ in range(2)] + [quoted_row(60, **sen) for _ in range(2)])
+    assert set(bank["series"]) == {"BNP PARIBAS", "SUB:BNP PARIBAS"} and bank["meta"]["SUB:BNP PARIBAS"]["kind"] == "sub"
+    packet = C.build_packet(bank, day, "2026-10-08T00:00:00Z")
+    assert packet["groups"]["sub"]["rows"][0]["spread_bp"] == 120.0 and packet["groups"]["sub"]["rows"][0]["name"] == "BNP Paribas"
+    assert packet["groups"]["global_corp"]["rows"][0]["spread_bp"] == 60.0
+    t = C.normalize_trade(derived_row(300, coupon_bp=100.0, **sub), "sec")
+    senior = C.normalize_trade(derived_row(300, coupon_bp=100.0, **sen), "sec")
+    above = lambda tr: [v for v, b in C.candidate_spreads(tr, RATE) if b == "above_coupon"][0]
+    assert t["rec"] == C.RECOVERY_SUB and above(t) != above(senior), "the same upfront is a different spread at 20% recovery"
+    assert C.merge_aliases(bank) == [] and "SUB:BNP PARIBAS" in bank["series"]
+
+
+def test_v200_an_aged_level_is_shown_with_its_date_unless_later_prints_are_unresolved():
+    bank = _bank()
+    for day in WEEKDAYS[:3]:
+        _run(bank, day, [quoted_row(28, **{"Execution Timestamp": day + "T13:00:00Z"}) for _ in range(2)])
+    as_of = WEEKDAYS[14]      # about three weeks later, nothing printed since
+    bank["days"].append(as_of)
+    sov = C.build_packet(bank, as_of, "2026-10-22T00:00:00Z")["groups"]["sovereign"]
+    assert sov["rows"] and sov["rows"][0]["status"] == "aged" and sov["rows"][0]["liquid"] is False and sov["rows"][0]["spread_bp"] == 28.0
+    assert sov["rows"][0]["stale_days"] > C.STALE_MAX_DAYS and sov["n_aged"] == 1 and sov["n_liquid"] == 0
+    too_old = C.build_packet(bank, "2026-12-15", "2026-12-16T00:00:00Z")["groups"]["sovereign"]
+    assert not too_old["rows"], "past %d days it is no longer a level" % C.AGED_MAX_DAYS
+
+
+def test_v200_quiet_names_are_listed_not_dropped():
+    bank = _bank()
+    day = "2026-10-07"
+    quiet = dict(CORP, **{"Underlying Asset Name": "Schneider Electric SE", "Unique Product Identifier": "QZSCHN000001", "Notional currency-Leg 1": "EUR"})
+    _run(bank, day, [derived_row(160, coupon_bp=100.0, day=day, **quiet)], anchors={})
+    g = C.build_packet(bank, "2026-11-20", "2026-11-21T00:00:00Z")["groups"]["global_corp"]
+    assert not g["rows"] and not g["unpriced"] and [q["name"] for q in g["quiet"]] == ["Schneider Electric SE"] and g["quiet"][0]["prints_1y"] == 1
+    assert g["n_quiet"] == 1 and g["quiet"][0]["last_date"] == day
+
+
+def test_v200_every_new_trade_is_counted_by_product():
+    base = {"Execution Timestamp": "2026-11-19T15:00:00Z"}
+    rows_ = [row(**base, **{"UPI FISN": "NA/CDS Corp Idx", "UPI Underlier Name": "CDX.NA.IG", "Notional amount-Leg 1": "100,000,000"}),
+             row(**base, **{"UPI FISN": "NA/CDS Corp Idx Tra", "UPI Underlier Name": "CDX.NA.IG", "Notional amount-Leg 1": "25,000,000"}),
+             row(**base, **{"UPI FISN": "NA/CDS Idx Swt", "UPI Underlier Name": "NA/CDS Corp Idx", "Fixed rate-Leg 1": "0.01", "Strike Price": "70", "Expiration Date": "2027-02-17",
+                            "Notional amount-Leg 1": "400,000,000+"}),
+             row(**base, **{"UPI FISN": "NA/CDS Idx Swt", "UPI Underlier Name": "NA/CDS Corp Idx", "Fixed rate-Leg 1": "0.05", "Strike Price": "0.01045", "Expiration Date": "2027-01-20",
+                            "Notional amount-Leg 1": "110,000,000"}),
+             row(**base, **{"UPI FISN": "NA/CDS Corp Idx", "UPI Underlier Name": "CMBX.NA.BBB-", "Fixed rate-Leg 1": "0.03", "Expiration Date": "2056-12-15",
+                            "Other payment type": "UFRO", "Other payment amount": "909791.67", "Notional amount-Leg 1": "5,000,000"}),
+             row(**base, **{"UPI FISN": "NA/CDS Corp SN Sub", "Notional currency-Leg 1": "EUR"}),
+             row(**base, **{"UPI FISN": "NA/Cr Sw SN TRtn Corp Cs", "Notional currency-Leg 1": "KZT"}),
+             row(**base, **CORP, **{"Fixed rate-Leg 1": "1"}), row(**base), row(**base, **{"Event type": "NOVA"})]
+    recs = [r for r in (C.print_record(x) for x in rows_) if r]
+    assert len(recs) == 9, "a novation is not a new trade"
+    c = C.census_day(recs)
+    assert {k: v[0] for k, v in c["cls"].items()} == {"index": 2, "tranche": 1, "option": 2, "sub": 1, "trs": 1, "corp": 1, "sov": 1}
+    assert c["cls"]["trs"][3] == 1 and c["cls"]["option"][4] == 1, "another currency is counted as a print; a capped block is counted as capped"
+    assert c["fam"]["option|CDX.NA.IG"][0] == 1 and c["fam"]["option|CDX.NA.HY"][0] == 1 and c["fam"]["tranche|CDX.NA.IG"][0] == 1
+    assert c["fam"]["trs|Cr Sw SN TRtn Corp Cs"][0] == 1, "a product with no index behind it is counted under the name the file gives it"
+    assert c["opt"] == [["CDX.NA.IG", "2027-02-17", 70.0, "spread", 400.0, 1, "USD"], ["CDX.NA.HY", "2027-01-20", 104.5, "price", 110.0, 0, "USD"]]
+    assert c["str"]["CMBX.NA.BBB-|2056-12-15"][:2] == [1, round(909791.67 / 5e6 * 100, 2)] and c["how"] == {"percent": 1, "fraction": 2}
+    share_of_par = C.print_record(row(**base, **{"UPI FISN": "NA/CDS Idx Swt", "UPI Underlier Name": "NA/CDS Corp Idx", "Fixed rate-Leg 1": "0.05", "Strike Price": "0.94", "Expiration Date": "2027-01-20"}))
+    assert (share_of_par["strike"], share_of_par["strike_kind"]) == (94.0, "price"), "0.94 of par is a price strike of 94, not a 9,400 bp spread"
+    wild = C.census_day([dict(recs[0], notional=1e14)])
+    assert wild["cls"]["index"][:2] == [1, 0.0], "a notional no trade can have is counted as a print, not as a hundred trillion"
+    assert C.normalize_trade(rows_[4], "cftc") is None, "a commercial-mortgage index has no 5-year spread: it is counted, never priced as one"
+    bank = _bank()
+    bank["census"] = {"2026-11-19": dict(c, cls=dict(c["cls"], index=[2000, 5e4, 0, 0, 0]))}
+    bank["days"] = ["2026-11-19"]
+    packet = C.build_packet(bank, "2026-11-19", "2026-11-20T00:00:00Z")
+    classes = {x["cls"]: x for x in packet["products"]["windows"]["1d"]["classes"]}
+    assert classes["tranche"]["measured"].startswith("activity") and classes["option"]["n"] == 2 and packet["products"]["daily"]["rows"][0][0] == "2026-11-19"
+    assert [f["family"] for f in packet["options"]["families"]] == ["CDX.NA.IG", "CDX.NA.HY"] and packet["options"]["families"][0]["ladder"][0]["strike"] == 70.0
+    assert packet["structured"]["rows"][0]["label"] == "CMBX BBB-" and packet["structured"]["rows"][0]["price_if_paid_for_protection"] == round(100 - 18.2, 2)
+    assert packet["quality"]["coupon_written_as"] == {"percent": 1, "fraction": 2}
+
+
+def test_v200_listings_reference_and_ties_are_read_from_the_warehouses_own_documents():
+    assert C.listing_key("HSBC Holdings plc") == C.listing_key("HSBC HOLDINGS") == "HSBC" and C.listing_key("AT&T Inc.") == "AT AND T"
+    assert C.listing_key("Schneider Electric SE") == C.listing_key("SCHNEIDER ELECTRIC S E".replace("S E", "SE")) == "SCHNEIDER ELECTRIC"
+    # legal words go only where a name ends: Public Power Corporation is not "Power" (the audit matched it to PWR Holdings in Sydney)
+    assert C.listing_key("Public Power Corporation S.A.") == "PUBLIC POWER" and C.listing_key("PWR Holdings Limited") == "POWER"
+    assert C.listing_key("Johnson Controls International Public Limited Company") == C.listing_key("Johnson Controls International plc")
+    assert C.listing_key("Vornado Realty L.P.") == C.listing_key("Vornado Realty Trust") == "VORNADO REALTY"
+    # a swap in euros is on a European company: EDP Corporation of Tokyo is not EDP, S.A.
+    assert not C.listing_allowed({"country": "JP"}, "EUR") and C.listing_allowed({"country": "PT"}, "EUR") and C.listing_allowed({"country": "JP"}, "USD")
+    assert C.listing_allowed({"country": "JP"}, "JPY") and not C.listing_allowed({"country": "US"}, "JPY") and "ROGERS" in C.LISTING_DENY
+    home = {"exchange": "LSE", "country": "GB", "adr": False, "volume": 1.0}
+    adr = {"exchange": "NYSE", "country": "GB", "adr": True, "volume": 9e9}
+    otc = {"exchange": "OTC", "country": "GB", "adr": False, "volume": 9e9}
+    assert C.listing_rank(home) > C.listing_rank(adr) > C.listing_rank(otc)
+    bank = _bank()
+    bank["meta"] = {"AT & T": {"kind": "corp", "raw": "AT&T Inc.", "ccy": {"USD": 9}}, "SUB:BNP PARIBAS": {"kind": "sub", "raw": "BNP PARIBAS", "ccy": {"EUR": 2}},
+                    "PARAMOUNT SKYDANCE": {"kind": "corp", "raw": "PARAMOUNT SKYDANCE CORP", "ccy": {"USD": 3}}, "IDX:CDX.NA.IG": {"kind": "index"}}
+    board = {"as_of": "2026-11-23", "cds": {"priced": [{"name": "AT&T", "ticker": "T", "company": "AT&T Inc."}], "no_level": []},
+             "issuers": {"cols": ["id", "ticker", "name", "book", "spread_bp", "px_m1"],
+                         "rows": [["T:T", "T", "AT&T Inc.", "ig", 145.3, 6.87], ["I:PARAMOUNT SKYDANCE", None, "PARAMOUNT SKYDANCE", "hy", 310.0, None], ["I:BNP PARIBAS", None, "BNP PARIBAS", "xig", 88.0, None]]}}
+    ties, status = L.load_ties(bank, board)
+    assert ties["AT & T"] == {"board_id": "T:T", "ticker": "T", "company": "AT&T Inc.", "bond_bp": 145.3, "bond_book": "ig", "bond_as_of": "2026-11-23", "stock_1m_pct": 6.87}
+    assert ties["PARAMOUNT SKYDANCE"]["bond_bp"] == 310.0 and "ticker" not in ties["PARAMOUNT SKYDANCE"] and status.startswith("ok: 3 names")
+    ref, _ = L.load_reference({"generated_at": "2026-11-24T18:16:36", "countries": [{"country": "Poland", "cds_bp": 151.0, "as_of": "24 November 2026"},
+                                                                                    {"country": "Russia", "cds_bp": None}, {"country": "Atlantis", "cds_bp": 5.0}]})
+    assert list(ref) == ["POL"] and ref["POL"]["cds_bp"] == 151.0
+    ext = L.external_anchors(bank, ties, ref)
+    assert ext["AT & T"] == (145.3, "bonds") and "SUB:BNP PARIBAS" not in ext, "senior bonds are no evidence for a subordinated swap"
+    assert [v for k, v in ext.items() if v[1] == "reference"] == [(151.0, "reference")]
+    packet = C.build_packet({**bank, "series": {}}, "2026-11-24", "2026-11-25T00:00:00Z", extras={"ties": ties, "reference": ref})
+    poland = [u for u in packet["groups"]["sovereign"]["universe"] if u["iso3"] == "POL"][0]
+    assert poland["status"] == "not_in_tape" and poland["ref_bp"] == 151.0 and packet["groups"]["sovereign"]["coverage"]["reference_only"] == 1
+
+
+def test_v200_a_distressed_print_is_carried_at_the_ceiling_and_read_in_points():
+    day = "2026-11-24"
+    acc = C.accrued_pct(500.0, C.date.fromisoformat(day))
+
+    def pts(points):                      # the file gives the cash: the quoted points less the accrued coupon
+        return C.normalize_trade(row(**{"Fixed rate-Leg 1": "0.05", "Other payment amount": "%.2f" % ((points - acc) / 100.0 * 2_000_000), "Other payment type": "UFRO",
+                                        "Notional amount-Leg 1": "2,000,000", "Execution Timestamp": day + "T13:00:00Z", "Expiration Date": "2031-12-20",
+                                        "UPI FISN": "NA/CDS Corp SN Sr", "Underlying Asset Name": "Virgin Media Finance PLC"}), "sec")
+    beyond, near, usual, small = pts(63.0), pts(58.8), pts(30.0), pts(2.0 + acc)
+    assert C.candidate_spreads(beyond, RATE, 3000.0) == [(C.SPREAD_CEILING_BP, "above_coupon")], "63 points is more than a 40% recovery can ever pay: for a name already wide, still a level"
+    assert C.candidate_spreads(near, RATE, 3000.0) == [(C.SPREAD_CEILING_BP, "above_coupon")], "the print the audit read as 36,103 bp"
+    # one such print on a healthy name is a mis-filed amount, not a default: Toyota was carried at the ceiling for a day in a dry run
+    assert C.candidate_spreads(beyond, RATE, 50.0) == [] and C.candidate_spreads(beyond, RATE) == [] and C.candidate_spreads(near, RATE, 50.0) == []
+    assert C._measure([dict(beyond)], RATE, 50.0)["spread_5y"] is None
+    two = C.mark_day([dict(beyond), dict(beyond)])                   # two prints of the day beyond the model's reach are a distressed name
+    assert two[0]["day_distress"] and C.candidate_spreads(two[0], RATE) == [(C.SPREAD_CEILING_BP, "above_coupon")]
+    got = C.candidate_spreads(usual, RATE)
+    assert len(got) == 1 and 1500 < got[0][0] < 2200, got                       # an ordinary distressed print is left alone
+    assert len(C.candidate_spreads(small, RATE)) == 2                            # two points: both sides of the coupon stay feasible
+    m = C._measure([beyond, dict(beyond), near], RATE, None)
+    assert m["spread_5y"] == C.SPREAD_CEILING_BP and 58 < m["points_5y"] <= 63.01, m
+
+
+def test_v200_a_quote_that_is_its_own_upfront_in_points_is_points_not_a_spread():
+    """The audit: Hertz at 49 bp for a day.  A dealer platform filed 49 points in the spread field; the quote less the cash
+    the print disseminates is exactly the accrued coupon, which also says which coupon it is."""
+    day = "2026-10-27"                                   # 38 days into the quarter: a 5% coupon has accrued 0.5278 points
+    acc5 = C.accrued_pct(500.0, C.date.fromisoformat(day))
+
+    def gsbs(quote, cash_pts, **over):                   # that platform gives no coupon
+        return C.normalize_trade(row(**{"Fixed rate-Leg 1": "", "Spread-Leg 1": str(quote), "Spread notation-Leg 1": "4", "Other payment amount": "%.2f" % (cash_pts / 100.0 * 3_000_000),
+                                        "Other payment type": "UFRO", "Notional amount-Leg 1": "3,000,000", "Execution Timestamp": day + "T14:00:00Z", "Expiration Date": "2031-12-20",
+                                        "UPI FISN": "NA/CDS Corp SN Sr", "Underlying Asset Name": "The Hertz Corporation", **over}), "sec")
+    hertz = gsbs(53.5, 53.5 - acc5)
+    assert C.points_quote(hertz) == (53.5, 500.0), "the gap is the accrued coupon of a 5% contract"
+    (hs, hb), = C.candidate_spreads(hertz, RATE)
+    assert C.quote_status(hertz, RATE) == "points" and hb == "above_coupon" and 5000 < hs <= C.SPREAD_CEILING_BP, hs      # not 53.5 bp
+    assert C.candidate_spreads(gsbs(81.0, 81.0 - acc5), RATE, 4000.0) == [(C.SPREAD_CEILING_BP, "above_coupon")], "81 points is past what a 40% recovery pays"
+    whirl = gsbs(12.5, 12.5 - C.accrued_pct(100.0, C.date.fromisoformat(day)))
+    assert C.points_quote(whirl) == (12.5, 100.0)
+    (s, branch), = C.candidate_spreads(whirl, RATE)
+    assert branch == "above_coupon" and 330 < s < 460, s                    # 12.5 points on a 1% coupon over five years, not 12.5 bp
+    m = C._measure([hertz, dict(hertz)], RATE, None)
+    assert m["spread_5y"] == round(hs, 2) and m["points_5y"] == 53.5 and m["basis"]["quoted"] == 0, m
+    # a real quoted spread is left alone: 112 bp with the upfront a 112 bp spread gives is still a quote
+    real = C.normalize_trade(quoted_row(112.0, **{"Other payment amount": "%.2f" % (abs(C.clean_upfront_pct(112.0, 100.0, 5.2, RATE) - C.accrued_pct(100.0, C.date(2026, 10, 7))) / 100.0 * 5_000_000),
+                                                 "Other payment type": "UFRO"}), "sec")
+    assert C.points_quote(real) is None and C.resolve_spread(real, RATE)[1] == "quoted"
+    # the day itself (2026-04-20): six prints quoted "49" on a 5% coupon whose cash was 48.87 - the quote is rounded, so the gap is
+    # not the accrual to the cent, and read as a spread the 1.6 engine found it "confirmed" by a 10% coupon nobody quoted
+    apr = C.normalize_trade(row(**{"Fixed rate-Leg 1": "0.05", "Spread-Leg 1": "49", "Spread notation-Leg 1": "4", "Other payment amount": "%.2f" % (48.87 / 100.0 * 3_000_000), "Other payment type": "UFRO",
+                                   "Notional amount-Leg 1": "3,000,000", "Execution Timestamp": "2026-04-20T14:00:00Z", "Expiration Date": "2031-06-20", "UPI FISN": "NA/CDS Corp SN Sr",
+                                   "Underlying Asset Name": "The Hertz Corporation"}), "sec")
+    assert C.points_quote(apr) == (49.0, 500.0) and C.quote_status(apr, RATE) == "points"
+    (s49, b49), = C.candidate_spreads(apr, RATE)
+    assert b49 == "above_coupon" and s49 > 3000, "49 points, not 49 bp: %s" % s49
+    nocpn = C.normalize_trade(row(**{"Fixed rate-Leg 1": "", "Spread-Leg 1": "30", "Spread notation-Leg 1": "4", "Other payment amount": "%.2f" % (29.75 / 100.0 * 3_000_000), "Other payment type": "UFRO",
+                                     "Notional amount-Leg 1": "3,000,000", "Execution Timestamp": "2026-04-20T14:00:00Z", "Expiration Date": "2031-06-20", "UPI FISN": "NA/CDS Corp SN Sr",
+                                     "Underlying Asset Name": "Some Name Inc."}), "sec")
+    assert C.points_quote(nocpn) == (30.0, None) and C.candidate_spreads(nocpn, RATE) == [], "points on a coupon the print does not say and the accrual does not name: no level, and never 30 bp"
+    bare = C.normalize_trade(quoted_row(49.0), "sec")                       # a quote with no cash beside it cannot be told apart: it stays a soft quote
+    assert C.points_quote(bare) is None
+
+
+def test_v200_a_leg_quoted_like_the_days_points_quotes_is_points_too():
+    """The rows themselves (ops 6958, 2026-04-20): seven Hertz prints at "49".  Five disseminate 48.556% - the quote less the
+    accrued coupon.  Two disseminate 21.53% - a leg whose cash is netted against another - and a 49 bp spread on a 5% coupon
+    happens to cost about that, so 1.6 called them confirmed quotes and published Hertz at 49 bp."""
+    def gsbs(quote, cash_pct, expiry="2031-06-20", name="The Hertz Corporation", day="2026-04-20", notional=3_000_000):
+        return C.normalize_trade(row(**{"Fixed rate-Leg 1": "", "Spread-Leg 1": str(quote / 1e4), "Spread notation-Leg 1": "3", "Other payment amount": "%.2f" % (cash_pct / 100.0 * notional),
+                                        "Other payment type": "UFRO", "Notional amount-Leg 1": "{:,}".format(notional), "Execution Timestamp": day + "T19:20:00Z", "Expiration Date": expiry,
+                                        "UPI FISN": "NA/CDS Corp SN Sr", "Underlying Asset Name": name}), "sec")
+    own, netted = gsbs(49.0, 48.556), gsbs(49.0, 21.53)
+    assert C.points_quote(own) == (49.0, 500.0) and C.points_quote(netted) is None
+    assert C.quote_status(netted, RATE) == "confirmed", "read alone, the netted leg looks like a 49 bp quote"
+    day = C.mark_day([own, dict(own), netted, dict(netted)])
+    assert day[2]["points_as"] == (49.0, 500.0) and "points_as" not in day[0]
+    (s, branch), = C.candidate_spreads(day[2], RATE)
+    assert branch == "above_coupon" and s > 3000, "49 points like its siblings, not 49 bp: %s" % s
+    m = C._measure([own, dict(own), netted, dict(netted)], RATE, None)
+    assert m["spread_5y"] > 3000 and m["basis"]["quoted"] == 0 and m["points_5y"] == 49.0, m
+    # even with no sibling that day, a quote "confirmed" only under a coupon the print does not state is not believed far from the name's own level
+    assert C.candidate_spreads(gsbs(49.0, 21.53), RATE, 4000.0) == [] and C.candidate_spreads(gsbs(49.0, 21.53), RATE) == [(49.0, "quoted")]
+    # DISH DBS, 2026-03-20: "10" with 9.986% is ten points; the leg with 23.614% is the same quote
+    dish = C.mark_day([gsbs(10.0, 9.986, name="DISH DBS Corp", day="2026-03-20"), gsbs(10.0, 23.614, name="DISH DBS Corp", day="2026-03-20")])
+    assert dish[1]["points_as"] == (10.0, 500.0) and 700 < C.candidate_spreads(dish[1], RATE)[0][0] < 900
+
+
+def test_v200_a_spike_that_came_back_was_never_the_level():
+    """South Africa at 5,224 bp for two days between 121 and 121; Heidelberg Materials at 1,250 for three days; the United
+    States at 5,656 for one.  Each was a strong or repeated day, so the unrepeated-jump rule let it stand."""
+    def rows(levels, strong=True):
+        return [("2026-08-%02d" % (i + 1), {"s": v, "n": 3, "n5": 3, "np": 3 if strong else 1, "q": 0}) for i, v in enumerate(levels)]
+    za = rows([118, 121, 120, 123, 121, 119, 5223.7, 4410.6, 121, 124, 120])
+    assert C.unconfirmed_days(za) == {"2026-08-07", "2026-08-08"}
+    hm = rows([56, 57, 55, 59, 56, 58, 1282, 1224, 1233, 52, 54, 52])
+    assert C.unconfirmed_days(hm) == {"2026-08-07", "2026-08-08", "2026-08-09"}
+    hertz = rows([4100, 3900, 4300, 4000, 4200, 49.0, 3792, 4813, 5308])
+    assert C.unconfirmed_days(hertz) == {"2026-08-06"}
+    # a name that leaves and stays is a move, not a spike - and the newest days are left alone until later days can say
+    moved = rows([120, 121, 119, 122, 120, 121, 1500, 1620, 1580, 1700, 1650])
+    assert C.unconfirmed_days(moved) == set()
+    fresh = rows([120, 121, 119, 122, 120, 121, 5200])
+    assert C.unconfirmed_days(fresh) == set(), "a strong newest day stands until the tape says otherwise"
+    long_stay = rows([120, 121, 119, 122, 120, 121, 5200, 5100, 5300, 5250, 120, 121])
+    assert C.unconfirmed_days(long_stay) == set(), "four days is not a spike"
+    usa = [("2025-%02d-10" % m, {"s": v, "n": 1, "n5": 1, "np": 1, "q": 0}) for m, v in ((4, 60.0), (5, 60.0), (9, 43.1), (10, 42.1), (11, 38.2))] + \
+          [("2026-%02d-10" % m, {"s": v, "n": 1, "n5": 1, "np": 1, "q": 0}) for m, v in ((1, 31.7), (4, 36.8), (8, 38.4), (9, 5656.25), (10, 43.75), (11, 48.24))]
+    assert "2026-09-10" in C.unconfirmed_days(usa), "a sovereign that prints a dozen times a year: the day at 5,656 bp between 38 and 44"
+    m = C.measure_entity("X", dict(za), "2026-08-11")
+    assert m["hi_1y_bp"] < 130 and m["spread_bp"] == 120, "the range of its year no longer runs to 5,224"
+
+
+def test_v200_a_portfolio_booked_at_one_flat_price_is_nobodys_level():
+    """2026-09-21..29: CSX, Northrop Grumman, Allstate and Quest each carried the same sixteen prints - one upfront, the
+    upfront of a 52 bp name - while CSX traded at 15.  1.6 published Quest at 52 to 56 bp for a week; a dry run of 2.0
+    froze CSX there."""
+    names = ["CSX Corp", "Northrop Grumman Corporation", "The Allstate Corporation", "Quest Diagnostics Incorporated"]
+    flat = [derived_row(52.0, day="2026-09-21", **{"Underlying Asset Name": n, "UPI FISN": "NA/CDS Corp SN Sr", "Unique Product Identifier": "QZ%08d" % i}) for i, n in enumerate(names) for _ in range(3)]
+    own = derived_row(15.0, day="2026-09-21", **{"Underlying Asset Name": "CSX Corp", "UPI FISN": "NA/CDS Corp SN Sr", "Unique Product Identifier": "QZ%08d" % 0})
+    ts = [x for x in (C.normalize_trade(r, "sec") for r in flat + [own, dict(own)]) if x]
+    emap = C.entity_map(ts, {})
+    agg = C.aggregate_day(ts, emap, RATE, {"CSX": (15.5, "firm", "trailing")})
+    csx = agg["entities"]["CSX"]
+    assert csx["basis"]["package"] == 3 and abs(csx["spread_5y"] - 15.0) < 0.6, csx                   # its own two prints are its level
+    assert all(agg["entities"][k]["spread_5y"] is None and agg["entities"][k]["cand"] is None for k in agg["entities"] if k != "CSX"), "a flat price is nobody's level, and no branch to anchor on later"
+    three = [x for x in (C.normalize_trade(r, "sec") for r in flat[:9]) if x]                         # three names only: could be a coincidence, left alone
+    agg3 = C.aggregate_day(three, C.entity_map(three, {}), RATE, {})
+    assert all(m["basis"]["package"] == 0 for m in agg3["entities"].values())
+    # a confirmed quote stands against a wrong anchor when the cash fits it to the cent (CSX's own quotes were being thrown out)
+    q15 = C.normalize_trade(row(**{"Fixed rate-Leg 1": "", "Spread-Leg 1": "0.0015", "Spread notation-Leg 1": "3", "Underlying Asset Name": "CSX Corp", "UPI FISN": "NA/CDS Corp SN Sr",
+                                   "Other payment amount": "%.2f" % (abs(C.clean_upfront_pct(15.0, 100.0, 5.2, RATE) - C.accrued_pct(100.0, C.date(2026, 10, 7))) / 100.0 * 5_000_000), "Other payment type": "UFRO"}), "sec")
+    assert C.quote_status(q15, RATE) == "confirmed" and C._quote_fit(q15, RATE) < 0.05
+    assert C.candidate_spreads(q15, RATE, 56.0) == [(15.0, "quoted")], "far from a wrong anchor, a quote its own cash confirms exactly is still the quote"
+
+
+def test_v200_a_quote_in_the_wrong_unit_is_repaired_and_never_believed_alone():
+    """The audit: history points at 1.8 million bp (Telecom Italia) and 70 million (Hertz).  One platform writes 57 under the
+    decimal notation and 0.49 under basis points."""
+    assert C.quoted_bp_of({"Spread-Leg 1": "57", "Spread notation-Leg 1": "3"}) == (57.0, "bp_under_decimal")
+    assert C.quoted_bp_of({"Spread-Leg 1": "0.0057", "Spread notation-Leg 1": "3"}) == (57.0, None)
+    assert C.quoted_bp_of({"Spread-Leg 1": "0.49", "Spread notation-Leg 1": "4"}) == (49.0, "percent_under_bp")
+    assert C.quoted_bp_of({"Spread-Leg 1": "49", "Spread notation-Leg 1": "4"}) == (49.0, None)
+    assert C.quoted_bp_of({"Spread-Leg 1": "70498.4", "Spread notation-Leg 1": "3"}) == (None, None), "nothing a credit trades at in either unit"
+    t = C.normalize_trade(row(**{"Spread-Leg 1": "57", "Spread notation-Leg 1": "3", "Underlying Asset Name": "NEXT plc", "UPI FISN": "NA/CDS Corp SN Sr"}), "sec")
+    assert t["quoted_bp"] == 57.0 and t["quote_how"] == "bp_under_decimal"
+    assert C.candidate_spreads(t, RATE) == [], "with nothing beside it a repaired quote is not a level"
+    assert C.candidate_spreads(t, RATE, 48.0) == [(57.0, "quoted")] and C.candidate_spreads(t, RATE, 400.0) == []
+    wild = C.normalize_trade(quoted_row(20000.0), "sec")
+    assert C.quote_status(wild, RATE) == "reject", "a quote past the ceiling is not a level"
+    assert "quote_how" in L.TRADE_COLS, "the repair is kept with the print, so a day measured again from the warehouse reads it the same way"
+
+
+def test_v200_an_old_firm_level_that_cannot_pick_a_branch_does_not_end_the_search():
+    """The third dry run lost Grifols and NEXT: each had a quoted day months old, the name had moved since, and the old
+    level sat between its two branches - while its own newer levels, which could tell them apart, were never asked.
+    HSBC was lost the same way to its bonds (105 bp, between 48 and 155)."""
+    def bank_with(rows):
+        return {"series": {"GRIFOLS": rows}, "meta": {"GRIFOLS": {"kind": "corp", "ccy": {"EUR": 9}}}, "days": sorted(rows)}
+    firm = {"n": 2, "n5": 2, "np": 2, "s": 400.0, "sb": "quoted", "q": 2, "aq": "firm", "as": "quoted"}
+    carried = {"n": 1, "n5": 1, "np": 1, "s": 255.0, "sb": "derived", "q": 0, "aq": "inferred", "as": "trailing"}
+    unresolved = {"n": 1, "n5": 1, "np": 0, "s": None, "q": 0, "amb": 1, "cd": {"500": [725.8, 255.0]}}
+    rows = {"2026-05-0%d" % i: dict(firm) for i in range(4, 9)}
+    rows.update({"2026-09-%02d" % i: dict(carried, s=250.0 + i) for i in range(1, 9)})
+    rows["2026-10-06"] = dict(unresolved)
+    got = C.anchors_from_bank(bank_with(rows), "2026-10-20")["GRIFOLS"]
+    assert got[2] == "trailing_long" and got[1] == "inferred" and 250 < got[0] < 262, "its own newer levels pick the branch the 400 could not: %s" % (got,)
+    only_firm = {d: r for d, r in rows.items() if d < "2026-09"}
+    only_firm["2026-10-06"] = dict(unresolved)
+    assert C.anchors_from_bank(bank_with(only_firm), "2026-10-20")["GRIFOLS"] == (400.0, "firm", "trailing_long"), "with nothing better the old firm level is still what the day gets"
+    far = dict(rows)
+    far["2026-10-06"] = dict(unresolved, cd={"500": [1200.0, 395.0]})
+    assert C.anchors_from_bank(bank_with(far), "2026-10-20")["GRIFOLS"] == (400.0, "firm", "trailing_long"), "a firm level that does tell the branches apart still comes first"
+    # bonds between the branches yield to the name's own carried level instead of freezing it
+    hsbc = {"2026-09-%02d" % i: dict(carried, s=47.0 + i * 0.1) for i in range(1, 6)}
+    hsbc["2026-10-06"] = {"n": 1, "n5": 1, "np": 0, "s": None, "q": 0, "amb": 1, "cd": {"100": [155.0, 48.0]}}
+    b2 = {"series": {"HSBC": hsbc}, "meta": {"HSBC": {"kind": "corp", "ccy": {"EUR": 9}}}, "days": sorted(hsbc)}
+    got = C.anchors_from_bank(b2, "2026-10-20", external={"HSBC": (105.3, "bonds")})["HSBC"]
+    assert got[2] == "trailing_long" and 47 < got[0] < 48, got
+
+
+def test_v200_option_expiries_and_strikes_off_the_ladder_are_set_aside_not_drawn():
+    bank = _bank()
+    bank["census"] = {"2026-11-20": {"cls": {"option": [9, 0, 0], "index": [60, 0, 0]}, "fam": {}, "str": {}, "how": {}, "opt": [
+        ["ITRAXX EUROPE", "2026-12-16", 65.0, "spread", 300.0, 0, "EUR"], ["ITRAXX EUROPE", "2026-12-16", 80.0, "spread", 100.0, 0, "EUR"],
+        ["ITRAXX EUROPE", "2026-11-18", 60.0, "spread", 50.0, 0, "EUR"],            # an expiry already past on the as-of day
+        ["ITRAXX EUROPE", "2031-12-20", 70.0, "spread", 200.0, 0, "EUR"],           # the index's maturity, not an option expiry
+        ["ITRAXX EUROPE", "2026-12-16", 287.5, "spread", 50.0, 0, "EUR"],           # a Crossover strike filed under the 100 bp coupon
+        ["CDX.NA.HY", "2026-12-16", 104.0, "price", 100.0, 0, "USD"], ["CDX.NA.HY", "2026-12-16", 60.0, "price", 10.0, 0, "USD"]]}}
+    o = C.options_block(bank, "2026-11-24", {"ITRAXX EUROPE": {"spread_bp": 64.6}, "CDX.NA.HY": {"spread_bp": 379.0, "price": 104.8}})
+    eu = [f for f in o["families"] if f["family"] == "ITRAXX EUROPE"][0]
+    assert [r["strike"] for r in eu["ladder"]] == [60.0, 65.0, 70.0, 80.0] and [r["strike"] for r in eu["off_ladder"]] == [287.5]
+    assert [(e["expiry"], e["expired"]) for e in eu["expiries"]] == [("2026-11-18", True), ("2026-12-16", False)]
+    assert eu["expiry_not_given"] == {"n": 1, "notional_mm": 200.0} and eu["share_struck_wider_pct"] == round(100.0 * 600.0 / 650.0, 1)
+    hy = [f for f in o["families"] if f["family"] == "CDX.NA.HY"][0]
+    assert [r["strike"] for r in hy["ladder"]] == [104.0] and [r["strike"] for r in hy["off_ladder"]] == [60.0], hy
+    assert o["n_all"] == 9 and o["n_other_underlier"] == 2
+
+
+def test_v200_a_home_listing_is_matched_by_name_in_the_right_part_of_the_world():
+    import gzip as _gz
+    import io as _io
+    head = "symbol,companyName,exchange,country,currency,isEtf,isFund,isActivelyTrading,isAdr,averageVolume,price,sector\n"
+    part0 = head + "\n".join([
+        "7794.T,EDP Corporation,JPX,JP,JPY,false,false,true,false,90000,900,Technology",          # the same name in Tokyo: another company
+        "EDP.LS,\"EDP, S.A.\",LIS,PT,EUR,false,false,true,false,5000000,4,Utilities",
+        "SIEMENS.NS,Siemens Limited,NSE,IN,INR,false,false,true,false,900000,3000,Industrials",
+        "SIE.DE,Siemens AG,XETRA,DE,EUR,false,false,true,false,1000000,180,Industrials",
+        "ROG,Rogers Corporation,NYSE,US,USD,false,false,true,false,100000,100,Technology",
+        "HSBA.L,HSBC Holdings plc,LSE,GB,GBp,false,false,true,false,20000000,800,Financial Services",
+        "HSBC,HSBC Holdings plc,NYSE,GB,USD,false,false,true,true,2000000,45,Financial Services",
+        "0235.HK,CSC Holdings Limited,HKSE,HK,HKD,false,false,true,false,100000,1,Financial Services",
+        "SPY,SPDR S&P 500 ETF Trust,AMEX,US,USD,true,false,true,false,90000000,600,",
+    ]) + "\n"
+    part1 = head + "T,AT&T Inc.,NYSE,US,USD,false,false,true,false,30000000,25,Communication Services\n"
+
+    class FakeS3:
+        def get_paginator(self, _):
+            class P:
+                def paginate(self, **kw):
+                    return [{"Contents": [{"Key": L.PROFILE_PREFIX + "part-0/daily/2026-11-24.csv.gz"}, {"Key": L.PROFILE_PREFIX + "part-1/daily/2026-11-24.csv.gz"},
+                                          {"Key": L.PROFILE_PREFIX + "part-0/daily/2026-11-25.csv.gz"}]}]      # the 25th has one part of two: not complete
+            return P()
+
+        def get_object(self, Bucket, Key):
+            assert "2026-11-24" in Key, "the newest day with every part is read, not a half-posted one"
+            return {"Body": _io.BytesIO(_gz.compress((part0 if "part-0" in Key else part1).encode()))}
+
+    bank = _bank()
+    bank["meta"] = {"EDP": {"kind": "corp", "raw": "Edp,S.A.", "ccy": {"EUR": 9}}, "SIEMENS AKTIENGESELLSCHAFT": {"kind": "corp", "raw": "Siemens Aktiengesellschaft", "ccy": {"EUR": 5}},
+                    "ROGERS": {"kind": "corp", "raw": "Rogers Group,Inc.", "ccy": {"USD": 2}}, "HSBC": {"kind": "corp", "raw": "HSBC HOLDINGS plc", "ccy": {"EUR": 9, "USD": 1}},
+                    "SUB:HSBC": {"kind": "sub", "raw": "HSBC HOLDINGS plc", "ccy": {"EUR": 3}}, "CSC": {"kind": "corp", "raw": "CSC HOLDINGS LLC", "ccy": {"USD": 7}},
+                    "AT & T": {"kind": "corp", "raw": "AT&T Inc.", "ccy": {"USD": 9}}, "FEDERATIVE REPUBLIC OF BRAZIL": {"kind": "sov", "raw": "Brazil", "ccy": {"USD": 9}}}
+    old = L.s3
+    L.s3 = FakeS3()
+    try:
+        names, status = L.load_listings(bank, "2026-11-25")
+    finally:
+        L.s3 = old
+    assert names["EDP"]["symbol"] == "EDP.LS" and names["SIEMENS AKTIENGESELLSCHAFT"]["symbol"] == "SIE.DE", names
+    assert names["HSBC"]["symbol"] == names["SUB:HSBC"]["symbol"] == "HSBA.L", "the home exchange outranks the depositary receipt"
+    assert "ROGERS" not in names and "FEDERATIVE REPUBLIC OF BRAZIL" not in names and names["AT & T"]["symbol"] == "T"
+    assert names["CSC"]["symbol"] == "0235.HK", "a dollar name may be listed anywhere - which is why a reviewed tie outranks it (below)"
+    assert bank["listed"]["profiles_of"] == "2026-11-24" and "of 6 corporate names" in status
+    again, st2 = L.load_listings(bank, "2026-11-27")
+    assert again is bank["listed"]["names"] and st2.startswith("kept"), "matched once a week, not every run"
+
+
+def test_v200_a_dry_run_writes_nothing_and_the_days_prints_round_trip():
+    puts = []
+
+    class FakeS3:
+        def put_object(self, **kw):
+            puts.append(kw["Key"])
+
+    old_s3, old_dry = L.s3, L.DRY
+    L.s3 = FakeS3()
+    try:
+        L.DRY = True
+        assert L._put_json("data/x.json", {"a": 1}) > 0 and puts == []
+        L.DRY = False
+        L._put_json("data/x.json", {"a": 1})
+        assert puts == ["data/x.json"]
+        trades = [C.normalize_trade(quoted_row(112, **CORP), "sec"), C.normalize_trade(derived_row(150, **CORP, **{"Fixed rate-Leg 1": "1"}), "sec")]
+        L.DAY_RECORDS["2026-10-07"] = [C.print_record(quoted_row(112, **CORP))]
+        doc = L.prints_doc("2026-10-07", trades, L.DAY_RECORDS["2026-10-07"])
+        back = L.trades_of(json.loads(json.dumps(doc)))
+        assert [C.candidate_spreads(dict(t), RATE) for t in back] == [C.candidate_spreads(dict(t), RATE) for t in trades]
+        assert "Underlier" not in json.dumps(doc) and doc["records"][0][doc["record_cols"].index("cls")] == "corp"
+    finally:
+        L.s3, L.DRY = old_s3, old_dry
+        L.DAY_RECORDS.clear()
 
 
 if __name__ == "__main__":

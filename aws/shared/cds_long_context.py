@@ -438,6 +438,11 @@ def build_long_context(fred, ofr, ebp, bank, as_of_iso, ecb=None, ciss=None, cli
             "notes": notes}
 
 
+def _unconfirmed(rows):
+    import cds_desk      # imported here: cds_desk does not import this module, and the tests load either one first
+    return cds_desk.unconfirmed_days(rows)
+
+
 def build_history(bank, as_of_iso, long_block, keys, branch_keys=()):
     """Full daily series for every listed name and index (the main packet only carries 120-day sparklines).
     branch_keys: unpriced names also get both feasible branches per coupon per day ([date, above_coupon, below_coupon])."""
@@ -448,7 +453,10 @@ def build_history(bank, as_of_iso, long_block, keys, branch_keys=()):
         s = series.get(key)
         if not s:
             continue
-        pts = [[d, r["s"]] for d, r in sorted(s.items()) if r.get("s") is not None and d <= as_of_iso]
+        rows = sorted(s.items())
+        bad = _unconfirmed(rows) if not key.startswith("IDX:") else set()     # 2.0: a jump the tape has not repeated is not a point of the line
+        pts = [[d, r["s"]] for d, r in rows if r.get("s") is not None and d <= as_of_iso and d not in bad]
+        odd = [[d, r["s"]] for d, r in rows if r.get("s") is not None and d <= as_of_iso and d in bad]
         branches = {}
         if key in branch_keys:
             for d, r in sorted(s.items()):
@@ -459,4 +467,6 @@ def build_history(bank, as_of_iso, long_block, keys, branch_keys=()):
                         "raw": (meta.get(key) or {}).get("raw")}
             if branches:
                 out[key]["branches"] = branches
+            if odd:
+                out[key]["unconfirmed"] = odd
     return {"engine": "justhodl-cds-desk", "as_of": as_of_iso, "names": out, "long": long_block}
