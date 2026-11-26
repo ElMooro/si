@@ -31,9 +31,9 @@ CHART = [
     ("EDGCOM 7.5 '31", 7.5, "2031", r"EDG"), ("CORZ 7.75 '31", 7.75, "2031", r"CORE SCI"),
     ("DDRIVE 8.875 '31", 8.875, "2031", r"DRIVE"), ("ELKGVP 7.5 '31", 7.5, "2031", r"ELK"),
     ("APLD 9.25 '30", 9.25, "2030", r"APLD|APPLIED DIG"), ("GALAXY 9.875 '31", 9.875, "2031", r"GALAXY"),
-    ("ELNFOR 7 '31", 7.0, "2031", r"ELN|ELLEN|FORT"), ("SECMOS 8.875 '31", 8.875, "2031", r"SEC|MOS"),
-    ("ZENARC 8.875 '31", 8.875, "2031", r"ZENITH"), ("TRACTC 5.875 '31", 5.875, "2031", r"TRACT"),
-    ("PFORGE 6.75 '31", 6.75, "2031", r"FORGE"), ("TRACTD 6.5 '31", 6.5, "2031", r"TRACT"),
+    ("ELNFOR 7 '31", 7.0, "2031", r"APLD COMPUTECO 3"), ("SECMOS 8.875 '31", 8.875, "2031", r"SEC|MOS"),
+    ("ZENARC 8.875 '31", 8.875, "2031", r"ZENITH"), ("TRACTC 5.875 '31", 5.875, "2031", r"SV RNO PROPERTY"),
+    ("PFORGE 6.75 '31", 6.75, "2031", r"APLD COMPUTECO 2"), ("TRACTD 6.5 '31", 6.5, "2031", r"PR RNO PROPERTY"),
     ("YNDRDC 6.875 '31", 6.875, "2031", r"YONDR|YNDR"), ("FLASHC 7.25 '30", 7.25, "2030", r"FLASH"),
     ("MERIDI 6.25 '31", 6.25, "2031", r"MERIDIAN"), ("CIFR 7.125 '30", 7.125, "2030", r"CIPHER|CIFR"),
     ("WULF 7.75 '30", 7.75, "2030", r"WULF"), ("CLSPRK 7.875 '31", 7.875, "2031", r"SPARK|CLSP"),
@@ -121,16 +121,16 @@ def main():
         found = 0
         for label, coupon, year, pat in CHART:
             rx = re.compile(pat, re.I)
-            hit = [b for b in bonds if b.get("coupon") is not None and abs(float(b["coupon"]) - coupon) < 0.0006 and str(b.get("maturity", ""))[:4] == year and rx.search(str(b.get("issuer", "")))]
+            hit = [b for b in bonds if b.get("coupon") is not None and abs(float(b["coupon"]) - coupon) < 0.0051 and str(b.get("maturity", ""))[:4] == year and rx.search(str(b.get("issuer", "")))]
             if not hit:
-                near = sorted(set(tidy(b.get("issuer")) for b in bonds if b.get("coupon") is not None and abs(float(b["coupon"]) - coupon) < 0.0006 and str(b.get("maturity", ""))[:4] == year and HINT.search(str(b.get("issuer", "")))))
+                near = sorted(set(tidy(b.get("issuer")) for b in bonds if b.get("coupon") is not None and abs(float(b["coupon"]) - coupon) < 0.0051 and str(b.get("maturity", ""))[:4] == year and HINT.search(str(b.get("issuer", "")))))
                 r.log("NOT HELD  %-18s%s" % (label, ("  (same coupon and year among data-centre names: %s)" % near[:4]) if near else ""))
                 continue
             found += 1
             for b in hit[:2]:
-                sp = [x for x in brow if x.get("coupon") is not None and abs(float(x["coupon"]) - coupon) < 0.0006 and str(x.get("maturity", ""))[:4] == year and tidy(x.get("issuer")) == tidy(b.get("issuer"))]
+                sp = [x for x in brow if x.get("coupon") is not None and abs(float(x["coupon"]) - coupon) < 0.0051 and str(x.get("maturity", ""))[:4] == year and tidy(x.get("issuer")) == tidy(b.get("issuer"))]
                 s0 = sp[0] if sp else {}
-                r.log("HELD      %-18s %-34s matures %s | price %s (%s on the day) | yield %s (%s) | spread %s bp, week %s, month %s | in %s fund files, book %s" % (
+                r.log("HELD      %-18s %-34s matures %s | price %s (%s since the month-end file) | yield %s (%s) | spread %s bp, week %s, month %s | in %s fund files, book %s" % (
                     label, tidy(b.get("issuer"))[:34], b.get("maturity"), b.get("price"), b.get("dpx"), b.get("rate"), b.get("chg"), s0.get("spread_bp"), s0.get("d_w1"), s0.get("d_m1"), b.get("nf"), b.get("book")))
         r.log("carried: %d of the chart's %d bonds" % (found, len(CHART)))
         names = {}
