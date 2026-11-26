@@ -573,6 +573,14 @@ def gov_contract_events():
                 "ticker": tk, "title": f"${round(amt/1e6,1)}M federal award · {(r.get('Awarding Agency') or '')[:28]}",
                 "impact": "MEDIUM", "source": "USAspending.gov",
             })
+    # The award search gives an award's whole value and, for a date, only when the award was last changed (dry run
+    # ops 6973: all twelve rows dated by "Last Modified Date", one of them an $18 B award first signed years ago).
+    # Such a row is a change to a standing award, not a new one: it says so and carries low impact.
+    for e in out:
+        if e.get("date_basis") != "Action Date":
+            e["title"] = "Federal award changed · " + e["title"].replace(" federal award · ", " in total · ")
+            e["subtitle"] = "Dated by " + str(e.get("date_basis") or "no date") + "; the amount is the award's whole value, not the change"
+            e["impact"] = "LOW"
     return out
 
 
