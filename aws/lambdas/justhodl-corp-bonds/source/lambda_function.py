@@ -102,26 +102,29 @@ def _get_json_url(url, timeout=20):
 
 
 def fetch_sleeve(spec, ask=None, fred=None):
-    """One sleeve's history: the warehouse first, FRED only when the warehouse has nothing. Returns (points, status)."""
+    """One sleeve's history: the warehouse first, FRED only when the warehouse has nothing.
+    Returns (points, status, via). The status of a sleeve that printed stays the single word "live": the page lists
+    every other status under "did not print this run"."""
     ask = ask or _get_json_url
     fred = fred or fetch_fred
     try:
         payload = ask(RESOLVER + urllib.parse.quote("fred:" + spec["fred"], safe=""))
         points = core.resolver_points((payload or {}).get("obs") if isinstance(payload, dict) else None)
         if len(points) >= 5:
-            return points, "live, warehouse: %d observations to %s" % (len(points), points[-1][0])
+            return points, "live", "warehouse"
         why = "warehouse: no observations"
     except Exception as exc:
         why = "warehouse: %s" % type(exc).__name__
     points, status = fred(spec)
     if points:
-        return points, "live, FRED (%s)" % why
-    return None, "%s; FRED: %s" % (why, status)
+        return points, "live", "FRED (%s)" % why
+    return None, "%s; FRED: %s" % (why, status), None
 
 
 def fetch_sleeves(today_iso, ask=None, fred=None, sleep=time.sleep, clock=time.monotonic):
-    """Every sleeve in turn, one request at a time, inside SLEEVE_BUDGET seconds. Returns (rows, {fred id: status})."""
-    rows, status = [], {}
+    """Every sleeve in turn, one request at a time, inside SLEEVE_BUDGET seconds.
+    Returns (rows, {fred id: status}, {fred id: where it was read}). Each row also says where it was read (`via`)."""
+    rows, status, via = [], {}, {}
     started = clock()
     for i, spec in enumerate(core.SLEEVES):
         if clock() - started > SLEEVE_BUDGET:
@@ -129,12 +132,14 @@ def fetch_sleeves(today_iso, ask=None, fred=None, sleep=time.sleep, clock=time.m
             continue
         if i:
             sleep(SLEEVE_PAUSE)
-        points, said = fetch_sleeve(spec, ask, fred)
+        points, said, where = fetch_sleeve(spec, ask, fred)
         status[spec["fred"]] = said
         row = core.sleeve_stats(spec, points, today_iso) if points else None
         if row:
+            row["via"] = where
+            via[spec["fred"]] = where
             rows.append(row)
-    return rows, status
+    return rows, status, via
 
 
 def fetch_ecb():
@@ -234,7 +239,7 @@ def publish():
     # before, and that sum crossed the 300s task limit before the packet was written.
     issue_pool = ThreadPoolExecutor(max_workers=1)
     issue_future = issue_pool.submit(fetch_issues, prior_bonds)
-    sleeves, sources["fred"] = fetch_sleeves(today_iso)
+    sleeves, sources["fred"], sources["sleeves_via"] = fetch_sleeves(today_iso)
     bonds, ecb_meta = fetch_ecb()
     sources["ecb"] = ecb_meta
     euro = core.euro_book(bonds, today_iso) if bonds else {

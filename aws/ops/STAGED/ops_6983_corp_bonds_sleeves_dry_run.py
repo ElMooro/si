@@ -51,16 +51,16 @@ def main():
 
         r.section("1. The engine's own function")
         t0 = time.time()
-        rows, status = L.fetch_sleeves(date.today().isoformat())
+        rows, status, via = L.fetch_sleeves(date.today().isoformat())
         took = time.time() - t0
-        from_bank = sum(1 for v in status.values() if v.startswith("live, warehouse"))
-        from_fred = sum(1 for v in status.values() if v.startswith("live, FRED"))
+        from_bank = sum(1 for v in via.values() if v == "warehouse")
+        from_fred = sum(1 for v in via.values() if str(v).startswith("FRED"))
         r.log("%d of %d sleeves in %.1f s | %d from the warehouse, %d from FRED | not read: %s" % (
-            len(rows), len(L.core.SLEEVES), took, from_bank, from_fred, json.dumps({k: v for k, v in status.items() if not v.startswith("live")})))
+            len(rows), len(L.core.SLEEVES), took, from_bank, from_fred, json.dumps({k: v for k, v in status.items() if v != "live"})))
         for row in rows:
-            r.log("  %-20s %-10s %9s %-3s as of %s | 1d %s, 5d %s, 21d %s | %s" % (row["label"], row["fred"][:10], row["level"], row["unit"], row["as_of"], row.get("chg_1d"), row.get("chg_5d"), row.get("chg_21d"), status[row["fred"]][:60]))
+            r.log("  %-20s %-10s %9s %-3s as of %s | 1d %s, 5d %s, 21d %s | %s" % (row["label"], row["fred"][:10], row["level"], row["unit"], row["as_of"], row.get("chg_1d"), row.get("chg_5d"), row.get("chg_21d"), row.get("via")))
         ck(not puts, "nothing was written or read from the bucket by the sleeves (%s)" % (puts or "no call"))
-        ck(len(rows) >= 20, "the sleeves are back: %d of 24" % len(rows))
+        ck(len(rows) >= 20 and sum(1 for v in status.values() if v == "live") == len(rows), "the sleeves are back: %d of 24, each with the status the page reads as printed" % len(rows))
         ck(took < 120, "inside the 150 seconds set aside (%.1f s), one request at a time" % took)
         by = {x["id"]: x for x in rows}
         ig, hy, ccc = by.get("us_ig"), by.get("us_hy"), by.get("us_ccc")

@@ -55,18 +55,21 @@ def test_sleeves_come_from_the_warehouse_first():
         fred_asked.append(spec["fred"])
         return ([(d, 9.0) for d in days], "live") if spec["fred"] == "BAMLH0A3HYC" else (None, "TimeoutError timed out")
 
-    rows, status = ns["fetch_sleeves"]("2026-11-26", ask, fred, slept.append, lambda: 0.0)
+    rows, status, via = ns["fetch_sleeves"]("2026-11-26", ask, fred, slept.append, lambda: 0.0)
     check(len(asked) == len(core.SLEEVES) == 24 and asked[0] == "https://resolver.test/series?id=fred%3ABAMLC0A0CM", "each sleeve is asked of the warehouse, by its FRED id")
     check(len(slept) == 23 and set(slept) == {0.25}, "one at a time, with a pause between two requests")
     check(fred_asked == ["BAMLC0A1CAAA", "BAMLH0A3HYC"], "FRED is asked only for a series the warehouse did not give")
-    check(len(rows) == 23 and status["BAMLC0A0CM"] == "live, warehouse: 24 observations to 2026-11-25", "23 sleeves published; the status says where each came from")
-    check(status["BAMLH0A3HYC"] == "live, FRED (warehouse: TimeoutError)" and status["BAMLC0A1CAAA"] == "warehouse: no observations; FRED: TimeoutError timed out", "a fallback and a miss are both said plainly")
+    check(len(rows) == 23 and status["BAMLC0A0CM"] == "live" and via["BAMLC0A0CM"] == "warehouse", "23 sleeves published; a sleeve that printed is 'live' (the page lists any other status as not printed)")
+    check(sum(1 for v in status.values() if v == "live") == 23 and status["BAMLH0A3HYC"] == "live" and via["BAMLH0A3HYC"] == "FRED (warehouse: TimeoutError)", "a fallback is live and says where it came from")
+    check(status["BAMLC0A1CAAA"] == "warehouse: no observations; FRED: TimeoutError timed out" and "BAMLC0A1CAAA" not in via, "a miss says why")
+    page = (Path(__file__).resolve().parents[4] / "jh-corp-bonds.js").read_text(encoding="utf-8")
+    check('misses[k] !== "live"' in page, "the page still reads exactly this word")
     ig = next(r for r in rows if r["id"] == "us_ig")
-    check(ig["level"] == 103.0 and ig["unit"] == "bp" and ig["as_of"] == "2026-11-25" and ig["chg_1d"] == 1.0, "percent from the warehouse becomes basis points, as from FRED")
+    check(ig["level"] == 103.0 and ig["unit"] == "bp" and ig["as_of"] == "2026-11-25" and ig["chg_1d"] == 1.0 and ig["via"] == "warehouse", "percent from the warehouse becomes basis points, as from FRED")
     ticks = iter([0.0, 0.0] + [200.0] * 40)
-    rows, status = ns["fetch_sleeves"]("2026-11-26", ask, fred, lambda s: None, lambda: next(ticks))
+    rows, status, via = ns["fetch_sleeves"]("2026-11-26", ask, fred, lambda s: None, lambda: next(ticks))
     check(len(rows) == 1 and sum(1 for v in status.values() if v.startswith("not asked")) == 23, "past the time set aside the rest are not asked, and say so")
-    check("ThreadPoolExecutor(max_workers=8)" not in src and 'sleeves, sources["fred"] = fetch_sleeves(today_iso)' in src, "the 24 are no longer asked of FRED all at once")
+    check("ThreadPoolExecutor(max_workers=8)" not in src and 'sleeves, sources["fred"], sources["sleeves_via"] = fetch_sleeves(today_iso)' in src, "the 24 are no longer asked of FRED all at once")
 
 
 def test_fred_and_sleeve():
