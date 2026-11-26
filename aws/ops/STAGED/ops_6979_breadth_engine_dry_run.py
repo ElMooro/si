@@ -134,14 +134,23 @@ def main():
         ck(hist["with_counts"] == len(rows) and hist["with_day_over_day"] >= len(rows) - 1, "each session has its counts (%d) and its day-over-day reading (%d)" % (hist["with_counts"], hist["with_day_over_day"]))
         bad = [x["date"] for x in rows if x.get("source") == "bank" and x["adv"] + x["dec"] != x["n_stocks"]]
         ck(not bad, "for a session read from the bank, rising + falling equals the issues counted (%s)" % (bad[:3] or "all"))
-        aside = max((x.get("set_aside_dod") or 0) / float(max(1, (x.get("adv_dod") or 0) + (x.get("dec_dod") or 0))) for x in rows)
+        aside = max((x.get("set_aside_dod") or 0) / float(x["n_stocks"]) for x in rows)
+        fresh = max(((x.get("new_dod") or 0) / float(x["n_stocks"]), x["date"]) for x in rows)
         ck(aside < 0.01, "likely splits set aside are under 1%% of the issues counted on every session (most %.2f%%)" % (100 * aside))
+        ck(fresh[0] < 0.05, "on every session nearly every issue had a prior close to be compared with (most without one: %.2f%% on %s)" % (100 * fresh[0], fresh[1]))
+        inside = [x["date"] for x in rows if kept[0]["date"] <= x["date"] <= kept[-1]["date"]]
+        ck(inside == [k["date"] for k in kept], "no session is slipped in between the kept ones (%d in that range, %d kept)" % (len(inside), len(kept)))
+        ck(all(BM.is_weekday(x["date"]) and x["n_stocks"] >= BM.MIN_SESSION_ISSUES for x in rows), "every kept session is a weekday with a full count of issues (fewest %d)" % min(x["n_stocks"] for x in rows))
+        r.log("the bank, not taken on trust: not sessions %s | thin files %s | remembered %s" % (json.dumps(bank.get("not_sessions")), json.dumps(bank.get("thin")), json.dumps(body["history"].get("not_sessions"))))
+        r.log("sessions marked thin (left out of the day-over-day reading and McClellan): %s" % json.dumps([[x["date"], x["n_stocks"]] for x in rows if x.get("thin")]))
 
         r.section("3. The state machine")
         z = BM.zweig_reading([x["ratio"] for x in rows[-60:]], L.ZWEIG_LOW, L.ZWEIG_HIGH, L.ZWEIG_WINDOW)
         cr = rep["current_readings"]
         r.log("state %s (live document: %s) | 10-session average %s, window low %s, high %s | sessions read %s" % (
             rep["state"], live.get("state"), cr["zweig_10d_ema"], cr["zweig_window_min"], cr["zweig_window_max"], cr["zweig_sessions_read"]))
+        newer_n = sum(1 for x in rows if x["date"] > kept[-1]["date"])
+        ck([x["date"] for x in rows[-60:]] == ([k["date"] for k in kept] + [x["date"] for x in rows if x["date"] > kept[-1]["date"]])[-60:], "the 60 sessions the state reads are the kept ones and the %d newer" % newer_n)
         ck(cr["zweig_10d_ema"] == z["current_ema"] and cr["zweig_window_min"] == z["min_in_window"] and cr["zweig_sessions_read"] == 60,
            "the average is the engine's rule on the last 60 kept ratios (%s)" % z["current_ema"])
         ck(rep["state"] in (z["state"], "COOLDOWN") and (L.ZWEIG_LOW, L.ZWEIG_HIGH, L.ZWEIG_WINDOW) == (0.40, 0.615, 10), "the state follows that reading with the thresholds untouched (%s)" % z["state"])

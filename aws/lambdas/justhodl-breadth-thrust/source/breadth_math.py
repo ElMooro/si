@@ -10,8 +10,26 @@ Two bases are kept side by side and never mixed:
 
 Both use the same filter: an issue counts when it traded MIN_VOLUME shares or more that session.
 """
+from datetime import date as _date
+
 MIN_VOLUME = 100000
 SPLIT_GUARD = (0.5, 2.0)   # a close outside this multiple of the prior close is set aside as a likely split, not counted
+MIN_SESSION_ISSUES = 1000  # a file counting fewer issues than this is not a session (the bank holds a stray weekend file)
+THIN_SHARE = 0.7           # a file counting under this share of the usual number of issues is treated as incomplete
+
+
+def is_weekday(date_str):
+    try:
+        y, m, d = (int(x) for x in date_str.split("-"))
+        return _date(y, m, d).weekday() < 5
+    except (ValueError, AttributeError):
+        return False
+
+
+def typical_issues(rows):
+    """The usual number of issues counted in a session (the median of the kept sessions), or None under 20 sessions."""
+    counts = sorted(r["n_stocks"] for r in rows if r.get("n_stocks") and not r.get("thin"))
+    return counts[len(counts) // 2] if len(counts) >= 20 else None
 
 
 def ema(values, period):
@@ -110,7 +128,7 @@ def zweig_reading(ratios, low, high, window):
 
 def day_over_day_reading(rows, low, high, window, last=60):
     """The same thrust test on the day-over-day ratio. Information only."""
-    have = [r for r in sorted(rows, key=lambda r: r["date"]) if r.get("ratio_dod") is not None][-last:]
+    have = [r for r in sorted(rows, key=lambda r: r["date"]) if r.get("ratio_dod") is not None and not r.get("thin")][-last:]
     out = {"available": len(have) >= window + 1, "n_sessions": len(have),
            "basis": "issues closing above the prior session's close, of those up or down (volume of 100,000 shares or more)",
            "note": "Information only. The state, the alert and the trade ticket follow the open-to-close ratio."}
@@ -126,7 +144,8 @@ def mcclellan(rows, keep=60):
     """McClellan oscillator on the day-over-day counts, ratio-adjusted: 1000 x (advancing - declining) / (advancing +
     declining), its 19-session exponential average less its 39-session one (the 10% and 5% constants)."""
     have = [r for r in sorted(rows, key=lambda r: r["date"])
-            if r.get("adv_dod") is not None and r.get("dec_dod") is not None and r["adv_dod"] + r["dec_dod"] > 0]
+            if r.get("adv_dod") is not None and r.get("dec_dod") is not None and r["adv_dod"] + r["dec_dod"] > 0
+            and not r.get("thin")]
     out = {"available": len(have) >= 39, "n_sessions": len(have),
            "basis": ("1000 x (advancing - declining) / (advancing + declining), day over day; the 19-session "
                      "exponential average less the 39-session one"),

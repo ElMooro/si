@@ -233,19 +233,21 @@ def compute_ad_ratio(grouped):
     return adv / (adv + dec), adv + dec
 
 
-def load_breadth_cache():
+def load_breadth_cache(with_notes=False):
+    """The kept sessions; with_notes=True also returns the bank dates found not to be sessions."""
     try:
         obj = s3.get_object(Bucket=S3_BUCKET, Key=CACHE_KEY)
         data = json.loads(obj["Body"].read())
         if isinstance(data, dict) and "history" in data:
-            return data["history"]
+            return (data["history"], data.get("not_sessions") or []) if with_notes else data["history"]
     except Exception as e:
         print("breadth cache miss (first run?): %s" % e)
-    return []
+    return ([], []) if with_notes else []
 
 
-def save_breadth_cache(history):
+def save_breadth_cache(history, not_sessions=None):
     body = {"history": history,
+            "not_sessions": list(not_sessions or []),
             "as_of": datetime.now(timezone.utc).isoformat()}
     s3.put_object(Bucket=S3_BUCKET, Key=CACHE_KEY,
                   Body=json.dumps(body, default=str).encode(),
@@ -283,53 +285,90 @@ def bank_session(key):
         return []
 
 
-def deepen_from_bank(history, keep=HISTORY_KEEP, budget=BANK_READS_PER_RUN):
+def deepen_from_bank(history, not_sessions=(), keep=HISTORY_KEEP, budget=BANK_READS_PER_RUN):
     """Reads the house bank of grouped sessions, never the provider, and oldest first:
       * adds the sessions the cache lacks inside the last `keep` banked sessions (ratio on the same open-to-close basis),
       * gives each kept session its counts, its up-volume share and its day-over-day reading.
-    A row's existing `ratio` is never rewritten. Returns (history, stats)."""
+    A row's existing `ratio` is never rewritten. The bank is not taken on trust (dry run of 2026-11-26: it holds a
+    Saturday file with two tradable rows, and one weekday file counting half the usual issues):
+      * a weekend file, or a file counting fewer than MIN_SESSION_ISSUES issues, is not a session - no row, and the
+        day-over-day comparison steps over it to the real session before;
+      * a NEW session whose file is thin is left to the provider path, as before v1.1; an older thin one is kept and
+        marked `thin`, and the day-over-day reading and McClellan leave it out;
+      * a kept row is not given counts from a file thinner than the one its ratio was made from.
+    Returns (history, not_sessions, stats)."""
     stats = {"sessions_in_window": 0, "files_read": 0, "sessions_added": 0, "sessions_completed": 0,
-             "left_for_next_run": 0, "max_ratio_gap": None, "error": None}
+             "left_for_next_run": 0, "max_ratio_gap": None, "not_sessions": [], "thin": [], "error": None}
+    skip = set(not_sessions or ())
     try:
-        keys = bank_session_keys(keep + 1)
+        keys = bank_session_keys(keep + 1 + len(skip) + 12)
     except Exception as e:
         stats["error"] = str(e)[:160]
         print("bank listing failed: %s" % e)
-        return history, stats
+        return history, sorted(skip), stats
     by_date = {k.rsplit("/", 1)[1][:10]: k for k in keys}
-    dates = sorted(by_date)
+    for d in sorted(by_date):
+        if not BM.is_weekday(d):
+            stats["not_sessions"].append([d, "weekend file"])
+    dates = [d for d in sorted(by_date) if BM.is_weekday(d) and d not in skip][-(keep + 1):]
     rows = {r["date"]: r for r in history}
+    typical = BM.typical_issues(history)
+    newest_kept = max(rows) if rows else ""
     work, read, left = BM.bank_plan(dates, rows, keep, budget)
     work = set(work)
     stats["sessions_in_window"] = len(dates)
     stats["left_for_next_run"] = left
-    prev_date = prev_close = None
+    prev_i = prev_close = None
+    stepped_over = set()
     gap = None
     for i, d in enumerate(dates):
         if d not in read:
             continue
         grouped = bank_session(by_date[d])
         stats["files_read"] += 1
-        if d in work and grouped:
-            det = BM.detail(grouped)
-            row = rows.get(d)
-            if row is None:
-                ratio, n = compute_ad_ratio(grouped)
-                if ratio is not None:
-                    row = {"date": d, "ratio": round(ratio, 4), "n_stocks": n, "source": "bank"}
-                    rows[d] = row
-                    stats["sessions_added"] += 1
-            elif det["adv"] + det["dec"]:
-                g = abs(row["ratio"] - det["adv"] / float(det["adv"] + det["dec"]))
-                gap = g if gap is None else max(gap, g)
-            if row is not None:
+        if not grouped:                       # unreadable this run: the chain of prior closes is broken here
+            prev_i = prev_close = None
+            continue
+        det = BM.detail(grouped)
+        n = det["adv"] + det["dec"]
+        if n < BM.MIN_SESSION_ISSUES:         # a stray file: remembered, so later runs do not read it again
+            skip.add(d)
+            stepped_over.add(d)
+            stats["not_sessions"].append([d, n])
+            continue
+        thin = typical is not None and n < BM.THIN_SHARE * typical
+        row = rows.get(d)
+        take = d in work
+        if take and row is None:
+            if thin and d > newest_kept:      # a new session from a thin file: the provider path adds it instead
+                stats["thin"].append([d, n, "left to the provider"])
+                take = False
+            else:
+                ratio, cnt = compute_ad_ratio(grouped)
+                row = {"date": d, "ratio": round(ratio, 4), "n_stocks": cnt, "source": "bank"}
+                if thin:
+                    row["thin"] = True
+                    stats["thin"].append([d, n, "kept, marked thin"])
+                rows[d] = row
+                stats["sessions_added"] += 1
                 row.update(det)
-                if i > 0 and prev_date == dates[i - 1] and prev_close:
-                    row.update(BM.day_over_day(grouped, prev_close))
-                stats["sessions_completed"] += 1
-        prev_date, prev_close = d, (BM.closes_of(grouped) if grouped else None)
+        elif take:
+            if row.get("n_stocks") and n < 0.9 * row["n_stocks"]:
+                row["bank_thin"] = True       # the bank's file is thinner than the one this ratio came from
+                row.setdefault("adv_dod", None)
+                stats["thin"].append([d, n, "counts not taken: the kept ratio counted %s" % row["n_stocks"]])
+                take = False
+            else:
+                g = abs(row["ratio"] - det["adv"] / float(n))
+                gap = g if gap is None else max(gap, g)
+                row.update(det)
+        if take:
+            if prev_close is not None and all(x in stepped_over for x in dates[prev_i + 1:i]):
+                row.update(BM.day_over_day(grouped, prev_close))
+            stats["sessions_completed"] += 1
+        prev_i, prev_close = i, BM.closes_of(grouped)
     stats["max_ratio_gap"] = round(gap, 4) if gap is not None else None
-    return sorted(rows.values(), key=lambda r: r["date"]), stats
+    return sorted(rows.values(), key=lambda r: r["date"]), sorted(skip)[-60:], stats
 
 
 def preliminary_reading(settled_rows):
@@ -740,17 +779,17 @@ def lambda_handler(event, context):
     dry = bool(isinstance(event, dict) and event.get("dry_run"))
 
     # ---- 1. Update breadth history cache: the house bank first, the provider only for a session the bank lacks ----
-    history = load_breadth_cache()
+    history, not_sessions = load_breadth_cache(with_notes=True)
     n_before = len(history)
-    history, bank = deepen_from_bank(history)
+    history, not_sessions, bank = deepen_from_bank(history, not_sessions)
     history, fetched = update_breadth_cache(history)
     if not dry:
-        save_breadth_cache(history)
+        save_breadth_cache(history, not_sessions)
     print("breadth cache: %d entries (%d before), %d from the bank, %d fetched live, %d bank files read"
           % (len(history), n_before, bank.get("sessions_added") or 0, fetched, bank.get("files_read") or 0))
 
     # ---- 2. Zweig state: the last ZWEIG_ROWS sessions on the open-to-close ratio, as before v1.1 ----
-    zweig_rows = sorted(history, key=lambda r: r["date"])[-ZWEIG_ROWS:]
+    zweig_rows = [r for r in sorted(history, key=lambda r: r["date"]) if not r.get("thin")][-ZWEIG_ROWS:]
     zweig = evaluate_zweig(zweig_rows)
     zweig_state = zweig.get("state", "NULL")
     last_row = zweig_rows[-1] if zweig_rows else {}
@@ -910,6 +949,7 @@ def lambda_handler(event, context):
                         "with_counts": sum(1 for r in rows if "adv" in r),
                         "with_day_over_day": sum(1 for r in rows if r.get("ratio_dod") is not None),
                         "from_bank": sum(1 for r in rows if r.get("source") == "bank"),
+                        "not_sessions": not_sessions,
                         "rows": rows}}, default=str)}
 
     s3.put_object(Bucket=S3_BUCKET, Key=REPORT_KEY,

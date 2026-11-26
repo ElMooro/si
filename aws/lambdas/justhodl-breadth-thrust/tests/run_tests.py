@@ -89,6 +89,22 @@ def test_bank_plan():
     check(short[0] == dates[:5], "a bank shorter than the window: every session is kept, the first has no look-back")
 
 
+def test_the_bank_is_not_taken_on_trust():
+    check(BM.is_weekday("2026-11-06") and not BM.is_weekday("2026-11-07") and not BM.is_weekday("2026-11-08") and not BM.is_weekday("bad"), "a weekend date is not a session")
+    rows = [{"date": "2026-10-%02d" % d, "n_stocks": 5800 + d} for d in range(1, 26)]
+    check(BM.typical_issues(rows) == 5813 and BM.typical_issues(rows[:19]) is None, "the usual number of issues is the median of at least twenty sessions")
+    check(BM.typical_issues(rows + [{"date": "x", "n_stocks": 2, "thin": True}] * 30) == 5813, "a thin session does not pull the usual number down")
+    check(BM.MIN_SESSION_ISSUES == 1000 and BM.THIN_SHARE == 0.7, "a file under 1,000 counted issues is no session; under 70% of the usual it is thin")
+    src = (SRC / "lambda_function.py").read_text(encoding="utf-8")
+    fn = src[src.index("def deepen_from_bank("):src.index("def preliminary_reading(")]
+    check("BM.is_weekday(d) and d not in skip" in fn and "n < BM.MIN_SESSION_ISSUES" in fn and "thin and d > newest_kept" in fn, "the engine filters weekend files, stray files and thin new sessions")
+    check("all(x in stepped_over for x in dates[prev_i + 1:i])" in fn and "prev_i = prev_close = None" in fn, "a prior close is used only from the real session before; an unreadable file breaks the chain")
+    thin = [{"date": "2026-0%d-%02d" % (1 + i // 28, 1 + i % 28), "adv_dod": 3000, "dec_dod": 3000, "ratio_dod": 0.5} for i in range(60)]
+    thin[30] = dict(thin[30], adv_dod=6000, dec_dod=0, ratio_dod=1.0, thin=True)
+    check(BM.mcclellan(thin)["oscillator"] == 0.0 and BM.mcclellan(thin)["n_sessions"] == 59, "McClellan leaves a thin session out")
+    check(BM.day_over_day_reading(thin, LOW, HIGH, WINDOW)["ema_10d"] == 0.5, "so does the day-over-day reading")
+
+
 def test_mcclellan():
     rows = [{"date": "2026-%02d-%02d" % (1 + i // 28, 1 + i % 28), "adv_dod": 3000, "dec_dod": 3000} for i in range(38)]
     check(BM.mcclellan(rows)["available"] is False, "39 sessions are needed")
@@ -137,7 +153,7 @@ def test_engine_source_keeps_its_promises():
     check("ZWEIG_LOW = 0.40" in src and "ZWEIG_HIGH = 0.615" in src and "ZWEIG_WINDOW = 10" in src, "the thresholds are untouched")
     handler = src[src.index("def lambda_handler"):]
     check(handler.count("if not dry:") == 2 and handler.index("if dry:") < handler.index("s3.put_object") < handler.index("send_telegram(msg)"), "a dry run returns before the report is written or an alert is sent")
-    check("if not dry:\n        save_breadth_cache(history)" in handler and "if not dry:\n        save_persistent_state(persistent)" in handler, "a dry run writes neither the cache nor the state")
+    check("if not dry:\n        save_breadth_cache(history, not_sessions)" in handler and "if not dry:\n        save_persistent_state(persistent)" in handler, "a dry run writes neither the cache nor the state")
     check('zweig_state = zweig.get("state", "NULL")' in handler and "day_over_day.get(" not in handler and "preliminary.get(" not in handler and "mcclellan.get(" not in handler, "the state comes from the open-to-close reading alone")
     tree = ast.parse(src)
     fn = next(n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name == "evaluate_zweig")
