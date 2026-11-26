@@ -273,8 +273,16 @@ function render() {
   const dates = Object.keys(byDate).sort();
 
   if (!dates.length) {
+    // say why: usually the impact chips are hiding what there is (every past event is low impact)
+    let hidden = 0;
+    if (FILTERS.impacts.size < 3) {
+      const keep = FILTERS.impacts;
+      FILTERS.impacts = new Set(['HIGH', 'MEDIUM', 'LOW']);
+      hidden = applyFilters(DATA.events || []).length;
+      FILTERS.impacts = keep;
+    }
     document.getElementById('calendarHost').innerHTML =
-      '<div class="loader">No events match current filters</div>';
+      '<div class="loader">No events match the current filters' + (hidden ? ' \u00b7 <a href="#" id="showAllImpacts">' + hidden + ' at the impact levels switched off: show them</a>' : '') + '</div>';
     return;
   }
 
@@ -310,9 +318,15 @@ function render() {
   document.getElementById('calendarHost').innerHTML = html;
 }
 
+function allImpactsOn() {
+  FILTERS.impacts = new Set(['HIGH', 'MEDIUM', 'LOW']);
+  document.querySelectorAll('.chip[data-impact]').forEach(c => c.classList.add('active'));
+}
+
 function setupFilterChips() {
   document.querySelectorAll('.chip[data-type]').forEach(wireTypeChip);
   document.getElementById('calendarHost').addEventListener('click', ev => {
+    if (ev.target && ev.target.id === 'showAllImpacts') { ev.preventDefault(); allImpactsOn(); render(); return; }
     const a = ev.target.closest ? ev.target.closest('a[data-sym]') : null;
     if (a && embedded()) { ev.preventDefault(); window.top.jhOpenSymbol(a.dataset.sym); }
   });
@@ -320,6 +334,8 @@ function setupFilterChips() {
     chip.addEventListener('click', () => {
       FILTERS.when = chip.dataset.when;
       document.querySelectorAll('.chip[data-when]').forEach(c => c.classList.toggle('active', c === chip));
+      // Past must never open on an empty list because Low is switched off: what is behind us is mostly low impact
+      if (DATA && FILTERS.impacts.size < 3 && !applyFilters(DATA.events || []).length) allImpactsOn();
       render();
     });
   });

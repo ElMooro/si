@@ -101,7 +101,7 @@ test('the Demand and Supply icons are gone from the desk buttons; the text butto
   assert.ok(sd.includes('if (old && old.parentNode) old.parentNode.removeChild(old);'), 'an icon left by an older copy is taken off');
   for (const kept of ['mkBtn("btn-demand2", "Demand zones", "Demand")', 'mkBtn("btn-supply2", "Supply zones", "Supply")', 'mkBtn("btn-demand-rail", "Demand zones", "D")', 'mkBtn("btn-supply-rail", "Supply zones", "S")',
     'bind(document.getElementById("btn-demand2"), "demand");', 'bind(document.getElementById("btn-supply2"), "supply");']) assert.ok(sd.includes(kept), kept);
-  assert.ok(boot.includes('s.src = "/jh-chart-sd-ui.js?v=4";'), 'a browser holding the old script asks for the new one');
+  assert.ok(boot.includes('s.src = "/jh-chart-sd-ui.js?v=5";'), 'a browser holding the old script asks for the new one');
   const ids = [...ENGINE.matchAll(/<button class='wsico wsdesk' id=(btn-[a-z0-9]+) /g)].map((m) => m[1]);
   assert.equal(ids[ids.indexOf('btn-cryp') + 1], 'btn-alrt', 'Alert follows Crypto');
 });

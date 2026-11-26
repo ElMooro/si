@@ -146,6 +146,8 @@ test('calendar page: ahead / past switch, search, Eastern times and jump-to-day 
   const scripts = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map((m) => m[1]).filter((s) => s.includes('jhCalendarShowDay'));
   assert.equal(scripts.length, 1);
   assert.doesNotThrow(() => new Function(scripts[0]), 'the page script parses');
+  assert.ok(/if \(DATA && FILTERS\.impacts\.size < 3 && !applyFilters\(DATA\.events \|\| \[\]\)\.length\) allImpactsOn\(\);/.test(html), 'Past never opens on an empty list because Low is switched off');
+  assert.ok(html.includes('id="showAllImpacts"') && html.includes('at the impact levels switched off: show them'), 'an empty list says what is hidden and offers it');
 });
 
 test('crypto: seven bands from the engine\'s fit, every on-chain metric placed in a category; the price chart waits for the weekly closes', () => {

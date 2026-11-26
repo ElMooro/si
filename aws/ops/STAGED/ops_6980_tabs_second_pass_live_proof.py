@@ -79,7 +79,7 @@ def main():
                 liq = fetch("/liquidity.html?probe=%d" % (stamp + attempt))
                 why = fetch("/why.html?probe=%d" % (stamp + attempt))
                 jed = fetch("/jh-engine-data.js?probe=%d" % (stamp + attempt))
-                if "JHGlance" in kit and "ticks:" in kit and 'mkBtn("btn-demand"' not in sd and 'data-glance="liquidity"' in liq and "total_shareholder_yield_pct" in why and "jh-in-chart" in jed:
+                if "JHGlance" in kit and "ticks:" in kit and 'mkBtn("btn-demand"' not in sd and "ws-overlay.on" in sd and "allImpactsOn" in fetch("/catalyst-calendar.html?probe=%d" % (stamp + attempt)) and "private-account-status" in jed and 'data-glance="liquidity"' in liq and "total_shareholder_yield_pct" in why and "jh-in-chart" in jed:
                     served = True
                     break
             except Exception as exc:  # noqa: BLE001
@@ -186,7 +186,7 @@ def main():
                 page.wait_for_timeout(3500)
                 seen = f.evaluate("""() => { const t = document.body.innerText, vis = (s) => Array.from(document.querySelectorAll(s)).filter(e => { const c = getComputedStyle(e); return c.display !== 'none' && c.visibility !== 'hidden' && e.getBoundingClientRect().width > 0; }).length;
                   const viz = document.getElementById('jhviz'), bars = viz ? Array.from(viz.querySelectorAll('rect')).map(x => +x.getAttribute('height') || +x.getAttribute('width') || 0).filter(v => v > 0) : [];
-                  return { inchart: document.documentElement.classList.contains('jh-in-chart'), pills: vis('.jh-tenor-pill, .jh-liq-pill, .jh-lce-pill, #jh-auth-auto-slot'), money: (t.match(/\\$[\\d.,]+ ?[BMK]\\b/g) || []).slice(0, 12),
+                  return { inchart: document.documentElement.classList.contains('jh-in-chart'), pills: vis('.jh-tenor-pill, .jh-liq-pill, .jh-lce-pill, #jh-auth-auto-slot, #jh-capital-structure-status, #private-account-status'), money: (t.match(/\\$[\\d.,]+ ?[BMK]\\b/g) || []).slice(0, 12),
                     daily: /once a day/i.test(t), half: /every 30 minutes/i.test(t), lona: (t.match(/LONA/g) || []).length, viz: viz ? viz.innerText.replace(/\\s+/g, ' ').slice(0, 300) : null, bars: bars.length,
                     head: t.replace(/\\s+/g, ' ').slice(0, 500), ox: document.documentElement.scrollWidth - document.documentElement.clientWidth }; }""")
                 r.log("as seen: " + seen["head"][:420])
@@ -211,11 +211,13 @@ def main():
                 page.wait_for_timeout(2500)
                 tiles = f.evaluate("""() => { const out = {};
                   document.querySelectorAll('.jhv-tile').forEach(t => { const l = (t.querySelector('.jhv-l') || {}).textContent || '', v = (t.querySelector('.jhv-v') || {}).textContent || ''; if (l && !(l in out)) out[l.trim()] = v.trim(); });
-                  return { tiles: out, pills: Array.from(document.querySelectorAll('.jh-tenor-pill, .jh-liq-pill, .jh-lce-pill, #jh-auth-auto-slot')).filter(e => getComputedStyle(e).display !== 'none' && e.getBoundingClientRect().width > 0).length,
+                  return { tiles: out, pills: Array.from(document.querySelectorAll('.jh-tenor-pill, .jh-liq-pill, .jh-lce-pill, #jh-auth-auto-slot, #jh-capital-structure-status, #private-account-status')).filter(e => getComputedStyle(e).display !== 'none' && e.getBoundingClientRect().width > 0).length,
                     title: document.title, len: document.body.innerText.length, sym: (document.body.innerText.match(/NVDA|NVIDIA/g) || []).length }; }""")
                 r.log("the tiles as read: " + json.dumps(tiles["tiles"], ensure_ascii=False))
                 filled = {k: v for k, v in tiles["tiles"].items() if re.search(r"\d", v)}
                 ck(all(k in filled for k in ("MKT CAP", "P/B", "FCF YIELD", "SHRHLDR YLD")), "the four tiles that were blank carry a figure (%s)" % {k: tiles["tiles"].get(k) for k in ("MKT CAP", "P/B", "FCF YIELD", "SHRHLDR YLD")})
+                own = page.evaluate("() => { const e = document.getElementById('jh-capital-structure-status'); return e ? getComputedStyle(e).display : 'absent'; }")
+                ck(own in ("none", "absent"), "while the desk is open the chart's own share-count note does not float over it (%s)" % own)
                 ck(tiles["sym"] > 3 and tiles["len"] > 20000 and tiles["pills"] == 0, "the page is %s's research (%s characters) with nothing floating over it" % (SYMBOL, format(tiles["len"], ",")))
                 shots["4-research"] = page.screenshot(type="jpeg", quality=55)
                 close_tab()
@@ -273,8 +275,10 @@ def main():
                         f.click(".chip[data-when=past]")
                         page.wait_for_timeout(400)
                         b = f.evaluate("() => ({ info: document.getElementById('filterInfo').textContent, days: Array.from(document.querySelectorAll('.day-group')).map(d => d.getAttribute('data-date')) })")
-                        ck(b["days"] and max(b["days"]) < today, "Past shows only days before today (%d days, newest %s)" % (len(b["days"]), max(b["days"] or ["-"])))
+                        ck(b["days"] and max(b["days"]) < today, "Past shows only days before today (%d days, newest %s; %s)" % (len(b["days"]), max(b["days"] or ["-"]), b["info"]))
                         f.click(".chip[data-when=ahead]")
+                        page.wait_for_timeout(200)
+                        f.click(".chip[data-impact=LOW]")
                         page.wait_for_timeout(300)
                         f.fill("#calSearch", "FOMC")
                         page.wait_for_timeout(500)

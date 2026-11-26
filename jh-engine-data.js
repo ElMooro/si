@@ -21,7 +21,7 @@
   else { root.JHEngineData = api; api.boot(root); }
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
-  var VERSION = '1.1.0';
+  var VERSION = '1.1.1';
   var DASH = '\u2014', TIMES = '\u00D7', DOT = ' \u00B7 ';
   var PROXY = 'https://justhodl-data-proxy.raafouis.workers.dev/', RESEARCH = PROXY + 'equity-research/';
 
@@ -328,7 +328,7 @@
         doc.documentElement.className += ' jh-in-chart';
         if (!doc.getElementById('jed-in-chart')) {
           var hide = doc.createElement('style'); hide.id = 'jed-in-chart';
-          hide.textContent = '.jh-in-chart #jh-tenor-pill,.jh-in-chart .jh-tenor-pill,.jh-in-chart #jh-liq-pill,.jh-in-chart .jh-liq-pill,.jh-in-chart #jh-lce-pill,.jh-in-chart .jh-lce-pill,.jh-in-chart #jh-auth-auto-slot,.jh-in-chart .jh-auth-auto-slot{display:none!important}';
+          hide.textContent = '.jh-in-chart #jh-tenor-pill,.jh-in-chart .jh-tenor-pill,.jh-in-chart #jh-liq-pill,.jh-in-chart .jh-liq-pill,.jh-in-chart #jh-lce-pill,.jh-in-chart .jh-lce-pill,.jh-in-chart #jh-auth-auto-slot,.jh-in-chart .jh-auth-auto-slot,.jh-in-chart #jh-capital-structure-status,.jh-in-chart #private-account-status{display:none!important}';
           doc.head.appendChild(hide);
         }
       }

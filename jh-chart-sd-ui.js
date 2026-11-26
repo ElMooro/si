@@ -16,6 +16,8 @@
     var s = document.createElement("style");
     s.id = "jh-sd-ui-css";
     s.textContent =
+      /* 2026-11-26: while a desk is open in the workspace, the chart's own share-count note does not float over it */
+      "body:has(#ws-overlay.on) #jh-capital-structure-status{display:none}" +
       "#rrail #btn-demand-rail.on{color:#089981;background:#2a2e39}" +
       "#rrail #btn-supply-rail.on{color:#f23645;background:#2a2e39}" +
       "#tfbar #btn-demand2.on{color:#089981}" +
