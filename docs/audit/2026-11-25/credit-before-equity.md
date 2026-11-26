@@ -198,7 +198,14 @@ Khalid, after the first scheduled run: "now make sure this have an icon on chart
   cache tags; the byte ledger returns the three chart files to their bytes before; the hand-off under the chart, by itself,
   under another page, with no symbol, under a page it may not read). The three older gates that chain the ledger by hand
   (`risk-map-page`, `chart-indicator-controls`, `chart-crypto-routes`) take this change off first.
-- **Proof.** Ops 6960 (read-only, can be run again), a real browser on justhodl.ai: see the line added below when it has run.
+- **Proof.** Ops 6960 (read-only, can be run again), a real browser on justhodl.ai, 2026-11-26 00:00 UTC (19:00 New York),
+  **0 failed checks**, 6 pictures. The button is on the bar once, between Bonds and CDS, and the 32 desk buttons are in
+  order; a real click at the bar opened the board in the workspace (20 tiles for 20 industries, 4,182 companies, the
+  22:35 UTC document) with the chart behind still on SPY; on Oracle's sheet, *Chart* closed the workspace and put the chart
+  on ORCL (10,250 bars); Bonds, CDS, Repo, Sovereign and Risk Map each still open their own desk; on the page by itself the
+  same link went to the chart on ORCL; on a 390 px phone the button sits between Bonds and CDS, a tap opens the board, and
+  nothing scrolls sideways; no page error. The deploy and the page gate were green before it was judged (the proof waited
+  for the site to serve the new files). Report: `aws/ops/reports/latest/ops_6960_credit_button_on_chart_live_proof.md`.
 - **To take it back.** `docs/snapshots/chart-search-2026-11-10/README.md`, "2026-11-25: the chart's Credit button".
 
 ## Cost
