@@ -28,7 +28,8 @@ sys.path.insert(0, str(ROOT / "aws" / "shared"))
 NAME = "ops_6974_chart_tabs_go_live_and_proof"
 BASE = "https://justhodl.ai"
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36 jh-ops-probe"
-RESEARCH = "https://justhodl-data-proxy.raafouis.workers.dev/equity-research/"
+PROXY = "https://justhodl-data-proxy.raafouis.workers.dev/"
+RESEARCH = PROXY + "equity-research/"
 SYMBOL = "NVDA"
 TABS = [  # button, label, page, registry name, documents
     ("btn-rsch", "Research", "/why.html", ["ticker"]),
@@ -215,7 +216,7 @@ def main():
                     # this op's own count of the first document against the page's
                     first = got[0]
                     try:
-                        raw = json.loads(fetch((RESEARCH + SYMBOL + ".json") if docs[0] == "ticker" else "/%s?probe=%d" % (docs[0], stamp)))
+                        raw = json.loads(fetch((RESEARCH + SYMBOL + ".json") if docs[0] == "ticker" else (PROXY + docs[0]) if not docs[0].startswith("data/") else "/%s?probe=%d" % (docs[0], stamp)))
                         mine = count(raw)
                         ck(mine == first["values"] or docs[0] in ("data/options-analytics.json", "data/opex-calendar.json", "ticker"), "%s: the page counts %s values in %s; this op counts %s in the same document%s" % (label, format(first["values"] or 0, ","), first["name"], format(mine, ","), "" if mine == first["values"] else " (the document is rewritten every few minutes)"))
                     except Exception as exc:  # noqa: BLE001

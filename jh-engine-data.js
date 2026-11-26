@@ -21,9 +21,9 @@
   else { root.JHEngineData = api; api.boot(root); }
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
-  var VERSION = '1.0.0';
+  var VERSION = '1.0.1';
   var DASH = '\u2014', TIMES = '\u00D7', DOT = ' \u00B7 ';
-  var RESEARCH = 'https://justhodl-data-proxy.raafouis.workers.dev/equity-research/';
+  var PROXY = 'https://justhodl-data-proxy.raafouis.workers.dev/', RESEARCH = PROXY + 'equity-research/';
 
   var PAGES = {
     research: { docs: [{ ticker: true, engine: 'justhodl-equity-research', name: 'Company research' }] },
@@ -45,7 +45,7 @@
       { key: 'data/plumbing-stress.json', engine: 'justhodl-plumbing-aggregator', name: 'Plumbing stress' },
       { key: 'data/plumbing-history.json', engine: 'justhodl-plumbing-aggregator', name: 'Plumbing history' }] },
     liquidity: { docs: [
-      { key: 'liquidity-data.json', engine: 'justhodl-liquidity-agent', name: 'Liquidity agent' },
+      { key: 'liquidity-data.json', url: PROXY + 'liquidity-data.json', engine: 'justhodl-liquidity-agent', name: 'Liquidity agent' },
       { key: 'data/liquidity-flow.json', engine: 'justhodl-liquidity-flow', name: 'Liquidity flow' }] },
     canaries: { docs: [
       { key: 'data/canary-warroom.json', engine: 'justhodl-canary-warroom', name: 'Canary war room' },
@@ -292,7 +292,7 @@
       det.setAttribute('data-doc', d.key || 'ticker');
       det.innerHTML = '<summary><b>' + esc(d.name) + '</b><i>' + esc(d.engine) + '</i><i class="jed-st">' + (d.ticker ? 'waiting for a ticker' : 'not loaded yet') + '</i></summary><div class="jed-body"><div class="jed-msg">Loading\u2026</div></div>';
       host.appendChild(det);
-      var slot = { def: d, det: det, doc: null, loaded: false, view: 'sections', url: d.key ? '/' + d.key : null };
+      var slot = { def: d, det: det, doc: null, loaded: false, view: 'sections', url: d.url || (d.key ? '/' + d.key : null) };
       state.docs.push(slot);
       det.addEventListener('toggle', function () { if (det.open) load(win, slot); });
       if (i === 0 && !d.ticker) det.open = true;

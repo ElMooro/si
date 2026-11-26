@@ -49,6 +49,9 @@ test('every registered document names its engine, and no document is listed twic
       assert.match(d.engine, /^justhodl-[a-z0-9-]+$/, name);
       assert.ok(d.name && d.name.length > 3, name);
       if (d.key) assert.match(d.key, /^(data\/)?[a-z0-9-]+\.json$/, name);
+      // a document under data/ is read from the site; the one kept at the bucket's root is read where its own page reads it
+      assert.equal(!!d.url, !!d.key && !d.key.startsWith('data/'), name + ' ' + (d.key || 'ticker'));
+      if (d.url) assert.equal(d.url, 'https://justhodl-data-proxy.raafouis.workers.dev/' + d.key);
     }
   }
 });
