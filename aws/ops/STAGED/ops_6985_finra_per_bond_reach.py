@@ -36,8 +36,19 @@ TRADE = re.compile(r"price|yield|execution|tradeTime|quantity|reportedPrice|last
 HIDE = re.compile(r"cusip|isin|figi|symbol|sedol|identifier", re.I)
 KNOWN = ["corporateMarketBreadth", "corporateMarketSentiment", "corporate144AMarketBreadth", "corporate144AMarketSentiment", "corporatesAndAgenciesCappedVolume",
          "agencyMarketBreadth", "agencyMarketSentiment", "securitizedProductsCappedVolume", "treasuryDailyAggregates", "treasuryWeeklyAggregates", "treasuryMonthlyAggregates"]
-GUESSES = ["trace", "traceCorporate", "corporateTrades", "corporateAndAgencyTradeActivity", "corporatesAndAgenciesTradeActivity", "corporate144ATradeActivity",
-           "corporateBondTradeHistory", "tradeHistory", "corporateAndAgencySecurities", "bondSecurities", "corporateDebtLastSale", "corporate144ALastSale"]
+GUESSES = ["corporateAndAgencyTradeActivity", "corporateAndAgencySecurities", "corporateAndAgencyTradeHistory", "corporateAndAgencyLastSale",
+           "corporateAndAgency144ATradeActivity", "corporate144ATradeActivity", "corporate144ASecurities", "securitizedProductSecurities", "treasurySecurities",
+           "treasuryTradeActivity", "trace", "corporateTrades", "tradeHistory", "bondSecurities"]
+SECRETS = []      # values that must never reach the report or the run log: filled at run time, replaced in every text
+
+
+def clean(text):
+    """FINRA's refusals name the caller: our client id is taken out of anything that is logged."""
+    text = str(text)
+    for value in SECRETS:
+        if value:
+            text = text.replace(value, "(held back)")
+    return re.sub(r"\b[0-9a-f]{20}\b", "(client id held back)", text)
 
 
 def call(method, url, token=None, body=None, timeout=30):
@@ -58,13 +69,13 @@ def call(method, url, token=None, body=None, timeout=30):
         raw = exc.read() if hasattr(exc, "read") else b""
         status = exc.code
     except Exception as exc:  # noqa: BLE001
-        return None, None, "%s %s" % (type(exc).__name__, str(exc)[:120])
-    text = raw.decode("utf-8", "replace")
+        return None, None, clean("%s %s" % (type(exc).__name__, str(exc)[:120]))
+    text = clean(raw.decode("utf-8", "replace"))
     try:
         parsed = json.loads(text) if text.strip() else None
     except ValueError:
         parsed = None
-    return status, parsed, re.sub(r"\s+", " ", text)[:300]
+    return status, parsed, re.sub(r"\s+", " ", text)[:420]
 
 
 def shown(row):
@@ -78,6 +89,10 @@ def main():
     with report(NAME) as r:
         r.heading("6985 - does our FINRA access reach a bond-by-bond dataset? (read-only probe), %s" % now.isoformat(timespec="minutes"))
 
+        def say(msg):
+            r.log(clean(msg))      # every line passes the same filter before it reaches the report or the run log
+
+
         # ------------------------------------------------------------------ 1
         r.section("1. How we are signed in")
         ssm = boto3.client("ssm", region_name="us-east-1")
@@ -88,16 +103,22 @@ def main():
                 have[label] = "kept"
             except Exception as exc:  # noqa: BLE001
                 have[label] = "not kept (%s)" % type(exc).__name__
-        r.log("credentials in the parameter store: %s" % json.dumps(have))
+        say("credentials in the parameter store: %s" % json.dumps(have))
+        for name in ("/justhodl/finra/client_id", "/justhodl/finra/client_secret"):
+            try:
+                SECRETS.append(ssm.get_parameter(Name=name, WithDecryption=True)["Parameter"]["Value"])
+            except Exception:  # noqa: BLE001
+                pass
         token, how = None, "keyless"
         try:
             import finra_si
             finra_si._write_cached_token = lambda *a, **k: None          # the probe writes nothing
             token = finra_si.get_access_token()
+            SECRETS.append(token)
             how = "signed in with client credentials (a token came back; not shown)" if token else "keyless"
         except Exception as exc:  # noqa: BLE001
-            how = "keyless: no token (%s: %s)" % (type(exc).__name__, re.sub(r"\s+", " ", str(exc))[:140])
-        r.log("this run: %s" % how)
+            how = clean("keyless: no token (%s: %s)" % (type(exc).__name__, re.sub(r"\s+", " ", str(exc))[:140]))
+        say("this run: %s" % how)
 
         # ------------------------------------------------------------------ 2
         r.section("2. FINRA's own list of datasets")
@@ -105,9 +126,9 @@ def main():
         for label, tok in (("without a token", None),) + ((("with the token", token),) if token else ()):
             status, parsed, text = call("GET", API + "/datasets", tok)
             items = parsed if isinstance(parsed, list) else (parsed or {}).get("datasets") if isinstance(parsed, dict) else None
-            r.log("GET /datasets %s: HTTP %s, %s" % (label, status, ("%d datasets" % len(items)) if isinstance(items, list) else text[:200]))
+            say("GET /datasets %s: HTTP %s, %s" % (label, status, ("%d datasets" % len(items)) if isinstance(items, list) else text[:200]))
             if isinstance(items, list) and items:
-                r.log("  one entry looks like: %s" % json.dumps(items[0])[:400])
+                say("  one entry looks like: %s" % json.dumps(items[0])[:400])
                 groups = {}
                 for it in items:
                     if not isinstance(it, dict):
@@ -117,10 +138,10 @@ def main():
                     groups.setdefault(g, []).append(n)
                     if "fixed" in g.lower():
                         fixed.setdefault(n, it)
-                r.log("  groups: %s" % json.dumps({g: len(v) for g, v in sorted(groups.items())}))
+                say("  groups: %s" % json.dumps({g: len(v) for g, v in sorted(groups.items())}))
             time.sleep(0.3)
         names = sorted(fixed) or list(KNOWN)
-        r.log("fixed-income datasets %s (%d): %s" % ("listed by FINRA" if fixed else "NOT listed; falling back to the names we know", len(names), ", ".join(names)))
+        say("fixed-income datasets %s (%d): %s" % ("listed by FINRA" if fixed else "NOT listed; falling back to the names we know", len(names), ", ".join(names)))
 
         # ------------------------------------------------------------------ 3
         r.section("3. What each fixed-income dataset carries")
@@ -135,7 +156,7 @@ def main():
             sec = [f for f in fields if SECURITY.search(f)]
             trd = [f for f in fields if TRADE.search(f)]
             desc = re.sub(r"\s+", " ", str((meta or {}).get("description") or (fixed.get(n) or {}).get("description") or ""))[:110] if isinstance(meta, dict) or fixed.get(n) else ""
-            r.log("%-46s HTTP %s | %2d fields | per-security: %s | trade: %s | %s" % (n, status, len(fields), sec[:8] or "none", trd[:6] or "none", desc if fields else text[:120]))
+            say("%-46s HTTP %s | %2d fields | per-security: %s | trade: %s | %s" % (n, status, len(fields), sec[:8] or "none", trd[:6] or "none", desc if fields else text[:300]))
             if sec:
                 per_bond.append((n, fields))
             time.sleep(0.25)
@@ -144,39 +165,60 @@ def main():
         r.section("4. Asking for rows from each dataset that carries a per-security field")
         reached = []
         if not per_bond:
-            r.log("none of the fixed-income datasets our access can see carries a per-security field")
+            say("none of the fixed-income datasets our access can see carries a per-security field")
         for n, fields in per_bond:
             status, rows, text = call("POST", "%s/data/group/fixedIncomeMarket/name/%s" % (API, n), token, {"limit": 3})
             if isinstance(rows, list) and rows and isinstance(rows[0], dict):
                 reached.append(n)
-                r.log("%s: HTTP %s, %d rows | columns: %s" % (n, status, len(rows), ", ".join(list(rows[0].keys())[:40])))
-                r.log("  one row (identifiers held back): %s" % json.dumps(shown(rows[0]))[:700])
+                say("%s: HTTP %s, %d rows | columns: %s" % (n, status, len(rows), ", ".join(list(rows[0].keys())[:40])))
+                say("  one row (identifiers held back): %s" % json.dumps(shown(rows[0]))[:700])
             else:
-                r.log("%s: HTTP %s, no rows | %s" % (n, status, text[:220]))
+                say("%s: HTTP %s, no rows | %s" % (n, status, text[:220]))
             time.sleep(0.3)
 
         # ------------------------------------------------------------------ 5
         r.section("5. Plausible names asked directly")
+        hidden = []
         for n in GUESSES:
-            if n in names:
+            if n.upper() in [x.upper() for x in names]:
                 continue
             status, meta, text = call("GET", "%s/metadata/group/fixedIncomeMarket/name/%s" % (API, n), token)
-            line = "%-42s metadata HTTP %s" % (n, status)
-            if status == 200:
-                s2, rows, t2 = call("POST", "%s/data/group/fixedIncomeMarket/name/%s" % (API, n), token, {"limit": 1})
-                line += " | rows HTTP %s: %s" % (s2, ("columns " + ", ".join(list(rows[0].keys())[:30])) if isinstance(rows, list) and rows and isinstance(rows[0], dict) else t2[:160])
-                if isinstance(rows, list) and rows:
-                    reached.append(n)
+            if status != 200:
+                say("%-40s metadata HTTP %s | %s" % (n, status, text[:110]))
+                time.sleep(0.25)
+                continue
+            hidden.append(n)
+            fields = [str(f.get("name") or f.get("fieldName") or "") for f in ((meta or {}).get("fields") or (meta or {}).get("fieldMetadata") or []) if isinstance(f, dict)]
+            say("%s: FINRA knows this dataset and it is NOT in our list" % n)
+            say("  described as: %s" % clean(re.sub(r"\s+", " ", str((meta or {}).get("description") or ""))[:300]))
+            say("  %d fields: %s" % (len(fields), ", ".join(fields)))
+            say("  other facts: %s" % clean(json.dumps({k: v for k, v in (meta or {}).items() if k not in ("fields", "fieldMetadata", "description")})[:500]))
+            s2, rows, t2 = call("POST", "%s/data/group/fixedIncomeMarket/name/%s" % (API, n), token, {"limit": 2})
+            if isinstance(rows, list) and rows and isinstance(rows[0], dict):
+                reached.append(n)
+                say("  rows: HTTP %s, %d returned | one row (identifiers held back): %s" % (s2, len(rows), clean(json.dumps(shown(rows[0])))[:700]))
             else:
-                line += " | %s" % text[:140]
-            r.log(line)
-            time.sleep(0.25)
+                say("  rows: HTTP %s | %s" % (s2, t2[:400]))
+            s3, parts, t3 = call("GET", "%s/partitions/group/fixedIncomeMarket/name/%s" % (API, n), token)
+            say("  partitions: HTTP %s | %s" % (s3, t3[:200]))
+            s4, m4, t4 = call("GET", "%s/metadata/group/fixedIncomeMarket/name/%sMock" % (API, n), token)
+            if s4 == 200:
+                s5, mock, t5 = call("POST", "%s/data/group/fixedIncomeMarket/name/%sMock" % (API, n), token, {"limit": 2})
+                if isinstance(mock, list) and mock and isinstance(mock[0], dict):
+                    say("  its test twin (%sMock, made-up rows): HTTP %s | one row (identifiers held back): %s" % (n, s5, clean(json.dumps(shown(mock[0])))[:900]))
+                else:
+                    say("  its test twin (%sMock): HTTP %s | %s" % (n, s5, t5[:240]))
+            else:
+                say("  its test twin (%sMock): metadata HTTP %s" % (n, s4))
+            time.sleep(0.3)
 
         r.section("Answer")
-        r.log("signed in: %s" % how)
-        r.log("fixed-income datasets seen: %d | carrying a per-security field: %s | bond-by-bond rows actually returned from: %s" % (
-            len(names), [n for n, _ in per_bond] or "none", reached or "none"))
-        r.kv(datasets=len(names), per_security=len(per_bond), rows_returned=len(reached), token=bool(token))
+        say("signed in: %s" % how)
+        truly = [n for n in reached if n in hidden]
+        say("fixed-income datasets in our list: %d, every one an aggregate or a securitized-product table" % len(names))
+        say("bond-by-bond datasets FINRA has that are not in our list: %s" % (hidden or "none found"))
+        say("bond-by-bond rows actually returned to us: %s" % (truly or "none"))
+        r.kv(datasets=len(names), hidden=len(hidden), rows_returned=len(truly), token=bool(token))
         r.ok("probe complete")
 
 
