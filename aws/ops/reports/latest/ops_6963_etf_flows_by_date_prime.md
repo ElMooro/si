@@ -1,34 +1,27 @@
-# ops 6963 - every ETF's flows by date: probe, check, bank (2026-11-26T03:32+00:00)
+# ops 6963 - every ETF's flows by date: probe, check, bank (2026-11-26T03:48+00:00)
 
 **Status:** success  
-**Duration:** 847.1s  
-**Finished:** 2026-11-26T03:46:51+00:00  
+**Duration:** 50.4s  
+**Finished:** 2026-11-26T03:49:44+00:00  
 
 ## Data
 
-| funds_november | funds_on_newest_day | months | newest_day | rows_november | write | written |
-|---|---|---|---|---|---|---|
-| 5354 | 4976 | 2 | 2026-11-24 | 85000 | False | 0 |
+| one_day_whole | whole | write |
+|---|---|---|
+| True | {'month, newest date first': False, 'month, oldest date first': False, 'month, by fund A to Z': False, 'month, by fund Z to A': False} | False |
 
 ## Log
-## 1. A whole month for every fund, asked by processed date
+## 1. The bank's per-fund files (their newest 45 rows each)
 
-- `03:32:57` 2026-10: 110000 rows in 23 pages, 12 s, complete True | 5164 funds | 23 effective days, 22 processed days | rows outside the month 0, repeated rows 0
-- `03:32:57`     funds per effective day (last 8): {"2026-10-21": 5000, "2026-10-22": 4999, "2026-10-23": 5000, "2026-10-26": 5000, "2026-10-27": 5000, "2026-10-28": 5000, "2026-10-29": 5000, "2026-10-30": 4976}
-- `03:32:57`     a row: {"processed_date": "2026-10-30", "effective_date": "2026-10-30", "composite_ticker": "ZVOL", "shares_outstanding": 3120000.0, "nav": 7.06, "fund_flow": 0.0} | fields {'processed_date': 2000, 'effective_date': 2000, 'composite_ticker': 2000, 'shares_outstanding': 2000, 'nav': 2000, 'fund_flow': 2000}
-- `03:33:06` 2026-11: 85000 rows in 18 pages, 9 s, complete True | 5354 funds | 18 effective days, 17 processed days | rows outside the month 0, repeated rows 0
-- `03:33:06`     funds per effective day (last 8): {"2026-11-13": 5000, "2026-11-16": 5001, "2026-11-17": 4999, "2026-11-18": 5001, "2026-11-19": 5000, "2026-11-20": 4999, "2026-11-23": 5000, "2026-11-24": 4976}
-- `03:33:06`     a row: {"processed_date": "2026-11-24", "effective_date": "2026-11-24", "composite_ticker": "ZVOL", "shares_outstanding": 3600000.0, "nav": 5.74, "fund_flow": 0.0} | fields {'processed_date': 2000, 'effective_date': 2000, 'composite_ticker': 2000, 'shares_outstanding': 2000, 'nav': 2000, 'fund_flow': 2000}
-## 2. The same rows in the bank's per-fund files
+- `03:49:14` 5789 funds, 255359 fund-days
+## 2. Which way of asking by date returns every fund
 
-- `03:40:02` 2026-10: fund-days here 110000 | also in the per-fund files 108779, of which different 0 [] | per-fund fund-days of the month not here 14558 [["AAA", "2026-10-30"], ["AAA", "2026-10-29"], ["AAA", "2026-10-28"], ["AAA", "2026-10-27"], ["AAA", "2026-10-26"]] | funds here with no per-fund file 74
-- `03:40:02`     newest day per fund, this answer against the per-fund file: {'older here': 5085, 'newer here': 75, 'same': 4}
-- `03:40:02`     usable: True
-- `03:46:51` 2026-11: fund-days here 84999 | also in the per-fund files 53447, of which different 7 [[["PRNT", "2026-11-20"], {"processed_date": "2026-11-20", "effective_date": "2026-11-20", "composite_ticker": "PRNT", "shares_outstanding": 2250000.0, "nav": 20.94676, "fund_flow": 0.0}, {"processed_date": "2026-11-20", "effective_date": "2026-11-20", "composite_ticker": "PRNT", "shares_outstanding": 2250000.0, "nav": 20.947, "fund_flow": 0.0}], [["NISM", "2026-11-20"], {"processed_date": "2026-11-20", "effective_da | per-fund fund-days of the month not here 5097 [["AAA", "2026-11-24"], ["AAA", "2026-11-23"], ["AAA", "2026-11-20"], ["AAA", "2026-11-19"], ["AAA", "2026-11-16"]] | funds here with no per-fund file 38
-- `03:46:51`     newest day per fund, this answer against the per-fund file: {'same': 1480, 'newer here': 3871, 'older here': 3}
-- `03:46:51`     usable: True
-## 3. Banked where the bank's new dataset keeps them
-
-- `03:46:51` data/warm/polygon-bank/etf-global-fund-flows-by-date/2026-10.json.gz: would be written (110000 rows, 16.5 MB) - probe only
-- `03:46:51` data/warm/polygon-bank/etf-global-fund-flows-by-date/2026-11.json.gz: would be written (85000 rows, 12.7 MB) - probe only
-- `03:46:51` ✅ CHECKED: November has 5354 funds, 4976 of them on the newest day 2026-11-24; the by-date answer equals the per-fund files
+- `03:49:21` month, newest date first (18 pages, 7 s, complete True): 85000 rows, 5354 funds, 18 days | per day (last 4) {"2026-11-19": 5000, "2026-11-20": 4999, "2026-11-23": 5000, "2026-11-24": 4976} | of the per-fund files' 58520 fund-days it has 53423 (91.3%), different 0 | first and last fund BBSC .. ZVOL
+- `03:49:28` month, oldest date first (18 pages, 7 s, complete True): 85000 rows, 5349 funds, 18 days | per day (last 4) {"2026-11-19": 5000, "2026-11-20": 4999, "2026-11-23": 5000, "2026-11-24": 4976} | of the per-fund files' 58520 fund-days it has 47478 (81.1%), different 4 | first and last fund AAA .. VO
+- `03:49:35` month, by fund A to Z (20 pages, 7 s, complete True): 96095 rows, 5794 funds, 18 days | per day (last 4) {"2026-11-19": 5407, "2026-11-20": 5401, "2026-11-23": 5727, "2026-11-24": 5707} | of the per-fund files' 58520 fund-days it has 58516 (100.0%), different 4 | first and last fund AAA .. ZVOL
+- `03:49:43` month, by fund Z to A (20 pages, 7 s, complete True): 96095 rows, 5794 funds, 18 days | per day (last 4) {"2026-11-19": 5407, "2026-11-20": 5401, "2026-11-23": 5727, "2026-11-24": 5707} | of the per-fund files' 58520 fund-days it has 58516 (100.0%), different 4 | first and last fund AAA .. ZVOL
+- `03:49:44` one day 2026-11-24, by fund A to Z (2 pages, 1 s, complete True): 5734 rows, 5734 funds, 2 days | per day (last 4) {"2026-11-23": 27, "2026-11-24": 5707} | of the per-fund files' 1628 fund-days it has 1628 (100.0%), different 0 | first and last fund AAA .. ZVOL
+- `03:49:44` A-to-Z and Z-to-A together: 96091 fund-days; of the per-fund files' 58520 it has 58516
+- `03:49:44` newest-first and oldest-first together: 96091 fund-days; of the per-fund files' 58520 it has 58516
+- `03:49:44` funds on the newest day 2026-11-24: A-to-Z 5707, Z-to-A 5707, together 5707, one-day question 5734, per-fund files 1628
+- `03:49:44` ✅ PROBE COMPLETE: nothing was banked
