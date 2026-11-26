@@ -43,14 +43,18 @@ try:  # bank-first FMP (aws/shared/fmp_bankfirst): /stable answered from the war
     _fmp_bankfirst_install()
 except Exception:  # noqa: BLE001 - the shim never blocks the engine
     pass
+import gzip
 import json
 import os
+import time
 import urllib.request
 import urllib.parse
 from datetime import datetime, timezone, timedelta
 
 import boto3
 from managed_secret import managed_secret  # audit 2026-09-08 INST-06: no literal credentials
+
+import breadth_math as BM  # v1.1: the pure arithmetic (both bases, McClellan, the bank plan), tested on fixtures
 
 # ---- infrastructure ---------------------------------------------------
 S3_BUCKET = "justhodl-dashboard-live"
@@ -67,6 +71,14 @@ ZWEIG_LOW = 0.40
 ZWEIG_HIGH = 0.615
 ZWEIG_WINDOW = 10            # trading sessions
 COOLDOWN_DAYS = 365
+
+# ---- v1.1 (2026-11-26): the house bank of grouped sessions first -------
+VERSION = "1.1"
+GROUPED_ROOT = "data/warm/polygon-full/grouped/"      # YYYY/YYYY-MM-DD.json.gz, Polygon's own rows, banked 02:29 UTC
+TODAY_KEY = "data/warm/polygon-full/today.json.gz"    # the forming session, kept by the five-minute lane
+HISTORY_KEEP = 130       # sessions kept in the cache (60 before): McClellan's 39-session average needs the depth
+ZWEIG_ROWS = 60          # the state machine reads the last 60 sessions, exactly as it did before
+BANK_READS_PER_RUN = 140
 
 # ---- curated Zweig historical trigger dates ---------------------------
 HISTORICAL_TRIGGER_DATES = [
@@ -241,6 +253,100 @@ def save_breadth_cache(history):
                   CacheControl="no-cache")
 
 
+def bank_session_keys(n):
+    """The last n banked sessions' keys, oldest first. The bank's own list of sessions: no weekday or holiday guessing."""
+    now = datetime.now(timezone.utc)
+    keys = []
+    for yr in (now.year - 1, now.year):
+        token = None
+        while True:
+            kw = {"Bucket": S3_BUCKET, "Prefix": "%s%d/" % (GROUPED_ROOT, yr)}
+            if token:
+                kw["ContinuationToken"] = token
+            r = s3.list_objects_v2(**kw)
+            keys.extend(o["Key"] for o in (r.get("Contents") or []) if o["Key"].endswith(".json.gz"))
+            token = r.get("NextContinuationToken")
+            if not token:
+                break
+    keys.sort()
+    return keys[-n:]
+
+
+def bank_session(key):
+    """One banked session's rows ({T, o, c, v, ...}), or [] when it cannot be read."""
+    try:
+        raw = s3.get_object(Bucket=S3_BUCKET, Key=key)["Body"].read()
+        j = json.loads(gzip.decompress(raw) if raw[:2] == b"\x1f\x8b" else raw)
+        return j.get("results") or []
+    except Exception as e:
+        print("bank session unreadable %s: %s" % (key, e))
+        return []
+
+
+def deepen_from_bank(history, keep=HISTORY_KEEP, budget=BANK_READS_PER_RUN):
+    """Reads the house bank of grouped sessions, never the provider, and oldest first:
+      * adds the sessions the cache lacks inside the last `keep` banked sessions (ratio on the same open-to-close basis),
+      * gives each kept session its counts, its up-volume share and its day-over-day reading.
+    A row's existing `ratio` is never rewritten. Returns (history, stats)."""
+    stats = {"sessions_in_window": 0, "files_read": 0, "sessions_added": 0, "sessions_completed": 0,
+             "left_for_next_run": 0, "max_ratio_gap": None, "error": None}
+    try:
+        keys = bank_session_keys(keep + 1)
+    except Exception as e:
+        stats["error"] = str(e)[:160]
+        print("bank listing failed: %s" % e)
+        return history, stats
+    by_date = {k.rsplit("/", 1)[1][:10]: k for k in keys}
+    dates = sorted(by_date)
+    rows = {r["date"]: r for r in history}
+    work, read, left = BM.bank_plan(dates, rows, keep, budget)
+    work = set(work)
+    stats["sessions_in_window"] = len(dates)
+    stats["left_for_next_run"] = left
+    prev_date = prev_close = None
+    gap = None
+    for i, d in enumerate(dates):
+        if d not in read:
+            continue
+        grouped = bank_session(by_date[d])
+        stats["files_read"] += 1
+        if d in work and grouped:
+            det = BM.detail(grouped)
+            row = rows.get(d)
+            if row is None:
+                ratio, n = compute_ad_ratio(grouped)
+                if ratio is not None:
+                    row = {"date": d, "ratio": round(ratio, 4), "n_stocks": n, "source": "bank"}
+                    rows[d] = row
+                    stats["sessions_added"] += 1
+            elif det["adv"] + det["dec"]:
+                g = abs(row["ratio"] - det["adv"] / float(det["adv"] + det["dec"]))
+                gap = g if gap is None else max(gap, g)
+            if row is not None:
+                row.update(det)
+                if i > 0 and prev_date == dates[i - 1] and prev_close:
+                    row.update(BM.day_over_day(grouped, prev_close))
+                stats["sessions_completed"] += 1
+        prev_date, prev_close = d, (BM.closes_of(grouped) if grouped else None)
+    stats["max_ratio_gap"] = round(gap, 4) if gap is not None else None
+    return sorted(rows.values(), key=lambda r: r["date"]), stats
+
+
+def preliminary_reading(settled_rows):
+    """Today's session from the house forming-bar file, set against the settled sessions. Information only."""
+    try:
+        raw = s3.get_object(Bucket=S3_BUCKET, Key=TODAY_KEY)["Body"].read()
+        doc = json.loads(gzip.decompress(raw) if raw[:2] == b"\x1f\x8b" else raw)
+    except Exception as e:
+        print("forming-bar file unreadable: %s" % e)
+        return None
+    try:
+        return BM.preliminary(doc, settled_rows, ZWEIG_LOW, ZWEIG_HIGH, ZWEIG_WINDOW)
+    except Exception as e:
+        print("preliminary reading failed: %s" % e)
+        return None
+
+
 def update_breadth_cache(history, target_days=15):
     """Fetch missing trading days. Walk back from yesterday."""
     have_dates = {r["date"] for r in history}
@@ -264,16 +370,19 @@ def update_breadth_cache(history, target_days=15):
         if grouped:
             ratio, n = compute_ad_ratio(grouped)
             if ratio is not None:
-                history.append({
+                row = {
                     "date": d_str,
                     "ratio": round(ratio, 4),
                     "n_stocks": n,
-                })
+                }
+                row["source"] = "polygon"       # the bank had no file for this session yet
+                row.update(BM.detail(grouped))
+                history.append(row)
                 fetched += 1
     history.sort(key=lambda r: r["date"])
-    # Keep last 60 trading days only
-    if len(history) > 60:
-        history = history[-60:]
+    # Keep the last HISTORY_KEEP sessions (60 before v1.1)
+    if len(history) > HISTORY_KEEP:
+        history = history[-HISTORY_KEEP:]
     return history, fetched
 
 
@@ -626,17 +735,28 @@ def send_telegram(msg):
 
 def lambda_handler(event, context):
     as_of = datetime.now(timezone.utc).isoformat()
+    t0 = time.time()
+    # {"dry_run": true}: everything is read and computed, nothing is written (no cache, no state, no report, no alert)
+    dry = bool(isinstance(event, dict) and event.get("dry_run"))
 
-    # ---- 1. Update breadth history cache ----
+    # ---- 1. Update breadth history cache: the house bank first, the provider only for a session the bank lacks ----
     history = load_breadth_cache()
+    n_before = len(history)
+    history, bank = deepen_from_bank(history)
     history, fetched = update_breadth_cache(history)
-    save_breadth_cache(history)
-    print("breadth cache: %d entries, %d newly fetched"
-          % (len(history), fetched))
+    if not dry:
+        save_breadth_cache(history)
+    print("breadth cache: %d entries (%d before), %d from the bank, %d fetched live, %d bank files read"
+          % (len(history), n_before, bank.get("sessions_added") or 0, fetched, bank.get("files_read") or 0))
 
-    # ---- 2. Zweig state ----
-    zweig = evaluate_zweig(history)
+    # ---- 2. Zweig state: the last ZWEIG_ROWS sessions on the open-to-close ratio, as before v1.1 ----
+    zweig_rows = sorted(history, key=lambda r: r["date"])[-ZWEIG_ROWS:]
+    zweig = evaluate_zweig(zweig_rows)
     zweig_state = zweig.get("state", "NULL")
+    last_row = zweig_rows[-1] if zweig_rows else {}
+    day_over_day = BM.day_over_day_reading(history, ZWEIG_LOW, ZWEIG_HIGH, ZWEIG_WINDOW, ZWEIG_ROWS)
+    mcclellan = BM.mcclellan(history)
+    preliminary = preliminary_reading(zweig_rows)
 
     # ---- 3. SPY history for Whaley/Coppock/forward-returns ----
     spy_hist = fetch_spy_history(20)
@@ -667,7 +787,8 @@ def lambda_handler(event, context):
     persistent["state"] = zweig_state
     if zweig_state != prev_state:
         persistent["state_since"] = as_of
-    save_persistent_state(persistent)
+    if not dry:
+        save_persistent_state(persistent)
 
     # ---- 5. Forward expectations ----
     history_rows = compute_forward_returns(
@@ -704,7 +825,20 @@ def lambda_handler(event, context):
                               "FRED SP500 index as vendor-independent "
                               "fallback; triggers predating the price "
                               "window are excluded, not zero-filled"),
-        "version": "1.0",
+        "version": VERSION,
+        # v1.1 (audit of 2026-11-26): said plainly, because it is not what the name suggests.
+        "breadth_basis": ("The state follows an OPEN-TO-CLOSE ratio: an issue counts as rising when it closes above "
+                          "its own open that session (volume of 100,000 shares or more; every US-listed stock and "
+                          "fund in the session file). Zweig's measure is day-over-day: NYSE issues closing above the "
+                          "PRIOR close. The thresholds 0.40 and 0.615 are his. From v1.1 the day-over-day reading, "
+                          "the counts, the share of volume in rising issues and a McClellan oscillator are kept "
+                          "beside it as information; they move no state and send no alert."),
+        "breadth_today": dict((k, last_row.get(k)) for k in (
+            "date", "ratio", "n_stocks", "adv", "dec", "unch", "up_vol_share", "ratio_dod", "adv_dod", "dec_dod",
+            "unch_dod", "new_dod", "set_aside_dod", "up_vol_share_dod", "source")),
+        "day_over_day": day_over_day,
+        "mcclellan": mcclellan,
+        "preliminary": preliminary,
         "as_of": as_of,
         "state": zweig_state,
         "prev_state": prev_state,
@@ -718,6 +852,8 @@ def lambda_handler(event, context):
             "zweig_window_max": zweig.get("max_in_window"),
             "zweig_thresholds": zweig.get("thresholds"),
             "n_breadth_days_cached": len(history),
+            "zweig_sessions_read": len(zweig_rows),
+            "bank": bank,
             "spy_history_n": len(spy_hist),
             "newly_fetched_this_run": fetched,
             "whaley": whaley,
@@ -742,15 +878,20 @@ def lambda_handler(event, context):
             "coppock_curve": coppock,
         },
         "methodology": (
-            "Polygon grouped daily aggregates -> daily advancing/"
-            "declining ratio (filter v>=100k) -> 10-period EMA. "
-            "Zweig: EMA crosses from <0.40 to >0.615 within 10 "
-            "trading sessions. Forward expectations computed live "
-            "from 20y SPY history at curated historical trigger "
-            "dates. Cache stored in data/breadth-history.json to "
-            "respect Polygon rate limits (max 5 fresh days per run)."),
+            "Grouped daily session files (the house bank, "
+            "data/warm/polygon-full/grouped; the provider only for a "
+            "session the bank lacks) -> daily open-to-close rising/"
+            "falling ratio (filter v>=100k) -> 10-period EMA over "
+            "the last 60 sessions. Zweig: EMA crosses from <0.40 to "
+            ">0.615 within 10 trading sessions. Forward expectations "
+            "computed live from 20y SPY history at curated historical "
+            "trigger dates. Cache: data/breadth-history.json, the "
+            "last 130 sessions with each session's counts on both "
+            "bases."),
         "sources": [
-            "Polygon /v2/aggs/grouped/locale/us/market/stocks",
+            "house bank data/warm/polygon-full/grouped (Polygon grouped daily, banked 02:29 UTC)",
+            "house forming-bar file data/warm/polygon-full/today.json.gz (preliminary reading only)",
+            "Polygon /v2/aggs/grouped/locale/us/market/stocks (fallback for a session the bank lacks)",
             "FMP /stable/historical-price-eod (SPY for forwards)",
             "academic: Martin Zweig 'Winning on Wall Street' (1986)",
         ],
@@ -758,6 +899,18 @@ def lambda_handler(event, context):
     }
 
     body["wl_research"] = __import__("wl_fusion").block(('BREADTH',))
+    body["run_seconds"] = round(time.time() - t0, 1)
+
+    if dry:
+        rows = sorted(history, key=lambda r: r["date"])
+        return {"statusCode": 200, "dry_run": True, "body": json.dumps({
+            "report": body,
+            "history": {"n": len(rows), "n_before": n_before,
+                        "first": rows[0]["date"] if rows else None, "last": rows[-1]["date"] if rows else None,
+                        "with_counts": sum(1 for r in rows if "adv" in r),
+                        "with_day_over_day": sum(1 for r in rows if r.get("ratio_dod") is not None),
+                        "from_bank": sum(1 for r in rows if r.get("source") == "bank"),
+                        "rows": rows}}, default=str)}
 
     s3.put_object(Bucket=S3_BUCKET, Key=REPORT_KEY,
                   Body=json.dumps(body, default=str).encode(),
@@ -771,8 +924,8 @@ def lambda_handler(event, context):
             "*ZWEIG BREADTH THRUST FIRED*\n\n"
             "Once-per-4-7-years signal.\n"
             "10d EMA: %s -> %s (min in window %s)\n\n"
-            "Historical fwd 12m: +%s%% (win rate %s%%, N=%s)\n\n"
-            "11-of-11 historical positive 12m. Buy SPY/QQQ/IWM.\n"
+            "Historical fwd 12m: +%s%% (win rate %s%%, N=%s past firings "
+            "in the record)\n\n"
             "Dashboard: https://justhodl.ai/breadth-thrust.html"
             % (ZWEIG_LOW, zweig.get("current_ema"),
                zweig.get("min_in_window"),

@@ -34,9 +34,23 @@
     target.replaceChildren();
     now = now == null ? Date.now() : now;
     var stamp = Date.parse(packet && packet.generated_at);
-    if (!packet || packet.schema_version !== "2.0" || !Number.isFinite(stamp) || now - stamp > 900000 || stamp - now > 300000) {
+    /* 2026-11-26: the tape's engine has run once a day since the cadence floor of 2026-10-20, and this strip - which
+       refused any packet older than fifteen minutes - read "Market observations unavailable or stale" on every page
+       for all but fifteen minutes of every day. A sound packet up to four days old is now shown as what it is: a
+       first chip says when it was written and how old it is, and a quote reads "last print", never as a live price.
+       A missing, malformed, future-dated or older packet still reads unavailable. */
+    if (!packet || packet.schema_version !== "2.0" || !Number.isFinite(stamp) || now - stamp > 345600000 || stamp - now > 300000) {
       target.textContent = "Market observations unavailable or stale";
       return;
+    }
+    var old = now - stamp > 900000;
+    if (old) {
+      var mins = Math.round((now - stamp) / 60000);
+      var asof = doc.createElement("span"); asof.className = "jhc-chip jhc-stale";
+      asof.setAttribute("data-asof", packet.generated_at);
+      asof.textContent = "As of " + String(packet.generated_at).slice(5, 16).replace("T", " ") + "Z · " + (mins < 90 ? mins + " min" : Math.round(mins / 60) + " h") + " old";
+      asof.title = "The market tape is written once a day. Each figure carries its own observation date; a quote is the last print at that time, not a live price.";
+      target.appendChild(asof);
     }
     (packet.items || []).forEach(function (item) {
       if (!item || typeof item.value !== "number" || !Number.isFinite(item.value) || !item.observation_date || !item.unit) return;
@@ -55,7 +69,8 @@
       var date = doc.createElement("small"); date.className = "jhc-asof";
       date.textContent = " · " + (item.frequency === "quote" && item.observed_at
         ? item.observed_at.slice(5, 16).replace("T", " ") + "Z" : item.observation_date);
-      if (state === "delayed") date.textContent += " delayed";
+      if (old && item.frequency === "quote" && state !== "session" && state !== "stale") date.textContent += " last print";
+      else if (state === "delayed") date.textContent += " delayed";
       else if (state === "session") date.textContent += " last close";
       else if (state === "stale") { date.textContent += " stale"; sp.className += " jhc-stale"; }
       sp.appendChild(label); sp.appendChild(value); sp.appendChild(date); target.appendChild(sp);

@@ -21,7 +21,7 @@
   else { root.JHEngineData = api; api.boot(root); }
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
-  var VERSION = '1.0.1';
+  var VERSION = '1.1.0';
   var DASH = '\u2014', TIMES = '\u00D7', DOT = ' \u00B7 ';
   var PROXY = 'https://justhodl-data-proxy.raafouis.workers.dev/', RESEARCH = PROXY + 'equity-research/';
 
@@ -311,12 +311,28 @@
       if (q) take(decodeURIComponent(q[1]));
     }
     if (!doc.querySelector('.jed-jump')) {
-      var jump = el(doc, 'button', 'jed-jump', 'All engine data \u2193');
+      /* shown while the reader is at the top of the page, so it says the section exists without sitting on the content */
+      var jump = el(doc, 'button', 'jed-jump', 'All engine data \u2193'), near = false;
+      var place = function () { jump.style.display = near || (win.pageYOffset || 0) > 260 ? 'none' : ''; };
       jump.type = 'button';
       jump.onclick = function () { host.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
       doc.body.appendChild(jump);
-      if (win.IntersectionObserver) new win.IntersectionObserver(function (es) { jump.style.display = es[0].isIntersecting ? 'none' : ''; }).observe(host);
+      if (win.IntersectionObserver) new win.IntersectionObserver(function (es) { near = es[0].isIntersecting; place(); }).observe(host);
+      win.addEventListener('scroll', place, { passive: true });
+      place();
     }
+    /* Opened as a tab inside the chart, the page drops the site furniture that belongs to a page of its own: the
+       research pills that float over the figures and the sign-in button. They stay on the page itself. */
+    try {
+      if (win.top !== win && typeof win.top.jhOpenSymbol === 'function') {
+        doc.documentElement.className += ' jh-in-chart';
+        if (!doc.getElementById('jed-in-chart')) {
+          var hide = doc.createElement('style'); hide.id = 'jed-in-chart';
+          hide.textContent = '.jh-in-chart #jh-tenor-pill,.jh-in-chart .jh-tenor-pill,.jh-in-chart #jh-liq-pill,.jh-in-chart .jh-liq-pill,.jh-in-chart #jh-lce-pill,.jh-in-chart .jh-lce-pill,.jh-in-chart #jh-auth-auto-slot,.jh-in-chart .jh-auth-auto-slot{display:none!important}';
+          doc.head.appendChild(hide);
+        }
+      }
+    } catch (e) { /* another origin above: not the chart */ }
     host.__jed = state;
     doc.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var m = doc.querySelector('.jed-modal'); if (m) m.remove(); } });
   }

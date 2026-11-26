@@ -3286,14 +3286,14 @@ window.fillJHVitals=async function(d){ try{
   var pe=(sf.pe_ttm!=null?sf.pe_ttm:v.pe_ttm), peg=(sf.peg!=null?sf.peg:v.peg_ratio), ps=(sf.ps_ttm!=null?sf.ps_ttm:v.ps_ttm);
   el.innerHTML='<div class="jhv-grid">'
     +tile('PRICE',price!=null?'$'+n9(price,2):'—','')
-    +tile('MKT CAP',fm$(sf.market_cap!=null?sf.market_cap:v.market_cap),'')
+    +tile('MKT CAP',fm$(sf.market_cap!=null?sf.market_cap:(v.market_cap!=null?v.market_cap:((d&&d.company&&d.company.market_cap!=null)?d.company.market_cap:((d&&d.classification)||{}).market_cap))),'')
     +tile('P/E TTM',n9(pe),'')
     +tile('PEG',n9(peg,2),'')
     +tile('P/S',n9(ps),'')
-    +tile('P/B',n9(v.pb,2),'')
+    +tile('P/B',n9(v.pb!=null?v.pb:v.pb_ttm,2),'')
     +tile('EV/EBITDA',n9(v.ev_ebitda),'')
-    +tile('FCF YIELD',sf.fcf_yield_pct!=null?n9(sf.fcf_yield_pct)+'%':'—','')
-    +tile('SHRHLDR YLD',sf.total_shareholder_yield_pct!=null?n9(sf.total_shareholder_yield_pct)+'%':'—','net buyback + div')
+    +tile('FCF YIELD',sf.fcf_yield_pct!=null?n9(sf.fcf_yield_pct)+'%':(v.fcf_yield_pct!=null?n9(v.fcf_yield_pct)+'%':'—'),'')
+    +tile('SHRHLDR YLD',sf.total_shareholder_yield_pct!=null?n9(sf.total_shareholder_yield_pct)+'%':(((d&&d.capital_allocation)||{}).shareholder_yield_pct!=null?n9(d.capital_allocation.shareholder_yield_pct)+'%':'—'),'net buyback + div')
     +tile('SHARES OUT','—','Qualified dated snapshot unavailable')
     +tile('OWNERSHIP DILUTION','UNQUALIFIED','No inferred stable-share or risk verdict')
   +'</div>';

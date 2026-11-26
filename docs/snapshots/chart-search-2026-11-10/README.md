@@ -333,3 +333,20 @@ git rm tests/chart-desk-tabs.test.js
 The twelve pages keep their new "Engine data" section (`jh-engine-data.js`, one `<div data-jed>` and one script tag at the
 end of each page); it does nothing on the chart and can stay. To take it back too, remove those two lines from each page
 and delete `jh-engine-data.js`, `tests/engine-data-kit.test.js` and `tests/fixtures/engine-data-cut.json.gz`.
+
+## 2026-11-26 (later): the Demand and Supply icons taken out of the desk buttons; "at a glance" on five pages
+
+Khalid, 11:28 ET: "remove the demand, supply icons from there bcs they arent serving no purpose they dont belong there".
+Only the two icons that sat among the desk buttons (`btn-demand`, `btn-supply`, injected by `jh-chart-sd-ui.js`) are gone.
+The Demand / Supply text buttons (`btn-demand2`, `btn-supply2`) and the right-rail pair (`btn-demand-rail`,
+`btn-supply-rail`) still switch the zones, and the zone engine itself is untouched. State before = commit `ca6ea0f6`.
+
+To put the two icons back:
+
+```
+git checkout ca6ea0f6 -- jh-chart-sd-ui.js jh-chart-ai-desk.js tests/chart-desk-tabs.test.js
+```
+
+The same change set added `jh-glance.js` (one `<div data-glance>` and one script tag at the top of plumbing.html,
+liquidity.html, breadth-thrust.html, catalyst-calendar.html and btc-cycle.html). Each page's own content is below it,
+unchanged. To take a glance off a page, remove those two lines from that page.

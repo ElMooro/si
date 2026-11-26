@@ -1,5 +1,10 @@
 /* Inject Demand / Supply buttons next to Alert. Self-contained:
-   works even if the engine HTML patch is not deployed yet. */
+   works even if the engine HTML patch is not deployed yet.
+
+   2026-11-26, Khalid: "remove the demand, supply icons from there bcs they arent serving no purpose they dont belong
+   there" - the two icon buttons (D Demand, S Supply) that sat among the desk buttons on the bar are no longer made.
+   The zones are still switched by the Demand and Supply text buttons beside Alert and by the D / S pair on the right
+   rail; nothing else changed. To bring the icons back, restore this file and the loader's ?v= from the commit before. */
 (function (root) {
   if (root.__jhSdUiV3) return;
   root.__jhSdUiV3 = true;
@@ -13,9 +18,8 @@
     s.textContent =
       "#rrail #btn-demand-rail.on{color:#089981;background:#2a2e39}" +
       "#rrail #btn-supply-rail.on{color:#f23645;background:#2a2e39}" +
-      "#tfbar #btn-demand.on,#tfbar #btn-demand2.on{color:#089981}" +
-      "#tfbar #btn-supply.on,#tfbar #btn-supply2.on{color:#f23645}" +
-      "#tfbar #btn-demand,#tfbar #btn-supply{display:inline-flex!important}";
+      "#tfbar #btn-demand2.on{color:#089981}" +
+      "#tfbar #btn-supply2.on{color:#f23645}";
     document.head.appendChild(s);
   }
 
@@ -68,11 +72,11 @@
 
   function sync() {
     var s = readShow();
-    ["btn-demand", "btn-demand2", "btn-demand-rail"].forEach(function (id) {
+    ["btn-demand2", "btn-demand-rail"].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) el.classList.toggle("on", !!s.demand);
     });
-    ["btn-supply", "btn-supply2", "btn-supply-rail"].forEach(function (id) {
+    ["btn-supply2", "btn-supply-rail"].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) el.classList.toggle("on", !!s.supply);
     });
@@ -152,22 +156,17 @@
   function injectTfbar() {
     var bar = document.getElementById("tfbar");
     if (!bar) return;
-    var alrt = document.getElementById("btn-alrt");
     var al = document.getElementById("btn-al");
-    if (alrt && !document.getElementById("btn-demand")) {
-      var d = mkBtn("btn-demand", "Demand zones · DBR / RBR", "<span class=g>D</span><span class=l>Demand</span>", "wsico wsdesk");
-      var s = mkBtn("btn-supply", "Supply zones · RBD / DBD", "<span class=g>S</span><span class=l>Supply</span>", "wsico wsdesk");
-      insertBefore(d, alrt);
-      insertBefore(s, alrt);
-    }
+    ["btn-demand", "btn-supply"].forEach(function (id) {       /* an icon left by an older copy of this script */
+      var old = document.getElementById(id);
+      if (old && old.parentNode) old.parentNode.removeChild(old);
+    });
     if (al && !document.getElementById("btn-demand2")) {
       var d2 = mkBtn("btn-demand2", "Demand zones", "Demand");
       var s2 = mkBtn("btn-supply2", "Supply zones", "Supply");
       insertBefore(d2, al);
       insertBefore(s2, al);
     }
-    bind(document.getElementById("btn-demand"), "demand");
-    bind(document.getElementById("btn-supply"), "supply");
     bind(document.getElementById("btn-demand2"), "demand");
     bind(document.getElementById("btn-supply2"), "supply");
   }

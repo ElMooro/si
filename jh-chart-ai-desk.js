@@ -60,7 +60,7 @@
     if (root.__jhSdUiV3) return;
     if (document.querySelector('script[src*="jh-chart-sd-ui.js"]')) return;
     var s = document.createElement("script");
-    s.src = "/jh-chart-sd-ui.js?v=3";
+    s.src = "/jh-chart-sd-ui.js?v=4";
     s.async = true;
     (document.head || document.documentElement).appendChild(s);
   }

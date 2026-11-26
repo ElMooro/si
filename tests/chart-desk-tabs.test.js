@@ -92,3 +92,16 @@ test('the byte ledger takes the twelve buttons back out first, to the files as t
   assert.match(fs.readFileSync(path.join(R, 'tests/helpers/chart-macro-line-preservation.cjs'), 'utf8'), /function normalize\(raw,file\)\{raw=peelChartTabsEngine\(raw,file\);raw=peelChartTabsRail\(raw,file\);raw=peelChartTabsHtml\(raw,file\);raw=peelMoneyFlowEngine\(raw,file\);/);
   for (const [f, raw] of [['jh-chart-engine.js', ENGINE], ['jh-chart-tvrail.js', RAIL], ['chart.html', HTML]]) assert.notEqual(sha(ledger.normalize(raw, f)), sha(raw), f);
 });
+
+test('the Demand and Supply icons are gone from the desk buttons; the text buttons and the rail pair still switch the zones', () => {
+  // Khalid 2026-11-26: "remove the demand, supply icons from there bcs they arent serving no purpose they dont belong there"
+  const sd = fs.readFileSync(path.join(R, 'jh-chart-sd-ui.js'), 'utf8'), boot = fs.readFileSync(path.join(R, 'jh-chart-ai-desk.js'), 'utf8');
+  assert.ok(!/mkBtn\("btn-(demand|supply)"/.test(sd), 'the icon pair is no longer made');
+  assert.ok(!sd.includes('wsico wsdesk'), 'nothing from this script joins the desk buttons');
+  assert.ok(sd.includes('if (old && old.parentNode) old.parentNode.removeChild(old);'), 'an icon left by an older copy is taken off');
+  for (const kept of ['mkBtn("btn-demand2", "Demand zones", "Demand")', 'mkBtn("btn-supply2", "Supply zones", "Supply")', 'mkBtn("btn-demand-rail", "Demand zones", "D")', 'mkBtn("btn-supply-rail", "Supply zones", "S")',
+    'bind(document.getElementById("btn-demand2"), "demand");', 'bind(document.getElementById("btn-supply2"), "supply");']) assert.ok(sd.includes(kept), kept);
+  assert.ok(boot.includes('s.src = "/jh-chart-sd-ui.js?v=4";'), 'a browser holding the old script asks for the new one');
+  const ids = [...ENGINE.matchAll(/<button class='wsico wsdesk' id=(btn-[a-z0-9]+) /g)].map((m) => m[1]);
+  assert.equal(ids[ids.indexOf('btn-cryp') + 1], 'btn-alrt', 'Alert follows Crypto');
+});

@@ -5,7 +5,7 @@
   "handler": "lambda_function.lambda_handler",
   "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Zweig Breadth Thrust + Whaley + Coppock. 11-of-11 historical 12m positive returns when fired. State machine NULL/ARMED/FIRED/COOLDOWN. Polygon grouped aggs for NYSE A/D ratio, cached incrementally.",
+  "description": "Zweig Breadth Thrust + Whaley + Coppock. State machine NULL/ARMED/FIRED/COOLDOWN on the open-to-close rising share of US issues, read from the house bank of grouped sessions. Keeps day-over-day A/D, up-volume and McClellan beside it.",
   "inherit_env": true,
   "env": {
     "S3_BUCKET": "justhodl-dashboard-live"

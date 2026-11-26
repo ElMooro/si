@@ -86,7 +86,10 @@ test('why retains industry context but never renders old calls from either route
 test('all three pages load the same narrow display contract and scope why edits to the two modules',()=>{
  for(const p of ['tape-truth.html','industry-case.html','why.html'])assert.match(fs.readFileSync(path.join(root,p),'utf8'),/src="\/jh-tape-truth\.js"/);
  const hash=s=>require('node:crypto').createHash('sha256').update(s).digest('hex');
- assert.equal(hash(why.slice(0,why.indexOf('<!-- industry-case-module'))),'c990276ee63dd5cba86fdecaba1c804a1b82fa16b0526cacb79b845576468071');
+ // 2026-11-26: four Vitals tiles read the fields the research document carries (market value, P/B, FCF yield, shareholder yield were blank)
+ const VITALS=[["    +tile('MKT CAP',fm$(sf.market_cap!=null?sf.market_cap:(v.market_cap!=null?v.market_cap:((d&&d.company&&d.company.market_cap!=null)?d.company.market_cap:((d&&d.classification)||{}).market_cap))),'')\n", "    +tile('MKT CAP',fm$(sf.market_cap!=null?sf.market_cap:v.market_cap),'')\n"], ["    +tile('P/B',n9(v.pb!=null?v.pb:v.pb_ttm,2),'')\n", "    +tile('P/B',n9(v.pb,2),'')\n"], ["    +tile('FCF YIELD',sf.fcf_yield_pct!=null?n9(sf.fcf_yield_pct)+'%':(v.fcf_yield_pct!=null?n9(v.fcf_yield_pct)+'%':'—'),'')\n", "    +tile('FCF YIELD',sf.fcf_yield_pct!=null?n9(sf.fcf_yield_pct)+'%':'—','')\n"], ["    +tile('SHRHLDR YLD',sf.total_shareholder_yield_pct!=null?n9(sf.total_shareholder_yield_pct)+'%':(((d&&d.capital_allocation)||{}).shareholder_yield_pct!=null?n9(d.capital_allocation.shareholder_yield_pct)+'%':'—'),'net buyback + div')\n", "    +tile('SHRHLDR YLD',sf.total_shareholder_yield_pct!=null?n9(sf.total_shareholder_yield_pct)+'%':'—','net buyback + div')\n"]];
+ let head=why.slice(0,why.indexOf('<!-- industry-case-module'));for(const [now,was] of VITALS){assert.equal(head.split(now).length,2);head=head.replace(now,was);}
+ assert.equal(hash(head),'c990276ee63dd5cba86fdecaba1c804a1b82fa16b0526cacb79b845576468071');
  // 2026-11-26: the Engine data section (jh-engine-data.js) mounts in two lines before </body>; everything else in the tail is as it was
  const MOUNT='<div data-jed="research"></div>\n<script src="/jh-engine-data.js?v=20261126a" defer></script>\n';
  const tail=why.slice(why.indexOf('<!-- bottom-desk module'));assert.equal(tail.split(MOUNT).length,2);assert.ok(tail.endsWith(MOUNT+'</body>\n</html>\n'));

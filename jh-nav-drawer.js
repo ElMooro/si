@@ -72,7 +72,7 @@
           ck.textContent = dd.toLocaleTimeString("en-US", {hour12:false, timeZone:"America/New_York"}) + " ET"; };
         jt(); setInterval(jt, 1000);
         var tapeReady = window.JHMarketTape ? Promise.resolve() : new Promise(function (resolve, reject) {
-          var script = document.createElement("script"); script.src = "/jh-market-tape.js?v=88fee275";
+          var script = document.createElement("script"); script.src = "/jh-market-tape.js?v=f32262fc";
           script.onload = resolve; script.onerror = reject; document.head.appendChild(script);
         });
         var refreshTape = function () {

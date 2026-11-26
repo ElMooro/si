@@ -404,6 +404,9 @@ def build_cycle_bands():
            "price": round(hist[-1][1], 2),
            "rainbow": rainbow_bands(hist), "pi_cycle": pi_cycle_top(hist)}
     out.update(mayer_and_200w(hist))
+    # 2026-11-26: every seventh close back from the newest, so the page can draw the price on its log trend with the
+    # bands instead of describing where it sits (about 850 points; the fit above still uses every day)
+    out["history_weekly"] = [[d, round(px, 2)] for d, px in hist[::-1][::7][::-1]]
     out["joins"] = ("MVRV / NUPL / Puell / SOPR are computed elsewhere in this "
                     "same document and across the fleet — not recomputed here.")
     return out

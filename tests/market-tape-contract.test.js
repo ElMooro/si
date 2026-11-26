@@ -17,9 +17,22 @@ test('Tape displays observation date and exposes definition and source, without 
  assert.match(chip.title,/FRED:CPIAUCSL/);assert.equal(target.children[1].href,'/data/market-tape.json');
 });
 test('A recent page load cannot make an old tape or a legacy schema look current',()=>{
+ // 2026-11-26: the tape is written once a day. An hour-old packet is shown, and says how old it is before anything else;
+ // a quote in it reads "last print". Nothing older than four days, future-dated or of a legacy schema is shown at all.
  const p=packet();p.generated_at='2026-09-18T15:00:00Z';
- assert.match(render(p).textContent,/stale/);p.generated_at='2026-09-18T16:00:00Z';delete p.schema_version;
- assert.equal(render(p).children.length,0);
+ p.items.push({label:'SPX',value:6000,display:'6,000',unit:'index',observation_date:'2026-09-18',observed_at:'2026-09-18T14:59:00Z',frequency:'quote',badge:'LIVE',src:'FMP:^GSPC'});
+ const hour=render(p);
+ assert.equal(hour.textContent,'');assert.equal(hour.children[0].textContent,'As of 09-18 15:00Z \u00b7 60 min old');
+ assert.match(hour.children[0].className,/jhc-stale/);assert.match(hour.children[0].title,/once a day/);assert.equal(hour.children[0].attrs['data-asof'],'2026-09-18T15:00:00Z');
+ assert.match(hour.children[1].children[2].textContent,/2026-08-01/);
+ assert.match(hour.children[2].children[2].textContent,/09-18 14:59Z last print$/);
+ p.generated_at='2026-09-17T21:51:00Z';assert.equal(render(p).children[0].textContent,'As of 09-17 21:51Z \u00b7 18 h old');
+ p.generated_at='2026-09-18T15:50:00Z';const fresh=render(p);
+ assert.equal(fresh.children[0].attrs['data-sym'],'US CPI SA YoY');assert.doesNotMatch(fresh.children[1].children[2].textContent,/last print/);
+ p.generated_at='2026-09-14T15:59:00Z';assert.match(render(p).textContent,/unavailable or stale/);assert.equal(render(p).children.length,0);
+ p.generated_at='2026-09-18T16:06:00Z';assert.match(render(p).textContent,/unavailable or stale/);
+ p.generated_at='2026-09-18T16:00:00Z';delete p.schema_version;
+ assert.equal(render(p).children.length,0);assert.match(render(p).textContent,/unavailable or stale/);
 });
 test('Malformed values are omitted and coverage gaps remain visible',()=>{
  const p=packet();p.items[0].value=NaN;p.gaps=[{label:'CN GDP',reason:'stale source'}];

@@ -120,6 +120,8 @@
         <a href="/earnings-whisper.html">Earnings Whisper</a>
       </div>
     </div>
+<div data-glance="calendar"></div>
+
 
     <div class="stats">
       <div class="stat"><div class="label">Total Events</div><div class="value" id="nTotal">—</div></div>
@@ -143,6 +145,11 @@
       <span class="chip HIGH active" data-impact="HIGH">High</span>
       <span class="chip MEDIUM active" data-impact="MEDIUM">Medium</span>
       <span class="chip LOW" data-impact="LOW">Low</span>
+      <span class="label" style="margin-left:14px">When:</span>
+      <span class="chip active" data-when="ahead">Ahead</span>
+      <span class="chip" data-when="past">Past</span>
+      <span class="chip" data-when="all">All</span>
+      <input id="calSearch" type="search" placeholder="Search: company, country, event" aria-label="Search the calendar" style="background:transparent;border:1px solid var(--border,#2a2a2a);border-radius:14px;color:inherit;padding:4px 12px;font:inherit;font-size:12px;min-width:220px">
       <span class="info" id="filterInfo">—</span>
     </div>
 
@@ -155,12 +162,20 @@ let DATA = null;
 const FILTERS = {
   types: new Set(['ALL']),       // 'ALL' or specific types
   impacts: new Set(['HIGH', 'MEDIUM']),  // exclude LOW by default
+  when: 'ahead',                         // 2026-11-26: what is ahead by default; Past and All are one click away
+  q: '',
 };
 
 function applyFilters(events) {
   return events.filter(e => {
     if (!FILTERS.types.has('ALL') && !FILTERS.types.has(e.type)) return false;
     if (!FILTERS.impacts.has(e.impact)) return false;
+    if (FILTERS.when === 'ahead' && e.days_to < 0) return false;
+    if (FILTERS.when === 'past' && e.days_to >= 0) return false;
+    if (FILTERS.q) {
+      const hay = [e.title, e.subtitle, e.ticker, e.country, e.type, TYPE_NAMES[e.type]].filter(Boolean).join(' ').toLowerCase();
+      if (!FILTERS.q.split(/\s+/).every(w => hay.includes(w))) return false;
+    }
     return true;
   });
 }
@@ -174,6 +189,28 @@ function titleHtml(e) {
   if (!e.ticker || !/^[A-Z][A-Z0-9.\-]{0,9}$/.test(e.ticker)) return t;
   return `<a href="/chart.html?symbol=${encodeURIComponent(e.ticker)}" data-sym="${escHtml(e.ticker)}"${embedded() ? '' : ' target="_blank" rel="noopener"'}>${t}</a>`;
 }
+/* An event's hour is kept in UTC; it is shown in New York time, and says so when that is the day before. */
+function etTime(e) {
+  if (!e.time || !/^\d{2}:\d{2}$/.test(e.time)) return '\u2014';
+  const d = new Date(e.date + 'T' + e.time + ':00Z');
+  if (isNaN(d)) return e.time;
+  const t = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' });
+  const day = d.toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+  return t + ' ET' + (day < e.date ? ' (day before)' : '');
+}
+/* Used by the calendar grid at the top of the page: make the day visible whatever the filters say, then go to it. */
+window.jhCalendarShowDay = function (iso) {
+  if (!DATA) return;
+  const there = () => document.querySelector('.day-group[data-date="' + iso + '"]');
+  if (there()) return;
+  FILTERS.types = new Set(['ALL']); FILTERS.impacts = new Set(['HIGH', 'MEDIUM', 'LOW']); FILTERS.q = '';
+  FILTERS.when = iso < new Date().toISOString().slice(0, 10) ? 'all' : 'ahead';
+  const box = document.getElementById('calSearch'); if (box) box.value = '';
+  document.querySelectorAll('.chip[data-type]').forEach(c => c.classList.toggle('active', c.dataset.type === 'ALL'));
+  document.querySelectorAll('.chip[data-impact]').forEach(c => c.classList.add('active'));
+  document.querySelectorAll('.chip[data-when]').forEach(c => c.classList.toggle('active', c.dataset.when === FILTERS.when));
+  render();
+};
 function addTypeChips() {
   const host = document.getElementById('moreTypes');
   if (!host || !DATA) return;
@@ -224,7 +261,8 @@ function fmtDateLong(s) {
 function render() {
   if (!DATA) return;
   const all = applyFilters(DATA.events || []);
-  document.getElementById('filterInfo').textContent = `${all.length} of ${DATA.n_events || 0} events shown`;
+  const pool = (DATA.events || []).filter(e => FILTERS.when === 'all' || (FILTERS.when === 'ahead') === (e.days_to >= 0)).length;
+  document.getElementById('filterInfo').textContent = `${all.length} of ${pool} ${FILTERS.when === 'all' ? '' : FILTERS.when + ' '}events shown`;
 
   // Group by date
   const byDate = {};
@@ -247,7 +285,7 @@ function render() {
     const dayCls = dayClass(days_to);
     const cdCls = countdownClass(days_to);
     return `
-      <div class="day-group ${dayCls}">
+      <div class="day-group ${dayCls}" data-date="${escHtml(date)}">
         <div class="day-header">
           <span class="day-label">${fmtDateLong(date)}</span>
           <span class="countdown ${cdCls}">${countdown}</span>
@@ -255,7 +293,7 @@ function render() {
         <div class="events">
           ${events.map(e => `
             <div class="event">
-              <span class="event-time">${escHtml(e.time || '—')}</span>
+              <span class="event-time" title="${escHtml(e.time ? e.time + ' UTC' : '')}">${escHtml(etTime(e))}</span>
               <span class="event-type type-${escHtml(e.type)}">${escHtml(TYPE_NAMES[e.type] || e.type.replace(/_/g, ' '))}</span>
               <div>
                 <div class="event-title">${titleHtml(e)}</div>
@@ -278,6 +316,15 @@ function setupFilterChips() {
     const a = ev.target.closest ? ev.target.closest('a[data-sym]') : null;
     if (a && embedded()) { ev.preventDefault(); window.top.jhOpenSymbol(a.dataset.sym); }
   });
+  document.querySelectorAll('.chip[data-when]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      FILTERS.when = chip.dataset.when;
+      document.querySelectorAll('.chip[data-when]').forEach(c => c.classList.toggle('active', c === chip));
+      render();
+    });
+  });
+  const search = document.getElementById('calSearch');
+  if (search) search.addEventListener('input', () => { FILTERS.q = search.value.trim().toLowerCase(); render(); });
   document.querySelectorAll('.chip[data-impact]').forEach(chip => {
     chip.addEventListener('click', () => {
       const i = chip.dataset.impact;
@@ -351,6 +398,7 @@ setInterval(load, 30*60*1000);
 <div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Historical Context — vs Crises, Tops &amp; Bottoms</h2><div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div></div>
 <script src="/interp-kit.js"></script>
 <script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['T10Y2Y','NFCI']);});</script>
+<script src="/jh-glance.js?v=20261126a" defer></script>
 <div data-jed="calendar"></div>
 <script src="/jh-engine-data.js?v=20261126a" defer></script>
 
