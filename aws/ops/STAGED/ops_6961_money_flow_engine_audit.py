@@ -521,6 +521,77 @@ def main():
                 r.log("provider: reported assets of the %d funds with a figure: $%.2f trillion; of the engine's missing funds it has: $%.2f trillion" % (
                     len(have5), sum(pa[t] for t in have5) / 1e12, sum(pa.get(t, 0) for t in (q.get("unavailable_funds") or []) if t in have5) / 1e12))
                 facts["provider_assets"] = "$%.2fT" % (sum(pa[t] for t in have5) / 1e12)
+                cats = {}
+                for t, v in have5.items():
+                    c = by[t].get("classification") or {}
+                    k = "%s / %s / %s" % (c.get("region"), c.get("category"), c.get("subcategory"))
+                    e = cats.setdefault(k, [0.0, 0, 0.0])
+                    e[0] += v[0]
+                    e[1] += 1
+                    e[2] += pa.get(t, 0)
+                r.log("PROVIDER, five trading days to %s, by its own configured class (region / category / subcategory), most in to most out:" % end)
+                for k, e in sorted(cats.items(), key=lambda kv: -kv[1][0]):
+                    r.log("    %-52s %12s   %3d funds   $%.0fB assets" % (k[:52], money(e[0]), e[1], e[2] / 1e9))
+
+                # ---- are the two sources one day apart? the provider's share count on day D against the issuer's on D and on the next reporting day
+                r.log("ONE-DAY TEST: the provider's share count on a day, against the issuer's own file on the same day and on the next reporting day")
+
+                def prov_hist(t):
+                    try:
+                        ref_ = by[t].get("history") or {}
+                        d_ = json.loads(get(ref_["key"])[0])
+                        rows_ = d_.get("rows") or d_.get("observations") or d_.get("history") or []
+                        return t, rows_
+                    except Exception as exc:  # noqa: BLE001
+                        return t, str(exc)[:60]
+                common = [t for t in funds if t in by and t in hist and "error" not in hist[t]]
+                with ThreadPoolExecutor(max_workers=12) as pool:
+                    ph = dict(pool.map(prov_hist, common))
+                sample = next((v for v in ph.values() if isinstance(v, list) and v), [])
+                r.log("    a provider history row: %s" % (json.dumps(sample[-1])[:420] if sample else None))
+                tot = Counter()
+                lag_sum_ok, lag_sum_n, same_sum_ok = 0, 0, 0
+                i_end = dates.index(end)
+                issuer_days = dates[i_end - 4:i_end + 1]
+                prev_days = dates[i_end - 5:i_end]
+                for t in common:
+                    rows_p = ph.get(t)
+                    if not isinstance(rows_p, list) or not rows_p:
+                        continue
+                    pmap = {x.get("effective_date") or x.get("date"): x for x in rows_p}
+                    imap = {x["date"]: x for x in hist[t].get("rows", [])}
+                    same = lag = n = 0
+                    for j in range(max(1, i_end - 30), i_end):
+                        d0, d1 = dates[j], dates[j + 1]
+                        ps = (pmap.get(d0) or {}).get("shares_decimal")
+                        if ps is None or (imap.get(d0) or {}).get("shares_decimal") is None or (imap.get(d1) or {}).get("shares_decimal") is None:
+                            continue
+                        if Decimal(imap[d0]["shares_decimal"]) == Decimal(imap[d1]["shares_decimal"]):
+                            continue                       # a day with no change cannot tell the two apart
+                        n += 1
+                        same += Decimal(ps) == Decimal(imap[d0]["shares_decimal"])
+                        lag += Decimal(ps) == Decimal(imap[d1]["shares_decimal"])
+                    tot["days"] += n
+                    tot["same"] += same
+                    tot["next"] += lag
+                    if t in ("SPY", "IVV", "QQQ", "TLT", "IWM", "XLE", "GLD", "IBIT", "HYG", "XLK"):
+                        r.log("    %s: %d days on which the issuer's count changed | provider equals the issuer's SAME day %d | equals the issuer's NEXT day %d" % (t, n, same, lag))
+                    said = (funds[t].get("comparison") or {}).get("net_flow_5d_usd")
+                    if said is not None:
+                        pv = [(pmap.get(d) or {}).get("reported_flow_usd_decimal") for d in prev_days]
+                        pv0 = [(pmap.get(d) or {}).get("reported_flow_usd_decimal") for d in issuer_days]
+                        if all(v is not None for v in pv):
+                            lag_sum_n += 1
+                            tol = max(2e6, 0.02 * abs(float(said)))
+                            lag_sum_ok += abs(sum(float(v) for v in pv) - float(said)) <= tol
+                            if all(v is not None for v in pv0):
+                                same_sum_ok += abs(sum(float(v) for v in pv0) - float(said)) <= tol
+                r.log("    all %d funds on both: %d telling days | provider = issuer's same day on %d | provider = issuer's next day on %d" % (len(common), tot["days"], tot["same"], tot["next"]))
+                r.log("    the engine's five-day figure (issuer days %s..%s) against the provider's sum: over the SAME five dates equal (2%% or $2M) for %d of %d funds; over the five dates ONE DAY EARLIER (%s..%s) for %d of %d" % (
+                    issuer_days[0][5:], issuer_days[-1][5:], same_sum_ok, lag_sum_n, prev_days[0][5:], prev_days[-1][5:], lag_sum_ok, lag_sum_n))
+                facts["one_day_test"] = "same day %d, next day %d of %d" % (tot["same"], tot["next"], tot["days"])
+                if tot["next"] > 3 * max(1, tot["same"]):
+                    finding("the two flow sources are one day apart: the provider's day D is the issuer's next reporting day, so the engine's window ending %s holds orders through %s" % (end, prev_days[-1]))
                 miss = [t for t in (q.get("unavailable_funds") or []) if t in have5]
                 r.log("the engine's funds with no issuer figure that the provider has: %d of %d: %s" % (len(miss), len(q.get("unavailable_funds") or []),
                       ", ".join("%s %s" % (t, money(have5[t][0])) for t in miss)[:700]))
