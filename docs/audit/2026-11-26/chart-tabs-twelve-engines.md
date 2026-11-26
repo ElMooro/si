@@ -218,3 +218,29 @@ Deployed 20:05 UTC; the engine's own 20:15 UTC run published 23 of 24 (US IG 97 
 Still open: the sterling sleeve (BAMLSE00ECLIOAS) is not in the warehouse; TRACE "capped volume" has been unavailable
 since 2026-11-16; the board has no one-day change; four vehicles on the chart are not in the AI stack theme (Zenith
 Arc, SE Cosmos, Yondr JK 1, Elk Grove Village Property).
+
+## Does our FINRA access reach a bond-by-bond dataset? (ops 6985, read-only, 20:52 UTC)
+
+Khalid: "test whether our FINRA access reaches a per-bond dataset before anything is built." It does not.
+
+* We are signed in: the parameter store keeps a client id and a client secret and FINRA returns a token.
+* FINRA lists 168 datasets to us. The 46 fixed-income entries are 23 datasets and their test twins: market-wide
+  aggregates (breadth, sentiment, capped volume, monthly volume, Treasury aggregates) and securitized-product pricing
+  tables. None carries a security.
+* FINRA's API does hold five per-security fixed-income datasets that are in neither our list nor FINRA's public
+  catalogue. Their field lists are readable; their rows are refused (HTTP 403, "does not have permission to read
+  dataset"):
+
+| Dataset | What FINRA says it is | Fields that matter |
+|---|---|---|
+| `corporateAndAgencySecurities` | descriptive elements of each bond | issuer, coupon, maturity, `is144A`, ratings, last sale price and yield, last trade date, price change |
+| `corporateAndAgencyTradeActivity` | trade activity with last sale price, date and time | issuer, price, yield, execution date and time, volume |
+| `corporateAndAgencyTradeHistory` | one bond's trade history, "via a product page" | the same, per trade |
+| `treasurySecurities`, `treasuryTradeActivity` | the same pair for Treasuries | |
+
+The wording "via a product page" says these serve FINRA's own website. Nothing was built.
+
+**A slip, contained.** FINRA's refusal names the caller by client id, and the first run's report printed it into the
+public repository and the public run log. It is the id, not the secret and not the token. The kept report was
+cleaned, that run's log was deleted on GitHub, and the probe now filters every line it logs (second run: none in the
+report or the log). The runner's first commit of the report still holds the id in the repository's history.
