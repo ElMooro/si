@@ -200,4 +200,29 @@ data and is not shown.
 - **Tests:** engine 40 of 40 (21 new, on real rows: Vanguard's split, the November series, Fidelity Solana, ARK, Alger,
   T-Rex, BAIG); page 14 new, including that the funds behind every bar add up to the engine's row in every table and
   window (434 figures); deployment suite 1,257.
+- **Live, in a real browser on justhodl.ai (ops 6967, 05:33 UTC on 26 November): 0 failed checks.**
+  - The four documents as the site serves them, added up again by the op: 5,770 current funds; 23 asset classes in six
+    windows, both totals, the top of both boards in every window and the last day of every class in the history: 0 wrong.
+  - The page: tiles +$33.5B net, $84.5B in, $51.1B out for the week to 24 November, the document's figures to the digits
+    printed; the bars are the document's rows in its order; the boards its boards (VOO +$12.8B, SPY -$6.06B); the table
+    opens on the largest funds and sorts both ways; one month and percentage of assets switch as the document says;
+    Technology's sheet lists its 55 funds, most in SOXX, turned round IYW; SPY's sheet shows its six windows and 128
+    days of its own; the page's own adding-up: "the 5,770 current funds give every asset-class row and both totals in
+    all six windows (150 figures)"; the research view opens in one click and loads its publication; no page error.
+  - A phone (390 px): five tiles, 23 rows, no sideways scroll.
+  - The chart: one Flow button between Flows and Heat; Flows as it was; a real click opens the money map in the chart's
+    workspace; SPY's sheet sends SPY to the chart behind and closes the workspace; Flows still opens its own desk; on a
+    phone a real tap opens it.
+
+## What it says (week to Tuesday 24 November 2026)
+
+- Net **+$33.5 billion** into 4,942 unleveraged ETFs: $84.5B into 1,451 funds, $51.1B out of 1,068. Month +$215B,
+  year to date +$1.89 trillion.
+- In: US equity +$19.3B (VOO +$12.8B, QQQ +$2.9B, VTI +$2.2B), Treasuries +$9.0B (SGOV, IEF, BIL), international
+  developed equity +$5.3B, municipals +$2.4B.
+- Out: crypto -$3.0B (IBIT -$1.9B), precious metals -$2.8B (GLD -$2.6B), broad commodities -$0.65B, energy commodities
+  -$0.55B.
+- Sector funds: technology +$3.45B, financials +$1.61B, staples +$0.88B; energy -$1.96B, health care -$1.95B,
+  industrials -$1.22B. Counting broad funds by their weights: technology +$11.6B, financials +$5.7B; energy -$0.4B.
+- Leveraged and inverse, apart: +$4.4B (SOXL +$3.2B).
 
