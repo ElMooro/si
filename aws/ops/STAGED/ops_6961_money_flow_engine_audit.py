@@ -372,10 +372,10 @@ def main():
         assets = {}
         for t, h in hist.items():
             rows = h.get("rows") or []
-            if rows and rows[-1].get("net_assets_decimal") is not None:
-                assets[t] = float(rows[-1]["net_assets_decimal"])
+            if rows and rows[-1].get("shares_decimal") is not None and rows[-1].get("nav_decimal") is not None:
+                assets[t] = float(Decimal(rows[-1]["shares_decimal"]) * Decimal(rows[-1]["nav_decimal"]))
         cov = [t for t in assets if mine.get(t) is not None]
-        r.log("net assets of the %d funds with a figure: $%.2f trillion (largest: %s)" % (len(cov), sum(assets[t] for t in cov) / 1e12,
+        r.log("shares x NAV of the %d funds with a figure: $%.2f trillion (largest: %s)" % (len(cov), sum(assets[t] for t in cov) / 1e12,
               ", ".join("%s $%.0fB" % (t, assets[t] / 1e9) for t in sorted(cov, key=lambda t: -assets[t])[:12])))
         facts["assets_covered"] = "$%.2fT in %d funds" % (sum(assets[t] for t in cov) / 1e12, len(cov))
         for t in sorted(hist):
@@ -472,19 +472,22 @@ def main():
                     r.log("%s: %s" % (t, json.dumps(by[t])[:900]))
             wins = Counter()
             for x in recs:
-                w = x.get("windows")
-                for k in (w.keys() if isinstance(w, dict) else [y.get("id") or y.get("name") or y.get("observations") for y in (w or []) if isinstance(y, dict)]):
-                    wins[str(k)] += 1
-            r.log("windows: %s" % dict(wins.most_common(12)))
+                for k, y in (x.get("aligned_windows") or {}).items():
+                    wins["%s:%s" % (k, (y or {}).get("status"))] += 1
+            r.log("aligned windows: %s" % dict(wins.most_common(12)))
+            r.log("classification of a fund: %s | measure %s | unit %s" % (json.dumps(by.get("VOO", {}).get("classification"))[:300], by.get("VOO", {}).get("measure"), by.get("VOO", {}).get("unit")))
+            for key in ("complexes", "comparisons", "unique_configured_universe"):
+                v = pr.get(key)
+                txt = json.dumps(v)
+                r.log("%s: %s" % (key, txt[:420] if len(txt) < 420 or not isinstance(v, (list, dict)) else "%s of %d | first %s" % (
+                    type(v).__name__, len(v), json.dumps(v[0] if isinstance(v, list) else dict(list(v.items())[:1]))[:380])))
 
             def win5(x):
-                w = x.get("windows")
-                cands = w.items() if isinstance(w, dict) else [(str(y.get("id") or y.get("name") or y.get("observations")), y) for y in (w or []) if isinstance(y, dict)]
-                for k, y in cands:
-                    if re.fullmatch(r"(?i)5|5d|5_?obs\w*|five\w*|w1|1w", str(k)) or (isinstance(y, dict) and y.get("observations") == 5):
-                        v = y.get("flow_usd_decimal") if isinstance(y, dict) else None
-                        return (None if v is None else float(v)), (y.get("end_date") or y.get("end") if isinstance(y, dict) else None), (y.get("start_date") if isinstance(y, dict) else None)
-                return None, None, None
+                y = (x.get("aligned_windows") or {}).get("5") or {}
+                v = y.get("flow_usd_decimal")
+                if y.get("status") != "matched_reporting_window" or v is None:
+                    return None, None, None
+                return float(v), y.get("end_date"), y.get("start_date")
             got = {t: win5(x) for t, x in by.items()}
             have5 = {t: v for t, v in got.items() if v[0] is not None}
             ends = Counter(v[1] for v in have5.values())
@@ -504,6 +507,20 @@ def main():
                 r.log("funds in both with a figure: %d (%d on the same end date %s) | same direction: %d | within 10%% or $5M: %d" % (len(both), len(same_end), end, agree, close))
                 worst = sorted(use, key=lambda b: -abs(b[1] - b[2]))[:10]
                 r.log("largest gaps (fund, issuers' own, provider): %s" % ", ".join("%s %s vs %s" % (t, money(a), money(b)) for t, a, b, _ in worst))
+                for t in ("SPY", "IVV", "QQQ", "TLT", "GLD", "IBIT", "XLE", "IWM"):
+                    if t in by and t in hist and "error" not in hist[t]:
+                        y = (by[t].get("aligned_windows") or {}).get("5") or {}
+                        pd_ = y.get("dates") or []
+                        rows_ = {x["date"]: x for x in hist[t].get("rows", [])}
+                        r.log("    %s provider days %s = %s | the issuer's own rows on those days: %s = %s" % (t, " ".join(d[5:] for d in pd_), money(y.get("flow_usd_decimal")),
+                              " ".join("%s" % money((rows_.get(d) or {}).get("nav_valued_share_change_decimal")) for d in pd_),
+                              money(sum(float((rows_.get(d) or {}).get("nav_valued_share_change_decimal") or 0) for d in pd_))))
+                r.log("    a provider fund's history field: %s" % json.dumps(by.get("SPY", {}).get("history"))[:400])
+                r.log("    a provider fund's latest observation: %s" % json.dumps(by.get("SPY", {}).get("latest_observation"))[:600])
+                pa = {t: float(((x.get("aligned_windows") or {}).get("5") or {}).get("end_reported_assets_usd_decimal") or 0) for t, x in by.items()}
+                r.log("provider: reported assets of the %d funds with a figure: $%.2f trillion; of the engine's missing funds it has: $%.2f trillion" % (
+                    len(have5), sum(pa[t] for t in have5) / 1e12, sum(pa.get(t, 0) for t in (q.get("unavailable_funds") or []) if t in have5) / 1e12))
+                facts["provider_assets"] = "$%.2fT" % (sum(pa[t] for t in have5) / 1e12)
                 miss = [t for t in (q.get("unavailable_funds") or []) if t in have5]
                 r.log("the engine's funds with no issuer figure that the provider has: %d of %d: %s" % (len(miss), len(q.get("unavailable_funds") or []),
                       ", ".join("%s %s" % (t, money(have5[t][0])) for t in miss)[:700]))
@@ -538,7 +555,9 @@ def main():
                 old = json.loads(get("audit-private/20260909-originals/global-flow-research/%s.bin" % obj["sha256"])[0])
                 r.log("THE FIRST ENGINE'S LAST PUBLICATION (kept): generated %s, version %s | keys %s" % (old.get("generated_at"), old.get("version"), " ".join(sorted(old.keys()))[:300]))
                 ac = old.get("asset_classes") or {}
-                r.log("    asset classes, 5 days: %s" % ", ".join("%s %s" % (k, money((v or {}).get("net_flow_5d_usd") if isinstance(v, dict) else v)) for k, v in list(ac.items())[:18])[:900])
+                r.log("    asset classes as it wrote them: %s" % json.dumps(ac)[:1400])
+                fixtures["first-engine-last-publication"] = gzip.compress(json.dumps(old, separators=(",", ":")).encode(), 9)
+                fixtures["first-engine-history"] = gzip.compress(json.dumps(hh, separators=(",", ":")).encode(), 9)
                 sec0 = old.get("sectors") or {}
                 r.log("    sectors: leaders %s | laggards %s" % (json.dumps(sec0.get("leaders"))[:200], json.dumps(sec0.get("laggards"))[:200]))
                 r.log("    institutions against retail: %s" % json.dumps(old.get("inst_vs_retail"))[:420])
