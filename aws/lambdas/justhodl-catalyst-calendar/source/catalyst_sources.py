@@ -46,7 +46,8 @@ def _fmt(v, unit):
     if v is None:
         return None
     text = ("%.2f" % v).rstrip("0").rstrip(".")
-    return text + (unit if unit in ("%",) else "")
+    unit = str(unit).strip() if unit else ""
+    return text + (unit if len(unit) <= 2 else " " + unit)   # the document's own unit: 2%, 4K, 1.2 EUR bn
 
 
 def econ_events(doc, today, window_days):

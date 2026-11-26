@@ -38,6 +38,8 @@ def test_economic_calendar():
     check(first["country"] == "Japan" and first["consensus"] == 2.0 and first["previous"] == -2.7, "the figures are the document's")
     check(first["subtitle"] == "Japan · consensus 2% · previous -2.7%", "subtitle reads the figures with their unit: " + first["subtitle"])
     check(all(e["impact"] == "HIGH" for e in ev if e["tier1"]), "a tier-one release is high impact")
+    unit = CS.econ_events({"upcoming": [dict(doc["upcoming"][1], unit="K", consensus=4, previous=-12.5), dict(doc["upcoming"][1], event="Trade balance", unit="EUR bn", consensus=1.2, previous=None)]}, TODAY, 60)
+    check(unit[0]["subtitle"].endswith("consensus 4K \u00b7 previous -12.5K") and unit[1]["subtitle"].endswith("consensus 1.2 EUR bn"), "a figure keeps the document's own unit: %s | %s" % (unit[0]["subtitle"], unit[1]["subtitle"]))
     check(CS.econ_events({"upcoming": [dict(doc["upcoming"][1], released=True)]}, TODAY, 60) == [], "a released figure is not ahead")
     check(CS.econ_events(None, TODAY, 60) == [] and CS.econ_events({"upcoming": "x"}, TODAY, 60) == [], "a missing or misshapen document gives nothing")
 
