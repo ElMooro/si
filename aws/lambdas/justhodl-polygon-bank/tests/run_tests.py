@@ -147,7 +147,13 @@ def test_spec_is_sound():
             assert d.get("universe") in set(spec["universes"]), d
         if d["kind"] == "daily_dated" or d["kind"] == "minute_bars":
             assert "{date}" in d["path"], d
-        if d["path"].startswith("/etf-global/"):
+        if d["path"].startswith("/etf-global/") and d["kind"] == "window":
+            # every fund's rows of a month in one question (2026-11-25, ops 6963).  The provider pages correctly only when the
+            # rows are ordered by fund: ordered by processed date it returns 5,000 rows a day and drops the rest (about 800
+            # funds a day), so the order is part of the contract.  No fund is named, so there is no identity to gate.
+            assert d.get("date_field") == "processed_date" and (d.get("params") or {}).get("sort") == "composite_ticker.asc", d
+            assert d.get("paged") and int(d.get("max_pages") or 0) >= 40 and "entity_param" not in d and "universe" not in d, d
+        elif d["path"].startswith("/etf-global/"):
             # ETF Global filters on composite_ticker; `ticker` is silently ignored (ops 6743: every fund's file held the same rows)
             assert d.get("entity_param") == "composite_ticker" and d.get("entity_field") == "composite_ticker" and d.get("epoch"), d
             assert "date.gte" not in (d.get("params") or {}) and (d.get("params") or {}).get("sort") == "processed_date.desc", d
@@ -200,10 +206,20 @@ def test_first_run():
             rows = rows if isinstance(rows, list) else rows["results"]
             assert rows and {r["composite_ticker"] for r in rows} == {fund}, (ds, fund, rows)        # a fund's file holds that fund
         asked = [dict(urllib.parse.parse_qsl(urllib.parse.urlparse(u).query)) for u in fake.calls if "/etf-global/v1/" + ds.replace("etf-global-", "") in u]
+        by_date = [q for q in asked if "processed_date.gte" in q]             # the by-date question names no fund (2026-11-25)
+        asked = [q for q in asked if "processed_date.gte" not in q]
         assert asked and all(q.get("composite_ticker") in ("SPY", "SMH") and "ticker" not in q for q in asked), (ds, asked[:2])
+        assert (ds == "etf-global-fund-flows") == bool(by_date), (ds, by_date[:1])
+        assert all(q.get("sort") == "composite_ticker.asc" and "composite_ticker" not in q and q["processed_date.gte"][8:] == "01"
+                   and q["processed_date.gte"][:7] == q["processed_date.lte"][:7] for q in by_date), by_date[:2]
     assert s3.meta[root + "etf-global-fund-flows/SPY.json.gz"].get("epoch") == "2026-11-05"
+    # every fund's rows of a month, one file a month, from the floor to the month of the run
+    months = sorted(k for k in s3.store if k.startswith(root + "etf-global-fund-flows-by-date/"))
+    assert months and months[0].endswith("/2026-10.json.gz") and all(k.count("/") == 4 for k in months), months[:3]
+    assert {r["composite_ticker"] for r in gz(s3, months[0])} == {"AAAC", "AAXJ"}                # the rows as answered, every fund
     # the desks' funds first: SMH is in aws/shared/industry_etf_catalog, SPY is not
-    flows = [dict(urllib.parse.parse_qsl(urllib.parse.urlparse(u).query)).get("composite_ticker") for u in fake.calls if "/etf-global/v1/fund-flows" in u]
+    flows = [q.get("composite_ticker") for q in (dict(urllib.parse.parse_qsl(urllib.parse.urlparse(u).query)) for u in fake.calls if "/etf-global/v1/fund-flows" in u)
+             if "processed_date.gte" not in q]
     assert flows[0] == "SMH", flows
     assert st["datasets"]["etf-global-fund-flows"]["priority_last_run"] == 1 and st["datasets"]["etf-global-fund-flows"]["epoch"] == "2026-11-05"
     man = json.loads(s3.store[root + "manifest.json"])
