@@ -97,3 +97,94 @@ is showing. Restore recipe: `docs/snapshots/chart-search-2026-11-10/README.md`.
 Options: 8.6 s a run against 3.7 s in the five-minute lane, about $0.40 a month against $0.13. The other four add
 about a second a day each. One-offs: read-only ops 6969-6973 and 6975 on the GitHub runner, and one S3 write (the
 calendar) from ops 6974.
+
+## Second pass, the same day
+
+Khalid, 11:28 ET: "look into : research. insiders, they seem broken. liquidity and plumbing need better visuals for
+easier digestion of data, breadth engine need improvement and better iux, calendar need improvement and a better iux,
+crypto need improvement and a better iux, also remove the demand, supply icons from there bcs they arent serving no
+purpose they dont belong there".
+
+Evidence: ops 6977 (Research and Insiders as a visitor sees them, with the documents behind them), ops 6978 (one run
+of the insider engine by hand), ops 6979 (dry run of breadth 1.1, twice), ops 6980 (live proof in a real browser).
+
+### Why Research and Insiders read as broken
+
+| Page | What a visitor saw | Cause | What changed |
+|---|---|---|---|
+| Insiders | one bar of $9.92 B (LONA) flattening the chart; total "$10.7 B" | the document on the site predated the price check deployed that morning; the engine runs once a day | one run by hand at 16:36 UTC (ops 6978): 706 buys, $831.8 M, LONA set aside with its reason |
+| Insiders | "updates every 30 minutes" | stale wording | "once a day" |
+| Insiders, Research | pills and a Sign In button floating over figures inside the chart | page furniture meant for a full window | hidden when the page is opened inside the chart |
+| Research | MKT CAP, P/B, FCF YIELD, SHRHLDR YLD blank | the tiles read keys the research document does not carry | they read the document's own fields, with the older keys as fallbacks |
+| every page | top bar: "Market observations unavailable or stale" | the tape engine runs once a day; the strip refused a packet older than 15 minutes | a sound packet up to four days old is shown, led by "As of ... old" |
+
+Left as designed: the "WAIT / abstains" research-qualification panels on Research (the September abstention design),
+"SHARES OUT -" and "OWNERSHIP DILUTION UNQUALIFIED".
+
+### The Demand and Supply icons
+
+`jh-chart-sd-ui.js` no longer creates the two icons among the desk buttons and removes any left by an older copy.
+The Demand / Supply text buttons and the right-rail pair still switch the zones. Restore recipe:
+`docs/snapshots/chart-search-2026-11-10/README.md`.
+
+### "At a glance" on five pages (`jh-glance.js`)
+
+One `<div data-glance>` at the top of each page; the page's own content is below it, unchanged. Every figure is read
+from the documents the page already uses; nothing is fetched from a third party and nothing is invented.
+
+| Page | The picture |
+|---|---|
+| Plumbing | a gauge of the composite, the five layers with their weights, the most stressed indicators, one tile per indicator (58) that reads out when picked |
+| Liquidity | net liquidity with its three legs as a subtraction that adds up, 180 days charted, what moved it over four windows, each leg charted, and the liquidity agent's 73 series by group |
+| Breadth | the state as three steps, the 10-session average recomputed on the page against the engine's, 60 sessions charted with both thresholds, what followed each past firing; from engine 1.1 the counts on both bases, the day-over-day line and a McClellan chart |
+| Calendar | the next Fed decision, release, earnings, expiry, holiday and quarter-end; five weeks as a grid whose days jump to the list; the week's high-impact events with the United States first |
+| Crypto | where the price sits in its seven bands, forecasts for Bitcoin and Ethereum with their ranges, all 171 on-chain metrics as tiles by category; once the engine publishes weekly closes, the price drawn on its log trend with the bands |
+
+The calendar page itself gained an ahead / past switch (it opens on what is ahead), a search box, New York times and
+`window.jhCalendarShowDay(iso)`.
+
+### Breadth engine 1.1
+
+What the audit found:
+
+* the engine asked the provider for every session although the house bank keeps each one;
+* it reads one session late by design (it walks back from yesterday), which the page did not say;
+* its "advance / decline" ratio is **open-to-close** - an issue rising above its own open - over every US-listed
+  stock and fund with 100,000 shares traded; Zweig's measure is day-over-day on NYSE issues. The document did not
+  say so;
+* the alert text claimed "11-of-11" while the engine computes five past firings.
+
+What 1.1 does, all beside the state machine (which still reads the last 60 open-to-close ratios, thresholds 0.40 and
+0.615, window 10):
+
+* reads `data/warm/polygon-full/grouped/` first, the provider only for a session the bank lacks;
+* keeps 130 sessions with each session's counts on both bases, up-volume share on both;
+* publishes `breadth_today`, `day_over_day` (the same thrust test on the day-over-day ratio, information only),
+  `mcclellan`, `preliminary` (today's session from the forming-bar file) and `breadth_basis`;
+* `{"dry_run": true}` computes everything and writes nothing;
+* the alert states the record the engine computed.
+
+The first dry run failed one check and that check was right: the bank holds a **Saturday file (2026-11-07) with two
+tradable rows** and a **weekday file counting about half the usual issues (2026-08-25: 3,294 against about 5,900)**.
+Read as sessions, the Saturday file put a junk ratio among the 60 sessions the state machine reads (average 0.4776
+instead of 0.4772) and left 2026-11-09 with no prior closes. The engine now treats the bank as evidence, not truth:
+weekend files and files under 1,000 counted issues are not sessions; a new session from a thin file is left to the
+provider path; an older thin one is kept, marked, and left out of the day-over-day reading and McClellan.
+
+Second dry run (17:46 UTC), all checks passed: 15.6 s, 131 bank files, nothing written; all 60 kept ratios unchanged
+and reproduced from the bank to 0.0005; state ARMED; with the 2026-11-25 session (0.826, 4,932 rose and 1,039 fell)
+the average moves from 0.3997 to 0.4772; McClellan -2.8 from -28.9; the forming-bar reading of 2026-11-25 was 0.8268
+against a settled 0.8260.
+
+**The two bases are not the same number.** Over the 130 sessions: correlation 0.78, mean gap 0.075, largest 0.353
+(2026-11-23: 0.4938 open-to-close, 0.8469 day-over-day), and on 35 sessions one says more issues rose while the other
+says more fell. Neither would have read FIRED in the window. Which basis the state machine should follow is Khalid's
+decision; nothing was switched.
+
+Bank finding for other readers of `data/warm/polygon-full/grouped/` (bottom, katlin, bank-factors, polygon-eod): the
+Saturday file and the thin file are in the bank and were not removed.
+
+### On-chain engine
+
+`cycle_bands.history_weekly`: every seventh close back from the newest, so the page can draw the price on its log
+trend with the bands. First published by the engine's own run at 15:31 UTC on 2026-11-27.
