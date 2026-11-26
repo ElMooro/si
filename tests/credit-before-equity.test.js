@@ -1130,7 +1130,7 @@ test('the chart has a Credit button between Bonds and CDS, and it opens this boa
 
 test('the chart\'s byte ledger takes the button back out: engine, rail and chart.html return to the files before it', () => {
   // (2026-11-26: the Money flow button came after it and is peeled first)
-  const e0 = chartLedger.peelCreditBoardEngine(chartLedger.peelMoneyFlowEngine(CHART_ENGINE, 'jh-chart-engine.js'), 'jh-chart-engine.js'), r0 = chartLedger.peelCreditBoardRail(chartLedger.peelMoneyFlowRail(CHART_RAIL, 'jh-chart-tvrail.js'), 'jh-chart-tvrail.js'), h0 = chartLedger.peelCreditBoardHtml(chartLedger.peelMoneyFlowHtml(CHART_HTML, 'chart.html'), 'chart.html');
+  const e0 = chartLedger.peelCreditBoardEngine(chartLedger.peelMoneyFlowEngine(chartLedger.peelChartTabsEngine(CHART_ENGINE, 'jh-chart-engine.js'), 'jh-chart-engine.js'), 'jh-chart-engine.js'), r0 = chartLedger.peelCreditBoardRail(chartLedger.peelMoneyFlowRail(chartLedger.peelChartTabsRail(CHART_RAIL, 'jh-chart-tvrail.js'), 'jh-chart-tvrail.js'), 'jh-chart-tvrail.js'), h0 = chartLedger.peelCreditBoardHtml(chartLedger.peelMoneyFlowHtml(chartLedger.peelChartTabsHtml(CHART_HTML, 'chart.html'), 'chart.html'), 'chart.html');
   assert.equal(sha(e0), 'b0d05901fb3d5da6ca799d18fc9dcfb7eda187d5e7bf9caa6cdea9b100135ee5');
   assert.equal(sha(r0), '75dbbbc868c849e03e4aa48158acd97371af51156b62ea1d648ce80540d793c6');
   assert.equal(sha(h0), '96f17815e4e76284763617ea0572bef73fa019e4198b5c3aa0959b528835f62f');

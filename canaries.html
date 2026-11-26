@@ -274,6 +274,9 @@ function renderTbl(){
 }
 getJSON('data/canary-warroom.json').then(render).catch(()=>{document.getElementById('sub').textContent='Could not load war-room feed.';});
 </script>
+<div data-jed="canaries"></div>
+<script src="/jh-engine-data.js?v=20261126a" defer></script>
+
 
 <script defer src="/jh-nav-drawer.js"></script>
 <script defer src="/jh-page-ai.js"></script>

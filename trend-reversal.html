@@ -219,5 +219,8 @@ ${r.n_signals} signals: ${(r.signals||[]).map(s0=>s0.signal).join(", ")}</title>
  apply();
  if(d.errors)document.getElementById("err").textContent="Fetch errors: "+d.errors.join(", ");
 }).catch(e=>document.getElementById("err").textContent="Load failed: "+e);
-</script><script src="/sidebar.js" defer></script>
+</script>
+<div data-jed="reversal"></div>
+<script src="/jh-engine-data.js?v=20261126a" defer></script>
+<script src="/sidebar.js" defer></script>
 </body></html>

@@ -77,6 +77,13 @@
   .type-WITCHING      { background: rgba(168,85,247,0.20); color: var(--purple); }
   .type-REBALANCE     { background: rgba(168,85,247,0.16); color: var(--purple); }
   .type-BANK_EARNINGS { background: rgba(245,158,11,0.20); color: var(--amber); }
+  .type-ECON          { background: rgba(59,130,246,0.14); color: var(--blue); }
+  .type-EARNINGS_ACTUAL { background: rgba(34,197,94,0.10); color: var(--green); }
+  .type-IPO, .type-LOCKUP { background: rgba(245,158,11,0.14); color: var(--amber); }
+  .type-QUARTER_END, .type-OPEX, .type-VIX_EXPIRY { background: rgba(168,85,247,0.12); color: var(--purple); }
+  .type-MARKET_HOLIDAY { background: rgba(239,68,68,0.12); color: var(--red); }
+  .type-FDA, .type-GOV_CONTRACT { background: rgba(34,197,94,0.14); color: var(--green); }
+  .event-title a { color: inherit; text-decoration: underline dotted; }
 
   .event-title { font-weight: 600; }
   .event-subtitle { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
@@ -131,6 +138,7 @@
       <span class="chip type-WITCHING" data-type="WITCHING">Witching</span>
       <span class="chip type-REBALANCE" data-type="REBALANCE">Rebalance</span>
       <span class="chip type-BANK_EARNINGS" data-type="BANK_EARNINGS">Bank Earnings</span>
+      <span id="moreTypes"></span>
       <span class="label" style="margin-left:14px">Impact:</span>
       <span class="chip HIGH active" data-impact="HIGH">High</span>
       <span class="chip MEDIUM active" data-impact="MEDIUM">Medium</span>
@@ -157,7 +165,34 @@ function applyFilters(events) {
   });
 }
 
+const TYPE_NAMES = { ECON: 'Economic', EARNINGS_ACTUAL: 'Reported', IPO: 'IPO', LOCKUP: 'Lock-up', QUARTER_END: 'Quarter-end',
+  MARKET_HOLIDAY: 'Holiday', OPEX: 'OPEX', VIX_EXPIRY: 'VIX expiry', FDA: 'FDA', GOV_CONTRACT: 'Contracts' };
+function escHtml(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function embedded() { try { return window.top !== window && typeof window.top.jhOpenSymbol === 'function'; } catch (e) { return false; } }
+function titleHtml(e) {
+  const t = escHtml(e.title);
+  if (!e.ticker || !/^[A-Z][A-Z0-9.\-]{0,9}$/.test(e.ticker)) return t;
+  return `<a href="/chart.html?symbol=${encodeURIComponent(e.ticker)}" data-sym="${escHtml(e.ticker)}"${embedded() ? '' : ' target="_blank" rel="noopener"'}>${t}</a>`;
+}
+function addTypeChips() {
+  const host = document.getElementById('moreTypes');
+  if (!host || !DATA) return;
+  const counts = DATA.by_type || {};
+  for (const type of Object.keys(counts).sort()) {
+    if (document.querySelector(`.chip[data-type="${type}"]`)) continue;
+    const chip = document.createElement('span');
+    chip.className = 'chip type-' + type;
+    chip.dataset.type = type;
+    chip.textContent = TYPE_NAMES[type] || type.replace(/_/g, ' ').toLowerCase();
+    host.appendChild(chip);
+    host.appendChild(document.createTextNode(' '));
+    wireTypeChip(chip);
+  }
+  document.querySelectorAll('.chip[data-type]').forEach(c => { if (c.dataset.type !== 'ALL') c.title = (counts[c.dataset.type] || 0) + ' events'; });
+}
+
 function dayLabel(daysTo) {
+  if (daysTo < 0) return `↩ ${-daysTo}d ago`;
   if (daysTo === 0) return '🔴 TODAY';
   if (daysTo === 1) return '🟡 TOMORROW';
   if (daysTo <= 7) return `📅 +${daysTo}d`;
@@ -220,11 +255,11 @@ function render() {
         <div class="events">
           ${events.map(e => `
             <div class="event">
-              <span class="event-time">${e.time || '—'}</span>
-              <span class="event-type type-${e.type}">${e.type.replace(/_/g, ' ')}</span>
+              <span class="event-time">${escHtml(e.time || '—')}</span>
+              <span class="event-type type-${escHtml(e.type)}">${escHtml(TYPE_NAMES[e.type] || e.type.replace(/_/g, ' '))}</span>
               <div>
-                <div class="event-title">${e.title}</div>
-                ${e.subtitle ? `<div class="event-subtitle">${e.subtitle}</div>` : ''}
+                <div class="event-title">${titleHtml(e)}</div>
+                ${e.subtitle ? `<div class="event-subtitle">${escHtml(e.subtitle)}</div>` : ''}
               </div>
               <span class="event-impact impact-${e.impact}">${e.impact}</span>
             </div>
@@ -238,7 +273,27 @@ function render() {
 }
 
 function setupFilterChips() {
-  document.querySelectorAll('.chip[data-type]').forEach(chip => {
+  document.querySelectorAll('.chip[data-type]').forEach(wireTypeChip);
+  document.getElementById('calendarHost').addEventListener('click', ev => {
+    const a = ev.target.closest ? ev.target.closest('a[data-sym]') : null;
+    if (a && embedded()) { ev.preventDefault(); window.top.jhOpenSymbol(a.dataset.sym); }
+  });
+  document.querySelectorAll('.chip[data-impact]').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const i = chip.dataset.impact;
+      if (FILTERS.impacts.has(i)) {
+        chip.classList.remove('active');
+        FILTERS.impacts.delete(i);
+      } else {
+        chip.classList.add('active');
+        FILTERS.impacts.add(i);
+      }
+      render();
+    });
+  });
+}
+
+function wireTypeChip(chip) {
     chip.addEventListener('click', () => {
       const type = chip.dataset.type;
       if (type === 'ALL') {
@@ -262,20 +317,6 @@ function setupFilterChips() {
       }
       render();
     });
-  });
-  document.querySelectorAll('.chip[data-impact]').forEach(chip => {
-    chip.addEventListener('click', () => {
-      const i = chip.dataset.impact;
-      if (FILTERS.impacts.has(i)) {
-        chip.classList.remove('active');
-        FILTERS.impacts.delete(i);
-      } else {
-        chip.classList.add('active');
-        FILTERS.impacts.add(i);
-      }
-      render();
-    });
-  });
 }
 
 async function load() {
@@ -289,11 +330,12 @@ async function load() {
     document.getElementById('nTotal').textContent = DATA.n_events || 0;
     document.getElementById('nH7').textContent = DATA.high_impact_next_7d || 0;
     document.getElementById('nH30').textContent = DATA.high_impact_next_30d || 0;
-    const fomc = (DATA.events || []).find(e => e.type === 'FOMC');
+    const fomc = (DATA.events || []).find(e => e.type === 'FOMC' && e.days_to >= 0);
     document.getElementById('fomcNext').textContent = fomc ? `+${fomc.days_to}d` : '—';
     const earnings7 = (DATA.events || []).filter(e =>
-      e.type === 'EARNINGS' && e.days_to <= 14).length;
+      e.type === 'EARNINGS' && e.days_to >= 0 && e.days_to <= 14).length;
     document.getElementById('nEarnings').textContent = earnings7;
+    addTypeChips();
     render();
   } catch (e) {
     document.getElementById('calendarHost').innerHTML =
@@ -309,6 +351,9 @@ setInterval(load, 30*60*1000);
 <div style="max-width:1180px;margin:0 auto;padding:0 20px 26px"><h2 style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#00d4ff;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #1c2433">Historical Context — vs Crises, Tops &amp; Bottoms</h2><div id="jhk-hist"><div style="text-align:center;padding:24px;color:#6f7b91;font-family:monospace;font-size:12px">BENCHMARKING vs HISTORY…</div></div></div>
 <script src="/interp-kit.js"></script>
 <script>document.addEventListener("DOMContentLoaded",function(){if(window.JHKit)JHKit.mountHistContext("jhk-hist",['T10Y2Y','NFCI']);});</script>
+<div data-jed="calendar"></div>
+<script src="/jh-engine-data.js?v=20261126a" defer></script>
+
   <script src="/jh-page-ai.js" defer></script>
 <script src="/jh-nav-drawer.js" defer></script>
 <script src="/sidebar.js" defer></script>

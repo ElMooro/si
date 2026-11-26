@@ -315,16 +315,16 @@ test('the chart has a Flow button: a new one beside Flows, which is where and wh
   assert.equal(CHART_HTML.split('&mflow=20261126').length, 3);
 });
 
-test('the chart\'s byte ledger takes the Flow button back out, first', () => {
-  const e0 = ledger.peelMoneyFlowEngine(CHART_ENGINE, 'jh-chart-engine.js'), r0 = ledger.peelMoneyFlowRail(CHART_RAIL, 'jh-chart-tvrail.js'), h0 = ledger.peelMoneyFlowHtml(CHART_HTML, 'chart.html');
+test('the chart\'s byte ledger takes the Flow button back out, right after the twelve desk tabs', () => {
+  const e0 = ledger.peelMoneyFlowEngine(ledger.peelChartTabsEngine(CHART_ENGINE, 'jh-chart-engine.js'), 'jh-chart-engine.js'), r0 = ledger.peelMoneyFlowRail(ledger.peelChartTabsRail(CHART_RAIL, 'jh-chart-tvrail.js'), 'jh-chart-tvrail.js'), h0 = ledger.peelMoneyFlowHtml(ledger.peelChartTabsHtml(CHART_HTML, 'chart.html'), 'chart.html');
   // the files as they were after the Credit button (2026-11-25), to the byte
   assert.equal(sha(e0), '094ff82407fd6b3a28ec423ad2ab71532224029df6ab0a5cc72bbedb2a82f486');
   assert.equal(sha(r0), '05f865f3572218e7cd8ff2c35641296e3406807b3815cbc9a900b99840987f10');
   assert.equal(sha(h0), 'fbf73726719c926e12f1026ef0e1196e437920a97cd85084d91489b0729db752');
   assert.ok(!e0.includes('btn-mflow') && !r0.includes('mflow') && !h0.includes('&mflow='));
-  assert.equal(ledger.peelMoneyFlowEngine(e0, 'jh-chart-engine.js'), e0);
-  assert.equal(ledger.peelMoneyFlowRail(CHART_RAIL, 'jh-chart-engine.js'), CHART_RAIL);
-  assert.match(fs.readFileSync(path.join(R, 'tests/helpers/chart-macro-line-preservation.cjs'), 'utf8'), /function normalize\(raw,file\)\{raw=peelMoneyFlowEngine\(raw,file\);raw=peelMoneyFlowRail\(raw,file\);raw=peelMoneyFlowHtml\(raw,file\);raw=peelCreditBoardEngine\(raw,file\);/);
+  assert.equal(ledger.peelMoneyFlowEngine(ledger.peelChartTabsEngine(e0, 'jh-chart-engine.js'), 'jh-chart-engine.js'), e0);
+  assert.equal(ledger.peelMoneyFlowRail(ledger.peelChartTabsRail(CHART_RAIL, 'jh-chart-engine.js'), 'jh-chart-engine.js'), CHART_RAIL);
+  assert.match(fs.readFileSync(path.join(R, 'tests/helpers/chart-macro-line-preservation.cjs'), 'utf8'), /raw=peelChartTabsHtml\(raw,file\);raw=peelMoneyFlowEngine\(raw,file\);raw=peelMoneyFlowRail\(raw,file\);raw=peelMoneyFlowHtml\(raw,file\);raw=peelCreditBoardEngine\(raw,file\);/);
   // the whole ledger still walks every chart file back to where it began
   for (const [f, raw] of [['jh-chart-engine.js', CHART_ENGINE], ['jh-chart-tvrail.js', CHART_RAIL], ['chart.html', CHART_HTML]]) assert.notEqual(sha(ledger.normalize(raw, f)), sha(raw), f);
 });

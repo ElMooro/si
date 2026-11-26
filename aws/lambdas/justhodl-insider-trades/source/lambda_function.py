@@ -698,7 +698,8 @@ def load_existing(s3) -> list:
         obj = s3.get_object(Bucket=S3_BUCKET, Key=S3_KEY)
         body = json.loads(obj["Body"].read())
         return (body.get("transactions", []) +
-                body.get("sell_transactions", []))   # v2: sells persist too
+                body.get("sell_transactions", []) +   # v2: sells persist too
+                body.get("set_aside_as_filed", []))   # v3.1: rows set aside stay in the store, so they are checked again
     except s3.exceptions.NoSuchKey:
         return []
     except Exception as e:
@@ -819,6 +820,62 @@ def stats_summary(transactions: list) -> dict:
         "unique_companies": len({t["ticker"] for t in buys}),
         "unique_insiders": len({t["insider"] for t in buys}),
     }
+
+
+# ─── Price check against the tape (v3.1, audit of 2026-11-26) ──────────────
+def screen_against_tape(transactions: list, lookup=None):
+    """(counted, as_filed, set_aside, summary). A Form 4 price is whatever the filer typed. On 2026-11-26 one line -
+    3,149,470 LONA shares "at $3,149.47" - was $9.92B of the page's $10.69B of insider buying, for a company the tape
+    prices near $3 and values in the millions. The cluster scanner has set such rows aside since 2026-11-17
+    (insider_hygiene.tape_check, the same file, kept here as a byte copy); this engine now does too. Every row is
+    compared with the factor book's tape; only a price that cannot be (five times off the tape AND worth more than
+    the whole company, or a hundred times off where the book has no market value) is set aside, and it is published
+    with its reason. `as_filed` keeps those rows as filed so the next run checks them again. With no factor book
+    every row is counted and labelled no_tape - nothing is dropped on a guess."""
+    import insider_hygiene as H
+    if lookup is None:
+        try:
+            import bank_enrich
+            lookup = lambda sym: bank_enrich.lookup(sym, fields=list(H.REF_FIELDS))  # noqa: E731
+        except Exception as e:  # noqa: BLE001 - the check never stops the engine
+            print("factor book unavailable for the price check:", str(e)[:80])
+            lookup = lambda sym: None  # noqa: E731
+    refs = {}
+    for tk in {str(t.get("ticker") or "") for t in transactions if isinstance(t, dict)}:
+        if not tk:
+            continue
+        try:
+            row = lookup(tk)
+        except Exception:  # noqa: BLE001
+            row = None
+        if row:
+            refs[tk] = row
+    counted, as_filed, set_aside = [], [], []
+    summary = {"n_checked": 0, "n_in_range": 0, "n_off_tape": 0, "n_no_tape": 0, "n_set_aside": 0,
+               "usd_set_aside_buys": 0.0, "usd_set_aside_sells": 0.0, "tickers_on_the_book": len(refs)}
+    for t in transactions:
+        chk = H.tape_check(t, refs.get(t.get("ticker")))
+        summary["n_checked"] += 1
+        if chk["status"] == "impossible":
+            summary["n_set_aside"] += 1
+            summary["usd_set_aside_sells" if t.get("side") == "sell" else "usd_set_aside_buys"] += float(t.get("value") or 0)
+            as_filed.append({k: v for k, v in t.items() if k not in ("price_check", "tape_ratio")})
+            set_aside.append({"ticker": t.get("ticker"), "company": t.get("company"), "cik": t.get("cik"),
+                              "insider": t.get("insider"), "role": t.get("role"), "side": t.get("side"),
+                              "shares": t.get("shares"), "price": t.get("price"), "value": t.get("value"),
+                              "txn_date": t.get("txn_date"), "filed_at": t.get("filed_at"), "accession": t.get("accession"),
+                              "tape_price": chk["tape_price"], "tape_ratio": chk["ratio"],
+                              "market_value": chk["market_value"], "reason": chk["reason"]})
+            continue
+        summary["n_" + chk["status"]] += 1
+        row = dict(t)
+        row["price_check"] = chk["status"]
+        if chk["ratio"] is not None:
+            row["tape_ratio"] = chk["ratio"]
+        counted.append(row)
+    summary["usd_set_aside_buys"] = round(summary["usd_set_aside_buys"], 2)
+    summary["usd_set_aside_sells"] = round(summary["usd_set_aside_sells"], 2)
+    return counted, as_filed, set_aside, summary
 
 
 # ─── Lambda entry point ───────────────────────────────────────────────────
@@ -1036,6 +1093,15 @@ def lambda_handler(event, context):
         print("universe join err:", str(e)[:80])
     print(f"After merge+window: {len(all_txns)} transactions in window")
 
+    # 3c. v3.1 price check against the factor book's tape: a price that cannot be is set aside, never counted
+    as_filed, set_aside, price_check = [], [], {}
+    try:
+        all_txns, as_filed, set_aside, price_check = screen_against_tape(all_txns)
+        print(f"price check: {json.dumps(price_check)}")
+    except Exception as e:
+        price_check = {"error": str(e)[:120]}
+        print("price check err:", str(e)[:100])
+
     # 4. Aggregate
     clusters = detect_clusters(all_txns)
     big_buys = detect_big_buys(all_txns)
@@ -1070,6 +1136,11 @@ def lambda_handler(event, context):
         # management SELLING (share-flows joins this; parsed all along,
         # was dropped at output until 2026-07-11)
         "sell_transactions": [t for t in all_txns if t.get("side") == "sell"][:500],
+        # v3.1: what the price check set aside (with its reason), the same rows as filed (kept so the next run
+        # checks them again), and the check's own tally
+        "set_aside": set_aside,
+        "set_aside_as_filed": as_filed,
+        "price_check": price_check,
     }
 
     # ── v3.0 structural coverage: full surface + honest caps + ledger + ratchet ──
@@ -1084,7 +1155,7 @@ def lambda_handler(event, context):
             output["sell_transactions"].append({"_truncated": len(sells_all)})
         surf, surf_cut = _trim_v3(build_full_surface(all_txns), collect=True)
         output["surface"] = surf
-        output["version"] = "3.0"
+        output["version"] = "3.1"
         prev_doc, _ = _s3_json_v2(s3, S3_KEY)
         prev_leaves = ((prev_doc or {}).get("coverage") or {}).get("total_leaves")
         cov_leaves = {k: _leaves_v3(v) for k, v in output.items()
@@ -1105,7 +1176,8 @@ def lambda_handler(event, context):
                          "full store in data/insider-trades-full.json")})
         s3.put_object(Bucket=S3_BUCKET, Key="data/insider-trades-full.json",
                       Body=json.dumps({"generated_at": output["generated_at"],
-                                       "transactions": all_txns},
+                                       "transactions": all_txns,
+                                       "set_aside_as_filed": as_filed},
                                       default=str).encode(),
                       ContentType="application/json",
                       CacheControl="max-age=600")

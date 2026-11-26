@@ -98,11 +98,23 @@ FOMC_DATES_2026 = [
     ("2026-10-27", "2026-10-28", False),
     ("2026-12-15", "2026-12-16", True),
 ]
-# 2027 placeholder (typical pattern)
+# 2027: the Fed's revised tentative schedule, press release of 2026-11-12
+# (federalreserve.gov/newsevents/pressreleases/monetary20261112a.htm). The October 26-27 meeting is a strategy
+# discussion with no policy decision; the year's last decision moved from December 7-8 to November 16-17.
+# Whether a meeting carries projections is known for none of them yet, so none is claimed.
+# (start, end, has_dot_plot, policy_decision)
 FOMC_DATES_2027 = [
-    ("2027-01-26", "2027-01-27", False),
-    ("2027-03-16", "2027-03-17", True),
-    ("2027-04-27", "2027-04-28", False),
+    ("2027-01-26", "2027-01-27", None, True),
+    ("2027-03-16", "2027-03-17", None, True),
+    ("2027-04-27", "2027-04-28", None, True),
+    ("2027-06-08", "2027-06-09", None, True),
+    ("2027-07-27", "2027-07-28", None, True),
+    ("2027-09-14", "2027-09-15", None, True),
+    ("2027-10-26", "2027-10-27", None, False),
+    ("2027-11-16", "2027-11-17", None, True),
+]
+FOMC_DATES_2028 = [
+    ("2028-01-25", "2028-01-26", None, True),
 ]
 
 # Treasury auction date can be looked up dynamically (see fetch_treasury_auctions)
@@ -178,7 +190,9 @@ def fomc_events(window_days):
     today = date.today()
     cutoff = today + timedelta(days=window_days)
     events = []
-    for start, end, has_dots in FOMC_DATES_2026 + FOMC_DATES_2027:
+    for row in FOMC_DATES_2026 + FOMC_DATES_2027 + FOMC_DATES_2028:
+        start, end, has_dots = row[0], row[1], row[2]
+        decision = row[3] if len(row) > 3 else True
         try:
             end_date = datetime.strptime(end, "%Y-%m-%d").date()
         except ValueError:
@@ -187,12 +201,15 @@ def fomc_events(window_days):
             continue
         events.append({
             "date": end,
-            "time": "18:00",  # ~2:00 PM ET = 18:00 UTC (rate decision release)
+            "time": "18:00" if decision else None,  # ~2:00 PM ET = 18:00 UTC (rate decision release)
             "type": "FOMC",
-            "title": "FOMC Statement",
-            "subtitle": ("Rate decision + dot plot + presser"
-                          if has_dots else "Rate decision + presser"),
-            "impact": "HIGH",
+            "title": "FOMC Statement" if decision else "FOMC meeting (strategy only, no policy decision)",
+            "subtitle": ("Monetary policy strategy discussion" if not decision
+                         else "Rate decision + dot plot + presser" if has_dots
+                         else "Rate decision + presser"),
+            "impact": "HIGH" if decision else "MEDIUM",
+            "policy_decision": decision,
+            "meeting_start": start,
             "source": "Federal Reserve",
             "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm",
             "size_billions": None,
@@ -280,7 +297,8 @@ def bank_earnings_cluster(window_days):
                     "time": "12:30",  # ~7:30 AM ET pre-market
                     "type": "BANK_EARNINGS",
                     "title": "Big-Bank Earnings (JPM/C/WFC)",
-                    "subtitle": "Macro proxy — credit conditions, NIM, deposits",
+                    "subtitle": "Usual date (second Friday), not yet announced by the banks — credit conditions, NIM, deposits",
+                    "confirmed": False,
                     "impact": "HIGH",
                     "source": "Various",
                     "url": None,
@@ -536,7 +554,7 @@ def gov_contract_events():
     body = json.dumps({
         "filters": {"award_type_codes": ["A", "B", "C", "D"],
                     "time_period": [{"start_date": start.isoformat(), "end_date": end.isoformat(), "date_type": "action_date"}]},
-        "fields": ["Recipient Name", "Award Amount", "Awarding Agency", "Action Date", "Description"],
+        "fields": ["Recipient Name", "Award Amount", "Awarding Agency", "Action Date", "Start Date", "Base Obligation Date", "Last Modified Date", "Description"],
         "sort": "Award Amount", "order": "desc", "limit": 60, "page": 1,
     }).encode()
     d = _http("https://api.usaspending.gov/api/v2/search/spending_by_award/", data=body)
@@ -550,49 +568,121 @@ def gov_contract_events():
                 if nm in recip: tk = t; break
             if not tk: continue   # only ticker-mapped awards as catalysts
             out.append({
-                "date": (r.get("Action Date") or "")[:10], "type": "GOV_CONTRACT",
+                "date": (r.get("Action Date") or r.get("Last Modified Date") or r.get("Base Obligation Date") or r.get("Start Date") or "")[:10], "type": "GOV_CONTRACT",
+                "date_basis": next((f for f in ("Action Date", "Last Modified Date", "Base Obligation Date", "Start Date") if r.get(f)), None),
                 "ticker": tk, "title": f"${round(amt/1e6,1)}M federal award · {(r.get('Awarding Agency') or '')[:28]}",
                 "impact": "MEDIUM", "source": "USAspending.gov",
             })
     return out
 
 
-def lambda_handler(event, context):
+VERSION = "2.0.0"
+KEPT = {  # the kept documents the calendar draws on, and how old each may be before it is left out
+    "econ": ("data/econ-calendar.json", 48),
+    "earnings_wide": ("data/finviz-earnings-calendar.json", 96),
+    "ipo": ("data/ipo-pipeline.json", 96),
+    "lockup": ("data/lockup-expiration.json", 96),
+    "quarter_end": ("data/rebalance-radar.json", 96),
+    "russell": ("data/russell-recon-frontrun.json", 96),
+}
+HOLIDAYS_PREFIX = "data/warm/polygon-bank/market-holidays/"
+
+
+def kept(key, max_hours, now=None):
+    """A kept document and its age in hours, or (None, age, why) when it is missing, unreadable or too old."""
+    now = now or datetime.now(timezone.utc)
+    try:
+        obj = S3.get_object(Bucket=BUCKET, Key=key)
+        raw = obj["Body"].read()
+        if raw[:2] == b"\x1f\x8b":
+            import gzip
+            raw = gzip.decompress(raw)
+        hours = round((now - obj["LastModified"]).total_seconds() / 3600.0, 1)
+        if hours > max_hours:
+            return None, hours, "older than %d h" % max_hours
+        return json.loads(raw), hours, None
+    except Exception as e:  # noqa: BLE001 - one missing document never stops the calendar
+        return None, None, "%s: %s" % (type(e).__name__, str(e)[:80])
+
+
+def kept_holidays(now=None):
+    """The newest banked market-holidays file: (rows, key, hours, why)."""
+    now = now or datetime.now(timezone.utc)
+    try:
+        newest = None
+        for page in S3.get_paginator("list_objects_v2").paginate(Bucket=BUCKET, Prefix=HOLIDAYS_PREFIX):
+            for o in page.get("Contents", []):
+                if o["Key"].endswith("/") or "/_" in o["Key"]:
+                    continue
+                if newest is None or o["LastModified"] > newest["LastModified"]:
+                    newest = o
+        if newest is None:
+            return [], None, None, "no file under " + HOLIDAYS_PREFIX
+        doc, hours, why = kept(newest["Key"], 24 * 14, now)
+        if doc is None:
+            return [], newest["Key"], hours, why
+        rows = doc if isinstance(doc, list) else next((doc[k] for k in ("results", "data", "payload", "rows", "items", "body") if isinstance(doc.get(k), list)), [])
+        return rows, newest["Key"], hours, None if rows else "no rows in the file"
+    except Exception as e:  # noqa: BLE001
+        return [], None, None, "%s: %s" % (type(e).__name__, str(e)[:80])
+
+
+def build(today=None, now=None):
+    """The whole calendar as a document. Nothing is written here."""
+    import catalyst_sources as CS
+
     started = time.time()
-    today = date.today()
+    today = today or date.today()
+    now = now or datetime.now(timezone.utc)
+    all_events, src_counts, report = [], {}, []
 
-    print("[catalyst] Aggregating sources…")
-    all_events = []
-    src_counts = {}
-
-    sources = [
-        ("FOMC", lambda: fomc_events(WINDOW_DAYS)),
-        ("AUCTION", lambda: fetch_treasury_auctions(WINDOW_DAYS)),
-        ("WITCHING", lambda: witching_events(WINDOW_DAYS)),
-        ("REBALANCE", lambda: sp_rebalance_events(WINDOW_DAYS)),
-        ("BANK_EARNINGS", lambda: bank_earnings_cluster(WINDOW_DAYS)),
-        ("EARNINGS", lambda: earnings_events(WINDOW_DAYS)),
-        ("EARNINGS_ACTUAL", lambda: recent_earnings_events(45)),
-        ("FDA", lambda: fda_events(WINDOW_DAYS)),
-        ("GOV_CONTRACT", lambda: gov_contract_events()),
-    ]
-    for name, fetcher in sources:
+    def take(name, fetcher, document=None, hours=None, why=None):
         try:
             evs = fetcher() or []
-            src_counts[name] = len(evs)
-            all_events.extend(evs)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - a failed source is skipped, the others stand
             print(f"[catalyst] Source {name} failed: {e}")
-            src_counts[name] = 0
+            evs, why = [], "%s: %s" % (type(e).__name__, str(e)[:80])
+        src_counts[name] = src_counts.get(name, 0) + len(evs)
+        all_events.extend(evs)
+        report.append({"source": name, "events": len(evs), "document": document, "hours_old": hours, "note": why})
+
+    print("[catalyst] Aggregating sources\u2026")
+    take("FOMC", lambda: fomc_events(WINDOW_DAYS), "Federal Reserve schedule (in the engine)")
+    take("AUCTION", lambda: fetch_treasury_auctions(WINDOW_DAYS), "TreasuryDirect announced auctions")
+    take("WITCHING", lambda: witching_events(WINDOW_DAYS), "calendar rule")
+    take("REBALANCE", lambda: sp_rebalance_events(WINDOW_DAYS), "calendar rule")
+    take("BANK_EARNINGS", lambda: bank_earnings_cluster(WINDOW_DAYS), "calendar rule (usual date, not announced)")
+    take("EARNINGS", lambda: earnings_events(WINDOW_DAYS), "data/earnings-tracker.json")
+    take("EARNINGS_ACTUAL", lambda: recent_earnings_events(45), "data/earnings-tracker.json")
+    take("FDA", lambda: fda_events(WINDOW_DAYS), "FMP FDA calendar")
+    take("GOV_CONTRACT", lambda: [e for e in gov_contract_events() if e.get("date") and e["date"] >= (today - timedelta(days=45)).isoformat()], "USAspending.gov award search")
+
+    docs = {name: kept(key, limit, now) for name, (key, limit) in KEPT.items()}
+    have = {str(e.get("ticker") or "").upper() for e in all_events if e.get("type") == "EARNINGS"}
+    wide = {
+        "econ": ("ECON", lambda d: CS.econ_events(d, today, WINDOW_DAYS)),
+        "earnings_wide": ("EARNINGS", lambda d: CS.earnings_wide_events(d, today, WINDOW_DAYS, have)),
+        "ipo": ("IPO", lambda d: CS.ipo_events(d, today, WINDOW_DAYS)),
+        "lockup": ("LOCKUP", lambda d: CS.lockup_events(d, today, WINDOW_DAYS)),
+        "quarter_end": ("QUARTER_END", lambda d: CS.quarter_end_events(d, today, WINDOW_DAYS)),
+        "russell": ("REBALANCE", lambda d: CS.russell_events(d, today, WINDOW_DAYS)),
+    }
+    for name, (label, fn) in wide.items():
+        doc, hours, why = docs[name]
+        take(label, (lambda d=doc, f=fn: f(d) if d is not None else []), KEPT[name][0], hours, why)
+    rows, hkey, hhours, hwhy = kept_holidays(now)
+    take("MARKET_HOLIDAY", lambda: CS.holiday_events(rows, today, WINDOW_DAYS), hkey or HOLIDAYS_PREFIX, hhours, hwhy)
+    take("OPEX", lambda: CS.opex_events(today, WINDOW_DAYS), "calendar rule (third Friday)")
+    take("VIX_EXPIRY", lambda: CS.vix_expiry_events(today, WINDOW_DAYS), "calendar rule (30 days before the next third Friday)")
 
     # Compute days_to + sort
     valid = []
-    for e in all_events:
+    for e in CS.dedupe(all_events):
         try:
             ed = datetime.strptime(e["date"], "%Y-%m-%d").date()
             e["days_to"] = (ed - today).days
             valid.append(e)
-        except (ValueError, KeyError):
+        except (ValueError, KeyError, TypeError):
             pass
     valid.sort(key=lambda e: (e["date"], e.get("type", "")))
 
@@ -603,35 +693,47 @@ def lambda_handler(event, context):
     by_type = {}
     for e in valid:
         by_type[e["type"]] = by_type.get(e["type"], 0) + 1
+    ahead = [e for e in valid if e["days_to"] >= 0]
 
-    payload = {
-        "schema_version": "1.0",
-        "method": "catalyst_calendar_v1",
-        "as_of": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    return {
+        "schema_version": "1.1",
+        "method": "catalyst_calendar_v2",
+        "version": VERSION,
+        "as_of": now.isoformat(timespec="seconds"),
         "window_days": WINDOW_DAYS,
         "n_events": len(valid),
+        "n_ahead": len(ahead),
+        "n_past": len(valid) - len(ahead),
         "events": valid,
         "by_type": by_type,
+        "by_type_ahead": {t: sum(1 for e in ahead if e["type"] == t) for t in sorted({e["type"] for e in ahead})},
         "by_source": src_counts,
+        "sources": report,
         "high_impact_next_7d": next_7d,
         "high_impact_next_30d": next_30d,
         "duration_s": round(time.time() - started, 1),
     }
-    body_bytes = json.dumps(payload, indent=2, default=str).encode("utf-8")
-    S3.put_object(
-        Bucket=BUCKET, Key=S3_KEY_OUT, Body=body_bytes,
-        ContentType="application/json", CacheControl="max-age=600",
-    )
-    print(f"[catalyst] DONE in {payload['duration_s']}s · {len(valid)} events · "
-          f"{next_7d} high-impact next 7d · sources: {src_counts}")
 
+
+def lambda_handler(event, context):
+    payload = build()
+    dry = isinstance(event, dict) and bool(event.get("dry_run"))
+    if not dry:
+        S3.put_object(
+            Bucket=BUCKET, Key=S3_KEY_OUT, Body=json.dumps(payload, indent=2, default=str).encode("utf-8"),
+            ContentType="application/json", CacheControl="max-age=600",
+        )
+    print(f"[catalyst] {'DRY RUN' if dry else 'DONE'} in {payload['duration_s']}s \u00b7 {payload['n_events']} events ({payload['n_ahead']} ahead) \u00b7 "
+          f"{payload['high_impact_next_7d']} high-impact next 7d \u00b7 sources: {payload['by_source']}")
     return {
         "statusCode": 200,
         "body": json.dumps({
             "ok": True,
-            "n_events": len(valid),
-            "high_impact_next_7d": next_7d,
-            "by_type": by_type,
+            "dry_run": dry,
+            "n_events": payload["n_events"],
+            "n_ahead": payload["n_ahead"],
+            "high_impact_next_7d": payload["high_impact_next_7d"],
+            "by_type": payload["by_type"],
             "duration_s": payload["duration_s"],
         }),
     }

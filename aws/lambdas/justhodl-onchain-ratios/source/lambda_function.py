@@ -194,14 +194,27 @@ def interpret(btc: dict, eth: dict) -> str:
 
 def _cq_join(doc, s3c, bucket):
     """CryptoQuant fusion (ops 2742): whale ratio, MVRV, SOPR, netflow, MPI join the free-source ratios."""
+    # Audit of 2026-11-26: the kept document's status became "EOD" when the CryptoQuant plan moved to end-of-day
+    # figures, and this join - which asked for "LIVE" - has added nothing since. Any kept document that carries
+    # metrics is joined and labelled with its own status and date. Ethereum's own block is empty whenever CoinMetrics
+    # refuses the request (it has, every run, for weeks), so it also takes the kept document's Ethereum metrics.
     try:
         cq = json.loads(s3c.get_object(Bucket=bucket, Key="data/cryptoquant-onchain.json")["Body"].read())
-        if cq.get("status") == "LIVE":
-            cm = cq.get("metrics") or {}
+        cm = cq.get("metrics") or {}
+        if isinstance(cm, dict) and cm:
             doc["cryptoquant"] = {k: cm.get(k) for k in ("btc_whale_ratio", "btc_mvrv", "btc_sopr", "btc_exchange_netflow", "btc_mpi", "btc_nupl", "btc_puell", "btc_nvt_golden", "btc_realized_price", "btc_ssr")}
             doc["cryptoquant"]["composite_onchain_risk_z"] = cq.get("composite_onchain_risk_z")
             doc["cryptoquant"]["grading"] = "PROVISIONAL"
+            doc["cryptoquant"]["status"] = cq.get("status")
+            doc["cryptoquant"]["generated_at"] = cq.get("generated_at")
+            doc["cryptoquant"]["n_metrics_kept"] = len(cm)
             doc["resurrected"] = "ops 2742 - daily 21:20 UTC"
+            eth = {k: {f: v.get(f) for f in ("label", "value", "unit", "as_of", "pctl_1y", "z365", "wow")}
+                   for k, v in cm.items() if isinstance(v, dict) and v.get("category") == "eth"}
+            if eth and isinstance(doc.get("eth"), dict):
+                doc["eth"]["cryptoquant"] = eth
+                doc["eth"]["cryptoquant_note"] = ("%d Ethereum metrics from the kept CryptoQuant document (%s, written %s)"
+                                                  % (len(eth), cq.get("status"), str(cq.get("generated_at"))[:10]))
     except Exception as e:
         print("[ratios] cq join skipped:", str(e)[:80])
     return doc

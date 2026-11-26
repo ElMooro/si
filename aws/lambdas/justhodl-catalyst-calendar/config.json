@@ -7,7 +7,7 @@
   "memory": 512,
   "architectures": ["x86_64"],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "FDA PDUFA + US government contract award catalysts (free early-detection feeds)",
+  "description": "Catalyst calendar 2.0: FOMC, auctions, OPEX, rebalances, earnings, economic releases, IPOs, lock-ups, market holidays, FDA and contract awards. The sources added on 2026-11-26 read kept documents only.",
   "environment_keys": ["FMP_KEY"],
   "schedule": { "expression": "cron(0 12 * * ? *)", "name": "justhodl-catalyst-calendar-daily", "description": "Daily 12:00 UTC catalyst calendar" }
 }

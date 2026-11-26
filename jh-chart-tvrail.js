@@ -262,11 +262,24 @@
       opt: ["Options", "/options.html"],
       wei: ["World equity indices", "/global-cycle.html"],
       eco: ["Economic calendar", "/econ-calendar.html"],
+      research: ["Research · company report for the symbol on the chart", "/why.html"],
+      insiders: ["Insiders · open-market insider buys, clusters, selling clusters", "/insiders.html"],
+      optx: ["Options · dealer gamma per stock, squeeze setups, OPEX", "/options-analytics.html"],
+      value: ["Value · every S&P 500 name, cheap against expensive", "/valuations.html"],
+      corpbonds: ["Corp bonds · bond trades company by company, duration, maturity wall", "/corpbonds.html"],
+      plumbing: ["Plumbing · five-layer funding stress", "/plumbing.html"],
+      liquidity: ["Liquidity · Fed and Treasury net liquidity", "/liquidity.html"],
+      canaries: ["Canaries · early-warning signals across mechanisms", "/canaries.html"],
+      breadth: ["Breadth · Zweig breadth thrust", "/breadth-thrust.html"],
+      reversal: ["Reversal · tops and bottoms forming", "/trend-reversal.html"],
+      calendar: ["Calendar · catalysts ahead: FOMC, auctions, OPEX, rebalances, earnings", "/catalyst-calendar.html"],
+      crypto: ["Crypto · Bitcoin cycle bands and on-chain ratios", "/btc-cycle.html"],
       alert: ["Alert Center", "/alerts.html"],
       sniper: ["Khalid sniper", "/khalid.html#k-sniper"]
     };
     var pair = meta[kind] || meta.alert;
     var title = pair[0], href = pair[1];
+    if (kind === "research" && /^[A-Z][A-Z.\-]{0,6}$/.test(String(window.jhDeskSymbol || ""))) { href += "?ticker=" + encodeURIComponent(window.jhDeskSymbol); title += " · " + window.jhDeskSymbol; }
     ov.className = "on";
     ov.innerHTML = "<div class=wsbox><div class=wshd><span>" + title + "</span><a href='" + href + "' target=_blank rel=noopener>Open page ↗</a><button type=button class=x id=wsx>×</button></div>" +
       (kind === "corr" ? "<div id=ws-corr></div>" : kind === "sniper" ? "<div id=ws-sniper></div>" : "<iframe src='" + href + "' title='" + title + "'></iframe>") +

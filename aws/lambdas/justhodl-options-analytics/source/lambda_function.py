@@ -69,6 +69,15 @@ UNIVERSE = [
     "CVNA", "UPST", "AFRM", "RBLX", "SNAP", "DKNG", "CHWY", "ASTS", "RGTI", "IONQ",
     "BA", "DIS", "BAC", "JPM", "XOM", "CVX", "UNH", "LLY", "WMT", "F", "GM",
     "PYPL", "UBER", "NKE", "DELL",
+    # 2026-11-26 (Khalid: "see if you can expand it to cover more data"): the market, sector, rate, credit, metal,
+    # oil, country and bitcoin funds with listed options, and the large companies the first list left out.
+    "DIA", "XLF", "XLE", "XLK", "XLV", "XLI", "XLY", "XLP", "XLU", "XLB", "XLRE", "XLC", "SMH", "SOXX", "KRE", "XBI",
+    "ARKK", "GDX", "GLD", "SLV", "USO", "TLT", "HYG", "LQD", "EEM", "FXI", "EWZ", "IBIT", "TQQQ", "SQQQ",
+    "V", "MA", "JNJ", "PG", "HD", "COST", "KO", "PEP", "MRK", "ABBV", "PFE", "TMO", "CSCO", "IBM", "TXN", "AMAT",
+    "LRCX", "KLAC", "TSM", "ASML", "BABA", "GS", "MS", "C", "WFC", "SCHW", "CAT", "DE", "GE", "RTX", "LMT", "T", "VZ",
+    "CMCSA", "TMUS", "MCD", "SBUX", "TGT", "LOW", "BKNG", "ABNB", "SHOP", "PANW", "CRWD", "SNOW", "NOW", "DDOG", "NET",
+    "APP", "MRNA", "GILD", "AMGN", "COP", "OXY", "SLB", "FCX", "NEM", "DAL", "UAL", "CCL", "FSLR", "ENPH", "CEG", "VST",
+    "HIMS", "RDDT", "NIO",
 ]
 
 
@@ -328,7 +337,7 @@ def lambda_handler(event=None, context=None):
 
     # 1) stock history (spot/HV/MA) for the universe, threaded
     hists = {}
-    with ThreadPoolExecutor(max_workers=10) as ex:
+    with ThreadPoolExecutor(max_workers=16) as ex:
         futs = {ex.submit(stock_history, t): t for t in UNIVERSE}
         for f in as_completed(futs):
             h = f.result()
@@ -337,7 +346,7 @@ def lambda_handler(event=None, context=None):
 
     # 2) analyze options per name, threaded
     rows = []
-    with ThreadPoolExecutor(max_workers=8) as ex:
+    with ThreadPoolExecutor(max_workers=16) as ex:
         futs = {ex.submit(analyze, t, hists[t], iv_hist): t for t in UNIVERSE if t in hists}
         for f in as_completed(futs):
             r = f.result()
@@ -376,7 +385,7 @@ def lambda_handler(event=None, context=None):
                  if r["signal"] in ("GAMMA_SQUEEZE_SETUP", "SQUEEZE_PRIMED")][:20]
 
     payload = {
-        "engine": "justhodl-options-analytics", "version": "1.0.0", "ok": True,
+        "engine": "justhodl-options-analytics", "version": "1.1.0", "ok": True,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "thesis": ("Per-name options analytics on the Polygon options entitlement: dealer "
                    "gamma exposure (GEX/flip/walls), IV term structure + 25-delta skew + "
@@ -384,6 +393,7 @@ def lambda_handler(event=None, context=None):
                    "whether dealers amplify (short gamma → squeeze-prone) or dampen (long "
                    "gamma → pinning) moves."),
         "universe_size": len(UNIVERSE), "n_analyzed": len(rows),
+        "not_analyzed": sorted(set(UNIVERSE) - {r["ticker"] for r in rows}),
         "distribution": {
             "short_gamma": len(short_gamma), "long_gamma": len(rows) - len(short_gamma),
             "squeeze_setups": len(squeeze_setups), "downside_hedging": len(hedging),

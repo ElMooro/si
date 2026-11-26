@@ -1458,7 +1458,10 @@ def lambda_handler(event, context):
         "schema_version": "2.0",
         "method": "plumbing_aggregator_v2",
         "as_of": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "n_indicators": len(INDICATORS),
+        # every indicator scored this run: the base list plus the Hong Kong, derived, shock and joined rows. The
+        # base list alone (len(INDICATORS)) made the page read "55/40 indicators with data" (audit 2026-11-26).
+        "n_indicators": len(enriched),
+        "n_base_indicators": len(INDICATORS),
         "n_with_data": sum(1 for i in enriched if i.get("stress_score_0_100") is not None),
         "composite_score": composite,
         "composite_label": label,

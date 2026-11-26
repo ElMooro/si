@@ -5461,6 +5461,18 @@ else if(o.id==="rvol"){
       "<button class='wsico wsdesk' id=btn-dist title='Distribution · click to mark a rally that fails to hold'><span class=g>Dst</span><span class=l>Dist</span></button>"+
       "<button class='wsico wsdesk' id=btn-pump title='Pump · SOS / markup — start of the bull run'><span class=g>Pmp</span><span class=l>Pump</span></button>"+
       "<button class='wsico wsdesk' id=btn-snip title='Khalid sniper · every box must pass'><span class=g>K</span><span class=l>Khalid</span></button>"+
+      "<button class='wsico wsdesk' id=btn-rsch title='Research · company report for the symbol on the chart'><span class=g>Rs</span><span class=l>Research</span></button>"+
+      "<button class='wsico wsdesk' id=btn-ins title='Insiders · open-market insider buys, clusters, selling clusters'><span class=g>In</span><span class=l>Insiders</span></button>"+
+      "<button class='wsico wsdesk' id=btn-opta title='Options · dealer gamma per stock, squeeze setups, OPEX'><span class=g>Op</span><span class=l>Options</span></button>"+
+      "<button class='wsico wsdesk' id=btn-val title='Value · every S&P 500 name, cheap against expensive'><span class=g>Va</span><span class=l>Value</span></button>"+
+      "<button class='wsico wsdesk' id=btn-cbond title='Corp bonds · bond trades company by company, duration, maturity wall'><span class=g>CB</span><span class=l>Corp bonds</span></button>"+
+      "<button class='wsico wsdesk' id=btn-plumb title='Plumbing · five-layer funding stress'><span class=g>Pl</span><span class=l>Plumbing</span></button>"+
+      "<button class='wsico wsdesk' id=btn-liq title='Liquidity · Fed and Treasury net liquidity'><span class=g>Lq</span><span class=l>Liquidity</span></button>"+
+      "<button class='wsico wsdesk' id=btn-can title='Canaries · early-warning signals across mechanisms'><span class=g>Cn</span><span class=l>Canaries</span></button>"+
+      "<button class='wsico wsdesk' id=btn-brd title='Breadth · Zweig breadth thrust'><span class=g>Br</span><span class=l>Breadth</span></button>"+
+      "<button class='wsico wsdesk' id=btn-rev title='Reversal · tops and bottoms forming'><span class=g>Rv</span><span class=l>Reversal</span></button>"+
+      "<button class='wsico wsdesk' id=btn-cal title='Calendar · catalysts ahead: FOMC, auctions, OPEX, rebalances, earnings'><span class=g>Ca</span><span class=l>Calendar</span></button>"+
+      "<button class='wsico wsdesk' id=btn-cryp title='Crypto · Bitcoin cycle bands and on-chain ratios'><span class=g>₿</span><span class=l>Crypto</span></button>"+
       "<button class='wsico wsdesk' id=btn-alrt title='Alert Center'><span class=g>🔔</span><span class=l>Alert</span></button>"+
       "<span class=sep></span>"+
       "<input id=goyell class=goyell placeholder='AAPL' autocomplete=off spellcheck=false title='Type a ticker or AAPL DES, then GO'>"+
@@ -5541,6 +5553,18 @@ else if(o.id==="rvol"){
       var ov=document.getElementById("ws-overlay");
       if(ov) ov.className="";
     };
+    var brsch=document.getElementById("btn-rsch"); if(brsch) brsch.onclick=function(){ window.jhDeskSymbol=active; if(window.jhOpenWorkspace) window.jhOpenWorkspace("research"); };
+    var bins=document.getElementById("btn-ins"); if(bins) bins.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("insiders"); };
+    var bopta=document.getElementById("btn-opta"); if(bopta) bopta.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("optx"); };
+    var bval=document.getElementById("btn-val"); if(bval) bval.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("value"); };
+    var bcbond=document.getElementById("btn-cbond"); if(bcbond) bcbond.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("corpbonds"); };
+    var bplumb=document.getElementById("btn-plumb"); if(bplumb) bplumb.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("plumbing"); };
+    var bliq=document.getElementById("btn-liq"); if(bliq) bliq.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("liquidity"); };
+    var bcan=document.getElementById("btn-can"); if(bcan) bcan.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("canaries"); };
+    var bbrd=document.getElementById("btn-brd"); if(bbrd) bbrd.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("breadth"); };
+    var brev=document.getElementById("btn-rev"); if(brev) brev.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("reversal"); };
+    var bcal=document.getElementById("btn-cal"); if(bcal) bcal.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("calendar"); };
+    var bcryp=document.getElementById("btn-cryp"); if(bcryp) bcryp.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("crypto"); };
     var bal=document.getElementById("btn-alrt"); if(bal) bal.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("alert"); else { var px=lastBars.length?lastBars[lastBars.length-1].close:0; if(px) addAlert(active,px); } };
     var bgo=document.getElementById("btn-go");
     if(bgo) bgo.onclick=function(){

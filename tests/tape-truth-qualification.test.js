@@ -87,7 +87,10 @@ test('all three pages load the same narrow display contract and scope why edits 
  for(const p of ['tape-truth.html','industry-case.html','why.html'])assert.match(fs.readFileSync(path.join(root,p),'utf8'),/src="\/jh-tape-truth\.js"/);
  const hash=s=>require('node:crypto').createHash('sha256').update(s).digest('hex');
  assert.equal(hash(why.slice(0,why.indexOf('<!-- industry-case-module'))),'c990276ee63dd5cba86fdecaba1c804a1b82fa16b0526cacb79b845576468071');
- assert.equal(hash(why.slice(why.indexOf('<!-- bottom-desk module'))),'4aa437c73879fbf55740f22648bcc2c397ef8a5ee998cdeae68af702047452a1');
+ // 2026-11-26: the Engine data section (jh-engine-data.js) mounts in two lines before </body>; everything else in the tail is as it was
+ const MOUNT='<div data-jed="research"></div>\n<script src="/jh-engine-data.js?v=20261126a" defer></script>\n';
+ const tail=why.slice(why.indexOf('<!-- bottom-desk module'));assert.equal(tail.split(MOUNT).length,2);assert.ok(tail.endsWith(MOUNT+'</body>\n</html>\n'));
+ assert.equal(hash(tail.replace(MOUNT,'')),'4aa437c73879fbf55740f22648bcc2c397ef8a5ee998cdeae68af702047452a1');
 });
 
 test('actual renderer rejects non-text GEX regimes without losing numeric GEX, CVD, FINRA or other symbols',async()=>{

@@ -306,3 +306,30 @@ git checkout fad9f69d -- jh-chart-engine.js jh-chart-tvrail.js chart.html tests/
 then delete the two tests "the chart has a Flow button ..." and "the chart's byte ledger takes the Flow button back out
 ..." from `tests/money-map-page.test.js`, commit `[skip-ops]` and push. The page (`global-flow-desk.html`,
 `jh-money-map.js`) works without the button and can stay.
+
+## 2026-11-26: twelve desk buttons chosen from the scan
+
+Khalid, from the scan of every engine ("give me list of engines i should add a tab to chart.html"): "Add these first and
+audit their engine before you add them". None of the twelve existed on the bar (checked by id and by page): the rail has
+`opt` ("Options", `/options.html`) and `eco` ("Economic calendar", `/econ-calendar.html`), which open other pages and are
+as they were. Nothing was renamed or moved. `jh-chart-engine.js` has twelve more buttons in one block between **Khalid**
+(`btn-snip`) and **Alert** (`btn-alrt`) with their clicks - Research `btn-rsch`, Insiders `btn-ins`, Options `btn-opta`,
+Value `btn-val`, Corp bonds `btn-cbond`, Plumbing `btn-plumb`, Liquidity `btn-liq`, Canaries `btn-can`, Breadth `btn-brd`,
+Reversal `btn-rev`, Calendar `btn-cal`, Crypto `btn-cryp`; `jh-chart-tvrail.js` has twelve more entries (`research`,
+`insiders`, `optx`, `value`, `corpbonds`, `plumbing`, `liquidity`, `canaries`, `breadth`, `reversal`, `calendar`, `crypto`)
+and one line that opens Research on the symbol the chart is showing (`window.jhDeskSymbol`, set by the button's click);
+`chart.html` carries `&tabs=20261126` on both script tags. The byte ledger peels these three first
+(`peelChartTabsEngine`, `peelChartTabsRail`, `peelChartTabsHtml`), then the Flow button's.
+
+To take the twelve buttons back out (state before = commit `cc4b641b`):
+
+```
+git checkout cc4b641b -- jh-chart-engine.js jh-chart-tvrail.js chart.html tests/helpers/chart-macro-line-preservation.cjs \
+  tests/chart-crypto-routes.test.js tests/chart-indicator-controls.test.js tests/risk-map-page.test.js \
+  tests/credit-before-equity.test.js tests/money-map-page.test.js
+git rm tests/chart-desk-tabs.test.js
+```
+
+The twelve pages keep their new "Engine data" section (`jh-engine-data.js`, one `<div data-jed>` and one script tag at the
+end of each page); it does nothing on the chart and can stay. To take it back too, remove those two lines from each page
+and delete `jh-engine-data.js`, `tests/engine-data-kit.test.js` and `tests/fixtures/engine-data-cut.json.gz`.
