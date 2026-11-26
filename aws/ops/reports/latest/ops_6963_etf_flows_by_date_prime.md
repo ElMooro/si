@@ -1,27 +1,25 @@
-# ops 6963 - every ETF's flows by date: probe, check, bank (2026-11-26T03:48+00:00)
+# ops 6963 - every ETF's flows by date: probe, check, bank (2026-11-26T03:57+00:00)
 
 **Status:** success  
-**Duration:** 50.4s  
-**Finished:** 2026-11-26T03:49:44+00:00  
+**Duration:** 48.7s  
+**Finished:** 2026-11-26T03:58:12+00:00  
 
 ## Data
 
-| one_day_whole | whole | write |
-|---|---|---|
-| True | {'month, newest date first': False, 'month, oldest date first': False, 'month, by fund A to Z': False, 'month, by fund Z to A': False} | False |
+| funds_november | funds_on_newest_day | months | newest_day | per_fund_files_on_newest_day | rows_november | write | written |
+|---|---|---|---|---|---|---|---|
+| 5794 | 5707 | 2 | 2026-11-24 | 1628 | 96095 | True | 2 |
 
 ## Log
 ## 1. The bank's per-fund files (their newest 45 rows each)
 
-- `03:49:14` 5789 funds, 255359 fund-days
-## 2. Which way of asking by date returns every fund
+- `03:57:43` 5789 funds, 255359 fund-days
+## 2. Each month asked by processed date, funds A to Z (the order that returns every row), checked against the per-fund files
 
-- `03:49:21` month, newest date first (18 pages, 7 s, complete True): 85000 rows, 5354 funds, 18 days | per day (last 4) {"2026-11-19": 5000, "2026-11-20": 4999, "2026-11-23": 5000, "2026-11-24": 4976} | of the per-fund files' 58520 fund-days it has 53423 (91.3%), different 0 | first and last fund BBSC .. ZVOL
-- `03:49:28` month, oldest date first (18 pages, 7 s, complete True): 85000 rows, 5349 funds, 18 days | per day (last 4) {"2026-11-19": 5000, "2026-11-20": 4999, "2026-11-23": 5000, "2026-11-24": 4976} | of the per-fund files' 58520 fund-days it has 47478 (81.1%), different 4 | first and last fund AAA .. VO
-- `03:49:35` month, by fund A to Z (20 pages, 7 s, complete True): 96095 rows, 5794 funds, 18 days | per day (last 4) {"2026-11-19": 5407, "2026-11-20": 5401, "2026-11-23": 5727, "2026-11-24": 5707} | of the per-fund files' 58520 fund-days it has 58516 (100.0%), different 4 | first and last fund AAA .. ZVOL
-- `03:49:43` month, by fund Z to A (20 pages, 7 s, complete True): 96095 rows, 5794 funds, 18 days | per day (last 4) {"2026-11-19": 5407, "2026-11-20": 5401, "2026-11-23": 5727, "2026-11-24": 5707} | of the per-fund files' 58520 fund-days it has 58516 (100.0%), different 4 | first and last fund AAA .. ZVOL
-- `03:49:44` one day 2026-11-24, by fund A to Z (2 pages, 1 s, complete True): 5734 rows, 5734 funds, 2 days | per day (last 4) {"2026-11-23": 27, "2026-11-24": 5707} | of the per-fund files' 1628 fund-days it has 1628 (100.0%), different 0 | first and last fund AAA .. ZVOL
-- `03:49:44` A-to-Z and Z-to-A together: 96091 fund-days; of the per-fund files' 58520 it has 58516
-- `03:49:44` newest-first and oldest-first together: 96091 fund-days; of the per-fund files' 58520 it has 58516
-- `03:49:44` funds on the newest day 2026-11-24: A-to-Z 5707, Z-to-A 5707, together 5707, one-day question 5734, per-fund files 1628
-- `03:49:44` ✅ PROBE COMPLETE: nothing was banked
+- `03:57:58` 2026-10: 124639 rows in 25 pages, 15 s, complete True | 5772 funds, 23 days, per day (last 4) {"2026-10-27": 5679, "2026-10-28": 5708, "2026-10-29": 5637, "2026-10-30": 5615} | of the per-fund files' 123313 fund-days it has 123313, different 0 [] | outside the month 0 | usable True
+- `03:58:10` 2026-11: 96095 rows in 20 pages, 12 s, complete True | 5794 funds, 18 days, per day (last 4) {"2026-11-19": 5407, "2026-11-20": 5401, "2026-11-23": 5727, "2026-11-24": 5707} | of the per-fund files' 58547 fund-days it has 58543, different 4 [[["ARKD", "2026-11-06"], 0.0, 0.0, "2026-11-06", "2026-11-06"], [["ARKG", "2026-11-16"], 0.0, 30207156.0, "2026-11-17", "2026-11-16"], [["ARKI", "2026-11-06"], 0.0, 0.0, "2026-11-06", "2026-11-06"]] | outside the month 0 | usable True
+## 3. Banked where the bank's new dataset keeps them
+
+- `03:58:12` data/warm/polygon-bank/etf-global-fund-flows-by-date/2026-10.json.gz: written, 124639 rows, 1.2 MB stored (18.7 MB as text); read back 124639 rows, equal True
+- `03:58:12` data/warm/polygon-bank/etf-global-fund-flows-by-date/2026-11.json.gz: written, 96095 rows, 1.0 MB stored (14.4 MB as text); read back 96095 rows, equal True
+- `03:58:12` ✅ BANKED: November has 5794 funds, 5707 of them on the newest day 2026-11-24 (the per-fund files: 1628)
