@@ -5433,6 +5433,7 @@ else if(o.id==="rvol"){
     document.getElementById("tfbar").innerHTML=
       "<button class='wsico wsdesk' id=btn-macro title='Macro & Economic Data'><span class=g>📈</span><span class=l>Macro</span></button>"+
       "<button class='wsico wsdesk' id=btn-flows title='Inflows & outflows'><span class=g>⇄</span><span class=l>Flows</span></button>"+
+      "<button class='wsico wsdesk' id=btn-mflow title='Money flow · where money is flowing in and out: every ETF by asset class, sector, country and fund'><span class=g>⇅</span><span class=l>Flow</span></button>"+
       "<button class='wsico wsdesk' id=btn-heat title='Universe Heatmap'><span class=g>▦</span><span class=l>Heat</span></button>"+
       "<button class='wsico wsdesk' id=btn-rmap title='Risk Map · what is booming and what is getting destroyed, across every asset class'><span class=g>🗺</span><span class=l>Risk Map</span></button>"+
       "<button class='wsico wsdesk' id=btn-auc title='Treasury Auctions'><span class=g>Auc</span><span class=l>Auction</span></button>"+
@@ -5501,6 +5502,7 @@ else if(o.id==="rvol"){
     document.querySelectorAll("#tfbar [data-chg]").forEach(function(b){ b.onclick=function(){ mode=b.dataset.chg; renderTf(); if(lastBars.length) paint(lastBars); }; });
     var bmac=document.getElementById("btn-macro"); if(bmac) bmac.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("macro"); };
     var bflw=document.getElementById("btn-flows"); if(bflw) bflw.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("flows"); };
+    var bmfl=document.getElementById("btn-mflow"); if(bmfl) bmfl.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("mflow"); };
     var bht=document.getElementById("btn-heat"); if(bht) bht.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("heat"); };
     var brm=document.getElementById("btn-rmap"); if(brm) brm.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("riskmap"); };
     var bauc=document.getElementById("btn-auc"); if(bauc) bauc.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("auction"); };

@@ -94,3 +94,110 @@ Each fund counted once, 96 funds: in +$15.95 billion, out -$14.95 billion, net +
 4. Institutions against retail and hot money: leave off, or bring back as clearly named proxies. The dark-pool
    engine's 40-day silence is a separate repair.
 5. Longer windows (1 day, 1 month, year to date) and a button on chart.html.
+
+---
+
+# The enhancement (2026-11-25 / 26): the money map
+
+Khalid, 21:22 CT: "Enhance that engine and tracks what etfs and sectors is the money flowing out and flowing into and
+covers as many asset classes and etfs as possible. And add a button on charts.html for it call it flow. Check if that
+button doesnt exist first before you add it".
+
+## What there is now
+
+- **Engine `justhodl-global-flow-desk`** publishes a second document beside its research view (which is untouched, to the
+  byte): the money map, `flow_map.py` 3.0.0. Every ETF the warehouse holds: 5,878 funds with rows, **5,770 current,
+  $15.57 trillion** (the engine saw 96 funds and $4.07 trillion before). Six windows (1D, 1W, 1M, 3M, YTD, 1Y), each
+  with net, money in, money out, funds in and out, percentage of assets and the window before.
+  - 23 asset classes, one per fund, adding up to the total; the provider's own classes, categories and focus groups;
+    sectors two ways (sector funds, and every equity fund's flow split by the weights it holds); 41 countries; regions;
+    styles; bonds by kind and by maturity; 21 commodities; crypto; leveraged and inverse kept apart; 60 issuers.
+  - Boards of the 40 funds with the most in and out, by dollars and against their own assets, in every window; funds
+    that turned; 260 days of every class and sector a day at a time; each fund's own 130 days.
+  - Documents: `data/global-flow-map.json`, `data/global-flow-map-funds.json` (34 columns a fund),
+    `data/global-flow-map-history.json`, `data/global-flow-map/funds/<letter>.json`.
+- **The warehouse** has every fund on the newest day: the Polygon bank's new by-date dataset
+  (`etf-global-fund-flows-by-date`, one spec line; ops 6963). Before it, 1,628 of 5,789 fund files were current.
+- **The page** `global-flow-desk.html`: the money map is the first view (`jh-money-map.js`); the research view that was
+  the page is beneath it, unchanged, one click away (Research view, `#research`, or any `?run=` link).
+- **The chart** has a **Flow** button beside Flows. Flows was not renamed or moved: it opens the Inflows & outflows
+  desk as before. Nothing on the bar opened this engine's page until now.
+
+## What a flow is, and why not the provider's own figure
+
+The first dry run agreed with the provider's `fund_flow` to the dollar on 5,187 of 5,187 funds, and that was the fault.
+Measured read-only on the whole warehouse (ops 6965):
+
+| What the provider printed | Size | What the engine does |
+|---|---|---|
+| A share split as an inflow or outflow | 299 in 300 days, **$1.75 trillion**; Vanguard's five April 2026 splits alone +$401 billion (the NAV restated a day before the count) | Takes the split from the warehouse's own record of splits (258 of the 299), or reads it from a whole-ratio move of count and NAV; counts and NAVs before it are restated |
+| A figure after a missing day | 502 of 1,123 such rows wrong, $14.3 billion in 63 days; a November buffer series printed -85% with its share count unchanged | Uses the share count's own path, which on consecutive rows is the provider's figure on 351,572 of 351,576 rows |
+| A row of another fund | 10; Fidelity Solana printed +$2.02 billion then -$12.72 billion | Drops the row |
+| A count that jumps and comes back within ten rows | 595 in 63 days, $36.9 billion each way: reset days, heartbeat trades, and the provider's 11 to 19 November fault that showed ARK Innovation at 271 million shares against its usual 80 | Counts what the trip left behind |
+
+A jump that stays is money and is counted, however large. Alger Concentrated Equity (CNEQ) is the test: its count rose
+from 30 to 203 million shares from August to October and is 26 million now. Outside sources agree it held about $7
+billion in late October and under $1 billion now, so it is counted, not removed.
+
+Nothing is estimated, carried forward or inferred. Who bought or sold (institutions, retail, foreigners) is not in this
+data and is not shown.
+
+## Limits, said plainly
+
+1. **One trading day behind.** The provider posts a day's orders during the next day. The page prints the day.
+2. **The engine runs Monday to Friday at 23:37 UTC**, so Friday's orders appear on Monday night. Not changed.
+3. **108 funds ($115 billion) are left out as late** and listed; nearly all of it is Dimensional (DFAC, DFAS, DFAT, DUHP
+   ...), whose rows stop in late September or early October in the provider's data.
+4. **ARK and Alger funds, 11 to 24 November:** the provider's counts for these two issuers swelled and fell back. The
+   round-trip rule nets ARK's; Alger's three funds also really lost most of their assets in the same weeks, and the two
+   cannot be told apart day by day. Their rows carry a flag; their month figures are right, their week figures uncertain.
+5. **Quarter-end weeks** (the third Friday of March, June, September, December) show very large flows into and out of
+   the S&P 500, Nasdaq and sector funds within days. They are real share creations and are counted; they are under the
+   40% a day that the round-trip rule looks for.
+6. 14 recorded splits never show in the provider's counts (mostly leveraged notes); nothing is changed for them.
+7. ETF flows are not mutual-fund flows or direct stock purchases.
+
+## Decisions taken for you
+
+- **Flows / Flow.** You asked for a button called flow and to check first. "Flows" exists and is a different desk, so I
+  added "Flow" next to it and left Flows alone. If you would rather have one button, or another name for either, say so.
+- **The money map is the first thing on the page**, the research view second. One click swaps them.
+- **Memory 3008 MB and timeout 900 s** for the engine (1024 MB / 300 s before): the map reads 5,900 files. About 13
+  cents a month.
+- **Leveraged and inverse funds are counted apart**, so a bet against the market is never netted against a purchase.
+- **China** counts mainland, Hong Kong and offshore (Cayman, Bermuda) registrations together when the fund is an
+  Asia-Pacific fund; otherwise KWEB, FXI and MCHI would be in no country.
+
+## Not done (your call)
+
+- A Saturday run so Friday's orders show on Saturday.
+- Institutions against retail, and hot money: still off (this data cannot say who). The dark-pool engine's silence
+  since 2026-10-16 is a separate repair.
+- The research view's own gaps from the audit above (32 missing funds, two datings) are as they were.
+
+## To take it back
+
+- The button: `docs/snapshots/chart-search-2026-11-10/README.md`, "2026-11-26: the chart's Flow button".
+- The page: `git checkout fad9f69d -- global-flow-desk.html`, delete `jh-money-map.js`, `tests/money-map-page.test.js`,
+  `tests/fixtures/money-map-135.json.gz`.
+- The engine: `git checkout cc64470a -- aws/lambdas/justhodl-global-flow-desk/`, delete `source/flow_map.py`,
+  `tests/test_flow_map.py`, `tests/fixtures/`; regenerate the manifest; push. The four documents can stay in the
+  warehouse; nothing reads them but this page.
+- The bank's by-date dataset: one line in `polygon-bank-spec.json`.
+
+## Proof
+
+- **Dry runs on the live warehouse, nothing written (ops 6964, four times).** The engine's own code on the runner: read
+  in 43 to 53 s, built in 8 s, 876 MB. Checked by the op's own code, not the engine's: 4,997 funds with all six raw rows
+  and nothing done to them equal the op's count path and the provider's figures; 328 funds with a row missing inside
+  the week equal their count path; the site's 300-fund radar agrees on 260 of 260 comparable funds; every table adds
+  up in all six windows; no fund lost more than it held; the issuers' own counts match for 80 of 92 funds with enough
+  days (the 12 are ProShares leveraged funds, known from the audit).
+- **Measurement (ops 6965, read-only):** the table above.
+- **Published (ops 6966, 04:49 UTC):** the same build and gate, then the engine's own `publish()` from the runner: 29
+  objects, read back. The Lambda was not invoked, so its once-a-day run was not spent. Its own first run with the map
+  is 23:37 UTC on 26 November.
+- **Tests:** engine 40 of 40 (21 new, on real rows: Vanguard's split, the November series, Fidelity Solana, ARK, Alger,
+  T-Rex, BAIG); page 14 new, including that the funds behind every bar add up to the engine's row in every table and
+  window (434 figures); deployment suite 1,257.
+

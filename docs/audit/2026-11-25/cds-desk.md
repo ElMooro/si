@@ -213,6 +213,10 @@ re-skin.
   new, on a fixture cut from the real document); deployment suite 1,257 (9 new: one door for writes, no identifier
   kept, every published key has words on the page, the credit board still reads the document).
 - **The credit board** reads this document at 22:35 UTC; its test reads the 2.0 document (AT&T once, at 99.5 bp).
+- **Its first run on its own schedule (2026-11-26 04:00 UTC; ops 6957 run again at 04:19 UTC, read-only).** The
+  document was written at 04:00:52 UTC: 2.0.0, as of 2026-11-25, 475 names with a level (42 sovereign, 237 U.S., 164
+  global, 32 subordinated), 12 indices, 13,596 prints on 688 names in the tape; 437 of 438 levels inside their own
+  day's prints; the page in a real browser, 0 failed checks. Nothing was invoked by hand.
 
 ## Cost
 

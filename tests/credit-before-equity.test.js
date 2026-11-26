@@ -1111,7 +1111,7 @@ test('the chart has a Credit button between Bonds and CDS, and it opens this boa
   assert.ok(CHART_ENGINE.includes('var bcbe=document.getElementById("btn-cbe"); if(bcbe) bcbe.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("credit"); };'));
   // every desk that was on the bar is still on it, once, in the order it had
   const ids = [...CHART_ENGINE.matchAll(/<button class='wsico wsdesk' id=(btn-[a-z0-9]+) /g)].map(m => m[1]);
-  assert.deepEqual(ids.slice(0, 18), ['btn-macro', 'btn-flows', 'btn-heat', 'btn-rmap', 'btn-auc', 'btn-corm', 'btn-etf', 'btn-str', 'btn-bnd', 'btn-cbe', 'btn-cds', 'btn-repo', 'btn-sov', 'btn-usd', 'btn-soma', 'btn-bofa', 'btn-13f', 'btn-ldr']);
+  assert.deepEqual(ids.slice(0, 19), ['btn-macro', 'btn-flows', 'btn-mflow', 'btn-heat', 'btn-rmap', 'btn-auc', 'btn-corm', 'btn-etf', 'btn-str', 'btn-bnd', 'btn-cbe', 'btn-cds', 'btn-repo', 'btn-sov', 'btn-usd', 'btn-soma', 'btn-bofa', 'btn-13f', 'btn-ldr']);
   assert.equal(new Set(ids).size, ids.length);
   // the workspace entry: a name, this page, between Bonds and CDS; no other entry was touched
   const m = CHART_RAIL.match(/\n {6}credit: \["([^"]+)", "([^"]+)"\],\n/);
@@ -1129,7 +1129,8 @@ test('the chart has a Credit button between Bonds and CDS, and it opens this boa
 });
 
 test('the chart\'s byte ledger takes the button back out: engine, rail and chart.html return to the files before it', () => {
-  const e0 = chartLedger.peelCreditBoardEngine(CHART_ENGINE, 'jh-chart-engine.js'), r0 = chartLedger.peelCreditBoardRail(CHART_RAIL, 'jh-chart-tvrail.js'), h0 = chartLedger.peelCreditBoardHtml(CHART_HTML, 'chart.html');
+  // (2026-11-26: the Money flow button came after it and is peeled first)
+  const e0 = chartLedger.peelCreditBoardEngine(chartLedger.peelMoneyFlowEngine(CHART_ENGINE, 'jh-chart-engine.js'), 'jh-chart-engine.js'), r0 = chartLedger.peelCreditBoardRail(chartLedger.peelMoneyFlowRail(CHART_RAIL, 'jh-chart-tvrail.js'), 'jh-chart-tvrail.js'), h0 = chartLedger.peelCreditBoardHtml(chartLedger.peelMoneyFlowHtml(CHART_HTML, 'chart.html'), 'chart.html');
   assert.equal(sha(e0), 'b0d05901fb3d5da6ca799d18fc9dcfb7eda187d5e7bf9caa6cdea9b100135ee5');
   assert.equal(sha(r0), '75dbbbc868c849e03e4aa48158acd97371af51156b62ea1d648ce80540d793c6');
   assert.equal(sha(h0), '96f17815e4e76284763617ea0572bef73fa019e4198b5c3aa0959b528835f62f');
@@ -1137,8 +1138,8 @@ test('the chart\'s byte ledger takes the button back out: engine, rail and chart
   // a file that is not the one after this change is handed back untouched (an older or a newer file is some other peel's business)
   assert.equal(chartLedger.peelCreditBoardEngine(e0, 'jh-chart-engine.js'), e0);
   assert.equal(chartLedger.peelCreditBoardRail(CHART_RAIL, 'jh-chart-engine.js'), CHART_RAIL);
-  // and it is the first peel of the whole ledger, so every older gate still reads its own predecessor
-  assert.match(fs.readFileSync(path.join(R, 'tests/helpers/chart-macro-line-preservation.cjs'), 'utf8'), /function normalize\(raw,file\)\{raw=peelCreditBoardEngine\(raw,file\);raw=peelCreditBoardRail\(raw,file\);raw=peelCreditBoardHtml\(raw,file\);raw=peelRiskMapEngine\(raw,file\);/);
+  // and it is peeled before every older peel (only the Money flow button, added the day after, comes off before it), so every older gate still reads its own predecessor
+  assert.match(fs.readFileSync(path.join(R, 'tests/helpers/chart-macro-line-preservation.cjs'), 'utf8'), /raw=peelMoneyFlowHtml\(raw,file\);raw=peelCreditBoardEngine\(raw,file\);raw=peelCreditBoardRail\(raw,file\);raw=peelCreditBoardHtml\(raw,file\);raw=peelRiskMapEngine\(raw,file\);/);
 });
 
 test('inside the chart\'s workspace a sheet\'s Chart link loads the company in the chart behind it; anywhere else it is a link', () => {

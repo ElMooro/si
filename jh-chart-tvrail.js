@@ -218,6 +218,7 @@
     var meta = {
       macro: ["Macro & Economic Data", "/macro-economic-data.html"],
       flows: ["Inflows & outflows", "/inflows-outflows.html"],
+      mflow: ["Money flow · where money is flowing in and out", "/global-flow-desk.html"],
       heat: ["Universe Heatmap", "/universe-heatmap.html?v=20261014b"],
       riskmap: ["Risk Map · booming vs getting destroyed, every asset class", "/regime-map.html?v=20261124a"],
       auction: ["Treasury Auctions", "/auctions.html"],

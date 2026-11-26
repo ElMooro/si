@@ -284,3 +284,25 @@ then delete the two tests "the chart has a Credit button between Bonds and CDS .
 button back out ..." from `tests/credit-before-equity.test.js`, commit `[skip-ops]` and push. The hand-off on the board
 (`jh-credit-board.js`, `jh-credit-sheet.js`, `credit-before-equity.html`) does nothing without the button and can stay; to
 take it back too, add those three files to the checkout and delete the third test ("inside the chart's workspace ...").
+
+## 2026-11-26: the chart's Flow button (Money flow)
+
+Khalid, after the money-flow engine was audited: "add a button on charts.html for it call it flow. Check if that button
+doesnt exist first before you add it". It did not exist: the bar has **Flows** (`btn-flows`, the Inflows & outflows desk,
+`/inflows-outflows.html`) and the rail an entry `fl` ("Fund flows", `/flow.html`); neither opens the money-flow engine's
+page. Nothing was renamed or moved. `jh-chart-engine.js` has one more button (`btn-mflow`, "Flow", right after Flows and
+before Heat) and its click, `jh-chart-tvrail.js` one more entry (`mflow` -> `/global-flow-desk.html`), and `chart.html`
+carries `&mflow=20261126` on both script tags. The byte ledger peels these three first (`peelMoneyFlowEngine`,
+`peelMoneyFlowRail`, `peelMoneyFlowHtml`), then the Credit button's. Inside the chart's workspace a fund's sheet on the
+money map sends the fund to the chart behind and closes the workspace (`top.jhOpenSymbol`); on the page by itself it is an
+ordinary link. Live proof: ops 6967 (read-only, re-runnable). Record: `docs/audit/2026-11-25/money-flow-engine.md`.
+
+To take the button back (state before = fad9f69d):
+
+```
+git checkout fad9f69d -- jh-chart-engine.js jh-chart-tvrail.js chart.html tests/helpers/chart-macro-line-preservation.cjs tests/chart-crypto-routes.test.js tests/chart-indicator-controls.test.js tests/risk-map-page.test.js tests/credit-before-equity.test.js
+```
+
+then delete the two tests "the chart has a Flow button ..." and "the chart's byte ledger takes the Flow button back out
+..." from `tests/money-map-page.test.js`, commit `[skip-ops]` and push. The page (`global-flow-desk.html`,
+`jh-money-map.js`) works without the button and can stay.
