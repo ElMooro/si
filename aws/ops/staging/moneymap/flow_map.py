@@ -12,11 +12,24 @@ warehouse only (no provider is asked here):
   data/warm/polygon-bank/etf-global-profiles/<FUND>.json.gz               the provider's class, category, focus, weights
   data/etf-creations/<FUND>.json                                          the issuers' own share counts (a check only)
 
-What a figure is.  A fund's flow on a day is the provider's creation / redemption figure: (shares outstanding minus
-shares the day before) times the NAV of the day before, dated on the day of the order.  Three things are done to it and
-each is counted in the document: a share split is taken out (shares and NAV move opposite ways by a whole ratio; the flow
-is recomputed in post-split shares), a print that reverses the next day is dropped, and a fund whose newest row is more
-than three reporting days old is left out of every total and listed as late.  Nothing is estimated or carried forward.
+What a figure is.  A fund's flow on a day is its share count's own path: (shares outstanding minus shares on the row
+before) times the NAV of the row before.  On rows that follow each other day by day this is the provider's creation /
+redemption figure to the dollar (351,572 of 351,576 rows over 63 days, ops 6965); the provider's figure itself is not
+used because after a missing day it refers to rows the warehouse does not have (502 of 1,123 such rows were wrong, by
+$14.3 billion: a November buffer series printed -85% with its share count unchanged).  Four things are done to the
+counts, each from evidence and each counted in the document:
+
+  a share split      the warehouse's record of splits (polygon-bank/splits), found in the counts within six days, or a
+                     whole-ratio move of count and NAV in opposite directions on the same or the next row; the count and
+                     the NAV before it are restated on the new basis (Vanguard's five April 2026 splits alone printed as
+                     +$401 billion of inflow, the NAV having been restated a day before the count);
+  a misprint         a row whose count and NAV both leave and both come back on the next row is dropped;
+  a round trip       a count that jumps by more than 40% and is back within two rows (a heartbeat trade, a reset day, a
+                     doubled print) counts as the difference it left behind, not as money in and then money out;
+  a late fund        a fund whose newest row is more than three reporting days old is left out of every total and listed.
+
+A jump that stays is money and is counted, however large: the Alger Concentrated Equity ETF really did take in about
+$7 billion from August to October 2026 and lose most of it in November.  Nothing is estimated or carried forward.
 
 Groups never overlap inside one table: each fund has one segment, one provider class, one category.  Funds that use
 leverage or run inverse are kept in their own segment so a bet against the market is never netted against a purchase.
@@ -53,16 +66,19 @@ MIN_FUNDS = 2500                # fewer current funds than this and nothing is p
 MAX_AGE_DAYS = 6                # the newest reporting day may be at most this many calendar days old
 BOARD = 40
 NO_CLASS = "No class given"                # funds the provider has not classed: kept in the class table so it adds up to the total
-SPLIT_LOG = 0.28                # shares and NAV must each move by more than this (log) in opposite directions ...
-SPLIT_SUM = 0.35                # ... and cancel to within this, to be read as a split
-_WHOLE = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30, 40, 50, 100)          # n-for-1 and 1-for-n, and the few part ratios funds use
+JUMP = math.log(1.4)            # a share count that moves by more than 40% between two rows
+TRIP_ROWS = 2                   # a jump undone within this many rows is a round trip ...
+TRIP_LEFT = 0.2                 # ... when no more than a fifth of it is left
+SPLIT_DAYS = 6                  # a recorded split is looked for in the counts within this many calendar days of its date
+SPLITS = BANK + "splits/"       # the warehouse's record of splits: <YYYY-MM>.json.gz, rows ticker / execution_date / split_from / split_to
+_WHOLE = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30, 40, 50, 100)
 RATIO_NAMES = dict([(float(n), "%d-for-1" % n) for n in _WHOLE] + [(1.0 / n, "1-for-%d" % n) for n in _WHOLE]
                    + [(1.5, "3-for-2"), (2.5, "5-for-2"), (1.25, "5-for-4"), (2.0 / 3, "2-for-3"), (0.4, "2-for-5"), (0.8, "4-for-5")])
 RATIOS = sorted(RATIO_NAMES)
 SECTOR_NAMES = {"technology": "Technology", "financials": "Financials", "health_care": "Health care", "consumer_discretionary": "Consumer discretionary",
                 "communications": "Communications", "industrials": "Industrials", "consumer_staples": "Consumer staples", "energy": "Energy",
                 "utilities": "Utilities", "real_estate": "Real estate", "materials": "Materials"}
-FOCUS_SECTOR = {"information technology": "Technology", "technology": "Technology", "financials": "Financials", "health care": "Health care",
+FOCUS_SECTOR = {"natural resources": "Natural resources", "information technology": "Technology", "technology": "Technology", "financials": "Financials", "health care": "Health care",
                 "consumer discretionary": "Consumer discretionary", "communication services": "Communications", "communications": "Communications",
                 "telecommunication services": "Communications", "industrials": "Industrials", "consumer staples": "Consumer staples", "energy": "Energy",
                 "utilities": "Utilities", "real estate": "Real estate", "materials": "Materials"}
@@ -72,6 +88,7 @@ COUNTRIES = {"us": "United States", "jp": "Japan", "cn": "China", "hk": "Hong Ko
              "my": "Malaysia", "ph": "Philippines", "sa": "Saudi Arabia", "ae": "United Arab Emirates", "il": "Israel", "ar": "Argentina", "cl": "Chile", "co": "Colombia",
              "pe": "Peru", "gr": "Greece", "ie": "Ireland", "dk": "Denmark", "no": "Norway", "fi": "Finland", "be": "Belgium", "at": "Austria", "pt": "Portugal",
              "nz": "New Zealand", "eg": "Egypt", "qa": "Qatar", "kw": "Kuwait", "ng": "Nigeria", "pk": "Pakistan"}
+CHINA_PLACES = ("cn", "hk", "ky", "bm")      # Chinese companies are registered in the Cayman Islands and Bermuda and listed in Hong Kong
 SHORT_BUCKETS, LONG_BUCKETS = ("0-1", "1-3"), ("10-15", "15-20", "20-30", "30+")
 
 
@@ -109,12 +126,16 @@ def classify(profile):
         out["sub"] = ("Inverse" if lev < 0 else "Leveraged long") + " · " + (ac or "other")
         return out
     if ac in ("Equity", "Real Estate") and cat == "Sector":
-        out["sec"] = FOCUS_SECTOR.get(foc.lower(), foc or None)
+        out["sec"] = FOCUS_SECTOR.get(foc.lower())               # a "sector" fund whose focus is not a sector is in no sector row
     if ac == "Real Estate":
         out["seg"] = "Real estate"
     elif ac == "Equity":
-        if num(top[1]) and (num(top[1]) or 0) >= 0.6 and top[0] != "us":
-            out["cty"] = COUNTRIES.get(str(top[0]).lower(), str(top[0]).upper())
+        lead, share = str(top[0]).lower(), num(top[1]) or 0.0
+        china = sum(num(geo.get(k)) or 0.0 for k in CHINA_PLACES)
+        if share >= 0.6 and lead not in ("us", "ky", "bm"):
+            out["cty"] = COUNTRIES.get(lead, lead.upper())
+        elif china >= 0.6 and region == "Asia-Pacific":
+            out["cty"] = "China"                                    # mainland, Hong Kong and offshore registrations together
         if cat == "Sector":
             out["seg"] = "Equity · sector funds"
         elif foc == "Single Stock":
@@ -180,39 +201,121 @@ def sector_weights(profile):
 
 
 # --------------------------------------------------------------------------------------------- one fund's days
-def snap_ratio(rs, rn):
-    """The whole ratio a split was (new shares per old share): the one both the share count and the NAV point to."""
-    best = min(RATIOS, key=lambda c: abs(math.log(rs / c)) + abs(math.log(rn * c)))
-    return best
+def ratio_name(c):
+    """A split ratio as funds state it: 8-for-1, 1-for-10, 3-for-2."""
+    best = min(RATIOS, key=lambda r: abs(math.log(c / r)))
+    if abs(math.log(c / best)) < 0.01:
+        return RATIO_NAMES[best]
+    return ("%.4g-for-1" % c) if c >= 1 else ("1-for-%.4g" % (1.0 / c))
 
 
-def clean_series(rows):
-    """rows: [(date, shares, nav, flow)] oldest first, one per day.  Returns [(date, shares, nav, flow, flag)] with splits
-    taken out and reversed prints dropped.  flag: None | 'split a-for-b' | 'reversed' | 'no_figure'."""
-    out = []
+def _apart(a, b):
+    return abs((datetime.strptime(a, "%Y-%m-%d") - datetime.strptime(b, "%Y-%m-%d")).days)
+
+
+def _nav_leg(rows, i, lc, tol, span=2):
+    """The row on which the NAV moved by the other side of a split whose count moved on row i (the same row or a
+    neighbour: the provider restates the two on different days); None when the NAV series never moved."""
+    for k in [i] + [x for step in range(1, span + 1) for x in (i - step, i + step)]:
+        if 1 <= k < len(rows) and abs(math.log(rows[k][2] / rows[k - 1][2]) + lc) < tol:
+            return k
+    return None
+
+
+def count_path(rows, recorded=None):
+    """One fund's days as money.  rows: [(date, shares, nav, provider figure)] oldest first; recorded: [(date, ratio)]
+    from the warehouse's record of splits (ratio = new shares per old share).
+
+    Returns (clean, notes).  clean: [(date, shares, nav, flow, flag)] with shares and NAV on today's basis and the flow
+    of a row = (shares - shares of the row before) x NAV of the row before.  flag: None | 'split a-for-b' | 'round trip'
+    | 'jump'.  notes: [{d, k, x, usd}] for what was done (k: split | misprint | trip | jump | unseen)."""
+    rows = [r for r in rows if r[1] and r[2] and r[1] > 0 and r[2] > 0]
+    notes = []
+    # 1. a row whose count and NAV both leave and both come back on the next row is another fund's row or a slip
+    drop = set()
+    for i in range(1, len(rows) - 1):
+        if i - 1 in drop:
+            continue
+        (_, s0, n0, _), (d, s1, n1, _), (_, s2, n2, _) = rows[i - 1], rows[i], rows[i + 1]
+        if abs(math.log(s1 / s0)) > JUMP and abs(math.log(s2 / s0)) < 0.1 and abs(math.log(n1 / n0)) > 0.3 and abs(math.log(n2 / n0)) < 0.15:
+            drop.add(i)
+            notes.append({"d": d, "k": "misprint", "x": "row dropped: count x%.3g and NAV x%.3g for one row" % (s1 / s0, n1 / n0), "usd": abs(s1 - s0) * n0})
+    if drop:
+        rows = [r for j, r in enumerate(rows) if j not in drop]
     n = len(rows)
-    for i, (d, s1, n1, f) in enumerate(rows):
-        flag = None
-        if i == 0 or s1 is None or n1 is None:
-            out.append((d, s1, n1, f if f is not None else None, None if f is not None else "no_figure"))
+    if not n:
+        return [], notes
+    # 2. splits: the record first, then whole-ratio moves of count and NAV in opposite directions
+    events, used = [], set()
+    for dr, c in sorted(recorded or ()):
+        if not c or c <= 0 or abs(math.log(c)) < 0.05 or not (rows[0][0] < dr <= rows[-1][0] or _apart(dr, rows[-1][0]) <= SPLIT_DAYS):
             continue
-        _, s0, n0, _ = rows[i - 1]
-        if not (s0 and n0 and s1 > 0 and n1 > 0 and s0 > 0 and n0 > 0):
-            out.append((d, s1, n1, f, None if f is not None else "no_figure"))
+        lc = math.log(c)
+        tol_s, tol_n = min(0.2, 0.5 * abs(lc)), min(0.25, 0.5 * abs(lc))
+        best = None
+        for i in range(1, n):
+            if i in used or _apart(rows[i][0], dr) > SPLIT_DAYS:
+                continue
+            dev = abs(math.log(rows[i][1] / rows[i - 1][1]) - lc)
+            k = _nav_leg(rows, i, lc, tol_n)
+            if dev < tol_s or (k is not None and dev < min(0.4, 0.5 * abs(lc))):
+                rank = (_apart(rows[i][0], dr), dev)
+                if best is None or rank < best[0]:
+                    best = (rank, i, k)
+        if best is None:
+            notes.append({"d": dr, "k": "unseen", "x": "recorded split %s not found in the share counts" % ratio_name(c), "usd": None})
             continue
-        lrs, lrn = math.log(s1 / s0), math.log(n1 / n0)
-        if abs(lrs) > SPLIT_LOG and abs(lrn) > SPLIT_LOG and lrs * lrn < 0 and abs(lrs + lrn) < SPLIT_SUM:
-            c = snap_ratio(s1 / s0, n1 / n0)
-            f = (s1 - c * s0) * n0 / c
-            flag = "split " + RATIO_NAMES[c]
-        elif abs(lrs) > 0.4 and i + 1 < n and rows[i + 1][1] and abs(math.log(rows[i + 1][1] / s1) + lrs) < 0.05 and abs(lrn) < 0.2:
-            f, flag = 0.0, "reversed"              # the count jumps and comes straight back: a misprint, not money
-        elif i >= 1 and out and out[-1][4] == "reversed" and abs(lrs) > 0.4:
-            f, flag = 0.0, "reversed"
-        elif f is None:
-            f, flag = (s1 - s0) * n0, None         # the provider left the figure out: its own formula on its own counts
-        out.append((d, s1, n1, f, flag))
-    return out
+        events.append((best[1], best[2], c, True))
+        used.add(best[1])
+    for i in range(1, n):
+        if i in used:
+            continue
+        ls = math.log(rows[i][1] / rows[i - 1][1])
+        if abs(ls) < 0.55:
+            continue
+        r = math.exp(ls)
+        c = float(round(r)) if r > 1 else 1.0 / round(1.0 / r)
+        lc = math.log(c)
+        if abs(ls - lc) > 0.15:
+            continue
+        k = _nav_leg(rows, i, lc, 0.2, span=1)
+        if k is None:
+            continue
+        events.append((i, k, c, False))
+        used.add(i)
+    shares, nav, flag = [r[1] for r in rows], [r[2] for r in rows], [None] * n
+    for i, k, c, on_record in events:
+        for j in range(i):
+            shares[j] *= c
+        for j in range(k if k is not None else 0):
+            nav[j] /= c
+        flag[i] = "split " + ratio_name(c)
+        notes.append({"d": rows[i][0], "k": "split", "x": flag[i] + (" (on record)" if on_record else " (read from count and NAV)"), "usd": abs(rows[i][1] - rows[i - 1][1]) * rows[i - 1][2]})
+    # 3. round trips: a jump that is back within TRIP_ROWS rows counts as what it left behind
+    i = 1
+    while i < n:
+        if flag[i] is None and abs(math.log(shares[i] / shares[i - 1])) > JUMP:
+            base, jump = shares[i - 1], shares[i] - shares[i - 1]
+            hit = next((j for j in range(i + 1, min(i + 1 + TRIP_ROWS, n)) if flag[j] is None and abs(shares[j] - base) <= TRIP_LEFT * abs(jump)), None)
+            if hit is not None:
+                notes.append({"d": rows[i][0], "k": "trip", "x": "count x%.3g and back by %s" % (shares[i] / base, rows[hit][0]), "usd": abs(jump) * nav[i - 1]})
+                for j in range(i, hit):
+                    shares[j] = base
+                    flag[j] = "round trip"
+                flag[hit] = "round trip"
+                i = hit + 1
+                continue
+            flag[i] = "jump"
+            notes.append({"d": rows[i][0], "k": "jump", "x": "count x%.3g, not undone" % (shares[i] / base), "usd": jump * nav[i - 1]})
+        i += 1
+    clean = [(rows[0][0], shares[0], nav[0], rows[0][3], flag[0])]          # the first row has no row before it: the provider's figure stands
+    for i in range(1, n):
+        clean.append((rows[i][0], shares[i], nav[i], (shares[i] - shares[i - 1]) * nav[i - 1], flag[i]))
+    return clean, notes
+
+
+def clean_series(rows, recorded=None):
+    return count_path(rows, recorded)[0]
 
 
 def compact(x):
@@ -250,8 +353,9 @@ def money(v):
     return None if v is None else round(v, 2)
 
 
-def build(series, profiles, issuer=None, now=None, by_date_months=None):
-    """series: {fund: [(date, shares, nav, flow)] oldest first}; profiles: {fund: provider profile}; issuer: {fund: {date: shares}}.
+def build(series, profiles, issuer=None, now=None, by_date_months=None, splits=None):
+    """series: {fund: [(date, shares, nav, provider figure)] oldest first}; profiles: {fund: provider profile};
+    issuer: {fund: {date: shares}}; splits: {fund: [(date, ratio)]} from the warehouse's record.
     Returns (document, funds_document, history_document, shards)."""
     now = now or datetime.now(timezone.utc)
     cal = calendar(series)
@@ -267,12 +371,14 @@ def build(series, profiles, issuer=None, now=None, by_date_months=None):
         wdef.append({"key": key, "label": label, "days": days, "prior": prior, "start": days[0], "end": end, "n": len(days),
                      "complete": n is None or len(days) == n, "before": cal[pos[days[0]] - 1] if pos[days[0]] > 0 else None})
     funds, late, empty, flags = {}, [], [], defaultdict(list)
+    recent = len(cal) - 63
+    restated = {"rows_compared": 0, "rows_equal": 0, "rows_differing": 0, "after_a_missing_day": 0, "differing_after_a_missing_day": 0, "usd_apart": 0.0, "largest": []}
     for t, rows in series.items():
         rows = [r for r in rows if r[0] in pos]
-        if not rows:
+        clean, notes = count_path(rows, (splits or {}).get(t)) if rows else ([], [])
+        if not clean:
             empty.append(t)
             continue
-        clean = clean_series(rows)
         newest = clean[-1][0]
         behind = len(cal) - 1 - pos[newest]
         cls = classify(profiles.get(t))
@@ -283,13 +389,37 @@ def build(series, profiles, issuer=None, now=None, by_date_months=None):
                "name": (profiles.get(t) or {}).get("description"), "issuer": (profiles.get(t) or {}).get("issuer"),
                "typ": (profiles.get(t) or {}).get("product_type"), "inc": day((profiles.get(t) or {}).get("inception_date")), "flags": []}
         for r in clean:
-            if r[4] and r[4] != "no_figure" and pos[r[0]] >= len(cal) - 63:
+            if r[4] and pos[r[0]] >= recent:
                 rec["flags"].append("%s %s" % (r[0], r[4]))
-                flags[r[4].split(" ")[0]].append((t, r[0], r[4]))
+        for x in notes:
+            flags[x["k"]].append((t, x["d"], x["x"], x["usd"]))
+            if x["k"] == "misprint" and x["d"] in pos and pos[x["d"]] >= recent:
+                rec["flags"].append("%s misprint dropped" % x["d"])
+        rec["flags"].sort()
+        # the provider's own figure beside the count path, on untouched rows of the last 63 days
+        given = {r[0]: r[3] for r in rows}
+        for i in range(1, len(clean)):
+            d, s1, _, mine, fl = clean[i]
+            d0, s0, n0 = clean[i - 1][0], clean[i - 1][1], clean[i - 1][2]
+            theirs = given.get(d)
+            if fl or clean[i - 1][4] or theirs is None or pos[d] < recent:
+                continue
+            gap = pos[d] - pos[d0] != 1
+            same = abs(theirs - mine) <= max(2000.0, 0.003 * abs(mine), 2e-4 * s0 * n0)
+            restated["rows_compared"] += 1
+            restated["rows_equal"] += same
+            restated["after_a_missing_day"] += gap
+            if not same:
+                restated["rows_differing"] += 1
+                restated["differing_after_a_missing_day"] += gap
+                restated["usd_apart"] += abs(theirs - mine)
+                restated["largest"].append((abs(theirs - mine), t, d, theirs, mine, gap))
         if behind > LATE_DAYS:
             late.append(t)
             rec["late"] = True
         funds[t] = rec
+    restated["usd_apart"] = money(restated["usd_apart"])
+    restated["largest"] = [[t, d, money(a), money(b), bool(g)] for _, t, d, a, b, g in sorted(restated["largest"], reverse=True)[:25]]
     current = [t for t, f in funds.items() if not f.get("late")]
 
     def window_of(f, w):
@@ -499,13 +629,23 @@ def build(series, profiles, issuer=None, now=None, by_date_months=None):
         k = t[0] if t[0].isalpha() else "0"
         shards[k]["funds"][t] = {"f": [None if d not in f["by"] or f["by"][d][3] is None else round(f["by"][d][3]) for d in shard_days],
                                  "a": [None if d not in f["by"] or not f["by"][d][1] or not f["by"][d][2] else round(f["by"][d][1] * f["by"][d][2]) for d in shard_days],
-                                 "x": {d: r[4] for d, r in f["by"].items() if r[4] and r[4] != "no_figure" and d in shard_days}}
+                                 "x": {d: r[4] for d, r in f["by"].items() if r[4] and d in shard_days}}
     age = (now.date() - datetime.strptime(end, "%Y-%m-%d").date()).days
     quality = {"funds_with_rows": len(funds), "funds_current": len(current), "funds_late": len(late), "funds_no_rows": len(empty), "late_rule_days": LATE_DAYS,
                "funds_with_profile": sum(1 for t in current if profiles.get(t)), "funds_unclassified": sum(1 for t in current if funds[t]["cls"]["seg"] == "Unclassified"),
                "assets_current_usd": money(sum(funds[t]["assets"] for t in current)), "assets_late_usd": money(sum(funds[t]["assets"] for t in late)),
                "reporting_days": len(cal), "first_day": cal[0], "newest_day": end, "newest_day_age_days": age, "by_date_months": sorted(by_date_months or []),
-               "splits_taken_out": [[t, d, x] for t, d, x in sorted(flags.get("split", []), key=lambda r: r[1])[-80:]], "reversed_prints": len(flags.get("reversed", [])),
+               "splits_taken_out": [[t, d, x.split(" (")[0]] for t, d, x, _ in sorted(flags.get("split", []), key=lambda r: r[1]) if d in pos and pos[d] >= recent][-120:],
+               "splits": {"in_history": len(flags.get("split", [])), "on_record": sum(1 for x in flags.get("split", []) if "on record" in x[2]),
+                          "usd_not_money": money(sum(x[3] or 0 for x in flags.get("split", []))), "recorded_but_not_in_the_counts": len(flags.get("unseen", [])),
+                          "largest": [[t, d, x.split(" (")[0], money(v)] for t, d, x, v in sorted(flags.get("split", []), key=lambda r: -(r[3] or 0))[:12]]},
+               "round_trips": {"in_history": len(flags.get("trip", [])), "last_63_days": sum(1 for x in flags.get("trip", []) if pos.get(x[1], -1) >= recent),
+                               "usd_each_way_last_63_days": money(sum(x[3] or 0 for x in flags.get("trip", []) if pos.get(x[1], -1) >= recent)),
+                               "largest_last_63_days": [[t, d, money(v), x] for t, d, x, v in sorted((x for x in flags.get("trip", []) if pos.get(x[1], -1) >= recent), key=lambda r: -(r[3] or 0))[:25]]},
+               "misprints_dropped": {"in_history": len(flags.get("misprint", [])), "last_63_days": [[t, d, x] for t, d, x, _ in sorted(flags.get("misprint", []), key=lambda r: r[1]) if pos.get(d, -1) >= recent][-40:]},
+               "jumps_last_21_days": [[t, d, money(v), x] for t, d, x, v in sorted((x for x in flags.get("jump", []) if pos.get(x[1], -1) >= len(cal) - 21 and x[0] in funds and not funds[x[0]].get("late")),
+                                                                                key=lambda r: -abs(r[3] or 0))[:40]],
+               "provider_figure": restated,
                "late_largest": [[t, funds[t]["newest"], money(funds[t]["assets"])] for t in sorted(late, key=lambda t: -funds[t]["assets"])[:25]],
                "unusual_week": [[t, money(v), round(p, 1)] for _, t, v, p in unusual[:40]], "issuer_check": check}
     doc = {"engine": "justhodl-global-flow-desk", "version": VERSION, "contract": CONTRACT, "generated_at": now.isoformat(), "as_of": end,
@@ -513,18 +653,20 @@ def build(series, profiles, issuer=None, now=None, by_date_months=None):
            "totals": totals, "groups": groups, "boards": boards, "turned": turned, "quality": quality,
            "documents": {"funds": OUT_FUNDS, "history": OUT_HISTORY, "fund_history": OUT_SHARDS + "<first letter>.json", "research_view": "data/global-flow-desk.json"},
            "method": {
-               "flow": "The provider's creation and redemption figure for a fund on a day: (shares outstanding - shares the day before) x the NAV of the day before, dated on the day of the order.",
+               "flow": "A fund's flow on a day is its share count's path: (shares outstanding - shares on the row before) x the NAV of the row before, dated on the day of the order. On rows that follow each other day by day this equals the provider's own creation and redemption figure; after a missing day the provider's figure is not used, and the flow of the missing days lands on the day the count is next seen.",
                "windows": "Sums over the last 1, 5, 21, 63 or 252 reporting days, or since 1 January. A reporting day is one on which at least half the usual number of funds reported.",
                "percent": "A window's flow as a percentage of the fund's assets (shares x NAV) on the reporting day before the window began.",
-               "split_rule": "Shares and NAV moving opposite ways by more than a quarter and cancelling out is a share split: the flow of that day is recomputed in post-split shares.",
-               "reversed_rule": "A share count that jumps by half or more and returns the next day is a misprint: both days count as zero.",
+               "split_rule": "A share split is taken from the warehouse's record of splits when the share count moves by the recorded ratio within six days of it, or read from the rows when count and NAV move by a whole ratio in opposite directions on the same or the next row. Counts and NAVs before the split are restated on the new basis, so a split is never a flow.",
+               "misprint_rule": "A row whose share count and NAV both leave by more than 40% and 30% and both come back on the next row is dropped.",
+               "round_trip_rule": "A share count that jumps by more than 40% and is back within two rows to within a fifth of the jump (a heartbeat trade, a reset day, a doubled print) counts as the difference it left behind.",
+               "jump_rule": "A jump that stays is counted as money, however large, and is listed.",
                "late_rule": "A fund whose newest row is more than %d reporting days old is left out of every total and listed." % LATE_DAYS,
                "segments": "One segment per fund from the provider's class, category, focus, region and weights. Leveraged and inverse funds have their own segment and are not in the class, sector, country or style tables.",
                "sectors": "Sector funds: funds the provider classes as sector funds, by its focus. Through all equity funds: every unleveraged equity and real-estate fund's flow split by the provider's sector weights.",
-               "countries": "Equity funds with 60% or more in one country other than the United States, by the provider's geographic weights.",
+               "countries": "Equity funds with 60% or more in one country other than the United States, by the provider's geographic weights. China: mainland, Hong Kong, Cayman Islands and Bermuda weights together reach 60% in an Asia-Pacific fund (Chinese companies are registered offshore); a fund 60% in Hong Kong alone is Hong Kong.",
                "issuer_check": "For funds the issuer's own daily file is kept for, the provider's share count is compared with the issuer's on the same day and on the issuer's next day.",
                "not_measured": "Who bought or sold (institutions, retail, foreigners) is not in this data and is not inferred. ETF flows are not mutual-fund or direct stock purchases."},
-           "sources": {"by_date": BY_DATE, "per_fund": PER_FUND, "profiles": PROFILES, "issuer_files": "data/etf-creations/", "provider": "ETF Global fund flows through the Polygon bank (justhodl-polygon-bank)"}}
+           "sources": {"by_date": BY_DATE, "per_fund": PER_FUND, "profiles": PROFILES, "splits": SPLITS, "issuer_files": "data/etf-creations/", "provider": "ETF Global fund flows through the Polygon bank (justhodl-polygon-bank)"}}
     fdoc = {"contract": "global-flow-map-funds.v1", "version": VERSION, "generated_at": now.isoformat(), "as_of": end, "cols": cols, "rows": frows,
             "units": {"assets": "USD", "d1..y1": "USD", "p_w1..p_m3": "% of assets before the window", "prior_w1": "USD, the five days before", "z5": "five-day flow against the fund's own year of five-day flows",
                       "streak": "days in a row of money in (+) or out (-)", "chk": "1 the issuer's next-day file matches, 0 its same-day file matches, -1 neither, null no issuer file", "behind": "reporting days behind the newest"}}
@@ -616,7 +758,35 @@ def collect(s3, bucket, log=print, workers=32):
     except Exception as exc:  # noqa: BLE001
         log("[flow-map] issuer files not read: %s" % type(exc).__name__)
     log("[flow-map] issuer files %d, %.1f s" % (len(issuer), time.time() - t0))
-    return series, profiles, issuer, [k.rsplit("/", 1)[-1][:7] for k in months]
+    return series, profiles, issuer, [k.rsplit("/", 1)[-1][:7] for k in months], recorded_splits(s3, bucket, series, log)
+
+
+def recorded_splits(s3, bucket, series, log=print):
+    """The warehouse's record of splits for the funds and the days in hand: {fund: [(date, new shares per old share)]}."""
+    first = min((rows[0][0] for rows in series.values() if rows), default=None)
+    out = defaultdict(list)
+    if not first:
+        return {}
+    keys = [k for k in _list(s3, bucket, SPLITS) if k.endswith(".json.gz") and k.rsplit("/", 1)[-1][:7] >= first[:7]]
+
+    def one(key):
+        try:
+            return _rows(_get(s3, bucket, key))
+        except Exception:  # noqa: BLE001
+            return None
+    read = 0
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        for rows in pool.map(one, keys):
+            if rows is None:
+                continue
+            read += 1
+            for x in rows:
+                t, d = (x.get("ticker"), day(x.get("execution_date"))) if isinstance(x, dict) else (None, None)
+                a, b = (num(x.get("split_from")), num(x.get("split_to"))) if t in series and d else (None, None)
+                if a and b and a > 0 and b > 0:
+                    out[t].append((d, b / a))
+    log("[flow-map] split record: %d of %d months read, %d funds with a split" % (read, len(keys), len(out)))
+    return {t: sorted(set(v)) for t, v in out.items()}
 
 
 def guard(doc):
@@ -641,12 +811,12 @@ def run(s3, bucket, now=None, dry_run=False, log=print):
     """Build from the warehouse; publish unless dry_run or a guard refuses.  Never raises past its caller's try."""
     t0 = time.time()
     now = now or datetime.now(timezone.utc)
-    series, profiles, issuer, months = collect(s3, bucket, log)
-    doc, fdoc, hist, shards = build(series, profiles, issuer, now, months)
+    series, profiles, issuer, months, splits = collect(s3, bucket, log)
+    doc, fdoc, hist, shards = build(series, profiles, issuer, now, months, splits)
     reasons = guard(doc)
     q = doc["quality"]
     summary = {"version": VERSION, "as_of": doc["as_of"], "funds_current": q["funds_current"], "funds_late": q["funds_late"], "assets_current_usd": q["assets_current_usd"],
-               "segments": len(doc["groups"]["segments"]), "sectors": len(doc["groups"]["sectors"]), "splits_taken_out": len(q["splits_taken_out"]),
+               "segments": len(doc["groups"]["segments"]), "sectors": len(doc["groups"]["sectors"]), "splits_taken_out": len(q["splits_taken_out"]), "round_trips": q["round_trips"]["last_63_days"], "provider_rows_differing": q["provider_figure"]["rows_differing"],
                "issuer_check": {k: (len(v) if isinstance(v, list) else v) for k, v in q["issuer_check"].items()}, "refused": reasons, "dry_run": bool(dry_run),
                "seconds": round(time.time() - t0, 1)}
     if reasons or dry_run:
