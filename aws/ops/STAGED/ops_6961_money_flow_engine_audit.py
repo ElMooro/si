@@ -350,25 +350,49 @@ def main():
                     last = rows[-1]
                     if t == "SPY":
                         r.log("a history row's fields: %s" % " ".join(sorted(last.keys())))
-                    sk = next((k for k in last if "share" in k and "change" not in k and k.endswith("decimal")), None)
-                    nk = next((k for k in last if "nav" in k and "valued" not in k and k.endswith("decimal")), None)
+                    sk, nk = "shares_decimal", "nav_decimal"
                     checked, off = 0, []
-                    if sk and nk:
-                        for a, b in zip(rows[-7:-1], rows[-6:]):
-                            v = b.get("nav_valued_share_change_decimal")
-                            if v is None or a.get(sk) is None or b.get(sk) is None or b.get(nk) is None:
-                                continue
-                            calc = (Decimal(b[sk]) - Decimal(a[sk])) * Decimal(b[nk])
-                            checked += 1
-                            if abs(calc - Decimal(v)) > max(Decimal("0.01"), abs(Decimal(v)) * Decimal("0.000001")):
-                                off.append((b["date"], v, str(calc)[:24]))
-                    r.log("%s: %d rows %s to %s | last row %s shares %s nav %s flow %s | (shares - shares before) x NAV on the last %d rows: %s" % (
+                    for a, b in zip(rows[-41:-1], rows[-40:]):
+                        v = b.get("nav_valued_share_change_decimal")
+                        if v is None or a.get(sk) is None or b.get(sk) is None or b.get(nk) is None:
+                            continue
+                        step = Decimal(b[sk]) - Decimal(a[sk])
+                        calc = step * Decimal(b[nk])
+                        checked += 1
+                        stored = b.get("net_share_change_decimal")
+                        if abs(calc - Decimal(v)) > max(Decimal("0.01"), abs(Decimal(v)) * Decimal("0.000001")) or (stored is not None and Decimal(stored) != step):
+                            off.append((b["date"], v, str(calc)[:24], stored, str(step)))
+                    r.log("%s: %d rows %s to %s | last row %s shares %s nav %s flow %s | (shares - shares the day before) x that day's NAV, last %d rows: %s" % (
                         t, len(rows), rows[0]["date"], last["date"], last["date"], last.get(sk), last.get(nk), money(last.get("nav_valued_share_change_decimal")), checked,
                         "all equal" if checked and not off else "DIFFERENT %s" % json.dumps(off[:3]) if off else "not checkable (fields %s / %s)" % (sk, nk)))
         else:
             finding("the period end %s is not among IVV's stored days (newest %s)" % (end, dates[-1] if dates else None))
         if lens:
             r.log("history depth: %d funds, median %d days, shortest %d, longest %d" % (len(lens), sorted(lens)[len(lens) // 2], min(lens), max(lens)))
+        assets = {}
+        for t, h in hist.items():
+            rows = h.get("rows") or []
+            if rows and rows[-1].get("net_assets_decimal") is not None:
+                assets[t] = float(rows[-1]["net_assets_decimal"])
+        cov = [t for t in assets if mine.get(t) is not None]
+        r.log("net assets of the %d funds with a figure: $%.2f trillion (largest: %s)" % (len(cov), sum(assets[t] for t in cov) / 1e12,
+              ", ".join("%s $%.0fB" % (t, assets[t] / 1e9) for t in sorted(cov, key=lambda t: -assets[t])[:12])))
+        facts["assets_covered"] = "$%.2fT in %d funds" % (sum(assets[t] for t in cov) / 1e12, len(cov))
+        for t in sorted(hist):
+            if "error" in hist[t] or mine.get(t) is not None or not dates or end not in dates:
+                continue
+            rows = {x["date"]: x for x in hist[t].get("rows", [])}
+            i = dates.index(end)
+            r.log("%s has a history but no five-day figure: %s" % (t, " | ".join("%s %s %s" % (d[5:], (rows.get(d) or {}).get("flow_status", "NO ROW"),
+                  (rows.get(d) or {}).get("distribution_status", "")) for d in dates[i - 5:i + 1])))
+        none = sorted(t for t, f in funds.items() if f.get("source_status") == "no_reviewed_native_history")
+        r.log("funds with no issuer history at all (%d): %s" % (len(none), " ".join(none)))
+        named = set()
+        for g in groups.values():
+            named.update(g.get("configured_members") or [])
+        r.log("funds a basket names that the ETF engine does not follow at all: %s" % (" ".join(sorted(named - set(funds))) or "none"))
+        if named - set(funds):
+            finding("baskets name funds the ETF engine does not follow: %s" % " ".join(sorted(named - set(funds))))
 
         # ------------------------------------------------------------------ 4. the same source's other reader
         r.section("4. The same figures on the Inflows & outflows desk (its per-fund feeds)")
@@ -433,6 +457,61 @@ def main():
         r.log("first-engine sources absent or older than four days: %s" % (stale or "none"))
         facts["first_engine_sources_stale"] = "%d of %d" % (len(stale), len(CONTEXT_KEYS))
 
+        # ------------------------------------------------------------------ 5b. the whole-market provider flows beside it
+        r.section("5b. The provider's fund flows (capital-flow-radar): how many funds, and do they agree with the issuers' own figures?")
+        try:
+            pr = json.loads(get("data/capital-flow-radar.json")[0])
+            r.log("keys: %s" % " ".join(sorted(pr.keys()))[:500])
+            r.log("quality: %s" % json.dumps(pr.get("quality"))[:600])
+            pf = pr.get("funds")
+            recs = list(pf.values()) if isinstance(pf, dict) else (pf or [])
+            r.log("funds: %d | a record's keys: %s" % (len(recs), " ".join(sorted(recs[0].keys()))[:400] if recs else None))
+            by = {x.get("ticker"): x for x in recs if isinstance(x, dict)}
+            for t in ("VOO", "SPY"):
+                if t in by:
+                    r.log("%s: %s" % (t, json.dumps(by[t])[:900]))
+            wins = Counter()
+            for x in recs:
+                w = x.get("windows")
+                for k in (w.keys() if isinstance(w, dict) else [y.get("id") or y.get("name") or y.get("observations") for y in (w or []) if isinstance(y, dict)]):
+                    wins[str(k)] += 1
+            r.log("windows: %s" % dict(wins.most_common(12)))
+
+            def win5(x):
+                w = x.get("windows")
+                cands = w.items() if isinstance(w, dict) else [(str(y.get("id") or y.get("name") or y.get("observations")), y) for y in (w or []) if isinstance(y, dict)]
+                for k, y in cands:
+                    if re.fullmatch(r"(?i)5|5d|5_?obs\w*|five\w*|w1|1w", str(k)) or (isinstance(y, dict) and y.get("observations") == 5):
+                        v = y.get("flow_usd_decimal") if isinstance(y, dict) else None
+                        return (None if v is None else float(v)), (y.get("end_date") or y.get("end") if isinstance(y, dict) else None), (y.get("start_date") if isinstance(y, dict) else None)
+                return None, None, None
+            got = {t: win5(x) for t, x in by.items()}
+            have5 = {t: v for t, v in got.items() if v[0] is not None}
+            ends = Counter(v[1] for v in have5.values())
+            r.log("funds with a five-observation provider figure: %d | their end dates: %s" % (len(have5), dict(ends.most_common(4))))
+            if have5:
+                tin, tout = sum(v[0] for v in have5.values() if v[0] > 0), sum(v[0] for v in have5.values() if v[0] < 0)
+                r.log("provider, each fund once: in %s, out %s, net %s" % (money(tin), money(tout), money(tin + tout)))
+                top = sorted(have5.items(), key=lambda kv: -kv[1][0])
+                r.log("provider largest in: %s" % ", ".join("%s %s" % (t, money(v[0])) for t, v in top[:14]))
+                r.log("provider largest out: %s" % ", ".join("%s %s" % (t, money(v[0])) for t, v in top[::-1][:14]))
+                both = [(t, float(funds[t]["comparison"]["net_flow_5d_usd"]), have5[t][0], have5[t][1]) for t in funds
+                        if t in have5 and (funds[t].get("comparison") or {}).get("net_flow_5d_usd") is not None]
+                same_end = [b for b in both if b[3] == end]
+                use = same_end or both
+                agree = sum(1 for _, a, b, _ in use if (a > 0) == (b > 0) or (a == 0 and b == 0))
+                close = sum(1 for _, a, b, _ in use if abs(a - b) <= max(5e6, 0.10 * max(abs(a), abs(b))))
+                r.log("funds in both with a figure: %d (%d on the same end date %s) | same direction: %d | within 10%% or $5M: %d" % (len(both), len(same_end), end, agree, close))
+                worst = sorted(use, key=lambda b: -abs(b[1] - b[2]))[:10]
+                r.log("largest gaps (fund, issuers' own, provider): %s" % ", ".join("%s %s vs %s" % (t, money(a), money(b)) for t, a, b, _ in worst))
+                miss = [t for t in (q.get("unavailable_funds") or []) if t in have5]
+                r.log("the engine's funds with no issuer figure that the provider has: %d of %d: %s" % (len(miss), len(q.get("unavailable_funds") or []),
+                      ", ".join("%s %s" % (t, money(have5[t][0])) for t in miss)[:700]))
+                facts["provider_funds"] = "%d with a 5-day figure" % len(have5)
+                facts["provider_agreement"] = "%d of %d same direction" % (agree, len(use))
+        except Exception as exc:  # noqa: BLE001
+            r.log("provider flows not read: %s: %s" % (type(exc).__name__, str(exc)[:200]))
+
         # ------------------------------------------------------------------ 6. what the first engine last said
         r.section("6. What the first engine (the money map) last said")
         try:
@@ -443,10 +522,30 @@ def main():
             rows = hh if isinstance(hh, list) else hh.get("rows") or hh.get("history") or hh.get("days") or []
             r.log("its own history file: written %s, %d bytes, %s rows | keys %s" % (hlm.isoformat(timespec="minutes"), len(hraw), len(rows) if hasattr(rows, "__len__") else "?",
                                                                                (" ".join(sorted(hh.keys()))[:200] if isinstance(hh, dict) else "list")))
-            seq = rows if isinstance(rows, list) else [dict(v, date=k) for k, v in sorted(rows.items())]
-            for row in seq[-4:]:
-                r.log("    %s" % json.dumps(row)[:700])
+            if isinstance(hh, dict) and not rows:
+                days_ = sorted(k for k in hh if re.fullmatch(r"\d{4}-\d{2}-\d{2}", k))
+                r.log("    %d days, %s to %s" % (len(days_), days_[0] if days_ else None, days_[-1] if days_ else None))
+                for k in days_[-3:]:
+                    r.log("    %s %s" % (k, json.dumps(hh[k])[:520]))
+            else:
+                seq = rows if isinstance(rows, list) else [dict(v, date=k) for k, v in sorted(rows.items())]
+                for row in seq[-3:]:
+                    r.log("    %s" % json.dumps(row)[:520])
             facts["first_engine_last_wrote"] = hlm.strftime("%Y-%m-%d")
+            for obj in (lp or {}).get("objects", []):
+                if obj.get("source") != "data/global-flow-desk.json":
+                    continue
+                old = json.loads(get("audit-private/20260909-originals/global-flow-research/%s.bin" % obj["sha256"])[0])
+                r.log("THE FIRST ENGINE'S LAST PUBLICATION (kept): generated %s, version %s | keys %s" % (old.get("generated_at"), old.get("version"), " ".join(sorted(old.keys()))[:300]))
+                ac = old.get("asset_classes") or {}
+                r.log("    asset classes, 5 days: %s" % ", ".join("%s %s" % (k, money((v or {}).get("net_flow_5d_usd") if isinstance(v, dict) else v)) for k, v in list(ac.items())[:18])[:900])
+                sec0 = old.get("sectors") or {}
+                r.log("    sectors: leaders %s | laggards %s" % (json.dumps(sec0.get("leaders"))[:200], json.dumps(sec0.get("laggards"))[:200]))
+                r.log("    institutions against retail: %s" % json.dumps(old.get("inst_vs_retail"))[:420])
+                hm = old.get("hot_money") or {}
+                r.log("    hot money: scored %s | in %s | out %s" % (hm.get("n_scored"), json.dumps(hm.get("top_inflows"))[:220], json.dumps(hm.get("top_outflows"))[:220]))
+                r.log("    its brief (%s): %s" % (old.get("ai_brief_src"), str(old.get("ai_brief"))[:600]))
+                facts["first_engine_last_publication"] = str(old.get("generated_at"))[:16]
         except Exception as exc:  # noqa: BLE001
             r.log("first engine's history not readable: %s" % str(exc)[:160])
         try:
