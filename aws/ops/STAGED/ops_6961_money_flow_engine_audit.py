@@ -550,6 +550,7 @@ def main():
                 sample = next((v for v in ph.values() if isinstance(v, list) and v), [])
                 r.log("    a provider history row: %s" % (json.dumps(sample[-1])[:420] if sample else None))
                 tot = Counter()
+                dating = {"next_day": [], "same_day": [], "unclear": []}
                 lag_sum_ok, lag_sum_n, same_sum_ok = 0, 0, 0
                 i_end = dates.index(end)
                 issuer_days = dates[i_end - 4:i_end + 1]
@@ -574,12 +575,14 @@ def main():
                     tot["days"] += n
                     tot["same"] += same
                     tot["next"] += lag
+                    if n >= 3:
+                        dating["next_day" if lag >= 0.8 * n else "same_day" if same >= 0.8 * n else "unclear"].append("%s %d/%d/%d" % (t, lag, same, n))
                     if t in ("SPY", "IVV", "QQQ", "TLT", "IWM", "XLE", "GLD", "IBIT", "HYG", "XLK"):
                         r.log("    %s: %d days on which the issuer's count changed | provider equals the issuer's SAME day %d | equals the issuer's NEXT day %d" % (t, n, same, lag))
                     said = (funds[t].get("comparison") or {}).get("net_flow_5d_usd")
                     if said is not None:
-                        pv = [(pmap.get(d) or {}).get("reported_flow_usd_decimal") for d in prev_days]
-                        pv0 = [(pmap.get(d) or {}).get("reported_flow_usd_decimal") for d in issuer_days]
+                        pv = [(pmap.get(d) or {}).get("flow_decimal") for d in prev_days]
+                        pv0 = [(pmap.get(d) or {}).get("flow_decimal") for d in issuer_days]
                         if all(v is not None for v in pv):
                             lag_sum_n += 1
                             tol = max(2e6, 0.02 * abs(float(said)))
@@ -590,6 +593,10 @@ def main():
                 r.log("    the engine's five-day figure (issuer days %s..%s) against the provider's sum: over the SAME five dates equal (2%% or $2M) for %d of %d funds; over the five dates ONE DAY EARLIER (%s..%s) for %d of %d" % (
                     issuer_days[0][5:], issuer_days[-1][5:], same_sum_ok, lag_sum_n, prev_days[0][5:], prev_days[-1][5:], lag_sum_ok, lag_sum_n))
                 facts["one_day_test"] = "same day %d, next day %d of %d" % (tot["same"], tot["next"], tot["days"])
+                r.log("    funds whose issuer file runs one day behind the provider (%d): %s" % (len(dating["next_day"]), " ".join(x.split()[0] for x in dating["next_day"])))
+                r.log("    funds dated the same day as the provider (%d): %s" % (len(dating["same_day"]), ", ".join(dating["same_day"])))
+                r.log("    neither (%d; fund next-day/same-day/telling days): %s" % (len(dating["unclear"]), ", ".join(dating["unclear"])))
+                facts["dating"] = "%d a day behind, %d same day, %d unclear" % (len(dating["next_day"]), len(dating["same_day"]), len(dating["unclear"]))
                 if tot["next"] > 3 * max(1, tot["same"]):
                     finding("the two flow sources are one day apart: the provider's day D is the issuer's next reporting day, so the engine's window ending %s holds orders through %s" % (end, prev_days[-1]))
                 miss = [t for t in (q.get("unavailable_funds") or []) if t in have5]
