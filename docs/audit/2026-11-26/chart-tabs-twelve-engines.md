@@ -188,3 +188,33 @@ Saturday file and the thin file are in the bank and were not removed.
 
 `cycle_bands.history_weekly`: every seventh close back from the newest, so the page can draw the price on its log
 trend with the bands. First published by the engine's own run at 15:31 UTC on 2026-11-27.
+
+## Corp bonds: its sources, and the sleeves that had stopped (same day, 13:36 CT)
+
+Khalid sent a public chart of 24 AI data-centre bonds (change in G-spread on 2026-11-25; its sources: FINRA TRACE
+last sale for 144A bonds, the US Treasury par curve, a bank's list of bonds) and asked: "Do we also use these sources
+for corp bonds". Evidence: ops 6982 (read-only, re-runnable), 6983 (dry run), 6984 (the engine's own run and the page).
+
+| The chart | Our desks |
+|---|---|
+| TRACE last sale, bond by bond | TRACE aggregates only (breadth and sentiment for all corporates and for 144A); no single-bond prints |
+| US Treasury par curve | the same: Credit Before Equity's spread is yield less the par yield at the matched maturity |
+| a bank's list of 24 bonds | the holdings of 16 iShares / SPDR bond funds: about 23,000 bonds, 5,000 issuers; 22 of the chart's 24 are among them (not held: DDRIVE 8.875 '31, CLSPRK 7.875 '31) |
+| prices: last trade | prices: the funds' closing marks in their daily holdings files, read the next evening (one business day behind) |
+
+The fund marks and the TRACE prints tell the same story a day apart. Price change on 2026-11-25, ours against the
+chart's: CoreWeave 9.25 '30 -1.09 / -1.12; Core Scientific 7.75 '31 -1.11 / -1.20; Elk Grove 7.5 '31 -0.76 / -0.79;
+APLD 9.25 '30 -0.53 / -0.58; CoreWeave 9 '31 -1.88 / -2.61; Edged Compute 7.5 '31 -0.90 / -1.25.
+
+**Found and repaired.** The 24 ICE BofA sleeves were fetched from FRED's graph file, all at once. It timed out for
+every series on every kept run from 2026-11-11 (it does not answer from the GitHub runner either), so the four tiles
+at the top of the Corp bonds page read a dash and both sleeve panels were empty for at least two weeks. The morning
+audit above did not notice. The engine now asks the site's own resolver first (as the ICE BofA desk and the CISS
+engine do), one series at a time inside 150 seconds, and FRED only for a series the warehouse lacks; a sleeve that
+printed keeps the status `live` (the page reads that word) and `sources.sleeves_via` says where each was read.
+Deployed 20:05 UTC; the engine's own 20:15 UTC run published 23 of 24 (US IG 97 bp, US HY 363 bp, EM 196 bp, Asia USD
+123 bp); ops 6984 read the page in a real browser: tiles, chart (19 bars) and table (23 rows) equal the document.
+
+Still open: the sterling sleeve (BAMLSE00ECLIOAS) is not in the warehouse; TRACE "capped volume" has been unavailable
+since 2026-11-16; the board has no one-day change; four vehicles on the chart are not in the AI stack theme (Zenith
+Arc, SE Cosmos, Yondr JK 1, Elk Grove Village Property).
