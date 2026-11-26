@@ -25,7 +25,7 @@ UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chr
 DEPLOYED = "2026-11-26T20:00"
 READ = r"""() => { const t = (s) => (s || '').replace(/\s+/g, ' ').trim();
   const kp = {}; document.querySelectorAll('.kpi').forEach(k => { kp[t((k.querySelector('.label') || {}).textContent)] = t((k.querySelector('.val') || {}).textContent) + ' | ' + t((k.querySelector('.sub') || {}).textContent); });
-  const panel = (name) => Array.from(document.querySelectorAll('.panel')).find(p => t((p.querySelector('h3') || {}).textContent).indexOf(name) === 0);
+  const panel = (name) => Array.from(document.querySelectorAll('.panel')).find(p => t((p.querySelector('h3') || {}).textContent).indexOf(name) >= 0);
   const g = panel('Global corporate sleeves'), c = panel('Sleeve changes'), cov = panel('What this engine covers');
   const rows = c ? Array.from(c.querySelectorAll('table tr')).slice(1).map(r => Array.from(r.children).map(td => t(td.textContent))) : [];
   return { stamp: t((document.getElementById('ts') || document.querySelector('.ts') || {}).textContent), kpi: kp, bars: g ? g.querySelectorAll('.bar-row').length : -1, bar_note: g ? t((g.querySelector('.note') || {}).textContent) : null,
@@ -81,7 +81,7 @@ def main():
             errors = []
             page.on("pageerror", lambda e: errors.append(str(e)[:200]))
             seen = None
-            for attempt in range(40):       # the site keeps a document for about ten minutes
+            for attempt in range(24):       # the site keeps a document for about ten minutes
                 page.goto("%s/corpbonds.html?nocache=%d" % (BASE, int(time.time())), wait_until="domcontentloaded")
                 try:
                     page.wait_for_selector(".kpi .val", timeout=60000)
@@ -89,7 +89,7 @@ def main():
                     pass
                 page.wait_for_timeout(1500)
                 seen = page.evaluate(READ)
-                if seen["bars"] > 0:
+                if seen["bars"] > 0 or any(ch.isdigit() for ch in seen["kpi"].get("US HY OAS", "").split(" |")[0]):
                     break
                 r.log("attempt %d: the page still shows the earlier document (%s)" % (attempt + 1, seen["stamp"][:60]))
                 page.wait_for_timeout(30000)
