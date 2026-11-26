@@ -1,0 +1,243 @@
+# 6965 - what in the provider's ETF rows is not money (read-only), 2026-11-26T04:17+00:00
+
+**Status:** success  
+**Duration:** 73.9s  
+**Finished:** 2026-11-26T04:18:30+00:00  
+
+## Data
+
+| figure_disagreements | funds | gap_disagreements | recorded_split_funds | scale_breaks | whole_ratio_jumps |
+|---|---|---|---|---|---|
+| 4 | 5884 | 502 | 255 | 720 | 396 |
+
+## Log
+- `04:17:18` [flow-map] by-date months 2, funds 5869, 1.7 s
+- `04:17:49` [flow-map] fund histories 5884, 33.7 s
+- `04:18:22` [flow-map] profiles 5783, 66.7 s
+- `04:18:24` [flow-map] issuer files 98, 67.9 s
+- `04:18:24` funds 5884, reporting days 300 (2025-09-17..2026-11-24)
+## 1. The warehouse's record of splits against the share counts
+
+- `04:18:24` split files 320, 1993-06.json.gz .. 2026-11.json.gz
+- `04:18:26` months read 15 (2025-09.json.gz..2026-11.json.gz), row fields ['execution_date', 'id', 'split_from', 'split_to', 'ticker'] | ETFs in the map with a recorded split in the kept history: 255 funds, 287 splits
+- `04:18:27` recorded splits inside the history: found in the share counts 257 (on another day than recorded 48; with the NAV already adjusted 20), not found 24
+- `04:18:27`     NAV ALREADY ADJUSTED ARMH recorded 2026-07-14 x10, count moved 2026-07-13 x10.0000 nav x0.9283 | next nav x0.094
+- `04:18:27`     NAV ALREADY ADJUSTED ASMH recorded 2026-07-14 x10, count moved 2026-07-13 x10.0000 nav x0.9633 | next nav x0.102
+- `04:18:27`     NOT SEEN ASTN 2026-09-10 x0.25 | 26-09-08 sh 0.07M nav 4.03 f -$45800 ; 26-09-09 sh 0.88M nav 4.47 f +$3.3M ; 26-09-10 sh 0.15M nav 19.31 f -$3.3M ; 26-09-11 sh 0.14M nav 19.32 f -$193100 ; 26-09-14 sh 0.1M nav 19.21 f -$772800
+- `04:18:27`     NAV ALREADY ADJUSTED AXTU recorded 2026-08-24 x0.1, count moved 2026-08-21 x0.1016 nav x0.9330 | next nav x8.483
+- `04:18:27`     NOT SEEN BAIG 2026-05-05 x0.1 | 26-05-01 sh 4.24M nav 3.73 f -$311400 ; 26-05-04 sh 4.58M nav 3.78 f +$1.3M ; 26-05-05 sh 0.578M nav 37.27 f -$15.1M ; 26-05-06 sh 0.578M nav 41.33 f +$0 ; 26-05-07 sh 0.578M nav 37.52 f -$827 ; 26-05-08 sh 0.568M nav 37.61 f -$375200
+- `04:18:27`     NOT SEEN BTF 2026-01-26 x0.2 | 
+- `04:18:27`     NOT SEEN ETHD 2025-11-20 x0.1 | 25-11-17 sh 17.53M nav 5.70 f -$26.0M ; 25-11-18 sh 18.35M nav 5.24 f +$4.7M ; 25-11-19 sh 17.26M nav 5.85 f -$5.7M ; 25-11-20 sh 1.413M nav 62.97 f -$92.7M ; 25-11-21 sh 1.733M nav 67.16 f +$20.2M ; 25-11-24 sh 1.433M nav 55.55 f -$20.1M
+- `04:18:27`     NOT SEEN FLYD 2026-02-24 x0.1 | 
+- `04:18:27`     NOT SEEN FNGD 2026-02-09 x0.1 | 26-02-05 sh 15M nav 6.90 f +$0 ; 26-02-06 sh 15M nav 6.55 f +$0 ; 26-02-09 sh 15M nav 62.29 f +$0 ; 26-02-10 sh 15M nav 63.49 f +$0 ; 26-02-11 sh 15M nav 65.13 f +$0 ; 26-02-12 sh 15M nav 70.30 f +$0
+- `04:18:27`     NOT SEEN GDXD 2026-02-09 x0.1 | 26-02-05 sh 2.5M nav 56.32 f +$0 ; 26-02-06 sh 2.5M nav 46.94 f +$0 ; 26-02-09 sh 2.5M nav 38.69 f +$0 ; 26-02-10 sh 2.5M nav 38.73 f +$0 ; 26-02-11 sh 2.5M nav 35.19 f +$0 ; 26-02-12 sh 2.5M nav 43.27 f +$0
+- `04:18:27`     NOT SEEN GEMG 2026-04-24 x0.05 | 
+- `04:18:27`     NOT SEEN IONZ 2026-09-09 x0.1 | 26-09-08 sh 0.6866M nav 2.63 f +$166200 ; 26-09-09 sh 0.3397M nav 29.28 f -$912561 ; 26-09-10 sh 0.09966M nav 31.23 f -$7.0M ; 26-09-11 sh 0.02966M nav 31.28 f -$2.2M
+- `04:18:27`     NOT SEEN IREZ 2026-07-21 x0.3333 | 26-07-17 sh 0.45M nav 12.54 f -$2.9M ; 26-07-20 sh 0.83M nav 7.63 f +$4.8M ; 26-07-21 sh 1.013M nav 21.63 f +$1.4M ; 26-07-22 sh 0.8833M nav 21.64 f -$2.8M ; 26-07-23 sh 0.6783M nav 22.38 f -$4.4M ; 26-07-24 sh 0.4933M nav 26.25 f -$4.1M
+- `04:18:27`     NOT SEEN KEEX 2026-03-20 x0.5 | 
+- `04:18:27`     NAV ALREADY ADJUSTED LFAO recorded 2025-09-22 x0.8333, count moved 2025-09-18 x1.0000 nav x0.9942 | next nav x0.999
+- `04:18:27`     NAV ALREADY ADJUSTED LFAW recorded 2025-09-22 x0.9091, count moved 2025-09-18 x0.9990 nav x0.9933 | next nav x0.999
+- `04:18:27`     NAV ALREADY ADJUSTED LFBE recorded 2025-09-22 x0.9091, count moved 2025-09-18 x1.0000 nav x0.9924 | next nav x0.999
+- `04:18:27`     NAV ALREADY ADJUSTED LFDR recorded 2025-09-22 x0.9091, count moved 2025-09-18 x1.0000 nav x0.9919 | next nav x0.999
+- `04:18:27`     NAV ALREADY ADJUSTED LIAM recorded 2025-09-22 x0.8333, count moved 2025-09-18 x1.0000 nav x0.9940 | next nav x0.999
+- `04:18:27`     NAV ALREADY ADJUSTED LIAU recorded 2025-09-22 x0.8333, count moved 2025-09-18 x0.9996 nav x0.9930 | next nav x0.999
+- `04:18:27`     NAV ALREADY ADJUSTED LIBD recorded 2025-09-22 x0.8333, count moved 2025-09-18 x1.0000 nav x0.9916 | next nav x0.999
+- `04:18:27`     NAV ALREADY ADJUSTED MGK recorded 2026-04-21 x5, count moved 2026-04-21 x5.0016 nav x0.9900 | next nav x1.021
+- `04:18:27`     NAV ALREADY ADJUSTED PALL recorded 2026-05-18 x5, count moved 2026-05-19 x5.0000 nav x0.9747 | next nav x0.984
+- `04:18:27`     NAV ALREADY ADJUSTED PPLT recorded 2026-05-18 x10, count moved 2026-05-19 x9.9343 nav x0.9827 | next nav x0.998
+- `04:18:27`     NAV ALREADY ADJUSTED SMCZ recorded 2026-09-10 x0.5, count moved 2026-09-15 x0.5297 nav x1.0586 | next nav x0.932
+- `04:18:27`     NAV ALREADY ADJUSTED STHH recorded 2026-07-14 x10, count moved 2026-07-13 x10.0000 nav x0.9613 | next nav x0.102
+- `04:18:27`     NAV ALREADY ADJUSTED TSLZ recorded 2025-10-29 x0.05, count moved 2025-10-28 x0.0502 nav x0.9641 | next nav x19.918
+- `04:18:27`     NAV ALREADY ADJUSTED VGT recorded 2026-04-21 x8, count moved 2026-04-21 x8.0027 nav x1.0027 | next nav x1.021
+- `04:18:27`     NAV ALREADY ADJUSTED VO recorded 2026-04-21 x4, count moved 2026-04-21 x4.0009 nav x0.9982 | next nav x1.000
+- `04:18:27`     NAV ALREADY ADJUSTED VOOG recorded 2026-04-21 x6, count moved 2026-04-21 x6.0000 nav x0.9883 | next nav x1.018
+- `04:18:27`     NAV ALREADY ADJUSTED VUG recorded 2026-04-21 x6, count moved 2026-04-21 x6.0032 nav x0.9898 | next nav x1.019
+- `04:18:28` splits the engine infers from opposite moves: 319, of which on record 244 | not on record: AAOZ 26-08-04 3-for-2, AAOZ 26-11-05 2-for-3, ACLZ 26-07-02 3-for-2, AMPU 26-05-07 2-for-1, AMZO 26-07-31 3-for-2, APLZ 26-01-27 5-for-4, ASTN 26-05-08 3-for-2, ASTN 26-05-26 3-for-2, ASTN 26-07-16 2-for-3, AVGG 26-06-04 3-for-2, AVXX 25-12-10 3-for-2, AXTC 26-07-16 3-for-2, AXTL 26-07-16 3-for-2, BERZ 26-01-05 1-for-20, BMNZ 26-03-16 3-for-2, BNKD 26-01-05 1-for-5, BTDL 26-11-19 3-for-2, BULZ 26-01-05 10-for-1, CBRZ 26-07-30 2-for-1, CIEG 26-06-04 3-for-2, CIFU 26-02-04 5-for-4, CIFU 26-10-14 5-for-4, COHC 26-10-22 3-for-2, CONI 26-02-13 3-for-2, CONI 26-02-25 3-for-2, CRCD 25-10-02 3-for-2, CSEX 26-01-29 3-for-2, CWVX 26-10-14 3-for-2, DAMD 26-05-06 3-for-2, DULL 26-01-05 1-for-50, DUOG 26-02-27 3-for-2, EOSU 26-02-27 3-for-2, FLYT 26-05-26 2-for-3, GDXD 26-01-05 1-for-10, GOOX 26-10-29 3-for-2, HYNX 26-07-16 3-for-2, INTW 26-10-30 2-for-1, IREX 25-11-06 3-for-2, IREX 25-11-13 5-for-4, IREZ 26-11-20 2-for-3, IREZ 26-11-23 3-for-2, ISUL 26-07-17 3-for-2, KEEX 26-08-18 3-for-2, LITC 26-11-05 3-for-2, LITZ 26-11-05 2-for-3, MRNX 26-08-20 3-for-2, MRVX 26-11-05 3-for-2, MSTZ 26-02-06 5-for-2, MSTZ 26-09-18 3-for-2, NETG 26-04-10 5-for-4, NOWL 26-04-23 3-for-2, NRGD 26-01-05 1-for-5, NVD 26-11-23 5-for-2, NVDQ 26-11-23 5-for-2, ONDL 26-06-03 3-for-2, ONX 26-06-26 2-for-1, QBTZ 25-12-04 3-for-2, QBTZ 26-04-15 2-for-1, RDTL 25-10-02 3-for-2, RDTL 26-07-31 3-for-2, RDWU 26-02-12 5-for-4, RGTZ 26-05-22 2-for-1, SHNY 26-01-05 10-for-1, SKDD 26-07-21 3-for-2, SMCZ 26-02-04 5-for-4, SM
+- `04:18:28` record for VGT: [('2026-04-21', 8.0)]
+- `04:18:28` record for VUG: [('2026-04-21', 6.0)]
+- `04:18:28` record for VOOG: [('2026-04-21', 6.0)]
+- `04:18:28` record for MGK: [('2026-04-21', 5.0)]
+- `04:18:28` record for VO: [('2026-04-21', 4.0)]
+- `04:18:28` record for PDEC: None
+- `04:18:28` record for UDEC: None
+- `04:18:28` record for XBOX: None
+- `04:18:28` record for SGVA: None
+- `04:18:28` record for TSPY: None
+- `04:18:28` record for TDAQ: None
+- `04:18:28` record for MSTU: [('2025-12-03', 0.1), ('2026-08-24', 0.1)]
+- `04:18:28` record for FSOL: None
+- `04:18:28` record for OWNB: None
+- `04:18:28` record for BITQ: None
+- `04:18:28` record for FETH: None
+- `04:18:28` share counts that move by a whole ratio (within 0.4%) with the NAV flat, funds of $50M+: 396 (on record 6) | dollars: on record +$401.62B, not on record +$87.29B
+- `04:18:28`     VUG    2026-04-21 x6.0032 +$175.69B ON RECORD next-day count x1.000
+- `04:18:28`     VGT    2026-04-21 x8.0027 +$106.26B ON RECORD next-day count x1.001
+- `04:18:28`     VO     2026-04-21 x4.0009 +$74.07B ON RECORD next-day count x1.001
+- `04:18:28`     MGK    2026-04-21 x5.0016 +$25.24B ON RECORD next-day count x1.001
+- `04:18:28`     VOOG   2026-04-21 x6.0000 +$19.74B ON RECORD next-day count x1.000
+- `04:18:28`     TBIL   2025-12-24 x2.0032 +$6.32B no record next-day count x0.501
+- `04:18:28`     TBIL   2025-12-26 x0.5008 +$6.30B no record next-day count x1.000
+- `04:18:28`     TBIL   2025-09-24 x1.9989 +$5.96B no record next-day count x0.501
+- `04:18:28`     TBIL   2025-09-25 x0.5006 +$5.96B no record next-day count x1.010
+- `04:18:28`     PALL   2026-07-29 x10.0000 +$5.49B no record next-day count x0.100
+- `04:18:28`     PALL   2026-07-30 x0.1000 +$5.44B no record next-day count x1.000
+- `04:18:28`     SOXS   2026-11-10 x0.4981 +$1.68B no record next-day count x1.048
+- `04:18:28`     PDEC   2026-11-17 x2.0000 +$958.8M no record next-day count x1.000
+- `04:18:28`     PDEC   2026-11-19 x0.5000 +$947.0M no record next-day count x1.000
+- `04:18:28`     FOCT   2025-10-17 x0.4987 +$910.2M no record next-day count x1.010
+- `04:18:28`     FNGD   2026-03-02 x0.1000 +$907.1M no record next-day count x10.000
+- `04:18:28`     FNGD   2026-03-03 x10.0000 +$876.6M no record next-day count x1.000
+- `04:18:28`     FNGD   2026-03-16 x10.0000 +$875.9M no record next-day count x1.000
+- `04:18:28`     FNGD   2026-03-13 x0.1000 +$837.3M no record next-day count x10.000
+- `04:18:28`     XBIL   2025-09-25 x0.5000 +$801.7M no record next-day count x1.000
+- `04:18:28`     XBIL   2025-09-24 x2.0000 +$801.7M no record next-day count x0.500
+- `04:18:28`     XBIL   2025-12-24 x2.0000 +$757.9M no record next-day count x0.496
+- `04:18:28`     FTXO   2026-02-27 x3.0106 +$741.4M no record next-day count x1.062
+- `04:18:28`     QSPT   2026-09-18 x2.0000 +$657.9M no record next-day count x0.519
+- `04:18:28`     PALL   2026-05-19 x5.0000 +$627.9M ON RECORD next-day count x1.000
+- `04:18:28`     FNGD   2026-05-07 x0.1000 +$537.4M no record next-day count x10.000
+- `04:18:28`     TDAQ   2026-10-06 x2.0053 +$426.7M no record next-day count x1.009
+- `04:18:28`     SIXO   2026-03-24 x2.0000 +$420.9M no record next-day count x0.500
+- `04:18:28`     SIXO   2026-03-25 x0.5000 +$420.5M no record next-day count x1.000
+- `04:18:28`     XBOX   2026-09-24 x2.0000 +$377.1M no record next-day count x1.000
+- `04:18:28`     DJAN   2026-01-15 x2.0000 +$346.9M no record next-day count x0.505
+- `04:18:28`     YBTC   2025-11-10 x0.4981 +$298.6M no record next-day count x0.985
+- `04:18:28`     TSPY   2026-06-03 x2.0000 +$292.6M no record next-day count x0.500
+- `04:18:28`     TSPY   2026-06-04 x0.5000 +$290.5M no record next-day count x1.007
+- `04:18:28`     YBTC   2025-11-07 x1.9926 +$288.3M no record next-day count x0.498
+- `04:18:28`     OBIL   2025-10-02 x2.0000 +$288.0M no record next-day count x0.509
+- `04:18:28`     YBTC   2025-10-27 x0.5000 +$287.2M no record next-day count x1.109
+- `04:18:28`     JANW   2025-12-10 x0.5000 +$285.2M no record next-day count x1.000
+- `04:18:28`     JANW   2025-12-09 x2.0000 +$285.1M no record next-day count x0.500
+- `04:18:28`     YBTC   2025-10-24 x2.0000 +$284.9M no record next-day count x0.500
+- `04:18:28`     not on record, by ratio (negative = 1-for-n): {-2: 198, 2: 174, -3: 6, -10: 5, 10: 3, 3: 3, -241: 1}
+## 2. The provider's figure against its own share counts
+
+- `04:18:29` last 63 days | previous row is the previous day: agree 351572, disagree 4 (+$1.29B apart in all) | a day missing in between: agree 621, disagree 502 (+$14.30B) | no figure 0
+- `04:18:29`     no gap  ARKK   2026-11-16 figure +$0, counts say +$1.12B (shares 145.1M -> 160M, nav 74.93)
+- `04:18:29`     no gap  ARKK   2026-11-05 figure +$0, counts say +$124.6M (shares 75.75M -> 77.3M, nav 80.36)
+- `04:18:29`     no gap  ARKG   2026-11-16 figure +$0, counts say +$30.2M (shares 44.85M -> 45.55M, nav 43.15)
+- `04:18:29`     no gap  ARKW   2026-11-16 figure +$0, counts say +$21.4M (shares 18.75M -> 18.9M, nav 142.46)
+- `04:18:29`     gap     CNEQ   2026-11-19 (previous row 2026-11-16) figure -$2.17B, counts say +$270.3M
+- `04:18:29`     gap     FNOV   2026-11-23 (previous row 2026-11-18) figure -$946.0M, counts say -$1.5M
+- `04:18:29`     gap     BCI    2026-09-09 (previous row 2026-05-07) figure +$0, counts say +$768.9M
+- `04:18:29`     gap     ALAI   2026-11-19 (previous row 2026-11-16) figure +$961072, counts say +$752.1M
+- `04:18:29`     gap     CGDV   2026-11-02 (previous row 2026-10-28) figure +$3.9M, counts say -$715.3M
+- `04:18:29`     gap     ATFV   2026-11-19 (previous row 2026-11-16) figure -$55.8M, counts say +$303.9M
+- `04:18:29`     gap     DNOV   2026-11-23 (previous row 2026-11-18) figure -$346.9M, counts say +$0
+- `04:18:29`     gap     JEPQ   2026-10-20 (previous row 2026-10-12) figure +$47.6M, counts say +$371.8M
+- `04:18:29`     gap     CIBR   2026-11-23 (previous row 2026-11-18) figure +$82.1M, counts say +$388.7M
+- `04:18:29`     gap     ARKB   2026-09-23 (previous row 2026-09-18) figure +$573020, counts say +$274.1M
+- `04:18:29`     gap     JPST   2026-10-20 (previous row 2026-10-12) figure +$50.3M, counts say +$321.8M
+- `04:18:29`     gap     GNOV   2026-11-23 (previous row 2026-11-18) figure -$221.3M, counts say +$0
+- `04:18:29`     gap     JIVE   2026-10-20 (previous row 2026-10-12) figure +$32.9M, counts say +$234.5M
+- `04:18:29`     gap     BBCA   2026-10-20 (previous row 2026-10-12) figure +$77.8M, counts say +$268.3M
+- `04:18:29`     gap     FELC   2026-09-15 (previous row 2026-09-10) figure +$8.7M, counts say +$159.8M
+- `04:18:29`     gap     ARKB   2026-11-04 (previous row 2026-10-30) figure +$0, counts say -$129.5M
+- `04:18:29`     gap     DBND   2026-11-17 (previous row 2026-07-24) figure +$0, counts say +$117.5M
+- `04:18:29`     gap     FESM   2026-09-15 (previous row 2026-09-10) figure +$9.2M, counts say +$124.2M
+- `04:18:29`     gap     ARKB   2026-09-02 (previous row 2026-08-28) figure +$0, counts say -$114.9M
+- `04:18:29`     gap     AMDL   2026-09-29 (previous row 2026-09-22) figure +$82.0M, counts say +$196.6M
+- `04:18:29`     gap     JMTG   2026-10-20 (previous row 2026-10-12) figure +$0, counts say -$113.7M
+- `04:18:29`     gap     NVDL   2026-11-09 (previous row 2026-11-04) figure +$136.9M, counts say +$244.2M
+- `04:18:29`     gap     FELG   2026-09-15 (previous row 2026-09-10) figure +$0, counts say -$104.9M
+- `04:18:29`     gap     NVDL   2026-09-29 (previous row 2026-09-22) figure +$55.7M, counts say -$38.8M
+- `04:18:29`     gap     FBND   2026-09-15 (previous row 2026-09-10) figure +$0, counts say +$90.7M
+- `04:18:29`     no-gap disagreements by day (top): {'2026-11-16': 3, '2026-11-05': 1}
+- `04:18:29` current funds without a row, by day (last 21): {'2026-10-27': 44, '2026-10-28': 16, '2026-10-29': 78, '2026-10-30': 80, '2026-11-02': 28, '2026-11-03': 28, '2026-11-04': 23, '2026-11-05': 66, '2026-11-06': 60, '2026-11-09': 29, '2026-11-10': 26, '2026-11-11': 14, '2026-11-12': 24, '2026-11-13': 25, '2026-11-16': 25, '2026-11-17': 156, '2026-11-18': 153, '2026-11-19': 339, '2026-11-20': 349, '2026-11-23': 35, '2026-11-24': 63}
+## 3. Days on which shares and NAV both change scale and it is not a split
+
+- `04:18:29` NAV moves more than 42% in a day without a matching share move: 720 (the NAV is back the next day in 65)
+- `04:18:29`     VUG    2026-04-20 assets before +$210.58B | shares x1.0005 nav x0.1667 | stays | rows after 144
+- `04:18:29`     VGT    2026-04-20 assets before +$121.23B | shares x1.0013 nav x0.1250 | stays | rows after 144
+- `04:18:29`     VO     2026-04-20 assets before +$98.62B | shares x1.0011 nav x0.2500 | stays | rows after 144
+- `04:18:29`     MGK    2026-04-20 assets before +$31.52B | shares x1.0007 nav x0.2000 | stays | rows after 144
+- `04:18:29`     SOXL   2026-06-05 assets before +$28.61B | shares x1.0128 nav x0.6886 | stays | rows after 118
+- `04:18:29`     VOOG   2026-04-20 assets before +$23.68B | shares x1.0000 nav x0.1667 | stays | rows after 144
+- `04:18:29`     SOXL   2026-11-05 assets before +$17.22B | shares x1.0729 nav x0.6128 | stays | rows after 14
+- `04:18:29`     SOXL   2026-11-20 assets before +$14.40B | shares x0.9994 nav x0.6772 | back next day | rows after 3
+- `04:18:29`     FSOL   2026-11-05 assets before +$13.92B | shares x0.0858 nav x0.1528 | stays | rows after 10
+- `04:18:29`     FBCG   2025-12-09 assets before +$5.32B | shares x0.0006 nav x0.4455 | back next day | rows after 110
+- `04:18:29`     AGQ    2026-01-30 assets before +$5.19B | shares x0.9963 nav x0.3726 | stays | rows after 205
+- `04:18:29`     SNXX   2026-06-25 assets before +$4.26B | shares x1.0488 nav x1.4393 | stays | rows after 107
+- `04:18:29`     GDXU   2026-01-30 assets before +$3.93B | shares x1.0000 nav x0.6094 | stays | rows after 205
+- `04:18:29`     KORU   2026-06-23 assets before +$2.53B | shares x0.9785 nav x0.6318 | stays | rows after 107
+- `04:18:29`     PPLT   2026-05-18 assets before +$2.45B | shares x1.0000 nav x0.1002 | stays | rows after 118
+- `04:18:29`     MUU    2026-11-05 assets before +$2.15B | shares x1.0002 nav x0.6503 | stays | rows after 14
+- `04:18:29`     FNGD   2026-05-18 assets before +$2.13B | shares x1.0000 nav x0.2697 | stays | rows after 131
+- `04:18:29`     KORU   2026-06-05 assets before +$1.81B | shares x1.0000 nav x0.5752 | stays | rows after 118
+- `04:18:29`     SOXS   2026-11-23 assets before +$1.63B | shares x0.9106 nav x0.5863 | stays | rows after 2
+- `04:18:29`     FETH   2026-09-28 assets before +$1.60B | shares x0.0307 nav x1.8750 | back next day | rows after 38
+- `04:18:29`     NVDL   2026-11-23 assets before +$1.38B | shares x1.1109 nav x1.6288 | stays | rows after 2
+- `04:18:29`     OWNB   2025-12-10 assets before +$1.30B | shares x0.0568 nav x0.4057 | stays | rows after 221
+- `04:18:29`     MSOS   2026-06-05 assets before +$1.05B | shares x1.0000 nav x1.5355 | back next day | rows after 118
+- `04:18:29`     KORU   2026-11-05 assets before +$1.04B | shares x0.9945 nav x0.5951 | stays | rows after 14
+- `04:18:29`     SNXX   2026-07-30 assets before +$1.03B | shares x1.0729 nav x1.5322 | stays | rows after 83
+- `04:18:29`     PALL   2026-05-18 assets before +$786.6M | shares x1.0000 nav x0.1995 | stays | rows after 117
+- `04:18:29`     ASTX   2026-05-29 assets before +$723.1M | shares x0.9719 nav x0.7037 | stays | rows after 125
+- `04:18:29`     SNXX   2026-11-05 assets before +$716.5M | shares x1.0819 nav x0.5671 | stays | rows after 14
+- `04:18:29`     MSOS   2025-12-12 assets before +$682.7M | shares x1.0000 nav x1.5566 | stays | rows after 237
+- `04:18:29`     MVLL   2026-06-02 assets before +$644.6M | shares x1.0285 nav x1.6489 | stays | rows after 110
+- `04:18:29`     AAOX   2026-06-09 assets before +$547.6M | shares x0.9074 nav x0.6553 | stays | rows after 118
+- `04:18:29`     FNGD   2026-05-15 assets before +$532.1M | shares x1.0000 nav x4.0003 | back next day | rows after 132
+- `04:18:29`     EWZS   2026-10-26 assets before +$519.3M | shares x0.9904 nav x0.6936 | stays | rows after 22
+- `04:18:29`     SNXX   2026-11-20 assets before +$483.3M | shares x1.0202 nav x0.6784 | stays | rows after 3
+- `04:18:29`     BOIL   2026-02-02 assets before +$477.2M | shares x0.8726 nav x0.4871 | stays | rows after 204
+- `04:18:29`     ZSL    2026-01-30 assets before +$452.7M | shares x1.0440 nav x1.6278 | stays | rows after 205
+- `04:18:29`     AXTX   2026-06-16 assets before +$437.1M | shares x0.9673 nav x0.6796 | stays | rows after 113
+- `04:18:29`     AXTX   2026-06-05 assets before +$423.8M | shares x0.9972 nav x0.6785 | stays | rows after 120
+- `04:18:29`     BITQ   2025-12-09 assets before +$414.6M | shares x0.0006 nav x1.4465 | back next day | rows after 222
+- `04:18:29`     KOLD   2026-02-02 assets before +$407.9M | shares x1.5579 nav x1.5131 | stays | rows after 204
+## 4. Share counts that jump 40%+ and come back
+
+- `04:18:30` jumps undone by two thirds or more, by rows later: {1: 496, 2: 239, 3: 42, 4: 32, 5: 23, 6: 14, 7: 6, 8: 10, 9: 9, 10: 7, 11: 2, 12: 10, 13: 8, 14: 11, 15: 5} | dollars by rows later: {1: '+$107.25B', 2: '+$18.13B', 3: '+$6.48B', 4: '+$1.35B', 5: '+$8.14B', 6: '+$1.87B', 7: '+$219.8M', 8: '+$336.2M', 9: '+$186.8M', 10: '+$559.6M', 11: '+$20.8M', 12: '+$174.0M', 13: '+$159.2M', 14: '+$411.9M', 15: '+$324.2M'} | jumps not undone within 15 rows: 1212
+- `04:18:30`     TBIL   2025-12-24 -> back by 2025-12-26 (1 rows) count x2.003, +$6.32B each way
+- `04:18:30`     TBIL   2025-09-24 -> back by 2025-09-25 (1 rows) count x1.999, +$5.96B each way
+- `04:18:30`     PALL   2026-07-29 -> back by 2026-07-30 (1 rows) count x10.000, +$5.49B each way
+- `04:18:30`     FBCG   2025-12-09 -> back by 2025-12-10 (1 rows) count x0.001, +$5.31B each way
+- `04:18:30`     FBCG   2025-10-01 -> back by 2025-10-06 (3 rows) count x0.000, +$4.97B each way
+- `04:18:30`     ARKK   2026-06-12 -> back by 2026-06-15 (1 rows) count x1.562, +$4.61B each way
+- `04:18:30`     ARKK   2026-05-14 -> back by 2026-05-15 (1 rows) count x1.554, +$4.45B each way
+- `04:18:30`     ARKK   2026-11-13 -> back by 2026-11-23 (5 rows) count x1.507, +$3.73B each way
+- `04:18:30`     CNEQ   2026-11-11 -> back by 2026-11-20 (5 rows) count x1.887, +$2.47B each way
+- `04:18:30`     FSOL   2026-11-04 -> back by 2026-11-05 (1 rows) count x11.656, +$2.02B each way
+- `04:18:30`     ARKG   2026-10-15 -> back by 2026-10-16 (1 rows) count x1.914, +$1.90B each way
+- `04:18:30`     FETH   2026-09-28 -> back by 2026-09-29 (1 rows) count x0.031, +$1.55B each way
+- `04:18:30`     BULZ   2026-02-20 -> back by 2026-02-23 (1 rows) count x0.100, +$1.55B each way
+- `04:18:30`     FFSM   2026-07-27 -> back by 2026-07-28 (1 rows) count x0.126, +$1.32B each way
+- `04:18:30`     FOCT   2026-10-16 -> back by 2026-10-19 (1 rows) count x1.899, +$1.10B each way
+- `04:18:30`     ARKW   2026-11-13 -> back by 2026-11-23 (5 rows) count x1.667, +$1.08B each way
+- `04:18:30`     ARKQ   2026-07-10 -> back by 2026-07-13 (1 rows) count x1.496, +$1.05B each way
+- `04:18:30`     FSEP   2026-09-18 -> back by 2026-09-21 (1 rows) count x1.797, +$1.01B each way
+- `04:18:30`     FDEC   2025-12-18 -> back by 2025-12-19 (1 rows) count x1.893, +$1.01B each way
+- `04:18:30`     FJAN   2026-01-15 -> back by 2026-01-16 (1 rows) count x1.899, +$980.1M each way
+- `04:18:30`     PDEC   2026-11-17 -> back by 2026-11-19 (2 rows) count x2.000, +$958.8M each way
+- `04:18:30`     FSEP   2025-09-18 -> back by 2025-09-19 (1 rows) count x1.971, +$957.9M each way
+- `04:18:30`     FOCT   2025-10-16 -> back by 2025-10-17 (1 rows) count x2.011, +$916.6M each way
+- `04:18:30`     FNGD   2026-03-02 -> back by 2026-03-03 (1 rows) count x0.100, +$907.1M each way
+- `04:18:30`     FFEB   2026-02-19 -> back by 2026-02-20 (1 rows) count x1.805, +$899.7M each way
+- `04:18:30`     AMDL   2026-06-22 -> back by 2026-06-23 (1 rows) count x1.590, +$883.2M each way
+- `04:18:30`     FAUG   2026-08-21 -> back by 2026-08-24 (1 rows) count x1.700, +$851.3M each way
+- `04:18:30`     FNGD   2026-03-13 -> back by 2026-03-16 (1 rows) count x0.100, +$837.3M each way
+- `04:18:30`     FJUL   2026-07-17 -> back by 2026-07-20 (1 rows) count x1.700, +$834.6M each way
+- `04:18:30`     KLMN   2026-03-25 -> back by 2026-04-07 (6 rows) count x1.641, +$805.0M each way
+## 5. The histories of the funds named above
+
+- `04:18:30` CNEQ (Alger Concentrated Equity ETF, inception 2024-04-05, 281 rows): 26-08-14 sh 29.75M nav 40.85 f +$94.7M ; 26-08-17 sh 38.1M nav 40.77 f +$341.1M ; 26-08-18 sh 39.6M nav 39.68 f +$61.1M ; 26-08-19 sh 44.07M nav 39.48 f +$177.6M ; 26-08-20 sh 45.46M nav 39.42 f +$54.8M ; 26-08-21 sh 47.84M nav 39.53 f +$93.6M ; 26-08-24 sh 49.94M nav 38.93 f +$83.0M ; 26-08-25 sh 51.74M nav 39.52 f +$70.1M ; 26-08-26 sh 53.26M nav 39.36 f +$60.3M ; 26-08-27 sh 55.54M nav 40.01 f +$89.5M ; 26-08-28 sh 60.9M nav 39.60 f +$214.6M ; 26-08-31 sh 62.14M nav 39.44 f +$49.0M ; 26-09-01 sh 62.96M nav 39.01 f +$32.5M ; 26-09-02 sh 63.76M nav 39.38 f +$31.2M ; 26-09-03 sh 64.24M nav 39.92 f +$18.7M ; 26-09-04 sh 64.96M nav 40.21 f +$28.9M ; 26-09-08 sh 65.26M nav 40.37 f +$12.1M ; 26-09-09 sh 66.05M nav 40.12 f +$31.8M ; 26-09-10 sh 69.22M nav 39.56 f +$127.4M ; 26-09-11 sh 72.75M nav 39.72 f +$139.5M ; 26-09-14 sh 74.25M nav 39.02 f +$59.6M ; 26-09-15 sh 75.07M nav 38.59 f +$32.2M ; 26-09-16 sh 75.85M nav 38.73 f +$29.9M ; 26-09-17 sh 76.6M nav 39.55 f +$29.0M ; 26-09-18 sh 77.32M nav 39.85 f +$28.7M ; 26-09-21 sh 77.32M nav 40.80 f +$0 ; 26-09-22 sh 77.37M nav 41.15 f +$2.0M ; 26-09-23 sh 77.45M nav 40.64 f +$3.1M ; 26-09-24 sh 77.47M nav 40.76 f +$1.0M ; 26-09-25 sh 77.52M nav 40.89 f +$2.0M ; 26-09-28 sh 77.52M nav 40.50 f +$0 ; 26-09-29 sh 78.35M nav 40.59 f +$33.4M ; 26-09-30 sh 78.47M nav 40.57 f +$5.1M ; 26-10-01 sh 78.47M nav 40.61 f +$0 ; 26-10-02 sh 79.27M nav 40.92 f +$32.5M ; 26-10-05 sh 80.16M nav 41.46 f +$36.3M ; 26-10-06 sh 81.06M nav 41.81 f +$37.3M ; 26-10-07 sh 82.94M nav 41.53 f +$78.4M ; 26-10-08 sh 93.82M nav 40.58 f +$452.1M ; 26-10-09 sh 106.5M nav 40.82 f +$512.3M ; 26-10-12 sh 119M nav 40.49 f +$511.2M ; 26-10-13 sh 136.7M nav 40.50 f +$717.6M ; 26-10-14 sh 140.8M nav 39.33 f +$165.0M ; 26-10-15 sh 148.3M nav 39.39 f +$296.5M ; 26-10-16 sh 150.3M nav 38.39 f +$78.8M ; 26-10-19 sh 150.4M nav 38.74 f +$1.9M ; 26-10-20 sh 156.5M nav 38.70 f +$236.3M ; 26-10-21 sh 164M nav 39.14 f +$293.1M ; 26-10-22 sh 180.3M nav 37.65 f +$635.0M ; 26-10-23 sh 187.6M nav 37.50 f +$276.7M ; 26-10-26 sh 197.6M nav 37.91 f +$375.0M ; 26-10-27 sh 197.6M nav 38.69 f +$947674 ; 26-10-28 sh 202.8M nav 38.97 f +$198.8M ; 26-10-29 sh 203M nav 38.53 f +$7.8M ; 26-10-30 sh 173.1M nav 37.08 f -$1.15B ; 26-11-02 sh 165M nav 36.45 f -$299.4M ; 26-11-03 sh 165M nav 37.21 f +$0 ; 26-11-04 sh 165.1M nav 37.03 f +$930138 ; 26-11-05 sh 152.2M nav 34.62 f -$477.7M ; 26-11-06 sh 116.1M nav 35.29 f -$1.25B ; 26-11-09 sh 112.8M nav 36.49 f -$116.0M ; 26-11-10 sh 77.36M nav 36.00 f -$1.29B ; 26-11-11 sh 146M nav 36.83 f +$2.47B ; 26-11-12 sh 219.8M nav 36.47 f +$2.72B ; 26-11-13 sh 224.8M nav 35.94 f +$182.4M ; 26-11-16 sh 232.9M nav 34.77 f +$292.0M ; 26-11-19 sh 240.7M nav 33.89 f -$2.17B ; 26-11-20 sh 95.05M nav 31.54 f -$4.93B ; 26-11-23 sh 32.66M nav 34.28 f -$1.97B ; 26-11-24 sh 25.77M nav 33.13 f -$236.1M
+- `04:18:30` ALAI (Alger AI Enablers & Adopters ETF, inception 2024-04-05, 281 rows): 26-09-21 sh 28.63M nav 46.80 f +$569515 ; 26-09-22 sh 28.64M nav 47.22 f +$584983 ; 26-09-23 sh 28.64M nav 46.70 f +$0 ; 26-09-24 sh 28.61M nav 46.81 f -$1.2M ; 26-09-25 sh 28.44M nav 46.85 f -$8.2M ; 26-09-28 sh 28.44M nav 46.22 f +$0 ; 26-09-29 sh 28.44M nav 46.48 f +$0 ; 26-09-30 sh 28.45M nav 46.48 f +$580961 ; 26-10-01 sh 28.44M nav 46.68 f -$581014 ; 26-10-02 sh 26.94M nav 47.06 f -$70.0M ; 26-10-05 sh 28.55M nav 47.68 f +$75.9M ; 26-10-06 sh 28.55M nav 47.97 f +$0 ; 26-10-07 sh 28.6M nav 47.56 f +$2.4M ; 26-10-08 sh 30.61M nav 46.44 f +$95.7M ; 26-10-09 sh 30.61M nav 46.98 f +$0 ; 26-10-12 sh 33.66M nav 46.39 f +$143.3M ; 26-10-13 sh 39.66M nav 46.34 f +$278.3M ; 26-10-14 sh 39.66M nav 44.63 f +$0 ; 26-10-15 sh 39.7M nav 44.58 f +$1.7M ; 26-10-16 sh 39.73M nav 43.09 f +$1.1M ; 26-10-19 sh 46.75M nav 43.63 f +$302.7M ; 26-10-20 sh 55.59M nav 43.61 f +$385.6M ; 26-10-21 sh 57.59M nav 44.24 f +$87.2M ; 26-10-22 sh 57.59M nav 42.16 f +$0 ; 26-10-23 sh 57.59M nav 42.18 f +$0 ; 26-10-26 sh 62.59M nav 42.69 f +$210.9M ; 26-10-27 sh 62.59M nav 43.55 f +$0 ; 26-10-28 sh 62.59M nav 43.94 f +$0 ; 26-10-29 sh 62.46M nav 43.32 f -$5.5M ; 26-10-30 sh 60.19M nav 41.22 f -$98.6M ; 26-11-02 sh 60.2M nav 40.20 f +$515275 ; 26-11-03 sh 60.18M nav 41.12 f -$1.0M ; 26-11-04 sh 60.26M nav 40.67 f +$3.6M ; 26-11-05 sh 54.46M nav 37.80 f -$235.9M ; 26-11-06 sh 39.34M nav 38.79 f -$571.7M ; 26-11-09 sh 39.29M nav 40.24 f -$1.9M ; 26-11-10 sh 39.3M nav 39.78 f +$502952 ; 26-11-11 sh 58.56M nav 40.79 f +$766.2M ; 26-11-12 sh 63.56M nav 40.47 f +$204.0M ; 26-11-13 sh 64.43M nav 39.77 f +$34.9M ; 26-11-16 sh 66.93M nav 38.42 f +$99.4M ; 26-11-19 sh 86.5M nav 37.55 f +$961072 ; 26-11-20 sh 20.53M nav 34.87 f -$2.48B ; 26-11-23 sh 12.53M nav 37.64 f -$279.0M ; 26-11-24 sh 14.46M nav 36.47 f +$72.9M
+- `04:18:30` ATFV (Alger 35 ETF, inception 2021-05-03, 281 rows): 26-09-21 sh 11.97M nav 40.90 f +$0 ; 26-09-22 sh 11.97M nav 41.12 f +$0 ; 26-09-23 sh 12M nav 40.75 f +$1.0M ; 26-09-24 sh 12M nav 41.00 f +$0 ; 26-09-25 sh 12M nav 40.84 f +$0 ; 26-09-28 sh 12M nav 40.35 f +$0 ; 26-09-29 sh 12.05M nav 40.56 f +$2.0M ; 26-09-30 sh 12.07M nav 40.60 f +$1.0M ; 26-10-01 sh 12.07M nav 40.68 f +$0 ; 26-10-02 sh 12.07M nav 40.92 f +$0 ; 26-10-05 sh 12.07M nav 41.36 f +$0 ; 26-10-06 sh 12.09M nav 41.66 f +$517030 ; 26-10-07 sh 12.26M nav 41.29 f +$7.3M ; 26-10-08 sh 12.88M nav 40.41 f +$25.3M ; 26-10-09 sh 14.8M nav 41.02 f +$77.8M ; 26-10-12 sh 15.66M nav 40.34 f +$35.4M ; 26-10-13 sh 16.16M nav 40.19 f +$20.2M ; 26-10-14 sh 16.36M nav 38.87 f +$8.0M ; 26-10-15 sh 16.36M nav 38.75 f +$0 ; 26-10-16 sh 18.86M nav 37.41 f +$96.9M ; 26-10-19 sh 18.76M nav 37.96 f -$3.7M ; 26-10-20 sh 25.38M nav 38.07 f +$251.0M ; 26-10-21 sh 27.18M nav 38.64 f +$68.5M ; 26-10-22 sh 27.18M nav 37.14 f +$0 ; 26-10-23 sh 27.14M nav 37.15 f -$1.4M ; 26-10-26 sh 29.18M nav 37.52 f +$75.7M ; 26-10-27 sh 29.19M nav 38.32 f +$468986 ; 26-10-28 sh 29.19M nav 38.60 f +$0 ; 26-10-29 sh 29.19M nav 37.92 f +$0 ; 26-10-30 sh 26.7M nav 36.28 f -$94.3M ; 26-11-02 sh 26.71M nav 35.25 f +$453552 ; 26-11-03 sh 26.71M nav 35.96 f +$0 ; 26-11-04 sh 26.71M nav 35.91 f +$0 ; 26-11-05 sh 20.14M nav 33.24 f -$236.1M ; 26-11-06 sh 16.14M nav 33.67 f -$133.0M ; 26-11-09 sh 16.14M nav 34.76 f +$0 ; 26-11-10 sh 11.56M nav 34.38 f -$159.0M ; 26-11-11 sh 11.59M nav 35.31 f +$859554 ; 26-11-12 sh 13.59M nav 34.68 f +$70.6M ; 26-11-13 sh 13.59M nav 34.17 f +$0 ; 26-11-16 sh 15.99M nav 32.81 f +$82.0M ; 26-11-19 sh 25.25M nav 32.47 f -$55.8M ; 26-11-20 sh 8.925M nav 30.43 f -$530.1M ; 26-11-23 sh 6.675M nav 32.75 f -$68.5M ; 26-11-24 sh 5.725M nav 31.48 f -$31.1M
+- `04:18:30` ARKQ (ARK Autonomous Technology & Robotics ETF, inception 2014-09-30, 300 rows): 26-11-05 sh 15.7M nav 99.47 f +$0 ; 26-11-06 sh 15.7M nav 104.91 f +$0 ; 26-11-09 sh 15.65M nav 110.57 f -$5.2M ; 26-11-10 sh 15.55M nav 109.93 f -$11.1M ; 26-11-11 sh 15.9M nav 111.79 f +$38.5M ; 26-11-12 sh 15.9M nav 110.34 f +$0 ; 26-11-13 sh 15.9M nav 107.99 f +$0 ; 26-11-16 sh 15.9M nav 103.44 f +$0 ; 26-11-17 sh 15.9M nav 102.32 f +$0 ; 26-11-18 sh 22.75M nav 101.58 f +$700.9M ; 26-11-19 sh 40M nav 98.36 f +$1.75B ; 26-11-20 sh 17.4M nav 90.98 f -$2.22B ; 26-11-23 sh 16.9M nav 98.51 f -$45.5M ; 26-11-24 sh 15.35M nav 95.76 f -$152.7M
+- `04:18:30` FSOL (Fidelity Solana Fund, inception 2025-11-17, 237 rows): 26-11-03 sh 17.15M nav 11.06 f +$0 ; 26-11-04 sh 199.9M nav 69.62 f +$2.02B ; 26-11-05 sh 17.15M nav 10.64 f -$12.72B ; 26-11-06 sh 17.15M nav 10.63 f +$0 ; 26-11-09 sh 17.15M nav 10.25 f +$0 ; 26-11-10 sh 17.07M nav 9.86 f -$769071 ; 26-11-11 sh 17.07M nav 10.05 f +$0 ; 26-11-16 sh 16M nav 8.46 f -$3.1M ; 26-11-19 sh 16M nav 8.65 f +$0 ; 26-11-20 sh 16M nav 8.02 f +$0 ; 26-11-23 sh 15.85M nav 8.63 f -$1.2M ; 26-11-24 sh 15.85M nav 8.19 f +$0
+- `04:18:30` PDEC (Innovator U.S. Equity Power Buffer ETF -, inception 2019-12-01, 296 rows): 26-11-05 sh 20.73M nav 46.11 f +$0 ; 26-11-06 sh 20.73M nav 46.22 f +$0 ; 26-11-09 sh 20.65M nav 47.08 f -$3.5M ; 26-11-10 sh 20.65M nav 46.96 f +$0 ; 26-11-11 sh 20.65M nav 47.46 f +$0 ; 26-11-12 sh 20.65M nav 47.35 f +$0 ; 26-11-13 sh 20.65M nav 47.21 f +$0 ; 26-11-16 sh 20.65M nav 46.43 f +$0 ; 26-11-17 sh 41.3M nav 45.99 f +$958.8M ; 26-11-18 sh 41.3M nav 45.86 f +$0 ; 26-11-19 sh 20.65M nav 45.05 f -$947.0M ; 26-11-20 sh 20.65M nav 43.92 f +$0 ; 26-11-23 sh 20.65M nav 45.33 f +$0 ; 26-11-24 sh 20.65M nav 45.05 f +$0
+- `04:18:30` XBOX (Roundhill Ultra Short Duration No Divide, inception 2026-03-18, 175 rows): 26-09-16 sh 2.84M nav 101.00 f +$0 ; 26-09-17 sh 2.84M nav 101.01 f +$0 ; 26-09-18 sh 2.84M nav 101.06 f +$0 ; 26-09-21 sh 3.73M nav 101.07 f +$89.9M ; 26-09-22 sh 3.73M nav 101.08 f +$0 ; 26-09-23 sh 3.73M nav 101.09 f +$0 ; 26-09-24 sh 7.46M nav 101.10 f +$377.1M ; 26-09-25 sh 7.46M nav 101.11 f +$0 ; 26-09-28 sh 3.69M nav 101.12 f -$381.2M ; 26-09-29 sh 3.69M nav 101.14 f +$0 ; 26-09-30 sh 3.69M nav 101.16 f +$0 ; 26-10-01 sh 3.69M nav 101.18 f +$0 ; 26-10-02 sh 3.65M nav 101.21 f -$4.0M ; 26-10-05 sh 3.65M nav 101.22 f +$0 ; 26-10-06 sh 3.65M nav 101.24 f +$0 ; 26-10-07 sh 3.65M nav 101.25 f +$0 ; 26-10-08 sh 3.65M nav 101.26 f +$0 ; 26-10-09 sh 3.65M nav 101.30 f +$0 ; 26-10-12 sh 3.65M nav 101.31 f +$0 ; 26-10-13 sh 3.65M nav 101.32 f +$0 ; 26-10-14 sh 3.65M nav 101.33 f +$0 ; 26-10-15 sh 3.65M nav 101.38 f +$0 ; 26-10-16 sh 3.66M nav 101.38 f +$1.0M ; 26-10-19 sh 3.66M nav 101.39 f +$0 ; 26-10-20 sh 3.59M nav 101.41 f -$7.1M ; 26-10-21 sh 3.59M nav 101.42 f +$0 ; 26-10-22 sh 3.59M nav 101.43 f +$0 ; 26-10-23 sh 3.58M nav 101.47 f -$1.0M ; 26-10-26 sh 3.51M nav 101.48 f -$7.1M ; 26-10-27 sh 3.51M nav 101.50 f +$0 ; 26-10-28 sh 3.51M nav 101.51 f +$0 ; 26-10-29 sh 3.51M nav 101.52 f +$0 ; 26-10-30 sh 3.51M nav 101.52 f +$0 ; 26-11-02 sh 3.34M nav 101.57 f -$17.3M ; 26-11-03 sh 3.34M nav 101.58 f +$0 ; 26-11-04 sh 3.34M nav 101.60 f +$0 ; 26-11-05 sh 3.34M nav 101.61 f +$0 ; 26-11-06 sh 3.11M nav 101.65 f -$23.4M ; 26-11-09 sh 3.11M nav 101.66 f +$0 ; 26-11-10 sh 3.11M nav 101.67 f +$0 ; 26-11-11 sh 3.11M nav 101.68 f +$0 ; 26-11-12 sh 3.11M nav 101.70 f +$0 ; 26-11-13 sh 2.97M nav 101.73 f -$14.2M ; 26-11-16 sh 2.97M nav 101.74 f +$0 ; 26-11-17 sh 2.97M nav 101.75 f +$0 ; 26-11-18 sh 2.97M nav 101.76 f +$0 ; 26-11-19 sh 2.97M nav 101.77 f +$0 ; 26-11-20 sh 2.97M nav 101.81 f +$0 ; 26-11-23 sh 2.97M nav 101.82 f +$0 ; 26-11-24 sh 2.87M nav 101.83 f -$10.2M
+- `04:18:30` DNOV (FT Vest U.S. Equity Deep Buffer ETF - No, inception 2019-11-15, 296 rows): 26-11-03 sh 7.75M nav 52.89 f +$0 ; 26-11-04 sh 7.75M nav 53.22 f +$0 ; 26-11-05 sh 7.75M nav 52.18 f +$0 ; 26-11-06 sh 7.775M nav 52.34 f +$1.3M ; 26-11-09 sh 7.775M nav 53.05 f +$0 ; 26-11-10 sh 7.775M nav 53.05 f +$0 ; 26-11-11 sh 7.775M nav 53.28 f +$0 ; 26-11-12 sh 7.775M nav 53.24 f +$0 ; 26-11-13 sh 7.775M nav 53.25 f +$0 ; 26-11-16 sh 7.775M nav 52.81 f +$0 ; 26-11-17 sh 7.75M nav 52.46 f -$1.3M ; 26-11-18 sh 7.75M nav 52.44 f +$0 ; 26-11-23 sh 7.75M nav 50.54 f -$346.9M ; 26-11-24 sh 7.9M nav 50.43 f +$7.6M
+- `04:18:30` VGT (Vanguard Information Technology ETF, inception 2004-01-26, 287 rows): 
+- `04:18:30` BITQ (Bitwise Crypto Industry Innovators ETF, inception 2021-05-11, 271 rows): 
+- `04:18:30` MSTU (T-Rex 2X Long MSTR Daily Target ETF, inception 2024-09-18, 299 rows): 
+- `04:18:30` VGT around 2026-04-21: 26-04-16 sh 150.4M nav 792.03 f +$60.7M ; 26-04-17 sh 150.5M nav 805.58 f +$62.9M ; 26-04-20 sh 150.7M nav 100.70 f +$161.1M ; 26-04-21 sh 1206M nav 100.97 f +$106.26B ; 26-04-22 sh 1207M nav 103.04 f +$128.7M ; 26-04-23 sh 1208M nav 101.56 f +$81.1M ; 26-04-24 sh 1208M nav 104.16 f +$18.9M
+- `04:18:30` BITQ around 2025-12-09: 25-12-02 sh 17.75M nav 22.01 f +$0 ; 25-12-05 sh 17.7M nav 23.01 f +$0 ; 25-12-08 sh 17.7M nav 23.43 f +$0 ; 25-12-09 sh 0.01M nav 33.88 f -$414.4M ; 25-12-10 sh 17.7M nav 23.50 f +$599.4M ; 25-12-11 sh 17.75M nav 23.53 f +$1.2M ; 25-12-12 sh 17.75M nav 22.25 f +$0
+- `04:18:30` MSTU around 2026-08-21: 26-08-18 sh 186.2M nav 1.68 f +$5.7M ; 26-08-19 sh 188.6M nav 2.11 f +$4.0M ; 26-08-20 sh 177.9M nav 2.44 f -$22.6M ; 26-08-21 sh 17.71M nav 2.73 f -$390.2M ; 26-08-24 sh 17.6M nav 28.82 f -$300146 ; 26-08-25 sh 18.45M nav 30.48 f +$24.5M ; 26-08-26 sh 17.69M nav 28.71 f -$23.2M
+- `04:18:30` FSOL around 2026-11-05: 26-11-02 sh 17.15M nav 10.82 f +$0 ; 26-11-03 sh 17.15M nav 11.06 f +$0 ; 26-11-04 sh 199.9M nav 69.62 f +$2.02B ; 26-11-05 sh 17.15M nav 10.64 f -$12.72B ; 26-11-06 sh 17.15M nav 10.63 f +$0 ; 26-11-09 sh 17.15M nav 10.25 f +$0 ; 26-11-10 sh 17.07M nav 9.86 f -$769071
+- `04:18:30` OWNB around 2025-12-10: 25-12-05 sh 1.15M nav 25.39 f +$0 ; 25-12-08 sh 1.15M nav 25.48 f +$0 ; 25-12-09 sh 20.24M nav 63.99 f +$486.5M ; 25-12-10 sh 1.15M nav 25.96 f -$1.22B ; 25-12-11 sh 1.15M nav 25.84 f +$0 ; 25-12-12 sh 1.15M nav 24.86 f +$0 ; 25-12-15 sh 1.15M nav 23.03 f +$0
+- `04:18:30` OUNZ around 2025-12-05: 25-11-26 sh 59.26M nav 40.08 f +$0 ; 25-12-01 sh 59.27M nav 40.79 f +$477933 ; 25-12-02 sh 59.27M nav 40.53 f +$0 ; 25-12-05 sh 59.27M nav 40.45 f +$2.40B ; 25-12-08 sh 59.27M nav 40.35 f +$0 ; 25-12-09 sh 59.27M nav 40.55 f +$0 ; 25-12-10 sh 59.27M nav 40.73 f -$84294
+- `04:18:30` ✅ measured; nothing written
