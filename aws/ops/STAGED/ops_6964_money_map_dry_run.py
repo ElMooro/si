@@ -197,7 +197,7 @@ def main(write=False, name=NAME):
             got = sum(x["w"][wk]["net"] for x in g["segments"])
             plain = sum(frow[t][col(wk)] or 0 for t in cur if frow[t][col("seg")] != "Leveraged & inverse")
             got_c = sum(x["w"][wk]["net"] for x in g["classes"])
-            ok = abs(want - got) < 10 and abs(doc["totals"]["all"]["w"][wk]["net"] - want) < 10 and abs(plain - got_c) < 10 + 1e-9 * abs(plain)
+            ok = abs(want - got) < 10 and abs(doc["totals"]["all"]["w"][wk]["net"] - want) < 10 and abs(plain - got_c) < 10 + 1e-9 * abs(plain) and abs(doc["totals"]["plain"]["w"][wk]["net"] - plain) < 10
             r.log("%s: funds sum %s | segments %s | total %s | unleveraged funds %s = classes %s%s" % (wk, usd(want), usd(got), usd(doc["totals"]["all"]["w"][wk]["net"]), usd(plain), usd(got_c), "" if ok else "  <-- DIFFERENT"))
             ck(ok, "%s does not add up" % wk)
         ck(sum(x["n"] for x in g["segments"]) == len(cur) and sum(segc.values()) == len(cur), "segment counts %d against %d current funds" % (sum(x["n"] for x in g["segments"]), len(cur)))
@@ -218,6 +218,54 @@ def main(write=False, name=NAME):
         r.log("funds with an issuer file: %d | the issuer's next-day file matches: %d | its same-day file matches: %d | too few telling days: %d | neither (%d): %s" % (
             c["funds"], c["next_day"], c["same_day"], c["too_few_days"], len(c["no_match"]), " ".join(c["no_match"])))
         ck(c["funds"] == 0 or c["next_day"] + c["same_day"] >= 0.6 * c["funds"], "the issuers' files match for only %d of %d funds" % (c["next_day"] + c["same_day"], c["funds"]))
+
+        # ------------------------------------------------------------------ 6. the oddest figures, row by row
+        r.section("6. The oddest figures, row by row (read before believing a headline)")
+        cleaned = {}
+
+        def rows_of(t):
+            if t not in cleaned:
+                cleaned[t] = M.clean_series([x for x in series.get(t, []) if x[0] in set(cal) or True])
+            return cleaned[t]
+        odd = [x for x in q["unusual_week"] if abs(x[1]) >= 2e8][:14]
+        for t, v, p in odd:
+            rr = rows_of(t)[-9:]
+            r.log("%s week %s (%.0f%% of assets), %s | %s" % (t, usd(v), p, (frow[t][col("name")] or "")[:50], " ; ".join(
+                "%s sh %.4gM nav %.2f flow %s%s" % (d[5:], (s_ or 0) / 1e6, n_ or 0, usd(f_), " [" + fl + "]" if fl else "") for d, s_, n_, f_, fl in rr)))
+        big = []
+        for t in cur:
+            rr = rows_of(t)
+            for i in range(1, len(rr)):
+                d, s1, n1, f, fl = rr[i]
+                _, s0, n0, _, _ = rr[i - 1]
+                if not (s0 and n0 and s1 and n1 and f) or fl:
+                    continue
+                base = s0 * n0
+                if base >= 3e8 and abs(f) >= 0.3 * base:
+                    nx = rr[i + 1] if i + 1 < len(rr) else None
+                    big.append((abs(f) / base, t, d, s0, s1, n0, n1, f, nx))
+        big.sort(reverse=True)
+        r.log("single days, in the kept history, on which a fund of $300M+ took in or lost 30%%+ of its assets with no rule applied: %d" % len(big))
+        for ratio, t, d, s0, s1, n0, n1, f, nx in big[:45]:
+            r.log("    %-6s %s flow %s = %.0f%% | shares %.4gM -> %.4gM (x%.3f), nav %.2f -> %.2f (x%.3f)%s" % (
+                t, d, usd(f), 100 * ratio * (1 if f > 0 else -1), s0 / 1e6, s1 / 1e6, s1 / s0, n0, n1, n1 / n0,
+                "" if not nx else " | next day shares x%.3f nav x%.3f" % ((nx[1] or 0) / s1, (nx[2] or 0) / n1)))
+        for t in "FXI MCHI KWEB KTEC GXC ASHR EWH EWT CQQQ FLCH".split():
+            pr = profiles.get(t) or {}
+            ge = pr.get("geographic_exposure")
+            top = sorted(ge.items(), key=lambda kv: -(M.num(kv[1]) or 0))[:5] if isinstance(ge, dict) else ge
+            r.log("geography %s: region %s, development %s, focus %s, weights %s -> country %s" % (t, pr.get("region"), pr.get("development_class"), pr.get("focus"), json.dumps(top)[:200], frow.get(t, [None] * 40)[col("cty")] if t in frow else "absent"))
+        strays = [(x[0], x[col("sec")], x[col("foc")], x[col("cat")]) for x in fdoc["rows"] if x[col("sec")] in ("Strategy", "Natural Resources")]
+        r.log("sector strays: %s" % json.dumps(strays))
+        for t in ("DFAC", "DUHP", "FBCG"):
+            got = sorted(d for (tt, d) in raw if tt == t)
+            r.log("%s in the two newest month files: %d rows %s | in its own file: newest %s, %d rows" % (t, len(got), got[-3:], series[t][-1][0] if series.get(t) else None, len(series.get(t, []))))
+        samp = [(t, d) for t in cur for d, _, _, _, fl in rows_of(t)[-63:] if fl == "reversed"]
+        r.log("reversed prints in the last 63 days: %d on %d funds, e.g. %s" % (len(samp), len({t for t, _ in samp}), json.dumps(samp[:10])))
+        for t, d in samp[:3]:
+            rr = rows_of(t)
+            i = next(j for j, x in enumerate(rr) if x[0] == d)
+            r.log("    %s around %s: %s" % (t, d, " ; ".join("%s sh %.4gM nav %.2f flow %s%s" % (x[0][5:], (x[1] or 0) / 1e6, x[2] or 0, usd(x[3]), " [" + x[4] + "]" if x[4] else "") for x in rr[max(0, i - 2):i + 3])))
 
         # ------------------------------------------------------------------ attachments, and the write
         pick = lambda rows: rows                                                    # noqa: E731

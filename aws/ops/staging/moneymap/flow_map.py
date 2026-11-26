@@ -52,6 +52,7 @@ HISTORY_DAYS = 260
 MIN_FUNDS = 2500                # fewer current funds than this and nothing is published
 MAX_AGE_DAYS = 6                # the newest reporting day may be at most this many calendar days old
 BOARD = 40
+NO_CLASS = "No class given"                # funds the provider has not classed: kept in the class table so it adds up to the total
 SPLIT_LOG = 0.28                # shares and NAV must each move by more than this (log) in opposite directions ...
 SPLIT_SUM = 0.35                # ... and cancel to within this, to be read as a split
 _WHOLE = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30, 40, 50, 100)          # n-for-1 and 1-for-n, and the few part ratios funds use
@@ -416,7 +417,7 @@ def build(series, profiles, issuer=None, now=None, by_date_months=None):
             through[sec][f["t"]] = w
     groups = {
         "segments": table(lambda f: f["cls"]["seg"], members(lambda f: True)),
-        "classes": table(lambda f: f["cls"]["ac"], plain),
+        "classes": table(lambda f: f["cls"]["ac"] or NO_CLASS, plain),
         "categories": table(lambda f: "%s · %s" % (f["cls"]["ac"], f["cls"]["cat"]) if f["cls"]["ac"] and f["cls"]["cat"] else None, plain),
         "focus": table(lambda f: "%s · %s · %s" % (f["cls"]["ac"], f["cls"]["cat"], f["cls"]["foc"]) if f["cls"]["foc"] and f["cls"]["cat"] else None, plain, 2),
         "sectors": table(lambda f: f["cls"]["sec"], plain),
@@ -483,7 +484,7 @@ def build(series, profiles, issuer=None, now=None, by_date_months=None):
             "series": {}}
     for kind in ("segments", "classes", "sectors", "bonds"):
         for g in groups[kind]:
-            pick = {"segments": lambda f, i=g["id"]: f["cls"]["seg"] == i, "classes": lambda f, i=g["id"]: f["cls"]["ac"] == i and f["cls"]["seg"] != "Leveraged & inverse",
+            pick = {"segments": lambda f, i=g["id"]: f["cls"]["seg"] == i, "classes": lambda f, i=g["id"]: (f["cls"]["ac"] or NO_CLASS) == i and f["cls"]["seg"] != "Leveraged & inverse",
                     "sectors": lambda f, i=g["id"]: f["cls"]["sec"] == i and f["cls"]["seg"] != "Leveraged & inverse",
                     "bonds": lambda f, i=g["id"]: f["cls"]["seg"] == i}[kind]
             hist["series"]["%s:%s" % (kind, g["id"])] = daily(members(pick))
