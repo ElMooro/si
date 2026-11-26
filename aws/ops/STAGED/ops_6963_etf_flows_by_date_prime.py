@@ -89,39 +89,8 @@ def main():
                     return 0, {"error": type(exc).__name__}
             return 0, {"error": "gave up"}
 
-        # ------------------------------------------------------------------ 1. ask by date
-        r.section("1. A whole month for every fund, asked by processed date")
-        months = {}
-        for tag, lo, hi in MONTHS:
-            t0 = time.time()
-            q = dict(PARAMS)
-            q.update({"processed_date.gte": lo, "processed_date.lte": hi})
-            url = HOST + PATH + "?" + urllib.parse.urlencode(q)
-            rows, pages, last = [], 0, None
-            while url and pages < 60:
-                st, data = ask(url)
-                last = st
-                if st != 200 or not isinstance(data.get("results"), list):
-                    r.log("%s page %d: status %s %s" % (tag, pages + 1, st, json.dumps({k: v for k, v in data.items() if k in ("status", "error", "message")})[:200]))
-                    break
-                rows.extend(data["results"])
-                pages += 1
-                url = data.get("next_url")
-                time.sleep(0.25)
-            complete = last == 200 and not url
-            funds = {x.get("composite_ticker") for x in rows}
-            days = Counter(str(x.get("effective_date"))[:10] for x in rows)
-            pdays = Counter(str(x.get("processed_date"))[:10] for x in rows)
-            outside = sum(1 for x in rows if not (lo <= str(x.get("processed_date"))[:10] <= hi))
-            dup = len(rows) - len({(x.get("composite_ticker"), x.get("effective_date"), x.get("processed_date")) for x in rows})
-            r.log("%s: %d rows in %d pages, %.0f s, complete %s | %d funds | %d effective days, %d processed days | rows outside the month %d, repeated rows %d" % (
-                tag, len(rows), pages, time.time() - t0, complete, len(funds), len(days), len(pdays), outside, dup))
-            r.log("    funds per effective day (last 8): %s" % json.dumps(dict(sorted(days.items())[-8:])))
-            r.log("    a row: %s | fields %s" % (json.dumps(rows[0])[:260] if rows else None, dict(Counter(k for x in rows[:2000] for k in x).most_common(8))))
-            months[tag] = {"rows": rows, "pages": pages, "complete": complete, "funds": funds, "lo": lo, "hi": hi, "outside": outside}
-
-        # ------------------------------------------------------------------ 2. against the bank's own per-fund files
-        r.section("2. The same rows in the bank's per-fund files")
+        # ------------------------------------------------------------------ 1. the per-fund files are the truth to check against
+        r.section("1. The bank's per-fund files (their newest 45 rows each)")
         objs = []
         for page in s3.get_paginator("list_objects_v2").paginate(Bucket=LIVE, Prefix=BANK + "etf-global-fund-flows/"):
             objs += page.get("Contents", [])
@@ -130,75 +99,77 @@ def main():
             try:
                 raw = s3.get_object(Bucket=LIVE, Key=o["Key"])["Body"].read()
                 rows = json.loads(gzip.decompress(raw) if raw[:2] == b"\x1f\x8b" else raw)
-                return o["Key"].split("/")[-1].split(".")[0], rows if isinstance(rows, list) else rows.get("results") or []
+                rows = rows if isinstance(rows, list) else rows.get("results") or []
+                return o["Key"].split("/")[-1].split(".")[0], sorted(rows, key=lambda x: str(x.get("effective_date")), reverse=True)[:45]
             except Exception:  # noqa: BLE001
                 return None, []
         with ThreadPoolExecutor(max_workers=40) as pool:
             per = {t: rows for t, rows in pool.map(read, objs) if t}
-        bank_rows = {}
+        truth = {}
         for t, rows in per.items():
             for x in rows:
                 if x.get("composite_ticker") == t:
-                    k = (t, str(x.get("effective_date"))[:10])
-                    if k not in bank_rows or str(x.get("processed_date")) > str(bank_rows[k].get("processed_date")):
-                        bank_rows[k] = x
-        ok_all = True
-        for tag, m in months.items():
+                    truth[(t, str(x.get("effective_date"))[:10])] = x
+        r.log("%d funds, %d fund-days" % (len(per), len(truth)))
+
+        def pull(q, cap=80):
+            url = HOST + PATH + "?" + urllib.parse.urlencode(q)
+            rows, pages, last = [], 0, None
+            while url and pages < cap:
+                st, data = ask(url)
+                last = st
+                if st != 200 or not isinstance(data.get("results"), list):
+                    r.log("    page %d: status %s %s" % (pages + 1, st, json.dumps({k: v for k, v in data.items() if k in ("status", "error", "message")})[:200]))
+                    break
+                rows.extend(data["results"])
+                pages += 1
+                url = data.get("next_url")
+                time.sleep(0.25)
+            return rows, pages, (last == 200 and not url)
+
+        def judge(tag, rows, lo, hi):
             best = {}
-            for x in m["rows"]:
+            for x in rows:
                 k = (x.get("composite_ticker"), str(x.get("effective_date"))[:10])
                 if k not in best or str(x.get("processed_date")) > str(best[k].get("processed_date")):
                     best[k] = x
-            both = [k for k in best if k in bank_rows]
-            diff = [k for k in both if any(best[k].get(f) != bank_rows[k].get(f) for f in ("shares_outstanding", "nav", "fund_flow"))]
-            in_bank = [k for k in bank_rows if m["lo"] <= k[1] <= m["hi"]]
-            missing = [k for k in in_bank if k not in best]
-            new_funds = m["funds"] - set(per)
-            fresh = Counter()
-            for t in m["funds"]:
-                newest_bank = max((k[1] for k in bank_rows if k[0] == t), default="")
-                newest_here = max((k[1] for k in best if k[0] == t), default="")
-                fresh["newer here" if newest_here > newest_bank else "same" if newest_here == newest_bank else "older here"] += 1
-            r.log("%s: fund-days here %d | also in the per-fund files %d, of which different %d %s | per-fund fund-days of the month not here %d %s | funds here with no per-fund file %d" % (
-                tag, len(best), len(both), len(diff), json.dumps([(k, best[k], bank_rows[k]) for k in diff[:2]])[:420], len(missing), json.dumps(missing[:5]), len(new_funds)))
-            r.log("    newest day per fund, this answer against the per-fund file: %s" % dict(fresh))
-            m["best"] = best
-            m["good"] = m["complete"] and len(m["funds"]) >= 4000 and m["outside"] == 0 and len(both) > 10000 and len(diff) <= 0.002 * len(both)
-            ok_all = ok_all and m["good"]
-            r.log("    usable: %s" % m["good"])
-        if not ok_all:
-            r.fail("the by-date answer did not pass the check; nothing was banked")
-            sys.exit(1)
+            want = [k for k in truth if lo <= k[1] <= hi]
+            got = [k for k in want if k in best]
+            diff = [k for k in got if any(best[k].get(f) != truth[k].get(f) for f in ("shares_outstanding", "fund_flow")) or abs(float(best[k].get("nav") or 0) - float(truth[k].get("nav") or 0)) > 0.01]
+            days = Counter(k[1] for k in best)
+            r.log("%s: %d rows, %d funds, %d days | per day (last 4) %s | of the per-fund files' %d fund-days it has %d (%.1f%%), different %d | first and last fund %s .. %s" % (
+                tag, len(rows), len({k[0] for k in best}), len(days), json.dumps(dict(sorted(days.items())[-4:])), len(want), len(got), 100.0 * len(got) / max(1, len(want)), len(diff),
+                min(k[0] for k in best) if best else None, max(k[0] for k in best) if best else None))
+            return best, len(got) == len(want) and not diff
 
-        # ------------------------------------------------------------------ 3. bank the two months as the bank will
-        r.section("3. Banked where the bank's new dataset keeps them")
-        written = 0
-        for tag, m in months.items():
-            keyname = "%s%s/%s.json.gz" % (BANK, DATASET, tag)
-            body = json.dumps(m["rows"], separators=(",", ":"), ensure_ascii=False, default=str).encode("utf-8")
-            sha = hashlib.sha256(body).hexdigest()
-            try:
-                have = (s3.head_object(Bucket=LIVE, Key=keyname).get("Metadata") or {})
-            except Exception:  # noqa: BLE001
-                have = None
-            if have and have.get("sha256") == sha:
-                r.log("%s: already banked with the same content" % keyname)
-                continue
-            if not WRITE:
-                r.log("%s: would be written (%d rows, %.1f MB) - probe only" % (keyname, len(m["rows"]), len(body) / 1e6))
-                continue
-            gz = gzip.compress(body, compresslevel=6)
-            s3.put_object(Bucket=LIVE, Key=keyname, Body=gz, ContentType="application/json", ContentEncoding="gzip",
-                          Metadata={"path": PATH, "from": m["lo"], "to": m["hi"], "pages": str(m["pages"]), "sha256": sha, "content-sha256": sha, "engine": "justhodl-polygon-bank",
-                                    "primed-by": "ops-6963"})
-            back = json.loads(gzip.decompress(s3.get_object(Bucket=LIVE, Key=keyname)["Body"].read()))
-            r.log("%s: written, %d rows, %.1f MB stored (%.1f MB as text); read back %d rows, equal %s" % (keyname, len(m["rows"]), len(gz) / 1e6, len(body) / 1e6, len(back), back == m["rows"]))
-            written += 1
-        newest = max(k[1] for k in months["2026-11"]["best"])
-        on_newest = sum(1 for k in months["2026-11"]["best"] if k[1] == newest)
-        r.kv(months=len(months), written=written, write=WRITE, newest_day=newest, funds_on_newest_day=on_newest, funds_november=len(months["2026-11"]["funds"]), rows_november=len(months["2026-11"]["rows"]))
-        r.ok("%s: November has %d funds, %d of them on the newest day %s; the by-date answer equals the per-fund files" % (
-            "BANKED" if written else "CHECKED", len(months["2026-11"]["funds"]), on_newest, newest))
+        # ------------------------------------------------------------------ 2. which way of asking returns every row?
+        r.section("2. Which way of asking by date returns every fund")
+        lo, hi = "2026-11-01", "2026-11-30"
+        rng = {"processed_date.gte": lo, "processed_date.lte": hi, "limit": 5000}
+        answers = {}
+        for tag, sort in (("month, newest date first", "processed_date.desc"), ("month, oldest date first", "processed_date.asc"),
+                          ("month, by fund A to Z", "composite_ticker.asc"), ("month, by fund Z to A", "composite_ticker.desc")):
+            t0 = time.time()
+            rows, pages, complete = pull(dict(rng, sort=sort))
+            best, whole = judge("%s (%d pages, %.0f s, complete %s)" % (tag, pages, time.time() - t0, complete), rows, lo, hi)
+            answers[tag] = (rows, best, whole, pages, sort)
+        t0 = time.time()
+        rows, pages, complete = pull({"processed_date": "2026-11-24", "limit": 5000, "sort": "composite_ticker.asc"})
+        best1, whole1 = judge("one day 2026-11-24, by fund A to Z (%d pages, %.0f s, complete %s)" % (pages, time.time() - t0, complete), rows, "2026-11-24", "2026-11-24")
+        a, b = answers["month, by fund A to Z"][1], answers["month, by fund Z to A"][1]
+        union = dict(a)
+        union.update(b)
+        want = [k for k in truth if lo <= k[1] <= hi]
+        r.log("A-to-Z and Z-to-A together: %d fund-days; of the per-fund files' %d it has %d" % (len(union), len(want), sum(1 for k in want if k in union)))
+        c, d = answers["month, newest date first"][1], answers["month, oldest date first"][1]
+        union2 = dict(c)
+        union2.update(d)
+        r.log("newest-first and oldest-first together: %d fund-days; of the per-fund files' %d it has %d" % (len(union2), len(want), sum(1 for k in want if k in union2)))
+        newest = max(k[1] for k in union)
+        r.log("funds on the newest day %s: A-to-Z %d, Z-to-A %d, together %d, one-day question %d, per-fund files %d" % (
+            newest, sum(1 for k in a if k[1] == newest), sum(1 for k in b if k[1] == newest), sum(1 for k in union if k[1] == newest), len(best1), sum(1 for k in truth if k[1] == newest)))
+        r.kv(write=WRITE, whole={k: v[2] for k, v in answers.items()}, one_day_whole=whole1)
+        r.ok("PROBE COMPLETE: nothing was banked")
 
 
 if __name__ == "__main__":
