@@ -75,6 +75,30 @@ def _round(value, places=2):
     return round(number, places)
 
 
+def resolver_points(obs):
+    """Sorted (iso date, float) from the site resolver's `obs`: [[date, value], ...] or [{"date", "value"}, ...].
+    One reading per date (the last given wins); blanks, dots and anything that is not a number are gaps."""
+    out = {}
+    for row in obs or []:
+        if isinstance(row, dict):
+            day, raw = row.get("date") or row.get("d"), row.get("value") if "value" in row else row.get("v")
+        elif isinstance(row, (list, tuple)) and len(row) >= 2:
+            day, raw = row[0], row[1]
+        else:
+            continue
+        if not isinstance(day, str) or len(day) < 10 or raw in (None, "", "."):
+            continue
+        try:
+            value = float(raw)
+            date.fromisoformat(day[:10])
+        except (TypeError, ValueError):
+            continue
+        if value != value or value in (float("inf"), float("-inf")):
+            continue
+        out[day[:10]] = value
+    return sorted(out.items())
+
+
 def parse_fred_csv(text):
     """Return sorted (iso date, float) observations. Dots and blanks are gaps."""
     rows = []

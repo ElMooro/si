@@ -7,6 +7,7 @@ import json
 import os
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta, timezone
@@ -23,6 +24,12 @@ CDS_KEY = "data/cds-desk.json"
 ECB_INDEX = "https://www.ecb.europa.eu/mopo/implement/app/html/index.en.html"
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
 FRED = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=%s"
+# 2026-11-26: the ICE sleeves are read from the site's own warehouse first, through the resolver that serves the
+# ICE BofA desk (one series at a time). FRED's graph file timed out on every run from 2026-11-11 at the latest, all 24
+# series, so the sleeves were empty for two weeks. FRED itself is now only the fallback for a series the warehouse lacks.
+RESOLVER = "https://justhodl-data-proxy.raafouis.workers.dev/series?id="
+SLEEVE_BUDGET = 150      # seconds set aside for all the sleeves together
+SLEEVE_PAUSE = 0.25      # between two requests: never the whole list at once
 
 s3 = boto3.client("s3")
 
@@ -86,6 +93,48 @@ def fetch_fred(spec):
     if len(points) < 5:
         return None, "no observations"
     return points, "live"
+
+
+def _get_json_url(url, timeout=20):
+    req = urllib.request.Request(url, headers={"User-Agent": "JustHodl-CorpBonds/1.0", "Accept": "application/json"})
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return json.loads(resp.read().decode("utf-8", "replace"))
+
+
+def fetch_sleeve(spec, ask=None, fred=None):
+    """One sleeve's history: the warehouse first, FRED only when the warehouse has nothing. Returns (points, status)."""
+    ask = ask or _get_json_url
+    fred = fred or fetch_fred
+    try:
+        payload = ask(RESOLVER + urllib.parse.quote("fred:" + spec["fred"], safe=""))
+        points = core.resolver_points((payload or {}).get("obs") if isinstance(payload, dict) else None)
+        if len(points) >= 5:
+            return points, "live, warehouse: %d observations to %s" % (len(points), points[-1][0])
+        why = "warehouse: no observations"
+    except Exception as exc:
+        why = "warehouse: %s" % type(exc).__name__
+    points, status = fred(spec)
+    if points:
+        return points, "live, FRED (%s)" % why
+    return None, "%s; FRED: %s" % (why, status)
+
+
+def fetch_sleeves(today_iso, ask=None, fred=None, sleep=time.sleep, clock=time.monotonic):
+    """Every sleeve in turn, one request at a time, inside SLEEVE_BUDGET seconds. Returns (rows, {fred id: status})."""
+    rows, status = [], {}
+    started = clock()
+    for i, spec in enumerate(core.SLEEVES):
+        if clock() - started > SLEEVE_BUDGET:
+            status[spec["fred"]] = "not asked: the time set aside for the sleeves ran out"
+            continue
+        if i:
+            sleep(SLEEVE_PAUSE)
+        points, said = fetch_sleeve(spec, ask, fred)
+        status[spec["fred"]] = said
+        row = core.sleeve_stats(spec, points, today_iso) if points else None
+        if row:
+            rows.append(row)
+    return rows, status
 
 
 def fetch_ecb():
@@ -185,18 +234,7 @@ def publish():
     # before, and that sum crossed the 300s task limit before the packet was written.
     issue_pool = ThreadPoolExecutor(max_workers=1)
     issue_future = issue_pool.submit(fetch_issues, prior_bonds)
-    sleeves = []
-
-    def _sleeve(spec):
-        points, status = fetch_fred(spec)
-        row = core.sleeve_stats(spec, points, today_iso) if points else None
-        return spec["fred"], status, row
-
-    with ThreadPoolExecutor(max_workers=8) as pool:
-        for fred_id, status, row in pool.map(_sleeve, core.SLEEVES):
-            sources["fred"][fred_id] = status
-            if row:
-                sleeves.append(row)
+    sleeves, sources["fred"] = fetch_sleeves(today_iso)
     bonds, ecb_meta = fetch_ecb()
     sources["ecb"] = ecb_meta
     euro = core.euro_book(bonds, today_iso) if bonds else {
