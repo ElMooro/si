@@ -3,13 +3,13 @@
   "region": "us-east-1",
   "runtime": "python3.12",
   "handler": "lambda_function.lambda_handler",
-  "memory": 1024,
-  "timeout": 300,
+  "memory": 3008,
+  "timeout": 900,
   "architectures": [
     "x86_64"
   ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Reproducible dated fund comparisons, issuer taxonomy, coverage and separately retained cross-asset context. Research only.",
+  "description": "Money map: every ETF in the warehouse, flows in and out by asset class, sector, country and fund (flow_map 3.0.0). Beside it the research view: dated fund comparisons from issuer files. Research only.",
   "schedule": {
     "name": "justhodl-global-flow-desk-daily",
     "expression": "cron(37 23 ? * MON-FRI *)",

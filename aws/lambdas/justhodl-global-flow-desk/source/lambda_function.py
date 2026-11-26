@@ -374,9 +374,27 @@ def lambda_handler(event=None, context=None):
             return {'statusCode': 200,
                     'headers': {'Content-Type': 'application/json', 'Cache-Control': 'no-store'},
                     'body': encoded(packet).decode()}
+        # {"dry_run": true} builds the money map and writes nothing; {"map_only": true} publishes the money map alone.
+        # Either way the research publication is not attempted (it has no dry mode).
+        if event.get('dry_run') or event.get('map_only'):
+            return {'statusCode': 200, 'body': json.dumps({'research': 'not run', 'money_map': money_map(event)})}
         result = run(s3, BUCKET)
+        result['money_map'] = money_map(event)
         return {'statusCode': 200, 'body': encoded(result).decode()}
     except Exception as exc:
         print('[flow-research] ' + type(exc).__name__)
         return {'statusCode': 503,
-                'body': json.dumps({'ok': False, 'reason': 'Verified flow research unavailable; preceding publication retained.'})}
+                'body': json.dumps({'ok': False, 'reason': 'Verified flow research unavailable; preceding publication retained.',
+                                    'money_map': None if (event or {}).get('requestContext') or (event or {}).get('httpMethod') else money_map(event or {})})}
+
+
+def money_map(event):
+    """The money map (flow_map.py, Khalid 2026-11-25): every ETF in the warehouse, in and out.  It is a second document
+    beside the research view and can never fail or delay it: whatever happens here is caught and reported."""
+    try:
+        import flow_map
+        summary, _ = flow_map.run(s3, BUCKET, dry_run=bool(event.get('dry_run')))
+        return summary
+    except Exception as exc:  # noqa: BLE001
+        print('[flow-map] failed: %s: %s' % (type(exc).__name__, str(exc)[:240]))
+        return {'published': False, 'error': type(exc).__name__}
