@@ -5,9 +5,11 @@
   "handler": "lambda_function.lambda_handler",
   "memory": 1024,
   "timeout": 600,
-  "architectures": ["x86_64"],
+  "architectures": [
+    "x86_64"
+  ],
   "role": "arn:aws:iam::857687956942:role/lambda-execution-role",
-  "description": "Corp bonds desk: full FINRA TRACE corporate and 144A tape (breadth, sentiment, capped volume), every bond on the ECB CSPP/PEPP holdings list, and ICE BofA US/Euro/EM/Asia corporate sleeves from FRED. Descriptive only. Owns data/corp-bonds.json.",
+  "description": "Corp bonds desk: FINRA TRACE corporate and 144A aggregates (breadth, sentiment, capped volume), bonds in fund holdings, the ECB CSPP/PEPP list, and ICE BofA sleeves (FRED series, read from the warehouse first). Descriptive only. Owns data/corp-bonds.json.",
   "env": {
     "S3_BUCKET": "justhodl-dashboard-live"
   },
@@ -17,7 +19,12 @@
     "timezone": "UTC",
     "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
     "description": "Rebuild the corp bonds packet after the TRACE day and the ICE BofA FRED print; second pass catches a late ECB file",
-    "input": {"action": "publish"},
-    "retry_policy": {"MaximumRetryAttempts": 2, "MaximumEventAgeInSeconds": 3600}
+    "input": {
+      "action": "publish"
+    },
+    "retry_policy": {
+      "MaximumRetryAttempts": 2,
+      "MaximumEventAgeInSeconds": 3600
+    }
   }
 }
