@@ -24,8 +24,10 @@ counts, each from evidence and each counted in the document:
                      the NAV before it are restated on the new basis (Vanguard's five April 2026 splits alone printed as
                      +$401 billion of inflow, the NAV having been restated a day before the count);
   a misprint         a row whose count and NAV both leave and both come back on the next row is dropped;
-  a round trip       a count that jumps by more than 40% and is back within two rows (a heartbeat trade, a reset day, a
-                     doubled print) counts as the difference it left behind, not as money in and then money out;
+  a round trip       a count that jumps by more than 40% and is back within ten rows, two thirds of the jump undone (a
+                     heartbeat trade, a reset day, a doubled print, or the provider's mid-November 2026 fault that
+                     showed ARK Innovation at 271 million shares for a week against its usual 80 million) counts as the
+                     difference it left behind, not as money in and then money out;
   a late fund        a fund whose newest row is more than three reporting days old is left out of every total and listed.
 
 A jump that stays is money and is counted, however large: the Alger Concentrated Equity ETF really did take in about
@@ -67,8 +69,8 @@ MAX_AGE_DAYS = 6                # the newest reporting day may be at most this m
 BOARD = 40
 NO_CLASS = "No class given"                # funds the provider has not classed: kept in the class table so it adds up to the total
 JUMP = math.log(1.4)            # a share count that moves by more than 40% between two rows
-TRIP_ROWS = 2                   # a jump undone within this many rows is a round trip ...
-TRIP_LEFT = 0.2                 # ... when no more than a fifth of it is left
+TRIP_ROWS = 10                  # a jump undone within this many rows is a round trip ...
+TRIP_LEFT = 1.0 / 3             # ... when no more than a third of it is left
 SPLIT_DAYS = 6                  # a recorded split is looked for in the counts within this many calendar days of its date
 SPLITS = BANK + "splits/"       # the warehouse's record of splits: <YYYY-MM>.json.gz, rows ticker / execution_date / split_from / split_to
 _WHOLE = (2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30, 40, 50, 100)
@@ -291,7 +293,7 @@ def count_path(rows, recorded=None):
             nav[j] /= c
         flag[i] = "split " + ratio_name(c)
         notes.append({"d": rows[i][0], "k": "split", "x": flag[i] + (" (on record)" if on_record else " (read from count and NAV)"), "usd": abs(rows[i][1] - rows[i - 1][1]) * rows[i - 1][2]})
-    # 3. round trips: a jump that is back within TRIP_ROWS rows counts as what it left behind
+    # 3. round trips: a jump of which two thirds is undone within TRIP_ROWS rows counts as what it left behind
     i = 1
     while i < n:
         if flag[i] is None and abs(math.log(shares[i] / shares[i - 1])) > JUMP:
@@ -658,8 +660,8 @@ def build(series, profiles, issuer=None, now=None, by_date_months=None, splits=N
                "percent": "A window's flow as a percentage of the fund's assets (shares x NAV) on the reporting day before the window began.",
                "split_rule": "A share split is taken from the warehouse's record of splits when the share count moves by the recorded ratio within six days of it, or read from the rows when count and NAV move by a whole ratio in opposite directions on the same or the next row. Counts and NAVs before the split are restated on the new basis, so a split is never a flow.",
                "misprint_rule": "A row whose share count and NAV both leave by more than 40% and 30% and both come back on the next row is dropped.",
-               "round_trip_rule": "A share count that jumps by more than 40% and is back within two rows to within a fifth of the jump (a heartbeat trade, a reset day, a doubled print) counts as the difference it left behind.",
-               "jump_rule": "A jump that stays is counted as money, however large, and is listed.",
+               "round_trip_rule": "A share count that jumps by more than 40% between two rows and within ten rows is back, two thirds of the jump undone (a heartbeat trade, a reset day, a doubled print), counts as the difference it left behind on the day it came back, not as money in and then money out.",
+               "jump_rule": "A jump that stays is counted as money, however large, and is listed. One that is undone later, within ten rows, is restated as a round trip then.",
                "late_rule": "A fund whose newest row is more than %d reporting days old is left out of every total and listed." % LATE_DAYS,
                "segments": "One segment per fund from the provider's class, category, focus, region and weights. Leveraged and inverse funds have their own segment and are not in the class, sector, country or style tables.",
                "sectors": "Sector funds: funds the provider classes as sector funds, by its focus. Through all equity funds: every unleveraged equity and real-estate fund's flow split by the provider's sector weights.",
