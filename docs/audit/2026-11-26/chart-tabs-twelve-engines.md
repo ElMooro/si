@@ -67,3 +67,33 @@ the go-live steps named below.
 Twelve buttons between Khalid and Alert: Research, Insiders, Options, Value, Corp bonds, Plumbing, Liquidity,
 Canaries, Breadth, Reversal, Calendar, Crypto. None existed. Research opens the company report on the symbol the chart
 is showing. Restore recipe: `docs/snapshots/chart-search-2026-11-10/README.md`.
+
+## Proof
+
+- **Dry run** (ops 6973, 14:49 UTC, nothing written): 0 failed checks. Calendar 355 events, 230 ahead (the live one
+  had 125 and 12); options 155 of 155 names analysed, none without listed options, 13.2 s on the runner; insider price
+  check 1 row of 3,628 set aside (LONA, "priced at 1,162.2 times the tape and worth more than the whole company"),
+  30-day buying total $10,689,562,023 -> $770,400,742; on-chain join restored with 10 Bitcoin and 17 Ethereum metrics;
+  plumbing's rows and layers both count 58.
+- **Deploy**: the five functions at 14:56-14:59 UTC (deploy-lambdas run 45843179909, dispatched with the commit before
+  the held-back change as `base_sha`). No function was invoked by hand.
+- **Live** (ops 6974, 15:12 UTC, real Chrome on justhodl.ai, 65 checks, 0 failed): the twelve buttons are on the bar
+  once each, in order, after Khalid; every earlier button is still there. Each was clicked; each opened its page in the
+  workspace under its own name (Research on `why.html?ticker=NVDA`). On every page the Engine data section read every
+  document of the page's engines - 29 documents in all - and its count of values equalled this op's own count of the
+  same document (Insiders 70,241; Corp bonds 523,256; Value 36,671; Reversal 49,133; Liquidity 13,403; Research 10,670
+  for NVDA). Every field listed that same count. A table on each page was opened whole and sorted both ways on a
+  column (Value: 500 rows on P/E; Calendar: 355 events; Crypto: 171 CryptoQuant metrics). The chart threw no error.
+  The first run (15:01 UTC) failed on one tab: Liquidity's first document is kept at the bucket's root and is served
+  by the data proxy, not the site; the section now asks the address `liquidity.html` itself uses (kit 1.0.1).
+- **The calendar** was published once from the runner with the engine's own code at 14:59 UTC (one write, no
+  invoke); its own run is 12:00 UTC.
+- **Each engine's own run** (ops 6975, re-runnable): options carried the change at its 15:00 UTC tick - 155 of 155
+  names in 8.6 s on Lambda. On-chain runs 15:31 UTC, insider trades 21:10 UTC, plumbing 14:21 UTC; until then the
+  pages show yesterday's documents (the insider page still totals $10.69B until 21:10 UTC).
+
+## Cost
+
+Options: 8.6 s a run against 3.7 s in the five-minute lane, about $0.40 a month against $0.13. The other four add
+about a second a day each. One-offs: read-only ops 6969-6973 and 6975 on the GitHub runner, and one S3 write (the
+calendar) from ops 6974.
