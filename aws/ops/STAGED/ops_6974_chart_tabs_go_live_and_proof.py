@@ -92,7 +92,7 @@ def main():
                 html = fetch("/chart.html?probe=%d" % (stamp + attempt)).decode("utf-8", "replace")
                 kit = fetch("/jh-engine-data.js?probe=%d" % (stamp + attempt)).decode("utf-8", "replace")
                 page = fetch("/options-analytics.html?probe=%d" % (stamp + attempt)).decode("utf-8", "replace")
-                if html.count("&tabs=20261126") == 2 and "JHEngineData" in kit and 'data-jed="options"' in page:
+                if html.count("&tabs=20261126") == 2 and "JHEngineData" in kit and "VERSION = '1.0.1'" in kit and 'data-jed="options"' in page:
                     served = True
                     break
             except Exception as exc:  # noqa: BLE001
