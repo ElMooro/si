@@ -39,6 +39,9 @@ COLS = ["f_n", "f_funds", "f_face", "f_value", "f_px", "f_gap", "f_def", "f_pik"
 ROW_COLS = ["co", "issuer", "title", "cls", "cpn", "mat", "funds", "rows", "face", "value", "px", "px_lo", "px_hi", "n_px", "n_default", "n_arrears", "n_pik",
             "n_restricted", "n_l3", "d"]
 CDS_COLS = ["reference", "co", "ticker", "positions", "funds", "sold", "bought", "unclear", "net_sold", "not_in_dollars", "usual_end_year", "dealer"]
+TIE_COLS = ["issuer", "how", "co", "name", "securities", "value"]
+ABSENT_COLS = ["ticker", "issuer", "securities", "value", "funds"]
+UNTIED_COLS = ["issuer", "securities", "value", "funds"]
 GAP_COLS = ["co", "name", "title", "cpn", "mat", "funds", "n_px", "px", "px_lo", "px_hi", "gap", "value"]
 FLAG_COLS = ["co", "name", "title", "cpn", "mat", "funds", "rows", "n_default", "n_pik", "px", "value"]
 CLASSES = ("DBT", "LON")                              # a company's own bonds and loans; asset-backed deals are their own issuers
@@ -286,15 +289,18 @@ def join(bonds, cds, ties, names):
     order = {co: i for i, co in enumerate(names)}
     out_rows.sort(key=lambda r: (order.get(r[0], 1e9), -(r[9] or 0)))
     tied_n, tied_v = sum(how_n.values()), sum(how_v.values())
+    # the three lists whole (the block carries the first hundred of each, the fund document all of them)
+    lists = {"ties_by_rule": [[r[0], r[1], r[2], names.get(r[2]), r[3], round(r[4])] for r in sorted(by_rule.values(), key=lambda r: (-r[4], str(r[0])))],
+             "not_on_board": [[t, a[3], a[0], round(a[1]), a[2]] for t, a in sorted(absent.items(), key=lambda kv: (-kv[1][1], kv[0]))],
+             "untied": [[k, u[0], round(u[1]), u[2]] for k, u in sorted(untied.items(), key=lambda kv: (-kv[1][1], kv[0]))]}
     block = {
         "version": VERSION, "as_of": bonds.get("as_of"), "file": bonds.get("source_file"), "cols": ROW_COLS, "n": len(out_rows), "company_cols": COLS,
         "read": {"securities": read[0], "value": round(read[1])},
         "tied": {"securities": tied_n, "value": round(tied_v), "value_pct": round(100.0 * tied_v / read[1], 1) if read[1] else None, "companies": len(held),
                  "listed": sum(1 for co in held if co.startswith("T:")), "how": {k: [how_n[k], round(how_v[k])] for k in sorted(how_n, key=lambda k: -how_v[k])}},
-        "ties_by_rule": [[r[0], r[1], r[2], names.get(r[2]), r[3], round(r[4])] for r in sorted(by_rule.values(), key=lambda r: -r[4])[:LIST_N]], "n_ties_by_rule": len(by_rule),
-        "not_on_board": [[t, a[3], a[0], round(a[1]), a[2]] for t, a in sorted(absent.items(), key=lambda kv: -kv[1][1])[:LIST_N]],
-        "n_not_on_board": len(absent),
-        "untied": [[k, u[0], round(u[1]), u[2]] for k, u in sorted(untied.items(), key=lambda kv: -kv[1][1])[:LIST_N]], "n_untied": len(untied),
+        "tie_cols": TIE_COLS, "ties_by_rule": lists["ties_by_rule"][:LIST_N], "n_ties_by_rule": len(by_rule),
+        "absent_cols": ABSENT_COLS, "not_on_board": lists["not_on_board"][:LIST_N], "n_not_on_board": len(absent),
+        "untied_cols": UNTIED_COLS, "untied": lists["untied"][:LIST_N], "n_untied": len(untied),
         "gap_cols": GAP_COLS, "gaps": gaps[:LIST_N], "n_gaps": len(gaps), "min_marks": MIN_MARKS,
         "flag_cols": FLAG_COLS, "flagged": flags, "n_flagged": len(flags),
         "cds": {"as_of": cds.get("as_of"), "cols": CDS_COLS, "names": cds_names, "tied": n_tied, "dealer_names_not_tied": n_dealer, "index_cols": cds_cols, "indices": cds.get("indices") or [],
@@ -302,8 +308,7 @@ def join(bonds, cds, ties, names):
         "reading": "Fund holdings are as of each fund's own report date, two to five months before the SEC posts them; a mark is a fund's own valuation of what it holds, "
                    "per 100 of face, not a trade. Nothing here enters the board's spreads, signals, stress rank or chances.",
     }
-    review = [[r[0], r[1], r[2], names.get(r[2]), r[3], round(r[4])] for r in sorted(by_rule.values(), key=lambda r: -r[4])]      # every tie by a rule, for a dry run to read; not published
-    return {"by_co": by_co, "rows": out_rows, "block": block, "review": review}
+    return {"by_co": by_co, "rows": out_rows, "block": block, "lists": lists}
 
 
 def add_columns(issuers, by_co):

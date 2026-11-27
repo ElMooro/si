@@ -922,7 +922,8 @@ def fund_layer(s3, built):
     at, nm = payload["issuers"]["cols"].index("id"), payload["issuers"]["cols"].index("name")
     names = {r[at]: r[nm] for r in payload["issuers"]["rows"]}
     layer = F.join(bonds, cds, F.Ties(built["ties"], built["matcher"], names), names)
-    layer["block"].update(key=FUNDS_OUT_KEY, quarter={"file": name, "summary": newest["summary"], "read_at": newest.get("at")},
+    layer["block"].update(key=FUNDS_OUT_KEY, words="Every bond and loan registered funds hold of a company on the board, and every name as it was tied or left untied",
+                          quarter={"file": name, "summary": newest["summary"], "read_at": newest.get("at")},
                           source="SEC Form N-PORT data sets, read by justhodl-sec-datasets (data/warm/sec-datasets/)")
     return layer, None
 
@@ -1007,11 +1008,14 @@ def lambda_handler(event=None, context=None):
     put_json(s3, BONDS_OUT_KEY, built["bonds"])
     if funds:
         put_json(s3, FUNDS_OUT_KEY, {"version": F.VERSION, "generated_at": now.isoformat(), "as_of": funds["block"]["as_of"], "file": funds["block"]["file"],
-                                     "cols": F.ROW_COLS, "rows": funds["rows"],
+                                     "cols": F.ROW_COLS, "rows": funds["rows"], "min_marks": F.MIN_MARKS,
+                                     "tie_cols": F.TIE_COLS, "absent_cols": F.ABSENT_COLS, "untied_cols": F.UNTIED_COLS, **funds["lists"],
                                      "note": "Every bond and loan registered funds hold of a company on the board (co = the company's id in the main document), from the SEC's "
                                              "Form N-PORT data sets. funds: how many hold it; rows: positions reported; face and value in dollars; px: the middle mark per 100 of "
                                              "face among funds reporting on the commonest date (d), px_lo and px_hi the 10th and 90th percentile; n_default, n_arrears, n_pik, "
-                                             "n_restricted, n_l3: positions flagged in default, in arrears, paid in kind, restricted, priced by model. No ISIN or CUSIP is published."})
+                                             "n_restricted, n_l3: positions flagged in default, in arrears, paid in kind, restricted, priced by model. ties_by_rule: every issuer "
+                                             "name tied by a rule rather than by the name an issuer on the board is written by; not_on_board: listed companies funds hold bonds "
+                                             "of that the board does not cover; untied: every issuer left untied. No ISIN or CUSIP is published."})
     built["hist"]["updated_at"] = now.isoformat()
     put_json(s3, HIST_KEY, built["hist"])
     cov = payload["coverage"]

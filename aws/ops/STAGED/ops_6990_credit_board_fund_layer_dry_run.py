@@ -122,7 +122,7 @@ def main():
         r.log("ties by rule (issuer as funds write it | rule | company | securities | value): %d listed here" % len(block["ties_by_rule"]))
         for x in block["ties_by_rule"][:70]:
             r.log("  %-44s %-11s %-9s %-34s %4d %9s" % (str(x[0])[:44], x[1], x[2][:9], str(x[3])[:34], x[4], money(x[5])))
-        review = layer["review"]
+        review = layer["lists"]["ties_by_rule"]
         new_rules = [x for x in review if x[1] in ("short name", "co-issuer", "name cut")]
         r.log("ties by a short name, a co-issuer or a cut name: %d issuer names, %s securities worth %s. The %d largest, then every 12th of the rest:" % (
             len(new_rules), format(sum(x[4] for x in new_rules), ","), money(sum(x[5] for x in new_rules)), min(len(new_rules), 260)))
@@ -198,7 +198,7 @@ def main():
         payload["issuers"] = F.add_columns(payload["issuers"], by_co)
         payload["funds"] = block
         after = json.dumps(payload, separators=(",", ":"), default=str)
-        fdoc = json.dumps({"cols": F.ROW_COLS, "rows": layer["rows"]}, separators=(",", ":"))
+        fdoc = json.dumps({"cols": F.ROW_COLS, "rows": layer["rows"], **layer["lists"]}, separators=(",", ":"))
         r.log("main document: %.2f MB before, %.2f MB with the fund columns and block (gzip %.2f MB) | fund document: %s rows, %.2f MB (gzip %.2f MB)" % (
             before / 1048576, len(after) / 1048576, len(gzip.compress(after.encode(), 6)) / 1048576, format(len(layer["rows"]), ","), len(fdoc) / 1048576, len(gzip.compress(fdoc.encode(), 6)) / 1048576))
         check(payload["issuers"]["cols"] == L.ISSUER_COLS + F.COLS and all(len(x) == len(L.ISSUER_COLS) + len(F.COLS) for x in payload["issuers"]["rows"]), "the fund columns come after the board's own %d" % len(L.ISSUER_COLS))
@@ -213,7 +213,9 @@ def main():
         embed(r, "cbe-payload-with-funds", payload)
         keep = {co for co, _ in LOOK} | {g[0] for g in block["gaps"][:15]} | {f[0] for f in block["flagged"][:15]} | {x["id"] for x in sorted(reached, key=lambda x: -(x["value"] or 0))[:25]}
         embed(r, "cbe-funds-rows-sample", {"version": F.VERSION, "as_of": block["as_of"], "file": block["file"], "cols": F.ROW_COLS, "rows": [x for x in layer["rows"] if x[0] in keep],
-                                            "note": "a cut for rehearsal: the rows of %d companies" % len(keep)})
+                                            "min_marks": F.MIN_MARKS, "tie_cols": F.TIE_COLS, "absent_cols": F.ABSENT_COLS, "untied_cols": F.UNTIED_COLS,
+                                            "ties_by_rule": layer["lists"]["ties_by_rule"], "not_on_board": layer["lists"]["not_on_board"], "untied": layer["lists"]["untied"][:1500],
+                                            "note": "a cut for rehearsal: the rows of %d companies, the first 1,500 untied issuers" % len(keep)})
         r.kv(failed_checks=len(fails), companies_reached=len(reached), tied_value_pct=block["tied"]["value_pct"], cds_names_tied=len(named))
         if fails:
             r.fail("%d check(s) failed" % len(fails))
