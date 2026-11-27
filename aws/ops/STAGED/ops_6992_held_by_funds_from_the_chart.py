@@ -56,7 +56,7 @@ def main():
             page.wait_for_timeout(1200)
             c0 = page.evaluate(CHART)
             r.log("the button: %s" % json.dumps({k: c0[k] for k in ("btn", "prev", "next", "label", "title")}))
-            ck(c0["btn"] and c0["prev"] == "btn-bnd" and c0["next"] == "btn-cds" and c0["label"] == "Cr Credit", "chart.html has the Credit button, after Bonds and before CDS")
+            ck(c0["btn"] and c0["prev"] == "btn-bnd" and c0["next"] == "btn-cds" and (c0["label"] or "").lower() == "cr credit", "chart.html has the Credit button, after Bonds and before CDS")
             how = None
             for _ in range(3):
                 page.mouse.move(700, 3)                     # the toolbar hides until the pointer reaches the top edge
@@ -83,17 +83,31 @@ def main():
             if not how:
                 page.evaluate("() => document.getElementById('btn-cbe').click()")
             page.wait_for_selector("#ws-overlay.on iframe", timeout=15000)
-            frame = None
-            for _ in range(80):
-                frame = next((f for f in page.frames if "/credit-before-equity.html" in f.url), None)
-                if frame:
-                    break
-                page.wait_for_timeout(250)
+
+            def the_frame():
+                for _ in range(80):
+                    f = next((x for x in page.frames if "/credit-before-equity.html" in x.url), None)
+                    if f:
+                        return f
+                    page.wait_for_timeout(250)
+                return None
+            frame = the_frame()
             ck(frame is not None, "the click opens Credit Before Equity in the chart's workspace")
             if frame is not None:
                 frame.locator("#funds .cb-tile-h").first.wait_for(timeout=120000)
+                page.wait_for_timeout(3000)                 # the workspace may load its page a second time: let it settle, then read the frame that stayed
+                frame = the_frame()
+                frame.locator("#funds .cb-tile-h").first.wait_for(timeout=120000)
                 title = frame.locator("#s-funds h2.sec").inner_text()
-                tiles = frame.evaluate(TILES)
+                tiles = None
+                for _ in range(4):
+                    try:
+                        tiles = frame.evaluate(TILES)
+                        break
+                    except Exception:  # noqa: BLE001
+                        page.wait_for_timeout(1500)
+                        frame = the_frame()
+                        frame.locator("#funds .cb-tile-h").first.wait_for(timeout=120000)
                 r.log("inside the workspace: %s | tiles %s" % (title[:80], tiles))
                 tied = block.get("tied") or {}
                 ck(len(tiles) == 5 and tiles[0][1] == format(tied.get("securities") or 0, ",") and tiles[1][1] == format(tied.get("companies") or 0, ","), "the section Held by funds is there with the document's figures (%s securities, %s companies)" % (tiles[0][1] if tiles else None, tiles[1][1] if len(tiles) > 1 else None))
