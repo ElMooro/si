@@ -22,9 +22,9 @@ SETS = {
                 "what": "Form 13F: every institutional manager's reported holdings, quarterly"},
     "insiders": {"page": BASE + "insider-transactions-data-sets", "match": r"_form345\.zip$", "derive": None,
                  "what": "Forms 3, 4 and 5: every insider transaction, quarterly since 2006"},
-    "formd": {"page": BASE + "form-d-data-sets", "match": r"_d\.zip$", "derive": None,
+    "formd": {"page": BASE + "form-d-data-sets", "match": r"_d(_\d)?\.zip$", "derive": None,
               "what": "Form D: notices of private offerings, quarterly since 2008"},
-    "ncen": {"page": BASE + "form-n-cen-data-sets", "match": r"_ncen\.zip$", "derive": None,
+    "ncen": {"page": BASE + "form-n-cen-data-sets", "match": r"_ncen(_\d)?\.zip$", "derive": None,
              "what": "Form N-CEN: the annual census of registered funds"},
 }
 MONTHS = {m: i + 1 for i, m in enumerate("jan feb mar apr may jun jul aug sep oct nov dec".split())}

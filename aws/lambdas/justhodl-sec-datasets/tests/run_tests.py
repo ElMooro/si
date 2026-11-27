@@ -115,6 +115,10 @@ def nport_zip(amend=True):
         idt.append([h, h, "", "ionq us", "", ""])
         h = hold(acc, "Tiny Co", "Common", "999999999", 10, "NS", 1e5, "EC", level="1")
         lend.append([h, "N", 0, "N", 0, "N", 0])
+        if f == 2:                               # a filing that writes one label on thirty different positions
+            for j in range(30):
+                h = hold(acc, "Repeated Label LLC", "DDTL", "N/A", 1e6, "PA", 1e6, "LON", level="3")
+                debts.append([h, "01-JAN-2031", "Floating", 9.0, "N", "N", "N", "N", "N"])
         if f == 1:                               # a units slip: one bond "worth" eighteen times the whole fund
             h = hold(acc, "Slip Corp", "SLIP 5 01/01/30", "222222BB2", 9e7, "PA", 9e10, "DBT")
             debts.append([h, "01-JAN-2030", "Fixed", 5.0, "Y", "N", "N", "N", "N"])
@@ -141,7 +145,7 @@ def nmfp_zip(n=5, month="OCT", year=2026, net=5e10, extra_month=0, drop=None):
         day = "31-%s-%d" % (month, year) if i % 2 == 0 else "30-%s-%d" % (month, year)          # funds use either month-end date
         sub.append([acc, "05-NOV-%d" % year, "N-MFP3", "1", day, "Registrant", "1", "", "Series", "Series", "", "SID%02d" % i])
         kind = "Government" if i < 3 else "Prime"
-        ser.append([acc, kind, net, 30 + i, 60 + i])
+        ser.append([acc, kind, net, 30 + i, 60 + i, "Y" if i == 4 else "N"])
         sec += [[acc, 1, "Federal Reserve Bank of New York", "U.S. Treasury Repurchase Agreement, if collateralized only by U.S. Treasuries (including Strips) and cash", "N", "N", "", 1e10],
                 [acc, 2, "Fixed Income Clearing Corp - Morgan Stanley", "U.S. Treasury Repurchase Agreement, if collateralized only by U.S. Treasuries (including Strips) and cash", "Y", "N", "", 2e10],
                 [acc, 3, "J.P. Morgan Securities, LLC", "U.S. Government Agency Repurchase Agreement, collateralized only by U.S. Government Agency securities", "N", "Y", "", 5e9],
@@ -155,13 +159,13 @@ def nmfp_zip(n=5, month="OCT", year=2026, net=5e10, extra_month=0, drop=None):
         liq.append([acc, 5e9, 7e9, 0.61, 0.78, "30-%s-%d" % (month, year)])
     if n:                                        # fund 0 files twice for the month: the later filing counts, once
         sub.append(["A00b", "09-NOV-%d" % year, "N-MFP3/A", "1", "31-%s-%d" % (month, year), "Registrant", "1", "", "Series", "Series", "", "SID00"])
-        ser.append(["A00b", "Government", net * 2, 31, 61])
+        ser.append(["A00b", "Government", net * 2, 31, 61, "N"])
         sec.append(["A00b", 1, "Federal Reserve Bank of New York", "U.S. Treasury Repurchase Agreement, if collateralized only by U.S. Treasuries (including Strips) and cash", "N", "N", "", 3e10])
     for i in range(extra_month):
         sub.append(["B%02d" % i, "05-OCT-%d" % year, "N-MFP3", "1", "30-SEP-%d" % year, "R", "1", "", "S", "S", "", "OLD%02d" % i])
     members = {
         "NMFP_SUBMISSION.tsv": tsv("ACCESSION_NUMBER FILING_DATE SUBMISSIONTYPE CIK REPORTDATE REGISTRANTFULLNAME FILER_CIK REGISTRANTLEIID SERIES_NAME NAMEOFSERIES LEIOFSERIES SERIESID".split(), sub),
-        "NMFP_SERIESLEVELINFO.tsv": tsv("ACCESSION_NUMBER MONEYMARKETFUNDCATEGORY NETASSETOFSERIES AVERAGEPORTFOLIOMATURITY AVERAGELIFEMATURITY".split(), ser),
+        "NMFP_SERIESLEVELINFO.tsv": tsv("ACCESSION_NUMBER MONEYMARKETFUNDCATEGORY NETASSETOFSERIES AVERAGEPORTFOLIOMATURITY AVERAGELIFEMATURITY FEEDERFUNDFLAG".split(), ser),
         "NMFP_SCHPORTFOLIOSECURITIES.tsv": tsv("ACCESSION_NUMBER SECURITY_ID NAMEOFISSUER INVESTMENTCATEGORY REPURCHASEAGREEMENTCLEAREDFLA REPURCHASEAGREEMENTTRIPARTYFL NAMEOFCCP INCLUDINGVALUEOFANYSPONSORSUPP".split(), sec),
         "NMFP_DLYSHAREHOLDERFLOWREPORT.tsv": tsv("ACCESSION_NUMBER CLASSESID DAILYGROSSSUBSCRIPTIONS DAILYGROSSREDEMPTIONS DAILYSHAREHOLDERFLOWDATE".split(), flow),
         "NMFP_COLLATERALISSUERS.tsv": tsv("ACCESSION_NUMBER SECURITY_ID NAMEOFCOLLATERALISSUER CTGRYINVESTMENTSRPRSNTSCOLLATE VALUEOFCOLLATERALTOTHENEARESTC".split(), col),
@@ -275,7 +279,10 @@ def quarter(amend=True):
 def test_file_names_are_dated():
     assert S.period_of("2026q3_nport.zip") == (2026, 9, 30) and S.period_of("2026_10_bdc.zip") == (2026, 10, 31)
     assert S.period_of("20261008-20261106_nmfp.zip") == (2026, 11, 6) and S.period_of("01jun2026-31aug2026_form13f.zip") == (2026, 8, 31)
-    assert S.period_of("2010q4_nmfp.zip") == (2010, 12, 31) and S.period_of("readme.zip") is None
+    assert S.period_of("2010q4_nmfp.zip") == (2010, 12, 31) and S.period_of("readme.zip") is None and S.period_of("2013q4_d_0.zip") == (2013, 12, 31)
+    import re as _re
+    assert _re.search(S.SETS["formd"]["match"], "2013q4_d_0.zip") and _re.search(S.SETS["formd"]["match"], "2026q3_d.zip") and not _re.search(S.SETS["formd"]["match"], "2026q3_rega.zip")
+    assert _re.search(S.SETS["ncen"]["match"], "2024q1_ncen_0.zip") and _re.search(S.SETS["ncen"]["match"], "2026q3_ncen.zip")
     assert S.size_of("440.95 MB") == int(440.95 * 1024 ** 2) and S.size_of("602.94 KB") == int(602.94 * 1024) and S.size_of("ZIP") is None
 
 
@@ -326,6 +333,7 @@ def test_a_month_of_money_funds():
     assert doc["month"] == "2026-10" and doc["funds"] == 5 and doc["filings_in_file"] == 6
     assert doc["report_dates"] == {"2026-10-30": 2, "2026-10-31": 3}                              # both month-end dates are the month
     assert doc["net_assets"] == round(5e10 * 4 + 1e11)                                             # fund 0 counted once, by its later filing
+    assert doc["feeders"] == {"funds": 1, "net_assets": round(5e10)} and doc["net_assets_ex_feeders"] == round(5e10 * 3 + 1e11)      # a feeder's assets sit in its master too
     gov = next(t for t in doc["by_type"] if t["type"] == "Government")
     assert gov["funds"] == 3 and gov["net_assets"] == round(2e11) and gov["gross_yield_7d"] == 4.2 and gov["daily_liquid_pct"] == 0.61
     assert next(t for t in doc["by_type"] if t["type"] == "Prime")["gross_yield_7d"] == 4.3         # the last date's yield, not the one before
@@ -365,7 +373,7 @@ def test_a_quarter_of_fund_holdings():
     assert s["funds"] == 6 and s["filings_in_file"] == 7 and s["as_of"] == "2026-07-31" and s["report_dates"] == {"2026-06-30": 2, "2026-07-31": 4}
     assert s["net_assets"] == round(5 * 4.9e9 + 4.8e9)                                              # fund 0 by its amendment
     classes = {c["code"]: c for c in s["classes"]}
-    assert classes["DBT"]["rows"] == 5 * 2 + 1 and classes["LON"]["level3_rows"] == 10 and classes["EC"]["name"] == "Common stock"
+    assert classes["DBT"]["rows"] == 5 * 2 + 1 and classes["LON"]["level3_rows"] == 10 + 30 and classes["EC"]["name"] == "Common stock"
     assert s["flows_by_month"]["2026-07"]["funds"] == 4 and s["flows_by_month"]["2026-05"]["net"] == round(4 * (10 + 1 - 20) + 2 * (30 + 1 - 20))
     b = docs["bonds"]
     rows = [dict(zip(b["cols"], r)) for r in b["rows"]]
@@ -379,7 +387,7 @@ def test_a_quarter_of_fund_holdings():
     assert dead["n_default"] == 5 and dead["n_arrears"] == 5 and dead["px"] == 40.0 and dead["funds"] == 5
     loan = next(r for r in rows if r["cls"] == "LON")
     assert loan["issuer"] == "Shared Borrower LLC" and loan["funds"] == 5 and loan["n_pik"] == 5 and loan["n_l3"] == 5 and loan["px"] == 75.0
-    assert len(rows) == 3 and b["totals"] == {"securities": 3, "with_identifier": 2, "set_aside_small": 5, "flag_default": 1, "flag_arrears": 1, "flag_pik": 1}
+    assert len(rows) == 3 and b["totals"] == {"securities": 3, "with_identifier": 2, "set_aside_small": 5, "set_aside_repeated_name": 1, "flag_default": 1, "flag_arrears": 1, "flag_pik": 1}
     assert s["set_aside_impossible"]["rows"] == 1 and s["set_aside_impossible"]["value"] == round(9e10) and not any(r["issuer"] == "Slip Corp" for r in rows)
     assert dead["rows"] == 5 and cw["rows"] == 6, "positions are counted beside funds"
     c = docs["cds"]
@@ -477,17 +485,20 @@ def test_a_run_banks_reads_and_publishes():
         assert len(w.s3.puts) > puts and w.s3.doc("data/warm/sec-datasets/manifest.json")["totals"]["nport"]["waiting_to_be_read"] == 0
         assert [h["as_of"] for h in w.s3.doc("data/sec-fund-holdings.json")["history"]] == ["2026-07-31", "2026-07-31"]
 
-        # the SEC refreshes a file: its size changes, and it is banked and read again
+        # the SEC refreshes a file. Same bytes but a later date on sec.gov: banked and read again
         url = "https://www.sec.gov/files/dera/data/form-n-mfp-data-sets/20261008-20261106_nmfp.zip"
-        w.site[url] = nmfp_zip(net=6e10)                             # the same size to the byte: only the SEC's own date tells
-        out = LF.lambda_handler({}, Ctx(900))
-        assert out["banked"] == 0, "a date before our pull is not a change"
         w.modified[url] = "Fri, 01 Jan 2100 00:00:00 GMT"
         out = LF.lambda_handler({}, Ctx(900))
         assert out["banked"] == 1 and out["months_read"] == 1, out
         m = w.s3.doc("data/warm/sec-datasets/manifest.json")
-        assert "20261008-20261106_nmfp.zip#stale" in m["sets"]["nmfp"]["files"] and any("changed on sec.gov" in n for n in m["runs"][-1]["notes"])
-        assert w.s3.doc("data/sec-money-funds.json")["month"]["net_assets"] == round(6e10 * 4 + 1.2e11)
+        assert "20261008-20261106_nmfp.zip#stale" in m["sets"]["nmfp"]["files"] and any("modified since we pulled it" in n for n in m["runs"][-1]["notes"])
+        w.modified.pop(url)
+        assert LF.lambda_handler({}, Ctx(900))["banked"] == 0, "a date before our pull is not a change"
+        # a different size: banked and read again, and the published month is the new file's
+        w.site[url] = nmfp_zip(n=7)
+        out = LF.lambda_handler({}, Ctx(900))
+        assert out["banked"] == 1 and out["months_read"] == 1, out
+        assert w.s3.doc("data/sec-money-funds.json")["month"]["funds"] == 7
     finally:
         w.close()
 

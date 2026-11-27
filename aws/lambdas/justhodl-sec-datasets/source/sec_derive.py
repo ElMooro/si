@@ -8,6 +8,8 @@
 Identifiers: the SEC files carry CUSIP and ISIN. They are used here only to tell that two funds hold the same
 security, inside a scratch database on local disk that is deleted with the run. Nothing this module returns carries a
 CUSIP or an ISIN; a bond is described by issuer, title, coupon and maturity. Tickers of listed stocks are kept.
+A holding with no CUSIP (most bonds issued outside the United States, most loans) is tied across funds only when
+they write the same issuer, title, coupon and maturity, so such a security can appear as several rows.
 
 What these tables are not: a fund's holdings are as of its own report date (two to five months before the file is
 posted) and its marks are its own valuations, not trades.
@@ -29,6 +31,7 @@ INDEX_WORDS = re.compile(r"\bCDX\b|ITRAXX|\bCMBX\b|\bMARKIT\b|\bINDEX\b|\bLCDX\b
 JUNK_NAMES = {"", "N/A", "NA", "NONE", "CREDIT DEFAULT SWAPS", "CREDIT DEFAULT SWAP", "CDS", "VARIOUS", "OTHER", "UNKNOWN"}
 MARK_RANGE = (1.0, 250.0)             # value per 100 of face outside this is a units slip, not a mark
 MIN_LOOSE_VALUE = 1e6                 # a bond or loan with no identifier is kept when two funds hold it or it is worth this much
+MAX_LOOSE_ROWS_PER_FUND = 10          # with no identifier, more positions per fund than this under one name, coupon and maturity is a repeated label
 MIN_STOCK_HELD = 25e6                 # a stock is listed when funds hold this much of it
 IMPOSSIBLE_SHARE = 1.5                # one holding worth more than this many times its whole fund is a units slip: set aside, counted
 
@@ -184,7 +187,7 @@ def nmfp_month(zf, top_n=80):
 
     kind, net = {}, {}
     types = defaultdict(lambda: {"funds": 0, "net_assets": 0.0, "wam": 0.0, "wal": 0.0})
-    first = None
+    first, feeders = None, [0, 0.0]
     for s in dicts(zf, s_ser):
         first = first or s
         acc = s.get("ACCESSION_NUMBER")
@@ -193,6 +196,9 @@ def nmfp_month(zf, top_n=80):
         t = (s.get("MONEYMARKETFUNDCATEGORY") or "").strip() or "(not stated)"
         n = fnum(s.get("NETASSETOFSERIES")) or 0.0
         kind[acc], net[acc] = t, n
+        if (s.get("FEEDERFUNDFLAG") or "").upper() == "Y":          # a feeder holds its master fund: its assets are counted there too
+            feeders[0] += 1
+            feeders[1] += n
         g = types[t]
         g["funds"] += 1
         g["net_assets"] += n
@@ -297,7 +303,8 @@ def nmfp_month(zf, top_n=80):
     ranked_banks = sorted(banks.items(), key=lambda kv: -kv[1][0])
     return {
         "month": month, "report_dates": dict(sorted(dates.items())), "funds": len(keep), "filings_in_file": len(subs),
-        "net_assets": round(sum(net.values())), "by_type": by_type, "portfolio_rows": n_rows,
+        "net_assets": round(sum(net.values())), "feeders": {"funds": feeders[0], "net_assets": round(feeders[1])},
+        "net_assets_ex_feeders": round(sum(net.values()) - feeders[1]), "by_type": by_type, "portfolio_rows": n_rows,
         "holdings": [{"category": k, "rows": c[0], "value": round(c[1])} for k, c in sorted(cats.items(), key=lambda kv: -kv[1][1])],
         "repo": dict({k: round(v) for k, v in repo.items()}, n_counterparties=len(parties),
                      counterparties=[[p, via, round(v[0]), len(v[1])] for (p, via), v in ranked[:top_n]],
@@ -315,7 +322,7 @@ def nmfp_month(zf, top_n=80):
 def nmfp_summary(doc):
     """The few figures of a month kept in the bank's manifest, so a history can be drawn without opening every month."""
     r = doc["repo"]
-    return {"month": doc["month"], "funds": doc["funds"], "net_assets": doc["net_assets"],
+    return {"month": doc["month"], "funds": doc["funds"], "net_assets": doc["net_assets"], "net_assets_ex_feeders": doc["net_assets_ex_feeders"],
             "by_type": {t["type"]: t["net_assets"] for t in doc["by_type"]},
             "repo": r["total"], "repo_via_ficc": r["via_ficc"], "repo_fed": r["federal_reserve"], "repo_treasury": r["treasury"],
             "unsecured": doc["unsecured"]["total"], "top_repo": [c[:3] for c in r["counterparties"][:10]],
@@ -521,7 +528,7 @@ def _nport(db, zf, progress):
     marks = "(%s)" % ",".join("'%s'" % c for c in BOND_CLASSES)
     cur = db.execute(
         "SELECT CASE WHEN length(h.issuer_cusip)=9 AND h.issuer_cusip NOT IN ('000000000','N/A') THEN h.issuer_cusip"
-        " ELSE 'N:'||UPPER(h.issuer_name)||'|'||UPPER(h.issuer_title) END AS k,"
+        " ELSE 'N:'||UPPER(h.issuer_name)||'|'||UPPER(h.issuer_title)||'|'||COALESCE(d.annualized_rate,'')||'|'||COALESCE(d.maturity_date,'') END AS k,"
         " h.accession_number, k.report_date, h.issuer_name, h.issuer_title, h.balance, h.unit, h.currency_code, h.currency_value, h.asset_cat, h.issuer_type,"
         " h.investment_country, h.is_restricted_security, h.fair_value_level, d.maturity_date, d.coupon_type, d.annualized_rate, d.is_default,"
         " d.are_any_interest_payment, d.is_any_portion_interest_paid"
@@ -529,7 +536,7 @@ def _nport(db, zf, progress):
         " WHERE h.asset_cat IN %s ORDER BY 1" % marks)
     cols = ["issuer", "title", "cls", "itype", "ctry", "cur", "cpn", "ck", "mat", "d", "funds", "rows", "face", "value", "px", "px_lo", "px_hi", "n_px",
             "n_default", "n_arrears", "n_pik", "n_restricted", "n_l3"]
-    bonds, totals = [], {"securities": 0, "with_identifier": 0, "set_aside_small": 0, "flag_default": 0, "flag_arrears": 0, "flag_pik": 0}
+    bonds, totals = [], {"securities": 0, "with_identifier": 0, "set_aside_small": 0, "set_aside_repeated_name": 0, "flag_default": 0, "flag_arrears": 0, "flag_pik": 0}
 
     def close(key, grp):
         funds = {g[0] for g in grp}
@@ -537,6 +544,9 @@ def _nport(db, zf, progress):
         loose = key.startswith("N:")
         if loose and len(funds) < 2 and value < MIN_LOOSE_VALUE:
             totals["set_aside_small"] += 1
+            return
+        if loose and len(grp) > MAX_LOOSE_ROWS_PER_FUND * len(funds):
+            totals["set_aside_repeated_name"] += 1      # one name, coupon and maturity on many positions of a fund: a filing that repeats a label, not one security
             return
         day = top(Counter(g[1] for g in grp))
         px = sorted(g[7] / g[4] * 100 for g in grp if g[1] == day and g[5] == "PA" and g[6] == "USD" and g[4] and g[4] > 0 and g[7] and g[7] > 0
