@@ -15,8 +15,15 @@ Ranks every firing canary by severity and lead-time, and computes CROSS-MECHANIS
 DIVERGENCES (e.g. trade booming while credit tightens) — the split-screen a
 top macro desk watches.
 
-OUTPUT  data/canary-warroom.json     SCHEDULE  hourly :50 (after feeds refresh)
+OUTPUT  data/canary-warroom.json     SCHEDULE  daily 20:50 UTC (after the feeds)
 Real aggregated data — not investment advice.
+
+2.0.0 (2026-11-27, Khalid: "improve the engine ... test it against historical data to calibrate it"):
+the barometer is also read on the scale of its own record. justhodl-warroom-weights rebuilds every canary whose
+series the warehouse holds through history and counts what the S&P 500 did next (data/canary-record.json); this
+engine places today's readings on that scale (key `calibrated`: the level and the three-month turn, each with what
+followed readings like it) and marks every canary with its record. Everything published before is still published.
+{"dry_run": true} builds the document and writes nothing.
 """
 from public_brain_projection import sanitize_public
 import json
@@ -28,6 +35,9 @@ import boto3
 S3 = boto3.client("s3", region_name="us-east-1")
 BUCKET = "justhodl-dashboard-live"
 OUT_KEY = "data/canary-warroom.json"
+RECORD_KEY = "data/canary-record.json"
+VERSION = "2.0.0"
+WATCHED = 12            # the mechanisms the board reads; fewer vote on a day one abstains or has no rows
 
 
 def gj(key):
@@ -59,6 +69,7 @@ def norm_macro_grid(d):
             continue
         st = s.get("stress")
         cans.append({"mechanism": "macro_grid", "mech_label": "Macro Leads",
+                     "key": s.get("key"), "id": "macro_grid:%s" % s.get("key"),
                      "name": s.get("name"), "stress": st, "band": _band(st),
                      "lead_months": s.get("lead_months"), "sub": s.get("sub_grid"),
                      "value": s.get("value"), "unit": s.get("unit"),
@@ -221,6 +232,7 @@ def norm_ciss(d):
         label = (s.get("label") or s.get("name") or s.get("key") or "?")
         st = round(float(pct), 1)
         cans.append({"mechanism": "ciss", "mech_label": "CISS (ECB)",
+                     "key": str(label), "id": "ciss:%s" % label,
                      "name": "CISS: %s" % label, "stress": st,
                      "band": _band(st), "lead_months": 1,
                      "value": st_block.get("latest"),
@@ -415,6 +427,7 @@ def norm_plumbing(d):
             continue
         cans.append({"mechanism": "plumbing",
                      "mech_label": "Plumbing & Stress",
+                     "key": iid, "id": "plumbing:%s" % iid,
                      "name": m.get("label") or iid,
                      "stress": st, "band": _band(st), "lead_months": 0.5,
                      "value": m.get("value"),
@@ -628,6 +641,78 @@ def brain_playbook():
              "text_private": True} for h in uniq[:8]]
 
 
+def _ymd(day):
+    return day.year * 10000 + day.month * 100 + day.day
+
+
+def calibrate(record, all_cans, now, history):
+    """Today's readings placed on the record's own scale, and each canary marked with its record.
+
+    record   data/canary-record.json (justhodl-warroom-weights); None leaves the board as it was
+    history  this engine's own daily entries; one about three months old gives the turn its base, else the record's
+             own month-end rebuild does
+    """
+    if not isinstance(record, dict) or not record.get("canaries"):
+        for c in all_cans:
+            c["record"] = {"verdict": "no record"}
+        return None
+    import canary_record as CR
+    by_id = dict((c.get("id"), c) for c in record["canaries"])
+    live = {}
+    for c in all_cans:
+        rec = by_id.get(c.get("id")) if c.get("id") else None
+        if rec and rec.get("months"):
+            live[c["id"]] = c.get("stress")
+            c["record"] = {"verdict": rec.get("verdict"), "months": rec.get("months"), "from": rec.get("from"), "fired_share": rec.get("fired_share"),
+                           "score_early": rec.get("auc_early"), "score_early_error": rec.get("auc_early_se"), "score_all": rec.get("auc"),
+                           "fall_after_firing": rec.get("early_fall_after_firing"), "fall_after_quiet": rec.get("early_fall_after_quiet"),
+                           "falls_covered": rec.get("falls_covered"), "warned_before_high": rec.get("warned_before_high"),
+                           "lead_months": rec.get("lead_months"), "weight": rec.get("weight"), "flag": rec.get("flag")}
+        else:
+            c["record"] = {"verdict": "no record", "why": (rec or {}).get("why_not") or "its mechanism has not been rebuilt through history yet"}
+    today = _ymd(now)
+    base, want = None, CR._ord(today) - 91
+    for h in history or []:
+        cal = h.get("cal") if isinstance(h, dict) else None
+        if not isinstance(cal, dict) or not cal.get("mech"):
+            continue
+        try:
+            day = int(str(h["d"]).replace("-", ""))
+        except (KeyError, ValueError):
+            continue
+        gap = abs(CR._ord(day) - want)
+        if gap <= 10 and (base is None or gap < base["gap"]):
+            base = {"day": day, "mech": cal["mech"], "from": "this engine's own reading that day", "gap": gap}
+    if base:
+        base.pop("gap", None)
+    reading = CR.live_reading(record, live, today=today, base=base)
+    if not reading:
+        return None
+    baro = record.get("barometer") or {}
+    t3 = (baro.get("turns") or {}).get(str(CR.TURN_MONTHS)) or {}
+    lvl = (baro.get("views") or {}).get("per_mechanism") or {}
+    mkt = record.get("market") or {}
+    out = {"level": reading.get("level"), "turn": reading.get("turn"), "cell": reading.get("cell"),
+           "per_canary": reading.get("per_canary"), "earned": reading.get("earned"),
+           "canaries": reading.get("canaries"), "of_tested": reading.get("of_tested"), "day": today,
+           "what_is_counted": mkt and {"fall": (record.get("method") or {}).get("fall"), "months": mkt.get("months"), "fell": mkt.get("fell"), "fall_share": mkt.get("fall_share"),
+                                       "early_months": mkt.get("early_months"), "early_fell": mkt.get("early_fell"), "early_fall_share": mkt.get("early_fall_share"),
+                                       "index_from_high_at_cut": mkt.get("from_high_now")},
+           "record": {"key": RECORD_KEY, "generated_at": record.get("generated_at"), "cut_day": record.get("cut_day"), "version": record.get("version"),
+                      "tested": record.get("tested"), "defined": record.get("defined"), "verdicts": record.get("verdicts"),
+                      "level_score_early": lvl.get("auc_early"), "level_score_early_error": lvl.get("auc_early_se"), "level_score_all": lvl.get("auc"),
+                      "turn_score_early": (t3.get("earned") or {}).get("auc_early"), "turn_score_early_error": (t3.get("earned") or {}).get("auc_early_se"),
+                      "turn_score_all": (t3.get("earned") or {}).get("auc"), "turn_months": (t3.get("earned") or {}).get("months"),
+                      "turn_weights": t3.get("weights_now"), "level_from": lvl.get("from"), "turn_from": (t3.get("earned") or {}).get("from")},
+           "note": ("The level says how stressed the tested canaries are against their own history: it has confirmed falls, not warned of them. "
+                    "The turn - the change over about three months, mechanisms weighted by their own record - has tilted the odds ahead of falls. "
+                    "Counts of what happened; not a forecast.")}
+    out["history_entry"] = {"l": (reading.get("level") or {}).get("score"), "lp": (reading.get("level") or {}).get("percentile"),
+                            "t": (reading.get("turn") or {}).get("change"), "tp": (reading.get("turn") or {}).get("percentile"),
+                            "mech": (reading.get("level") or {}).get("by_mechanism")}
+    return out
+
+
 MECHS = [("data/canary-grid.json", norm_macro_grid), ("data/crisis-canaries.json", norm_crisis),
          ("data/leading-markets.json", norm_leading_markets), ("data/dollar-radar.json", norm_dollar),
          ("data/vol-radar.json", norm_vol),
@@ -774,6 +859,10 @@ def lambda_handler(event=None, context=None):
                                "alarms, from the live event-study "
                                "(8 windows, 1997-2023)",
                   "n_qualifying": len(leads), "leads": leads}
+    # ── 2.0: today's readings on the scale of the canaries' own record ──
+    record = gj(RECORD_KEY)
+    prior = gj("data/warroom-history.json")
+    calibrated = calibrate(record, all_cans, now, prior if isinstance(prior, list) else [])
     # ── history + velocity (Khalid item 1+3): one snapshot per UTC
     # date (engine runs hourly -- today's entry is overwritten), capped
     # 1200 days; 21d velocity = delta vs the nearest snapshot >=21 days
@@ -784,6 +873,7 @@ def lambda_handler(event=None, context=None):
         hist = []
     n_fire_total = sum(1 for c in all_cans if c.get("firing"))
     entry = {"d": today, "pc": baro, "pm": pm, "ew": earned,
+             "cal": (calibrated or {}).get("history_entry"),
              "votes": len(votes), "nfire": n_fire_total,
              "mech": {k: v["score"] for k, v in mech_view.items()},
              "fire": {k: [v.get("firing_pct"),
@@ -791,11 +881,13 @@ def lambda_handler(event=None, context=None):
                       for k, v in mech_view.items()}}
     hist = [h for h in hist if h.get("d") != today] + [entry]
     hist = sorted(hist, key=lambda h: h.get("d", ""))[-1200:]
+    dry = bool((event or {}).get("dry_run")) if isinstance(event, dict) else False
     try:
-        S3.put_object(Bucket=BUCKET, Key="data/warroom-history.json",
-                      Body=json.dumps(hist).encode(),
-                      ContentType="application/json",
-                      CacheControl="max-age=600")
+        if not dry:
+            S3.put_object(Bucket=BUCKET, Key="data/warroom-history.json",
+                          Body=json.dumps(hist).encode(),
+                          ContentType="application/json",
+                          CacheControl="max-age=600")
     except Exception as e:
         print("[warroom] history write: %s" % e)
 
@@ -893,20 +985,27 @@ def lambda_handler(event=None, context=None):
             picks = [{"ticker": "SH", "direction": "LONG",
                       "score": round(earned - 55 + 5, 1),
                       "note": "barometer risk-off band (inverse ETF)"}]
-    out = {"engine": "justhodl-canary-warroom", "generated_at": now.isoformat(),
+    if calibrated:
+        calibrated.pop("history_entry", None)
+    n_voting = len(mech_view)
+    out = {"engine": "justhodl-canary-warroom", "version": VERSION, "generated_at": now.isoformat(),
+           "calibrated": calibrated,
            "top_picks": picks,
            "barometer": barometer,
            "master": {"early_warning_0_100": master_ew, "band": _band(master_ew),
                       "n_firing": len(firing), "n_canaries": len(all_cans),
                       "n_divergences": len(divs),
-                      "headline": "%d of %d canaries firing across 12 mechanisms; early-warning %s (%s). %d cross-mechanism divergence%s." % (
-                          len(firing), len(all_cans), master_ew, _band(master_ew), len(divs), "" if len(divs) == 1 else "s")},
+                      "n_mechanisms_voting": n_voting, "n_mechanisms_watched": WATCHED,
+                      "headline": "%d of %d canaries firing across %d voting mechanisms (%d watched); early-warning %s (%s). %d cross-mechanism divergence%s." % (
+                          len(firing), len(all_cans), n_voting, WATCHED, master_ew, _band(master_ew), len(divs), "" if len(divs) == 1 else "s")},
            "mechanisms": cards, "firing": firing[:40], "all_canaries": all_cans,
            "divergences": divs, "brain_playbook": brain_playbook(),
            "note": "Unified early-warning across every canary mechanism the platform runs, plus the operator's own brain playbook. Real aggregated data — not advice."}
+    if dry:
+        return {"ok": True, "dry_run": True, "document": sanitize_public(OUT_KEY, out)}
     S3.put_object(Bucket=BUCKET, Key=OUT_KEY, Body=json.dumps(sanitize_public(OUT_KEY, out), ensure_ascii=False, default=str).encode("utf-8"),
                   ContentType="application/json; charset=utf-8", CacheControl="max-age=1800")
-    return {"ok": True, "barometer": baro, "per_mechanism": pm, "earned": earned, "master_ew": master_ew, "n_firing": len(firing), "n_divergences": len(divs)}
+    return {"ok": True, "version": VERSION, "calibrated": bool(calibrated), "barometer": baro, "per_mechanism": pm, "earned": earned, "master_ew": master_ew, "n_firing": len(firing), "n_divergences": len(divs)}
 
 
 _orig_handler_4219 = lambda_handler
@@ -915,6 +1014,8 @@ _orig_handler_4219 = lambda_handler
 def lambda_handler(event=None, context=None):
     """bus_canaries — bus enrichment wrapper (core untouched)."""
     r = _orig_handler_4219(event, context)
+    if isinstance(r, dict) and r.get("dry_run"):
+        return r                                   # a dry run writes nothing, so there is nothing to enrich
     try:
         _bus = (json.loads(S3.get_object(
             Bucket=BUCKET,

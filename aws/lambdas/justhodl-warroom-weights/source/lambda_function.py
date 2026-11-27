@@ -64,6 +64,11 @@ ROLL = 36                # rolling percentile window, months
 _LAST = [0.0]
 
 
+def _shown(url):
+    """A URL as it may appear in a log: nothing from the query string on (a key travels there)."""
+    return str(url).split("?", 1)[0][:80]
+
+
 def _get(url, timeout=25):
     for attempt in (0, 1):
         try:
@@ -79,13 +84,13 @@ def _get(url, timeout=25):
             if attempt == 0 and he.code in (429, 500, 502, 503):
                 time.sleep(3)
                 continue
-            print("[weights] %s: %s" % (url[:80], he))
+            print("[weights] %s: %s" % (_shown(url), he))
             return None
         except Exception as e:
             if attempt == 0:
                 time.sleep(2)
                 continue
-            print("[weights] %s: %s" % (url[:80], e))
+            print("[weights] %s: %s" % (_shown(url), type(e).__name__))
             return None
 
 
@@ -457,6 +462,38 @@ def lambda_handler(event=None, context=None):
           % (OUT_KEY, out["n_learned"], len(mech)))
     return {"ok": True, "n_learned": out["n_learned"],
             "weights": {k: v.get("weight") for k, v in mech.items()}}
+
+
+# ── 2.0 (2026-11-27): the canaries' own record, beside the proxy study above ──────────────────────────────────────────
+# Khalid: "test it against historical data to calibrate it". The study above weighs twelve mechanisms on stand-in
+# series against eight hand-picked windows. The record (canary_record.py, read and written by record_io.py) rebuilds
+# every canary whose series the warehouse holds, month by month with its engine's own rule, and counts what the
+# S&P 500 did next. Both run on the monthly schedule; either failing leaves the other's document as it was.
+VERSION = "2.0.0"
+_proxy_study = lambda_handler
+
+
+def lambda_handler(event=None, context=None):
+    """{"dry_run": true} builds the record and writes nothing (the proxy study is skipped);
+    {"record_only": true} publishes the record alone."""
+    event = event if isinstance(event, dict) else {}
+    out = {"ok": True, "version": VERSION}
+    dry = bool(event.get("dry_run"))
+    if not dry and not event.get("record_only"):
+        try:
+            out["proxy_study"] = _proxy_study(event, context)
+        except Exception as e:  # noqa: BLE001 - the record must still run
+            out["proxy_study"] = {"ok": False, "error": type(e).__name__}
+            print("[weights] proxy study failed: %s" % type(e).__name__)
+    try:
+        import record_io
+        summary, _record = record_io.run(S3, BUCKET, dry_run=dry)
+        out["record"] = summary
+    except Exception as e:  # noqa: BLE001
+        out["record"] = {"ok": False, "error": type(e).__name__, "detail": str(e)[:200]}
+        print("[weights] record failed: %s %s" % (type(e).__name__, str(e)[:200]))
+    out["ok"] = bool((out.get("record") or {}).get("ok"))
+    return out
 
 
 if __name__ == "__main__":

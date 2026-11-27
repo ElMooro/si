@@ -1,0 +1,1174 @@
+{
+ "from": [
+  "aws/lambdas/justhodl-canary-grid/source/lambda_function.py",
+  "aws/lambdas/justhodl-plumbing-aggregator/source/lambda_function.py",
+  "aws/lambdas/justhodl-canary-warroom/source/lambda_function.py"
+ ],
+ "grid": [
+  {
+   "dir": "fall",
+   "grid": "trade_shipping",
+   "key": "korea_exports",
+   "kind": "yoy",
+   "lead": 3,
+   "limit": 160,
+   "name": "South Korea exports",
+   "sources": [
+    "XTEXVA01KRM664S"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "fall",
+   "grid": "trade_shipping",
+   "key": "china_exports",
+   "kind": "yoy",
+   "lead": 3,
+   "limit": 160,
+   "name": "China exports",
+   "sources": [
+    "XTEXVA01CNM664S"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "fall",
+   "grid": "trade_shipping",
+   "key": "singapore_nodx",
+   "kind": "yoy",
+   "lead": 2,
+   "limit": 160,
+   "name": "Singapore NODX (trade + chip hub)",
+   "sources": [
+    "feed:singapore-nodx:nodx_total.history"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "fall",
+   "grid": "trade_shipping",
+   "key": "semiconductor_ip",
+   "kind": "yoy",
+   "lead": 3,
+   "limit": 160,
+   "name": "Semiconductor production (chip cycle)",
+   "sources": [
+    "IPG3344S"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "fall",
+   "grid": "trade_shipping",
+   "key": "taiwan_export_orders",
+   "kind": "yoy",
+   "lead": 3,
+   "limit": 160,
+   "name": "Taiwan export orders (tech-demand lead)",
+   "sources": [
+    "feed:taiwan-moea:export_orders.history"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "fall",
+   "grid": "trade_shipping",
+   "key": "taiwan_semiconductor",
+   "kind": "yoy",
+   "lead": 3,
+   "limit": 160,
+   "name": "Taiwan semiconductor production (chip cycle)",
+   "sources": [
+    "feed:taiwan-moea:semiconductor.production.history"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "fall",
+   "grid": "commodity_cycle",
+   "key": "copper",
+   "kind": "yoy",
+   "lead": 2,
+   "limit": 160,
+   "name": "Copper price (Dr. Copper)",
+   "sources": [
+    "PCOPPUSDM"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "fall",
+   "grid": "commodity_cycle",
+   "key": "chile_exports",
+   "kind": "yoy",
+   "lead": 2,
+   "limit": 160,
+   "name": "Chile exports (Dr. Copper supply side)",
+   "sources": [
+    "XTEXVA01CLM664S"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "fall",
+   "grid": "commodity_cycle",
+   "key": "peru_copper",
+   "kind": "yoy",
+   "lead": 2,
+   "limit": 160,
+   "name": "Peru copper production (Dr. Copper supply)",
+   "sources": [
+    "feed:peru-copper:copper_production.history"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "fall",
+   "grid": "commodity_cycle",
+   "key": "lumber",
+   "kind": "yoy",
+   "lead": 2,
+   "limit": 160,
+   "name": "Lumber & wood (PPI)",
+   "sources": [
+    "WPU081"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "fall",
+   "grid": "funding_plumbing",
+   "key": "chf_haven",
+   "kind": "mom",
+   "lead": 1,
+   "limit": 1300,
+   "name": "Swiss franc (haven bid)",
+   "sources": [
+    "DEXSZUS"
+   ],
+   "win": 63
+  },
+  {
+   "dir": "fall",
+   "grid": "labor_industrial",
+   "key": "mfg_hours",
+   "kind": "yoy",
+   "lead": 2,
+   "limit": 160,
+   "name": "US mfg average weekly hours",
+   "sources": [
+    "AWHMAN"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "fall",
+   "grid": "labor_industrial",
+   "key": "temp_help",
+   "kind": "yoy",
+   "lead": 2,
+   "limit": 160,
+   "name": "US temp-help employment",
+   "sources": [
+    "TEMPHELPS"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "rise",
+   "grid": "labor_industrial",
+   "key": "swiss_unemp",
+   "kind": "diff",
+   "lead": 2,
+   "limit": 160,
+   "name": "Switzerland unemployment",
+   "sources": [
+    "LMUNRRTTCHM156S",
+    "LRUNTTTTCHM156S",
+    "LRHUTTTTCHM156S"
+   ],
+   "win": 6
+  },
+  {
+   "dir": "fall",
+   "grid": "labor_industrial",
+   "key": "japan_mfg_orders",
+   "kind": "level",
+   "lead": 3,
+   "limit": 220,
+   "name": "Japan manufacturing orders (capex lead)",
+   "sources": [
+    "JPNPRMNTO01GYSAM"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "rise",
+   "grid": "labor_industrial",
+   "key": "initial_claims",
+   "kind": "level",
+   "lead": 2,
+   "limit": 420,
+   "name": "US initial jobless claims (4wk avg)",
+   "sources": [
+    "IC4WSA"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "fall",
+   "grid": "commodity_cycle",
+   "key": "building_permits",
+   "kind": "yoy",
+   "lead": 6,
+   "limit": 200,
+   "name": "US building permits (housing lead)",
+   "sources": [
+    "PERMIT"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "fall",
+   "grid": "rates_credit",
+   "key": "yield_curve",
+   "kind": "level",
+   "lead": 12,
+   "limit": 2600,
+   "name": "Yield curve 10y-2y (recession lead)",
+   "sources": [
+    "T10Y2Y"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "rise",
+   "grid": "rates_credit",
+   "key": "hy_credit_oas",
+   "kind": "level",
+   "lead": 2,
+   "limit": 1300,
+   "name": "High-yield credit spread (OAS)",
+   "sources": [
+    "BAMLH0A0HYM2"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "fall",
+   "grid": "rates_credit",
+   "key": "real_m2",
+   "kind": "yoy",
+   "lead": 12,
+   "limit": 200,
+   "name": "Real M2 money growth (monetary lead)",
+   "sources": [
+    "M2REAL"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "rise",
+   "grid": "rates_credit",
+   "key": "lending_standards",
+   "kind": "level",
+   "lead": 6,
+   "limit": 140,
+   "name": "Bank lending standards (SLOOS)",
+   "sources": [
+    "DRTSCILM"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "fall",
+   "grid": "trade_shipping",
+   "key": "finland_exports",
+   "kind": "yoy",
+   "lead": 3,
+   "limit": 200,
+   "name": "Finland exports (euro cyclical bellwether)",
+   "sources": [
+    "XTEXVA01FIM664S"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "fall",
+   "grid": "commodity_cycle",
+   "key": "ppi_pulp_paper",
+   "kind": "yoy",
+   "lead": 4,
+   "limit": 200,
+   "name": "PPI pulp & paper (packaging demand)",
+   "sources": [
+    "WPU0911"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "rise",
+   "grid": "rates_credit",
+   "key": "hqm_credit_spread",
+   "kind": "level",
+   "lead": 6,
+   "limit": 180,
+   "name": "HQM 10y - Treasury 10y credit spread",
+   "sources": [
+    "spread:HQMCB10YR:DGS10"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "fall",
+   "grid": "labor_industrial",
+   "key": "cfnai_activity",
+   "kind": "level",
+   "lead": 1,
+   "limit": 220,
+   "name": "Chicago Fed activity index (ISM/PMI proxy)",
+   "sources": [
+    "CFNAIMA3"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "rise",
+   "grid": "funding_plumbing",
+   "key": "swap_line_usage",
+   "kind": "level",
+   "lead": 1,
+   "limit": 700,
+   "name": "Fed central-bank swap lines (offshore USD stress)",
+   "sources": [
+    "SWPT"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "rise",
+   "grid": "funding_plumbing",
+   "key": "repo_sofr_iorb",
+   "kind": "level",
+   "lead": 1,
+   "limit": 1300,
+   "name": "Repo rate stress (SOFR - IORB)",
+   "sources": [
+    "spread:SOFR:IORB"
+   ],
+   "win": 63
+  },
+  {
+   "dir": "rise",
+   "grid": "funding_plumbing",
+   "key": "rrp_parking",
+   "kind": "diff",
+   "lead": 1,
+   "limit": 1300,
+   "name": "Reverse repo 13w change (cash parking at the Fed)",
+   "sources": [
+    "RRPONTSYD"
+   ],
+   "win": 63
+  },
+  {
+   "dir": "fall",
+   "grid": "funding_plumbing",
+   "key": "bank_reserves",
+   "kind": "mom",
+   "lead": 2,
+   "limit": 340,
+   "name": "Bank reserves (system cash cushion)",
+   "sources": [
+    "WRESBAL"
+   ],
+   "win": 52
+  },
+  {
+   "dir": "rise",
+   "grid": "funding_plumbing",
+   "key": "cp3m_ff",
+   "kind": "level",
+   "lead": 1,
+   "limit": 1300,
+   "name": "3m commercial paper - fed funds (credit access)",
+   "sources": [
+    "spread:RIFSPPNAAD90NB:DFF",
+    "spread:CPN3M:DFF",
+    "spread:DCPN3M:DFF"
+   ],
+   "win": 63
+  },
+  {
+   "dir": "fall",
+   "grid": "funding_plumbing",
+   "key": "bill4w_floor",
+   "kind": "level",
+   "lead": 1,
+   "limit": 1300,
+   "name": "4-week T-bill vs IORB (flight to bills)",
+   "sources": [
+    "spread:DTB4WK:IORB"
+   ],
+   "win": 63
+  },
+  {
+   "dir": "fall",
+   "grid": "funding_plumbing",
+   "key": "global_fx_reserves",
+   "kind": "mom",
+   "lead": 3,
+   "limit": 220,
+   "name": "Global CB FX reserves ex-gold (CN+US+JP)",
+   "sources": [
+    "sum:TRESEGCNM052N+TRESEGUSM052N+TRESEGJPM052N"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "rise",
+   "grid": "funding_plumbing",
+   "key": "euribor3m",
+   "kind": "diff",
+   "lead": 2,
+   "limit": 200,
+   "name": "3m Euribor repricing (euro rate path)",
+   "sources": [
+    "ecb:FM/M.U2.EUR.RT.MM.EURIBOR3MD_.HSTA"
+   ],
+   "win": 6
+  },
+  {
+   "dir": "fall",
+   "grid": "global_risk",
+   "key": "hyg_lqd",
+   "kind": "mom",
+   "lead": 1,
+   "limit": 600,
+   "name": "Junk vs IG credit (HYG/LQD)",
+   "sources": [
+    "feed:risk-ratios:hyg_lqd.history"
+   ],
+   "win": 63
+  },
+  {
+   "dir": "fall",
+   "grid": "global_risk",
+   "key": "fallen_angels_rs",
+   "kind": "mom",
+   "lead": 1,
+   "limit": 600,
+   "name": "Fallen angels vs broad HY (ANGL/HYG)",
+   "sources": [
+    "feed:risk-ratios:angl_hyg.history"
+   ],
+   "win": 63
+  },
+  {
+   "dir": "fall",
+   "grid": "global_risk",
+   "key": "hy_etf",
+   "kind": "mom",
+   "lead": 1,
+   "limit": 600,
+   "name": "High-yield bond ETF tape (HYG)",
+   "sources": [
+    "feed:risk-ratios:hyg.history"
+   ],
+   "win": 63
+  },
+  {
+   "dir": "fall",
+   "grid": "global_risk",
+   "key": "acwi_tape",
+   "kind": "mom",
+   "lead": 0.5,
+   "limit": 600,
+   "name": "Global equity tape (MSCI ACWI)",
+   "sources": [
+    "feed:risk-ratios:acwi.history"
+   ],
+   "win": 63
+  },
+  {
+   "dir": "rise",
+   "grid": "global_risk",
+   "key": "em_vol",
+   "kind": "level",
+   "lead": 1,
+   "limit": 600,
+   "name": "Emerging-market volatility (EEM 21d realized)",
+   "sources": [
+    "feed:risk-ratios:eem_rvol.history"
+   ],
+   "win": 63
+  },
+  {
+   "dir": "fall",
+   "grid": "global_risk",
+   "key": "global_consumer",
+   "kind": "mom",
+   "lead": 1,
+   "limit": 600,
+   "name": "Global consumer discretionary (RXI proxy)",
+   "sources": [
+    "feed:risk-ratios:rxi.history"
+   ],
+   "win": 63
+  },
+  {
+   "dir": "rise",
+   "grid": "rates_credit",
+   "key": "btp_bund",
+   "kind": "level",
+   "lead": 3,
+   "limit": 220,
+   "name": "BTP-Bund spread (euro sovereign stress)",
+   "sources": [
+    "spread:IRLTLT01ITM156N:IRLTLT01DEM156N",
+    "ecbspread:IRS/M.IT.L.L40.CI.0000.EUR.N.Z|IRS/M.DE.L.L40.CI.0000.EUR.N.Z"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "rise",
+   "grid": "rates_credit",
+   "key": "euro_hy_oas",
+   "kind": "level",
+   "lead": 2,
+   "limit": 1300,
+   "name": "Euro high-yield OAS (ICE BofA)",
+   "sources": [
+    "BAMLHE00EHYIOAS"
+   ],
+   "win": 63
+  },
+  {
+   "dir": "rise",
+   "grid": "rates_credit",
+   "key": "em_corp_oas",
+   "kind": "level",
+   "lead": 2,
+   "limit": 1300,
+   "name": "EM corporate bond OAS (ICE BofA)",
+   "sources": [
+    "BAMLEMCBPIOAS"
+   ],
+   "win": 63
+  },
+  {
+   "dir": "rise",
+   "grid": "rates_credit",
+   "key": "em_hy_oas",
+   "kind": "level",
+   "lead": 2,
+   "limit": 1300,
+   "name": "EM high-yield OAS (ICE BofA)",
+   "sources": [
+    "BAMLEMHBHYCRPIOAS"
+   ],
+   "win": 63
+  },
+  {
+   "dir": "rise",
+   "grid": "rates_credit",
+   "key": "us_hy_ytw",
+   "kind": "level",
+   "lead": 2,
+   "limit": 1300,
+   "name": "US HY semi-annual yield to worst",
+   "sources": [
+    "BAMLH0A0HYM2SYTW",
+    "BAMLH0A0HYM2EY"
+   ],
+   "win": 63
+  },
+  {
+   "dir": "rise",
+   "grid": "rates_credit",
+   "key": "em_hy_ytw",
+   "kind": "level",
+   "lead": 2,
+   "limit": 1300,
+   "name": "EM HY semi-annual yield to worst",
+   "sources": [
+    "BAMLEMHBHYCRPISYTW",
+    "BAMLEMHBHYCRPIEY"
+   ],
+   "win": 63
+  },
+  {
+   "dir": "fall",
+   "grid": "rates_credit",
+   "key": "eu_curve_30_5",
+   "kind": "level",
+   "lead": 6,
+   "limit": 600,
+   "name": "Euro AAA curve 30y-5y slope",
+   "sources": [
+    "ecbspread:YC/B.U2.EUR.4F.G_N_A.SV_C_YM.SR_30Y|YC/B.U2.EUR.4F.G_N_A.SV_C_YM.SR_5Y"
+   ],
+   "win": 63
+  },
+  {
+   "dir": "fall",
+   "grid": "commodity_cycle",
+   "key": "global_metals",
+   "kind": "yoy",
+   "lead": 2,
+   "limit": 200,
+   "name": "Global metals price index (IMF)",
+   "sources": [
+    "PMETAINDEXM"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "fall",
+   "grid": "commodity_cycle",
+   "key": "chile_tot_proxy",
+   "kind": "yoy",
+   "lead": 2,
+   "limit": 200,
+   "name": "Chile terms-of-trade proxy (copper/Brent)",
+   "sources": [
+    "ratio:PCOPPUSDM:POILBREUSDM"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "fall",
+   "grid": "commodity_cycle",
+   "key": "peru_tot_proxy",
+   "kind": "yoy",
+   "lead": 2,
+   "limit": 200,
+   "name": "Peru terms-of-trade proxy (metals/Brent)",
+   "sources": [
+    "ratio:PMETAINDEXM:POILBREUSDM"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "rise",
+   "grid": "commodity_cycle",
+   "key": "oil_term",
+   "kind": "level",
+   "lead": 1,
+   "limit": 200,
+   "name": "Oil term structure (WTI front-2nd)",
+   "sources": [
+    "feed:risk-ratios:oil_term.history"
+   ],
+   "win": 63
+  },
+  {
+   "dir": "fall",
+   "grid": "labor_industrial",
+   "key": "core_capex_orders",
+   "kind": "yoy",
+   "lead": 3,
+   "limit": 200,
+   "name": "Core capex orders (nondef ex-aircraft)",
+   "sources": [
+    "NEWORDER"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "fall",
+   "grid": "labor_industrial",
+   "key": "mfg_capacity",
+   "kind": "level",
+   "lead": 2,
+   "limit": 200,
+   "name": "Manufacturing capacity utilization",
+   "sources": [
+    "CUMFNS"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "fall",
+   "grid": "labor_industrial",
+   "key": "mfg_employment",
+   "kind": "yoy",
+   "lead": 2,
+   "limit": 200,
+   "name": "Manufacturing employment",
+   "sources": [
+    "MANEMP"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "fall",
+   "grid": "labor_industrial",
+   "key": "igrea_global",
+   "kind": "level",
+   "lead": 2,
+   "limit": 260,
+   "name": "Global real activity (IGREA / dry-bulk shipping)",
+   "sources": [
+    "IGREA",
+    "feed:risk-ratios:bdry.history"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "rise",
+   "grid": "funding_plumbing",
+   "key": "discount_window",
+   "kind": "level",
+   "lead": 0.5,
+   "limit": 340,
+   "name": "Fed discount-window borrowing (stigma tell)",
+   "sources": [
+    "WLCFLPCL"
+   ],
+   "win": 52
+  },
+  {
+   "dir": "rise",
+   "grid": "funding_plumbing",
+   "key": "fin_cp_bill",
+   "kind": "level",
+   "lead": 1,
+   "limit": 1300,
+   "name": "Financial CP - 3m T-bill (TED successor)",
+   "sources": [
+    "spread:RIFSPPFAAD90NB:DTB3"
+   ],
+   "win": 63
+  },
+  {
+   "dir": "rise",
+   "grid": "rates_credit",
+   "key": "bbb_aaa",
+   "kind": "level",
+   "lead": 2,
+   "limit": 1300,
+   "name": "BBB - AAA spread (fallen-angel pipeline)",
+   "sources": [
+    "spread:BAMLC0A4CBBB:BAMLC0A1CAAA"
+   ],
+   "win": 63
+  },
+  {
+   "dir": "rise",
+   "grid": "rates_credit",
+   "key": "curve_velocity",
+   "kind": "diff",
+   "lead": 6,
+   "limit": 1300,
+   "name": "2s10s bull-steepening velocity (the trigger)",
+   "sources": [
+    "T10Y2Y"
+   ],
+   "win": 63
+  },
+  {
+   "dir": "fall",
+   "grid": "global_risk",
+   "key": "bkln_hyg",
+   "kind": "mom",
+   "lead": 1,
+   "limit": 600,
+   "name": "Leveraged loans vs HY (BKLN/HYG)",
+   "sources": [
+    "feed:risk-ratios:bkln_hyg.history"
+   ],
+   "win": 63
+  },
+  {
+   "dir": "fall",
+   "grid": "global_risk",
+   "key": "copper_gold",
+   "kind": "mom",
+   "lead": 1,
+   "limit": 600,
+   "name": "Copper/Gold ratio (growth vs fear)",
+   "sources": [
+    "feed:risk-ratios:copper_gold.history"
+   ],
+   "win": 63
+  },
+  {
+   "dir": "fall",
+   "grid": "global_risk",
+   "key": "smh_acwi",
+   "kind": "mom",
+   "lead": 1,
+   "limit": 600,
+   "name": "Semiconductors vs world (SMH/ACWI)",
+   "sources": [
+    "feed:risk-ratios:smh_acwi.history"
+   ],
+   "win": 63
+  },
+  {
+   "dir": "rise",
+   "grid": "global_risk",
+   "key": "move_vix",
+   "kind": "level",
+   "lead": 1,
+   "limit": 600,
+   "name": "Bond vol vs equity vol (MOVE/VIX)",
+   "sources": [
+    "feed:risk-ratios:move_vix.history"
+   ],
+   "win": 63
+  },
+  {
+   "dir": "fall",
+   "grid": "funding_plumbing",
+   "key": "swiss_reserves",
+   "kind": "mom",
+   "lead": 3,
+   "limit": 220,
+   "name": "Swiss FX reserve assets (SNB, via IMF)",
+   "sources": [
+    "IMF/IFS/M.CH.RAFA_USD",
+    "IMF/IRFCL/M.CH.RAFA_USD"
+   ],
+   "win": 12
+  },
+  {
+   "dir": "fall",
+   "grid": "funding_plumbing",
+   "key": "ea_reserves",
+   "kind": "mom",
+   "lead": 3,
+   "limit": 220,
+   "name": "Euro-area reserve assets (ECB, via IMF)",
+   "sources": [
+    "IMF/IFS/M.U2.RAFA_USD",
+    "IMF/IRFCL/M.U2.RAFA_USD"
+   ],
+   "win": 12
+  }
+ ],
+ "note": "Generated by scripts/build_canary_defs.py from the engines' own sources. Do not edit by hand.",
+ "plumbing": [
+  {
+   "deduped": false,
+   "id": "RRPONTSYD",
+   "label": "Fed ON RRP Usage ($B)",
+   "layer": "L0",
+   "polarity": -1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "RRPONTSYAWARD",
+   "label": "ON RRP Award Rate",
+   "layer": "L0",
+   "polarity": 1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "RPONTSYD",
+   "label": "Fed Repo / SRF Usage ($B)",
+   "layer": "L0",
+   "polarity": 1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "WALCL",
+   "label": "Fed Balance Sheet ($M)",
+   "layer": "L0",
+   "polarity": -1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "WTREGEN",
+   "label": "Treasury General Account ($M)",
+   "layer": "L0",
+   "polarity": 1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "WSHOMCB",
+   "label": "Fed MBS Holdings ($M)",
+   "layer": "L0",
+   "polarity": -1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "WLCFLPCL",
+   "label": "Discount Window Primary Credit ($M)",
+   "layer": "L0",
+   "polarity": 1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "SOFR99",
+   "label": "SOFR 99th Percentile",
+   "layer": "L0",
+   "polarity": 1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "SOFR1",
+   "label": "SOFR 1st Percentile",
+   "layer": "L0",
+   "polarity": -1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "TGCR",
+   "label": "Tri-Party General Collateral Rate",
+   "layer": "L0",
+   "polarity": 1,
+   "source": "NYFED_RATES"
+  },
+  {
+   "deduped": false,
+   "id": "BGCR",
+   "label": "Broad General Collateral Rate",
+   "layer": "L0",
+   "polarity": 1,
+   "source": "NYFED_RATES"
+  },
+  {
+   "deduped": false,
+   "id": "DTB4WK",
+   "label": "4-Week T-Bill Rate",
+   "layer": "L0",
+   "polarity": -1,
+   "source": "FRED"
+  },
+  {
+   "deduped": true,
+   "id": "SWP1690",
+   "label": "Fed Liquidity Swaps 16-90d",
+   "layer": "L1",
+   "polarity": 1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "ILM_CLAIMS_FX",
+   "label": "ECB claims on EA in foreign currency",
+   "layer": "L1",
+   "polarity": 1,
+   "source": "ECB_S3"
+  },
+  {
+   "deduped": false,
+   "id": "ILM_LIAB_EUR",
+   "label": "ECB liabilities to non-EA in EUR",
+   "layer": "L1",
+   "polarity": 1,
+   "source": "ECB_S3"
+  },
+  {
+   "deduped": false,
+   "id": "OFR_FAILS_DELIVER",
+   "label": "PD Aggregate Fails to Deliver",
+   "layer": "L1",
+   "polarity": 1,
+   "source": "OFR"
+  },
+  {
+   "deduped": false,
+   "id": "OFR_FAILS_RECEIVE",
+   "label": "PD Aggregate Fails to Receive",
+   "layer": "L1",
+   "polarity": 1,
+   "source": "OFR"
+  },
+  {
+   "deduped": false,
+   "id": "DRISCFLM",
+   "label": "Banks raising spreads (large/mid firms)",
+   "layer": "L2",
+   "polarity": 1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "DRISCFS",
+   "label": "Banks raising spreads (small firms)",
+   "layer": "L2",
+   "polarity": 1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "SUBLPDCISTQNQ",
+   "label": "Banks raising collateral requirements",
+   "layer": "L2",
+   "polarity": 1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "CASFRIW027SBOG",
+   "label": "Cash at foreign-related banks",
+   "layer": "L2",
+   "polarity": 1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "DPSFRIW027SBOG",
+   "label": "Deposits at foreign-related banks",
+   "layer": "L2",
+   "polarity": 1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "SBCACBW027SBOG",
+   "label": "Securities in bank credit",
+   "layer": "L2",
+   "polarity": 1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "RMFSL",
+   "label": "Retail Money Market Fund balances",
+   "layer": "L2",
+   "polarity": 1,
+   "source": "FRED"
+  },
+  {
+   "deduped": true,
+   "id": "TEMPHELPS",
+   "label": "Temp Help Services Employment",
+   "layer": "L3",
+   "polarity": -1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "LNS13025699",
+   "label": "Job Losers Not on Layoff",
+   "layer": "L3",
+   "polarity": 1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "UEMP27OV",
+   "label": "Unemployed 27+ weeks",
+   "layer": "L3",
+   "polarity": 1,
+   "source": "FRED"
+  },
+  {
+   "deduped": true,
+   "id": "MCUMFN",
+   "label": "Manufacturing Capacity Utilization",
+   "layer": "L3",
+   "polarity": -1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "INDPRO",
+   "label": "Industrial Production Index",
+   "layer": "L3",
+   "polarity": -1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "USPBS",
+   "label": "Professional/Business Services Employment",
+   "layer": "L3",
+   "polarity": -1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "BOGZ1FL663067003Q",
+   "label": "Broker-Dealer Margin Loans",
+   "layer": "L3",
+   "polarity": 1,
+   "source": "FRED"
+  },
+  {
+   "deduped": true,
+   "id": "DTWEXBGS",
+   "label": "Broad Dollar Index (Nominal)",
+   "layer": "L4",
+   "polarity": 1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "RTWEXBGS",
+   "label": "Broad Dollar Index (Real)",
+   "layer": "L4",
+   "polarity": 1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "DTWEXEMEGS",
+   "label": "EM Dollar Index (Nominal)",
+   "layer": "L4",
+   "polarity": 1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "RTWEXEMEGS",
+   "label": "EM Dollar Index (Real)",
+   "layer": "L4",
+   "polarity": 1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "DTWEXAFEGS",
+   "label": "AFE Dollar Index (Nominal)",
+   "layer": "L4",
+   "polarity": 1,
+   "source": "FRED"
+  },
+  {
+   "deduped": false,
+   "id": "RTWEXAFEGS",
+   "label": "AFE Dollar Index (Real)",
+   "layer": "L4",
+   "polarity": 1,
+   "source": "FRED"
+  },
+  {
+   "deduped": true,
+   "id": "CISS_US",
+   "label": "ECB CISS — United States",
+   "layer": "L4",
+   "polarity": 1,
+   "source": "ECB_S3"
+  },
+  {
+   "deduped": true,
+   "id": "CISS_EA",
+   "label": "ECB CISS — Euro Area",
+   "layer": "L4",
+   "polarity": 1,
+   "source": "ECB_S3"
+  },
+  {
+   "deduped": true,
+   "id": "CISS_CN",
+   "label": "ECB CISS — China",
+   "layer": "L4",
+   "polarity": 1,
+   "source": "ECB_S3"
+  }
+ ]
+}

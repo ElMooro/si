@@ -179,8 +179,9 @@ SIGNALS = [
          hot="The 10y-2y yield curve is flattening toward or into inversion — historically the most "
              "reliable single lead on recession, which tends to follow inversion by 12-18 months.",
          cool="The yield curve has a healthy positive slope — no rates-based recession warning."),
+    # limit 1300 since 2026-11-27 (was 2600): on the record its five-year reading led falls (early score 0.66), its ten-year one did not (0.52)
     dict(key="hy_credit_oas", name="High-yield credit spread (OAS)", grid="rates_credit",
-         fred="BAMLH0A0HYM2", kind="level", win=12, dir="rise", lead=2, limit=2600, unit="ppt",
+         fred="BAMLH0A0HYM2", kind="level", win=12, dir="rise", lead=2, limit=1300, unit="ppt",
          hot="High-yield credit spreads are widening — credit markets crack before equities, so a "
              "rising junk-bond risk premium is an early risk-off signal.",
          cool="High-yield spreads are tight — credit markets are sanguine about default risk."),
@@ -494,6 +495,46 @@ GRID_LABEL = {"trade_shipping": "Trade & Shipping",
 # ── helpers ──────────────────────────────────────────────────────────
 _FRED_LAST_CALL = [0.0]
 
+# 2026-11-27: FRED now hands out only the last three years of the ICE BofA indices (793 observations whatever is
+# asked: ops 6997), so eight credit canaries were being z-scored against three years where their rule says five or
+# ten - the high-yield spread read 94 when its own rule gives 46. The warehouse holds those series whole (since
+# 1996-98). When FRED answers with fewer observations than were asked, the older ones are taken from the warehouse
+# through the site's own resolver; FRED's own rows are never replaced.
+WAREHOUSE = "https://justhodl-data-proxy.raafouis.workers.dev/series?id="
+_WAREHOUSE_SEEN = {}
+
+
+def merge_older(rows, older, limit):
+    """rows: FRED's answer, newest first, [(date, value)]. older: the warehouse's observations in any order.
+    FRED's rows stay as they are; warehouse rows dated before FRED's oldest are added behind them, newest first,
+    until the answer is as long as was asked."""
+    if not rows or len(rows) >= limit:
+        return rows
+    oldest = min(d for d, _ in rows if d)
+    extra = sorted(((d, v) for d, v in older if d and d < oldest and v is not None), reverse=True)
+    return rows + extra[:limit - len(rows)]
+
+
+def warehouse_rows(series_id):
+    """[(date, value)] for a FRED series from the warehouse; [] when it has none or does not answer."""
+    if series_id in _WAREHOUSE_SEEN:
+        return _WAREHOUSE_SEEN[series_id]
+    out = []
+    try:
+        req = urllib.request.Request(WAREHOUSE + "fred%3A" + series_id, headers={"User-Agent": "JustHodl-CanaryGrid/2.1"})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            payload = json.loads(r.read().decode("utf-8", "replace"))
+        for o in (payload or {}).get("obs") or []:
+            d, v = (o[0], o[1]) if isinstance(o, (list, tuple)) else (o.get("date"), o.get("value"))
+            try:
+                out.append((str(d)[:10], float(v)))
+            except (TypeError, ValueError):
+                continue
+    except Exception as e:
+        print(f"[canary] warehouse {series_id}: {type(e).__name__}")
+    _WAREHOUSE_SEEN[series_id] = out
+    return out
+
 
 def fred(series_id, limit):
     """Return [(date, value|None), ...] newest-first, or [] on failure.
@@ -533,6 +574,11 @@ def fred(series_id, limit):
             except (TypeError, ValueError):
                 v = None
             out.append((o.get("date"), v))
+        if out and len(out) < limit * 0.9:       # FRED answered short of what was asked: the rest from the warehouse
+            whole = merge_older(out, warehouse_rows(series_id), limit)
+            if len(whole) > len(out):
+                print(f"[canary] {series_id}: FRED returned {len(out)} of {limit}; {len(whole) - len(out)} older observations from the warehouse")
+            out = whole
         return out
     except Exception as e:
         print(f"[canary] FRED {series_id}: {e}")

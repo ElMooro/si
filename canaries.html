@@ -48,6 +48,55 @@
   .pin{font-size:10px;color:var(--elev);font-weight:700}
   .muted{color:var(--mut)} .rt{text-align:right}
 </style>
+<style>
+  /* What the record says (jh-canary-record.js). Structure only: every colour that carries data is set by the script. */
+  #s-record{margin:0 0 22px;scroll-margin-top:12px}
+  .cr-h2{font-size:20px;margin:6px 0 4px;letter-spacing:-.01em}
+  .cr-when{font-size:12px;font-weight:400;color:var(--mut);margin-left:8px}
+  .cr-lede{color:var(--mut);font-size:13px;margin:0 0 6px;max-width:980px}
+  .cr-block{margin:18px 0 0;min-width:0}
+  .cr-block>h3{margin:0 0 10px;font-size:13px;color:var(--mut);font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+  .cr-two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr));gap:14px}
+  .cr-stack{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+  .cr-stack+.cr-card{margin-top:14px}
+  .cr-t td:first-child,.cr-t td.rt{white-space:nowrap}
+  .cr-name,.cr-rule{white-space:normal!important}
+  .cr-three{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:14px;margin-top:14px}
+  .cr-card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;min-width:0}
+  .cr-k{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+  .cr-big{font-size:44px;font-weight:800;line-height:1.1;margin-top:6px;font-variant-numeric:tabular-nums}
+  .cr-unit{font-size:15px;font-weight:600;color:var(--mut)}
+  .cr-sub{font-size:12.5px;color:var(--mut);margin-top:6px;line-height:1.6}
+  .cr-chip{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;border:1px solid;letter-spacing:.03em;white-space:nowrap}
+  .cr-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center}
+  .cr-p{font-size:13px;margin:8px 0 0;line-height:1.55}
+  .cr-dim{color:var(--mut)}
+  .cr-verdict{font-size:12.5px;margin:10px 0 0;padding-top:10px;border-top:1px solid var(--bd);line-height:1.55}
+  .cr-scroll{overflow-x:auto;margin-top:8px}
+  .cr-tall{max-height:640px;overflow-y:auto;border:1px solid var(--bd);border-radius:12px}
+  .cr-t{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+  .cr-t th{position:sticky;top:0;background:var(--card2);white-space:nowrap;z-index:1}
+  .cr-t td,.cr-t th{padding:7px 9px}
+  .cr-all th{cursor:pointer}
+  .cr-on td{background:#16202e}
+  .cr-today{font-size:10px;font-weight:700;border:1px solid var(--tx);border-radius:10px;padding:0 6px;margin-left:4px}
+  .cr-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
+  .cr-name{min-width:220px;max-width:320px}
+  .cr-rule{min-width:240px;color:var(--mut);font-size:12px}
+  .cr-why,.cr-flag{font-size:11px;color:var(--mut);font-weight:400;margin-top:2px}
+  .cr-flag{color:var(--elev)}
+  .cr-controls{display:flex;flex-direction:column;gap:2px}
+  .cr-f{background:var(--card2);border:1px solid var(--bd);color:var(--mut);padding:5px 11px;border-radius:20px;font-size:12px;cursor:pointer}
+  .cr-f.on{background:#16324e;border-color:#2f81f7;color:#cfe3ff}
+  #cr-q{background:var(--card2);border:1px solid var(--bd);color:var(--tx);padding:6px 11px;border-radius:20px;font-size:12px;min-width:180px}
+  .cr-count{font-size:11.5px;color:var(--mut);margin:8px 0 0}
+  .cr-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--mut);margin-bottom:6px}
+  .cr-legend i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:6px}
+  .cr-read{font-size:12.5px;margin-top:6px;min-height:19px;font-variant-numeric:tabular-nums}
+  .cr-prose p{font-size:13px;line-height:1.6;margin:0 0 9px;max-width:1000px;color:#cdd7e2}
+  #cr-cross td{min-width:92px}
+  @media(max-width:760px){.cr-big{font-size:34px}.cr-two,.cr-three{grid-template-columns:1fr}}
+</style>
 <style>@media(max-width:760px){#baro [style*="min-width:500px"]{min-width:0!important;max-width:100%!important;width:100%}#baro svg{max-width:100%;height:auto}#baro div[style*="font-size:40px"]{font-size:24px!important}#baro div[style*="letter-spacing:6px"]{letter-spacing:2px!important;font-size:13px!important}}</style></head>
 <body>
 <div class="wrap">
@@ -56,6 +105,8 @@
   <div class="sub" id="sub">Loading every canary mechanism…</div>
 
   <div class="hero" id="hero"></div>
+
+  <section id="s-record"></section>
 
   <div id="baro"></div>
 
@@ -66,11 +117,12 @@
 
   <div class="sechd">Canaries — ranked by stress &amp; lead-time ("Everything watched" shows the full inventory incl. calm)</div>
   <div class="filters" id="filters"></div>
-  <div class="card" style="padding:4px 4px 0"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+  <div class="card" style="padding:4px 4px 0;overflow-x:auto"><table id="tbl"><thead></thead><tbody></tbody></table></div>
 
   <div class="sechd">🧠 Operator Playbook — from the Brain</div>
   <div class="grid" id="playbook" style="grid-template-columns:repeat(auto-fill,minmax(320px,1fr))"></div>
 </div>
+<script src="/jh-canary-record.js?v=20261127a"></script>
 <script>
 const COL={CALM:'var(--calm)',WATCH:'var(--watch)',ELEVATED:'var(--elev)',WARNING:'var(--warn)',CRITICAL:'var(--crit)','NO DATA':'var(--mut)',ACTIVE:'var(--watch)',QUIET:'var(--calm)'};
 const col=b=>COL[(b||'').toUpperCase()]||'var(--mut)';
@@ -79,7 +131,7 @@ let DATA=null,filt='all';
 function fmt(v){return v==null?'—':(typeof v==='number'?(Math.round(v*100)/100):v);}
 function render(d){
   DATA=d;const m=d.master||{};
-  document.getElementById('sub').textContent='Unified across 6 mechanisms · updated '+new Date(d.generated_at).toLocaleString();
+  document.getElementById('sub').textContent='Unified across '+(m.n_mechanisms_watched||12)+' mechanisms'+(m.n_mechanisms_voting?' ('+m.n_mechanisms_voting+' voting today)':'')+' · updated '+new Date(d.generated_at).toLocaleString();
   const ew=m.early_warning_0_100, c=col(m.band);
   document.getElementById('hero').innerHTML=
     `<div class="gauge"><div class="n" style="color:${c}">${ew==null?'—':ew}</div><div class="b" style="color:${c}">${m.band||''}</div><div class="muted" style="font-size:11px;margin-top:4px">early-warning</div></div>
@@ -272,7 +324,7 @@ function renderTbl(){
       <td class="muted">${(c.detail||'').slice(0,120)}</td></tr>`;}).join('')
     ||'<tr><td colspan="7" class="muted" style="padding:18px">No firing canaries in this view — grid is calm.</td></tr>';
 }
-getJSON('data/canary-warroom.json').then(render).catch(()=>{document.getElementById('sub').textContent='Could not load war-room feed.';});
+getJSON('data/canary-warroom.json').then(d=>{render(d);try{if(window.JHCanaryRecord)JHCanaryRecord.mount(window,d);}catch(e){console.error(e);}}).catch(()=>{document.getElementById('sub').textContent='Could not load war-room feed.';});
 </script>
 <div data-jed="canaries"></div>
 <script src="/jh-engine-data.js?v=20261126a" defer></script>

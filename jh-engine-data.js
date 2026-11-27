@@ -52,6 +52,7 @@
       { key: 'data/warroom-history.json', engine: 'justhodl-canary-warroom', name: 'War room history' },
       { key: 'data/warroom-weights.json', engine: 'justhodl-warroom-weights', name: 'War room weights' },
       { key: 'data/warroom-replay.json', engine: 'justhodl-warroom-weights', name: 'War room replay' },
+      { key: 'data/canary-record.json', engine: 'justhodl-warroom-weights', name: 'Canaries record' },
       { key: 'data/canaries-decisive-call.json', engine: 'justhodl-canary-warroom', name: 'Canaries read' }] },
     breadth: { docs: [
       { key: 'data/breadth-thrust.json', engine: 'justhodl-breadth-thrust', name: 'Breadth thrust' },
