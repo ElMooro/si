@@ -157,6 +157,8 @@ def main():
         say("%s: as of %s | %d bytes, written %s | %d funds, net assets %s (%s without feeders), repo %s, unsecured %s | history: %s" % (
             MONEY, money["as_of"], size, modified.isoformat(timespec="seconds"), m["funds"], bn(m["net_assets"]), bn(m.get("net_assets_ex_feeders")), bn(m["repo"]["total"]),
             bn(m["unsecured"]["total"]), ", ".join("%s %s" % (h["month"], bn(h["repo"])) for h in money["history"])))
+        say("net assets without feeder funds, by month (the SEC's own monthly statistics leave feeders out too): %s" % ", ".join(
+            "%s %s (%d funds)" % (h["month"], ("$%.3ftn" % (h["net_assets_ex_feeders"] / 1e12)) if h.get("net_assets_ex_feeders") else "?", h["funds"]) for h in money["history"]))
         check(len(money["history"]) >= 13 and money["as_of"] >= "2026-10", "money funds: the newest month and at least thirteen months of history")
         months = [h["month"] for h in money["history"]]
         check(months == sorted(set(months)), "one row a month, in order")
