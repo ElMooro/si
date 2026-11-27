@@ -72,7 +72,7 @@ OUT_KEY = "data/credit-before-equity.json"
 BONDS_OUT_KEY = "data/credit-before-equity-bonds.json"      # every bond the board read, under its company: opened by the page when a company is opened
 EVIDENCE_KEY = "data/credit-before-equity-evidence.json"    # what stocks did after each kind of reading, measured on the board's own month-ends; redone when a month finishes
 FUNDS_OUT_KEY = "data/credit-before-equity-funds.json"      # the fund layer: every bond and loan registered funds hold of a board company, with how they mark it
-FUNDS_MANIFEST_KEY = "data/warm/sec-datasets/manifest.json"   # justhodl-sec-datasets: which quarter of SEC fund holdings it has read, and where its tables are
+FUNDS_HEAD_KEY = "data/sec-fund-holdings.json"              # justhodl-sec-datasets: its newest whole quarter of SEC fund holdings, and where that quarter's tables are
 HISTORY_OUT_KEY = "data/credit-before-equity-history.json"  # every company's spread at each kept month-end: the chart in a company's sheet
 CALLS_ROOT = "credit/cbe-calls/"                            # one file a holdings day: the chance of a fall the board gave each stock that day, kept as it was said
 TRACK_KEY = "credit/cbe-track.json"                         # those chances set beside what happened, once their time is up
@@ -905,17 +905,17 @@ def build(s3, now=None, log=print, evidence=None):
 
 def fund_layer(s3, built):
     """What registered funds hold of the board's companies (the SEC's Form N-PORT, as justhodl-sec-datasets reads it), tied to
-    the board. Reads only. (layer or None, a sentence for the page when there is none)."""
-    manifest, why = optional(s3, FUNDS_MANIFEST_KEY)
-    if not manifest:
-        return None, "The fund holdings bank has no manifest (%s): the fund columns are empty on this run." % why
-    quarters = [(n, r["derived"]) for n, r in (((manifest.get("sets") or {}).get("nport") or {}).get("files") or {}).items()
-                if "#" not in n and isinstance(r.get("derived"), dict) and r["derived"].get("keys") and r["derived"].get("summary")]
-    if not quarters:
-        return None, "The fund holdings bank has read no quarter yet: the fund columns are empty on this run."
-    name, newest = max(quarters, key=lambda q: (q[1]["summary"].get("as_of") or "", q[0]))
-    bonds, why_b = optional(s3, newest["keys"]["bonds"])
-    cds, why_c = optional(s3, newest["keys"]["cds"])
+    the board. Reads only: the bank's own document names its newest whole quarter and that quarter's tables, so a quarter the
+    bank set aside as incomplete is never read here. (layer or None, a sentence for the page when there is none)."""
+    head, why = optional(s3, FUNDS_HEAD_KEY)
+    if not head:
+        return None, "The fund holdings bank has published no quarter (%s): the fund columns are empty on this run." % why
+    tables = head.get("tables") if isinstance(head.get("tables"), dict) else {}
+    name = (head.get("source") or {}).get("file") or "its newest quarter"
+    if not tables.get("bonds") or not tables.get("cds"):
+        return None, "The fund holdings bank names no tables for %s: the fund columns are empty on this run." % name
+    bonds, why_b = optional(s3, tables["bonds"])
+    cds, why_c = optional(s3, tables["cds"])
     if not bonds or not cds or not isinstance(bonds.get("rows"), list):
         return None, "The fund holdings tables of %s could not be read (%s): the fund columns are empty on this run." % (name, why_b or why_c or "no rows")
     payload = built["payload"]
@@ -923,8 +923,8 @@ def fund_layer(s3, built):
     names = {r[at]: r[nm] for r in payload["issuers"]["rows"]}
     layer = F.join(bonds, cds, F.Ties(built["ties"], built["matcher"], names), names)
     layer["block"].update(key=FUNDS_OUT_KEY, words="Every bond and loan registered funds hold of a company on the board, and every name as it was tied or left untied",
-                          quarter={"file": name, "summary": newest["summary"], "read_at": newest.get("at")},
-                          source="SEC Form N-PORT data sets, read by justhodl-sec-datasets (data/warm/sec-datasets/)")
+                          quarter={"file": name, "summary": head.get("summary"), "bank_generated_at": head.get("generated_at")},
+                          source="SEC Form N-PORT data sets, read by justhodl-sec-datasets (%s)" % FUNDS_HEAD_KEY)
     return layer, None
 
 

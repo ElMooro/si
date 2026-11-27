@@ -100,8 +100,8 @@ def main():
             raise SystemExit(1)
         block, by_co = layer["block"], layer["by_co"]
         took = time.time() - t0
-        r.log("fund layer in %.1fs, peak memory %.0f MB | quarter %s, as of %s, read by the bank at %s" % (
-            took, resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0, block["file"], block["as_of"], block["quarter"]["read_at"]))
+        r.log("fund layer in %.1fs, peak memory %.0f MB | quarter %s, as of %s, the bank's document of %s" % (
+            took, resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0, block["file"], block["as_of"], block["quarter"]["bank_generated_at"]))
         r.log("bonds and loans of companies in the SEC table: %s worth %s | tied to the board: %s worth %s (%s%% of the value) | companies reached: %d (%d listed)" % (
             format(block["read"]["securities"], ","), money(block["read"]["value"]), format(block["tied"]["securities"], ","), money(block["tied"]["value"]), block["tied"]["value_pct"],
             block["tied"]["companies"], block["tied"]["listed"]))
@@ -136,9 +136,9 @@ def main():
             r.log("  %-56s %4d %9s %4d" % (x[0][:56], x[1], money(x[2]), x[3]))
 
         r.section("3. eight companies worked again from the raw table")
-        manifest = L.get_json(real, L.FUNDS_MANIFEST_KEY)
-        keys = manifest["sets"]["nport"]["files"][block["file"]]["derived"]["keys"]
-        table = L.get_json(real, keys["bonds"])
+        head = L.get_json(real, L.FUNDS_HEAD_KEY)
+        r.log("the bank's document: %s, as of %s, file %s, set aside %s, quarters read %d" % (head.get("generated_at"), head.get("as_of"), (head.get("source") or {}).get("file"), head.get("set_aside"), len(head.get("history") or [])))
+        table = L.get_json(real, head["tables"]["bonds"])
         tc = table["cols"]
         raw = [dict(zip(tc, x)) for x in table["rows"]]
         r.log("raw table: %s rows, %d columns" % (format(len(raw), ","), len(tc)))
