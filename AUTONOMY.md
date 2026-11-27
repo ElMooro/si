@@ -624,3 +624,26 @@ elsewhere just moves the lie one field over.
 6. **Raw files that carry identifiers live outside `data/`** (`sec-datasets/raw/`): the site answers 404 and the
    bucket 403 to a stranger, and the birth op proves both. Everything under `data/` is identifier-free.
 
+
+## Traps banked — ops 6990–6991 (Credit Before Equity, held by funds, 2026-11-27)
+
+1. **One issuer, three spellings.** Funds that file under market names abbreviate and cut at 24 characters
+   ("GENERAL MOTORS FINL CO", "HILTON DOMESTIC OPERATIN", "CCO HLDGS LLC/CAP CORP"). Tying by the board's own names
+   alone reached 70.9% of the value; spelling out a fixed list of abbreviations, taking the first of two co-issuers and
+   accepting a name cut *inside a word* reached 82.8% (`cbe_funds.Ties`). Every such tie is listed for reading
+   (`ties_by_rule`), a name two companies answer to is tied to neither, and a whole name is never treated as a longer
+   one cut short ("APLD COMPUTECO" is not "APLD COMPUTECO 2").
+2. **An abbreviation has more than one reading.** "CANADIAN NATL RAILWAY" is National, "CANADIAN NATL RESOURCES" is
+   Natural. The spelling list would have tied the second to nothing only by luck; names like it go in `_MARKET`, which
+   is looked up before the list.
+3. **A dealer's name in the reference field is not a company's credit.** Fifteen funds report $986m of protection sold
+   on "GOLDMAN SACHS & CO", and "MORGAN STANLEY & COMPANY LLC" swaps end in 2057. A reference name funds also write as
+   a counterparty is listed, marked, and enters no company's figures; the parents' own names are not dealers' names.
+4. **Read the bank's decision, not its inventory.** The SEC bank publishes which quarter is whole
+   (`data/sec-fund-holdings.json`: `tables`, `source.file`); its manifest of files also lists quarters it set aside.
+   A reader of another engine's work reads the document that engine publishes.
+5. **Add a layer beside a figure-for-figure suite, not inside it.** The board's `build()` is rebuilt to the last figure
+   by its tests, so the fund layer is joined by the handler afterwards: columns after the board's own, a key of its own,
+   a document of its own. The suite did not need a new expected document, and a missing SEC table cannot take the board down.
+6. **A browser check that reads a saved file reads bytes.** Python's `read_text()` turns `\r\n` into `\n`; a CSV split
+   on `\r\n` then has "0 rows". (Caught in the local rehearsal of ops 6991.)
