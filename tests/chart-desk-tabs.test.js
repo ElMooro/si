@@ -35,7 +35,7 @@ test('each of the twelve buttons is on the bar once, under the name Khalid gave 
   assert.equal(ids[at - 1], 'btn-snip');
   assert.deepEqual(ids.slice(at, at + 12), TABS.map((t) => t[0]));
   assert.equal(ids[at + 12], 'btn-alrt');
-  assert.equal(ids.length, 43);
+  assert.equal(ids.length, 44);          // 43 with the twelve; the Held by funds button of 2026-11-27 makes 44 (beside Credit, far from these)
   for (const [id, , , glyph, label] of TABS) {
     const m = new RegExp("<button class='wsico wsdesk' id=" + id + " title='([^']+)'><span class=g>([^<]+)</span><span class=l>([^<]+)</span></button>").exec(ENGINE);
     assert.ok(m, id);
@@ -81,15 +81,15 @@ test('each page behind a button carries the Engine data section', () => {
 });
 
 test('the byte ledger takes the twelve buttons back out first, to the files as they were after the Flow button', () => {
-  const e0 = ledger.peelChartTabsEngine(ENGINE, 'jh-chart-engine.js'), r0 = ledger.peelChartTabsRail(RAIL, 'jh-chart-tvrail.js'), h0 = ledger.peelChartTabsHtml(HTML, 'chart.html');
+  const e0 = ledger.peelChartTabsEngine(ledger.peelHeldByFundsEngine(ENGINE, 'jh-chart-engine.js'), 'jh-chart-engine.js'), r0 = ledger.peelChartTabsRail(ledger.peelHeldByFundsRail(RAIL, 'jh-chart-tvrail.js'), 'jh-chart-tvrail.js'), h0 = ledger.peelChartTabsHtml(ledger.peelHeldByFundsHtml(HTML, 'chart.html'), 'chart.html');
   assert.equal(sha(e0), '58158760d2bb516d844c1d7a319189679f26e74c83791a24c7aae2923815fd08');
   assert.equal(sha(h0), '6fff5f592f849ef38d8392b4ad6bb7eeb72cba205fb1ffee4946b7fbb8a2dc7f');
   assert.equal(sha(ledger.peelMoneyFlowRail(r0, 'jh-chart-tvrail.js')), '05f865f3572218e7cd8ff2c35641296e3406807b3815cbc9a900b99840987f10');
   for (const [id] of TABS) assert.ok(!e0.includes(id + ' '), id);
   assert.ok(!r0.includes('jhDeskSymbol') && !e0.includes('jhDeskSymbol') && !h0.includes('&tabs='));
-  assert.equal(ledger.peelChartTabsEngine(e0, 'jh-chart-engine.js'), e0);
-  assert.equal(ledger.peelChartTabsRail(RAIL, 'chart.html'), RAIL);
-  assert.match(fs.readFileSync(path.join(R, 'tests/helpers/chart-macro-line-preservation.cjs'), 'utf8'), /function normalize\(raw,file\)\{raw=peelChartTabsEngine\(raw,file\);raw=peelChartTabsRail\(raw,file\);raw=peelChartTabsHtml\(raw,file\);raw=peelMoneyFlowEngine\(raw,file\);/);
+  assert.equal(ledger.peelChartTabsEngine(ledger.peelHeldByFundsEngine(e0, 'jh-chart-engine.js'), 'jh-chart-engine.js'), e0);
+  assert.equal(ledger.peelChartTabsRail(ledger.peelHeldByFundsRail(RAIL, 'chart.html'), 'chart.html'), RAIL);
+  assert.match(fs.readFileSync(path.join(R, 'tests/helpers/chart-macro-line-preservation.cjs'), 'utf8'), /function normalize\(raw,file\)\{raw=peelHeldByFundsEngine\(raw,file\);raw=peelHeldByFundsRail\(raw,file\);raw=peelHeldByFundsHtml\(raw,file\);raw=peelChartTabsEngine\(raw,file\);raw=peelChartTabsRail\(raw,file\);raw=peelChartTabsHtml\(raw,file\);raw=peelMoneyFlowEngine\(raw,file\);/);
   for (const [f, raw] of [['jh-chart-engine.js', ENGINE], ['jh-chart-tvrail.js', RAIL], ['chart.html', HTML]]) assert.notEqual(sha(ledger.normalize(raw, f)), sha(raw), f);
 });
 

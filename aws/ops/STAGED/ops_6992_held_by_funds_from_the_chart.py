@@ -56,7 +56,7 @@ def main():
             page.wait_for_timeout(1200)
             c0 = page.evaluate(CHART)
             r.log("the button: %s" % json.dumps({k: c0[k] for k in ("btn", "prev", "next", "label", "title")}))
-            ck(c0["btn"] and c0["prev"] == "btn-bnd" and c0["next"] == "btn-cds" and (c0["label"] or "").lower() == "cr credit", "chart.html has the Credit button, after Bonds and before CDS")
+            ck(c0["btn"] and c0["prev"] == "btn-bnd" and c0["next"] in ("btn-hbf", "btn-cds") and (c0["label"] or "").lower() == "cr credit", "chart.html has the Credit button, after Bonds (since 2026-11-27 Held by funds stands between it and CDS)")
             how = None
             for _ in range(3):
                 page.mouse.move(700, 3)                     # the toolbar hides until the pointer reaches the top edge

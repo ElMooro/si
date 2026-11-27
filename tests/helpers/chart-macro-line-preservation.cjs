@@ -742,7 +742,41 @@ function peelChartTabsHtml(raw,file){
  assert.equal(hash(raw),BEFORE,'chart.html');
  return raw;
 }
-function normalize(raw,file){raw=peelChartTabsEngine(raw,file);raw=peelChartTabsRail(raw,file);raw=peelChartTabsHtml(raw,file);raw=peelMoneyFlowEngine(raw,file);raw=peelMoneyFlowRail(raw,file);raw=peelMoneyFlowHtml(raw,file);raw=peelCreditBoardEngine(raw,file);raw=peelCreditBoardRail(raw,file);raw=peelCreditBoardHtml(raw,file);raw=peelRiskMapEngine(raw,file);raw=peelRiskMapRail(raw,file);raw=peelRiskMapHtml(raw,file);raw=peelIndicatorControls(raw,file);raw=peelSovDeskEngine(raw,file);raw=peelSovDeskRail(raw,file);raw=peelSovDeskHtml(raw,file);raw=peelRepoDeskEngine(raw,file);raw=peelRepoDeskRail(raw,file);raw=peelRepoDeskHtml(raw,file);raw=peelCryptoRoutes(raw,file);raw=peelTabQuotes(raw,file);raw=peelVolDeskEngine(raw,file);raw=peelVolDeskRail(raw,file);raw=peelIndexRoutes(raw,file);raw=peelSpxCashWatch(raw,file);raw=peelSpxCashIdentityTest(raw,file);raw=peelMarkDesksHtml(raw,file);raw=peelMarkDesksRail(raw,file);raw=peelFredDesksEngine(raw,file);raw=peelFredDesksRail(raw,file);raw=peelCandleClarity(raw,file);raw=peelScreenFit(raw,file);raw=peelFlowsEngine(raw,file);raw=peelFlowsRail(raw,file);raw=peelFormingBar(raw,file);raw=peelCapitHtml(raw,file);raw=peelCapitRail(raw,file);raw=peelLeadersHtml(raw,file);raw=peelLeadersEngine(raw,file);raw=peelLeadersRail(raw,file);raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
+// 2026-11-27: the Held by funds button (Khalid: "Held by funds to have its own button on the chart bar that opens straight to that
+// section"): button + click right after Credit on the chart's bar, its workspace entry (Credit Before Equity opened on its section
+// s-funds), and the two cache-busts on chart.html. Peeled before every older peel.
+function peelHeldByFundsEngine(raw,file){
+ const AFTER='cf9f5e3f7729da15bf61f29a7a9a0cb42f4c64470cfbde46cc900251362367d1';
+ const BEFORE='0068ba17184184c1c766325589a26bf1ac96d2a1526ecaec345c022a6722d89f';
+ const BTN="      \"<button class='wsico wsdesk' id=btn-hbf title='Held by funds · who holds each bond, how far apart funds mark it, and the swaps funds hold'><span class=g>Hf</span><span class=l>Held by funds</span></button>\"+\n";
+ const CLICK="    var bhbf=document.getElementById(\"btn-hbf\"); if(bhbf) bhbf.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace(\"heldby\"); };\n";
+ if(file!=='jh-chart-engine.js'||hash(raw)!==AFTER)return raw;
+ assert.equal(raw.split(BTN).length,2,'jh-chart-engine.js Held by funds button');
+ assert.equal(raw.split(CLICK).length,2,'jh-chart-engine.js Held by funds click');
+ raw=raw.replace(BTN,'').replace(CLICK,'');
+ assert.equal(hash(raw),BEFORE,'jh-chart-engine.js');
+ return raw;
+}
+function peelHeldByFundsRail(raw,file){
+ const AFTER='b53f905a672e1d53690d010220cfa44440b1deb773598e34c7aa37acaaa73dab';
+ const BEFORE='2294dfc5394c09e8d22721e1ef2a837290d387b4f61f358ca10ba6565d15a819';
+ const LINE="      heldby: [\"Held by funds · who holds each bond, fund marks, fund swaps\", \"/credit-before-equity.html#s-funds\"],\n";
+ if(file!=='jh-chart-tvrail.js'||hash(raw)!==AFTER)return raw;
+ assert.equal(raw.split(LINE).length,2,'jh-chart-tvrail.js Held by funds meta');
+ raw=raw.replace(LINE,'');
+ assert.equal(hash(raw),BEFORE,'jh-chart-tvrail.js');
+ return raw;
+}
+function peelHeldByFundsHtml(raw,file){
+ const AFTER='5c35692e4e7233716156922f51356dc62f90642a356af7f3f4ba508fe9686397';
+ const BEFORE='83c4969a6a0033f5dc7b21ede797e71704f2ddcd317e073c4636d650f10d28ab';
+ const PAIRS=[["&mflow=20261126&tabs=20261126&hbf=20261127&marks=20261119", "&mflow=20261126&tabs=20261126&marks=20261119"], ["&mflow=20261126&tabs=20261126&hbf=20261127&us10y=20261021c", "&mflow=20261126&tabs=20261126&us10y=20261021c"]];
+ if(file!=='chart.html'||hash(raw)!==AFTER)return raw;
+ for(const [from,to] of PAIRS){assert.equal(raw.split(from).length,2,'chart.html Held by funds cache-bust');raw=raw.replace(from,to);}
+ assert.equal(hash(raw),BEFORE,'chart.html');
+ return raw;
+}
+function normalize(raw,file){raw=peelHeldByFundsEngine(raw,file);raw=peelHeldByFundsRail(raw,file);raw=peelHeldByFundsHtml(raw,file);raw=peelChartTabsEngine(raw,file);raw=peelChartTabsRail(raw,file);raw=peelChartTabsHtml(raw,file);raw=peelMoneyFlowEngine(raw,file);raw=peelMoneyFlowRail(raw,file);raw=peelMoneyFlowHtml(raw,file);raw=peelCreditBoardEngine(raw,file);raw=peelCreditBoardRail(raw,file);raw=peelCreditBoardHtml(raw,file);raw=peelRiskMapEngine(raw,file);raw=peelRiskMapRail(raw,file);raw=peelRiskMapHtml(raw,file);raw=peelIndicatorControls(raw,file);raw=peelSovDeskEngine(raw,file);raw=peelSovDeskRail(raw,file);raw=peelSovDeskHtml(raw,file);raw=peelRepoDeskEngine(raw,file);raw=peelRepoDeskRail(raw,file);raw=peelRepoDeskHtml(raw,file);raw=peelCryptoRoutes(raw,file);raw=peelTabQuotes(raw,file);raw=peelVolDeskEngine(raw,file);raw=peelVolDeskRail(raw,file);raw=peelIndexRoutes(raw,file);raw=peelSpxCashWatch(raw,file);raw=peelSpxCashIdentityTest(raw,file);raw=peelMarkDesksHtml(raw,file);raw=peelMarkDesksRail(raw,file);raw=peelFredDesksEngine(raw,file);raw=peelFredDesksRail(raw,file);raw=peelCandleClarity(raw,file);raw=peelScreenFit(raw,file);raw=peelFlowsEngine(raw,file);raw=peelFlowsRail(raw,file);raw=peelFormingBar(raw,file);raw=peelCapitHtml(raw,file);raw=peelCapitRail(raw,file);raw=peelLeadersHtml(raw,file);raw=peelLeadersEngine(raw,file);raw=peelLeadersRail(raw,file);raw=peelTriggerCap(raw,file);raw=peelUs10yRouteHtml(raw,file);raw=peelUs10yRouteEngine(raw,file);raw=peelUs10yRouteWatch(raw,file);raw=peelUs10yRouteIdentityTest(raw,file);raw=peelUs10yRouteObsTest(raw,file);raw=peelUs10yHtml(raw,file);raw=peelUs10yEngine(raw,file);raw=peelAutohideHtml(raw,file);raw=peelFmpAppend(raw,file);raw=peelPolygonAppend(raw,file);raw=peelCdsHtml(raw,file);raw=peelCdsEngine(raw,file);raw=peelCdsRail(raw,file);raw=peelHeatHtml(raw,file);raw=peelHeatRail(raw,file);raw=peelAucEngine(raw,file);raw=peelAucHtml(raw,file);raw=peelAucRail(raw,file);raw=peelKind(raw,file);raw=peelKindHtml(raw,file);raw=peelCorr(raw,file);raw=peelSos(raw,file);raw=peelEvr(raw,file);const row=transition.changes[file];if(!row)return normalizeLegacyTest(raw,file);const digest=hash(raw);
  if(digest===row.before_sha256||digest!==row.after_sha256)return raw;
  for(const e of [...row.replacements].reverse()){assert.equal(raw.split(e.after).length,2,file+': '+e.after.slice(0,60));raw=raw.replace(e.after,e.before);}
  assert.equal(hash(raw),row.before_sha256,file);assert.equal(raw,fs.readFileSync(path.join(R,row.before_path),'utf8'));return raw;
@@ -751,4 +785,4 @@ function normalize(raw,file){raw=peelChartTabsEngine(raw,file);raw=peelChartTabs
 const adaptations=require('../fixtures/chart-macro-line/test-adaptations.json');
 function normalizeLegacyTest(raw,file){const row=adaptations[file];if(!row||hash(raw)!==row.after_sha256)return raw;
  const old=fs.readFileSync(path.join(R,row.before_path),'utf8');assert.equal(hash(old),row.before_sha256,file);return old;}
-module.exports={normalize,normalizeLegacyTest,transition,adaptations,peelChartTabsEngine,peelChartTabsRail,peelChartTabsHtml,peelEvr,peelScreenFit,peelCandleClarity,peelRepoDeskEngine,peelRepoDeskRail,peelRepoDeskHtml,peelSovDeskEngine,peelSovDeskRail,peelSovDeskHtml,peelIndicatorControls,peelRiskMapEngine,peelRiskMapRail,peelRiskMapHtml,peelCreditBoardEngine,peelCreditBoardRail,peelCreditBoardHtml,peelMoneyFlowEngine,peelMoneyFlowRail,peelMoneyFlowHtml};
+module.exports={normalize,normalizeLegacyTest,transition,adaptations,peelHeldByFundsEngine,peelHeldByFundsRail,peelHeldByFundsHtml,peelChartTabsEngine,peelChartTabsRail,peelChartTabsHtml,peelEvr,peelScreenFit,peelCandleClarity,peelRepoDeskEngine,peelRepoDeskRail,peelRepoDeskHtml,peelSovDeskEngine,peelSovDeskRail,peelSovDeskHtml,peelIndicatorControls,peelRiskMapEngine,peelRiskMapRail,peelRiskMapHtml,peelCreditBoardEngine,peelCreditBoardRail,peelCreditBoardHtml,peelMoneyFlowEngine,peelMoneyFlowRail,peelMoneyFlowHtml};

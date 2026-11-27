@@ -227,6 +227,7 @@
       strong: ["Strength vs S&P 500", "/strong.html"],
       bonds: ["Bonds & Yields", "/bonds.html"],
       credit: ["Credit Before Equity · company bond spreads, CDS, stress, fall risk", "/credit-before-equity.html"],
+      heldby: ["Held by funds · who holds each bond, fund marks, fund swaps", "/credit-before-equity.html#s-funds"],
       cds: ["CDS · credit default swaps", "/cds.html"],
       repo: ["Repo · rates, venues, Fed facilities, crisis spikes", "/repo.html"],
       sov: ["Sovereign stress · SovCISS, spreads, TARGET, crisis peaks", "/sovereign-desk.html"],

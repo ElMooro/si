@@ -1107,12 +1107,17 @@ test('the chart has a Credit button between Bonds and CDS, and it opens this boa
   assert.ok(iBnd > 0 && mine > iBnd && iCds > mine);
   assert.equal(CHART_ENGINE.split('id=btn-cbe ').length, 2, 'one button');
   assert.equal(CHART_ENGINE.slice(iBnd, mine).split('<button').length, 2, 'nothing but the Bonds button\'s own tail before it');
-  assert.equal(CHART_ENGINE.slice(mine, iCds).split('<button').length, 2, 'and CDS is the next button');
+  // (2026-11-27) Held by funds, a section of this board, has a button of its own right after Credit: Credit is where it was, and CDS follows the pair
+  const iHbf = CHART_ENGINE.indexOf('id=btn-hbf ');
+  assert.ok(iHbf > mine && iHbf < iCds);
+  assert.equal(CHART_ENGINE.slice(mine, iHbf).split('<button').length, 2, 'Held by funds is the next button');
+  assert.equal(CHART_ENGINE.slice(iHbf, iCds).split('<button').length, 2, 'and CDS the one after');
   assert.ok(CHART_ENGINE.includes("<button class='wsico wsdesk' id=btn-cbe title='Credit Before Equity · company bond spreads, CDS, stress and the fall risk they carry'><span class=g>Cr</span><span class=l>Credit</span></button>"));
   assert.ok(CHART_ENGINE.includes('var bcbe=document.getElementById("btn-cbe"); if(bcbe) bcbe.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("credit"); };'));
   // every desk that was on the bar is still on it, once, in the order it had
   const ids = [...CHART_ENGINE.matchAll(/<button class='wsico wsdesk' id=(btn-[a-z0-9]+) /g)].map(m => m[1]);
-  assert.deepEqual(ids.slice(0, 19), ['btn-macro', 'btn-flows', 'btn-mflow', 'btn-heat', 'btn-rmap', 'btn-auc', 'btn-corm', 'btn-etf', 'btn-str', 'btn-bnd', 'btn-cbe', 'btn-cds', 'btn-repo', 'btn-sov', 'btn-usd', 'btn-soma', 'btn-bofa', 'btn-13f', 'btn-ldr']);
+  assert.deepEqual(ids.slice(0, 20), ['btn-macro', 'btn-flows', 'btn-mflow', 'btn-heat', 'btn-rmap', 'btn-auc', 'btn-corm', 'btn-etf', 'btn-str', 'btn-bnd', 'btn-cbe', 'btn-hbf', 'btn-cds', 'btn-repo', 'btn-sov', 'btn-usd', 'btn-soma', 'btn-bofa', 'btn-13f', 'btn-ldr']);
+  assert.deepEqual(ids.filter(x => x !== 'btn-hbf').slice(0, 19), ['btn-macro', 'btn-flows', 'btn-mflow', 'btn-heat', 'btn-rmap', 'btn-auc', 'btn-corm', 'btn-etf', 'btn-str', 'btn-bnd', 'btn-cbe', 'btn-cds', 'btn-repo', 'btn-sov', 'btn-usd', 'btn-soma', 'btn-bofa', 'btn-13f', 'btn-ldr'], 'every desk that was there is in the order it had');
   assert.equal(new Set(ids).size, ids.length);
   // the workspace entry: a name, this page, between Bonds and CDS; no other entry was touched
   const m = CHART_RAIL.match(/\n {6}credit: \["([^"]+)", "([^"]+)"\],\n/);
@@ -1131,7 +1136,7 @@ test('the chart has a Credit button between Bonds and CDS, and it opens this boa
 
 test('the chart\'s byte ledger takes the button back out: engine, rail and chart.html return to the files before it', () => {
   // (2026-11-26: the Money flow button came after it and is peeled first)
-  const e0 = chartLedger.peelCreditBoardEngine(chartLedger.peelMoneyFlowEngine(chartLedger.peelChartTabsEngine(CHART_ENGINE, 'jh-chart-engine.js'), 'jh-chart-engine.js'), 'jh-chart-engine.js'), r0 = chartLedger.peelCreditBoardRail(chartLedger.peelMoneyFlowRail(chartLedger.peelChartTabsRail(CHART_RAIL, 'jh-chart-tvrail.js'), 'jh-chart-tvrail.js'), 'jh-chart-tvrail.js'), h0 = chartLedger.peelCreditBoardHtml(chartLedger.peelMoneyFlowHtml(chartLedger.peelChartTabsHtml(CHART_HTML, 'chart.html'), 'chart.html'), 'chart.html');
+  const e0 = chartLedger.peelCreditBoardEngine(chartLedger.peelMoneyFlowEngine(chartLedger.peelChartTabsEngine(chartLedger.peelHeldByFundsEngine(CHART_ENGINE, 'jh-chart-engine.js'), 'jh-chart-engine.js'), 'jh-chart-engine.js'), 'jh-chart-engine.js'), r0 = chartLedger.peelCreditBoardRail(chartLedger.peelMoneyFlowRail(chartLedger.peelChartTabsRail(chartLedger.peelHeldByFundsRail(CHART_RAIL, 'jh-chart-tvrail.js'), 'jh-chart-tvrail.js'), 'jh-chart-tvrail.js'), 'jh-chart-tvrail.js'), h0 = chartLedger.peelCreditBoardHtml(chartLedger.peelMoneyFlowHtml(chartLedger.peelChartTabsHtml(chartLedger.peelHeldByFundsHtml(CHART_HTML, 'chart.html'), 'chart.html'), 'chart.html'), 'chart.html');
   assert.equal(sha(e0), 'b0d05901fb3d5da6ca799d18fc9dcfb7eda187d5e7bf9caa6cdea9b100135ee5');
   assert.equal(sha(r0), '75dbbbc868c849e03e4aa48158acd97371af51156b62ea1d648ce80540d793c6');
   assert.equal(sha(h0), '96f17815e4e76284763617ea0572bef73fa019e4198b5c3aa0959b528835f62f');

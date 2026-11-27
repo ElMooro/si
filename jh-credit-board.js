@@ -38,6 +38,8 @@
   // ------------------------------------------------------------------------------------------------ small things
   /* jh-credit-sheet.js (the distressed switch, every column, the company sheet, the evidence): present on the page, absent in an older cache. */
   function sheet() { return root.JHCreditSheet || null; }
+  /* The section an address names (#s-funds), or nothing: only the page's own sections, never a sheet or anything else with an id. */
+  function sectionOf(hash) { var m = /^#(s-[a-z]+)$/.exec(String(hash || "")); return m ? m[1] : ""; }
   function esc(s) {
     return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
@@ -1123,6 +1125,19 @@
       sizing = setTimeout(function () { var w = $("map") ? $("map").clientWidth : 0; if (state.view === "new" && v2 && w && Math.abs(w - last) > 8) { last = w; drawMap(); } }, 150);
     });
     draw("all");
+    /* An address that names a section (credit-before-equity.html#s-funds: the chart's Held by funds button) lands on it. The
+       sections above only take their height when the board is drawn, so the browser's own jump to the name falls short;
+       it is made again here, and once more when the page has settled unless the reader has already moved. */
+    (function () {
+      var name = sectionOf(root.location && root.location.hash);
+      if (!name) return;
+      var el = D.getElementById(name), moved = false;
+      if (!el || !host.contains(el) || !el.scrollIntoView) return;
+      function land() { if (!moved) el.scrollIntoView({ block: "start" }); }
+      ["wheel", "touchstart", "keydown", "mousedown"].forEach(function (ev) { root.addEventListener(ev, function () { moved = true; }, { once: true, passive: true }); });
+      land();
+      if (root.setTimeout) { root.setTimeout(land, 350); root.setTimeout(land, 1200); }
+    })();
     /* The fund document (every bond and loan funds hold) is asked for once, when its section comes near the screen. */
     (function () {
       var box = $("funds");
@@ -1150,7 +1165,7 @@
     }).then(function (doc) { return mount(host, doc); }, function (e) { fail(String(e && e.message || e)); });
   }
 
-  root.JHCreditBoard = { PALETTES: PALETTES, WINDOWS: WINDOWS, COLUMNS: COLUMNS, CDS_COLUMNS: CDS_COLUMNS, esc: esc, bp: bp, pct: pct, money: money, day: day, fixed: fixed, isV2: isV2, table: table,
+  root.JHCreditBoard = { sectionOf: sectionOf, PALETTES: PALETTES, WINDOWS: WINDOWS, COLUMNS: COLUMNS, CDS_COLUMNS: CDS_COLUMNS, esc: esc, bp: bp, pct: pct, money: money, day: day, fixed: fixed, isV2: isV2, table: table,
     windowList: windowList, evidence: evidence, weightedMedian: weightedMedian, marketChange: marketChange, industryView: industryView, scaleOf: scaleOf, colour: colour, textColour: textColour, mix: mix,
     squarify: squarify, sortRows: sortRows, filterRows: filterRows, withWindow: withWindow, industriesIn: industriesIn, evidenceHtml: evidenceHtml, heroHtml: heroHtml, controlsHtml: controlsHtml,
     mapHtml: mapHtml, rankHtml: rankHtml, detailHtml: detailHtml, leadsHtml: leadsHtml, tableHtml: tableHtml, cdsHtml: cdsHtml, previousHtml: previousHtml, methodHtml: methodHtml,

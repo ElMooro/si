@@ -257,21 +257,23 @@
     var cov = isObj(doc.coverage) ? doc.coverage : {}, gaps = gapRows(doc, fd), top = gaps.rows.slice().sort(function (x, y) { return y.gap - x.gap; })[0];
     var five = gaps.rows.filter(function (x) { return x.gap >= 5; }).length, flagged = objects(b.flag_cols, b.flagged);
     var nDef = flagged.filter(function (x) { return x.n_default * 2 >= x.rows && x.n_default > 0; }).length, nPik = flagged.filter(function (x) { return x.n_pik * 2 >= x.rows && x.n_pik > 0; }).length;
-    var h = '<p class="cb-dates">SEC Form N-PORT, file <b>' + esc(String(b.file || "").replace(/\.zip$/, "")) + "</b> · holdings as of <b>" + esc(day(b.as_of)) + "</b>, each fund's own report date" +
+    /* Three blocks, each with a heading of its own as its first child: the site numbers every large block of a section and
+       hangs a loose badge over one that has no heading (jh-sections.js). */
+    var h = '<div class="cb-fu-block" id="funds-file"><h3>The fund file at a glance</h3><p class="cb-dates">SEC Form N-PORT, file <b>' + esc(String(b.file || "").replace(/\.zip$/, "")) + "</b> · holdings as of <b>" + esc(day(b.as_of)) + "</b>, each fund's own report date" +
       (isNum(sum.funds) ? " · " + int(sum.funds) + " funds" : "") + (typeof q.bank_generated_at === "string" ? " · the SEC bank's document of " + esc(day(q.bank_generated_at)) : "") + " · the board's own bonds are of " + esc(day(doc.as_of)) + "</p>";
     h += '<div class="cb-hero">' +
       tile("Bonds and loans tied to a company", int(tied.securities), esc(usd(tied.value)) + " at funds' own marks" + (isNum(tied.value_pct) ? " · " + esc(fixed(tied.value_pct, 1)) + "% of the " + esc(usd(read.value)) + " of company debt in the file" : "")) +
       tile("Companies on the board funds hold", int(tied.companies), (isNum(cov.companies) ? "of " + int(cov.companies) + " · " : "") + int(tied.listed) + " with a listed stock") +
       tile("Marked 5 points or more apart", (gaps.whole || five < gaps.rows.length ? int(five) : int(five) + " or more"), top ? "widest: " + esc(label(doc, top.co)) + ", " + esc(num(top.gap, 1)) + " points among " + esc(plural(top.n_px, "fund", "funds")) : "no gap read") +
       tile("Flagged by most of their holders", int(b.n_flagged), int(nDef) + " in default · " + int(nPik) + " paid in kind") +
-      tile("Credit default swaps funds hold", esc(usd(tot.notional_usd)), int(tot.positions) + " positions · " + int(tot.reference_names) + " names, " + int(cds.tied) + " tied to a company · " + int(tot.indices) + " indices") + "</div>";
+      tile("Credit default swaps funds hold", esc(usd(tot.notional_usd)), int(tot.positions) + " positions · " + int(tot.reference_names) + " names, " + int(cds.tied) + " tied to a company · " + int(tot.indices) + " indices") + "</div></div>";
     var heldRows = listRows("gaps", doc, fd, f).rows.slice().sort(function (x, y) { return y.gap - x.gap || (y.value || 0) - (x.value || 0); }).slice(0, 12);
-    h += '<div class="cb-fu-grid"><div class="cb-fu-card"><h3>Protection funds have sold and bought, company by company</h3>' + butterflyHtml(doc, state) + "</div>" +
+    h += '<div class="cb-fu-block" id="funds-pictures"><h3>In pictures</h3><div class="cb-fu-grid"><div class="cb-fu-card"><h3>Protection funds have sold and bought, company by company</h3>' + butterflyHtml(doc, state) + "</div>" +
       '<div class="cb-fu-card"><h3>The securities funds mark furthest apart</h3><p class="cb-cap">Each line is one bond or loan: from the mark one fund in ten is at or under to the mark one in ten is at or over, set against the middle mark, per 100 of face' +
       (f.held ? ", among those worth " + esc((HELD.filter(function (o) { return o[0] === f.held; })[0] || [0, ""])[1].toLowerCase()) : "") + ". The twelve widest.</p>" +
-      rangesHtml(heldRows, doc, { empty: "No security of this size is marked by enough funds to read a gap." }) + "</div></div>";
+      rangesHtml(heldRows, doc, { empty: "No security of this size is marked by enough funds to read a gap." }) + "</div></div></div>";
     var counts = { gaps: gaps.total, flagged: b.n_flagged, names: (cds.names || []).length, indices: (cds.indices || []).length, dealers: (cds.counterparties || []).length };
-    h += '<div class="cb-tctl">' + B.seg("fu-view", VIEWS.map(function (v) {
+    h += '<div class="cb-fu-block" id="funds-lists"><h3>The lists, each one whole</h3><div class="cb-tctl">' + B.seg("fu-view", VIEWS.map(function (v) {
       return [v, v === "ties" ? "How names were tied" : LISTS[v].title + (isNum(counts[v]) ? " (" + counts[v].toLocaleString("en-US") + ")" : "")]; }), f.view, "List") +
       (f.view === "gaps" ? B.seg("fu-held", HELD.map(function (o) { return [String(o[0]), o[1]]; }), String(f.held || 0), "Value held") : "") +
       (f.view === "names" ? '<button type="button" class="cb-dir" data-fu-tied aria-pressed="' + (f.tied ? "true" : "false") + '">' + (f.tied ? "Showing names tied to a company" : "Show only names tied to a company") + "</button>" : "") + "</div>";
@@ -279,9 +281,9 @@
       var how = isObj(tied.how) ? tied.how : {};
       h += '<p class="cb-note">' + Object.keys(how).map(function (k) {
         return "<b>" + esc(k === "issuer" ? "An issuer on the board is written this way" : k === "cut name" ? "The board's own name was cut short" : HOW_WORDS[k] || k) + "</b> " + int(how[k][0]) + " securities, " + esc(usd(how[k][1])); }).join(" · ") + ".</p>" +
-        "<h3>Tied by a naming rule — " + int(b.n_ties_by_rule) + " issuer names</h3>" + listHtml("ties_by_rule", doc, fd, state, { note: "A name more than one company answers to is tied to none." }) +
-        "<h3>Listed companies funds hold bonds of that the board does not cover — " + int(b.n_not_on_board) + "</h3>" + listHtml("not_on_board", doc, fd, state) +
-        "<h3>Issuers left untied — " + int(b.n_untied) + "</h3>" + listHtml("untied", doc, fd, state, { note: "Governments, agencies, supranational lenders and issuers none of the board's funds hold are here by design." });
+        "<h4>Tied by a naming rule — " + int(b.n_ties_by_rule) + " issuer names</h4>" + listHtml("ties_by_rule", doc, fd, state, { note: "A name more than one company answers to is tied to none." }) +
+        "<h4>Listed companies funds hold bonds of that the board does not cover — " + int(b.n_not_on_board) + "</h4>" + listHtml("not_on_board", doc, fd, state) +
+        "<h4>Issuers left untied — " + int(b.n_untied) + "</h4>" + listHtml("untied", doc, fd, state, { note: "Governments, agencies, supranational lenders and issuers none of the board's funds hold are here by design." });
     } else {
       var notes = { gaps: "A gap is read only where " + minMarks(doc, fd) + " funds or more mark the security on its commonest date; it is the 90th percentile mark less the 10th.",
                     flagged: "Securities where at least half of the positions funds report are flagged in default, or as paid in kind.",
@@ -290,7 +292,7 @@
                     indices: "Index families as the SEC bank reads them from the funds' own descriptions.", dealers: "The forty counterparties funds name most on their credit derivatives, exchanges and clearing houses included." };
       h += listHtml(f.view, doc, fd, state, { note: notes[f.view] });
     }
-    return h + '<p class="cb-note">' + esc(typeof b.reading === "string" ? b.reading : "") + (typeof b.source === "string" ? " Source: " + esc(b.source) + "." : "") + "</p>";
+    return h + '</div><p class="cb-note">' + esc(typeof b.reading === "string" ? b.reading : "") + (typeof b.source === "string" ? " Source: " + esc(b.source) + "." : "") + "</p>";
   }
 
   // ------------------------------------------------------------------------------------------------ a company's sheet

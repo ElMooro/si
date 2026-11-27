@@ -350,13 +350,106 @@ test('clicks that are not this file\'s are left alone; its own ask for the fund 
   for (const v of F.VIEWS) { F.state(st).view = v; clean(F.sectionHtml(DOC, st, null)); clean(F.sectionHtml(DOC, st, FD)); clean(F.sectionHtml(DOC, st, false)); }
 });
 
+// ---------------------------------------------------------------------------------------------------- 2026-11-27, later
+// Khalid 22:43 ET: "fix it also: Held by funds to have its own button on the chart bar that opens straight to that section".
+// "It" was a loose section badge the site hung over the list: the site numbers every large block of a section and a block
+// with no heading of its own gets its badge floating above it.
+const CHART_ENGINE = fs.readFileSync(path.join(R, 'jh-chart-engine.js'), 'utf8');
+const CHART_RAIL = fs.readFileSync(path.join(R, 'jh-chart-tvrail.js'), 'utf8');
+const CHART_HTML = fs.readFileSync(path.join(R, 'chart.html'), 'utf8');
+const chartLedger = require('./helpers/chart-macro-line-preservation.cjs');
+const sha = s => require('node:crypto').createHash('sha256').update(s).digest('hex');
+// the elements at the top of a piece of HTML: [tag, attributes] of each, in order
+const topLevel = html => {
+  const out = [], VOID = new Set(['br', 'hr', 'img', 'input', 'meta', 'link']);
+  let depth = 0;
+  for (const m of html.matchAll(/<(\/)?([a-z][a-z0-9]*)((?:"[^"]*"|'[^']*'|[^>"'])*)>/g)) {
+    if (VOID.has(m[2])) continue;
+    if (m[1]) depth--; else { if (depth === 0) out.push([m[2], m[3].trim()]); depth++; }
+  }
+  assert.equal(depth, 0, 'the section is well formed');
+  return out;
+};
+
+test('the section is three blocks, each under a heading of its own, in every view: the site has a heading to number and hangs no loose badge', () => {
+  for (const fd of [null, FD, false]) {
+    for (const view of F.VIEWS) {
+      const st = state();
+      F.state(st).view = view;
+      const html = F.sectionHtml(DOC, st, fd), top = topLevel(html);
+      assert.deepEqual(top.map(x => x[0] + ' ' + x[1]), ['div class="cb-fu-block" id="funds-file"', 'div class="cb-fu-block" id="funds-pictures"', 'div class="cb-fu-block" id="funds-lists"', 'p class="cb-note"'], view);
+      for (const [id, words] of [['funds-file', 'The fund file at a glance'], ['funds-pictures', 'In pictures'], ['funds-lists', 'The lists, each one whole']]) {
+        assert.ok(html.includes('<div class="cb-fu-block" id="' + id + '"><h3>' + words + '</h3>'), view + ': ' + id + ' opens with its heading');
+      }
+      // nothing large stands outside a block: the tiles, the pictures and every table are inside one
+      const cut = k => html.slice(html.indexOf('id="' + k + '"'));
+      assert.ok(html.indexOf('cb-hero') > html.indexOf('id="funds-file"') && html.indexOf('cb-hero') < html.indexOf('id="funds-pictures"'));
+      assert.ok(html.indexOf('cb-fu-grid') > html.indexOf('id="funds-pictures"') && html.indexOf('cb-fu-grid') < html.indexOf('id="funds-lists"'));
+      assert.ok(!html.slice(0, html.indexOf('id="funds-lists"')).includes('<table') && cut('funds-lists').includes('<table'), view);
+    }
+  }
+  assert.ok(HTML.includes('.cb-fu-block>h3{') && !HTML.includes('#funds>h3{'));
+});
+
+test('the chart has a Held by funds button right after Credit, and it opens the board on that section', () => {
+  const btn = "<button class='wsico wsdesk' id=btn-hbf title='Held by funds · who holds each bond, how far apart funds mark it, and the swaps funds hold'><span class=g>Hf</span><span class=l>Held by funds</span></button>";
+  const credit = "<button class='wsico wsdesk' id=btn-cbe title='Credit Before Equity · company bond spreads, CDS, stress and the fall risk they carry'><span class=g>Cr</span><span class=l>Credit</span></button>";
+  assert.equal(CHART_ENGINE.split(btn).length, 2, 'one button, under his name for it');
+  assert.equal(CHART_ENGINE.split(credit).length, 2, 'Credit is untouched');
+  assert.ok(CHART_ENGINE.indexOf(btn) === CHART_ENGINE.indexOf(credit) + credit.length + '"+\n      "'.length, 'right after Credit');
+  const iMine = CHART_ENGINE.indexOf('id=btn-hbf '), iCds = CHART_ENGINE.indexOf('id=btn-cds ');
+  assert.ok(iCds > iMine && CHART_ENGINE.slice(iMine, iCds).split('<button').length === 2, 'and CDS follows it');
+  assert.ok(CHART_ENGINE.includes('var bhbf=document.getElementById("btn-hbf"); if(bhbf) bhbf.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("heldby"); };'));
+  assert.ok(CHART_ENGINE.includes('var bcbe=document.getElementById("btn-cbe"); if(bcbe) bcbe.onclick=function(){ if(window.jhOpenWorkspace) window.jhOpenWorkspace("credit"); };'), 'Credit still opens the board at its top');
+  const ids = [...CHART_ENGINE.matchAll(/<button class='wsico wsdesk' id=(btn-[a-z0-9]+) /g)].map(m => m[1]);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.deepEqual(ids.slice(ids.indexOf('btn-bnd'), ids.indexOf('btn-bnd') + 4), ['btn-bnd', 'btn-cbe', 'btn-hbf', 'btn-cds']);
+  // the workspace entry: his name first, this page on its section, right after Credit's; nothing else touched
+  const m = CHART_RAIL.match(/\n {6}credit: \["[^"]+", "\/credit-before-equity\.html"\],\n {6}heldby: \["([^"]+)", "([^"]+)"\],\n {6}cds: \[/);
+  assert.ok(m, 'the rail knows the workspace, between Credit and CDS');
+  assert.match(m[1], /^Held by funds · /);
+  assert.equal(m[2], '/credit-before-equity.html#s-funds');
+  assert.ok(!m[1].includes("'") && !btn.slice(btn.indexOf("title='") + 7, btn.indexOf("'><span")).includes("'"), 'the rail writes a title inside single quotes: no apostrophe in it');
+  assert.ok(HTML.includes('<section id="s-funds">'), 'the section it names is on the page');
+  assert.equal(CHART_RAIL.split('heldby:').length, 2);
+  // a browser holding the old engine or rail fetches the new one: both tags carry the mark, after the newest one before it
+  const tags = CHART_HTML.match(/<script src="\/jh-chart-(?:engine|tvrail)\.js\?[^"]+"><\/script>/g);
+  assert.equal(tags.length, 2);
+  for (const t of tags) assert.ok(t.includes('&mflow=20261126&tabs=20261126&hbf=20261127&'), t.slice(0, 60));
+  assert.equal(CHART_HTML.split('&hbf=20261127').length, 3);
+});
+
+test('the chart\'s byte ledger takes the Held by funds button back out first, and every older gate still reads its own predecessor', () => {
+  const e0 = chartLedger.peelHeldByFundsEngine(CHART_ENGINE, 'jh-chart-engine.js'), r0 = chartLedger.peelHeldByFundsRail(CHART_RAIL, 'jh-chart-tvrail.js'), h0 = chartLedger.peelHeldByFundsHtml(CHART_HTML, 'chart.html');
+  assert.equal(sha(e0), '0068ba17184184c1c766325589a26bf1ac96d2a1526ecaec345c022a6722d89f');
+  assert.equal(sha(r0), '2294dfc5394c09e8d22721e1ef2a837290d387b4f61f358ca10ba6565d15a819');
+  assert.equal(sha(h0), '83c4969a6a0033f5dc7b21ede797e71704f2ddcd317e073c4636d650f10d28ab');
+  assert.ok(!e0.includes('btn-hbf') && !r0.includes('heldby') && !h0.includes('&hbf='));
+  assert.ok(e0.includes('id=btn-cbe ') && r0.includes('      credit: ['), 'only the new button comes off');
+  assert.equal(chartLedger.peelHeldByFundsEngine(e0, 'jh-chart-engine.js'), e0);
+  assert.equal(chartLedger.peelHeldByFundsRail(CHART_RAIL, 'chart.html'), CHART_RAIL);
+  assert.match(fs.readFileSync(path.join(R, 'tests/helpers/chart-macro-line-preservation.cjs'), 'utf8'), /function normalize\(raw,file\)\{raw=peelHeldByFundsEngine\(raw,file\);raw=peelHeldByFundsRail\(raw,file\);raw=peelHeldByFundsHtml\(raw,file\);raw=peelChartTabsEngine\(raw,file\);/);
+});
+
+test('an address that names a section lands on it once the board is drawn; any other fragment is left alone', () => {
+  assert.equal(B.sectionOf('#s-funds'), 's-funds');
+  assert.equal(B.sectionOf('#s-cds'), 's-cds');
+  for (const other of ['', '#', '#sheet', '#funds', '#s-funds?x=1', 's-funds', '#S-FUNDS', '#s-funds-file', null, undefined]) assert.equal(B.sectionOf(other), '', String(other));
+  const mount = BOARD_JS.slice(BOARD_JS.indexOf('  function mount('));
+  assert.ok(mount.includes('var name = sectionOf(root.location && root.location.hash);') && mount.includes('el.scrollIntoView({ block: "start" })'));
+  assert.ok(mount.indexOf('draw("all");\n') < mount.indexOf('var name = sectionOf('), 'the jump is made after the sections above have their height');
+  assert.ok(/\["wheel", "touchstart", "keydown", "mousedown"\]\.forEach/.test(mount) && mount.includes('if (!moved) el.scrollIntoView'), 'a reader who has already moved is not pulled back');
+  assert.ok(HTML.includes('section[id^="s-"]{scroll-margin-top:12px}'));
+  for (const id of [...HTML.matchAll(/<section id="(s-[a-z]+)"/g)].map(x => x[1])) assert.equal(B.sectionOf('#' + id), id);
+});
+
 test('the page loads the three scripts in order and gives the section its place', () => {
   const tags = [...HTML.matchAll(/<script src="\/(jh-credit-[a-z]+)\.js\?v=(\d+[a-z])"><\/script>/g)].map(m => [m[1], m[2]]);
   assert.deepEqual(tags.map(t => t[0]), ['jh-credit-board', 'jh-credit-sheet', 'jh-credit-funds']);
   assert.equal(new Set(tags.map(t => t[1])).size, 1, 'one version for the three, so a cached script never meets a newer neighbour');
   assert.match(HTML, /<section id="s-funds">\s*<h2 class="sec">Held by funds — [^<]+<\/h2>\s*<p class="sub">[^<]+<\/p>\s*<div id="funds"><\/div>\s*<\/section>/);
   assert.ok(HTML.indexOf('id="s-cds"') < HTML.indexOf('id="s-funds"') && HTML.indexOf('id="s-funds"') < HTML.indexOf('id="s-method"'));
-  for (const cls of ['cb-fu-grid', 'cb-fu-card', 'cb-fu-row', 'cb-fu-bf', 'cb-fu-rg', 'cb-fu-range', 'cb-fu-key', 'cb-fu-axis']) assert.ok(HTML.includes('.' + cls), cls + ' is drawn and not styled');
+  for (const cls of ['cb-fu-block', 'cb-fu-grid', 'cb-fu-card', 'cb-fu-row', 'cb-fu-bf', 'cb-fu-rg', 'cb-fu-range', 'cb-fu-key', 'cb-fu-axis']) assert.ok(HTML.includes('.' + cls), cls + ' is drawn and not styled');
   assert.ok(BOARD_JS.includes('root.JHCreditFunds') && BOARD_JS.includes('FU.click(d, state,') && BOARD_JS.includes('need("bonds"); need("history"); need("funds");') && BOARD_JS.includes('drawFunds();'));
   assert.ok(BOARD_JS.includes('if (what === "funds" && state.view === "new") drawFunds();'), 'the section is drawn again when its whole document arrives');
   assert.ok(SHEET_JS.includes("funds().sheetHtml(doc, r, ctx)"));
