@@ -66,6 +66,18 @@ def main():
             for s in d.get("sources") or []:
                 if s.get("note") or not s.get("events"):
                     r.log("      source %s: %s events%s%s" % (s.get("source"), s.get("events"), (" | " + str(s.get("document"))) if s.get("document") else "", (" | " + s["note"]) if s.get("note") else ""))
+            # the economic figures and the unit each one is written with (the document's own fields, nothing worked out here)
+            today = now.date().isoformat()
+            econ = [e for e in d.get("events") or [] if isinstance(e, dict) and e.get("type") == "ECON" and str(e.get("date") or "") >= today]
+            figs = [e for e in econ if e.get("consensus") is not None or e.get("previous") is not None]
+            with_unit = [e for e in figs if str(e.get("unit") or "").strip()]
+            units = {}
+            for e in figs:
+                u = str(e.get("unit") or "").strip() or "(none)"
+                units[u] = units.get(u, 0) + 1
+            r.log("      economic events ahead: %d, %d with a figure, %d of those with a unit | units %s" % (len(econ), len(figs), len(with_unit), json.dumps(units, sort_keys=True)))
+            for e in (with_unit[:3] + [e for e in figs if e not in with_unit][:3]):
+                r.log("      e.g. %s %s | %s | unit %r" % (e.get("date"), str(e.get("title"))[:60], str(e.get("subtitle"))[:90], e.get("unit")))
             (done if own and d.get("version") == "2.0.0" and (d.get("n_ahead") or 0) >= 100 else wrong if own else waiting).append("catalyst calendar")
         except Exception as e:  # noqa: BLE001
             r.log("catalyst calendar not read: %s" % str(e)[:160])
