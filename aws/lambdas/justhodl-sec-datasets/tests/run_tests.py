@@ -115,6 +115,9 @@ def nport_zip(amend=True):
         idt.append([h, h, "", "ionq us", "", ""])
         h = hold(acc, "Tiny Co", "Common", "999999999", 10, "NS", 1e5, "EC", level="1")
         lend.append([h, "N", 0, "N", 0, "N", 0])
+        if f == 1:                               # a units slip: one bond "worth" eighteen times the whole fund
+            h = hold(acc, "Slip Corp", "SLIP 5 01/01/30", "222222BB2", 9e7, "PA", 9e10, "DBT")
+            debts.append([h, "01-JAN-2030", "Fixed", 5.0, "Y", "N", "N", "N", "N"])
     if amend:                                    # fund 0 amends: the amendment must replace its first filing, not add to it
         acc = "0001-26-900000"
         subs.append([acc, "20-SEP-2026", "811-1", "NPORT-P/A", "30-SEP-2026", "31-JUL-2026", "N"])
@@ -377,6 +380,8 @@ def test_a_quarter_of_fund_holdings():
     loan = next(r for r in rows if r["cls"] == "LON")
     assert loan["issuer"] == "Shared Borrower LLC" and loan["funds"] == 5 and loan["n_pik"] == 5 and loan["n_l3"] == 5 and loan["px"] == 75.0
     assert len(rows) == 3 and b["totals"] == {"securities": 3, "with_identifier": 2, "set_aside_small": 5, "flag_default": 1, "flag_arrears": 1, "flag_pik": 1}
+    assert s["set_aside_impossible"]["rows"] == 1 and s["set_aside_impossible"]["value"] == round(9e10) and not any(r["issuer"] == "Slip Corp" for r in rows)
+    assert dead["rows"] == 5 and cw["rows"] == 6, "positions are counted beside funds"
     c = docs["cds"]
     ford = dict(zip(c["cols"], c["names"][0]))
     assert ford["reference"] == "FORD MOTOR CO" and ford["positions"] == 5 and ford["funds"] == 5 and ford["usual_end_year"] == "2030"

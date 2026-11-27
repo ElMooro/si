@@ -30,6 +30,7 @@ JUNK_NAMES = {"", "N/A", "NA", "NONE", "CREDIT DEFAULT SWAPS", "CREDIT DEFAULT S
 MARK_RANGE = (1.0, 250.0)             # value per 100 of face outside this is a units slip, not a mark
 MIN_LOOSE_VALUE = 1e6                 # a bond or loan with no identifier is kept when two funds hold it or it is worth this much
 MIN_STOCK_HELD = 25e6                 # a stock is listed when funds hold this much of it
+IMPOSSIBLE_SHARE = 1.5                # one holding worth more than this many times its whole fund is a units slip: set aside, counted
 
 
 class NotHandled(Exception):
@@ -322,10 +323,11 @@ def nmfp_summary(doc):
 
 
 # ----------------------------------------------------------------------------------------------- N-PORT
-def _load(db, zf, stem, table, cols, numeric=(), dates=(), need=None, tally=None):
+def _load(db, zf, stem, table, cols, numeric=(), dates=(), need=None, tally=None, drop=None):
     """One member of the zip into one scratch table, only the named columns. Rows kept, or None when the member is absent.
 
-    need: a column that must be filled for the row to be kept. tally(record dict) sees every kept row.
+    need: a column that must be filled for the row to be kept. drop(record) -> True leaves the row out.
+    tally(record) sees every kept row.
     """
     names = [c.lower() for c in cols]
     db.execute("CREATE TABLE %s (%s)" % (table, ", ".join("%s %s" % (n, "REAL" if c in numeric else "TEXT") for n, c in zip(names, cols))))
@@ -345,6 +347,8 @@ def _load(db, zf, stem, table, cols, numeric=(), dates=(), need=None, tally=None
         for i, k in zip(idx, kinds):
             v = parts[i] if i is not None else None
             rec.append(fnum(v) if k == 1 else d_iso(v) if k == 2 else v)
+        if drop and drop(rec):
+            continue
         if tally:
             tally(rec)
         batch.append(rec)
@@ -437,6 +441,17 @@ def _nport(db, zf, progress):
     progress("filings %d, funds kept %d" % (n_filings, len(kept)))
 
     classes = defaultdict(lambda: [0, 0.0, 0, 0.0])                  # rows, value, level-3 rows, level-3 value
+    net_of = dict(q("SELECT accession_number, net_assets FROM keep"))
+    slips = [0, 0.0]
+
+    def impossible(rec):
+        """A holding reported as worth more than one and a half times its whole fund is a units slip in the filing."""
+        net, value = net_of.get(rec[1]), rec[8]
+        if net and net > 0 and value and value > IMPOSSIBLE_SHARE * max(net, 1e6):
+            slips[0] += 1
+            slips[1] += value
+            return True
+        return False
 
     def tally(rec):                                                 # rec follows the column order of the load below
         if rec[1] in kept:
@@ -450,7 +465,7 @@ def _nport(db, zf, progress):
     n_hold = _load(db, zf, "FUND_REPORTED_HOLDING", "hold",
                    ["HOLDING_ID", "ACCESSION_NUMBER", "ISSUER_NAME", "ISSUER_TITLE", "ISSUER_CUSIP", "BALANCE", "UNIT", "CURRENCY_CODE", "CURRENCY_VALUE",
                     "PAYOFF_PROFILE", "ASSET_CAT", "ISSUER_TYPE", "INVESTMENT_COUNTRY", "IS_RESTRICTED_SECURITY", "FAIR_VALUE_LEVEL", "DERIVATIVE_CAT"],
-                   numeric=("BALANCE", "CURRENCY_VALUE"), tally=tally)
+                   numeric=("BALANCE", "CURRENCY_VALUE"), tally=tally, drop=impossible)
     progress(None)
     _load(db, zf, "DEBT_SECURITY", "debt",
           ["HOLDING_ID", "MATURITY_DATE", "COUPON_TYPE", "ANNUALIZED_RATE", "IS_DEFAULT", "ARE_ANY_INTEREST_PAYMENT", "IS_ANY_PORTION_INTEREST_PAID"],
@@ -498,6 +513,8 @@ def _nport(db, zf, progress):
                     for k, c in sorted(classes.items(), key=lambda kv: -kv[1][1])],
         "flows_by_month": {m: {"sales": round(f[0]), "reinvested": round(f[1]), "redemptions": round(f[2]), "net": round(f[0] + f[1] - f[2]), "funds": f[3]}
                            for m, f in sorted(flows.items())},
+        "set_aside_impossible": {"rows": slips[0], "value": round(slips[1]),
+                                 "rule": "a holding reported as worth more than %s times its whole fund's net assets" % IMPOSSIBLE_SHARE},
     }
 
     # ---- bonds and loans: one row per security, across the funds that hold it
@@ -510,7 +527,7 @@ def _nport(db, zf, progress):
         " d.are_any_interest_payment, d.is_any_portion_interest_paid"
         " FROM hold h JOIN keep k ON k.accession_number=h.accession_number LEFT JOIN debt d ON d.holding_id=h.holding_id"
         " WHERE h.asset_cat IN %s ORDER BY 1" % marks)
-    cols = ["issuer", "title", "cls", "itype", "ctry", "cur", "cpn", "ck", "mat", "d", "funds", "face", "value", "px", "px_lo", "px_hi", "n_px",
+    cols = ["issuer", "title", "cls", "itype", "ctry", "cur", "cpn", "ck", "mat", "d", "funds", "rows", "face", "value", "px", "px_lo", "px_hi", "n_px",
             "n_default", "n_arrears", "n_pik", "n_restricted", "n_l3"]
     bonds, totals = [], {"securities": 0, "with_identifier": 0, "set_aside_small": 0, "flag_default": 0, "flag_arrears": 0, "flag_pik": 0}
 
@@ -529,7 +546,7 @@ def _nport(db, zf, progress):
         bonds.append([
             no_ids(top(Counter((g[2] or "").strip() for g in grp))), no_ids(top(Counter((g[3] or "").strip() for g in grp))), top(Counter(g[8] for g in grp)),
             top(Counter(g[9] for g in grp)), top(Counter(g[10] for g in grp)), top(Counter(g[6] for g in grp)), top(rates), top(Counter(g[14] for g in grp if g[14])),
-            top(Counter(g[13] for g in grp if g[13])), day, len(funds), round(sum(g[4] or 0.0 for g in grp if g[5] == "PA")), round(value),
+            top(Counter(g[13] for g in grp if g[13])), day, len(funds), len(grp), round(sum(g[4] or 0.0 for g in grp if g[5] == "PA")), round(value),
             round(statistics.median(px), 2) if px else None, round(pct(px, 0.1) if len(px) >= 5 else px[0], 2) if px else None,
             round(pct(px, 0.9) if len(px) >= 5 else px[-1], 2) if px else None, len(px), n_def, n_arr, n_pik,
             sum(g[11] == "Y" for g in grp), sum(g[12] == "3" for g in grp)])
@@ -550,7 +567,7 @@ def _nport(db, zf, progress):
         grp.append(row[1:])
     if grp:
         close(key, grp)
-    bonds.sort(key=lambda b: -(b[12] or 0))
+    bonds.sort(key=lambda b: -(b[13] or 0))
     progress("bonds and loans: %s securities" % format(len(bonds), ","))
 
     # ---- credit default swaps funds hold
@@ -639,7 +656,8 @@ def _nport(db, zf, progress):
     progress("stock on loan: %d stocks" % len(loans))
     return {"summary": summary, "bonds": {"as_of": as_of, "cols": cols, "rows": bonds, "totals": totals,
                                           "reading": "px = the middle mark (value per 100 of face) among funds reporting on the commonest date; px_lo / px_hi = the "
-                                                     "10th and 90th percentile (lowest and highest under five marks); marks are funds' own valuations, in dollars only"},
+                                                     "10th and 90th percentile (lowest and highest under five marks); marks are funds' own valuations, in dollars only; "
+                                                     "rows = positions reported, so n_default / rows is the share of them flagged in default"},
             "cds": cds, "stock_loan": stock_loan}
 
 

@@ -70,6 +70,21 @@ def bn(x):
     return "$%.1fbn" % ((x or 0) / 1e9)
 
 
+def words_of(obj, out=None):
+    """Every string in a document, joined: identifiers are looked for in text, never in numbers (a dollar value can equal a CUSIP made of digits)."""
+    out = [] if out is None else out
+    if isinstance(obj, str):
+        out.append(obj)
+    elif isinstance(obj, dict):
+        for k, v in obj.items():
+            out.append(k)
+            words_of(v, out)
+    elif isinstance(obj, (list, tuple)):
+        for v in obj:
+            words_of(v, out)
+    return out
+
+
 def rss_mb():
     return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0
 
@@ -129,6 +144,12 @@ def main():
             status, body, _ = LF.sec_get(spec["page"])
             library[name] = S.advertised(body, spec["page"], spec["match"]) if status == 200 and body else []
         say("history each set reaches back to: %s" % json.dumps({n: (f[-1]["name"], len(f)) for n, f in library.items() if f}))
+        for name, spec in S.SETS.items():
+            status, body, _ = LF.sec_get(spec["page"])
+            every = sorted({h.rsplit("/", 1)[-1] for h in re.findall(r'href="([^"]+\.zip)"', (body or b"").decode("utf-8", "replace"), flags=re.I)})
+            mine = {f["name"] for f in library[name]}
+            other = [n for n in every if n not in mine]
+            say("  %s page: %d zip links, %d taken%s" % (name, len(every), len(mine), (" | not taken: %s" % ", ".join(other[:40])) if other else ""))
         say("bytes shown on the pages, all files: %s" % json.dumps({n: "%.2f GB" % (sum(x.get("size_shown") or 0 for x in f) / 1024 ** 3) for n, f in library.items()}))
 
         r.section("2. the newest month of money market funds (sec_derive.nmfp_month)")
@@ -261,9 +282,7 @@ def main():
                     for parts in it:
                         if len(parts[ii]) == 12:
                             isins.add(parts[ii])
-            text = json.dumps(docs)
-            if month:
-                text += json.dumps(month)
+            text = "\n".join(words_of(docs) + (words_of(month) if month else []))
             tokens9 = set(re.findall(r"(?<![A-Za-z0-9])[A-Z0-9]{9}(?![A-Za-z0-9])", text))
             tokens12 = set(re.findall(r"(?<![A-Za-z0-9])[A-Z0-9]{12}(?![A-Za-z0-9])", text))
             leak9 = {t for t in tokens9 & cusips if re.search(r"\d", t)}

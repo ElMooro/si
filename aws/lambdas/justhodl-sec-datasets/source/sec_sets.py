@@ -89,7 +89,7 @@ def advertised(page_html, page_url, match):
     return out
 
 
-def plan(library, banked, byte_budget, max_files=40, assume=60 * 1024 ** 2):
+def plan(library, banked, byte_budget, max_files=120, assume=60 * 1024 ** 2):
     """What one run banks: [(set, file, tier)] in order; tier 0 = the newest file of a set, tier 1 = history.
 
     library: {set: [file, ...]} newest first (advertised()); banked: {set: {file name: record}}.
