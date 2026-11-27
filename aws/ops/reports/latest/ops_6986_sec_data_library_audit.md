@@ -1,0 +1,593 @@
+# ops 6986 - the SEC's data library, measured before anything is banked
+
+**Status:** success  
+**Duration:** 169.8s  
+**Finished:** 2026-11-27T00:16:50+00:00  
+
+## Data
+
+| data_sets |
+|---|
+| 23 |
+
+## Log
+- `00:14:00` run at 2026-11-27 00:14 UTC | read only: nothing is written to the warehouse
+## 1. The SEC's data library: every data-set page
+
+- `00:14:01` hub https://www.sec.gov/data-research/sec-markets-data: HTTP 200
+- `00:14:02` hub https://www.sec.gov/data-research/structured-data: HTTP 200
+- `00:14:03` hub https://www.sec.gov/about/dera_data-library: HTTP 404
+- `00:14:03` hub https://www.sec.gov/dera/data: HTTP 200
+- `00:14:03` candidate pages: 34
+- `00:14:06`   Form N-CEN Data Sets                                        33 files | newest 2026q3_ncen.zip (5.6 MB) | oldest 2018q3_ncen.zip
+- `00:14:06`   Transfer Agent Data Sets                                    80 files | newest 2026q3_ta.zip (602.94 KB) | oldest 2006q4_ta.zip
+- `00:14:07`   Financial Statement and Notes Data Sets                     80 files | newest 2026_10_notes.zip (87.47 MB) | oldest 2009q1_notes.zip
+- `00:14:08`   Business Development Company (BDC) Data Sets                23 files | newest 2026_10_bdc.zip (1.75 MB) | oldest 2022q4_bdc.zip
+- `00:14:09`   Crowdfunding Offerings Data Sets                            42 files | newest 2026q3_cf.zip (241.41 KB) | oldest 2016q2_cf.zip
+- `00:14:09`   Form N-MFP Data Sets                                       100 files | newest 20261008-20261106_nmfp.zip (9.56 MB) | oldest 2010q4_nmfp.zip
+- `00:14:10`   Fails-to-Deliver Data                                      438 files | newest cnsfails202610b.zip (1.37 MB) | oldest cnsp_sec_fails_2004q1.zip
+- `00:14:11`   Financial Statement Data Sets                               71 files | newest 2026q3.zip (62.13 MB) | oldest 2009q1.zip
+- `00:14:12`   Form 13F Data Sets                                          54 files | newest 01jun2026-31aug2026_form13f.zip (96.05 MB) | oldest 2013q2_form13f.zip
+- `00:14:13`   no page (HTTP 404): form-144-data-sets
+- `00:14:14`   Form D Data Sets                                            75 files | newest 2026q3_d.zip (3.48 MB) | oldest 2008q1_d.zip
+- `00:14:15`   Form N-PORT Data Sets                                       28 files | newest 2026q3_nport.zip (440.95 MB) | oldest 2019q4_nport.zip
+- `00:14:16`   no page (HTTP 404): form-n-px-data-sets
+- `00:14:17`   no page (HTTP 404): form-sho-data
+- `00:14:18`   Information About Registered Investment Advisers and Exemp 347 files | newest ia11022026-exempt.zip (855.87 KB) | oldest ia060506.zip
+- `00:14:18`   Information About Registered Municipal Advisors            100 files | newest ma100123.zip (27.27 KB) | oldest ma050115.zip
+- `00:14:19`   Insider Transactions Data Sets                              83 files | newest 2026q3_form345.zip (8.26 MB) | oldest 2006q1_form345.zip
+- `00:14:19`   Metrics by Individual Security and Exchange                 59 files | newest individual_security_exchange_2026_q3.zip (201.18 MB) | oldest individual_security_exchange_2012_q1.zip
+- `00:14:19`   Conditional Cancel and Trade Distributions                  56 files | newest cancel_trade_q3_2026.zip (14.71 MB) | oldest cancel_trade_q4_2012.zip
+- `00:14:20`   Summary Metrics by Decile and Quartile                       1 files | newest decile_quartile_2026_q3.zip (10.48 MB) | oldest decile_quartile_2026_q3.zip
+- `00:14:20`   Summary Metrics by Exchange                                  1 files | newest metrics_by_exchange_q3_2026.zip (4.82 MB) | oldest metrics_by_exchange_q3_2026.zip
+- `00:14:21`   Hazards and Survivors by Time Period                        56 files | newest haz_sur_q3_2026.zip (13.37 MB) | oldest haz_sur_q4_2012.zip
+- `00:14:21`   Metrics by Individual Security                              59 files | newest individual_security_2026_q3.zip (24.42 MB) | oldest individual_security_2012_q10.zip
+- `00:14:23`   no page (HTTP 404): mutual-fund-prospectus-risk-return-summary-data-sets
+- `00:14:23`   Mutual Fund Prospectus Risk/Return Summary Data Sets        23 files | newest 2026-10_rr1.zip (14.13 MB) | oldest 2010q4_rr1.zip
+- `00:14:23`   Regulation A Data Sets                                      46 files | newest 2026q3_rega.zip (146.37 KB) | oldest 2015q2_rega.zip
+- `00:14:24`   no page (HTTP 404): security-based-swap-data
+- `00:14:26`   Variable Insurance Product Data Sets                        13 files | newest 2026-10_vip.zip (1.03 MB) | oldest 2023_vip.zip
+- `00:14:26` data sets with downloadable files: 23
+- `00:14:26` (library took 25s)
+## 2. Form N-PORT, newest quarter, opened whole
+
+- `00:14:37` file 2026q3_nport.zip: 441.0 MB, downloaded in 11s
+- `00:14:37` members: 32, unpacked 1.5 GB in all
+- `00:14:37`   FUND_REPORTED_HOLDING.tsv              907.9 MB
+- `00:14:37`   IDENTIFIERS.tsv                        256.6 MB
+- `00:14:37`   DEBT_SECURITY.tsv                      130.7 MB
+- `00:14:37`   SECURITIES_LENDING.tsv                 103.4 MB
+- `00:14:37`   DERIVATIVE_COUNTERPARTY.tsv             69.2 MB
+- `00:14:37`   MONTHLY_RETURN_CAT_INSTRUMENT.tsv       19.4 MB
+- `00:14:37`   DESC_REF_OTHER.tsv                      11.8 MB
+- `00:14:37`   NONFOREIGN_EXCHANGE_SWAP.tsv             9.7 MB
+- `00:14:37`   DESC_REF_INDEX_COMPONENT.tsv             9.0 MB
+- `00:14:37`   FWD_FOREIGNCUR_CONTRACT_SWAP.tsv         7.8 MB
+- `00:14:37`   FUND_REPORTED_INFO.tsv                   4.3 MB
+- `00:14:37`   BORROWER.tsv                             3.0 MB
+- `00:14:37`   FLOATING_RATE_RESET_TENOR.tsv            2.8 MB
+- `00:14:37`   REGISTRANT.tsv                           2.1 MB
+- `00:14:37`   DEBT_SECURITY_REF_INSTRUMENT.tsv         2.0 MB
+- `00:14:37`   SWAPTION_OPTION_WARNT_DERIV.tsv          1.9 MB
+- `00:14:37`   MONTHLY_TOTAL_RETURN.tsv                 1.7 MB
+- `00:14:37`   EXPLANATORY_NOTE.tsv                     1.7 MB
+- `00:14:37`   FUT_FWD_NONFOREIGNCUR_CONTRACT.tsv       1.5 MB
+- `00:14:37`   DESC_REF_INDEX_BASKET.tsv                1.3 MB
+- `00:14:37`   INTEREST_RATE_RISK.tsv                   1.2 MB
+- `00:14:37`   SUBMISSION.tsv                           934 KB
+- `00:14:37`   REPURCHASE_COUNTERPARTY.tsv              568 KB
+- `00:14:37`   REPURCHASE_COLLATERAL.tsv                551 KB
+- `00:14:37`   REPURCHASE_AGREEMENT.tsv                 481 KB
+- `00:14:37`   CONVERTIBLE_SECURITY_CURRENCY.tsv        420 KB
+- `00:14:37`   FUND_VAR_INFO.tsv                        325 KB
+- `00:14:37`   BORROW_AGGREGATE.tsv                     127 KB
+- `00:14:37`   nport_metadata.json                      126 KB
+- `00:14:37`   nport_readme.htm                          84 KB
+- `00:14:37`   OTHER_DERIV.tsv                           30 KB
+- `00:14:37`   OTHER_DERIV_NOTIONAL_AMOUNT.tsv           23 KB
+- `00:14:37` loading the tables the audit needs:
+- `00:14:37`   SUBMISSION: 14,066 rows, 934 KB unpacked
+- `00:14:37`   REGISTRANT: 14,066 rows, 2.1 MB unpacked
+- `00:14:37`   FUND_REPORTED_INFO: 14,066 rows, 4.3 MB unpacked
+- `00:15:05`   FUND_REPORTED_HOLDING: 5,627,083 rows, 907.9 MB unpacked
+- `00:15:13`   DEBT_SECURITY: 3,348,735 rows, 130.7 MB unpacked
+- `00:15:14`   NONFOREIGN_EXCHANGE_SWAP: 89,030 rows, 9.7 MB unpacked
+- `00:15:14`   DESC_REF_OTHER: 171,433 rows, 11.8 MB unpacked
+- `00:15:14`   DESC_REF_INDEX_BASKET: 26,169 rows, 1.3 MB unpacked
+- `00:15:15`   DERIVATIVE_COUNTERPARTY: 301,247 rows, 69.2 MB unpacked
+- `00:15:15`   REPURCHASE_AGREEMENT: 10,092 rows, 481 KB unpacked
+- `00:15:15`   REPURCHASE_COUNTERPARTY: 9,426 rows, 568 KB unpacked
+- `00:15:25`   SECURITIES_LENDING: 5,616,671 rows, 103.4 MB unpacked
+- `00:15:34` loaded and indexed in 57s
+- `00:15:34` 
+- `00:15:34` FILINGS AND FUNDS
+- `00:15:34`   filings of type NPORT-P: 13,938
+- `00:15:34`   filings of type NPORT-P/A: 128
+- `00:15:34`   report dates (how old the holdings are), by number of filings: 30-JUN-2026 x7063, 31-JUL-2026 x4195, 31-MAY-2026 x2516, 29-MAY-2026 x197, 31-MAR-2026 x27, 30-SEP-2025 x26, 30-APR-2026 x11, 31-JAN-2026 x10
+- `00:15:34`   filing dates as written in the file: 01-JUL-2026 to 31-JUL-2026 (first and last by text order)
+- `00:15:34`   is_last_filing values: {'N': 13997, 'Y': 69}
+- `00:15:34`   funds (series): 13,201 | net assets summed over every filing in the file: $47559.4bn
+- `00:15:34`   net shareholder flows carried per fund, three months of each filing, summed: $165.8bn | $200.2bn | $194.1bn
+- `00:15:34`   change in value for a 1bp move in 5-year credit spreads, summed: investment grade $-130m, below $-50m
+- `00:15:34` 
+- `00:15:34` HOLDINGS BY ASSET CLASS (the file's own codes)
+- `00:15:35`   EC            1,878,214 rows   $36625.3bn
+- `00:15:35`   DBT           1,664,526 rows    $6985.5bn
+- `00:15:35`   LON           1,044,005 rows     $278.5bn
+- `00:15:35`   ABS-MBS         442,417 rows    $1570.3bn
+- `00:15:35`   DFE             146,942 rows      $-5.4bn
+- `00:15:35`   ABS-O           111,307 rows     $335.8bn
+- `00:15:35`   ABS-CBDO         73,874 rows     $304.1bn
+- `00:15:35`   DE               67,151 rows     $148.5bn
+- `00:15:35`   DIR              59,695 rows      $37.8bn
+- `00:15:35`   OTHER            46,631 rows     $427.9bn
+- `00:15:35`   STIV             31,724 rows    $1265.5bn
+- `00:15:35`   EP               20,156 rows     $164.2bn
+- `00:15:35`   DCR              12,061 rows       $3.2bn
+- `00:15:35`   DCO              10,596 rows      $-0.0bn
+- `00:15:35`   RA               10,090 rows      $15.0bn
+- `00:15:35`   SN                3,030 rows     $145.3bn
+- `00:15:35`   DO                1,838 rows      $-4.8bn
+- `00:15:35`   RE                1,633 rows      $11.5bn
+- `00:15:35`   ABS-APCP          1,184 rows       $4.4bn
+- `00:15:35`   COMM                  9 rows       $9.7bn
+- `00:15:37`   units: {'PA': 3391960, 'NS': 1944603, 'NC': 230285, 'OU': 60235}
+- `00:15:38`   derivative kinds: {'FWD': 142197, 'SWP': 89030, 'FUT': 30310, 'OPT': 26110, 'SWO': 6481, 'WAR': 3220, 'OTH': 936}
+- `00:15:39`   fair value level 3 (priced by model), rows and value by class: LON 978,598 $95.9bn, EP 4,873 $53.9bn, EC 15,587 $45.3bn, OTHER 29,810 $35.9bn, DBT 5,380 $24.1bn, ABS-MBS 2,004 $13.2bn, ABS-O 1,753 $12.0bn, ABS-CBDO 2,511 $9.6bn
+- `00:15:39` 
+- `00:15:39` BONDS (asset class DBT) AND WHAT EACH ROW CARRIES
+- `00:15:42`   bond rows: 1,664,526 worth $6985.5bn | distinct bonds (by the identifier, counted only): 191,759 | distinct issuer names: 101,072
+- `00:15:43`   issuer types among bond rows: {'CORP': 993949, 'MUN': 495019, 'NUSS': 88866, 'UST': 52887, 'OTHER': 17740, 'USGA': 13344, 'USGSE': 2557, 'RF': 138}
+- `00:15:44`   a maturity date as written: 01-JUL-2044 | coupon kinds: {'Fixed': 2799728, 'Variable': 207580, 'Floating': 190212, 'None': 151215}
+- `00:15:44`   flagged in default:             217,028 rows    $13.4bn
+- `00:15:45`   flagged interest in arrears:    301,544 rows    $11.4bn
+- `00:15:45`   flagged interest paid in kind:    5,710 rows    $18.3bn
+- `00:15:45`   largest issuers flagged in default, by value funds still carry (issuer | funds | value | value per 100 of face):
+- `00:15:46`     PUERTO RICO ELECTRIC POWER AUTHORITY             89     $1443m     75.5
+- `00:15:46`     REPUBLIC OF VENEZUELA                            71      $805m     49.7
+- `00:15:46`     PETROLEOS DE VENEZUELA S                         64      $780m     40.0
+- `00:15:46`     LEBANESE REPUBLIC                                58      $533m     26.5
+- `00:15:46`     PETROLEOS DE VENEZUELA SA                        66      $467m     42.4
+- `00:15:46`     NFE FINANCING LLC                                35      $431m     34.6
+- `00:15:46`     COMMONWEALTH OF PUERTO RICO                      16      $418m     58.0
+- `00:15:46`     DISH DBS CORP                                    73      $265m     93.9
+- `00:15:46`     NEW FORTRESS ENERGY INC                          45      $251m     57.0
+- `00:15:46`     NEW HOPE CULTURAL EDUCATION FACILITIES FINANCE    9      $237m     97.7
+- `00:15:46`     NEW HOPE CULTURAL EDUCATION FACILITIES FINANCE   25      $215m     80.6
+- `00:15:46`     FLORIDA DEVELOPMENT FINANCE CORP (FL)            12      $176m     74.4
+- `00:15:46`     OI S.A.                                          17      $170m     18.6
+- `00:15:46`     VENEZUELA, REPUBLIC OF                            9      $165m     50.8
+- `00:15:46`     PUBLIC FINANCE AUTHORITY                         44      $149m     50.1
+- `00:15:46` 
+- `00:15:46` ONE BOND HELD BY MANY FUNDS ON THE SAME DATE: THE SPREAD OF THEIR MARKS
+- `00:15:50`   bond-dates with five or more funds: 65,078 | spread between the highest and lowest mark, in points of face: median 0.12, 90th pct 0.46, 99th pct 2.42
+- `00:15:50`   with a spread of 5 points or more: 375 | 10 or more: 269
+- `00:15:50`   widest disagreements among bonds funds mark below 95 (issuer | title | date | funds | low | high):
+- `00:15:50`     100356 - NRM Group                 100356 - NRM Group             30-JUN-2026  12    55.8   180.0
+- `00:15:50`     UNITED STATES OF AMERICA - BUREAU  TII 2.125 02/15/40             31-JUL-2026   9    93.6   145.2
+- `00:15:50`     TIPS                               TII 2.125 02/15/41             31-JUL-2026  14    92.4   141.4
+- `00:15:50`     Treasury, United States Department T 1.875 02/15/51               30-JUN-2026 104    55.6   100.0
+- `00:15:50`     Treasury, United States Department T 2 02/15/50                   30-JUN-2026  81    58.3   100.0
+- `00:15:50`     Treasury, United States Department T 2.25 02/15/52                30-JUN-2026 103    60.2   100.0
+- `00:15:50`     Florida Development Finance Corp   FLORIDA ST DEV FIN CORP        31-JUL-2026   8    28.0    65.0
+- `00:15:50`     TSY INFL IX N/B                    TII 0.75 02/15/42              30-JUN-2026  60    76.3   113.1
+- `00:15:50`     Treasury, United States Department T 1.125 05/15/40               30-JUN-2026  84    63.3   100.0
+- `00:15:50`     TIPS                               TII 0.75 02/15/42              31-MAY-2026  12    77.3   113.3
+- `00:15:50`     Treasury, United States Department TII 1.375 02/15/44             30-JUN-2026  57    81.6   117.4
+- `00:15:50`     TIPS                               TII 0 3/4 02/15/42             31-JUL-2026  23    73.4   108.8
+- `00:15:50` 
+- `00:15:50` THE 24 BONDS OF THE CHART HE SENT (matched on issuer name, coupon and maturity year; no identifier shown)
+- `00:15:56`   rows with one of the chart's coupons: 250,552
+- `00:15:56`   CRWV 9 '31         COREWEAVE INC                            259 funds | face $573m | value $558m | marks 90.2 to 102.5 | dates 30-JUN-2026 x127, 31-JUL-2026 x76 | restricted {'N': 210, 'Y': 51}
+- `00:15:56`   CRWV 9.75 '31      COREWEAVE INC                            307 funds | face $926m | value $906m | marks 90.3 to 103.3 | dates 30-JUN-2026 x161, 31-JUL-2026 x85 | restricted {'N': 233, 'Y': 75}
+- `00:15:56`   CRWV 9.25 '30      COREWEAVE INC                            304 funds | face $948m | value $938m | marks 93.0 to 103.4 | dates 30-JUN-2026 x153, 31-JUL-2026 x81 | restricted {'N': 234, 'Y': 71}
+- `00:15:56`   CRWV 9.625 '32     COREWEAVE INC                            147 funds | face $220m | value $207m | marks 89.2 to 98.8 | dates 30-JUN-2026 x92, 31-JUL-2026 x56 | restricted {'N': 117, 'Y': 31}
+- `00:15:57`   EDGCOM 7.5 '31     EDGED COMPUTE LLC                        136 funds | face $393m | value $390m | marks 94.4 to 100.4 | dates 30-JUN-2026 x52, 31-MAY-2026 x45 | restricted {'N': 93, 'Y': 43}
+- `00:15:57`   CORZ 7.75 '31      CORE SCIENTIFIC FINANCE I LLC            261 funds | face $907m | value $910m | marks 97.9 to 102.3 | dates 30-JUN-2026 x136, 31-JUL-2026 x74 | restricted {'N': 203, 'Y': 59}
+- `00:15:57`   DDRIVE 8.875 '31   not held by any fund in this file
+- `00:15:57`   ELKGVP 7.5 '31     ELK GROVE VILLAGE PROPER                 144 funds | face $253m | value $250m | marks 96.0 to 100.9 | dates 30-JUN-2026 x88, 31-JUL-2026 x57 | restricted {'N': 125, 'Y': 20}
+- `00:15:57`   APLD 9.25 '30      APLD COMPUTECO LLC                       285 funds | face $712m | value $768m | marks 98.1 to 108.5 | dates 30-JUN-2026 x153, 31-JUL-2026 x85 | restricted {'N': 221, 'Y': 66}
+- `00:15:57`   GALAXY 9.875 '31   GALAXY HELIOS DATA CENTERS II LLC         65 funds | face $159m | value $159m | marks 100.3 to 100.5 | dates 31-JUL-2026 x65 | restricted {'N': 54, 'Y': 11}
+- `00:15:57`   ELNFOR 7 '31       APLD COMPUTECO 3 LLC                     208 funds | face $445m | value $440m | marks 97.3 to 100.0 | dates 30-JUN-2026 x120, 31-JUL-2026 x88 | restricted {'N': 182, 'Y': 26}
+- `00:15:57`   SECMOS 8.875 '31   SE COSMOS LLC                            118 funds | face $506m | value $515m | marks 98.5 to 104.7 | dates 30-JUN-2026 x71, 31-JUL-2026 x34 | restricted {'Y': 54, 'N': 65}
+- `00:15:57`   ZENARC 8.875 '31   not held by any fund in this file
+- `00:15:57`   TRACTC 5.875 '31   SV RNO PROPERTY OWNER 1 LLC              431 funds | face $1458m | value $1416m | marks 92.7 to 98.9 | dates 30-JUN-2026 x219, 31-JUL-2026 x130 | restricted {'N': 346, 'Y': 86}
+- `00:15:57`   PFORGE 6.75 '31    APLD COMPUTECO 2 LLC                     309 funds | face $838m | value $838m | marks 97.8 to 100.9 | dates 30-JUN-2026 x152, 31-JUL-2026 x91 | restricted {'N': 224, 'Y': 85}
+- `00:15:57`   TRACTD 6.5 '31     PR RNO PROPERTY OWNER 1 LLC              380 funds | face $1537m | value $1508m | marks 93.7 to 100.2 | dates 30-JUN-2026 x188, 31-JUL-2026 x119 | restricted {'N': 281, 'Y': 99}
+- `00:15:57`   YNDRDC 6.875 '31   YONDR JK 1 LLC                           131 funds | face $178m | value $177m | marks 95.0 to 100.3 | dates 30-JUN-2026 x82, 31-JUL-2026 x50 | restricted {'N': 103, 'Y': 29}
+- `00:15:57`   FLASHC 7.25 '30    FLASH COMPUTE LLC                        228 funds | face $556m | value $572m | marks 101.0 to 103.5 | dates 30-JUN-2026 x106, 31-JUL-2026 x64 | restricted {'N': 162, 'Y': 67}
+- `00:15:57`   MERIDI 6.25 '31    MERIDIAN ARC HOLDCO LLC                  425 funds | face $2086m | value $2062m | marks 96.1 to 100.6 | dates 30-JUN-2026 x213, 31-JUL-2026 x123 | restricted {'N': 322, 'Y': 105}
+- `00:15:57`   CIFR 7.125 '30     CIPHER COMPUTE LLC                       353 funds | face $795m | value $825m | marks 101.6 to 104.4 | dates 30-JUN-2026 x179, 31-JUL-2026 x99 | restricted {'N': 268, 'Y': 86}
+- `00:15:57`   WULF 7.75 '30      WULF COMPUTE LLC                         388 funds | face $1270m | value $1334m | marks 103.0 to 105.7 | dates 30-JUN-2026 x179, 31-JUL-2026 x111 | restricted {'N': 293, 'Y': 95}
+- `00:15:57`   CLSPRK 7.875 '31   not held by any fund in this file
+- `00:15:57`   STNGRY 6 '31       STINGRAY COMPUTE                         192 funds | face $246m | value $243m | marks 97.5 to 100.3 | dates 30-JUN-2026 x115, 31-JUL-2026 x78 | restricted {'N': 147, 'Y': 46}
+- `00:15:57`   BLKPRL 6.125 '31   BLACK PEARL COMPUTE LLC                  345 funds | face $983m | value $993m | marks 99.7 to 101.9 | dates 30-JUN-2026 x184, 31-JUL-2026 x104 | restricted {'N': 247, 'Y': 99}
+- `00:15:57`   of the chart's 24 bonds, held by at least one fund in this file: 21
+- `00:15:57` 
+- `00:15:57` AI DATA-CENTRE AND COMPUTE ISSUERS AMONG FUND BOND AND LOAN ROWS (name pattern; largest by value)
+- `00:16:16`   issuer names matched: 234
+- `00:16:16`     BEIGNET INVESTOR LLC                                 $9892m  358 funds {'DBT': 360}
+- `00:16:16`     COREWEAVE INC                                        $2879m  428 funds {'DBT': 948}
+- `00:16:16`     MERIDIAN ARC HOLDCO LLC                              $2149m  444 funds {'DBT': 444}
+- `00:16:16`     WULF COMPUTE LLC                                     $1373m  404 funds {'DBT': 404}
+- `00:16:16`     BLACK PEARL COMPUTE LLC                              $1020m  354 funds {'DBT': 354}
+- `00:16:16`     PR RNO PROPERTY OWNER 1 LLC                           $901m  200 funds {'DBT': 200}
+- `00:16:16`     APLD COMPUTECO LLC                                    $894m  309 funds {'DBT': 312}
+- `00:16:16`     CIPHER COMPUTE LLC                                    $830m  367 funds {'DBT': 367}
+- `00:16:16`     BEACON POINT DC LLC                                   $828m  249 funds {'DBT': 250}
+- `00:16:16`     SV RNO PROPERTY OWNER 1 LLC                           $814m  275 funds {'DBT': 276}
+- `00:16:16`     APLD COMPUTECO 2 LLC                                  $806m  318 funds {'DBT': 318}
+- `00:16:16`     HUT 8 DC LLC                                          $801m  261 funds {'DBT': 262}
+- `00:16:16`     ALIGNED DATA CENTERS INTERNATIONAL LP                 $745m   15 funds {'LON': 15}
+- `00:16:16`     COREWEAVE, INC.                                       $677m  110 funds {'DBT': 252}
+- `00:16:16`     COREWEAVE FINANCING DDTL V LLC                        $610m  186 funds {'DBT': 3, 'LON': 203}
+- `00:16:16`     IREN LTD                                              $592m   79 funds {'DBT': 117}
+- `00:16:16`     SV RNO PROPERTY OWNER 1                               $581m  153 funds {'DBT': 153}
+- `00:16:16`     PR RNO PROPERTY OWNER 1                               $568m  152 funds {'DBT': 152}
+- `00:16:16`     FLASH COMPUTE LLC                                     $560m  234 funds {'DBT': 234}
+- `00:16:16`     CORE SCIENTIFIC FINANCE                               $538m  127 funds {'DBT': 127}
+- `00:16:16`     TERAWULF INC                                          $527m   84 funds {'DBT': 120}
+- `00:16:16`     SE COSMOS LLC                                         $509m  110 funds {'DBT': 110}
+- `00:16:16`     CORE SCIENTIFIC FINANCE I LLC                         $465m  154 funds {'DBT': 154}
+- `00:16:16`     APLD COMPUTECO 3 LLC                                  $458m  212 funds {'DBT': 212}
+- `00:16:16`     EDGED COMPUTE LLC                                     $380m  145 funds {'DBT': 145}
+- `00:16:16`     SUPER MICRO COMPUTER INC                              $352m   26 funds {'DBT': 43}
+- `00:16:16`     BEIGNET INVEST 6.581% 05/30/49                        $338m    7 funds {'DBT': 7}
+- `00:16:16`     NSCALE                                                $334m   19 funds {'LON': 19}
+- `00:16:16`     COMPASS DATACENTERS ISSUER III LLC                    $334m   56 funds {'ABS-O': 97}
+- `00:16:16`     COMPASS DATACENTERS ISSUER II LLC                     $327m   77 funds {'ABS-O': 98}
+- `00:16:16`     CIPHER DIGITAL INC                                    $306m   29 funds {'DBT': 34}
+- `00:16:16`     CYRUSONE DATA CENTERS ISSUER I LLC                    $283m   81 funds {'ABS-O': 125}
+- `00:16:16`     STACK INFRASTRUCTURE ISSUER LLC                       $271m   74 funds {'ABS-O': 94}
+- `00:16:16`     VANTAGE DATA CENTERS LLC                              $216m   59 funds {'ABS-O': 74}
+- `00:16:16`     RETAINED VANTAGE DATA CENTERS ISSUER, LLC             $188m   47 funds {'ABS-O': 58}
+- `00:16:16`     ALIGNED DATA CENTERS ISSUER LLC                       $187m   61 funds {'ABS-O': 63, 'DBT': 5}
+- `00:16:16`     VANTAGE DATA CENTERS ISSUER LLC                       $186m   44 funds {'ABS-O': 55}
+- `00:16:16`     COREWEAVE COMPUTE ACQUISITION CO., IV, LLC            $181m   22 funds {'LON': 38}
+- `00:16:16`     YONDR JK 1 LLC                                        $167m  113 funds {'DBT': 113}
+- `00:16:16`     RETAINED VANTAGE DATA CENTERS ISSUER LLC              $165m   57 funds {'ABS-O': 62}
+- `00:16:16` 
+- `00:16:16` LOANS (asset class LON)
+- `00:16:18`   loan rows: 1,044,005 worth $278.5bn | distinct borrower names: 603,342
+- `00:16:19`   marked below 90: 7.0% of loan value (243,033 rows)
+- `00:16:19`   marked below 80: 3.0% of loan value (227,311 rows)
+- `00:16:19`   marked below 70: 1.5% of loan value (218,668 rows)
+- `00:16:19`   marked below 50: 0.4% of loan value (205,947 rows)
+- `00:16:19`   largest borrowers marked below 80 (borrower | funds | value | mark):
+- `00:16:19`     CSC SERVICEWORKS EAST LLC                        38      $276m    73.9
+- `00:16:19`     NEW FORTRESS ENERGY INC                          53      $267m    61.0
+- `00:16:19`     REALTRUCK GROUP, INC.                            22      $249m    61.4
+- `00:16:19`     CENTRAL PARENT INC                               41      $221m    65.5
+- `00:16:19`     LBM ACQUISITION LLC                              30      $169m    79.7
+- `00:16:19`     BRAND INDUSTRIAL SERVICES INC                    40      $168m    78.9
+- `00:16:19`     KASEYA INC                                       52      $165m    69.1
+- `00:16:19`     PROJECT ALPHA INTERMEDIATE HOLDING, INC.         61      $151m    71.8
+- `00:16:19`     RENAISSANCE HOLDINGS CORP.                        3      $142m    78.9
+- `00:16:19`     CORNERSTONE BUILDING BRANDS INC                  55      $131m    53.1
+- `00:16:19`     CSC HOLDINGS LLC                                 45      $123m    71.5
+- `00:16:19`     1440 FOODS TOPCO LLC                              2      $112m    73.1
+- `00:16:19` 
+- `00:16:19` CREDIT DERIVATIVES FUNDS HOLD (asset class DCR)
+- `00:16:19`   kind SWP    11,394 rows
+- `00:16:19`   kind SWO    621 rows
+- `00:16:19`   kind FUT    28 rows
+- `00:16:19`   kind OPT    18 rows
+- `00:16:19`   credit swaps with a swap record: 11,394 | notional $269.6bn | funds holding any: 756
+- `00:16:19`   how the two legs are written (received | paid | rows | notional):
+- `00:16:19`     received Fixed      paid Other         6,222 rows   $184.1bn
+- `00:16:19`     received Other      paid Fixed         3,352 rows    $73.9bn
+- `00:16:19`     received Fixed      paid Fixed         1,182 rows     $8.1bn
+- `00:16:19`     received Other      paid Floating        423 rows     $1.3bn
+- `00:16:19`     received Fixed      paid Floating        100 rows     $0.9bn
+- `00:16:19`     received Floating   paid Other            71 rows     $0.8bn
+- `00:16:19`     received Floating   paid Fixed            35 rows     $0.1bn
+- `00:16:19`     received Other      paid Other             9 rows     $0.3bn
+- `00:16:19`   written on a named issuer or security: 7,727 rows | written on an index or basket: 3,623 rows
+- `00:16:19`   the indices most written on (index | rows | notional):
+- `00:16:19`     CDX.NA.IG.S46                                                   260    $45.6bn
+- `00:16:19`     CDX.NA.IG.S45                                                    75    $20.9bn
+- `00:16:19`     CDX.NA.HY.S46                                                   170    $10.5bn
+- `00:16:19`     ICE: (CDX.NA.IG.46.V1)                                           22     $7.0bn
+- `00:16:19`     ITRAXX EUROPE S45                                                66     $6.5bn
+- `00:16:19`     MARKIT CDX NORTH AMERICAN INVESTMENT GRADE INDEX SERIES 46-V     46     $3.5bn
+- `00:16:19`     MARKIT CDX NORTH AMERICAN INVESTMENT GRADE INDEX SERIES 45-V     13     $3.4bn
+- `00:16:19`     MARKIT CDX NORTH AMERICAN HIGH YIELD INDEX SERIES 46-V2          66     $3.1bn
+- `00:16:19`     ITRAXX EUROPE CROSSOVER S44                                     233     $2.4bn
+- `00:16:19`     CDX.NA.HY.S45                                                    37     $2.4bn
+- `00:16:19`   distinct reference names (as written by funds): 879
+- `00:16:19`   the names most written on (name | rows | funds | notional | fund receives the fixed leg = sold protection | pays it = bought):
+- `00:16:19`     IHS MARKIT LTD                                1228  118   $50807m  sold   $37989m  bought   $12818m
+- `00:16:19`     SOFTBANK GROUP CORP.                            14   10   $21365m  sold   $20128m  bought    $1236m
+- `00:16:19`     NISSAN MOTOR CO. LTD.                           40   14    $9155m  sold    $9155m  bought       $0m
+- `00:16:19`     REPUBLIC OF SOUTH AFRICA GOVERNMENT INTERNAT   102   19    $4217m  sold    $2106m  bought    $2111m
+- `00:16:19`     N/A                                            335   45    $3714m  sold    $2830m  bought     $782m
+- `00:16:19`     NIPPON STEEL CORP.                               4    1    $3400m  sold       $0m  bought    $3400m
+- `00:16:19`     PANAMA, REPUBLIC OF - MINISTRY OF PLANNING A   214   20    $2501m  sold    $1702m  bought     $799m
+- `00:16:19`     COLOMBIA GOVERNMENT INTERNATIONAL BONDS        294   36    $2315m  sold    $2215m  bought     $100m
+- `00:16:19`     BRAZIL, FEDERATIVE REPUBLIC OF - SECRETARIA     92   15    $1928m  sold     $942m  bought     $986m
+- `00:16:19`     SAUDI GOVERNMENT INTERNATIONAL BONDS            68   21    $1805m  sold     $226m  bought    $1580m
+- `00:16:19`     KOREA INTERNATIONAL BONDS                       62   17    $1770m  sold       $0m  bought    $1770m
+- `00:16:19`     CHINA GOVERNMENT INTERNATIONAL BOND             66   11    $1430m  sold     $305m  bought    $1125m
+- `00:16:19`     FRANCE, REPUBLIC OF - MINISTERE DE L'ECONOMI   169   20    $1352m  sold    $1116m  bought     $235m
+- `00:16:19`     PETROLEOS MEXICANOS                            346   65    $1255m  sold    $1255m  bought       $1m
+- `00:16:19`     GOLDMAN SACHS & CO                              29   15    $1248m  sold     $986m  bought     $262m
+- `00:16:19`     UNITED MEXICAN STATES - SECRETARIA DE HACIEN    62   11    $1247m  sold     $501m  bought     $746m
+- `00:16:19`     CITIBANK NA                                     14    1    $1162m  sold       $0m  bought    $1162m
+- `00:16:19`     ORACLE CORP.                                   109   42     $919m  sold     $899m  bought      $20m
+- `00:16:19`     MEXICO GOVERNMENT INTERNATIONAL BONDS          170   28     $861m  sold     $727m  bought     $134m
+- `00:16:19`     ISRAEL GOVERNMENT INTERNATIONAL BONDS           93   11     $843m  sold     $806m  bought      $37m
+- `00:16:19`     PETROLEOS MEXICANOS SA DE CV                    57    5     $796m  sold     $372m  bought     $425m
+- `00:16:19`     REPUBLIC OF SOUTH AFRICA                       123   17     $784m  sold     $101m  bought     $683m
+- `00:16:19`     VERIZON COMMUNICATIONS, INC.                   113   24     $747m  sold     $747m  bought       $0m
+- `00:16:19`     AT&T, INC.                                      71   29     $735m  sold     $692m  bought      $42m
+- `00:16:19`     BOEING CO.                                      98   23     $722m  sold     $711m  bought      $11m
+- `00:16:19`     HONDA MOTOR CO. LTD.                             1    1     $592m  sold       $0m  bought     $592m
+- `00:16:19`     CREDIT DEFAULT SWAPS                            84    4     $570m  sold     $570m  bought     $570m
+- `00:16:19`     INTESA SANPAOLO SPA                             41   15     $530m  sold      $40m  bought     $530m
+- `00:16:19`     PANAMA GOVERNMENT INTERNATIONAL BONDS           38    9     $521m  sold     $291m  bought     $231m
+- `00:16:19`     REPUBLIC OF INDONESIA                           73   16     $516m  sold      $25m  bought     $491m
+- `00:16:19`     BARCLAYS PLC                                   110   22     $490m  sold     $334m  bought     $161m
+- `00:16:19`     SAUDI GOVERNMENT INTERNATIONAL BOND             64   17     $482m  sold      $28m  bought     $454m
+- `00:16:19`     U.S. TREASURY NOTES                             16    2     $471m  sold       $0m  bought     $471m
+- `00:16:19`     TURKEY GOVERNMENT INTERNATIONAL BOND            52   11     $463m  sold      $37m  bought     $426m
+- `00:16:19`     DEUTSCHE BANK AG                                77   36     $450m  sold     $266m  bought     $238m
+- `00:16:19`     CHILE GOVERNMENT INTERNATIONAL BONDS            54   10     $439m  sold     $426m  bought      $13m
+- `00:16:19`     CITIGROUP INC                                   42   18     $419m  sold     $418m  bought       $1m
+- `00:16:19`     HELLENIC REPUBLIC GOVERNMENT BOND               80   13     $408m  sold     $308m  bought     $100m
+- `00:16:19`     NORWAY GOVERNMENT BOND                          34   17     $399m  sold     $399m  bought       $0m
+- `00:16:19`     BANK OF AMERICA CORP.                           40   17     $374m  sold     $207m  bought     $167m
+- `00:16:19`   three swap records as they are written (reference | notional | received kind/rate | paid kind/rate | upfront paid | upfront received | ends | unrealised):
+- `00:16:19`     Deutsche Bank AG | 10800000.0 | Fixed | 1.0 | Other | None | 81549.45 | 0.0 | 20-DEC-2030 | 89794.26
+- `00:16:19`     Republic of South Africa Gover | 14400000.0 | Fixed | 1.0 | Other | None | 0.0 | -70479.94 | 20-DEC-2026 | 124832.46
+- `00:16:19`     Republic of South Africa Gover | 14400000.0 | Fixed | 1.0 | Other | None | 0.0 | -70479.94 | 20-DEC-2026 | 124832.46
+- `00:16:19`   counterparties of credit swaps (name | rows):
+- `00:16:19`     INTERCONTINENTAL EXCHANGE, INC.                    1,893
+- `00:16:19`     BARCLAYS BANK PLC                                  1,093
+- `00:16:19`     GOLDMAN SACHS INTERNATIONAL                        661
+- `00:16:19`     ICE CLEAR US                                       496
+- `00:16:19`     BANK OF AMERICA, NATIONAL ASSOCIATION              447
+- `00:16:19`     MORGAN STANLEY CAPITAL SERVICES LLC                426
+- `00:16:19`     CITIBANK, NATIONAL ASSOCIATION                     408
+- `00:16:19`     DEUTSCHE BANK AKTIENGESELLSCHAFT                   391
+- `00:16:19`     MORGAN STANLEY & CO. INTERNATIONAL PLC             382
+- `00:16:19`     BANK OF AMERICA                                    356
+- `00:16:19`   names on our CDS desk: 468 | funds hold a credit swap on 233 of them | not found among fund swaps: AIG, AMD, APA Corp, Abbott Laboratories, Abbvie Inc., Airbus SE, Aktiebolaget Electrolux, Aktiebolaget Volvo, Albertsons Companies,Inc., Aligroup, Alliant Holdings Intermediate,Llc, Alstom, Altice USA (CSC Holdings), Altria Group,Inc., America Movil Sociedad Anonima Bursatil De Capital Variable, Amgen Inc, Amprion Gmbh, Amwins Group,Inc., Anglo American PLC, Anheuser-Busch InBev, Anywhere Real Estate Group LLC, Apollo Debt Solutions Bdc, Apple Inc, Ares Capital Corporation, Assicurazioni Generali - Societa Per Azioni, Astrazeneca PLC, Autozone,Inc., Axasapa, BAE Systems PLC, BASF SE
+- `00:16:19` 
+- `00:16:19` SECURITIES FUNDS HAVE OUT ON LOAN, AND REPO
+- `00:16:20`   holdings with a part out on loan: 187,818 | value on loan $437.6bn
+- `00:16:26`   on loan by asset class: EC $357.3bn, DBT $68.7bn, OTHER $6.2bn, STIV $4.4bn, EP $1.0bn, DE $0.0bn
+- `00:16:26`   common stocks with the largest share of fund holdings out on loan, among those funds hold $500m or more of (issuer | held | on loan | share):
+- `00:16:30`     POP MART INTERNATIONAL GROUP LTD                 $1.1bn     $1.0bn  93.2%
+- `00:16:30`     AST SPACEMOBILE, INC.                            $0.7bn     $0.6bn  88.2%
+- `00:16:30`     IMMUNITYBIO INC                                  $0.6bn     $0.5bn  88.0%
+- `00:16:30`     HD HYUNDAI HEAVY INDUSTRIES CO.,LTD.             $0.5bn     $0.4bn  85.2%
+- `00:16:30`     RIGETTI COMPUTING, INC.                          $0.6bn     $0.5bn  83.2%
+- `00:16:30`     IONQ, INC.                                       $0.7bn     $0.6bn  82.5%
+- `00:16:30`     ONDAS INC                                        $0.7bn     $0.5bn  81.9%
+- `00:16:30`     HIMS & HERS HEALTH, INC.                         $0.9bn     $0.7bn  79.3%
+- `00:16:30`     D-WAVE QUANTUM, INC.                             $0.7bn     $0.5bn  76.8%
+- `00:16:30`     RECURSION PHARMACEUTICALS INC                    $0.5bn     $0.4bn  75.5%
+- `00:16:30`     JOBY AVIATION, INC.                              $0.6bn     $0.4bn  72.6%
+- `00:16:30`     MARA HOLDINGS, INC.                              $0.7bn     $0.5bn  70.5%
+- `00:16:30`     CEREBRAS SYSTEMS, INC.                           $0.6bn     $0.4bn  69.2%
+- `00:16:30`     IONQ INC                                         $3.3bn     $2.2bn  66.8%
+- `00:16:30`     CENTRUS ENERGY CORP.                             $0.5bn     $0.4bn  66.8%
+- `00:16:30`   repo rows of kind Repurchase               4,378    $75.5bn
+- `00:16:30`   repo rows of kind Reverse repurchase       5,714   $-60.5bn
+- `00:16:30`   repo counterparties (name | value): BOFA SECURITIES, INC. $10.5bn; TORONTO-DOMINION BANK $2.1bn; JP MORGAN SECURITIES LLC $1.7bn; NOMURA SECURITIES INTERNATIO $1.3bn; BANK OF AMERICA SECURITIES,  $1.0bn; THE BANK OF NOVA SCOTIA, TOR $1.0bn; CITIGROUP GLOBAL MARKETS INC $1.0bn; CF SECURED, LLC $1.0bn
+- `00:16:30` ✅ N-PORT newest quarter read whole
+- `00:16:31` (N-PORT took 125s)
+## 3. Form N-MFP, newest month: money market funds
+
+- `00:16:31` file 20261008-20261106_nmfp.zip: 9.6 MB | files on the page: 100, oldest 2010q4_nmfp.zip
+- `00:16:31`   NMFP_COLLATERALISSUERS.tsv                  36.5 MB
+- `00:16:31`   NMFP_SCHPORTFOLIOSECURITIES.tsv             13.1 MB
+- `00:16:31`   NMFP_NRSRO.tsv                               6.2 MB
+- `00:16:31`   NMFP_DLYSHAREHOLDERFLOWREPORT.tsv            1.5 MB
+- `00:16:31`   NMFP_readme.htm                              1.4 MB
+- `00:16:31`   NMFP_DLYNETASSETVALUEPERSHARC.tsv            1.2 MB
+- `00:16:31`   NMFP_SEVENDAYNETYIELD.tsv                    1.2 MB
+- `00:16:31`   NMFP_DEMANDFEATURE.tsv                       740 KB
+- `00:16:31`   NMFP_LIQUIDASSETSDETAILS.tsv                 570 KB
+- `00:16:31`   NMFP_DLYNETASSETVALUEPERSHARS.tsv            307 KB
+- `00:16:31`   NMFP_SEVENDAYGROSSYIELD.tsv                  286 KB
+- `00:16:31`   NMFP_GUARANTOR.tsv                           261 KB
+- `00:16:31`   NMFP_CLASSLEVELINFO.tsv                      215 KB
+- `00:16:31`   NMFP_BENEFICIALRECORDOWNERCAT.tsv            172 KB
+- `00:16:31`   NMFP_ENHANCEMENTPROVIDER.tsv                 117 KB
+- `00:16:31`   NMFP_SUBMISSION.tsv                          110 KB
+- `00:16:31`   NMFP_metadata.json                            85 KB
+- `00:16:31`   NMFP_SERIESLEVELINFO.tsv                      81 KB
+- `00:16:31`   NMFP_ADVISER.tsv                              36 KB
+- `00:16:31`   NMFP_TRANSFERAGENT.tsv                        24 KB
+- `00:16:31`   NMFP_ADMINISTRATOR.tsv                        17 KB
+- `00:16:31`   NMFP_DISPOSITIONOFPORTFOLIOSE.tsv             15 KB
+- `00:16:31`   NMFP_MASTERFEEDERFUND.tsv                      6 KB
+- `00:16:31` filings: 331 | report dates: 31-OCT-2026 x255, 30-OCT-2026 x74, 31-AUG-2026 x2 | filing dates 03-NOV-2026 to 19-OCT-2026
+- `00:16:31` funds reporting for 31-OCT-2026 (one filing each, the latest): 255
+- `00:16:31` net assets of all money funds for the month: $6710.8bn
+- `00:16:31`   Government                                192 funds  $5450.6bn  asset-weighted 7-day gross yield 0.0000
+- `00:16:31`   Prime                                      35 funds  $1139.7bn  asset-weighted 7-day gross yield 0.0000
+- `00:16:31`   Other Tax Exempt                           18 funds    $81.1bn  asset-weighted 7-day gross yield 0.0000
+- `00:16:31`   Single State                               10 funds    $39.5bn  asset-weighted 7-day gross yield 0.0000
+- `00:16:32` portfolio rows for the month: 35,051
+- `00:16:32` what money funds hold (category | rows | value):
+- `00:16:32`   U.S. Treasury Debt                                             5,535  $2495.2bn
+- `00:16:32`   U.S. Treasury Repurchase Agreement, if collateralized only b   2,060  $1335.2bn
+- `00:16:32`   U.S. Government Agency Debt (if categorized as coupon-paying   9,535   $808.0bn
+- `00:16:32`   U.S. Government Agency Repurchase Agreement, collateralized    1,103   $643.0bn
+- `00:16:32`   Investment Company                                                92   $611.5bn
+- `00:16:32`   Certificate of Deposit                                         1,222   $154.8bn
+- `00:16:32`   U.S. Government Agency Debt (if categorized as no-coupon dis   1,206   $150.6bn
+- `00:16:32`   Financial Company Commercial Paper                             1,203   $117.4bn
+- `00:16:32`   Other Repurchase Agreement, if collateral falls outside Trea     372    $88.8bn
+- `00:16:32`   Asset Backed Commercial Paper                                    860    $83.7bn
+- `00:16:32`   Variable Rate Demand Note                                      3,743    $66.2bn
+- `00:16:32`   Non-Negotiable Time Deposit                                      120    $57.0bn
+- `00:16:32`   Tender Option Bond                                             4,991    $39.2bn
+- `00:16:32`   Non-Financial Company Commercial Paper                           798    $22.6bn
+- `00:16:32`   Other Municipal Security                                       2,046    $14.1bn
+- `00:16:32`   Other Instrument                                                 112    $13.0bn
+- `00:16:32`   Non-U.S. Sovereign, Sub-Sovereign and Supra-National debt          9     $1.6bn
+- `00:16:32`   Insurance Company Funding Agreement                               19     $0.8bn
+- `00:16:32`   Other Asset Backed Securities                                     25     $0.4bn
+- `00:16:32` repo lent by money funds: $2067.0bn to 394 counterparty names | to the Federal Reserve $0.0bn | centrally cleared $1000.2bn | tri-party $1805.6bn
+- `00:16:32` largest repo counterparties (name as written | value | share):
+- `00:16:32`   JP MORGAN SECURITIES LLC                       $129.6bn   6.3%
+- `00:16:32`   FIXED INCOME CLEARING CORP - MORGAN STANLEY     $79.0bn   3.8%
+- `00:16:32`   FIXED INCOME CLEARING CORP. TRI PARTY REPO -    $66.1bn   3.2%
+- `00:16:32`   GOLDMAN SACHS & CO LLC                          $49.6bn   2.4%
+- `00:16:32`   WELLS FARGO BANK NA                             $44.6bn   2.2%
+- `00:16:32`   BNP PARIBAS SA                                  $44.3bn   2.1%
+- `00:16:32`   BARCLAYS BANK PLC                               $43.5bn   2.1%
+- `00:16:32`   FIXED INCOME CLEARING CORP. - STATE STREET B    $42.5bn   2.1%
+- `00:16:32`   ROYAL BANK OF CANADA                            $41.8bn   2.0%
+- `00:16:32`   WELLS FARGO SECURITIES LLC                      $41.4bn   2.0%
+- `00:16:32`   JP MORGAN SECURITIES, LLC                       $39.8bn   1.9%
+- `00:16:32`   CITIGROUP GLOBAL MARKETS, INC.                  $34.4bn   1.7%
+- `00:16:32`   FIXED INCOME CLEARING CORP - STATE STREET BA    $32.5bn   1.6%
+- `00:16:32`   FIXED INCOME CLEARING CORP - BARCLAYS           $30.8bn   1.5%
+- `00:16:32`   FIXED INCOME CLEARING CORP - BONY               $30.0bn   1.5%
+- `00:16:32`   FIXED INCOME CLEARING CORP - CREDIT AGRICOLE    $28.6bn   1.4%
+- `00:16:32`   FIXED INCOME CLEARING CORP - JP MORGAN          $27.6bn   1.3%
+- `00:16:32`   CANADIAN IMPERIAL BANK OF COMMERCE              $26.4bn   1.3%
+- `00:16:32` unsecured lending by money funds (certificates of deposit, commercial paper, time deposits): $435.4bn to 744 issuer names; largest:
+- `00:16:32`   ROYAL BANK OF CANADA                            $15.1bn
+- `00:16:32`   TORONTO-DOMINION BANK (NEW YORK BRANCH)         $11.0bn
+- `00:16:32`   AUSTRALIA AND NEW ZEALAND BANKING GROUP LTD     $10.0bn
+- `00:16:32`   WELLS FARGO BANK NA                              $9.3bn
+- `00:16:32`   BARCLAYS BANK PLC (NEW YORK BRANCH)              $8.9bn
+- `00:16:32`   MUFG BANK LTD (NEW YORK BRANCH)                  $8.3bn
+- `00:16:32`   ING BANK NV                                      $7.8bn
+- `00:16:32`   SUMITOMO MITSUI BANKING CORP (NEW YORK BRANC     $7.5bn
+- `00:16:32`   DNB BANK ASA                                     $6.2bn
+- `00:16:32`   BOFA SECURITIES INC                              $6.1bn
+- `00:16:32`   CITIBANK NA                                      $5.8bn
+- `00:16:32`   NATIONAL BANK OF CANADA                          $5.7bn
+- `00:16:32`   BANK OF AMERICA NA                               $5.4bn
+- `00:16:32`   TORONTO DOMINION BANK                            $5.4bn
+- `00:16:32` daily flow table: 22,571 rows covering 22 days | a date as written: 27-OCT-2026
+- `00:16:32`   19-OCT-2026  subscriptions $125.3bn  redemptions $113.5bn  net $11.8bn
+- `00:16:32`   20-OCT-2026  subscriptions $133.1bn  redemptions $122.2bn  net $10.9bn
+- `00:16:32`   21-OCT-2026  subscriptions $108.7bn  redemptions $102.1bn  net $6.6bn
+- `00:16:32`   22-OCT-2026  subscriptions $105.2bn  redemptions $110.4bn  net $-5.2bn
+- `00:16:32`   26-OCT-2026  subscriptions $133.4bn  redemptions $106.4bn  net $27.0bn
+- `00:16:32` collateral behind the repo, by kind: U.S. Treasuries (including strips) $1516.5bn; Agency Mortgage-Backed Securities $430.5bn; Agency Collateralized Mortgage Obligation $71.1bn; Corporate Debt Securities $37.5bn; Equities $31.5bn; Agency Debentures and Agency Strips $12.2bn; Asset-Backed Securities $9.5bn
+- `00:16:32` ✅ N-MFP newest month read whole
+- `00:16:32` (N-MFP took 2s)
+## 4. BDC data sets: what private-credit lenders hold and how they mark it
+
+- `00:16:32` files on the page: 23 | newest six: 2026_10_bdc.zip (1.75 MB), 2026_09_bdc.zip (407.77 KB), 2026_08_bdc.zip (74.83 MB), 2026_07_bdc.zip (2.34 MB), 2026_06_bdc.zip (81.33 KB), 2026_05_bdc.zip (39.08 MB)
+- `00:16:37` opened the largest of the newest five: 2026_08_bdc.zip, 74.8 MB (HTTP 200)
+- `00:16:37`   datasets/num.tsv                   1.1 GB
+- `00:16:37`   datasets/txt.tsv                 167.6 MB
+- `00:16:37`   soi.tsv                          107.1 MB
+- `00:16:37`   datasets/pre.tsv                  18.0 MB
+- `00:16:37`   datasets/tag.tsv                   6.9 MB
+- `00:16:37`   datasets/cal.tsv                   2.0 MB
+- `00:16:37`   datasets/non.tsv                   1.1 MB
+- `00:16:37`   readme.htm                         334 KB
+- `00:16:37`   datasets/sub.tsv                    71 KB
+- `00:16:37`   bdc_metadata.json                   38 KB
+- `00:16:37` schedule of investments: 251 columns: adsh | cik | name | ddate | qtrs | form | filed | period | inlineurl | cstm | Industry Sector Axis | Investment, Identifier Axis | Investment, Issuer Affiliation Axis | Investment Type Axis | Investment Interest Rate | Investment, Basis Spread, Variable Rate | Investment Maturity Date | Investment Owned, Balance, Principal Amount | Investment Owned, Cost | Investment Owned, Fair Value | Investment Owned, Net Assets, Percentage | Agreement | Asset Acquisition Axis | Asset Class Axis | Award Date Axis | Award Type Axis | Balance Sheet Location Axis | Business Acquisition Axis | Cash and Cash Equivalents Axis | Class of Financing Receivable Axis | Class of Stock Axis | Collaborative Arrangement and Arrangement Other than Collaborative Axis | Collateral Held Axis | Concentration Risk Benchmark Axis | Concentration Risk Type Axis | Consolidated Entities Axis | Consolidation Items Axis | Counterparty Name Axis | Credit Facility Axis | Credit Rating, Standard & Poor's Axis | CreditFacilityUsage | Currency Axis | Customer Axis | Debt Instrument Axis | Debt Instrument, Redemption, Period Axis | Derivative Instrument Axis | Equity Components Axis | Equity Interest Type Axis | Equity Method Investment, Nonconsolidated Investee Axis | ExemptSecurity | Fair Value Hierarchy and NAV Axis | Financial Instrument Axis | Financial Instrument Performance Status Axis | Financial Support to Nonconsolidated Legal Entity Axis | FinancingReceivableName | Geographical Axis | Hedging Designation Axis | Hedging Relationship Axis | InterestRatePeriod | Investee | Investment Axis | Investment Company, Nonconsolidated Subsidiary Axis | Investment Objective Axis | Investment, Issuer Name Axis | Investment, Name Axis | InvestmentBasisSpreadVariableRate | InvestmentHoldings | InvestmentInterestRateFloor | InvestmentPerformanceStatus | InvestmentsClassificationByIndustry | InvestmentSecondaryCategorization1 | InvestmentsIdentifier | InvestmentSubType | InvestmentVariableRateBasis | Legal Entity Axis | Lender Name Axis | Lien Category Axis | LocationStatementsOfFinancialPositionBalance | Long-Lived Tangible Asset Axis | Long-term Debt, Type Axis | Loss Contingency Nature Axis | Measurement Basis Axis | Measurement Frequency Axis | Measurement Input Type Axis | Netting | Open Forward Foreign Currency Contract, Identifier Axis | Open Option Contract, Identifier Axis | Open Swap Contract, Identifier Axis | Option Indexed to Issuer's Equity Axis | Option Indexed to Issuer's Equity, Type Axis | Other Commitments Axis | Ownership Axis | Plan Name Axis | Pledged Status Axis | Pledging Purpose Axis | Position Axis | PreviousValuationAndTechnique | Products and Services Axis | Range Axis | RateType | Real Estate, Type of Property Axis | Regulatory Agency Axis | Related Party Axis | Related Party Transaction Axis | Repurchase Agreements and Similar Transactions, Maturity Periods Axis | Research and Development Assets Acquired Other than Through Business Combination by Transaction Axis | Scenario Axis | Security Owned and Sold, Not yet Purchased, at Fair Value Axis | Servicing Assets and Servicing Liabilities Risk Axis | Share Repurchase Program Axis | Short-term Debt, Type Axis | Subsequent Event Type Axis | Title of Individual Axis | Trading Activity Axis | TypeOfIndustry | Valuation Approach and Technique Axis | Variable Rate Axis | VariableRateComponent | Voyatek | Additions to Other Assets, Amount | Cash | Cash and Cash Equivalent | Cash and Cash Equivalents, Fair Value Disclosure | Cash Equivalent, Money Market Fund, Carrying Value | Cash Equivalents, at Carrying Value | Cash, Cash Equivalent, Restricted Cash, and Restricted Cash Equivalent, Continuing Operation | Cash, Cash Equivalents, and Short-Term Investments | Change in Unrealized Gain (Loss) on Fair Value Hedging Instruments | Class of Warrant or Right, Exercise Price of Warrants or Rights | Commitments, Fair Value Disclosure | Concentration Risk, Percentage | Debt and Equity Securities, Realized Gain (Loss) | Debt and Equity Securities, Unrealized Gain (Loss) | Debt Instrument, Basis Spread on Variable Rate | Debt Instrument, Interest Rate During Period | Debt Instrument, Interest Rate Terms | Debt Instrument, Variable Interest Rate, Type [Extensible Enumeration] | Derivative and Foreign Currency Transaction Price Change, Realized Gain (Loss), Operating, before Tax | Derivative and Foreign Currency Transaction Price Change, Unrealized Gain (Loss), Operating, before Tax | Derivative Asset | Derivative Asset, Counterparty Name [Extensible Enumeration] | Derivative Asset, Gross Asset Including Not Subject to Master Netting Arrangement | Derivative Asset, Not Subject to Master Netting Arrangement | Derivative Asset, Notional Amount | Derivative Asset, Subject to Master Netting Arrangement, after Offset | Derivative Asset, Subject to Master Netting Arrangement, before Offset | Derivative Asset, Subject to Master Netting Arrangement, Collateral, Obligation to Return Cash, Offset Against Derivative Asset | Derivative Asset, Subject to Master Netting Arrangement, Liability Offset | Derivative Asset, Type [Extensible Enumeration] | Derivative Assets (Liabilities), at Fair Value, Net | Derivative Liability | Derivative Liability, Gross Liability Including Not Subject to Master Netting Arrangement | Derivative Liability, Notional Amount | Derivative Liability, Subject to Master Netting Arrangement, after Offset | Derivative Liability, Subject to Master Netting Arrangement, Collateral, Right to Reclaim Cash Offset | Derivative, Basis Spread on Variable Rate | Derivative, Contract End Date | Derivative, Currency Bought | Derivative, Currency Sold | Derivative, Description of Terms | Derivative, Fair Value, Net | Derivative, Fixed Interest Rate | Derivative, Gain (Loss) on Derivative, Net | Derivative, Gain (Loss), Statement of Income or Comprehensive Income [Extensible Enumeration] | Derivative, Net Assets, Percentage | Derivative, Notional Amount | Derivative, Number of Instruments Held | Derivative, Premium Paid | Derivative, Price Risk Option Strike Price | Derivative, Swaption Interest Rate | Derivative, Variable Interest Rate | Dividend Income, Operating | Dividend Income, Operating, Paid in Cash | Equity Method Investment, Additional Information | Equity Method Investment, Ownership Percentage | Equity Method Investments | Equity Securities, FV-NI, Unrealized Gain (Loss) | Equity, Attributable to Parent | Fair Value, Measurement with Unobservable Inputs Reconciliation, Recurring Basis, Asset Value | Fair Value, Measurement with Unobservable Inputs Reconciliation, Recurring Basis, Asset, Purchases | Fair Value, Measurement with Unobservable Inputs Reconciliation, Recurring Basis, Asset, Sales | Fair Value, Measurement with Unobservable Inputs Reconciliation, Recurring Basis, Asset, Transfers, Net | Fair Value, Net Asset (Liability) | Fee Income | Foreign Currency Contract, Asset, Fair Value Disclosure | Interest and Dividend Income, Operating | Interest and Dividend Income, Securities, Operating | Interest Income, Operating | Interest Income, Operating, Paid in Cash | Interest Income, Operating, Paid in Kind | Interest Rate Derivatives, at Fair Value, Net | Interest receivable | Interest-Earning Assets, Average Yield | Investment Company, Distributable Earnings (Loss), Accumulated Appreciation (Depreciation) | Investment Company, Financial Support to Investee Contractually Required, Amount | Investment Company, Financial Support to Investee Contractually Required, Not Provided, Amount | Investment Company, Financial Support, Type [Extensible Enumeration] | Investment Company, Market Value Per Share | Investment Owned, Balance, Shares | Investment Owned, Face Amount | Investment Owned, Foreign Currency Contract, Current Value | Investment, Acquisition Date | Investment, Industry Sector [Extensible Enumeration] | Investment, Interest Rate, Floor | Investment, Interest Rate, Paid in Cash | Investment, Interest Rate, Paid in Kind | Investment, Issuer Affiliation [Extensible Enumeration] | Investment, Issuer Geographic Region [Extensible Enumeration] | Investment, Issuer Name [Extensible Enumeration] | Investment, Non-income Producing [true false] | Investment, Restriction Status [true false] | Investment, Significant Unobservable Input [true false] | Investment, Tax Basis, Cost | Investment, Tax Basis, Unrealized Gain | Investment, Tax Basis, Unrealized Gain (Loss) | Investment, Tax Basis, Unrealized Loss | Investment, Type [Extensible Enumeration] | Investment, Variable Interest Rate, Type [Extensible Enumeration] | Investments | Investments in and Advances to Affiliates, at Fair Value, Gross Additions | Investments in and Advances to Affiliates, at Fair Value, Gross Reductions | Investments in and Advances to Affiliates, at Fair Value, Period Increase (Decrease) | Investments, Fair Value Disclosure | Limited Liability Company or Limited Partnership, Members or Limited Partners, Ownership Interest | Line of Credit Facility, Maximum Borrowing Capacity | Line of Credit Facility, Unused Capacity, Commitment Fee Percentage | Loans Receivable, Basis Spread on Variable Rate | Net Assets | Noninvestment Asset Less Noninvestment Liability, Percent of Net Asset | Noninvestment Assets Less Noninvestment Liabilities | Other income | Other Operating Income | Paid-in-Kind Interest | Payments for (Proceeds from) Derivative Instrument, Financing Activities | Payments for (Proceeds from) Hedge, Financing Activities | Payments for (Proceeds from) Investments | Payments for Purchase of Investment, Operating Activity | Preferred Stock, Dividend Rate, Percentage | Proceeds from Disposition of Investment, Operating Activity | Realized Investment Gains (Losses) | Reductions in Other Assets, Amount | Restricted Cash and Cash Equivalent, Current | Restricted Investments, at Fair Value | Restricted Investments, Percent of Net Assets | Securities Borrowed, Counterparty Name [Extensible Enumeration] | Share Price | Short-Term Investments | Unrealized Gain (Loss) on Derivatives | Unrealized Gain (Loss) on Investments | Warrants and Rights Outstanding, Maturity Date | Weighted Average Rate Domestic Deposit, Money Market
+- `00:16:40` rows: 186,664
+- `00:16:40` columns read as: fair value=Investment Owned, Fair Value | cost=Investment Owned, Cost | principal=Investment Owned, Balance, Principal Amount | rate=Investment Interest Rate | spread=Investment, Basis Spread, Variable Rate | maturity=Investment Maturity Date | industry=Industry Sector Axis | name=Investment, Identifier Axis | type=Investment Type Axis
+- `00:16:40` other columns that bear on stress: ['Investment Interest Rate', 'Investment, Basis Spread, Variable Rate', 'InterestRatePeriod', 'InvestmentBasisSpreadVariableRate', 'InvestmentInterestRateFloor', 'InvestmentVariableRateBasis', 'RateType', 'Variable Rate Axis', 'VariableRateComponent', 'Debt Instrument, Basis Spread on Variable Rate', 'Debt Instrument, Interest Rate During Period', 'Debt Instrument, Interest Rate Terms', 'Debt Instrument, Variable Interest Rate, Type [Extensible Enumeration]', 'Derivative, Basis Spread on Variable Rate', 'Derivative, Fixed Interest Rate', 'Derivative, Swaption Interest Rate', 'Derivative, Variable Interest Rate', 'Interest Income, Operating, Paid in Kind', 'Interest Rate Derivatives, at Fair Value, Net', 'Investment Owned, Balance, Shares', 'Investment, Interest Rate, Floor', 'Investment, Interest Rate, Paid in Cash', 'Investment, Interest Rate, Paid in Kind', 'Investment, Variable Interest Rate, Type [Extensible Enumeration]', 'Loans Receivable, Basis Spread on Variable Rate', 'Paid-in-Kind Interest', 'Preferred Stock, Dividend Rate, Percentage', 'Weighted Average Rate Domestic Deposit, Money Market']
+- `00:16:40` forms: {'10-Q': 185108, '10-K': 1556} | statement dates: 2026-06-30 x95567, 2025-12-31 x76134, 2025-09-30 x10236, 2024-12-31 x1604, 2025-06-30 x1501
+- `00:16:40` rows dated at the filing's own period end (the current schedule, not the comparison): 95,567 from 169 lenders
+- `00:16:40` fair value $5587.5bn against cost $3488.7bn: 160.2% of cost
+- `00:16:40`   carried below 90% of cost: 4.9% of cost (7,288 rows)
+- `00:16:40`   carried below 80% of cost: 2.5% of cost (5,055 rows)
+- `00:16:40`   carried below 50% of cost: 1.2% of cost (2,692 rows)
+- `00:16:40` interest rate: 36844 rows, median 0.0867 | spread over the floating rate: 43437 rows, median 0.05
+- `00:16:41` largest lenders (name | rows | fair value | fair value as a share of cost):
+- `00:16:41`   BLACKSTONE PRIVATE CREDIT FUND                 2330  $1236.1bn  158.5%
+- `00:16:41`   BLUE OWL CREDIT INCOME CORP.                    720   $386.4bn  178.4%
+- `00:16:41`   HPS CORPORATE LENDING FUND                     1430   $341.5bn  219.1%
+- `00:16:41`   GOLDMAN SACHS PRIVATE CREDIT CORP.              995   $211.5bn  163.5%
+- `00:16:41`   ARES STRATEGIC INCOME FUND                     1684   $205.5bn  253.1%
+- `00:16:41`   APOLLO DEBT SOLUTIONS BDC                      1672   $181.4bn   98.7%
+- `00:16:41`   BLUE OWL CAPITAL CORP                           844   $165.8bn  184.3%
+- `00:16:41`   BLACKSTONE SECURED LENDING FUND                 833   $162.0bn  141.8%
+- `00:16:41`   BLUE OWL TECHNOLOGY FINANCE CORP.               720   $158.5bn  180.5%
+- `00:16:41`   GOLUB CAPITAL PRIVATE CREDIT FUND              1228   $114.1bn  167.7%
+- `00:16:41`   PROSPECT CAPITAL CORP                           776    $94.0bn  162.0%
+- `00:16:41`   GOLUB CAPITAL BDC, INC.                        2018    $91.7bn  156.8%
+- `00:16:41` by investment type (member | fair value | % of cost): (blank) $3642.1bn 208%; Debt Securities, First Lien [Member] $383.5bn 97%; Debt Securities $359.1bn 98%; Investment Portfolio [Member] $172.2bn 97%; Restricted Securities [Member] $98.8bn 0%; Total Portfolio Investments, Cash and Cash Equival $86.8bn 97%; First Lien Secured Debt [Member] $75.6bn 108%; Equity Securities $54.8bn 115%
+- `00:16:41` by industry (member | fair value | % of cost): (blank) $4901.1bn 171%; Software Sector [Member] $41.8bn 96%; Software [Member] $26.0bn 118%; Insurance Sector $21.3bn 105%; Professional Services [Member] $16.0bn 111%; Professional Services Sector [Member] $14.6bn 99%; Financial Services Sector $13.6bn 114%; Health Care Providers & Services Sector [Member] $13.6bn 95%
+- `00:16:41` three borrower labels as lenders write them:  ||  || 
+- `00:16:41` borrowers carried by three or more lenders (by the first part of the label): 1,760
+- `00:16:41`   AMERGIN ASSET MANAGEMENT                      3 lenders | marks 263.2% to 206100.0% of cost | cost $1m
+- `00:16:41`   METROPOLIS TECHNOLOGIES                       4 lenders | marks  99.5% to 2066.7% of cost | cost $17m
+- `00:16:41`   BEHP INVESTOR II                              3 lenders | marks 892.1% to 1619.7% of cost | cost $1m
+- `00:16:41`   EQUITY INVESTMENTS                            7 lenders | marks  78.9% to 519.0% of cost | cost $237m
+- `00:16:41`   FILEVINE                                      4 lenders | marks 216.7% to 621.5% of cost | cost $4m
+- `00:16:41`   OPCO BORROWER                                 5 lenders | marks  99.4% to 486.0% of cost | cost $109m
+- `00:16:41`   RADIOLOGY PARTNERS                            3 lenders | marks 100.4% to 369.9% of cost | cost $13m
+- `00:16:41`   BLACK TUX                                     3 lenders | marks 100.3% to 323.7% of cost | cost $11m
+- `00:16:41`   SOUTHERN VETERINARY PARTNERS                  4 lenders | marks  99.7% to 320.2% of cost | cost $74m
+- `00:16:41`   AEGROS HOLDCO 2 COMMON STOCK                  3 lenders | marks 4700.0% to 4916.7% of cost | cost $0m
+- `00:16:41`   TRINITY AIR CONSULTANTS                       3 lenders | marks 100.3% to 280.0% of cost | cost $17m
+- `00:16:41`   NC TOPCO                                      5 lenders | marks  99.4% to 255.6% of cost | cost $68m
+- `00:16:41` ✅ BDC schedule of investments read whole
+- `00:16:41` (BDC took 9s)
+## 5. The other data sets small enough to open: members, columns, rows
+
+- `00:16:42` Form 13F Data Sets | newest 01jun2026-31aug2026_form13f.zip | 96.1 MB | 54 files back to 2013q2_form13f.zip
+- `00:16:46`   INFOTABLE.tsv                        378.2 MB  3,830,274 rows | 15 columns: ACCESSION_NUMBER, INFOTABLE_SK, NAMEOFISSUER, TITLEOFCLASS, VALUE, SSHPRNAMT, SSHPRNAMTTYPE, PUTCALL, INVESTMENTDISCRETION, OTHERMANAGER, VOTING_AUTH_SOLE, VOTING_AUTH_SHARED, VOTING_AUTH_NONE
+- `00:16:46`   COVERPAGE.tsv                          2.0 MB     11,852 rows | 21 columns: ACCESSION_NUMBER, REPORTCALENDARORQUARTER, ISAMENDMENT, AMENDMENTNO, AMENDMENTTYPE, CONFDENIEDEXPIRED, DATEDENIEDEXPIRED, DATEREPORTED, REASONFORNONCONFIDENTIALITY, FILINGMANAGER_NAME, FILINGMANAGER_STREET1, FILINGMANAGER_STREET2, FILINGMANAGER_CITY, FILINGMANAGER_STATEORCOUNTRY, FILINGMANAGER_ZIPCODE, REPORTTYPE, FORM13FFILENUMBER, CRDNUMBER, SECFILENUMBER, PROVIDEINFOFORINSTRUCTION5, ADDITIONALINFORMATION
+- `00:16:46`   SIGNATURE.tsv                          1.3 MB     11,852 rows | 8 columns: ACCESSION_NUMBER, NAME, TITLE, PHONE, SIGNATURE, CITY, STATEORCOUNTRY, SIGNATUREDATE
+- `00:16:46`   SUBMISSION.tsv                         730 KB     11,852 rows | 5 columns: ACCESSION_NUMBER, FILING_DATE, SUBMISSIONTYPE, CIK, PERIODOFREPORT
+- `00:16:46`   FORM13F_readme.htm                     437 KB
+- `00:16:46`   OTHERMANAGER.tsv                       384 KB      4,848 rows | 7 columns: ACCESSION_NUMBER, OTHERMANAGER_SK, CIK, FORM13FFILENUMBER, CRDNUMBER, SECFILENUMBER, NAME
+- `00:16:46`   SUMMARYPAGE.tsv                        374 KB     10,036 rows | 5 columns: ACCESSION_NUMBER, OTHERINCLUDEDMANAGERSCOUNT, TABLEENTRYTOTAL, TABLEVALUETOTAL, ISCONFIDENTIALOMITTED
+- `00:16:46`   OTHERMANAGER2.tsv                      278 KB      3,890 rows | 7 columns: ACCESSION_NUMBER, SEQUENCENUMBER, CIK, FORM13FFILENUMBER, CRDNUMBER, SECFILENUMBER, NAME
+- `00:16:46`   FORM13F_metadata.json                   17 KB
+- `00:16:46` Form D Data Sets | newest 2026q3_d.zip | 3.5 MB | 75 files back to 2008q1_d.zip
+- `00:16:47`   2026Q3_d/RELATEDPERSONS.tsv            7.3 MB     50,014 rows | 15 columns: ACCESSIONNUMBER, RELATEDPERSON_SEQ_KEY, FIRSTNAME, MIDDLENAME, LASTNAME, STREET1, STREET2, CITY, STATEORCOUNTRY, STATEORCOUNTRYDESCRIPTION, ZIPCODE, RELATIONSHIP_1, RELATIONSHIP_2, RELATIONSHIP_3, RELATIONSHIPCLARIFICATION
+- `00:16:47`   2026Q3_d/OFFERING.tsv                  4.3 MB     15,952 rows | 41 columns: ACCESSIONNUMBER, INDUSTRYGROUPTYPE, INVESTMENTFUNDTYPE, IS40ACT, REVENUERANGE, AGGREGATENETASSETVALUERANGE, FEDERALEXEMPTIONS_ITEMS_LIST, ISAMENDMENT, PREVIOUSACCESSIONNUMBER, SALE_DATE, YETTOOCCUR, MORETHANONEYEAR, ISEQUITYTYPE, ISDEBTTYPE, ISOPTIONTOACQUIRETYPE, ISSECURITYTOBEACQUIREDTYPE, ISPOOLEDINVESTMENTFUNDTYPE, ISTENANTINCOMMONTYPE, ISMINERALPROPERTYTYPE, ISOTHERTYPE, DESCRIPTIONOFOTHERTYPE, ISBUSINESSCOMBINA
+- `00:16:47`   2026Q3_d/ISSUERS.tsv                   3.2 MB     16,160 rows | 23 columns: ACCESSIONNUMBER, IS_PRIMARYISSUER_FLAG, ISSUER_SEQ_KEY, CIK, ENTITYNAME, STREET1, STREET2, CITY, STATEORCOUNTRY, STATEORCOUNTRYDESCRIPTION, ZIPCODE, ISSUERPHONENUMBER, JURISDICTIONOFINC, ISSUER_PREVIOUSNAME_1, ISSUER_PREVIOUSNAME_2, ISSUER_PREVIOUSNAME_3, EDGAR_PREVIOUSNAME_1, EDGAR_PREVIOUSNAME_2, EDGAR_PREVIOUSNAME_3, ENTITYTYPE, ENTITYTYPEOTHERDESC, YEAROFINC_TIMESPAN_CHOICE, YEAROFINC_VALUE_ENTERED
+- `00:16:47`   2026Q3_d/SIGNATURES.tsv                2.0 MB     16,150 rows | 7 columns: ACCESSIONNUMBER, SIGNATURE_SEQ_KEY, ISSUERNAME, SIGNATURENAME, NAMEOFSIGNER, SIGNATURETITLE, SIGNATUREDATE
+- `00:16:47`   2026Q3_d/RECIPIENTS.tsv                1.3 MB      6,739 rows | 15 columns: ACCESSIONNUMBER, RECIPIENT_SEQ_KEY, RECIPIENTNAME, RECIPIENTCRDNUMBER, ASSOCIATEDBDNAME, ASSOCIATEDBDCRDNUMBER, STREET1, STREET2, CITY, STATEORCOUNTRY, STATEORCOUNTRYDESCRIPTION, ZIPCODE, STATES_OR_VALUE_LIST, DESCRIPTIONS_LIST, FOREIGNSOLICITATION
+- `00:16:47`   2026Q3_d/FORMDSUBMISSION.tsv           1.2 MB     15,952 rows | 9 columns: ACCESSIONNUMBER, FILE_NUM, FILING_DATE, SIC_CODE, SCHEMAVERSION, SUBMISSIONTYPE, TESTORLIVE, OVER100PERSONSFLAG, OVER100ISSUERFLAG
+- `00:16:47`   2026Q3_d/FormD_readme.html             662 KB
+- `00:16:47`   2026Q3_d/FormD_metadata.json            29 KB
+- `00:16:47` Form N-CEN Data Sets | newest 2026q3_ncen.zip | 5.6 MB | 33 files back to 2018q3_ncen.zip
+- `00:16:48`   CREDIT_USER.tsv                       43.0 MB    491,212 rows | 4 columns: FUND_ID, LINE_OF_CREDIT_SEQNUM, FUND_NAME, SEC_FILE_NUM
+- `00:16:48`   CUSTODIAN.tsv                          4.0 MB     25,615 rows | 10 columns: FUND_ID, SOURCE, CUSTODIAN_NAME, CUSTODIAN_LEI, STATE, COUNTRY, IS_AFFILIATED, IS_SUB_CUSTODIAN, CUSTODY_TYPE, OTHER_CUSTODIAN_DESC
+- `00:16:48`   SHAREHOLDER_SERVICING_AGENT.tsv        3.4 MB     34,100 rows | 8 columns: FUND_ID, AGENT_NAME, AGENT_LEI, OTHER_IDENTIFYING_NUM_DESC, STATE, COUNTRY, IS_AFFILIATED, IS_SUBSHARE
+- `00:16:48`   AUTHORIZED_PARTICIPANT.tsv             2.6 MB     23,556 rows | 7 columns: FUND_ID, PARTICIPANT_NAME, FILE_NUM, CRD_NUM, PARTICIPANT_LEI, PURCHASE_VALUE, REDEEM_VALUE
+- `00:16:48`   PRINCIPAL_TRANSACTION.tsv              1.4 MB     11,445 rows | 8 columns: FUND_ID, PRINCIPAL_NAME, FILE_NUM, CRD_NUM, PRINCIPAL_LEI, STATE, COUNTRY, PRINCIPAL_TOTAL_PURCHASE_SALE
+- `00:16:48`   BROKER.tsv                             1.3 MB     11,448 rows | 8 columns: FUND_ID, BROKER_NAME, FILE_NUM, CRD_NUM, BROKER_LEI, STATE, COUNTRY, GROSS_COMMISSION
+- `00:16:48`   SEC_LENDING_IDEMNITY_PROVIDER.tsv      1.3 MB     24,916 rows | 4 columns: FUND_ID, SECURITY_LENDING_SEQNUM, INDEMNITY_PROVIDER_NAME, INDEMNITY_PROVIDER_LEI
+- `00:16:48`   PRICING_SERVICE.tsv                    834 KB      8,733 rows | 7 columns: FUND_ID, PRICING_SERVICE_NAME, PRICING_SERVICE_LEI, OTHER_IDENTIFYING_NUM_DESC, STATE, COUNTRY, IS_AFFILIATED
+- `00:16:48`   DIRECTOR_FILE_NUMBER.tsv               803 KB      3,378 rows | 3 columns: ACCESSION_NUMBER, DIRECTOR_SEQNUM, FILE_NUMBER
+- `00:16:48`   FUND_REPORTED_INFO.tsv                 696 KB      2,330 rows | 108 columns: FUND_ID, ACCESSION_NUMBER, FUND_NAME, SERIES_ID, LEI, IS_FIRST_FILING, AUTHORIZED_SHARES_CNT, ADDED_NEW_SHARES_CNT, TERMINATED_SHARES_CNT, IS_ETF, IS_ETMF, IS_INDEX, IS_MULTI_INVERSE_INDEX, IS_INTERVAL, IS_FUND_OF_FUND, IS_MASTER_FEEDER, IS_MONEY_MARKET, IS_TARGET_DATE, IS_UNDERLYING_FUND, IS_FUND_TYPE_NA, IS_INDEX_AFFILIATED, IS_INDEX_EXCLUSIVE, RETURN_B4_FEES_AND_EXPENSES, RETURN_AFTR_FEES_AND_EXPENSES, STDV_B4_FEE
+- `00:16:48`   ncen_readme.htm                        683 KB
+- `00:16:48`   LOCATION_BOOKS_RECORD.tsv              513 KB      2,557 rows | 10 columns: ACCESSION_NUMBER, OFFICE_NAME, ADDRESS1, ADDRESS2, CITY, STATE, COUNTRY, ZIP, PHONE, BOOKS_RECORDS_DESC
+- `00:16:48` Insider Transactions Data Sets | newest 2026q3_form345.zip | 8.3 MB | 83 files back to 2006q1_form345.zip
+- `00:16:49`   FOOTNOTES.tsv                         26.0 MB     93,807 rows | 3 columns: ACCESSION_NUMBER, FOOTNOTE_ID, FOOTNOTE_TXT
+- `00:16:49`   NONDERIV_TRANS.tsv                     6.6 MB     59,885 rows | 28 columns: ACCESSION_NUMBER, NONDERIV_TRANS_SK, SECURITY_TITLE, SECURITY_TITLE_FN, TRANS_DATE, TRANS_DATE_FN, DEEMED_EXECUTION_DATE, DEEMED_EXECUTION_DATE_FN, TRANS_FORM_TYPE, TRANS_CODE, EQUITY_SWAP_INVOLVED, EQUITY_SWAP_TRANS_CD_FN, TRANS_TIMELINESS, TRANS_TIMELINESS_FN, TRANS_SHARES, TRANS_SHARES_FN, TRANS_PRICEPERSHARE, TRANS_PRICEPERSHARE_FN, TRANS_ACQUIRED_DISP_CD, TRANS_ACQUIRED_DISP_CD_FN, SHRS_OWND_FOLWNG_TRANS, SHRS_O
+- `00:16:49`   REPORTINGOWNER.tsv                     5.6 MB     41,346 rows | 13 columns: ACCESSION_NUMBER, RPTOWNERCIK, RPTOWNERNAME, RPTOWNER_RELATIONSHIP, RPTOWNER_TITLE, RPTOWNER_TXT, RPTOWNER_STREET1, RPTOWNER_STREET2, RPTOWNER_CITY, RPTOWNER_STATE, RPTOWNER_ZIPCODE, RPTOWNER_STATE_DESC, FILE_NUMBER
+- `00:16:49`   SUBMISSION.tsv                         4.1 MB     38,152 rows | 14 columns: ACCESSION_NUMBER, FILING_DATE, PERIOD_OF_REPORT, DATE_OF_ORIG_SUB, NO_SECURITIES_OWNED, NOT_SUBJECT_SEC16, FORM3_HOLDINGS_REPORTED, FORM4_TRANS_REPORTED, DOCUMENT_TYPE, ISSUERCIK, ISSUERNAME, ISSUERTRADINGSYMBOL, REMARKS, AFF10B5ONE
+- `00:16:49`   OWNER_SIGNATURE.tsv                    3.1 MB     41,003 rows | 3 columns: ACCESSION_NUMBER, OWNERSIGNATURENAME, OWNERSIGNATUREDATE
+- `00:16:49`   DERIV_TRANS.tsv                        3.0 MB     19,205 rows | 42 columns: ACCESSION_NUMBER, DERIV_TRANS_SK, SECURITY_TITLE, SECURITY_TITLE_FN, CONV_EXERCISE_PRICE, CONV_EXERCISE_PRICE_FN, TRANS_DATE, TRANS_DATE_FN, DEEMED_EXECUTION_DATE, DEEMED_EXECUTION_DATE_FN, TRANS_FORM_TYPE, TRANS_CODE, EQUITY_SWAP_INVOLVED, EQUITY_SWAP_TRANS_CD_FN, TRANS_TIMELINESS, TRANS_TIMELINESS_FN, TRANS_SHARES, TRANS_SHARES_FN, TRANS_TOTAL_VALUE, TRANS_TOTAL_VALUE_FN, TRANS_PRICEPERSHARE, TRANS_PRICEPERSHARE_FN
+- `00:16:49`   NONDERIV_HOLDING.tsv                   1.4 MB     17,322 rows | 14 columns: ACCESSION_NUMBER, NONDERIV_HOLDING_SK, SECURITY_TITLE, SECURITY_TITLE_FN, TRANS_FORM_TYPE, TRANS_FORM_TYPE_FN, SHRS_OWND_FOLWNG_TRANS, SHRS_OWND_FOLWNG_TRANS_FN, VALU_OWND_FOLWNG_TRANS, VALU_OWND_FOLWNG_TRANS_FN, DIRECT_INDIRECT_OWNERSHIP, DIRECT_INDIRECT_OWNERSHIP_FN, NATURE_OF_OWNERSHIP, NATURE_OF_OWNERSHIP_FN
+- `00:16:49`   DERIV_HOLDING.tsv                     1015 KB      8,128 rows | 26 columns: ACCESSION_NUMBER, DERIV_HOLDING_SK, SECURITY_TITLE, SECURITY_TITLE_FN, CONV_EXERCISE_PRICE, CONV_EXERCISE_PRICE_FN, TRANS_FORM_TYPE, TRANS_FORM_TYPE_FN, EXERCISE_DATE, EXERCISE_DATE_FN, EXPIRATION_DATE, EXPIRATION_DATE_FN, UNDLYNG_SEC_TITLE, UNDLYNG_SEC_TITLE_FN, UNDLYNG_SEC_SHARES, UNDLYNG_SEC_SHARES_FN, UNDLYNG_SEC_VALUE, UNDLYNG_SEC_VALUE_FN, SHRS_OWND_FOLWNG_TRANS, SHRS_OWND_FOLWNG_TRANS_FN, VALU_OWND_FOLWNG_TRAN
+- `00:16:49`   FORM_345_readme.htm                    384 KB
+- `00:16:49`   FORM_345_metadata.json                  38 KB
+- `00:16:49` Regulation A Data Sets | newest 2026q3_rega.zip | 146 KB | 46 files back to 2015q2_rega.zip
+- `00:16:50`   2026Q3_rega/RegA_readme.html           1.2 MB
+- `00:16:50`   2026Q3_rega/REG_A_JURISDICTION.tsv     397 KB     12,260 rows | 4 columns: ACCESSION_NUMBER, JID, TYPE, ISSUEJURISDICTIONOFFERING
+- `00:16:50`   2026Q3_rega/REG_A_ISSUER_INFO.tsv       54 KB        157 rows | 40 columns: ACCESSION_NUMBER, STREET1, STREET2, CITY, STATEORCOUNTRY, ZIPCODE, PHONENUMBER, CONNECTIONNAME, INDUSTRYGROUP, CASHEQUIVALENTS, INVESTMENTSECURITIES, TOTALINVESTMENTS, ACCOUNTSRECEIVABLE, LOANS, PROPERTYPLANTEQUIPMENT, PROPERTYANDEQUIPMENT, TOTALASSETS, ACCOUNTSPAYABLE, POLICYLIABILITIESANDACCRUALS, DEPOSITS, LONGTERMDEBT, TOTALLIABILITIES, TOTALSTOCKHOLDEREQUITY, TOTALLIABILITIESANDEQUITY, TOTALREVENUES, TOTALINTERE
+- `00:16:50`   2026Q3_rega/RegA_metadata.json          43 KB
+- `00:16:50`   2026Q3_rega/REG_A_SUMMARY_INFO.tsv      43 KB        157 rows | 34 columns: ACCESSION_NUMBER, INDICATETIER1TIER2OFFERING, FINANCIALSTATEMENTAUDITSTATUS, OFFERDELAYEDCONTINUOUSFLAG, OFFERINGYEARFLAG, OFFERINGAFTERQUALIFFLAG, OFFERINGBESTEFFORTSFLAG, SOLICITATIONPROPOSEDOFFERFLAG, RESALESECURITIESAFFILIATESFLAG, SECURITIESOFFERED, OUTSTANDINGSECURITIES, PRICEPERSECURITY, ISSUERAGGREGATEOFFERING, SECURITYHOLDERAGGEGATE, QUALIFICATIONOFFERINGAGGREGATE, CONCURRENTOFFERINGAGGREGATE, TOTALAGGREGATE
+- `00:16:50`   2026Q3_rega/REG_A_SECURITIES_ISSUED.tsv      43 KB        196 rows | 8 columns: ACCESSION_NUMBER, SECURITY_ID, SECURITIESISSUERNAME, SECURITIESISSUERTITLE, SECURITIESISSUEDTOTALAMOUNT, SECURITIESPRINCIPALHOLDERAMT, SECURITIESISSUEDAGGREGATEAMT, AGGREGATECONSIDERATIONBASIS
+- `00:16:50`   2026Q3_rega/REG_A_EQUITIES_DEBT.tsv      34 KB        556 rows | 7 columns: ACCESSION_NUMBER, ED_ID, TYPE, NAME, OUTSTANDING, PUBLICYTRADED
+- `00:16:50`   2026Q3_rega/REG_A_SUBMISSION.tsv        13 KB        184 rows | 10 columns: ACCESSION_NUMBER, SUBMISSIONTYPE, ISSUERCIK, DOSFILENUMBER, OFFERINGFILENUMBER, SHELLCOMPANYFLAG, SUCCESSORFILINGFLAG, REPORTINGPERIOD, FILING_DATE, FILE_NUMBER
+- `00:16:50`   2026Q3_rega/REG_A_EMPLOYEES_INFO.tsv      12 KB        157 rows | 9 columns: ACCESSION_NUMBER, EMP_ID, ISSUERNAME, JURISDICTIONORGANIZATION, YEARINCORPORATION, CIK, SICCODE, FULLTIMEEMPLOYEES, PARTTIMEEMPLOYEES
+- `00:16:50`   2026Q3_rega/REG_A_SECURITIES_OFFERED.tsv      11 KB        180 rows | 4 columns: ACCESSION_NUMBER, SO_ID, SECURITIESOFFEREDTYPES, SECURITIESOFFEREDOTHERDESC
+- `00:16:50`   2026Q3_rega/REG_A_ITEM_KZ.tsv            3 KB         27 rows | 11 columns: ACCESSION_NUMBER, FORMINDICATION, ISSUERNAME, FISCALYEAREND, STREET1, STREET2, CITY, STATEORCOUNTRY, ZIPCODE, PHONENUMBER, REGARULE257
+- `00:16:50`   2026Q3_rega/REG_A_SUMMARY_INFO_KZ.tsv       2 KB         10 rows | 22 columns: ACCESSION_NUMBER, SINFO_ID, COMMISSIONFILENUMBER, OFFERINGQUALIFICATIONDATE, OFFERINGCOMMENCEDATE, QUALIFIEDSECURITIESSOLD, OFFERINGSECURITIESSOLD, PORTIONSECURITIESSOLDISSUER, PORTIONSOLDSECURITYHOLDERS, PRICEPERSECURITY, AGGREGRATEOFFERINGPRICE, AGGREGRATEOFFERINGPRICEHOLDERS, UNDERWRITERFEES, SALESCOMMISSIONSFEE, FINDERSFEES, AUDITORFEES, LEGALFEES, PROMOTERSFEES, BLUESKYFEES, CRDNUMBERBROKERDEALER, ISSUERNETPROCE
+- `00:16:50` (the others took 8s)
+- `00:16:50` ✅ audit complete
