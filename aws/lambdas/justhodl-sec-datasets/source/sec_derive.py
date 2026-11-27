@@ -526,8 +526,16 @@ def _nport(db, zf, progress):
 
     # ---- bonds and loans: one row per security, across the funds that hold it
     marks = "(%s)" % ",".join("'%s'" % c for c in BOND_CLASSES)
+    # an identifier names one bond, so one maturity: a "CUSIP" carrying three or more is a placeholder some filers write
+    # on everything they cannot identify (ops 6987: 9,421 unrelated loans of 46 funds under one). Its rows are tied by name.
+    db.execute("CREATE TABLE badc AS SELECT h.issuer_cusip AS c FROM hold h JOIN keep k ON k.accession_number=h.accession_number"
+               " LEFT JOIN debt d ON d.holding_id=h.holding_id WHERE h.asset_cat IN %s AND length(h.issuer_cusip)=9"
+               " AND h.issuer_cusip NOT IN ('000000000','N/A') GROUP BY h.issuer_cusip HAVING COUNT(DISTINCT d.maturity_date) > 2" % marks)
+    db.execute("CREATE UNIQUE INDEX badc_c ON badc(c)")
+    n_placeholders = q("SELECT COUNT(*) FROM badc")[0][0]
+    progress(None)
     cur = db.execute(
-        "SELECT CASE WHEN length(h.issuer_cusip)=9 AND h.issuer_cusip NOT IN ('000000000','N/A') THEN h.issuer_cusip"
+        "SELECT CASE WHEN length(h.issuer_cusip)=9 AND h.issuer_cusip NOT IN ('000000000','N/A') AND h.issuer_cusip NOT IN (SELECT c FROM badc) THEN h.issuer_cusip"
         " ELSE 'N:'||UPPER(h.issuer_name)||'|'||UPPER(h.issuer_title)||'|'||COALESCE(d.annualized_rate,'')||'|'||COALESCE(d.maturity_date,'') END AS k,"
         " h.accession_number, k.report_date, h.issuer_name, h.issuer_title, h.balance, h.unit, h.currency_code, h.currency_value, h.asset_cat, h.issuer_type,"
         " h.investment_country, h.is_restricted_security, h.fair_value_level, d.maturity_date, d.coupon_type, d.annualized_rate, d.is_default,"
@@ -536,7 +544,8 @@ def _nport(db, zf, progress):
         " WHERE h.asset_cat IN %s ORDER BY 1" % marks)
     cols = ["issuer", "title", "cls", "itype", "ctry", "cur", "cpn", "ck", "mat", "d", "funds", "rows", "face", "value", "px", "px_lo", "px_hi", "n_px",
             "n_default", "n_arrears", "n_pik", "n_restricted", "n_l3"]
-    bonds, totals = [], {"securities": 0, "with_identifier": 0, "set_aside_small": 0, "set_aside_repeated_name": 0, "flag_default": 0, "flag_arrears": 0, "flag_pik": 0}
+    bonds, totals = [], {"securities": 0, "with_identifier": 0, "placeholder_identifiers": n_placeholders, "set_aside_small": 0, "set_aside_repeated_name": 0,
+                         "flag_default": 0, "flag_arrears": 0, "flag_pik": 0}
 
     def close(key, grp):
         funds = {g[0] for g in grp}
@@ -625,13 +634,20 @@ def _nport(db, zf, progress):
     progress("credit swaps: %d names, %d indices" % (len(names), len(indices)))
 
     # ---- stock funds have out on loan
+    # a fund holds a stock once or twice; an "identifier" with more than three positions a fund is a placeholder: tied by name
+    db.execute("CREATE TABLE bade AS SELECT h.issuer_cusip AS c FROM hold h JOIN keep k ON k.accession_number=h.accession_number WHERE h.asset_cat='EC'"
+               " AND length(h.issuer_cusip)=9 AND h.issuer_cusip NOT IN ('000000000','N/A') GROUP BY h.issuer_cusip HAVING COUNT(*) > 3 * COUNT(DISTINCT h.accession_number)")
+    db.execute("CREATE UNIQUE INDEX bade_c ON bade(c)")
+    progress(None)
     cur = db.execute(
-        "SELECT CASE WHEN length(h.issuer_cusip)=9 AND h.issuer_cusip NOT IN ('000000000','N/A') THEN h.issuer_cusip ELSE 'N:'||UPPER(h.issuer_name) END AS k,"
+        "SELECT CASE WHEN length(h.issuer_cusip)=9 AND h.issuer_cusip NOT IN ('000000000','N/A') AND h.issuer_cusip NOT IN (SELECT c FROM bade) THEN h.issuer_cusip"
+        " ELSE 'N:'||UPPER(h.issuer_name) END AS k,"
         " h.accession_number, h.issuer_name, h.balance, h.unit, h.currency_value, h.investment_country,"
         " (SELECT SUM(l.loan_value) FROM lend l WHERE l.holding_id=h.holding_id AND l.is_loan_by_fund='Y'),"
         " (SELECT t.identifier_ticker FROM idt t WHERE t.holding_id=h.holding_id LIMIT 1)"
         " FROM hold h JOIN keep k ON k.accession_number=h.accession_number WHERE h.asset_cat='EC' ORDER BY 1")
     loans, loan_tot = [], {"held": 0.0, "on_loan": 0.0, "stocks": 0, "set_aside_small": 0}
+    n_stock_placeholders = q("SELECT COUNT(*) FROM bade")[0][0]
 
     def close_stock(grp):
         held = sum(g[4] or 0.0 for g in grp)
@@ -661,7 +677,7 @@ def _nport(db, zf, progress):
     loans.sort(key=lambda r_: -(r_[3] or 0))
     stock_loan = {"as_of": as_of, "cols": ["ticker", "issuer", "ctry", "held", "shares", "on_loan", "on_loan_pct", "funds", "funds_lending"], "rows": loans,
                   "totals": {"held": round(loan_tot["held"]), "on_loan": round(loan_tot["on_loan"]), "stocks_listed": loan_tot["stocks"],
-                             "stocks_under_the_floor": loan_tot["set_aside_small"], "floor": MIN_STOCK_HELD},
+                             "stocks_under_the_floor": loan_tot["set_aside_small"], "floor": MIN_STOCK_HELD, "placeholder_identifiers": n_stock_placeholders},
                   "reading": "on_loan = the value of the shares funds reported as lent out on their report date; lent shares are what short sellers borrow"}
     progress("stock on loan: %d stocks" % len(loans))
     return {"summary": summary, "bonds": {"as_of": as_of, "cols": cols, "rows": bonds, "totals": totals,

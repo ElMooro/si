@@ -36,7 +36,7 @@ import sec_derive as D  # noqa: E402
 import sec_sets as S  # noqa: E402
 import lambda_function as LF  # noqa: E402
 
-CUSIPS = {"cw": "21873SAB4", "cz": "21874AAC0", "ford": "345370DA5", "dead": "111111AA1", "nvda": "67066G104", "ionq": "46222L108"}
+CUSIPS = {"cw": "21873SAB4", "cz": "21874AAC0", "ford": "345370DA5", "dead": "111111AA1", "nvda": "67066G104", "ionq": "46222L108", "placeholder": "888888888"}
 ISIN = "US21873SAB42"
 
 
@@ -115,6 +115,11 @@ def nport_zip(amend=True):
         idt.append([h, h, "", "ionq us", "", ""])
         h = hold(acc, "Tiny Co", "Common", "999999999", 10, "NS", 1e5, "EC", level="1")
         lend.append([h, "N", 0, "N", 0, "N", 0])
+        if f in (3, 4):                          # a placeholder "identifier" written on three different bonds: tied by name instead
+            for nm, cpn, mat, val, who in (("Alpha Ltd", 5.0, "01-JAN-2030", 3e6, (3, 4)), ("Beta SA", 6.0, "01-JAN-2031", 2e6, (3,)), ("Gamma NV", 7.0, "01-JAN-2032", 5e5, (4,))):
+                if f in who:
+                    h = hold(acc, nm, "%s %s" % (nm, cpn), "888888888", val, "PA", val, "DBT", ctry="GB")
+                    debts.append([h, mat, "Fixed", cpn, "N", "N", "N", "N", "N"])
         if f == 2:                               # a filing that writes one label on thirty different positions
             for j in range(30):
                 h = hold(acc, "Repeated Label LLC", "DDTL", "N/A", 1e6, "PA", 1e6, "LON", level="3")
@@ -373,7 +378,7 @@ def test_a_quarter_of_fund_holdings():
     assert s["funds"] == 6 and s["filings_in_file"] == 7 and s["as_of"] == "2026-07-31" and s["report_dates"] == {"2026-06-30": 2, "2026-07-31": 4}
     assert s["net_assets"] == round(5 * 4.9e9 + 4.8e9)                                              # fund 0 by its amendment
     classes = {c["code"]: c for c in s["classes"]}
-    assert classes["DBT"]["rows"] == 5 * 2 + 1 and classes["LON"]["level3_rows"] == 10 + 30 and classes["EC"]["name"] == "Common stock"
+    assert classes["DBT"]["rows"] == 5 * 2 + 1 + 4 and classes["LON"]["level3_rows"] == 10 + 30 and classes["EC"]["name"] == "Common stock"
     assert s["flows_by_month"]["2026-07"]["funds"] == 4 and s["flows_by_month"]["2026-05"]["net"] == round(4 * (10 + 1 - 20) + 2 * (30 + 1 - 20))
     b = docs["bonds"]
     rows = [dict(zip(b["cols"], r)) for r in b["rows"]]
@@ -387,7 +392,10 @@ def test_a_quarter_of_fund_holdings():
     assert dead["n_default"] == 5 and dead["n_arrears"] == 5 and dead["px"] == 40.0 and dead["funds"] == 5
     loan = next(r for r in rows if r["cls"] == "LON")
     assert loan["issuer"] == "Shared Borrower LLC" and loan["funds"] == 5 and loan["n_pik"] == 5 and loan["n_l3"] == 5 and loan["px"] == 75.0
-    assert len(rows) == 3 and b["totals"] == {"securities": 3, "with_identifier": 2, "set_aside_small": 5, "set_aside_repeated_name": 1, "flag_default": 1, "flag_arrears": 1, "flag_pik": 1}
+    assert len(rows) == 5 and b["totals"] == {"securities": 5, "with_identifier": 2, "placeholder_identifiers": 1, "set_aside_small": 6, "set_aside_repeated_name": 1,
+                                             "flag_default": 1, "flag_arrears": 1, "flag_pik": 1}
+    alpha = next(r for r in rows if r["issuer"] == "Alpha Ltd")
+    assert alpha["funds"] == 2 and alpha["mat"] == "2030-01-01" and next(r for r in rows if r["issuer"] == "Beta SA")["funds"] == 1 and not any(r["issuer"] == "Gamma NV" for r in rows)
     assert s["set_aside_impossible"]["rows"] == 1 and s["set_aside_impossible"]["value"] == round(9e10) and not any(r["issuer"] == "Slip Corp" for r in rows)
     assert dead["rows"] == 5 and cw["rows"] == 6, "positions are counted beside funds"
     c = docs["cds"]
@@ -405,7 +413,7 @@ def test_a_quarter_of_fund_holdings():
     assert set(by) == {"NVDA", "IONQ"} and ln["totals"]["stocks_under_the_floor"] == 1
     # five funds hold stock (fund 0's amendment carries none): IonQ 5 x $100m held, four of them lend $80m each
     assert by["IONQ"]["on_loan_pct"] == 64.0 and by["IONQ"]["funds_lending"] == 4 and by["IONQ"]["funds"] == 5 and by["IONQ"]["shares"] == round(1e7) and by["NVDA"]["on_loan_pct"] == 1.0
-    assert D.nport_summary(docs)["securities"] == 3 and D.nport_summary(docs)["cds_names"] == 1
+    assert D.nport_summary(docs)["securities"] == 5 and D.nport_summary(docs)["cds_names"] == 1 and ln["totals"]["placeholder_identifiers"] == 0
     json.dumps(docs, allow_nan=False)
 
 
@@ -471,7 +479,7 @@ def test_a_run_banks_reads_and_publishes():
         assert hold["as_of"] == "2026-07-31" and hold["source"]["file"] == "2026q3_nport.zip" and hold["cds"]["names"][0][0] == "FORD MOTOR CO"
         assert [r[0] for r in hold["stock_loan"]["most_lent"]] == ["IONQ", "NVDA"] and [r[0] for r in hold["stock_loan"]["largest"]] == ["NVDA", "IONQ"]
         bonds = w.s3.doc(hold["tables"]["bonds"])
-        assert bonds["source_file"] == "2026q3_nport.zip" and len(bonds["rows"]) == 3 and w.s3.doc(hold["tables"]["stock_loan"])["rows"][0][0] == "NVDA"
+        assert bonds["source_file"] == "2026q3_nport.zip" and len(bonds["rows"]) == 5 and w.s3.doc(hold["tables"]["stock_loan"])["rows"][0][0] == "NVDA"
         public = b"".join(v for k, v in w.s3.objects.items() if k.startswith("data/"))
         text = b"".join(gzip.decompress(v) if v[:2] == b"\x1f\x8b" else v for k, v in w.s3.objects.items() if k.startswith("data/")).decode()
         assert public and all(i not in text for i in list(CUSIPS.values()) + [ISIN]), "nothing under data/ carries an identifier"
