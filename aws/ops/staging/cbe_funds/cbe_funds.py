@@ -61,7 +61,26 @@ SPELL = {
     "OPER": ("OPERATING",), "OPT": ("OPERATING",), "CAP": ("CAPITAL",), "FNDG": ("FUNDING",), "FDG": ("FUNDING",), "UTIL": ("UTILITIES",), "HLTH": ("HEALTH",),
     "INFO": ("INFORMATION",), "PRODS": ("PRODUCTS",), "DEV": ("DEVELOPMENT",), "INVT": ("INVESTMENT",), "COOP": ("COOPERATIVE",), "MKTS": ("MARKETS",), "ENER": ("ENERGY",),
     "PPTY": ("PROPERTY", "PROPERTIES"), "PROP": ("PROPERTIES", "PROPERTY"), "RLTY": ("REALTY",), "TR": ("TRUST",), "ASSD": ("ASSOCIATED",), "COS": None,
+    "MFG": ("MANUFACTURING",), "CALIF": ("CALIFORNIA",), "HLTHCARE": ("HEALTHCARE",), "RESOURC": ("RESOURCES",), "OPTG": ("OPERATING",), "GLOB": ("GLOBAL",),
+    "GLB": ("GLOBAL",), "FINAN": ("FINANCE", "FINANCIAL"), "NA": ("NORTH AMERICA",), "AMER": ("AMERICA", "AMERICAN"), "BK": ("BANK",), "AUST": ("AUSTRALIA",),
+    "NRG": ("ENERGY",), "ENRGY": ("ENERGY",), "PRTNR": ("PARTNERS",), "PRTNRS": ("PARTNERS",), "INFRAST": ("INFRASTRUCTURE",), "WTR": ("WATER",), "BLDG": ("BUILDING",),
+    "LFE": ("LIFE",), "FND": ("FUNDING",), "MANUF": ("MANUFACTURERS",), "INDUSTRI": ("INDUSTRIES",), "INTERMED": ("INTERMEDIATE",), "INTERNTNL": ("INTERNATIONAL",),
+    "TRANSCONT": ("TRANSCONTINENTAL",), "PROCESSNG": ("PROCESSING",), "TELECOM": ("TELECOMMUNICATIONS", "TELECOM"),
 }
+# Market names no rule spells out: the name as funds write it -> the names to look for, in order. Looked for the same way as any
+# other name (an issuer on the board, or the board's naming rules), so a target the board does not know ties nothing.
+_MARKET = (
+    ("HP ENTERPRISE CO", ("HEWLETT PACKARD ENTERPRISE",)), ("INTERCONTINENTALEXCHANGE", ("INTERCONTINENTAL EXCHANGE",)),
+    ("BURLINGTN NORTH SANTA FE", ("BURLINGTON NORTHERN SANTA FE",)), ("CON EDISON CO OF NY INC", ("CONSOLIDATED EDISON CO OF NEW YORK", "CONSOLIDATED EDISON")),
+    ("TEVA PHARMACEUTICALS NE", ("TEVA PHARMACEUTICAL FINANCE NETHERLANDS III", "TEVA PHARMACEUTICAL INDUSTRIES")), ("CANADIAN NATL RESOURCES", ("CANADIAN NATURAL RESOURCES",)),
+    ("SAN DIEGO G & E", ("SAN DIEGO GAS & ELECTRIC",)), ("UNITED RENTALS NORTH AM", ("UNITED RENTALS NORTH AMERICA", "UNITED RENTALS")),
+    ("NXP BV/NXP FDG/NXP USA", ("NXP SEMICONDUCTORS",)), ("WESTINGHOUSE AIR BRAKE", ("WESTINGHOUSE AIR BRAKE TECHNOLOGIES",)),
+    ("COOPERAT RABOBANK UA/NY", ("COOPERATIEVE RABOBANK UA", "COOPERATIEVE RABOBANK")), ("MET LIFE GLOB FUNDING I", ("METROPOLITAN LIFE GLOBAL FUNDING I",)),
+    ("CHENIERE CORP CHRISTI HD", ("CHENIERE CORPUS CHRISTI HOLDINGS",)), ("AUST & NZ BANKING GROUP", ("AUSTRALIA & NEW ZEALAND BANKING GROUP",)),
+    ("COMMONWEALTH BANK AUST", ("COMMONWEALTH BANK OF AUSTRALIA",)), ("PLAINS ALL AMER PIPELINE", ("PLAINS ALL AMERICAN PIPELINE",)),
+    ("CONSTELLATION EN GEN LLC", ("CONSTELLATION ENERGY GENERATION",)), ("XPLR INFRAST OPERATING", ("XPLR INFRASTRUCTURE OPERATING PARTNERS", "XPLR INFRASTRUCTURE")),
+)
+MARKET = {N.norm(N.clean_issuer(a)): tuple(N.norm(N.clean_issuer(b)) for b in bs) for a, bs in _MARKET}
 
 
 class Ties:
@@ -116,7 +135,7 @@ class Ties:
         if first[0] or not key:
             return first
         # the name as a fund that abbreviates writes it: spelled out, the first of two co-issuers, or cut at 24 characters
-        tries = [(k, "short name") for k in spelled(key)]
+        tries = [(k, "short name") for k in MARKET.get(key, ())] or [(k, "short name") for k in spelled(key)]
         if "/" in raw and " / " not in raw:
             parts = [N.norm(N.clean_issuer(p)) for p in raw.split("/")]
             lead = parts[0] if len(parts[0]) >= 5 or len(parts) < 2 else parts[1]      # "CHS/COMMUNITY HEALTH SYS": the short form first, then the name
@@ -127,6 +146,8 @@ class Ties:
             co, how, tk = self._own(k, country)
             if co:
                 found.setdefault(co, label)
+                if key in MARKET:
+                    break                                   # a written-out market name: its first target that is known
             listed = listed or tk
         if not found:
             for k, label in [(key, "name cut")] + tries:
@@ -234,8 +255,9 @@ def join(bonds, cds, ties, names):
                 flags.append([co, names.get(co), b.get("title"), b.get("cpn"), b.get("mat"), b.get("funds"), b.get("rows"), b.get("n_default"), b.get("n_pik"), b.get("px"), b.get("value")])
 
     # credit default swaps funds hold, by reference name: tied to a company where the name is one
-    # A fund sometimes writes the dealer it faces where the reference belongs. A reference that is also a dealer's name is tied to a
-    # company only when a bond issuer on the board is written that way; otherwise it stays in the list, marked, and enters no company.
+    # A fund sometimes writes the dealer it faces where the reference belongs ("MORGAN STANLEY & COMPANY LLC", ending in 2057). The
+    # file cannot tell the two apart, so a reference that funds also write as a dealer's name stays in the list, marked, and
+    # enters no company's figures. The parents' own names ("BANK OF AMERICA CORP", "CITIGROUP INC") are not dealers' names.
     cds_cols = cds.get("cols") or []
     cds_names, n_tied, n_dealer = [], 0, 0
     dealers = {plain(c[0]) for c in cds.get("counterparties") or [] if c and c[0]} - {""}
@@ -244,7 +266,7 @@ def join(bonds, cds, ties, names):
         x = dict(zip(cds_cols, row))
         co, how, listed = ties.of(x.get("reference"))
         dealer = 1 if plain(x.get("reference")) in dealers else 0
-        if dealer and how not in OWN_NAME:
+        if dealer:
             co, listed = None, None
             n_dealer += 1
         if co:
