@@ -8,7 +8,8 @@ guessed); a quarter of fund holdings (an amendment replaces what it amends, one 
 differently, marks, flags, loans nobody else holds set aside, credit swaps sold and bought, stock on loan); that no
 published table carries a CUSIP or an ISIN; the whole engine twice over (dry run writes nothing, a run banks, reads
 and publishes, a second run does not fetch again, a file the SEC changed is banked again, raw files stay outside
-data/, a run short of time reads the quarter later).  No network, no AWS.
+data/, a run short of time reads the quarter later, a quarter that will not read is set aside after three runs).
+No network, no AWS.
 
 Run: python3 aws/lambdas/justhodl-sec-datasets/tests/run_tests.py
 """
@@ -522,6 +523,30 @@ def test_a_run_short_of_time_reads_the_quarter_later():
         out = LF.lambda_handler({"bank": False}, Ctx(900))
         assert out["quarters_read"] == 1 and out["banked"] == 0 and "data/sec-fund-holdings.json" in w.s3.objects
     finally:
+        w.close()
+
+
+def test_a_quarter_that_will_not_read_is_set_aside_after_three_runs():
+    w = World()
+    real = D.nport_quarter
+    try:
+        def broken(path, work, progress=None):
+            raise MemoryError("made up")
+        D.nport_quarter = broken
+        for attempt in (1, 2, 3):
+            out = LF.lambda_handler({"only": ["nport"]}, Ctx(900))
+            assert out["ok"] and out["quarters_read"] == 0 and any("attempt %d stopped (MemoryError" % attempt in n for n in out["notes"]), out
+        rec = w.s3.doc("data/warm/sec-datasets/manifest.json")["sets"]["nport"]["files"]["2026q3_nport.zip"]
+        assert rec["read_attempts"] == 3 and "derived" not in rec
+        out = LF.lambda_handler({"only": ["nport"]}, Ctx(900))                                       # the fourth run sets it aside, on record, and moves on
+        files = w.s3.doc("data/warm/sec-datasets/manifest.json")["sets"]["nport"]["files"]
+        assert "3 runs did not finish" in files["2026q3_nport.zip"]["derived"]["not_handled"] and any("set aside after 3 runs" in n for n in out["notes"])
+        D.nport_quarter = real
+        out = LF.lambda_handler({"only": ["nport"]}, Ctx(900))                                       # the older quarter reads; nothing is stuck behind the bad one
+        assert out["quarters_read"] == 1 and "read_attempts" not in w.s3.doc("data/warm/sec-datasets/manifest.json")["sets"]["nport"]["files"]["2026q2_nport.zip"]
+        assert w.s3.doc("data/warm/sec-datasets/manifest.json")["runs"][-1]["peak_memory_mb"] > 0
+    finally:
+        D.nport_quarter = real
         w.close()
 
 

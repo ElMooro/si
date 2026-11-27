@@ -33,6 +33,7 @@ import gzip
 import hashlib
 import json
 import os
+import resource
 import shutil
 import time
 import urllib.error
@@ -61,6 +62,7 @@ WORK = os.environ.get("WORK_DIR", "/tmp/sec-datasets")
 MIN_MONEY_FUNDS, MIN_MONEY_NET = 150, 3e12                       # a month below either is kept but not shown as the newest
 MIN_FUNDS, MIN_SECURITIES = 5000, 50000                          # the same for a quarter of holdings
 RECHECK_NEWEST = 2                                               # the newest files of each set are re-measured every run
+MAX_READ_ATTEMPTS = 3                                            # a quarter that three runs could not finish reading is set aside, on record
 
 _S3 = None
 _UA = None
@@ -264,7 +266,7 @@ class OutOfTime(Exception):
     """Raised between stages of a long read when the run's time is nearly spent."""
 
 
-def derive_nport(manifest, kept, left, log):
+def derive_nport(manifest, kept, left, log, checkpoint=lambda: None):
     files = manifest["sets"].get("nport", {}).get("files", {})
     todo = pending(files)
     if not todo:
@@ -273,6 +275,13 @@ def derive_nport(manifest, kept, left, log):
         log.append("nport: %d quarter(s) wait for a run with %d s to spare" % (len(todo), NPORT_SECONDS))
         return 0
     name, rec = todo[0]
+    if int(rec.get("read_attempts") or 0) >= MAX_READ_ATTEMPTS:
+        rec["derived"] = {"not_handled": "%d runs did not finish reading it" % MAX_READ_ATTEMPTS, "at": now_iso()}
+        log.append("nport %s: set aside after %d runs that did not finish reading it" % (name, MAX_READ_ATTEMPTS))
+        return 0
+    # the attempt is on record before the read begins: a run killed half-way (time, memory) cannot repeat forever
+    rec["read_attempts"] = int(rec.get("read_attempts") or 0) + 1
+    checkpoint()
     path = local_copy(rec, name, kept)
     notes = []
 
@@ -289,10 +298,11 @@ def derive_nport(manifest, kept, left, log):
         drop_local(name, kept)
         return 0
     except OutOfTime:
-        rec["read_attempts"] = int(rec.get("read_attempts") or 0) + 1
         log.append("nport %s: out of time on attempt %d (%s)" % (name, rec["read_attempts"], "; ".join(notes[-2:])))
-        if rec["read_attempts"] >= 3:
-            rec["derived"] = {"not_handled": "three runs ran out of time reading it", "at": now_iso()}
+        drop_local(name, kept)
+        return 0
+    except Exception as exc:                  # noqa: BLE001 - one quarter that will not read must not stop the bank
+        log.append("nport %s: attempt %d stopped (%s: %s)" % (name, rec["read_attempts"], type(exc).__name__, str(exc)[:160]))
         drop_local(name, kept)
         return 0
     stem = name.rsplit(".", 1)[0]
@@ -302,6 +312,7 @@ def derive_nport(manifest, kept, left, log):
         keys[part] = "%sderived/nport/%s/%s" % (OUT_PREFIX, stem, suffix)
         put_json(keys[part], docs[part])
     rec["derived"] = {"keys": keys, "at": now_iso(), "summary": sec_derive.nport_summary(docs), "notes": notes[-6:]}
+    rec.pop("read_attempts", None)
     drop_local(name, kept)
     return 1
 
@@ -422,7 +433,7 @@ def run(event, context):
     n_months = n_quarters = 0
     if event.get("derive", True):
         n_months = derive_nmfp(manifest, kept, left, log)
-        n_quarters = derive_nport(manifest, kept, left, log)
+        n_quarters = derive_nport(manifest, kept, left, log, checkpoint)
         if n_months or n_quarters:
             checkpoint()
     before = counts["banked"]
@@ -434,7 +445,8 @@ def run(event, context):
         drop_local(name, kept)
     published = {"money_funds": publish_money_funds(manifest), "fund_holdings": publish_holdings(manifest)}
     stats = {"at": now_iso(), "seconds": round(time.time() - t0, 1), "banked": n_banked, "bytes_banked": bytes_banked, "months_read": n_months,
-             "quarters_read": n_quarters, "published": published, "notes": log[-20:], "trigger": event.get("trigger")}
+             "quarters_read": n_quarters, "published": published, "notes": log[-20:], "trigger": event.get("trigger"),
+             "peak_memory_mb": round(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0)}       # the process's own memory, without the file cache Lambda's report line adds
     manifest.update(engine="justhodl-sec-datasets", version=VERSION, generated_at=now_iso(), raw_prefix=RAW_PREFIX, totals=totals(manifest),
                     documents={"money_funds": MONEY_FUNDS_KEY, "fund_holdings": HOLDINGS_KEY},
                     note="Raw files are kept verbatim under raw_prefix, outside the site's /data/ tree, because they carry security identifiers. "

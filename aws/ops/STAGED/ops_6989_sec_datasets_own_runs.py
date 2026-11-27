@@ -102,8 +102,9 @@ def main():
             whose = "first light (ops)" if x.get("trigger") else "the schedule's own"
             if not x.get("trigger"):
                 own.append(x)
-            say("  %s | %-18s | %5.0fs | banked %3d files %.2f GB | months read %2d | quarters read %d | published %s" % (
-                x.get("at"), whose, x.get("seconds") or 0, x.get("banked") or 0, (x.get("bytes_banked") or 0) / 1024 ** 3, x.get("months_read") or 0, x.get("quarters_read") or 0, json.dumps(x.get("published"))))
+            say("  %s | %-18s | %5.0fs | banked %3d files %.2f GB | months read %2d | quarters read %d | own memory %s MB | published %s" % (
+                x.get("at"), whose, x.get("seconds") or 0, x.get("banked") or 0, (x.get("bytes_banked") or 0) / 1024 ** 3, x.get("months_read") or 0, x.get("quarters_read") or 0,
+                x.get("peak_memory_mb", "?"), json.dumps(x.get("published"))))
             for note in (x.get("notes") or [])[:6]:
                 say("      note: %s" % note)
         due = now >= datetime(2026, 11, 27, 22, 57, tzinfo=timezone.utc)
