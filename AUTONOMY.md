@@ -652,3 +652,19 @@ elsewhere just moves the lie one field over.
 8. **A name can take an identifier's shape after it is published-ready upstream.** The SEC bank scrubs names as filed;
    writing one in capitals, or cutting it at sixty characters, made two of 89,337 look like a CUSIP. Whatever reshapes
    a name scrubs it again (`cbe_funds.clean`), and the read-back op walks every published string.
+
+## Traps banked — ops 6992–6993 (a section's own button on the chart, 2026-11-27)
+
+1. **A big block with no heading wears a loose number.** `jh-sections.js` numbers every large child of a section and,
+   finding no heading that belongs to the block, floats the badge over it — three hung over Held by funds, one inside
+   a table's scroll box. A section's content goes in blocks that each *open* with their own heading (a direct child);
+   `scripts/bake_sections.py <site copy>` and a local browser show the badges before the push.
+2. **A page that draws itself cannot rely on the address's `#section`.** The browser jumps before the board has drawn,
+   when the sections above have no height, and lands thousands of pixels short. The board lands itself after it draws
+   and twice more as the page settles, and stops as soon as the reader moves (`JHCreditBoard.sectionOf`, `#s-...` only).
+3. **A rail title sits inside a single-quoted attribute.** `jhOpenWorkspace` writes `title='...'`; an apostrophe in a
+   desk's title cuts the frame's attributes short. Titles there carry no apostrophes.
+4. **A new cache tag on chart.html goes after the newest one** (`&tabs=...&hbf=...`), on both script tags. Putting it
+   between two older tags breaks the adjacency other desks' ledger peels pin.
+5. **A proof that clicks a button which opens a frame re-finds the frame.** The workspace frame navigates after the
+   click; the first handle dies ("Execution context was destroyed"). Wait for it to settle, then look it up again.

@@ -350,3 +350,23 @@ git checkout ca6ea0f6 -- jh-chart-sd-ui.js jh-chart-ai-desk.js tests/chart-desk-
 The same change set added `jh-glance.js` (one `<div data-glance>` and one script tag at the top of plumbing.html,
 liquidity.html, breadth-thrust.html, catalyst-calendar.html and btc-cycle.html). Each page's own content is below it,
 unchanged. To take a glance off a page, remove those two lines from that page.
+
+## 2026-11-27: a Held by funds button beside Credit
+
+Khalid, 2026-11-26 22:43 ET: "fix it also: Held by funds to have its own button on the chart bar that opens straight to
+that section". `btn-hbf` (Hf, Held by funds) sits right after Credit and before CDS; the workspace entry `heldby` opens
+`/credit-before-equity.html#s-funds`; chart.html carries `&hbf=20261127` after `&tabs=20261126` on both script tags.
+Credit (`btn-cbe`) is where it was and opens the board at its top. Ledger peels `peelHeldByFundsEngine / Rail / Html`
+run first. Live proof: ops 6993, 2026-11-27 04:18 UTC, 43 checks, 0 failed. State before = commit `5a7e19ee`.
+
+To take the button back out:
+
+```
+git checkout 5a7e19ee -- jh-chart-engine.js jh-chart-tvrail.js chart.html tests/helpers/chart-macro-line-preservation.cjs \
+  tests/chart-crypto-routes.test.js tests/chart-indicator-controls.test.js tests/risk-map-page.test.js \
+  tests/credit-before-equity.test.js tests/money-map-page.test.js tests/chart-desk-tabs.test.js
+```
+
+The section's three headed blocks and the board's landing on `#s-...` (credit-before-equity.html, jh-credit-funds.js,
+jh-credit-board.js, tests/credit-before-equity-funds.test.js) are separate from the button and can stay; four tests in
+tests/credit-before-equity-funds.test.js name the button and go with it.
