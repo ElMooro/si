@@ -39,6 +39,8 @@ def clean(text):
 
 def ymd(text):
     t = str(text)[:10]
+    if re.match(r"^\d{4}-\d{2}$", t):                      # a monthly series: the month, dated its 28th
+        return int(t[:4]) * 10000 + int(t[5:7]) * 100 + 28
     if not re.match(r"^\d{4}-\d{2}-\d{2}$", t):
         return None
     return int(t[:4]) * 10000 + int(t[5:7]) * 100 + int(t[8:10])
@@ -116,7 +118,8 @@ def main():
                         skipped += 1
                 st = s.get("stats") or s
                 cut[str(i).zfill(3)] = {"label": str(s.get("label") or s.get("name") or s.get("key"))[:140], "key": s.get("key"), "area": s.get("area"),
-                                        "category": s.get("category"), "pctile": st.get("pctile"), "latest": st.get("latest"), "p": pts}
+                                        "category": s.get("category"), "pctile": st.get("pctile"), "latest": st.get("latest"), "freq": s.get("freq"),
+                                        "raw_first": str((s.get("chart_points") or [[None]])[0][0])[:12], "p": pts}
             say("%d series; rows skipped as unreadable %d; engine's own fields on the first: %s" % (len(cut), skipped, sorted(items[0])[:45] if items else None))
             for k in list(cut)[:6] + list(cut)[-3:]:
                 v = cut[k]
