@@ -368,5 +368,6 @@ git checkout 5a7e19ee -- jh-chart-engine.js jh-chart-tvrail.js chart.html tests/
 ```
 
 The section's three headed blocks and the board's landing on `#s-...` (credit-before-equity.html, jh-credit-funds.js,
-jh-credit-board.js, tests/credit-before-equity-funds.test.js) are separate from the button and can stay; four tests in
-tests/credit-before-equity-funds.test.js name the button and go with it.
+jh-credit-board.js) are separate from the button and can stay. Two tests in tests/credit-before-equity-funds.test.js
+name the button ("the chart has a Held by funds button..." and "the chart's byte ledger takes the Held by funds button
+back out first...") and go with it.
