@@ -647,3 +647,8 @@ elsewhere just moves the lie one field over.
    a document of its own. The suite did not need a new expected document, and a missing SEC table cannot take the board down.
 6. **A browser check that reads a saved file reads bytes.** Python's `read_text()` turns `\r\n` into `\n`; a CSV split
    on `\r\n` then has "0 rows". (Caught in the local rehearsal of ops 6991.)
+7. **The site build stamps every script's `?v=` with a hash of its content** (`scripts/stamp_assets.py`). A live proof
+   that waits for the checkout's own tag waits forever; wait for the element the change adds.
+8. **A name can take an identifier's shape after it is published-ready upstream.** The SEC bank scrubs names as filed;
+   writing one in capitals, or cutting it at sixty characters, made two of 89,337 look like a CUSIP. Whatever reshapes
+   a name scrubs it again (`cbe_funds.clean`), and the read-back op walks every published string.

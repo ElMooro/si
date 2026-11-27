@@ -45,7 +45,23 @@ funds are positioned in each company's credit default swaps.
 
 ## Proof
 
-- Engine suite 52 tests (7 new, on real rows of the SEC tables), page tests 17 new on the real document, deployment
+- Engine suite 53 tests (8 new, on real rows of the SEC tables), page tests 17 new on the real document, deployment
   suite 1,265, node suite 5,336 — all pass.
-- ops 6991: deployed package is the checkout's; one dry run in Lambda; one disclosed one-off publication; every
-  company's columns re-added from its rows; every row found in the SEC table; a real browser on the live site.
+- ops 6991, 2026-11-27 03:07 UTC, 0 failed checks: the deployed package is the checkout's; one dry run in Lambda
+  (26 s, 751 MB, nothing written); a one-off publication outside the 22:35 UTC schedule; the board is what it was (0 of
+  4,180 companies with another spread, rank, book, tie or signal); all 3,502 companies' holding columns re-added from the
+  35,569 rows; every row found in the SEC bank's table; every company's swap figures re-added from its names; the lists
+  whole (747 / 452 / 16,697; 15,175 securities enough funds mark); the site serves both documents.
+- The same op in a real browser on justhodl.ai: the five tiles are the document's; the fund document is asked for once,
+  when the section is reached; both pictures draw the right companies and securities to the right lengths; every list
+  opens whole and sorts both ways; Oracle's sheet lists its 58 securities and CoreWeave's its 20, each sorted both ways
+  and saved as a file; the company table shows 82 columns and sorts by fund-held value (JPMorgan, $45.6bn); a phone fits.
+
+## What the first run of ops 6991 caught
+
+- Two of 89,337 published names were shaped like a security identifier: issuer names in the untied list take the shape
+  once written in capitals and cut at sixty characters. `cbe_funds.clean()` now drops such a token from every issuer,
+  title and reference name the layer publishes; the engine was redeployed and published again (the second one-off run
+  of the night, 03:07 UTC), and the check reads 0.
+- The op waited twenty minutes for a script tag the site build rewrites (`scripts/stamp_assets.py` gives every script a
+  version from its own content). It now waits for the section itself.
