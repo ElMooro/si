@@ -83,7 +83,7 @@ points against 31 August, the 93rd percentile (rising fast: 16 of 52, 31%; near 
 
 - ops 6998 dry run on the runner: 32 checks, 0 failed (the record from the live warehouse equals the offline build).
 - ops 6999 go-live, 17:12-17:14 UTC: packages read back identical to the repository; three disclosed one-off runs
-  (grid 43 s, record engine 99 s, war room 7 s); 22 checks, 0 failed.
+  (grid 43 s, record engine 99 s, war room 7 s); 19 checks, 0 failed.
 - ops 7000 real browser on justhodl.ai, 17:18 UTC: 48 checks, 0 failed (figures equal the documents; 192 rows; sorting
   both ways; filter; saved file; phone; the chart's Canaries button opens the page).
 - Tests: engines 19 + 8 + 3, page 9, deployment 1,272, node 5,349.
