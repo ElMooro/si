@@ -1,0 +1,26 @@
+{
+  "runtime": "python3.12",
+  "memory": 3008,
+  "timeout": 900,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "SEC bulk data sets kept in the warehouse (N-PORT, N-MFP, BDC, 13F, insiders, Form D, N-CEN) and read into tables: money funds' repo and flows, bonds and loans funds hold with their marks, fund credit swaps, stock on loan. Once a day.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "RAW_PREFIX": "sec-datasets/raw/",
+    "OUT_PREFIX": "data/warm/sec-datasets/",
+    "MONEY_FUNDS_KEY": "data/sec-money-funds.json",
+    "HOLDINGS_KEY": "data/sec-fund-holdings.json",
+    "BANK_BYTES_PER_RUN": "2621440000",
+    "NMFP_PER_RUN": "12",
+    "NPORT_SECONDS": "430"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-sec-datasets-daily",
+    "cron": "cron(47 22 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "SEC bulk data sets, daily 22:47 UTC (after the SEC's business day): bank what is new, read it into tables"
+  },
+  "ephemeral_storage": 8192
+}
