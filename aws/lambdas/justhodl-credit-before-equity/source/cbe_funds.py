@@ -184,6 +184,15 @@ def spelled(key):
 
 
 _TAIL = re.compile(r"( (LLC|INC|NA|NATIONAL ASSOCIATION|LTD|LIMITED|LP))+$")
+# Nothing shaped like a security identifier is published: twelve characters of an ISIN, or nine of a CUSIP with three digits
+# or more. The SEC bank scrubs its tables as filed; a name in capitals, or cut at sixty characters, can take the shape after.
+_IDENT = re.compile(r"(?<![A-Za-z0-9])(?:[A-Z]{2}[A-Z0-9]{9}\d|(?=[A-Z0-9]*\d[A-Z0-9]*\d[A-Z0-9]*\d)[A-Z0-9]{9})(?![A-Za-z0-9])")
+
+
+def clean(text):
+    """A name or a title with nothing in it shaped like a security identifier."""
+    t = str(text or "")
+    return " ".join(_IDENT.sub(" ", t).split()) if _IDENT.search(t) else t
 
 
 def plain(name):
@@ -214,6 +223,7 @@ def join(bonds, cds, ties, names):
     for b in _rows(bonds):
         if b.get("cls") not in CLASSES or b.get("itype") in NOT_COMPANIES:
             continue
+        b["issuer"], b["title"] = clean(b.get("issuer")), clean(b.get("title"))
         value = b.get("value") or 0
         read[0] += 1
         read[1] += value
@@ -233,7 +243,7 @@ def join(bonds, cds, ties, names):
             a[2] = max(a[2], b.get("funds") or 0)
             a[3] = a[3] or (b.get("issuer") or "")
         else:
-            u = untied[(b.get("issuer") or "").upper()[:60]]
+            u = untied[clean(clean((b.get("issuer") or "").upper())[:60])]          # cleaned in capitals, cut, and cleaned again: the cut can leave a shape of its own
             u[0] += 1
             u[1] += value
             u[2] = max(u[2], b.get("funds") or 0)
@@ -267,6 +277,7 @@ def join(bonds, cds, ties, names):
     swaps = defaultdict(lambda: {"fc_sold": 0, "fc_bought": 0, "fc_funds": 0})
     for row in cds.get("names") or []:
         x = dict(zip(cds_cols, row))
+        x["reference"] = clean(x.get("reference"))
         co, how, listed = ties.of(x.get("reference"))
         dealer = 1 if plain(x.get("reference")) in dealers else 0
         if dealer:

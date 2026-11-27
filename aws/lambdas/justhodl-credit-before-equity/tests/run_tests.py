@@ -1221,6 +1221,39 @@ def a_fund_name_is_tied_the_way_the_board_ties_names_or_not_at_all():
 
 
 @test
+def nothing_shaped_like_an_identifier_is_published_by_the_fund_layer():
+    assert F.clean("ACME FINCO 12345ABC9 TL B") == "ACME FINCO TL B" and F.clean("Loan US1234567890 2031") == "Loan 2031" and F.clean("Oracle Corp 5.2% 2035") == "Oracle Corp 5.2% 2035"
+    assert F.clean("CoreWeave Delayed Draw TLb 450 2031-10-29") == "CoreWeave Delayed Draw TLb 450 2031-10-29" and F.clean(None) == ""
+    built, _ = build()
+    names = {r[0]: r[2] for r in built["payload"]["issuers"]["rows"]}
+    ties = F.Ties(built["ties"], built["matcher"], names)
+    cols = FUND_BONDS["cols"]
+    row = dict(zip(cols, FUND_BONDS["rows"][0]))
+    odd = [dict(row, issuer="Private Borrower Holdco a1b2c3d45", title="Term Loan 912810TW8", cls="LON", itype="CORP"),          # takes the shape only in capitals
+           dict(row, issuer="Meridian Arc Holdco LLC", title="Meridian Arc 38143U8H7 6.5% 2031", cls="DBT", itype="CORP")]
+    layer = F.join({"cols": cols, "rows": [[x[c] for c in cols] for x in odd], "as_of": "2026-06-30", "source_file": "x.zip"},
+                   {"cols": FUND_CDS["cols"], "names": [["SOME NAME 12345678X", 1, 1, 5, 0, 0, 5, 0, "2030"]]}, ties, names)
+    said = json.dumps([layer["rows"], layer["lists"], layer["block"]])
+    assert not F._IDENT.search(said) and "PRIVATE BORROWER HOLDCO" in said and "Meridian Arc 6.5% 2031" in said and "SOME NAME" in said
+    doc, s3, _ = _with_funds()
+    for key in (L.OUT_KEY, L.FUNDS_OUT_KEY):
+        published = json.loads(s3.puts[key])
+        texts = []
+
+        def walk(o):
+            if isinstance(o, str):
+                texts.append(o)
+            elif isinstance(o, dict):
+                for v in o.values():
+                    walk(v)
+            elif isinstance(o, list):
+                for v in o:
+                    walk(v)
+        walk(published.get("funds") if key == L.OUT_KEY else published)
+        assert len(texts) > 300 and not [t for t in texts if F._IDENT.search(t)], key
+
+
+@test
 def a_dry_run_says_what_the_fund_layer_would_add_and_writes_nothing():
     s3 = MemS3({**FIX["docs"], **FUND["docs"]})
     out = handle({"dry_run": True}, s3)

@@ -48,7 +48,6 @@ OUT_KEY, FUNDS_KEY, HEAD_KEY = "data/credit-before-equity.json", "data/credit-be
 FILES = ("lambda_function.py", "cbe_core.py", "cbe_names.py", "cbe_themes.py", "cbe_study.py", "cbe_funds.py", "leaders_tape.py")
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36 jh-ops-probe"
 FUND_COLS = ["f_n", "f_funds", "f_face", "f_value", "f_px", "f_gap", "f_def", "f_pik", "f_loans", "fc_sold", "fc_bought", "fc_net", "fc_funds"]
-VERSION_TAG = "20261127a"
 MINUS = "−"
 PALETTE = {"bad": (242, 54, 69), "good": (8, 153, 129)}          # the page's first palette (red and green), as the browser computes it
 
@@ -117,7 +116,9 @@ def browse(new_page, url, doc, fdoc, ck, shots, log):
     page.wait_for_selector("#funds .cb-tile-h", timeout=120000)
     scripts = page.evaluate("() => Array.from(document.scripts).map(s => s.getAttribute('src')).filter(s => s && s.indexOf('jh-credit-') >= 0)")
     log("scripts on the page: %s" % scripts)
-    ck(scripts == ["/jh-credit-board.js?v=" + VERSION_TAG, "/jh-credit-sheet.js?v=" + VERSION_TAG, "/jh-credit-funds.js?v=" + VERSION_TAG], "the page loads the board, the sheet and the fund script of %s, in that order" % VERSION_TAG)
+    # (the site build stamps every script with a version of its own content, so the tag in the checkout is not the tag served)
+    ck([re.sub(r"\?v=[A-Za-z0-9._-]+$", "", x) for x in scripts] == ["/jh-credit-board.js", "/jh-credit-sheet.js", "/jh-credit-funds.js"] and all("?v=" in x for x in scripts), "the page loads the board, the sheet and the fund script, in that order, each with a version")
+    ck(page.evaluate("() => !!(window.JHCreditFunds && window.JHCreditSheet && window.JHCreditSheet.FIELD.f_n && window.JHCreditBoard)"), "the three scripts ran: the fund script is there and the sheet knows the fund columns")
     served = page.evaluate("() => fetch('https://justhodl.ai/data/credit-before-equity.json?t=' + Date.now()).then(r => r.json()).then(d => [d.generated_at, d.funds && d.funds.n])")
     ck(served == [doc["generated_at"], block["n"]], "the document the browser is served is the one read back from the bucket (%s)" % served)
 
@@ -509,6 +510,8 @@ def main():
         ident = re.compile(r"(?<![A-Za-z0-9])(?:[A-Z]{2}[A-Z0-9]{9}\d|(?=[A-Z0-9]*\d[A-Z0-9]*\d[A-Z0-9]*\d)[A-Z0-9]{9})(?![A-Za-z0-9])")
         texts = [str(x[c]) for x in frows for c in ("issuer", "title") if x.get(c)] + [str(x[0]) for x in fdoc["untied"]] + [str(x[0]) for x in fdoc["ties_by_rule"]] + [str(n[0]) for n in cds["names"]]
         shaped = [t for t in texts if ident.search(t)]
+        for t in shaped[:8]:                                 # where it stands, never the token itself
+            r.log("  shaped like an identifier: %r" % ident.sub(lambda m: re.sub(r"[A-Z]", "A", re.sub(r"\d", "9", m.group(0))), t)[:90])
         ck(not shaped and not {"cusip", "isin", "figi", "k"} & {c.lower() for c in fdoc["cols"] + cds["cols"]}, "nothing published is, or is shaped like, an identifier (%s names and titles read; %d shaped like one)" % (format(len(texts), ","), len(shaped)))
 
         # the site
@@ -526,11 +529,12 @@ def main():
                 html = site("credit-before-equity.html", raw=True)[0].decode("utf-8", "replace")
             except Exception as exc:  # noqa: BLE001
                 html = "(%s)" % type(exc).__name__
-            if "/jh-credit-funds.js?v=" + VERSION_TAG in html:
+            if "/jh-credit-funds.js" in html and 'id="s-funds"' in html:
                 break
             time.sleep(30)
-        r.log("the live page names the fund script of %s: %s (after %d checks, 30 s apart)" % (VERSION_TAG, "/jh-credit-funds.js?v=" + VERSION_TAG in html, attempt + 1))
-        if "/jh-credit-funds.js?v=" + VERSION_TAG not in html:
+        out = "/jh-credit-funds.js" in html and 'id="s-funds"' in html
+        r.log("the live page carries the fund section and its script: %s (after %d checks, 30 s apart) %s" % (out, attempt + 1, re.findall(r'src="(/jh-credit-[a-z]+\.js[^"]*)"', html)))
+        if not out:
             r.fail("the site has not deployed the page yet; the engine side is published and checked above. Run this op again once the site is out: it will not run the engine a second time")
             sys.exit(1)
         stamp = int(time.time())
