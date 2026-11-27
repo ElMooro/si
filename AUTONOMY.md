@@ -668,3 +668,28 @@ elsewhere just moves the lie one field over.
    between two older tags breaks the adjacency other desks' ledger peels pin.
 5. **A proof that clicks a button which opens a frame re-finds the frame.** The workspace frame navigates after the
    click; the first handle dies ("Execution context was destroyed"). Wait for it to settle, then look it up again.
+
+## Traps banked — ops 6995–7000 (the canaries' record, 2026-11-27)
+
+1. **A mean of percentiles cannot move.** A barometer that averages 0-100 readings which are each a percentile or z-score
+   of their own past sits near 45-50 for ever; fixed bands at 60 and 80 are never reached and "firing at 50" is true
+   half the time. Read such a number on the scale of its own history, and test the level and the change separately.
+2. **Score a warning on the months before the break.** On every month a stress gauge looks useful (falls persist); on
+   months with the market near its high the same gauge was at chance. The level confirmed; only the turn tilted the odds.
+3. **Adding a mechanism can erase a finding.** Eighty-eight CISS series in an every-canary-equal mean drowned the turn
+   (0.69 to 0.54). One vote per mechanism, and a walk-forward weight per mechanism, is the unit that held.
+4. **A provider can shorten its history without an error.** FRED returns 793 observations of any ICE BofA index
+   whatever `limit` asks; a z-score "against five years" silently became one against three. Compare what came back with
+   what was asked, and take the rest from the warehouse.
+5. **Check a rebuild against the engine's own reading today.** The gap screen (rebuilt minus live, per canary) found
+   both the truncated credit series and a warehouse series that mixes two vintages (IPG3344S, rebased in July 2026).
+6. **The banked index file has stray rows.** `tv-bars/universe/I__SPX` carries quarterly bars (dated the quarter's first
+   day, holding its last close) among the daily ones: each is a fall that never happened. `canary_record.clean_closes`.
+7. **A FRED series id can have an ISIN's shape** (BAMLH0A0HYM2: two letters, nine characters, a digit). An identifier
+   scan sets the warehouse's own ids aside.
+8. **pages.yml does not read `[skip-deploy]`.** The hold-back tag stops the Lambda deploy only; a page in the same commit
+   goes live at once. Keep a page out of the held-back commit, or make it stand on the old documents (this one did:
+   "the record has not been published yet").
+9. **A frequency guess from `zip(xs[-60:], xs[-59:])` pairs each element with itself on a short list** (gap 0 = "daily").
+   Pair a list with its own tail.
+10. **JavaScript rounds half up, Python half to even.** A proof that rebuilds a page's rounded figure uses floor(x + 0.5).
