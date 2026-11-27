@@ -652,6 +652,13 @@ elsewhere just moves the lie one field over.
 8. **A name can take an identifier's shape after it is published-ready upstream.** The SEC bank scrubs names as filed;
    writing one in capitals, or cutting it at sixty characters, made two of 89,337 look like a CUSIP. Whatever reshapes
    a name scrubs it again (`cbe_funds.clean`), and the read-back op walks every published string.
+9. **A sheet that is drawn again when a document arrives takes the element a proof just found with it.** The company
+   sheet opens at once and is redrawn as each of its three documents arrives (its bonds, its history, what funds hold).
+   `locator.scroll_into_view_if_needed()` finds the element once and does not look again: when a redraw falls inside its
+   wait the run stops with "Element is not attached to the DOM". It passed at go-live and stopped on the first own-run
+   check (2026-11-27 23:27 UTC) with every figure right. A proof waits for the sheet to settle - none of the three
+   "Loading ..." notes left (`SETTLED` in ops 6991) - before it acts inside it. Reproduce a race by holding the
+   documents back in the page (`add_init_script` around `fetch`) and releasing them at the step in question.
 
 ## Traps banked — ops 6992–6993 (a section's own button on the chart, 2026-11-27)
 

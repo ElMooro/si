@@ -90,6 +90,9 @@ KPIS = r"""() => { const h = document.querySelector('#sheet #sheet-funds'); if (
   while (e && e.tagName !== 'H4') { if (e.classList.contains('cb-kpis')) Array.from(e.children).forEach(k => { out[k.querySelector('.cb-lbl').innerText.trim()] = [k.querySelector('.cb-big').innerText.trim(), k.querySelector('.cb-sub').innerText.trim()]; }); e = e.nextElementSibling; }
   return out; }"""
 BETWEEN = r"""(ids) => { const a = document.querySelector(ids[0]); if (!a) return null; let e = a.nextElementSibling, t = ''; while (e && !(ids[1] && e.matches(ids[1])) && e.tagName !== 'H4') { t += ' ' + e.innerText; e = e.nextElementSibling; } return t.replace(/\s+/g, ' ').trim(); }"""
+# A company's sheet says "Loading its bonds." / "Loading its history." / "Loading what funds hold of it." while it waits, and is
+# drawn again as each arrives: it has settled when none of the three notes is left (an arrival that failed leaves another note).
+SETTLED = r"""() => { const s = document.getElementById('sheet'); return !!s && !s.hidden && !Array.from(s.querySelectorAll('p.cb-empty')).some(p => /^\s*Loading /.test(p.textContent)); }"""
 OVERFLOW = r"""() => { const w = document.documentElement.clientWidth; return { doc: document.documentElement.scrollWidth - w,
   wide: Array.from(document.querySelectorAll('#s-funds *')).filter(e => { const r = e.getBoundingClientRect(); return r.width > 0 && r.right > w + 1 && !e.closest('.cb-scroll') && !e.closest('.cb-seg'); }).slice(0, 5).map(e => e.className) }; }"""
 BAD = r"""() => (document.getElementById('funds').innerText.match(/\bNaN\b|\bundefined\b|\[object/g) || []).length"""
@@ -232,6 +235,9 @@ def browse(new_page, url, doc, fdoc, ck, shots, log):
         x, mine = by_id[cid], [f for f in frows if f["co"] == cid]
         page.wait_for_selector("#sheet #sheet-funds", timeout=30000)
         page.wait_for_function("() => document.querySelector('#sheet table.cb-bonds th button[data-fund-sort]')", timeout=60000)
+        # The sheet is drawn again each time one of its three documents arrives (its bonds, its history, what funds hold),
+        # and an element found before a redraw is gone after it. Nothing below starts until none of them is still awaited.
+        page.wait_for_function(SETTLED, timeout=60000)
         k = page.evaluate(KPIS)
         log("  %s: %s" % (cid, json.dumps(k)[:420]))
         ck(k["Bonds and loans funds hold"][0] == n0(x["f_n"]) and "%s in the most widely held" % ("1 fund" if x["f_funds"] == 1 else n0(x["f_funds"]) + " funds") in k["Bonds and loans funds hold"][1], "%s: funds hold %s of its bonds and loans" % (tag, n0(x["f_n"])))
