@@ -167,10 +167,18 @@ def main():
         check(hold["as_of"] >= "2026-06-30" and s["funds"] >= 10000, "fund holdings: the newest quarter stands")
 
         r.section("6. the Lambda's own report lines")
+        events, token = [], None
         try:
-            events = logs.filter_log_events(logGroupName="/aws/lambda/%s" % FN, startTime=int((time.time() - 3 * 86400) * 1000), filterPattern="REPORT", limit=40).get("events", [])
+            for _ in range(12):               # a filtered read comes back in pages, some of them empty
+                kw = dict(logGroupName="/aws/lambda/%s" % FN, startTime=int((time.time() - 3 * 86400) * 1000), filterPattern='"REPORT RequestId"')
+                if token:
+                    kw["nextToken"] = token
+                page = logs.filter_log_events(**kw)
+                events += page.get("events", [])
+                token = page.get("nextToken")
+                if not token:
+                    break
         except Exception as exc:              # noqa: BLE001
-            events = []
             say("logs not readable from here: %s" % type(exc).__name__)
         gb_seconds = 0.0
         for e in events:
@@ -183,8 +191,14 @@ def main():
             say("  %s | billed %ss | memory used %s MB of %s" % (datetime.fromtimestamp(e["timestamp"] / 1000, tz=timezone.utc).isoformat(timespec="seconds"),
                                                               round(int(dur.group(1)) / 1000, 1) if dur else "?", mem.group(1) if mem else "?", size_mb.group(1) if size_mb else "?"))
         say("billed in the last three days: %.0f GB-seconds = $%.3f" % (gb_seconds, gb_seconds * PRICE_GB_SECOND))
-        for e in (logs.filter_log_events(logGroupName="/aws/lambda/%s" % FN, startTime=int((time.time() - 3 * 86400) * 1000), filterPattern="?\"Task timed out\" ?Traceback ?OutOfMemory", limit=10).get("events", []) if events else []):
+        try:
+            trouble = logs.filter_log_events(logGroupName="/aws/lambda/%s" % FN, startTime=int((time.time() - 3 * 86400) * 1000),
+                                             filterPattern='?"Task timed out" ?Traceback ?OutOfMemory ?"[ERROR]"').get("events", [])
+        except Exception:                     # noqa: BLE001
+            trouble = []
+        for e in trouble[:10]:
             say("  trouble: %s" % clean(e["message"].strip())[:300])
+        check(not trouble, "no timeout, crash or out-of-memory line in three days of logs")
 
         r.kv(failed_checks=len(fails), own_runs=len(own), raw_files=len(raw))
         if fails:

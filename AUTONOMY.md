@@ -605,3 +605,22 @@ elsewhere just moves the lie one field over.
 7. **`vs` is measured on the sessions both the instrument and SPY printed.** A thin fund that missed a session reads a
    slightly different SPY leg than the benchmark's own return (CUT, CARZ), so "excess = return − benchmark return" is
    an invariant only for instruments that traded every session; gate the bulk, list the exceptions.
+
+## Traps banked — ops 6986–6989 (justhodl-sec-datasets birth, 2026-11-27)
+
+1. **A filer's "identifier" is not always one.** In SEC Form N-PORT 723 "CUSIPs" of one quarter carried three or more
+   maturities; one tied 9,421 unrelated loans of 46 funds into a $38bn "security". Before grouping by an identifier,
+   name what one identifier must have in common (a bond: one maturity; a stock: a position or two a fund) and tie the
+   rows that break it by description instead (`sec_derive._nport`: `badc`, `bade`).
+2. **A month-end has two dates.** A quarter of money funds date October "30", the rest "31". A reader that keeps the
+   commonest *date* drops a quarter of the industry and still looks plausible. Group by year and month.
+3. **Look for identifiers in text, never in numbers.** A nine-digit dollar value equalled a CUSIP made of digits and
+   failed the leak check. Walk the document's strings.
+4. **`gen_engine_manifest.py` cannot follow a key built in another module** (`sec_sets.raw_key(...)` gave
+   `ownership_status: incomplete`, "dynamic or unresolved key"). Build an S3 key in `lambda_function.py` from a
+   literal pattern and the env default.
+5. **An Event invoke retries twice by itself.** A new engine's first-light op sets
+   `put_function_event_invoke_config(MaximumRetryAttempts=0)` first, so a run that fails waits for its next day.
+6. **Raw files that carry identifiers live outside `data/`** (`sec-datasets/raw/`): the site answers 404 and the
+   bucket 403 to a stranger, and the birth op proves both. Everything under `data/` is identifier-free.
+
