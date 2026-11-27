@@ -10,6 +10,14 @@ registered fund that holds it, no identifier). This module ties those rows to th
     issuer      the security's issuer is written the way an issuer already on the board is
     cut name    the board's own issuer name was cut short by the fund file it came from, and this one starts with it
     exact, alias, core, subsidiary, truncated    the board's own naming rules (cbe_names.Matcher), used as they are
+    short name  funds that file under 24-character market names abbreviate ("GENERAL MOTORS FINL CO", "PHILIP MORRIS INTL
+                INC"): the abbreviations are spelled out from a fixed list, and the name must then be one the rules above tie
+    co-issuer   two issuers written with a stroke and no space ("CCO HLDGS LLC/CAP CORP"): the first is the company
+    name cut    the fund's own name was cut at 24 characters and exactly one company on the board has an issuer that starts
+                with it ("HILTON DOMESTIC OPERATIN")
+
+A name that more than one company answers to is tied to none. Every tie not made by the issuer's own name is counted and
+listed in the block (ties_by_rule), so a wrong one can be seen.
 
 and adds, for every company it can tie: how many of its bonds and loans funds hold, the most funds in any one of them,
 face and value, the value-weighted middle mark, the widest gap between the 10th and 90th percentile mark of one bond,
@@ -19,7 +27,9 @@ protection on its name.
 What this is not: fund holdings are as of each fund's own report date, two to five months before the SEC posts them. A
 mark is a fund's own valuation, not a trade. None of it enters the board's spreads, signals, stress rank or chances.
 """
+from bisect import bisect_left
 from collections import Counter, defaultdict
+from itertools import product
 import re
 
 import cbe_names as N
@@ -36,6 +46,22 @@ NOT_COMPANIES = ("MUN", "UST", "USGA", "USGSE", "NUSS")   # municipal, Treasury,
 MIN_MARKS = 5                                         # a gap between marks is read off five funds or more
 CUT_AT = 20                                           # a board issuer name this long may have been cut short by its fund file
 LIST_N = 100
+MARKET_NAME = (23, 24)                                # a market name is cut at 24 characters (23 when the 24th was a space)
+HEAD_AT = 14                                          # a fund's cut name must be this long, and two words, to stand for the issuer it starts
+OWN_NAME = ("issuer", "cut name")                     # ties made by the name an issuer on the board is written by
+# The abbreviations of 24-character market names, spelled out. A word with two readings is tried both ways, and a name that
+# then answers to two companies is tied to neither. None: the word is dropped (it is part of the legal form).
+SPELL = {
+    "INTL": ("INTERNATIONAL",), "INTERNATL": ("INTERNATIONAL",), "INT": ("INTERNATIONAL", "INTERMEDIATE"), "FINL": ("FINANCIAL",), "FIN": ("FINANCE", "FINANCIAL"),
+    "HLDGS": ("HOLDINGS",), "HLDG": ("HOLDING", "HOLDINGS"), "HOLD": ("HOLDINGS", "HOLDING"), "GRP": ("GROUP",), "GP": ("GROUP",), "NATL": ("NATIONAL",),
+    "COMM": ("COMMUNICATIONS",), "COMMUN": ("COMMUNICATIONS",), "COMMS": ("COMMUNICATIONS",), "TECH": ("TECHNOLOGIES", "TECHNOLOGY"), "SYS": ("SYSTEMS", "SYSTEM"),
+    "ELEC": ("ELECTRIC",), "PWR": ("POWER",), "PETE": ("PETROLEUM",), "PHARM": ("PHARMACEUTICALS", "PHARMACEUTICAL"), "MTR": ("MOTOR",), "NY": ("NEW YORK",),
+    "CAL": ("CALIFORNIA",), "MGMT": ("MANAGEMENT",), "SVCS": ("SERVICES",), "SERV": ("SERVICES",), "SVC": ("SERVICE", "SERVICES"), "INDS": ("INDUSTRIES",),
+    "LABS": ("LABORATORIES",), "ENTERTAIN": ("ENTERTAINMENT",), "ENTMT": ("ENTERTAINMENT",), "RES": ("RESOURCES",), "INS": ("INSURANCE",), "BNCRP": ("BANCORP",),
+    "OPER": ("OPERATING",), "OPT": ("OPERATING",), "CAP": ("CAPITAL",), "FNDG": ("FUNDING",), "FDG": ("FUNDING",), "UTIL": ("UTILITIES",), "HLTH": ("HEALTH",),
+    "INFO": ("INFORMATION",), "PRODS": ("PRODUCTS",), "DEV": ("DEVELOPMENT",), "INVT": ("INVESTMENT",), "COOP": ("COOPERATIVE",), "MKTS": ("MARKETS",), "ENER": ("ENERGY",),
+    "PPTY": ("PROPERTY", "PROPERTIES"), "PROP": ("PROPERTIES", "PROPERTY"), "RLTY": ("REALTY",), "TR": ("TRUST",), "ASSD": ("ASSOCIATED",), "COS": None,
+}
 
 
 class Ties:
@@ -48,16 +74,18 @@ class Ties:
         for key in self.exact:
             if len(key) >= CUT_AT:
                 self.heads[key[:CUT_AT]].append(key)
+        self.sorted = sorted(self.exact)
 
     def of(self, name, country=None):
         """(company id or None, how, listed ticker when the company is listed but not on the board)."""
-        key = N.norm(N.clean_issuer(name))
-        hit = self.cache.get((key, country))
+        raw = re.sub(r"\s+", " ", str(name or "").upper()).strip()
+        hit = self.cache.get((raw, country))
         if hit is None:
-            hit = self.cache[(key, country)] = self._of(key, country)
+            hit = self.cache[(raw, country)] = self._of(raw, country)
         return hit
 
-    def _of(self, key, country):
+    def _own(self, key, country):
+        """The board's own ways of knowing a name: an issuer it holds, one it holds cut short, its naming rules."""
         if not key:
             return None, "no name", None
         if key in self.exact:
@@ -70,6 +98,65 @@ class Ties:
             return None, how, None
         ident = "T:" + co["symbol"]
         return (ident, how, None) if ident in self.on_board else (None, "listed, not on the board", co["symbol"])
+
+    def _starts(self, key, whole_words):
+        """The companies with an issuer on the board whose name starts with this one. whole_words: the fund's name is as long
+        as a market name gets, so it may have been cut between two words; otherwise only a name cut inside a word counts
+        ("APLD COMPUTECO" is not "APLD COMPUTECO 2" cut short)."""
+        out, i = set(), bisect_left(self.sorted, key)
+        while i < len(self.sorted) and self.sorted[i].startswith(key):
+            if whole_words or self.sorted[i][len(key):len(key) + 1] != " ":
+                out.add(self.exact[self.sorted[i]])
+            i += 1
+        return out
+
+    def _of(self, raw, country):
+        key = N.norm(N.clean_issuer(raw))
+        first = self._own(key, country)
+        if first[0] or not key:
+            return first
+        # the name as a fund that abbreviates writes it: spelled out, the first of two co-issuers, or cut at 24 characters
+        tries = [(k, "short name") for k in spelled(key)]
+        if "/" in raw and " / " not in raw:
+            parts = [N.norm(N.clean_issuer(p)) for p in raw.split("/")]
+            lead = parts[0] if len(parts[0]) >= 5 or len(parts) < 2 else parts[1]      # "CHS/COMMUNITY HEALTH SYS": the short form first, then the name
+            if lead and lead != key:
+                tries += [(lead, "co-issuer")] + [(k, "co-issuer") for k in spelled(lead)]
+        found, listed = {}, first[2]
+        for k, label in tries:
+            co, how, tk = self._own(k, country)
+            if co:
+                found.setdefault(co, label)
+            listed = listed or tk
+        if not found:
+            for k, label in [(key, "name cut")] + tries:
+                if len(k) >= HEAD_AT and len(k.split()) >= 2:
+                    for co in self._starts(k, len(raw) in MARKET_NAME):
+                        found.setdefault(co, "name cut")
+                    if found:
+                        break
+        if len(found) == 1:
+            co, label = next(iter(found.items()))
+            return co, label, None
+        if len(found) > 1:
+            return None, "more than one company answers to this short name", None
+        return (None, "listed, not on the board", listed) if listed else first
+
+
+def spelled(key):
+    """A name with the abbreviations of market names spelled out: every reading of it, none when it holds no abbreviation."""
+    toks = key.split()
+    if not any(t in SPELL for t in toks):
+        return []
+    choices = [(SPELL[t] or ("",)) if t in SPELL else (t,) for t in toks]
+    out = []
+    for combo in product(*choices):
+        k = " ".join(" ".join(w for w in combo if w).split())
+        if k and k != key and k not in out:
+            out.append(k)
+        if len(out) >= 16:
+            break
+    return out
 
 
 _TAIL = re.compile(r"( (LLC|INC|NA|NATIONAL ASSOCIATION|LTD|LIMITED|LP))+$")
@@ -111,7 +198,7 @@ def join(bonds, cds, ties, names):
             held[co].append(b)
             how_n[how] += 1
             how_v[how] += value
-            if how not in ("issuer", "cut name"):
+            if how not in OWN_NAME:
                 r = by_rule.setdefault((N.norm(N.clean_issuer(b.get("issuer"))), co), [b.get("issuer"), how, co, 0, 0.0])
                 r[3] += 1
                 r[4] += value
@@ -157,7 +244,7 @@ def join(bonds, cds, ties, names):
         x = dict(zip(cds_cols, row))
         co, how, listed = ties.of(x.get("reference"))
         dealer = 1 if plain(x.get("reference")) in dealers else 0
-        if dealer and how not in ("issuer", "cut name"):
+        if dealer and how not in OWN_NAME:
             co, listed = None, None
             n_dealer += 1
         if co:
@@ -182,7 +269,7 @@ def join(bonds, cds, ties, names):
         "read": {"securities": read[0], "value": round(read[1])},
         "tied": {"securities": tied_n, "value": round(tied_v), "value_pct": round(100.0 * tied_v / read[1], 1) if read[1] else None, "companies": len(held),
                  "listed": sum(1 for co in held if co.startswith("T:")), "how": {k: [how_n[k], round(how_v[k])] for k in sorted(how_n, key=lambda k: -how_v[k])}},
-        "ties_by_rule": [[r[0], r[1], r[2], names.get(r[2]), r[3], round(r[4])] for r in sorted(by_rule.values(), key=lambda r: -r[4])[:LIST_N]],
+        "ties_by_rule": [[r[0], r[1], r[2], names.get(r[2]), r[3], round(r[4])] for r in sorted(by_rule.values(), key=lambda r: -r[4])[:LIST_N]], "n_ties_by_rule": len(by_rule),
         "not_on_board": [[t, a[3], a[0], round(a[1]), a[2]] for t, a in sorted(absent.items(), key=lambda kv: -kv[1][1])[:LIST_N]],
         "n_not_on_board": len(absent),
         "untied": [[k, u[0], round(u[1]), u[2]] for k, u in sorted(untied.items(), key=lambda kv: -kv[1][1])[:LIST_N]], "n_untied": len(untied),
@@ -193,7 +280,8 @@ def join(bonds, cds, ties, names):
         "reading": "Fund holdings are as of each fund's own report date, two to five months before the SEC posts them; a mark is a fund's own valuation of what it holds, "
                    "per 100 of face, not a trade. Nothing here enters the board's spreads, signals, stress rank or chances.",
     }
-    return {"by_co": by_co, "rows": out_rows, "block": block}
+    review = [[r[0], r[1], r[2], names.get(r[2]), r[3], round(r[4])] for r in sorted(by_rule.values(), key=lambda r: -r[4])]      # every tie by a rule, for a dry run to read; not published
+    return {"by_co": by_co, "rows": out_rows, "block": block, "review": review}
 
 
 def add_columns(issuers, by_co):

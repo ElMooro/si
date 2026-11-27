@@ -122,11 +122,17 @@ def main():
         r.log("ties by rule (issuer as funds write it | rule | company | securities | value): %d listed here" % len(block["ties_by_rule"]))
         for x in block["ties_by_rule"][:70]:
             r.log("  %-44s %-11s %-9s %-34s %4d %9s" % (str(x[0])[:44], x[1], x[2][:9], str(x[3])[:34], x[4], money(x[5])))
+        review = layer["review"]
+        new_rules = [x for x in review if x[1] in ("short name", "co-issuer", "name cut")]
+        r.log("ties by a short name, a co-issuer or a cut name: %d issuer names, %s securities worth %s. The %d largest, then every 12th of the rest:" % (
+            len(new_rules), format(sum(x[4] for x in new_rules), ","), money(sum(x[5] for x in new_rules)), min(len(new_rules), 260)))
+        for x in new_rules[:260] + new_rules[260::12]:
+            r.log("  %-44s %-11s %-9s %-34s %4d %9s" % (str(x[0])[:44], x[1], x[2][:9], str(x[3])[:34], x[4], money(x[5])))
         r.log("listed companies funds hold bonds of that the board does not cover: %d; largest (ticker | issuer | securities | value | most funds):" % block["n_not_on_board"])
         for x in block["not_on_board"][:30]:
             r.log("  %-7s %-44s %4d %9s %4d" % (x[0], str(x[1])[:44], x[2], money(x[3]), x[4]))
         r.log("issuers left untied: %d; largest (issuer | securities | value | most funds):" % block["n_untied"])
-        for x in block["untied"][:40]:
+        for x in block["untied"][:100]:
             r.log("  %-56s %4d %9s %4d" % (x[0][:56], x[1], money(x[2]), x[3]))
 
         r.section("3. eight companies worked again from the raw table")
