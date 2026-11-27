@@ -103,6 +103,22 @@ a{color:var(--accent)}a:focus-visible,button:focus-visible,.cb-scroll:focus-visi
 .cb-figs td:first-child{min-width:190px}.cb-figs .cb-grp td{font-weight:600;color:var(--text-dim);font-size:11px;text-transform:uppercase;letter-spacing:.7px}
 .cb-pairs{display:grid;grid-template-columns:minmax(150px,max-content) 1fr;gap:4px 16px;font-size:12px;margin:6px 0;color:var(--text-dim)}.cb-pairs dt{color:var(--text-mute)}
 .cb-pairs dd{margin:0;font-family:ui-monospace,Menlo,monospace;color:var(--text);overflow-wrap:anywhere}
+.cb-fu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(430px,100%),1fr));gap:14px;margin:14px 0}
+.cb-fu-card{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:13px 14px;min-width:0}.cb-fu-card h3{margin:0 0 3px;font-size:13.5px}.cb-fu-in{margin:10px 0}
+#funds>h3{margin:18px 0 8px;font-size:13px;color:var(--text-dim)}
+.cb-fu-key{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:11.5px;color:var(--text-dim);margin:2px 0 8px}.cb-fu-key i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.cb-fu-rows{display:block}.cb-fu-row{display:grid;align-items:center;gap:6px;width:100%;background:none;border:0;border-top:1px solid var(--border);color:var(--text);padding:6px 2px;font:inherit;font-size:12px;text-align:left;min-width:0}
+button.cb-fu-row{cursor:pointer}button.cb-fu-row:hover{background:var(--panel2)}
+.cb-fu-bf{grid-template-columns:minmax(64px,1.15fr) 50px minmax(0,1.5fr) minmax(0,1.5fr) 50px}.cb-fu-rg{grid-template-columns:minmax(104px,1.25fr) minmax(0,1.7fr) 46px}
+.cb-fu-n{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}.cb-fu-s{display:block;font-weight:400;font-size:10.5px;color:var(--text-mute);overflow:hidden;text-overflow:ellipsis}
+.cb-fu-v{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:var(--text-dim);white-space:nowrap}.cb-fu-vl{text-align:right}.cb-fu-rg .cb-fu-v{text-align:right;color:var(--text);font-weight:600}
+.cb-fu-l,.cb-fu-r{position:relative;height:10px;min-width:0}.cb-fu-l{border-right:1px solid var(--border2)}
+.cb-fu-l i,.cb-fu-r i{position:absolute;top:0;height:100%;min-width:0}.cb-fu-l i{right:1px;border-radius:4px 0 0 4px}.cb-fu-r i{left:1px;border-radius:0 4px 4px 0}
+.cb-fu-range{position:relative;height:14px;min-width:0;background:linear-gradient(var(--border),var(--border)) center/100% 1px no-repeat}
+.cb-fu-range i{position:absolute;top:5px;height:4px;border-radius:2px;background:var(--text-mute)}.cb-fu-range b{position:absolute;left:50%;top:2px;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--panel)}
+.cb-fu-axis{display:grid;grid-template-columns:minmax(104px,1.25fr) minmax(0,1.7fr) 46px;gap:6px;font-size:10.5px;color:var(--text-mute);padding:0 2px 4px}.cb-fu-axis>span:last-child{text-align:right}
+.cb-fu-ax{display:flex;justify-content:space-between;min-width:0}.cb-fu-ax i{font-style:normal;white-space:nowrap}
+.cb-fu-t td:first-child{min-width:210px}.cb-dir[aria-pressed=true]{border-color:var(--accent);color:var(--accent)}
 .cb-bonds td:first-child{min-width:200px}.cb-sheet-in .cb-scroll+.cb-scroll{margin-top:10px}.cb-two{align-items:stretch;margin-bottom:14px}.cb-two .cb-theme{margin:0}
 .cb-riskgrid td,.cb-riskgrid th{padding:8px 10px}.cb-record td:first-child,.cb-riskgrid td:first-child{min-width:210px}
 .cb-chartbox{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
@@ -172,6 +188,12 @@ a{color:var(--accent)}a:focus-visible,button:focus-visible,.cb-scroll:focus-visi
 <div id="cds"></div>
 </section>
 
+<section id="s-funds">
+<h2 class="sec">Held by funds — who holds each company's bonds, how far apart they mark them, and the swaps they hold</h2>
+<p class="sub">What registered funds reported to the SEC: every bond and loan they hold of a company on this board, the gap between the marks different funds put on the same security, what most holders flag as in default or paid in kind, and the credit default swaps funds hold company by company. Open any company for its own list. This layer is months older than the spreads above and enters none of them.</p>
+<div id="funds"></div>
+</section>
+
 <section id="s-method">
 <h2 class="sec">Method</h2>
 <div class="card textcard" id="method"></div>
@@ -207,8 +229,9 @@ a{color:var(--accent)}a:focus-visible,button:focus-visible,.cb-scroll:focus-visi
 <div id="sheet" class="cb-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" data-jh-chrome hidden></div>
 </div>
 <script src="/jh-nav-drawer.js" defer></script>
-<script src="/jh-credit-board.js?v=20261125b"></script>
-<script src="/jh-credit-sheet.js?v=20261125b"></script>
+<script src="/jh-credit-board.js?v=20261127a"></script>
+<script src="/jh-credit-sheet.js?v=20261127a"></script>
+<script src="/jh-credit-funds.js?v=20261127a"></script>
 <script>
 (function(){
   var host=document.getElementById('board');

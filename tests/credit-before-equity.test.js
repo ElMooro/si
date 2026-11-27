@@ -435,8 +435,9 @@ test('the page keeps what it had and loads the board: the original sentence, the
   // the stress view was added between two sections; every section that was there is still there, in the order it had
   const order = [...HTML.matchAll(/<section[^>]* id="(s-[a-z]+)"/g)].map(m => m[1]);
   // (3.0) the record was added after the leads it is the record of, and the whole document after the gaps: nothing that was there moved
-  assert.deepEqual(order, ['s-glance', 's-industries', 's-stress', 's-leads', 's-next', 's-companies', 's-cds', 's-method', 's-coverage', 's-gaps', 's-data', 's-links']);
-  assert.deepEqual(order.filter(x => x !== 's-next' && x !== 's-data'), ['s-glance', 's-industries', 's-stress', 's-leads', 's-companies', 's-cds', 's-method', 's-coverage', 's-gaps', 's-links']);
+  // (2026-11-27) what funds hold was added after the traded CDS it sits beside: again nothing that was there moved
+  assert.deepEqual(order, ['s-glance', 's-industries', 's-stress', 's-leads', 's-next', 's-companies', 's-cds', 's-funds', 's-method', 's-coverage', 's-gaps', 's-data', 's-links']);
+  assert.deepEqual(order.filter(x => x !== 's-next' && x !== 's-data' && x !== 's-funds'), ['s-glance', 's-industries', 's-stress', 's-leads', 's-companies', 's-cds', 's-method', 's-coverage', 's-gaps', 's-links']);
   assert.ok(HTML.includes('<h2 class="sec">Industries — where spreads are widening and where they are holding</h2>') && HTML.includes('<h2 class="sec">Leads — credit moved, the stock has not</h2>'));
   assert.deepEqual(B.COLUMNS.filter(c => c[0] !== 'stress' && c[0] !== 'risk_3m').map(c => c[0]), ['name', 'industry', 'book', 'n_bonds', 'value', 'spread_bp', 'd', 'x_m1', 'pct_m1', 'd_ytd', 'cds_bp', 'cds_d1m', 'px_m1', 'direction', 'signal']);
   assert.match(HTML, /<script src="\/jh-credit-board\.js\?v=\d+[a-z]"><\/script>/);

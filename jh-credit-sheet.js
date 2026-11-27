@@ -38,11 +38,18 @@
   function isNum(v) { return typeof v === "number" && isFinite(v); }
   function isObj(v) { return !!v && typeof v === "object" && !Array.isArray(v); }
   function n1(v, d) { return isNum(v) ? fixed(v, d == null ? 1 : d).replace("-", "−") : "–"; }
+  /* Dollars that may be nothing or below zero (what funds hold, protection sold less bought): $2.50T, $3.7B, $552M, $0, −$36M. */
+  function usd(v, signed) {
+    if (!isNum(v)) return "–";
+    var a = Math.abs(v), s = a >= 1e12 ? fixed(a / 1e12, 2) + "T" : a >= 1e9 ? fixed(a / 1e9, 1) + "B" : a >= 1e6 ? fixed(a / 1e6, 0) + "M" : a >= 1e3 ? fixed(a / 1e3, 0) + "K" : fixed(a, 0);
+    return (v < 0 ? "−" : signed && v > 0 ? "+" : "") + "$" + s;
+  }
+  function funds() { return root.JHCreditFunds || null; }          // jh-credit-funds.js: what registered funds hold; loaded after this file
 
   // ------------------------------------------------------------------------------------------------ every column
   /* Every column the engine publishes for a company: [key, label, kind, group, what it is]. A column the engine adds later
      that is not listed here is still shown, under its own key - nothing published is hidden for want of a label. */
-  var GROUPS = ["Who it is", "Its bonds", "Spread", "Change in the spread", "Against its book", "Stress", "What the price implies", "Traded CDS", "The stock", "The reading"];
+  var GROUPS = ["Who it is", "Its bonds", "Spread", "Change in the spread", "Against its book", "Stress", "What the price implies", "Traded CDS", "The stock", "The reading", "Held by funds"];
   var FIELDS = [
     ["id", "Board id", "text", 0, "T: a listed company, by its ticker. I: an issuer with no listed stock tied, by its name."],
     ["ticker", "Ticker", "text", 0, "The listed stock the bonds were tied to. Empty when none was."],
@@ -112,7 +119,20 @@
     ["hi_3m", "Three months: one in ten did better than", "dret", 9, "The other end of the same range: one in ten did better than this."],
     ["band", "Spread band", "band", 9, "Which band of spread the chance and the range above are read from."],
     ["ccy", "Read in", "text", 1, "The currency of the bonds its spread is read from. A dollar spread is over Treasuries; another currency's is over its own government."],
-    ["n_other", "Bonds in another currency", "int", 1, "Its bonds in a currency other than the one it is read in: listed under it, and in none of its figures. A company with a dollar bond the board can read is always read in dollars."]
+    ["n_other", "Bonds in another currency", "int", 1, "Its bonds in a currency other than the one it is read in: listed under it, and in none of its figures. A company with a dollar bond the board can read is always read in dollars."],
+    ["f_n", "Fund-held bonds and loans", "int", 10, "How many of its bonds and loans registered funds reported holding, in the SEC's Form N-PORT file. As of the funds' own report dates, months before the board's day."],
+    ["f_funds", "Funds in the most widely held", "int", 10, "The number of funds holding the one security of its that most funds hold."],
+    ["f_face", "Fund-held face", "usd", 10, "The face amount funds hold of its bonds and loans, in dollars."],
+    ["f_value", "Fund-held value", "usd", 10, "The same holdings at the funds' own marks."],
+    ["f_px", "Funds' middle mark", "mark", 10, "The middle mark funds put on its securities, per 100 of face, weighted by value. A mark is a fund's own valuation, not a trade."],
+    ["f_gap", "Widest gap between marks", "mark", 10, "For the security funds disagree about most: the mark one fund in ten is at or over, less the mark one in ten is at or under. Read only where five funds or more mark it."],
+    ["f_def", "Securities flagged in default", "int", 10, "Its securities that at least half of the positions funds report flag as in default."],
+    ["f_pik", "Securities paid in kind", "int", 10, "Its securities that at least half of the positions funds report flag as paying interest in kind."],
+    ["f_loans", "Loans among them", "int", 10, "How many of the fund-held securities are loans rather than bonds."],
+    ["fc_sold", "Fund protection sold", "usd", 10, "Credit default swap protection funds have sold on its name, in dollars: the funds carry its credit risk."],
+    ["fc_bought", "Fund protection bought", "usd", 10, "Protection funds have bought on its name: they pay to be protected against it."],
+    ["fc_net", "Fund protection, net sold", "susd", 10, "Sold less bought. Above zero, funds on balance carry its credit risk; below, they are on balance protected."],
+    ["fc_funds", "Funds with a swap on it", "int", 10, "The most funds holding a credit default swap on any one of the names it is written under."]
   ];
   var FIELD = {};
   FIELDS.forEach(function (f) { FIELD[f[0]] = f; });
@@ -133,6 +153,9 @@
     switch (kind) {
       case "int": return { text: isNum(v) ? v.toLocaleString("en-US") : String(v), colour: "" };
       case "money": return { text: money(v), colour: "" };
+      case "usd": return { text: usd(v), colour: "" };
+      case "susd": return { text: usd(v, true), colour: "" };
+      case "mark": return { text: n1(v, 2), colour: "" };
       case "bp": return { text: bp(v), colour: "" };
       case "dbp": return { text: bp(v, true), colour: textColour(v, pal) };
       case "dbpflip": return { text: bp(v, true), colour: textColour(isNum(v) ? -v : null, pal) };
@@ -555,6 +578,7 @@
       '<h4 id="sheet-next">What stocks that read this way did next</h4>' + outlookHtml(doc, r, ctx) +
       '<h4 id="sheet-history">Its spread at each month-end</h4>' + hist +
       '<h4 id="sheet-bonds">Its bonds</h4>' + bondsHtml(ctx.bonds, ctx.bondSort, ctx) +
+      (funds() && (cols(doc, "f_n") || isObj(doc.funds)) ? '<h4 id="sheet-funds">Held by registered funds</h4>' + funds().sheetHtml(doc, r, ctx) : "") +
       '<h4 id="sheet-figures">Every figure the engine publishes for it</h4>' + figuresHtml(doc, r, ctx) +
       (nm ? '<h4 id="sheet-stock">Its listed-stock row</h4>' + pairsHtml(nm, skip, NAME_LABELS) : "") +
       (cds ? '<h4 id="sheet-cds">Its traded CDS row</h4>' + pairsHtml(cds, ["ticker"], CDS_LABELS) : "") + "</div>";
@@ -577,7 +601,8 @@
     primary: ["The window the rule reads.", "Method"], books: ["The books' names.", "here"], coverage: ["What was read, tied and left out.", "Coverage"],
     match: ["Ties made by a naming rule, and the largest issuers left untied.", "Coverage"], degraded: ["What the engine said was wrong with this run.", "Evidence status"], gaps: ["What the board does not cover.", "Declared gaps"],
     rules: ["The rules, in words.", "Method"], thresholds: ["The numbers the rules use.", "here"], method: ["The method, in a paragraph.", "Method"], attribution: ["Where each leg comes from.", "the foot of the page"],
-    estimate_type: ["What is a market price and what is a model.", "here"], risk: ["How the chance of a fall is read, and how many stocks have one.", "What the stock did next"]
+    estimate_type: ["What is a market price and what is a model.", "here"], risk: ["How the chance of a fall is read, and how many stocks have one.", "What the stock did next"],
+    funds: ["What registered funds hold of the board's companies (SEC Form N-PORT): what was tied and how, the widest gaps between marks, what is flagged, and the credit default swaps funds hold.", "Held by funds; a company's sheet"]
   };
   function sizeOf(v) {
     if (Array.isArray(v)) return v.length.toLocaleString("en-US") + (v.length === 1 ? " row" : " rows");
@@ -610,7 +635,7 @@
   function dataHtml(doc, state) {
     if (!isObj(doc)) return "<p>The document could not be read.</p>";
     var files = [["data/credit-before-equity.json", "The board's document: everything on this page"]];
-    ["bonds", "history"].forEach(function (k) { var m = doc[k]; if (isObj(m) && typeof m.key === "string") files.push([m.key, typeof m.words === "string" ? m.words : DOC_KEYS[k] ? DOC_KEYS[k][0] : k]); });
+    ["bonds", "history", "funds"].forEach(function (k) { var m = doc[k]; if (isObj(m) && typeof m.key === "string") files.push([m.key, typeof m.words === "string" ? m.words : DOC_KEYS[k] ? DOC_KEYS[k][0] : k]); });
     var cols = B.isV2(doc) ? allColumns(doc) : [], t = B.isV2(doc) ? table(doc) : [];
     var h = '<p>Nothing the engine publishes is kept off this page. The files it writes: ' + files.map(function (f) {
       return '<a href="' + esc(BASE + f[0]) + '" rel="noopener">' + esc(f[0].replace("data/", "")) + "</a> (" + esc(f[1].replace(/\.$/, "").toLowerCase()) + ")"; }).join(" · ") + ".</p>";
@@ -638,7 +663,7 @@
 
   root.JHCreditSheet = { DOC_KEYS: DOC_KEYS, nodeHtml: nodeHtml, dataHtml: dataHtml, click: click, nextHtml: nextHtml, matrixHtml: matrixHtml, riskBars: riskBars, riskGrid: riskGrid, saidTable: saidTable, trackHtml: trackHtml,
     evidenceOf: evidenceOf, readingOf: readingOf, bandWords: bandWords, RECORD_NOTE: RECORD_NOTE, FIELDS: FIELDS, FIELD: FIELD, GROUPS: GROUPS, BOND_FIELDS: BOND_FIELDS, BOOK_WORDS: BOOK_WORDS, CELL_WORDS: CELL_WORDS, ICON_DISTRESS: ICON_DISTRESS, BASE: BASE,
-    SERIES: SERIES, niceTicks: niceTicks, allColumns: allColumns, align: align, shown: shown, fieldCell: fieldCell, csvText: csvText, distressed: distressed, distressButton: distressButton, distressTile: distressTile, riskTile: riskTile,
+    usd: usd, SERIES: SERIES, niceTicks: niceTicks, allColumns: allColumns, align: align, shown: shown, fieldCell: fieldCell, csvText: csvText, distressed: distressed, distressButton: distressButton, distressTile: distressTile, riskTile: riskTile,
     rowOf: rowOf, idOf: idOf, nameButton: nameButton, nameRow: nameRow, cdsRow: cdsRow, figuresHtml: figuresHtml, pairsHtml: pairsHtml, bondsOf: bondsOf, bondsHtml: bondsHtml,
     historyOf: historyOf, chartHtml: chartHtml, outlookHtml: outlookHtml, readingsOf: readingsOf, recordTable: recordTable, sheetHtml: sheetHtml };
 })(typeof window !== "undefined" ? window : globalThis);

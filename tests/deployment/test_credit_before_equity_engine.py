@@ -12,7 +12,10 @@
   * (3.0) the 3.0 columns come after the 2.1 ones; the government curves, the CDS history and the holdings columns it reads
     are what their engines write; the study never writes; and everything the engine publishes has a place on the page -
     a column or a key added to the engine without one fails here (Khalid 2026-11-25: "make sure all the data from the
-    engines is viewable in the iux").
+    engines is viewable in the iux");
+  * (fund layer, 2026-11-27) what registered funds hold is read from the SEC bank's own document and the tables it names,
+    which are what that bank writes; the layer is arithmetic in its own file; the fund document is the tenth thing
+    written; and every fund column, every list and the fund document's rows have a place on the page.
 """
 import ast
 import hashlib
@@ -25,7 +28,7 @@ ROOT = Path(__file__).resolve().parents[2]
 ENGINE = ROOT / "aws" / "lambdas" / "justhodl-credit-before-equity"
 SRC = ENGINE / "source"
 TEXT = (SRC / "lambda_function.py").read_text(encoding="utf-8")
-ALL = "".join((SRC / n).read_text(encoding="utf-8") for n in ("lambda_function.py", "cbe_core.py", "cbe_names.py", "cbe_themes.py", "cbe_study.py"))
+ALL = "".join((SRC / n).read_text(encoding="utf-8") for n in ("lambda_function.py", "cbe_core.py", "cbe_names.py", "cbe_themes.py", "cbe_study.py", "cbe_funds.py"))
 CONFIG = json.loads((ENGINE / "config.json").read_text(encoding="utf-8"))
 
 
@@ -35,16 +38,23 @@ def test_credit_before_equity_reads_the_warehouse_only():
     build = TEXT[TEXT.index("def build("):TEXT.index("def lambda_handler(")]
     assert "put_json(" not in build and "put_object(" not in build and "delete_object" not in ALL, "only the handler writes, and nothing is ever deleted"
     handler = TEXT[TEXT.index("def lambda_handler("):]
-    assert handler.count("put_json(s3, ") == 9 and TEXT.count("put_object(") == 1, \
-        "the document, the ledger days and the model ledger; since 3.0 the bond document, the day's holdings, the day's calls, the track, and (when a month has finished) the evidence and the history - nothing else is written"
+    assert handler.count("put_json(s3, ") == 10 and TEXT.count("put_object(") == 1, \
+        "the document, the ledger days and the model ledger; since 3.0 the bond document, the day's holdings, the day's calls, the track, and (when a month has finished) the evidence and the history; " \
+        "since the fund layer the fund document - nothing else is written"
     assert handler.index('event.get("dry_run")') < handler.index("if dry:") < handler.index("put_json(s3, "), "a dry run must return before anything is written"
     assert "return {" in handler[handler.index("if dry:"):handler.index("put_json(s3, ")], "a dry run must return before anything is written"
-    for name in ("study", "build_panel", "build_cds_panel", "score_calls", "other_curves"):
+    for name in ("study", "build_panel", "build_cds_panel", "score_calls", "other_curves", "fund_layer"):
         body = TEXT[TEXT.index("def %s(" % name):]
         body = body[:body.index("\ndef ", 1)]
         assert "put_json(" not in body and "put_object(" not in body, "%s reads; only the handler writes" % name
     study = (SRC / "cbe_study.py").read_text(encoding="utf-8")
     assert "boto3" not in study and "s3" not in study.lower().replace("r2(", "") and "open(" not in study, "cbe_study is arithmetic: no bucket, no file"
+    funds = (SRC / "cbe_funds.py").read_text(encoding="utf-8")
+    assert "boto3" not in funds and "s3" not in funds.lower() and "open(" not in funds and "import os" not in funds, "cbe_funds is arithmetic: no bucket, no file"
+    # the fund layer is added by the handler after build(): the board's own figures, and the suite that rebuilds them figure for figure, cannot be moved by it
+    own = build[:build.index("\ndef ", 1)]                                        # build() itself, without the functions written after it
+    assert "fund_layer(" not in own and "F.join(" not in own and "F.add_columns(" not in own and handler.index("funds, why_not = fund_layer(s3, built)") < handler.index("if dry:")
+    assert 'payload["funds"] = None' in handler and 'payload["degraded"].append(why_not)' in handler, "a run with no fund layer says so on the page and leaves the board whole"
 
 
 def test_credit_before_equity_tape_rules_are_the_leaders_engines():
@@ -75,6 +85,39 @@ def test_credit_before_equity_reads_the_keys_their_engines_write():
     assert 'CDS_HIST_KEY = "data/cds-desk-history.json"' in TEXT and '"data/cds-desk-history.json"' in desk and '"points": pts' in (ROOT / "aws/shared/cds_long_context.py").read_text(encoding="utf-8")
     for field in _literal(SRC / "lambda_function.py", "HOLD_COLS"):
         assert '"%s":' % field in bonds, "the corporate bonds desk no longer writes %s, which the kept holdings carry" % field
+
+
+def test_the_fund_layer_reads_what_the_sec_bank_writes():
+    """The fund layer reads the SEC bank's own document (its newest whole quarter and where that quarter's tables are) and two
+    of those tables. If the bank stops writing a key, a field or a column the layer reads, it fails here and not on the page."""
+    bank = ROOT / "aws" / "lambdas" / "justhodl-sec-datasets"
+    bank_src = (bank / "source" / "lambda_function.py").read_text(encoding="utf-8")
+    derive = (bank / "source" / "sec_derive.py").read_text(encoding="utf-8")
+    assert 'FUNDS_HEAD_KEY = "data/sec-fund-holdings.json"' in TEXT
+    assert json.loads((bank / "config.json").read_text(encoding="utf-8"))["env"]["HOLDINGS_KEY"] == "data/sec-fund-holdings.json" and 'os.environ.get("HOLDINGS_KEY", "data/sec-fund-holdings.json")' in bank_src
+    for written in ('"tables": newest["keys"]', '"file": name', '"summary": summary', '"generated_at": now_iso()', '("bonds", "bonds.json.gz"), ("cds", "cds.json.gz")', "MIN_FUNDS and", "put_json(HOLDINGS_KEY, doc)"):
+        assert written in bank_src, "the SEC bank no longer writes %s, which the credit board's fund layer reads" % written
+    layer = TEXT[TEXT.index("def fund_layer("):TEXT.index("def _now(")]
+    for read in ('head.get("tables")', 'tables["bonds"]', 'tables["cds"]', '(head.get("source") or {}).get("file")', 'head.get("summary")', 'head.get("generated_at")'):
+        assert read in layer, "the fund layer no longer reads %s" % read
+    assert "manifest" not in layer, "which quarter is whole is the bank's decision: the layer reads its document, not its manifest of files"
+    funds = (SRC / "cbe_funds.py").read_text(encoding="utf-8")
+    row_cols, cds_cols = _literal(SRC / "cbe_funds.py", "ROW_COLS"), _literal(SRC / "cbe_funds.py", "CDS_COLS")
+    table = derive[derive.index('    cols = ["issuer", "title", "cls", "itype"'):]
+    bond_cols = ast.literal_eval(table[table.index("["):table.index("]") + 1])
+    assert not set(row_cols[1:]) - set(bond_cols) and {"itype", "ctry", "cls"} <= set(bond_cols), "a column of the bond table the fund layer reads is no longer written: %s" % sorted(set(row_cols[1:]) - set(bond_cols))
+    assert not {"cusip", "isin", "figi", "k"} & {c.lower() for c in bond_cols + row_cols + cds_cols}, "no identifier is read or published"
+    swaps = derive[derive.index('cds = {"as_of": as_of, "cols": ['):]
+    swap_cols = ast.literal_eval(swaps[swaps.index("["):swaps.index("]") + 1])
+    assert not set(cds_cols) - set(swap_cols) - {"co", "ticker", "dealer"}, "a column of the swap table the fund layer reads is no longer written"
+    for key in ('"names": book_rows(names)', '"indices": book_rows(indices)', '"counterparties":', '"totals":', '"reading":', '"source_file"'):
+        assert key in derive or key in bank_src, "the SEC bank no longer writes %s" % key
+    for field in ('b.get("n_px")', 'b.get("px_hi")', 'b.get("px_lo")', '"n_default"', '"n_pik"', 'x.get("sold")', 'x.get("bought")', 'bonds.get("source_file")'):
+        assert field in funds
+    # both run once a day; the bank's tables are a quarter of filings, so which of the two runs first on a given evening does not matter
+    for cron in (CONFIG["schedule"]["cron"], json.loads((bank / "config.json").read_text(encoding="utf-8"))["eventbridge_scheduler"]["cron"]):
+        minute, hour, dom, month, dow = cron[5:-1].split()[:5]
+        assert minute.isdigit() and hour.isdigit() and dom == "*" and month == "*", "once a day: %s" % cron
 
 
 def test_credit_before_equity_still_publishes_what_its_readers_read_once_a_day():
@@ -158,18 +201,37 @@ def test_everything_the_credit_board_engine_publishes_has_a_place_on_its_page():
     import re
     sheet = (ROOT / "jh-credit-sheet.js").read_text(encoding="utf-8")
     fields = set(re.findall(r'^    \["(\w+)", "[^"]+", "\w+", \d+, "', sheet, re.M))
-    cols = _literal(SRC / "lambda_function.py", "ISSUER_COLS")
+    cols = _literal(SRC / "lambda_function.py", "ISSUER_COLS") + _literal(SRC / "cbe_funds.py", "COLS")          # the fund columns follow the board's own
     assert not set(cols) - fields, "published for every company with no label and description on the page: %s" % sorted(set(cols) - fields)
     bond_fields = set(re.findall(r'\["(\w+)", "[^"]+", "\w+"\]', sheet[sheet.index("var BOND_FIELDS"):sheet.index("function bondsOf")]))
     assert not set(_literal(SRC / "lambda_function.py", "BOND_COLS")) - bond_fields - {"co", "ccy"}, "a column of the bond document the company sheet does not show"
     block = sheet[sheet.index("var DOC_KEYS = {"):sheet.index("function sizeOf")]
     described = set(re.findall(r'(\w+): \["', block))
     fix = json.loads(gzip.decompress((ROOT / "tests/fixtures/credit-before-equity-warehouse.json.gz").read_bytes()))
-    published = set(fix["expected"]) | {"track"}                    # the handler adds the track to what build() returns
+    published = set(fix["expected"]) | {"track", "funds"}           # the handler adds the track and the fund layer to what build() returns
     assert not published - described, "top-level keys of the document with no description on the page: %s" % sorted(published - described)
     handler = TEXT[TEXT.index("def lambda_handler("):]
-    assert 'payload["track"] = ' in handler
+    assert 'payload["track"] = ' in handler and 'payload["funds"] = funds["block"]' in handler
     page = (ROOT / "credit-before-equity.html").read_text(encoding="utf-8")
+    # the fund layer: its section, its script after the sheet's, the fund document's rows in the company sheet, and every list the block carries as a list on the page
+    fu = (ROOT / "jh-credit-funds.js").read_text(encoding="utf-8")
+    for needed in ('id="s-funds"', 'id="funds"', "/jh-credit-funds.js"):
+        assert needed in page, "the page lost %s" % needed
+    assert page.index("/jh-credit-sheet.js") < page.index("/jh-credit-funds.js") < page.index("JHCreditBoard.start"), "the fund script loads after the sheet and before the board starts"
+    row_fields = set(re.findall(r'\["(\w+)", "[^"]+", "\w+"\]', fu[fu.index("var ROW_FIELDS"):fu.index("// ---", fu.index("var ROW_FIELDS"))]))
+    assert not set(_literal(SRC / "cbe_funds.py", "ROW_COLS")) - row_fields - {"co"}, "a column of the fund document the company sheet does not show"
+    lists = fu[fu.index("var LISTS = {"):fu.index("var ROW_FIELDS")]
+    for name, engine_cols, drawn_elsewhere in (("gaps", "GAP_COLS", {"name"}), ("flagged", "FLAG_COLS", {"name"}), ("names", "CDS_COLS", {"ticker", "dealer"}), ("ties_by_rule", "TIE_COLS", {"name"}),
+                                               ("not_on_board", "ABSENT_COLS", set()), ("untied", "UNTIED_COLS", set())):
+        part = lists[lists.index("    %s: {" % name):]
+        part = part[:part.index("sort: {")]
+        shown = set(re.findall(r'\["(\w+)", "[^"]+", "\w+"\]', part))
+        missing = set(_literal(SRC / "cbe_funds.py", engine_cols)) - shown - drawn_elsewhere          # name: drawn through the company; ticker and dealer: in the company cell
+        assert not missing, "the list %s does not show %s" % (name, sorted(missing))
+    for control in ("data-fu-sort", "data-fu-all", "data-fu-more", "data-fu-csv", "data-fund-sort", 'data-csv="funds"', "data-sheet="):
+        assert control in fu, "the fund layer lost the control %s" % control
+    for key in ("b.tied", "b.read", "b.quarter", "b.reading", "b.source", "b.n_flagged", "b.n_ties_by_rule", "b.n_not_on_board", "b.n_untied", "b.gap_cols", "b.flag_cols", "cds.totals", "cds.indices", "cds.counterparties", "cds.tied"):
+        assert key in fu, "the fund block's %s is published and not drawn" % key.split(".")[1]
     for needed in ('id="s-next"', 'id="next"', 'id="s-data"', 'id="data"', 'id="sheet"', 'role="dialog"', "data-jh-chrome", "/jh-credit-sheet.js", "/jh-credit-board.js"):
         assert needed in page, "the page lost %s" % needed
     assert page.index("/jh-credit-board.js") < page.index("/jh-credit-sheet.js") < page.index("JHCreditBoard.start"), "the sheet script loads after the board and before it starts"

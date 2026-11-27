@@ -43,6 +43,7 @@ if "boto3" not in sys.modules:
 
 import bank_enrich  # noqa: E402
 import cbe_core as C  # noqa: E402
+import cbe_funds as F  # noqa: E402
 import cbe_names as N  # noqa: E402
 import cbe_study as S  # noqa: E402
 import cbe_themes as TH  # noqa: E402
@@ -1083,6 +1084,171 @@ def the_traded_cds_is_read_week_by_week_and_only_where_it_printed():
     assert r["rw1"] == round(100.0 * (stock[days[30]] / stock[days[25]] - 1.0), 2) and next(x for x in rows if x["day"] == days[59])["rw1"] is None
     ev = S.cds_evidence(S.from_table(PANEL["cds"]))
     assert ev == PANEL["evidence"]["cds"] and [x["key"] for x in ev["readings"]][:2] == ["wider", "wider/up"] and ev["name_weeks"] == len(PANEL["cds"]["rows"])
+
+
+# ------------------------------------------------------------------------------------------------------ the fund layer (1.0)
+FUND = json.loads(gzip.decompress(open(os.path.join(ROOT, "tests", "fixtures", "sec-fund-tables-sample.json.gz"), "rb").read()))    # real rows of the SEC tables, as ops 6987 read them
+FUND_BONDS = next(v for k, v in FUND["docs"].items() if k.endswith("bonds.json.gz"))
+FUND_CDS = next(v for k, v in FUND["docs"].items() if k.endswith("cds.json.gz"))
+
+
+def _with_funds():
+    s3 = MemS3({**FIX["docs"], **FUND["docs"]})
+    out = handle({}, s3)
+    return json.loads(s3.puts[L.OUT_KEY]), s3, out
+
+
+@test
+def the_fund_layer_adds_its_columns_after_the_boards_and_changes_nothing_of_the_board():
+    doc, s3, _ = _with_funds()
+    bare = MemS3()
+    handle({}, bare)
+    before = json.loads(bare.puts[L.OUT_KEY])
+    assert doc["issuers"]["cols"] == L.ISSUER_COLS + F.COLS and before["issuers"]["cols"] == L.ISSUER_COLS and doc["version"] == before["version"] == "3.0.0"
+    n = len(L.ISSUER_COLS)
+    assert [r[:n] for r in doc["issuers"]["rows"]] == before["issuers"]["rows"] and all(len(r) == n + len(F.COLS) for r in doc["issuers"]["rows"])
+    for key in before:
+        if key not in ("issuers", "funds", "degraded", "generated_at"):
+            assert doc[key] == before[key], "the fund layer changed the board's %s" % key
+    assert before["funds"] is None and any("fund holdings bank has published no quarter" in d for d in before["degraded"]) and L.FUNDS_OUT_KEY not in bare.puts
+    assert not any("fund" in d.lower() for d in doc["degraded"]) and set(s3.puts) == set(bare.puts) | {L.FUNDS_OUT_KEY}
+    assert json.loads(s3.puts[L.BONDS_OUT_KEY]) == FIX["expected_bonds"], "the board's own bond document is as it was"
+
+
+@test
+def a_companys_fund_figures_are_its_own_rows_added_up_another_way():
+    doc, s3, _ = _with_funds()
+    block, fdoc = doc["funds"], json.loads(s3.puts[L.FUNDS_OUT_KEY])
+    assert fdoc["cols"] == F.ROW_COLS == block["cols"] and block["key"] == L.FUNDS_OUT_KEY and block["n"] == len(fdoc["rows"]) == block["tied"]["securities"] > 20
+    assert not {"cusip", "isin", "k", "figi"} & {c.lower() for c in fdoc["cols"]} and "No ISIN or CUSIP" in fdoc["note"]
+    # the block carries the first hundred of each list of ties, the fund document all of them
+    for name, n in (("untied", "n_untied"), ("ties_by_rule", "n_ties_by_rule"), ("not_on_board", "n_not_on_board")):
+        assert len(fdoc[name]) == block[n] and fdoc[name][:F.LIST_N] == block[name] and len(block[name]) <= F.LIST_N, name
+    assert (fdoc["tie_cols"], fdoc["absent_cols"], fdoc["untied_cols"], fdoc["min_marks"]) == (block["tie_cols"], block["absent_cols"], block["untied_cols"], block["min_marks"])
+    rows = [dict(zip(doc["issuers"]["cols"], r)) for r in doc["issuers"]["rows"]]
+    on_board = {r["id"] for r in rows}
+    source = {(b[0], b[1], b[13]) for b in FUND_BONDS["rows"]}                       # issuer, title, value: every published row is a row of the SEC table
+    by_co = {}
+    for r in fdoc["rows"]:
+        x = dict(zip(F.ROW_COLS, r))
+        assert x["co"] in on_board and (x["issuer"], x["title"], x["value"]) in source and x["cls"] in ("DBT", "LON")
+        by_co.setdefault(x["co"], []).append(x)
+    held = [r for r in rows if r["f_n"]]
+    assert len(held) == len(by_co) == block["tied"]["companies"] >= 8 and block["tied"]["listed"] == sum(1 for r in held if r["ticker"])
+    for r in held:
+        mine = by_co[r["id"]]
+        marked = [x for x in mine if x["px"] is not None and x["value"] > 0]
+        wide = [x["px_hi"] - x["px_lo"] for x in mine if x["n_px"] >= 5]
+        assert r["f_n"] == len(mine) and r["f_funds"] == max(x["funds"] for x in mine) and r["f_value"] == sum(x["value"] for x in mine) and r["f_face"] == sum(x["face"] for x in mine)
+        assert r["f_px"] == round(sum(x["px"] * x["value"] for x in marked) / sum(x["value"] for x in marked), 2) and r["f_gap"] == (round(max(wide), 2) if wide else None)
+        assert r["f_loans"] == sum(1 for x in mine if x["cls"] == "LON") and r["f_def"] == sum(1 for x in mine if x["n_default"] and x["n_default"] * 2 >= x["rows"])
+    assert block["tied"]["value"] == sum(r["f_value"] for r in held) and sum(v[0] for v in block["tied"]["how"].values()) == block["n"]
+    arc = next(r for r in rows if r["id"] == "I:MERIDIAN ARC HOLDCO")               # one bond, 458 funds, as ops 6987 printed it
+    assert (arc["f_n"], arc["f_funds"], arc["f_px"], arc["f_def"], arc["fc_sold"]) == (1, 458, 100.22, 0, None)
+    echo = next(r for r in rows if r["ticker"] == "ECHO")                            # DISH DBS bonds roll into EchoStar, and funds flag one of them in default
+    assert echo["f_def"] == 1 and echo["f_n"] == 5
+    assert all(g[10] == round(g[9] - g[8], 2) and g[6] >= F.MIN_MARKS and g[0] in on_board for g in block["gaps"]) and block["n_gaps"] == len(block["gaps"]) > 10
+    assert [g[10] for g in block["gaps"]] == sorted((g[10] for g in block["gaps"]), reverse=True) and block["gap_cols"] == F.GAP_COLS
+    assert block["n_flagged"] == len(block["flagged"]) >= 1 and all(f[7] * 2 >= f[6] or f[8] * 2 >= f[6] for f in block["flagged"])
+    # what could not be tied is counted and listed, never dropped: municipal and Treasury issuers are simply not companies
+    skipped = sum(1 for b in FUND_BONDS["rows"] if b[2] not in F.CLASSES or b[3] in F.NOT_COMPANIES)
+    assert block["read"]["securities"] == len(FUND_BONDS["rows"]) - skipped and block["n_untied"] > 50 and block["untied"][0][0] == "BEIGNET INVESTOR LLC"
+
+
+@test
+def fund_credit_swaps_are_tied_by_name_and_every_name_is_still_listed():
+    doc, _, _ = _with_funds()
+    cds = doc["funds"]["cds"]
+    assert cds["cols"] == F.CDS_COLS and len(cds["names"]) == len(FUND_CDS["names"]) == 300 and cds["totals"] == FUND_CDS["totals"] and len(cds["indices"]) == len(FUND_CDS["indices"])
+    rows = {r[0]: dict(zip(doc["issuers"]["cols"], r)) for r in doc["issuers"]["rows"]}
+    want = {}
+    for ref, positions, funds, sold, bought, unclear, net, other, end in FUND_CDS["names"]:
+        for co in [r[1] for r in cds["names"] if r[0] == ref and r[1]]:
+            w = want.setdefault(co, [0, 0, 0])
+            w[0] += sold
+            w[1] += bought
+            w[2] = max(w[2], funds)
+    assert len(want) >= 20 and cds["tied"] == sum(1 for r in cds["names"] if r[1])
+    for co, (sold, bought, funds) in want.items():
+        r = rows[co]
+        assert (r["fc_sold"], r["fc_bought"], r["fc_net"], r["fc_funds"]) == (sold, bought, sold - bought, funds), co
+    orcl = rows["T:ORCL"]                                                             # funds sold far more protection on Oracle than they bought
+    assert orcl["fc_sold"] > 5e8 > orcl["fc_bought"] > 0 and orcl["fc_net"] == orcl["fc_sold"] - orcl["fc_bought"] and orcl["fc_funds"] == 56
+    tied = {r[0]: r[1] for r in cds["names"]}
+    assert tied["ORACLE CORP"] == "T:ORCL" and tied["BOEING CO (THE)"] == tied["BOEING CO"] == "T:BA" and tied["REPUBLIC OF SOUTH AFRICA"] is None
+    assert not [co for co in rows if rows[co]["fc_sold"] is not None and co not in want]
+    # a dealer's own name in the reference field is not a company's credit: listed, marked, tied to nothing, in no company's figures
+    gs = next(r for r in cds["names"] if r[0] == "GOLDMAN SACHS & CO")
+    assert gs[1] is None and gs[-1] == 1 and gs[5] > 9e8 and rows["T:GS"]["fc_sold"] is None and cds["dealer_names_not_tied"] >= 1
+    assert F.plain("Goldman Sachs & Co. LLC (gov repo)") == F.plain("GOLDMAN SACHS AND CO LLC") == "GOLDMAN SACHS AND CO" and F.plain("Morgan Stanley & Company LLC") == "MORGAN STANLEY AND CO"
+    bnp = next(r for r in cds["names"] if r[0] == "BNP PARIBAS SA")                # a bank funds face as a dealer: the file cannot tell which it is here, so it enters no company
+    assert bnp[1] is None and bnp[-1] == 1 and rows["I:BNP PARIBAS"]["fc_sold"] is None and next(r for r in cds["names"] if r[0] == "ORACLE CORP")[-1] == 0
+    assert cds["dealer_names_not_tied"] == sum(1 for r in cds["names"] if r[-1]) >= 5 and not [r for r in cds["names"] if r[-1] and r[1]]
+
+
+@test
+def a_fund_name_is_tied_the_way_the_board_ties_names_or_not_at_all():
+    built, _ = build()
+    names = {r[0]: r[2] for r in built["payload"]["issuers"]["rows"]}
+    ties = F.Ties(built["ties"], built["matcher"], names)
+    assert ties.of("Meridian Arc Holdco, LLC", "US") == ("I:MERIDIAN ARC HOLDCO", "issuer", None)
+    assert ties.of("ORACLE CORP")[0] == "T:ORCL" and ties.of("Oracle Corporation", "US")[0] == "T:ORCL"
+    cut = F.Ties([{"key": "ELK GROVE VILLAGE PROPER", "ticker": None}, {"key": "ELK GROVE", "ticker": None}], built["matcher"], {"I:ELK GROVE VILLAGE PROPER": "x", "I:ELK GROVE": "y"})
+    assert cut.of("Elk Grove Village Property Owner LLC") == ("I:ELK GROVE VILLAGE PROPER", "cut name", None), "a board name its fund file cut short"
+    assert cut.of("Elk Grove Partners")[0] is None, "a short board name is never used as the start of another"
+    off = F.Ties([], built["matcher"], {})                                           # a listed company the board holds no bond of
+    assert off.of("Ford Motor Company") == (None, "listed, not on the board", "F")
+    assert ties.of("")[:2] == (None, "no name") and ties.of("Some Private Borrower Holdings LLC")[0] is None
+    # funds that file under 24-character market names: abbreviations spelled out, the first of two co-issuers, a name cut short
+    assert ties.of("CCO HLDGS LLC/CAP CORP") == ("T:CHTR", "co-issuer", None) and ties.of("CHARTER COMM OPT LLC/CAP") == ("T:CHTR", "short name", None)
+    assert ties.of("FORD MOTOR CREDI") == ("T:F", "name cut", None) and ties.of("DELL INT LLC / EMC CORP") == ("T:DELL", "short name", None)
+    assert F.spelled("PHILIP MORRIS INTL") == ["PHILIP MORRIS INTERNATIONAL"] and F.spelled("ORACLE") == [] and F.spelled("LOWES COS") == ["LOWES"]
+    assert F.spelled("JEFFERIES FIN GROUP") == ["JEFFERIES FINANCE GROUP", "JEFFERIES FINANCIAL GROUP"]
+    assert F.MARKET["CANADIAN NATL RESOURCES"] == ("CANADIAN NATURAL RESOURCES",), "NATL is not always NATIONAL: a written-out market name comes before the spelling list"
+    nat = F.Ties([{"key": "CANADIAN NATIONAL RESOURCES", "ticker": None}, {"key": "CANADIAN NATURAL RESOURCES", "ticker": None}], built["matcher"], {})
+    assert nat.of("CANADIAN NATL RESOURCES") == ("I:CANADIAN NATURAL RESOURCES", "short name", None)
+    two = F.Ties([{"key": "ALPHA BETA FINANCIAL", "ticker": None}, {"key": "ALPHA BETA FINANCE", "ticker": None}, {"key": "GALAXY HELIOS DATA CENTERS", "ticker": None}], built["matcher"], {})
+    assert two.of("ALPHA BETA FIN") == (None, "more than one company answers to this short name", None), "a short name two companies answer to is tied to neither"
+    assert two.of("ALPHA BETA FINL")[:2] == ("I:ALPHA BETA FINANCIAL", "short name")
+    assert two.of("GALAXY HELIOS DA") == ("I:GALAXY HELIOS DATA CENTERS", "name cut", None) and two.of("GALAXY")[0] is None and two.of("GALAXY HEL")[0] is None, "a cut name stands for an issuer only at 14 characters and two words"
+    assert two.of("GALAXY HELIOS DATA")[0] is None, "a whole name is not a longer one cut short"
+    sib = F.Ties([{"key": "APLD COMPUTECO 2", "ticker": None}, {"key": "GALAXY HELIOS DATA CENTERS HOLD", "ticker": None}], built["matcher"], {})
+    assert sib.of("APLD COMPUTECO LLC")[0] is None, "APLD ComputeCo is not APLD ComputeCo 2"
+    assert sib.of("GALAXY HELIOS DATA CENTER")[0] == "I:GALAXY HELIOS DATA CENTERS HOLD" and len("GALAXY HELIOS DATA CENTE") == 24 and sib.of("GALAXY HELIOS DATA CENTE")[1] == "name cut"
+    assert sib.of("GALAXY HELIOS DATA CNTRS")[0] is None
+    layer = F.join({"cols": FUND_BONDS["cols"], "rows": [r for r in FUND_BONDS["rows"] if r[3] in F.NOT_COMPANIES or r[2] not in F.CLASSES]}, {"cols": [], "names": []}, ties, names)
+    assert layer["rows"] == [] and layer["block"]["read"]["securities"] == 0, "Treasuries, municipal bonds and asset-backed deals are not a company's bonds"
+
+
+@test
+def a_dry_run_says_what_the_fund_layer_would_add_and_writes_nothing():
+    s3 = MemS3({**FIX["docs"], **FUND["docs"]})
+    out = handle({"dry_run": True}, s3)
+    assert s3.puts == {} and out["funds"]["as_of"] == "2026-06-30" and out["funds"]["companies"] >= 8 and out["funds"]["rows"] == out["funds"]["securities"] and out["funds"]["cds_names_tied"] >= 20
+    assert handle({"dry_run": True}, MemS3())["funds"] is None
+
+
+@test
+def fund_tables_that_cannot_be_read_leave_the_board_whole_and_say_so():
+    head = FUND["docs"][L.FUNDS_HEAD_KEY]
+    for label, docs in (("no tables named", {L.FUNDS_HEAD_KEY: {**head, "tables": None}}),
+                        ("tables missing", {L.FUNDS_HEAD_KEY: head}),
+                        ("a table with no rows", {**FUND["docs"], head["tables"]["bonds"]: {"cols": [], "rows": None}})):
+        s3 = MemS3({**FIX["docs"], **docs})
+        out = handle({}, s3)
+        doc = json.loads(s3.puts[L.OUT_KEY])
+        assert out["statusCode"] == 200 and doc["funds"] is None and doc["issuers"]["cols"] == L.ISSUER_COLS and L.FUNDS_OUT_KEY not in s3.puts, label
+        assert sum(1 for d in doc["degraded"] if "fund columns are empty" in d) == 1, label
+
+
+@test
+def the_quarter_read_is_the_one_the_bank_published_whole():
+    doc, s3, _ = _with_funds()
+    head, q = FUND["docs"][L.FUNDS_HEAD_KEY], doc["funds"]["quarter"]
+    assert q == {"file": "2026q3_nport.zip", "summary": head["summary"], "bank_generated_at": head["generated_at"]} and doc["funds"]["file"] == "2026q3_nport.zip"
+    assert head["tables"]["bonds"] in s3.gets and head["tables"]["cds"] in s3.gets and not [k for k in s3.gets if k.endswith("manifest.json") and "sec-datasets" in k], \
+        "the bank's own document says which quarter is whole; its manifest of files is not read"
+    assert doc["funds"]["source"].endswith("(data/sec-fund-holdings.json)") and doc["funds"]["key"] == L.FUNDS_OUT_KEY and "tied or left untied" in doc["funds"]["words"]
 
 
 def main():

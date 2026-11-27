@@ -897,12 +897,15 @@
     function jump(d) { var el = d.goto ? host.querySelector("#" + d.goto) : null; if (el && el.scrollIntoView) el.scrollIntoView({ block: "start" }); }
 
     // ---- what jh-credit-sheet.js draws: the company sheet, what the stock did next, the whole document
-    var S = sheet(), extra = { bonds: null, history: null }, asked = {}, opener = null;
+    var S = sheet(), FU = root.JHCreditFunds || null, extra = { bonds: null, history: null, funds: null }, asked = {}, opener = null;
     function ctx() {
       var bonds = !isObj(doc.bonds) ? "unpublished" : extra.bonds === null ? "loading" : extra.bonds === false ? "error" : S.bondsOf(extra.bonds, state.sheet);
       var hist = !isObj(doc.history) ? null : extra.history === null ? "loading" : extra.history === false ? "error" : extra.history;
-      return { palette: state.palette, bonds: bonds, bondSort: state.bondSort, history: hist };
+      var funds = !FU || !isObj(doc.funds) ? "unpublished" : extra.funds === null ? "loading" : extra.funds === false ? "error" : FU.rowsOf(extra.funds, state.sheet, doc);
+      return { palette: state.palette, bonds: bonds, bondSort: state.bondSort, history: hist, funds: funds, fundSort: state.fundSort };
     }
+    /* Held by funds (jh-credit-funds.js): the section, drawn again when its whole document arrives. */
+    function drawFunds() { var box = $("funds"); if (box && FU) box.innerHTML = FU.sectionHtml(doc, state, extra.funds); }
     function drawSheet() {
       var box = $("sheet");
       if (!box || !S) return;
@@ -921,12 +924,12 @@
       root.fetch(S.BASE + meta.key + "?t=" + encodeURIComponent(String(doc.generated_at || ""))).then(function (r) {
         if (!r.ok) throw new Error("HTTP " + r.status);
         return r.json();
-      }).then(function (j) { extra[what] = j; }, function () { extra[what] = false; }).then(function () { if (state.sheet) drawSheet(); });
+      }).then(function (j) { extra[what] = j; }, function () { extra[what] = false; }).then(function () { if (state.sheet) drawSheet(); if (what === "funds" && state.view === "new") drawFunds(); });
     }
     function openSheet(id, from) {
       if (!S || !id) return;
-      state.sheet = id; opener = from || null; state.bondSort = { key: "maturity", dir: "asc" };
-      drawSheet(); need("bonds"); need("history");
+      state.sheet = id; opener = from || null; state.bondSort = { key: "maturity", dir: "asc" }; state.fundSort = { key: "value", dir: "desc" };
+      drawSheet(); need("bonds"); need("history"); need("funds");
       var box = $("sheet"), close = box ? box.querySelector(".cb-sheet-h button[data-sheet-close]:last-child") : null, pane = box ? box.querySelector(".cb-sheet-in") : null;
       if (pane) pane.scrollTop = 0;
       if (close && close.focus) close.focus();
@@ -977,6 +980,7 @@
         $("method").innerHTML = methodHtml(doc);
         $("coverage").innerHTML = coverageHtml(doc);
         drawExtras();
+        drawFunds();
         $("gaps").innerHTML = (Array.isArray(doc.gaps) ? doc.gaps : []).filter(function (g) { return typeof g === "string"; }).map(function (g) { return "<p>" + esc(g) + "</p>"; }).join("") || "<p>None declared.</p>";
       }
       if (!what || what === "all" || what === "map") drawMap();
@@ -1001,6 +1005,9 @@
       if (t.id === "viewtoggle") { state.view = state.view === "new" ? "previous" : "new"; draw("all"); return; }
       if ("sheetClose" in d) { closeSheet(); if (!("showCo" in d)) return; }
       if ("sheet" in d) { openSheet(d.sheet, t); return; }
+      if (FU && FU.click(d, state, { doc: doc, funds: extra.funds, need: need, download: download,
+        draw: function (key) { drawFunds(); var b = key ? host.querySelector('#funds button[data-fu-sort="' + key + '"]') : null; if (b && b.focus) b.focus(); },
+        drawSheet: function (key) { drawSheet(); var b = key ? host.querySelector('#sheet button[data-fund-sort="' + key + '"]') : null; if (b && b.focus) b.focus(); } })) return;
       if (d.bondSort) {
         flip(state.bondSort, d.bondSort); drawSheet();
         var again = host.querySelector('#sheet button[data-bond-sort="' + d.bondSort + '"]');
@@ -1116,6 +1123,14 @@
       sizing = setTimeout(function () { var w = $("map") ? $("map").clientWidth : 0; if (state.view === "new" && v2 && w && Math.abs(w - last) > 8) { last = w; drawMap(); } }, 150);
     });
     draw("all");
+    /* The fund document (every bond and loan funds hold) is asked for once, when its section comes near the screen. */
+    (function () {
+      var box = $("funds");
+      if (!box || !FU || !isObj(doc.funds)) return;
+      if (!root.IntersectionObserver) return;                 // an old browser: it is asked for at the first click in the section, or when a sheet opens
+      var io = new root.IntersectionObserver(function (es) { if (es.some(function (e) { return e.isIntersecting; })) { io.disconnect(); need("funds"); } }, { rootMargin: "800px" });
+      io.observe(box);
+    })();
     last = $("map") ? $("map").clientWidth : 0;
     var foot = $("foot");
     if (foot) foot.textContent = "Feed data/credit-before-equity.json · " + (typeof (doc || {}).attribution === "string" ? doc.attribution : "Attribution unavailable") + " · v" + (typeof (doc || {}).version === "string" ? doc.version : "?");

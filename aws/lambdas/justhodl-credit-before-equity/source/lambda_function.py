@@ -35,6 +35,11 @@ Since 3.0 (Khalid 2026-11-25: more companies; say what happens to the stock; eve
             its own volatility. Kept each day as it was said (credit/cbe-calls/) and scored when its time is up
             (credit/cbe-track.json). The record found no reading that tells the stock's direction, and says so.
   bonds     every bond the board read, under its company, with no identifier: data/credit-before-equity-bonds.json.
+  funds     (fund layer 1.0, cbe_funds.py) what registered funds hold of each company, from the SEC's Form N-PORT as
+            justhodl-sec-datasets reads it: how many of its bonds and loans, the most funds in one, the middle mark and
+            the widest gap between marks, default and paid-in-kind flags, and the credit default swaps funds hold on
+            its name. Added by the handler after the board is built: columns after the board's own, the key `funds`,
+            and data/credit-before-equity-funds.json. No figure of the board reads it; without it the board is whole.
 
 The warehouse only: no provider is asked for anything. Output data/credit-before-equity.json (contract
 credit-before-equity.v2 - every 1.0, 2.0 and 2.1 key and column is still where it was). Daily 22:35 UTC.
@@ -51,6 +56,7 @@ import boto3
 
 import bank_enrich          # aws/shared: the whole-market factor book - S3 only
 import cbe_core as C
+import cbe_funds as F
 import cbe_names as N
 import cbe_study as S
 import leaders_tape as T
@@ -65,6 +71,8 @@ PAR_KEY = "data/warm/treasury-par/curve.json.gz"
 OUT_KEY = "data/credit-before-equity.json"
 BONDS_OUT_KEY = "data/credit-before-equity-bonds.json"      # every bond the board read, under its company: opened by the page when a company is opened
 EVIDENCE_KEY = "data/credit-before-equity-evidence.json"    # what stocks did after each kind of reading, measured on the board's own month-ends; redone when a month finishes
+FUNDS_OUT_KEY = "data/credit-before-equity-funds.json"      # the fund layer: every bond and loan registered funds hold of a board company, with how they mark it
+FUNDS_HEAD_KEY = "data/sec-fund-holdings.json"              # justhodl-sec-datasets: its newest whole quarter of SEC fund holdings, and where that quarter's tables are
 HISTORY_OUT_KEY = "data/credit-before-equity-history.json"  # every company's spread at each kept month-end: the chart in a company's sheet
 CALLS_ROOT = "credit/cbe-calls/"                            # one file a holdings day: the chance of a fall the board gave each stock that day, kept as it was said
 TRACK_KEY = "credit/cbe-track.json"                         # those chances set beside what happened, once their time is up
@@ -891,7 +899,33 @@ def build(s3, now=None, log=print, evidence=None):
                      "note": "Every bond the board read, under the company it was rolled into (co = the company's id in the main document). Spread: the yield less the Treasury par "
                              "yield at the duration-matched maturity (tenor). d_*: the bond's own spread change over each window. value: market value held by the scanned funds. "
                              "why: the reason a bond has no spread. No ISIN or CUSIP is published."}
-    return {"payload": payload, "snapshots": snapshots, "hist": hist, "bonds": bonds_doc_out, "calls": calls, "holdings": holdings, "closes": closes, "tape": tape}
+    return {"payload": payload, "snapshots": snapshots, "hist": hist, "bonds": bonds_doc_out, "calls": calls, "holdings": holdings, "closes": closes, "tape": tape,
+            "ties": ties, "matcher": matcher}
+
+
+def fund_layer(s3, built):
+    """What registered funds hold of the board's companies (the SEC's Form N-PORT, as justhodl-sec-datasets reads it), tied to
+    the board. Reads only: the bank's own document names its newest whole quarter and that quarter's tables, so a quarter the
+    bank set aside as incomplete is never read here. (layer or None, a sentence for the page when there is none)."""
+    head, why = optional(s3, FUNDS_HEAD_KEY)
+    if not head:
+        return None, "The fund holdings bank has published no quarter (%s): the fund columns are empty on this run." % why
+    tables = head.get("tables") if isinstance(head.get("tables"), dict) else {}
+    name = (head.get("source") or {}).get("file") or "its newest quarter"
+    if not tables.get("bonds") or not tables.get("cds"):
+        return None, "The fund holdings bank names no tables for %s: the fund columns are empty on this run." % name
+    bonds, why_b = optional(s3, tables["bonds"])
+    cds, why_c = optional(s3, tables["cds"])
+    if not bonds or not cds or not isinstance(bonds.get("rows"), list):
+        return None, "The fund holdings tables of %s could not be read (%s): the fund columns are empty on this run." % (name, why_b or why_c or "no rows")
+    payload = built["payload"]
+    at, nm = payload["issuers"]["cols"].index("id"), payload["issuers"]["cols"].index("name")
+    names = {r[at]: r[nm] for r in payload["issuers"]["rows"]}
+    layer = F.join(bonds, cds, F.Ties(built["ties"], built["matcher"], names), names)
+    layer["block"].update(key=FUNDS_OUT_KEY, words="Every bond and loan registered funds hold of a company on the board, and every name as it was tied or left untied",
+                          quarter={"file": name, "summary": head.get("summary"), "bank_generated_at": head.get("generated_at")},
+                          source="SEC Form N-PORT data sets, read by justhodl-sec-datasets (%s)" % FUNDS_HEAD_KEY)
+    return layer, None
 
 
 def _now():
@@ -926,6 +960,19 @@ def lambda_handler(event=None, context=None):
     built = build(s3, now, evidence=evidence)
     payload = built["payload"]
     payload["degraded"].extend(notes)
+    # the fund layer is added beside the board: its columns come after the board's own, and no figure of the board reads it
+    funds = None
+    try:
+        funds, why_not = fund_layer(s3, built)
+    except Exception as exc:  # noqa: BLE001 - the board is published without the fund layer, and says so
+        why_not = "The fund layer could not be built on this run (%s: %s): the fund columns are empty." % (type(exc).__name__, str(exc)[:160])
+        print("[cbe] fund layer failed: %s: %s" % (type(exc).__name__, exc))
+    if funds:
+        payload["issuers"] = F.add_columns(payload["issuers"], funds["by_co"])
+        payload["funds"] = funds["block"]
+    else:
+        payload["funds"] = None
+        payload["degraded"].append(why_not)
     call_days = stored_days(s3, CALLS_ROOT)
     track_doc, _ = optional(s3, TRACK_KEY)
     if dry:                                                         # the whole build inside Lambda, nothing written
@@ -936,7 +983,8 @@ def lambda_handler(event=None, context=None):
                 "ledger_days": [s["as_of"] for s in built["snapshots"]], "bytes": len(json.dumps(payload, separators=(",", ":"), default=str)),
                 "version": payload["version"], "stressed": payload["stress"]["n_stressed"], "themes": {t["key"]: t["n"] for t in payload["themes"]},
                 "evidence": bool(payload["evidence"]), "study_due": study_due(evidence, stored_days(s3, HOLD_ROOT), today), "forecasts": (payload["risk"] or {}).get("n"),
-                "bonds_rows": len(built["bonds"]["rows"]), "calls": len(built["calls"]["rows"])}
+                "bonds_rows": len(built["bonds"]["rows"]), "calls": len(built["calls"]["rows"]),
+                "funds": {"as_of": funds["block"]["as_of"], "rows": len(funds["rows"]), **funds["block"]["tied"], "cds_names_tied": funds["block"]["cds"]["tied"]} if funds else None}
 
     for snap in built["snapshots"]:
         put_json(s3, LEDGER_ROOT + snap["as_of"] + ".json.gz", snap, gz=True)
@@ -958,6 +1006,16 @@ def lambda_handler(event=None, context=None):
     payload["track"] = track_summary(track_doc, call_days, built["tape"])
     size = put_json(s3, OUT_KEY, payload)
     put_json(s3, BONDS_OUT_KEY, built["bonds"])
+    if funds:
+        put_json(s3, FUNDS_OUT_KEY, {"version": F.VERSION, "generated_at": now.isoformat(), "as_of": funds["block"]["as_of"], "file": funds["block"]["file"],
+                                     "cols": F.ROW_COLS, "rows": funds["rows"], "min_marks": F.MIN_MARKS,
+                                     "tie_cols": F.TIE_COLS, "absent_cols": F.ABSENT_COLS, "untied_cols": F.UNTIED_COLS, **funds["lists"],
+                                     "note": "Every bond and loan registered funds hold of a company on the board (co = the company's id in the main document), from the SEC's "
+                                             "Form N-PORT data sets. funds: how many hold it; rows: positions reported; face and value in dollars; px: the middle mark per 100 of "
+                                             "face among funds reporting on the commonest date (d), px_lo and px_hi the 10th and 90th percentile; n_default, n_arrears, n_pik, "
+                                             "n_restricted, n_l3: positions flagged in default, in arrears, paid in kind, restricted, priced by model. ties_by_rule: every issuer "
+                                             "name tied by a rule rather than by the name an issuer on the board is written by; not_on_board: listed companies funds hold bonds "
+                                             "of that the board does not cover; untied: every issuer left untied. No ISIN or CUSIP is published."})
     built["hist"]["updated_at"] = now.isoformat()
     put_json(s3, HIST_KEY, built["hist"])
     cov = payload["coverage"]
