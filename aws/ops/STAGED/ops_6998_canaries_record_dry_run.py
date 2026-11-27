@@ -140,7 +140,9 @@ def main():
         defs = json.loads((WEIGHTS / "canary_defs.json").read_text(encoding="utf-8"))
         text = json.dumps(rec, separators=(",", ":"))
         say("the document would be %d bytes" % len(text))
-        check(not re.search(r"\b[A-Z]{2}[A-Z0-9]{9}[0-9]\b", text), "nothing shaped like a security identifier is in the record")
+        known = set(IO.series_ids(defs)) | set(p["id"] for p in defs["plumbing"])       # a FRED series id can have an identifier's shape (BAMLH0A0HYM2)
+        shaped = sorted(set(re.findall(r"\b[A-Z]{2}[A-Z0-9]{9}[0-9]\b", text)) - known)
+        check(not shaped, "nothing shaped like a security identifier is in the record beyond the warehouse's own series ids (%d other)" % len(shaped))
 
         # ── 2. the grid's change, on the eight credit series ────────────────────────────────────────────────────
         r.section("2. The macro grid: a short answer from FRED completed from the warehouse")
