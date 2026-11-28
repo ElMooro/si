@@ -33,9 +33,9 @@ NS = {"m": "http://schemas.openxmlformats.org/spreadsheetml/2006/main",
       "p": "http://schemas.openxmlformats.org/package/2006/relationships"}
 # The five premiums the home page states each month, in its order, and the monthly file's column for each.
 MEASURES = [
-    ("sustainable_payout", "Trailing 12 months, payout adjusted to what is sustainable", r"sustain"),
-    ("cash_yield", "Trailing 12 months of cash returned", r"^erp \(t12 ?m\)$"),
-    ("average_cf", "Average cash yield of the last ten years", r"smooth|average|10"),
+    ("sustainable_payout", "Sustainable payout", r"sustain"),
+    ("cash_yield", "Cash returned, trailing 12 months", r"^erp \(t12 ?m\)$"),
+    ("average_cf", "Ten-year average cash yield", r"smooth|average|10"),
     ("net_cash_yield", "Net cash yield", r"net"),
     ("normalized", "Normalized earnings and payout", r"normal"),
 ]
@@ -429,6 +429,9 @@ def industry_table(bk):
             out.append([nm] + vals)
         if len(out) < 5:
             continue
+        full = [0] + [k for k in range(1, len(keep)) if any(r[k] is not None for r in out)]      # a heading over an empty column is not a column
+        keep = [keep[k] for k in full]
+        out = [[r[k] for k in full] for r in out]
         keys = ["industry"] + unique_keys([labels[j] for j in keep[1:]])
         what = header_note(rows, r"what is this data")
         return {"sheet": name, "title": text(what) if isinstance(what, str) else None, "updated": _as_date(header_note(rows, r"date updated"), bk),

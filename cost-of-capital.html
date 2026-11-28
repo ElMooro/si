@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cost of capital · JustHodl.AI</title>
+<meta name="description" content="The equity risk premium the market is pricing, country risk premiums, and cost of capital, margins and multiples by industry - Aswath Damodaran's data, kept in the JustHodl warehouse.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='80'>⚖️</text></svg>">
+<style>
+:root{
+  --bg:#0a0e14;--panel:#0f131a;--panel2:#11161f;--line:#1c2433;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --txt:#e6eaf2;--mute:#a8b3c7;--dim:#6f7b91;--cyan:#00d4ff;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.container{max-width:1280px;margin:0 auto;padding:24px 20px 60px}
+header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:8px}
+h1{font-family:var(--mono);font-size:22px;letter-spacing:1.2px;text-transform:uppercase;margin:0 0 8px;color:var(--cyan)}
+h2{font-family:var(--mono);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:34px 0 12px;padding-bottom:7px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+h2 .sub{font-size:10.5px;color:var(--dim);letter-spacing:1px;text-transform:none}
+h3{font-size:13px;font-weight:600;color:var(--txt);margin:22px 0 8px}
+.subtitle{color:var(--mute);font-size:12.5px;margin:0;max-width:1080px;line-height:1.65}
+nav.crumbs{margin-top:12px;display:flex;flex-wrap:wrap;gap:14px}
+nav.crumbs a{color:var(--mute);text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px dashed var(--line);padding-bottom:2px}
+nav.crumbs a:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+a{color:var(--cyan)}
+.cc-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:10px;margin:0 0 14px}
+.cc-tile{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px;min-width:0}
+.cc-lbl{font-family:var(--mono);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--dim)}
+.cc-big{font-size:24px;font-weight:650;margin:3px 0 2px;font-variant-numeric:tabular-nums}
+.cc-sub{font-size:11.5px;color:var(--mute)}
+.cc-card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin:0 0 14px;min-width:0}
+.cc-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px}
+.cc-chip,.cc-btn,.cc-key{font:inherit;font-size:12px;color:var(--mute);background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer}
+.cc-chip.on{color:var(--txt);border-color:var(--cyan)}
+.cc-chip:hover,.cc-btn:hover,.cc-key:hover{color:var(--txt)}
+.cc-btn{border-radius:6px}
+.cc-legend{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
+.cc-key{display:inline-flex;align-items:center;gap:7px;color:var(--txt)}
+.cc-key i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.cc-key.off{opacity:.45;text-decoration:line-through}
+#cc-chart{position:relative;min-height:320px}
+.cc-svg{display:block;max-width:100%}
+.cc-tip{position:absolute;top:10px;width:238px;background:#0b1017;border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:12px;pointer-events:none;box-shadow:0 6px 22px rgba(0,0,0,.45)}
+.cc-tip b{display:block;margin-bottom:4px}
+.cc-tip div{display:flex;align-items:center;gap:7px;color:var(--mute)}
+.cc-tip i{width:8px;height:8px;border-radius:50%;flex:none}
+.cc-tip span{margin-left:auto;color:var(--txt);font-variant-numeric:tabular-nums}
+.cc-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 8px}
+.cc-tools input,.cc-pick select{font:inherit;font-size:12.5px;color:var(--txt);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 10px;min-width:0}
+.cc-tools input{width:240px;max-width:100%}
+.cc-count{font-size:12px;color:var(--dim);margin-right:auto}
+.cc-pick{display:flex;flex-wrap:wrap;gap:12px;margin:0 0 10px;font-size:12px;color:var(--mute)}
+.cc-pick select{margin-left:6px;max-width:min(520px,78vw)}
+.cc-scroll{overflow:auto;max-height:560px;border:1px solid var(--line);border-radius:8px}
+.cc-t{border-collapse:collapse;width:100%;font-size:12.5px;font-variant-numeric:tabular-nums}
+.cc-t th{position:sticky;top:0;background:#0c1118;z-index:1;padding:0;border-bottom:1px solid var(--line);white-space:nowrap}
+.cc-t th button{font:inherit;font-size:11px;font-weight:600;color:var(--mute);background:none;border:0;padding:8px 10px;cursor:pointer;width:100%;text-align:inherit}
+.cc-t th button:hover,.cc-t th[aria-sort="ascending"] button,.cc-t th[aria-sort="descending"] button{color:var(--txt)}
+.cc-t td{padding:6px 10px;border-bottom:1px solid #141b27;white-space:nowrap}
+.cc-t tr:hover td{background:#111824}
+.cc-t .l{text-align:left}.cc-t .r{text-align:right}
+.cc-small th{position:static;padding:7px 10px;font-size:11px;font-weight:600;color:var(--mute)}
+.cc-small{margin:0 0 6px}
+.cc-dim{color:var(--dim)}
+.cc-note,.cc-none{font-size:12px;color:var(--mute);margin:8px 0;max-width:1000px}
+.cc-none{color:var(--dim)}
+.cc-wide{overflow-x:auto}
+@media (max-width:640px){.container{padding:16px 12px 48px}.cc-big{font-size:20px}.cc-tools input{width:100%}}
+</style>
+</head>
+<body>
+<div class="container" id="cc-host">
+  <header>
+    <h1>⚖️ Cost of capital</h1>
+    <p class="subtitle">The return investors are asking of stocks over Treasuries right now, what a country adds to it, and what capital costs in each industry. The figures are <b>Aswath Damodaran's</b> (Damodaran Online, NYU Stern), read from his files into the JustHodl warehouse once a day. The EVA engine prices every company's cost of equity on the premium shown first.</p>
+    <nav class="crumbs">
+      <a href="/index.html">desk</a>
+      <a href="/eva.html">eva spread</a>
+      <a href="/gf-value.html">gf value</a>
+      <a href="/credit-before-equity.html">credit before equity</a>
+      <a href="/chart.html">chart</a>
+    </nav>
+  </header>
+
+  <section id="s-premium">
+    <h2>The equity risk premium today <span class="sub" id="cc-asof"></span></h2>
+    <div id="cc-premium"><p class="cc-none">Loading the premium.</p></div>
+    <div class="cc-card cc-wide" id="cc-measures"></div>
+  </section>
+
+  <section id="s-history">
+    <h2>How the premium has moved <span class="sub">implied by the S&amp;P 500's level and its cash flows</span></h2>
+    <div class="cc-card">
+      <div class="cc-bar" id="cc-views"></div>
+      <div id="cc-legend"></div>
+      <div id="cc-chart"></div>
+      <p class="cc-note">Point at the chart for a month's figures. A line can be switched off in the key above; every month is in the table below.</p>
+    </div>
+    <h3>Every month in his file</h3>
+    <div class="cc-grid" id="cc-monthly"></div>
+    <h3>Every year end in his file, since 1960</h3>
+    <div class="cc-grid" id="cc-annual"></div>
+  </section>
+
+  <section id="s-countries">
+    <h2>Country risk premiums <span class="sub">what a country adds to a mature market's premium</span></h2>
+    <div id="cc-country-facts"></div>
+    <div class="cc-grid" id="cc-countries"><p class="cc-none">Loading the countries.</p></div>
+    <h3>Frontier markets with no sovereign rating</h3>
+    <div class="cc-grid" id="cc-frontier"></div>
+  </section>
+
+  <section id="s-industries">
+    <h2>Cost of capital, margins and multiples by industry <span class="sub" id="cc-ind-asof"></span></h2>
+    <div class="cc-bar" id="cc-regions"></div>
+    <div class="cc-grid" id="cc-industries"><p class="cc-none">Loading the industries.</p></div>
+    <p class="cc-note">These are averages he computes once a year, in early January, from his own sample of companies. They are a yardstick for an industry, not a real-time figure for one company.</p>
+  </section>
+
+  <section id="s-tables">
+    <h2>Every table he publishes <span class="sub">all columns, as his files hold them</span></h2>
+    <div class="cc-pick" id="cc-pick"></div>
+    <p class="cc-note" id="cc-table-head"></p>
+    <div class="cc-grid" id="cc-table"></div>
+  </section>
+
+  <section id="s-returns">
+    <h2>Stocks, bills and bonds since 1928 <span class="sub">what the premium has been, looking back</span></h2>
+    <div class="cc-card cc-wide" id="cc-worked"></div>
+    <p class="cc-note">Worked by the engine from his annual returns: the average year, and the compounded rate, of stocks over three-month bills and over ten-year bonds.</p>
+    <div class="cc-grid" id="cc-returns"></div>
+  </section>
+
+  <section id="s-source">
+    <h2>Source and cautions</h2>
+    <div class="cc-card cc-wide" id="cc-source"></div>
+  </section>
+</div>
+
+<script src="/jh-cost-of-capital.js?v=20261128a"></script>
+<script>
+(function(){ if(window.JHCostOfCapital) window.JHCostOfCapital.mount(window); })();
+</script>
+<script defer src="/jh-nav-drawer.js"></script>
+<script defer src="/jh-page-ai.js"></script>
+<script src="/sidebar.js" defer></script>
+</body>
+</html>

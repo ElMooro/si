@@ -105,7 +105,7 @@ def home_facts(html):
     """What his home page states in words: the implied premiums at the start of the month, and his last full update."""
     plain = re.sub(r"\s+", " ", re.sub(r"&amp;", "&", re.sub(r"<[^>]+>", " ", html)))
     best = None
-    for m in re.finditer(r"Implied ERP on ([A-Za-z]+) (\d{1,2}), (\d{4})\s*=\s*(.{0,420})", plain):
+    for m in re.finditer(r"Implied ERP on ([A-Za-z]+) (\d{1,2}), (\d{4})\s*=\s*((?:(?!Implied ERP on).){0,420})", plain):      # each month's own sentence
         mon = MONTHS.get(m.group(1).lower())
         if not mon:
             continue
@@ -398,8 +398,16 @@ def run(s3, bucket, dry_run=False, force=False, get=fetch, now=None, sleep=time.
             if shas.get(key) == h and not force:
                 continue
             if not dry_run:
-                s3.put_object(Bucket=bucket, Key=key, Body=json.dumps(doc, separators=(",", ":")).encode(), ContentType="application/json",
-                              CacheControl="public, max-age=300")
+                # each key is written out in full here, so the fleet's map of who writes what can read it
+                body, kw = json.dumps(doc, separators=(",", ":")).encode(), {"ContentType": "application/json", "CacheControl": "public, max-age=300"}
+                if key == PREMIUM_KEY:
+                    s3.put_object(Bucket=bucket, Key=PREMIUM_KEY, Body=body, **kw)
+                elif key == COUNTRY_KEY:
+                    s3.put_object(Bucket=bucket, Key=COUNTRY_KEY, Body=body, **kw)
+                elif key == INDUSTRY_KEY:
+                    s3.put_object(Bucket=bucket, Key=INDUSTRY_KEY, Body=body, **kw)
+                else:
+                    s3.put_object(Bucket=bucket, Key="%stables/%s.json" % (OUT_PREFIX, doc["id"]), Body=body, **kw)
             shas[key] = h
             wrote.append(key)
         derived[group] = {"signature": sig, "documents": shas, "at": now_iso}

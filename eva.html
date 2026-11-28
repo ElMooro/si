@@ -177,6 +177,7 @@ const spColor=x=>x==null?"var(--dim)":x>=20?"var(--green)":x>=5?"#7be9b4":x>=0?"
     <div class="wacc">
       <div class="row"><span>Risk-Free 10Y</span><b>${fmtPct(w.risk_free_10y_pct,2)}</b></div>
       <div class="row"><span>Equity Risk Premium</span><b>${fmtPct(w.equity_risk_premium_pct,2)}</b></div>
+      <div class="row" id="erp-source"><span>Premium read from</span><b>${w.erp_fixed===false&&w.erp_as_of?`<a href="/cost-of-capital.html" style="color:inherit;text-decoration:underline dotted">Damodaran · start of ${esc(new Date(w.erp_as_of+"T00:00:00Z").toLocaleString("en-US",{month:"short",year:"numeric",timeZone:"UTC"}))}</a>`:(w.erp_fixed===true?"fixed · no fresh figure in the warehouse":"a fixed figure")}</b></div>
       <div class="row"><span>IG Credit Spread (BBB OAS)</span><b>${fmtPct(w.ig_credit_spread_pct,2)}</b></div>
       <div class="row"><span>Median Universe WACC</span><b>${fmtPct(m.wacc_pct,2)}</b></div>
     </div>`;

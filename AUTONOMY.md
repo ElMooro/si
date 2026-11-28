@@ -700,3 +700,24 @@ elsewhere just moves the lie one field over.
 9. **A frequency guess from `zip(xs[-60:], xs[-59:])` pairs each element with itself on a short list** (gap 0 = "daily").
    Pair a list with its own tail.
 10. **JavaScript rounds half up, Python half to even.** A proof that rebuilds a page's rounded figure uses floor(x + 0.5).
+
+## Traps banked — ops 7001–7004 (the Damodaran bank and the EVA premium, 2026-11-28)
+
+1. **A workbook says which calendar it counts days in.** His monthly file is made on a Mac: `workbookPr date1904="1"`.
+   38230 is 2008-09-01 there and 2004-08-31 in the 1900 calendar - plausible either way. Read the flag (`dam_core`).
+2. **One sheet, three tables.** Below the rated countries sits "Frontier Markets (no sovereign ratings)" under headings
+   of its own, with no blank row between, and beside them a rating-to-spread table. A reader that runs "until the first
+   empty cell" swallowed 21 frontier rows as countries with a 0.5% premium. Stop at the next table's title.
+3. **Terms of use can live in a text box.** AQR's workbooks carry their notice in `xl/drawings/*.xml`, not in a cell;
+   a scan of cells found "no sentence about use". Read the drawings before calling a data set free to republish.
+4. **Two sentences of the same shape on one page.** `Implied ERP on <date> = (.{0,420})` ran from October's sentence into
+   November's and mixed their figures. Bound a capture by the next occurrence of its own opening words.
+5. **State the identity, not the direction.** "No company's cost of capital rises when the premium falls" failed on 34
+   negative betas - the engine was right. The check that holds is the arithmetic: the change equals equity weight times
+   beta times the change in the premium, for every company.
+6. **A key written through a loop variable has no owner on the fleet's map** (`put_object(Key=key)` gave
+   `ownership_status: incomplete`, and the page's documents "no source-bound writer"). Write each headline key by name.
+7. **A dry run is still traffic.** The first read all 251 of his files; the re-runs were narrowed (`only`) to the 27 the
+   fixes touched. A source that costs nothing is still someone's server.
+8. **`toFixed` and `%.2f` part ways on a tie.** A proof that rewrites a page's percentage uses
+   `Decimal(x).quantize(Decimal("0.01"), ROUND_HALF_UP)`.
