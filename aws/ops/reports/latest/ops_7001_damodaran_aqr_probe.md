@@ -1,0 +1,885 @@
+# 7001 - Damodaran Online and AQR's data library: what is handed out, and on what terms (read-only), 2026-11-28T03:51+00:00
+
+**Status:** success  
+**Duration:** 26.4s  
+**Finished:** 2026-11-28T03:51:49+00:00  
+
+## Data
+
+| could_not_read | damodaran_files_listed | damodaran_files_read | megabytes |
+|---|---|---|---|
+| 0 | 251 | 26 | 2.4 |
+
+## Log
+## 1. Damodaran Online: the two pages
+
+- `03:51:23` home page: HTTP 200, 17007 bytes, Last-Modified None, 10 spreadsheet links
+- `03:51:23`   the page says: Implied ERP on November 1, 2026 = 4.41 % (Trailing 12 month, with adjusted payout); 3.79% (Trailing 12 month cash yield); 5.81% (Average CF yield last 10 years); 3.43% (Net cash yield); 3.39% (Normalized Earnings &amp; Payout) (with the US treasury rate of 4.94% used as the riskfree rate in US dollars; increase each of the premiums by the default spread (0.22%)f
+- `03:51:23`   latest overall data update, as the page says: January 9, 2026
+- `03:51:24` current data page: HTTP 200, 59212 bytes, Last-Modified None, 246 spreadsheet links
+- `03:51:25` spreadsheets listed in all: 251 | the monthly premium file: https://pages.stern.nyu.edu/~adamodar/pc/implprem/ERPbymonth.xlsx
+- `03:51:25` names: AlldataMarch2026.xlsx, DollarChina.xls, DollarEurope.xls, DollarGlobal.xls, DollarIndia.xls, DollarJapan.xls, DollarRest.xls, DollarUS.xls, Dollaremerg.xls, ERPNov26.xlsx, ERPbymonth.xlsx, EVA.xls, EVAChina.xls, EVAEurope.xls, EVAGlobal.xls, EVAIndia.xls, EVAJapan.xls, EVARest.xls, EVAemerg.xls, Employee.xls, EmployeeChina.xls, EmployeeEurope.xls, EmployeeGlobal.xls, EmployeeIndia.xls, EmployeeJapan.xls, EmployeeRest.xls, Employeeemerg.xls, MktCap.xls, MktCapChina.xls, MktCapEurope.xls, MktCapGlobal.xls, MktCapIndia.xls, MktCapJapan.xls, MktCapRest.xls, MktCapemerg.xls, R&D.xls, R&DChina.xls, R&DEurope.xls, R&DGlobal.xls, R&DIndia.xls, R&DJapan.xls, R&DRest.xls, R&Demerg.xls, S&P500ValueJan2025.xlsx, betaChina.xls, betaEurope.xls, betaGlobal.xls, betaIndia.xls, betaJapan.xls, betaRest.xls, betaemerg.xls, betas.xls, capex.xls, capexChina.xls, capexEurope.xls, capexGlobal.xls, capexIndia.xls, capexJapan.xls, capexRest.xls, capexemerg.xls, countrystats.xls, countrytaxrates.xls, ctryprem.xlsx, ctrypremApr26.xlsx, ctrypremJuly25.xlsx, ctrypremJuly26.xlsx, ctrypremJune13.xls, dbtfund.xls, dbtfundChina.xls, dbtfundEurope.xls, dbtfundGlobal.xls, dbtfundIndia.xls, dbtfundJapan.xls, dbtfundRest.xls, dbtfundemerg.xls, debtdetails.xls, debtdetailsChina.xls, debtdetailsEurope.xls, debtdetailsGlobal.xls, debtdetailsIndia.xls, debtdetailsJapan.xls, debtdetailsRest.xls, debtdetailsemerg.xls, divfcfe.xls, divfcfeChina.xls, divfcfeEurope.xls, divfcfeGlobal.xls, divfcfeIndia.xls, divfcfeJapan.xls, divfcfeRest.xls, divfcfeemerg.xls, divfund.xls, divfundChina.xls, divfundEurope.xls, divfundGlobal.xls, divfundIndia.xls, divfundJapan.xls, divfundRest.xls, divfundemerg.xls, fcffsimpleginzu.xlsx, finflows.xls, finflowsChina.xls, finflowsEurope.xls, finflowsGlobal.xls, finflowsIndia.xls, finflowsJapan.xls, finflowsRest.xls, finflowsemerg.xls, fundgr.xls, fundgrChina.xls, fundgrEB.xls, fundgrEBChina.xls, fundgrEBEurope.xls, fundgrEBGlobal.xls, fundgrEBIndia.xls, fundgrEBJapan.xls, fundgrEBRest.xls, fundgrEBemerg.xls, fundgrEurope.xls, fundgrGlobal.xls, fundgrIndia.xls, fundgrJapan.xls, fundgrRest.xls, fundgremerg.xls, goodwill.xls, goodwillChina.xls, goodwillEurope.xls, goodwillGlobal.xls, goodwillIndia.xls, goodwillJapan.xls, goodwillRest.xls, goodwillemerg.xls, histgr.xls, histgrChina.xls, histgrEurope.xls, histgrGlobal.xls, histgrIndia.xls, histgrJapan.xls, histgrRest.xls, histgremerg.xls, histimpl.xls, histretSP.xls, inshold.xls, insholdChina.xls, insholdEurope.xls, insholdGlobal.xls, insholdIndia.xls, insholdJapan.xls, insholdRest.xls, insholdemerg.xls, leaseeffect.xls, leaseeffectChina.xls, leaseeffectEurope.xls, leaseeffectGlobal.xls, leaseeffectIndia.xls, leaseeffectJapan.xls, leaseeffectRest.xls, leaseeffectemerg.xls, macro.xls, macrodur.xls, margin.xls, marginChina.xls, marginEurope.xls, marginGlobal.xls, marginIndia.xls, marginJapan.xls, marginRest.xls, marginemerg.xls, mktcapmult.xlsx, mktcaprisk.xlsx, optvar.xls, optvarChina.xls, optvarEurope.xls, optvarGlobal.xls, optvarIndia.xls, optvarJapan.xls, optvarRest.xls, optvaremerg.xls, pbvChina.xls, pbvEurope.xls, pbvGlobal.xls, pbvIndia.xls, pbvJapan.xls, pbvRest.xls, pbvdata.xls, pbvemerg.xls, peChina.xls, peEurope.xls, peGlobal.xls, peIndia.xls, peJapan.xls, peRest.xls, pedata.xls, peemerg.xls, psChina.xls, psEurope.xls, psGlobal.xls, psIndia.xls, psJapan.xls, psRest.xls, psdata.xls, psemerg.xls, ratings.xls, roe.xls, roeChina.xls, roeEurope.xls, roeGlobal.xls, roeIndia.xls, roeJapan.xls, roeRest.xls, roeemerg.xls, taxrate.xls, taxrateChina.xls, taxrateEurope.xls, taxrateGlobal.xls, taxrateIndia.xls, taxrateJapan.xls, taxrateRest.xls, taxrateemerg.xls, totalbeta.xls, totalbetaChina.xls, totalbetaEurope.xls, totalbetaGlobal.xls, totalbetaIndia.xls, totalbetaJapan.xls, totalbetaRest.xls, totalbetaemerg.xls, vebitda.xls, vebitdaChina.xls, vebitdaEurope.xls, vebitdaGlobal.xls, vebitdaIndia.xls, vebitdaJapan.xls, vebitdaRest.xls, vebitdaemerg.xls, wacc.xls, waccChina.xls, waccEurope.xls, waccGlobal.xls, waccIndia.xls, waccJapan.xls, waccRest.xls, waccemerg.xls, wcdata.xls, wcdataChina.xls, wcdataEurope.xls, wcdataGlobal.xls, wcdataIndia.xls, wcdataJapan.xls, wcdataRest.xls, wcdataemerg.xls
+## 2. Damodaran Online: the files an engine would read
+
+- `03:51:25` ERPbymonth.xlsx: HTTP 200, 47651 bytes, Last-Modified Mon, 02 Nov 2026 16:19:09 GMT, ETag "ba23-65f4d8170666e", type application/vnd.openxmlformats | ~/pc/implprem/ERPbymonth.xlsx
+- `03:51:25`   sheets: Historical ERP (220 rows, 17 wide); ERP in last 12 months (0 rows, 0 wide); Last 12 months data (16 rows, 4 wide)
+- `03:51:25`     Historical ERP r1   | Start of month | S&P 500 | T.Bond Rate | $ Riskfree Rate | Ten-year average CF | CF (Trailing 12 month) | Normalized CF | Expected growth rate | ERP (T12 m with sustai | ERP (T12m) | ERP (T12m) with adj ri
+- `03:51:25`     Historical ERP r2   | 38230 | 1252 | 0.0372 | · | · | · | · | · | · | 0.0422 | ·
+- `03:51:25`     Historical ERP r3   | 38260 | 1166 | 0.0383 | · | · | · | · | · | · | 0.0451 | ·
+- `03:51:25`     Historical ERP r4   | 38291 | 969 | 0.0395 | · | · | · | · | · | · | 0.059 | ·
+- `03:51:25`     Historical ERP r5   | 38321 | 896 | 0.0292 | · | · | · | · | · | · | 0.066 | ·
+- `03:51:25`     Historical ERP r6   | 38352 | 903 | 0.0221 | · | · | 52.58 | · | 0.04 | · | 0.0643 | ·
+- `03:51:25`     Historical ERP r7   | 38383 | 826 | 0.0287 | · | · | 52.58 | · | 0.04 | · | 0.0687 | ·
+- `03:51:25`     Historical ERP r8   | 38411 | 735 | 0.0302 | · | · | 52.58 | · | 0.04 | · | 0.0768 | ·
+- `03:51:25`     Historical ERP r9   | 38442 | 798 | 0.0271 | · | · | 51.55 | · | 0.04 | · | 0.0701 | ·
+- `03:51:25`     Historical ERP r10  | 38472 | 873 | 0.0316 | · | · | 51.55 | · | 0.04 | · | 0.0632 | ·
+- `03:51:25`     Historical ERP r11  | 38503 | 919 | 0.0347 | · | · | 51.55 | · | 0.04 | · | 0.0594 | ·
+- `03:51:25`     Historical ERP r12  | 38533 | 919 | 0.0353 | · | · | 50.95 | · | 0.04 | · | 0.0586 | ·
+- `03:51:25`     Historical ERP r13  | 38564 | 987 | 0.0352 | · | · | 50.95 | · | 0.04 | · | 0.0546 | ·
+- `03:51:25`     Historical ERP r14  | 38595 | 1021 | 0.034 | · | · | 50.95 | · | 0.04 | · | 0.053 | ·
+- `03:51:25`     Historical ERP r15  | 38625 | 1057 | 0.033 | · | · | 48.52 | · | 0.04 | · | 0.0486 | ·
+- `03:51:25`     Historical ERP r16  | 38656 | 1036 | 0.0339 | · | · | 48.52 | · | 0.04 | · | 0.0497 | ·
+- `03:51:25`     Historical ERP r17  | 38686 | 1096 | 0.0324 | · | · | 48.52 | · | 0.04 | · | 0.0473 | ·
+- `03:51:25`     Historical ERP r18  | 38717 | 1115 | 0.0384 | · | · | 40.38 | · | 0.0721 | · | 0.0436 | ·
+- `03:51:25`     Historical ERP r19  | 38748 | 1074 | 0.0358 | · | · | 40.38 | · | 0.0721 | · | 0.0456 | ·
+- `03:51:25`     Historical ERP r20  | 38776 | 1104 | 0.0361 | · | · | 40.38 | · | 0.0721 | · | 0.0444 | ·
+- `03:51:25`     Historical ERP r21  | 38807 | 1169 | 0.0383 | · | · | 40.34 | · | 0.0721 | · | 0.0416 | ·
+- `03:51:25`     Historical ERP r22  | 38837 | 1187 | 0.0365 | · | · | 40.34 | · | 0.0721 | · | 0.0454 | ·
+- `03:51:25`     Historical ERP r218 | 44804 | 7686.14 | 0.0475 | 0.0453 | 301.16 | 201.83 | 175.27 | 0.1399 | 0.0414 | 0.0409 | 0.0431   (near the end)
+- `03:51:25`     Historical ERP r219 | 44834 | 7652 | 0.0529 | 0.0507 | 306.5 | 198.17 | 176.54 | 0.1459 | 0.042 | 0.037 | 0.0392   (near the end)
+- `03:51:25`     Historical ERP r220 | 44865 | 7580 | 0.0494 | 0.0472 | 306.5 | 198.17 | 176.54 | 0.1552 | 0.0441 | 0.0379 | 0.0401   (near the end)
+- `03:51:25`     Last 12 months r1   | Date | S&P 500 | 10-year US Treasury | ERP
+- `03:51:25`     Last 12 months r2   | 44500 | 6840.2 | 0.0411 | 0.0395
+- `03:51:25`     Last 12 months r3   | 44530 | 6849 | 0.0402 | 0.0399
+- `03:51:25`     Last 12 months r4   | 44561 | 6846 | 0.0418 | 0.0423
+- `03:51:25`     Last 12 months r5   | 44592 | 6939 | 0.0426 | 0.0425
+- `03:51:25`     Last 12 months r6   | 44620 | 6879 | 0.0395 | 0.0437
+- `03:51:25`     Last 12 months r7   | 44651 | 6528 | 0.0432 | 0.0477
+- `03:51:25`     Last 12 months r8   | 44681 | 7209 | 0.044 | 0.0436
+- `03:51:25`     Last 12 months r9   | 44712 | 7580 | 0.0444 | 0.0431
+- `03:51:25`     Last 12 months r10  | 44742 | 7499 | 0.0445 | 0.042
+- `03:51:25`     Last 12 months r11  | 44773 | 7490 | 0.0474 | 0.0423
+- `03:51:25`     Last 12 months r12  | 44804 | 7686 | 0.0475 | 0.0409
+- `03:51:25`     Last 12 months r13  | 44834 | 7652 | 0.0529 | 0.037
+- `03:51:25`     Last 12 months r14  | 44865 | 7580 | 0.0494 | 0.0379
+- `03:51:25`     Last 12 months r16  | · | 0.1487
+- `03:51:25` histimpl.xls: HTTP 200, 113152 bytes, Last-Modified Thu, 08 Jan 2026 19:22:50 GMT, ETag "1ba00-647e555ab6b3e", type application/vnd.ms-excel | ~/pc/datasets/histimpl.xls
+- `03:51:25`   sheets: Historical Impl Premiums (82 rows, 19 wide); Sheet2 (0 rows, 0 wide); Sheet3 (0 rows, 0 wide); Sheet4 (0 rows, 0 wide); Sheet5 (0 rows, 0 wide); Sheet6 (0 rows, 0 wide); Sheet7 (0 rows, 0 wide); Sheet8 (0 rows, 0 wide); Sheet9 (0 rows, 0 wide); Sheet10 (0 rows, 0 wide); Sheet11 (0 rows, 0 wide); Sheet12 (0 rows, 0 wide); Sheet13 (0 rows, 0 wide); Sheet14 (0 rows, 0 wide); Sheet15 (0 rows, 0 wide); Sheet16 (0 rows, 0 wide)
+- `03:51:25`     Historical Imp r1   | Date updated: | 2024-01-05 | · | · | · | · | · | · | · | · | ·
+- `03:51:25`     Historical Imp r2   | Created by: | Aswath Damodaran, adam | · | · | · | · | · | · | · | · | ·
+- `03:51:25`     Historical Imp r3   | What is this data? | Implied Equity Risk Pr | · | · | · | S&P 500 | · | · | · | · | ·
+- `03:51:25`     Historical Imp r4   | Home Page: | http://www.damodaran.c | · | · | · | · | · | · | · | · | ·
+- `03:51:25`     Historical Imp r5   | Data website: | https://pages.stern.ny | · | · | · | · | · | · | · | · | ·
+- `03:51:25`     Historical Imp r7   | Year | Earnings Yield | Dividend Yield | S&P 500 | Earnings* | Dividends* | Dividends + Buybacks | Change in Earnings | Change in Dividends | T.Bill Rate | T.Bond Rate
+- `03:51:25`     Historical Imp r8   | 1960 | 0.0534 | 0.0341 | 58.11 | 3.1031 | 1.9816 | · | · | · | 0.0266 | 0.0276
+- `03:51:25`     Historical Imp r9   | 1961 | 0.0471 | 0.0285 | 71.55 | 3.37 | 2.0392 | · | 0.086 | 0.0291 | 0.0213 | 0.0235
+- `03:51:25`     Historical Imp r10  | 1962 | 0.0581 | 0.034 | 63.1 | 3.6661 | 2.1454 | · | 0.0879 | 0.0521 | 0.0273 | 0.0385
+- `03:51:25`     Historical Imp r11  | 1963 | 0.0551 | 0.0313 | 75.02 | 4.1336 | 2.3481 | · | 0.1275 | 0.0945 | 0.0312 | 0.0414
+- `03:51:25`     Historical Imp r12  | 1964 | 0.0562 | 0.0305 | 84.75 | 4.763 | 2.5849 | · | 0.1523 | 0.1008 | 0.0354 | 0.0421
+- `03:51:25`     Historical Imp r13  | 1965 | 0.0573 | 0.0306 | 92.43 | 5.2962 | 2.8284 | · | 0.112 | 0.0942 | 0.0393 | 0.0465
+- `03:51:25`     Historical Imp r14  | 1966 | 0.0674 | 0.0359 | 80.33 | 5.4142 | 2.8838 | · | 0.0223 | 0.0196 | 0.0476 | 0.0464
+- `03:51:25`     Historical Imp r15  | 1967 | 0.0566 | 0.0309 | 96.47 | 5.4602 | 2.9809 | · | 0.0085 | 0.0337 | 0.0421 | 0.057
+- `03:51:25`     Historical Imp r16  | 1968 | 0.0551 | 0.0293 | 103.86 | 5.7227 | 3.0431 | · | 0.0481 | 0.0209 | 0.0521 | 0.0616
+- `03:51:25`     Historical Imp r17  | 1969 | 0.0663 | 0.0352 | 92.06 | 6.1036 | 3.2405 | · | 0.0666 | 0.0649 | 0.0658 | 0.0788
+- `03:51:25`     Historical Imp r18  | 1970 | 0.0598 | 0.0346 | 92.15 | 5.5106 | 3.1884 | · | -0.0972 | -0.0161 | 0.0653 | 0.065
+- `03:51:25`     Historical Imp r19  | 1971 | 0.0546 | 0.031 | 102.09 | 5.5741 | 3.1648 | · | 0.0115 | -0.0074 | 0.0439 | 0.0589
+- `03:51:25`     Historical Imp r20  | 1972 | 0.0523 | 0.027 | 118.05 | 6.174 | 3.1873 | · | 0.1076 | 0.0071 | 0.0384 | 0.0641
+- `03:51:25`     Historical Imp r21  | 1973 | 0.0816 | 0.037 | 97.55 | 7.9601 | 3.6093 | · | 0.2893 | 0.1324 | 0.0693 | 0.069
+- `03:51:25`     Historical Imp r22  | 1974 | 0.1364 | 0.0543 | 68.56 | 9.3516 | 3.7228 | · | 0.1748 | 0.0314 | 0.08 | 0.074
+- `03:51:25`     Historical Imp r23  | 1975 | 0.0855 | 0.0414 | 90.19 | 7.7112 | 3.7339 | · | -0.1754 | 0.003 | 0.058 | 0.0776
+- `03:51:25`     Historical Imp r80  | · | 2016-2025 | 0.05 | 0.0784 | · | · | · | · | · | · | ·   (near the end)
+- `03:51:25`     Historical Imp r81  | · | End of 2024 | 0.0433 | 0.0881 | · | · | · | · | · | · | ·   (near the end)
+- `03:51:25`     Historical Imp r82  | · | End of 2024 | 0.0423 | 0.0841 | · | · | · | · | · | · | ·   (near the end)
+- `03:51:26` histretSP.xls: HTTP 200, 527872 bytes, Last-Modified Mon, 24 Aug 2026 15:39:01 GMT, ETag "80e00-659ccc90e5adf", type application/vnd.ms-excel | ~/pc/datasets/histretSP.xls
+- `03:51:26`   sheets: Explanations and FAQ (20 rows, 2 wide); Returns by year (131 rows, 37 wide); S&P 500 & Raw Data (101 rows, 11 wide); Small Cap (99 rows, 4 wide); T. Bond yield & return (106 rows, 3 wide); T. Bill rates (103 rows, 3 wide); Inflation Rate (123 rows, 3 wide); Summary for ppt (9 rows, 11 wide); Home Prices (Raw Data) (145 rows, 8 wide); Moody's Rates (118 rows, 15 wide); Home Prices (101 rows, 5 wide); Gold Prices (100 rows, 5 wide); Nominal vs Real Data (99 rows, 18 wide); Sheet11 (0 rows, 0 wide); Sheet12 (0 rows, 0 wide); Sheet13 (0 rows, 0 wide); Sheet14 (0 rows, 0 wide); Sheet15 (0 rows, 0 wide); Sheet16 (0 rows, 0 wide)
+- `03:51:26`     Explanations a r1   | End Game | My objective in this s
+- `03:51:26`     Explanations a r3   | Explanations, by asset | ·
+- `03:51:26`     Explanations a r4   | Stocks (Large Cap) | I use the S&P 500, whi
+- `03:51:26`     Explanations a r5   | Stocks (Small Cap) | I use the value-weight
+- `03:51:26`     Explanations a r6   | US T.Bond | I use the 10-year US t
+- `03:51:26`     Explanations a r7   | US T.Bill | I use the 3-month US t
+- `03:51:26`     Explanations a r8   | Aaa & Baa Corporate Bo | I obtain the yield on 
+- `03:51:26`     Explanations a r9   | Real Estate | I use the home price d
+- `03:51:26`     Explanations a r10  | Gold | Year-end prices for go
+- `03:51:26`     Explanations a r11  | Inflation Rate | I use the CPI for all 
+- `03:51:26`     Explanations a r12  | Real Returns | For each of the data s
+- `03:51:26`     Explanations a r13  | Arithmetic Average Ret | A simple average of th
+- `03:51:26`     Explanations a r14  | Geometric Average Retu | A compounded average o
+- `03:51:26`     Explanations a r15  | Risk Premium | The risk premium is th
+- `03:51:26`     Explanations a r17  | FAQ | ·
+- `03:51:26`     Explanations a r18  | How precise are the an | Since the S&P and US t
+- `03:51:26`     Explanations a r19  | How good as the averag | The returns, especiall
+- `03:51:26`     Explanations a r20  | Why do you keep the ma | Normally, when you buy
+- `03:51:26`     Returns by yea r1   | Date updated: | 2026-01-01 | · | · | · | · | · | · | · | · | ·
+- `03:51:26`     Returns by yea r2   | Created by: | Aswath Damodaran, adam | · | · | · | · | · | · | · | · | ·
+- `03:51:26`     Returns by yea r3   | What is this data? | Historical returns: St | · | · | · | · | · | · | In US Dollars | · | ·
+- `03:51:26`     Returns by yea r4   | Home Page: | http://www.damodaran.c | · | · | · | · | · | · | · | · | ·
+- `03:51:26`     Returns by yea r5   | Data website: | https://pages.stern.ny | · | · | · | · | · | · | · | · | ·
+- `03:51:26`     Returns by yea r6   | Companies in each indu | https://pages.stern.ny | · | · | · | · | · | · | · | · | ·
+- `03:51:26`     Returns by yea r7   | Variable definitions: | https://pages.stern.ny | · | · | · | · | · | · | · | · | ·
+- `03:51:26`     Returns by yea r8   | Customized Geometric r | · | · | · | · | · | · | · | · | · | ·
+- `03:51:26`     Returns by yea r9   | What is your riskfree  | · | · | LT | · | · | Estimates of risk prem | · | · | · | ·
+- `03:51:26`     Returns by yea r10  | Enter your starting ye | · | · | 1928 | · | · | · | · | · | · | ·
+- `03:51:26`     Returns by yea r12  | Value of stocks in sta | · | · | · | 100 | · | · | · | · | · | ·
+- `03:51:26`     Returns by yea r13  | Value of T.Bills in st | · | · | · | 100 | · | · | · | · | · | ·
+- `03:51:26`     Returns by yea r14  | Value of T.bonds in st | · | · | · | 100 | · | · | · | · | · | ·
+- `03:51:26`     Returns by yea r15  | Value of Real estate i | · | · | · | 100 | · | · | · | · | · | ·
+- `03:51:26`     Returns by yea r16  | Value of Gold in start | · | · | · | 100 | · | · | · | · | · | ·
+- `03:51:26`     Returns by yea r17  | Estimate of risk premi | · | · | · | 0.0548 | · | · | · | · | · | ·
+- `03:51:26`     Returns by yea r19  | · | Annual Returns on Inve | · | · | · | · | · | · | Value of $100 invested | · | ·
+- `03:51:26`     Returns by yea r20  | Year | S&P 500 (includes divi | US Small cap (bottom d | 3-month T.Bill | US T. Bond (10-year) |  Baa Corporate Bond | Real Estate | Gold* | S&P 500 (includes divi | US Small cap (bottom d | 3-month T.Bill4
+- `03:51:26`     Returns by yea r21  | 1928 | 0.4381 | 0.6215 | 0.0308 | 0.0084 | 0.0322 | 0.0149 | 0.001 | 143.8112 | 162.15 | 103.08
+- `03:51:26`     Returns by yea r22  | 1929 | -0.083 | -0.4608 | 0.0316 | 0.042 | 0.0302 | -0.0206 | -0.0015 | 131.8778 | 53.92 | 106.3373
+- `03:51:26`     Returns by yea r23  | 1930 | -0.2512 | -0.4835 | 0.0455 | 0.0454 | 0.0054 | -0.043 | 0.001 | 98.7453 | 51.65 | 111.1757
+- `03:51:26`     Returns by yea r24  | 1931 | -0.4384 | -0.4362 | 0.0231 | -0.0256 | -0.1568 | -0.0815 | -0.1738 | 55.4578 | 56.38 | 113.7438
+- `03:51:26`     Returns by yea r129 | · | · | · | · | · | · | · | · | · | · | ·   (near the end)
+- `03:51:26`     Returns by yea r130 | Note | · | · | · | · | · | · | · | · | · | ·   (near the end)
+- `03:51:26`     Returns by yea r131 | * Prior to 1971, gold  | · | · | · | · | · | · | · | · | · | ·   (near the end)
+- `03:51:26`     S&P 500 & Raw  r2   | Year | S&P 500 | Dividends | Dividend Yield | T.Bond rate | Return on bond | Aaa Bond Rate | Return on Aaa  | Baa Bond Rate | Return on Baa  | Returns on Real Estate
+- `03:51:26`     S&P 500 & Raw  r3   | 1927 | 17.66 | 0.6181 | 0.035 | 0.0317 | · | 0.0446 | · | 0.0532 | · | ·
+- `03:51:26`     S&P 500 & Raw  r4   | 1928 | 24.35 | 1.0471 | 0.043 | 0.0345 | 0.0084 | 0.0461 | 0.0328 | 0.056 | 0.0322 | 0.0149
+- `03:51:26`     S&P 500 & Raw  r5   | 1929 | 21.45 | 0.8794 | 0.041 | 0.0336 | 0.042 | 0.0467 | 0.0414 | 0.0595 | 0.0302 | -0.0206
+- `03:51:26`     S&P 500 & Raw  r6   | 1930 | 15.34 | 0.721 | 0.047 | 0.0322 | 0.0454 | 0.0452 | 0.0586 | 0.0671 | 0.0054 | -0.043
+- `03:51:26`     S&P 500 & Raw  r7   | 1931 | 8.12 | 0.4953 | 0.061 | 0.0393 | -0.0256 | 0.0532 | -0.0156 | 0.1042 | -0.1568 | -0.0815
+- `03:51:26`     S&P 500 & Raw  r8   | 1932 | 6.92 | 0.4982 | 0.072 | 0.0335 | 0.0879 | 0.0459 | 0.1107 | 0.0842 | 0.2359 | -0.1047
+- `03:51:26`     S&P 500 & Raw  r9   | 1933 | 9.97 | 0.4088 | 0.041 | 0.0353 | 0.0186 | 0.045 | 0.053 | 0.0775 | 0.1297 | -0.0381
+- `03:51:26`     S&P 500 & Raw  r10  | 1934 | 9.5 | 0.3515 | 0.037 | 0.0301 | 0.0796 | 0.0381 | 0.1015 | 0.0623 | 0.1882 | 0.0291
+- `03:51:26`     S&P 500 & Raw  r11  | 1935 | 13.43 | 0.5103 | 0.038 | 0.0284 | 0.0447 | 0.0344 | 0.069 | 0.053 | 0.1331 | 0.0977
+- `03:51:26`     S&P 500 & Raw  r12  | 1936 | 17.18 | 0.54 | 0.0314 | 0.0259 | 0.0502 | 0.031 | 0.0633 | 0.0453 | 0.1138 | 0.0322
+- `03:51:26`     S&P 500 & Raw  r13  | 1937 | 10.55 | 0.5592 | 0.053 | 0.0273 | 0.0138 | 0.0321 | 0.0217 | 0.0573 | -0.0442 | 0.0256
+- `03:51:26`     S&P 500 & Raw  r14  | 1938 | 13.14 | 0.4993 | 0.038 | 0.0256 | 0.0421 | 0.0308 | 0.0431 | 0.0527 | 0.0924 | -0.0087
+- `03:51:26`     S&P 500 & Raw  r15  | 1939 | 12.46 | 0.5358 | 0.043 | 0.0235 | 0.0441 | 0.0294 | 0.0428 | 0.0492 | 0.0798 | -0.013
+- `03:51:26`     S&P 500 & Raw  r16  | 1940 | 10.58 | 0.5502 | 0.052 | 0.0201 | 0.054 | 0.0271 | 0.0493 | 0.0445 | 0.0865 | 0.0331
+- `03:51:26`     S&P 500 & Raw  r17  | 1941 | 8.69 | 0.5388 | 0.062 | 0.0247 | -0.0202 | 0.028 | 0.0193 | 0.0438 | 0.0501 | -0.0838
+- `03:51:26`     S&P 500 & Raw  r18  | 1942 | 9.77 | 0.5862 | 0.06 | 0.0249 | 0.0229 | 0.0281 | 0.0271 | 0.0428 | 0.0518 | 0.0333
+- `03:51:26`     S&P 500 & Raw  r19  | 1943 | 11.67 | 0.5485 | 0.047 | 0.0249 | 0.0249 | 0.0274 | 0.0342 | 0.0382 | 0.0804 | 0.1145
+- `03:51:26`     S&P 500 & Raw  r20  | 1944 | 13.28 | 0.6109 | 0.046 | 0.0248 | 0.0258 | 0.027 | 0.0309 | 0.0349 | 0.0657 | 0.1658
+- `03:51:26`     S&P 500 & Raw  r21  | 1945 | 17.36 | 0.677 | 0.039 | 0.0233 | 0.038 | 0.0261 | 0.0348 | 0.031 | 0.068 | 0.1178
+- `03:51:26`     S&P 500 & Raw  r22  | 1946 | 15.3 | 0.5967 | 0.039 | 0.0224 | 0.0313 | 0.0261 | 0.0261 | 0.0317 | 0.0251 | 0.241
+- `03:51:26`     S&P 500 & Raw  r23  | 1947 | 15.3 | 0.7956 | 0.052 | 0.0239 | 0.0092 | 0.0286 | 0.0046 | 0.0352 | 0.0026 | 0.2126
+- `03:51:26`     S&P 500 & Raw  r99  | 2023 | 4769.8 | 70.3 | 0.0183 | 0.0388 | 0.0388 | 0.0465 | 0.0509 | 0.0549 | 0.0874 | 0.0564   (near the end)
+- `03:51:26`     S&P 500 & Raw  r100 | 2024 | 5881.63 | 74.83 | 0.0157 | 0.0458 | -0.0164 | 0.054 | -0.0103 | 0.06 | 0.0174 | 0.0396   (near the end)
+- `03:51:26`     S&P 500 & Raw  r101 | 2025 | 6845.5 | 78.57 | 0.0134 | 0.0412 | 0.078 | 0.0531 | 0.0608 | 0.0587 | 0.0696 | 0.0158   (near the end)
+- `03:51:26`     Small Cap r1   | Year | Return | · | ·
+- `03:51:26`     Small Cap r2   | 1928 | 0.6215 | 62.15 | ·
+- `03:51:26`     Small Cap r3   | 1929 | -0.4608 | -46.08 | ·
+- `03:51:26`     Small Cap r4   | 1930 | -0.4835 | -48.35 | ·
+- `03:51:26`     Small Cap r5   | 1931 | -0.4362 | -43.62 | ·
+- `03:51:26`     Small Cap r6   | 1932 | 0.2865 | 28.65 | ·
+- `03:51:26`     Small Cap r7   | 1933 | 1.466 | 146.6 | ·
+- `03:51:26`     Small Cap r8   | 1934 | 0.2307 | 23.07 | ·
+- `03:51:26`     Small Cap r9   | 1935 | 0.549 | 54.9 | ·
+- `03:51:26`     Small Cap r10  | 1936 | 0.9641 | 96.41 | ·
+- `03:51:26`     Small Cap r11  | 1937 | -0.5394 | -53.94 | ·
+- `03:51:26`     Small Cap r12  | 1938 | 0.0516 | 5.16 | ·
+- `03:51:26`     Small Cap r13  | 1939 | -0.0486 | -4.86 | ·
+- `03:51:26`     Small Cap r14  | 1940 | -0.3288 | -32.88 | ·
+- `03:51:26`     Small Cap r15  | 1941 | -0.0675 | -6.75 | ·
+- `03:51:26`     Small Cap r16  | 1942 | 0.6301 | 63.01 | ·
+- `03:51:26`     Small Cap r17  | 1943 | 1.4302 | 143.02 | ·
+- `03:51:26`     Small Cap r18  | 1944 | 0.7115 | 71.15 | ·
+- `03:51:26`     Small Cap r19  | 1945 | 0.9441 | 94.41 | ·
+- `03:51:26`     Small Cap r20  | 1946 | -0.1373 | -13.73 | ·
+- `03:51:26`     Small Cap r21  | 1947 | -0.0174 | -1.74 | ·
+- `03:51:26`     Small Cap r22  | 1948 | -0.0001 | -0.01 | ·
+- `03:51:26`     Small Cap r97  | 2023 | 0.0519 | 5.19 | ·   (near the end)
+- `03:51:26`     Small Cap r98  | 2024 | 0.087 | 8.7 | ·   (near the end)
+- `03:51:26`     Small Cap r99  | 2025 | 0.1653 | 16.53 | (thru Nov 2025)   (near the end)
+- `03:51:27` ctryprem.xlsx: HTTP 200, 379527 bytes, Last-Modified Mon, 16 Feb 2026 22:20:18 GMT, ETag "5ca87-64af85c21bb5e", type application/vnd.openxmlformats | ~/pc/datasets/ctryprem.xlsx
+- `03:51:27`   sheets: Explanation and FAQ (42 rows, 9 wide); Summary of Most Recent Update (8 rows, 2 wide); Country Lookup (31 rows, 4 wide); ERPs by country (212 rows, 11 wide); Relative Equity Volatility (1319 rows, 10 wide); Regional Simple Averages (14 rows, 5 wide); Regional Weighted Averages (198 rows, 13 wide); Regional breakdown (158 rows, 9 wide); Sovereign Ratings (Moody's,S&P) (158 rows, 8 wide); Regional lookup table (162 rows, 2 wide); Default Spreads for Ratings (91 rows, 12 wide); 10-year CDS Spreads (158 rows, 10 wide); Equity vs Govt Bond vol Risky (84 rows, 8 wide); Country GDP (266 rows, 14 wide); Ratings worksheet (199 rows, 18 wide); Country Tax Rates (226 rows, 12 wide); PRS Worksheet (183 rows, 15 wide); Data Update Sequence (9 rows, 1 wide)
+- `03:51:27`     Explanation an r1   | Country Risk Premiums
+- `03:51:27`     Explanation an r2   | To estimate the equity
+- `03:51:27`     Explanation an r3   | Use the look up table 
+- `03:51:27`     Explanation an r5   | Step 1: Estimating mat
+- `03:51:27`     Explanation an r6   | To estimate the mature
+- `03:51:27`     Explanation an r7   | Link to site: | http://www.damodaran.c
+- `03:51:27`     Explanation an r8   | Historical monthly ERP | https://pages.stern.ny
+- `03:51:27`     Explanation an r9   | Until the January 2025
+- `03:51:27`     Explanation an r10  | On May 16, 2025, Moody
+- `03:51:27`     Explanation an r11  | Mature market premium 
+- `03:51:27`     Explanation an r12  | In January 2026, for e
+- `03:51:27`     Explanation an r13  | Mature market premium 
+- `03:51:27`     Explanation an r15  | Step 2: Estimate the d
+- `03:51:27`     Explanation an r16  | Moody's ratings: | http://www.moodys.com | · | (You will have to regi
+- `03:51:27`     Explanation an r17  | Ratings to spreads: | Based upon my estimate
+- `03:51:27`     Explanation an r18  | CDS spreads: | Bloomberg
+- `03:51:27`     Explanation an r19  | If you cannot find a c
+- `03:51:27`     Explanation an r21  | Step 3: Convert the de
+- `03:51:27`     Explanation an r22  | With sovereign ratings
+- `03:51:27`     Explanation an r23  | Choice 1: Use the defa
+- `03:51:27`     Explanation an r24  | Choice 2: Scale the de
+- `03:51:27`     Explanation an r25  | With CDS spreads, I co
+- `03:51:27`     Explanation an r40  | Watch my lectures on c | · | · | · | https://papers.ssrn.co   (near the end)
+- `03:51:27`     Explanation an r41  | · | · | · | · | https://www.youtube.co   (near the end)
+- `03:51:27`     Explanation an r42  | · | · | · | · | https://www.youtube.co   (near the end)
+- `03:51:27`     Summary of Mos r1   | · | Update Notes
+- `03:51:27`     Summary of Mos r2   | Mature Marlet Premium | The starting point for
+- `03:51:27`     Summary of Mos r3   | US ERP | ERP for US = Implled E
+- `03:51:27`     Summary of Mos r4   | Mature market ERP | Mature market ERP = ER
+- `03:51:27`     Summary of Mos r5   | Sovereign Ratings | The ratings (Moody's a
+- `03:51:27`     Summary of Mos r6   | Default Spreads |  The change in default
+- `03:51:27`     Summary of Mos r7   | Relative Equity Market | The biggest change in 
+- `03:51:27`     Summary of Mos r8   | Bottom Line | The combination of a l
+- `03:51:27`     Country Lookup r1   | To look up the equity 
+- `03:51:27`     Country Lookup r2   | Country | Turkey | · | If you cannot find a c
+- `03:51:27`     Country Lookup r3   | · | · | · | or a sovereign CDS spr
+- `03:51:27`     Country Lookup r4   | Moody's sovereign rati | Ba3 | Local currency
+- `03:51:27`     Country Lookup r5   | S&P sovereign rating | BB- | Local currency
+- `03:51:27`     Country Lookup r6   | CDS spread | 0.0299
+- `03:51:27`     Country Lookup r7   | Excess CDS spread (ove | 0.0285
+- `03:51:27`     Country Lookup r9   | Country Default Spread | 0.0306
+- `03:51:27`     Country Lookup r10  | Country Risk Premium ( | 0.0466
+- `03:51:27`     Country Lookup r11  | Equity Risk Premium (R | 0.0889
+- `03:51:27`     Country Lookup r13  | Country Risk Premium ( | 0.0434
+- `03:51:27`     Country Lookup r14  | Equity Risk Premium (C | 0.0857
+- `03:51:27`     Country Lookup r16  | To look up the equity 
+- `03:51:27`     Country Lookup r17  | Region | Asia
+- `03:51:27`     Country Lookup r19  | Country Risk Premium ( | 0.0483
+- `03:51:27`     Country Lookup r20  | Total Equity Risk Prem | 0.0906
+- `03:51:27`     Country Lookup r22  | Country Risk Premium ( | 0.0149
+- `03:51:27`     Country Lookup r23  | Total Equity Risk Prem | 0.0572
+- `03:51:27`     Country Lookup r25  | To construct your own 
+- `03:51:27`     Country Lookup r27  | For countries not on t
+- `03:51:27`     Country Lookup r28  | Country | Zimbabwe
+- `03:51:27`     Country Lookup r30  | PRS Score | 58.5
+- `03:51:27`     Country Lookup r28  | Country | Zimbabwe   (near the end)
+- `03:51:27`     Country Lookup r30  | PRS Score | 58.5   (near the end)
+- `03:51:27`     Country Lookup r31  | ERP based on PRS Score | 0.1589   (near the end)
+- `03:51:27`     ERPs by countr r1   | Country and Equity Ris
+- `03:51:27`     ERPs by countr r2   | Date of update: | 44561 | (Updated Feb 16 for so
+- `03:51:27`     ERPs by countr r3   | Enter the current risk | · | · | · | 0.0423 | Implied ERP for S&P 50
+- `03:51:27`     ERPs by countr r4   | Enter the current risk | · | · | · | 0.0446 | US equity risk premium
+- `03:51:27`     ERPs by countr r5   | Do you want to adjust  | · | · | · | Yes
+- `03:51:27`     ERPs by countr r6   | If yes, enter the mult | · | · | · | 1.5234 | See "Relative Equity V
+- `03:51:27`     ERPs by countr r8   | Country | Africa | Moody's rating | Rating-based Default S | Total Equity Risk Prem | Country Risk Premium | Sovereign CDS, net of  | Total Equity Risk Prem | Country Risk Premium3 | Has to be sorted in as
+- `03:51:27`     ERPs by countr r9   | Abu Dhabi | Middle East | Aa2 | 0.0042 | 0.0487 | 0.0064 | 0.0046 | 0.0493 | 0.007 | Rating | Default spread in basi
+- `03:51:27`     ERPs by countr r10  | Albania | Eastern Europe & Russi | Ba3 | 0.0306 | 0.0889 | 0.0466 | NA | NA | NA | A1 | 59.9293
+- `03:51:27`     ERPs by countr r11  | Andorra (Principality  | Western Europe | Baa1 | 0.0136 | 0.063 | 0.0207 | NA | NA | NA | A2 | 71.9151
+- `03:51:27`     ERPs by countr r12  | Angola | Africa | B3 | 0.0552 | 0.1264 | 0.0841 | 0.061 | 0.1352 | 0.0929 | A3 | 101.8797
+- `03:51:27`     ERPs by countr r13  | Argentina | Central and South Amer | Caa1 | 0.0637 | 0.1394 | 0.0971 | NA | NA | NA | Aa1 | 23.3368
+- `03:51:27`     ERPs by countr r14  | Armenia | Eastern Europe & Russi | Ba3 | 0.0306 | 0.0889 | 0.0466 | NA | NA | NA | Aa2 | 41.9505
+- `03:51:27`     ERPs by countr r15  | Aruba | Caribbean | Baa3 | 0.0187 | 0.0708 | 0.0285 | NA | NA | NA | Aa3 | 50.9399
+- `03:51:27`     ERPs by countr r16  | Australia | Australia & New Zealan | Aaa | 0 | 0.0423 | 0 | 0.0005 | 0.0431 | 0.0008 | Aaa | 0
+- `03:51:27`     ERPs by countr r17  | Austria | Western Europe | Aa1 | 0.0023 | 0.0459 | 0.0036 | 0.0014 | 0.0444 | 0.0021 | B1 | 382.5485
+- `03:51:27`     ERPs by countr r18  | Azerbaijan | Eastern Europe & Russi | Baa3 | 0.0187 | 0.0708 | 0.0285 | NA | NA | NA | B2 | 467.4483
+- `03:51:27`     ERPs by countr r19  | Bahamas | Caribbean | B1 | 0.0383 | 0.1006 | 0.0583 | NA | NA | NA | B3 | 552.3481
+- `03:51:27`     ERPs by countr r20  | Bahrain | Middle East | B2 | 0.0467 | 0.1135 | 0.0712 | 0.0233 | 0.0778 | 0.0355 | Ba1 | 212.7489
+- `03:51:27`     ERPs by countr r21  | Bangladesh | Asia | B2 | 0.0467 | 0.1135 | 0.0712 | NA | NA | NA | Ba2 | 255.6982
+- `03:51:27`     ERPs by countr r22  | Barbados | Caribbean | B2 | 0.0467 | 0.1135 | 0.0712 | NA | NA | NA | Ba3 | 305.6392
+- `03:51:27`     ERPs by countr r23  | Belarus | Eastern Europe & Russi | C | 0.175 | 0.3089 | 0.2666 | NA | NA | NA | Baa1 | 135.8397
+- `03:51:27`     ERPs by countr r210 | · | Caa2 | 765.0969   (near the end)
+- `03:51:27`     ERPs by countr r211 | · | Caa3 | 849.9967   (near the end)
+- `03:51:27`     ERPs by countr r212 | · | NR | NA   (near the end)
+- `03:51:28` wacc.xls: HTTP 200, 77312 bytes, Last-Modified Mon, 12 Jan 2026 13:41:41 GMT, ETag "12e00-6483108fad634", type application/vnd.ms-excel | ~/pc/datasets/wacc.xls
+- `03:51:28`   sheets: Variables & FAQ (11 rows, 3 wide); Industry Averages (115 rows, 12 wide)
+- `03:51:28`     Variables & FA r1   | End Game | To estimate the hurdle | ·
+- `03:51:28`     Variables & FA r3   | Variable | Explanation | Why?
+- `03:51:28`     Variables & FA r4   | Number of firms | Number of firms in the | Law of large numbers?
+- `03:51:28`     Variables & FA r5   | Beta | Average regression bet | Relative risk of secto
+- `03:51:28`     Variables & FA r6   | Cost of Equity | Risk free Rate + Beta  | Required return on equ
+- `03:51:28`     Variables & FA r7   | D/(D+E) | Total Debt (including  | Measure of debt used, 
+- `03:51:28`     Variables & FA r8   | Cost of debt | Pre-tax cost of borrow | This is an approximati
+- `03:51:28`     Variables & FA r9   | After-tax Cost of Debt | Pre-tax cost of borrow | Interest saves you tax
+- `03:51:28`     Variables & FA r10  | Cost of Capital | Cost of Equity * (Equi | Required return on inv
+- `03:51:28`     Variables & FA r11  | Cost of Capital (local | You can convert the $  | Required return on inv
+- `03:51:28`     Industry Avera r1   | Date updated: | 2026-01-05 | · | · | · | · | · | YouTube Video explaini | Notes
+- `03:51:28`     Industry Avera r2   | Created by: | Aswath Damodaran, adam | · | · | · | · | · | · | Notes on how cost of c
+- `03:51:28`     Industry Avera r3   | What is this data? | Cost of equity and cap | · | · | · | US companies | · | · | ·
+- `03:51:28`     Industry Avera r4   | Home Page: | http://www.damodaran.c | · | · | · | · | · | · | ·
+- `03:51:28`     Industry Avera r5   | Data website: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:28`     Industry Avera r6   | Companies in each indu | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:28`     Industry Avera r7   | Variable definitions: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:28`     Industry Avera r8   | To update this spreads | · | · | · | · | · | Cost of Debt Lookup Ta | · | ·
+- `03:51:28`     Industry Avera r9   | Long Term Treasury bon | · | · | 0.0395 | · | · | Standard Deviation | · | Basis Spread
+- `03:51:28`     Industry Avera r10  | Risk Premium to Use fo | · | · | 0.0446 | · | · | 0 | 0.3 | 0.0055
+- `03:51:28`     Industry Avera r11  | Global Default Spread  | · | · | 0.0023 | · | · | 0.3 | 0.45 | 0.0089
+- `03:51:28`     Industry Avera r12  | Do you want to use the | · | · | · | · | Yes | 0.45 | 0.65 | 0.0111
+- `03:51:28`     Industry Avera r13  | If yes, enter the marg | · | · | · | · | 0.25 | 0.65 | 0.8 | 0.0184
+- `03:51:28`     Industry Avera r113 | Utility (Water) | 14 | 0.4127 | 0.0579 | 0.6159 | 0.296 | 0.0473 | 0.1119 | 0.0355   (near the end)
+- `03:51:28`     Industry Avera r114 | Total Market | 5994 | 0.9121 | 0.0802 | 0.7398 | 0.4807 | 0.0529 | 0.083 | 0.0397   (near the end)
+- `03:51:28`     Industry Avera r115 | Total Market (without  | 4822 | 0.9913 | 0.0837 | 0.8526 | 0.5276 | 0.0529 | 0.071 | 0.0397   (near the end)
+- `03:51:29` waccGlobal.xls: HTTP 200, 75264 bytes, Last-Modified Thu, 08 Jan 2026 19:22:45 GMT, ETag "12600-647e555596309", type application/vnd.ms-excel | ~/pc/datasets/waccGlobal.xls
+- `03:51:29`   sheets: Industry Averages (115 rows, 11 wide); Variables & FAQ (11 rows, 3 wide)
+- `03:51:29`     Industry Avera r1   | Date updated: | 2026-01-05 | · | · | · | · | · | YouTube Video explaini | Notes
+- `03:51:29`     Industry Avera r2   | Created by: | Aswath Damodaran, adam | · | · | · | · | · | · | Notes on how cost of c
+- `03:51:29`     Industry Avera r3   | What is this data? | Cost of equity and cap | · | · | · | Global | · | · | ·
+- `03:51:29`     Industry Avera r4   | Home Page: | http://www.damodaran.c | · | · | · | · | · | · | ·
+- `03:51:29`     Industry Avera r5   | Data website: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:29`     Industry Avera r6   | Companies in each indu | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:29`     Industry Avera r7   | Variable definitions: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:29`     Industry Avera r8   | To update this spreads | · | · | · | · | · | Cost of Debt Lookup Ta | · | ·
+- `03:51:29`     Industry Avera r9   | Long Term Treasury bon | · | · | 0.0395 | · | · | Standard Deviation | · | Basis Spread
+- `03:51:29`     Industry Avera r10  | Risk Premium to Use fo | · | · | 0.0563 | Global weighted averag | · | 0 | 0.3 | 0.0055
+- `03:51:29`     Industry Avera r11  | Global Default Spread  | · | · | 0.0094 | Global weighted averag | · | 0.3 | 0.45 | 0.0089
+- `03:51:29`     Industry Avera r12  | Do you want to use the | · | · | · | · | Yes | 0.45 | 0.65 | 0.0111
+- `03:51:29`     Industry Avera r13  | If yes, enter the marg | · | · | · | · | 0.2522 | 0.65 | 0.8 | 0.0184
+- `03:51:29`     Industry Avera r113 | Utility (Water) | 106 | 0.7046 | 0.0792 | 0.5228 | 0.3349 | 0.0578 | 0.1609 | 0.0432   (near the end)
+- `03:51:29`     Industry Avera r114 | Total Market | 48156 | 1.0403 | 0.0981 | 0.6602 | 0.4207 | 0.0578 | 0.1331 | 0.0432   (near the end)
+- `03:51:29`     Industry Avera r115 | Total Market (without  | 43056 | 1.0774 | 0.1002 | 0.794 | 0.4302 | 0.0578 | 0.1313 | 0.0432   (near the end)
+- `03:51:29`     Variables & FA r1   | End Game | To estimate the hurdle | ·
+- `03:51:29`     Variables & FA r3   | Variable | Explanation | Why?
+- `03:51:29`     Variables & FA r4   | Number of firms | Number of firms in the | Law of large numbers?
+- `03:51:29`     Variables & FA r5   | Beta | Average regression bet | Relative risk of secto
+- `03:51:29`     Variables & FA r6   | Cost of Equity | Risk free Rate + Beta  | Required return on equ
+- `03:51:29`     Variables & FA r7   | D/(D+E) | Total Debt (including  | Measure of debt used, 
+- `03:51:29`     Variables & FA r8   | Cost of debt | Pre-tax cost of borrow | This is an approximati
+- `03:51:29`     Variables & FA r9   | After-tax Cost of Debt | Pre-tax cost of borrow | Interest saves you tax
+- `03:51:29`     Variables & FA r10  | Cost of Capital | Cost of Equity * (Equi | Required return on inv
+- `03:51:29`     Variables & FA r11  | Cost of Capital (local | You can convert the $  | Required return on inv
+- `03:51:29` betas.xls: HTTP 200, 82432 bytes, Last-Modified Sun, 12 Apr 2026 16:39:33 GMT, ETag "14200-64f4602c57636", type application/vnd.ms-excel | ~/pc/datasets/betas.xls
+- `03:51:29`   sheets: Explanations & FAQ (13 rows, 3 wide); Industry Averages (106 rows, 16 wide); Inputs (2 rows, 1 wide)
+- `03:51:29`     Explanations & r1   | End Game | To estimate pure play  | ·
+- `03:51:29`     Explanations & r3   | Variable | Explanation | Why?
+- `03:51:29`     Explanations & r4   | Number of firms | Number of firms in the | Law of large numbers?
+- `03:51:29`     Explanations & r5   | Beta | Simple average across  | I average the 2-year a
+- `03:51:29`     Explanations & r6   | D/E Ratio | Total debt, including  | My definition of debt 
+- `03:51:29`     Explanations & r7   | Effective Tax Rate | Effective tax rate in  | I need a tax rate.
+- `03:51:29`     Explanations & r8   | Unlevered Beta | Beta/ (1+ (1-tax rate) | Interest saves you tax
+- `03:51:29`     Explanations & r9   | Cash/Firm Value | Cash & Marketable Secu | Cash is usualy investe
+- `03:51:29`     Explanations & r10  | Unlevered Beta correct | Unlevered Beta/ (1- Ca | The standard unlevered
+- `03:51:29`     Explanations & r11  | HiLo Risk | Simple average of (Hig | If you don't like maki
+- `03:51:29`     Explanations & r12  | Standard deviation (eq | Simple average across  | This is the total risk
+- `03:51:29`     Explanations & r13  | Standard deviation (op | Simple average across  | If you don't like pric
+- `03:51:29`     Industry Avera r1   | Date updated: | 2026-01-05 | · | · | · | · | · | YouTube Video explaini | Notes
+- `03:51:29`     Industry Avera r2   | Created by: | Aswath Damodaran, adam | · | · | · | · | · | · | if you are looking for
+- `03:51:29`     Industry Avera r3   | What is this data? | Beta, Unlevered beta a | · | · | · | US companies | · | · | ·
+- `03:51:29`     Industry Avera r4   | Home Page: | http://www.damodaran.c | · | · | · | · | · | · | ·
+- `03:51:29`     Industry Avera r5   | Data website: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:29`     Industry Avera r6   | Companies in each indu | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:29`     Industry Avera r7   | Variable definitions: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:29`     Industry Avera r8   | Do you want to use mar | · | · | · | · | Marginal | · | · | ·
+- `03:51:29`     Industry Avera r9   | If marginal tax rate,  | · | · | · | · | 0.25 | · | · | ·
+- `03:51:29`     Industry Avera r10  | Industry Name | Number of firms | Beta  | D/E Ratio | Effective Tax rate | Unlevered beta | Cash/Firm value | Unlevered beta correct | HiLo Risk
+- `03:51:29`     Industry Avera r11  | Advertising | 52 | 1.2105 | 0.402 | 0.0502 | 0.9301 | 0.0773 | 1.008 | 0.6233
+- `03:51:29`     Industry Avera r12  | Aerospace/Defense | 79 | 0.9455 | 0.1556 | 0.1158 | 0.8467 | 0.0261 | 0.8694 | 0.5213
+- `03:51:29`     Industry Avera r13  | Air Transport | 23 | 1.1855 | 0.9117 | 0.0829 | 0.7041 | 0.0711 | 0.7579 | 0.5152
+- `03:51:29`     Industry Avera r104 | Utility (Water) | 14 | 0.4127 | 0.6236 | 0.1119 | 0.2812 | 0.0046 | 0.2825 | 0.2491   (near the end)
+- `03:51:29`     Industry Avera r105 | Total Market | 5994 | 0.9121 | 0.3517 | 0.083 | 0.7217 | 0.045 | 0.7557 | 0.4807   (near the end)
+- `03:51:29`     Industry Avera r106 | Total Market (without  | 4822 | 0.9913 | 0.1729 | 0.071 | 0.8775 | 0.026 | 0.901 | 0.5345   (near the end)
+- `03:51:30` totalbeta.xls: HTTP 200, 56320 bytes, Last-Modified Thu, 08 Jan 2026 19:22:49 GMT, ETag "dc00-647e5559464a4", type application/vnd.ms-excel | ~/pc/datasets/totalbeta.xls
+- `03:51:30`   sheets: Variables & FAQ (9 rows, 3 wide); Industry Averages (104 rows, 9 wide)
+- `03:51:30`     Variables & FA r1   | End Game | To estimate risk in a  | ·
+- `03:51:30`     Variables & FA r3   | Variable | Explanation | Why?
+- `03:51:30`     Variables & FA r4   | Number of firms | Number of firms in the | Law of large numbers?
+- `03:51:30`     Variables & FA r5   | Average Unlevered Beta | Unlevered beta, correc | Income subject to taxa
+- `03:51:30`     Variables & FA r6   | Average Levered Beta | Levered beta, correcte | Accrual estimate of ta
+- `03:51:30`     Variables & FA r7   | Average correlation wi | Correlation of stock w | Cash taxes paid
+- `03:51:30`     Variables & FA r8   | Total Unlevered Beta | Total Unlevered Beta = | Expands risk measure (
+- `03:51:30`     Variables & FA r9   | Total Levered Beta | Total Levered Beta = L | Expands risk measure (
+- `03:51:30`     Industry Avera r1   | Date updated: | 2026-01-05 | · | · | · | · | · | YouTube Video explaini | Notes
+- `03:51:30`     Industry Avera r2   | Created by: | Aswath Damodaran, adam | · | · | · | · | · | · | When investors are div
+- `03:51:30`     Industry Avera r3   | What is this data? | Total Beta (beta for c | · | · | · | US companies | · | · | ·
+- `03:51:30`     Industry Avera r4   | Home Page: | http://www.damodaran.c | · | · | · | · | · | · | ·
+- `03:51:30`     Industry Avera r5   | Data website: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:30`     Industry Avera r6   | Companies in each indu | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:30`     Industry Avera r7   | Variable definitions: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:30`     Industry Avera r8   | Industry Name | Number of firms | Average Unlevered Beta | Average Levered Beta | Average correlation wi | Total Unlevered Beta | Total Levered Beta | · | ·
+- `03:51:30`     Industry Avera r9   | Advertising | 52 | 1.008 | 1.2105 | 0.21 | 4.799 | 5.7631 | · | ·
+- `03:51:30`     Industry Avera r10  | Aerospace/Defense | 79 | 0.8694 | 0.9455 | 0.3179 | 2.7349 | 2.9743 | · | ·
+- `03:51:30`     Industry Avera r11  | Air Transport | 23 | 0.7579 | 1.1855 | 0.2916 | 2.5992 | 4.0655 | · | ·
+- `03:51:30`     Industry Avera r12  | Apparel | 35 | 0.7946 | 0.9359 | 0.266 | 2.9873 | 3.5186 | · | ·
+- `03:51:30`     Industry Avera r13  | Auto & Truck | 33 | 1.3082 | 1.4565 | 0.1849 | 7.0732 | 7.8752 | · | ·
+- `03:51:30`     Industry Avera r102 | Utility (Water) | 14 | 0.2825 | 0.4127 | 0.1488 | 1.898 | 2.7729 | · | ·   (near the end)
+- `03:51:30`     Industry Avera r103 | Total Market | 5994 | 0.7557 | 0.9121 | 0.2491 | 3.0342 | 3.6621 | · | ·   (near the end)
+- `03:51:30`     Industry Avera r104 | Total Market (without  | 4822 | 0.901 | 0.9913 | 0.2456 | 3.6681 | 4.0358 | · | ·   (near the end)
+- `03:51:31` margin.xls: HTTP 200, 78336 bytes, Last-Modified Thu, 08 Jan 2026 19:22:50 GMT, ETag "13200-647e555a427de", type application/vnd.ms-excel | ~/pc/datasets/margin.xls
+- `03:51:31`   sheets: Variables & FAQ (23 rows, 3 wide); Industry Averages (105 rows, 19 wide)
+- `03:51:31`     Variables & FA r1   | End Game | Measures of profitabil | ·
+- `03:51:31`     Variables & FA r3   | Variable | Explanation | Why?
+- `03:51:31`     Variables & FA r4   | Number of firms | Number of firms in the | Law of large numbers?
+- `03:51:31`     Variables & FA r5   | Gross Margin | Aggregated gross profi | Profitability after su
+- `03:51:31`     Variables & FA r6   | Net Margin | Aggregated net profits | Profitability, after a
+- `03:51:31`     Variables & FA r7   | Pre-tax, Pre-stock com | Aggregated operating p | Operating profitablity
+- `03:51:31`     Variables & FA r8   | Pre-tax Unadjusted Ope | Aggregated as-stated o | Operating profitabilit
+- `03:51:31`     Variables & FA r9   | After-tax Unadjusted O | Aggregated as-stated o | Operating profitabilit
+- `03:51:31`     Variables & FA r10  | Pre-tax Lease adjusted | Aggregated operating p | Operating profitabilit
+- `03:51:31`     Variables & FA r11  | After-tax Lease Adjust | Aggregated operating p | Operating profitabilit
+- `03:51:31`     Variables & FA r12  | Pre-tax Lease & R&D ad | Aggregated operating p | Operating profitabilit
+- `03:51:31`     Variables & FA r13  | After-tax Lease & R&D  | Aggregated operating p | Operating profitabilit
+- `03:51:31`     Variables & FA r14  | EBITDA/Sales | Aggregated EBITDA as a | Measure of pre-tax cas
+- `03:51:31`     Variables & FA r20  | Lease Expense/Sales | Aggregated current yea | Measure of current yea   (near the end)
+- `03:51:31`     Variables & FA r22  | Lease adjustment to op | Operating Income + Cur | Lease expenses are fin   (near the end)
+- `03:51:31`     Variables & FA r23  | R&D adjustment to oper | Operating Income + Cur | R&D is a capital, not    (near the end)
+- `03:51:31`     Industry Avera r1   | Date updated: | 2026-01-05 | · | · | · | · | · | · | ·
+- `03:51:31`     Industry Avera r2   | Created by: | Aswath Damodaran, adam | · | · | · | · | · | · | ·
+- `03:51:31`     Industry Avera r3   | What is this data? | Profit margins (net, o | · | · | · | US companies | · | · | ·
+- `03:51:31`     Industry Avera r4   | Home Page: | http://www.damodaran.c | · | · | · | · | · | · | ·
+- `03:51:31`     Industry Avera r5   | Data website: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:31`     Industry Avera r6   | Companies in each indu | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:31`     Industry Avera r7   | Variable definitions: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:31`     Industry Avera r8   | · | · | Gross Income Based | Net Income Based | Operating Income Based | · | · | · | ·
+- `03:51:31`     Industry Avera r9   | Industry Name | Number of firms | Gross Margin | Net Margin | Pre-tax, Pre-stock com | Pre-tax Unadjusted Ope | After-tax Unadjusted O | Pre-tax Lease adjusted | After-tax Lease Adjust
+- `03:51:31`     Industry Avera r10  | Advertising | 52 | 0.3624 | -0.003 | 0.133 | 0.1007 | 0.0956 | 0.1005 | 0.0954
+- `03:51:31`     Industry Avera r11  | Aerospace/Defense | 79 | 0.1748 | 0.0499 | 0.098 | 0.0865 | 0.0765 | 0.087 | 0.0769
+- `03:51:31`     Industry Avera r12  | Air Transport | 23 | 0.2479 | 0.0251 | 0.0568 | 0.0532 | 0.0488 | 0.0488 | 0.0448
+- `03:51:31`     Industry Avera r13  | Apparel | 35 | 0.5688 | 0.0385 | 0.1018 | 0.0911 | 0.0823 | 0.0989 | 0.0894
+- `03:51:31`     Industry Avera r103 | Utility (Water) | 14 | 0.5897 | 0.2116 | 0.3446 | 0.3372 | 0.2994 | 0.3365 | 0.2988   (near the end)
+- `03:51:31`     Industry Avera r104 | Total Market | 5994 | 0.3776 | 0.0974 | 0.1439 | 0.1282 | 0.1175 | 0.1275 | 0.1169   (near the end)
+- `03:51:31`     Industry Avera r105 | Total Market (without  | 4822 | 0.3439 | 0.0856 | 0.1465 | 0.1314 | 0.122 | 0.1306 | 0.1213   (near the end)
+- `03:51:31` pedata.xls: HTTP 200, 61952 bytes, Last-Modified Thu, 08 Jan 2026 19:22:49 GMT, ETag "f200-647e5559bf630", type application/vnd.ms-excel | ~/pc/datasets/pedata.xls
+- `03:51:31`   sheets: Variables & FAQ (12 rows, 3 wide); Industry Averages (104 rows, 10 wide)
+- `03:51:31`     Variables & FA r1   | End Game | To estimate ratios of  | ·
+- `03:51:31`     Variables & FA r3   | Variable | Explanation | Why?
+- `03:51:31`     Variables & FA r4   | Number of firms | Number of firms in the | Law of large numbers?
+- `03:51:31`     Variables & FA r5   | % of Money-losing firm | Percent of firms in gr | These money-losing fir
+- `03:51:31`     Variables & FA r6   | Current PE | Price per share divide | Simple average of PE r
+- `03:51:31`     Variables & FA r7   | Trailing PE | Price per share divide | Simple average of PE r
+- `03:51:31`     Variables & FA r8   | Forward PE | Price per share divide | Simple average of PE r
+- `03:51:31`     Variables & FA r9   | Aggregate Mkt Cap/ Net | Aggregate market capit | Includes all firms in 
+- `03:51:31`     Variables & FA r10  | Aggregate Mkt Cap/ Tra | Aggregate market capit | Same as above, but wit
+- `03:51:31`     Variables & FA r11  | Expected growth - next | Average expected growt | Higher growth usually 
+- `03:51:31`     Variables & FA r12  | PEG Ratio | Current PE (from colum | A growth-adjusted vers
+- `03:51:31`     Industry Avera r1   | Date updated: | 2026-01-05 | · | · | · | · | · | YouTube Video explaini | Notes
+- `03:51:31`     Industry Avera r2   | Created by: | Aswath Damodaran, adam | · | · | · | · | · | · | Pricing ratios (or mul
+- `03:51:31`     Industry Avera r3   | What is this data? | Price Earnings multipl | · | · | · | US companies | · | · | ·
+- `03:51:31`     Industry Avera r4   | Home Page: | http://www.damodaran.c | · | · | · | · | · | · | ·
+- `03:51:31`     Industry Avera r5   | Data website: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:31`     Industry Avera r6   | Companies in each indu | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:31`     Industry Avera r7   | Variable definitions: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:31`     Industry Avera r8   | Industry Name | Number of firms | % of Money Losing firm | Current PE | Trailing PE | Forward PE | Aggregate Mkt Cap/ Net | Aggregate Mkt Cap/ Tra | Expected growth - next
+- `03:51:31`     Industry Avera r9   | Advertising | 52 | 0.7885 | 132.2357 | 44.4334 | 52.8721 | 460.5214 | 25.5112 | 0.0228
+- `03:51:31`     Industry Avera r10  | Aerospace/Defense | 79 | 0.5063 | 118.0029 | 92.8003 | 45.8673 | 78.1123 | 35.2689 | 0.2504
+- `03:51:31`     Industry Avera r11  | Air Transport | 23 | 0.6087 | 15.5459 | 18.3215 | 11.3661 | 26.1245 | 12.871 | 0.3021
+- `03:51:31`     Industry Avera r12  | Apparel | 35 | 0.6286 | 82.0994 | 37.828 | 24.8872 | 41.2096 | 27.0889 | 0.1363
+- `03:51:31`     Industry Avera r13  | Auto & Truck | 33 | 0.8182 | 44.5912 | 64.3203 | 49.0404 | 148.4503 | 119.6156 | 0.1022
+- `03:51:31`     Industry Avera r102 | Utility (Water) | 14 | 0.2857 | 21.987 | 23.0657 | 21.2997 | 22.0029 | 20.22 | 0.0765   (near the end)
+- `03:51:31`     Industry Avera r103 | Total Market | 5994 | 0.5716 | 72.1893 | 57.8639 | 27.6597 | 34.219 | 26.5579 | 0.1395   (near the end)
+- `03:51:31`     Industry Avera r104 | Total Market (without  | 4822 | 0.6398 | 60.2583 | 61.5586 | 30.8892 | 38.6293 | 28.8596 | 0.1368   (near the end)
+- `03:51:32` pbvdata.xls: HTTP 200, 52736 bytes, Last-Modified Thu, 08 Jan 2026 19:22:49 GMT, ETag "ce00-647e5559bfa12", type application/vnd.ms-excel | ~/pc/datasets/pbvdata.xls
+- `03:51:32`   sheets: Variables & FAQ (8 rows, 3 wide); Industry Averages (104 rows, 9 wide)
+- `03:51:32`     Variables & FA r1   | End Game | To estimate ratios of  | ·
+- `03:51:32`     Variables & FA r3   | Variable | Explanation | Why?
+- `03:51:32`     Variables & FA r4   | Number of firms | Number of firms in the | Law of large numbers?
+- `03:51:32`     Variables & FA r5   | PBV | Aggregated market capi | Measure of market valu
+- `03:51:32`     Variables & FA r6   | ROE | Aggregate net income d | Measure of returns ear
+- `03:51:32`     Variables & FA r7   | EV/ Invested Capital | Aggregated enterprise  | Measure of market valu
+- `03:51:32`     Variables & FA r8   | ROIC | Aggregate after-tax op | Measure of returns ear
+- `03:51:32`     Industry Avera r1   | Date updated: | 2026-01-05 | · | · | · | · | · | YouTube Video explaini | Notes
+- `03:51:32`     Industry Avera r2   | Created by: | Aswath Damodaran, adam | · | · | · | · | · | · | Pricing ratios (or mul
+- `03:51:32`     Industry Avera r3   | What is this data? | Market value (equity a | · | · | · | US companies | · | · | ·
+- `03:51:32`     Industry Avera r4   | Home Page: | http://www.damodaran.c | · | · | · | · | · | · | ·
+- `03:51:32`     Industry Avera r5   | Data website: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:32`     Industry Avera r6   | Companies in each indu | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:32`     Industry Avera r7   | Variable definitions: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:32`     Industry Avera r8   | Industry Name | Number of firms | PBV | ROE | EV/ Invested Capital | ROIC | · | · | ·
+- `03:51:32`     Industry Avera r9   | Advertising | 52 | 4.5512 | -0.0134 | 4.6556 | 0.2772 | · | · | ·
+- `03:51:32`     Industry Avera r10  | Aerospace/Defense | 79 | 7.8805 | 0.1527 | 6.3929 | 0.1601 | · | · | ·
+- `03:51:32`     Industry Avera r11  | Air Transport | 23 | 2.8414 | 0.1419 | 1.7949 | 0.0793 | · | · | ·
+- `03:51:32`     Industry Avera r12  | Apparel | 35 | 3.894 | 0.1042 | 2.885 | 0.1577 | · | · | ·
+- `03:51:32`     Industry Avera r13  | Auto & Truck | 33 | 7.7247 | 0.0316 | 3.4609 | 0.0225 | · | · | ·
+- `03:51:32`     Industry Avera r102 | Utility (Water) | 14 | 1.9952 | 0.1028 | 1.5736 | 0.0725 | · | · | ·   (near the end)
+- `03:51:32`     Industry Avera r103 | Total Market | 5994 | 4.6052 | 0.1721 | 2.7411 | 0.0896 | · | · | ·   (near the end)
+- `03:51:32`     Industry Avera r104 | Total Market (without  | 4935 | 5.097 | 0.1641 | 3.623 | 0.1501 | · | · | ·   (near the end)
+- `03:51:33` psdata.xls: HTTP 200, 52736 bytes, Last-Modified Thu, 08 Jan 2026 19:22:49 GMT, ETag "ce00-647e5559bf62e", type application/vnd.ms-excel | ~/pc/datasets/psdata.xls
+- `03:51:33`   sheets: Variables & FAQ (8 rows, 3 wide); Industry Averages (104 rows, 9 wide)
+- `03:51:33`     Variables & FA r1   | End Game | To estimate ratios of  | ·
+- `03:51:33`     Variables & FA r3   | Variable | Explanation | Why?
+- `03:51:33`     Variables & FA r4   | Number of firms | Number of firms in the | Law of large numbers?
+- `03:51:33`     Variables & FA r5   | PS | Aggregated market capi | Measure of market valu
+- `03:51:33`     Variables & FA r6   | Net Margin | Aggregate net income d | Measure of after-tax p
+- `03:51:33`     Variables & FA r7   | EV/ Sales | Aggregated enterprise  | Measure of market valu
+- `03:51:33`     Variables & FA r8   | Pre-tax Operating Marg | Aggregate after-tax op | Measure of pre-tax pro
+- `03:51:33`     Industry Avera r1   | Date updated: | 2026-01-05 | · | · | · | · | · | YouTube Video explaini | Notes
+- `03:51:33`     Industry Avera r2   | Created by: | Aswath Damodaran, adam | · | · | · | · | · | · | Pricing ratios (or mul
+- `03:51:33`     Industry Avera r3   | What is this data? | Revenue multiples  | · | · | · | US companies | · | · | ·
+- `03:51:33`     Industry Avera r4   | Home Page: | http://www.damodaran.c | · | · | · | · | · | · | ·
+- `03:51:33`     Industry Avera r5   | Data website: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:33`     Industry Avera r6   | Companies in each indu | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:33`     Industry Avera r7   | Variable definitions: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:33`     Industry Avera r8   | Industry Name | Number of firms | Price/Sales | Net Margin | EV/Sales | Pre-tax Operating Marg | · | · | ·
+- `03:51:33`     Industry Avera r9   | Advertising | 52 | 1.6426 | -0.003 | 2.1249 | 0.1005 | · | · | ·
+- `03:51:33`     Industry Avera r10  | Aerospace/Defense | 79 | 3.1727 | 0.0499 | 3.5707 | 0.087 | · | · | ·
+- `03:51:33`     Industry Avera r11  | Air Transport | 23 | 0.5777 | 0.0251 | 1.026 | 0.0488 | · | · | ·
+- `03:51:33`     Industry Avera r12  | Apparel | 35 | 1.2728 | 0.0385 | 1.5942 | 0.0989 | · | · | ·
+- `03:51:33`     Industry Avera r13  | Auto & Truck | 33 | 3.3441 | 0.0129 | 3.883 | 0.0238 | · | · | ·
+- `03:51:33`     Industry Avera r102 | Utility (Water) | 14 | 4.428 | 0.2116 | 7.1564 | 0.3365 | · | · | ·   (near the end)
+- `03:51:33`     Industry Avera r103 | Total Market | 5994 | 3.0725 | 0.0974 | 3.9663 | 0.1275 | · | · | ·   (near the end)
+- `03:51:33`     Industry Avera r104 | Total Market (without  | 4822 | 3.0291 | 0.0856 | 3.4603 | 0.1306 | · | · | ·   (near the end)
+- `03:51:33` vebitda.xls: HTTP 200, 58880 bytes, Last-Modified Thu, 08 Jan 2026 19:22:49 GMT, ETag "e600-647e5559435c5", type application/vnd.ms-excel | ~/pc/datasets/vebitda.xls
+- `03:51:33`   sheets: Variables & FAQ (8 rows, 3 wide); Industry Averages (105 rows, 10 wide)
+- `03:51:33`     Variables & FA r1   | End Game | To measure the market  | ·
+- `03:51:33`     Variables & FA r3   | Variable | Explanation | Why?
+- `03:51:33`     Variables & FA r4   | Number of firms | Number of firms in the | Law of large numbers?
+- `03:51:33`     Variables & FA r5   | EV/EBITDAR&D | Aggregate enterprise v | Multiple of operating 
+- `03:51:33`     Variables & FA r6   | EV/EBITDA | Aggregate enterprise v | Multiple of operating 
+- `03:51:33`     Variables & FA r7   | EV/EBIT | Aggregate enterprise v | Multiple of pre-tax op
+- `03:51:33`     Variables & FA r8   | EV/EBIT (1-t) | Aggregate enterprise v | Multiple of after-tax 
+- `03:51:33`     Industry Avera r1   | Date updated: | 2026-01-05 | · | · | · | · | · | YouTube Video explaini | Notes
+- `03:51:33`     Industry Avera r2   | Created by: | Aswath Damodaran, adam | · | · | · | · | · | · | Pricing ratios (or mul
+- `03:51:33`     Industry Avera r3   | What is this data? | Enterprise value multi | · | · | · | US companies | · | · | ·
+- `03:51:33`     Industry Avera r4   | Home Page: | http://www.damodaran.c | · | · | · | · | · | · | ·
+- `03:51:33`     Industry Avera r5   | Data website: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:33`     Industry Avera r6   | Companies in each indu | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:33`     Industry Avera r7   | Variable definitions: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:33`     Industry Avera r8   | · | · | Only positive EBITDA f | · | · | · | All firms | · | ·
+- `03:51:33`     Industry Avera r9   | Industry Name | Number of firms | EV/EBITDAR&D | EV/EBITDA | EV/EBIT | EV/EBIT (1-t) | EV/EBITDAR&D | EV/EBITDA | EV/EBIT
+- `03:51:33`     Industry Avera r10  | Advertising | 52 | 10.2096 | 11.9986 | 20.9087 | 28.288 | 12.4097 | 15.1182 | 21.1521
+- `03:51:33`     Industry Avera r11  | Aerospace/Defense | 79 | 16.775 | 21.5839 | 34.7879 | 44.3463 | 24.2844 | 33.4167 | 41.0579
+- `03:51:33`     Industry Avera r12  | Air Transport | 23 | 7.3491 | 7.5753 | 19.3187 | 27.3555 | 9.634 | 9.9935 | 21.0196
+- `03:51:33`     Industry Avera r13  | Apparel | 35 | 10.2956 | 10.3049 | 16.0865 | 19.7759 | 13.8771 | 13.8939 | 16.1243
+- `03:51:33`     Industry Avera r103 | Utility (Water) | 14 | 14.1324 | 14.138 | 21.0845 | 24.9587 | 15.6437 | 15.6504 | 21.2685   (near the end)
+- `03:51:33`     Industry Avera r104 | Total Market | 5994 | 16.4615 | 19.7319 | 29.1244 | 36.3871 | 19.5383 | 23.9472 | 31.1201   (near the end)
+- `03:51:33`     Industry Avera r105 | Total Market (without  | 4822 | 14.0234 | 16.955 | 25.6967 | 31.9715 | 16.0558 | 19.8693 | 26.5052   (near the end)
+- `03:51:34` roe.xls: HTTP 200, 49152 bytes, Last-Modified Thu, 08 Jan 2026 19:22:34 GMT, ETag "c000-647e554afd4de", type application/vnd.ms-excel | ~/pc/datasets/roe.xls
+- `03:51:34`   sheets: Variables & FAQ (6 rows, 3 wide); Industry Averages (104 rows, 9 wide)
+- `03:51:34`     Variables & FA r1   | End Game | To estimate ratios of  | ·
+- `03:51:34`     Variables & FA r3   | Variable | Explanation | Why?
+- `03:51:34`     Variables & FA r4   | Number of firms | Number of firms in the | Law of large numbers?
+- `03:51:34`     Variables & FA r5   | ROE (unadjusted) | Aggregated net income  | Measure of returns to 
+- `03:51:34`     Variables & FA r6   | ROE (adjusted for R&D) | Aggregate net income,  | Measure of returns to 
+- `03:51:34`     Industry Avera r1   | Date updated: | 2026-01-05 | · | · | · | · | · | YouTube Video explaini | Notes
+- `03:51:34`     Industry Avera r2   | Created by: | Aswath Damodaran, adam | · | · | · | · | · | · | Accounting returns are
+- `03:51:34`     Industry Avera r3   | What is this data? | Return on equity | · | · | · | US companies | · | · | ·
+- `03:51:34`     Industry Avera r4   | Home Page: | http://www.damodaran.c | · | · | · | · | · | · | ·
+- `03:51:34`     Industry Avera r5   | Data website: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:34`     Industry Avera r6   | Companies in each indu | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:34`     Industry Avera r7   | Variable definitions: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:34`     Industry Avera r8   | Industry Name | Number of firms | ROE (unadjusted) | ROE (adjusted for R&D) | · | · | · | · | ·
+- `03:51:34`     Industry Avera r9   | Advertising | 52 | -0.0134 | -0.005 | · | · | · | · | ·
+- `03:51:34`     Industry Avera r10  | Aerospace/Defense | 79 | 0.1527 | 0.1132 | · | · | · | · | ·
+- `03:51:34`     Industry Avera r11  | Air Transport | 23 | 0.1419 | 0.1344 | · | · | · | · | ·
+- `03:51:34`     Industry Avera r12  | Apparel | 35 | 0.1042 | 0.1037 | · | · | · | · | ·
+- `03:51:34`     Industry Avera r13  | Auto & Truck | 33 | 0.0316 | 0.0255 | · | · | · | · | ·
+- `03:51:34`     Industry Avera r102 | Utility (Water) | 14 | 0.1028 | 0.1027 | · | · | · | · | ·   (near the end)
+- `03:51:34`     Industry Avera r103 | Total Market | 5994 | 0.1721 | 0.1471 | · | · | · | · | ·   (near the end)
+- `03:51:34`     Industry Avera r104 | Total Market (without  | 4822 | 0.176 | 0.1444 | · | · | · | · | ·   (near the end)
+- `03:51:35` EVA.xls: HTTP 200, 94720 bytes, Last-Modified Thu, 08 Jan 2026 19:22:51 GMT, ETag "17200-647e555b421c0", type application/vnd.ms-excel | ~/pc/datasets/EVA.xls
+- `03:51:35`   sheets: Variables & FAQ (15 rows, 3 wide); Industry Averages (115 rows, 19 wide)
+- `03:51:35`     Variables & FA r1   | End Game | To estimate how much f | ·
+- `03:51:35`     Variables & FA r3   | Variable | Explanation | Why?
+- `03:51:35`     Variables & FA r4   | Number of firms | Number of firms in the | Law of large numbers?
+- `03:51:35`     Variables & FA r5   | Beta | Average regression bet | Relative risk of secto
+- `03:51:35`     Variables & FA r6   | ROE | Aggregated Net Income  | Measure of returns ear
+- `03:51:35`     Variables & FA r7   | Cost of Equity | Risk free Rate + Beta  | Required return on equ
+- `03:51:35`     Variables & FA r8   | (ROE - COE) | ROE - Cost of Equity,  | Excess percent returns
+- `03:51:35`     Variables & FA r9   | BV of Equity | Aggregated Book Value  | Measure of equity inve
+- `03:51:35`     Variables & FA r10  | Equity EVA | (ROE - Cost of Equity) | Excess dollar returns 
+- `03:51:35`     Variables & FA r11  | ROC | Aggregated Operating i | Measure of returns ear
+- `03:51:35`     Variables & FA r12  | Cost of Capital | Cost of Equity * (Equi | Required return on inv
+- `03:51:35`     Variables & FA r13  | (ROC - Cost of Capital | ROC- Cost of Capital,  | Excess percent returns
+- `03:51:35`     Variables & FA r14  | BV of Capital | (Book Value of Equity  | Measure of capital inv
+- `03:51:35`     Variables & FA r13  | (ROC - Cost of Capital | ROC- Cost of Capital,  | Excess percent returns   (near the end)
+- `03:51:35`     Variables & FA r14  | BV of Capital | (Book Value of Equity  | Measure of capital inv   (near the end)
+- `03:51:35`     Variables & FA r15  | EVA | (ROC - Cost of Capital | Excess dollar returns    (near the end)
+- `03:51:35`     Industry Avera r1   | Date updated: | 2026-01-05 | · | · | · | · | · | YouTube Video explaini | Notes
+- `03:51:35`     Industry Avera r2   | Created by: | Aswath Damodaran, adam | · | · | · | · | · | · | The choice of how much
+- `03:51:35`     Industry Avera r3   | What is this data? | Excess Returns (equity | · | · | · | US companies | · | · | ·
+- `03:51:35`     Industry Avera r4   | Home Page: | http://www.damodaran.c | · | · | · | · | · | · | ·
+- `03:51:35`     Industry Avera r5   | Data website: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:35`     Industry Avera r6   | Companies in each indu | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:35`     Industry Avera r7   | Variable definitions: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:35`     Industry Avera r8   | To update this spreads | · | · | · | · | · | · | · | ·
+- `03:51:35`     Industry Avera r9   | Long Term Treasury bon | · | 0.0395 | · | · | · | · | · | Standard Deviation
+- `03:51:35`     Industry Avera r10  | Risk Premium to Use fo | · | 0.0446 | · | · | · | · | · | 0
+- `03:51:35`     Industry Avera r11  | Country Default Spread | · | 0.0023 | · | · | · | · | · | 0.3
+- `03:51:35`     Industry Avera r12  | · | · | · | · | · | · | · | · | 0.45
+- `03:51:35`     Industry Avera r13  | Do you want to use the | · | Yes | (If No, Effective Tax  | · | · | · | · | 0.65
+- `03:51:35`     Industry Avera r113 | Utility (Water) | 14 | 0.4127 | 0.1721 | 0.0579 | 0.1142 | 21486.58 | 2454.1559 | 0.0896   (near the end)
+- `03:51:35`     Industry Avera r114 | Total Market | 5994 | 0.9121 | 0.1721 | 0.0802 | 0.0919 | 1.285e+07 | 1181273.8063 | 0.0896   (near the end)
+- `03:51:35`     Industry Avera r115 | Total Market (without  | 4822 | 0.9913 | 0.176 | 0.0837 | 0.0923 | 9797425.272 | 904382.8067 | 0.1507   (near the end)
+- `03:51:36` capex.xls: HTTP 200, 59904 bytes, Last-Modified Thu, 08 Jan 2026 19:22:52 GMT, ETag "ea00-647e555c2d764", type application/vnd.ms-excel | ~/pc/datasets/capex.xls
+- `03:51:36`   sheets: Variables & FAQ (9 rows, 4 wide); Industry Averages (104 rows, 10 wide)
+- `03:51:36`     Variables & FA r1   | End Game | To measure how much co | · | ·
+- `03:51:36`     Variables & FA r4   | Variable | How it is measured | What it measures | Units
+- `03:51:36`     Variables & FA r5   | Capital Expenditures | Sum of the capital exp | Gross investment in lo | $ millions
+- `03:51:36`     Variables & FA r6   | Depreciation | Sum of the depreciatio | Loss in value of asset | $ millions
+- `03:51:36`     Variables & FA r7   | Net Cap Ex | Sum of capital expendi | Net investment in long | $ millions
+- `03:51:36`     Variables & FA r8   | Net R&D | Sum of R&D reported as | Net investment in long | $ millions
+- `03:51:36`     Variables & FA r9   | Acquisitions | Sum of acquisitions re | Augments investment to | $ millions
+- `03:51:36`     Industry Avera r1   | Date updated: | 2026-01-05 | · | · | · | · | · | · | ·
+- `03:51:36`     Industry Avera r2   | Created by: | Aswath Damodaran, adam | · | · | · | · | · | · | ·
+- `03:51:36`     Industry Avera r3   | What is this data? | Capital Expenditures,  | · | · | · | US companies | · | · | ·
+- `03:51:36`     Industry Avera r4   | Home Page: | http://www.damodaran.c | · | · | · | · | · | · | ·
+- `03:51:36`     Industry Avera r5   | Data website: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:36`     Industry Avera r6   | Companies in each indu | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:36`     Industry Avera r7   | Variable definitions: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:36`     Industry Avera r8   | Industry Name | Number of Firms | Capital Expenditures ( | Depreciation & Amort ( | Cap Ex/Deprecn | Acquisitions (US $ mil | Net R&D (US $ millions | Net Cap Ex/Sales | Net Cap Ex/ EBIT (1-t)
+- `03:51:36`     Industry Avera r9   | Advertising | 52 | 705.567 | 1885.264 | 0.3743 | 565.222 | 53.331 | -0.0152 | -0.2049
+- `03:51:36`     Industry Avera r10  | Aerospace/Defense | 79 | 14999.93 | 15712.208 | 0.9547 | 4463.97 | 343.4754 | 0.0082 | 0.1199
+- `03:51:36`     Industry Avera r11  | Air Transport | 23 | 20337.544 | 11571.568 | 1.7575 | 29.82 | 44.3964 | 0.0361 | 1.0463
+- `03:51:36`     Industry Avera r12  | Apparel | 35 | 1528.803 | 1145.318 | 1.3348 | 937.871 | -8.4258 | 0.0208 | 0.2582
+- `03:51:36`     Industry Avera r13  | Auto & Truck | 33 | 29548.24 | 19847.783 | 1.4887 | -3.1 | 723.7344 | 0.021 | 1.5026
+- `03:51:36`     Industry Avera r102 | Utility (Water) | 14 | 5829.11 | 1649.957 | 3.5329 | 386.96 | -1.682 | 0.4372 | 1.5383   (near the end)
+- `03:51:36`     Industry Avera r103 | Total Market | 5994 | 1493022.378 | 1004904.992 | 1.4857 | 429671.942 | 43074.3828 | 0.0423 | 0.4148   (near the end)
+- `03:51:36`     Industry Avera r104 | Total Market (without  | 4822 | 1446178.464 | 999135.436 | 1.4474 | 376008.077 | 41686.436 | 0.0429 | 0.409   (near the end)
+- `03:51:36` taxrate.xls: HTTP 200, 59392 bytes, Last-Modified Thu, 08 Jan 2026 19:22:49 GMT, ETag "e800-647e55594a70c", type application/vnd.ms-excel | ~/pc/datasets/taxrate.xls
+- `03:51:36`   sheets: Variables & FAQ (10 rows, 3 wide); Industry Averages (105 rows, 11 wide); Sheet2 (0 rows, 0 wide)
+- `03:51:36`     Variables & FA r1   | End Game | To estimate how much c | ·
+- `03:51:36`     Variables & FA r3   | Variable | Explanation | Why?
+- `03:51:36`     Variables & FA r4   | Number of firms | Number of firms in the | Law of large numbers?
+- `03:51:36`     Variables & FA r5   | Taxable Income | Taxable income, as rep | Income subject to taxa
+- `03:51:36`     Variables & FA r6   | Taxes paid (accrual) | Taxes, as reported in  | Accrual estimate of ta
+- `03:51:36`     Variables & FA r7   | Taxes paid (cash) | Cash taxes, aggregated | Cash taxes paid
+- `03:51:36`     Variables & FA r8   | Cash Taxes/ Accrual Ta | Cash Taxes/ Accrual Ta | Measures how much comp
+- `03:51:36`     Variables & FA r9   | Effective Tax Rate | Accrual Taxes/ Accrual | Accrual Tax rate paid 
+- `03:51:36`     Variables & FA r10  | Cash Tax Rate | Cash Taxes/ Accrual Ta | Cash Tax rate paid on 
+- `03:51:36`     Industry Avera r1   | Date updated: | 2026-01-05 | · | · | · | · | · | · | ·
+- `03:51:36`     Industry Avera r2   | Created by: | Aswath Damodaran, adam | · | · | · | · | · | · | ·
+- `03:51:36`     Industry Avera r3   | What is this data? | Tax Rates (Effective) | · | · | · | US companies | · | · | ·
+- `03:51:36`     Industry Avera r4   | Home Page: | http://www.damodaran.c | · | · | · | · | · | · | ·
+- `03:51:36`     Industry Avera r5   | Data website: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:36`     Industry Avera r6   | Companies in each indu | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:36`     Industry Avera r7   | Variable definitions: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:36`     Industry Avera r8   | · | · | · | · | · | · | Effective Tax Rates | · | ·
+- `03:51:36`     Industry Avera r9   | Industry name | Number of firms | Total Taxable Income | Total Taxes Paid (Accr | Total Cash Taxes Paid | Cash Taxes/Accrual Tax | Average across all com | Average across only mo | Aggregate tax rate
+- `03:51:36`     Industry Avera r10  | Advertising | 52 | 2859.4 | 802.8 | 1019.989 | 1.2705 | 0.0502 | 0.2808 | 1.1609
+- `03:51:36`     Industry Avera r11  | Aerospace/Defense | 79 | 46305.391 | 7923.896 | 7626.43 | 0.9625 | 0.1158 | 0.1711 | 0.2347
+- `03:51:36`     Industry Avera r12  | Air Transport | 23 | 12459.1 | 2819.3 | 147.717 | 0.0524 | 0.0829 | 0.2263 | 0.2964
+- `03:51:36`     Industry Avera r13  | Apparel | 35 | 3269.62 | 723.03 | 1213.571 | 1.6785 | 0.0961 | 0.2211 | 0.1879
+- `03:51:36`     Industry Avera r103 | Utility (Water) | 14 | 2637.97 | 420.48 | 77.334 | 0.1839 | 0.1119 | 0.1594 | 0.1465   (near the end)
+- `03:51:36`     Industry Avera r104 | Total Market | 5994 | 3104146.445 | 601577.619 | 615962.33 | 1.0239 | 0.083 | 0.1938 | 0.1996   (near the end)
+- `03:51:36`     Industry Avera r105 | Total Market (without  | 4822 | 2472508.184 | 480061.049 | 519789.456 | 1.0828 | 0.071 | 0.1942 | 0.202   (near the end)
+- `03:51:37` dbtfund.xls: HTTP 200, 75264 bytes, Last-Modified Thu, 08 Jan 2026 19:22:51 GMT, ETag "12600-647e555bbf5b4", type application/vnd.ms-excel | ~/pc/datasets/dbtfund.xls
+- `03:51:37`   sheets: Variables & FAQ (19 rows, 3 wide); Industry Averages (104 rows, 15 wide)
+- `03:51:37`     Variables & FA r1   | End Game | To estimate how much d | ·
+- `03:51:37`     Variables & FA r3   | Variable | Explanation | Why?
+- `03:51:37`     Variables & FA r4   | Number of firms | Number of firms in the | Law of large numbers?
+- `03:51:37`     Variables & FA r5   | Total Debt | I use all interest bea | I ignore non-interest 
+- `03:51:37`     Variables & FA r6   | Capital (Market) | Market capital = Total | Total capital invested
+- `03:51:37`     Variables & FA r7   | Capital (Book) | Book Capital = Total D | Total capital invested
+- `03:51:37`     Variables & FA r8   | Market Debt to Capital | Total debt aggregated  | Measures how much of a
+- `03:51:37`     Variables & FA r9   | Book Debt to Capital | Total debt aggregated  | Measures how much of a
+- `03:51:37`     Variables & FA r10  | Market Debt to Capital | Total debt aggregated  | Measures how much of c
+- `03:51:37`     Variables & FA r11  | Book Debt to Capital | Total debt aggregated  | Measures how much of c
+- `03:51:37`     Variables & FA r12  | Interest Coverage Rati | Earnings before Intere | Meausres safety buffer
+- `03:51:37`     Variables & FA r13  | Total Debt/ EBITDA | Total Debt (including  | Measures ease with whi
+- `03:51:37`     Variables & FA r14  | Effective Tax Rate | Effective tax rate = A | Interest saves you tax
+- `03:51:37`     Variables & FA r17  | EBITDA/EV | Aggregated EBITDA acro | Measure of cash genera   (near the end)
+- `03:51:37`     Variables & FA r18  | Standard deviation (eq | Simple average across  | This is the total risk   (near the end)
+- `03:51:37`     Variables & FA r19  | Capital Spending/ Tota | Aggregated Capital Exp | Measures capital inves   (near the end)
+- `03:51:37`     Industry Avera r1   | Date updated: | 2026-01-05 | · | · | · | · | · | YouTube Video explaini | Notes
+- `03:51:37`     Industry Avera r2   | Created by: | Aswath Damodaran, adam | · | · | · | · | · | · | The choice of whether 
+- `03:51:37`     Industry Avera r3   | What is this data? | Debt to capital & debt | · | · | · | US companies | · | · | ·
+- `03:51:37`     Industry Avera r4   | Home Page: | http://www.damodaran.c | · | · | · | · | · | · | ·
+- `03:51:37`     Industry Avera r5   | Data website: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:37`     Industry Avera r6   | Companies in each indu | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:37`     Industry Avera r7   | Variable definitions: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:37`     Industry Avera r8   | Industry Name | Number of firms | Book Debt to Capital | Market Debt to Capital | Market D/E (unadjusted | Market Debt to Capital | Market D/E (adjusted f | Interest Coverage Rati | Debt to EBITDA
+- `03:51:37`     Industry Avera r9   | Advertising | 52 | 0.6403 | 0.2812 | 0.3912 | 0.2867 | 0.402 | 2.7445 | 4.6981
+- `03:51:37`     Industry Avera r10  | Aerospace/Defense | 79 | 0.5479 | 0.1333 | 0.1538 | 0.1347 | 0.1556 | 3.7068 | 4.6209
+- `03:51:37`     Industry Avera r11  | Air Transport | 23 | 0.7138 | 0.4674 | 0.8776 | 0.4769 | 0.9117 | 2.4612 | 5.1305
+- `03:51:37`     Industry Avera r12  | Apparel | 35 | 0.5625 | 0.2482 | 0.3302 | 0.2383 | 0.3129 | 7.9312 | 3.4713
+- `03:51:37`     Industry Avera r13  | Auto & Truck | 33 | 0.6031 | 0.1644 | 0.1967 | 0.1645 | 0.197 | 3.912 | 8.7945
+- `03:51:37`     Industry Avera r102 | Utility (Water) | 14 | 0.554 | 0.3837 | 0.6225 | 0.3841 | 0.6236 | 3.0616 | 6.0388   (near the end)
+- `03:51:37`     Industry Avera r103 | Total Market | 5994 | 0.6172 | 0.2593 | 0.3501 | 0.2602 | 0.3517 | 6.9019 | 6.5244   (near the end)
+- `03:51:37`     Industry Avera r104 | Total Market (without  | 4822 | 0.4824 | 0.1463 | 0.1714 | 0.1474 | 0.1729 | 6.7279 | 3.0069   (near the end)
+- `03:51:38` fundgrEB.xls: HTTP 200, 51200 bytes, Last-Modified Thu, 08 Jan 2026 19:22:50 GMT, ETag "c800-647e555afad16", type application/vnd.ms-excel | ~/pc/datasets/fundgrEB.xls
+- `03:51:38`   sheets: Variables & FAQ (7 rows, 3 wide); Industry Averages (104 rows, 9 wide)
+- `03:51:38`     Variables & FA r1   | End Game | To estimate the sustai | ·
+- `03:51:38`     Variables & FA r3   | Variable | Explanation | Why?
+- `03:51:38`     Variables & FA r4   | Number of firms | Number of firms in the | Law of large numbers?
+- `03:51:38`     Variables & FA r5   | ROC | Aggregated after-tax O | Measure of returns ear
+- `03:51:38`     Variables & FA r6   | Reinvestment Rate | Aggregated Reinvestmen | Measure of how much of
+- `03:51:38`     Variables & FA r7   | Fundamental Growth Rat | ROC * Reinvestment Rat | Growth rate in operati
+- `03:51:38`     Industry Avera r1   | Date updated: | 2026-01-05 | · | · | · | · | · | YouTube Video explaini | Notes
+- `03:51:38`     Industry Avera r2   | Created by: | Aswath Damodaran, adam | · | · | · | · | · | · | The sustainable growth
+- `03:51:38`     Industry Avera r3   | What is this data? | Fundamental (Sustainab | · | · | · | US companies | · | · | ·
+- `03:51:38`     Industry Avera r4   | Home Page: | http://www.damodaran.c | · | · | · | · | · | · | ·
+- `03:51:38`     Industry Avera r5   | Data website: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:38`     Industry Avera r6   | Companies in each indu | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:38`     Industry Avera r7   | Variable definitions: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:38`     Industry Avera r8   | Industry Name | Number of Firms | ROC | Reinvestment Rate | Expected Growth in EBI | · | · | · | ·
+- `03:51:38`     Industry Avera r9   | Advertising | 52 | 0.2772 | -0.205 | -0.0568 | · | · | · | ·
+- `03:51:38`     Industry Avera r10  | Aerospace/Defense | 79 | 0.1601 | 0.6792 | 0.1088 | · | · | · | ·
+- `03:51:38`     Industry Avera r11  | Air Transport | 23 | 0.0793 | 0.8375 | 0.0664 | · | · | · | ·
+- `03:51:38`     Industry Avera r12  | Apparel | 35 | 0.1577 | 0.3147 | 0.0496 | · | · | · | ·
+- `03:51:38`     Industry Avera r13  | Auto & Truck | 33 | 0.0225 | -0.3856 | -0.0087 | · | · | · | ·
+- `03:51:38`     Industry Avera r102 | Utility (Water) | 14 | 0.0896 | 1.6218 | 0.1452 | · | · | · | ·   (near the end)
+- `03:51:38`     Industry Avera r103 | Total Market | 5994 | 0.0896 | 0.5082 | 0.0455 | · | · | · | ·   (near the end)
+- `03:51:38`     Industry Avera r104 | Total Market (without  | 4822 | 0.1507 | 0.4881 | 0.0736 | · | · | · | ·   (near the end)
+- `03:51:38` histgr.xls: HTTP 200, 54272 bytes, Last-Modified Thu, 08 Jan 2026 19:22:50 GMT, ETag "d400-647e555ac1723", type application/vnd.ms-excel | ~/pc/datasets/histgr.xls
+- `03:51:38`   sheets: Variables & FAQ (8 rows, 3 wide); Industry Averages (104 rows, 7 wide)
+- `03:51:38`     Variables & FA r1   | End Game | To report historical a | ·
+- `03:51:38`     Variables & FA r3   | Variable | Explanation | Why?
+- `03:51:38`     Variables & FA r4   | Number of firms | Number of firms in the | Law of large numbers?
+- `03:51:38`     Variables & FA r5   | CAGR in Net Income (La | Average of compounded  | Historical growth rate
+- `03:51:38`     Variables & FA r6   | CAGR in Revenues (Last | Average of compounded  | Past growth in revenue
+- `03:51:38`     Variables & FA r7   | Expected Growth in Rev | Average of analyst est | Analyst forecast of ex
+- `03:51:38`     Variables & FA r8   | Expected Growth in EPS | Average of analyst est | Analyst forecast of ex
+- `03:51:38`     Industry Avera r1   | Date updated: | 2026-01-05 | · | · | · | · | ·
+- `03:51:38`     Industry Avera r2   | Created by: | Aswath Damodaran, adam | · | · | · | · | ·
+- `03:51:38`     Industry Avera r3   | What is this data? | Historical (compounded | · | · | · | US companies | ·
+- `03:51:38`     Industry Avera r4   | Home Page: | http://www.damodaran.c | · | · | · | · | ·
+- `03:51:38`     Industry Avera r5   | Data website: | https://pages.stern.ny | · | · | · | · | ·
+- `03:51:38`     Industry Avera r6   | Companies in each indu | https://pages.stern.ny | · | · | · | · | ·
+- `03:51:38`     Industry Avera r7   | Variable definitions: | https://pages.stern.ny | · | · | · | · | ·
+- `03:51:38`     Industry Avera r8   | Industry Name | Number of Firms | CAGR in Net Income- La | CAGR in Revenues- Last | Expected Growth in Rev | Expected Growth in Rev | Expected Growth in EPS
+- `03:51:38`     Industry Avera r9   | Advertising | 52 | 0.0477 | 0.1767 | 0.0826 | 0.0922 | 0.0228
+- `03:51:38`     Industry Avera r10  | Aerospace/Defense | 79 | 0.1956 | 0.111 | 0.1835 | 0.1976 | 0.2504
+- `03:51:38`     Industry Avera r11  | Air Transport | 23 | 0.381 | 0.4779 | 2.0503 | 0.2491 | 0.3021
+- `03:51:38`     Industry Avera r12  | Apparel | 35 | 0.0069 | 0.081 | 0.0315 | 0.0164 | 0.1363
+- `03:51:38`     Industry Avera r13  | Auto & Truck | 33 | 0.1387 | 0.0864 | 0.5847 | 0.1032 | 0.1022
+- `03:51:38`     Industry Avera r102 | Utility (Water) | 14 | 0.1295 | 0.133 | 0.118 | 0.1191 | 0.0765   (near the end)
+- `03:51:38`     Industry Avera r103 | Total Market | 5994 | 0.1283 | 0.1277 | 0.2326 | 0.1571 | 0.1395   (near the end)
+- `03:51:38`     Industry Avera r104 | Total Market (without  | 4822 | 0.1321 | 0.1375 | 0.2539 | 0.1666 | 0.1368   (near the end)
+- `03:51:39` divfund.xls: HTTP 200, 61952 bytes, Last-Modified Thu, 08 Jan 2026 19:22:51 GMT, ETag "f200-647e555babd26", type application/vnd.ms-excel | ~/pc/datasets/divfund.xls
+- `03:51:39`   sheets: Variables & FAQ (12 rows, 4 wide); Industry Averages (104 rows, 10 wide)
+- `03:51:39`     Variables & FA r1   | End Game | Fundamental determinan | · | ·
+- `03:51:39`     Variables & FA r3   | Variable | Explanation | Why? | Units
+- `03:51:39`     Variables & FA r4   | Number of firms | Number of firms in the | Law of large numbers? | ·
+- `03:51:39`     Variables & FA r5   | Total Dividends | Aggregated dividends p | From the firms's persp | Millions of US $
+- `03:51:39`     Variables & FA r6   | Special Dividends as % | Aggreagted value of sp | Regular dividends are  | Percent
+- `03:51:39`     Variables & FA r7   | Dividend Payout | Aggregated Total Divid | Proportion of earnings | Percent
+- `03:51:39`     Variables & FA r8   | Dividend Yield | Aggregated Total Divid | This is the percent re | Percent
+- `03:51:39`     Variables & FA r9   | Market Cap | Aggregated value of ma | Total value attached b | Millions of US $
+- `03:51:39`     Variables & FA r10  | ROE (Return on equity) | Aggregated Net Income/ | Rough and simplisitic  | Percent
+- `03:51:39`     Variables & FA r11  | Institutional Holding | Proportion of outstand | Institutional preferen | Percent
+- `03:51:39`     Variables & FA r12  | Standard Deviation of  | Annualized standard de | Rough proxy for risk,  | Percent
+- `03:51:39`     Industry Avera r1   | Date updated: | 2026-01-05 | · | · | · | · | · | YouTube Video explaini | Notes
+- `03:51:39`     Industry Avera r2   | Created by: | Aswath Damodaran, adam | · | · | · | · | · | · | The choice of how much
+- `03:51:39`     Industry Avera r3   | What is this data? | Dividend Payout ratios | · | · | · | US companies | · | · | ·
+- `03:51:39`     Industry Avera r4   | Home Page: | http://www.damodaran.c | · | · | · | · | · | · | ·
+- `03:51:39`     Industry Avera r5   | Data website: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:39`     Industry Avera r6   | Companies in each indu | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:39`     Industry Avera r7   | Variable definitions: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:39`     Industry Avera r8   | Industry Name | Number of firms | Total Dividends (US $  | Special Dividends as % | Dividend Payout | Dividend Yield | Market Cap (US $ milli | ROE | Institutional Holdings
+- `03:51:39`     Industry Avera r9   | Advertising | 52 | 571.1 | 0 | 0.0027 | 0.0094 | 60588.036 | -0.0134 | 0.36
+- `03:51:39`     Industry Avera r10  | Aerospace/Defense | 79 | 12526.491 | 0.7455 | 0.5015 | 0.0079 | 1588348.455 | 0.1527 | 0.5506
+- `03:51:39`     Industry Avera r11  | Air Transport | 23 | 812 | 0 | 0.1321 | 0.0057 | 141606.996 | 0.1419 | 0.4805
+- `03:51:39`     Industry Avera r12  | Apparel | 35 | 1218.62 | 0 | 0.5009 | 0.0151 | 80477.872 | 0.1042 | 0.524
+- `03:51:39`     Industry Avera r13  | Auto & Truck | 33 | 3743.2 | -0.0003 | 0.5831 | 0.0023 | 1662402.352 | 0.0316 | 0.2714
+- `03:51:39`     Industry Avera r102 | Utility (Water) | 14 | 1246.75 | 0 | 0.5644 | 0.027 | 46224.38 | 0.1721 | 0.6186   (near the end)
+- `03:51:39`     Industry Avera r103 | Total Market | 5994 | 770310.9451 | 0.022 | 0.3483 | 0.011 | 6.977e+07 | 0.1721 | 0.5088   (near the end)
+- `03:51:39`     Industry Avera r104 | Total Market (without  | 4822 | 632094.5663 | 0.0223 | 0.3665 | 0.0104 | 6.104e+07 | 0.176 | 0.5181   (near the end)
+- `03:51:40` countrystats.xls: HTTP 200, 94208 bytes, Last-Modified Thu, 08 Jan 2026 19:49:10 GMT, ETag "17000-647e5b3db2ff2", type application/vnd.ms-excel | ~/pc/datasets/countrystats.xls
+- `03:51:40`   sheets: Sheet1 (136 rows, 22 wide)
+- `03:51:40`     Sheet1 r1   | Date updated: | 2026-01-05 | · | · | · | · | · | · | ·
+- `03:51:40`     Sheet1 r2   | Created by: | Aswath Damodaran, adam | · | · | · | · | · | · | ·
+- `03:51:40`     Sheet1 r3   | What is this data? | Country Statistics on  | · | · | · | Global | · | · | ·
+- `03:51:40`     Sheet1 r4   | Home Page: | http://www.damodaran.c | · | · | · | · | · | · | ·
+- `03:51:40`     Sheet1 r5   | Data website: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:40`     Sheet1 r6   | Companies in each indu | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:40`     Sheet1 r7   | Variable definitions: | https://pages.stern.ny | · | · | · | · | · | · | ·
+- `03:51:40`     Sheet1 r9   | Country | count | sum(Market Cap (in US  | sum(Total Debt incl le | sum(Firm Value (in US  | sum(Cash) | sum(Enterprise Value ( | median(Current PE) | median(Trailing PE)
+- `03:51:40`     Sheet1 r10  | Argentina | 60 | 54273.007 | 29403.027 | 83676.034 | 3110.085 | 80565.948 | 16.0751 | 13.9687
+- `03:51:40`     Sheet1 r11  | Australia | 1454 | 1236145.394 | 272692.0482 | 1508837.4492 | 72933.29 | 1435904.1582 | 21.6216 | 21.5658
+- `03:51:40`     Sheet1 r12  | Austria | 50 | 122989.1 | 54397.4456 | 177386.5456 | 19796.315 | 157590.2286 | 18.4003 | 16.7143
+- `03:51:40`     Sheet1 r13  | Azerbaijan | 1 | 423.2 | 22.5 | 445.7 | 5.27 | 440.43 | · | ·
+- `03:51:40`     Sheet1 r14  | Bahamas | 3 | 2236.2 | 100.8736 | 2337.0736 | 43.174 | 2293.8996 | 70 | 35.7447
+- `03:51:40`     Sheet1 r134 | Zambia | 14 | 4840.67 | 200.992 | 5041.662 | 251.876 | 4789.786 | 14.2038 | 12.2361   (near the end)
+- `03:51:40`     Sheet1 r135 | Zimbabwe | 2 | 214693.7 | 398.9 | 215092.6 | 99.3 | 214993.3 | 2347 | 1421.0416   (near the end)
+- `03:51:40`     Sheet1 r136 | Global | 42878 | 1.230e+08 | 3.165e+07 | 1.547e+08 | 8533250.48 | 1.461e+08 | 19.973 | 18.7593   (near the end)
+- `03:51:40` mktcaprisk.xlsx: HTTP 200, 13492 bytes, Last-Modified Thu, 08 Jan 2026 19:21:56 GMT, ETag "34b4-647e5526a2a81", type application/vnd.openxmlformats | ~/pc/datasets/mktcaprisk.xlsx
+- `03:51:40`   sheets: Sheet1 (20 rows, 11 wide)
+- `03:51:40`     Sheet1 r1   | Date updated: | 46027
+- `03:51:40`     Sheet1 r2   | Created by: | Aswath Damodaran, adam
+- `03:51:40`     Sheet1 r3   | What is this data? | Risk & Liquidity Measu | · | · | · | US
+- `03:51:40`     Sheet1 r4   | Home Page: | http://www.damodaran.c
+- `03:51:40`     Sheet1 r5   | Data website: | https://pages.stern.ny
+- `03:51:40`     Sheet1 r6   | Companies in each indu | https://pages.stern.ny
+- `03:51:40`     Sheet1 r7   | Variable definitions: | https://pages.stern.ny
+- `03:51:40`     Sheet1 r9   | Market Cap in millions | Number of firms | Aggregate Market Cap | Cash/Firm Value | Market Debt to capital | Median Beta | Correlation with marke |  Standard deviation in | Total Beta
+- `03:51:40`     Sheet1 r10  | Bottom decile | 385 | 5995.7 | 0.0511 | 0.1138 | 0.7349 | 0.1183 | 0.5737 | 6.211
+- `03:51:40`     Sheet1 r11  | 2nd decile | 393 | 13786.8 | 0.0553 | 0.1028 | 0.8695 | 0.1483 | 0.6127 | 5.8624
+- `03:51:40`     Sheet1 r12  | 3rd decile | 390 | 29986.2 | 0.0739 | 0.1447 | 0.8221 | 0.1643 | 0.5286 | 5.0034
+- `03:51:40`     Sheet1 r13  | 4th decile | 389 | 67277.3 | 0.0702 | 0.1213 | 1.0033 | 0.2191 | 0.5449 | 4.5796
+- `03:51:40`     Sheet1 r14  | 5th decile | 390 | 147949.5 | 0.0693 | 0.1804 | 0.9738 | 0.2757 | 0.4331 | 3.5324
+- `03:51:40`     Sheet1 r18  | 9th decile | 389 | 3958411.2 | 0.0283 | 0.1754 | 0.8845 | 0.3873 | 0.277 | 2.2839   (near the end)
+- `03:51:40`     Sheet1 r19  | Top decile | 390 | 5.361e+07 | 0.0254 | 0.1362 | 0.7835 | 0.4159 | 0.2412 | 1.8837   (near the end)
+- `03:51:40`     Sheet1 r20  | All firms | 3894 | 6.041e+07 | 0.0355 | 0.1146 | 0.8726 | 0.2 | 0.3973 | 4.3629   (near the end)
+- `03:51:41` mktcapmult.xlsx: HTTP 200, 15307 bytes, Last-Modified Thu, 08 Jan 2026 19:21:56 GMT, ETag "3bcb-647e5526b5368", type application/vnd.openxmlformats | ~/pc/datasets/mktcapmult.xlsx
+- `03:51:41`   sheets: Sheet1 (21 rows, 17 wide); Sheet2 (0 rows, 0 wide)
+- `03:51:41`     Sheet1 r1   | Date updated: | 46027
+- `03:51:41`     Sheet1 r2   | Created by: | Aswath Damodaran, adam
+- `03:51:41`     Sheet1 r3   | What is this data? | Pricing & Operating Me | · | · | · | US
+- `03:51:41`     Sheet1 r4   | Home Page: | http://www.damodaran.c
+- `03:51:41`     Sheet1 r5   | Data website: | https://pages.stern.ny
+- `03:51:41`     Sheet1 r6   | Companies in each indu | https://pages.stern.ny
+- `03:51:41`     Sheet1 r7   | Variable definitions: | https://pages.stern.ny
+- `03:51:41`     Sheet1 r9   | · | · | Median values
+- `03:51:41`     Sheet1 r10  | Market Cap Decile | Number of firms | Trailing PE | Forward PE | PEG Ratio | PBV | Price/Sales | EV/EBIT | EV/EBITDA
+- `03:51:41`     Sheet1 r11  | Bottom decile | 385 | 11.4286 | 5.4545 | 0.5714 | 0.9864 | 0.9591 | 14.2459 | 10.7515
+- `03:51:41`     Sheet1 r12  | 2nd decile | 393 | 11.1416 | 12.6531 | 0.619 | 1.4444 | 1.3262 | 13.1918 | 10.0295
+- `03:51:41`     Sheet1 r13  | 3rd decile | 390 | 13.7744 | 17.1739 | 0.9183 | 1.3969 | 1.1625 | 12.6641 | 9.2326
+- `03:51:41`     Sheet1 r14  | 4th decile | 389 | 15.522 | 15.9281 | 1.1087 | 1.7275 | 2.1719 | 16.0613 | 10.9224
+- `03:51:41`     Sheet1 r19  | 9th decile | 389 | 25.1315 | 19.9662 | 2.3056 | 3.4349 | 2.9923 | 20.0779 | 13.4868   (near the end)
+- `03:51:41`     Sheet1 r20  | Top decile | 390 | 27.77 | 22.2207 | 2.5018 | 5.3779 | 4.2292 | 22.8502 | 16.1045   (near the end)
+- `03:51:41`     Sheet1 r21  | All firms | 3894 | 20.2137 | 18.9408 | 1.8376 | 1.847 | 1.7456 | 18.3324 | 11.9289   (near the end)
+- `03:51:42` ratings.xls: HTTP 200, 48640 bytes, Last-Modified Mon, 26 Jan 2026 15:39:08 GMT, ETag "be00-6494c4ed0f0b5", type application/vnd.ms-excel | ~/pc/ratings.xls
+- `03:51:42`   sheets: Start here Ratings sheet (52 rows, 16 wide); Operating Leases (40 rows, 6 wide); Sheet4 (0 rows, 0 wide); Sheet5 (0 rows, 0 wide); Sheet6 (0 rows, 0 wide); Sheet7 (0 rows, 0 wide); Sheet8 (0 rows, 0 wide); Sheet9 (0 rows, 0 wide); Sheet10 (0 rows, 0 wide); Sheet11 (0 rows, 0 wide); Sheet12 (0 rows, 0 wide); Sheet13 (0 rows, 0 wide); Sheet14 (0 rows, 0 wide); Sheet15 (0 rows, 0 wide); Sheet16 (0 rows, 0 wide)
+- `03:51:42`     Start here Rat r1   | Inputs for synthetic r | · | · | · | · | · | · | · | ·
+- `03:51:42`     Start here Rat r2   | Please read the specia | · | · | · | · | · | · | · | ·
+- `03:51:42`     Start here Rat r3   | Before you use this sp | · | · | · | · | · | · | · | ·
+- `03:51:42`     Start here Rat r4   | Enter the type of firm | · | 2 | (Enter 1 if large manu | · | · | · | · | Small: <$5 billion
+- `03:51:42`     Start here Rat r5   | Do you have any operat | · | · | · | · | No | Yes or No | · | ·
+- `03:51:42`     Start here Rat r6   | Enter current Earnings | · | · | · | · | 50 | (Add back only long te | · | ·
+- `03:51:42`     Start here Rat r7   | Enter current interest | · | · | · | · | 8 | (Use only long term in | · | ·
+- `03:51:42`     Start here Rat r8   | Enter current long ter | · | · | · | · | 0.03 | · | · | ·
+- `03:51:42`     Start here Rat r9   | Output | · | · | · | · | · | · | · | ·
+- `03:51:42`     Start here Rat r10  | Interest coverage rati | · | · | 6.25 | · | · | · | · | ·
+- `03:51:42`     Start here Rat r11  | Estimated Bond Rating  | · | · | A2/A | · | Note: If you get REF!  | · | · | ·
+- `03:51:42`     Start here Rat r12  | Estimated Default Spre | · | · | 0.0078 | · | to No, and then reset  | · | · | ·
+- `03:51:42`     Start here Rat r13  | Estimated Cost of Debt | · | · | 0.0378 | · | · | · | · | ·
+- `03:51:42`     Start here Rat r50  | 7.5 | 9.5 | A1/A+ | 0.007 | · | · | · | · | ·   (near the end)
+- `03:51:42`     Start here Rat r51  | 9.5 | 12.5 | Aa2/AA | 0.0055 | · | · | · | · | ·   (near the end)
+- `03:51:42`     Start here Rat r52  | 12.5 | 100000 | Aaa/AAA | 0.004 | · | · | · | · | ·   (near the end)
+- `03:51:42`     Operating Leas r1   | Operating lease inputs | · | · | · | · | ·
+- `03:51:42`     Operating Leas r2   | Operating lease expens | · | · | · | 25 | ·
+- `03:51:42`     Operating Leas r3   | Operating Lease Commit | · | · | · | · | ·
+- `03:51:42`     Operating Leas r4   | Year | Commitment | ! Year 1 is next year, | · | · | ·
+- `03:51:42`     Operating Leas r5   | 1 | 24 | · | · | · | ·
+- `03:51:42`     Operating Leas r6   | 2 | 22 | · | · | · | ·
+- `03:51:42`     Operating Leas r7   | 3 | 22 | · | · | · | ·
+- `03:51:42`     Operating Leas r8   | 4 | 21 | · | · | · | ·
+- `03:51:42`     Operating Leas r9   | 5 | 20 | · | · | · | ·
+- `03:51:42`     Operating Leas r10  | 6 and beyond | 111 | · | · | · | ·
+- `03:51:42`     Operating Leas r12  | Pre-tax Cost of Debt = | · | 0.0378 | ! If you do not have a | · | ·
+- `03:51:42`     Operating Leas r14  | From the current finan | · | · | · | · | ·
+- `03:51:42`     Operating Leas r15  | Reported Operating Inc | · | · | 50 | ! This is the EBIT rep | ·
+- `03:51:42`     Operating Leas r38  |  + Current year's oper | · | · | 25 | · | ·   (near the end)
+- `03:51:42`     Operating Leas r39  |  - Depreciation on lea | · | · | 18.0558 | · | ·   (near the end)
+- `03:51:42`     Operating Leas r40  | Adjusted Operating Inc | · | · | 56.9442 | · | ·   (near the end)
+- `03:51:43` macro.xls: HTTP 200, 75776 bytes, Last-Modified Thu, 22 Apr 2010 19:26:06 GMT, ETag "12800-484d84833cf80", type application/vnd.ms-excel | ~/pc/datasets/macro.xls
+- `03:51:43`   sheets: Annual Data (27 rows, 9 wide); Quarterly Data (102 rows, 17 wide)
+- `03:51:43`     Annual Data r1   | Date | T.Bond Rate | Change in rate | GDP (Deflated) | % Chg in GDP | CPI | Change in CPI | Weighted Dollar | % Change in $
+- `03:51:43`     Annual Data r2   | 2009 | 0.0384 | 0.0129 | 11699 | -0.0115 | 0.0266 | 0.028 | 74.52 | -0.0801
+- `03:51:43`     Annual Data r3   | 2008 | 0.0252 | -0.0144 | 11835.0575 | -0.0245 | -0.0014 | -0.0426 | 81.01 | 0.1088
+- `03:51:43`     Annual Data r4   | 2007 | 0.0402 | -0.0065 | 12132.5687 | 0.0293 | 0.043 | 0.0219 | 73.06 | -0.113
+- `03:51:43`     Annual Data r5   | 2006 | 0.047 | 0.003 | 11787 | 0.034 | 0.0207 | -0.0184 | 82.37 | -0.0228
+- `03:51:43`     Annual Data r6   | 2005 | 0.0439 | 0.0016 | 11398.9467 | 0.0368 | 0.0399 | 0.0066 | 84.29 | 0.0398
+- `03:51:43`     Annual Data r7   | 2004 | 0.0422 | 0.0013 | 10994 | 0.0372 | 0.033 | 0.0134 | 81.06 | -0.0392
+- `03:51:43`     Annual Data r8   | 2003 | 0.0408 | 0.0005 | 10600 | 0.0432 | 0.0193 | -0.0065 | 84.37 | -0.1459
+- `03:51:43`     Annual Data r9   | 2002 | 0.0403 | -0.0097 | 10161 | 0.028 | 0.026 | 0.0144 | 98.78 | -0.1117
+- `03:51:43`     Annual Data r10  | 2001 | 0.0505 | -0.0018 | 9884 | -0.0004 | 0.0114 | -0.025 | 111.2 | 0.0745
+- `03:51:43`     Annual Data r11  | 2000 | 0.0524 | -0.0098 | 9888 | 0.0224 | 0.0373 | 0.0096 | 103.49 | 0.0773
+- `03:51:43`     Annual Data r12  | 1999 | 0.0628 | 0.0156 | 9671 | 0.047 | 0.0274 | 0.0104 | 96.06 | 0.0168
+- `03:51:43`     Annual Data r13  | 1998 | 0.0465 | -0.0103 | 9237 | 0.0451 | 0.0168 | 0.0011 | 94.47 | -0.0408
+- `03:51:43`     Annual Data r25  | 1986 | 0.0722 | -0.0161 | 6323 | 0.0283 | 0.0147 | -0.0233 | 101.84 | -0.1526   (near the end)
+- `03:51:43`     Annual Data r26  | 1985 | 0.0898 | -0.0227 | 6149 | 0.0419 | 0.0389 | 0.0389 | 120.18 | -0.1351   (near the end)
+- `03:51:43`     Annual Data r27  | 1984 | 0.1151 | · | 5902 | · | · | · | 138.96 | ·   (near the end)
+- `03:51:43`     Quarterly Data r1   | Date | T.Bond Rate | Change in rate | GDP (Current $) | % Chg in GDP | CPI | Change in CPI | Yen-Dollar | Chg vs Yen
+- `03:51:43`     Quarterly Data r2   | 2009.12 | 0.0384 | 0.0043 | 11548.7828 | -0.0416 | 0.0266 | 0.0276 | 91.1 | 0.0081
+- `03:51:43`     Quarterly Data r3   | 2009.9 | 0.0339 | -0.0016 | 12050.2219 | 0.0145 | -0.0018 | 0.0192 | 90.37 | -0.0423
+- `03:51:43`     Quarterly Data r4   | 2009.6 | 0.0356 | 0.0061 | 11878.089 | 0.0055 | -0.021 | -0.0139 | 94.36 | -0.0461
+- `03:51:43`     Quarterly Data r5   | 2009.3 | 0.0293 | 0.004 | 11813.0813 | -0.0019 | -0.0074 | -0.0077 | 98.92 | 0.0976
+- `03:51:43`     Quarterly Data r6   | 2008.12 | 0.0252 | -0.0126 | 11835.0575 | -0.0165 | -0.0014 | -0.0388 | 90.12 | -0.0985
+- `03:51:43`     Quarterly Data r7   | 2008.9 | 0.0381 | -0.0019 | 12033.7582 | -0.0137 | 0.0373 | -0.0166 | 99.97 | -0.0644
+- `03:51:43`     Quarterly Data r8   | 2008.6 | 0.0401 | 0.0032 | 12201.3262 | -0.0013 | 0.0545 | 0.0144 | 106.85 | 0.0407
+- `03:51:43`     Quarterly Data r9   | 2008.3 | 0.0368 | -0.0033 | 12216.9529 | 0.007 | 0.0393 | -0.0042 | 102.67 | -0.0478
+- `03:51:43`     Quarterly Data r10  | 2007.12 | 0.0402 | -0.0049 | 12132.5687 | 0.006 | 0.0437 | 0.0082 | 107.82 | -0.0695
+- `03:51:43`     Quarterly Data r11  | 2007.9 | 0.0453 | -0.0045 | 12060.2074 | 0.0015 | 0.0352 | 0.0112 | 115.87 | -0.0456
+- `03:51:43`     Quarterly Data r12  | 2007.6 | 0.05 | 0.003 | 12041.6167 | 0.0121 | 0.0236 | -0.0022 | 121.41 | 0.0209
+- `03:51:43`     Quarterly Data r13  | 2007.3 | 0.0469 | -0.0001 | 11898.0551 | 0.0095 | 0.0258 | 0.005 | 118.93 | -0.0126
+- `03:51:43`     Quarterly Data r100 | 8506 | 0.1018 | -0.0133 | 6008 | 0.0086 | 0.0376 | 0.0007 | · | ·   (near the end)
+- `03:51:43`     Quarterly Data r101 | 8503 | 0.1165 | 0.0013 | 5957 | 0.0093 | 0.0369 | 0.0015 | · | ·   (near the end)
+- `03:51:43`     Quarterly Data r102 | 8412 | 0.1151 | · | 5902 | · | 0.0353 | · | · | ·   (near the end)
+- `03:51:43` read 26 files, 2.4 MB in all
+- `03:51:43` a HEAD request for wacc.xls: HTTP 200, Last-Modified Mon, 12 Jan 2026 13:41:41 GMT, ETag "12e00-6483108fad634", Content-Length 77312
+## 3. AQR's data library: the files and the terms inside them
+
+- `03:51:44` data-set page: HTTP 200, 60386 bytes, 0 spreadsheet links on the first page
+- `03:51:44` Quality-Minus-Junk-Factors-Monthly.xlsx: HTTP 200, 2268318 bytes, Last-Modified Fri, 27 Nov 2026 10:54:29 GMT, type application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+- `03:51:46`   sheets: QMJ Factors (1888 rows); Definition (48 rows); Data Sources (58 rows); --> Additional Global Factors (0 rows); MKT (1888 rows); SMB (1888 rows); HML FF (1888 rows); HML Devil (1888 rows); UMD (1888 rows); ME(t-1) (1988 rows); RF (1849 rows); Sources and Definitions (95 rows); Disclosures (2 rows)
+- `03:51:46`   no sentence in any sheet speaks of use, consent or redistribution
+- `03:51:46`     QMJ Factors r1    | AQR Capital Mana
+- `03:51:46`     QMJ Factors r3    | This file contai
+- `03:51:46`     QMJ Factors r4    | The portfolios a
+- `03:51:46`     QMJ Factors r850  | 09/30/2026 | 0.0248 | 0.0073 | 0.012 | 0.0515 | -0.0004 | 0.0047
+- `03:51:47` Betting-Against-Beta-Equity-Factors-Monthly.xlsx: HTTP 200, 2507412 bytes, Last-Modified Fri, 27 Nov 2026 09:39:19 GMT, type application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+- `03:51:49`   sheets: BAB Factors (4930 rows); Definition (53 rows); Data Sources (56 rows); --> Additional Global Factors (0 rows); MKT (1888 rows); SMB (1888 rows); HML FF (1888 rows); HML Devil (1888 rows); UMD (1888 rows); ME(t-1) (1223 rows); RF (1849 rows); Sources and Definitions (95 rows); Disclosures (2 rows)
+- `03:51:49`   no sentence in any sheet speaks of use, consent or redistribution
+- `03:51:49`     BAB Factors r1    | AQR Capital Mana
+- `03:51:49`     BAB Factors r3    | This file contai
+- `03:51:49`     BAB Factors r4    | The portfolios a
+- `03:51:49`     BAB Factors r1169 | 09/30/2026 | -0.008 | -0.0027 | -0.0286 | -0.0219 | -0.018 | 0.0251
+- `03:51:49` ✅ read; nothing invoked, nothing written
