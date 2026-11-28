@@ -1,0 +1,25 @@
+{
+  "runtime": "python3.12",
+  "memory": 512,
+  "timeout": 600,
+  "handler": "lambda_function.lambda_handler",
+  "role_arn": "arn:aws:iam::857687956942:role/lambda-execution-role",
+  "description": "Damodaran Online kept in the warehouse and read into tables: the implied equity risk premium (monthly since 2008, annual since 1960), country risk premiums, and cost of capital, margins and multiples by industry and region. Once a day.",
+  "env": {
+    "S3_BUCKET": "justhodl-dashboard-live",
+    "RAW_PREFIX": "damodaran/raw/",
+    "OUT_PREFIX": "data/warm/damodaran/",
+    "PREMIUM_KEY": "data/equity-risk-premium.json",
+    "COUNTRY_KEY": "data/country-risk-premiums.json",
+    "INDUSTRY_KEY": "data/industry-benchmarks.json",
+    "SWEEP_DAYS": "7",
+    "BUDGET_SECONDS": "420"
+  },
+  "eventbridge_scheduler": {
+    "schedule_name": "justhodl-damodaran-daily",
+    "cron": "cron(17 23 * * ? *)",
+    "timezone": "UTC",
+    "role_arn": "arn:aws:iam::857687956942:role/justhodl-scheduler-role",
+    "description": "Damodaran Online, daily 23:17 UTC (after his working day, before the EVA engine's 00:45 UTC run): bank what changed, read it into tables"
+  }
+}

@@ -1,4 +1,4 @@
-"""justhodl-eva-spread offline tests (v1.1.0 bank fusion): TTM facts from the factor book, the EVA series from the FMP
+"""justhodl-eva-spread offline tests (v1.1.0 bank fusion; v1.2.0 the equity risk premium read from the warehouse): TTM facts from the factor book, the EVA series from the FMP
 statement bank, a labelled whole-market pass; with the banks absent the live FMP path runs unchanged.
 No network, no AWS, no key.
 
@@ -18,9 +18,16 @@ os.environ["FRED_KEY"] = ""
 class FakeS3:
     def __init__(self):
         self.puts = {}
+        self.gets = {}                      # what the warehouse holds: {key: document}
 
     def put_object(self, Bucket, Key, Body, **kw):
         self.puts[Key] = json.loads(Body)
+
+    def get_object(self, Bucket, Key, **kw):
+        if Key not in self.gets:
+            raise KeyError(Key)
+        import io
+        return {"Body": io.BytesIO(json.dumps(self.gets[Key]).encode())}
 
 
 def row(mcap, roic, ic, ev=None, beta=1.0, tax=0.21, sector="Technology", **extra):
@@ -106,7 +113,7 @@ def test_book_facts_bank_history_market_pass_and_labels():
     r = lf.lambda_handler({}, None)
     assert json.loads(r["body"])["ok"] is True
     out = s3.puts["data/eva-spread.json"]
-    assert out["version"] == "1.1.0" and out["universe"].startswith("STATIC_TOP50_SPX") and out["book_as_of"]["tape"] == "2026-10-24"
+    assert out["version"] == "1.2.0" and out["universe"].startswith("STATIC_TOP50_SPX") and out["book_as_of"]["tape"] == "2026-10-24"
     by = {x["ticker"]: x for x in out["all_tickers"]}
     a = by["AAPL"]
     assert a["ok"] and a["source"] == "factor-book (bank close)" and a["history_source"] == "fmp-bank statements"
@@ -160,9 +167,71 @@ def test_without_the_banks_the_live_path_runs_unchanged():
     assert out["universe_basis"].endswith("(factor book unavailable)")
 
 
+def premium_doc(pct=4.41, as_of="2026-11-01"):
+    return {"us": {"premium_pct": pct, "premium": pct / 100.0, "as_of": as_of, "measure": "sustainable_payout"}}
+
+
+def test_the_premium_is_read_from_the_warehouse_and_only_a_fresh_one_is_used():
+    import datetime as dt
+    lf, s3, book, bank = boot()
+    day = dt.date(2026, 11, 28)
+    assert lf.premium_from_bank(s3, day) is None, "no document in the warehouse: nothing is made up"
+    s3.gets[lf.ERP_KEY] = premium_doc()
+    got = lf.premium_from_bank(s3, day)
+    assert got == {"pct": 4.41, "as_of": "2026-11-01", "measure": "sustainable_payout", "age_days": 27, "fixed": False}, got
+    s3.gets[lf.ERP_KEY] = premium_doc(as_of="2026-08-01")
+    assert lf.premium_from_bank(s3, day) is None, "119 days old: not used"
+    s3.gets[lf.ERP_KEY] = premium_doc(as_of="2026-09-15")
+    assert lf.premium_from_bank(s3, day)["age_days"] == 74
+    for bad in (0.0441, 44.1, None, "4.41", True):                # a fraction, a wrong scale, nothing, a word, a flag
+        s3.gets[lf.ERP_KEY] = premium_doc()
+        s3.gets[lf.ERP_KEY]["us"]["premium_pct"] = bad
+        assert lf.premium_from_bank(s3, day) is None, bad
+    s3.gets[lf.ERP_KEY] = premium_doc(as_of="2026-12-05")
+    assert lf.premium_from_bank(s3, day) is None, "a figure dated after today is not believed"
+    s3.gets[lf.ERP_KEY] = {"us": "not a block"}
+    assert lf.premium_from_bank(s3, day) is None
+
+
+def test_cost_of_equity_is_built_on_the_premium_of_the_run():
+    lf, s3, book, bank = boot()
+    lf.set_premium(None)
+    w0, c0 = lf.compute_wacc(100.0, 0.0, 1.2, 0.21, 4.5, 1.5)
+    assert c0["erp_pct"] == 5.5 and c0["cost_of_equity_pct"] == round(4.5 + 1.2 * 5.5, 3) and w0 == c0["cost_of_equity_pct"]
+    lf.set_premium({"pct": 4.41, "as_of": "2026-11-01", "fixed": False, "measure": "sustainable_payout", "age_days": 27})
+    w1, c1 = lf.compute_wacc(100.0, 0.0, 1.2, 0.21, 4.5, 1.5)
+    assert c1["erp_pct"] == 4.41 and c1["cost_of_equity_pct"] == round(4.5 + 1.2 * 4.41, 3)
+    assert round(w0 - w1, 3) == round(1.2 * (5.5 - 4.41), 3), "all equity: the cost of capital falls by beta times the difference"
+    w2, c2 = lf.compute_wacc(60.0, 40.0, 1.0, 0.25, 4.5, 1.5)
+    assert w2 == round(0.6 * (4.5 + 4.41) + 0.4 * (4.5 + 1.5) * 0.75, 3), "debt is priced as before; only the equity leg moves"
+    assert lf.compute_wacc(100.0, 0.0, 1.0, 0.21, 4.5, 1.5, erp_pct=6.0)[1]["erp_pct"] == 6.0, "a premium passed in is obeyed"
+    lf.set_premium(None)
+
+
+def test_the_output_says_which_premium_was_used():
+    lf, s3, book, bank = boot()
+    s3.gets[lf.ERP_KEY] = premium_doc(as_of=__import__("datetime").datetime.now(__import__("datetime").timezone.utc).strftime("%Y-%m-01"))
+    lf.lambda_handler({}, None)
+    w = s3.puts["data/eva-spread.json"]["wacc_inputs"]
+    assert w["equity_risk_premium_pct"] == 4.41 and w["erp_fixed"] is False and w["erp_as_of"].endswith("-01") and w["erp_fixed_until_v1_2_pct"] == 5.5
+    assert w["source_erp"].startswith("Damodaran implied ERP at the start of ") and "data/equity-risk-premium.json" in w["source_erp"]
+    assert "ERP=4.41%" in s3.puts["data/eva-spread.json"]["methodology"]["wacc"]
+    a = {x["ticker"]: x for x in s3.puts["data/eva-spread.json"]["all_tickers"]}["AAPL"]
+    lf2, s32, _b, _k = boot()                                       # the same run with nothing in the warehouse
+    lf2.lambda_handler({}, None)
+    w2 = s32.puts["data/eva-spread.json"]["wacc_inputs"]
+    assert w2["equity_risk_premium_pct"] == 5.5 and w2["erp_fixed"] is True and w2["erp_as_of"] is None
+    assert w2["source_erp"].startswith("fixed 5.50% (the warehouse held no implied premium newer than 75 days)")
+    a2 = {x["ticker"]: x for x in s32.puts["data/eva-spread.json"]["all_tickers"]}["AAPL"]
+    assert a["wacc_pct"] < a2["wacc_pct"] and a["eva_spread_pct"] > a2["eva_spread_pct"], "a lower premium: a lower hurdle and a wider spread"
+    assert s32.puts["data/eva-spread.json"]["data_sources"]["equity_risk_premium"].startswith("data/equity-risk-premium.json")
+
+
 if __name__ == "__main__":
-    test_book_facts_bank_history_market_pass_and_labels()
-    print("ok test_book_facts_bank_history_market_pass_and_labels")
-    test_without_the_banks_the_live_path_runs_unchanged()
-    print("ok test_without_the_banks_the_live_path_runs_unchanged")
-    print("2 tests passed")
+    tests = [test_book_facts_bank_history_market_pass_and_labels, test_without_the_banks_the_live_path_runs_unchanged,
+             test_the_premium_is_read_from_the_warehouse_and_only_a_fresh_one_is_used, test_cost_of_equity_is_built_on_the_premium_of_the_run,
+             test_the_output_says_which_premium_was_used]
+    for t in tests:
+        t()
+        print("ok %s" % t.__name__)
+    print("%d tests passed" % len(tests))

@@ -24,7 +24,10 @@ WACC COMPUTATION (CAPM + IG spread)
 ────────────────────────────────────
    Ke (cost of equity)  = Rf + Beta * ERP
                           Rf  = FRED DGS10 (US 10Y Treasury)
-                          ERP = 5.50% (Damodaran 2026 implied ERP)
+                          ERP = the implied premium the warehouse holds (justhodl-damodaran:
+                                Aswath Damodaran's start-of-month figure, trailing 12 months with
+                                sustainable payout, over the 10Y Treasury); 5.50% fixed only when
+                                the warehouse has none newer than 75 days, and the output says so
    Kd (cost of debt)    = Rf + IG_credit_spread
                           IG  = FRED BAMLC0A4CBBB (BBB IG OAS)
    E/V, D/V             = MarketCap / (MarketCap + Total Debt)
@@ -96,7 +99,7 @@ try:  # the FMP statement bulks (aws/shared/fmp_bank) - the 3-year EVA series wi
 except Exception:  # noqa: BLE001
     _bank = None
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 MARKET_MIN_MCAP_USD = 2_000_000_000
 MARKET_CANDIDATES = int(os.environ.get("EVA_MARKET_CANDIDATES", "1500"))
 MARKET_MOMENTUM_TOP = int(os.environ.get("EVA_MARKET_MOMENTUM_TOP", "60"))
@@ -113,7 +116,10 @@ S3_KEY = "data/eva-spread.json"
 FMP_SLEEP_SEC = 0.4
 HTTP_TIMEOUT = 25
 HISTORY_YEARS = 3   # for EVA Momentum
-ERP_PCT = 5.50      # Damodaran 2026 implied equity risk premium
+ERP_PCT = 5.50      # the fixed premium every run used until v1.2.0; now only when the warehouse holds no fresh figure
+ERP_KEY = "data/equity-risk-premium.json"   # justhodl-damodaran: his implied premium at the start of each month
+ERP_MAX_AGE_DAYS = 75                       # a monthly figure: two missed months and the fixed premium is used, and said
+_ERP = {"pct": ERP_PCT, "as_of": None, "fixed": True, "measure": None, "age_days": None}
 DEFAULT_IG_SPREAD_PCT = 1.50  # fallback if FRED BAMLC0A4CBBB call fails
 
 # Same universe as starmine + predictability + smart-beta for cross-engine fusion.
@@ -299,10 +305,44 @@ def percentile_rank(values, sample):
     return round(100.0 * (n_below + 0.5 * n_equal) / len(cleaned), 1)
 
 
+# ---------- the equity risk premium ----------
+def premium_from_bank(s3=None, today=None):
+    """The implied equity risk premium the warehouse holds (justhodl-damodaran reads Aswath Damodaran's monthly file):
+    {"pct", "as_of", "measure", "age_days", "fixed": False}, or None when the document is missing, older than
+    ERP_MAX_AGE_DAYS, or not a premium (outside 1% to 12%). It is the premium over the ten-year Treasury rate, which
+    is the risk-free rate this engine uses."""
+    try:
+        doc = json.loads((s3 or boto3.client("s3")).get_object(Bucket=S3_BUCKET, Key=ERP_KEY)["Body"].read())
+        us = doc.get("us") or {}
+        pct, as_of = us.get("premium_pct"), str(us.get("as_of") or "")
+        day = datetime.strptime(as_of[:10], "%Y-%m-%d").date()
+        age = ((today or datetime.now(timezone.utc).date()) - day).days
+        if isinstance(pct, bool) or not isinstance(pct, (int, float)) or not 1.0 <= pct <= 12.0 or not 0 <= age <= ERP_MAX_AGE_DAYS:
+            return None
+        return {"pct": round(float(pct), 2), "as_of": as_of[:10], "measure": us.get("measure"), "age_days": age, "fixed": False}
+    except Exception:  # noqa: BLE001 - no document, an unreadable one: the fixed premium, and the output says so
+        return None
+
+
+def set_premium(found):
+    """The premium every cost of equity in this run is built on: the warehouse's, else the fixed one."""
+    _ERP.clear()
+    _ERP.update(found or {"pct": ERP_PCT, "as_of": None, "fixed": True, "measure": None, "age_days": None})
+    return _ERP
+
+
+def premium_words():
+    if _ERP.get("fixed"):
+        return "fixed %.2f%% (the warehouse held no implied premium newer than %d days)" % (_ERP["pct"], ERP_MAX_AGE_DAYS)
+    return "Damodaran implied ERP at the start of %s, trailing 12 months with sustainable payout (data/equity-risk-premium.json)" % _ERP["as_of"][:7]
+
+
 # ---------- WACC ----------
 def compute_wacc(market_cap, total_debt, beta, eff_tax,
-                  rf_pct, ig_spread_pct, erp_pct=ERP_PCT):
+                  rf_pct, ig_spread_pct, erp_pct=None):
     """Returns (wacc_pct, components_dict) or (None, components)."""
+    if erp_pct is None:
+        erp_pct = _ERP["pct"]
     components = {
         "risk_free_pct": rf_pct,
         "erp_pct": erp_pct,
@@ -646,6 +686,7 @@ def lambda_handler(event, context):
         rf_pct = 4.41   # last-known fallback
     if ig_oas_pct is None:
         ig_oas_pct = DEFAULT_IG_SPREAD_PCT
+    set_premium(premium_from_bank())
 
     results = []
     for sym, sector in STATIC_TOP50_SPX:
@@ -725,11 +766,15 @@ def lambda_handler(event, context):
         "n_super_compounders": n_super,
         "wacc_inputs": {
             "risk_free_10y_pct": rf_pct,
-            "equity_risk_premium_pct": ERP_PCT,
+            "equity_risk_premium_pct": _ERP["pct"],
+            "erp_as_of": _ERP.get("as_of"),
+            "erp_fixed": bool(_ERP.get("fixed")),
+            "erp_age_days": _ERP.get("age_days"),
+            "erp_fixed_until_v1_2_pct": ERP_PCT,
             "ig_credit_spread_pct": ig_oas_pct,
             "source_rf": "FRED DGS10",
             "source_ig_spread": "FRED BAMLC0A4CBBB",
-            "source_erp": "Damodaran 2026 implied ERP (hardcoded)",
+            "source_erp": premium_words(),
         },
         "universe_medians": {
             "eva_spread_pct": round(statistics.median(all_spreads), 2)
@@ -791,7 +836,7 @@ def lambda_handler(event, context):
                 "Ke = Rf + Beta*ERP (CAPM); "
                 "Kd = Rf + IG_spread; "
                 "WACC = E/V*Ke + D/V*Kd*(1-T). "
-                f"Rf from FRED DGS10={rf_pct}, ERP={ERP_PCT}% (Damodaran), "
+                f"Rf from FRED DGS10={rf_pct}, ERP={_ERP['pct']}% ({premium_words()}), "
                 f"IG spread from FRED BAMLC0A4CBBB={ig_oas_pct}."
             ),
             "super_compounder_filter": (
@@ -814,6 +859,7 @@ def lambda_handler(event, context):
             "fmp_ratios_ttm": "/stable/ratios-ttm (effective tax) - fallback",
             "fmp_income_statement": "/stable/income-statement (3y, EVA series) - fallback",
             "fmp_key_metrics_annual": "/stable/key-metrics (3y, IC series) - fallback",
+            "equity_risk_premium": "data/equity-risk-premium.json (justhodl-damodaran: Aswath Damodaran's implied premium at the start of each month)",
             "fred_dgs10": "10Y Treasury (risk-free)",
             "fred_bamlc0a4cbbb": "BBB IG OAS (cost of debt spread)",
         },
