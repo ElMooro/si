@@ -1,5 +1,5 @@
 {
-  "observed_at": "2026-11-28T05:26:13.551215+00:00",
+  "observed_at": "2026-11-28T05:26:30.213523+00:00",
   "runs": [
     {
       "id": 46111529691,
@@ -170,10 +170,10 @@
       "id": 46111529668,
       "path": ".github/workflows/pages.yml",
       "head_sha": "aea611f3c6ba11a6172ff42b068438ced0c1664c",
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "success",
       "created_at": "2026-11-28T05:18:47Z",
-      "updated_at": "2026-11-28T05:18:51Z",
+      "updated_at": "2026-11-28T05:26:20Z",
       "jobs": [
         {
           "id": 140875918399,
@@ -452,10 +452,68 @@
         {
           "id": 140877657045,
           "name": "deploy",
-          "status": "waiting",
-          "conclusion": null,
-          "started_at": "2026-11-28T05:26:06Z",
-          "completed_at": null,
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-28T05:26:11Z",
+          "completed_at": "2026-11-28T05:26:20Z",
+          "steps": [
+            {
+              "number": 1,
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-11-28T05:26:11Z",
+              "completed_at": "2026-11-28T05:26:12Z"
+            },
+            {
+              "number": 2,
+              "name": "Run actions/deploy-pages@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-11-28T05:26:12Z",
+              "completed_at": "2026-11-28T05:26:18Z"
+            },
+            {
+              "number": 3,
+              "name": "Report deploy outcome",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-11-28T05:26:18Z",
+              "completed_at": "2026-11-28T05:26:18Z"
+            },
+            {
+              "number": 4,
+              "name": "Purge Cloudflare cache on success (ops 4366 \u2014 success path never purged)",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-11-28T05:26:18Z",
+              "completed_at": "2026-11-28T05:26:18Z"
+            },
+            {
+              "number": 5,
+              "name": "Fail this run when Pages was not deployed",
+              "status": "completed",
+              "conclusion": "skipped",
+              "started_at": "2026-11-28T05:26:18Z",
+              "completed_at": "2026-11-28T05:26:18Z"
+            },
+            {
+              "number": 6,
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "started_at": "2026-11-28T05:26:18Z",
+              "completed_at": "2026-11-28T05:26:18Z"
+            }
+          ]
+        },
+        {
+          "id": 140877713194,
+          "name": "self-heal",
+          "status": "completed",
+          "conclusion": "skipped",
+          "started_at": "2026-11-28T05:26:20Z",
+          "completed_at": "2026-11-28T05:26:20Z",
           "steps": []
         }
       ]
