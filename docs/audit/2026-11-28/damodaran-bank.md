@@ -104,6 +104,29 @@ the largest); none turns the other way.
 - The EVA engine asks FRED for the Treasury rate and the credit spread itself; when FRED does not answer it uses 4.41
   and 1.50 without saying so in the document.
 
-## Proof
+- **His July 2026 country file rates Barbados C** (a 31.40% premium, the same as Belarus and Lebanon); his January and
+  April 2026 files had it at B2. ops 7005 read the cells of all four banked files: the document is his file, cell for
+  cell. It is shown as he publishes it.
+- **One cell of his monthly file is off by a hundredfold:** "ERP (Smoothed)" for May 2026 reads 6.36 where its
+  neighbours read 0.06. The table shows it as it is; the chart leaves it out and says so under the picture.
 
-ops 7004: first light, read-back, EVA's run and the pages in a real browser on the live site. See its report.
+## Live (ops 7004, 2026-11-28)
+
+- **Deploy** 05:25 UTC (requested with the held-back commit's parent as base); both packages equal the checkout.
+- **First light** 05:26:50 UTC, one run by hand: 251 files, 21.7 MB, 110 s, peak memory 99 MB, 236 documents written,
+  no trouble. His files are refused to a stranger by the site (404) and by the bucket (403).
+- **EVA** one run by hand at 05:28:57 UTC (13 s): version 1.2.0, premium 4.41% as of 2026-11-01, "not a fixed figure".
+  The fifty: 36 of 48 above their cost of capital before and after, median cost of capital 9.07% to 8.24%, median
+  spread 4.70 to 5.48. The market pass: 623 to 685 of 1,500 above it (41.5% to 45.7%), median spread -1.36 to -0.67,
+  regime MIXED, universe state CREATING_VALUE_BROAD, both unchanged.
+- **Pages, in a real browser on the live site:** 44 checks, 0 failed, twice. The second run followed a fix: the first
+  run's text checks all passed while its screenshot showed every line flattened by the May 2026 cell above. The chart
+  now leaves a figure outside -5% to 25% out of the picture and names it; the proof measures the picture (ticks 3% to
+  8%, each line 90 to 225 px of a 282 px plot).
+- Follow-up set for the bank's own 23:17 UTC run and the EVA engine's own 00:45 UTC run.
+
+## Not built
+
+- A button on the chart bar for the desk (it is reached from eva.html and by its address).
+- A flag in the engine's document for an off-scale cell (the page handles it; the EVA engine refuses a premium outside
+  1% to 12%).

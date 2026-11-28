@@ -721,3 +721,10 @@ elsewhere just moves the lie one field over.
    fixes touched. A source that costs nothing is still someone's server.
 8. **`toFixed` and `%.2f` part ways on a tie.** A proof that rewrites a page's percentage uses
    `Decimal(x).quantize(Decimal("0.01"), ROUND_HALF_UP)`.
+9. **Every text check passed and the picture was wrong.** One cell of his monthly file read 6.36 among 0.06s; the
+   tiles, counts, tooltip and end labels were all right, and the chart was five flat lines under one spike. I saw it
+   only because I opened the screenshot. A proof of a chart measures the chart: how many ticks, the axis's range, each
+   line's height against the plot - and the screenshot is still looked at before "it is live" is said.
+10. **A source's own slip is the source's data.** The off-scale cell stays in the table as his file has it and is named
+    under the picture; a rating that changed between two of his files (Barbados, B2 to C) is checked against his cells
+    (ops 7005) and shown as he publishes it. Neither is corrected here.
