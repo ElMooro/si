@@ -21,7 +21,8 @@ Outputs (all name him and his file):
                                     list of every table kept under data/warm/damodaran/tables/
 
 No engine is started from here, no event is published, nothing but his site is called. {"dry_run": true} reads and
-derives and writes nothing.
+derives and writes nothing; {"only": ["^wacc"]} narrows a run to the files whose names match; {"force_derive": true}
+rebuilds the documents from the bank.
 """
 from datetime import datetime, timezone
 import hashlib
@@ -278,8 +279,9 @@ def body_sha(doc):
 
 
 # ----------------------------------------------------------------------------------------------------------- run
-def run(s3, bucket, dry_run=False, force=False, get=fetch, now=None, sleep=time.sleep, log=print, clock=time.time, budget=BUDGET_SECONDS):
-    """One run. Returns (summary, documents) - the documents this run derived, written or not."""
+def run(s3, bucket, dry_run=False, force=False, get=fetch, now=None, sleep=time.sleep, log=print, clock=time.time, budget=BUDGET_SECONDS, only=None):
+    """One run. Returns (summary, documents) - the documents this run derived, written or not.
+    `only` (patterns of file names) narrows what is asked about; such a run is never counted as a sweep."""
     started = clock()
     now = now or datetime.now(timezone.utc)
     now_iso = now.isoformat(timespec="seconds")
@@ -308,6 +310,9 @@ def run(s3, bucket, dry_run=False, force=False, get=fetch, now=None, sleep=time.
         return summary, docs
 
     ask, why = due(listed, manifest, now, home.get("full_update"))
+    if only:
+        pats = [re.compile(p) for p in only]
+        ask = [n for n in ask if any(p.search(n) for p in pats)]
     log("[damodaran] %d files listed, %d in the bank, %d asked about (%s)" % (len(listed), len(files), len(ask), why or "the files that move, and any not yet banked"))
     stopped, new_bytes = None, 0
     for name in ask:
@@ -352,7 +357,7 @@ def run(s3, bucket, dry_run=False, force=False, get=fetch, now=None, sleep=time.
         files[name] = rec
         changed.append(name)
         new_bytes += len(body)
-    swept = bool(why) and not stopped
+    swept = bool(why) and not stopped and not only
 
     def raw_of(name):
         if name in fresh:
@@ -424,5 +429,6 @@ def run(s3, bucket, dry_run=False, force=False, get=fetch, now=None, sleep=time.
 def lambda_handler(event=None, context=None):
     import boto3
     event = event if isinstance(event, dict) else {}
-    summary, _docs = run(boto3.client("s3"), BUCKET, dry_run=bool(event.get("dry_run")), force=bool(event.get("force_derive")))
+    only = event.get("only") if isinstance(event.get("only"), list) and all(isinstance(x, str) for x in event["only"]) else None
+    summary, _docs = run(boto3.client("s3"), BUCKET, dry_run=bool(event.get("dry_run")), force=bool(event.get("force_derive")), only=only)
     return summary

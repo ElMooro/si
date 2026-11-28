@@ -11,7 +11,9 @@ Part 1  the bank: what was listed, read and derived; his home page's five premiu
         industry tables by region, what could not be read as one and why, and the joined benchmarks.
 Part 2  EVA: before and after, for every US stock of $2B or more the factor book holds and for the engine's fifty.
 
-Safe to run again.
+Safe to run again. Its first run (2026-11-28 04:04 UTC) read all 251 of his files (21.7 MB, 99 s, 233 industry tables in
+eight regions, every benchmark column found). So as not to ask his server for 251 files at every re-run, it now reads
+the premium and country files and the US and Global files the benchmarks are joined from (ONLY below).
 """
 from datetime import datetime, timezone
 from pathlib import Path
@@ -27,6 +29,8 @@ sys.path.insert(0, str(ROOT / "aws" / "ops"))
 NAME = "ops_7003_damodaran_bank_dry_run"
 REGION, LIVE = "us-east-1", "justhodl-dashboard-live"
 os.environ.setdefault("AWS_DEFAULT_REGION", REGION)
+ONLY = [r"^(ERPbymonth|histimpl|histretSP|ctryprem\w*|ratings)\.xlsx?$",
+        r"^(wacc|margin|roe|EVA|pedata|pe|pbvdata|pbv|psdata|ps|vebitda|betas|beta)(Global)?\.xls$"]
 _MASK = [(re.compile(r"(api_?key=)[^&\s\"']*", re.I), r"\1***"), (re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+"), "***")]
 
 
@@ -89,7 +93,7 @@ def main():
         D = load("damodaran_engine", src / "lambda_function.py", [src])
         ro = ReadOnly(s3)
         lines = []
-        summary, docs = D.run(ro, LIVE, dry_run=True, log=lines.append, budget=900)
+        summary, docs = D.run(ro, LIVE, dry_run=True, log=lines.append, budget=900, only=ONLY)
         for ln in lines[:3]:
             say(ln[:600])
         say("summary: %s" % json.dumps({k: summary.get(k) for k in ("ok", "seconds", "listed", "asked", "sweep", "stopped", "unchanged", "banked_bytes", "in_bank", "groups", "wrote", "peak_memory_mb", "premium", "full_update")}))
@@ -97,7 +101,7 @@ def main():
         for t in summary.get("trouble") or []:
             say("  trouble: %s" % t)
         ck(summary.get("ok") is True and not ro.writes, "the run finished and wrote nothing (%d writes refused)" % len(ro.writes))
-        ck((summary.get("listed") or 0) >= 200 and not summary.get("trouble"), "his two pages listed %s spreadsheets and none gave trouble" % summary.get("listed"))
+        ck((summary.get("listed") or 0) >= 200 and not summary.get("trouble"), "his two pages listed %s spreadsheets; the %s read here gave no trouble" % (summary.get("listed"), summary.get("asked")))
         ck(all(v == "derived" for v in (summary.get("groups") or {}).values()) and len(summary.get("groups") or {}) == 3, "all three groups of documents were derived: %s" % summary.get("groups"))
 
         r.section("1a. The premium")
@@ -113,6 +117,15 @@ def main():
             say("  %s" % row)
         first_head = next((row for row in mo.get("rows") or [] if (mo.get("measure_columns") or {}).get("sustainable_payout") and row[[c["key"] for c in mo["cols"]].index(mo["measure_columns"]["sustainable_payout"])] is not None), None)
         say("the headline measure starts %s" % (first_head[0] if first_head else None))
+        have = set(row[0][:7] for row in mo.get("rows") or [])
+        y, m, gaps = 2008, 9, []
+        while "%04d-%02d" % (y, m) <= (mo.get("to") or "")[:7]:
+            if "%04d-%02d" % (y, m) not in have:
+                gaps.append("%04d-%02d" % (y, m))
+            y, m = (y + 1, 1) if m == 12 else (y, m + 1)
+        days = sorted(set(row[0][8:] for row in mo.get("rows") or []))
+        say("months with no row in his file: %s | days of the month his rows are dated: %s | two rows in one month: %s" % (
+            gaps or "none", days, sorted(k for k in have if sum(1 for row in mo["rows"] if row[0][:7] == k) > 1) or "none"))
         ck(len(us.get("measures") or []) == 5, "the five premiums his page states are each found in the monthly file")
         pv, fv = home.get("page_values_pct") or [], home.get("file_values_pct") or []
         ck(home.get("agree") is True and len(pv) == 5 and len(fv) == 5 and all(abs(a - b) < 0.011 for a, b in zip(pv, fv)),
@@ -145,7 +158,12 @@ def main():
         usa = next((x for x in rows if x[0] == "United States"), None)
         ck(len(rows) >= 150 and K.get("mature_market_premium") and 0.02 < K["mature_market_premium"] < 0.08 and usa is not None,
            "%s countries, a mature-market premium of %s, and the United States among them (%s)" % (len(rows), pct(K.get("mature_market_premium")), usa[4] if usa else None))
-        ck(all(x[4] is None or 0.01 < x[4] < 0.6 for x in rows) and sum(1 for x in rows if x[4] is not None) >= 150, "every country's total premium is a premium (1% to 60%)")
+        odd = [x for x in rows if x[4] is not None and not 0.01 < x[4] < 0.6]
+        blank = [x[0] for x in rows if x[4] is None]
+        for x in odd[:12]:
+            say("  outside 1%% to 60%%: %s" % x)
+        say("countries with no premium: %s" % (blank or "none"))
+        ck(not odd and len(rows) - len(blank) >= 150, "every country's total premium is a premium (1%% to 60%%): %d outside, %d without one" % (len(odd), len(blank)))
 
         r.section("1c. Industries")
         I = docs.get(D.INDUSTRY_KEY) or {}
@@ -163,7 +181,7 @@ def main():
             say("  %s" % row)
         us_r = next((g for g in I.get("regions") or [] if g["code"] == "US"), {})
         gl_r = next((g for g in I.get("regions") or [] if g["code"] == "Global"), {})
-        ck(us_r.get("tables", 0) >= 25 and us_r.get("industries", 0) >= 90 and gl_r.get("tables", 0) >= 20, "US: %s tables and %s industries; Global: %s tables" % (us_r.get("tables"), us_r.get("industries"), gl_r.get("tables")))
+        ck(us_r.get("tables", 0) >= 9 and us_r.get("industries", 0) >= 90 and gl_r.get("tables", 0) >= 9, "US: %s tables and %s industries; Global: %s tables (of the files read here)" % (us_r.get("tables"), us_r.get("industries"), gl_r.get("tables")))
         ck(not us_r.get("missing") and not gl_r.get("missing"), "every benchmark column is found for the US and for Global (missing: %s / %s)" % (us_r.get("missing"), gl_r.get("missing")))
         tm = next((x for x in b.get("rows") or [] if x[0].lower() == "total market"), None)
         keys = [c["key"] for c in b.get("cols") or []]
@@ -225,7 +243,20 @@ def main():
             top_a = [x["ticker"] for x in after.get("top_25_eva_spread") or []][:10]
             say("top ten by spread before: %s" % ", ".join(top_b))
             say("top ten by spread after:  %s" % ", ".join(top_a))
-            ck(all(d >= -1e-9 for d in dw) and max(dw) > 0, "no company's cost of capital rises (the premium fell from 5.50%% to %s%%)" % new)
+            off = []
+            for s_, m_, a, c in pair:
+                comp = a["wacc_components"]
+                beta = comp.get("beta") if comp.get("beta") is not None else 1.0
+                want = comp["weight_equity"] * beta * (5.50 - new)
+                if abs((a["wacc_pct"] - c["wacc_pct"]) - want) > 0.0021:
+                    off.append((s_, round(a["wacc_pct"] - c["wacc_pct"], 3), round(want, 3)))
+            ck(not off, "every company's cost of capital moves by its equity weight times its beta times the %.2f points the premium fell: %d of %d off%s" % (
+                5.50 - new, len(off), len(pair), (" " + str(off[:5])) if off else ""))
+            betas = [(a["wacc_components"].get("beta"), s_, a["wacc_pct"], c["wacc_pct"]) for s_, m_, a, c in pair if a["wacc_components"].get("beta") is not None]
+            neg = sorted(b for b in betas if b[0] < 0)
+            big = sorted((b for b in betas if b[0] > 3), reverse=True)
+            say("found, not changed: %d companies carry a negative beta in the factor book (their cost of capital rises when the premium falls) and %d a beta above 3; a beta is used as it is: %s" % (
+                len(neg), len(big), "; ".join("%s beta %.2f, cost of capital %.2f%% -> %.2f%%" % (s_, b, w0, w1) for b, s_, w0, w1 in (neg[:3] + big[:3]))))
             fifty = []
             for sym, sector in E.STATIC_TOP50_SPX:
                 row = E._book.lookup(sym, fields=E.BOOK_FIELDS) if E.book_ok() else None
