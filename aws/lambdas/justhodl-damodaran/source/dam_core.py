@@ -233,8 +233,15 @@ def erp_monthly(bk):
         hit = [i for i, lab in enumerate(labels) if i and re.search(r"erp|premium", lab, re.I) and re.search(pat, lab.lower()) and i not in measures.values()]
         if hit:
             measures[key] = hit[0]
+    have, gaps = set(r[0][:7] for r in rows), []
+    if rows:
+        y, m = int(rows[0][0][:4]), int(rows[0][0][5:7])
+        while "%04d-%02d" % (y, m) < rows[-1][0][:7]:
+            if "%04d-%02d" % (y, m) not in have:
+                gaps.append("%04d-%02d" % (y, m))
+            y, m = (y + 1, 1) if m == 12 else (y, m + 1)
     return {"cols": [{"key": k, "label": lab or k} for k, lab in zip(keys, ["Start of month"] + labels[1:])], "rows": rows,
-            "measures": measures, "first": rows[0][0] if rows else None, "last": rows[-1][0] if rows else None}
+            "measures": measures, "first": rows[0][0] if rows else None, "last": rows[-1][0] if rows else None, "gaps": gaps}
 
 
 def table_by_year(rows, first=r"^year$", low=1900, high=2200, groups=True):
@@ -337,13 +344,31 @@ def country_premiums(bk):
     h = find_row(rows, r"^country$", 40)
     if h is None:
         raise ValueError("no header row opening with 'Country'")
-    out = []
-    for row in rows[h + 1:]:
+    out, end = [], len(rows)
+    for i in range(h + 1, len(rows)):
+        row = rows[i]
         c = text(row[0]) if row else ""
-        if not c:
+        if not c or re.match(r"frontier markets", c, re.I):
+            end = i
             break
         cells = list(row) + [None] * 9
         out.append([c, text(cells[1]) or None, text(cells[2]) or None] + [tidy(num(cells[j])) for j in range(3, 9)])
+    # Below the rated countries he lists the frontier markets that carry no sovereign rating, under headings of their own.
+    frontier = None
+    f = next((i for i in range(end, min(end + 6, len(rows))) if rows[i] and re.match(r"frontier markets", text(rows[i][0]), re.I)), None)
+    if f is not None:
+        fh = next((i for i in range(f + 1, min(f + 5, len(rows))) if rows[i] and re.match(r"^country$", text(rows[i][0]), re.I)), None)
+        if fh is not None:
+            labels = [text(c) for c in rows[fh][:9]]
+            keep = [j for j, lab in enumerate(labels) if lab]
+            frows = []
+            for row in rows[fh + 1:]:
+                c = text(row[0]) if row else ""
+                if not c:
+                    break
+                frows.append([c] + [(tidy(num(row[j])) if j < len(row) and not isinstance(row[j], str) else (text(row[j]) or None) if j < len(row) else None) for j in keep[1:]])
+            keys = ["country"] + unique_keys([labels[j] for j in keep[1:]])
+            frontier = {"title": text(rows[f][0]), "cols": [{"key": k, "label": labels[j]} for k, j in zip(keys, keep)], "rows": frows}
     notes = []
     for row in rows[:h]:
         nums = [(j, c) for j, c in enumerate(row[1:], 1) if isinstance(c, (int, float)) and not isinstance(c, bool)]
@@ -358,7 +383,7 @@ def country_premiums(bk):
     mult = next((n["value"] for n in notes if re.search(r"multipl|volatil", n["label"] + " " + (n["note"] or ""), re.I) and isinstance(n["value"], float) and 0.5 < n["value"] < 5), None)
     return {"cols": [{"key": k, "label": lab} for k, lab in COUNTRY_COLS], "rows": out, "updated": updated,
             "mature_market_premium": prem[0]["value"] if prem else None, "us_premium": prem[1]["value"] if len(prem) > 1 else None,
-            "equity_to_bond_volatility": mult, "inputs": [n for n in notes if not re.search(r"date of update", n["label"], re.I)]}
+            "equity_to_bond_volatility": mult, "inputs": [n for n in notes if not re.search(r"date of update", n["label"], re.I)], "frontier": frontier}
 
 
 # ------------------------------------------------------------------------------------------ industry averages

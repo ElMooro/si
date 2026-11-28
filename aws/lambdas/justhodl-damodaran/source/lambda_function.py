@@ -203,7 +203,8 @@ def premium_document(raw_of, files, home, now_iso):
     return {"version": VERSION, "generated_at": now_iso, "source": C.SOURCE, "attribution": C.ATTRIBUTION, "caution": C.CAUTION,
             "unit": "fractions as in his files (0.0441 is 4.41%); fields ending _pct are in percent",
             "us": us, "home_page": check,
-            "monthly": {"from": monthly["first"], "to": monthly["last"], "n": len(monthly["rows"]), "cols": monthly["cols"], "rows": monthly["rows"],
+            "monthly": {"from": monthly["first"], "to": monthly["last"], "n": len(monthly["rows"]), "months_his_file_skips": monthly["gaps"],
+                        "cols": monthly["cols"], "rows": monthly["rows"],
                         "measure_columns": {k: keys[j] for k, j in monthly["measures"].items()}},
             "annual": {"from": annual["rows"][0][0] if annual["rows"] else None, "to": annual["rows"][-1][0] if annual["rows"] else None,
                        "n": len(annual["rows"]), "cols": annual["cols"], "rows": annual["rows"]},
@@ -230,7 +231,7 @@ def country_document(raw_of, files, now_iso):
     return {"version": VERSION, "generated_at": now_iso, "source": C.SOURCE, "attribution": C.ATTRIBUTION,
             "unit": "fractions as in his file (0.0423 is 4.23%)", "as_of": t.get("updated"), "file": name,
             "mature_market_premium": t["mature_market_premium"], "us_premium": t["us_premium"], "equity_to_bond_volatility": t["equity_to_bond_volatility"],
-            "inputs": t["inputs"], "n": len(t["rows"]), "cols": t["cols"], "rows": t["rows"],
+            "inputs": t["inputs"], "n": len(t["rows"]), "cols": t["cols"], "rows": t["rows"], "frontier": t.get("frontier"),
             "other_files": sorted(n for n in files if COUNTRY_FILE.match(n) and n != name), "files": [source_of(name, files)]}
 
 

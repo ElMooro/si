@@ -156,14 +156,18 @@ def main():
         for row in rows[:3] + [x for x in rows if x[0] in ("United States", "Germany", "Japan", "China", "India", "Brazil", "Turkey")]:
             say("  %s" % row)
         usa = next((x for x in rows if x[0] == "United States"), None)
-        ck(len(rows) >= 150 and K.get("mature_market_premium") and 0.02 < K["mature_market_premium"] < 0.08 and usa is not None,
+        ck(len(rows) >= 140 and K.get("mature_market_premium") and 0.02 < K["mature_market_premium"] < 0.08 and usa is not None,
            "%s countries, a mature-market premium of %s, and the United States among them (%s)" % (len(rows), pct(K.get("mature_market_premium")), usa[4] if usa else None))
+        fr = K.get("frontier") or {}
+        say("frontier markets: %s | %s rows | headings: %s" % (fr.get("title"), len(fr.get("rows") or []), " | ".join(c["label"] for c in fr.get("cols") or [])))
+        for x in (fr.get("rows") or [])[:3]:
+            say("  %s" % x)
         odd = [x for x in rows if x[4] is not None and not 0.01 < x[4] < 0.6]
         blank = [x[0] for x in rows if x[4] is None]
         for x in odd[:12]:
             say("  outside 1%% to 60%%: %s" % x)
         say("countries with no premium: %s" % (blank or "none"))
-        ck(not odd and len(rows) - len(blank) >= 150, "every country's total premium is a premium (1%% to 60%%): %d outside, %d without one" % (len(odd), len(blank)))
+        ck(not odd and not blank and len(rows) >= 140 and len(fr.get("rows") or []) >= 5, "every country's total premium is a premium (1%% to 60%%): %d outside, %d without one" % (len(odd), len(blank)))
 
         r.section("1c. Industries")
         I = docs.get(D.INDUSTRY_KEY) or {}
