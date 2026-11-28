@@ -21,6 +21,8 @@
   var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   var BENCH = { firms: "int", beta: "num2", pe_trailing: "x1", pe_forward: "x1", pbv: "x1", ps: "x1", ev_sales: "x1", ev_ebitda: "x1", ev_ebit: "x1" };
   var BASE = "/";
+  var LOW = -0.05, HIGH = 0.25;        // a figure outside this is not a premium: it is left out of the picture, named beside it, and kept in the table
+  function onScale(v) { return isNum(v) && v >= LOW && v <= HIGH; }
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function isNum(v) { return typeof v === "number" && isFinite(v); }
@@ -113,7 +115,9 @@
     var mo = P.monthly || {}, keys = (mo.cols || []).map(function (c) { return c.key; }), mc = mo.measure_columns || {};
     return ((P.us || {}).measures || []).map(function (m, i) {
       var j = keys.indexOf(mc[m.key]);
-      return { key: m.key, label: m.label, color: SERIES[i % SERIES.length], pts: j < 0 ? [] : (mo.rows || []).map(function (r) { return [Date.parse(r[0] + "T00:00:00Z"), r[j]]; }).filter(function (p) { return isNum(p[1]); }) };
+      var all = j < 0 ? [] : (mo.rows || []).map(function (r) { return [Date.parse(r[0] + "T00:00:00Z"), r[j], r[0]]; }).filter(function (p) { return isNum(p[1]); });
+      return { key: m.key, label: m.label, color: SERIES[i % SERIES.length], pts: all.filter(function (p) { return onScale(p[1]); }),
+        off: all.filter(function (p) { return !onScale(p[1]); }).map(function (p) { return { when: month(p[2]), value: p[1] }; }) };
     });
   }
   function annualSeries(P) {
@@ -121,7 +125,9 @@
     var want = [["implied_premium_fcfe_with_sustainable_payout", "Cash flows, sustainable payout"], ["implied_erp_fcfe", "Cash flows (dividends and buybacks)"], ["implied_premium_ddm", "Dividends alone"]];
     return want.map(function (w, i) {
       var j = keys.indexOf(w[0]);
-      return { key: w[0], label: w[1], color: SERIES[i], pts: j < 0 ? [] : (an.rows || []).map(function (r) { return [Date.UTC(r[0], 11, 31), r[j]]; }).filter(function (p) { return isNum(p[1]); }) };
+      var all = j < 0 ? [] : (an.rows || []).map(function (r) { return [Date.UTC(r[0], 11, 31), r[j], r[0]]; }).filter(function (p) { return isNum(p[1]); });
+      return { key: w[0], label: w[1], color: SERIES[i], pts: all.filter(function (p) { return onScale(p[1]); }),
+        off: all.filter(function (p) { return !onScale(p[1]); }).map(function (p) { return { when: "end of " + p[2], value: p[1] }; }) };
     }).filter(function (s) { return s.pts.length; });
   }
   /* One axis, thin lines, each line's last value written at its end in ink beside a dot of its colour. */
@@ -134,7 +140,8 @@
     if (hi === lo) hi = lo + 1;
     function X(t) { return L + (w - L - R) * (x1 === x0 ? 0.5 : (t - x0) / (x1 - x0)); }
     function Y(v) { return T + (h - T - B) * (1 - (v * 100 - lo) / (hi - lo)); }
-    var step = hi - lo > 8 ? 2 : 1, g = "";
+    var step = [1, 2, 5, 10].filter(function (k) { return (hi - lo) / k <= 8; })[0] || 10, g = "";
+    lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step;
     for (var v = lo; v <= hi; v += step) g += '<line x1="' + L + '" x2="' + (w - R) + '" y1="' + Y(v / 100).toFixed(1) + '" y2="' + Y(v / 100).toFixed(1) + '" stroke="' + C.grid + '"/><text x="' + (L - 8) + '" y="' + (Y(v / 100) + 4).toFixed(1) + '" text-anchor="end" fill="' + C.dim + '" font-size="11">' + v + "%</text>";
     var y0 = new Date(x0).getUTCFullYear(), y1 = new Date(x1).getUTCFullYear(), every = Math.max(1, Math.ceil((y1 - y0) / Math.max(2, Math.floor((w - L - R) / 70))));
     for (var yr = y0 + 1; yr <= y1; yr++) if ((yr - y0) % every === 0 || every === 1) { var tx = X(Date.UTC(yr, 0, 1)); if (tx > L + 14 && tx < w - R - 8) g += '<text x="' + tx.toFixed(1) + '" y="' + (h - 8) + '" text-anchor="middle" fill="' + C.dim + '" font-size="11">' + yr + "</text>"; }
@@ -160,6 +167,12 @@
       s.pts.forEach(function (p) { if (best === null || Math.abs(p[0] - t) < Math.abs(best[0] - t)) best = p; });
       return best && Math.abs(best[0] - t) < (s.pts.length > 150 ? 100 : 800) * 86400000 ? { label: s.label, color: s.color, t: best[0], v: best[1] } : null;
     }).filter(Boolean);
+  }
+  /* What was left out of the picture, in words: the line, the month, and the figure as his file has it. */
+  function offHtml(series) {
+    var items = [];
+    series.forEach(function (s) { (s.off || []).forEach(function (o) { items.push(esc(s.label) + ", " + esc(o.when) + " (" + (o.value * 100).toFixed(2) + "% in his file)"); }); });
+    return items.length ? "Left out of the picture, as too far off the scale to be a premium: " + items.join("; ") + ". The table below shows his file as it is." : "";
   }
   function legendHtml(series, off) {
     return '<div class="cc-legend">' + series.map(function (s) { return '<button type="button" class="cc-key' + (off[s.key] ? " off" : "") + '" data-cc-line="' + esc(s.key) + '" aria-pressed="' + (off[s.key] ? "false" : "true") + '"><i style="background:' + s.color + '"></i>' + esc(s.label) + "</button>"; }).join("") + "</div>";
@@ -241,6 +254,7 @@
       box.innerHTML = out.svg + '<div class="cc-tip" hidden></div>';
       box._x = out.x;
       put("cc-legend", legendHtml(all, st.off));
+      put("cc-off", offHtml(all));
       put("cc-views", ["monthly", "annual"].map(function (v) { return '<button type="button" class="cc-chip' + (st.view === v ? " on" : "") + '" data-cc-view="' + v + '" aria-pressed="' + (st.view === v) + '">' + (v === "monthly" ? "Each month since " + month((P.monthly || {}).from) : "Each year end since " + ((P.annual || {}).from || "1960")) + "</button>"; }).join(""));
     }
     function hover(ev) {
@@ -362,6 +376,6 @@
   }
 
   return { SERIES: SERIES, esc: esc, pct: pct, raw: raw, day: day, month: month, cell: cell, sorted: sorted, filtered: filtered, csv: csv, shown: shown, gridHtml: gridHtml, tiles: tiles,
-    measuresHtml: measuresHtml, monthlySeries: monthlySeries, annualSeries: annualSeries, chartSvg: chartSvg, nearest: nearest, legendHtml: legendHtml, countryGrid: countryGrid,
+    measuresHtml: measuresHtml, monthlySeries: monthlySeries, annualSeries: annualSeries, chartSvg: chartSvg, nearest: nearest, legendHtml: legendHtml, offHtml: offHtml, onScale: onScale, countryGrid: countryGrid,
     frontierGrid: frontierGrid, benchGrid: benchGrid, tableGrid: tableGrid, returnsGrid: returnsGrid, monthlyGrid: monthlyGrid, annualGrid: annualGrid, workedHtml: workedHtml, sourceHtml: sourceHtml, mount: mount };
 });

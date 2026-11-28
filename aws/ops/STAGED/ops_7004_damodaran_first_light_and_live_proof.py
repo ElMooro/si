@@ -136,6 +136,19 @@ def browse(new_page, P, K, I, E, ck, shots, log, tables):
     n_lines = page.evaluate("() => document.querySelectorAll('#cc-chart path').length")
     legend = page.evaluate("() => Array.from(document.querySelectorAll('#cc-legend .cc-key')).map(k => k.innerText.trim())")
     ck(n_lines == 5 and legend == [m["label"] for m in us["measures"]], "the chart draws the five measures, each named in the key: %s" % legend)
+    # the picture itself: a few ticks over the premiums' own range, and lines that fill it (one cell of his file off by a hundredfold once flattened every line)
+    look = page.evaluate("""() => { const svg = document.querySelector('#cc-chart svg');
+      return { ticks: Array.from(svg.querySelectorAll('text[text-anchor="end"]')).map(t => parseFloat(t.textContent)), heights: Array.from(svg.querySelectorAll('path')).map(p => Math.round(p.getBBox().height)), plot: svg.viewBox.baseVal.height - 38 }; }""")
+    log("  the picture: ticks %s, each line's height %s of a plot %s px tall" % (look["ticks"], look["heights"], look["plot"]))
+    ck(3 <= len(look["ticks"]) <= 9 and max(look["ticks"]) <= 25 and max(look["heights"]) >= 0.4 * look["plot"] and min(look["heights"]) >= 20,
+       "the axis runs from %s%% to %s%% in %d ticks and the lines fill the plot" % (min(look["ticks"]), max(look["ticks"]), len(look["ticks"])))
+    keys0 = [c["key"] for c in P["monthly"]["cols"]]
+    off = [(m["label"], month(x[0]), x[keys0.index(P["monthly"]["measure_columns"][m["key"]])]) for m in us["measures"] for x in P["monthly"]["rows"]
+           if x[keys0.index(P["monthly"]["measure_columns"][m["key"]])] is not None and not -0.05 <= x[keys0.index(P["monthly"]["measure_columns"][m["key"]])] <= 0.25]
+    note = page.locator("#cc-off").inner_text().strip()
+    log("  off the scale in his file: %s | the page says: %s" % (off, note[:300]))
+    ck((not off and note == "") or (bool(off) and all(("%s, %s (%s in his file)" % (lab, when, pct(v))) in note for lab, when, v in off)),
+       "%d figure(s) of his file too far off the scale to be a premium are left out of the picture and named under it" % len(off))
     ends = page.evaluate("() => Array.from(document.querySelectorAll('#cc-chart svg text')).map(t => t.textContent).filter(t => /^\\d+\\.\\d\\d%$/.test(t))")
     ck(sorted(ends) == sorted("%.2f%%" % m["pct"] for m in us["measures"]), "each line ends in its newest value: %s" % ends)
     box = page.locator("#cc-chart").bounding_box()
@@ -404,7 +417,7 @@ def main():
             try:
                 html = fetch("/cost-of-capital.html?probe=%d" % int(time.time()))
                 tag = re.search(rb'<script src="(/jh-cost-of-capital\.js\?v=[0-9A-Za-z._-]+)"', html)
-                ready = {"page": b'id="cc-host"' in html, "script": bool(tag) and b"JHCostOfCapital" in fetch(tag.group(1).decode() + "&probe=%d" % int(time.time())),
+                ready = {"page": b'id="cc-host"' in html, "script": bool(tag) and b"offHtml" in fetch(tag.group(1).decode() + "&probe=%d" % int(time.time())),      # the script that keeps an off-scale figure out of the picture
                          "eva.html": b'id="erp-source"' in fetch("/eva.html?probe=%d" % int(time.time()))}
             except Exception as e:            # noqa: BLE001
                 ready = {"error": str(e)[:80]}

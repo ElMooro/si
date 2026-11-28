@@ -127,6 +127,22 @@ test('the chart draws one line a measure on one axis, and the pointer reads the 
   assert.ok(legend.includes('data-cc-line="cash_yield" aria-pressed="false"') && legend.includes('data-cc-line="sustainable_payout" aria-pressed="true"'));
 });
 
+test('a figure too far off the scale to be a premium is left out of the picture and named, and the axis keeps a few ticks', () => {
+  const Q = JSON.parse(JSON.stringify(P));
+  Q.monthly.rows.splice(2, 0, ['2026-08-01', 7490, 0.0474, 0.0428, 5.94, null], ['2026-09-01', 7686, 0.0475, -0.2, 0.0409, null]);
+  const s = A.monthlySeries(Q);
+  assert.deepEqual(s.map(x => [x.pts.length, x.off]), [[4, [{ when: 'Sep 2026', value: -0.2 }]], [5, [{ when: 'Aug 2026', value: 5.94 }]]], 'the lines keep every other month');
+  assert.equal(A.offHtml(s), 'Left out of the picture, as too far off the scale to be a premium: Sustainable payout, Sep 2026 (-20.00% in his file); Cash returned, trailing 12 months, Aug 2026 (594.00% in his file). The table below shows his file as it is.');
+  assert.equal(A.offHtml(A.monthlySeries(P)), '', 'nothing off the scale: nothing is said');
+  const out = A.chartSvg(s, 900, 320);
+  assert.ok(!out.svg.includes('>594') && out.svg.includes('>7%</text>') && (out.svg.match(/text-anchor="end"/g) || []).length <= 9, 'the axis is the premiums\' own range');
+  assert.ok(text(A.gridHtml(A.monthlyGrid(Q, { sort: null }))).includes('Aug 2026 7,490 4.74% 4.28% 594.00%'), 'the table keeps his figure as it is');
+  assert.ok(A.onScale(0.25) && A.onScale(-0.05) && !A.onScale(0.2501) && !A.onScale(null));
+  const wide = A.chartSvg([{ key: 'a', label: 'a', color: '#3987e5', pts: [[0, 0.01], [86400000 * 400, 0.24]] }], 900, 320).svg;
+  assert.ok((wide.match(/text-anchor="end"/g) || []).length <= 9 && wide.includes('>25%</text>') && wide.includes('>0%</text>'), 'a wide range takes wider steps, never more than nine labels');
+  assert.ok(PAGE.includes('<p class="cc-note" id="cc-off"></p>'));
+});
+
 test('the other lists use the right kind for each column', () => {
   const b = A.benchGrid(I, 'US', { q: '', sort: null });
   assert.deepEqual(b.cols.map(c => c.kind), ['text', 'int', 'num2', 'pct', 'x1']);
